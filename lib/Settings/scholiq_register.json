@@ -3100,7 +3100,7 @@
             },
             "Regulation": {
                 "slug": "regulation",
-                "icon": "GavelOutline",
+                "icon": "Gavel",
                 "version": "0.1.0",
                 "title": "Regulation",
                 "description": "Compliance regulation (AVG, BIO, NIS2, etc.) tracked for mandatory training coverage.",
@@ -5016,7 +5016,7 @@
             },
             "Room": {
                 "slug": "room",
-                "icon": "DoorOutline",
+                "icon": "Door",
                 "version": "0.1.0",
                 "title": "Room",
                 "description": "A bookable physical or virtual teaching resource (classroom, lab, gym, auditorium, or an online meeting space) that a Session can reference structurally instead of only a free-text location string. Plain resource-metadata object — the same shape as Material, not a Session-like state machine (school-structure spec 'Room is persisted as a bookable resource'). timetabling-and-substitution.",
@@ -5685,7 +5685,7 @@
             },
             "Material": {
                 "slug": "material",
-                "icon": "FilePresentationBoxOutline",
+                "icon": "FilePresentationBox",
                 "version": "0.1.0",
                 "title": "Material",
                 "description": "Metadata for a file, presentation, reading, video, or SCORM/cmi5 package attached to a Course, Lesson, or Session. The bytes live in OpenRegister's native file attachments; this schema carries type, license, LOM-style tags, and ordering.",
@@ -11203,7 +11203,7 @@
             },
             "Signature": {
                 "slug": "signature",
-                "icon": "PenOutline",
+                "icon": "Pen",
                 "version": "0.1.0",
                 "title": "Signature",
                 "description": "Co-sign record for a specific LearningPlan version. Append-only — signatures are immutable audit evidence. DigiD/eIDAS handshake is out of scope; this schema only records who signed which version when and with what assurance.",
@@ -14924,7 +14924,7 @@
             },
             "BsaDecision": {
                 "slug": "bsa-decision",
-                "icon": "GavelOutline",
+                "icon": "Gavel",
                 "version": "0.1.0",
                 "title": "BsaDecision",
                 "description": "The year-end bindend studieadvies (BSA) decision, with a full evidence trail (credits, norm, referenced warnings, personal circumstances, right to be heard) that survives an appeal (bezwaar). appendOnly: true per ADR-008; HMAC-signed at the drafted -> decided transition via BsaDecisionGuard, which structurally blocks any negative* decision without at least one issued BsaWarning for the same learner+programme+academicYear.",
@@ -16884,7 +16884,7 @@
                 },
                 "PokSignature": {
                     "slug": "pok-signature",
-                    "icon": "PenOutline",
+                    "icon": "Pen",
                     "version": "0.1.0",
                     "title": "POK Signature",
                     "description": "Co-sign record on a specific Praktijkovereenkomst version. Append-only — signatures are immutable audit evidence. Field-for-field shape parity with the learning-plan Signature schema; a parallel schema (not a widened Signature) because Signature.subjectId is hard-$ref'd to LearningPlan and the fleet's relation-dialect gate bans polymorphic $ref targets.",
@@ -19528,7 +19528,7 @@
             },
             "Leaderboard": {
                 "slug": "leaderboard",
-                "icon": "PodiumGoldOutline",
+                "icon": "PodiumGold",
                 "version": "0.1.0",
                 "title": "Leaderboard",
                 "description": "Opt-in policy row scoping a ranked, peer-visible view of learner points to one Cohort or Course. Default OFF by construction: no Leaderboard row exists until a coordinator/admin explicitly creates and activates one for a specific cohort or course (x-openregister-seed is empty -- a fresh tenant has zero Leaderboard rows). Archiving one instantly turns that leaderboard back off. No ranking data is stored on this object itself -- LeaderboardController computes the ranking live so it always reflects the current per-learner opt-out state (see design.md).",
