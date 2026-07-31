@@ -210,9 +210,15 @@ class Application extends App implements IBootstrap
         // Listens for OR's ObjectCreatedEvent (fires when any OR object is saved); the
         // handler filters to XapiStatement schema objects in the scholiq register.
         // All other Enrolment behaviour is declarative in scholiq_register.json.
-        $context->registerEventListener(
+        //
+        // The register/schema pair the handler's own guard tests is declared at
+        // registration time so an unrelated object write never constructs it.
+        $this->registerFilteredObjectListener(
+            context: $context,
             event: ObjectCreatedEvent::class,
-            listener: XapiCompletionHandler::class
+            listener: XapiCompletionHandler::class,
+            registers: ['scholiq'],
+            schemas: ['xapi-statement']
         );
 
         // ADR-031 legitimate exception: Enrolment.completed → Credential.issue bridge.
@@ -400,9 +406,18 @@ class Application extends App implements IBootstrap
         // classes — handle() branches on instanceof. Mirrors GradeRollupHandler/
         // WerkprocesGradeEmitHandler's cross-schema write-bridge shape; never a
         // TimedJob (ADR-022).
-        $context->registerEventListener(
+        //
+        // Only the ObjectCreatedEvent half is narrowed: handleObjectCreated()
+        // guards on register `scholiq` + schema `werkproces-assessment`. The
+        // ObjectTransitionedEvent half stays a plain registration — it already
+        // only fires on a lifecycle transition, and it reads the event's own
+        // getRegister()/getSchema(), not the written object's.
+        $this->registerFilteredObjectListener(
+            context: $context,
             event: ObjectCreatedEvent::class,
-            listener: CompetencyAttainmentRollupHandler::class
+            listener: CompetencyAttainmentRollupHandler::class,
+            registers: ['scholiq'],
+            schemas: ['werkproces-assessment']
         );
         $context->registerEventListener(
             event: ObjectTransitionedEvent::class,
@@ -415,18 +430,24 @@ class Application extends App implements IBootstrap
         // already consumes — a sibling listener, NOT an edit to that class. No
         // mandatoryTraining or last-lesson gate: every resolvable completed/passed
         // statement produces or updates a LessonCompletion row.
-        $context->registerEventListener(
+        $this->registerFilteredObjectListener(
+            context: $context,
             event: ObjectCreatedEvent::class,
-            listener: LessonProgressHandler::class
+            listener: LessonProgressHandler::class,
+            registers: ['scholiq'],
+            schemas: ['xapi-statement']
         );
 
         // ADR-031 legitimate exception (learning-progress-and-analytics):
         // LessonCompletion creation -> Enrolment.progressPercent recompute bridge.
         // Listens for ObjectCreatedEvent<LessonCompletion>; the DSL has no division
         // operator (verified), mirrors FinalGrade/GradeRollupHandler's shape.
-        $context->registerEventListener(
+        $this->registerFilteredObjectListener(
+            context: $context,
             event: ObjectCreatedEvent::class,
-            listener: EnrolmentProgressRollupHandler::class
+            listener: EnrolmentProgressRollupHandler::class,
+            registers: ['scholiq'],
+            schemas: ['lesson-completion']
         );
 
         // ADR-031 legitimate exception (learning-progress-and-analytics): xAPI
@@ -436,9 +457,12 @@ class Application extends App implements IBootstrap
         // reacts to. Mirrors BsaProgressFlagHandler's combined evaluate-then-flag
         // shape. Rule-based only — no AI/ML inference; never auto-acts against the
         // learner.
-        $context->registerEventListener(
+        $this->registerFilteredObjectListener(
+            context: $context,
             event: ObjectCreatedEvent::class,
-            listener: EngagementSignalHandler::class
+            listener: EngagementSignalHandler::class,
+            registers: ['scholiq'],
+            schemas: ['xapi-statement']
         );
 
         // ADR-031 legitimate exception (adaptive-release-and-prerequisites):
@@ -450,6 +474,13 @@ class Application extends App implements IBootstrap
         // transition into its initial `pending` state — so this is a raw
         // creation-time hook, mirroring decidesk's SubmissionDeadlineListener /
         // larpingapp's CharacterRequirementListener.
+        //
+        // Deliberately NOT narrowed through ObjectEventSubscription: this is a
+        // pre-write veto listener. That mechanism's shared proxy documents
+        // itself as safe for `*ed` post-events only — it reorders subscriptions
+        // into a single dispatcher slot and does not consult
+        // isPropagationStopped() between them, which is precisely the signal
+        // this listener uses to block the create.
         $context->registerEventListener(
             event: ObjectCreatingEvent::class,
             listener: EnrolmentPrerequisiteListener::class
@@ -463,9 +494,12 @@ class Application extends App implements IBootstrap
         // AssessmentScoringHandler already enforces for autoScore. Populated
         // for EVERY attempt (fixed or random-draw) so exam-board review/
         // appeal always has a faithful reconstruction of what the learner saw.
-        $context->registerEventListener(
+        $this->registerFilteredObjectListener(
+            context: $context,
             event: ObjectCreatedEvent::class,
-            listener: AssessmentDrawResolver::class
+            listener: AssessmentDrawResolver::class,
+            registers: ['scholiq'],
+            schemas: ['assessment-result']
         );
 
         // ADR-031 legitimate exception (assessment-item-pools-and-analysis):
@@ -548,9 +582,12 @@ class Application extends App implements IBootstrap
         // sourceKind). Mirrors GradeRollupHandler's FinalGrade roll-up shape;
         // NOT a TimedJob (ADR-022) and NOT a declarative sum aggregation (no
         // sum metric is precedented anywhere in this register).
-        $context->registerEventListener(
+        $this->registerFilteredObjectListener(
+            context: $context,
             event: ObjectCreatedEvent::class,
-            listener: LearnerEngagementRollupHandler::class
+            listener: LearnerEngagementRollupHandler::class,
+            registers: ['scholiq'],
+            schemas: ['point-award']
         );
 
         $this->registerWalletOfferConcludedListener(context: $context);
@@ -661,13 +698,19 @@ class Application extends App implements IBootstrap
         // actual scan algorithm lives in TimetableConflictDetector, not here
         // — it only ever creates TimetableConflict rows, never edits a
         // Session.
-        $context->registerEventListener(
+        $this->registerFilteredObjectListener(
+            context: $context,
             event: ObjectCreatedEvent::class,
-            listener: SessionConflictListener::class
+            listener: SessionConflictListener::class,
+            registers: ['scholiq'],
+            schemas: ['session']
         );
-        $context->registerEventListener(
+        $this->registerFilteredObjectListener(
+            context: $context,
             event: ObjectUpdatedEvent::class,
-            listener: SessionConflictListener::class
+            listener: SessionConflictListener::class,
+            registers: ['scholiq'],
+            schemas: ['session']
         );
 
         // ADR-031 legitimate exception (timetabling-and-substitution):
@@ -683,6 +726,50 @@ class Application extends App implements IBootstrap
         );
 
     }//end register()
+
+    /**
+     * Register an object-lifecycle listener that declares its interest up front.
+     *
+     * OpenRegister's `ObjectEventSubscription` records the register/schema slugs
+     * a listener reacts to and routes dispatches through a single shared proxy,
+     * so an uninterested listener is neither constructed nor invoked. Every
+     * listener wired through here already re-derives the same answer inside its
+     * own `handle()` (`getRegister()`/`getSchema()` guard); declaring it at
+     * registration time moves that decision ahead of construction instead of
+     * after it. When OpenRegister is absent — scholiq carries no hard dependency
+     * on it — this degrades to the plain global registration it replaced, which
+     * is exactly the behaviour every listener had before.
+     *
+     * @param IRegistrationContext $context   Registration context.
+     * @param string               $event     OpenRegister event class name.
+     * @param string               $listener  Listener class name.
+     * @param array<int,string>    $registers Register slugs the listener reacts to.
+     * @param array<int,string>    $schemas   Schema slugs the listener reacts to.
+     *
+     * @return void
+     */
+    private function registerFilteredObjectListener(
+        IRegistrationContext $context,
+        string $event,
+        string $listener,
+        array $registers,
+        array $schemas
+    ): void {
+        $subscription = '\\OCA\\OpenRegister\\Event\\ObjectEventSubscription';
+        if (class_exists($subscription) === true) {
+            $subscription::register(
+                context: $context,
+                event: $event,
+                listener: $listener,
+                registers: $registers,
+                schemas: $schemas
+            );
+            return;
+        }
+
+        $context->registerEventListener(event: $event, listener: $listener);
+
+    }//end registerFilteredObjectListener()
 
     /**
      * Register the openconnector wallet-claim listener.
