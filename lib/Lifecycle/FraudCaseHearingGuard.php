@@ -48,7 +48,6 @@ use Psr\Log\LoggerInterface;
  */
 class FraudCaseHearingGuard
 {
-
     /**
      * Constructor.
      *

@@ -119,7 +119,7 @@ class FraudCaseDecisionHandler implements IEventListener
         $case   = $event->getObject()->jsonSerialize();
         $caseId = $case['id'] ?? ($case['uuid'] ?? '');
 
-        $verdict              = $case['verdict'] ?? '';
+        $verdict               = $case['verdict'] ?? '';
         $contestedGradeEntryId = $case['contestedGradeEntryId'] ?? null;
 
         if ($verdict !== 'fraud-proven') {
@@ -152,7 +152,8 @@ class FraudCaseDecisionHandler implements IEventListener
             // already-notified grade out from under a learner — that needs a manual,
             // out-of-band correction (design.md §4/§8), not automation here.
             $this->logger->warning(
-                '[FraudCaseDecisionHandler] FraudCase {id} contestedGradeEntryId {entryId} is not concept ({lifecycle}) — refusing to auto-invalidate.',
+                '[FraudCaseDecisionHandler] FraudCase {id} contestedGradeEntryId {entryId} is not concept '
+                .'({lifecycle}) — refusing to auto-invalidate.',
                 ['id' => $caseId, 'entryId' => $contestedGradeEntryId, 'lifecycle' => $lifecycle]
             );
             return;
