@@ -18,8 +18,8 @@
 			</div>
 
 			<NcButton
-				type="primary"
-				native-type="submit"
+				variant="primary"
+				type="submit"
 				:disabled="saving">
 				{{ saving ? t('scholiq', 'Saving...') : t('scholiq', 'Save') }}
 			</NcButton>

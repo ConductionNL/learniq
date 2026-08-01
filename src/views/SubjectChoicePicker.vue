@@ -44,7 +44,7 @@
 					label="label"
 					:input-label="t('scholiq', 'Curriculum plan')"
 					:aria-label-combobox="t('scholiq', 'Curriculum plan')"
-					@input="onPlanChange" />
+					@update:modelValue="onPlanChange" />
 			</div>
 
 			<div v-if="selectedPlan" class="subject-choice-picker__field">
@@ -105,7 +105,7 @@
 			</NcNoteCard>
 
 			<NcButton v-if="selectedPlan"
-				type="primary"
+				variant="primary"
 				:disabled="!canSubmit || submitting"
 				@click="submitChoice">
 				{{ submitting ? t('scholiq', 'Submitting…') : t('scholiq', 'Submit subject choice') }}

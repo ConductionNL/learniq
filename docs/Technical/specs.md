@@ -10,7 +10,7 @@ All 6 Wave-2 compliance-audit wedge specs have been applied. Specs live in `open
 
 **Status:** Applied
 
-**Summary:** Foundation spec that ships the standards-compliant Nextcloud app shell before any other capability can land. Delivers: `appinfo/info.xml` with hard dependencies on OpenRegister and OpenConnector; `lib/AppInfo/Application.php` registering all services and listeners; the Vue 2 SPA entry point (`src/main.js`); the admin and user settings panels; `src/manifest.json` adopting CnAppRoot Tier 4 (ADR-024); `l10n/nl.js` and `l10n/en.js` i18n stubs. All downstream specs (`course-management`, `enrolment`, `certification`, `compliance-audit`, `dashboard`) depend on this foundation.
+**Summary:** Foundation spec that ships the standards-compliant Nextcloud app shell before any other capability can land. Delivers: `appinfo/info.xml` with hard dependencies on OpenRegister and OpenConnector; `lib/AppInfo/Application.php` registering all services and listeners; the Vue 3 SPA entry point (`src/main.js`); the admin and user settings panels; `src/manifest.json` adopting CnAppRoot Tier 4 (ADR-024); `l10n/nl.js` and `l10n/en.js` i18n stubs. All downstream specs (`course-management`, `enrolment`, `certification`, `compliance-audit`, `dashboard`) depend on this foundation.
 
 ---
 

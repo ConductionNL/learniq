@@ -386,7 +386,7 @@ class GradeFormulaEvaluator
     /**
      * Compute weighted average and breakdown from entries.
      *
-     * exam-board-case-handling: `sourceKind: exemption` entries are excluded
+     * Exam-board-case-handling: `sourceKind: exemption` entries are excluded
      * from the `$weightedSum`/`$totalWeight` accumulation (both overall and
      * per-period) — their `value` is always null and MUST NOT be cast to
      * `0.0` and summed with full weight (the pre-existing bug this fix
@@ -416,7 +416,7 @@ class GradeFormulaEvaluator
         foreach ($entries as $entry) {
             $cid = $entry['componentId'] ?? '';
 
-            // exam-board-case-handling: an exemption entry has no numeric value —
+            // Exam-board-case-handling: an exemption entry has no numeric value —
             // it satisfies its component without contributing to the weighted sum.
             if (($entry['sourceKind'] ?? null) === 'exemption') {
                 $componentBreakdown[$cid] = ['exempt' => true];
@@ -529,7 +529,7 @@ class GradeFormulaEvaluator
                     return false;
                 }
             }
-        }
+        }//end if
 
         return true;
 

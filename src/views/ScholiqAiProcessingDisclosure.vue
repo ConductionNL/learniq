@@ -54,7 +54,7 @@
 					class="ai-processing-disclosure__rationale"
 					:placeholder="t('scholiq', 'Why this tier was chosen, for the DPO record.')" />
 
-				<NcButton type="primary" :disabled="saving" @click="savePolicy">
+				<NcButton variant="primary" :disabled="saving" @click="savePolicy">
 					{{ saving ? t('scholiq', 'Saving…') : t('scholiq', 'Save policy') }}
 				</NcButton>
 

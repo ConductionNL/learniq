@@ -461,7 +461,7 @@ export default {
 		 * @return {void}
 		 */
 		onBlockFieldInput(block, field, value) {
-			this.$set(block, field, value)
+			block[field] = value
 		},
 
 		/**

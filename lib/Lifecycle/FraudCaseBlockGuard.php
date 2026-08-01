@@ -125,13 +125,14 @@ class FraudCaseBlockGuard
 
         if ($lifecycle === 'decided' && $verdict === 'fraud-proven') {
             $this->logger->info(
-                '[FraudCaseBlockGuard] GradeEntry {id} permanently blocked — linked FraudCase {caseId} decided fraud-proven; the only forward path is invalidate.',
+                '[FraudCaseBlockGuard] GradeEntry {id} permanently blocked — linked FraudCase {caseId} '
+                .'decided fraud-proven; the only forward path is invalidate.',
                 ['id' => $entryId, 'caseId' => $fraudCaseId]
             );
             return false;
         }
 
-        // decided/unfounded or dismissed — publication may proceed.
+        // Decided/unfounded or dismissed — publication may proceed.
         return true;
 
     }//end check()

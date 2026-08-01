@@ -51,7 +51,6 @@ use Psr\Log\LoggerInterface;
  */
 class ExemptionDecisionGuard
 {
-
     /**
      * Constructor.
      *

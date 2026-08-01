@@ -52,7 +52,7 @@
 
 		<div class="scholiq-admin__matrix-actions">
 			<NcButton
-				type="primary"
+				variant="primary"
 				data-testid="admin-action-matrix-save"
 				:disabled="loading || saving"
 				@click="save">

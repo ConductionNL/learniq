@@ -141,8 +141,10 @@ class FraudCaseDecisionGuard
 
         $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
 
-        $transitionContext['payload']['decidedAt']     = $now->format(DateTimeInterface::ATOM);
-        $transitionContext['payload']['appealDeadline'] = $now->modify('+'.self::APPEAL_WINDOW_DAYS.' days')->format(DateTimeInterface::ATOM);
+        $appealDeadline = $now->modify('+'.self::APPEAL_WINDOW_DAYS.' days');
+
+        $transitionContext['payload']['decidedAt']      = $now->format(DateTimeInterface::ATOM);
+        $transitionContext['payload']['appealDeadline'] = $appealDeadline->format(DateTimeInterface::ATOM);
 
         return true;
 

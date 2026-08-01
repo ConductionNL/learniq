@@ -62,10 +62,10 @@ use OCP\EventDispatcher\IEventListener;
 class BsaProgressFlagHandler implements IEventListener
 {
 
-    private const SCHOLIQ_REGISTER      = 'scholiq';
-    private const GRADE_ENTRY_SCHEMA    = 'grade-entry';
-    private const COURSE_SCHEMA         = 'course';
-    private const BSA_TRAJECTORY_SCHEMA = 'bsa-trajectory';
+    private const SCHOLIQ_REGISTER         = 'scholiq';
+    private const GRADE_ENTRY_SCHEMA       = 'grade-entry';
+    private const COURSE_SCHEMA            = 'course';
+    private const BSA_TRAJECTORY_SCHEMA    = 'bsa-trajectory';
     private const BSA_PROGRESS_FLAG_SCHEMA = 'bsa-progress-flag';
 
     /**
@@ -208,8 +208,8 @@ class BsaProgressFlagHandler implements IEventListener
      * Evaluate a single BsaTrajectory for a learner and create a flag if at risk.
      *
      * @param array<string,mixed> $trajectory BsaTrajectory data.
-     * @param string               $learnerId  NC user ID of the learner.
-     * @param string               $tenantId   Tenant ID.
+     * @param string              $learnerId  NC user ID of the learner.
+     * @param string              $tenantId   Tenant ID.
      *
      * @return void
      *
@@ -241,9 +241,9 @@ class BsaProgressFlagHandler implements IEventListener
             return;
         }
 
-        $programmeId    = $trajectory['programmeId'] ?? '';
+        $programmeId     = $trajectory['programmeId'] ?? '';
         $bsaTrajectoryId = $trajectory['id'] ?? ($trajectory['uuid'] ?? '');
-        $academicYear   = $trajectory['academicYear'] ?? '';
+        $academicYear    = $trajectory['academicYear'] ?? '';
 
         if ($programmeId === '' || $bsaTrajectoryId === '') {
             return;
