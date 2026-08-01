@@ -119,7 +119,10 @@ class FraudCaseDecisionHandler implements IEventListener
         $case   = $event->getObject()->jsonSerialize();
         $caseId = $case['id'] ?? ($case['uuid'] ?? '');
 
-        $verdict               = $case['verdict'] ?? '';
+        // NB: deliberately NOT aligned. Generic.Formatting.MultipleStatementAlignment
+        // falls back to requiring exactly one space once a group's longest variable
+        // would push the padding past maxPadding, and $contestedGradeEntryId does.
+        $verdict = $case['verdict'] ?? '';
         $contestedGradeEntryId = $case['contestedGradeEntryId'] ?? null;
 
         if ($verdict !== 'fraud-proven') {
