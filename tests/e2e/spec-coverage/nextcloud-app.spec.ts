@@ -18,6 +18,7 @@
  * REST calls are REST-for-setup only; assertions are DOM-based.
  */
 import { test, expect } from '../fixtures'
+import { apiUrl } from '../base-url'
 
 const SETTINGS_URL = '/apps/scholiq/Settings'
 const API_SETTINGS = '/apps/scholiq/api/settings'
@@ -29,7 +30,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 	// @e2e openspec/specs/nextcloud-app/spec.md#reading-current-settings
 	test('reading-current-settings: GET /api/settings returns register, openregisters, isAdmin', async ({ loggedInPage: page }) => {
 		// Use the REST API as setup-only verification; the UI must also reflect the response.
-		const resp = await page.request.get(`http://localhost:8080${API_SETTINGS}`, {
+		const resp = await page.request.get(apiUrl(API_SETTINGS), {
 			headers: { 'OCS-APIREQUEST': 'true' },
 		})
 		expect(resp.status()).toBe(200)
@@ -52,7 +53,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		// POST a known register slug and check the response echoes it back
 		const requestToken = await page.evaluate(() => (window as any).OC?.requestToken ?? '')
 
-		const resp = await page.request.post(`http://localhost:8080${API_SETTINGS}`, {
+		const resp = await page.request.post(apiUrl(API_SETTINGS), {
 			headers: {
 				'Content-Type': 'application/json',
 				'requesttoken': requestToken,
@@ -195,7 +196,7 @@ test.describe('nextcloud-app — per-user notification preferences', () => {
 	test('preferences-reflect-current-overrides: GET notification-preferences is queryable and per-user dialog wires to it', async ({ loggedInPage: page }) => {
 		// The per-user dialog reads overrides from OpenRegister's endpoint. Confirm the
 		// endpoint is reachable (OR installed) and returns a JSON shape the panel consumes.
-		const resp = await page.request.get(`http://localhost:8080${PREFS_API}`, {
+		const resp = await page.request.get(apiUrl(PREFS_API), {
 			headers: { 'OCS-APIREQUEST': 'true' },
 		})
 		// OpenRegister must answer (200) — the panel depends on this contract.
@@ -216,7 +217,7 @@ test.describe('nextcloud-app — per-user notification preferences', () => {
 
 		// Writing an override goes to OpenRegister's PUT endpoint (no scholiq-local store).
 		// Assert the endpoint accepts the override-write contract the panel uses.
-		const resp = await page.request.put(`http://localhost:8080${PREFS_API}`, {
+		const resp = await page.request.put(apiUrl(PREFS_API), {
 			headers: {
 				'Content-Type': 'application/json',
 				'requesttoken': requestToken,

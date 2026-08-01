@@ -1,13 +1,16 @@
 import { defineConfig, devices } from '@playwright/test'
+import { baseUrl } from './tests/e2e/base-url'
 
 /**
  * Playwright configuration for Scholiq E2E tests.
  *
- * Runs against a local Nextcloud instance (default: http://localhost:8080).
- * Set PW_BASE_URL to override.
+ * The target instance MUST be named explicitly via PLAYWRIGHT_BASE_URL
+ * (or BASE_URL, which the shared CI quality workflow exports, or the
+ * historical PW_BASE_URL). There is deliberately no default — see
+ * tests/e2e/base-url.ts.
  *
- * Run: npx playwright test
- * UI mode: npx playwright test --ui
+ * Run: PLAYWRIGHT_BASE_URL=http://localhost:8088 npx playwright test
+ * UI mode: PLAYWRIGHT_BASE_URL=... npx playwright test --ui
  */
 export default defineConfig({
 	testDir: './tests/e2e',
@@ -17,7 +20,7 @@ export default defineConfig({
 	reporter: [['list'], ['html', { open: 'never', outputFolder: 'test-results/playwright-report' }]],
 	/* Shared settings */
 	use: {
-		baseURL: process.env.PW_BASE_URL ?? 'http://localhost:8080',
+		baseURL: baseUrl(),
 		/* Collect trace on first retry */
 		trace: 'on-first-retry',
 		/* Screenshot on failure */

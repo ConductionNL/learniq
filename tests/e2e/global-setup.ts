@@ -2,6 +2,7 @@ import { chromium } from '@playwright/test'
 import { execFileSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
+import { baseUrl } from './base-url'
 
 /**
  * Run the example-data seed (imports the scholiq register into OpenRegister + creates
@@ -17,7 +18,7 @@ function runSeed(): void {
 		const out = execFileSync('node', [seedScript], {
 			env: {
 				...process.env,
-				OR_BASE_URL: process.env.PW_BASE_URL ?? 'http://localhost:8080',
+				OR_BASE_URL: baseUrl(),
 				OR_USER: process.env.NC_ADMIN_USER ?? 'admin',
 				OR_PASS: process.env.NC_ADMIN_PASS ?? 'admin',
 			},
@@ -41,7 +42,7 @@ function runSeed(): void {
  * All tests share this session — no per-test login overhead.
  */
 async function globalSetup(): Promise<void> {
-	const baseURL = process.env.PW_BASE_URL ?? 'http://localhost:8080'
+	const baseURL = baseUrl()
 	const username = process.env.NC_ADMIN_USER ?? 'admin'
 	const password = process.env.NC_ADMIN_PASS ?? 'admin'
 	const authFile = 'test-results/.auth/admin.json'
