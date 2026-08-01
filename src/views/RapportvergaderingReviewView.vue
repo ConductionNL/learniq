@@ -36,7 +36,7 @@
 				<NcNoteCard type="info">
 					{{ t('scholiq', 'Report cards have not been composed yet for this period.') }}
 				</NcNoteCard>
-				<NcButton type="primary" @click="showComposeModal = true">
+				<NcButton variant="primary" @click="showComposeModal = true">
 					{{ t('scholiq', 'Compose report cards…') }}
 				</NcButton>
 			</div>
@@ -93,25 +93,25 @@
 								<td>
 									<div class="rapportvergadering-review__actions">
 										<NcButton v-if="card.lifecycle === 'draft'"
-											type="tertiary"
+											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
 											@click="transition(card, 'rapportvergadering-review')">
 											{{ t('scholiq', 'Pull into review') }}
 										</NcButton>
 										<NcButton v-if="card.lifecycle === 'rapportvergadering-review'"
-											type="tertiary"
+											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
 											@click="transition(card, 'finalised')">
 											{{ t('scholiq', 'Finalise') }}
 										</NcButton>
 										<NcButton v-if="card.lifecycle === 'finalised'"
-											type="tertiary"
+											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
 											@click="transition(card, 'rapportvergadering-review')">
 											{{ t('scholiq', 'Reopen') }}
 										</NcButton>
 										<NcButton v-if="card.lifecycle === 'finalised'"
-											type="primary"
+											variant="primary"
 											:disabled="!!transitioning[cardId(card)]"
 											@click="transition(card, 'published-to-parents')">
 											{{ t('scholiq', 'Publish to parents') }}
@@ -367,7 +367,7 @@ export default {
 				await axios.put(url, card)
 			} catch (e) {
 				console.error('[RapportvergaderingReviewView] saveCard failed', e)
-				this.$set(this.cardErrors, id, t('scholiq', 'Could not save changes. Please try again.'))
+				this.cardErrors[id] = t('scholiq', 'Could not save changes. Please try again.')
 			}
 		},
 
@@ -385,17 +385,17 @@ export default {
 			const id = this.cardId(card)
 			if (!id) return
 
-			this.$set(this.transitioning, id, true)
-			this.$set(this.cardErrors, id, '')
+			this.transitioning[id] = true
+			this.cardErrors[id] = ''
 			try {
 				const url = generateUrl('/apps/openregister/api/objects/scholiq/report-card/{id}', { id })
 				await axios.put(url, { lifecycle: toLifecycle })
 				await this.loadCards()
 			} catch (e) {
 				console.error('[RapportvergaderingReviewView] transition failed', e)
-				this.$set(this.cardErrors, id, t('scholiq', 'This action was blocked. Please check the requirements and try again.'))
+				this.cardErrors[id] = t('scholiq', 'This action was blocked. Please check the requirements and try again.')
 			} finally {
-				this.$set(this.transitioning, id, false)
+				this.transitioning[id] = false
 			}
 		},
 	},

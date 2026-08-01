@@ -42,7 +42,7 @@
 					label="label"
 					:input-label="t('scholiq', 'Course')"
 					:aria-label-combobox="t('scholiq', 'Course')"
-					@input="onCourseChange" />
+					@update:modelValue="onCourseChange" />
 			</div>
 
 			<div v-if="selectedCourseId" class="course-quality-report__field">
@@ -54,7 +54,7 @@
 					label="label"
 					:input-label="t('scholiq', 'Teacher')"
 					:aria-label-combobox="t('scholiq', 'Teacher')"
-					@input="onTeacherChange" />
+					@update:modelValue="onTeacherChange" />
 			</div>
 
 			<NcLoadingIcon v-if="loadingReport" :size="32" />
@@ -111,7 +111,7 @@
 						</p>
 					</section>
 
-					<NcButton type="secondary" @click="draftImprovementAction">
+					<NcButton variant="secondary" @click="draftImprovementAction">
 						{{ t('scholiq', 'Draft improvement action') }}
 					</NcButton>
 				</template>

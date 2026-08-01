@@ -59,7 +59,7 @@
 			<NcButton @click="$emit('close')">
 				{{ t('scholiq', 'Cancel') }}
 			</NcButton>
-			<NcButton type="primary"
+			<NcButton variant="primary"
 				:disabled="!period || !isLocked || composing"
 				@click="compose">
 				{{ composing ? t('scholiq', 'Composing…') : t('scholiq', 'Compose report cards') }}

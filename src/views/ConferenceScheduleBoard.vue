@@ -35,9 +35,9 @@
 				:loading="loadingRounds"
 				:input-label="t('scholiq', 'Conference round')"
 				:aria-label-combobox="t('scholiq', 'Conference round')"
-				@input="loadWaitlisted" />
+				@update:modelValue="loadWaitlisted" />
 
-			<NcButton type="secondary"
+			<NcButton variant="secondary"
 				:disabled="!selectedRoundId || regenerating"
 				@click="regenerate">
 				{{ regenerating ? t('scholiq', 'Regenerating…') : t('scholiq', 'Regenerate schedule') }}
@@ -85,7 +85,7 @@
 							<input v-model="manualForm[signup.id].endsAt"
 								type="datetime-local"
 								:aria-label="t('scholiq', 'End time')">
-							<NcButton type="tertiary"
+							<NcButton variant="tertiary"
 								:disabled="!manualForm[signup.id].teacherId || !manualForm[signup.id].startsAt || !manualForm[signup.id].endsAt"
 								@click="createManualSlot(signup)">
 								{{ t('scholiq', 'Create slot') }}

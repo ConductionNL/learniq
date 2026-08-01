@@ -32,7 +32,7 @@
 				<span class="icon-info" />
 			</template>
 			<template #action>
-				<NcButton type="primary" @click="openFeedbackForm">
+				<NcButton variant="primary" @click="openFeedbackForm">
 					{{ t('scholiq', 'Report an accessibility problem') }}
 				</NcButton>
 			</template>
@@ -41,7 +41,7 @@
 		<template v-else>
 			<div class="accessibility-statement__header">
 				<h2>{{ t('scholiq', 'Accessibility statement') }}</h2>
-				<NcButton type="primary" @click="openFeedbackForm">
+				<NcButton variant="primary" @click="openFeedbackForm">
 					{{ t('scholiq', 'Report an accessibility problem') }}
 				</NcButton>
 			</div>

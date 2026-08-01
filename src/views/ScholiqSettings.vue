@@ -31,7 +31,7 @@
 					:placeholder="t('scholiq', 'Select a register…')"
 					:aria-label-combobox="t('scholiq', 'Default register')"
 					label="title"
-					@input="saveDefaultRegister" />
+					@update:modelValue="saveDefaultRegister" />
 			</div>
 		</NcSettingsSection>
 
@@ -40,7 +40,7 @@
 			:name="t('scholiq', 'AI Features')"
 			:description="t('scholiq', 'EU AI Act high-risk AI-feature governance (the feature register and DPO acknowledgement) is centralised in the Hermiq app, the fleet-wide home for AI-feature governance. Scholiq\'s AI features are declared and acknowledged there.')">
 			<div v-if="hermiqInstalled" class="scholiq-settings__field">
-				<NcButton type="secondary" @click="openHermiqAiFeatures">
+				<NcButton variant="secondary" @click="openHermiqAiFeatures">
 					<template #icon>
 						<OpenInNew :size="20" />
 					</template>
@@ -59,7 +59,7 @@
 			<div class="scholiq-settings__field">
 				<NcButton
 					:disabled="signingKeyLoading"
-					type="secondary"
+					variant="secondary"
 					@click="rotateSigningKey">
 					<template #icon>
 						<NcLoadingIcon v-if="signingKeyLoading" :size="20" />
@@ -88,7 +88,7 @@
 					<NcNoteCard type="info">
 						{{ t('scholiq', 'The verwerkingsverantwoordelijke (controller) identity for the Art. 30 register is maintained centrally in OpenRegister. The school is the controller; configure it once in OpenRegister so it appears on every export and accountability report.') }}
 					</NcNoteCard>
-					<NcButton type="secondary" @click="openProcessingAccountability">
+					<NcButton variant="secondary" @click="openProcessingAccountability">
 						<template #icon>
 							<OpenInNew :size="20" />
 						</template>
@@ -122,13 +122,13 @@
 						{{ t('scholiq', 'The per-access processing log and the per-subject (betrokkene) inzage extract are produced by OpenRegister, scoped to Scholiq\'s register, and never contain literal personal data beyond what the data subject is entitled to.') }}
 					</div>
 					<div class="scholiq-settings__activity-actions">
-						<NcButton type="primary" @click="openProcessingLog">
+						<NcButton variant="primary" @click="openProcessingLog">
 							<template #icon>
 								<FileExportOutline :size="20" />
 							</template>
 							{{ t('scholiq', 'Open processing log in OpenRegister') }}
 						</NcButton>
-						<NcButton type="secondary" @click="openSubjectExtract">
+						<NcButton variant="secondary" @click="openSubjectExtract">
 							<template #icon>
 								<AccountSearchOutline :size="20" />
 							</template>

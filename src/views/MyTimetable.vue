@@ -22,26 +22,26 @@
 				{{ t('scholiq', 'My timetable') }}
 			</h2>
 			<div class="my-timetable__controls">
-				<NcButton type="tertiary"
+				<NcButton variant="tertiary"
 					:aria-label="t('scholiq', 'Previous week')"
 					:disabled="loading"
 					@click="shiftWeek(-1)">
 					‹
 				</NcButton>
 				<span class="my-timetable__range">{{ rangeLabel }}</span>
-				<NcButton type="tertiary"
+				<NcButton variant="tertiary"
 					:aria-label="t('scholiq', 'Next week')"
 					:disabled="loading"
 					@click="shiftWeek(1)">
 					›
 				</NcButton>
 				<div class="my-timetable__toggle" role="group" :aria-label="t('scholiq', 'View mode')">
-					<NcButton :type="mode === 'today' ? 'primary' : 'secondary'"
+					<NcButton :variant="mode === 'today' ? 'primary' : 'secondary'"
 						:disabled="loading"
 						@click="setMode('today')">
 						{{ t('scholiq', 'Today') }}
 					</NcButton>
-					<NcButton :type="mode === 'week' ? 'primary' : 'secondary'"
+					<NcButton :variant="mode === 'week' ? 'primary' : 'secondary'"
 						:disabled="loading"
 						@click="setMode('week')">
 						{{ t('scholiq', 'Week') }}
@@ -117,7 +117,7 @@
 							</span>
 						</div>
 						<NcButton class="my-timetable__session-manage"
-							type="tertiary"
+							variant="tertiary"
 							:aria-label="t('scholiq', 'Manage this session')"
 							@click="manage(session)">
 							{{ t('scholiq', 'Manage') }}

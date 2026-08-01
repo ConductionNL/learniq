@@ -42,7 +42,7 @@
 					label="label"
 					:input-label="t('scholiq', 'Conference round')"
 					:aria-label-combobox="t('scholiq', 'Conference round')"
-					@input="onRoundChange" />
+					@update:modelValue="onRoundChange" />
 			</div>
 
 			<div v-if="selectedRound" class="book-conference-slots__field">
@@ -84,7 +84,7 @@
 				{{ t('scholiq', 'Your request has been submitted. You will be notified once the schedule is generated.') }}
 			</NcNoteCard>
 
-			<NcButton type="primary"
+			<NcButton variant="primary"
 				:disabled="!canSubmit || submitting"
 				@click="submitSignup">
 				{{ submitting ? t('scholiq', 'Submitting…') : t('scholiq', 'Submit request') }}

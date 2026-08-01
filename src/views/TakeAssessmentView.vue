@@ -334,7 +334,7 @@ export default {
 	 * @return {void}
 	 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
 	 */
-	beforeDestroy() {
+	beforeUnmount() {
 		this.clearTimer()
 
 		if (!this.nativeTestModeActive) return

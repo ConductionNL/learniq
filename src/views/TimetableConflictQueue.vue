@@ -67,7 +67,7 @@
 							{{ t('scholiq', 'Acknowledge') }}
 						</NcButton>
 					</template>
-					<NcButton type="primary" :disabled="savingId === conflict.id" @click="transition(conflict, 'resolved')">
+					<NcButton variant="primary" :disabled="savingId === conflict.id" @click="transition(conflict, 'resolved')">
 						{{ t('scholiq', 'Resolve') }}
 					</NcButton>
 				</div>

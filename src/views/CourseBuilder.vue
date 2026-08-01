@@ -657,7 +657,7 @@ export default {
 					tenant_id: module.tenant_id,
 				})
 				module.lessons.push(created)
-				this.$set(this.newLessonNames, module.id, '')
+				this.newLessonNames[module.id] = ''
 			} catch (err) {
 				this.error = this.t('scholiq', 'Failed to add lesson. Please try again.')
 				// eslint-disable-next-line no-console

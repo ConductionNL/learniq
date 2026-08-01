@@ -14,7 +14,7 @@
 		:widgets="widgets"
 		:layout="layout">
 		<template #header-actions>
-			<NcButton type="secondary" @click="viewInLaunchPad">
+			<NcButton variant="secondary" @click="viewInLaunchPad">
 				{{ t('scholiq', 'View in LaunchPad') }}
 			</NcButton>
 		</template>

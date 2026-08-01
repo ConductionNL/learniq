@@ -91,7 +91,7 @@
 					:aria-label-combobox="t('scholiq', 'Payment provider')" />
 
 				<NcButton
-					type="primary"
+					variant="primary"
 					:disabled="paying"
 					@click="payNow">
 					{{ paying ? t('scholiq', 'Starting payment…') : t('scholiq', 'Pay now') }}
@@ -123,7 +123,7 @@
 			<section v-if="checkoutReference" class="order-payment-panel__checkout">
 				<p>{{ t('scholiq', 'Continue to complete your payment:') }}</p>
 				<NcButton
-					type="primary"
+					variant="primary"
 					:href="checkoutReference"
 					target="_blank"
 					rel="noopener">
