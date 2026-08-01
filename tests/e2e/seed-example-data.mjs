@@ -7,9 +7,13 @@
 // then create a small coherent example dataset so the index pages + dashboard KPI
 // widgets have content. Idempotent: re-running skips objects that already exist.
 //
-// Run:  node tests/e2e/seed-example-data.mjs
-// Env:  OR_BASE_URL (default http://localhost:8080)
+// Run:  OR_BASE_URL=http://localhost:8088 node tests/e2e/seed-example-data.mjs
+// Env:  OR_BASE_URL (REQUIRED — no default; PLAYWRIGHT_BASE_URL / BASE_URL also accepted)
 //       OR_USER / OR_PASS (default admin / admin)
+//
+// ⚠️ There is deliberately NO `localhost:8080` default. This script CREATES a
+// register and a full example dataset; the old default pointed it at the shared
+// developer container, which bind-mounts real host checkouts.
 //
 // Exit code: 0 if the register imported essentially completely (≥30 of 35 schemas)
 //              and example objects were seeded — the e2e specs then run their
@@ -30,7 +34,16 @@ import { dirname, join } from 'node:path'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = join(__dirname, '..', '..')
 
-const BASE = (process.env.OR_BASE_URL ?? 'http://localhost:8080').replace(/\/$/, '')
+const RAW_BASE = process.env.OR_BASE_URL
+	?? process.env.PLAYWRIGHT_BASE_URL
+	?? process.env.BASE_URL
+	?? process.env.PW_BASE_URL
+if (!RAW_BASE) {
+	console.error('[seed] OR_BASE_URL (or PLAYWRIGHT_BASE_URL / BASE_URL) must be set — '
+		+ 'refusing to fall back to the shared developer instance on :8080.')
+	process.exit(1)
+}
+const BASE = RAW_BASE.replace(/\/$/, '')
 const USER = process.env.OR_USER ?? 'admin'
 const PASS = process.env.OR_PASS ?? 'admin'
 const AUTH = 'Basic ' + Buffer.from(`${USER}:${PASS}`).toString('base64')
