@@ -65,6 +65,7 @@ use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -105,13 +106,15 @@ class CompetencyAttainmentRollupHandler implements IEventListener
     /**
      * Constructor.
      *
-     * @param ObjectService   $objectService OR object access service.
-     * @param LoggerInterface $logger        PSR logger.
+     * @param ObjectService          $objectService  OR object access service.
+     * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+     * @param LoggerInterface        $logger         PSR logger.
      *
      * @return void
      */
     public function __construct(
         private readonly ObjectService $objectService,
+        private readonly ListenerSchemaResolver $schemaResolver,
         private readonly LoggerInterface $logger,
     ) {
     }//end __construct()
@@ -151,8 +154,8 @@ class CompetencyAttainmentRollupHandler implements IEventListener
     {
         $entity = $event->getObject();
 
-        if ($entity->getRegister() !== self::SCHOLIQ_REGISTER
-            || $entity->getSchema() !== self::WERKPROCES_SCHEMA
+        if ($this->schemaResolver->registerSlug(entity: $entity) !== self::SCHOLIQ_REGISTER
+            || $this->schemaResolver->schemaSlug(entity: $entity) !== self::WERKPROCES_SCHEMA
         ) {
             return;
         }

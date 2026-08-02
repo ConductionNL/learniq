@@ -48,6 +48,7 @@ namespace OCA\Scholiq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -87,14 +88,16 @@ class LessonProgressHandler implements IEventListener
     /**
      * Constructor.
      *
-     * @param ObjectService   $objectService OR object service used to query/write objects.
-     * @param ITimeFactory    $timeFactory   NC time source (injectable "now" for tests).
-     * @param LoggerInterface $logger        PSR logger.
+     * @param ObjectService          $objectService  OR object service used to query/write objects.
+     * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+     * @param ITimeFactory           $timeFactory    NC time source (injectable "now" for tests).
+     * @param LoggerInterface        $logger         PSR logger.
      *
      * @return void
      */
     public function __construct(
         private readonly ObjectService $objectService,
+        private readonly ListenerSchemaResolver $schemaResolver,
         private readonly ITimeFactory $timeFactory,
         private readonly LoggerInterface $logger,
     ) {
@@ -118,8 +121,8 @@ class LessonProgressHandler implements IEventListener
         $objectEntity = $event->getObject();
 
         // Filter to XapiStatement objects in the scholiq register only.
-        if ($objectEntity->getRegister() !== self::SCHOLIQ_REGISTER
-            || $objectEntity->getSchema() !== self::XAPI_SCHEMA
+        if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
+            || $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::XAPI_SCHEMA
         ) {
             return;
         }

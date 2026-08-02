@@ -36,6 +36,7 @@ namespace OCA\Scholiq\Listener;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Progress\EnrolmentProgressEvaluator;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
@@ -54,14 +55,16 @@ class EnrolmentProgressRollupHandler implements IEventListener
     /**
      * Constructor.
      *
-     * @param ObjectService              $objectService OR object access.
-     * @param EnrolmentProgressEvaluator $evaluator     progressPercent calculation engine.
+     * @param ObjectService              $objectService  OR object access.
+     * @param EnrolmentProgressEvaluator $evaluator      progressPercent calculation engine.
+     * @param ListenerSchemaResolver     $schemaResolver Resolves the entity's register/schema ids to slugs.
      *
      * @return void
      */
     public function __construct(
         private readonly ObjectService $objectService,
         private readonly EnrolmentProgressEvaluator $evaluator,
+        private readonly ListenerSchemaResolver $schemaResolver,
     ) {
     }//end __construct()
 
@@ -82,8 +85,8 @@ class EnrolmentProgressRollupHandler implements IEventListener
 
         $objectEntity = $event->getObject();
 
-        if ($objectEntity->getRegister() !== self::SCHOLIQ_REGISTER
-            || $objectEntity->getSchema() !== self::LESSON_COMPLETION_SCHEMA
+        if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
+            || $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::LESSON_COMPLETION_SCHEMA
         ) {
             return;
         }
