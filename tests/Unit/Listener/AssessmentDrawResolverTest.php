@@ -32,7 +32,9 @@ use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\AssessmentDrawResolver;
 use OCA\Scholiq\Service\ItemPoolFilter;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCA\Scholiq\Service\QtiChoiceOrderResolver;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -57,6 +59,13 @@ class AssessmentDrawResolverTest extends TestCase
     private array $savedObjects = [];
 
     /**
+     * Resolver turning the entity's numeric register/schema ids into slugs.
+     *
+     * @var ListenerSchemaResolver&MockObject
+     */
+    private ListenerSchemaResolver&MockObject $schemaResolver;
+
+    /**
      * Reset fixtures before each test.
      *
      * @return void
@@ -64,10 +73,26 @@ class AssessmentDrawResolverTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->db           = [];
-        $this->savedObjects = [];
+        $this->db             = [];
+        $this->savedObjects   = [];
+        $this->schemaResolver = $this->createMock(ListenerSchemaResolver::class);
 
     }//end setUp()
+
+    /**
+     * Stub the resolver the way OpenRegister behaves in production: the entity
+     * carries numeric ids and the resolver turns them into slugs.
+     *
+     * @param string $schemaSlug The slug the resolver resolves the schema id to.
+     *
+     * @return void
+     */
+    private function stubResolver(string $schemaSlug): void
+    {
+        $this->schemaResolver->method('registerSlug')->willReturn('scholiq');
+        $this->schemaResolver->method('schemaSlug')->willReturn($schemaSlug);
+
+    }//end stubResolver()
 
     /**
      * Build a resolver backed by an ObjectService stub over $this->db.
@@ -118,6 +143,7 @@ class AssessmentDrawResolverTest extends TestCase
             $objectService,
             new QtiChoiceOrderResolver(),
             new ItemPoolFilter(),
+            $this->schemaResolver,
             $this->createMock(LoggerInterface::class)
         );
 
@@ -148,8 +174,9 @@ class AssessmentDrawResolverTest extends TestCase
     {
         $objectEntity = $this->createMock(ObjectEntity::class);
         $objectEntity->method('jsonSerialize')->willReturn($data);
-        $objectEntity->method('getRegister')->willReturn('scholiq');
-        $objectEntity->method('getSchema')->willReturn('assessment-result');
+        $objectEntity->method('getRegister')->willReturn('9');
+        $objectEntity->method('getSchema')->willReturn('1280');
+        $this->stubResolver('assessment-result');
 
         $event = $this->createMock(ObjectCreatedEvent::class);
         $event->method('getObject')->willReturn($objectEntity);
@@ -575,8 +602,9 @@ class AssessmentDrawResolverTest extends TestCase
 
         $objectEntity = $this->createMock(ObjectEntity::class);
         $objectEntity->method('jsonSerialize')->willReturn(['id' => 'x']);
-        $objectEntity->method('getRegister')->willReturn('scholiq');
-        $objectEntity->method('getSchema')->willReturn('grade-entry');
+        $objectEntity->method('getRegister')->willReturn('9');
+        $objectEntity->method('getSchema')->willReturn('1281');
+        $this->stubResolver('grade-entry');
 
         $event = $this->createMock(ObjectCreatedEvent::class);
         $event->method('getObject')->willReturn($objectEntity);

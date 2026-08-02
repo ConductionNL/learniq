@@ -59,6 +59,7 @@ namespace OCA\Scholiq\Listener;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Service\ItemPoolFilter;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCA\Scholiq\Service\QtiChoiceOrderResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -89,6 +90,7 @@ class AssessmentDrawResolver implements IEventListener
      * @param ObjectService          $objectService  OR object service for Assessment/Item lookups and the follow-up save.
      * @param QtiChoiceOrderResolver $choiceResolver QTI simpleChoice parsing/permutation collaborator.
      * @param ItemPoolFilter         $poolFilter     Pool filter/variant-grouping collaborator.
+     * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
      * @param LoggerInterface        $logger         PSR logger.
      *
      * @return void
@@ -97,6 +99,7 @@ class AssessmentDrawResolver implements IEventListener
         private readonly ObjectService $objectService,
         private readonly QtiChoiceOrderResolver $choiceResolver,
         private readonly ItemPoolFilter $poolFilter,
+        private readonly ListenerSchemaResolver $schemaResolver,
         private readonly LoggerInterface $logger,
     ) {
     }//end __construct()
@@ -118,8 +121,8 @@ class AssessmentDrawResolver implements IEventListener
 
         $objectEntity = $event->getObject();
 
-        if ($objectEntity->getRegister() !== self::SCHOLIQ_REGISTER
-            || $objectEntity->getSchema() !== self::ASSESSMENT_RESULT_SCHEMA
+        if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
+            || $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::ASSESSMENT_RESULT_SCHEMA
         ) {
             return;
         }

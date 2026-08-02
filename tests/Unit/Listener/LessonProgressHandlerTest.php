@@ -29,7 +29,9 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\LessonProgressHandler;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -54,6 +56,13 @@ class LessonProgressHandlerTest extends TestCase
     private array $savedObjects = [];
 
     /**
+     * Resolver turning the entity's numeric register/schema ids into slugs.
+     *
+     * @var ListenerSchemaResolver&MockObject
+     */
+    private ListenerSchemaResolver&MockObject $schemaResolver;
+
+    /**
      * Reset fixtures before each test.
      *
      * @return void
@@ -61,10 +70,26 @@ class LessonProgressHandlerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->db           = [];
-        $this->savedObjects = [];
+        $this->db             = [];
+        $this->savedObjects   = [];
+        $this->schemaResolver = $this->createMock(ListenerSchemaResolver::class);
 
     }//end setUp()
+
+    /**
+     * Stub the resolver the way OpenRegister behaves in production: the entity
+     * carries numeric ids and the resolver turns them into slugs.
+     *
+     * @param string $schemaSlug The slug the resolver resolves the schema id to.
+     *
+     * @return void
+     */
+    private function stubResolver(string $schemaSlug): void
+    {
+        $this->schemaResolver->method('registerSlug')->willReturn('scholiq');
+        $this->schemaResolver->method('schemaSlug')->willReturn($schemaSlug);
+
+    }//end stubResolver()
 
     /**
      * Build a handler backed by an ObjectService stub over $this->db.
@@ -135,7 +160,12 @@ class LessonProgressHandlerTest extends TestCase
         $timeFactory = $this->createMock(ITimeFactory::class);
         $timeFactory->method('getDateTime')->willReturn($now);
 
-        return new LessonProgressHandler($objectService, $timeFactory, $this->createMock(LoggerInterface::class));
+        return new LessonProgressHandler(
+            $objectService,
+            $this->schemaResolver,
+            $timeFactory,
+            $this->createMock(LoggerInterface::class)
+        );
 
     }//end makeHandler()
 
@@ -164,8 +194,9 @@ class LessonProgressHandlerTest extends TestCase
     {
         $objectEntity = $this->createMock(ObjectEntity::class);
         $objectEntity->method('jsonSerialize')->willReturn($data);
-        $objectEntity->method('getRegister')->willReturn('scholiq');
-        $objectEntity->method('getSchema')->willReturn('xapi-statement');
+        $objectEntity->method('getRegister')->willReturn('9');
+        $objectEntity->method('getSchema')->willReturn('1280');
+        $this->stubResolver('xapi-statement');
 
         $event = $this->createMock(ObjectCreatedEvent::class);
         $event->method('getObject')->willReturn($objectEntity);
@@ -403,8 +434,9 @@ class LessonProgressHandlerTest extends TestCase
 
         $objectEntity = $this->createMock(ObjectEntity::class);
         $objectEntity->method('jsonSerialize')->willReturn(['id' => 'x']);
-        $objectEntity->method('getRegister')->willReturn('scholiq');
-        $objectEntity->method('getSchema')->willReturn('grade-entry');
+        $objectEntity->method('getRegister')->willReturn('9');
+        $objectEntity->method('getSchema')->willReturn('1281');
+        $this->stubResolver('grade-entry');
 
         $event = $this->createMock(ObjectCreatedEvent::class);
         $event->method('getObject')->willReturn($objectEntity);

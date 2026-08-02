@@ -64,6 +64,7 @@ use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Analytics\EngagementScoreEvaluator;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -94,15 +95,17 @@ class EngagementSignalHandler implements IEventListener
     /**
      * Constructor.
      *
-     * @param ObjectService            $objectService OR object access.
-     * @param EngagementScoreEvaluator $evaluator     Engagement calculation engine.
-     * @param ITimeFactory             $timeFactory   NC time source (injectable "now" for tests).
+     * @param ObjectService            $objectService  OR object access.
+     * @param EngagementScoreEvaluator $evaluator      Engagement calculation engine.
+     * @param ListenerSchemaResolver   $schemaResolver Resolves the entity's register/schema ids to slugs.
+     * @param ITimeFactory             $timeFactory    NC time source (injectable "now" for tests).
      *
      * @return void
      */
     public function __construct(
         private readonly ObjectService $objectService,
         private readonly EngagementScoreEvaluator $evaluator,
+        private readonly ListenerSchemaResolver $schemaResolver,
         private readonly ITimeFactory $timeFactory,
     ) {
     }//end __construct()
@@ -124,8 +127,8 @@ class EngagementSignalHandler implements IEventListener
 
         $objectEntity = $event->getObject();
 
-        if ($objectEntity->getRegister() !== self::SCHOLIQ_REGISTER
-            || $objectEntity->getSchema() !== self::XAPI_SCHEMA
+        if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
+            || $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::XAPI_SCHEMA
         ) {
             return;
         }

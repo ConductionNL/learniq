@@ -30,7 +30,9 @@ use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Engagement\PointEngagementEvaluator;
 use OCA\Scholiq\Listener\LearnerEngagementRollupHandler;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -74,6 +76,13 @@ class LearnerEngagementRollupHandlerTest extends TestCase
     ];
 
     /**
+     * Resolver turning the entity's numeric register/schema ids into slugs.
+     *
+     * @var ListenerSchemaResolver&MockObject
+     */
+    private ListenerSchemaResolver&MockObject $schemaResolver;
+
+    /**
      * Reset the capture buffers before each test.
      *
      * @return void
@@ -81,6 +90,7 @@ class LearnerEngagementRollupHandlerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->schemaResolver     = $this->createMock(ListenerSchemaResolver::class);
         $this->savedObjects       = [];
         $this->existingEngagement = null;
         $this->streakRules        = [];
@@ -93,6 +103,21 @@ class LearnerEngagementRollupHandlerTest extends TestCase
         ];
 
     }//end setUp()
+
+    /**
+     * Stub the resolver the way OpenRegister behaves in production: the entity
+     * carries numeric ids and the resolver turns them into slugs.
+     *
+     * @param string $schemaSlug The slug the resolver resolves the schema id to.
+     *
+     * @return void
+     */
+    private function stubResolver(string $schemaSlug): void
+    {
+        $this->schemaResolver->method('registerSlug')->willReturn('scholiq');
+        $this->schemaResolver->method('schemaSlug')->willReturn($schemaSlug);
+
+    }//end stubResolver()
 
     /**
      * Build a handler with mocked collaborators.
@@ -132,7 +157,7 @@ class LearnerEngagementRollupHandlerTest extends TestCase
         $timeFactory = $this->createMock(ITimeFactory::class);
         $timeFactory->method('getDateTime')->willReturn($now);
 
-        return new LearnerEngagementRollupHandler($objectService, $evaluator, $timeFactory);
+        return new LearnerEngagementRollupHandler($objectService, $evaluator, $this->schemaResolver, $timeFactory);
 
     }//end makeHandler()
 
@@ -147,8 +172,9 @@ class LearnerEngagementRollupHandlerTest extends TestCase
     {
         $objectEntity = $this->createMock(ObjectEntity::class);
         $objectEntity->method('jsonSerialize')->willReturn($data);
-        $objectEntity->method('getRegister')->willReturn('scholiq');
-        $objectEntity->method('getSchema')->willReturn('point-award');
+        $objectEntity->method('getRegister')->willReturn('9');
+        $objectEntity->method('getSchema')->willReturn('1280');
+        $this->stubResolver('point-award');
 
         $event = $this->createMock(ObjectCreatedEvent::class);
         $event->method('getObject')->willReturn($objectEntity);
@@ -316,8 +342,9 @@ class LearnerEngagementRollupHandlerTest extends TestCase
 
         $objectEntity = $this->createMock(ObjectEntity::class);
         $objectEntity->method('jsonSerialize')->willReturn(['id' => 'x']);
-        $objectEntity->method('getRegister')->willReturn('scholiq');
-        $objectEntity->method('getSchema')->willReturn('enrolment');
+        $objectEntity->method('getRegister')->willReturn('9');
+        $objectEntity->method('getSchema')->willReturn('1281');
+        $this->stubResolver('enrolment');
 
         $event = $this->createMock(ObjectCreatedEvent::class);
         $event->method('getObject')->willReturn($objectEntity);
