@@ -84,9 +84,15 @@ class XapiCompletionHandlerIntegrationTest extends TestCase
             // TransitionEngine is final; we use the real one via the DI container.
             $transitionEngine = \OC::$server->get(\OCA\OpenRegister\Service\Lifecycle\TransitionEngine::class);
 
+            // The listener guards on register/schema SLUGS while OpenRegister
+            // stamps numeric ids onto the entity; the real resolver from the
+            // container is what turns one into the other in production.
+            $schemaResolver = \OC::$server->get(\OCA\Scholiq\Service\ListenerSchemaResolver::class);
+
             $this->handler = new XapiCompletionHandler(
                 $this->objectService,
                 $transitionEngine,
+                $schemaResolver,
                 new NullLogger(),
             );
         } catch (\Throwable $e) {

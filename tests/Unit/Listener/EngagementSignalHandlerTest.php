@@ -30,7 +30,9 @@ use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Analytics\EngagementScoreEvaluator;
 use OCA\Scholiq\Listener\EngagementSignalHandler;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -56,6 +58,13 @@ class EngagementSignalHandlerTest extends TestCase
     private array $savedObjects = [];
 
     /**
+     * Resolver turning the entity's numeric register/schema ids into slugs.
+     *
+     * @var ListenerSchemaResolver&MockObject
+     */
+    private ListenerSchemaResolver&MockObject $schemaResolver;
+
+    /**
      * Reset fixtures before each test.
      *
      * @return void
@@ -63,10 +72,26 @@ class EngagementSignalHandlerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->db           = [];
-        $this->savedObjects = [];
+        $this->db             = [];
+        $this->savedObjects   = [];
+        $this->schemaResolver = $this->createMock(ListenerSchemaResolver::class);
 
     }//end setUp()
+
+    /**
+     * Stub the resolver the way OpenRegister behaves in production: the entity
+     * carries numeric ids and the resolver turns them into slugs.
+     *
+     * @param string $schemaSlug The slug the resolver resolves the schema id to.
+     *
+     * @return void
+     */
+    private function stubResolver(string $schemaSlug): void
+    {
+        $this->schemaResolver->method('registerSlug')->willReturn('scholiq');
+        $this->schemaResolver->method('schemaSlug')->willReturn($schemaSlug);
+
+    }//end stubResolver()
 
     /**
      * Build a handler backed by an ObjectService stub over $this->db and a
@@ -156,7 +181,7 @@ class EngagementSignalHandlerTest extends TestCase
         $timeFactory = $this->createMock(ITimeFactory::class);
         $timeFactory->method('getDateTime')->willReturn($now);
 
-        return new EngagementSignalHandler($objectService, $evaluator, $timeFactory);
+        return new EngagementSignalHandler($objectService, $evaluator, $this->schemaResolver, $timeFactory);
 
     }//end makeHandler()
 
@@ -185,8 +210,9 @@ class EngagementSignalHandlerTest extends TestCase
     {
         $objectEntity = $this->createMock(ObjectEntity::class);
         $objectEntity->method('jsonSerialize')->willReturn($data);
-        $objectEntity->method('getRegister')->willReturn('scholiq');
-        $objectEntity->method('getSchema')->willReturn('xapi-statement');
+        $objectEntity->method('getRegister')->willReturn('9');
+        $objectEntity->method('getSchema')->willReturn('1280');
+        $this->stubResolver('xapi-statement');
 
         $event = $this->createMock(ObjectCreatedEvent::class);
         $event->method('getObject')->willReturn($objectEntity);
@@ -424,7 +450,8 @@ class EngagementSignalHandlerTest extends TestCase
     /**
      * No AI/ML client, HTTP call, or Hermiq dependency is constructed
      * anywhere by this handler — verified structurally: it depends only on
-     * ObjectService, EngagementScoreEvaluator, and ITimeFactory.
+     * ObjectService, EngagementScoreEvaluator, ListenerSchemaResolver, and
+     * ITimeFactory.
      *
      * @return void
      *

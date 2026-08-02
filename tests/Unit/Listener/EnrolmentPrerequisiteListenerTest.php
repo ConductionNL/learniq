@@ -34,7 +34,9 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\EnrolmentPrerequisiteListener;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\EventDispatcher\Event;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -53,6 +55,13 @@ class EnrolmentPrerequisiteListenerTest extends TestCase
     private array $db = [];
 
     /**
+     * Resolver turning the entity's numeric register/schema ids into slugs.
+     *
+     * @var ListenerSchemaResolver&MockObject
+     */
+    private ListenerSchemaResolver&MockObject $schemaResolver;
+
+    /**
      * Reset fixtures before each test.
      *
      * @return void
@@ -60,9 +69,25 @@ class EnrolmentPrerequisiteListenerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->db = [];
+        $this->db             = [];
+        $this->schemaResolver = $this->createMock(ListenerSchemaResolver::class);
 
     }//end setUp()
+
+    /**
+     * Stub the resolver the way OpenRegister behaves in production: the entity
+     * carries numeric ids and the resolver turns them into slugs.
+     *
+     * @param string $schemaSlug The slug the resolver resolves the schema id to.
+     *
+     * @return void
+     */
+    private function stubResolver(string $schemaSlug): void
+    {
+        $this->schemaResolver->method('registerSlug')->willReturn('scholiq');
+        $this->schemaResolver->method('schemaSlug')->willReturn($schemaSlug);
+
+    }//end stubResolver()
 
     /**
      * Seed a record into the fake datastore.
@@ -126,7 +151,7 @@ class EnrolmentPrerequisiteListenerTest extends TestCase
             }
         );
 
-        return new EnrolmentPrerequisiteListener($objectService, $logger ?? new NullLogger());
+        return new EnrolmentPrerequisiteListener($objectService, $this->schemaResolver, $logger ?? new NullLogger());
 
     }//end makeListener()
 
@@ -141,8 +166,9 @@ class EnrolmentPrerequisiteListenerTest extends TestCase
     {
         $entity = $this->createMock(ObjectEntity::class);
         $entity->method('jsonSerialize')->willReturn($payload);
-        $entity->method('getRegister')->willReturn('scholiq');
-        $entity->method('getSchema')->willReturn('enrolment');
+        $entity->method('getRegister')->willReturn('9');
+        $entity->method('getSchema')->willReturn('1280');
+        $this->stubResolver('enrolment');
 
         return new ObjectCreatingEvent($entity);
 
@@ -311,8 +337,9 @@ class EnrolmentPrerequisiteListenerTest extends TestCase
     {
         $entity = $this->createMock(ObjectEntity::class);
         $entity->method('jsonSerialize')->willReturn(['id' => 'x']);
-        $entity->method('getRegister')->willReturn('scholiq');
-        $entity->method('getSchema')->willReturn('course');
+        $entity->method('getRegister')->willReturn('9');
+        $entity->method('getSchema')->willReturn('1281');
+        $this->stubResolver('course');
 
         $event = new ObjectCreatingEvent($entity);
 
@@ -356,7 +383,7 @@ class EnrolmentPrerequisiteListenerTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::atLeastOnce())->method('warning');
 
-        $listener = new EnrolmentPrerequisiteListener($objectService, $logger);
+        $listener = new EnrolmentPrerequisiteListener($objectService, $this->schemaResolver, $logger);
         $event    = $this->eventFor(
             [
                 'learnerId' => 'learner-1',
