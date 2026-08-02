@@ -26,9 +26,16 @@ $loader->addPsr4('OCP\\', __DIR__.'/../vendor/nextcloud/ocp/OCP/');
 $loader->addPsr4('NCU\\', __DIR__.'/../vendor/nextcloud/ocp/NCU/');
 $loader->register(true);
 
-// Bootstrap Nextcloud — since we run inside the Docker container,
-// the full environment (including \OC::$server) is available.
-if (file_exists(__DIR__.'/../../../lib/base.php')) {
+// Bootstrap Nextcloud when a USABLE instance is present.
+//
+// base.php signals failure with `exit()`, not an exception, so an unguarded
+// include terminates PHPUnit during bootstrap — zero tests collected, shell
+// exit code 0. Reuse the same safety predicate as tests/bootstrap.php; see the
+// long comment there for why this matters. The unit suite does not require the
+// NC runtime, so skipping it is always safe.
+require_once __DIR__.'/bootstrap-nc-guard.php';
+
+if (scholiq_nc_base_is_safe_to_load(__DIR__.'/../../..') === true) {
     include_once __DIR__.'/../../../lib/base.php';
 }
 
