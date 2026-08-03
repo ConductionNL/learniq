@@ -28,8 +28,11 @@
  */
 import { test, expect } from '../fixtures'
 
-const ADMISSIONS_REVIEW_BOARD_URL = '/index.php/apps/scholiq/#/admissions/review-board'
-const SUBJECT_CHOICE_PICKER_URL = '/index.php/apps/scholiq/#/subject-choice/picker'
+// ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
+// `#/…` URL resolves to a location no route matches and renders an empty app body.
+// See accessibility-conformance.spec.ts for the measurement.
+const ADMISSIONS_REVIEW_BOARD_URL = '/index.php/apps/scholiq/admissions/review-board'
+const SUBJECT_CHOICE_PICKER_URL = '/index.php/apps/scholiq/subject-choice/picker'
 
 function collectFatalErrors(errors: string[]): string[] {
 	return errors.filter(

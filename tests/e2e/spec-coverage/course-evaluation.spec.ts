@@ -23,8 +23,11 @@
  */
 import { test, expect } from '../fixtures'
 
-const QUALITY_REPORT_URL = '/index.php/apps/scholiq/#/course-evaluation/quality-report'
-const IMPROVEMENT_ACTIONS_URL = '/index.php/apps/scholiq/#/course-evaluation/improvement-actions'
+// ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
+// `#/…` URL resolves to a location no route matches and renders an empty app body.
+// See accessibility-conformance.spec.ts for the measurement.
+const QUALITY_REPORT_URL = '/index.php/apps/scholiq/course-evaluation/quality-report'
+const IMPROVEMENT_ACTIONS_URL = '/index.php/apps/scholiq/course-evaluation/improvement-actions'
 
 function collectFatalErrors(errors: string[]): string[] {
 	return errors.filter(

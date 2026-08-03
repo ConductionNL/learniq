@@ -28,11 +28,21 @@ import { apiUrl } from '../base-url'
 //     that do NOT exist on disk, and `server/apps/scholiq/` DOES exist without
 //     an index.php — so `/apps/scholiq/...` is a hard 404. 29 of this suite's
 //     34 spec files already used the `/index.php/` form.
-//  2. `/Settings` is not a route. The manifest declares the settings page at
-//     `/settings` (lower-case), and vue-router paths are case-sensitive, so the
-//     capitalised path resolved to nothing and the "Scholiq Settings" heading
-//     these tests assert on could never appear.
-const SETTINGS_URL = '/index.php/apps/scholiq/settings'
+//  2. This is the NEXTCLOUD ADMIN settings panel, not an in-app route. Every
+//     assertion below ("Scholiq Settings", the OpenRegister section, the register
+//     combobox, "Credential Signing") targets src/views/settings/AdminRoot.vue,
+//     which `src/settings.js` mounts into `#scholiq-settings` on the NC admin
+//     page. The old `/apps/scholiq/Settings` was neither: `/Settings` is not a
+//     declared route (the manifest's in-app settings page is `/settings`, and
+//     vue-router is case-sensitive), and the in-app `/settings` page is a
+//     different surface — navigating there on CI run 30798535945 rendered a
+//     generic "Settings" heading and a disabled Save button, with no "Scholiq
+//     Settings" heading anywhere.
+//
+//     The section id is `scholiq`: OpenRegister's AppHost `Bootstrap::register`
+//     defaults `sectionId` to the app id, and lib/AppInfo/Application.php passes
+//     only `namespace`, `sectionName` and `mcpProvider` — no `sectionId` override.
+const SETTINGS_URL = '/index.php/settings/admin/scholiq'
 const API_SETTINGS = '/index.php/apps/scholiq/api/settings'
 const APP_URL = '/index.php/apps/scholiq/'
 const PREFS_API = '/index.php/apps/openregister/api/notification-preferences'

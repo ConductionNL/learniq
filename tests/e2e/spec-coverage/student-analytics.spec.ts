@@ -24,7 +24,10 @@
  */
 import { test, expect } from '../fixtures'
 
-const GROUP_TREND_HEATMAP_URL = '/index.php/apps/scholiq/#/progress/group-trend-heatmap'
+// ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
+// `#/…` URL resolves to a location no route matches and renders an empty app body.
+// See accessibility-conformance.spec.ts for the measurement.
+const GROUP_TREND_HEATMAP_URL = '/index.php/apps/scholiq/progress/group-trend-heatmap'
 
 test.describe('learning-progress-and-analytics — Group trend heat map', () => {
 

@@ -28,11 +28,23 @@
  */
 import { test, expect } from '../fixtures'
 
-const STATEMENT_URL = '/index.php/apps/scholiq/#/accessibility'
-const LIMITATIONS_INDEX_URL = '/index.php/apps/scholiq/#/accessibility/limitations'
-const LIMITATION_DETAIL_URL = '/index.php/apps/scholiq/#/accessibility/limitations/00000000-0000-0000-0000-000000000000'
-const FEEDBACK_INDEX_URL = '/index.php/apps/scholiq/#/accessibility/feedback'
-const FEEDBACK_CREATE_URL = '/index.php/apps/scholiq/#/accessibility/feedback/new'
+// ⚠️ NO `#` — the router is HISTORY mode, not hash mode.
+//
+// src/main.js builds the router with `createWebHistory(generateUrl('/apps/scholiq'))`.
+// vue-router's history mode strips the base from `location.pathname` and then
+// APPENDS the untouched hash, so `/index.php/apps/scholiq/#/accessibility`
+// resolves to the location `/#/accessibility` — which matches no declared route.
+// `<router-view>` renders nothing and the page shows only the Nextcloud chrome.
+//
+// Measured on CI run 30798535945: every spec that navigated with `#/` failed with
+// `Received string: "Keyboard navigation help / Skip to app navigation / …"` —
+// the NC shell with an empty app body — while index-pages.spec.ts and
+// detail-pages.spec.ts, which use the plain path form, passed 206/206.
+const STATEMENT_URL = '/index.php/apps/scholiq/accessibility'
+const LIMITATIONS_INDEX_URL = '/index.php/apps/scholiq/accessibility/limitations'
+const LIMITATION_DETAIL_URL = '/index.php/apps/scholiq/accessibility/limitations/00000000-0000-0000-0000-000000000000'
+const FEEDBACK_INDEX_URL = '/index.php/apps/scholiq/accessibility/feedback'
+const FEEDBACK_CREATE_URL = '/index.php/apps/scholiq/accessibility/feedback/new'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise

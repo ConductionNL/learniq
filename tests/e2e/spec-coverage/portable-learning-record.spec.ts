@@ -34,11 +34,14 @@
  */
 import { test, expect } from '../fixtures'
 
-const LEARNING_RECORD_EXPORTS_INDEX_URL = '/index.php/apps/scholiq/#/learning-records/exports'
-const LEARNING_RECORD_SHARES_INDEX_URL = '/index.php/apps/scholiq/#/learning-records/shares'
-const LEARNING_RECORD_IMPORTS_INDEX_URL = '/index.php/apps/scholiq/#/learning-records/imports'
-const MY_LEARNING_RECORD_URL = '/index.php/apps/scholiq/#/learning-records/me'
-const APPLICATIONS_INDEX_URL = '/index.php/apps/scholiq/#/admissions/applications'
+// ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
+// `#/…` URL resolves to a location no route matches and renders an empty app body.
+// See accessibility-conformance.spec.ts for the measurement.
+const LEARNING_RECORD_EXPORTS_INDEX_URL = '/index.php/apps/scholiq/learning-records/exports'
+const LEARNING_RECORD_SHARES_INDEX_URL = '/index.php/apps/scholiq/learning-records/shares'
+const LEARNING_RECORD_IMPORTS_INDEX_URL = '/index.php/apps/scholiq/learning-records/imports'
+const MY_LEARNING_RECORD_URL = '/index.php/apps/scholiq/learning-records/me'
+const APPLICATIONS_INDEX_URL = '/index.php/apps/scholiq/admissions/applications'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise
@@ -156,7 +159,7 @@ test.describe('portable-learning-record — custom views resolve (registry.js wi
 	test('LearningRecordImportView route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
 		const errors = collectFatalErrors(page)
 
-		await page.goto('/index.php/apps/scholiq/#/admissions/applications/00000000-0000-0000-0000-000000000000/learning-record-import')
+		await page.goto('/index.php/apps/scholiq/admissions/applications/00000000-0000-0000-0000-000000000000/learning-record-import')
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('networkidle').catch(() => {})
 
@@ -170,7 +173,7 @@ test.describe('portable-learning-record — custom views resolve (registry.js wi
 	test('LearningRecordShareVerifyView route resolves the registered component and renders a denied state for an unknown share', async ({ loggedInPage: page }) => {
 		const errors = collectFatalErrors(page)
 
-		await page.goto('/index.php/apps/scholiq/#/learning-record-shares/00000000-0000-0000-0000-000000000000/verify')
+		await page.goto('/index.php/apps/scholiq/learning-record-shares/00000000-0000-0000-0000-000000000000/verify')
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('networkidle').catch(() => {})
 
