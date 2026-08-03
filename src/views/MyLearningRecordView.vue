@@ -283,6 +283,19 @@ export default {
 					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 				})
 
+				// A 404 here is an EXPECTED state, not a failure: it means this
+				// Nextcloud user has no bound LearnerProfile, so there is no record
+				// to show yet. Treating it as an exception made the component log
+				// `console.error('[MyLearningRecordView] loadRecord error', ...)`
+				// on a perfectly normal account — noise that is indistinguishable
+				// from a real outage in the console, and which the e2e suite
+				// correctly flags as fatal. Render the declared error branch with an
+				// accurate message instead of throwing.
+				if (resp.status === 404) {
+					this.loadError = this.t('scholiq', 'You do not have a learning record yet. A learning record is created once you are enrolled as a learner.')
+					return
+				}
+
 				if (!resp.ok) {
 					throw new Error(`Failed to load learning record: ${resp.status}`)
 				}
