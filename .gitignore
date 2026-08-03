@@ -51,9 +51,14 @@ coverage/
 .nyc_output/
 
 # Playwright
+/test-results/
+/playwright-report/
 test-results/
 playwright-report/
 .playwright/
+# e2e provisioning state (seed markers). Deliberately NOT under test-results/ —
+# Playwright deletes every project outputDir at the start of a run.
+/.e2e-state/
 
 # Misc
 *.bak

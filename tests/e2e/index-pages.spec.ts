@@ -1,3 +1,5 @@
+import * as fs from 'fs'
+import * as path from 'path'
 import { test, expect } from './fixtures'
 import manifest from '../../src/manifest.json'
 
@@ -18,24 +20,47 @@ import manifest from '../../src/manifest.json'
  * `/index.php/apps/scholiq/courses` (the PageController `catchAll` route serves
  * the SPA shell for `/{path}`).
  *
- * The seed script (tests/e2e/seed-example-data.mjs) runs in globalSetup; it sets
- * `process.env.SCHOLIQ_E2E_SEEDED = '1'` when it actually managed to import +
- * seed, so the row-count soft-assert is only applied then.
+ * The seed script (tests/e2e/seed-example-data.mjs) runs in ci-seed.sh (CI) or
+ * globalSetup (local) and records WHICH schemas it actually created rows for in
+ * `test-results/.seeded-schemas.json`. That file — not a hand-written list — is
+ * what gates the row-count assertion.
+ *
+ * ⚠️ WHY NOT A HAND-WRITTEN LIST. This spec used to carry a literal
+ * `SEEDED_SCHEMAS` set of 32 names. Measured on the first CI run, the seeder
+ * created rows for 17 of them: the other 15 creates were failing OpenRegister's
+ * `required`-property validation, being logged as a warning, and swallowed. So
+ * the spec asserted "≥1 row" for schemas that provably had none, and nothing in
+ * the list could ever notice it had drifted from the seeder. Reading the
+ * seeder's own output makes it impossible for the two to disagree: fix a
+ * fixture and coverage grows automatically, break one and it shrinks — and
+ * ci-seed.sh gates the floor so a silent collapse to zero still fails the job.
  */
 
 const APP_BASE = '/index.php/apps/scholiq'
-const SEEDED = process.env.SCHOLIQ_E2E_SEEDED === '1'
 
-// Schemas the seed script creates objects for (by schema NAME as used in
-// manifest pages' config.schema). Index pages for these get the row-count check.
-const SEEDED_SCHEMAS = new Set([
-	'Programme', 'CurriculumPlan', 'Course', 'Lesson', 'Cohort', 'LearnerProfile',
-	'Session', 'Material', 'Rubric', 'Assignment', 'Submission', 'Item', 'Assessment',
-	'AssessmentResult', 'GradeScale', 'GradeEntry', 'FinalGrade', 'LearningPlanTemplate',
-	'LearningPlan', 'LearningPlanEvaluation', 'Signature', 'AttendanceThreshold',
-	'AttendanceRecord', 'ExcuseRequest', 'AttendanceFlag', 'Regulation', 'Attestation',
-	'Credential', 'Enrolment', 'XapiStatement', 'DataMappingProfile', 'DataExchangeJob',
-])
+/**
+ * Per-schema row counts the seeder actually produced, keyed by the register's
+ * schema NAME (the same value `manifest.pages[].config.schema` carries).
+ *
+ * @return {Record<string, number>} Empty when the seeder did not run.
+ */
+function loadSeededCounts(): Record<string, number> {
+	// `.e2e-state/`, not `test-results/`: Playwright deletes every project
+	// outputDir at the start of the run, which would take the seeder's marker
+	// with it.
+	const file = path.resolve(__dirname, '..', '..', '.e2e-state', 'seeded-schemas.json')
+	try {
+		return JSON.parse(fs.readFileSync(file, 'utf8'))
+	} catch {
+		return {}
+	}
+}
+
+const SEEDED_COUNTS = loadSeededCounts()
+// The deeper checks are meaningful once the register is actually populated. The
+// file is the reliable signal: globalSetup mutates process.env in the RUNNER
+// process, and Playwright workers are separate processes.
+const SEEDED = Object.keys(SEEDED_COUNTS).length > 0 || process.env.SCHOLIQ_E2E_SEEDED === '1'
 
 type IndexPage = { id: string; route: string; title: string; schema?: string }
 
@@ -88,9 +113,13 @@ test.describe(`Scholiq index pages (${indexPages.length})`, () => {
 					await page.locator('.app-navigation, nav#app-navigation, [data-app="scholiq"]').first().isVisible().catch(() => false),
 					`${p.id}: CnAppRoot nav should be present`,
 				).toBe(true)
-				if (p.schema && SEEDED_SCHEMAS.has(p.schema)) {
+				const seededRows = p.schema ? (SEEDED_COUNTS[p.schema] ?? 0) : 0
+				if (seededRows > 0) {
 					const rows = page.locator('table tbody tr, .list-item, [data-cy-object-row], .cn-index-row, .app-content-list-item')
-					expect.soft(await rows.count().catch(() => 0), `${p.id}: expected ≥1 row for seeded schema "${p.schema}"`).toBeGreaterThan(0)
+					expect.soft(
+						await rows.count().catch(() => 0),
+						`${p.id}: the seeder created ${seededRows} "${p.schema}" object(s), so this index page must render ≥1 row`,
+					).toBeGreaterThan(0)
 				}
 			}
 		})

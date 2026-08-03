@@ -27,7 +27,7 @@
 // what failed; the e2e index-page specs tolerate empty index pages where a
 // schema couldn't be imported.
 
-import { readFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
@@ -151,8 +151,41 @@ async function importRegister() {
 		// Build a minimal schema body OR doesn't choke on (slug/title/required/properties + x-openregister-*).
 		const body = { ...s }
 		const r = await api('POST', '/index.php/apps/openregister/api/schemas', body)
-		if (r.ok) { createdIndividually++; log(`  + created schema "${slug}" individually`) }
-		else { warn(`  ! could not create schema "${slug}" (status ${r.status})`) }
+		if (r.ok) { createdIndividually++; log(`  + created schema "${slug}" individually`); continue }
+
+		// ── Retry without the top-level `allOf` ──────────────────────────────
+		// Measured on CI (run 30796644591): exactly the three schemas that carry
+		// a TOP-LEVEL `allOf` — lesson, grade-entry, portfolio-entry — failed
+		// with HTTP 500, and all 115 without one succeeded. 3 of 3 vs 0 of 115.
+		// The register's own bulk import fails on the same input with
+		//   SchemaMapper::loadSchema(): Argument #1 ($identifier) must be of
+		//   type string|int, array given
+		// i.e. OpenRegister hands a composed sub-schema ARRAY to a resolver that
+		// expects one identifier. That is an OpenRegister defect, not a scholiq
+		// one, and it cannot be fixed from this repo.
+		//
+		// `allOf` here only carries if/then/else CONDITIONAL VALIDATION (e.g.
+		// "contentRef is required unless contentType is text"). Dropping it
+		// keeps every property, every type and the base `required` list, so the
+		// index/detail pages under test render identically — the seeded fixture
+		// is simply validated less strictly than production. Retrying is what
+		// makes the difference between an index page that exists and one that
+		// 404s for a reason that has nothing to do with the code under test.
+		//
+		// The retry is deliberately narrow: it only fires after a real failure,
+		// only drops `allOf`, and says so loudly.
+		if (s.allOf !== undefined) {
+			const { allOf, ...withoutAllOf } = s
+			const r2 = await api('POST', '/index.php/apps/openregister/api/schemas', withoutAllOf)
+			if (r2.ok) {
+				createdIndividually++
+				warn(`  ~ created schema "${slug}" WITHOUT its top-level allOf (OpenRegister 500s on composed schemas; conditional validation dropped for this fixture)`)
+				continue
+			}
+			warn(`  ! could not create schema "${slug}" (status ${r.status}; retry without allOf also failed with ${r2.status}: ${(r2.text || '').slice(0, 200)})`)
+			continue
+		}
+		warn(`  ! could not create schema "${slug}" (status ${r.status}): ${(r.text || '').slice(0, 200)}`)
 	}
 	const finalSet = await existingSchemaSlugs()
 	const present = [...wanted.keys()].filter((slug) => finalSet.has(slug))
@@ -217,9 +250,11 @@ async function seedObjects(presentSlugs) {
 	const courseSub = await seed('course', { field: 'code', value: 'DEMO-ANAT-1' }, { code: 'DEMO-ANAT-1', name: 'Anatomy — module 1 (demo)', level: 'hbo', language: 'nl', mandatoryTraining: false, tenant_id: TENANT, ...(id(courseRoot) ? { parentCourseId: id(courseRoot) } : {}) })
 	const courseCompliance = await seed('course', { field: 'code', value: 'DEMO-AVG' }, { code: 'DEMO-AVG', name: 'AVG refresher (demo)', level: 'corporate', language: 'nl', mandatoryTraining: true, regulationSlug: 'AVG', tenant_id: TENANT })
 	// Lessons
+	let complianceLesson = null
 	for (const [n, cid] of [[1, id(courseSub)], [2, id(courseSub)], [3, id(courseRoot)], [4, id(courseRoot)], [5, id(courseCompliance)]]) {
 		if (!cid) continue
-		await seed('lesson', { field: 'name', value: `Demo lesson ${n}` }, { courseId: cid, name: `Demo lesson ${n}`, order: n, contentType: 'text', mandatoryTraining: n === 5, tenant_id: TENANT })
+		const l = await seed('lesson', { field: 'name', value: `Demo lesson ${n}` }, { courseId: cid, name: `Demo lesson ${n}`, order: n, contentType: 'text', mandatoryTraining: n === 5, tenant_id: TENANT })
+		if (n === 5) complianceLesson = l
 	}
 	// Cohort + LearnerProfiles
 	const cohort = await seed('cohort', { field: 'name', value: 'Demo cohort 2026' }, { name: 'Demo cohort 2026', period: 'P1', academicYear: '2026', learnerIds: ['demo-learner-1', 'demo-learner-2', 'demo-learner-3'], tenant_id: TENANT, ...(id(courseRoot) ? { courseId: id(courseRoot) } : {}), ...(id(prog) ? { programmeId: id(prog) } : {}) })
@@ -227,50 +262,143 @@ async function seedObjects(presentSlugs) {
 		await seed('learner-profile', { field: 'ncUserId', value: `demo-learner-${n}` }, { ncUserId: `demo-learner-${n}`, givenName: `Demo${n}`, familyName: 'Learner', roles: n === 1 ? ['learner', 'manager'] : ['learner'], tenant_id: TENANT })
 	}
 	// Sessions
+	let firstSession = null
 	for (const [n, when] of [[1, '2026-09-07T10:00:00Z'], [2, '2026-09-14T10:00:00Z']]) {
 		if (!id(cohort)) break
-		await seed('session', { field: 'title', value: `Demo session ${n}` }, { cohortId: id(cohort), title: `Demo session ${n}`, startsAt: when, endsAt: when.replace('10:00', '12:00'), location: 'Room A', tenant_id: TENANT, ...(id(courseRoot) ? { courseId: id(courseRoot) } : {}) })
+		const sess = await seed('session', { field: 'title', value: `Demo session ${n}` }, { cohortId: id(cohort), title: `Demo session ${n}`, startsAt: when, endsAt: when.replace('10:00', '12:00'), location: 'Room A', tenant_id: TENANT, ...(id(courseRoot) ? { courseId: id(courseRoot) } : {}) })
+		if (n === 1) firstSession = sess
 	}
 	// Materials
 	for (const n of [1, 2]) await seed('material', { field: 'title', value: `Demo material ${n}` }, { title: `Demo material ${n}`, kind: 'reading', fileRef: `demo://material/${n}`, order: n, tenant_id: TENANT, ...(id(courseRoot) ? { courseId: id(courseRoot) } : {}) })
 	// Rubric + Assignments + Submissions
 	const rubric = await seed('rubric', { field: 'name', value: 'Demo rubric' }, { name: 'Demo rubric', criteria: [{ criterionId: 'r1', label: 'Content', weight: 1, levels: [{ levelId: 'l1', label: 'Poor', points: 1 }, { levelId: 'l2', label: 'Good', points: 5 }] }], maxPoints: 5, tenant_id: TENANT })
-	const a1 = await seed('assignment', { field: 'title', value: 'Demo assignment 1' }, { title: 'Demo assignment 1', instructions: 'Write an essay.', dueAt: '2026-10-01', maxPoints: 10, allowLateSubmission: true, latePenaltyPercent: 10, tenant_id: TENANT, ...(id(courseRoot) ? { courseId: id(courseRoot) } : {}), ...(id(rubric) ? { rubricId: id(rubric) } : {}) })
-	await seed('assignment', { field: 'title', value: 'Demo assignment 2' }, { title: 'Demo assignment 2', instructions: 'Group work.', dueAt: '2026-11-01', maxPoints: 10, groupSubmission: true, tenant_id: TENANT, ...(id(courseCompliance) ? { courseId: id(courseCompliance) } : {}) })
+	// `dueAt` is `format: date-time`, not `date`. A bare '2026-10-01' is rejected
+	// with "should match format 'date-time'", which the seeder used to log and
+	// swallow — so Assignment silently had zero rows while the index spec's
+	// seeded-schema list still claimed it had some.
+	const a1 = await seed('assignment', { field: 'title', value: 'Demo assignment 1' }, { title: 'Demo assignment 1', instructions: 'Write an essay.', dueAt: '2026-10-01T23:59:00Z', maxPoints: 10, allowLateSubmission: true, latePenaltyPercent: 10, tenant_id: TENANT, ...(id(courseRoot) ? { courseId: id(courseRoot) } : {}), ...(id(rubric) ? { rubricId: id(rubric) } : {}) })
+	await seed('assignment', { field: 'title', value: 'Demo assignment 2' }, { title: 'Demo assignment 2', instructions: 'Group work.', dueAt: '2026-11-01T23:59:00Z', maxPoints: 10, groupSubmission: true, tenant_id: TENANT, ...(id(courseCompliance) ? { courseId: id(courseCompliance) } : {}) })
 	if (id(a1)) { for (const ln of ['demo-learner-1', 'demo-learner-2']) await seed('submission', { field: 'assignmentId', value: id(a1) }, { assignmentId: id(a1), learnerIds: [ln], attachmentRefs: [`demo://sub/${ln}`], submittedAt: '2026-09-30', tenant_id: TENANT }) }
 	// Assessment + Item + Result
 	const item = await seed('item', { field: 'title', value: 'Demo MC item' }, { name: 'Demo MC item', title: 'Demo MC item', interactionType: 'choice', qtiBody: '<qti-assessment-item/>', correctResponse: { value: 'A' }, maxScore: 1, tenant_id: TENANT })
 	const assess = await seed('assessment', { field: 'title', value: 'Demo quiz' }, { title: 'Demo quiz', scoringScheme: 'points', maxAttempts: 1, keepScore: 'last', tenant_id: TENANT, ...(id(item) ? { itemRefs: [{ itemId: id(item), points: 1 }] } : {}), ...(id(courseRoot) ? { courseId: id(courseRoot) } : {}) })
 	if (id(assess)) await seed('assessment-result', { field: 'assessmentId', value: id(assess) }, { assessmentId: id(assess), learnerId: 'demo-learner-1', attemptNumber: 1, responses: [], startedAt: '2026-09-15T10:00:00Z', submittedAt: '2026-09-15T10:30:00Z', tenant_id: TENANT })
-	// GradeScale + GradeEntries + FinalGrade
-	const scale = await seed('grade-scale', { field: 'name', value: 'NL 1-10 (demo)' }, { name: 'NL 1-10 (demo)', tenant_id: TENANT })
-	for (let n = 1; n <= 3; n++) await seed('grade-entry', { field: 'value', value: 6 + n }, { learnerId: 'demo-learner-1', value: 6 + n, period: 'P1', componentId: 'c1', weight: 1, lifecycle: 'published', tenant_id: TENANT })
-	await seed('final-grade', { field: 'learnerId', value: 'demo-learner-1' }, { learnerId: 'demo-learner-1', value: 7.5, passed: true, tenant_id: TENANT, ...(id(courseRoot) ? { courseId: id(courseRoot) } : {}) })
+	// GradeScale + GradeEntries + FinalGrade.
+	// GradeScale.kind, GradeEntry.curriculumPlanId/gradeScaleId and
+	// FinalGrade.curriculumPlanId/gradeScaleId are all in the register's
+	// `required` list; omitting them made every create 400 and left the whole
+	// grading surface with zero rows.
+	const scale = await seed('grade-scale', { field: 'name', value: 'NL 1-10 (demo)' }, { name: 'NL 1-10 (demo)', kind: 'numeric', tenant_id: TENANT })
+	if (id(plan) && id(scale)) {
+		for (let n = 1; n <= 3; n++) {
+			await seed('grade-entry', { field: 'value', value: 6 + n }, {
+				learnerId: 'demo-learner-1', curriculumPlanId: id(plan), gradeScaleId: id(scale),
+				value: 6 + n, period: 'P1', componentId: 'c1', weight: 1, lifecycle: 'published', tenant_id: TENANT,
+			})
+		}
+		await seed('final-grade', { field: 'learnerId', value: 'demo-learner-1' }, {
+			learnerId: 'demo-learner-1', curriculumPlanId: id(plan), gradeScaleId: id(scale),
+			value: 7.5, passed: true, tenant_id: TENANT, ...(id(courseRoot) ? { courseId: id(courseRoot) } : {}),
+		})
+	}
 	// LearningPlan stack
 	const lpt = await seed('learning-plan-template', { field: 'kind', value: 'opp' }, { name: 'OPP-VO template (demo)', kind: 'opp', goalDomains: ['leren-en-ontwikkeling'], requiredSignerRoles: ['learner', 'parent', 'coordinator'], tenant_id: TENANT })
-	const lp = await seed('learning-plan', { field: 'learnerId', value: 'demo-learner-2' }, { learnerId: 'demo-learner-2', kind: 'opp', period: '2026-2027', version: 1, goals: [{ goalId: 'g1', description: 'Improve reading', domain: 'leren-en-ontwikkeling', status: 'open' }], tenant_id: TENANT, ...(id(lpt) ? { templateId: id(lpt) } : {}), ...(id(cohort) ? { cohortId: id(cohort) } : {}) })
-	if (id(lp)) { await seed('learning-plan-evaluation', { field: 'learningPlanId', value: id(lp) }, { learningPlanId: id(lp), narrative: 'First review', nextReviewAt: '2027-01-15', tenant_id: TENANT }); await seed('signature', { field: 'subjectId', value: id(lp) }, { subjectId: id(lp), subjectVersion: 1, signerId: 'coordinator-1', signerRole: 'coordinator', signedAt: '2026-09-10', assuranceLevel: 'basic', method: 'click-to-confirm', tenant_id: TENANT }) }
+	// `coordinatorId` is required on LearningPlan; `evaluatedAt`/`evaluatedBy` on
+	// LearningPlanEvaluation; `subjectKind` on Signature. All three were omitted.
+	const lp = await seed('learning-plan', { field: 'learnerId', value: 'demo-learner-2' }, { learnerId: 'demo-learner-2', kind: 'opp', coordinatorId: 'coordinator-1', period: '2026-2027', version: 1, goals: [{ goalId: 'g1', description: 'Improve reading', domain: 'leren-en-ontwikkeling', status: 'open' }], tenant_id: TENANT, ...(id(lpt) ? { templateId: id(lpt) } : {}), ...(id(cohort) ? { cohortId: id(cohort) } : {}) })
+	if (id(lp)) { await seed('learning-plan-evaluation', { field: 'learningPlanId', value: id(lp) }, { learningPlanId: id(lp), narrative: 'First review', evaluatedAt: '2026-12-15', evaluatedBy: 'coordinator-1', nextReviewAt: '2027-01-15', tenant_id: TENANT }); await seed('signature', { field: 'subjectId', value: id(lp) }, { subjectKind: 'learning-plan', subjectId: id(lp), subjectVersion: 1, signerId: 'coordinator-1', signerRole: 'coordinator', signedAt: '2026-09-10T10:00:00Z', assuranceLevel: 'basic', method: 'click-to-confirm', tenant_id: TENANT }) }
 	// Attendance stack
 	const thr = await seed('attendance-threshold', { field: 'name', value: 'Leerplicht 16uur (demo)' }, { name: 'Leerplicht 16uur (demo)', kind: 'leerplicht-16uur', scope: 'per-learner', window: { type: 'rolling-weeks', weeks: 4 }, metric: 'unexcused-lesuren', limit: 16, lesuurMinutes: 60, onCross: { notify: true, notifyRoles: ['mentor', 'coordinator'], createFlag: true, dataExchangeTarget: 'leerplicht' }, active: true, tenant_id: TENANT })
-	for (let n = 1; n <= 5; n++) { if (!id(cohort)) break; await seed('attendance-record', { field: 'learnerId', value: `demo-learner-${(n % 3) + 1}` }, { learnerId: `demo-learner-${(n % 3) + 1}`, status: n === 4 ? 'absent-unexcused' : 'present', minutesAttended: n === 4 ? 0 : 120, markedBy: 'teacher-1', markedAt: `2026-09-0${n}T12:00:00Z`, tenant_id: TENANT, ...(id(cohort) ? { cohortId: id(cohort) } : {}) }) }
+	// `sessionId` is required on AttendanceRecord — without it all five creates
+	// 400'd and the attendance surface had zero rows.
+	for (let n = 1; n <= 5; n++) { if (!id(cohort) || !id(firstSession)) break; await seed('attendance-record', { field: 'learnerId', value: `demo-learner-${(n % 3) + 1}` }, { sessionId: id(firstSession), learnerId: `demo-learner-${(n % 3) + 1}`, status: n === 4 ? 'absent-unexcused' : 'present', minutesAttended: n === 4 ? 0 : 120, markedBy: 'teacher-1', markedAt: `2026-09-0${n}T12:00:00Z`, tenant_id: TENANT, ...(id(cohort) ? { cohortId: id(cohort) } : {}) }) }
 	await seed('excuse-request', { field: 'learnerId', value: 'demo-learner-3' }, { learnerId: 'demo-learner-3', submittedBy: 'parent-3', dateFrom: '2026-09-08', dateTo: '2026-09-09', reason: 'illness', reasonKind: 'illness', submittedAuthLevel: 'substantial', tenant_id: TENANT })
 	if (id(thr)) await seed('attendance-flag', { field: 'attendanceThresholdId', value: id(thr) }, { learnerId: 'demo-learner-2', attendanceThresholdId: id(thr), windowStart: '2026-09-01', windowEnd: '2026-09-28', metricValue: 16, breachingRecordIds: [], tenant_id: TENANT })
-	// Compliance: Regulations, Attestations, Credentials, Enrolments
-	for (const slug of ['AVG', 'NIS2']) await seed('regulation', { field: 'slug', value: slug }, { slug, name: `${slug} (demo)`, tenant_id: TENANT })
-	for (let n = 1; n <= 2; n++) await seed('attestation', { field: 'learnerId', value: `demo-learner-${n}` }, { learnerId: `demo-learner-${n}`, lessonId: id(courseCompliance) ?? 'demo-lesson', courseId: id(courseCompliance) ?? 'demo-course', regulationSlug: 'AVG', score: 90, lifecycle: 'drafted', tenant_id: TENANT })
-	for (let n = 1; n <= 2; n++) await seed('credential', { field: 'learnerId', value: `demo-learner-${n}` }, { learnerId: `demo-learner-${n}`, kind: 'certificate', issuedAt: '2026-09-01', issuedBy: 'Conduction', source: 'system', regulationSlug: 'AVG', lifecycle: 'issued', tenant_id: TENANT, ...(id(courseCompliance) ? { courseId: id(courseCompliance) } : {}) })
+	// Compliance: Regulations, Attestations, Credentials, Enrolments.
+	// `audienceScope` (Regulation) and `issuerDid`/`signature`/`openbadges3Payload`
+	// (Credential) are required; Credential.learnerId is `format: uuid`, so the
+	// LearnerProfile UUID is used rather than the NC user id.
+	for (const slug of ['AVG', 'NIS2']) await seed('regulation', { field: 'slug', value: slug }, { slug, name: `${slug} (demo)`, audienceScope: 'all-employees', tenant_id: TENANT })
+	for (let n = 1; n <= 2; n++) await seed('attestation', { field: 'learnerId', value: `demo-learner-${n}` }, { learnerId: `demo-learner-${n}`, lessonId: id(complianceLesson) ?? id(courseCompliance) ?? 'demo-lesson', courseId: id(courseCompliance) ?? 'demo-course', regulationSlug: 'AVG', score: 90, lifecycle: 'drafted', tenant_id: TENANT })
+	for (let n = 1; n <= 2; n++) {
+		const learner = created['learner-profile']
+		await seed('credential', { field: 'issuedBy', value: `Conduction ${n}` }, {
+			learnerId: id(learner) ?? TENANT,
+			kind: 'certificate',
+			issuedAt: '2026-09-01T09:00:00Z',
+			issuerDid: 'did:web:demo.conduction.nl',
+			signature: `demo-signature-${n}`,
+			openbadges3Payload: { '@context': ['https://www.w3.org/ns/credentials/v2'], type: ['VerifiableCredential', 'OpenBadgeCredential'] },
+			issuedBy: `Conduction ${n}`, source: 'system', regulationSlug: 'AVG', lifecycle: 'issued', tenant_id: TENANT,
+			...(id(courseCompliance) ? { courseId: id(courseCompliance) } : {}),
+		})
+	}
 	for (let n = 1; n <= 2; n++) await seed('enrolment', { field: 'learnerId', value: `demo-learner-${n}` }, { learnerId: `demo-learner-${n}`, courseId: id(courseCompliance) ?? id(courseRoot) ?? 'demo-course', mandatory: n === 1, dueDate: '2026-12-01', source: 'bulk', tenant_id: TENANT, ...(id(cohort) ? { cohortId: id(cohort) } : {}) })
 	// xAPI, DataExchange. (AiFeature governance is delegated to Hermiq — scholiq seeds no AiFeature objects.)
-	await seed('xapi-statement', { field: 'verb', value: 'completed' }, { actor: { account: { name: 'demo-learner-1' } }, verb: { id: 'http://adlnet.gov/expapi/verbs/completed' }, object: { id: 'demo://lesson/5' }, version: '1.0.3', timestamp: '2026-09-30T10:00:00Z', tenant_id: TENANT })
-	await seed('data-mapping-profile', { field: 'name', value: 'Demo BRON mapping' }, { name: 'Demo BRON mapping', target: 'bron-rod', tenant_id: TENANT })
-	await seed('data-exchange-job', { field: 'target', value: 'bron-rod' }, { direction: 'export', target: 'bron-rod', scope: { cohortId: id(cohort) ?? null }, lifecycle: 'queued', requestedBy: 'admin', tenant_id: TENANT })
+	// `stored` (XapiStatement), `direction`/`sourceSchema` (DataMappingProfile)
+	// and `requestedAt` (DataExchangeJob) are required and were all missing.
+	await seed('xapi-statement', { field: 'verb', value: 'completed' }, { actor: { account: { name: 'demo-learner-1' } }, verb: { id: 'http://adlnet.gov/expapi/verbs/completed' }, object: { id: 'demo://lesson/5' }, stored: '2026-09-30T10:00:01Z', version: '1.0.3', timestamp: '2026-09-30T10:00:00Z', tenant_id: TENANT })
+	await seed('data-mapping-profile', { field: 'name', value: 'Demo BRON mapping' }, { name: 'Demo BRON mapping', target: 'bron-rod', direction: 'export', sourceSchema: 'enrolment', tenant_id: TENANT })
+	await seed('data-exchange-job', { field: 'target', value: 'bron-rod' }, { direction: 'export', target: 'bron-rod', scope: { cohortId: id(cohort) ?? null }, lifecycle: 'queued', requestedBy: 'admin', requestedAt: '2026-09-30T10:00:00Z', tenant_id: TENANT })
+
+	// Portfolio + PortfolioEntry — the third schema OpenRegister 500s on. Seeded
+	// so its index page has a row once the allOf-strip retry lands it.
+	const portfolio = await seed('portfolio', { field: 'learnerId', value: 'demo-learner-1' }, { learnerId: 'demo-learner-1', kind: 'personal', title: 'Demo portfolio', tenant_id: TENANT })
+	if (id(portfolio)) {
+		await seed('portfolio-entry', { field: 'title', value: 'Demo reflection' }, {
+			portfolioId: id(portfolio), learnerId: 'demo-learner-1', title: 'Demo reflection',
+			evidenceKind: 'reflection', reflectionText: 'What I learned this period.', tenant_id: TENANT,
+		})
+	}
 
 	return counts
 }
 
 // ── main ─────────────────────────────────────────────────────────────────────
-const TOTAL_SCHEMAS = 35
-const FULL_IMPORT_THRESHOLD = 30 // ≥ this many of the 35 = "complete enough" → exit 0
+// The register declares 118 schemas (this constant said 35 — it predates most of
+// them and made every ratio in the log wrong).
+const TOTAL_SCHEMAS = Object.keys(loadRegister().components?.schemas ?? {}).length
+const FULL_IMPORT_THRESHOLD = Math.floor(TOTAL_SCHEMAS * 0.9) // ≥ 90% imported = "complete enough" → exit 0
+
+/**
+ * Record which schemas actually have rows after seeding, keyed by the register's
+ * schema NAME (`Course`, `GradeEntry`, …) — the same value `manifest.pages[].
+ * config.schema` carries.
+ *
+ * ⚠️ It lives in `.e2e-state/`, NOT `test-results/`. Playwright's
+ * `createRemoveOutputDirsTask` deletes every project `outputDir` at the start of
+ * the run — after the workflow's seed step, before globalSetup — so a marker
+ * written into test-results/ by ci-seed.sh is gone before any spec can read it.
+ *
+ * WHY THIS FILE EXISTS
+ * --------------------
+ * index-pages.spec.ts used to carry a hand-written `SEEDED_SCHEMAS` set of 32
+ * names and assert "≥1 row" for each. The seeder actually produced rows for 17.
+ * The other 15 creates were failing validation, being logged as a warning, and
+ * swallowed — so the spec asserted rows for schemas that provably had none, and
+ * the list had no mechanism to notice it had drifted. Deriving the set from what
+ * the seeder REALLY created makes the seeder the single source of truth: fix a
+ * fixture and coverage grows automatically; break one and it shrinks visibly
+ * (ci-seed.sh gates on the floor).
+ *
+ * @param {object} counts        Per-slug object counts from seedObjects().
+ * @param {object} schemasByName The register's `components.schemas` map.
+ */
+function writeSeededManifest(counts, schemasByName) {
+	const slugToName = new Map(Object.entries(schemasByName).map(([name, s]) => [s.slug, name]))
+	const byName = {}
+	for (const [slug, count] of Object.entries(counts)) {
+		if (count > 0) byName[slugToName.get(slug) ?? slug] = count
+	}
+	const outDir = join(REPO_ROOT, '.e2e-state')
+	try {
+		mkdirSync(outDir, { recursive: true })
+		writeFileSync(join(outDir, 'seeded-schemas.json'), JSON.stringify(byName, null, '\t'))
+		log(`wrote .e2e-state/seeded-schemas.json (${Object.keys(byName).length} schemas with rows)`)
+	} catch (e) {
+		warn(`could not write .e2e-state/seeded-schemas.json: ${e}`)
+	}
+}
 
 async function main() {
 	if (!(await pingNc())) process.exit(1)
@@ -282,6 +410,7 @@ async function main() {
 	const counts = await seedObjects(presentSlugs)
 	const total = Object.values(counts).reduce((a, b) => a + b, 0)
 	log(`seeded/verified ${total} objects across ${Object.keys(counts).length} schemas: ${JSON.stringify(counts)}`)
+	writeSeededManifest(counts, loadRegister().components?.schemas ?? {})
 	if (presentSlugs.size < FULL_IMPORT_THRESHOLD) {
 		warn(`only ${presentSlugs.size}/${TOTAL_SCHEMAS} schemas imported (OpenRegister register-import gap — openregister#1487). ` +
 			`Seeded what was possible; e2e specs will run smoke checks only until the full register imports.`)

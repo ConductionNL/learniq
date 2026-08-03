@@ -1,3 +1,5 @@
+import * as fs from 'fs'
+import * as path from 'path'
 import { test, expect } from './fixtures'
 import manifest from '../../src/manifest.json'
 
@@ -12,6 +14,28 @@ import manifest from '../../src/manifest.json'
  */
 
 const APP_BASE = '/index.php/apps/scholiq'
+
+/**
+ * True once the seeder has actually populated the register.
+ *
+ * Reads the seeder's own output file rather than `process.env` — globalSetup
+ * mutates the environment of the RUNNER process, and Playwright test workers
+ * are separate processes, so the env var is not a signal this file can rely on.
+ * The env var is still honoured as a fallback for a hand-driven local run.
+ */
+function isSeeded(): boolean {
+	// `.e2e-state/`, not `test-results/`: Playwright deletes every project
+	// outputDir at the start of the run, which would take the seeder's marker
+	// with it.
+	const file = path.resolve(__dirname, '..', '..', '.e2e-state', 'seeded-schemas.json')
+	try {
+		return Object.keys(JSON.parse(fs.readFileSync(file, 'utf8'))).length > 0
+	} catch {
+		return process.env.SCHOLIQ_E2E_SEEDED === '1'
+	}
+}
+
+const SEEDED = isSeeded()
 
 type DetailPage = { id: string; route: string; resolved: string }
 
@@ -43,7 +67,7 @@ test.describe(`Scholiq detail pages (${detailPages.length})`, () => {
 			expect(bodyText.length, `${p.id}: body should not be blank`).toBeGreaterThan(0)
 			expect(bodyText, `${p.id}: should not be an NC error page`).not.toMatch(/^(404 Not Found|Internal Server Error)$/i)
 
-			if (process.env.SCHOLIQ_E2E_SEEDED === '1') {
+			if (SEEDED) {
 				expect.soft(
 					await page.locator('.app-navigation, nav#app-navigation, [data-app="scholiq"]').first().isVisible().catch(() => false),
 					`${p.id}: app shell should be present`,

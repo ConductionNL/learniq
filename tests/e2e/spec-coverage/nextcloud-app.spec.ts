@@ -20,10 +20,22 @@
 import { test, expect } from '../fixtures'
 import { apiUrl } from '../base-url'
 
-const SETTINGS_URL = '/apps/scholiq/Settings'
-const API_SETTINGS = '/apps/scholiq/api/settings'
+// Two fixes in these constants, both of which made the target unreachable:
+//
+//  1. The `/index.php/` prefix is load-bearing on CI. The shared workflow serves
+//     Nextcloud with a bare `php -S` and no router script, so pretty URLs are
+//     not rewritten: the built-in server only falls back to index.php for paths
+//     that do NOT exist on disk, and `server/apps/scholiq/` DOES exist without
+//     an index.php — so `/apps/scholiq/...` is a hard 404. 29 of this suite's
+//     34 spec files already used the `/index.php/` form.
+//  2. `/Settings` is not a route. The manifest declares the settings page at
+//     `/settings` (lower-case), and vue-router paths are case-sensitive, so the
+//     capitalised path resolved to nothing and the "Scholiq Settings" heading
+//     these tests assert on could never appear.
+const SETTINGS_URL = '/index.php/apps/scholiq/settings'
+const API_SETTINGS = '/index.php/apps/scholiq/api/settings'
 const APP_URL = '/index.php/apps/scholiq/'
-const PREFS_API = '/apps/openregister/api/notification-preferences'
+const PREFS_API = '/index.php/apps/openregister/api/notification-preferences'
 
 test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 

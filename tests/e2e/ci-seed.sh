@@ -108,6 +108,31 @@ if [ "$IMPORT_CODE" != "200" ]; then
 	exit 1
 fi
 
+# ⚠️ HTTP 200 is NOT success here. Measured on CI (run 30796644591) the endpoint
+# returned 200 with
+#   {"success":false,"message":"OCA\\OpenRegister\\Db\\SchemaMapper::loadSchema():
+#    Argument #1 ($identifier) must be of type string|int, array given"}
+# and imported nothing at all. A status-code-only check would have declared the
+# provisioning step green and handed the suite an empty register.
+#
+# This is a WARNING, not a hard failure, because the repair path below (the
+# repo's own seeder, which POSTs each schema individually) recovers from it and
+# the REAL gate is the explicit register/schema verification further down. The
+# annotation keeps the upstream OpenRegister defect visible instead of silent.
+IMPORT_OK="$(python3 -c "
+import json, sys
+try:
+    body = json.load(open(sys.argv[1]))
+except Exception:
+    print('unparseable'); raise SystemExit
+print('true' if body.get('success') is True else 'false')
+print(str(body.get('message', ''))[:400])
+" "$IMPORT_BODY" 2>/dev/null | head -1 || true)"
+
+if [ "$IMPORT_OK" != "true" ]; then
+	echo "::warning::The Scholiq settings/load import returned HTTP 200 but did NOT report success. Falling back to the per-schema repair path below; the register/schema verification remains the gate."
+fi
+
 # ── 2. Seed the example dataset (and repair a partial import) ────────────────
 # seed-example-data.mjs re-runs the register import through OpenRegister's own
 # endpoints, POSTs individually any schema the bulk import dropped
@@ -182,11 +207,44 @@ verify "$SCH_BODY" schemas
 
 echo "[ci-seed] Scholiq register + core schemas provisioned."
 
+# ── 3b. Floor gate on the seeded dataset ─────────────────────────────────────
+# index-pages.spec.ts derives its "this index page must show ≥1 row" set from
+# test-results/.seeded-schemas.json — whatever the seeder REALLY created. That
+# is the right source of truth (a hand-written list had already drifted to
+# claiming rows for 15 schemas that had none), but on its own it is also a
+# ratchet that can silently fall to zero: if every create started failing, the
+# file would be empty, no page would be row-checked, and the suite would go
+# green having asserted nothing about data.
+#
+# So gate the floor here. The number is the count observed once the fixture
+# bodies were corrected; it is a minimum, not a target.
+SEEDED_FILE="${APP_ROOT}/.e2e-state/seeded-schemas.json"
+MIN_SEEDED_SCHEMAS=15
+SEEDED_COUNT="$(python3 -c "
+import json, sys
+try:
+    print(len(json.load(open(sys.argv[1]))))
+except Exception:
+    print(0)
+" "$SEEDED_FILE" 2>/dev/null || echo 0)"
+echo "[ci-seed] schemas with seeded rows: ${SEEDED_COUNT} (floor ${MIN_SEEDED_SCHEMAS})"
+if [ "$SEEDED_COUNT" -lt "$MIN_SEEDED_SCHEMAS" ]; then
+	echo "::error::Only ${SEEDED_COUNT} schemas have seeded rows (expected at least ${MIN_SEEDED_SCHEMAS}). The index-page row assertions derive from this set, so a collapse here silently guts the suite."
+	echo "::error::Look for '! create <slug> failed' lines above — those are fixture bodies that no longer satisfy the register's required properties."
+	exit 1
+fi
+
 # Record the outcome for global-setup.ts, which would otherwise repeat the whole
 # seed (several minutes of redundant existence checks) inside the Playwright run.
-mkdir -p "${APP_ROOT}/test-results"
-printf '%s' "$SEED_STATUS" > "${APP_ROOT}/test-results/.ci-seeded"
-echo "[ci-seed] wrote ${APP_ROOT}/test-results/.ci-seeded (${SEED_STATUS})"
+#
+# ⚠️ NOT under test-results/. Playwright's `createRemoveOutputDirsTask` deletes
+# every project `outputDir` at the start of the run — before globalSetup, and
+# long after this step has finished — so anything this script leaves in
+# test-results/ is gone by the time a spec looks for it. Verified in
+# playwright/lib/runner: the task removes the whole folder, not just artifacts.
+mkdir -p "${APP_ROOT}/.e2e-state"
+printf '%s' "$SEED_STATUS" > "${APP_ROOT}/.e2e-state/ci-seeded"
+echo "[ci-seed] wrote ${APP_ROOT}/.e2e-state/ci-seeded (${SEED_STATUS})"
 
 # ── 4. Warm the SPA so the first spec doesn't pay the cold start ─────────────
 # The shared workflow serves Nextcloud with `php -S`. It now sets

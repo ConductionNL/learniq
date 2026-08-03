@@ -31,9 +31,12 @@
  */
 import { test, expect } from '../fixtures'
 
-const COHORT_LIST_API = '/apps/openregister/api/objects/scholiq/Cohort?limit=200'
-const SESSION_LIST_API = '/apps/openregister/api/objects/scholiq/Session?limit=200'
-const ENROLMENT_LIST_API = '/apps/openregister/api/objects/scholiq/Enrolment?limit=200'
+// `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
+// pretty URLs, and `server/apps/openregister/` exists without an index.php, so
+// the short form returns a hard 404. See adaptive-release.spec.ts.
+const COHORT_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/Cohort?limit=200'
+const SESSION_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/Session?limit=200'
+const ENROLMENT_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/Enrolment?limit=200'
 
 /**
  * Fetch every row for a schema's index endpoint and return the first one

@@ -29,7 +29,15 @@
  */
 import { test, expect } from '../fixtures'
 
-const LESSON_LIST_API = '/apps/openregister/api/objects/scholiq/Lesson?limit=200'
+// `/index.php/` prefix is load-bearing on CI. The shared workflow serves
+// Nextcloud with a bare `php -S` and no router script, so pretty URLs are not
+// rewritten: PHP's built-in server only falls back to index.php for paths that
+// do NOT exist on disk. `server/apps/openregister/` DOES exist and contains no
+// index.php, so `/apps/openregister/...` returns a hard 404 while
+// `/index.php/apps/openregister/...` works. The failure surfaces as a selector
+// or empty-result assertion, never as a visible 404. 29 of this suite's 34 spec
+// files already used the `/index.php/` form.
+const LESSON_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/Lesson?limit=200'
 
 /**
  * Fetch every Lesson and return the first one matching the given predicate,

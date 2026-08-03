@@ -22,8 +22,13 @@ const AUTH_FILE = path.join(APP_ROOT, 'test-results', '.auth', 'admin.json')
  * and seeded the example dataset. Its presence means this globalSetup does not
  * have to repeat a multi-minute seed that already ran in the workflow's
  * dedicated "Seed test data" step.
+ *
+ * ⚠️ Deliberately NOT under test-results/. Playwright removes every project
+ * `outputDir` at the start of the run (createRemoveOutputDirsTask, which runs
+ * before globalSetup), so a marker left there by an earlier workflow step no
+ * longer exists by the time this function reads it.
  */
-const SEED_MARKER = path.join(APP_ROOT, 'test-results', '.ci-seeded')
+const SEED_MARKER = path.join(APP_ROOT, '.e2e-state', 'ci-seeded')
 
 /**
  * Run the example-data seed (imports the scholiq register into OpenRegister + creates
