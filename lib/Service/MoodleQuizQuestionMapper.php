@@ -84,10 +84,6 @@ class MoodleQuizQuestionMapper
 
         $results = [];
         foreach ($xml->getElementsByTagName('question') as $questionEl) {
-            if (($questionEl instanceof DOMElement) === false) {
-                continue;
-            }
-
             $results[] = $this->mapOne(questionEl: $questionEl, itemBankId: $itemBankId, tenantId: $tenantId);
         }
 

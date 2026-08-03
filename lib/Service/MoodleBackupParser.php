@@ -83,10 +83,6 @@ class MoodleBackupParser
         $sectionNodes = [];
         $order        = 0;
         foreach ($xml->getElementsByTagName('section') as $sectionEl) {
-            if (($sectionEl instanceof DOMElement) === false) {
-                continue;
-            }
-
             // Only <section> elements directly under <sections> carry a <sectionid>; skip any
             // unrelated same-named elements elsewhere in the document.
             $sectionId = $this->childText(element: $sectionEl, tagName: 'sectionid');
@@ -105,10 +101,6 @@ class MoodleBackupParser
         $activities = [];
         $order      = 0;
         foreach ($xml->getElementsByTagName('activity') as $activityEl) {
-            if (($activityEl instanceof DOMElement) === false) {
-                continue;
-            }
-
             $moduleId = $this->childText(element: $activityEl, tagName: 'moduleid');
             if ($moduleId === null) {
                 continue;

@@ -1110,19 +1110,22 @@ class CoursePackageImportService
     /**
      * Create a `Lesson` pointing at a `document`-kind Material.
      *
+     * Both call sites import a Lesson purely for its side effect, so the created
+     * UUID is not returned.
+     *
      * @param string|null $courseId   Enclosing Course UUID.
      * @param string      $title      Lesson title.
      * @param int         $order      Manifest order.
      * @param string      $contentRef Material UUID (nc:files-resolved content lives on the Material).
      * @param string      $tenantId   Tenant UUID.
      *
-     * @return string|null Created Lesson UUID.
+     * @return void
      *
      * @spec openspec/changes/course-package-import-export/design.md#data-model
      */
-    private function createLessonForMaterial(?string $courseId, string $title, int $order, string $contentRef, string $tenantId): ?string
+    private function createLessonForMaterial(?string $courseId, string $title, int $order, string $contentRef, string $tenantId): void
     {
-        $saved = $this->objectService->saveObject(
+        $this->objectService->saveObject(
             self::SCHOLIQ_REGISTER,
             'lesson',
             [
@@ -1135,8 +1138,6 @@ class CoursePackageImportService
                 'tenant_id'   => $tenantId,
             ]
         );
-
-        return $this->extractUuid(saved: $saved);
     }//end createLessonForMaterial()
 
     /**

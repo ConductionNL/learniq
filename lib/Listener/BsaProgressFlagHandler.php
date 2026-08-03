@@ -126,7 +126,7 @@ class BsaProgressFlagHandler implements IEventListener
             return;
         }
 
-        $programmeIds = $this->resolveProgrammeIds(courseId: $courseId, tenantId: $tenantId);
+        $programmeIds = $this->resolveProgrammeIds(courseId: $courseId);
 
         foreach ($programmeIds as $programmeId) {
             $this->checkProgramme(programmeId: $programmeId, learnerId: $learnerId, tenantId: $tenantId);
@@ -137,13 +137,14 @@ class BsaProgressFlagHandler implements IEventListener
     /**
      * Resolve the Programme(s) a Course belongs to.
      *
+     * The Course is resolved by id, which is already tenant-unique, so no
+     * tenant argument is needed to scope the lookup.
+     *
      * @param string $courseId UUID of the Course.
-     * @param string $tenantId Tenant ID (unused for lookup scoping; Course is
-     *                         resolved by id, which is already tenant-unique).
      *
      * @return array<int, string>
      */
-    private function resolveProgrammeIds(string $courseId, string $tenantId): array
+    private function resolveProgrammeIds(string $courseId): array
     {
         $course = $this->objectService->find(
             id: $courseId,

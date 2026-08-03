@@ -114,7 +114,13 @@ class QtiChoiceOrderResolver
     /**
      * Classify each declared `simpleChoice` by its QTI `fixed` attribute.
      *
-     * @param DOMNodeList<DOMElement> $choiceNodes The item's simpleChoice nodes, in declared order.
+     * `DOMNodeList` is not a templated class in the PHP 8.3 stubs Psalm ships, so
+     * the element type cannot be given as a template argument. The loop below
+     * narrows each node with an `instanceof DOMElement` guard instead, which both
+     * analysers understand and which is also correct at runtime — a `DOMNodeList`
+     * may legitimately yield comment or text nodes.
+     *
+     * @param DOMNodeList $choiceNodes The item's simpleChoice `DOMElement` nodes, in declared order.
      *
      * @return array{declaredOrder: array<int,string>, fixedByIndex: array<int,string>, movableIds: array<int,string>}
      */
@@ -125,6 +131,10 @@ class QtiChoiceOrderResolver
         $movableIds    = [];
 
         foreach ($choiceNodes as $index => $choiceNode) {
+            if (($choiceNode instanceof DOMElement) === false) {
+                continue;
+            }
+
             $identifier = $choiceNode->getAttribute('identifier');
             if ($identifier === '') {
                 continue;
