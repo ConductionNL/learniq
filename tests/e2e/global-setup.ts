@@ -4,6 +4,27 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { baseUrl } from './base-url'
 
+/** Repo root — `tests/e2e/` is two levels down. */
+const APP_ROOT = path.resolve(__dirname, '..', '..')
+
+/**
+ * Where the authenticated browser state is written.
+ *
+ * Anchored to the repo root rather than the process CWD. Both playwright
+ * configs point `use.storageState` at this same location, and a CWD-relative
+ * path here silently writes the file somewhere Playwright will not read it —
+ * which does not fail, it just runs the whole suite logged OUT.
+ */
+const AUTH_FILE = path.join(APP_ROOT, 'test-results', '.auth', 'admin.json')
+
+/**
+ * Marker written by tests/e2e/ci-seed.sh once it has provisioned the register
+ * and seeded the example dataset. Its presence means this globalSetup does not
+ * have to repeat a multi-minute seed that already ran in the workflow's
+ * dedicated "Seed test data" step.
+ */
+const SEED_MARKER = path.join(APP_ROOT, 'test-results', '.ci-seeded')
+
 /**
  * Run the example-data seed (imports the scholiq register into OpenRegister + creates
  * a coherent example dataset). Best-effort: a failing seed (NC unreachable in CI, or
@@ -12,6 +33,20 @@ import { baseUrl } from './base-url'
  * process.env.SCHOLIQ_E2E_SEEDED='1' on success.
  */
 function runSeed(): void {
+	// ci-seed.sh already ran the same seed, in the step whose job it is, and
+	// recorded whether it fully succeeded. Re-running it here would cost several
+	// minutes of redundant existence checks on every CI run.
+	if (fs.existsSync(SEED_MARKER)) {
+		const status = fs.readFileSync(SEED_MARKER, 'utf8').trim()
+		if (status === 'full') {
+			process.env.SCHOLIQ_E2E_SEEDED = '1'
+			console.log('[global-setup] seed already done by ci-seed.sh (full) — skipping')
+		} else {
+			console.warn(`[global-setup] seed already done by ci-seed.sh (${status}) — skipping; index specs will not assert row counts`)
+		}
+		return
+	}
+
 	const seedScript = path.join(__dirname, 'seed-example-data.mjs')
 	if (!fs.existsSync(seedScript)) return
 	try {
@@ -45,7 +80,7 @@ async function globalSetup(): Promise<void> {
 	const baseURL = baseUrl()
 	const username = process.env.NC_ADMIN_USER ?? 'admin'
 	const password = process.env.NC_ADMIN_PASS ?? 'admin'
-	const authFile = 'test-results/.auth/admin.json'
+	const authFile = AUTH_FILE
 
 	// Ensure output directory exists
 	fs.mkdirSync(path.dirname(authFile), { recursive: true })

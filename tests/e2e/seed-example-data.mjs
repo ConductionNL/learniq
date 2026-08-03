@@ -34,12 +34,17 @@ import { dirname, join } from 'node:path'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = join(__dirname, '..', '..')
 
+// Every name the shared CI quality workflow exports is accepted (BASE_URL,
+// NEXTCLOUD_URL, NC_BASE_URL — it does NOT export PLAYWRIGHT_BASE_URL), plus
+// this script's own OR_BASE_URL and the repo's historical PW_BASE_URL.
 const RAW_BASE = process.env.OR_BASE_URL
 	?? process.env.PLAYWRIGHT_BASE_URL
 	?? process.env.BASE_URL
+	?? process.env.NEXTCLOUD_URL
+	?? process.env.NC_BASE_URL
 	?? process.env.PW_BASE_URL
 if (!RAW_BASE) {
-	console.error('[seed] OR_BASE_URL (or PLAYWRIGHT_BASE_URL / BASE_URL) must be set — '
+	console.error('[seed] OR_BASE_URL (or PLAYWRIGHT_BASE_URL / BASE_URL / NEXTCLOUD_URL / NC_BASE_URL) must be set — '
 		+ 'refusing to fall back to the shared developer instance on :8080.')
 	process.exit(1)
 }

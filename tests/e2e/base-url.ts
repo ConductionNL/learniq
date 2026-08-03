@@ -22,10 +22,13 @@
  * Rules encoded here:
  *   1. NEVER a `localhost:8080` literal fallback. An unset target is a hard
  *      error, not a silent redirect to the shared box.
- *   2. Accept the name the shared CI quality workflow exports (`BASE_URL`) as
- *      well as the Playwright-conventional `PLAYWRIGHT_BASE_URL` and this
- *      repo's historical `PW_BASE_URL`. A `PLAYWRIGHT_BASE_URL`-only resolver
- *      hard-fails every CI run.
+ *   2. Accept every name the shared CI quality workflow exports. Its "Run
+ *      Playwright tests" step sets `BASE_URL`, `NEXTCLOUD_URL` AND
+ *      `NC_BASE_URL` (its "Seed test data" step sets the same three), and it
+ *      does NOT set `PLAYWRIGHT_BASE_URL`. A `PLAYWRIGHT_BASE_URL`-only
+ *      resolver hard-fails every CI run — a sibling repo shipped exactly that
+ *      and its E2E job has been red on every run since. All five names are
+ *      accepted here; only the hardcoded fallback is gone.
  *   3. Specs that need an absolute URL must build it from `baseUrl()`, so
  *      relative `goto()` and absolute `request.get()` in the same spec can
  *      never disagree about which instance they are talking to.
@@ -38,19 +41,27 @@
  * @return {string} The base URL, without a trailing slash.
  */
 export function baseUrl(): string {
-	const url = process.env.PLAYWRIGHT_BASE_URL
-		?? process.env.BASE_URL
-		?? process.env.PW_BASE_URL
+	const candidates = [
+		'PLAYWRIGHT_BASE_URL',
+		'BASE_URL',
+		'NEXTCLOUD_URL',
+		'NC_BASE_URL',
+		'PW_BASE_URL',
+	] as const
 
-	if (!url) {
-		throw new Error(
-			'PLAYWRIGHT_BASE_URL (or BASE_URL / PW_BASE_URL) must be set. '
-			+ 'There is deliberately no default: the old default was the SHARED '
-			+ 'developer instance on :8080, which bind-mounts real host checkouts.',
-		)
+	for (const name of candidates) {
+		const value = process.env[name]
+		if (value && value.trim() !== '') {
+			return value.trim().replace(/\/+$/, '')
+		}
 	}
 
-	return url.replace(/\/$/, '')
+	throw new Error(
+		'No Nextcloud base URL configured for the e2e suite. Set one of '
+		+ candidates.join(', ')
+		+ '. There is deliberately no default: the old default was the SHARED '
+		+ 'developer instance on :8080, which bind-mounts real host checkouts.',
+	)
 }
 
 /**
