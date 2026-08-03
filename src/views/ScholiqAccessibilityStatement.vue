@@ -109,13 +109,21 @@ import { useObjectStore } from '@conduction/nextcloud-vue'
 import { NcButton, NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
 
 const REGISTER = 'scholiq'
-// Schemas are addressed by their REGISTER SLUG, never their PascalCase title.
-// OpenRegister's SchemaMapper::findBySlugInIds() matches on LOWER(slug), so a
-// single-word title happens to resolve ('Course' -> 'course') while a
-// multi-word one cannot ('AccessibilityStatement' -> 'accessibilitystatement',
-// which is not the declared slug 'accessibility-statement'). The lookup then
-// misses and ObjectService::setSchema() rethrows DoesNotExistException as a
-// 404. The declared slugs live in lib/Settings/scholiq_register.json.
+// Address a schema by the SLUG it declares in lib/Settings/scholiq_register.json,
+// read verbatim — never by its PascalCase schema key.
+//
+// The resolver (OpenRegister SchemaMapper::findBySlugInIds) lowercases BOTH
+// sides, so the invariant is strtolower(<url segment>) === strtolower(<slug>).
+// ⚠️ Casing is therefore NOT what breaks: structure is. 'AccessibilityStatement'
+// lowercases to 'accessibilitystatement', which is not the declared slug
+// 'accessibility-statement' — the hyphen is the difference. setSchema() then
+// rethrows DoesNotExistException and the request 404s.
+//
+// ⚠️ Do NOT generalise this into "kebab-case the schema name". scholiq is the
+// fleet outlier in declaring hyphenated slugs for most (not all) of its
+// schemas — AiFeature, for one, declares its slug as literally 'AiFeature' —
+// and other apps declare camelCase or PascalCase slugs. Kebab-casing those
+// would introduce exactly this bug. Always look the slug up.
 const STATEMENT_SCHEMA = 'accessibility-statement'
 const LIMITATION_SCHEMA = 'accessibility-limitation'
 const STATEMENT_TYPE = `${REGISTER}-${STATEMENT_SCHEMA}`

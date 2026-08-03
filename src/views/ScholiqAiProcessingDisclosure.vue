@@ -112,8 +112,11 @@ import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
 
 const REGISTER = 'scholiq'
-// Register SLUG, not the PascalCase title — OpenRegister resolves schemas on
-// LOWER(slug), so a multi-word title 404s. See scholiq_register.json.
+// The slug this schema declares in lib/Settings/scholiq_register.json, verbatim.
+// The resolver lowercases both sides, so casing is irrelevant — but a structural
+// difference (here the hyphen) is not: 'SovereigntyPolicy' lowercases to
+// 'sovereigntypolicy', which is not the declared 'sovereignty-policy'.
+// ⚠️ Look the slug up; do not kebab-case by rule (AiFeature's slug is 'AiFeature').
 const POLICY_SCHEMA = 'sovereignty-policy'
 const POLICY_TYPE = `${REGISTER}-${POLICY_SCHEMA}`
 

@@ -213,8 +213,10 @@ export default {
 
 				const [profile, attainments, enrolments, competencies] = await Promise.all([
 					this.fetchLearnerProfile(targetLearnerId),
-					// Register SLUG, not the PascalCase title — OpenRegister resolves
-					// schemas on LOWER(slug), so a multi-word title 404s.
+					// The slug declared in lib/Settings/scholiq_register.json, verbatim.
+					// The resolver lowercases both sides, so casing is irrelevant — the
+					// hyphen is the structural difference that made the PascalCase key
+					// 404. ⚠️ Look the slug up rather than kebab-casing by rule.
 					this.fetchCollection('competency-attainment', { learnerId: targetLearnerId, limit: 200 }),
 					this.fetchCollection('Enrolment', { learnerId: targetLearnerId, limit: 200 }),
 					this.fetchCollection('Competency', { limit: 500 }),
@@ -255,7 +257,7 @@ export default {
 		 * @return {Promise<object|null>}
 		 */
 		async fetchLearnerProfile(ncUserId) {
-			// Register SLUG, not the PascalCase title (see above).
+			// Declared slug, verbatim (see above).
 			const results = await this.fetchCollection('learner-profile', { ncUserId, limit: 1 })
 			return results[0] ?? null
 		},
