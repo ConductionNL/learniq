@@ -22,15 +22,28 @@ concurrency:
   group: quality-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
-# The called workflow contains jobs that declare `contents: write` and
-# `actions: write` (coverage-baseline update, journeydoc capture, SBOM). A
-# caller cannot grant a reusable workflow more than it holds itself, so capping
-# this at `read` makes the whole call fail to START — zero jobs, no
-# annotations, indistinguishable from "nothing to run".
+# Union of two intents, both of which are load-bearing:
+#
+#  * `issues: write` + `pull-requests: write` come from development's
+#    least-privilege pass (#257) — the Quality Report job posts a sticky PR
+#    comment and cannot without them.
+#  * `contents: write` + `actions: write` + `packages: read` are required by
+#    jobs the called workflow declares (coverage-baseline update, journeydoc
+#    capture, SBOM). A caller cannot grant a reusable workflow more than it
+#    holds itself, so capping those at `read` makes the whole call fail to
+#    START: zero jobs, no annotations — indistinguishable from "nothing to
+#    run". `development` at cb101f1 shows exactly that, two `startup_failure`
+#    runs in a row.
+#
+# Keeping only development's block would therefore trade a posted comment for a
+# pipeline that never starts. Keeping only this branch's would silently drop
+# the comment. Both are kept.
 permissions:
   contents: write
   actions: write
   packages: read
+  issues: write
+  pull-requests: write
 
 jobs:
   quality:
