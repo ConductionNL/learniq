@@ -51,12 +51,34 @@ export default defineConfig({
 	globalSetup: path.resolve(__dirname, 'global-setup.ts'),
 	timeout: 60_000,
 	expect: { timeout: 15_000 },
-	fullyParallel: false,
+	// ⚠️ PARALLEL ON PURPOSE — the suite does not fit in the job's time budget
+	// single-threaded.
+	//
+	// The shared workflow caps this job at `timeout-minutes: 45`, sized from
+	// suites of "4-10 min" (planix 0.8, doriath 4.2, opencatalogi 10.0). Scholiq
+	// declares 276 manifest pages and the suite is 433 tests; run single-worker
+	// it took 1.0h (run 30798535945) and 1.4h (run 30810841150), and run
+	// 30817505312 was CANCELLED mid-suite at exactly 45 minutes. A suite that
+	// cannot finish inside the cap reports `cancelled`, which is not a result.
+	//
+	// Parallelism is safe here: every spec is read-only against a dataset that
+	// ci-seed.sh provisions BEFORE the run — no spec creates, mutates or deletes
+	// objects, so workers cannot race each other. The one shared mutable thing
+	// is the auth storageState, which globalSetup writes once before any worker
+	// starts and workers only read.
+	//
+	// The server side is already provisioned for it: the shared workflow sets
+	// PHP_CLI_SERVER_WORKERS=8, so `php -S` is no longer the single-request
+	// bottleneck it was when `workers: 1` was chosen.
+	fullyParallel: true,
 	// One retry on CI. The PHP built-in server is cold on the first request of
 	// the run; see the warm-up in ci-seed.sh and PHP_CLI_SERVER_WORKERS in the
 	// shared workflow. The retry is a hedge, not a substitute for either.
 	retries: process.env.CI ? 1 : 0,
-	workers: 1,
+	// 4, not 8: PHP_CLI_SERVER_WORKERS=8 is the server's ceiling, and each
+	// Playwright worker drives a full Chromium plus the SPA's boot fan-out, so
+	// matching them 1:1 would queue requests behind each other again.
+	workers: process.env.CI ? 4 : 1,
 	reporter: [
 		['list'],
 		['html', { open: 'never', outputFolder: path.join(APP_ROOT, 'playwright-report') }],
