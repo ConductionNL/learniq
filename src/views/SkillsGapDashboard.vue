@@ -213,7 +213,9 @@ export default {
 
 				const [profile, attainments, enrolments, competencies] = await Promise.all([
 					this.fetchLearnerProfile(targetLearnerId),
-					this.fetchCollection('CompetencyAttainment', { learnerId: targetLearnerId, limit: 200 }),
+					// Register SLUG, not the PascalCase title — OpenRegister resolves
+					// schemas on LOWER(slug), so a multi-word title 404s.
+					this.fetchCollection('competency-attainment', { learnerId: targetLearnerId, limit: 200 }),
 					this.fetchCollection('Enrolment', { learnerId: targetLearnerId, limit: 200 }),
 					this.fetchCollection('Competency', { limit: 500 }),
 				])
@@ -253,7 +255,8 @@ export default {
 		 * @return {Promise<object|null>}
 		 */
 		async fetchLearnerProfile(ncUserId) {
-			const results = await this.fetchCollection('LearnerProfile', { ncUserId, limit: 1 })
+			// Register SLUG, not the PascalCase title (see above).
+			const results = await this.fetchCollection('learner-profile', { ncUserId, limit: 1 })
 			return results[0] ?? null
 		},
 

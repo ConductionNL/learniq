@@ -112,7 +112,9 @@ import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
 
 const REGISTER = 'scholiq'
-const POLICY_SCHEMA = 'SovereigntyPolicy'
+// Register SLUG, not the PascalCase title — OpenRegister resolves schemas on
+// LOWER(slug), so a multi-word title 404s. See scholiq_register.json.
+const POLICY_SCHEMA = 'sovereignty-policy'
 const POLICY_TYPE = `${REGISTER}-${POLICY_SCHEMA}`
 
 export default {

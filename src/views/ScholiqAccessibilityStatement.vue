@@ -109,8 +109,15 @@ import { useObjectStore } from '@conduction/nextcloud-vue'
 import { NcButton, NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
 
 const REGISTER = 'scholiq'
-const STATEMENT_SCHEMA = 'AccessibilityStatement'
-const LIMITATION_SCHEMA = 'AccessibilityLimitation'
+// Schemas are addressed by their REGISTER SLUG, never their PascalCase title.
+// OpenRegister's SchemaMapper::findBySlugInIds() matches on LOWER(slug), so a
+// single-word title happens to resolve ('Course' -> 'course') while a
+// multi-word one cannot ('AccessibilityStatement' -> 'accessibilitystatement',
+// which is not the declared slug 'accessibility-statement'). The lookup then
+// misses and ObjectService::setSchema() rethrows DoesNotExistException as a
+// 404. The declared slugs live in lib/Settings/scholiq_register.json.
+const STATEMENT_SCHEMA = 'accessibility-statement'
+const LIMITATION_SCHEMA = 'accessibility-limitation'
 const STATEMENT_TYPE = `${REGISTER}-${STATEMENT_SCHEMA}`
 const LIMITATION_TYPE = `${REGISTER}-${LIMITATION_SCHEMA}`
 

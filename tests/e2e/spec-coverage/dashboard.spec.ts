@@ -102,11 +102,33 @@ test.describe('dashboard — role-aware dashboard surface', () => {
 		//   the Scholiq "Dashboards" entry
 		// Only the third belongs to this app. The test was measuring Nextcloud's chrome
 		// and would have reported 2 even with the Scholiq nav entirely absent.
-		const dashboardNavEntries = page
-			.locator('#app-navigation-vue a, #app-navigation-vue button')
-			.filter({ hasText: /Dashboard/i })
-		const navCount = await dashboardNavEntries.count().catch(() => 0)
-		expect(navCount).toBeLessThanOrEqual(1)
+		// ⚠️ Match the entry's accessible name EXACTLY, not a /Dashboard/i substring.
+		//
+		// The substring form over-matched and could never hold: src/manifest.json
+		// legitimately declares several pages whose titles contain the word
+		// "dashboard" — "Risk dashboard", "Skills gap dashboard", "BSA risk
+		// dashboard" — alongside the single landing page titled "Dashboards"
+		// (id `Dashboard`, route `/`). `hasText` also matches DESCENDANT text, so a
+		// collapsible nav group containing any of those children matched too. The
+		// count was therefore measuring "how many nav nodes mention the word
+		// dashboard", which is not the invariant.
+		//
+		// The invariant is: exactly one "Dashboards" entry, and no per-role
+		// duplicates — the regression ADR-009 §6 closed when the in-page role
+		// switcher replaced separate "Teacher dashboard" / "Student dashboard"
+		// menu items. Both halves are asserted explicitly below.
+		const appNav = page.locator('#app-navigation-vue')
+
+		const dashboardsEntries = appNav.getByRole('link', { name: /^Dashboards$/ })
+		expect(await dashboardsEntries.count().catch(() => 0)).toBeLessThanOrEqual(1)
+
+		const perRoleDashboardEntries = appNav.getByRole('link', {
+			name: /^(teacher|student|docent|leerling|admin(istrator)?)\s+dashboard$/i,
+		})
+		expect(
+			await perRoleDashboardEntries.count().catch(() => 0),
+			'per-role dashboard menu items were replaced by the role switcher (ADR-009 §6)',
+		).toBe(0)
 
 		// The in-component role switcher (a combobox) appears only for multi-role users.
 		// For the admin session it may or may not be present; assert it is at most one

@@ -81,8 +81,12 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 		const errors = collectFatalErrors(page)
 
 		await page.goto(STATEMENT_URL)
-		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		// Readiness signal: the Vue root has rendered. NOT `networkidle` — it
+		// can never settle on Nextcloud (the notification poll keeps a request
+		// in flight all session), so it silently burns its full 30 s out of
+		// this test's 60 s budget and surfaces as a bare timeout that looks
+		// like an app outage. ADR-074 rule 4 / hydra gate 58.
+		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -147,8 +151,9 @@ test.describe('accessibility-conformance — the known-limitations register', ()
 		// 404 — the same "route reachable, not silently 404" bar the
 		// manifest wiring exists to guarantee.
 		await page.goto(LIMITATION_DETAIL_URL)
-		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		// Readiness signal: the Vue root has rendered. NOT `networkidle` —
+		// see ADR-074 rule 4 / hydra gate 58.
+		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -178,12 +183,12 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 		const errors = collectFatalErrors(page)
 
 		await page.goto(STATEMENT_URL)
-		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		// Readiness signal: the Vue root has rendered. NOT `networkidle` —
+		// see ADR-074 rule 4 / hydra gate 58.
+		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		await page.getByRole('button', { name: /Report an accessibility problem/i }).first().click()
 		await page.waitForURL(/\/accessibility\/feedback\/new/, { timeout: 10_000 }).catch(() => {})
-		await page.waitForLoadState('networkidle').catch(() => {})
 
 		expect(page.url()).toContain('/accessibility/feedback/new')
 
@@ -196,8 +201,9 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
 	test('a user fills and submits the AccessibilityFeedback create form and it lands as a submitted record', async ({ loggedInPage: page }) => {
 		await page.goto(FEEDBACK_CREATE_URL)
-		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		// Readiness signal: the Vue root has rendered. NOT `networkidle` —
+		// see ADR-074 rule 4 / hydra gate 58.
+		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		// Soft: only meaningful once the scholiq register is imported into
 		// OpenRegister and CnDetailPage's isCreateMode form has actually
@@ -223,7 +229,11 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 
 			const submitButton = page.getByRole('button', { name: /^(Save|Create|Submit)$/i }).first()
 			await submitButton.click().catch(() => {})
-			await page.waitForLoadState('networkidle').catch(() => {})
+			// Give the create a bounded window to navigate off /new. NOT
+			// `networkidle` — see ADR-074 rule 4 / hydra gate 58. Either
+			// outcome (navigation or a toast) is accepted just below, so a
+			// timeout here is not itself a failure.
+			await page.waitForURL((u) => !u.pathname.includes('/accessibility/feedback/new'), { timeout: 10_000 }).catch(() => {})
 
 			// A successful create either navigates off /new (to the new
 			// record's detail route) or shows a success toast — both are

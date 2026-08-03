@@ -115,10 +115,25 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		const picker = page.locator('select, [role="combobox"]').first()
 		await expect(picker).toBeVisible()
 
-		// AI Features heading must also be present (loaded in parallel)
+		// AI Features section must also be present (loaded in parallel)
 		await expect(page.locator('h2').filter({ hasText: /AI Features/i })).toBeVisible()
-		// Table columns confirm structure loaded
-		await expect(page.locator('th').filter({ hasText: /Feature/i })).toBeVisible()
+
+		// This used to assert a `<th>Feature</th>`, i.e. that Scholiq rendered its
+		// OWN AI-feature register table. That surface no longer exists: under
+		// ADR-005 the EU AI Act high-risk feature register and the DPO
+		// acknowledgement are centralised in Hermiq, and ScholiqSettings.vue now
+		// renders the section as a delegation — see the "Section 2: AI features —
+		// governance delegated to Hermiq (ADR-005)" NcSettingsSection. There is no
+		// <th> anywhere in the settings views, so the old assertion could only ever
+		// fail; it was asserting against a removed surface, not a regression.
+		//
+		// Assert the delegation the app actually implements. Both branches are
+		// legitimate and depend only on whether Hermiq is installed on the
+		// instance, so accept either — but require one of them, so a section that
+		// rendered empty still fails.
+		const hermiqLink = page.getByRole('button', { name: /Open the AI-feature register in Hermiq/i })
+		const hermiqMissingNotice = page.getByText(/Install and enable the Hermiq app/i)
+		await expect(hermiqLink.or(hermiqMissingNotice).first()).toBeVisible()
 	})
 
 	// @e2e openspec/specs/nextcloud-app/spec.md#saving-the-default-register

@@ -649,7 +649,7 @@ export default {
 				const learnerId = currentUser?.uid ?? ''
 				if (!learnerId) return
 
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/LessonCompletion?limit=100')
+				const url = generateUrl('/apps/openregister/api/objects/scholiq/lesson-completion?limit=100')
 				const resp = await fetch(url, {
 					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 				})
@@ -719,7 +719,7 @@ export default {
 				const currentUser = getCurrentUser()
 				const learnerId = currentUser?.uid ?? ''
 
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/LessonCompletion')
+				const url = generateUrl('/apps/openregister/api/objects/scholiq/lesson-completion')
 				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {

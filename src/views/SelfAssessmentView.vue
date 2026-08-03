@@ -22,9 +22,9 @@
     - GET  /api/objects/scholiq/Submission/:id
     - GET  /api/objects/scholiq/Assignment/:id
     - GET  /api/objects/scholiq/Rubric/:id
-    - GET  /api/objects/scholiq/SelfAssessment?submissionId=:id&learnerId=:uid
-    - POST/PUT /api/objects/scholiq/SelfAssessment
-    - POST /api/objects/scholiq/SelfAssessment/:id/transition/submit
+    - GET  /api/objects/scholiq/self-assessment?submissionId=:id&learnerId=:uid
+    - POST/PUT /api/objects/scholiq/self-assessment
+    - POST /api/objects/scholiq/self-assessment/:id/transition/submit
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView / PeerReviewMarkingView.
@@ -345,7 +345,7 @@ export default {
 		async loadExistingSelfAssessment(submissionId) {
 			const uid = getCurrentUser()?.uid ?? ''
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/SelfAssessment?filters[submissionId]=${submissionId}&filters[learnerId]=${uid}&limit=1`,
+				`/apps/openregister/api/objects/scholiq/self-assessment?filters[submissionId]=${submissionId}&filters[learnerId]=${uid}&limit=1`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -427,8 +427,8 @@ export default {
 
 				const isUpdate = this.selfAssessment != null
 				const saveUrl = isUpdate
-					? generateUrl(`/apps/openregister/api/objects/scholiq/SelfAssessment/${this.selfAssessment.id}`)
-					: generateUrl('/apps/openregister/api/objects/scholiq/SelfAssessment')
+					? generateUrl(`/apps/openregister/api/objects/scholiq/self-assessment/${this.selfAssessment.id}`)
+					: generateUrl('/apps/openregister/api/objects/scholiq/self-assessment')
 
 				const saveResp = await fetch(saveUrl, {
 					method: isUpdate ? 'PUT' : 'POST',
@@ -452,7 +452,7 @@ export default {
 				}
 
 				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/SelfAssessment/${selfAssessmentId}/transition/submit`,
+					`/apps/openregister/api/objects/scholiq/self-assessment/${selfAssessmentId}/transition/submit`,
 				)
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',

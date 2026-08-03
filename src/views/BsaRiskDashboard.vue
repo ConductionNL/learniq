@@ -127,7 +127,7 @@ export default {
 			this.error = null
 
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/BsaProgressFlag?limit=100')
+				const url = generateUrl('/apps/openregister/api/objects/scholiq/bsa-progress-flag?limit=100')
 				const resp = await fetch(url, {
 					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 				})
