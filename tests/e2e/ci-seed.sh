@@ -325,4 +325,36 @@ if [ "${GITHUB_ACTIONS:-}" = "true" ] || [ "${CI:-}" = "true" ]; then
 	esac
 fi
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ⚠️ THROWAWAY: BUNDLE-TRUNCATION CONTROL — DO NOT MERGE THIS BRANCH
+# ─────────────────────────────────────────────────────────────────────────────
+# A green suite only means something if a broken app makes it red. This block
+# breaks the frontend bundle AFTER every gate above has passed, so the run
+# isolates exactly one variable: "the SPA cannot mount".
+#
+# It TRUNCATES rather than deletes. A delete-based control is defeated on any
+# repo whose global-setup does an `fs.existsSync()` + rebuild — the setup
+# silently restores the bundle and the suite stays green, which reads as "the
+# control proved the tests are insensitive" when it actually proved nothing.
+# (scholiq's global-setup.ts has no such rebuild, but truncation is immune
+# either way, and a truncated .js file still serves with Content-Type
+# application/javascript so the gate above cannot mask the result.)
+#
+# Runs after the seed, so the register/schema provisioning and the bundle gate
+# are all exercised against the INTACT bundle — the only difference between
+# this run and the real one is the bundle content.
+#
+# cwd for this step is the Nextcloud server root.
+TRUNC_TARGET="apps/scholiq/js/scholiq-main.js"
+if [ -f "$TRUNC_TARGET" ]; then
+	BEFORE_BYTES="$(wc -c < "$TRUNC_TARGET")"
+	printf '/* truncated by the e2e bundle-truncation control */\n' > "$TRUNC_TARGET"
+	AFTER_BYTES="$(wc -c < "$TRUNC_TARGET")"
+	echo "[trunc-control] ${TRUNC_TARGET}: ${BEFORE_BYTES} bytes -> ${AFTER_BYTES} bytes"
+	echo "::warning::BUNDLE-TRUNCATION CONTROL ACTIVE — ${BEFORE_BYTES} bytes -> ${AFTER_BYTES} bytes. This branch must never be merged."
+else
+	echo "::error::truncation control could not find ${TRUNC_TARGET} (cwd $(pwd))."
+	exit 1
+fi
+
 echo "[ci-seed] done."
