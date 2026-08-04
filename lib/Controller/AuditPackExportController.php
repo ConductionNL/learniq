@@ -55,6 +55,7 @@ use OCP\Http\Client\IClientService;
 use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\IUserSession;
 use ZipArchive;
 
@@ -133,22 +134,7 @@ class AuditPackExportController extends Controller
             );
         }
 
-        // #184: resolve the requesting tenant's ID. instanceid is the same for every
-        // tenant on the instance — use the authenticated user's primary tenant instead.
-        // We fall back to instanceid only when no per-user tenant mapping is available.
-        $tenantId = $this->config->getSystemValue('instanceid', 'unknown');
-        if ($user !== null) {
-            // Attempt to read a per-user tenant binding stored by the admin module.
-            $userTenantId = $this->config->getUserValue(
-                userId: $user->getUID(),
-                appName: 'scholiq',
-                key: 'tenant_id',
-                default: ''
-            );
-            if ($userTenantId !== '') {
-                $tenantId = $userTenantId;
-            }
-        }
+        $tenantId = $this->resolveTenantId(user: $user);
 
         // Query OR's audit trail via the real mapper — filters available columns.
         // #184: always scope the query to the requesting tenant's ID so that audit
@@ -161,112 +147,24 @@ class AuditPackExportController extends Controller
             sort: ['created' => 'ASC']
         );
 
-        // Serialise AuditTrail entities to plain arrays.
-        $events = [];
-        foreach ($entries as $entry) {
-            $row = $entry->jsonSerialize();
-            // Apply regulation filter on the serialised data (changed JSON field).
-            $changed = [];
-            if (is_string($row['changed'] ?? null) === true) {
-                $changed = (array) json_decode($row['changed'], associative: true);
-            }
+        $events = $this->collectMatchingEvents(entries: $entries, regulationSlug: $regulationSlug);
 
-            if ($regulationSlug !== '' && ($changed['regulationSlug'] ?? '') !== $regulationSlug) {
-                continue;
-            }
+        // #192: scope verifyChain to the ID range of the matched events so the
+        // integrity report covers exactly the entries that appear in the export,
+        // not the whole audit log. Fixes #192.
+        $bounds       = $this->resolveExportedIdBounds(events: $events);
+        $verification = $this->verifyChainForRange(minId: $bounds['minId'], maxId: $bounds['maxId']);
 
-            $events[] = $row;
-        }
-
-        // #192: collect the IDs of the matched events so verifyChain operates on
-        // exactly the same entries that appear in the export, not the full log.
-        $minId = null;
-        $maxId = null;
-        foreach ($events as $ev) {
-            $id = (int) ($ev['id'] ?? 0);
-            if ($id === 0) {
-                continue;
-            }
-
-            if ($minId === null || $id < $minId) {
-                $minId = $id;
-            }
-
-            if ($maxId === null || $id > $maxId) {
-                $maxId = $id;
-            }
-        }
-
-        // #192: pass the date-scoped ID bounds to verifyChain so the integrity report
-        // covers the same entries as the export (not the whole audit log). Fixes #192.
-        if ($minId !== null && $maxId !== null) {
-            $verification = $this->auditHashService->verifyChain(from: $minId, to: $maxId);
-        } else {
-            $verification = $this->auditHashService->verifyChain();
-        }
-
-        $signatureStatus = 'broken';
-        if (($verification['valid'] ?? false) === true) {
-            $signatureStatus = 'valid';
-        }
-
-        $keyFingerprint = $verification['keyFingerprint'] ?? 'unavailable';
-        if (array_key_exists('brokenAt', $verification) === true) {
-            $keyFingerprint = 'unavailable';
-        }
-
-        $eventCount      = count($events);
-        $exportTimestamp = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-
-        // Build the four required files.
-        // $tenantId is already resolved above (per-user or instanceid fallback).
-        $ndjson       = $this->buildNdjson(events: $events);
-        $csv          = $this->buildCsv(events: $events);
-        $manifestJson = $this->buildManifestJson(
-            tenantId: $tenantId,
-            regulationSlug: $regulationSlug,
-            dateFrom: $dateFrom,
-            dateTo: $dateTo,
-            eventCount: $eventCount,
-            signatureStatus: $signatureStatus,
-            exportTimestamp: $exportTimestamp,
-            keyFingerprint: $keyFingerprint,
-        );
-        $verificationTxt = $this->buildVerificationTxt(verification: $verification);
-
-        // AVG Art. 30 verwerkingsregister artefact. The aggregate export is an
-        // OpenRegister capability (OR-PA-7); scholiq only fetches the platform
-        // output scoped to its register slice and includes it verbatim — no
-        // export engine, serialisation, or column logic here. When the platform
-        // capability is absent the artefact degrades loudly (warning content),
-        // it is never silently omitted.
-        $verwerkingsregisterCsv = $this->buildVerwerkingsregisterCsv(
-            dateFrom: $dateFrom,
-            dateTo: $dateTo,
-        );
-
-        // External-training.csv: verified externally-completed training records
-        // for this regulation + date range. These are a SEPARATE, clearly-labelled
-        // evidence class — never synthesised attestations. The evidence files
-        // themselves are OR file attachments referenced per row.
-        $externalTrainingCsv = $this->buildExternalTrainingCsv(
-            regulationSlug: $regulationSlug,
-            dateFrom: $dateFrom,
-            dateTo: $dateTo,
-            tenantId: $tenantId,
-        );
-
-        // Build ZIP in memory.
         $zipContent = $this->buildZip(
-                files: [
-                    'audit-trail.ndjson'         => $ndjson,
-                    'audit-trail.csv'            => $csv,
-                    'manifest.json'              => $manifestJson,
-                    'signature-verification.txt' => $verificationTxt,
-                    'verwerkingsregister.csv'    => $verwerkingsregisterCsv,
-                    'external-training.csv'      => $externalTrainingCsv,
-                ]
-                );
+            files: $this->buildPackFiles(
+                events: $events,
+                verification: $verification,
+                tenantId: $tenantId,
+                regulationSlug: $regulationSlug,
+                dateFrom: $dateFrom,
+                dateTo: $dateTo,
+            )
+        );
 
         $filename = sprintf(
             'audit-pack_%s_%s_%s.zip',
@@ -281,6 +179,205 @@ class AuditPackExportController extends Controller
             contentType: 'application/zip'
         );
     }//end export()
+
+    /**
+     * Resolve the requesting tenant's ID.
+     *
+     * #184: `instanceid` is the same for every tenant on the instance, so the
+     * authenticated user's own tenant binding (written by the admin module) is
+     * preferred; `instanceid` is only the fallback when no per-user mapping exists.
+     *
+     * @param IUser $user Authenticated user whose tenant binding is read.
+     *
+     * @return string Tenant UUID, or the instance id when unbound.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+     */
+    private function resolveTenantId(IUser $user): string
+    {
+        $userTenantId = $this->config->getUserValue(
+            userId: $user->getUID(),
+            appName: 'scholiq',
+            key: 'tenant_id',
+            default: ''
+        );
+
+        if ($userTenantId !== '') {
+            return $userTenantId;
+        }
+
+        return (string) $this->config->getSystemValue('instanceid', 'unknown');
+
+    }//end resolveTenantId()
+
+    /**
+     * Serialise the audit-trail entities and keep only the entries whose
+     * `changed` payload carries the requested regulation slug.
+     *
+     * @param array<int,mixed> $entries        AuditTrail entities from the OR mapper.
+     * @param string           $regulationSlug Regulation slug to filter on ('' keeps everything).
+     *
+     * @return array<int,array<string,mixed>> Serialised, filtered events in mapper order.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+     */
+    private function collectMatchingEvents(array $entries, string $regulationSlug): array
+    {
+        $events = [];
+        foreach ($entries as $entry) {
+            $row = (array) $entry->jsonSerialize();
+
+            // The regulation slug lives inside the `changed` JSON field.
+            $changed = [];
+            if (is_string($row['changed'] ?? null) === true) {
+                $changed = (array) json_decode($row['changed'], associative: true);
+            }
+
+            if ($regulationSlug !== '' && ($changed['regulationSlug'] ?? '') !== $regulationSlug) {
+                continue;
+            }
+
+            $events[] = $row;
+        }
+
+        return $events;
+
+    }//end collectMatchingEvents()
+
+    /**
+     * Find the lowest and highest audit-entry ID among the exported events.
+     *
+     * #192: these bounds scope the HMAC chain verification to the same entries
+     * the pack contains. Entries without a usable id are ignored rather than
+     * collapsing the range to zero.
+     *
+     * @param array<int,array<string,mixed>> $events Serialised, filtered events.
+     *
+     * @return array{minId: int|null, maxId: int|null} Bounds, both null when no event carried an id.
+     *
+     * @spec openspec/specs/compliance-audit/spec.md
+     */
+    private function resolveExportedIdBounds(array $events): array
+    {
+        $minId = null;
+        $maxId = null;
+
+        foreach ($events as $event) {
+            $id = (int) ($event['id'] ?? 0);
+            if ($id === 0) {
+                continue;
+            }
+
+            if ($minId === null || $id < $minId) {
+                $minId = $id;
+            }
+
+            if ($maxId === null || $id > $maxId) {
+                $maxId = $id;
+            }
+        }
+
+        return [
+            'minId' => $minId,
+            'maxId' => $maxId,
+        ];
+
+    }//end resolveExportedIdBounds()
+
+    /**
+     * Verify the audit HMAC chain, scoped to the exported ID range when one exists.
+     *
+     * #192: the integrity report must cover the same entries as the export, so the
+     * date-scoped ID bounds are forwarded when both are known. When either bound is
+     * absent there is no range to scope to and the whole chain is verified.
+     *
+     * The argument names MUST stay `from`/`to`: they bind by name against
+     * OpenRegister's real `AuditHashService::verifyChain(?int $from, ?int $to)`.
+     *
+     * @param int|null $minId Lowest exported audit-entry ID, or null when unknown.
+     * @param int|null $maxId Highest exported audit-entry ID, or null when unknown.
+     *
+     * @return array<string,mixed> OR AuditHashService::verifyChain() response.
+     *
+     * @spec openspec/specs/compliance-audit/spec.md
+     */
+    private function verifyChainForRange(?int $minId, ?int $maxId): array
+    {
+        if ($minId === null || $maxId === null) {
+            return $this->auditHashService->verifyChain();
+        }
+
+        return $this->auditHashService->verifyChain(from: $minId, to: $maxId);
+
+    }//end verifyChainForRange()
+
+    /**
+     * Build every artefact that goes into the audit-pack ZIP, keyed by its
+     * in-archive filename.
+     *
+     * The verwerkingsregister and external-training artefacts are always
+     * present: when the platform capability behind one is missing it degrades
+     * to loud warning content rather than being silently omitted.
+     *
+     * @param array<int,array<string,mixed>> $events         Serialised, filtered events.
+     * @param array<string,mixed>            $verification   OR AuditHashService::verifyChain() response.
+     * @param string                         $tenantId       Resolved tenant scope.
+     * @param string                         $regulationSlug Regulation slug for this pack.
+     * @param string                         $dateFrom       ISO-8601 period start.
+     * @param string                         $dateTo         ISO-8601 period end.
+     *
+     * @return array<string,string> Archive filename => file content.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+     */
+    private function buildPackFiles(
+        array $events,
+        array $verification,
+        string $tenantId,
+        string $regulationSlug,
+        string $dateFrom,
+        string $dateTo,
+    ): array {
+        $signatureStatus = 'broken';
+        if (($verification['valid'] ?? false) === true) {
+            $signatureStatus = 'valid';
+        }
+
+        // A broken chain cannot vouch for the key it was signed with either.
+        $keyFingerprint = (string) ($verification['keyFingerprint'] ?? 'unavailable');
+        if (array_key_exists('brokenAt', $verification) === true) {
+            $keyFingerprint = 'unavailable';
+        }
+
+        $exportTimestamp = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+
+        return [
+            'audit-trail.ndjson'         => $this->buildNdjson(events: $events),
+            'audit-trail.csv'            => $this->buildCsv(events: $events),
+            'manifest.json'              => $this->buildManifestJson(
+                tenantId: $tenantId,
+                regulationSlug: $regulationSlug,
+                dateFrom: $dateFrom,
+                dateTo: $dateTo,
+                eventCount: count($events),
+                signatureStatus: $signatureStatus,
+                exportTimestamp: $exportTimestamp,
+                keyFingerprint: $keyFingerprint,
+            ),
+            'signature-verification.txt' => $this->buildVerificationTxt(verification: $verification),
+            'verwerkingsregister.csv'    => $this->buildVerwerkingsregisterCsv(
+                dateFrom: $dateFrom,
+                dateTo: $dateTo,
+            ),
+            'external-training.csv'      => $this->buildExternalTrainingCsv(
+                regulationSlug: $regulationSlug,
+                dateFrom: $dateFrom,
+                dateTo: $dateTo,
+                tenantId: $tenantId,
+            ),
+        ];
+
+    }//end buildPackFiles()
 
     /**
      * Fetch the AVG Art. 30 verwerkingsregister for scholiq's slice from
@@ -564,46 +661,15 @@ class AuditPackExportController extends Controller
         );
 
         foreach ($rows as $row) {
-            $rec = $row;
-            if (is_array($rec) === false) {
-                $rec = (array) $row->jsonSerialize();
-            }
+            $rec = $this->normaliseExternalTrainingRecord(row: $row);
 
             $completedAt = (string) ($rec['completedAt'] ?? '');
-            // Date-range filter on completedAt (lexical ISO-8601 compare is valid).
-            if ($completedAt !== '' && ($completedAt < $dateFrom || $completedAt > ($dateTo.'T23:59:59Z'))) {
+            if ($this->completedAtInRange(completedAt: $completedAt, dateFrom: $dateFrom, dateTo: $dateTo) === false) {
                 continue;
             }
 
-            $files     = ($rec['@self']['files'] ?? ($rec['files'] ?? []));
-            $fileNames = [];
-            if (is_array($files) === true) {
-                foreach ($files as $file) {
-                    if (is_array($file) === true) {
-                        $fileNames[] = (string) ($file['name'] ?? ($file['title'] ?? ($file['id'] ?? '')));
-                    } else {
-                        $fileNames[] = (string) $file;
-                    }
-                }
-            }
-
-            fputcsv(
-                $handle,
-                [
-                    $this->sanitizeCsvCell(value: (string) ($rec['learnerId'] ?? '')),
-                    $this->sanitizeCsvCell(value: (string) ($rec['title'] ?? '')),
-                    $this->sanitizeCsvCell(value: (string) ($rec['provider'] ?? '')),
-                    $this->sanitizeCsvCell(value: (string) ($rec['kind'] ?? '')),
-                    $this->sanitizeCsvCell(value: (string) ($rec['regulationSlug'] ?? '')),
-                    $this->sanitizeCsvCell(value: $completedAt),
-                    $this->sanitizeCsvCell(value: (string) ($rec['validUntil'] ?? '')),
-                    $this->sanitizeCsvCell(value: (string) ($rec['verifiedBy'] ?? '')),
-                    $this->sanitizeCsvCell(value: (string) ($rec['verifiedAt'] ?? '')),
-                    $this->sanitizeCsvCell(value: (string) ($rec['credentialId'] ?? '')),
-                    $this->sanitizeCsvCell(value: implode('; ', $fileNames)),
-                ]
-            );
-        }//end foreach
+            fputcsv($handle, $this->externalTrainingCsvRow(rec: $rec, completedAt: $completedAt));
+        }
 
         rewind($handle);
         $csv = (string) stream_get_contents($handle);
@@ -616,6 +682,119 @@ class AuditPackExportController extends Controller
 
         return $csv;
     }//end buildExternalTrainingCsv()
+
+    /**
+     * Normalise one external-training row to a plain array.
+     *
+     * `ObjectService::findAll()` may hand back either entities or already-rendered
+     * arrays depending on the render mode, so both shapes are accepted here.
+     *
+     * @param mixed $row One row as returned by the OR object service.
+     *
+     * @return array<string,mixed> The record as a plain array.
+     *
+     * @spec openspec/changes/external-training-recording/tasks.md
+     */
+    private function normaliseExternalTrainingRecord(mixed $row): array
+    {
+        if (is_array($row) === true) {
+            return $row;
+        }
+
+        return (array) $row->jsonSerialize();
+
+    }//end normaliseExternalTrainingRecord()
+
+    /**
+     * Decide whether a record's `completedAt` falls inside the pack's date range.
+     *
+     * A lexical comparison is valid for ISO-8601 timestamps. An empty
+     * `completedAt` is kept rather than dropped, so a record is never silently
+     * excluded for lacking the field.
+     *
+     * @param string $completedAt Record completion timestamp ('' when absent).
+     * @param string $dateFrom    ISO date lower bound (inclusive).
+     * @param string $dateTo      ISO date upper bound (inclusive, end of day).
+     *
+     * @return bool True when the record belongs in this pack.
+     *
+     * @spec openspec/changes/external-training-recording/tasks.md
+     */
+    private function completedAtInRange(string $completedAt, string $dateFrom, string $dateTo): bool
+    {
+        if ($completedAt === '') {
+            return true;
+        }
+
+        if ($completedAt < $dateFrom) {
+            return false;
+        }
+
+        return $completedAt <= ($dateTo.'T23:59:59Z');
+
+    }//end completedAtInRange()
+
+    /**
+     * Collect the display names of the OR file attachments on a record.
+     *
+     * The bytes stay in OR's attachment API — the pack only references them by
+     * name, so an attachment is listed whether it arrives as a bare string or as
+     * a descriptor array.
+     *
+     * @param array<string,mixed> $rec The normalised external-training record.
+     *
+     * @return array<int,string> Attachment names in record order.
+     *
+     * @spec openspec/changes/external-training-recording/tasks.md
+     */
+    private function evidenceFileNames(array $rec): array
+    {
+        $files = ($rec['@self']['files'] ?? ($rec['files'] ?? []));
+        if (is_array($files) === false) {
+            return [];
+        }
+
+        $fileNames = [];
+        foreach ($files as $file) {
+            if (is_array($file) === false) {
+                $fileNames[] = (string) $file;
+                continue;
+            }
+
+            $fileNames[] = (string) ($file['name'] ?? ($file['title'] ?? ($file['id'] ?? '')));
+        }
+
+        return $fileNames;
+
+    }//end evidenceFileNames()
+
+    /**
+     * Render one external-training record as a sanitised CSV cell list.
+     *
+     * @param array<string,mixed> $rec         The normalised external-training record.
+     * @param string              $completedAt Completion timestamp already coerced by the caller.
+     *
+     * @return array<int,string> Cells in the order of the CSV header.
+     *
+     * @spec openspec/changes/external-training-recording/tasks.md
+     */
+    private function externalTrainingCsvRow(array $rec, string $completedAt): array
+    {
+        return [
+            $this->sanitizeCsvCell(value: (string) ($rec['learnerId'] ?? '')),
+            $this->sanitizeCsvCell(value: (string) ($rec['title'] ?? '')),
+            $this->sanitizeCsvCell(value: (string) ($rec['provider'] ?? '')),
+            $this->sanitizeCsvCell(value: (string) ($rec['kind'] ?? '')),
+            $this->sanitizeCsvCell(value: (string) ($rec['regulationSlug'] ?? '')),
+            $this->sanitizeCsvCell(value: $completedAt),
+            $this->sanitizeCsvCell(value: (string) ($rec['validUntil'] ?? '')),
+            $this->sanitizeCsvCell(value: (string) ($rec['verifiedBy'] ?? '')),
+            $this->sanitizeCsvCell(value: (string) ($rec['verifiedAt'] ?? '')),
+            $this->sanitizeCsvCell(value: (string) ($rec['credentialId'] ?? '')),
+            $this->sanitizeCsvCell(value: implode('; ', $this->evidenceFileNames(rec: $rec))),
+        ];
+
+    }//end externalTrainingCsvRow()
 
     /**
      * Build the manifest.json content per ADR-008 §6.
