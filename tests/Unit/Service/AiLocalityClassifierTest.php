@@ -30,8 +30,10 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Tests\Unit\Service;
 
+use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Service\AiLocalityClassifier;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
@@ -70,6 +72,29 @@ class AiLocalityClassifierTest extends TestCase
     }//end buildClassifier()
 
     /**
+     * Build the `brokeredcredential` ObjectEntity that ObjectService::find()
+     * returns for a credential-broker lookup.
+     *
+     * find() is declared `: ?ObjectEntity`, so a stub may not hand back a raw
+     * array; and ObjectEntity's getters are `Entity::__call` magic, so it may
+     * not be a mock either.
+     *
+     * @param string $id       Credential UUID.
+     * @param string $provider Catalogue provider identifier.
+     *
+     * @return ObjectEntity
+     */
+    private function brokeredCredential(string $id, string $provider): ObjectEntity
+    {
+        return OrEntityFactory::make(
+            ['id' => $id, 'provider' => $provider],
+            'brokeredcredential',
+            'credential-broker'
+        );
+
+    }//end brokeredCredential()
+
+    /**
      * A catalogued third-country SaaS provider (openai) classifies as
      * verified third-country.
      *
@@ -80,7 +105,7 @@ class AiLocalityClassifierTest extends TestCase
     public function testOpenAiCredentialClassifiesAsVerifiedThirdCountry(): void
     {
         $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn(['id' => 'cred-1', 'provider' => 'openai']);
+        $objectService->method('find')->willReturn($this->brokeredCredential('cred-1', 'openai'));
 
         $classifier = $this->buildClassifier(objectService: $objectService);
         $result     = $classifier->classify('openai', 'cred-1');
@@ -99,7 +124,7 @@ class AiLocalityClassifierTest extends TestCase
     public function testFireworksCredentialClassifiesAsVerifiedThirdCountry(): void
     {
         $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn(['id' => 'cred-2', 'provider' => 'fireworks']);
+        $objectService->method('find')->willReturn($this->brokeredCredential('cred-2', 'fireworks'));
 
         $classifier = $this->buildClassifier(objectService: $objectService);
         $result     = $classifier->classify('fireworks', 'cred-2');
@@ -117,7 +142,7 @@ class AiLocalityClassifierTest extends TestCase
     public function testAnthropicCredentialClassifiesAsVerifiedThirdCountry(): void
     {
         $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn(['id' => 'cred-3', 'provider' => 'anthropic']);
+        $objectService->method('find')->willReturn($this->brokeredCredential('cred-3', 'anthropic'));
 
         $classifier = $this->buildClassifier(objectService: $objectService);
         $result     = $classifier->classify('anthropic', 'cred-3');
@@ -136,7 +161,7 @@ class AiLocalityClassifierTest extends TestCase
     public function testAnthropicOAuthCredentialClassifiesAsVerifiedThirdCountry(): void
     {
         $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn(['id' => 'cred-4', 'provider' => 'anthropic-oauth']);
+        $objectService->method('find')->willReturn($this->brokeredCredential('cred-4', 'anthropic-oauth'));
 
         $classifier = $this->buildClassifier(objectService: $objectService);
         $result     = $classifier->classify('anthropic', 'cred-4');
@@ -196,7 +221,7 @@ class AiLocalityClassifierTest extends TestCase
     public function testInjectOnlyCredentialClassifiesUnverified(): void
     {
         $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn(['id' => 'cred-5', 'provider' => 'generic-apikey']);
+        $objectService->method('find')->willReturn($this->brokeredCredential('cred-5', 'generic-apikey'));
 
         $classifier = $this->buildClassifier(objectService: $objectService);
         $result     = $classifier->classify('openai', 'cred-5');
@@ -298,7 +323,7 @@ class AiLocalityClassifierTest extends TestCase
         );
 
         $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn(['id' => 'cred-7', 'provider' => 'openai']);
+        $objectService->method('find')->willReturn($this->brokeredCredential('cred-7', 'openai'));
 
         $classifier = $this->buildClassifier(objectService: $objectService, appConfig: $appConfig);
         $result     = $classifier->classifyActiveProvider();

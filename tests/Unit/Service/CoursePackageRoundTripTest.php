@@ -37,6 +37,7 @@ use OCA\Scholiq\Service\MoodleBackupParser;
 use OCA\Scholiq\Service\MoodleQuizQuestionMapper;
 use OCA\Scholiq\Service\QtiExportService;
 use OCA\Scholiq\Service\QtiImportService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -62,12 +63,18 @@ class CoursePackageRoundTripTest extends TestCase
         // --- Seed source object graph (mocked ObjectService, export side). ---
         $exportObjectService = $this->createMock(ObjectService::class);
         $exportObjectService->method('find')->willReturnCallback(
-            static function (string $id, string $register, string $schema) {
-                return match ([$schema, $id]) {
+            static function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) {
+                $row = match ([$schema, $id]) {
                     ['course', 'course-source'] => ['id' => 'course-source', 'name' => 'Physics 101', 'tenant_id' => 't1'],
                     ['rubric', 'rubric-source'] => ['id' => 'rubric-source', 'name' => 'Essay rubric', 'criteria' => [], 'maxPoints' => 20],
                     default => null,
                 };
+
+                if ($row === null) {
+                    return null;
+                }
+
+                return OrEntityFactory::make($row, (string) $schema);
             }
         );
         $exportObjectService->method('findAll')->willReturnCallback(
@@ -107,11 +114,18 @@ class CoursePackageRoundTripTest extends TestCase
         $savedByschema = [];
         $importObjectService = $this->createMock(ObjectService::class);
         $importObjectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) use (&$savedByschema): array {
-                $savedByschema[$schema] ??= [];
-                $object['uuid']              = $schema.'-reimported-'.(count($savedByschema[$schema]) + 1);
-                $savedByschema[$schema][]    = $object;
-                return $object;
+            static function (array $object, ?array $extend=[], $register=null, $schema=null) use (&$savedByschema) {
+                $schemaSlug = (string) $schema;
+
+                $savedByschema[$schemaSlug] ??= [];
+                $savedByschema[$schemaSlug][] = $object;
+
+                return OrEntityFactory::make(
+                    $object,
+                    $schemaSlug,
+                    (string) $register,
+                    $schemaSlug.'-reimported-'.count($savedByschema[$schemaSlug])
+                );
             }
         );
 

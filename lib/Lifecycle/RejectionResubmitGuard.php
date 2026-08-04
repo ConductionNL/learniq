@@ -296,14 +296,7 @@ class RejectionResubmitGuard
             object: $newJob
         );
 
-        if ($saved === null) {
-            return null;
-        }
-
-        $savedJob = $saved;
-        if (is_array($saved) === false) {
-            $savedJob = $saved->jsonSerialize();
-        }
+        $savedJob = $saved->jsonSerialize();
 
         $newJobId = $savedJob['id'] ?? ($savedJob['uuid'] ?? null);
 

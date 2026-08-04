@@ -26,8 +26,10 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Tests\Unit\Service;
 
+use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Service\RolloverService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\IGroupManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -183,9 +185,9 @@ class RolloverServiceTest extends TestCase
         // No existing to-year cohort, no enrolments.
         $objectService->method('findAll')->willReturn([]);
         $objectService->method('saveObject')->willReturnCallback(
-            static function (string $register, string $schema, array $object) use (&$saved): array {
-                $saved[] = ['schema' => $schema, 'object' => $object];
-                return $object;
+            static function (array $object, ?array $extend=[], $register=null, $schema=null) use (&$saved) {
+                $saved[] = ['schema' => (string) $schema, 'object' => $object];
+                return OrEntityFactory::make($object, (string) $schema, (string) $register);
             }
         );
 
@@ -253,29 +255,18 @@ class RolloverServiceTest extends TestCase
     }//end testGroupNameIsDeterministic()
 
     /**
-     * Build a cohort entity stub exposing jsonSerialize().
+     * Build the cohort ObjectEntity that ObjectService::find() returns.
+     *
+     * `find()` is declared `: ?ObjectEntity`, so an anonymous jsonSerialize()
+     * carrier is not an acceptable stand-in — the mock rejects it with an
+     * IncompatibleReturnValueException.
      *
      * @param array<string,mixed> $data The cohort data.
      *
-     * @return object
+     * @return ObjectEntity
      */
-    private function cohortEntity(array $data): object
+    private function cohortEntity(array $data): ObjectEntity
     {
-        return new class($data) {
-            /**
-             * @param array<string,mixed> $data The data payload.
-             */
-            public function __construct(private array $data)
-            {
-            }
-
-            /**
-             * @return array<string,mixed>
-             */
-            public function jsonSerialize(): array
-            {
-                return $this->data;
-            }
-        };
+        return OrEntityFactory::make($data, 'cohort');
     }//end cohortEntity()
 }//end class

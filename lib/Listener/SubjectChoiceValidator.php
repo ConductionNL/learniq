@@ -383,10 +383,6 @@ class SubjectChoiceValidator implements IEventListener
             return null;
         }
 
-        if (is_array($plan) === true) {
-            return $plan;
-        }
-
         return $plan->jsonSerialize();
 
     }//end fetchPlan()

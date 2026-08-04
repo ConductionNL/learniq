@@ -31,6 +31,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Engagement\PointEngagementEvaluator;
 use OCA\Scholiq\Listener\LearnerEngagementRollupHandler;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -145,9 +146,14 @@ class LearnerEngagementRollupHandlerTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
-                return $object;
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $data                 = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => (string) $schema,
+                    'object'   => $data,
+                ];
+                return OrEntityFactory::make($data, (string) $schema, (string) $register);
             }
         );
 
@@ -170,10 +176,7 @@ class LearnerEngagementRollupHandlerTest extends TestCase
      */
     private function makeEvent(array $data): ObjectCreatedEvent
     {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($data);
-        $objectEntity->method('getRegister')->willReturn('9');
-        $objectEntity->method('getSchema')->willReturn('1280');
+        $objectEntity = OrEntityFactory::make($data, '1280', '9');
         $this->stubResolver('point-award');
 
         $event = $this->createMock(ObjectCreatedEvent::class);
@@ -340,10 +343,7 @@ class LearnerEngagementRollupHandlerTest extends TestCase
     {
         $now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
 
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn(['id' => 'x']);
-        $objectEntity->method('getRegister')->willReturn('9');
-        $objectEntity->method('getSchema')->willReturn('1281');
+        $objectEntity = OrEntityFactory::make(['id' => 'x'], '1281', '9');
         $this->stubResolver('enrolment');
 
         $event = $this->createMock(ObjectCreatedEvent::class);

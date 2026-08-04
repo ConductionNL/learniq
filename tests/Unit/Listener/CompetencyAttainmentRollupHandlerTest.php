@@ -30,6 +30,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\CompetencyAttainmentRollupHandler;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -134,7 +135,10 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $register = (string) $register;
+                $schema   = (string) $schema;
+
                 if (isset($object['id']) === false) {
                     $object['id'] = $schema.'-auto-'.(count($this->db[$schema] ?? []) + 1);
                 }
@@ -155,7 +159,7 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase
                     $this->db[$schema][] = $object;
                 }
 
-                return $object;
+                return OrEntityFactory::make($object, $schema, $register);
             }
         );
 
@@ -216,16 +220,15 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase
      */
     private function makeCreatedEvent(string $schema, array $data): ObjectCreatedEvent
     {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($data);
-        $objectEntity->method('getRegister')->willReturn('9');
-        $objectEntity->method('getSchema')->willReturn('1280');
+        $objectEntity = OrEntityFactory::make($data, '1280', '9');
         $this->stubResolver($schema);
 
+        // NOTE: OR's real ObjectCreatedEvent exposes only getObject() — it has no
+        // getRegister()/getSchema(). handleObjectCreated() therefore resolves the
+        // register/schema off the ENTITY via ListenerSchemaResolver, which is what
+        // stubResolver() above configures.
         $event = $this->createMock(ObjectCreatedEvent::class);
         $event->method('getObject')->willReturn($objectEntity);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn($schema);
 
         return $event;
 

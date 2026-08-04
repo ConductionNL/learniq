@@ -72,9 +72,12 @@ class MoodleBackupParser
             throw new RuntimeException("No moodle_backup.xml found in '{$dir}' — not a recognisable Moodle backup archive.");
         }
 
+        // `loadXML(file_get_contents())`, NOT `load($path)` — Nextcloud's
+        // XXE-blocking external entity loader makes `load()` fail on the
+        // primary document. See CommonCartridgeParser::parseManifest().
         $xml = new DOMDocument();
         libxml_use_internal_errors(true);
-        $loaded = $xml->load($manifestPath);
+        $loaded = $xml->loadXML((string) file_get_contents($manifestPath));
         libxml_clear_errors();
         if ($loaded === false) {
             throw new RuntimeException("Could not parse moodle_backup.xml in '{$dir}' as XML.");

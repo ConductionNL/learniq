@@ -25,6 +25,7 @@ namespace OCA\Scholiq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Controller\LeaderboardController;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IConfig;
@@ -73,10 +74,13 @@ class LeaderboardControllerTest extends TestCase
     ): LeaderboardController {
         $objectService = $this->createMock(ObjectService::class);
 
+        // OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
+        // and returns ?ObjectEntity. willReturnCallback() hands the closure the
+        // mock's arguments POSITIONALLY, so the closure must mirror that order.
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) use ($cohort) {
-                if ($schema === 'cohort') {
-                    return $cohort;
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($cohort) {
+                if ($schema === 'cohort' && $cohort !== null) {
+                    return OrEntityFactory::make($cohort, 'cohort');
                 }
 
                 return null;

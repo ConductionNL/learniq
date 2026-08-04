@@ -34,6 +34,7 @@ use OCA\Scholiq\Listener\AssessmentDrawResolver;
 use OCA\Scholiq\Service\ItemPoolFilter;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCA\Scholiq\Service\QtiChoiceOrderResolver;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -133,9 +134,13 @@ class AssessmentDrawResolverTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
-                return $object;
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => (string) $schema,
+                    'object'   => $object,
+                ];
+                return OrEntityFactory::make($object, (string) $schema, (string) $register);
             }
         );
 
@@ -172,10 +177,7 @@ class AssessmentDrawResolverTest extends TestCase
      */
     private function makeResultEvent(array $data): ObjectCreatedEvent
     {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($data);
-        $objectEntity->method('getRegister')->willReturn('9');
-        $objectEntity->method('getSchema')->willReturn('1280');
+        $objectEntity = OrEntityFactory::make($data, '1280', '9');
         $this->stubResolver('assessment-result');
 
         $event = $this->createMock(ObjectCreatedEvent::class);
@@ -474,8 +476,14 @@ class AssessmentDrawResolverTest extends TestCase
             ]
         );
 
+        // Only two choices are movable here, so each attempt has exactly two
+        // possible orders — 15 trials left a 2*(1/2)^15 (~1-in-16k, measured
+        // 3.5e-5) chance of every attempt coming out identical and failing the
+        // "must sometimes swap" assertion spuriously. 40 trials drives that to
+        // ~1.8e-12 while making the per-trial fixed-position invariant below
+        // strictly harder to satisfy.
         $seenNonePosition = [];
-        for ($trial = 0; $trial < 15; $trial++) {
+        for ($trial = 0; $trial < 40; $trial++) {
             $this->savedObjects = [];
             $resolver            = $this->makeResolver();
             $event                = $this->makeResultEvent(
@@ -600,10 +608,7 @@ class AssessmentDrawResolverTest extends TestCase
     {
         $resolver = $this->makeResolver();
 
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn(['id' => 'x']);
-        $objectEntity->method('getRegister')->willReturn('9');
-        $objectEntity->method('getSchema')->willReturn('1281');
+        $objectEntity = OrEntityFactory::make(['id' => 'x'], '1281', '9');
         $this->stubResolver('grade-entry');
 
         $event = $this->createMock(ObjectCreatedEvent::class);

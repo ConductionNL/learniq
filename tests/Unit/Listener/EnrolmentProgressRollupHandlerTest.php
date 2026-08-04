@@ -29,6 +29,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\EnrolmentProgressRollupHandler;
 use OCA\Scholiq\Progress\EnrolmentProgressEvaluator;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -103,9 +104,13 @@ class EnrolmentProgressRollupHandlerTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
-                return $object;
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => (string) $schema,
+                    'object'   => $object,
+                ];
+                return OrEntityFactory::make($object, (string) $schema, (string) $register);
             }
         );
 
@@ -125,10 +130,7 @@ class EnrolmentProgressRollupHandlerTest extends TestCase
      */
     private function makeEvent(array $data): ObjectCreatedEvent
     {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($data);
-        $objectEntity->method('getRegister')->willReturn('9');
-        $objectEntity->method('getSchema')->willReturn('1280');
+        $objectEntity = OrEntityFactory::make($data, '1280', '9');
         $this->stubResolver('lesson-completion');
 
         $event = $this->createMock(ObjectCreatedEvent::class);
@@ -205,10 +207,7 @@ class EnrolmentProgressRollupHandlerTest extends TestCase
             evaluated: ['progressPercent' => 50, 'completedLessonCount' => 5, 'totalPublishedLessonCount' => 10]
         );
 
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn(['id' => 'x']);
-        $objectEntity->method('getRegister')->willReturn('9');
-        $objectEntity->method('getSchema')->willReturn('1281');
+        $objectEntity = OrEntityFactory::make(['id' => 'x'], '1281', '9');
         $this->stubResolver('xapi-statement');
 
         $event = $this->createMock(ObjectCreatedEvent::class);

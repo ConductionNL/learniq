@@ -32,6 +32,7 @@ namespace OCA\Scholiq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Service\QtiImportService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ZipArchive;
@@ -53,7 +54,12 @@ class QtiImportServiceTest extends TestCase
 
     /**
      * Build a QtiImportService whose ObjectService::saveObject records the
-     * payload and returns an incrementing uuid.
+     * payload and returns a persisted ObjectEntity with an incrementing uuid.
+     *
+     * `ObjectService::saveObject()` takes the PAYLOAD first
+     * (`$object, $extend, $register, $schema, ...`) and returns a non-nullable
+     * `ObjectEntity`, so the stub callback mirrors that argument order and
+     * hands back a real entity rather than the payload array.
      *
      * @return QtiImportService
      */
@@ -62,10 +68,15 @@ class QtiImportServiceTest extends TestCase
         $this->savedObjects = [];
         $objectService       = $this->createMock(ObjectService::class);
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object): array {
-                $object['uuid']       = 'item-'.(count($this->savedObjects) + 1);
+            function (array $object, ?array $extend=[], $register=null, $schema=null) {
                 $this->savedObjects[] = $object;
-                return $object;
+
+                return OrEntityFactory::make(
+                    $object,
+                    (string) $schema,
+                    (string) $register,
+                    'item-'.count($this->savedObjects)
+                );
             }
         );
 
