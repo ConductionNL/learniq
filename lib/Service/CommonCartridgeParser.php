@@ -72,9 +72,16 @@ class CommonCartridgeParser
             throw new RuntimeException("No imsmanifest.xml found in '{$dir}' — not a recognisable Common Cartridge package.");
         }
 
+        // `loadXML(file_get_contents())`, NOT `load($path)`. Nextcloud's
+        // OC::init() installs `libxml_set_external_entity_loader(fn() => null)`
+        // (lib/base.php) to block XXE, and libxml routes the PRIMARY document
+        // of `DOMDocument::load()` through that same loader — so inside a real
+        // Nextcloud `load()` always returns false and Common Cartridge import
+        // never worked. `loadXML()` takes a string and is unaffected, while
+        // still resolving no external entities. Measured, not assumed.
         $xml = new DOMDocument();
         libxml_use_internal_errors(true);
-        $loaded = $xml->load($manifestPath);
+        $loaded = $xml->loadXML((string) file_get_contents($manifestPath));
         libxml_clear_errors();
         if ($loaded === false) {
             throw new RuntimeException("Could not parse imsmanifest.xml in '{$dir}' as XML.");

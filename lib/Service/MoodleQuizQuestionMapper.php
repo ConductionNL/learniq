@@ -74,9 +74,12 @@ class MoodleQuizQuestionMapper
             return [];
         }
 
+        // `loadXML(file_get_contents())`, NOT `load($path)` — Nextcloud's
+        // XXE-blocking external entity loader makes `load()` fail on the
+        // primary document. See CommonCartridgeParser::parseManifest().
         $xml = new DOMDocument();
         libxml_use_internal_errors(true);
-        $loaded = $xml->load($questionsXmlPath);
+        $loaded = $xml->loadXML((string) file_get_contents($questionsXmlPath));
         libxml_clear_errors();
         if ($loaded === false) {
             return [];

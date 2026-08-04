@@ -344,8 +344,11 @@ class QtiImportService
             return $globResult;
         }
 
+        // `loadXML(file_get_contents())`, NOT `load($path)` — Nextcloud's
+        // XXE-blocking external entity loader makes `load()` fail on the
+        // primary document. See CommonCartridgeParser::parseManifest().
         $xml = new DOMDocument();
-        if ($xml->load($manifestPath) === false) {
+        if ($xml->loadXML((string) file_get_contents($manifestPath)) === false) {
             return [];
         }
 
@@ -463,9 +466,12 @@ class QtiImportService
      */
     private function importSingleItem(string $xmlPath, string $itemBankId, string $tenantId=''): ?string
     {
+        // `loadXML(file_get_contents())`, NOT `load($path)` — Nextcloud's
+        // XXE-blocking external entity loader makes `load()` fail on the
+        // primary document. See CommonCartridgeParser::parseManifest().
         $xml = new DOMDocument();
         libxml_use_internal_errors(true);
-        if ($xml->load($xmlPath) === false) {
+        if ($xml->loadXML((string) file_get_contents($xmlPath)) === false) {
             $this->logger->warning('[QtiImportService] Failed to parse XML: {path}', ['path' => $xmlPath]);
             return null;
         }
