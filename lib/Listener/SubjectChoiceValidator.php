@@ -162,12 +162,12 @@ class SubjectChoiceValidator implements IEventListener
         );
 
         $updated = $choice;
+        $updated['lifecycle']        = 'needs-revision';
+        $updated['validationErrors'] = $errors;
+
         if (count($errors) === 0) {
             $updated['lifecycle']        = 'validated';
             $updated['validationErrors'] = [];
-        } else {
-            $updated['lifecycle']        = 'needs-revision';
-            $updated['validationErrors'] = $errors;
         }
 
         $this->objectService->saveObject(
@@ -298,13 +298,7 @@ class SubjectChoiceValidator implements IEventListener
                 continue;
             }
 
-            $occupied = 0;
-            foreach ($siblings as $sibling) {
-                $siblingSelected = $sibling['selectedElectiveCourseIds'] ?? [];
-                if (is_array($siblingSelected) === true && in_array($courseId, $siblingSelected, true) === true) {
-                    $occupied++;
-                }
-            }
+            $occupied = $this->countOccupied(siblings: $siblings, courseId: (string) $courseId);
 
             if ($occupied >= $limit) {
                 $errors[] = sprintf('Capacity reached for course %s (limit %d).', $courseId, $limit);
@@ -314,6 +308,29 @@ class SubjectChoiceValidator implements IEventListener
         return $errors;
 
     }//end checkCapacity()
+
+    /**
+     * Count how many sibling SubjectChoice rows already occupy a seat on `$courseId`.
+     *
+     * @param array<int,array<string,mixed>> $siblings Sibling rows in an occupying lifecycle state.
+     * @param string                         $courseId The elective course UUID to count occupancy for.
+     *
+     * @return int
+     */
+    private function countOccupied(array $siblings, string $courseId): int
+    {
+        $occupied = 0;
+
+        foreach ($siblings as $sibling) {
+            $siblingSelected = $sibling['selectedElectiveCourseIds'] ?? [];
+            if (is_array($siblingSelected) === true && in_array($courseId, $siblingSelected, true) === true) {
+                $occupied++;
+            }
+        }
+
+        return $occupied;
+
+    }//end countOccupied()
 
     /**
      * Fetch sibling SubjectChoice rows in an occupying state for the same plan.

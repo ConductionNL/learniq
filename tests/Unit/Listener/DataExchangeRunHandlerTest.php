@@ -20,9 +20,10 @@
  * so a swv job with no configured DataMappingProfile MUST throw rather than
  * fall through to pass-through (fail-closed, design.md Security Considerations).
  *
- * These tests invoke the private buildPayload()/composeLeerplichtDossier()/
- * resolveAttendanceRecords()/composeSwvDossier() methods via reflection (an
- * established pattern in this suite, see
+ * These tests reach the handler's own DataExchangePayloadBuilder — which owns
+ * buildPayload()/composeLeerplichtDossier()/resolveAttendanceRecords()/
+ * composeSwvDossier() — and its private routeSupportRequestToSwv() via
+ * reflection (an established pattern in this suite, see
  * tests/Unit/Bpv/ProvidesLeerbedrijfVerificationTest.php) to exercise the
  * real composition logic without standing up the full OpenConnector HTTP
  * call chain that runJob()/handle() also perform.
@@ -51,6 +52,8 @@ namespace OCA\Scholiq\Tests\Unit\Listener;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\DataExchangeRunHandler;
+use OCA\Scholiq\Service\DataExchangePayloadBuilder;
+use OCA\Scholiq\Service\DataExchangeTransformer;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
@@ -94,13 +97,17 @@ class DataExchangeRunHandlerTest extends TestCase
             $this->createMock(IClientService::class),
             $this->createMock(IURLGenerator::class),
             $this->createMock(IAppConfig::class),
-            new NullLogger()
+            new NullLogger(),
+            new DataExchangePayloadBuilder($objectService, new DataExchangeTransformer($objectService))
         );
 
     }//end makeHandler()
 
     /**
-     * Invoke the private buildPayload() method via reflection.
+     * Build a payload through the DataExchangePayloadBuilder the handler under
+     * test was wired with, reached via reflection on its private property so
+     * these tests still assert against the handler's own real collaborator
+     * (sharing its ObjectService mock), not a separately constructed one.
      *
      * @param DataExchangeRunHandler         $handler The handler under test.
      * @param array<int,array<string,mixed>> $objects Source objects.
@@ -111,8 +118,12 @@ class DataExchangeRunHandlerTest extends TestCase
      */
     private function buildPayload(DataExchangeRunHandler $handler, array $objects, ?array $profile, string $target): array
     {
-        $method = new \ReflectionMethod($handler, 'buildPayload');
-        return $method->invoke($handler, $objects, $profile, $target);
+        $property = new \ReflectionProperty($handler, 'payloadBuilder');
+
+        /** @var DataExchangePayloadBuilder $builder */
+        $builder = $property->getValue($handler);
+
+        return $builder->buildPayload($objects, $profile, $target);
 
     }//end buildPayload()
 
@@ -425,7 +436,8 @@ class DataExchangeRunHandlerTest extends TestCase
             $this->createMock(IClientService::class),
             $this->createMock(IURLGenerator::class),
             $this->createMock(IAppConfig::class),
-            new NullLogger()
+            new NullLogger(),
+            new DataExchangePayloadBuilder($objectService, new DataExchangeTransformer($objectService))
         );
 
     }//end makeSwvHandler()
@@ -634,7 +646,8 @@ class DataExchangeRunHandlerTest extends TestCase
             $this->createMock(IClientService::class),
             $this->createMock(IURLGenerator::class),
             $this->createMock(IAppConfig::class),
-            new NullLogger()
+            new NullLogger(),
+            new DataExchangePayloadBuilder($objectService, new DataExchangeTransformer($objectService))
         );
 
     }//end makeRoutingHandler()

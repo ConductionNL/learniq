@@ -257,11 +257,12 @@ class AiProcessingDisclosureController extends Controller
 
         $row = $existing[0];
         if (is_array($row) === false) {
+            $serialised = [];
             if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-                $row = $row->jsonSerialize();
-            } else {
-                $row = [];
+                $serialised = $row->jsonSerialize();
             }
+
+            $row = $serialised;
         }
 
         return [

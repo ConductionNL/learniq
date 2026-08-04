@@ -85,10 +85,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener
             return;
         }
 
-        if ($event->getRegister() !== self::SCHOLIQ_REGISTER
-            || $event->getSchema() !== self::EVALUATION_CAMPAIGN_SCHEMA
-            || $event->getTo() !== 'open'
-        ) {
+        if ($this->isCampaignOpening(event: $event) === false) {
             return;
         }
 
@@ -114,17 +111,57 @@ class EvaluationInvitationProvisioningHandler implements IEventListener
             return;
         }
 
-        $existingLearnerIds = $this->fetchExistingInvitedLearnerIds(campaignId: $campaignId);
+        $this->provisionInvitations(
+            campaign: $campaign,
+            campaignId: $campaignId,
+            scopedCohorts: $scopedCohorts
+        );
 
-        $academicYear = $campaign['academicYear'] ?? '';
-        $period       = $campaign['period'] ?? '';
-        $closesAt     = $campaign['closesAt'] ?? null;
-        $tenantId     = $campaign['tenant_id'] ?? '';
+    }//end handle()
 
-        $provisioned = $existingLearnerIds;
+    /**
+     * Whether the event is an EvaluationCampaign entering the `open` state.
+     *
+     * @param ObjectTransitionedEvent $event The dispatched transition event.
+     *
+     * @return bool
+     *
+     * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+     */
+    private function isCampaignOpening(ObjectTransitionedEvent $event): bool
+    {
+        return $event->getRegister() === self::SCHOLIQ_REGISTER
+            && $event->getSchema() === self::EVALUATION_CAMPAIGN_SCHEMA
+            && $event->getTo() === 'open';
+
+    }//end isCampaignOpening()
+
+    /**
+     * Create one EvaluationInvitation per not-yet-invited learner across the
+     * campaign's resolved Cohort scope.
+     *
+     * @param array             $campaign      The EvaluationCampaign data.
+     * @param string            $campaignId    UUID of the EvaluationCampaign.
+     * @param array<int, array> $scopedCohorts Cohorts resolved to be in scope.
+     *
+     * @return void
+     *
+     * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+     */
+    private function provisionInvitations(array $campaign, string $campaignId, array $scopedCohorts): void
+    {
+        $stamp = [
+            'campaignId'       => $campaignId,
+            'campaignClosesAt' => $campaign['closesAt'] ?? null,
+            'academicYear'     => $campaign['academicYear'] ?? '',
+            'period'           => $campaign['period'] ?? '',
+            'tenant_id'        => $campaign['tenant_id'] ?? '',
+        ];
+
+        $provisioned = $this->fetchExistingInvitedLearnerIds(campaignId: $campaignId);
+
         foreach ($scopedCohorts as $cohort) {
-            $courseId = $cohort['courseId'] ?? null;
-            if (empty($courseId) === true) {
+            if (empty($cohort['courseId'] ?? null) === true) {
                 // A cohort with no courseId cannot back a course-scoped invitation
                 // (design.md: course-evaluation is keyed to a Course). Skip, log,
                 // fail soft — matches GradeRollupHandler's "insufficient data, skip"
@@ -137,36 +174,55 @@ class EvaluationInvitationProvisioningHandler implements IEventListener
                 continue;
             }
 
-            $cohortId   = $cohort['id'] ?? ($cohort['uuid'] ?? null);
-            $learnerIds = $cohort['learnerIds'] ?? [];
-
-            foreach ($learnerIds as $learnerId) {
-                if (empty($learnerId) === true || isset($provisioned[$learnerId]) === true) {
-                    continue;
-                }
-
-                $provisioned[$learnerId] = true;
-
-                $this->objectService->saveObject(
-                    register: self::SCHOLIQ_REGISTER,
-                    schema: self::EVALUATION_INVITATION_SCHEMA,
-                    object: [
-                        'campaignId'       => $campaignId,
-                        'courseId'         => $courseId,
-                        'cohortId'         => $cohortId,
-                        'learnerId'        => $learnerId,
-                        'hasResponded'     => false,
-                        'respondedAt'      => null,
-                        'campaignClosesAt' => $closesAt,
-                        'academicYear'     => $academicYear,
-                        'period'           => $period,
-                        'tenant_id'        => $tenantId,
-                    ]
-                );
-            }//end foreach
+            $this->inviteCohortLearners(cohort: $cohort, stamp: $stamp, provisioned: $provisioned);
         }//end foreach
 
-    }//end handle()
+    }//end provisionInvitations()
+
+    /**
+     * Create an EvaluationInvitation for every learner of one Cohort that has
+     * not been invited yet, marking each as provisioned so a learner appearing
+     * in more than one in-scope Cohort is still invited only once.
+     *
+     * @param array                $cohort      One in-scope Cohort's data (courseId already validated).
+     * @param array<string, mixed> $stamp       Campaign-level fields stamped onto every invitation.
+     * @param array<string, bool>  $provisioned Learner ids already invited, updated in place.
+     *
+     * @return void
+     *
+     * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+     */
+    private function inviteCohortLearners(array $cohort, array $stamp, array &$provisioned): void
+    {
+        $cohortId   = $cohort['id'] ?? ($cohort['uuid'] ?? null);
+        $learnerIds = $cohort['learnerIds'] ?? [];
+
+        foreach ($learnerIds as $learnerId) {
+            if (empty($learnerId) === true || isset($provisioned[$learnerId]) === true) {
+                continue;
+            }
+
+            $provisioned[$learnerId] = true;
+
+            $this->objectService->saveObject(
+                register: self::SCHOLIQ_REGISTER,
+                schema: self::EVALUATION_INVITATION_SCHEMA,
+                object: [
+                    'campaignId'       => $stamp['campaignId'],
+                    'courseId'         => $cohort['courseId'],
+                    'cohortId'         => $cohortId,
+                    'learnerId'        => $learnerId,
+                    'hasResponded'     => false,
+                    'respondedAt'      => null,
+                    'campaignClosesAt' => $stamp['campaignClosesAt'],
+                    'academicYear'     => $stamp['academicYear'],
+                    'period'           => $stamp['period'],
+                    'tenant_id'        => $stamp['tenant_id'],
+                ]
+            );
+        }//end foreach
+
+    }//end inviteCohortLearners()
 
     /**
      * Resolve every Cohort in the campaign's scope: Cohorts referenced directly via
@@ -182,6 +238,25 @@ class EvaluationInvitationProvisioningHandler implements IEventListener
     {
         $byId = [];
 
+        $this->collectCohortsById(campaign: $campaign, byId: $byId);
+        $this->collectCohortsByCourse(campaign: $campaign, byId: $byId);
+
+        return array_values($byId);
+
+    }//end resolveScopedCohorts()
+
+    /**
+     * Add every Cohort the campaign references directly via cohortIds.
+     *
+     * @param array                $campaign The EvaluationCampaign data.
+     * @param array<string, array> $byId     Accumulator keyed by cohort id, updated in place.
+     *
+     * @return void
+     *
+     * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+     */
+    private function collectCohortsById(array $campaign, array &$byId): void
+    {
         foreach (($campaign['cohortIds'] ?? []) as $cohortId) {
             if (empty($cohortId) === true || isset($byId[$cohortId]) === true) {
                 continue;
@@ -197,11 +272,23 @@ class EvaluationInvitationProvisioningHandler implements IEventListener
                 continue;
             }
 
-            $cohortData = $cohort->jsonSerialize();
-
-            $byId[$cohortId] = $cohortData;
+            $byId[$cohortId] = $cohort->jsonSerialize();
         }//end foreach
 
+    }//end collectCohortsById()
+
+    /**
+     * Add every Cohort whose courseId is one of the campaign's courseIds.
+     *
+     * @param array                $campaign The EvaluationCampaign data.
+     * @param array<string, array> $byId     Accumulator keyed by cohort id, updated in place.
+     *
+     * @return void
+     *
+     * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+     */
+    private function collectCohortsByCourse(array $campaign, array &$byId): void
+    {
         foreach (($campaign['courseIds'] ?? []) as $courseId) {
             if (empty($courseId) === true) {
                 continue;
@@ -230,9 +317,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener
             }
         }//end foreach
 
-        return array_values($byId);
-
-    }//end resolveScopedCohorts()
+    }//end collectCohortsByCourse()
 
     /**
      * Fetch the set of learnerIds that already have an EvaluationInvitation for

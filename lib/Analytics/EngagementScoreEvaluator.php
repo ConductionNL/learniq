@@ -17,7 +17,7 @@
  * Single responsibility: evaluate -> return; no state, no audit writes.
  *
  * Score formula (plain weighted arithmetic, NOT a model / no AI-Act surface):
- *   completionRatio = min(1, timeOnTaskMinutes / totalPublishedLessonDurationMinutes)
+ *   completionRatio = min(1, timeOnTaskMinutes / totalLessonMinutes)
  *                      (0 when the course declares no Lesson.durationMinutes at all)
  *   recencyFactor    = 1 - min(1, gapDays / RECENCY_DECAY_WINDOW_DAYS)
  *                      where gapDays is the number of days between the
@@ -52,6 +52,7 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Analytics;
 
+use DateInterval;
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
 
@@ -87,19 +88,19 @@ class EngagementScoreEvaluator
     /**
      * Evaluate a learner's engagement signals for a course.
      *
-     * @param string      $learnerId              NC user ID of the learner.
-     * @param string      $courseId               UUID of the Course.
-     * @param string|null $previousLastActivityAt The EngagementScore's prior
-     *                                            lastActivityAt (ISO-8601),
-     *                                            if any — used only for
-     *                                            the recency-gap decay
-     *                                            factor.
+     * @param string      $learnerId          NC user ID of the learner.
+     * @param string      $courseId           UUID of the Course.
+     * @param string|null $previousActivityAt The EngagementScore's prior
+     *                                        lastActivityAt (ISO-8601),
+     *                                        if any — used only for
+     *                                        the recency-gap decay
+     *                                        factor.
      *
      * @return array{timeOnTaskMinutes: float, lastActivityAt: string|null, score: int}
      *
      * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
      */
-    public function evaluate(string $learnerId, string $courseId, ?string $previousLastActivityAt=null): array
+    public function evaluate(string $learnerId, string $courseId, ?string $previousActivityAt=null): array
     {
         $statements = $this->fetchStatements(learnerId: $learnerId, courseId: $courseId);
 
@@ -117,15 +118,15 @@ class EngagementScoreEvaluator
             }
         }
 
-        $totalPublishedLessonDurationMinutes = $this->sumPublishedLessonDuration(courseId: $courseId);
+        $totalLessonMinutes = $this->sumPublishedLessonDuration(courseId: $courseId);
 
         $completionRatio = 0.0;
-        if ($totalPublishedLessonDurationMinutes > 0.0) {
-            $completionRatio = min(1.0, $timeOnTaskMinutes / $totalPublishedLessonDurationMinutes);
+        if ($totalLessonMinutes > 0.0) {
+            $completionRatio = min(1.0, $timeOnTaskMinutes / $totalLessonMinutes);
         }
 
         $recencyFactor = $this->recencyFactor(
-            previousLastActivityAt: $previousLastActivityAt,
+            previousActivityAt: $previousActivityAt,
             newLastActivityAt: $lastActivityAt
         );
 
@@ -189,7 +190,7 @@ class EngagementScoreEvaluator
         }
 
         try {
-            $interval = new \DateInterval($iso8601Duration);
+            $interval = new DateInterval($iso8601Duration);
         } catch (\Exception) {
             return 0.0;
         }
@@ -243,25 +244,25 @@ class EngagementScoreEvaluator
      * factor — there is no gap to measure yet, and the learner is engaging
      * right now.
      *
-     * @param string|null $previousLastActivityAt Prior lastActivityAt, ISO-8601.
-     * @param string|null $newLastActivityAt      Newly observed max timestamp, ISO-8601.
+     * @param string|null $previousActivityAt Prior lastActivityAt, ISO-8601.
+     * @param string|null $newLastActivityAt  Newly observed max timestamp, ISO-8601.
      *
      * @return float Between 0.0 and 1.0.
      */
-    private function recencyFactor(?string $previousLastActivityAt, ?string $newLastActivityAt): float
+    private function recencyFactor(?string $previousActivityAt, ?string $newLastActivityAt): float
     {
         if ($newLastActivityAt === null) {
             // No activity has ever been observed — nothing to be recent about.
             return 0.0;
         }
 
-        if ($previousLastActivityAt === null) {
+        if ($previousActivityAt === null) {
             // First-ever statement for this learner+course — no gap to measure.
             return 1.0;
         }
 
         try {
-            $previous = new DateTimeImmutable($previousLastActivityAt);
+            $previous = new DateTimeImmutable($previousActivityAt);
             $new      = new DateTimeImmutable($newLastActivityAt);
         } catch (\Exception) {
             return 1.0;

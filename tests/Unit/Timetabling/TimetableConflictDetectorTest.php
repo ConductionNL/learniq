@@ -30,6 +30,8 @@ namespace OCA\Scholiq\Tests\Unit\Timetabling;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Scholiq\Timetabling\SessionOverlapEvaluator;
+use OCA\Scholiq\Timetabling\SessionWindowLoader;
 use OCA\Scholiq\Timetabling\TimetableConflictDetector;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -125,7 +127,12 @@ class TimetableConflictDetectorTest extends TestCase
             }
         );
 
-        return new TimetableConflictDetector($this->objectService, new NullLogger());
+        return new TimetableConflictDetector(
+            $this->objectService,
+            new SessionWindowLoader($this->objectService),
+            new SessionOverlapEvaluator(),
+            new NullLogger()
+        );
 
     }//end detector()
 

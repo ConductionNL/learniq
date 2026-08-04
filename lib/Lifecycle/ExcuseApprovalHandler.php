@@ -38,6 +38,7 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Lifecycle;
 
+use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -179,8 +180,8 @@ class ExcuseApprovalHandler implements IEventListener
     private function resolveExcuseWindow(string $dateFrom, string $dateTo, string $requestId): ?array
     {
         try {
-            $fromDt = new \DateTimeImmutable($dateFrom);
-            $toDt   = new \DateTimeImmutable($dateTo);
+            $fromDt = new DateTimeImmutable($dateFrom);
+            $toDt   = new DateTimeImmutable($dateTo);
         } catch (\Exception) {
             $this->logger->warning(
                 '[ExcuseApprovalHandler] ExcuseRequest {id} has unparsable dates ({from}–{to}) — skipping.',

@@ -35,6 +35,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCA\Scholiq\Timetabling\TimetableConflictDetector;
 use OCA\Scholiq\Timetabling\TimetableImportHandler;
+use OCA\Scholiq\Timetabling\TimetableRecordMapper;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
@@ -127,6 +128,7 @@ class TimetableImportHandlerTest extends TestCase
             $this->objectService,
             $this->transitionEngine,
             $this->createMock(TimetableConflictDetector::class),
+            new TimetableRecordMapper(),
             $this->createMock(IClientService::class),
             $this->createMock(IURLGenerator::class),
             $this->createMock(IAppConfig::class),
@@ -134,6 +136,17 @@ class TimetableImportHandlerTest extends TestCase
         );
 
     }//end handler()
+
+    /**
+     * Build the record mapper under test.
+     *
+     * @return TimetableRecordMapper
+     */
+    private function mapper(): TimetableRecordMapper
+    {
+        return new TimetableRecordMapper();
+
+    }//end mapper()
 
     /**
      * Invoke a private method via reflection.
@@ -152,7 +165,7 @@ class TimetableImportHandlerTest extends TestCase
     }//end invokePrivate()
 
     /**
-     * mapRecord() resolves fieldMappings in reverse (targetField -> scholiqField).
+     * TimetableRecordMapper::map() resolves fieldMappings in reverse (targetField -> scholiqField).
      *
      * @return void
      */
@@ -175,7 +188,7 @@ class TimetableImportHandlerTest extends TestCase
             'end'               => '2026-02-02 10:00:00',
         ];
 
-        $mapped = $this->invokePrivate($this->handler(), 'mapRecord', [$record, $profile, 'tenant-a']);
+        $mapped = $this->mapper()->map($record, $profile, 'tenant-a');
 
         self::assertSame('zerm-123', $mapped['externalRef']);
         self::assertSame('cohort-1', $mapped['cohortId']);
@@ -192,7 +205,7 @@ class TimetableImportHandlerTest extends TestCase
      */
     public function testMissingRequiredFieldsDetectsGaps(): void
     {
-        $missing = $this->invokePrivate($this->handler(), 'missingRequiredFields', [['title' => 'X']]);
+        $missing = $this->mapper()->missingRequiredFields(['title' => 'X']);
 
         self::assertContains('cohortId', $missing);
         self::assertContains('startsAt', $missing);
@@ -209,10 +222,8 @@ class TimetableImportHandlerTest extends TestCase
      */
     public function testMissingRequiredFieldsEmptyWhenComplete(): void
     {
-        $missing = $this->invokePrivate(
-            $this->handler(),
-            'missingRequiredFields',
-            [['cohortId' => 'c-1', 'title' => 'X', 'startsAt' => 'a', 'endsAt' => 'b', 'externalRef' => 'ref-1']]
+        $missing = $this->mapper()->missingRequiredFields(
+            ['cohortId' => 'c-1', 'title' => 'X', 'startsAt' => 'a', 'endsAt' => 'b', 'externalRef' => 'ref-1']
         );
 
         self::assertSame([], $missing);

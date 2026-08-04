@@ -30,6 +30,15 @@ namespace OCA\Scholiq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Service\CommonCartridgeParser;
+use OCA\Scholiq\Service\CoursePackage\CommonCartridgeCourseImporter;
+use OCA\Scholiq\Service\CoursePackage\CommonCartridgeResourceRouter;
+use OCA\Scholiq\Service\CoursePackage\CoursePackageFileWriter;
+use OCA\Scholiq\Service\CoursePackage\CoursePackageImportReporter;
+use OCA\Scholiq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Scholiq\Service\CoursePackage\MoodleActivityRouter;
+use OCA\Scholiq\Service\CoursePackage\MoodleCourseImporter;
+use OCA\Scholiq\Service\CoursePackage\PackageXmlValueReader;
+use OCA\Scholiq\Service\CoursePackage\ScholiqJsonCourseImporter;
 use OCA\Scholiq\Service\CoursePackageExportService;
 use OCA\Scholiq\Service\CoursePackageImportService;
 use OCA\Scholiq\Service\MbzExtractor;
@@ -140,15 +149,38 @@ class CoursePackageRoundTripTest extends TestCase
         $tmpJsonFile = tempnam(sys_get_temp_dir(), 'scholiq_roundtrip_');
         file_put_contents($tmpJsonFile, $json);
 
+        $importLogger = new NullLogger();
+        $objectWriter = new CoursePackageObjectWriter($importObjectService);
+        $fileWriter   = new CoursePackageFileWriter($importRootFolder, $importLogger);
+        $reporter     = new CoursePackageImportReporter($importObjectService);
+        $xmlReader    = new PackageXmlValueReader();
+
         $importService = new CoursePackageImportService(
-            $importObjectService,
-            new QtiImportService($importObjectService, new NullLogger()),
-            new MbzExtractor(),
-            new CommonCartridgeParser(),
-            new MoodleBackupParser(),
-            new MoodleQuizQuestionMapper(),
-            $importRootFolder,
-            new NullLogger(),
+            new CommonCartridgeCourseImporter(
+                new QtiImportService($importObjectService, $importLogger),
+                new CommonCartridgeParser(),
+                new CommonCartridgeResourceRouter($objectWriter, $fileWriter, $reporter, $xmlReader, $importLogger),
+                $objectWriter,
+                $reporter,
+            ),
+            new MoodleCourseImporter(
+                new MbzExtractor(),
+                new MoodleBackupParser(),
+                new MoodleActivityRouter(
+                    new MoodleQuizQuestionMapper(),
+                    $objectWriter,
+                    $fileWriter,
+                    $reporter,
+                    $xmlReader,
+                    $importLogger
+                ),
+                $objectWriter,
+                $reporter,
+            ),
+            new ScholiqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
+            $fileWriter,
+            $reporter,
+            $importLogger,
         );
 
         $report = $importService->import($tmpJsonFile, 'course-export.json', 'teacher1', 't1');

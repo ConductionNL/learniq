@@ -168,25 +168,12 @@ class AttendanceFlagCreationHandler implements IEventListener
             return;
         }
 
-        // Idempotency check: do not create a duplicate flag for the same learner+threshold+window.
-        $existing = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::ATTENDANCE_FLAG_SCHEMA,
-                'filters'  => [
-                    'learnerId'             => $learnerId,
-                    'attendanceThresholdId' => $thresholdId,
-                    'windowStart'           => $windowStart,
-                ],
-                'limit'    => 1,
-            ]
+        $duplicate = $this->flagAlreadyExists(
+            learnerId: $learnerId,
+            thresholdId: $thresholdId,
+            windowStart: $windowStart
         );
-
-        if (empty($existing) === false) {
-            $this->logger->info(
-                '[AttendanceFlagCreationHandler] Flag already exists for learner {l}, threshold {t}, window {w} — skipping duplicate.',
-                ['l' => $learnerId, 't' => $thresholdId, 'w' => $windowStart]
-            );
+        if ($duplicate === true) {
             return;
         }
 
@@ -241,6 +228,46 @@ class AttendanceFlagCreationHandler implements IEventListener
         );
 
     }//end createFlag()
+
+    /**
+     * Idempotency check: whether an AttendanceFlag already exists for the same
+     * learner + threshold + measurement window.
+     *
+     * @param mixed $learnerId   NC user ID of the flagged learner.
+     * @param mixed $thresholdId UUID of the AttendanceThreshold that was crossed.
+     * @param mixed $windowStart Start date of the measurement window (Y-m-d).
+     *
+     * @return bool True when a flag for this crossing already exists.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
+     */
+    private function flagAlreadyExists(mixed $learnerId, mixed $thresholdId, mixed $windowStart): bool
+    {
+        $existing = $this->objectService->findAll(
+            [
+                'register' => self::SCHOLIQ_REGISTER,
+                'schema'   => self::ATTENDANCE_FLAG_SCHEMA,
+                'filters'  => [
+                    'learnerId'             => $learnerId,
+                    'attendanceThresholdId' => $thresholdId,
+                    'windowStart'           => $windowStart,
+                ],
+                'limit'    => 1,
+            ]
+        );
+
+        if (empty($existing) === true) {
+            return false;
+        }
+
+        $this->logger->info(
+            '[AttendanceFlagCreationHandler] Flag already exists for learner {l}, threshold {t}, window {w} — skipping duplicate.',
+            ['l' => $learnerId, 't' => $thresholdId, 'w' => $windowStart]
+        );
+
+        return true;
+
+    }//end flagAlreadyExists()
 
     /**
      * Create and queue a DataExchangeJob for the given target.

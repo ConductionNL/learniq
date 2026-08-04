@@ -30,6 +30,7 @@ namespace OCA\Scholiq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Service\LearningRecordAggregationService;
+use OCA\Scholiq\Service\LearningRecordBundleWriter;
 use OCA\Scholiq\Service\LearningRecordExportService;
 use OCA\Scholiq\Service\LearningRecordExportSigningService;
 use OCP\Files\File;
@@ -103,8 +104,10 @@ class LearningRecordExportServiceTest extends TestCase
             aggregationService: $this->aggregationService,
             signingService: $this->signingService,
             objectService: $this->objectService,
-            rootFolder: $rootFolder,
-            logger: $this->createMock(LoggerInterface::class),
+            bundleWriter: new LearningRecordBundleWriter(
+                rootFolder: $rootFolder,
+                logger: $this->createMock(LoggerInterface::class),
+            ),
         );
     }//end setUp()
 

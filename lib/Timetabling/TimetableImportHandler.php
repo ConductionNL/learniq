@@ -96,19 +96,12 @@ class TimetableImportHandler implements IEventListener
     private const OPENCONNECTOR_TOKEN_KEY = 'openconnector_api_token';
 
     /**
-     * Fields every mapped Session record must carry (non-empty) to pass
-     * validate-before-dequeue.
-     *
-     * @var string[]
-     */
-    private const REQUIRED_SESSION_FIELDS = ['cohortId', 'title', 'startsAt', 'endsAt', 'externalRef'];
-
-    /**
      * Constructor.
      *
      * @param ObjectService             $objectService    OR object access service.
      * @param TransitionEngine          $transitionEngine OR lifecycle engine for job state transitions.
      * @param TimetableConflictDetector $conflictDetector The batch conflict scan engine.
+     * @param TimetableRecordMapper     $recordMapper     Inbound-record shaping and required-field validation.
      * @param IClientService            $clientService    NC HTTP client factory.
      * @param IURLGenerator             $urlGenerator     NC URL generator for internal requests.
      * @param IAppConfig                $appConfig        NC app config for token lookup.
@@ -120,6 +113,7 @@ class TimetableImportHandler implements IEventListener
         private readonly ObjectService $objectService,
         private readonly TransitionEngine $transitionEngine,
         private readonly TimetableConflictDetector $conflictDetector,
+        private readonly TimetableRecordMapper $recordMapper,
         private readonly IClientService $clientService,
         private readonly IURLGenerator $urlGenerator,
         private readonly IAppConfig $appConfig,
@@ -203,36 +197,8 @@ class TimetableImportHandler implements IEventListener
             $records = [];
         }
 
-        $accepted         = [];
-        $validationReport = [];
-
-        foreach ($records as $record) {
-            if (is_array($record) === false) {
-                continue;
-            }
-
-            $mapped  = $this->mapRecord(record: $record, profile: $profile, tenantId: $tenantId);
-            $missing = $this->missingRequiredFields(record: $mapped);
-
-            if (count($missing) > 0) {
-                $validationReport[] = [
-                    'recordId'     => $record['_externalRecordId'] ?? ($mapped['externalRef'] ?? null),
-                    'errorCode'    => 'missing-fields',
-                    'errorMessage' => 'Missing required field(s): '.implode(', ', $missing),
-                ];
-                continue;
-            }
-
-            $accepted[] = $mapped;
-        }//end foreach
-
-        $upserted = [];
-        foreach ($accepted as $mapped) {
-            $session = $this->upsertSession(mapped: $mapped, tenantId: $tenantId);
-            if ($session !== null) {
-                $upserted[] = $session;
-            }
-        }
+        $validated = $this->validateRecords(records: $records, profile: $profile, tenantId: $tenantId);
+        $upserted  = $this->upsertAll(accepted: $validated['accepted'], tenantId: $tenantId);
 
         $processed     = count($records);
         $acceptedCount = count($upserted);
@@ -242,18 +208,15 @@ class TimetableImportHandler implements IEventListener
             'recordsProcessed' => $processed,
             'recordsAccepted'  => $acceptedCount,
             'recordsRejected'  => $rejectedCount,
-            'validationReport' => $validationReport,
+            'validationReport' => $validated['validationReport'],
             'artefactRef'      => null,
         ];
 
-        $nextState = 'succeed';
-        if ($rejectedCount > 0 && $acceptedCount > 0) {
-            $nextState = 'partial';
-        }
-
-        if ($rejectedCount > 0 && $acceptedCount === 0 && $processed > 0) {
-            $nextState = 'fail';
-        }
+        $nextState = $this->resolveNextState(
+            processed: $processed,
+            accepted: $acceptedCount,
+            rejected: $rejectedCount
+        );
 
         $this->saveJobFields(
             jobId: $jobId,
@@ -277,75 +240,101 @@ class TimetableImportHandler implements IEventListener
     }//end runImport()
 
     /**
-     * Map one inbound external record into a Session-shaped array, applying
-     * the profile's fieldMappings in reverse (targetField -> scholiqField).
+     * Map and validate every inbound record, splitting them into the accepted
+     * (Session-shaped) records and the rejections that make up the job's
+     * `result.validationReport` — validate-before-dequeue, so no Session is
+     * written for a record that is missing a required field.
      *
-     * @param array<string,mixed>      $record   The raw external record.
-     * @param array<string,mixed>|null $profile  The DataMappingProfile, or null for a best-effort passthrough.
-     * @param string                   $tenantId Tenant to stamp onto the mapped record.
+     * @param array<int,mixed>         $records  The raw external records.
+     * @param array<string,mixed>|null $profile  The DataMappingProfile, or null.
+     * @param string                   $tenantId Tenant scope.
      *
-     * @return array<string,mixed> The mapped, Session-shaped record.
+     * @return array{accepted: array<int,array<string,mixed>>, validationReport: array<int,array<string,mixed>>}
+     *
+     * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-timetable-import-job-delegates-to-openconnector-and-reports-its-result
      */
-    private function mapRecord(array $record, ?array $profile, string $tenantId): array
+    private function validateRecords(array $records, ?array $profile, string $tenantId): array
     {
-        $mapped = ['tenant_id' => $tenantId];
+        $accepted         = [];
+        $validationReport = [];
 
-        $fieldMappings = $profile['fieldMappings'] ?? [];
-        if (is_array($fieldMappings) === false || empty($fieldMappings) === true) {
-            // No profile: best-effort passthrough for common field names.
-            foreach (['externalRef', 'cohortId', 'title', 'startsAt', 'endsAt', 'location'] as $field) {
-                if (isset($record[$field]) === true) {
-                    $mapped[$field] = $record[$field];
-                }
-            }
-
-            return $mapped;
-        }
-
-        foreach ($fieldMappings as $mapping) {
-            $scholiqField = $mapping['scholiqField'] ?? '';
-            $targetField  = $mapping['targetField'] ?? '';
-            $transform    = $mapping['transform'] ?? null;
-
-            if ($scholiqField === '' || $targetField === '' || array_key_exists($targetField, $record) === false) {
+        foreach ($records as $record) {
+            if (is_array($record) === false) {
                 continue;
             }
 
-            $value = $record[$targetField];
-            if ($transform === 'date-iso8601' && is_string($value) === true && $value !== '') {
-                $ts = strtotime($value);
-                if ($ts !== false) {
-                    $value = date('c', $ts);
-                }
+            $mapped  = $this->recordMapper->map(record: $record, profile: $profile, tenantId: $tenantId);
+            $missing = $this->recordMapper->missingRequiredFields(record: $mapped);
+
+            if (count($missing) > 0) {
+                $validationReport[] = [
+                    'recordId'     => $record['_externalRecordId'] ?? ($mapped['externalRef'] ?? null),
+                    'errorCode'    => 'missing-fields',
+                    'errorMessage' => 'Missing required field(s): '.implode(', ', $missing),
+                ];
+                continue;
             }
 
-            $mapped[$scholiqField] = $value;
+            $accepted[] = $mapped;
         }//end foreach
 
-        return $mapped;
+        return [
+            'accepted'         => $accepted,
+            'validationReport' => $validationReport,
+        ];
 
-    }//end mapRecord()
+    }//end validateRecords()
 
     /**
-     * List the required Session fields missing (absent or empty) from a mapped record.
+     * Upsert every accepted record, returning only the Sessions that saved.
      *
-     * @param array<string,mixed> $record The mapped record.
+     * @param array<int,array<string,mixed>> $accepted The mapped, validated records.
+     * @param string                         $tenantId Tenant scope.
      *
-     * @return array<int,string> The missing field names.
+     * @return array<int,array<string,mixed>> The saved Session data arrays.
+     *
+     * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-re-importing-the-same-timetable-does-not-duplicate-sessions
      */
-    private function missingRequiredFields(array $record): array
+    private function upsertAll(array $accepted, string $tenantId): array
     {
-        $missing = [];
-        foreach (self::REQUIRED_SESSION_FIELDS as $field) {
-            $value = $record[$field] ?? null;
-            if (is_string($value) === false || $value === '') {
-                $missing[] = $field;
+        $upserted = [];
+        foreach ($accepted as $mapped) {
+            $session = $this->upsertSession(mapped: $mapped, tenantId: $tenantId);
+            if ($session !== null) {
+                $upserted[] = $session;
             }
         }
 
-        return $missing;
+        return $upserted;
 
-    }//end missingRequiredFields()
+    }//end upsertAll()
+
+    /**
+     * Decide the job's terminal lifecycle transition from its record tallies:
+     * `partial` when some records were accepted and some rejected, `fail` when
+     * records were processed but none survived validation, else `succeed`.
+     *
+     * @param int $processed Records returned by OpenConnector.
+     * @param int $accepted  Records upserted successfully.
+     * @param int $rejected  Records not upserted.
+     *
+     * @return string The TransitionEngine transition name.
+     */
+    private function resolveNextState(int $processed, int $accepted, int $rejected): string
+    {
+        $nextState = 'succeed';
+
+        if ($rejected > 0 && $accepted > 0) {
+            $nextState = 'partial';
+        }
+
+        if ($rejected > 0 && $accepted === 0 && $processed > 0) {
+            $nextState = 'fail';
+        }
+
+        return $nextState;
+
+    }//end resolveNextState()
 
     /**
      * Idempotently upsert a Session by (externalRef, tenant_id). A manually
@@ -381,6 +370,12 @@ class TimetableImportHandler implements IEventListener
 
         $data = $mapped;
 
+        // No match: this externalRef has never been imported before, so the
+        // record becomes a brand-new `scheduled` Session.
+        if (empty($existing) === true) {
+            $data['lifecycle'] = 'scheduled';
+        }
+
         if (empty($existing) === false) {
             $current = $existing[0];
             if (is_array($current) === false) {
@@ -388,8 +383,6 @@ class TimetableImportHandler implements IEventListener
             }
 
             $data = array_merge($current, $mapped);
-        } else {
-            $data['lifecycle'] = 'scheduled';
         }
 
         $saved = $this->objectService->saveObject(
@@ -456,13 +449,15 @@ class TimetableImportHandler implements IEventListener
             'timeout' => 120,
         ];
 
-        if ($apiToken !== '') {
-            $requestOptions['headers'] = ['Authorization' => 'Bearer '.$apiToken];
-        } else {
+        if ($apiToken === '') {
             $this->logger->warning(
                 '[TimetableImportHandler] No OpenConnector API token configured '
                 .'(scholiq.openconnector_api_token); the call may fail with 401/403.'
             );
+        }
+
+        if ($apiToken !== '') {
+            $requestOptions['headers'] = ['Authorization' => 'Bearer '.$apiToken];
         }
 
         try {

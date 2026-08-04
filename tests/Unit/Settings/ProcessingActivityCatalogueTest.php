@@ -214,8 +214,22 @@ class ProcessingActivityCatalogueTest extends TestCase
      */
     public function testAuditPackIncludesVerwerkingsregisterAndFailsLoudly(): void
     {
-        $source = file_get_contents(__DIR__.'/../../../lib/Controller/AuditPackExportController.php');
-        $this->assertIsString($source);
+        // The audit-pack writer spans the controller and the collaborators it
+        // delegates to (AuditPackBuilder assembles the artefact set,
+        // VerwerkingsregisterCsvBuilder sources the Art. 30 slice from OR).
+        $writerFiles = [
+            __DIR__.'/../../../lib/Controller/AuditPackExportController.php',
+            __DIR__.'/../../../lib/Service/AuditPackBuilder.php',
+            __DIR__.'/../../../lib/Service/VerwerkingsregisterCsvBuilder.php',
+        ];
+
+        $source = '';
+        foreach ($writerFiles as $writerFile) {
+            $this->assertFileExists($writerFile);
+            $fileSource = file_get_contents($writerFile);
+            $this->assertIsString($fileSource);
+            $source .= $fileSource;
+        }
 
         // The artefact is added to the ZIP file set.
         $this->assertStringContainsString(

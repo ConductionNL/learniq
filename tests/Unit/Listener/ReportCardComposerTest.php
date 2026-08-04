@@ -34,6 +34,7 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\ReportCardComposer;
+use OCA\Scholiq\Service\AttendanceWindowAggregator;
 use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
@@ -148,7 +149,12 @@ class ReportCardComposerTest extends TestCase
         $timeFactory = $this->createMock(ITimeFactory::class);
         $timeFactory->method('getDateTime')->willReturn(new DateTime('2026-07-13T09:00:00+00:00'));
 
-        return new ReportCardComposer($objectService, $timeFactory, new NullLogger());
+        return new ReportCardComposer(
+            $objectService,
+            $timeFactory,
+            new NullLogger(),
+            new AttendanceWindowAggregator($objectService)
+        );
 
     }//end makeComposer()
 
@@ -403,7 +409,12 @@ class ReportCardComposerTest extends TestCase
         $timeFactory = $this->createMock(ITimeFactory::class);
         $timeFactory->method('getDateTime')->willReturn(new DateTime('2026-07-13T09:00:00+00:00'));
 
-        $composer = new ReportCardComposer($objectService, $timeFactory, new NullLogger());
+        $composer = new ReportCardComposer(
+            $objectService,
+            $timeFactory,
+            new NullLogger(),
+            new AttendanceWindowAggregator($objectService)
+        );
 
         $card = [
             'id'               => 'card-existing-1',
