@@ -40,6 +40,8 @@ declare(strict_types=1);
 namespace OCA\Scholiq\Service;
 
 use DOMDocument;
+use DOMElement;
+use DOMNodeList;
 use DOMXPath;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -423,6 +425,28 @@ class QtiImportService
     }//end collectItemPaths()
 
     /**
+     * Return the first element node of a node list, or null.
+     *
+     * `DOMNodeList::item()` is declared to return `DOMNode|null`, so callers that
+     * need the element API have to narrow it. Doing that here — behind a declared
+     * `?DOMElement` return type — keeps the narrowing in one place and lets both
+     * static analysers type the call sites without an inline annotation.
+     *
+     * @param DOMNodeList $nodes The node list to take the first element from.
+     *
+     * @return DOMElement|null The first element node, or null when there is none.
+     */
+    private function firstElement(DOMNodeList $nodes): ?DOMElement
+    {
+        $node = $nodes->item(0);
+        if ($node instanceof DOMElement) {
+            return $node;
+        }
+
+        return null;
+    }//end firstElement()
+
+    /**
      * Parse a single QTI item XML and create an Item object in OR.
      *
      * Full parsing implemented for `choice` and `extendedText` interactions.
@@ -455,13 +479,9 @@ class QtiImportService
         $xpath->registerNamespace('qti2', self::QTI2_NS);
 
         // Detect the root assessmentItem element.
-        $root = $xml->getElementsByTagName('assessmentItem')->item(0);
+        $root = $this->firstElement(nodes: $xml->getElementsByTagName('assessmentItem'));
         if ($root === null) {
             $this->logger->warning('[QtiImportService] No assessmentItem in: {path}', ['path' => $xmlPath]);
-            return null;
-        }
-
-        if (($root instanceof \DOMElement) === false) {
             return null;
         }
 

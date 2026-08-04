@@ -141,7 +141,8 @@ class AttendanceFlagCreationHandler implements IEventListener
         $onCross  = $threshold['onCross'] ?? [];
 
         // The transition context carries the per-learner crossing details.
-        $context   = $event->getContext() ?? [];
+        // getContext() is declared non-nullable, so no null-coalesce is needed.
+        $context   = $event->getContext();
         $learnerId = $context['learnerId'] ?? '';
         if ($learnerId === '') {
             $learnerId = $threshold['learnerId'] ?? '';

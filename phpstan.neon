@@ -1,9 +1,3 @@
-includes:
-    # Per-app tracked lint debt lives here (auto-generated via `phpstan --generate-baseline`).
-    # Apps without debt ship an empty baseline file; canonical includes are otherwise byte-identical
-    # across the fleet.
-    - phpstan-baseline.neon
-
 parameters:
     level: 5
     paths:

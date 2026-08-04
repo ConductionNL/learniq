@@ -254,9 +254,11 @@ class WalletOfferDelegationService
 
         $path     = (string) parse_url($uri, PHP_URL_PATH);
         $segments = explode('/', trim($path, '/'));
-        $uuid     = end($segments);
+        // Explode always yields at least one element, so end() cannot return
+        // false here and the value is always a string.
+        $uuid = end($segments);
 
-        if (is_string($uuid) === false || $uuid === '') {
+        if ($uuid === '') {
             return null;
         }
 
