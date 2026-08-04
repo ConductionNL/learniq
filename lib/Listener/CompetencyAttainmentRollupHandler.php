@@ -539,22 +539,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener
             'proficiencyLevelId'      => null,
         ];
 
-        foreach ($evidenceAppend as $field => $id) {
-            if ($id === '' || $id === null) {
-                continue;
-            }
-
-            $arr = $data[$field] ?? [];
-            if (is_array($arr) === false) {
-                $arr = [];
-            }
-
-            if (in_array($id, $arr, true) === false) {
-                $arr[] = $id;
-            }
-
-            $data[$field] = $arr;
-        }
+        $data = $this->appendEvidence(data: $data, evidenceAppend: $evidenceAppend);
 
         $resolvedLevelId = $levelId;
         if ($resolvedLevelId === null && $percent !== null) {
@@ -568,15 +553,9 @@ class CompetencyAttainmentRollupHandler implements IEventListener
         $data['learnerId']    = $learnerId;
         $data['competencyId'] = $competencyId;
 
-        $data['frameworkId'] = $data['frameworkId'] ?? '';
-        if ($frameworkId !== '') {
-            $data['frameworkId'] = $frameworkId;
-        }
-
-        $data['tenant_id'] = $data['tenant_id'] ?? '';
-        if ($tenantId !== '') {
-            $data['tenant_id'] = $tenantId;
-        }
+        // A blank incoming value never overwrites what the existing row already knows.
+        $data['frameworkId'] = $this->preferNonEmpty(candidate: (string) $frameworkId, current: ($data['frameworkId'] ?? ''));
+        $data['tenant_id']   = $this->preferNonEmpty(candidate: $tenantId, current: ($data['tenant_id'] ?? ''));
 
         $data['lastRecomputedAt'] = (new DateTimeImmutable())->format(\DATE_ATOM);
 
@@ -597,6 +576,66 @@ class CompetencyAttainmentRollupHandler implements IEventListener
         );
 
     }//end upsertAttainment()
+
+    /**
+     * Append evidence ids to their arrays on the attainment row, skipping blanks
+     * and ids the row already carries.
+     *
+     * A field whose stored value is not an array is reset to one rather than
+     * being appended to, so a malformed row repairs itself instead of throwing.
+     *
+     * @param array<string,mixed>       $data           The attainment row being built.
+     * @param array<string,string|null> $evidenceAppend Map of evidence-array field name to the id to append.
+     *
+     * @return array<string,mixed> The row with its evidence arrays updated.
+     *
+     * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+     */
+    private function appendEvidence(array $data, array $evidenceAppend): array
+    {
+        foreach ($evidenceAppend as $field => $id) {
+            if ($id === '' || $id === null) {
+                continue;
+            }
+
+            $arr = ($data[$field] ?? []);
+            if (is_array($arr) === false) {
+                $arr = [];
+            }
+
+            if (in_array($id, $arr, true) === false) {
+                $arr[] = $id;
+            }
+
+            $data[$field] = $arr;
+        }
+
+        return $data;
+
+    }//end appendEvidence()
+
+    /**
+     * Keep an incoming value only when it actually says something.
+     *
+     * Used for the identity fields an upsert re-stamps: a blank candidate must
+     * never blank out what the existing row already knows.
+     *
+     * @param string $candidate The incoming value.
+     * @param mixed  $current   The value already on the row.
+     *
+     * @return string The candidate when non-empty, otherwise the current value.
+     *
+     * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+     */
+    private function preferNonEmpty(string $candidate, mixed $current): string
+    {
+        if ($candidate !== '') {
+            return $candidate;
+        }
+
+        return (string) $current;
+
+    }//end preferNonEmpty()
 
     /**
      * Find an existing CompetencyAttainment row for a (learnerId, competencyId) pair.
@@ -704,28 +743,75 @@ class CompetencyAttainmentRollupHandler implements IEventListener
             return null;
         }
 
-        $competency = $this->loadObject(schema: self::COMPETENCY_SCHEMA, id: $competencyId);
-        if ($competency === null) {
+        $levels = $this->levelsForCompetency(competencyId: $competencyId);
+        if (empty($levels) === true) {
             return null;
         }
 
-        $frameworkId = $competency['frameworkId'] ?? '';
+        $extremes = $this->extremeLevelsByOrder(levels: $levels);
+
+        $target = $extremes['lowest'];
+        if ($beoordeling === 'competent') {
+            $target = $extremes['highest'];
+        }
+
+        return ($target['levelId'] ?? null);
+
+    }//end resolveLevelByLabel()
+
+    /**
+     * Load the proficiency levels of the framework a Competency belongs to.
+     *
+     * Every step of the hop (Competency -> frameworkId -> Framework -> levels)
+     * can come up empty; all of them mean the same thing to the caller, so they
+     * all return an empty list rather than distinct failure modes.
+     *
+     * @param string $competencyId UUID of the Competency.
+     *
+     * @return array<int,mixed> The framework's proficiency levels, or [] when unresolvable.
+     *
+     * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+     */
+    private function levelsForCompetency(string $competencyId): array
+    {
+        $competency = $this->loadObject(schema: self::COMPETENCY_SCHEMA, id: $competencyId);
+        if ($competency === null) {
+            return [];
+        }
+
+        $frameworkId = (string) ($competency['frameworkId'] ?? '');
         if ($frameworkId === '') {
-            return null;
+            return [];
         }
 
         $framework = $this->loadObject(schema: self::FRAMEWORK_SCHEMA, id: $frameworkId);
         if ($framework === null) {
-            return null;
+            return [];
         }
 
-        $levels = $framework['proficiencyLevels'] ?? [];
-        if (is_array($levels) === false || empty($levels) === true) {
-            return null;
+        $levels = ($framework['proficiencyLevels'] ?? []);
+        if (is_array($levels) === false) {
+            return [];
         }
 
+        return $levels;
+
+    }//end levelsForCompetency()
+
+    /**
+     * Pick the lowest- and highest-ordered proficiency level from a framework.
+     *
+     * @param array<int,mixed> $levels The framework's proficiency levels (non-empty).
+     *
+     * @return array{lowest: mixed, highest: mixed} The extremes by `order`.
+     *
+     * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+     */
+    private function extremeLevelsByOrder(array $levels): array
+    {
         $lowest  = null;
         $highest = null;
+
         foreach ($levels as $level) {
             $order = (int) ($level['order'] ?? 0);
             if ($lowest === null || $order < (int) ($lowest['order'] ?? 0)) {
@@ -737,14 +823,12 @@ class CompetencyAttainmentRollupHandler implements IEventListener
             }
         }
 
-        $target = $lowest;
-        if ($beoordeling === 'competent') {
-            $target = $highest;
-        }
+        return [
+            'lowest'  => $lowest,
+            'highest' => $highest,
+        ];
 
-        return $target['levelId'] ?? null;
-
-    }//end resolveLevelByLabel()
+    }//end extremeLevelsByOrder()
 
     /**
      * Compute an evidence percentage from a raw value and its maximum.

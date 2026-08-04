@@ -207,6 +207,28 @@ class Application extends App implements IBootstrap
             }
         );
 
+        $this->registerCredentialAndExchangeListeners(context: $context);
+        $this->registerCaseAndProgressListeners(context: $context);
+        $this->registerCollaborationListeners(context: $context);
+        $this->registerEvaluationListeners(context: $context);
+        $this->registerTimetablingListeners(context: $context);
+
+    }//end register()
+
+    /**
+     * Wire the credential-issuance, grading and data-exchange bridges.
+     *
+     * Every listener below is an ADR-031 legitimate exception: a cross-object
+     * write no declarative schema expression covers.
+     *
+     * @param IRegistrationContext $context Nextcloud registration context.
+     *
+     * @return void
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+     */
+    private function registerCredentialAndExchangeListeners(IRegistrationContext $context): void
+    {
         // ADR-031 legitimate exception: Enrolment.completed → Credential.issue bridge.
         // Listens for OR's ObjectTransitionedEvent; issues a Credential when an
         // Enrolment transitions to `completed` and the Course has certificateTemplate set.
@@ -277,6 +299,19 @@ class Application extends App implements IBootstrap
             listener: RejectionMappingHandler::class
         );
 
+    }//end registerCredentialAndExchangeListeners()
+
+    /**
+     * Wire the support-request routing, exam-board case and study-progress bridges.
+     *
+     * @param IRegistrationContext $context Nextcloud registration context.
+     *
+     * @return void
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+     */
+    private function registerCaseAndProgressListeners(IRegistrationContext $context): void
+    {
         // ADR-031 legitimate exception: SupportRequest `submit` transition → auto-queue
         // the SWV zorgvraag DataExchangeJob bridge. Mirrors AttendanceFlagCreationHandler's
         // "queue a DataExchangeJob on this trigger" shape. Creates a DataExchangeJob
@@ -361,6 +396,19 @@ class Application extends App implements IBootstrap
             listener: ExemptionGrantHandler::class
         );
 
+    }//end registerCaseAndProgressListeners()
+
+    /**
+     * Wire the fraud-case, portfolio and Talk-classroom collaboration bridges.
+     *
+     * @param IRegistrationContext $context Nextcloud registration context.
+     *
+     * @return void
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+     */
+    private function registerCollaborationListeners(IRegistrationContext $context): void
+    {
         // ADR-031 legitimate exception: FraudCase `decided` (verdict: fraud-proven)
         // → contested GradeEntry.invalidate bridge. Only acts on a still-concept
         // linked GradeEntry; a published entry is left untouched (defensive —
@@ -439,6 +487,19 @@ class Application extends App implements IBootstrap
             listener: ItemAnalysisRecomputeHandler::class
         );
 
+    }//end registerCollaborationListeners()
+
+    /**
+     * Wire the Talk-sync, conference and course-evaluation bridges.
+     *
+     * @param IRegistrationContext $context Nextcloud registration context.
+     *
+     * @return void
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+     */
+    private function registerEvaluationListeners(IRegistrationContext $context): void
+    {
         // ADR-031 legitimate exception (talk-classroom-spaces): Enrolment
         // activate/withdraw -> Cohort Talk conversation participant sync
         // bridge. Cohort and Session both declare linkedTypes: ["talk"],
@@ -522,6 +583,19 @@ class Application extends App implements IBootstrap
             listener: CourseEvaluationResponseSubmittedHandler::class
         );
 
+    }//end registerEvaluationListeners()
+
+    /**
+     * Wire the course-quality, timetabling and substitution bridges.
+     *
+     * @param IRegistrationContext $context Nextcloud registration context.
+     *
+     * @return void
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+     */
+    private function registerTimetablingListeners(IRegistrationContext $context): void
+    {
         // ADR-031 legitimate exception (course-evaluation): CourseEvaluationResponse
         // `submit` transition -> CourseQualityScore find-or-create + recompute
         // bridge, mirroring GradeRollupHandler/FinalGrade's shape exactly.
@@ -608,7 +682,7 @@ class Application extends App implements IBootstrap
             listener: TimetableImportHandler::class
         );
 
-    }//end register()
+    }//end registerTimetablingListeners()
 
     /**
      * Register an object-lifecycle listener that declares its interest up front.
@@ -776,6 +850,26 @@ class Application extends App implements IBootstrap
             schemas: ['lesson-completion']
         );
 
+        $this->bootAnalyticsListeners(dispatcher: $dispatcher);
+
+    }//end boot()
+
+    /**
+     * Wire the engagement, item-pool and timetabling listeners that declare the
+     * register/schema pair they react to up front.
+     *
+     * Split out of boot() only to keep each registration block readable; the
+     * ordering between the two halves carries no meaning, because every
+     * listener is filtered by its own declared register/schema pair.
+     *
+     * @param IEventDispatcher $dispatcher The event dispatcher resolved by boot().
+     *
+     * @return void
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+     */
+    private function bootAnalyticsListeners(IEventDispatcher $dispatcher): void
+    {
         // ADR-031 legitimate exception (learning-progress-and-analytics): xAPI
         // statement -> EngagementScore recompute + EngagementRiskThreshold check ->
         // EngagementRiskFlag creation bridge. Listens for the SAME
@@ -846,5 +940,5 @@ class Application extends App implements IBootstrap
             schemas: ['session']
         );
 
-    }//end boot()
+    }//end bootAnalyticsListeners()
 }//end class

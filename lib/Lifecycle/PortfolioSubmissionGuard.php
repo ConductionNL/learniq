@@ -131,38 +131,12 @@ class PortfolioSubmissionGuard
             return true;
         }
 
-        $requiredSectionIds = [];
-        foreach ($sections as $section) {
-            $sectionId = $section['sectionId'] ?? null;
-            if ($sectionId !== null && $sectionId !== '') {
-                $requiredSectionIds[] = $sectionId;
-            }
-        }
-
+        $requiredSectionIds = $this->requiredSectionIds(sections: $sections);
         if (empty($requiredSectionIds) === true) {
             return true;
         }
 
-        $entries = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::ENTRY_SCHEMA,
-                'filters'  => ['portfolioId' => $portfolioId],
-            ]
-        );
-
-        $coveredSectionIds = [];
-        foreach ($entries as $entry) {
-            $entryData = $entry;
-            if (is_array($entry) === false) {
-                $entryData = $entry->jsonSerialize();
-            }
-
-            $sectionId = $entryData['sectionId'] ?? null;
-            if ($sectionId !== null && $sectionId !== '') {
-                $coveredSectionIds[$sectionId] = true;
-            }
-        }
+        $coveredSectionIds = $this->coveredSectionIds(portfolioId: (string) $portfolioId);
 
         $missingSectionIds = array_values(
             array_filter(
@@ -188,6 +162,68 @@ class PortfolioSubmissionGuard
         return true;
 
     }//end check()
+
+    /**
+     * Collect the section ids a PortfolioTemplate declares as required.
+     *
+     * A section without a usable `sectionId` cannot be matched against evidence,
+     * so it is not treated as a requirement rather than as an unsatisfiable one.
+     *
+     * @param array<int,array<string,mixed>> $sections The template's declared sections.
+     *
+     * @return array<int,string> Required section ids, in template order.
+     *
+     * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
+     */
+    private function requiredSectionIds(array $sections): array
+    {
+        $requiredSectionIds = [];
+        foreach ($sections as $section) {
+            $sectionId = $section['sectionId'] ?? null;
+            if ($sectionId !== null && $sectionId !== '') {
+                $requiredSectionIds[] = $sectionId;
+            }
+        }
+
+        return $requiredSectionIds;
+
+    }//end requiredSectionIds()
+
+    /**
+     * Collect the set of section ids a Portfolio already has evidence for.
+     *
+     * @param string $portfolioId The Portfolio UUID.
+     *
+     * @return array<string,true> Set of covered section ids (keys).
+     *
+     * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
+     */
+    private function coveredSectionIds(string $portfolioId): array
+    {
+        $entries = $this->objectService->findAll(
+            [
+                'register' => self::SCHOLIQ_REGISTER,
+                'schema'   => self::ENTRY_SCHEMA,
+                'filters'  => ['portfolioId' => $portfolioId],
+            ]
+        );
+
+        $coveredSectionIds = [];
+        foreach ($entries as $entry) {
+            $entryData = $entry;
+            if (is_array($entry) === false) {
+                $entryData = $entry->jsonSerialize();
+            }
+
+            $sectionId = $entryData['sectionId'] ?? null;
+            if ($sectionId !== null && $sectionId !== '') {
+                $coveredSectionIds[$sectionId] = true;
+            }
+        }
+
+        return $coveredSectionIds;
+
+    }//end coveredSectionIds()
 
     /**
      * Load a single OpenRegister object by id.

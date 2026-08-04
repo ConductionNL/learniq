@@ -110,6 +110,39 @@ class ReportCardVisibilityGuard
             return true;
         }
 
+        $blocking = $this->firstUnreleasedGradeEntry(subjectRows: $subjectRows, tenantId: $tenantId);
+        if ($blocking !== null) {
+            $this->logger->info(
+                '[ReportCardVisibilityGuard] ReportCard {id} blocked — subject {plan} sourceGradeEntry {entry} visibleFrom has not passed.',
+                [
+                    'id'    => $objectId,
+                    'plan'  => $blocking['plan'],
+                    'entry' => $blocking['entry'],
+                ]
+            );
+            return false;
+        }
+
+        return true;
+
+    }//end check()
+
+    /**
+     * Find the first source GradeEntry whose `visibleFrom` has not yet passed.
+     *
+     * Rows and ids that are not usable are skipped rather than treated as
+     * blocking — the guard only refuses on a grade it can actually show is
+     * still embargoed.
+     *
+     * @param array<int,mixed> $subjectRows The ReportCard's subjectGrades rows.
+     * @param string           $tenantId    Tenant UUID scope.
+     *
+     * @return array{plan: mixed, entry: string}|null The blocking entry, or null when all are released.
+     *
+     * @spec openspec/changes/report-cards/specs/report-cards/spec.md#requirement-a-report-card-cannot-be-released-before-its-source-grades-are-visible
+     */
+    private function firstUnreleasedGradeEntry(array $subjectRows, string $tenantId): ?array
+    {
         $now = DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime());
 
         foreach ($subjectRows as $row) {
@@ -117,35 +150,51 @@ class ReportCardVisibilityGuard
                 continue;
             }
 
-            $sourceIds = $row['sourceGradeEntryIds'] ?? [];
-            if (is_array($sourceIds) === false || empty($sourceIds) === true) {
+            $entry = $this->firstUnreleasedEntryInRow(row: $row, tenantId: $tenantId, now: $now);
+            if ($entry !== null) {
+                return [
+                    'plan'  => ($row['curriculumPlanId'] ?? '?'),
+                    'entry' => $entry,
+                ];
+            }
+        }
+
+        return null;
+
+    }//end firstUnreleasedGradeEntry()
+
+    /**
+     * Find the first still-embargoed source GradeEntry within one subject row.
+     *
+     * @param array<string,mixed> $row      One subjectGrades row.
+     * @param string              $tenantId Tenant UUID scope.
+     * @param mixed               $now      The current time, resolved once by the caller.
+     *
+     * @return string|null The blocking GradeEntry id, or null when the row is clear.
+     *
+     * @spec openspec/changes/report-cards/specs/report-cards/spec.md#requirement-a-report-card-cannot-be-released-before-its-source-grades-are-visible
+     */
+    private function firstUnreleasedEntryInRow(array $row, string $tenantId, mixed $now): ?string
+    {
+        $sourceIds = ($row['sourceGradeEntryIds'] ?? []);
+        if (is_array($sourceIds) === false) {
+            return null;
+        }
+
+        foreach ($sourceIds as $gradeEntryId) {
+            if (is_string($gradeEntryId) === false || $gradeEntryId === '') {
                 continue;
             }
 
-            foreach ($sourceIds as $gradeEntryId) {
-                if (is_string($gradeEntryId) === false || $gradeEntryId === '') {
-                    continue;
-                }
+            $visibleFrom = $this->fetchVisibleFrom(gradeEntryId: $gradeEntryId, tenantId: $tenantId);
+            if ($this->hasPassed(visibleFrom: $visibleFrom, now: $now) === false) {
+                return $gradeEntryId;
+            }
+        }
 
-                $visibleFrom = $this->fetchVisibleFrom(gradeEntryId: $gradeEntryId, tenantId: $tenantId);
+        return null;
 
-                if ($this->hasPassed(visibleFrom: $visibleFrom, now: $now) === false) {
-                    $this->logger->info(
-                        '[ReportCardVisibilityGuard] ReportCard {id} blocked — subject {plan} sourceGradeEntry {entry} visibleFrom has not passed.',
-                        [
-                            'id'    => $objectId,
-                            'plan'  => ($row['curriculumPlanId'] ?? '?'),
-                            'entry' => $gradeEntryId,
-                        ]
-                    );
-                    return false;
-                }
-            }//end foreach
-        }//end foreach
-
-        return true;
-
-    }//end check()
+    }//end firstUnreleasedEntryInRow()
 
     /**
      * Fetch a GradeEntry's current `visibleFrom` value.

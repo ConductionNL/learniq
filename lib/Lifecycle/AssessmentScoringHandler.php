@@ -111,18 +111,13 @@ class AssessmentScoringHandler
 
         $tenantId = $result['tenant_id'] ?? '';
 
-        // H1: scope Assessment lookup to the same tenant.
-        $assessmentFilters = ['uuid' => $assessmentId];
-        if ($tenantId !== '') {
-            $assessmentFilters['tenant_id'] = $tenantId;
-        }
-
         // Fetch the parent Assessment for itemRefs and their point overrides.
         $assessments = $this->objectService->findAll(
             [
                 'register' => self::SCHOLIQ_REGISTER,
                 'schema'   => 'assessment',
-                'filters'  => $assessmentFilters,
+                // H1: scope Assessment lookup to the same tenant.
+                'filters'  => $this->tenantScoped(filters: ['uuid' => $assessmentId], tenantId: $tenantId),
                 'limit'    => 1,
             ]
         );
@@ -139,17 +134,8 @@ class AssessmentScoringHandler
             return false;
         }
 
-        $assessment = $assessments[0];
-        $itemRefs   = $assessment['itemRefs'] ?? [];
-
-        // Build itemId → points override map.
-        $pointsByItemId = [];
-        foreach ($itemRefs as $itemRef) {
-            $itemId = $itemRef['itemId'] ?? null;
-            if ($itemId !== null) {
-                $pointsByItemId[$itemId] = $itemRef['points'] ?? null;
-            }
-        }
+        $assessment     = $assessments[0];
+        $pointsByItemId = $this->pointsByItemId(itemRefs: ($assessment['itemRefs'] ?? []));
 
         // Score each response.
         foreach ($responses as &$response) {
@@ -158,53 +144,13 @@ class AssessmentScoringHandler
                 continue;
             }
 
-            // H1: scope Item lookup to the same tenant.
-            $itemFilters = ['uuid' => $itemId];
-            if ($tenantId !== '') {
-                $itemFilters['tenant_id'] = $tenantId;
-            }
-
-            $items = $this->objectService->findAll(
-                [
-                    'register' => self::SCHOLIQ_REGISTER,
-                    'schema'   => 'item',
-                    'filters'  => $itemFilters,
-                    'limit'    => 1,
-                ]
+            $response['autoScore'] = $this->autoScoreFor(
+                itemId: $itemId,
+                response: $response,
+                tenantId: $tenantId,
+                pointsByItemId: $pointsByItemId,
             );
-
-            if (empty($items) === true) {
-                // Item unreachable — zero out autoScore rather than leaving client value intact.
-                // Prevents out-of-tenant item references from carrying through attacker-supplied scores.
-                $response['autoScore'] = 0.0;
-                continue;
-            }
-
-            $item            = $items[0];
-            $interactionType = $item['interactionType'] ?? '';
-            $correctResponse = $item['correctResponse'] ?? null;
-            $maxScore        = $pointsByItemId[$itemId] ?? $item['maxScore'] ?? 0;
-
-            $needsManual = ($interactionType === 'extendedText') || ($correctResponse === null);
-
-            if ($needsManual === true) {
-                $response['autoScore'] = null;
-                continue;
-            }
-
-            if (in_array($interactionType, self::AUTO_SCORABLE, true) === false) {
-                $response['autoScore'] = null;
-                continue;
-            }
-
-            $learnerResponse       = $response['response'] ?? null;
-            $response['autoScore'] = $this->scoreResponse(
-                interactionType: $interactionType,
-                learnerResponse: $learnerResponse,
-                correctResponse: $correctResponse,
-                maxScore: (float) $maxScore
-            );
-        }//end foreach
+        }
 
         unset($response);
         $result['responses'] = $responses;
@@ -216,6 +162,107 @@ class AssessmentScoringHandler
 
         return true;
     }//end check()
+
+    /**
+     * Add the tenant filter to a filter set when a tenant scope is known.
+     *
+     * H1: both the Assessment and the Item lookups must be scoped to the
+     * AssessmentResult's own tenant, so neither can be read across a boundary.
+     *
+     * @param array<string,mixed> $filters  The filters built so far.
+     * @param string              $tenantId Tenant UUID, or '' when unknown.
+     *
+     * @return array<string,mixed> The filters, tenant-scoped when possible.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-8
+     */
+    private function tenantScoped(array $filters, string $tenantId): array
+    {
+        if ($tenantId !== '') {
+            $filters['tenant_id'] = $tenantId;
+        }
+
+        return $filters;
+    }//end tenantScoped()
+
+    /**
+     * Build the itemId => points-override map from an Assessment's itemRefs.
+     *
+     * @param array<int,array<string,mixed>> $itemRefs The Assessment's itemRefs.
+     *
+     * @return array<string,mixed> Map of itemId => points override (may be null).
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-8
+     */
+    private function pointsByItemId(array $itemRefs): array
+    {
+        $pointsByItemId = [];
+        foreach ($itemRefs as $itemRef) {
+            $itemId = $itemRef['itemId'] ?? null;
+            if ($itemId !== null) {
+                $pointsByItemId[$itemId] = ($itemRef['points'] ?? null);
+            }
+        }
+
+        return $pointsByItemId;
+    }//end pointsByItemId()
+
+    /**
+     * Resolve the autoScore for one response.
+     *
+     * Fails closed in both directions: an unreachable Item scores 0.0 rather
+     * than leaving the client-supplied value intact, and an item that only a
+     * human can score gets null rather than a machine guess.
+     *
+     * @param string              $itemId         The item the response answers.
+     * @param array<string,mixed> $response       The learner's response row.
+     * @param string              $tenantId       Tenant UUID, or '' when unknown.
+     * @param array<string,mixed> $pointsByItemId Per-item points overrides from the Assessment.
+     *
+     * @return float|null The auto score, or null when the item needs manual scoring.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-8
+     */
+    private function autoScoreFor(string $itemId, array $response, string $tenantId, array $pointsByItemId): ?float
+    {
+        $items = $this->objectService->findAll(
+            [
+                'register' => self::SCHOLIQ_REGISTER,
+                'schema'   => 'item',
+                // H1: scope Item lookup to the same tenant.
+                'filters'  => $this->tenantScoped(filters: ['uuid' => $itemId], tenantId: $tenantId),
+                'limit'    => 1,
+            ]
+        );
+
+        if (empty($items) === true) {
+            // Item unreachable — zero out autoScore rather than leaving the client value
+            // intact, so an out-of-tenant item reference cannot carry an attacker-supplied
+            // score through.
+            return 0.0;
+        }
+
+        $item            = $items[0];
+        $interactionType = ($item['interactionType'] ?? '');
+        $correctResponse = ($item['correctResponse'] ?? null);
+
+        // An extendedText interaction always needs a human, and so does any item
+        // with nothing to score against.
+        if ($interactionType === 'extendedText' || $correctResponse === null) {
+            return null;
+        }
+
+        if (in_array($interactionType, self::AUTO_SCORABLE, true) === false) {
+            return null;
+        }
+
+        return $this->scoreResponse(
+            interactionType: $interactionType,
+            learnerResponse: ($response['response'] ?? null),
+            correctResponse: $correctResponse,
+            maxScore: (float) ($pointsByItemId[$itemId] ?? $item['maxScore'] ?? 0)
+        );
+    }//end autoScoreFor()
 
     /**
      * Score a single response against the item's correctResponse.
@@ -244,70 +291,124 @@ class AssessmentScoringHandler
             return 0.0;
         }
 
-        switch ($interactionType) {
-            case 'choice':
-            case 'textEntry':
-            case 'inlineChoice':
-                // Exact or case-insensitive match.
-                $lr = $learnerResponse;
-                if (is_string($learnerResponse) === true) {
-                    $lr = mb_strtolower(trim($learnerResponse));
-                }
-
-                $cr = $correctResponse;
-                if (is_string($correctResponse) === true) {
-                    $cr = mb_strtolower(trim($correctResponse));
-                }
-
-                if ($lr === $cr) {
-                    return $maxScore;
-                }
-                return 0.0;
-
-            case 'order':
-            case 'match':
-            case 'gapMatch':
-                // Partial: award proportionally for each correct element.
-                if (is_array($learnerResponse) === false || is_array($correctResponse) === false) {
-                    return 0.0;
-                }
-
-                $totalExpected = count($correctResponse);
-                if ($totalExpected === 0) {
-                    return 0.0;
-                }
-
-                $correctCount = 0;
-                foreach ($correctResponse as $idx => $expected) {
-                    if (isset($learnerResponse[$idx]) === true && $learnerResponse[$idx] === $expected) {
-                        $correctCount++;
-                    }
-                }
-                return round(($correctCount / $totalExpected) * $maxScore, 2);
-
-            case 'hotspot':
-                // Treat correctResponse as an array of required identifiers.
-                // #185: partial scoring — award marks proportionally for the fraction
-                // of correct hotspots hit, rather than full marks for any single hit.
-                if (is_array($correctResponse) === false) {
-                    $correctResponse = [$correctResponse];
-                }
-
-                if (is_array($learnerResponse) === false) {
-                    $learnerResponse = [$learnerResponse];
-                }
-
-                $totalRequired = count($correctResponse);
-                if ($totalRequired === 0) {
-                    return 0.0;
-                }
-
-                // Correct hits: learner clicked a required hotspot (no negatives for wrong hits).
-                $hits = count(array_intersect($learnerResponse, $correctResponse));
-                return round(($hits / $totalRequired) * $maxScore, 2);
-
-            default:
-                return 0.0;
-        }//end switch
+        return match ($interactionType) {
+            'choice', 'textEntry', 'inlineChoice' => $this->scoreExactMatch(
+                learnerResponse: $learnerResponse,
+                correctResponse: $correctResponse,
+                maxScore: $maxScore
+            ),
+            'order', 'match', 'gapMatch' => $this->scorePositionalMatch(
+                learnerResponse: $learnerResponse,
+                correctResponse: $correctResponse,
+                maxScore: $maxScore
+            ),
+            'hotspot' => $this->scoreHotspot(
+                learnerResponse: $learnerResponse,
+                correctResponse: $correctResponse,
+                maxScore: $maxScore
+            ),
+            default => 0.0,
+        };
     }//end scoreResponse()
+
+    /**
+     * All-or-nothing scoring: the response matches the declared answer exactly,
+     * compared case- and whitespace-insensitively when both sides are strings.
+     *
+     * @param mixed $learnerResponse Learner's response value.
+     * @param mixed $correctResponse Item's declared correct response.
+     * @param float $maxScore        Maximum points for this item.
+     *
+     * @return float Either the full maxScore or 0.0.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-8
+     */
+    private function scoreExactMatch(mixed $learnerResponse, mixed $correctResponse, float $maxScore): float
+    {
+        $learner = $learnerResponse;
+        if (is_string($learnerResponse) === true) {
+            $learner = mb_strtolower(trim($learnerResponse));
+        }
+
+        $correct = $correctResponse;
+        if (is_string($correctResponse) === true) {
+            $correct = mb_strtolower(trim($correctResponse));
+        }
+
+        if ($learner === $correct) {
+            return $maxScore;
+        }
+
+        return 0.0;
+    }//end scoreExactMatch()
+
+    /**
+     * Partial scoring by position: award marks proportionally for each element
+     * the learner placed where the declared answer expects it.
+     *
+     * @param mixed $learnerResponse Learner's response value.
+     * @param mixed $correctResponse Item's declared correct response.
+     * @param float $maxScore        Maximum points for this item.
+     *
+     * @return float Score in range [0, maxScore], rounded to 2 decimals.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-8
+     */
+    private function scorePositionalMatch(mixed $learnerResponse, mixed $correctResponse, float $maxScore): float
+    {
+        if (is_array($learnerResponse) === false || is_array($correctResponse) === false) {
+            return 0.0;
+        }
+
+        $totalExpected = count($correctResponse);
+        if ($totalExpected === 0) {
+            return 0.0;
+        }
+
+        $correctCount = 0;
+        foreach ($correctResponse as $idx => $expected) {
+            if (isset($learnerResponse[$idx]) === true && $learnerResponse[$idx] === $expected) {
+                $correctCount++;
+            }
+        }
+
+        return round((($correctCount / $totalExpected) * $maxScore), 2);
+    }//end scorePositionalMatch()
+
+    /**
+     * Partial scoring for hotspot interactions.
+     *
+     * #185: award marks proportionally for the fraction of required hotspots the
+     * learner hit, rather than full marks for any single hit. Wrong hits do not
+     * subtract.
+     *
+     * @param mixed $learnerResponse Learner's response value.
+     * @param mixed $correctResponse Item's declared correct response.
+     * @param float $maxScore        Maximum points for this item.
+     *
+     * @return float Score in range [0, maxScore], rounded to 2 decimals.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-8
+     */
+    private function scoreHotspot(mixed $learnerResponse, mixed $correctResponse, float $maxScore): float
+    {
+        $required = $correctResponse;
+        if (is_array($required) === false) {
+            $required = [$required];
+        }
+
+        $chosen = $learnerResponse;
+        if (is_array($chosen) === false) {
+            $chosen = [$chosen];
+        }
+
+        $totalRequired = count($required);
+        if ($totalRequired === 0) {
+            return 0.0;
+        }
+
+        $hits = count(array_intersect($chosen, $required));
+
+        return round((($hits / $totalRequired) * $maxScore), 2);
+    }//end scoreHotspot()
 }//end class

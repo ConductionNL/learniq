@@ -322,30 +322,8 @@ class LearningRecordAggregationService
      */
     private function summariseLessonCompletions(array $lessonCompletions, array $enrolments): array
     {
-        $percentageByCourseId = [];
-        foreach ($enrolments as $enrolment) {
-            $courseId = $enrolment['courseId'] ?? null;
-            if (is_string($courseId) === false || $courseId === '') {
-                continue;
-            }
-
-            $percentageByCourseId[$courseId] = $enrolment['progressPercent'] ?? null;
-        }
-
-        $countByCourseId = [];
-        foreach ($lessonCompletions as $completion) {
-            $courseId = $completion['courseId'] ?? null;
-            if (is_string($courseId) === false || $courseId === '') {
-                $courseId = null;
-            }
-
-            $key = $courseId ?? '';
-            if (isset($countByCourseId[$key]) === false) {
-                $countByCourseId[$key] = ['courseId' => $courseId, 'completedCount' => 0];
-            }
-
-            $countByCourseId[$key]['completedCount']++;
-        }
+        $percentageByCourseId = $this->progressPercentByCourseId(enrolments: $enrolments);
+        $countByCourseId      = $this->completionCountsByCourseId(lessonCompletions: $lessonCompletions);
 
         $summary = [];
         foreach ($countByCourseId as $row) {
@@ -364,6 +342,68 @@ class LearningRecordAggregationService
 
         return $summary;
     }//end summariseLessonCompletions()
+
+    /**
+     * Index each enrolment's progress percentage by its course.
+     *
+     * @param array<int,array<string,mixed>> $enrolments The learner's enrolments.
+     *
+     * @return array<string,mixed> Map of courseId => progressPercent.
+     *
+     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-lesson-completions-are-summarised-per-course-never-exported-raw
+     */
+    private function progressPercentByCourseId(array $enrolments): array
+    {
+        $percentageByCourseId = [];
+        foreach ($enrolments as $enrolment) {
+            $courseId = ($enrolment['courseId'] ?? null);
+            if (is_string($courseId) === false || $courseId === '') {
+                continue;
+            }
+
+            $percentageByCourseId[$courseId] = ($enrolment['progressPercent'] ?? null);
+        }
+
+        return $percentageByCourseId;
+
+    }//end progressPercentByCourseId()
+
+    /**
+     * Count lesson completions per course.
+     *
+     * Completions with no usable courseId are not dropped — they collect under
+     * a single null-course bucket, so the total still accounts for them.
+     *
+     * @param array<int,array<string,mixed>> $lessonCompletions The learner's lesson completions.
+     *
+     * @return array<string,array{courseId: string|null, completedCount: int}> Counts keyed by course.
+     *
+     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-lesson-completions-are-summarised-per-course-never-exported-raw
+     */
+    private function completionCountsByCourseId(array $lessonCompletions): array
+    {
+        $countByCourseId = [];
+
+        foreach ($lessonCompletions as $completion) {
+            $courseId = ($completion['courseId'] ?? null);
+            if (is_string($courseId) === false || $courseId === '') {
+                $courseId = null;
+            }
+
+            $key = ($courseId ?? '');
+            if (isset($countByCourseId[$key]) === false) {
+                $countByCourseId[$key] = [
+                    'courseId'       => $courseId,
+                    'completedCount' => 0,
+                ];
+            }
+
+            $countByCourseId[$key]['completedCount']++;
+        }
+
+        return $countByCourseId;
+
+    }//end completionCountsByCourseId()
 
     /**
      * Normalise an OR `findAll()`/`find()` result row (a raw array or an

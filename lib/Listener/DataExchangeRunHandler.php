@@ -235,16 +235,7 @@ class DataExchangeRunHandler implements IEventListener
                 '[DataExchangeRunHandler] Job {id} aborted during query/payload build: {msg}',
                 ['id' => $jobId, 'msg' => $e->getMessage()]
             );
-            // C4 fix: persist result fields first, then drive lifecycle via transition engine
-            // so OR's audit-trail and declared transition guards run correctly.
-            $this->saveJobFields(
-                jobId: $jobId,
-                fields: [
-                    'finishedAt'   => date('c'),
-                    'errorMessage' => $e->getMessage(),
-                ],
-            );
-            $this->transitionEngine->transition($jobId, 'fail');
+            $this->failJob(jobId: $jobId, errorMessage: $e->getMessage());
             return;
         }
 
@@ -253,25 +244,78 @@ class DataExchangeRunHandler implements IEventListener
 
         if ($connectorResult === null) {
             // OpenConnector not available or returned an error.
-            $errorMsg = sprintf(
-                "OpenConnector connection '%s' not found or returned an error."
-                ." Ensure OpenConnector is installed and the '%s' source is configured.",
-                $target,
-                $target
-            );
-            // C4 fix: persist error fields first, then drive lifecycle via transition engine.
-            $this->saveJobFields(
+            $this->failJob(
                 jobId: $jobId,
-                fields: [
-                    'finishedAt'   => date('c'),
-                    'errorMessage' => $errorMsg,
-                ],
+                errorMessage: sprintf(
+                    "OpenConnector connection '%s' not found or returned an error."
+                    ." Ensure OpenConnector is installed and the '%s' source is configured.",
+                    $target,
+                    $target
+                ),
             );
-            $this->transitionEngine->transition($jobId, 'fail');
             return;
         }
 
-        // 5. Record result.
+        // 5/6. Record the result and drive the outcome transition.
+        $this->recordJobOutcome(
+            jobId: $jobId,
+            connectorResult: $connectorResult,
+            target: $target,
+            scope: $scope,
+            tenantId: $jobTenantId,
+        );
+
+    }//end runJob()
+
+    /**
+     * Fail a job: persist the error fields, then drive the `fail` transition.
+     *
+     * C4: the result fields are persisted first and the lifecycle is moved via the
+     * transition engine afterwards, so OR's audit-trail entry and the declared
+     * transition guards both see the final field values.
+     *
+     * @param string $jobId        DataExchangeJob id.
+     * @param string $errorMessage Message stored on the job and shown to an operator.
+     *
+     * @return void
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
+     */
+    private function failJob(string $jobId, string $errorMessage): void
+    {
+        $this->saveJobFields(
+            jobId: $jobId,
+            fields: [
+                'finishedAt'   => date('c'),
+                'errorMessage' => $errorMessage,
+            ],
+        );
+        $this->transitionEngine->transition($jobId, 'fail');
+
+    }//end failJob()
+
+    /**
+     * Persist an OpenConnector run's counts, transition the job to its outcome
+     * state, and track the originating SupportRequest through.
+     *
+     * @param string              $jobId           DataExchangeJob id.
+     * @param array<string,mixed> $connectorResult OpenConnector's run response.
+     * @param string              $target          Data-exchange target slug.
+     * @param array<string,mixed> $scope           The job's scope, used to resolve the SupportRequest.
+     * @param string              $tenantId        Tenant scope of the job.
+     *
+     * @return void
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
+     * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+     */
+    private function recordJobOutcome(
+        string $jobId,
+        array $connectorResult,
+        string $target,
+        array $scope,
+        string $tenantId,
+    ): void {
         $resultData = [
             'recordsProcessed' => $connectorResult['recordsProcessed'] ?? 0,
             'recordsAccepted'  => $connectorResult['recordsAccepted'] ?? 0,
@@ -280,20 +324,11 @@ class DataExchangeRunHandler implements IEventListener
             'artefactRef'      => $connectorResult['artefactRef'] ?? null,
         ];
 
-        $connectorRunId = $connectorResult['runId'] ?? null;
-        $rejected       = $resultData['recordsRejected'];
-        $processed      = $resultData['recordsProcessed'];
-        $accepted       = $resultData['recordsAccepted'];
+        $processed = (int) $resultData['recordsProcessed'];
+        $accepted  = (int) $resultData['recordsAccepted'];
+        $rejected  = (int) $resultData['recordsRejected'];
 
-        // 6. Determine outcome state.
-        $nextState = 'succeed';
-        if ($rejected > 0 && $accepted > 0) {
-            $nextState = 'partial';
-        }
-
-        if ($rejected > 0 && $accepted === 0 && $processed > 0) {
-            $nextState = 'fail';
-        }
+        $nextState = $this->resolveOutcomeState(processed: $processed, accepted: $accepted, rejected: $rejected);
 
         // C4 fix: persist result fields first (no lifecycle), then drive lifecycle via
         // the transition engine so OR's audit-trail and declared transition guards fire.
@@ -302,7 +337,7 @@ class DataExchangeRunHandler implements IEventListener
             fields: [
                 'finishedAt'     => date('c'),
                 'result'         => $resultData,
-                'connectorRunId' => $connectorRunId,
+                'connectorRunId' => ($connectorResult['runId'] ?? null),
             ],
         );
         $this->transitionEngine->transition($jobId, $nextState);
@@ -311,9 +346,8 @@ class DataExchangeRunHandler implements IEventListener
         // through to routed-to-swv (learning-plan spec "SupportRequest tracks the
         // routed job through to decision"). Best-effort: a missing/unresolvable
         // SupportRequest does not fail the job — it is logged and skipped.
-        // The target/nextState applicability check lives inside the callee (not
-        // here) to keep this already-complex method's branching flat.
-        $this->routeSupportRequestToSwv(target: $target, nextState: $nextState, scope: $scope, tenantId: $jobTenantId);
+        // The target/nextState applicability check lives inside the callee.
+        $this->routeSupportRequestToSwv(target: $target, nextState: $nextState, scope: $scope, tenantId: $tenantId);
 
         $this->logger->info(
             '[DataExchangeRunHandler] Job {id} → {state}. target={t}, processed={p}, accepted={a}, rejected={r}.',
@@ -327,7 +361,36 @@ class DataExchangeRunHandler implements IEventListener
             ]
         );
 
-    }//end runJob()
+    }//end recordJobOutcome()
+
+    /**
+     * Decide which lifecycle transition an OpenConnector run's counts imply.
+     *
+     * A run that rejected some records but accepted others is `partial`; one that
+     * processed records and accepted none of them is a `fail`. Everything else,
+     * including an empty run, succeeds.
+     *
+     * @param int $processed Records OpenConnector processed.
+     * @param int $accepted  Records it accepted.
+     * @param int $rejected  Records it rejected.
+     *
+     * @return string Transition name: 'succeed', 'partial' or 'fail'.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
+     */
+    private function resolveOutcomeState(int $processed, int $accepted, int $rejected): string
+    {
+        if ($rejected > 0 && $accepted > 0) {
+            return 'partial';
+        }
+
+        if ($rejected > 0 && $accepted === 0 && $processed > 0) {
+            return 'fail';
+        }
+
+        return 'succeed';
+
+    }//end resolveOutcomeState()
 
     /**
      * Transition the SupportRequest that originated a succeeded swv-target
@@ -560,60 +623,14 @@ class DataExchangeRunHandler implements IEventListener
         }
 
         if ($profile === null || empty($profile['fieldMappings']) === true) {
-            // No mapping: pass raw objects but strip PII fields (C3 — explicit unset).
-            return array_map(
-                function (array $obj) use ($target): array {
-                    // Correlation stamp (duo-afkeurmelding-correction): every record carries
-                    // the source object's own id BEFORE composition, so a rejection returned
-                    // in a later job's result.validationReport can be resolved back to the
-                    // Scholiq object that produced it. Stamped first so the leerplicht/swv
-                    // composers below never strip it (they only add keys, never unset()).
-                    $recordId = $obj['id'] ?? ($obj['uuid'] ?? '');
-                    $obj['_scholiqRecordId'] = $recordId;
-
-                    unset($obj['bsnEncrypted'], $obj['bsnHash'], $obj['email']);
-                    if ($target === self::LEERPLICHT_TARGET) {
-                        $obj = $this->composeLeerplichtDossier(record: $obj, flag: $obj);
-                    }
-
-                    if ($target === self::SWV_TARGET) {
-                        $obj = $this->composeSwvDossier(record: $obj, supportRequest: $obj);
-                    }
-
-                    return $obj;
-                },
-                $objects
-            );
-        }//end if
+            return $this->passThroughPayload(objects: $objects, target: $target);
+        }
 
         $fieldMappings = $profile['fieldMappings'];
         $payload       = [];
 
         foreach ($objects as $object) {
-            // Correlation stamp (duo-afkeurmelding-correction): the source object's own id,
-            // written before the fieldMappings loop so it is never a caller-mappable target
-            // field and always survives dossier composition below.
-            $record = ['_scholiqRecordId' => ($object['id'] ?? ($object['uuid'] ?? ''))];
-
-            foreach ($fieldMappings as $mapping) {
-                $scholiqField = $mapping['scholiqField'] ?? '';
-                $targetField  = $mapping['targetField'] ?? '';
-                $transform    = $mapping['transform'] ?? null;
-
-                if ($scholiqField === '' || $targetField === '') {
-                    continue;
-                }
-
-                $value = $object[$scholiqField] ?? null;
-
-                $value = $this->applyTransform(
-                    value: $value,
-                    transform: $transform,
-                    object: $object
-                );
-
-                $record[$targetField] = $value;
-            }
+            $record = $this->mapRecord(object: $object, fieldMappings: $fieldMappings);
 
             // C3: always strip PII fields from the mapped record even when profile is present.
             unset($record['bsnEncrypted'], $record['bsnHash'], $record['email']);
@@ -623,28 +640,107 @@ class DataExchangeRunHandler implements IEventListener
             // own targetField — this stamp must always equal the source object's id.
             $record['_scholiqRecordId'] = ($object['id'] ?? ($object['uuid'] ?? ''));
 
-            // Verzuimloket dossier composer (target=leerplicht): assemble the report
-            // from the originating AttendanceFlag's breachingRecordIds + interventions,
-            // mirroring the "OSO dossier composer" pattern — not the bare flat mapping.
-            if ($target === self::LEERPLICHT_TARGET) {
-                $record = $this->composeLeerplichtDossier(record: $record, flag: $object);
-            }
-
-            // SWV zorgvraag dossier composer (target=swv): assemble the OSO-format
-            // care-request dossier from the originating SupportRequest's linked
-            // LearnerProfile + (optional) LearningPlan, same rationale as the
-            // leerplicht composer above — fieldMappings cannot resolve a $ref into
-            // a nested payload section.
-            if ($target === self::SWV_TARGET) {
-                $record = $this->composeSwvDossier(record: $record, supportRequest: $object);
-            }
-
-            $payload[] = $record;
-        }//end foreach
+            $payload[] = $this->composeDossier(record: $record, source: $object, target: $target);
+        }
 
         return $payload;
 
     }//end buildPayload()
+
+    /**
+     * Build the payload for a target that has no mapping profile: the raw source
+     * objects with PII fields explicitly stripped (C3).
+     *
+     * @param array<int,array<string,mixed>> $objects Source objects retrieved from OR.
+     * @param string                         $target  Data-exchange target slug.
+     *
+     * @return array<int,array<string,mixed>> PII-stripped pass-through payload.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
+     */
+    private function passThroughPayload(array $objects, string $target): array
+    {
+        $payload = [];
+        foreach ($objects as $object) {
+            // Correlation stamp (duo-afkeurmelding-correction): every record carries
+            // the source object's own id BEFORE composition, so a rejection returned
+            // in a later job's result.validationReport can be resolved back to the
+            // Scholiq object that produced it. Stamped first so the leerplicht/swv
+            // composers never strip it (they only add keys, never unset()).
+            $object['_scholiqRecordId'] = ($object['id'] ?? ($object['uuid'] ?? ''));
+
+            unset($object['bsnEncrypted'], $object['bsnHash'], $object['email']);
+
+            $payload[] = $this->composeDossier(record: $object, source: $object, target: $target);
+        }
+
+        return $payload;
+
+    }//end passThroughPayload()
+
+    /**
+     * Apply a profile's field mappings to one source object.
+     *
+     * @param array<string,mixed>            $object        The source object.
+     * @param array<int,array<string,mixed>> $fieldMappings The profile's fieldMappings entries.
+     *
+     * @return array<string,mixed> The mapped record, already carrying its correlation stamp.
+     *
+     * @throws \RuntimeException When a transform refuses to produce a value (e.g. missing eckId).
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
+     */
+    private function mapRecord(array $object, array $fieldMappings): array
+    {
+        // Correlation stamp (duo-afkeurmelding-correction): the source object's own id,
+        // written before the fieldMappings loop so it is never a caller-mappable target
+        // field and always survives dossier composition.
+        $record = ['_scholiqRecordId' => ($object['id'] ?? ($object['uuid'] ?? ''))];
+
+        foreach ($fieldMappings as $mapping) {
+            $scholiqField = $mapping['scholiqField'] ?? '';
+            $targetField  = $mapping['targetField'] ?? '';
+
+            if ($scholiqField === '' || $targetField === '') {
+                continue;
+            }
+
+            $record[$targetField] = $this->applyTransform(
+                value: ($object[$scholiqField] ?? null),
+                transform: ($mapping['transform'] ?? null),
+                object: $object
+            );
+        }
+
+        return $record;
+
+    }//end mapRecord()
+
+    /**
+     * Run the target's dossier composer over a record, when it has one.
+     *
+     * A flat `fieldMappings` entry cannot resolve a `$ref` into a nested payload
+     * section, so the leerplicht (Verzuimloket) and swv (OSO care-request) targets assemble their
+     * dossier from the originating object instead of a bare flat mapping. Every
+     * other target passes the record straight through.
+     *
+     * @param array<string,mixed> $record The mapped (or pass-through) record.
+     * @param array<string,mixed> $source The originating source object.
+     * @param string              $target Data-exchange target slug.
+     *
+     * @return array<string,mixed> The composed record.
+     *
+     * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
+     */
+    private function composeDossier(array $record, array $source, string $target): array
+    {
+        return match ($target) {
+            self::LEERPLICHT_TARGET => $this->composeLeerplichtDossier(record: $record, flag: $source),
+            self::SWV_TARGET => $this->composeSwvDossier(record: $record, supportRequest: $source),
+            default => $record,
+        };
+
+    }//end composeDossier()
 
     /**
      * Compose the verzuimloket dossier for a leerplicht-target report.
@@ -910,67 +1006,108 @@ class DataExchangeRunHandler implements IEventListener
      */
     private function applyTransform(mixed $value, ?string $transform, array $object): mixed
     {
-        if ($transform === null) {
+        return match ($transform) {
+            'bsn-to-pseudonym' => $this->transformBsnToPseudonym(object: $object),
+            'date-iso8601' => $this->transformDateIso8601(value: $value),
+            'cohort-to-brin' => $this->transformCohortToBrin(value: $value),
+            default => $value,
+        };
+
+    }//end applyTransform()
+
+    /**
+     * Resolve the ECK iD pseudonym that stands in for a learner's BSN.
+     *
+     * BSN MUST NEVER leave Scholiq. #206: when `eckId` is absent this aborts the
+     * whole job (fail-closed) rather than shipping a null pseudonym, because a
+     * null value in the payload might make the receiving system fall back to an
+     * unencrypted BSN field.
+     *
+     * @param array<string,mixed> $object The full source object.
+     *
+     * @return string The ECK iD pseudonym.
+     *
+     * @throws \RuntimeException When the object carries no eckId.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
+     */
+    private function transformBsnToPseudonym(array $object): string
+    {
+        $eckId = $object['eckId'] ?? null;
+        if ($eckId === null || $eckId === '') {
+            $objectId = $object['id'] ?? ($object['uuid'] ?? 'unknown');
+            throw new \RuntimeException(
+                "bsn-to-pseudonym: object {$objectId} has no eckId — job aborted to prevent BSN leakage."
+            );
+        }
+
+        return (string) $eckId;
+
+    }//end transformBsnToPseudonym()
+
+    /**
+     * Normalise a value to an ISO-8601 calendar date.
+     *
+     * An unparseable value is passed through untouched rather than nulled, so a
+     * mapping mistake stays visible in the payload instead of silently vanishing.
+     *
+     * @param mixed $value The raw field value.
+     *
+     * @return mixed `Y-m-d` string, the original value when unparseable, or null when empty.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
+     */
+    private function transformDateIso8601(mixed $value): mixed
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $timestamp = strtotime((string) $value);
+        if ($timestamp === false) {
             return $value;
         }
 
-        switch ($transform) {
-            case 'bsn-to-pseudonym':
-                // BSN MUST NEVER leave Scholiq. Use the ECK iD pseudonym instead.
-                // #206: if eckId is absent, fail the entire job (fail-closed) rather
-                // than shipping a null pseudonym — a null value in the payload might
-                // cause the receiving system to fall back to an unencrypted BSN field.
-                $eckId = $object['eckId'] ?? null;
-                if ($eckId === null || $eckId === '') {
-                    $objectId = $object['id'] ?? ($object['uuid'] ?? 'unknown');
-                    throw new \RuntimeException(
-                        "bsn-to-pseudonym: object {$objectId} has no eckId — job aborted to prevent BSN leakage."
-                    );
-                }
-                return $eckId;
+        return date('Y-m-d', $timestamp);
 
-            case 'date-iso8601':
-                if ($value === null || $value === '') {
-                    return null;
-                }
+    }//end transformDateIso8601()
 
-                // Ensure the value is a valid ISO 8601 date string.
-                $ts = strtotime((string) $value);
-                if ($ts === false) {
-                    return $value;
-                }
-                return date('Y-m-d', $ts);
+    /**
+     * Look up the BRIN number of the Cohort a value refers to.
+     *
+     * @param mixed $value The cohort id.
+     *
+     * @return mixed The cohort's `brinNumber`, or null when the value is empty or unresolvable.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
+     */
+    private function transformCohortToBrin(mixed $value): mixed
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
 
-            case 'cohort-to-brin':
-                // Look up the Cohort's brinNumber for the given cohortId value.
-                if ($value === null || $value === '') {
-                    return null;
-                }
+        $cohorts = $this->objectService->findAll(
+            [
+                'register' => self::SCHOLIQ_REGISTER,
+                'schema'   => self::COHORT_SCHEMA,
+                'filters'  => ['id' => (string) $value],
+                'limit'    => 1,
+            ]
+        );
 
-                $cohorts = $this->objectService->findAll(
-                    [
-                        'register' => self::SCHOLIQ_REGISTER,
-                        'schema'   => self::COHORT_SCHEMA,
-                        'filters'  => ['id' => (string) $value],
-                        'limit'    => 1,
-                    ]
-                );
+        if (empty($cohorts) === true) {
+            return null;
+        }
 
-                if (empty($cohorts) === true) {
-                    return null;
-                }
+        $cohort = $cohorts[0];
+        if (is_array($cohorts[0]) === false) {
+            $cohort = $cohorts[0]->jsonSerialize();
+        }
 
-                $cohort = $cohorts[0];
-                if (is_array($cohorts[0]) === false) {
-                    $cohort = $cohorts[0]->jsonSerialize();
-                }
-                return $cohort['brinNumber'] ?? null;
+        return $cohort['brinNumber'] ?? null;
 
-            default:
-                return $value;
-        }//end switch
-
-    }//end applyTransform()
+    }//end transformCohortToBrin()
 
     /**
      * Call the OpenConnector REST API to execute the named connection.

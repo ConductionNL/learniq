@@ -240,35 +240,9 @@ class ScholiqToolProvider implements IMcpToolProvider
             ];
         }
 
-        // M2: non-admin callers must only see published courses — they must not
-        // discover draft or archived courses via the MCP surface.
-        $callerIsAdmin = false;
-        $sessionUser   = $this->userSession->getUser();
-        if ($sessionUser !== null && $this->groupManager->isAdmin($sessionUser->getUID()) === true) {
-            $callerIsAdmin = true;
-        }
-
-        // Hard cap at LIST_CAP regardless of the requested limit.
-        $config = [
-            'register' => self::REGISTER_SLUG,
-            'schema'   => self::SCHEMA_COURSE,
-            'limit'    => min((int) $validated['limit'], self::LIST_CAP),
-        ];
-
-        if ($validated['status'] !== null) {
-            // Respect the requested status filter, but non-admins can only request 'published'.
-            if ($callerIsAdmin === false && $validated['status'] !== 'published') {
-                return [
-                    'isError' => true,
-                    'error'   => 'forbidden',
-                    'message' => "Status filter '{$validated['status']}' is not available to non-admin users.",
-                ];
-            }
-
-            $config['filters'] = ['lifecycle' => $validated['status']];
-        } else if ($callerIsAdmin === false) {
-            // No status requested by non-admin — restrict to published only.
-            $config['filters'] = ['lifecycle' => 'published'];
+        $config = $this->buildCourseListConfig(validated: $validated);
+        if (isset($config['error']) === true) {
+            return $config['error'];
         }
 
         try {
@@ -301,6 +275,79 @@ class ScholiqToolProvider implements IMcpToolProvider
         ];
 
     }//end handleListCourses()
+
+    /**
+     * Build the `ObjectService::findAll()` config for a listCourses call, or the
+     * error response when the caller may not ask for what they asked for.
+     *
+     * M2: non-admin callers must only see published courses — they must not be
+     * able to discover draft or archived courses through the MCP surface, either
+     * by filtering for them explicitly or by omitting the filter.
+     *
+     * @param array{limit?: int, status?: string|null} $validated Validated listCourses arguments.
+     *
+     * @return array<string, mixed> The findAll config, or `['error' => <response>]`.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-ai-companion-tools/tasks.md#task-3
+     */
+    private function buildCourseListConfig(array $validated): array
+    {
+        $callerIsAdmin = $this->callerIsAdmin();
+        $status        = ($validated['status'] ?? null);
+
+        // Hard cap at LIST_CAP regardless of the requested limit.
+        $config = [
+            'register' => self::REGISTER_SLUG,
+            'schema'   => self::SCHEMA_COURSE,
+            'limit'    => min((int) $validated['limit'], self::LIST_CAP),
+        ];
+
+        if ($status === null) {
+            // No status requested by a non-admin — restrict to published only.
+            if ($callerIsAdmin === false) {
+                $config['filters'] = ['lifecycle' => 'published'];
+            }
+
+            return $config;
+        }
+
+        // Respect the requested status filter, but non-admins can only request 'published'.
+        if ($callerIsAdmin === false && $status !== 'published') {
+            return [
+                'error' => [
+                    'isError' => true,
+                    'error'   => 'forbidden',
+                    'message' => "Status filter '{$status}' is not available to non-admin users.",
+                ],
+            ];
+        }
+
+        $config['filters'] = ['lifecycle' => $status];
+
+        return $config;
+
+    }//end buildCourseListConfig()
+
+    /**
+     * Whether the caller of the current MCP request is a Nextcloud admin.
+     *
+     * An unauthenticated caller is never an admin, so every MCP surface that
+     * gates draft/archived content asks this one question.
+     *
+     * @return bool True when a signed-in admin is making the call.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-ai-companion-tools/tasks.md#task-3
+     */
+    private function callerIsAdmin(): bool
+    {
+        $user = $this->userSession->getUser();
+        if ($user === null) {
+            return false;
+        }
+
+        return $this->groupManager->isAdmin($user->getUID());
+
+    }//end callerIsAdmin()
 
     /**
      * Validate scholiq.listCourses arguments.
@@ -411,31 +458,47 @@ class ScholiqToolProvider implements IMcpToolProvider
             ];
         }
 
-        // #197: non-admin learners must not see draft courses via MCP.
-        // Admins may view drafts; regular authenticated users see only published courses.
-        $courseLifecycle = $course['lifecycle'] ?? ($course['status'] ?? 'published');
-        if ($courseLifecycle !== 'published') {
-            $user   = $this->userSession->getUser();
-            $userId = '';
-            if ($user !== null) {
-                $userId = $user->getUID();
-            }
-
-            if ($userId === '' || $this->groupManager->isAdmin($userId) === false) {
-                // Non-admin trying to view a non-published course via MCP → not found
-                // (do not leak existence of drafts to learners).
-                return [
-                    'isError' => true,
-                    'error'   => 'not_found',
-                    'message' => 'Course not found.',
-                ];
-            }
+        // #197: non-admin learners must not see draft courses via MCP. Admins may
+        // view drafts; regular authenticated users see only published courses. The
+        // refusal is 'not_found', not 'forbidden', so the existence of a draft is
+        // never leaked to a learner.
+        $courseLifecycle = ($course['lifecycle'] ?? ($course['status'] ?? 'published'));
+        if ($courseLifecycle !== 'published' && $this->callerIsAdmin() === false) {
+            return [
+                'isError' => true,
+                'error'   => 'not_found',
+                'message' => 'Course not found.',
+            ];
         }
 
         $courseUuid = $this->extractUuid(item: $course);
         $modules    = $this->loadCourseModules(courseUuid: $courseUuid);
 
+        return [
+            'success' => true,
+            'course'  => $this->courseSummary(course: $course),
+            'modules' => $modules,
+            'sources' => $this->buildCourseDetailSources(course: $course, courseUuid: $courseUuid, modules: $modules),
+        ];
+
+    }//end handleGetCourseDetails()
+
+    /**
+     * Build the citation-source list for a course-details response: the course
+     * itself followed by one entry per module, each with its own deep link.
+     *
+     * @param array<string, mixed>             $course     The course record.
+     * @param string                           $courseUuid The course UUID.
+     * @param array<int, array<string, mixed>> $modules    Ordered module summaries.
+     *
+     * @return array<int, array<string, mixed>> Source entries in course-then-modules order.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-ai-companion-tools/tasks.md#task-4
+     */
+    private function buildCourseDetailSources(array $course, string $courseUuid, array $modules): array
+    {
         $sources = [$this->courseSource(course: $course, courseUuid: $courseUuid)];
+
         foreach ($modules as $module) {
             $moduleUuid = (string) ($module['uuid'] ?? '');
             $sources[]  = [
@@ -446,14 +509,9 @@ class ScholiqToolProvider implements IMcpToolProvider
             ];
         }
 
-        return [
-            'success' => true,
-            'course'  => $this->courseSummary(course: $course),
-            'modules' => $modules,
-            'sources' => $sources,
-        ];
+        return $sources;
 
-    }//end handleGetCourseDetails()
+    }//end buildCourseDetailSources()
 
     /**
      * Load and order the published-or-draft module (Lesson) summaries for a course.

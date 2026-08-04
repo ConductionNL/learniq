@@ -86,10 +86,7 @@ class CredentialIssuanceHandler implements IEventListener
         }
 
         // Only handle Enrolment transitions within the scholiq register.
-        if ($event->getRegister() !== self::SCHOLIQ_REGISTER
-            || $event->getSchema() !== self::ENROLMENT_SCHEMA
-            || $event->getTo() !== self::COMPLETED_STATE
-        ) {
+        if ($this->isEnrolmentCompletion(event: $event) === false) {
             return;
         }
 
@@ -123,32 +120,13 @@ class CredentialIssuanceHandler implements IEventListener
 
         $enrolmentId = $enrolment['id'] ?? ($enrolment['uuid'] ?? null);
 
-        // #181: idempotency guard — check whether a credential already exists for this
-        // enrolment so that admin re-saves and event replays do not issue duplicates.
-        if ($enrolmentId !== null) {
-            $existing = $this->objectService->findAll(
-                [
-                    'register' => self::SCHOLIQ_REGISTER,
-                    'schema'   => 'credential',
-                    'filters'  => [
-                        'enrolmentId' => $enrolmentId,
-                        'source'      => 'auto',
-                    ],
-                    'limit'    => 1,
-                ]
-            );
-            if (empty($existing) === false) {
-                return;
-            }
+        // #181: idempotency guard — an admin re-save or an event replay must not
+        // issue a duplicate credential.
+        if ($this->credentialAlreadyIssued(enrolmentId: $enrolmentId) === true) {
+            return;
         }
 
-        // Calculate expiry date if the course defines a validity period.
-        $expiresAt = null;
-        if (empty($course['defaultExpiresAfterDays']) === false) {
-            $expiresAt = (new DateTimeImmutable($completedAt))
-                ->modify('+'.(int) $course['defaultExpiresAfterDays'].' days')
-                ->format(\DATE_ATOM);
-        }
+        $expiresAt = $this->resolveExpiresAt(course: $course, completedAt: (string) $completedAt);
 
         // C1 fix: Do NOT write `lifecycle` — let OR auto-fire the `issue` transition
         // from null (initial: issued) which invokes the `requires:` guard
@@ -171,4 +149,84 @@ class CredentialIssuanceHandler implements IEventListener
             ]
         );
     }//end handle()
+
+    /**
+     * Whether this transition is a scholiq Enrolment entering `completed`.
+     *
+     * @param ObjectTransitionedEvent $event The transition event.
+     *
+     * @return bool True when this handler should act on it.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-11
+     */
+    private function isEnrolmentCompletion(ObjectTransitionedEvent $event): bool
+    {
+        if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+            return false;
+        }
+
+        if ($event->getSchema() !== self::ENROLMENT_SCHEMA) {
+            return false;
+        }
+
+        return ($event->getTo() === self::COMPLETED_STATE);
+
+    }//end isEnrolmentCompletion()
+
+    /**
+     * Whether an auto-issued Credential already exists for this enrolment.
+     *
+     * #181: without this, an admin re-save or a replayed event mints a second
+     * certificate for the same completion. An enrolment with no id cannot be
+     * checked, so it is allowed through rather than blocked.
+     *
+     * @param mixed $enrolmentId The Enrolment id, when it has one.
+     *
+     * @return bool True when a credential has already been issued.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-11
+     */
+    private function credentialAlreadyIssued(mixed $enrolmentId): bool
+    {
+        if ($enrolmentId === null) {
+            return false;
+        }
+
+        $existing = $this->objectService->findAll(
+            [
+                'register' => self::SCHOLIQ_REGISTER,
+                'schema'   => 'credential',
+                'filters'  => [
+                    'enrolmentId' => $enrolmentId,
+                    'source'      => 'auto',
+                ],
+                'limit'    => 1,
+            ]
+        );
+
+        return (empty($existing) === false);
+
+    }//end credentialAlreadyIssued()
+
+    /**
+     * Calculate the credential's expiry from the course's validity period.
+     *
+     * @param array<string,mixed> $course      The Course being certified.
+     * @param string              $completedAt When the enrolment completed.
+     *
+     * @return string|null The expiry timestamp, or null when the course sets no validity period.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-11
+     */
+    private function resolveExpiresAt(array $course, string $completedAt): ?string
+    {
+        if (empty($course['defaultExpiresAfterDays']) === true) {
+            return null;
+        }
+
+        return (new DateTimeImmutable($completedAt))
+            ->modify('+'.(int) $course['defaultExpiresAfterDays'].' days')
+            ->format(\DATE_ATOM);
+
+    }//end resolveExpiresAt()
 }//end class

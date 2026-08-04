@@ -184,6 +184,75 @@ class ConferenceScheduleGenerator implements IEventListener
         );
         $cancelledSignupIds = array_flip(array_filter($cancelledSignupIds, static fn (string $id): bool => $id !== ''));
 
+        $pinned = $this->indexExistingSlots(existingSlots: $existingSlots, cancelledSignupIds: $cancelledSignupIds);
+
+        // Step 1 — slice availability into a per-teacher slot queue, excluding
+        // minutes already consumed by a confirmed slot for that teacher.
+        $queues = $this->buildTeacherQueues(
+            availabilities: $availabilities,
+            slotDurationMinutes: $slotDurationMinutes,
+            bufferMinutes: $bufferMinutes,
+            confirmedByTeacher: $pinned['confirmedByTeacher']
+        );
+
+        // Step 2 — walk submitted + waitlisted signups in submission order.
+        $signups = array_merge(
+            $this->fetchByRoundAndLifecycle(schema: self::CONFERENCE_SIGNUP_SCHEMA, roundId: $roundId, lifecycle: 'submitted'),
+            $this->fetchByRoundAndLifecycle(schema: self::CONFERENCE_SIGNUP_SCHEMA, roundId: $roundId, lifecycle: 'waitlisted'),
+        );
+        $signups = array_map([$this, 'normalise'], $signups);
+        usort($signups, static fn (array $a, array $b): int => strcmp((string) ($a['createdAt'] ?? ''), (string) ($b['createdAt'] ?? '')));
+
+        $outcome = $this->assignSignups(
+            signups: $signups,
+            roundId: (string) $roundId,
+            tenantId: (string) $tenantId,
+            queues: $queues,
+            activeSlotKeys: $pinned['activeSlotKeys'],
+            intervalsBySignup: $pinned['intervalsBySignup']
+        );
+
+        foreach ($outcome['newSlots'] as $slot) {
+            $this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $slot);
+        }
+
+        foreach ($outcome['signupSaves'] as $signup) {
+            $this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::CONFERENCE_SIGNUP_SCHEMA, object: $signup);
+        }
+
+        $this->logger->info(
+            '[ConferenceScheduleGenerator] Round {round}: {slots} slot(s) written, {scheduled} signup(s) scheduled, {waitlisted} waitlisted.',
+            [
+                'round'      => $roundId,
+                'slots'      => count($outcome['newSlots']),
+                'scheduled'  => $outcome['scheduledCount'],
+                'waitlisted' => $outcome['waitlistedCount'],
+            ]
+        );
+
+    }//end generateForRound()
+
+    /**
+     * Index the round's existing ConferenceSlots into the three lookups the
+     * generation pass needs, cancelling any slot whose signup has been cancelled.
+     *
+     * Step 4 (regenerate): a cancelled signup frees its slots' minutes back to
+     * the teacher's queue, so those slots are cancelled here rather than being
+     * re-treated as consumed. A confirmed slot belonging to a still-live signup
+     * is untouched (design.md "regenerate MUST NOT re-shuffle confirmed
+     * ConferenceSlots").
+     *
+     * @param array<int,array<string,mixed>> $existingSlots      Normalised existing slots for the round.
+     * @param array<string,int>              $cancelledSignupIds Set of cancelled signup ids (keys).
+     *
+     * @return array{confirmedByTeacher: array<string,array<int,array<string,mixed>>>,
+     *               activeSlotKeys: array<string,true>,
+     *               intervalsBySignup: array<string,array<int,array<string,mixed>>>}
+     *
+     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
+     */
+    private function indexExistingSlots(array $existingSlots, array $cancelledSignupIds): array
+    {
         // Confirmed slots are pinned — their minutes are excluded from re-slicing.
         $confirmedByTeacher = [];
         // Any non-cancelled slot for a (signupId, teacherId) pair means that
@@ -194,9 +263,9 @@ class ConferenceScheduleGenerator implements IEventListener
         $assignedIntervalsBySignup = [];
 
         foreach ($existingSlots as $slot) {
-            $status    = $slot['lifecycle'] ?? '';
-            $teacherId = $slot['teacherId'] ?? '';
-            $signupId  = $slot['signupId'] ?? '';
+            $status    = ($slot['lifecycle'] ?? '');
+            $teacherId = ($slot['teacherId'] ?? '');
+            $signupId  = ($slot['signupId'] ?? '');
 
             if (in_array($status, self::ACTIVE_SLOT_STATES, true) === false) {
                 continue;
@@ -209,7 +278,10 @@ class ConferenceScheduleGenerator implements IEventListener
                 continue;
             }
 
-            $interval = ['startsAt' => $slot['startsAt'] ?? '', 'endsAt' => $slot['endsAt'] ?? ''];
+            $interval = [
+                'startsAt' => ($slot['startsAt'] ?? ''),
+                'endsAt'   => ($slot['endsAt'] ?? ''),
+            ];
 
             if ($status === 'confirmed') {
                 $confirmedByTeacher[$teacherId][] = $interval;
@@ -221,17 +293,46 @@ class ConferenceScheduleGenerator implements IEventListener
             }
         }//end foreach
 
-        // Step 1 — slice availability into a per-teacher slot queue, excluding
-        // minutes already consumed by a confirmed slot for that teacher.
+        return [
+            'confirmedByTeacher' => $confirmedByTeacher,
+            'activeSlotKeys'     => $activeSlotKeys,
+            'intervalsBySignup'  => $assignedIntervalsBySignup,
+        ];
+
+    }//end indexExistingSlots()
+
+    /**
+     * Step 1 — build the per-teacher queue of free candidate slots, in
+     * chronological order, excluding minutes a confirmed slot already consumes.
+     *
+     * @param array<int,mixed>                             $availabilities      Submitted + locked TeacherAvailability rows.
+     * @param int                                          $slotDurationMinutes Length of one slot in minutes.
+     * @param int                                          $bufferMinutes       Gap between consecutive slots in minutes.
+     * @param array<string,array<int,array<string,mixed>>> $confirmedByTeacher  Pinned confirmed intervals per teacher.
+     *
+     * @return array<string,array<int,array<string,mixed>>> Map of teacherId => ordered free slots.
+     *
+     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+     */
+    private function buildTeacherQueues(
+        array $availabilities,
+        int $slotDurationMinutes,
+        int $bufferMinutes,
+        array $confirmedByTeacher
+    ): array {
         $queues = [];
+
         foreach ($availabilities as $availability) {
             $availability = $this->normalise(row: $availability);
-            $teacherId    = $availability['teacherId'] ?? '';
-            $blocks       = $availability['blocks'] ?? [];
+            $teacherId    = ($availability['teacherId'] ?? '');
 
-            $sliced = self::sliceAvailability(blocks: $blocks, slotDurationMinutes: $slotDurationMinutes, bufferMinutes: $bufferMinutes);
+            $sliced = self::sliceAvailability(
+                blocks: ($availability['blocks'] ?? []),
+                slotDurationMinutes: $slotDurationMinutes,
+                bufferMinutes: $bufferMinutes
+            );
 
-            $confirmed = $confirmedByTeacher[$teacherId] ?? [];
+            $confirmed = ($confirmedByTeacher[$teacherId] ?? []);
             $free      = array_values(
                 array_filter(
                     $sliced,
@@ -239,11 +340,7 @@ class ConferenceScheduleGenerator implements IEventListener
                 )
             );
 
-            if (isset($queues[$teacherId]) === false) {
-                $queues[$teacherId] = [];
-            }
-
-            $queues[$teacherId] = array_merge($queues[$teacherId], $free);
+            $queues[$teacherId] = array_merge(($queues[$teacherId] ?? []), $free);
         }//end foreach
 
         foreach ($queues as $teacherId => $queue) {
@@ -251,91 +348,154 @@ class ConferenceScheduleGenerator implements IEventListener
             $queues[$teacherId] = $queue;
         }
 
-        // Step 2 — walk submitted + waitlisted signups in submission order.
-        $signups = array_merge(
-            $this->fetchByRoundAndLifecycle(schema: self::CONFERENCE_SIGNUP_SCHEMA, roundId: $roundId, lifecycle: 'submitted'),
-            $this->fetchByRoundAndLifecycle(schema: self::CONFERENCE_SIGNUP_SCHEMA, roundId: $roundId, lifecycle: 'waitlisted'),
-        );
-        $signups = array_map([$this, 'normalise'], $signups);
-        usort($signups, static fn (array $a, array $b): int => strcmp((string) ($a['createdAt'] ?? ''), (string) ($b['createdAt'] ?? '')));
+        return $queues;
 
+    }//end buildTeacherQueues()
+
+    /**
+     * Step 2 — walk the signups in submission order, taking slots off the teacher
+     * queues, and decide each signup's resulting lifecycle.
+     *
+     * A signup whose every requested teacher was met becomes `scheduled`; one
+     * with any unmet request becomes `waitlisted` with the unmet teachers named
+     * in its notes, so the reason is never left implicit.
+     *
+     * @param array<int,array<string,mixed>>               $signups           Signups in submission order.
+     * @param string                                       $roundId           The ConferenceRound id.
+     * @param string                                       $tenantId          Tenant scope stamped on new slots.
+     * @param array<string,array<int,array<string,mixed>>> $queues            Per-teacher slot queues (mutated: slots are consumed).
+     * @param array<string,true>                           $activeSlotKeys    Satisfied (signupId|teacherId) keys (mutated: keys added).
+     * @param array<string,array<int,array<string,mixed>>> $intervalsBySignup Intervals already assigned per signup.
+     *
+     * @return array{newSlots: array<int,array<string,mixed>>, signupSaves: array<int,array<string,mixed>>, scheduledCount: int, waitlistedCount: int}
+     *
+     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+     */
+    private function assignSignups(
+        array $signups,
+        string $roundId,
+        string $tenantId,
+        array &$queues,
+        array &$activeSlotKeys,
+        array $intervalsBySignup
+    ): array {
         $newSlots        = [];
         $signupSaves     = [];
         $scheduledCount  = 0;
         $waitlistedCount = 0;
 
         foreach ($signups as $signup) {
-            $signupId            = $signup['id'] ?? ($signup['uuid'] ?? '');
-            $requestedTeacherIds = $signup['requestedTeacherIds'] ?? [];
-            $assignedIntervals   = $assignedIntervalsBySignup[$signupId] ?? [];
-            $unmetTeacherIds     = [];
+            $signupId = ($signup['id'] ?? ($signup['uuid'] ?? ''));
 
-            foreach ($requestedTeacherIds as $teacherId) {
-                if (isset($activeSlotKeys[$signupId.'|'.$teacherId]) === true) {
-                    // Already satisfied by an existing non-cancelled slot — idempotent no-op.
-                    continue;
-                }
+            $assigned = $this->assignSlotsForSignup(
+                signup: $signup,
+                signupId: (string) $signupId,
+                roundId: $roundId,
+                tenantId: $tenantId,
+                queues: $queues,
+                activeSlotKeys: $activeSlotKeys,
+                assignedIntervals: ($intervalsBySignup[$signupId] ?? [])
+            );
 
-                $queue = $queues[$teacherId] ?? [];
-                $slot  = $this->popNextNonOverlapping(queue: $queue, blocked: $assignedIntervals);
-                $queues[$teacherId] = $queue;
+            $newSlots = array_merge($newSlots, $assigned['newSlots']);
 
-                if ($slot === null) {
-                    $unmetTeacherIds[] = $teacherId;
-                    continue;
-                }
-
-                $newSlots[] = [
-                    'conferenceRoundId' => $roundId,
-                    'teacherId'         => $teacherId,
-                    'learnerId'         => $signup['learnerId'] ?? '',
-                    'learnerRef'        => $signup['learnerRef'] ?? null,
-                    'signupId'          => $signupId,
-                    'startsAt'          => $slot['startsAt'],
-                    'endsAt'            => $slot['endsAt'],
-                    'location'          => null,
-                    'tenant_id'         => $tenantId,
-                    'lifecycle'         => 'proposed',
-                ];
-
-                $assignedIntervals[] = $slot;
-                $activeSlotKeys[$signupId.'|'.$teacherId] = true;
-            }//end foreach
-
-            $updatedSignup = $signup;
-            if (count($unmetTeacherIds) === 0) {
-                $updatedSignup['lifecycle'] = 'scheduled';
+            if (count($assigned['unmetTeacherIds']) === 0) {
+                $signup['lifecycle'] = 'scheduled';
                 $scheduledCount++;
-            } else {
-                $updatedSignup['lifecycle'] = 'waitlisted';
-                $existingNotes = (string) ($signup['notes'] ?? '');
-                $reason        = 'Unmet teacher-request(s): '.implode(', ', $unmetTeacherIds);
-                if ($existingNotes === '') {
-                    $updatedSignup['notes'] = $reason;
-                } else {
-                    $updatedSignup['notes'] = $existingNotes.' | '.$reason;
-                }
-
-                $waitlistedCount++;
+                $signupSaves[] = $signup;
+                continue;
             }
 
-            $signupSaves[] = $updatedSignup;
+            // Waitlisted: name the unmet teacher-requests in the notes so the
+            // reason is never left implicit. array_filter drops the existing
+            // notes when they are empty, so the ' | ' separator only appears
+            // when there is something to separate.
+            $reason = 'Unmet teacher-request(s): '.implode(', ', $assigned['unmetTeacherIds']);
+
+            $signup['lifecycle'] = 'waitlisted';
+            $signup['notes']     = implode(' | ', array_filter([(string) ($signup['notes'] ?? ''), $reason]));
+
+            $signupSaves[] = $signup;
+            $waitlistedCount++;
         }//end foreach
 
-        foreach ($newSlots as $slot) {
-            $this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $slot);
-        }
+        return [
+            'newSlots'        => $newSlots,
+            'signupSaves'     => $signupSaves,
+            'scheduledCount'  => $scheduledCount,
+            'waitlistedCount' => $waitlistedCount,
+        ];
 
-        foreach ($signupSaves as $signup) {
-            $this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::CONFERENCE_SIGNUP_SCHEMA, object: $signup);
-        }
+    }//end assignSignups()
 
-        $this->logger->info(
-            '[ConferenceScheduleGenerator] Round {round}: {slots} slot(s) written, {scheduled} signup(s) scheduled, {waitlisted} waitlisted.',
-            ['round' => $roundId, 'slots' => count($newSlots), 'scheduled' => $scheduledCount, 'waitlisted' => $waitlistedCount]
-        );
+    /**
+     * Take one slot off each requested teacher's queue for a single signup.
+     *
+     * A teacher-request already satisfied by an existing non-cancelled slot is an
+     * idempotent no-op, which is what makes regeneration safe to re-run.
+     *
+     * @param array<string,mixed>                          $signup            The signup row.
+     * @param string                                       $signupId          The signup id.
+     * @param string                                       $roundId           The ConferenceRound id.
+     * @param string                                       $tenantId          Tenant scope stamped on new slots.
+     * @param array<string,array<int,array<string,mixed>>> $queues            Per-teacher slot queues (mutated: slots are consumed).
+     * @param array<string,true>                           $activeSlotKeys    Satisfied (signupId|teacherId) keys (mutated: keys added).
+     * @param array<int,array<string,mixed>>               $assignedIntervals Intervals this signup already occupies.
+     *
+     * @return array{newSlots: array<int,array<string,mixed>>, unmetTeacherIds: array<int,string>}
+     *
+     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+     */
+    private function assignSlotsForSignup(
+        array $signup,
+        string $signupId,
+        string $roundId,
+        string $tenantId,
+        array &$queues,
+        array &$activeSlotKeys,
+        array $assignedIntervals
+    ): array {
+        $newSlots        = [];
+        $unmetTeacherIds = [];
 
-    }//end generateForRound()
+        foreach (($signup['requestedTeacherIds'] ?? []) as $teacherId) {
+            if (isset($activeSlotKeys[$signupId.'|'.$teacherId]) === true) {
+                // Already satisfied by an existing non-cancelled slot — idempotent no-op.
+                continue;
+            }
+
+            $queue = ($queues[$teacherId] ?? []);
+            $slot  = $this->popNextNonOverlapping(queue: $queue, blocked: $assignedIntervals);
+            $queues[$teacherId] = $queue;
+
+            if ($slot === null) {
+                $unmetTeacherIds[] = $teacherId;
+                continue;
+            }
+
+            $newSlots[] = [
+                'conferenceRoundId' => $roundId,
+                'teacherId'         => $teacherId,
+                'learnerId'         => ($signup['learnerId'] ?? ''),
+                'learnerRef'        => ($signup['learnerRef'] ?? null),
+                'signupId'          => $signupId,
+                'startsAt'          => $slot['startsAt'],
+                'endsAt'            => $slot['endsAt'],
+                'location'          => null,
+                'tenant_id'         => $tenantId,
+                'lifecycle'         => 'proposed',
+            ];
+
+            $assignedIntervals[] = $slot;
+            $activeSlotKeys[$signupId.'|'.$teacherId] = true;
+        }//end foreach
+
+        return [
+            'newSlots'        => $newSlots,
+            'unmetTeacherIds' => $unmetTeacherIds,
+        ];
+
+    }//end assignSlotsForSignup()
 
     /**
      * Step 1 — slice a teacher's declared free blocks into a chronologically

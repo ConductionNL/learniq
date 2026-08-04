@@ -121,9 +121,7 @@ class LessonProgressHandler implements IEventListener
         $objectEntity = $event->getObject();
 
         // Filter to XapiStatement objects in the scholiq register only.
-        if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
-            || $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::XAPI_SCHEMA
-        ) {
+        if ($this->isScholiqXapiStatement(entity: $objectEntity) === false) {
             return;
         }
 
@@ -149,15 +147,8 @@ class LessonProgressHandler implements IEventListener
             return;
         }
 
-        // C6: resolve learner identity ONLY from the server-trusted
-        // verified_actor_id field — the same trust boundary
-        // XapiCompletionHandler enforces. NEVER read payload.actor.*.
-        $learnerId = $payload['verified_actor_id'] ?? null;
-        if ($learnerId === null || $learnerId === '') {
-            $this->logger->warning(
-                '[LessonProgressHandler] xAPI statement missing verified_actor_id; skipping. '
-                .'Ensure the xAPI ingest controller stamps this field on authenticated saves.'
-            );
+        $learnerId = $this->resolveVerifiedLearnerId(payload: $payload);
+        if ($learnerId === null) {
             return;
         }
 
@@ -180,6 +171,53 @@ class LessonProgressHandler implements IEventListener
         );
 
     }//end handle()
+
+    /**
+     * Whether the created object is an XapiStatement in the scholiq register.
+     *
+     * @param mixed $entity The created ObjectEntity.
+     *
+     * @return bool True when this handler should act on it.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-19
+     */
+    private function isScholiqXapiStatement(mixed $entity): bool
+    {
+        if ($this->schemaResolver->registerSlug(entity: $entity) !== self::SCHOLIQ_REGISTER) {
+            return false;
+        }
+
+        return ($this->schemaResolver->schemaSlug(entity: $entity) === self::XAPI_SCHEMA);
+
+    }//end isScholiqXapiStatement()
+
+    /**
+     * Resolve the learner identity this statement may act on.
+     *
+     * C6: identity comes ONLY from the server-trusted `verified_actor_id` field
+     * — the same trust boundary XapiCompletionHandler enforces.
+     * `payload.actor.*` is NEVER read, because it is user-controlled.
+     *
+     * @param array<string,mixed> $payload The xAPI statement payload.
+     *
+     * @return string|null The verified learner id, or null when the statement carries none.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-19
+     */
+    private function resolveVerifiedLearnerId(array $payload): ?string
+    {
+        $learnerId = (string) ($payload['verified_actor_id'] ?? '');
+        if ($learnerId === '') {
+            $this->logger->warning(
+                '[LessonProgressHandler] xAPI statement missing verified_actor_id; skipping. '
+                .'Ensure the xAPI ingest controller stamps this field on authenticated saves.'
+            );
+            return null;
+        }
+
+        return $learnerId;
+
+    }//end resolveVerifiedLearnerId()
 
     /**
      * Resolve the Lesson referenced by the xAPI statement's object id — the

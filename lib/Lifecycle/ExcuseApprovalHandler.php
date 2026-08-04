@@ -128,35 +128,10 @@ class ExcuseApprovalHandler implements IEventListener
             return;
         }
 
-        // #203: use DateTimeImmutable with strict ISO 8601 parsing to reject relative
-        // date strings like 'last year', '-5 days', 'yesterday' etc. strtotime accepts
-        // those, which would allow excusing arbitrary historic absences. DateTimeImmutable
-        // with a format constraint rejects non-date values without silent acceptance.
-        try {
-            $fromDt = new \DateTimeImmutable($dateFrom);
-            $toDt   = new \DateTimeImmutable($dateTo);
-        } catch (\Exception) {
-            $this->logger->warning(
-                '[ExcuseApprovalHandler] ExcuseRequest {id} has unparsable dates ({from}–{to}) — skipping.',
-                ['id' => $requestId, 'from' => $dateFrom, 'to' => $dateTo]
-            );
+        $window = $this->resolveExcuseWindow(dateFrom: $dateFrom, dateTo: $dateTo, requestId: (string) $requestId);
+        if ($window === null) {
             return;
         }
-
-        // Reject relative-string dates that parse but are not ISO 8601 formatted.
-        // A valid stored date must match YYYY-MM-DD (with optional time/TZ).
-        if (preg_match('/^\d{4}-\d{2}-\d{2}/', $dateFrom) === 0
-            || preg_match('/^\d{4}-\d{2}-\d{2}/', $dateTo) === 0
-        ) {
-            $this->logger->warning(
-                '[ExcuseApprovalHandler] ExcuseRequest {id} dates are not ISO 8601 ({from}–{to}) — skipping.',
-                ['id' => $requestId, 'from' => $dateFrom, 'to' => $dateTo]
-            );
-            return;
-        }
-
-        $fromTs = $fromDt->getTimestamp();
-        $toTs   = $toDt->getTimestamp();
 
         // Fetch all absent-unexcused records for this learner.
         $records = $this->objectService->findAll(
@@ -171,6 +146,85 @@ class ExcuseApprovalHandler implements IEventListener
             ]
         );
 
+        $flippedCount = $this->flipRecordsInWindow(
+            records: $records,
+            fromDay: $window['fromDay'],
+            toDay: $window['toDay'],
+            requestId: (string) $requestId
+        );
+
+        $this->logger->info(
+            '[ExcuseApprovalHandler] ExcuseRequest {id} approved — flipped {n} AttendanceRecord(s) to absent-excused for learner {learner}.',
+            ['id' => $requestId, 'n' => $flippedCount, 'learner' => $learnerId]
+        );
+
+    }//end flipAttendanceRecords()
+
+    /**
+     * Resolve an ExcuseRequest's date range to an inclusive `Ymd` day window.
+     *
+     * #203: `strtotime()` happily accepts relative strings like 'last year',
+     * '-5 days' or 'yesterday', which would let an approval excuse arbitrary
+     * historic absences. Parsing through DateTimeImmutable AND requiring a
+     * literal `YYYY-MM-DD` prefix rejects those without silently accepting them.
+     *
+     * @param string $dateFrom  Stored range start.
+     * @param string $dateTo    Stored range end.
+     * @param string $requestId ExcuseRequest id, for the log line.
+     *
+     * @return array{fromDay: int, toDay: int}|null The window, or null when the dates are unusable.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
+     */
+    private function resolveExcuseWindow(string $dateFrom, string $dateTo, string $requestId): ?array
+    {
+        try {
+            $fromDt = new \DateTimeImmutable($dateFrom);
+            $toDt   = new \DateTimeImmutable($dateTo);
+        } catch (\Exception) {
+            $this->logger->warning(
+                '[ExcuseApprovalHandler] ExcuseRequest {id} has unparsable dates ({from}–{to}) — skipping.',
+                ['id' => $requestId, 'from' => $dateFrom, 'to' => $dateTo]
+            );
+            return null;
+        }
+
+        // Reject relative-string dates that parse but are not ISO 8601 formatted.
+        // A valid stored date must match YYYY-MM-DD (with optional time/TZ).
+        if (preg_match('/^\d{4}-\d{2}-\d{2}/', $dateFrom) === 0
+            || preg_match('/^\d{4}-\d{2}-\d{2}/', $dateTo) === 0
+        ) {
+            $this->logger->warning(
+                '[ExcuseApprovalHandler] ExcuseRequest {id} dates are not ISO 8601 ({from}–{to}) — skipping.',
+                ['id' => $requestId, 'from' => $dateFrom, 'to' => $dateTo]
+            );
+            return null;
+        }
+
+        return [
+            'fromDay' => (int) date('Ymd', $fromDt->getTimestamp()),
+            'toDay'   => (int) date('Ymd', $toDt->getTimestamp()),
+        ];
+
+    }//end resolveExcuseWindow()
+
+    /**
+     * Flip every absent-unexcused record whose `markedAt` day falls inside the
+     * approved window to absent-excused, stamping the originating request.
+     *
+     * A record with no parseable `markedAt` is left alone rather than guessed at.
+     *
+     * @param array<int,mixed> $records   Candidate AttendanceRecords.
+     * @param int              $fromDay   Inclusive window start as `Ymd`.
+     * @param int              $toDay     Inclusive window end as `Ymd`.
+     * @param string           $requestId ExcuseRequest id stamped onto each flipped record.
+     *
+     * @return int How many records were flipped.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
+     */
+    private function flipRecordsInWindow(array $records, int $fromDay, int $toDay, string $requestId): int
+    {
         $flippedCount = 0;
 
         foreach ($records as $raw) {
@@ -179,48 +233,38 @@ class ExcuseApprovalHandler implements IEventListener
                 $record = $raw->jsonSerialize();
             }
 
-            $markedAt = $record['markedAt'] ?? '';
-
+            $markedAt = ($record['markedAt'] ?? '');
             if ($markedAt === '') {
                 continue;
             }
 
             $markedTs = strtotime($markedAt);
-
             if ($markedTs === false) {
                 continue;
             }
 
             // Only flip records whose markedAt falls within [dateFrom, dateTo].
             $markedDay = (int) date('Ymd', $markedTs);
-            $fromDay   = (int) date('Ymd', $fromTs);
-            $toDay     = (int) date('Ymd', $toTs);
-
             if ($markedDay < $fromDay || $markedDay > $toDay) {
                 continue;
             }
 
-            $updated = array_merge(
-                $record,
-                [
-                    'status'          => 'absent-excused',
-                    'excuseRequestId' => $requestId,
-                ]
-            );
-
             $this->objectService->saveObject(
                 register: self::SCHOLIQ_REGISTER,
                 schema: self::ATTENDANCE_RECORD_SCHEMA,
-                object: $updated
+                object: array_merge(
+                    $record,
+                    [
+                        'status'          => 'absent-excused',
+                        'excuseRequestId' => $requestId,
+                    ]
+                )
             );
 
             $flippedCount++;
         }//end foreach
 
-        $this->logger->info(
-            '[ExcuseApprovalHandler] ExcuseRequest {id} approved — flipped {n} AttendanceRecord(s) to absent-excused for learner {learner}.',
-            ['id' => $requestId, 'n' => $flippedCount, 'learner' => $learnerId]
-        );
+        return $flippedCount;
 
-    }//end flipAttendanceRecords()
+    }//end flipRecordsInWindow()
 }//end class

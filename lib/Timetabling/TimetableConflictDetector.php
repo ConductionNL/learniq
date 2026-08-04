@@ -210,42 +210,12 @@ class TimetableConflictDetector
             return;
         }
 
-        $cohortA = $this->loadCohort(cohortId: (string) ($a['cohortId'] ?? ''), tenantId: $tenantId, cache: $cohortCache);
-        $cohortB = $this->loadCohort(cohortId: (string) ($b['cohortId'] ?? ''), tenantId: $tenantId, cache: $cohortCache);
-
-        $kinds = [];
-
-        // Teacher-double-booking.
-        $teachersA      = $this->assignedTeacherIds(session: $a, cohort: $cohortA);
-        $teachersB      = $this->assignedTeacherIds(session: $b, cohort: $cohortB);
-        $sharedTeachers = array_values(array_intersect($teachersA, $teachersB));
-        if (count($sharedTeachers) > 0) {
-            $kinds['teacher-double-booking'] = $sharedTeachers[0];
-        }
-
-        // Room-double-booking.
-        $roomA = (string) ($a['roomId'] ?? '');
-        $roomB = (string) ($b['roomId'] ?? '');
-        if ($roomA !== '' && $roomA === $roomB) {
-            $kinds['room-double-booking'] = $roomA;
-        }
-
-        // Cohort-double-booking.
-        $cohortIdA = (string) ($a['cohortId'] ?? '');
-        $cohortIdB = (string) ($b['cohortId'] ?? '');
-        if ($cohortIdA !== '' && $cohortIdA === $cohortIdB) {
-            $kinds['cohort-double-booking'] = $cohortIdA;
-        }
-
-        // Learner-double-booking (different cohorts, overlapping learnerIds).
-        if ($cohortIdA !== '' && $cohortIdB !== '' && $cohortIdA !== $cohortIdB) {
-            $learnersA      = $this->stringList(value: $cohortA['learnerIds'] ?? []);
-            $learnersB      = $this->stringList(value: $cohortB['learnerIds'] ?? []);
-            $sharedLearners = array_values(array_intersect($learnersA, $learnersB));
-            if (count($sharedLearners) > 0) {
-                $kinds['learner-double-booking'] = $sharedLearners[0];
-            }
-        }
+        $kinds = $this->overlapKinds(
+            sessionA: $a,
+            sessionB: $b,
+            cohortA: $this->loadCohort(cohortId: (string) ($a['cohortId'] ?? ''), tenantId: $tenantId, cache: $cohortCache),
+            cohortB: $this->loadCohort(cohortId: (string) ($b['cohortId'] ?? ''), tenantId: $tenantId, cache: $cohortCache),
+        );
 
         if (empty($kinds) === true) {
             return;
@@ -270,6 +240,97 @@ class TimetableConflictDetector
         }
 
     }//end evaluatePair()
+
+    /**
+     * Determine which pairwise overlap kinds two Sessions exhibit.
+     *
+     * Each kind maps to the reference that evidences it (the shared teacher,
+     * room, cohort or learner id), which is what the resulting TimetableConflict
+     * row carries as its `scopeRef`.
+     *
+     * @param array<string,mixed>      $sessionA Session A.
+     * @param array<string,mixed>      $sessionB Session B.
+     * @param array<string,mixed>|null $cohortA  Session A's Cohort, when resolvable.
+     * @param array<string,mixed>|null $cohortB  Session B's Cohort, when resolvable.
+     *
+     * @return array<string,string|null> Map of conflict kind => evidencing reference.
+     */
+    private function overlapKinds(array $sessionA, array $sessionB, ?array $cohortA, ?array $cohortB): array
+    {
+        $kinds = [];
+
+        // Teacher-double-booking.
+        $sharedTeachers = array_values(
+            array_intersect(
+                $this->assignedTeacherIds(session: $sessionA, cohort: $cohortA),
+                $this->assignedTeacherIds(session: $sessionB, cohort: $cohortB)
+            )
+        );
+        if (count($sharedTeachers) > 0) {
+            $kinds['teacher-double-booking'] = $sharedTeachers[0];
+        }
+
+        // Room-double-booking.
+        $roomA = (string) ($sessionA['roomId'] ?? '');
+        if ($roomA !== '' && $roomA === (string) ($sessionB['roomId'] ?? '')) {
+            $kinds['room-double-booking'] = $roomA;
+        }
+
+        // Cohort-double-booking.
+        $cohortIdA = (string) ($sessionA['cohortId'] ?? '');
+        $cohortIdB = (string) ($sessionB['cohortId'] ?? '');
+        if ($cohortIdA !== '' && $cohortIdA === $cohortIdB) {
+            $kinds['cohort-double-booking'] = $cohortIdA;
+        }
+
+        $sharedLearner = $this->sharedLearnerRef(
+            cohortIdA: $cohortIdA,
+            cohortIdB: $cohortIdB,
+            cohortA: $cohortA,
+            cohortB: $cohortB
+        );
+        if ($sharedLearner !== null) {
+            $kinds['learner-double-booking'] = $sharedLearner;
+        }
+
+        return $kinds;
+
+    }//end overlapKinds()
+
+    /**
+     * Find a learner enrolled in both Sessions' cohorts.
+     *
+     * Only meaningful across DIFFERENT cohorts: two Sessions on the same cohort
+     * are already a cohort-double-booking, and reporting every one of their
+     * learners again would be noise rather than a second finding.
+     *
+     * @param string                   $cohortIdA Session A's cohort id.
+     * @param string                   $cohortIdB Session B's cohort id.
+     * @param array<string,mixed>|null $cohortA   Session A's Cohort, when resolvable.
+     * @param array<string,mixed>|null $cohortB   Session B's Cohort, when resolvable.
+     *
+     * @return string|null A learner id present in both cohorts, or null.
+     */
+    private function sharedLearnerRef(string $cohortIdA, string $cohortIdB, ?array $cohortA, ?array $cohortB): ?string
+    {
+        if ($cohortIdA === '' || $cohortIdB === '' || $cohortIdA === $cohortIdB) {
+            return null;
+        }
+
+        $sharedLearners = array_values(
+            array_intersect(
+                $this->stringList(value: ($cohortA['learnerIds'] ?? [])),
+                $this->stringList(value: ($cohortB['learnerIds'] ?? []))
+            )
+        );
+
+        if (count($sharedLearners) === 0) {
+            return null;
+        }
+
+        return (string) $sharedLearners[0];
+
+    }//end sharedLearnerRef()
 
     /**
      * Evaluate the single-Session room-capacity-exceeded kind.

@@ -93,10 +93,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener
             return;
         }
 
-        if ($event->getRegister() !== self::SCHOLIQ_REGISTER
-            || $event->getSchema() !== self::COURSE_EVALUATION_RESPONSE_SCHEMA
-            || $event->getTo() !== 'submitted'
-        ) {
+        if ($this->isResponseSubmission(event: $event) === false) {
             return;
         }
 
@@ -125,8 +122,76 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener
             return;
         }
 
-        $tenantId = $response['tenant_id'] ?? '';
+        $invitation = $this->findInvitation(
+            campaignId: (string) $campaignId,
+            callerUid: $callerUid,
+            tenantId: (string) ($response['tenant_id'] ?? '')
+        );
 
+        if ($invitation === null) {
+            // The guard already required this invitation to exist; a miss here
+            // means it was removed between the guard check and this listener
+            // firing — log and no-op rather than fabricate one.
+            $this->logger->warning(
+                '[CourseEvaluationResponseSubmittedHandler] No EvaluationInvitation found for caller '
+                .'{caller} / campaign {campaignId} at submit-handling time.',
+                ['caller' => $callerUid, 'campaignId' => $campaignId]
+            );
+            return;
+        }
+
+        // Only hasResponded/respondedAt change — no field referencing the
+        // response's identity or content is ever added.
+        $this->objectService->saveObject(
+            register: self::SCHOLIQ_REGISTER,
+            schema: self::EVALUATION_INVITATION_SCHEMA,
+            object: array_merge(
+                $invitation,
+                [
+                    'hasResponded' => true,
+                    'respondedAt'  => (new DateTimeImmutable())->format(\DATE_ATOM),
+                ]
+            )
+        );
+
+    }//end handle()
+
+    /**
+     * Whether this transition is a CourseEvaluationResponse entering `submitted`.
+     *
+     * @param ObjectTransitionedEvent $event The transition event.
+     *
+     * @return bool True when this handler should act on it.
+     *
+     * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-submitting-a-response-marks-the-learner-s-invitation-responded-without-linking-the-two
+     */
+    private function isResponseSubmission(ObjectTransitionedEvent $event): bool
+    {
+        if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+            return false;
+        }
+
+        if ($event->getSchema() !== self::COURSE_EVALUATION_RESPONSE_SCHEMA) {
+            return false;
+        }
+
+        return ($event->getTo() === 'submitted');
+
+    }//end isResponseSubmission()
+
+    /**
+     * Find the caller's EvaluationInvitation for a campaign.
+     *
+     * @param string $campaignId The campaign the response belongs to.
+     * @param string $callerUid  The authenticated caller's NC user id.
+     * @param string $tenantId   Tenant UUID, or '' when unknown.
+     *
+     * @return array<string,mixed>|null The invitation, or null when there is none.
+     *
+     * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-submitting-a-response-marks-the-learner-s-invitation-responded-without-linking-the-two
+     */
+    private function findInvitation(string $campaignId, string $callerUid, string $tenantId): ?array
+    {
         $filters = [
             'campaignId' => $campaignId,
             'learnerId'  => $callerUid,
@@ -145,15 +210,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener
         );
 
         if (empty($invitations) === true) {
-            // The guard already required this invitation to exist; a miss here
-            // means it was removed between the guard check and this listener
-            // firing — log and no-op rather than fabricate one.
-            $this->logger->warning(
-                '[CourseEvaluationResponseSubmittedHandler] No EvaluationInvitation found for caller '
-                .'{caller} / campaign {campaignId} at submit-handling time.',
-                ['caller' => $callerUid, 'campaignId' => $campaignId]
-            );
-            return;
+            return null;
         }
 
         $invitation = $invitations[0];
@@ -161,19 +218,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener
             $invitation = $invitation->jsonSerialize();
         }
 
-        // Only hasResponded/respondedAt change — no field referencing the
-        // response's identity or content is ever added.
-        $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::EVALUATION_INVITATION_SCHEMA,
-            object: array_merge(
-                $invitation,
-                [
-                    'hasResponded' => true,
-                    'respondedAt'  => (new DateTimeImmutable())->format(\DATE_ATOM),
-                ]
-            )
-        );
+        return (array) $invitation;
 
-    }//end handle()
+    }//end findInvitation()
 }//end class
