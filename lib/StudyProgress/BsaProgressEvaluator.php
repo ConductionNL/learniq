@@ -145,9 +145,9 @@ class BsaProgressEvaluator
             }
 
             $ectsCredits = $course['ectsCredits'] ?? null;
-            if ($ectsCredits === null) {
-                $byId[$id] = 0.0;
-            } else {
+
+            $byId[$id] = 0.0;
+            if ($ectsCredits !== null) {
                 $byId[$id] = (float) $ectsCredits;
             }
         }

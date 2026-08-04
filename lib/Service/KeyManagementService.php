@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Service;
 
+use InvalidArgumentException;
 use OCP\IAppConfig;
 use OCP\Security\ICrypto;
 use RuntimeException;
@@ -105,7 +106,7 @@ class KeyManagementService
     {
         // #211: validate tenantId before touching key storage.
         if ($tenantId === '') {
-            throw new \InvalidArgumentException('tenantId must not be empty.');
+            throw new InvalidArgumentException('tenantId must not be empty.');
         }
 
         $resource = openssl_pkey_new(

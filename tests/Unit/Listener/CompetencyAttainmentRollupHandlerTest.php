@@ -29,7 +29,11 @@ use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\CompetencyAttainmentRollupHandler;
+use OCA\Scholiq\Service\CompetencyAttainmentWriter;
+use OCA\Scholiq\Service\CompetencyLevelResolver;
+use OCA\Scholiq\Service\GradeEvidenceRollup;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\Scholiq\Service\ObjectRowReader;
 use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -163,10 +167,19 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase
             }
         );
 
+        $logger        = $this->createMock(LoggerInterface::class);
+        $reader        = new ObjectRowReader($objectService);
+        $levelResolver = new CompetencyLevelResolver($reader);
+        $writer        = new CompetencyAttainmentWriter($objectService, $reader, $levelResolver, $logger);
+
         return new CompetencyAttainmentRollupHandler(
             $objectService,
             $this->schemaResolver,
-            $this->createMock(LoggerInterface::class)
+            $logger,
+            $reader,
+            $writer,
+            $levelResolver,
+            new GradeEvidenceRollup($reader, $writer)
         );
 
     }//end makeHandler()

@@ -190,7 +190,7 @@ class GradeRollupHandler implements IEventListener
         $resolved = $this->visibilityResolver->resolve(
             override: $override,
             policy: $policy,
-            publishedAt: DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime())
+            publishedAt: $this->timeFactory->now()
         );
 
         $visibleFrom = $resolved->format(\DATE_ATOM);

@@ -47,9 +47,6 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\Files\IRootFolder;
-use OCP\Files\NotFoundException;
-use Psr\Log\LoggerInterface;
 
 /**
  * Guards `LearningRecordExport`'s `generate` transition and assembles the
@@ -100,8 +97,7 @@ class LearningRecordExportService
      * @param LearningRecordAggregationService   $aggregationService Cross-schema composition.
      * @param LearningRecordExportSigningService $signingService     Bundle canonicalisation + signing.
      * @param ObjectService                      $objectService      OR object read service (excluded-schema lookups).
-     * @param IRootFolder                        $rootFolder         NC root folder for writing the signed bundle.
-     * @param LoggerInterface                    $logger             PSR logger.
+     * @param LearningRecordBundleWriter         $bundleWriter       nc:files writer for the signed bundle.
      *
      * @return void
      */
@@ -109,8 +105,7 @@ class LearningRecordExportService
         private readonly LearningRecordAggregationService $aggregationService,
         private readonly LearningRecordExportSigningService $signingService,
         private readonly ObjectService $objectService,
-        private readonly IRootFolder $rootFolder,
-        private readonly LoggerInterface $logger,
+        private readonly LearningRecordBundleWriter $bundleWriter,
     ) {
     }//end __construct()
 
@@ -207,7 +202,12 @@ class LearningRecordExportService
             $ownerUid = $learnerId;
         }
 
-        $bundleRef = $this->writeBundleToFiles(bundle: $signedBundle, ownerUid: $ownerUid, tenantId: $tenantId, exportId: $exportId);
+        $bundleRef = $this->bundleWriter->write(
+            bundle: $signedBundle,
+            ownerUid: $ownerUid,
+            tenantId: $tenantId,
+            exportId: $exportId
+        );
         if ($bundleRef === null) {
             $object['errorMessage'] = 'Could not store the signed bundle.';
             return false;
@@ -534,86 +534,4 @@ class LearningRecordExportService
 
         return $entries;
     }//end findExcludedRowsInScope()
-
-    /**
-     * Write the signed bundle JSON to the owner's nc:files home, mirroring
-     * `CoursePackageImportService::writeBytesToFiles()`'s destination
-     * convention (`Scholiq/{tenant}/...`) — this app does not store file
-     * bytes anywhere other than nc:files.
-     *
-     * @param array<string,mixed> $bundle   The signed bundle (bundle itself, not the JWS).
-     * @param string              $ownerUid Nextcloud user id who will own the file.
-     * @param string              $tenantId Tenant UUID, used to namespace the destination folder.
-     * @param string              $exportId LearningRecordExport UUID, used as the filename.
-     *
-     * @return string|null The nc:files path, or null on failure.
-     */
-    private function writeBundleToFiles(array $bundle, string $ownerUid, string $tenantId, string $exportId): ?string
-    {
-        if ($ownerUid === '') {
-            return null;
-        }
-
-        $encoded = json_encode($bundle, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-        if ($encoded === false) {
-            return null;
-        }
-
-        try {
-            $tenantSegment = 'default';
-            if ($tenantId !== '') {
-                $tenantSegment = $tenantId;
-            }
-
-            $ncBaseDir = 'Scholiq/'.$tenantSegment.'/learning-record-exports';
-            $ncPath    = $ncBaseDir.'/'.$exportId.'.json';
-
-            $userFolder = $this->rootFolder->getUserFolder($ownerUid);
-            $this->ensureFolder(userFolder: $userFolder, path: $ncBaseDir);
-
-            if ($userFolder->nodeExists($ncPath) === true) {
-                $existingNode = $userFolder->get($ncPath);
-                if ($existingNode instanceof \OCP\Files\File) {
-                    $existingNode->putContent($encoded);
-                }
-            } else {
-                $userFolder->newFile($ncPath, $encoded);
-            }
-
-            return '/'.$ncPath;
-        } catch (\Throwable $e) {
-            $this->logger->warning(
-                '[LearningRecordExportService] Could not write signed bundle for export {id}: {msg}',
-                ['id' => $exportId, 'msg' => $e->getMessage()]
-            );
-            return null;
-        }//end try
-    }//end writeBundleToFiles()
-
-    /**
-     * Ensure a nested nc:files folder path exists under the given folder.
-     *
-     * @param \OCP\Files\Folder $userFolder The root user folder.
-     * @param string            $path       Slash-separated relative path to ensure.
-     *
-     * @return void
-     */
-    private function ensureFolder(\OCP\Files\Folder $userFolder, string $path): void
-    {
-        $segments = array_filter(explode('/', $path));
-        $current  = '';
-        foreach ($segments as $segment) {
-            if ($current === '') {
-                $current = $segment;
-            } else {
-                $current = $current.'/'.$segment;
-            }
-
-            try {
-                $userFolder->get($current);
-            } catch (NotFoundException $e) {
-                $userFolder->newFolder($current);
-            }
-        }
-    }//end ensureFolder()
 }//end class

@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Scholiq\Tests\Unit\Mcp;
 
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\Mcp\CourseToolPresenter;
 use OCA\Scholiq\Mcp\ScholiqToolProvider;
 use OCP\IGroupManager;
 use OCP\IUser;
@@ -96,6 +97,7 @@ class ScholiqToolProviderTest extends TestCase
             $this->userSession,
             $this->groupManager,
             $this->logger,
+            new CourseToolPresenter(),
         );
 
     }//end setUp()

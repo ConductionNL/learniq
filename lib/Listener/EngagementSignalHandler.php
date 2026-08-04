@@ -176,7 +176,7 @@ class EngagementSignalHandler implements IEventListener
         $result = $this->evaluator->evaluate(
             learnerId: $learnerId,
             courseId: $courseId,
-            previousLastActivityAt: $existing['lastActivityAt'] ?? null
+            previousActivityAt: $existing['lastActivityAt'] ?? null
         );
 
         $data = array_merge(
@@ -330,7 +330,7 @@ class EngagementSignalHandler implements IEventListener
         }
 
         $metricValue = $this->resolveMetricValue(metric: $metric, engagementScore: $engagementScore);
-        $now         = DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime());
+        $now         = $this->timeFactory->now();
 
         $engagementScoreId = $engagementScore['id'] ?? ($engagementScore['uuid'] ?? null);
 
@@ -424,7 +424,7 @@ class EngagementSignalHandler implements IEventListener
             return null;
         }
 
-        $now = DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime());
+        $now = $this->timeFactory->now();
 
         return (int) floor(($now->getTimestamp() - $last->getTimestamp()) / 86400);
 

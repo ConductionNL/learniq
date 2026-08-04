@@ -35,6 +35,7 @@ use OCA\Scholiq\Lifecycle\AssessmentScoringHandler;
 use OCP\IGroupManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 /**
  * Provides a single public entry-point for auto-scoring an AssessmentResult.
@@ -97,7 +98,7 @@ class AssessmentScoringService
         // autoScore and overwrite grades outside the normal lifecycle transition.
         $user = $this->userSession->getUser();
         if ($user === null || $this->groupManager->isInGroup($user->getUID(), 'admin') === false) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 'autoScore may only be called by an admin user.'
             );
         }
@@ -117,10 +118,9 @@ class AssessmentScoringService
             );
         }
 
-        $raw = $results[0];
-        if (is_array($raw) === true) {
-            $resultObject = $raw;
-        } else {
+        $raw          = $results[0];
+        $resultObject = $raw;
+        if (is_array($raw) === false) {
             $resultObject = $raw->jsonSerialize();
         }
 

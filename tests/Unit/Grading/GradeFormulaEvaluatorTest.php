@@ -34,7 +34,9 @@ namespace OCA\Scholiq\Tests\Unit\Grading;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\Grading\GradeAggregationEngine;
 use OCA\Scholiq\Grading\GradeFormulaEvaluator;
+use OCA\Scholiq\Grading\GradePassEvaluator;
 use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -103,7 +105,13 @@ class GradeFormulaEvaluatorTest extends TestCase
             }
         );
 
-        return new GradeFormulaEvaluator($objectService);
+        $aggregation = new GradeAggregationEngine();
+
+        return new GradeFormulaEvaluator(
+            $objectService,
+            $aggregation,
+            new GradePassEvaluator($aggregation)
+        );
 
     }//end makeEvaluator()
 

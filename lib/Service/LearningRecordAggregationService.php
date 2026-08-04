@@ -138,9 +138,9 @@ class LearningRecordAggregationService
      */
     public function compose(string $learnerRef): array
     {
-        $enrolments            = $this->findAllByLearnerRef(schema: self::SCHEMA_ENROLMENT, learnerRef: $learnerRef);
-        $finalGrades           = $this->findAllByLearnerRef(schema: self::SCHEMA_FINAL_GRADE, learnerRef: $learnerRef);
-        $competencyAttainments = $this->findAllByLearnerRef(schema: self::SCHEMA_COMPETENCY_ATTAINMENT, learnerRef: $learnerRef);
+        $enrolments  = $this->findAllByLearnerRef(schema: self::SCHEMA_ENROLMENT, learnerRef: $learnerRef);
+        $finalGrades = $this->findAllByLearnerRef(schema: self::SCHEMA_FINAL_GRADE, learnerRef: $learnerRef);
+        $attainments = $this->findAllByLearnerRef(schema: self::SCHEMA_COMPETENCY_ATTAINMENT, learnerRef: $learnerRef);
 
         // Credential has no learnerRef field of its own — its existing
         // `learnerId` property is already typed as a LearnerProfile UUID
@@ -151,27 +151,27 @@ class LearningRecordAggregationService
         $portfolios       = $this->findAllByLearnerRef(schema: self::SCHEMA_PORTFOLIO, learnerRef: $learnerRef);
         $portfolioEntries = $this->resolvePortfolioEntries(portfolios: $portfolios);
 
-        $externalTrainingRecords = $this->findVerifiedExternalTrainingRecords(learnerRef: $learnerRef);
+        $externalRecords = $this->findVerifiedExternalTrainingRecords(learnerRef: $learnerRef);
 
-        $bpvPlacements         = $this->findAllByLearnerRef(schema: self::SCHEMA_BPV_PLACEMENT, learnerRef: $learnerRef);
-        $werkprocesAssessments = $this->resolveWerkprocesAssessments(bpvPlacements: $bpvPlacements);
+        $bpvPlacements     = $this->findAllByLearnerRef(schema: self::SCHEMA_BPV_PLACEMENT, learnerRef: $learnerRef);
+        $werkprocesResults = $this->resolveWerkprocesAssessments(bpvPlacements: $bpvPlacements);
 
-        $lessonCompletions       = $this->findAllByLearnerRef(schema: self::SCHEMA_LESSON_COMPLETION, learnerRef: $learnerRef);
-        $lessonCompletionSummary = $this->summariseLessonCompletions(lessonCompletions: $lessonCompletions, enrolments: $enrolments);
+        $lessonCompletions = $this->findAllByLearnerRef(schema: self::SCHEMA_LESSON_COMPLETION, learnerRef: $learnerRef);
+        $lessonSummary     = $this->summariseLessonCompletions(lessonCompletions: $lessonCompletions, enrolments: $enrolments);
 
         $reportCards = $this->findPublishedReportCards(learnerRef: $learnerRef);
 
         return [
             'enrolments'              => $enrolments,
             'finalGrades'             => $finalGrades,
-            'competencyAttainments'   => $competencyAttainments,
+            'competencyAttainments'   => $attainments,
             'credentials'             => $credentials,
             'portfolios'              => $portfolios,
             'portfolioEntries'        => $portfolioEntries,
-            'externalTrainingRecords' => $externalTrainingRecords,
+            'externalTrainingRecords' => $externalRecords,
             'bpvPlacements'           => $bpvPlacements,
-            'werkprocesAssessments'   => $werkprocesAssessments,
-            'lessonCompletions'       => $lessonCompletionSummary,
+            'werkprocesAssessments'   => $werkprocesResults,
+            'lessonCompletions'       => $lessonSummary,
             'reportCards'             => $reportCards,
         ];
     }//end compose()

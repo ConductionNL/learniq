@@ -77,23 +77,23 @@ class EnrolmentProgressEvaluator
      */
     public function evaluate(string $learnerId, string $courseId): array
     {
-        $completedLessonCount      = $this->countCompletedLessons(learnerId: $learnerId, courseId: $courseId);
-        $totalPublishedLessonCount = $this->countPublishedLessons(courseId: $courseId);
+        $completedLessonCount = $this->countCompletedLessons(learnerId: $learnerId, courseId: $courseId);
+        $publishedCount       = $this->countPublishedLessons(courseId: $courseId);
 
-        if ($completedLessonCount === 0 || $totalPublishedLessonCount === 0) {
+        if ($completedLessonCount === 0 || $publishedCount === 0) {
             return [
                 'progressPercent'           => 0,
                 'completedLessonCount'      => $completedLessonCount,
-                'totalPublishedLessonCount' => $totalPublishedLessonCount,
+                'totalPublishedLessonCount' => $publishedCount,
             ];
         }
 
-        $progressPercent = (int) round(($completedLessonCount / $totalPublishedLessonCount) * 100);
+        $progressPercent = (int) round(($completedLessonCount / $publishedCount) * 100);
 
         return [
             'progressPercent'           => $progressPercent,
             'completedLessonCount'      => $completedLessonCount,
-            'totalPublishedLessonCount' => $totalPublishedLessonCount,
+            'totalPublishedLessonCount' => $publishedCount,
         ];
 
     }//end evaluate()
