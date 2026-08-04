@@ -61,13 +61,27 @@ export default defineConfig({
 	// 30817505312 was CANCELLED mid-suite at exactly 45 minutes. A suite that
 	// cannot finish inside the cap reports `cancelled`, which is not a result.
 	//
-	// Parallelism is safe here: every spec is read-only against a dataset that
-	// ci-seed.sh provisions BEFORE the run — no spec creates, mutates or deletes
-	// objects, so workers cannot race each other. The one shared mutable thing
-	// is the auth storageState, which globalSetup writes once before any worker
-	// starts and workers only read.
+	// Parallelism is safe here, but NOT for the reason this comment used to
+	// give ("no spec creates, mutates or deletes objects" — three do):
 	//
-	// The server side is already provisioned for it: the shared workflow sets
+	//   * nextcloud-app.spec.ts POSTs /api/settings and PUTs
+	//     notification-preferences (admin app-config + per-user prefs);
+	//   * accessibility-conformance.spec.ts creates an AccessibilityStatement +
+	//     AccessibilityLimitation fixture and submits the AccessibilityFeedback
+	//     create form.
+	//
+	// What actually makes those safe under parallelism is that each writes a
+	// key or a ROW no other spec reads back, and no spec asserts on a global
+	// collection COUNT — the count assertions in the suite
+	// (course-authoring-ux, adaptive-release, progress-tracking, dashboard,
+	// index-pages) are all scoped to one parent object or are `>= 1` /
+	// `<= 1` shape checks. Audited before raising the worker count; re-audit
+	// before adding a spec that deletes a row or asserts an exact global count.
+	//
+	// The one shared mutable file is the auth storageState, which globalSetup
+	// writes once before any worker starts and workers only read.
+	//
+	// The server side is provisioned for it: the shared workflow sets
 	// PHP_CLI_SERVER_WORKERS=8, so `php -S` is no longer the single-request
 	// bottleneck it was when `workers: 1` was chosen.
 	fullyParallel: true,
@@ -75,10 +89,12 @@ export default defineConfig({
 	// the run; see the warm-up in ci-seed.sh and PHP_CLI_SERVER_WORKERS in the
 	// shared workflow. The retry is a hedge, not a substitute for either.
 	retries: process.env.CI ? 1 : 0,
-	// 4, not 8: PHP_CLI_SERVER_WORKERS=8 is the server's ceiling, and each
+	// 6, not 8: PHP_CLI_SERVER_WORKERS=8 is the server's ceiling and each
 	// Playwright worker drives a full Chromium plus the SPA's boot fan-out, so
-	// matching them 1:1 would queue requests behind each other again.
-	workers: process.env.CI ? 4 : 1,
+	// matching them 1:1 would queue requests behind each other again. At 4 the
+	// suite took 24.2 min (run 30835724202) against a 20-minute budget; 6 keeps
+	// two server workers in hand for the seed/warm-up traffic.
+	workers: process.env.CI ? 6 : 1,
 	reporter: [
 		['list'],
 		['html', { open: 'never', outputFolder: path.join(APP_ROOT, 'playwright-report') }],

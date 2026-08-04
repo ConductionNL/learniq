@@ -19,14 +19,17 @@
  * no-id create-mode route) resolve and render without a fatal error, and —
  * where the register/seed state allows — that the mandatory-field labels,
  * the limitations table columns, and the feedback create form fields are
- * actually present. Mirrors pupil-dossier.spec.ts/avg-verwerkingsregister.
- * spec.ts's lightweight smoke-coverage pattern: no seeded AccessibilityStatement/
- * AccessibilityLimitation/AccessibilityFeedback fixtures are assumed — the
- * admin session's empty-state renders still prove every route resolved its
- * registered component (not a blank/404/error shell), which is what
- * registry.js registration + manifest wiring exists to guarantee.
+ * actually present.
+ *
+ * The limitation DETAIL page is the one place that creates its own fixture
+ * (`../or-api`) rather than pointing at `00000000-…`: CnDetailPage's object
+ * store `console.error`s `Error fetching <type>/<id>` on the 404 a bogus id
+ * produces, so "navigate to a non-existent id" and "assert no console errors"
+ * cannot both hold. A real row satisfies both AND raises the bar from "the
+ * component mounted" to "the component rendered this record's values".
  */
 import { test, expect } from '../fixtures'
+import { createObject, seededTenantId } from '../or-api'
 
 // ⚠️ NO `#` — the router is HISTORY mode, not hash mode.
 //
@@ -42,7 +45,6 @@ import { test, expect } from '../fixtures'
 // detail-pages.spec.ts, which use the plain path form, passed 206/206.
 const STATEMENT_URL = '/index.php/apps/scholiq/accessibility'
 const LIMITATIONS_INDEX_URL = '/index.php/apps/scholiq/accessibility/limitations'
-const LIMITATION_DETAIL_URL = '/index.php/apps/scholiq/accessibility/limitations/00000000-0000-0000-0000-000000000000'
 const FEEDBACK_INDEX_URL = '/index.php/apps/scholiq/accessibility/feedback'
 const FEEDBACK_CREATE_URL = '/index.php/apps/scholiq/accessibility/feedback/new'
 
@@ -142,21 +144,51 @@ test.describe('accessibility-conformance — the known-limitations register', ()
 	})
 
 	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
-	test('Accessibility limitation detail route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
+	test('Accessibility limitation detail route resolves the registered component and renders a real record', async ({ loggedInPage: page }) => {
+		// ⚠️ A REAL row, not `00000000-0000-0000-0000-000000000000`.
+		//
+		// The all-zeros id used to be "enough to prove the route resolves",
+		// but it made this test self-contradictory: the object store
+		// `console.error`s `Error fetching <type>/<id>` on the resulting 404
+		// (twice — once per schema-slug resolution attempt), and the test's
+		// own `assertNoFatalErrors` then failed on the very error the test
+		// provoked. Measured on run 30835724202: the page DID render its
+		// registered component correctly (heading "Accessibility limitation",
+		// the Data widget, all 11 fields as `—`); only the deliberate 404
+		// was red.
+		//
+		// Pointing at a seeded row removes the contradiction and raises the
+		// bar: the page must now render the record's actual field values, not
+		// the all-`—` placeholder grid an unresolvable id produces.
+		const statementId = await createObject(page, 'accessibility-statement', {
+			channelTitle: 'Scholiq (e2e fixture)',
+			status: 'partially-compliant',
+			evaluationMethod: 'self-assessment',
+			lifecycle: 'draft',
+		})
+		const limitationId = await createObject(page, 'accessibility-limitation', {
+			...(statementId ? { accessibilityStatementId: statementId } : {}),
+			wcagCriterion: '2.1.1',
+			severity: 'serious',
+			affectedSurface: 'Course authoring — lesson reorder',
+			description: 'The reorder control has no keyboard-operable equivalent.',
+			justification: 'Scheduled for the next accessibility sprint.',
+			workaround: 'Reorder lessons from the lesson detail page instead.',
+			lifecycle: 'open',
+		})
+		expect(limitationId, 'an AccessibilityLimitation fixture must exist to drive its detail page').toBeTruthy()
+
 		const errors = collectFatalErrors(page)
 
-		// A non-existent id is enough to prove the ROUTE resolves the
-		// declarative AccessibilityLimitationDetail page and shows its
-		// declared loading/error/empty state rather than a blank Vue-router
-		// 404 — the same "route reachable, not silently 404" bar the
-		// manifest wiring exists to guarantee.
-		await page.goto(LIMITATION_DETAIL_URL)
+		await page.goto(`${LIMITATIONS_INDEX_URL}/${limitationId}`)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` —
 		// see ADR-074 rule 4 / hydra gate 58.
 		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
 
-		const bodyText = await page.innerText('body')
-		expect(bodyText.trim().length).toBeGreaterThan(0)
+		// The registered component resolved AND hydrated: its declared title
+		// plus a field value that can only have come from the fetched record.
+		await expect(page.getByRole('heading', { name: /Accessibility limitation/i }).first()).toBeVisible({ timeout: 20_000 })
+		await expect(page.getByText('Course authoring — lesson reorder').first()).toBeVisible({ timeout: 20_000 })
 
 		assertNoFatalErrors(errors)
 	})
@@ -214,7 +246,14 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 		const affectedSurfaceField = page.getByLabel(/Affected Surface/i).first()
 		if (await affectedSurfaceField.isVisible({ timeout: 5_000 }).catch(() => false)) {
 			await affectedSurfaceField.fill('Course authoring — lesson reorder')
-			await page.getByLabel(/^Description$/i).first().fill('The reorder control has no keyboard-operable equivalent.')
+			// ⚠️ The accessible name of a REQUIRED field carries the required
+			// marker: the rendered control is `textbox "Description *"`, not
+			// `"Description"` (measured — run 30835724202, error-context.md of
+			// this very test). An ANCHORED `/^Description$/` therefore matches
+			// nothing and burns the full 60s test timeout, while the
+			// unanchored `/Affected Surface/i` one line above matched fine —
+			// which is why only this one field looked "missing".
+			await page.getByLabel(/^Description\s*\*?$/i).first().fill('The reorder control has no keyboard-operable equivalent.')
 
 			const severityField = page.getByLabel(/Severity/i).first()
 			if (await severityField.isVisible({ timeout: 2_000 }).catch(() => false)) {
@@ -227,8 +266,28 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 				await reporterField.fill('admin')
 			}
 
+			// `tenant_id` is in AccessibilityFeedback's `required` list (as it
+			// is on 116 of the register's 118 schemas), so CnDetailPage keeps
+			// the Create button DISABLED until it is filled. Leaving it empty
+			// made the click below a silent no-op — the test then asserted on
+			// a submit that never happened.
+			//
+			// See scholiq#265: asking a barrier REPORTER to type a tenant UUID
+			// is a real product defect against this spec's "any authenticated
+			// user must be able to report a barrier" requirement. Until that is
+			// decided, the test supplies the same tenant the seeder stamps on
+			// every other row so the created record is coherent with them.
+			const tenantField = page.getByLabel(/Tenant Id/i).first()
+			if (await tenantField.isVisible({ timeout: 2_000 }).catch(() => false)) {
+				await tenantField.fill(await seededTenantId(page))
+			}
+
+			// The Create button leaving the disabled state is itself the proof
+			// that every required field is now satisfied — assert it rather
+			// than clicking into the void.
 			const submitButton = page.getByRole('button', { name: /^(Save|Create|Submit)$/i }).first()
-			await submitButton.click().catch(() => {})
+			await expect(submitButton, 'the Create button must become enabled once every required field is filled').toBeEnabled({ timeout: 10_000 })
+			await submitButton.click()
 			// Give the create a bounded window to navigate off /new. NOT
 			// `networkidle` — see ADR-074 rule 4 / hydra gate 58. Either
 			// outcome (navigation or a toast) is accepted just below, so a
