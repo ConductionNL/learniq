@@ -167,10 +167,6 @@ class LeaderboardControllerTest extends TestCase
         $response = $controller->getRankings(self::COHORT_ID);
 
         self::assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
-
-        // POSITIVE CONTROL PROBE — proves the PHPUnit leg can still fail.
-        // Reverted in the very next commit.
-        self::assertSame(418, $response->getStatus(), 'CI positive control probe');
     }//end testNoLeaderboardRowRefused()
 
     /**
