@@ -15,10 +15,10 @@
 
   Talks only to OpenRegister's REST API:
     - GET  /api/objects/scholiq/Portfolio/:id
-    - GET  /api/objects/scholiq/PortfolioEntry?filters[portfolioId]=:id
+    - GET  /api/objects/scholiq/portfolio-entry?filters[portfolioId]=:id
     - GET  /api/objects/scholiq/Submission/:id                  (per submission-kind entry)
-    - GET  /api/objects/scholiq/WerkprocesAssessment/:id        (per werkproces-assessment-kind entry)
-    - GET  /api/objects/scholiq/ExternalTrainingRecord/:id      (per external-training-record-kind entry)
+    - GET  /api/objects/scholiq/werkproces-assessment/:id        (per werkproces-assessment-kind entry)
+    - GET  /api/objects/scholiq/external-training-record/:id      (per external-training-record-kind entry)
     - GET  /api/objects/scholiq/Credential/:id                  (per credential-kind entry)
     - PUT  /api/objects/scholiq/Portfolio/:id                   (gradeValue)
     - POST /api/objects/scholiq/Portfolio/:id/transition/grade

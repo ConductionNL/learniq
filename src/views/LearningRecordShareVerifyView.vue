@@ -128,6 +128,20 @@ export default {
 					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 				})
 
+				// Guard on `resp.ok` BEFORE parsing. A non-2xx from this endpoint is
+				// not necessarily JSON — an uncaught server-side exception makes
+				// Nextcloud render an HTML error page, and `resp.json()` on that
+				// throws `SyntaxError: Unexpected token '<', "<!DOCTYPE "...`, which
+				// lands in the catch below as a console error instead of the denied
+				// state the user should see. A failed verification IS the denied
+				// state, so render it rather than treating it as a client crash.
+				if (resp.ok === false) {
+					this.valid = false
+					this.bundle = null
+					this.reason = null
+					return
+				}
+
 				const json = await resp.json()
 				this.valid = json.valid === true
 				this.bundle = json.bundle ?? null

@@ -184,13 +184,8 @@ class ExternalTrainingController extends Controller
             object: $payload
         );
 
-        $credentialId = '';
-        if (is_object($saved) === true && method_exists($saved, 'jsonSerialize') === true) {
-            $savedArr     = (array) $saved->jsonSerialize();
-            $credentialId = (string) ($savedArr['id'] ?? ($savedArr['uuid'] ?? ''));
-        } else if (is_array($saved) === true) {
-            $credentialId = (string) ($saved['id'] ?? ($saved['uuid'] ?? ''));
-        }
+        $savedArr     = $saved->jsonSerialize();
+        $credentialId = (string) ($savedArr['id'] ?? ($savedArr['uuid'] ?? ''));
 
         // Write the credentialId back onto the record so the link is queryable.
         if ($credentialId !== '') {

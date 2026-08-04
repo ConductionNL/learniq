@@ -32,6 +32,7 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Controller\LearningRecordShareVerifyController;
 use OCA\Scholiq\Service\LearningRecordExportSigningService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -94,16 +95,19 @@ class LearningRecordShareVerifyControllerTest extends TestCase
         $this->bundleFileContent = '{}';
 
         $this->objectService = $this->createMock(ObjectService::class);
+        // OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
+        // and returns ?ObjectEntity. willReturnCallback() hands the closure the
+        // mock's arguments POSITIONALLY, so the closure must mirror that order.
+        // ObjectEntity's getters come from Entity::__call, so a real instance is
+        // required — a mock cannot configure them.
         $this->objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema): ?ObjectEntity {
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null): ?ObjectEntity {
                 $data = $this->objectsBySchemaId[$schema.':'.$id] ?? null;
                 if ($data === null) {
                     return null;
                 }
 
-                $mock = $this->createMock(ObjectEntity::class);
-                $mock->method('jsonSerialize')->willReturn($data);
-                return $mock;
+                return OrEntityFactory::make($data, (string) $schema, 'scholiq', (string) $id);
             }
         );
 

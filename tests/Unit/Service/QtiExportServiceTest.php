@@ -25,6 +25,7 @@ namespace OCA\Scholiq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Service\QtiExportService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use ZipArchive;
@@ -50,16 +51,25 @@ class QtiExportServiceTest extends TestCase
 
         $objectService = $this->createMock(ObjectService::class);
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) use ($fullyParsedBody, $degradedBody) {
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($fullyParsedBody, $degradedBody) {
                 if ($schema === 'item-bank') {
-                    return ['id' => 'bank-1', 'name' => 'Physics 101', 'itemIds' => ['item-1', 'item-2']];
+                    return OrEntityFactory::make(
+                        ['id' => 'bank-1', 'name' => 'Physics 101', 'itemIds' => ['item-1', 'item-2']],
+                        'item-bank'
+                    );
                 }
 
-                return match ($id) {
+                $row = match ($id) {
                     'item-1' => ['id' => 'item-1', 'qtiBody' => $fullyParsedBody, 'interactionType' => 'choice'],
                     'item-2' => ['id' => 'item-2', 'qtiBody' => $degradedBody, 'interactionType' => 'hotspot'],
                     default => null,
                 };
+
+                if ($row === null) {
+                    return null;
+                }
+
+                return OrEntityFactory::make($row, 'item');
             }
         );
 

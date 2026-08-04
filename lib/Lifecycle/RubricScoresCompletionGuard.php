@@ -261,10 +261,6 @@ class RubricScoresCompletionGuard
             return null;
         }
 
-        if (is_array($obj) === true) {
-            return $obj;
-        }
-
         return $obj->jsonSerialize();
 
     }//end fetchObject()

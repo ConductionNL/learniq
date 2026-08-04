@@ -18,7 +18,7 @@
     - POST /api/objects/scholiq/Course | Lesson | CourseTemplate
     - PUT  /api/objects/scholiq/Course/:id | Lesson/:id  (order updates)
     - DELETE /api/objects/scholiq/Course/:id | Lesson/:id
-    - GET  /api/objects/scholiq/CourseTemplate
+    - GET  /api/objects/scholiq/course-template
 
   No new PHP controller: every write is a call against OpenRegister's
   existing object-create/update/delete endpoints (ADR-022). Template

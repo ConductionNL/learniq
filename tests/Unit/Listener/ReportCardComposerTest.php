@@ -34,6 +34,7 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\ReportCardComposer;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -86,13 +87,13 @@ class ReportCardComposerTest extends TestCase
         $objectService = $this->createMock(ObjectService::class);
 
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) use ($cohorts, $plans) {
-                if ($schema === 'cohort') {
-                    return $cohorts[$id] ?? null;
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($cohorts, $plans): ?ObjectEntity {
+                if ($schema === 'cohort' && isset($cohorts[$id]) === true) {
+                    return OrEntityFactory::make($cohorts[$id], 'cohort');
                 }
 
-                if ($schema === 'curriculum-plan') {
-                    return $plans[$id] ?? null;
+                if ($schema === 'curriculum-plan' && isset($plans[$id]) === true) {
+                    return OrEntityFactory::make($plans[$id], 'curriculum-plan');
                 }
 
                 return null;
@@ -133,9 +134,14 @@ class ReportCardComposerTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
-                return $object;
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $data                 = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => (string) $schema,
+                    'object'   => $data,
+                ];
+                return OrEntityFactory::make($data, (string) $schema, (string) $register);
             }
         );
 
@@ -345,19 +351,25 @@ class ReportCardComposerTest extends TestCase
         // directly whose find() also resolves the governing ReportPeriod.
         $objectService = $this->createMock(ObjectService::class);
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) {
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null): ?ObjectEntity {
                 if ($schema === 'curriculum-plan') {
-                    return ['id' => 'plan-bio', 'components' => [['componentId' => 'c1', 'period' => '1', 'weight' => 1, 'kind' => 'assessment']]];
+                    return OrEntityFactory::make(
+                        ['id' => 'plan-bio', 'components' => [['componentId' => 'c1', 'period' => '1', 'weight' => 1, 'kind' => 'assessment']]],
+                        'curriculum-plan'
+                    );
                 }
 
                 if ($schema === 'report-period') {
-                    return [
-                        'id'                 => 'period-1',
-                        'periodCode'         => '1',
-                        'curriculumPlanIds'  => ['plan-bio'],
-                        'cohortIds'          => [],
-                        'attendanceIncluded' => false,
-                    ];
+                    return OrEntityFactory::make(
+                        [
+                            'id'                 => 'period-1',
+                            'periodCode'         => '1',
+                            'curriculumPlanIds'  => ['plan-bio'],
+                            'cohortIds'          => [],
+                            'attendanceIncluded' => false,
+                        ],
+                        'report-period'
+                    );
                 }
 
                 return null;
@@ -377,9 +389,14 @@ class ReportCardComposerTest extends TestCase
             }
         );
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
-                return $object;
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $data                 = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => (string) $schema,
+                    'object'   => $data,
+                ];
+                return OrEntityFactory::make($data, (string) $schema, (string) $register);
             }
         );
 

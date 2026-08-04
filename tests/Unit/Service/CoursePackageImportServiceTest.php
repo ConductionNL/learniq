@@ -36,6 +36,7 @@ use OCA\Scholiq\Service\MbzExtractor;
 use OCA\Scholiq\Service\MoodleBackupParser;
 use OCA\Scholiq\Service\MoodleQuizQuestionMapper;
 use OCA\Scholiq\Service\QtiImportService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -70,12 +71,24 @@ class CoursePackageImportServiceTest extends TestCase
         $this->savedByschema = [];
 
         $objectService = $this->createMock(ObjectService::class);
+
+        // `ObjectService::saveObject()` takes the PAYLOAD first
+        // ($object, $extend, $register, $schema, ...) and returns a
+        // non-nullable ObjectEntity — the uuid the importer reads back via
+        // `extractUuid()` lives on the entity, not in the payload array.
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object): array {
-                $this->savedByschema[$schema] ??= [];
-                $object['uuid']                  = $schema.'-'.(count($this->savedByschema[$schema]) + 1);
-                $this->savedByschema[$schema][] = $object;
-                return $object;
+            function (array $object, ?array $extend=[], $register=null, $schema=null) {
+                $schemaSlug = (string) $schema;
+
+                $this->savedByschema[$schemaSlug] ??= [];
+                $this->savedByschema[$schemaSlug][] = $object;
+
+                return OrEntityFactory::make(
+                    $object,
+                    $schemaSlug,
+                    (string) $register,
+                    $schemaSlug.'-'.count($this->savedByschema[$schemaSlug])
+                );
             }
         );
 

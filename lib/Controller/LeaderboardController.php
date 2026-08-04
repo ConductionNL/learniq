@@ -383,8 +383,8 @@ class LeaderboardController extends Controller
     }//end isOptedOut()
 
     /**
-     * Fetch an object by id/schema, normalising to an array whether OR returns
-     * an array or an object exposing jsonSerialize().
+     * Fetch an object by id/schema, normalising the OpenRegister entity to an
+     * array.
      *
      * @param string $id     UUID of the object.
      * @param string $schema Schema slug.
@@ -403,17 +403,6 @@ class LeaderboardController extends Controller
             return null;
         }
 
-        if (is_array($obj) === true) {
-            return $obj;
-        }
-
-        if (is_object($obj) === true && method_exists($obj, 'jsonSerialize') === true) {
-            $serialized = $obj->jsonSerialize();
-            if (is_array($serialized) === true) {
-                return $serialized;
-            }
-        }
-
-        return null;
+        return $obj->jsonSerialize();
     }//end fetchObject()
 }//end class

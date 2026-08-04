@@ -31,6 +31,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Analytics\EngagementScoreEvaluator;
 use OCA\Scholiq\Listener\EngagementSignalHandler;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -107,11 +108,11 @@ class EngagementSignalHandlerTest extends TestCase
         $objectService = $this->createMock(ObjectService::class);
 
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) {
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) {
                 if ($schema === 'cohort') {
                     foreach (($this->db['cohort'] ?? []) as $cohort) {
                         if (($cohort['id'] ?? null) === $id) {
-                            return $cohort;
+                            return OrEntityFactory::make($cohort, 'cohort');
                         }
                     }
                 }
@@ -150,7 +151,10 @@ class EngagementSignalHandlerTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $register = (string) $register;
+                $schema   = (string) $schema;
+
                 if (isset($object['id']) === false) {
                     $object['id'] = $schema.'-auto-'.(count($this->db[$schema] ?? []) + 1);
                 }
@@ -171,7 +175,7 @@ class EngagementSignalHandlerTest extends TestCase
                     $this->db[$schema][] = $object;
                 }
 
-                return $object;
+                return OrEntityFactory::make($object, $schema, $register);
             }
         );
 
@@ -208,10 +212,7 @@ class EngagementSignalHandlerTest extends TestCase
      */
     private function makeXapiEvent(array $data): ObjectCreatedEvent
     {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($data);
-        $objectEntity->method('getRegister')->willReturn('9');
-        $objectEntity->method('getSchema')->willReturn('1280');
+        $objectEntity = OrEntityFactory::make($data, '1280', '9');
         $this->stubResolver('xapi-statement');
 
         $event = $this->createMock(ObjectCreatedEvent::class);

@@ -41,8 +41,18 @@ test.describe('learning-progress-and-analytics — Group trend heat map', () => 
 		})
 
 		await page.goto(GROUP_TREND_HEATMAP_URL)
-		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		// Readiness signal: the Vue root has rendered something.
+		//
+		// This deliberately does NOT wait for `networkidle`. Nextcloud's
+		// notification poll keeps at least one request in flight for the whole
+		// session, so `waitForLoadState('networkidle')` can never resolve — the
+		// customary `.catch(() => {})` swallows the throw but still pays the
+		// full 30 s, leaving too little of this test's 60 s budget for the
+		// assertions below. The symptom is a bare "Test timeout of 60000ms
+		// exceeded" reported against whatever call happened to be in flight,
+		// which is indistinguishable from the app being down.
+		// ADR-074 rule 4 / hydra gate 58 (e2e-networkidle).
+		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		// The page heading or its loading/empty/error state must be present
 		// (page resolved the custom GroupTrendHeatmap component, not a

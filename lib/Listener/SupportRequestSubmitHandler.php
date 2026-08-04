@@ -235,18 +235,7 @@ class SupportRequestSubmitHandler implements IEventListener
             object: $job
         );
 
-        if ($saved === null) {
-            $this->logger->error(
-                '[SupportRequestSubmitHandler] Failed to queue SWV DataExchangeJob for SupportRequest {id}.',
-                ['id' => $supportRequestId]
-            );
-            return null;
-        }
-
-        $savedJob = $saved;
-        if (is_array($saved) === false) {
-            $savedJob = $saved->jsonSerialize();
-        }
+        $savedJob = $saved->jsonSerialize();
 
         $jobId = $savedJob['id'] ?? ($savedJob['uuid'] ?? null);
 

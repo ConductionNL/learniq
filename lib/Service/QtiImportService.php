@@ -40,6 +40,8 @@ declare(strict_types=1);
 namespace OCA\Scholiq\Service;
 
 use DOMDocument;
+use DOMElement;
+use DOMNodeList;
 use DOMXPath;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -342,8 +344,11 @@ class QtiImportService
             return $globResult;
         }
 
+        // `loadXML(file_get_contents())`, NOT `load($path)` — Nextcloud's
+        // XXE-blocking external entity loader makes `load()` fail on the
+        // primary document. See CommonCartridgeParser::parseManifest().
         $xml = new DOMDocument();
-        if ($xml->load($manifestPath) === false) {
+        if ($xml->loadXML((string) file_get_contents($manifestPath)) === false) {
             return [];
         }
 
@@ -423,6 +428,28 @@ class QtiImportService
     }//end collectItemPaths()
 
     /**
+     * Return the first element node of a node list, or null.
+     *
+     * `DOMNodeList::item()` is declared to return `DOMNode|null`, so callers that
+     * need the element API have to narrow it. Doing that here — behind a declared
+     * `?DOMElement` return type — keeps the narrowing in one place and lets both
+     * static analysers type the call sites without an inline annotation.
+     *
+     * @param DOMNodeList $nodes The node list to take the first element from.
+     *
+     * @return DOMElement|null The first element node, or null when there is none.
+     */
+    private function firstElement(DOMNodeList $nodes): ?DOMElement
+    {
+        $node = $nodes->item(0);
+        if ($node instanceof DOMElement) {
+            return $node;
+        }
+
+        return null;
+    }//end firstElement()
+
+    /**
      * Parse a single QTI item XML and create an Item object in OR.
      *
      * Full parsing implemented for `choice` and `extendedText` interactions.
@@ -439,9 +466,12 @@ class QtiImportService
      */
     private function importSingleItem(string $xmlPath, string $itemBankId, string $tenantId=''): ?string
     {
+        // `loadXML(file_get_contents())`, NOT `load($path)` — Nextcloud's
+        // XXE-blocking external entity loader makes `load()` fail on the
+        // primary document. See CommonCartridgeParser::parseManifest().
         $xml = new DOMDocument();
         libxml_use_internal_errors(true);
-        if ($xml->load($xmlPath) === false) {
+        if ($xml->loadXML((string) file_get_contents($xmlPath)) === false) {
             $this->logger->warning('[QtiImportService] Failed to parse XML: {path}', ['path' => $xmlPath]);
             return null;
         }
@@ -455,13 +485,9 @@ class QtiImportService
         $xpath->registerNamespace('qti2', self::QTI2_NS);
 
         // Detect the root assessmentItem element.
-        $root = $xml->getElementsByTagName('assessmentItem')->item(0);
+        $root = $this->firstElement(nodes: $xml->getElementsByTagName('assessmentItem'));
         if ($root === null) {
             $this->logger->warning('[QtiImportService] No assessmentItem in: {path}', ['path' => $xmlPath]);
-            return null;
-        }
-
-        if (($root instanceof \DOMElement) === false) {
             return null;
         }
 
@@ -507,19 +533,18 @@ class QtiImportService
             'tenant_id'       => $tenantId,
         ];
 
-        $saved = $this->objectService->saveObject('scholiq', 'item', $itemData);
-        if ($saved === null) {
-            return null;
-        }
+        // OpenRegister's saveObject() takes the payload FIRST and returns a
+        // non-nullable ObjectEntity. This used to be called positionally as
+        // saveObject('scholiq', 'item', $itemData), which passes the register
+        // slug as the payload — a guaranteed TypeError against the real
+        // service. Named arguments are the only safe call shape here.
+        $saved = $this->objectService->saveObject(
+            register: 'scholiq',
+            schema: 'item',
+            object: $itemData
+        );
 
-        $uuid = null;
-        if (is_array($saved) === true) {
-            $uuid = $saved['uuid'] ?? null;
-        }
-
-        if (is_array($saved) === false && is_object($saved) === true) {
-            $uuid = $saved->getUuid() ?? null;
-        }
+        $uuid = $saved->getUuid();
 
         if (is_string($uuid) === true) {
             return $uuid;

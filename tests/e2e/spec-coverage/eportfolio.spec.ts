@@ -31,9 +31,9 @@
  */
 import { test, expect } from '../fixtures'
 
-const PORTFOLIOS_INDEX_URL = '/index.php/apps/scholiq/#/eportfolio/portfolios'
-const PORTFOLIO_TEMPLATES_INDEX_URL = '/index.php/apps/scholiq/#/eportfolio/templates'
-const PORTFOLIO_ENTRIES_INDEX_URL = '/index.php/apps/scholiq/#/eportfolio/entries'
+const PORTFOLIOS_INDEX_URL = '/index.php/apps/scholiq/eportfolio/portfolios'
+const PORTFOLIO_TEMPLATES_INDEX_URL = '/index.php/apps/scholiq/eportfolio/templates'
+const PORTFOLIO_ENTRIES_INDEX_URL = '/index.php/apps/scholiq/eportfolio/entries'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise
@@ -124,6 +124,8 @@ test.describe('eportfolio — custom views resolve (registry.js wiring)', () => 
 		// deferred to a dev-instance-seeded follow-up (out of scope for this
 		// gate-19 smoke pass, matching every other custom-view spec in this
 		// repo's coverage style).
+		// ⚠️ scholiq#267 — still the HASH form (no route resolves; this test
+		// passes without the app rendering). Needs a seeded Portfolio first.
 		await page.goto('/index.php/apps/scholiq/#/eportfolio/portfolios/00000000-0000-0000-0000-000000000000/build')
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('networkidle').catch(() => {})
@@ -138,6 +140,7 @@ test.describe('eportfolio — custom views resolve (registry.js wiring)', () => 
 	test('PortfolioReviewView route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
 		const errors = collectFatalErrors(page)
 
+		// ⚠️ scholiq#267 — still the HASH form. See the note above.
 		await page.goto('/index.php/apps/scholiq/#/eportfolio/portfolios/00000000-0000-0000-0000-000000000000/review')
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('networkidle').catch(() => {})

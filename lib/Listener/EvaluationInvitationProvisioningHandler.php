@@ -197,10 +197,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener
                 continue;
             }
 
-            $cohortData = $cohort;
-            if (is_array($cohort) === false) {
-                $cohortData = $cohort->jsonSerialize();
-            }
+            $cohortData = $cohort->jsonSerialize();
 
             $byId[$cohortId] = $cohortData;
         }//end foreach

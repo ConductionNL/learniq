@@ -209,9 +209,8 @@ class LearningRecordShareVerifyController extends Controller
     }//end stampAccess()
 
     /**
-     * Fetch an object by id/schema, normalising to an array whether OR returns
-     * an array or an object exposing jsonSerialize() — mirrors
-     * `LeaderboardController::fetchObject()`.
+     * Fetch an object by id/schema, normalising the OpenRegister entity to an
+     * array — mirrors `LeaderboardController::fetchObject()`.
      *
      * @param string $id     UUID of the object.
      * @param string $schema Schema slug.
@@ -220,23 +219,26 @@ class LearningRecordShareVerifyController extends Controller
      */
     private function fetchObject(string $id, string $schema): ?array
     {
-        $obj = $this->objectService->find(id: $id, register: self::SCHOLIQ_REGISTER, schema: $schema);
+        // `find()` THROWS for a share id that does not resolve — DoesNotExistException
+        // for an unknown object, and ObjectService::setSchema() rethrows the same for a
+        // schema the register has not imported. This is a #[PublicPage], so letting that
+        // escape means Nextcloud's dispatcher renders printExceptionErrorPage() and the
+        // caller receives an HTML error page where it asked for JSON. The verify view then
+        // fails with `SyntaxError: Unexpected token '<', "<!DOCTYPE "...`.
+        //
+        // An unresolvable share is exactly the denied case this endpoint is specified to
+        // fail closed on, so it must return null and let the caller emit the denied JSON —
+        // matching the `catch (\Throwable)` already used by the other methods on this class.
+        try {
+            $obj = $this->objectService->find(id: $id, register: self::SCHOLIQ_REGISTER, schema: $schema);
+        } catch (\Throwable) {
+            return null;
+        }
 
         if ($obj === null) {
             return null;
         }
 
-        if (is_array($obj) === true) {
-            return $obj;
-        }
-
-        if (is_object($obj) === true && method_exists($obj, 'jsonSerialize') === true) {
-            $serialized = $obj->jsonSerialize();
-            if (is_array($serialized) === true) {
-                return $serialized;
-            }
-        }
-
-        return null;
+        return $obj->jsonSerialize();
     }//end fetchObject()
 }//end class

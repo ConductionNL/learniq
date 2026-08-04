@@ -398,15 +398,7 @@ class TimetableImportHandler implements IEventListener
             object: $data
         );
 
-        if (is_array($saved) === true) {
-            return $saved;
-        }
-
-        if (is_object($saved) === true && method_exists($saved, 'jsonSerialize') === true) {
-            return $saved->jsonSerialize();
-        }
-
-        return $data;
+        return $saved->jsonSerialize();
 
     }//end upsertSession()
 

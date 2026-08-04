@@ -173,14 +173,7 @@ class PortfolioGradeEmitHandler implements IEventListener
             object: $gradeEntry
         );
 
-        if ($saved === null) {
-            return;
-        }
-
-        $savedData = $saved;
-        if (is_array($saved) === false) {
-            $savedData = $saved->jsonSerialize();
-        }
+        $savedData = $saved->jsonSerialize();
 
         $gradeEntryId = $savedData['id'] ?? null;
 

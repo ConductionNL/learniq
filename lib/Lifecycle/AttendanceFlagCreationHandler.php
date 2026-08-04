@@ -141,7 +141,8 @@ class AttendanceFlagCreationHandler implements IEventListener
         $onCross  = $threshold['onCross'] ?? [];
 
         // The transition context carries the per-learner crossing details.
-        $context   = $event->getContext() ?? [];
+        // getContext() is declared non-nullable, so no null-coalesce is needed.
+        $context   = $event->getContext();
         $learnerId = $context['learnerId'] ?? '';
         if ($learnerId === '') {
             $learnerId = $threshold['learnerId'] ?? '';
@@ -290,18 +291,7 @@ class AttendanceFlagCreationHandler implements IEventListener
             object: $job
         );
 
-        if ($saved === null) {
-            $this->logger->warning(
-                '[AttendanceFlagCreationHandler] Failed to queue DataExchangeJob for target {t}, learner {l}.',
-                ['t' => $target, 'l' => $learnerId]
-            );
-            return null;
-        }
-
-        $savedData = $saved;
-        if (is_array($saved) === false) {
-            $savedData = $saved->jsonSerialize();
-        }
+        $savedData = $saved->jsonSerialize();
 
         $jobId = $savedData['id'] ?? ($savedData['uuid'] ?? null);
 

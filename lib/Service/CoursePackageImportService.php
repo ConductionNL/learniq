@@ -545,9 +545,9 @@ class CoursePackageImportService
         }
 
         $itemBank     = $this->objectService->saveObject(
-            self::SCHOLIQ_REGISTER,
-            'item-bank',
-            ['name' => 'Imported items', 'tenant_id' => $tenantId, 'lifecycle' => 'draft']
+            register: self::SCHOLIQ_REGISTER,
+            schema: 'item-bank',
+            object: ['name' => 'Imported items', 'tenant_id' => $tenantId, 'lifecycle' => 'draft']
         );
         $itemBankId   = $this->extractUuid(saved: $itemBank);
         $createdUuids = [];
@@ -727,9 +727,9 @@ class CoursePackageImportService
         foreach ((array) ($tree['lessons'] ?? []) as $lesson) {
             $lesson    = (array) $lesson;
             $saved     = $this->objectService->saveObject(
-                self::SCHOLIQ_REGISTER,
-                'lesson',
-                [
+                register: self::SCHOLIQ_REGISTER,
+                schema: 'lesson',
+                object: [
                     'courseId'    => $courseId,
                     'name'        => $lesson['name'] ?? '',
                     'order'       => $lesson['order'] ?? 0,
@@ -784,9 +784,9 @@ class CoursePackageImportService
         foreach ((array) ($tree['rubrics'] ?? []) as $rubric) {
             $rubric    = (array) $rubric;
             $saved     = $this->objectService->saveObject(
-                self::SCHOLIQ_REGISTER,
-                'rubric',
-                [
+                register: self::SCHOLIQ_REGISTER,
+                schema: 'rubric',
+                object: [
                     'name'      => $rubric['name'] ?? '',
                     'criteria'  => $rubric['criteria'] ?? [],
                     'maxPoints' => $rubric['maxPoints'] ?? 100,
@@ -808,9 +808,9 @@ class CoursePackageImportService
         foreach ((array) ($tree['assessments'] ?? []) as $assessment) {
             $assessment = (array) $assessment;
             $saved      = $this->objectService->saveObject(
-                self::SCHOLIQ_REGISTER,
-                'assessment',
-                [
+                register: self::SCHOLIQ_REGISTER,
+                schema: 'assessment',
+                object: [
                     'title'     => $assessment['title'] ?? '',
                     'courseId'  => $courseId,
                     'lifecycle' => 'draft',
@@ -942,9 +942,9 @@ class CoursePackageImportService
 
                 case 'assign':
                     $assignmentId = $this->objectService->saveObject(
-                        self::SCHOLIQ_REGISTER,
-                        'assignment',
-                        [
+                        register: self::SCHOLIQ_REGISTER,
+                        schema: 'assignment',
+                        object: [
                             'title'        => $activity['title'],
                             'instructions' => '',
                             'courseId'     => $courseId,
@@ -1040,9 +1040,9 @@ class CoursePackageImportService
         }
 
         $itemBank   = $this->objectService->saveObject(
-            self::SCHOLIQ_REGISTER,
-            'item-bank',
-            ['name' => $activity['title'], 'tenant_id' => $tenantId, 'lifecycle' => 'draft']
+            register: self::SCHOLIQ_REGISTER,
+            schema: 'item-bank',
+            object: ['name' => $activity['title'], 'tenant_id' => $tenantId, 'lifecycle' => 'draft']
         );
         $itemBankId = $this->extractUuid(saved: $itemBank);
 
@@ -1064,7 +1064,11 @@ class CoursePackageImportService
                 continue;
             }
 
-            $savedItem = $this->objectService->saveObject(self::SCHOLIQ_REGISTER, 'item', $question['itemData']);
+            $savedItem = $this->objectService->saveObject(
+                register: self::SCHOLIQ_REGISTER,
+                schema: 'item',
+                object: $question['itemData']
+            );
             $entries[] = $this->entry(
                 resourceIdentifier: $resourceIdentifier,
                 resourceType: 'quiz-question:'.$question['moodleQuestionType'],
@@ -1091,9 +1095,9 @@ class CoursePackageImportService
     private function createCourse(string $title, ?string $parentCourseId, string $tenantId): ?string
     {
         $saved = $this->objectService->saveObject(
-            self::SCHOLIQ_REGISTER,
-            'course',
-            [
+            register: self::SCHOLIQ_REGISTER,
+            schema: 'course',
+            object: [
                 'code'           => 'IMPORT-'.substr(md5($title.microtime()), 0, 8),
                 'name'           => $title,
                 'level'          => 'other',
@@ -1110,22 +1114,25 @@ class CoursePackageImportService
     /**
      * Create a `Lesson` pointing at a `document`-kind Material.
      *
+     * Both call sites import a Lesson purely for its side effect, so the created
+     * UUID is not returned.
+     *
      * @param string|null $courseId   Enclosing Course UUID.
      * @param string      $title      Lesson title.
      * @param int         $order      Manifest order.
      * @param string      $contentRef Material UUID (nc:files-resolved content lives on the Material).
      * @param string      $tenantId   Tenant UUID.
      *
-     * @return string|null Created Lesson UUID.
+     * @return void
      *
      * @spec openspec/changes/course-package-import-export/design.md#data-model
      */
-    private function createLessonForMaterial(?string $courseId, string $title, int $order, string $contentRef, string $tenantId): ?string
+    private function createLessonForMaterial(?string $courseId, string $title, int $order, string $contentRef, string $tenantId): void
     {
-        $saved = $this->objectService->saveObject(
-            self::SCHOLIQ_REGISTER,
-            'lesson',
-            [
+        $this->objectService->saveObject(
+            register: self::SCHOLIQ_REGISTER,
+            schema: 'lesson',
+            object: [
                 'courseId'    => $courseId,
                 'name'        => $title,
                 'order'       => $order,
@@ -1135,8 +1142,6 @@ class CoursePackageImportService
                 'tenant_id'   => $tenantId,
             ]
         );
-
-        return $this->extractUuid(saved: $saved);
     }//end createLessonForMaterial()
 
     /**
@@ -1156,9 +1161,9 @@ class CoursePackageImportService
     private function createMaterial(string $title, string $kind, ?string $fileRef, ?string $url, ?string $courseId, string $tenantId): ?string
     {
         $saved = $this->objectService->saveObject(
-            self::SCHOLIQ_REGISTER,
-            'material',
-            [
+            register: self::SCHOLIQ_REGISTER,
+            schema: 'material',
+            object: [
                 'title'     => $title,
                 'kind'      => $kind,
                 'fileRef'   => $fileRef ?? '',
@@ -1184,9 +1189,9 @@ class CoursePackageImportService
     private function createLtiPlacement(?string $courseId, string $tenantId): ?string
     {
         $saved = $this->objectService->saveObject(
-            self::SCHOLIQ_REGISTER,
-            'lti-tool-placement',
-            [
+            register: self::SCHOLIQ_REGISTER,
+            schema: 'lti-tool-placement',
+            object: [
                 // Left blank: the package carries no live OpenConnector deployment binding.
                 // An admin configures this before the placement can launch — reported as
                 // `degraded`, never a silent success (see routeResource()).
@@ -1226,9 +1231,12 @@ class CoursePackageImportService
             return $href;
         }
 
+        // `loadXML(file_get_contents())`, NOT `load($path)` — Nextcloud's
+        // XXE-blocking external entity loader makes `load()` fail on the
+        // primary document. See CommonCartridgeParser::parseManifest().
         $xml = new \DOMDocument();
         libxml_use_internal_errors(true);
-        $loaded = $xml->load($path);
+        $loaded = $xml->loadXML((string) file_get_contents($path));
         libxml_clear_errors();
         if ($loaded === false) {
             return $href;
@@ -1277,9 +1285,12 @@ class CoursePackageImportService
             return $fallback;
         }
 
+        // `loadXML(file_get_contents())`, NOT `load($path)` — Nextcloud's
+        // XXE-blocking external entity loader makes `load()` fail on the
+        // primary document. See CommonCartridgeParser::parseManifest().
         $xml = new \DOMDocument();
         libxml_use_internal_errors(true);
-        $loaded = $xml->load($path);
+        $loaded = $xml->loadXML((string) file_get_contents($path));
         libxml_clear_errors();
         if ($loaded === false) {
             return $fallback;
@@ -1542,9 +1553,9 @@ class CoursePackageImportService
         }
 
         $saved = $this->objectService->saveObject(
-            self::SCHOLIQ_REGISTER,
-            self::REPORT_SCHEMA,
-            [
+            register: self::SCHOLIQ_REGISTER,
+            schema: self::REPORT_SCHEMA,
+            object: [
                 'sourceFormat'      => $sourceFormat,
                 'sourceFilename'    => $sourceFilename,
                 'courseId'          => $courseId,
@@ -1561,15 +1572,7 @@ class CoursePackageImportService
             ]
         );
 
-        if (is_array($saved) === true) {
-            return $saved;
-        }
-
-        if (is_object($saved) === true && method_exists($saved, 'jsonSerialize') === true) {
-            return (array) $saved->jsonSerialize();
-        }
-
-        return [];
+        return $saved->jsonSerialize();
     }//end persistReport()
 
     /**
@@ -1592,7 +1595,12 @@ class CoursePackageImportService
             return null;
         }
 
-        if (is_object($saved) === true && method_exists($saved, 'getUuid') === true) {
+        // `is_callable()`, NOT `method_exists()`. ObjectEntity::getUuid() is
+        // OCP\AppFramework\Db\Entity::__call magic, so method_exists() is FALSE
+        // for it on a real entity — this branch never fired and extractUuid()
+        // returned null for every save, leaving createCourse() with no course
+        // id and skipping the whole QTI item-bank import.
+        if (is_object($saved) === true && is_callable([$saved, 'getUuid']) === true) {
             $uuid = $saved->getUuid();
             if (is_string($uuid) === true) {
                 return $uuid;

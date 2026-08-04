@@ -23,8 +23,10 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Tests\Unit\Lifecycle;
 
+use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Lifecycle\RejectionResubmitGuard;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -65,7 +67,7 @@ class RejectionResubmitGuardTest extends TestCase
      * @param string[]                  $groups      Group IDs 'actor-1' belongs to.
      * @param array<string,mixed>|null  $originalJob The originating DataExchangeJob row findAll() returns, or null.
      * @param string|null               $newJobId    UUID to return for the new DataExchangeJob save, or null to
-     *                                               simulate a save failure.
+     *                                               simulate a save that yields no usable id.
      *
      * @return RejectionResubmitGuard
      */
@@ -89,19 +91,32 @@ class RejectionResubmitGuardTest extends TestCase
                 if (($config['schema'] ?? '') !== 'data-exchange-job') {
                     return [];
                 }
-                return $originalJob === null ? [] : [$originalJob];
+
+                if ($originalJob === null) {
+                    return [];
+                }
+
+                return OrEntityFactory::makeMany([$originalJob], 'data-exchange-job');
             }
         );
 
+        // OpenRegister's saveObject() is saveObject($object, $extend, $register, $schema, ...)
+        // — the PAYLOAD IS FIRST — and returns a non-nullable ObjectEntity.
+        // willReturnCallback() hands the closure the mock's arguments
+        // POSITIONALLY, so the closure must mirror that order.
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) use ($newJobId) {
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null) use ($newJobId): ObjectEntity {
                 $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
 
                 if ($newJobId === null) {
-                    return null;
+                    // saveObject() cannot return null — its declared return type
+                    // is a non-nullable ObjectEntity. The in-band failure the
+                    // guard actually has to survive is a saved entity that
+                    // carries no usable id.
+                    return OrEntityFactory::make($object, 'data-exchange-job', 'scholiq', null);
                 }
 
-                return array_merge($object, ['id' => $newJobId]);
+                return OrEntityFactory::make(array_merge($object, ['id' => $newJobId]), 'data-exchange-job');
             }
         );
 
@@ -289,7 +304,7 @@ class RejectionResubmitGuardTest extends TestCase
     }//end testUnresolvableOriginalJobIsDenied()
 
     /**
-     * A job save failure denies the transition.
+     * A job save that yields no usable id denies the transition.
      *
      * @return void
      */

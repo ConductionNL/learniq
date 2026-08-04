@@ -363,10 +363,6 @@ class AdmissionsDecisionGuard
             return null;
         }
 
-        if (is_array($round) === true) {
-            return $round;
-        }
-
         return $round->jsonSerialize();
 
     }//end fetchRound()

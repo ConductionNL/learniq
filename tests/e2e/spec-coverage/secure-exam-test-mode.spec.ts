@@ -25,8 +25,12 @@
  */
 import { test, expect } from '../fixtures'
 
+// ⚠️ scholiq#267 — still the HASH form, which the history-mode router
+// resolves to NO route: this test passes without the app rendering. Needs a
+// seeded Assessment fixture (the `e2e-smoke-placeholder` id is not real)
+// before it can be converted to the path form.
 const TAKE_ASSESSMENT_URL = '/index.php/apps/scholiq/#/assessments/e2e-smoke-placeholder/take'
-const REVIEW_QUEUE_URL = '/index.php/apps/scholiq/#/assessments/proctoring/review'
+const REVIEW_QUEUE_URL = '/index.php/apps/scholiq/assessments/proctoring/review'
 
 function collectFatalErrors(page: import('@playwright/test').Page): string[] {
 	const errors: string[] = []

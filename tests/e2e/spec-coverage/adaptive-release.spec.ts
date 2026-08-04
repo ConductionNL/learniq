@@ -78,6 +78,10 @@ function fatalOnly(errors: string[]): string[] {
 }
 
 async function openLessonPlayer(page: import('@playwright/test').Page, courseId: string, lessonId: string) {
+	// ⚠️ scholiq#267 — still the HASH form; the history-mode router resolves it
+	// to NO route, so this file's assertions have never run against the app.
+	// `courseId`/`lessonId` are real seeded ids, so the conversion is trivial —
+	// held back deliberately, see the issue.
 	await page.goto(`/index.php/apps/scholiq/#/courses/${courseId}/lessons/${lessonId}/play`)
 	await page.waitForSelector('body', { timeout: 15_000 })
 	await page.waitForLoadState('networkidle').catch(() => {})
