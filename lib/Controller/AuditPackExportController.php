@@ -200,7 +200,7 @@ class AuditPackExportController extends Controller
         // #192: pass the date-scoped ID bounds to verifyChain so the integrity report
         // covers the same entries as the export (not the whole audit log). Fixes #192.
         if ($minId !== null && $maxId !== null) {
-            $verification = $this->auditHashService->verifyChain(fromId: $minId, toId: $maxId);
+            $verification = $this->auditHashService->verifyChain(from: $minId, to: $maxId);
         } else {
             $verification = $this->auditHashService->verifyChain();
         }
