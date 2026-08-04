@@ -50,3 +50,42 @@ jobs:
       # IMcpToolProvider interface the ScholiqToolProvider tests need.
       additional-apps: '[{"repo":"ConductionNL/openregister","app":"openregister","ref":"development"}]'
       enable-sbom: true
+
+      # ── Integration tests ────────────────────────────────────────────────
+      # Was explicitly `false`. tests/integration/scholiq.postman_collection.json
+      # had never executed in CI. It sits at the default
+      # `newman-collection-path` (tests/integration), which is both the
+      # directory the validator counts collections in and the directory the run
+      # step globs `*.postman_collection.json` in — flat, not recursively.
+      enable-newman: true
+
+      # ── Frontend Check legs ──────────────────────────────────────────────
+      # `frontend-checks` defaults to `[]`, and an empty list means the shared
+      # workflow emits NO "Frontend Check" job at all — so this repo's validator
+      # family ran nowhere while the run still looked complete.
+      # `check:specs` is the aggregate (json-strict + manifest + register),
+      # listed as ONE leg rather than three because each leg is a fresh job with
+      # its own checkout + `npm ci`.
+      # Measured on this tree before enabling: PASSES. It is enabled to keep it
+      # passing, not because it is currently broken.
+      frontend-checks: '["check:specs"]'
+
+      # ── Coverage ratchet ─────────────────────────────────────────────────
+      # `enable-coverage-guard` defaults to FALSE, which is why both
+      # "Coverage Baseline Protection" and "Coverage Baseline Check" have only
+      # ever reported `skipped`. It needs two inputs this repo did not have,
+      # both added in this commit: `scripts/coverage-guard.php` (byte-identical
+      # to openregister's) and `.coverage-baseline` = 71.16, this repo's own
+      # measured coverage (10878 of 15287 statements) read from clover.xml in
+      # the `coverage-report` artifact of run 30911233564.
+      enable-coverage-guard: true
+
+      # ── Hydra mechanical gates ───────────────────────────────────────────
+      # `enable-hydra-gates` defaults to FALSE, so this tier has never executed
+      # here — the job reported `skipped`, which the Quality Report renders
+      # identically to a pass. Pinned to v1.0.1 so a change to the gate package
+      # cannot move this repo's verdict without a commit here.
+      # `enable-axe` deliberately NOT set: a vanilla Nextcloud 34 already carries
+      # serious/critical violations from core's own UI.
+      enable-hydra-gates: true
+      hydra-gates-ref: v1.0.1
