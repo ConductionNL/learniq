@@ -31,6 +31,11 @@
 import { test, expect } from '../fixtures'
 
 const PEER_REVIEW_MARKING_URL = (assignmentId: string, peerReviewId: string) =>
+	// ⚠️ scholiq#267 — this and the two builders below are still the HASH form,
+	// which the history-mode router resolves to NO route: every assertion in
+	// this file has run against bare Nextcloud chrome, not the app. The ids
+	// are real seeded ones; the conversion is held back deliberately because
+	// the rubric-criteria assertions are expected to surface real defects.
 	`/index.php/apps/scholiq/#/assignments/${assignmentId}/peer-reviews/${peerReviewId}/mark`
 const SELF_ASSESSMENT_URL = (assignmentId: string, submissionId: string) =>
 	`/index.php/apps/scholiq/#/assignments/${assignmentId}/submissions/${submissionId}/self-assessment`

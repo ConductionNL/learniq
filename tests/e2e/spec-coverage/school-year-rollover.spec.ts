@@ -18,7 +18,7 @@
  */
 import { test, expect } from '../fixtures'
 
-const WIZARD_URL = '/index.php/apps/scholiq/#/structure/rollover'
+const WIZARD_URL = '/index.php/apps/scholiq/structure/rollover'
 
 test.describe('school-year-rollover — rollover wizard page', () => {
 

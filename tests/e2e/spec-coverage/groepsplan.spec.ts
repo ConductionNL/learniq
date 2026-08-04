@@ -26,11 +26,19 @@
  */
 import { test, expect } from '../fixtures'
 
-const GROUP_PLANS_INDEX_URL = '/index.php/apps/scholiq/#/group-plans'
+const GROUP_PLANS_INDEX_URL = '/index.php/apps/scholiq/group-plans'
+// ⚠️ scholiq#267 — the three URLs below are still the HASH form, which the
+// history-mode router resolves to NO route: these tests currently pass
+// without the app rendering. They are not converted here because the path
+// form alone is not enough — a bogus id makes the object store
+// `console.error` on the 404, which this file's own `assertNoFatalErrors`
+// then fails on. Each needs a seeded GroupPlan / GroupPlanSubgroup /
+// GroupPlanEvaluation fixture first (see `tests/e2e/or-api.ts` and the
+// pattern in accessibility-conformance.spec.ts).
 const GROUP_PLAN_DETAIL_URL = '/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000'
 const GROUP_PLAN_SUBGROUP_DETAIL_URL = '/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000/subgroups/00000000-0000-0000-0000-000000000000'
 const GROUP_PLAN_EVALUATION_DETAIL_URL = '/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000/evaluations/00000000-0000-0000-0000-000000000000'
-const LEARNER_CONTEXT_URL = '/index.php/apps/scholiq/#/group-plans/subgroup-learner-context'
+const LEARNER_CONTEXT_URL = '/index.php/apps/scholiq/group-plans/subgroup-learner-context'
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so

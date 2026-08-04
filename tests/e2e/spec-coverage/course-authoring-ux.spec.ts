@@ -74,6 +74,13 @@ function fatalOnly(errors: string[]): string[] {
 }
 
 async function openCourseBuilder(page: import('@playwright/test').Page, courseId: string) {
+	// ⚠️ scholiq#267 — still the HASH form, which the history-mode router
+	// resolves to NO route. This file's `toHaveCount(2)` assertions on lesson
+	// and block rows have therefore NEVER executed against the app; they pass
+	// against bare Nextcloud chrome. `courseId` here IS a real seeded id, so
+	// converting is a one-character change — but it is deliberately not done
+	// in the CI-enablement PR, because those assertions are substantive and
+	// are expected to surface genuine product defects that need product fixes.
 	await page.goto(`/index.php/apps/scholiq/#/courses/${courseId}/builder`)
 	await page.waitForSelector('body', { timeout: 15_000 })
 	await page.waitForLoadState('networkidle').catch(() => {})

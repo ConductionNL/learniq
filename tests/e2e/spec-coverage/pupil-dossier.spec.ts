@@ -29,11 +29,16 @@
  */
 import { test, expect } from '../fixtures'
 
-const DOSSIER_NOTES_INDEX_URL = '/index.php/apps/scholiq/#/pupil-dossier/notes'
-const BEHAVIOUR_INCIDENTS_INDEX_URL = '/index.php/apps/scholiq/#/pupil-dossier/incidents'
-const WELLBEING_CHECKINS_INDEX_URL = '/index.php/apps/scholiq/#/pupil-dossier/check-ins'
+const DOSSIER_NOTES_INDEX_URL = '/index.php/apps/scholiq/pupil-dossier/notes'
+const BEHAVIOUR_INCIDENTS_INDEX_URL = '/index.php/apps/scholiq/pupil-dossier/incidents'
+const WELLBEING_CHECKINS_INDEX_URL = '/index.php/apps/scholiq/pupil-dossier/check-ins'
+// ⚠️ scholiq#267 — this and TIMELINE_WITH_LEARNER_URL below are still the
+// HASH form, which the history-mode router resolves to NO route: they pass
+// without the app rendering. Each needs a seeded BehaviourIncident /
+// LearnerProfile fixture before conversion (a bogus id makes the object
+// store console.error on the 404, which assertNoFatalErrors then fails on).
 const BEHAVIOUR_INCIDENT_DETAIL_URL = '/index.php/apps/scholiq/#/pupil-dossier/incidents/00000000-0000-0000-0000-000000000000'
-const TIMELINE_URL = '/index.php/apps/scholiq/#/pupil-dossier/timeline'
+const TIMELINE_URL = '/index.php/apps/scholiq/pupil-dossier/timeline'
 const TIMELINE_WITH_LEARNER_URL = '/index.php/apps/scholiq/#/pupil-dossier/timeline?learnerId=00000000-0000-0000-0000-000000000000'
 
 /**

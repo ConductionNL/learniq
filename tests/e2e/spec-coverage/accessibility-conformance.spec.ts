@@ -272,7 +272,7 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 			// made the click below a silent no-op — the test then asserted on
 			// a submit that never happened.
 			//
-			// See scholiq#265: asking a barrier REPORTER to type a tenant UUID
+			// See scholiq#268: asking a barrier REPORTER to type a tenant UUID
 			// is a real product defect against this spec's "any authenticated
 			// user must be able to report a barrier" requirement. Until that is
 			// decided, the test supplies the same tenant the seeder stamps on

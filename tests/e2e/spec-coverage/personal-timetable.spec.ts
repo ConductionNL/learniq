@@ -18,7 +18,7 @@
  */
 import { test, expect } from '../fixtures'
 
-const TIMETABLE_URL = '/index.php/apps/scholiq/#/my-timetable'
+const TIMETABLE_URL = '/index.php/apps/scholiq/my-timetable'
 
 test.describe.skip('personal-timetable — my timetable week view (live run deferred)', () => {
 

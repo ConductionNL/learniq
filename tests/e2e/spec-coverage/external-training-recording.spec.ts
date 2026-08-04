@@ -17,7 +17,7 @@
  */
 import { test, expect } from '../fixtures'
 
-const RECORDS_URL = '/index.php/apps/scholiq/#/compliance/external-training'
+const RECORDS_URL = '/index.php/apps/scholiq/compliance/external-training'
 
 test.describe('external-training-recording — records index page', () => {
 

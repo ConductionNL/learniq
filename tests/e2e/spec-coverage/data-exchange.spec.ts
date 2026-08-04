@@ -27,9 +27,13 @@
  */
 import { test, expect } from '../fixtures'
 
-const EXCHANGE_REJECTIONS_INDEX_URL = '/index.php/apps/scholiq/#/data-exchange/rejections'
-const EXCHANGE_ERROR_CODES_INDEX_URL = '/index.php/apps/scholiq/#/data-exchange/error-codes'
+const EXCHANGE_REJECTIONS_INDEX_URL = '/index.php/apps/scholiq/data-exchange/rejections'
+const EXCHANGE_ERROR_CODES_INDEX_URL = '/index.php/apps/scholiq/data-exchange/error-codes'
 const EXCHANGE_REJECTION_DETAIL_URL =
+	// ⚠️ scholiq#267 — still the HASH form, which the history-mode router
+	// resolves to NO route, so this test passes without the app rendering.
+	// Needs a seeded ExchangeRejection fixture before it can be converted
+	// (a bogus id makes the object store console.error on the 404).
 	'/index.php/apps/scholiq/#/data-exchange/rejections/00000000-0000-0000-0000-000000000000'
 
 /**

@@ -19,7 +19,7 @@
  */
 import { test, expect } from '../fixtures'
 
-const RISK_DASHBOARD_URL = '/index.php/apps/scholiq/#/study-progress/risk-dashboard'
+const RISK_DASHBOARD_URL = '/index.php/apps/scholiq/study-progress/risk-dashboard'
 
 test.describe('bsa-study-progress-guard — BSA risk dashboard', () => {
 

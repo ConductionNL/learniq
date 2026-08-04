@@ -71,6 +71,9 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 		})
 
 		const lessonId = lesson.id ?? lesson.uuid
+		// ⚠️ scholiq#267 — still the HASH form; resolves to NO route under the
+		// history-mode router, so the assertions below have never run against
+		// the app. Real seeded ids; conversion held back deliberately.
 		await page.goto(`/index.php/apps/scholiq/#/courses/${courseId}/lessons/${lessonId}/play`)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('networkidle').catch(() => {})
@@ -109,6 +112,9 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 		test.skip(!lesson || !courseId, 'No published contentType=cmi5 Lesson seeded in this environment.')
 
 		const lessonId = lesson.id ?? lesson.uuid
+		// ⚠️ scholiq#267 — still the HASH form; resolves to NO route under the
+		// history-mode router, so the assertions below have never run against
+		// the app. Real seeded ids; conversion held back deliberately.
 		await page.goto(`/index.php/apps/scholiq/#/courses/${courseId}/lessons/${lessonId}/play`)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('networkidle').catch(() => {})
