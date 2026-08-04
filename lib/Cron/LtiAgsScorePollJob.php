@@ -328,37 +328,24 @@ class LtiAgsScorePollJob extends TimedJob
             return false;
         }
 
-        $deploymentUuid = (string) ($data['deploymentUuid'] ?? '');
-        if ($deploymentUuid === '') {
-            $this->logger->warning('[LtiAgsScorePollJob] Message {id} has no deploymentUuid — skipping.', ['id' => $resultId]);
+        $resolved = $this->resolvePlacementForMessage(data: $data, resultId: $resultId);
+        if ($resolved === null) {
             return false;
         }
 
-        $placement = $this->resolvePlacementByDeployment(deploymentUuid: $deploymentUuid);
-        if ($placement === null) {
-            // Task 4.2: an orphaned subscription message (e.g. a placement
-            // deleted after the score was already in flight) — log and skip.
-            $this->logger->info(
-                '[LtiAgsScorePollJob] No LtiToolPlacement for deployment {dep} (message {id}) — skipping (orphan).',
-                ['dep' => $deploymentUuid, 'id' => $resultId]
-            );
-            return false;
-        }
-
-        $placementId = (string) ($placement['id'] ?? ($placement['uuid'] ?? ''));
-        if ($placementId === '') {
-            $this->logger->warning('[LtiAgsScorePollJob] Resolved placement has no id — skipping message {id}.', ['id' => $resultId]);
-            return false;
-        }
+        $placement   = $resolved['placement'];
+        $placementId = $resolved['placementId'];
 
         if ($this->gradeEntryAlreadyExists(placementId: $placementId, resultId: $resultId) === true) {
             // Task 4.3 / design.md D4: redelivery — do not create a duplicate.
             return false;
         }
 
-        $componentId = $placement['gradeEntryComponentId'] ?? null;
-        $planId      = $placement['curriculumPlanId'] ?? null;
-        if ($componentId === null || $componentId === '' || $planId === null || $planId === '') {
+        // A GradeEntry needs a curriculum plan AND a component within it; a
+        // placement carrying only one of the two has nothing to write to.
+        $componentId = ($placement['gradeEntryComponentId'] ?? null);
+        $planId      = ($placement['curriculumPlanId'] ?? null);
+        if (in_array($componentId, [null, ''], true) === true || in_array($planId, [null, ''], true) === true) {
             $this->logger->info(
                 '[LtiAgsScorePollJob] Placement {pid} is not configured for grade passback — skipping message {id}.',
                 ['pid' => $placementId, 'id' => $resultId]
@@ -366,42 +353,25 @@ class LtiAgsScorePollJob extends TimedJob
             return false;
         }
 
-        $score = [];
-        if (is_array($data['score'] ?? null) === true) {
-            $score = $data['score'];
-        }
-
-        $learnerId  = (string) ($score['userId'] ?? '');
-        $scoreGiven = $score['scoreGiven'] ?? null;
-
-        if ($learnerId === '' || $scoreGiven === null) {
-            $this->logger->info(
-                '[LtiAgsScorePollJob] AGS score for message {id} has no userId/scoreGiven — insufficient data, skipping.',
-                ['id' => $resultId]
-            );
+        $score = $this->extractScore(data: $data, resultId: $resultId);
+        if ($score === null) {
             return false;
         }
 
-        $scoreMaximum = null;
-        if (isset($score['scoreMaximum']) === true) {
-            $scoreMaximum = (float) $score['scoreMaximum'];
-        }
-
         $scaleId = (string) ($placement['gradeScaleId'] ?? '');
-        $value   = $this->normaliseScore(
-            scoreGiven: (float) $scoreGiven,
-            scoreMaximum: $scoreMaximum,
-            gradeScaleId: $scaleId
-        );
 
         $gradeEntry = [
-            'learnerId'          => $learnerId,
+            'learnerId'          => $score['learnerId'],
             'curriculumPlanId'   => $planId,
             'componentId'        => $componentId,
             'sourceKind'         => 'lti-ags',
             'ltiToolPlacementId' => $placementId,
             'ltiAgsResultId'     => $resultId,
-            'value'              => $value,
+            'value'              => $this->normaliseScore(
+                scoreGiven: $score['scoreGiven'],
+                scoreMaximum: $score['scoreMaximum'],
+                gradeScaleId: $scaleId
+            ),
             'gradeScaleId'       => $scaleId,
             'grader'             => 'lti-ags',
             'gradedAt'           => (new DateTimeImmutable())->format(\DATE_ATOM),
@@ -418,6 +388,94 @@ class LtiAgsScorePollJob extends TimedJob
         return true;
 
     }//end processMessage()
+
+    /**
+     * Resolve the LtiToolPlacement an AGS message belongs to.
+     *
+     * Task 4.2: an orphaned subscription message (e.g. a placement deleted
+     * while the score was already in flight) is logged and skipped, not
+     * treated as an error.
+     *
+     * @param array<string,mixed> $data     The message payload.
+     * @param string              $resultId The AGS result id, for the log lines.
+     *
+     * @return array{placement: array<string,mixed>, placementId: string}|null The placement, or null when unresolvable.
+     *
+     * @spec openspec/changes/lti-ags-grade-passback/tasks.md#task-4.2
+     */
+    private function resolvePlacementForMessage(array $data, string $resultId): ?array
+    {
+        $deploymentUuid = (string) ($data['deploymentUuid'] ?? '');
+        if ($deploymentUuid === '') {
+            $this->logger->warning('[LtiAgsScorePollJob] Message {id} has no deploymentUuid — skipping.', ['id' => $resultId]);
+            return null;
+        }
+
+        $placement = $this->resolvePlacementByDeployment(deploymentUuid: $deploymentUuid);
+        if ($placement === null) {
+            $this->logger->info(
+                '[LtiAgsScorePollJob] No LtiToolPlacement for deployment {dep} (message {id}) — skipping (orphan).',
+                ['dep' => $deploymentUuid, 'id' => $resultId]
+            );
+            return null;
+        }
+
+        $placementId = (string) ($placement['id'] ?? ($placement['uuid'] ?? ''));
+        if ($placementId === '') {
+            $this->logger->warning('[LtiAgsScorePollJob] Resolved placement has no id — skipping message {id}.', ['id' => $resultId]);
+            return null;
+        }
+
+        return [
+            'placement'   => $placement,
+            'placementId' => $placementId,
+        ];
+
+    }//end resolvePlacementForMessage()
+
+    /**
+     * Extract the learner and score values an AGS message must carry.
+     *
+     * A message without both a userId and a scoreGiven cannot produce a
+     * GradeEntry, so it is skipped rather than written with a guessed value.
+     *
+     * @param array<string,mixed> $data     The message payload.
+     * @param string              $resultId The AGS result id, for the log line.
+     *
+     * @return array{learnerId: string, scoreGiven: float, scoreMaximum: float|null}|null The score, or null when insufficient.
+     *
+     * @spec openspec/changes/lti-ags-grade-passback/tasks.md#task-4.2
+     */
+    private function extractScore(array $data, string $resultId): ?array
+    {
+        $score = [];
+        if (is_array($data['score'] ?? null) === true) {
+            $score = $data['score'];
+        }
+
+        $learnerId  = (string) ($score['userId'] ?? '');
+        $scoreGiven = ($score['scoreGiven'] ?? null);
+
+        if ($learnerId === '' || $scoreGiven === null) {
+            $this->logger->info(
+                '[LtiAgsScorePollJob] AGS score for message {id} has no userId/scoreGiven — insufficient data, skipping.',
+                ['id' => $resultId]
+            );
+            return null;
+        }
+
+        $scoreMaximum = null;
+        if (isset($score['scoreMaximum']) === true) {
+            $scoreMaximum = (float) $score['scoreMaximum'];
+        }
+
+        return [
+            'learnerId'    => $learnerId,
+            'scoreGiven'   => (float) $scoreGiven,
+            'scoreMaximum' => $scoreMaximum,
+        ];
+
+    }//end extractScore()
 
     /**
      * Resolve an `LtiToolPlacement` by `openconnectorDeploymentId`.
@@ -500,8 +558,8 @@ class LtiAgsScorePollJob extends TimedJob
         }
 
         $scaleData = $this->toArray(row: $scale);
-        $kind      = $scaleData['kind'] ?? null;
-        if ($kind !== 'numeric' && $kind !== 'percentage') {
+        $kind      = ($scaleData['kind'] ?? null);
+        if (in_array($kind, ['numeric', 'percentage'], true) === false) {
             return $scoreGiven;
         }
 

@@ -211,59 +211,15 @@ class CoursePackageExportService
         $assignments   = $this->findAllArrays(schema: 'assignment', filters: ['courseId' => $courseId]);
         $ltiPlacements = $this->findAllArrays(schema: 'lti-tool-placement', filters: ['courseId' => $courseId]);
 
-        $materials = [];
-        foreach ($rawMaterials as $material) {
-            $material['content'] = $this->resolveFileBytes(fileRef: (string) ($material['fileRef'] ?? ''), exportingUser: $exportingUser);
-            $materials[]         = $material;
-        }
-
-        $rubrics = [];
-        foreach ($assignments as $assignment) {
-            $rubricId = $assignment['rubricId'] ?? null;
-            if (is_string($rubricId) === false || $rubricId === '') {
-                continue;
-            }
-
-            $rubric = $this->objectService->find(id: $rubricId, register: self::SCHOLIQ_REGISTER, schema: 'rubric');
-            if ($rubric !== null) {
-                $rubrics[] = $this->toArray(object: $rubric);
-            }
-        }
+        $materials = $this->resolveMaterialContents(rawMaterials: $rawMaterials, exportingUser: $exportingUser);
+        $rubrics   = $this->resolveRubrics(assignments: $assignments);
 
         // Resolve each Assessment's referenced Items to their owning ItemBanks
         // and export each unique bank once via QtiExportService — never
         // re-serialised by this exporter itself.
-        $itemBankIds = [];
-        foreach ($assessments as $assessment) {
-            foreach ((array) ($assessment['itemRefs'] ?? []) as $itemId) {
-                if (is_string($itemId) === false) {
-                    continue;
-                }
-
-                $item = $this->objectService->find(id: $itemId, register: self::SCHOLIQ_REGISTER, schema: 'item');
-                if ($item === null) {
-                    continue;
-                }
-
-                $itemData   = $this->toArray(object: $item);
-                $itemBankId = $itemData['itemBankId'] ?? null;
-                if (is_string($itemBankId) === true && $itemBankId !== '') {
-                    $itemBankIds[$itemBankId] = true;
-                }
-            }
-        }
-
-        $itemBankPackages = [];
-        foreach (array_keys($itemBankIds) as $bankId) {
-            try {
-                $itemBankPackages[$bankId] = $this->qtiExportService->export(itemBankId: $bankId);
-            } catch (\Throwable $e) {
-                $this->logger->warning(
-                    '[CoursePackageExportService] Could not export ItemBank {id}: {msg}',
-                    ['id' => $bankId, 'msg' => $e->getMessage()]
-                );
-            }
-        }
+        $itemBankPackages = $this->exportItemBanks(
+            itemBankIds: $this->collectItemBankIds(assessments: $assessments)
+        );
 
         return [
             'course'           => $courseData,
@@ -276,6 +232,129 @@ class CoursePackageExportService
             'itemBankPackages' => $itemBankPackages,
         ];
     }//end gatherCourseTree()
+
+    /**
+     * Inline each Material's file bytes into its export row.
+     *
+     * @param array<int,array<string,mixed>> $rawMaterials  The course's Materials.
+     * @param string                         $exportingUser NC user id whose Files scope the bytes are read from.
+     *
+     * @return array<int,array<string,mixed>> Materials with a `content` key added.
+     *
+     * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+     */
+    private function resolveMaterialContents(array $rawMaterials, string $exportingUser): array
+    {
+        $materials = [];
+        foreach ($rawMaterials as $material) {
+            $material['content'] = $this->resolveFileBytes(
+                fileRef: (string) ($material['fileRef'] ?? ''),
+                exportingUser: $exportingUser
+            );
+
+            $materials[] = $material;
+        }
+
+        return $materials;
+
+    }//end resolveMaterialContents()
+
+    /**
+     * Resolve the Rubrics the course's Assignments point at.
+     *
+     * An assignment with no rubric, or one whose rubric no longer resolves,
+     * simply contributes nothing rather than failing the export.
+     *
+     * @param array<int,array<string,mixed>> $assignments The course's Assignments.
+     *
+     * @return array<int,array<string,mixed>> The resolved Rubrics.
+     *
+     * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+     */
+    private function resolveRubrics(array $assignments): array
+    {
+        $rubrics = [];
+        foreach ($assignments as $assignment) {
+            $rubricId = ($assignment['rubricId'] ?? null);
+            if (is_string($rubricId) === false || $rubricId === '') {
+                continue;
+            }
+
+            $rubric = $this->objectService->find(id: $rubricId, register: self::SCHOLIQ_REGISTER, schema: 'rubric');
+            if ($rubric !== null) {
+                $rubrics[] = $this->toArray(object: $rubric);
+            }
+        }
+
+        return $rubrics;
+
+    }//end resolveRubrics()
+
+    /**
+     * Find the distinct ItemBanks the course's Assessments draw their Items from.
+     *
+     * @param array<int,array<string,mixed>> $assessments The course's Assessments.
+     *
+     * @return array<int,string> Distinct ItemBank UUIDs.
+     *
+     * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+     */
+    private function collectItemBankIds(array $assessments): array
+    {
+        $itemBankIds = [];
+
+        foreach ($assessments as $assessment) {
+            foreach ((array) ($assessment['itemRefs'] ?? []) as $itemId) {
+                if (is_string($itemId) === false) {
+                    continue;
+                }
+
+                $item = $this->objectService->find(id: $itemId, register: self::SCHOLIQ_REGISTER, schema: 'item');
+                if ($item === null) {
+                    continue;
+                }
+
+                $itemBankId = ($this->toArray(object: $item)['itemBankId'] ?? null);
+                if (is_string($itemBankId) === true && $itemBankId !== '') {
+                    $itemBankIds[$itemBankId] = true;
+                }
+            }
+        }
+
+        return array_keys($itemBankIds);
+
+    }//end collectItemBankIds()
+
+    /**
+     * Export each ItemBank once via QtiExportService.
+     *
+     * A bank that fails to export is logged and skipped: one unexportable bank
+     * must not cost the caller the rest of the course package.
+     *
+     * @param array<int,string> $itemBankIds Distinct ItemBank UUIDs.
+     *
+     * @return array<string,mixed> Map of ItemBank UUID => QTI package.
+     *
+     * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-exporting-a-course-produces-a-lossless-scholiq-native-json-tree
+     */
+    private function exportItemBanks(array $itemBankIds): array
+    {
+        $itemBankPackages = [];
+
+        foreach ($itemBankIds as $bankId) {
+            try {
+                $itemBankPackages[$bankId] = $this->qtiExportService->export(itemBankId: $bankId);
+            } catch (\Throwable $e) {
+                $this->logger->warning(
+                    '[CoursePackageExportService] Could not export ItemBank {id}: {msg}',
+                    ['id' => $bankId, 'msg' => $e->getMessage()]
+                );
+            }
+        }
+
+        return $itemBankPackages;
+
+    }//end exportItemBanks()
 
     /**
      * Resolve a `Material.fileRef` nc:files path to its raw bytes, mirroring

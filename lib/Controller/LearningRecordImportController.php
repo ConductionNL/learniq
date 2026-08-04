@@ -48,6 +48,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\IRootFolder;
 use OCP\IConfig;
 use OCP\IRequest;
+use OCP\IUser;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
@@ -119,39 +120,16 @@ class LearningRecordImportController extends Controller
         }
 
         $uploadedFile = $this->request->getUploadedFile('file');
-        if (isset($uploadedFile['tmp_name']) === false) {
-            return new JSONResponse(
-                data: ['error' => 'No file uploaded. POST a multipart/form-data request with a `file` field.'],
-                statusCode: Http::STATUS_BAD_REQUEST
-            );
-        }
-
-        if ($uploadedFile['error'] !== UPLOAD_ERR_OK) {
-            return new JSONResponse(
-                data: ['error' => 'File upload error code '.$uploadedFile['error']],
-                statusCode: Http::STATUS_BAD_REQUEST
-            );
-        }
-
         $sourceFormat = (string) $this->request->getParam('sourceFormat', 'scholiq-learning-record');
-        if (in_array($sourceFormat, ['scholiq-learning-record', 'elm-europass'], true) === false) {
-            return new JSONResponse(data: ['error' => 'Invalid sourceFormat'], statusCode: Http::STATUS_BAD_REQUEST);
+
+        $rejection = $this->rejectUpload(uploadedFile: $uploadedFile, sourceFormat: $sourceFormat);
+        if ($rejection !== null) {
+            return $rejection;
         }
 
         $sourceFilename = (string) ($uploadedFile['name'] ?? 'learning-record.json');
         $tmpPath        = (string) $uploadedFile['tmp_name'];
-        if (file_exists($tmpPath) === false) {
-            return new JSONResponse(
-                data: ['error' => 'Uploaded file not found on server.'],
-                statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-            );
-        }
-
-        $tenantId     = $this->config->getSystemValue('instanceid', '');
-        $userTenantId = $this->config->getUserValue(userId: $user->getUID(), appName: 'scholiq', key: 'tenant_id', default: '');
-        if ($userTenantId !== '') {
-            $tenantId = $userTenantId;
-        }
+        $tenantId       = $this->resolveTenantId(user: $user);
 
         $sourceRef = $this->writeUploadToFiles(
             tmpPath: $tmpPath,
@@ -203,6 +181,81 @@ class LearningRecordImportController extends Controller
 
         return new JSONResponse(data: $this->toArray(row: $final), statusCode: Http::STATUS_OK);
     }//end upload()
+
+    /**
+     * Validate the uploaded file and requested format, returning the error
+     * response to send when the request cannot be accepted.
+     *
+     * Checks run in the order a caller can act on them: no file at all, then a
+     * transport-level upload error, then an unsupported format, then a tmp file
+     * that is not actually on disk.
+     *
+     * @param mixed  $uploadedFile The `file` field from the multipart request.
+     * @param string $sourceFormat The requested source format.
+     *
+     * @return JSONResponse|null The rejection to return, or null when the upload is acceptable.
+     *
+     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-learner-can-upload-a-portable-learning-record-for-an-application
+     */
+    private function rejectUpload(mixed $uploadedFile, string $sourceFormat): ?JSONResponse
+    {
+        if (isset($uploadedFile['tmp_name']) === false) {
+            return new JSONResponse(
+                data: ['error' => 'No file uploaded. POST a multipart/form-data request with a `file` field.'],
+                statusCode: Http::STATUS_BAD_REQUEST
+            );
+        }
+
+        if ($uploadedFile['error'] !== UPLOAD_ERR_OK) {
+            return new JSONResponse(
+                data: ['error' => 'File upload error code '.$uploadedFile['error']],
+                statusCode: Http::STATUS_BAD_REQUEST
+            );
+        }
+
+        if (in_array($sourceFormat, ['scholiq-learning-record', 'elm-europass'], true) === false) {
+            return new JSONResponse(data: ['error' => 'Invalid sourceFormat'], statusCode: Http::STATUS_BAD_REQUEST);
+        }
+
+        if (file_exists((string) $uploadedFile['tmp_name']) === false) {
+            return new JSONResponse(
+                data: ['error' => 'Uploaded file not found on server.'],
+                statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
+            );
+        }
+
+        return null;
+
+    }//end rejectUpload()
+
+    /**
+     * Resolve the requesting tenant's ID.
+     *
+     * The authenticated user's own tenant binding wins; `instanceid` is only the
+     * fallback, because it is the same for every tenant on the instance.
+     *
+     * @param IUser $user Authenticated user whose tenant binding is read.
+     *
+     * @return string Tenant UUID, or the instance id when unbound.
+     *
+     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-learner-can-upload-a-portable-learning-record-for-an-application
+     */
+    private function resolveTenantId(IUser $user): string
+    {
+        $userTenantId = $this->config->getUserValue(
+            userId: $user->getUID(),
+            appName: 'scholiq',
+            key: 'tenant_id',
+            default: ''
+        );
+
+        if ($userTenantId !== '') {
+            return $userTenantId;
+        }
+
+        return (string) $this->config->getSystemValue('instanceid', '');
+
+    }//end resolveTenantId()
 
     /**
      * Write the raw uploaded bytes into the caller's nc:files home, mirroring
