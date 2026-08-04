@@ -33,6 +33,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\RejectionMappingHandler;
+use OCA\Scholiq\Service\RejectionResubmissionResolver;
 use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
@@ -147,7 +148,11 @@ class RejectionMappingHandlerTest extends TestCase
             }
         );
 
-        return new RejectionMappingHandler($objectService, $transitionEngine, new NullLogger());
+        return new RejectionMappingHandler(
+            $objectService,
+            new NullLogger(),
+            new RejectionResubmissionResolver($objectService, $transitionEngine, new NullLogger())
+        );
 
     }//end makeHandler()
 

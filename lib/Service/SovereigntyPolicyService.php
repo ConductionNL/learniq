@@ -131,11 +131,11 @@ class SovereigntyPolicyService
 
         $row = $existing[0];
         if (is_array($row) === false) {
-            if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-                $row = $row->jsonSerialize();
-            } else {
+            if (is_object($row) === false || method_exists($row, 'jsonSerialize') === false) {
                 return self::DEFAULT_POLICY;
             }
+
+            $row = $row->jsonSerialize();
         }
 
         $policy = (string) ($row['policy'] ?? '');

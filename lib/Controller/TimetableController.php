@@ -46,11 +46,9 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Controller;
 
-use DateTimeImmutable;
-use DateTimeInterface;
-use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\AppInfo\Application;
+use OCA\Scholiq\Service\TimetableProjector;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -59,7 +57,6 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
-use Throwable;
 
 /**
  * Personal timetable read surface over existing Session/Cohort/Enrolment objects.
@@ -78,15 +75,17 @@ class TimetableController extends Controller
     /**
      * Constructor.
      *
-     * @param IRequest        $request       HTTP request.
-     * @param IUserSession    $userSession   Current user session.
-     * @param ObjectService   $objectService OR object query service (RBAC-scoped).
-     * @param LoggerInterface $logger        Application logger.
+     * @param IRequest           $request       HTTP request.
+     * @param IUserSession       $userSession   Current user session.
+     * @param ObjectService      $objectService OR object query service (RBAC-scoped).
+     * @param TimetableProjector $projector     Window resolution and Session projection.
+     * @param LoggerInterface    $logger        Application logger.
      */
     public function __construct(
         IRequest $request,
         private readonly IUserSession $userSession,
         private readonly ObjectService $objectService,
+        private readonly TimetableProjector $projector,
         private readonly LoggerInterface $logger,
     ) {
         parent::__construct(appName: Application::APP_ID, request: $request);
@@ -119,7 +118,7 @@ class TimetableController extends Controller
 
         $uid = $user->getUID();
 
-        [$windowFrom, $windowTo] = $this->resolveWindow(from: $from, to: $to);
+        [$windowFrom, $windowTo] = $this->projector->resolveWindow(from: $from, to: $to);
 
         $cohortIds = $this->resolveCallerCohortIds(uid: $uid);
 
@@ -138,60 +137,19 @@ class TimetableController extends Controller
         $rawSessions = $this->loadRawSessionsForCohorts(cohortIds: $cohortIds);
         $roomCache   = $this->preloadRooms(sessions: $rawSessions);
 
-        $sessions = $this->projectWindowedSessions(rawSessions: $rawSessions, windowFrom: $windowFrom, windowTo: $windowTo, roomCache: $roomCache);
-        $changes  = $this->projectTodaysChanges(rawSessions: $rawSessions, roomCache: $roomCache);
+        $sessions = $this->projector->windowedSessions(
+            rawSessions: $rawSessions,
+            windowFrom: $windowFrom,
+            windowTo: $windowTo,
+            roomCache: $roomCache
+        );
+        $changes  = $this->projector->todaysChanges(rawSessions: $rawSessions, roomCache: $roomCache);
 
         return new JSONResponse(
             data: ['sessions' => $sessions, 'from' => $windowFrom, 'to' => $windowTo, 'changes' => $changes],
             statusCode: Http::STATUS_OK
         );
     }//end mine()
-
-    /**
-     * Resolve the requested window, defaulting to the current ISO week (UTC).
-     *
-     * @param string|null $from Requested inclusive window start.
-     * @param string|null $to   Requested exclusive window end.
-     *
-     * @return array{0:string,1:string} The [from, to] ISO 8601 pair.
-     */
-    private function resolveWindow(?string $from, ?string $to): array
-    {
-        $tz = new DateTimeZone('UTC');
-
-        $start = null;
-        if ($from !== null && trim($from) !== '') {
-            try {
-                $start = new DateTimeImmutable($from, $tz);
-            } catch (Throwable $e) {
-                $this->logger->warning('[TimetableController] Ignoring unparseable "from"; using default window.', ['from' => $from]);
-                $start = null;
-            }
-        }
-
-        $end = null;
-        if ($to !== null && trim($to) !== '') {
-            try {
-                $end = new DateTimeImmutable($to, $tz);
-            } catch (Throwable $e) {
-                $this->logger->warning('[TimetableController] Ignoring unparseable "to"; using default window.', ['to' => $to]);
-                $end = null;
-            }
-        }
-
-        if ($start === null) {
-            // Monday 00:00:00 of the current week.
-            $now   = new DateTimeImmutable('now', $tz);
-            $start = $now->modify('monday this week')->setTime(0, 0, 0);
-        }
-
-        if ($end === null) {
-            // One week after the resolved start (exclusive end).
-            $end = $start->modify('+7 days');
-        }
-
-        return [$start->format(DateTimeInterface::ATOM), $end->format(DateTimeInterface::ATOM)];
-    }//end resolveWindow()
 
     /**
      * Resolve the set of cohort UUIDs the caller belongs to.
@@ -328,177 +286,6 @@ class TimetableController extends Controller
 
         return $rooms;
     }//end preloadRooms()
-
-    /**
-     * Project the raw sessions overlapping the requested window, ordered
-     * globally by `startsAt`.
-     *
-     * @param array<int,array<string,mixed>>    $rawSessions Raw session data arrays, all cohorts.
-     * @param string                            $windowFrom  Inclusive window start (ISO 8601).
-     * @param string                            $windowTo    Exclusive window end (ISO 8601).
-     * @param array<string,array<string,mixed>> $roomCache   Pre-loaded Room data keyed by UUID.
-     *
-     * @return array<int,array<string,mixed>> The ordered, projected sessions.
-     */
-    private function projectWindowedSessions(array $rawSessions, string $windowFrom, string $windowTo, array $roomCache): array
-    {
-        $fromTs = strtotime($windowFrom);
-        $toTs   = strtotime($windowTo);
-
-        $sessions = [];
-        foreach ($rawSessions as $session) {
-            if ($this->overlapsWindow(session: $session, fromTs: $fromTs, toTs: $toTs) === false) {
-                continue;
-            }
-
-            $sessions[] = $this->projectSession(session: $session, roomCache: $roomCache);
-        }
-
-        usort(
-            $sessions,
-            static function (array $a, array $b): int {
-                return strcmp((string) $a['startsAt'], (string) $b['startsAt']);
-            }
-        );
-
-        return $sessions;
-    }//end projectWindowedSessions()
-
-    /**
-     * Project the raw sessions whose `cancel`/`substitute-teacher` transition
-     * (`changedAt`, stamped server-side by SessionChangeNoticeHandler)
-     * occurred today (UTC calendar date) — the dagrooster surface —
-     * regardless of whether the Session's own `startsAt` falls inside the
-     * requested window.
-     *
-     * @param array<int,array<string,mixed>>    $rawSessions Raw session data arrays, all cohorts.
-     * @param array<string,array<string,mixed>> $roomCache   Pre-loaded Room data keyed by UUID.
-     *
-     * @return array<int,array<string,mixed>> The projected same-day changes, ordered by changedAt.
-     *
-     * @spec openspec/changes/timetabling-and-substitution/specs/personal-timetable/spec.md#scenario-today-s-cancellation-surfaces-in-the-dagrooster-changes-list-even-for-a-future-session
-     */
-    private function projectTodaysChanges(array $rawSessions, array $roomCache): array
-    {
-        $today = gmdate('Y-m-d');
-
-        $changes = [];
-        foreach ($rawSessions as $session) {
-            $changedAt = (string) ($session['changedAt'] ?? '');
-            if ($changedAt === '') {
-                continue;
-            }
-
-            $ts = strtotime($changedAt);
-            if ($ts === false || gmdate('Y-m-d', $ts) !== $today) {
-                continue;
-            }
-
-            $changes[] = $this->projectSession(session: $session, roomCache: $roomCache);
-        }
-
-        usort(
-            $changes,
-            static function (array $a, array $b): int {
-                return strcmp((string) $a['changedAt'], (string) $b['changedAt']);
-            }
-        );
-
-        return $changes;
-    }//end projectTodaysChanges()
-
-    /**
-     * Project one raw Session row to the caller-facing shape, including
-     * resolved Room detail (when `roomId` is set) and substitution fields.
-     *
-     * @param array<string,mixed>               $session   Raw session data.
-     * @param array<string,array<string,mixed>> $roomCache Pre-loaded Room data keyed by UUID.
-     *
-     * @return array<string,mixed> The projected session.
-     *
-     * @spec openspec/changes/timetabling-and-substitution/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
-     */
-    private function projectSession(array $session, array $roomCache): array
-    {
-        $roomId       = (string) ($session['roomId'] ?? '');
-        $room         = null;
-        $roomIdOrNull = null;
-        if ($roomId !== '') {
-            $roomIdOrNull = $roomId;
-        }
-
-        if ($roomId !== '' && isset($roomCache[$roomId]) === true) {
-            $roomData = $roomCache[$roomId];
-            $room     = [
-                'id'         => (string) ($roomData['id'] ?? ($roomData['uuid'] ?? $roomId)),
-                'name'       => (string) ($roomData['name'] ?? ''),
-                'capacity'   => $roomData['capacity'] ?? null,
-                'facilities' => $roomData['facilities'] ?? [],
-            ];
-        }
-
-        return [
-            'id'                  => (string) ($session['id'] ?? ($session['uuid'] ?? '')),
-            'title'               => (string) ($session['title'] ?? ''),
-            'startsAt'            => (string) ($session['startsAt'] ?? ''),
-            'endsAt'              => (string) ($session['endsAt'] ?? ''),
-            'location'            => (string) ($session['location'] ?? ''),
-            'cohortId'            => (string) ($session['cohortId'] ?? ''),
-            'courseId'            => (string) ($session['courseId'] ?? ''),
-            'lessonId'            => (string) ($session['lessonId'] ?? ''),
-            'lifecycle'           => (string) ($session['lifecycle'] ?? ''),
-            'roomId'              => $roomIdOrNull,
-            'room'                => $room,
-            'substituteTeacherId' => $session['substituteTeacherId'] ?? null,
-            'changeReasonKind'    => $session['changeReasonKind'] ?? null,
-            'changeReason'        => $session['changeReason'] ?? null,
-            'changedAt'           => $session['changedAt'] ?? null,
-        ];
-    }//end projectSession()
-
-    /**
-     * Decide whether a session overlaps the requested window.
-     *
-     * A session overlaps when it starts before the window end AND ends after
-     * the window start. When `endsAt` is absent, the session is treated as a
-     * point in time and included if its `startsAt` falls within the window.
-     *
-     * @param array<string,mixed> $session The session data.
-     * @param int|false           $fromTs  Window start as a unix timestamp.
-     * @param int|false           $toTs    Window end as a unix timestamp.
-     *
-     * @return bool True when the session overlaps the window.
-     */
-    private function overlapsWindow(array $session, int|false $fromTs, int|false $toTs): bool
-    {
-        if ($fromTs === false || $toTs === false) {
-            // Unparseable window — do not silently drop everything.
-            return true;
-        }
-
-        $startsAt = (string) ($session['startsAt'] ?? '');
-        if ($startsAt === '') {
-            return false;
-        }
-
-        $startTs = strtotime($startsAt);
-        if ($startTs === false) {
-            return false;
-        }
-
-        $endsAtRaw = (string) ($session['endsAt'] ?? '');
-        $endTs     = $startTs;
-        if ($endsAtRaw !== '') {
-            $endTs = strtotime($endsAtRaw);
-        }
-
-        if ($endTs === false) {
-            $endTs = $startTs;
-        }
-
-        // Overlap: starts before window end AND ends after window start.
-        return ($startTs < $toTs && $endTs >= $fromTs);
-    }//end overlapsWindow()
 
     /**
      * Normalise an ObjectService row (entity or array) to a plain array.

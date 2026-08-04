@@ -218,17 +218,17 @@ class WalletOfferDelegationService
             return null;
         }
 
-        $kind = (string) ($credential['kind'] ?? '');
-        $credentialConfigurationId = 'edci-diploma';
+        $kind       = (string) ($credential['kind'] ?? '');
+        $configName = 'edci-diploma';
         if ($kind === 'badge' || $kind === 'microcredential') {
-            $credentialConfigurationId = 'open-badges-3';
+            $configName = 'open-badges-3';
         }
 
         return [
             'credentialPayload'         => $payload,
             'format'                    => 'jwt_vc_json',
             'subjectId'                 => $subjectId,
-            'credentialConfigurationId' => $credentialConfigurationId,
+            'credentialConfigurationId' => $configName,
         ];
     }//end buildOfferRequest()
 

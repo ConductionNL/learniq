@@ -28,6 +28,7 @@ namespace OCA\Scholiq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Controller\TimetableController;
+use OCA\Scholiq\Service\TimetableProjector;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
@@ -104,6 +105,7 @@ class TimetableControllerTest extends TestCase
             request: $this->createMock(IRequest::class),
             userSession: $this->userSession,
             objectService: $this->objectService,
+            projector: new TimetableProjector(logger: $this->logger),
             logger: $this->logger,
         );
     }//end controller()

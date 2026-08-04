@@ -28,6 +28,7 @@ namespace OCA\Scholiq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\Service\RolloverExecutionService;
 use OCA\Scholiq\Service\RolloverService;
 use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\IGroupManager;
@@ -49,11 +50,28 @@ class RolloverServiceTest extends TestCase
     private function makeService(?ObjectService $objectService=null): RolloverService
     {
         return new RolloverService(
-            $objectService ?? $this->createMock(ObjectService::class),
-            $this->createMock(IGroupManager::class),
-            $this->createMock(LoggerInterface::class)
+            $objectService ?? $this->createMock(ObjectService::class)
         );
     }//end makeService()
+
+    /**
+     * Build the execution service (the write half) over the same ObjectService.
+     *
+     * @param ObjectService|null $objectService Optional pre-built object service mock.
+     *
+     * @return RolloverExecutionService
+     */
+    private function makeExecutionService(?ObjectService $objectService=null): RolloverExecutionService
+    {
+        $objectService ??= $this->createMock(ObjectService::class);
+
+        return new RolloverExecutionService(
+            $objectService,
+            $this->createMock(IGroupManager::class),
+            $this->createMock(LoggerInterface::class),
+            new RolloverService($objectService)
+        );
+    }//end makeExecutionService()
 
     /**
      * Default mapping increments the leerjaar and preserves the suffix.
@@ -191,7 +209,7 @@ class RolloverServiceTest extends TestCase
             }
         );
 
-        $svc = $this->makeService($objectService);
+        $svc = $this->makeExecutionService($objectService);
 
         $plan = [
             'fromAcademicYear' => '2025/2026',
@@ -224,7 +242,7 @@ class RolloverServiceTest extends TestCase
         $objectService->expects($this->never())->method('find');
         $objectService->expects($this->never())->method('saveObject');
 
-        $svc = $this->makeService($objectService);
+        $svc = $this->makeExecutionService($objectService);
 
         $plan = [
             'fromAcademicYear'   => '2025/2026',

@@ -12,7 +12,29 @@
     <!-- Clean Code Rules -->
     <rule ref="rulesets/cleancode.xml/BooleanArgumentFlag"/>
     <rule ref="rulesets/cleancode.xml/ElseExpression"/>
-    <rule ref="rulesets/cleancode.xml/StaticAccess"/>
+    <!-- StaticAccess: one exception, and only one.
+
+         `\OCA\OpenRegister\AppHost\Bootstrap` exposes exactly ONE public member,
+         `public static function register()`; its other seven methods are all
+         `private static`. There is no instance API and no registerable service,
+         so this is not a dependency that could be injected — it is a one-shot
+         composition-root wiring call made from `Application::register()`.
+
+         Fixing it "properly" would mean adding an instance API to OpenRegister
+         and churning 20 call sites across 6 repos, to satisfy a rule that is
+         measuring something which is not a design smell here.
+
+         This uses the rule's OWN `exceptions` property — its designed
+         configuration surface — rather than an @SuppressWarnings annotation or
+         a baseline file. The distinction matters: the rule stays fully active
+         for every other class, and the exception is one named class, visible in
+         config, with the reason attached. Verified: with this exception in
+         place, a probe using a DIFFERENT static call is still reported. -->
+    <rule ref="rulesets/cleancode.xml/StaticAccess">
+        <properties>
+            <property name="exceptions" value="\OCA\OpenRegister\AppHost\Bootstrap"/>
+        </properties>
+    </rule>
     <rule ref="rulesets/cleancode.xml/IfStatementAssignment"/>
     <rule ref="rulesets/cleancode.xml/DuplicatedArrayKey"/>
     <rule ref="rulesets/cleancode.xml/MissingImport"/>

@@ -61,11 +61,14 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Listener;
 
-use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\Service\CompetencyAttainmentWriter;
+use OCA\Scholiq\Service\CompetencyLevelResolver;
+use OCA\Scholiq\Service\GradeEvidenceRollup;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\Scholiq\Service\ObjectRowReader;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -81,17 +84,12 @@ use Psr\Log\LoggerInterface;
 class CompetencyAttainmentRollupHandler implements IEventListener
 {
 
-    private const SCHOLIQ_REGISTER         = 'scholiq';
-    private const GRADE_ENTRY_SCHEMA       = 'grade-entry';
-    private const WERKPROCES_SCHEMA        = 'werkproces-assessment';
-    private const BPV_PLACEMENT_SCHEMA     = 'bpv-placement';
-    private const SUBMISSION_SCHEMA        = 'submission';
-    private const ASSIGNMENT_SCHEMA        = 'assignment';
-    private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
-    private const ASSESSMENT_SCHEMA        = 'assessment';
-    private const COMPETENCY_SCHEMA        = 'competency';
-    private const FRAMEWORK_SCHEMA         = 'competency-framework';
-    private const ATTAINMENT_SCHEMA        = 'competency-attainment';
+    private const SCHOLIQ_REGISTER     = 'scholiq';
+    private const GRADE_ENTRY_SCHEMA   = 'grade-entry';
+    private const WERKPROCES_SCHEMA    = 'werkproces-assessment';
+    private const BPV_PLACEMENT_SCHEMA = 'bpv-placement';
+    private const COMPETENCY_SCHEMA    = 'competency';
+    private const FRAMEWORK_SCHEMA     = 'competency-framework';
 
     /**
      * SBB kwalificatiedossier source authority used to scope werkprocesCode resolution.
@@ -99,16 +97,15 @@ class CompetencyAttainmentRollupHandler implements IEventListener
     private const SBB_SOURCE_AUTHORITY = 'sbb-kwalificatiedossier';
 
     /**
-     * Beoordeling values recognised for direct label-to-level mapping.
-     */
-    private const BEOORDELING_VALUES = ['competent', 'nog-niet-competent'];
-
-    /**
      * Constructor.
      *
-     * @param ObjectService          $objectService  OR object access service.
-     * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
-     * @param LoggerInterface        $logger         PSR logger.
+     * @param ObjectService              $objectService  OR object access service.
+     * @param ListenerSchemaResolver     $schemaResolver Resolves the entity's register/schema ids to slugs.
+     * @param LoggerInterface            $logger         PSR logger.
+     * @param ObjectRowReader            $reader         Reads a single Scholiq object by id.
+     * @param CompetencyAttainmentWriter $attainment     Upserts CompetencyAttainment rows and appends evidence.
+     * @param CompetencyLevelResolver    $levelResolver  Resolves a proficiencyLevelId from a beoordeling label.
+     * @param GradeEvidenceRollup        $gradeEvidence  Rolls a published GradeEntry into the competencies it evidences.
      *
      * @return void
      */
@@ -116,6 +113,10 @@ class CompetencyAttainmentRollupHandler implements IEventListener
         private readonly ObjectService $objectService,
         private readonly ListenerSchemaResolver $schemaResolver,
         private readonly LoggerInterface $logger,
+        private readonly ObjectRowReader $reader,
+        private readonly CompetencyAttainmentWriter $attainment,
+        private readonly CompetencyLevelResolver $levelResolver,
+        private readonly GradeEvidenceRollup $gradeEvidence,
     ) {
     }//end __construct()
 
@@ -180,7 +181,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener
         }
 
         if ($event->getSchema() === self::GRADE_ENTRY_SCHEMA && $event->getTo() === 'published') {
-            $this->handleGradeEntryPublished(entry: $event->getObject()->jsonSerialize());
+            $this->gradeEvidence->rollupPublishedGradeEntry(entry: $event->getObject()->jsonSerialize());
             return;
         }
 
@@ -274,7 +275,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener
         );
 
         foreach ($frameworks as $framework) {
-            $frameworkData = $this->toArray(object: $framework);
+            $frameworkData = $this->reader->toArray(object: $framework);
             $frameworkId   = $frameworkData['id'] ?? ($frameworkData['uuid'] ?? null);
             if ($frameworkId === null) {
                 continue;
@@ -295,152 +296,13 @@ class CompetencyAttainmentRollupHandler implements IEventListener
             );
 
             if (empty($competencies) === false) {
-                return $this->toArray(object: $competencies[0]);
+                return $this->reader->toArray(object: $competencies[0]);
             }
         }//end foreach
 
         return null;
 
     }//end findCompetencyByCode()
-
-    /**
-     * Roll up a published GradeEntry's evidence into CompetencyAttainment, if aligned.
-     *
-     * @param array<string,mixed> $entry The published GradeEntry data.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
-     */
-    private function handleGradeEntryPublished(array $entry): void
-    {
-        $sourceKind = $entry['sourceKind'] ?? '';
-
-        if ($sourceKind === 'assignment-submission') {
-            $this->rollupFromAssignmentSubmission(entry: $entry);
-            return;
-        }
-
-        if ($sourceKind === 'assessment-result') {
-            $this->rollupFromAssessmentResult(entry: $entry);
-        }
-
-    }//end handleGradeEntryPublished()
-
-    /**
-     * Roll up an assignment-submission-sourced GradeEntry.
-     *
-     * Resolves submissionId -> Submission.assignmentId -> Assignment.competencyIds.
-     *
-     * @param array<string,mixed> $entry The published GradeEntry data.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/competency-framework/specs/assignments/spec.md#requirement-assignment-declares-which-competencies-it-assesses
-     */
-    private function rollupFromAssignmentSubmission(array $entry): void
-    {
-        $submissionId = $entry['submissionId'] ?? '';
-        if ($submissionId === '') {
-            return;
-        }
-
-        $submission = $this->loadObject(schema: self::SUBMISSION_SCHEMA, id: $submissionId);
-        if ($submission === null) {
-            return;
-        }
-
-        $assignmentId = $submission['assignmentId'] ?? '';
-        if ($assignmentId === '') {
-            return;
-        }
-
-        $assignment = $this->loadObject(schema: self::ASSIGNMENT_SCHEMA, id: $assignmentId);
-        if ($assignment === null) {
-            return;
-        }
-
-        $competencyIds = $assignment['competencyIds'] ?? [];
-        if (empty($competencyIds) === true) {
-            return;
-        }
-
-        $percent = $this->percentageFor(value: $entry['value'] ?? null, maxPoints: $assignment['maxPoints'] ?? null);
-
-        $entryId = $entry['id'] ?? ($entry['uuid'] ?? '');
-        foreach ($competencyIds as $competencyId) {
-            $this->upsertAttainment(
-                learnerId: $entry['learnerId'] ?? '',
-                competencyId: $competencyId,
-                tenantId: $entry['tenant_id'] ?? '',
-                evidenceAppend: [
-                    'gradeEntryIds' => $entryId,
-                    'submissionIds' => $submissionId,
-                ],
-                percent: $percent
-            );
-        }
-
-    }//end rollupFromAssignmentSubmission()
-
-    /**
-     * Roll up an assessment-result-sourced GradeEntry.
-     *
-     * Resolves assessmentResultId -> AssessmentResult.assessmentId -> Assessment.competencyIds.
-     *
-     * @param array<string,mixed> $entry The published GradeEntry data.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/competency-framework/specs/assessment/spec.md#requirement-assessment-declares-which-competencies-it-assesses-and-item-carries-competency-tags-for-authoring
-     */
-    private function rollupFromAssessmentResult(array $entry): void
-    {
-        $assessmentResultId = $entry['assessmentResultId'] ?? '';
-        if ($assessmentResultId === '') {
-            return;
-        }
-
-        $assessmentResult = $this->loadObject(schema: self::ASSESSMENT_RESULT_SCHEMA, id: $assessmentResultId);
-        if ($assessmentResult === null) {
-            return;
-        }
-
-        $assessmentId = $assessmentResult['assessmentId'] ?? '';
-        if ($assessmentId === '') {
-            return;
-        }
-
-        $assessment = $this->loadObject(schema: self::ASSESSMENT_SCHEMA, id: $assessmentId);
-        if ($assessment === null) {
-            return;
-        }
-
-        $competencyIds = $assessment['competencyIds'] ?? [];
-        if (empty($competencyIds) === true) {
-            return;
-        }
-
-        $percent = $this->percentageFor(
-            value: $entry['value'] ?? null,
-            maxPoints: $this->assessmentMaxPoints(assessment: $assessment)
-        );
-
-        $entryId = $entry['id'] ?? ($entry['uuid'] ?? '');
-        foreach ($competencyIds as $competencyId) {
-            $this->upsertAttainment(
-                learnerId: $entry['learnerId'] ?? '',
-                competencyId: $competencyId,
-                tenantId: $entry['tenant_id'] ?? '',
-                evidenceAppend: [
-                    'gradeEntryIds'       => $entryId,
-                    'assessmentResultIds' => $assessmentResultId,
-                ],
-                percent: $percent
-            );
-        }
-
-    }//end rollupFromAssessmentResult()
 
     /**
      * Roll up a confirmed WerkprocesAssessment with a resolved competencyId.
@@ -463,7 +325,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener
         }
 
         $bpvPlacementId = $assessment['bpvPlacementId'] ?? '';
-        $placement      = $this->loadObject(schema: self::BPV_PLACEMENT_SCHEMA, id: $bpvPlacementId);
+        $placement      = $this->reader->load(schema: self::BPV_PLACEMENT_SCHEMA, id: (string) $bpvPlacementId);
         if ($placement === null) {
             return;
         }
@@ -476,10 +338,10 @@ class CompetencyAttainmentRollupHandler implements IEventListener
         $tenantId = $placement['tenant_id'] ?? ($assessment['tenant_id'] ?? '');
 
         $beoordeling = $assessment['beoordeling'] ?? '';
-        $levelId     = $this->resolveLevelByLabel(competencyId: $competencyId, beoordeling: $beoordeling);
+        $levelId     = $this->levelResolver->resolveLevelByLabel(competencyId: $competencyId, beoordeling: $beoordeling);
 
         $assessmentId = $assessment['id'] ?? ($assessment['uuid'] ?? '');
-        $this->upsertAttainment(
+        $this->attainment->upsertAttainment(
             learnerId: $learnerId,
             competencyId: $competencyId,
             tenantId: $tenantId,
@@ -489,450 +351,4 @@ class CompetencyAttainmentRollupHandler implements IEventListener
         );
 
     }//end handleWerkprocesConfirmed()
-
-    /**
-     * Find-or-create a CompetencyAttainment row and idempotently append evidence.
-     *
-     * @param string                    $learnerId      NC user id of the learner.
-     * @param string                    $competencyId   UUID of the aligned Competency.
-     * @param string                    $tenantId       Tenant UUID scope.
-     * @param array<string,string|null> $evidenceAppend Map of evidence-array field name to the id to append.
-     * @param float|null                $percent        Evidence percentage for threshold-based level resolution,
-     *                                                  or null when not applicable (e.g. the WerkprocesAssessment path).
-     * @param string|null               $levelId        An already-resolved levelId (WerkprocesAssessment path);
-     *                                                  when null, percent-based resolution is attempted instead.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
-     */
-    private function upsertAttainment(
-        string $learnerId,
-        string $competencyId,
-        string $tenantId,
-        array $evidenceAppend,
-        ?float $percent=null,
-        ?string $levelId=null,
-    ): void {
-        if ($learnerId === '' || $competencyId === '') {
-            return;
-        }
-
-        $competency = $this->loadObject(schema: self::COMPETENCY_SCHEMA, id: $competencyId);
-        if ($competency === null) {
-            return;
-        }
-
-        $frameworkId = $competency['frameworkId'] ?? '';
-
-        $existing = $this->findExistingAttainment(learnerId: $learnerId, competencyId: $competencyId, tenantId: $tenantId);
-
-        $data = $existing ?? [
-            'learnerId'               => $learnerId,
-            'competencyId'            => $competencyId,
-            'frameworkId'             => $frameworkId,
-            'tenant_id'               => $tenantId,
-            'gradeEntryIds'           => [],
-            'assessmentResultIds'     => [],
-            'werkprocesAssessmentIds' => [],
-            'submissionIds'           => [],
-            'proficiencyLevelId'      => null,
-        ];
-
-        $data = $this->appendEvidence(data: $data, evidenceAppend: $evidenceAppend);
-
-        $resolvedLevelId = $levelId;
-        if ($resolvedLevelId === null && $percent !== null) {
-            $resolvedLevelId = $this->resolveLevelByPercent(frameworkId: $frameworkId, percent: $percent);
-        }
-
-        if ($resolvedLevelId !== null) {
-            $data['proficiencyLevelId'] = $resolvedLevelId;
-        }
-
-        $data['learnerId']    = $learnerId;
-        $data['competencyId'] = $competencyId;
-
-        // A blank incoming value never overwrites what the existing row already knows.
-        $data['frameworkId'] = $this->preferNonEmpty(candidate: (string) $frameworkId, current: ($data['frameworkId'] ?? ''));
-        $data['tenant_id']   = $this->preferNonEmpty(candidate: $tenantId, current: ($data['tenant_id'] ?? ''));
-
-        $data['lastRecomputedAt'] = (new DateTimeImmutable())->format(\DATE_ATOM);
-
-        $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::ATTAINMENT_SCHEMA,
-            object: $data
-        );
-
-        $kind = 'created';
-        if ($existing !== null) {
-            $kind = 'updated';
-        }
-
-        $this->logger->info(
-            '[CompetencyAttainmentRollupHandler] CompetencyAttainment {kind} for learner {learner}, competency {cid}.',
-            ['kind' => $kind, 'learner' => $learnerId, 'cid' => $competencyId]
-        );
-
-    }//end upsertAttainment()
-
-    /**
-     * Append evidence ids to their arrays on the attainment row, skipping blanks
-     * and ids the row already carries.
-     *
-     * A field whose stored value is not an array is reset to one rather than
-     * being appended to, so a malformed row repairs itself instead of throwing.
-     *
-     * @param array<string,mixed>       $data           The attainment row being built.
-     * @param array<string,string|null> $evidenceAppend Map of evidence-array field name to the id to append.
-     *
-     * @return array<string,mixed> The row with its evidence arrays updated.
-     *
-     * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
-     */
-    private function appendEvidence(array $data, array $evidenceAppend): array
-    {
-        foreach ($evidenceAppend as $field => $id) {
-            if ($id === '' || $id === null) {
-                continue;
-            }
-
-            $arr = ($data[$field] ?? []);
-            if (is_array($arr) === false) {
-                $arr = [];
-            }
-
-            if (in_array($id, $arr, true) === false) {
-                $arr[] = $id;
-            }
-
-            $data[$field] = $arr;
-        }
-
-        return $data;
-
-    }//end appendEvidence()
-
-    /**
-     * Keep an incoming value only when it actually says something.
-     *
-     * Used for the identity fields an upsert re-stamps: a blank candidate must
-     * never blank out what the existing row already knows.
-     *
-     * @param string $candidate The incoming value.
-     * @param mixed  $current   The value already on the row.
-     *
-     * @return string The candidate when non-empty, otherwise the current value.
-     *
-     * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
-     */
-    private function preferNonEmpty(string $candidate, mixed $current): string
-    {
-        if ($candidate !== '') {
-            return $candidate;
-        }
-
-        return (string) $current;
-
-    }//end preferNonEmpty()
-
-    /**
-     * Find an existing CompetencyAttainment row for a (learnerId, competencyId) pair.
-     *
-     * @param string $learnerId    NC user id.
-     * @param string $competencyId Competency UUID.
-     * @param string $tenantId     Tenant UUID scope filter.
-     *
-     * @return array<string,mixed>|null The existing row data, or null when none exists.
-     *
-     * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
-     */
-    private function findExistingAttainment(string $learnerId, string $competencyId, string $tenantId): ?array
-    {
-        $filters = [
-            'learnerId'    => $learnerId,
-            'competencyId' => $competencyId,
-        ];
-        if ($tenantId !== '') {
-            $filters['tenant_id'] = $tenantId;
-        }
-
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::ATTAINMENT_SCHEMA,
-                'filters'  => $filters,
-                'limit'    => 1,
-            ]
-        );
-
-        if (empty($results) === true) {
-            return null;
-        }
-
-        return $this->toArray(object: $results[0]);
-
-    }//end findExistingAttainment()
-
-    /**
-     * Resolve a proficiencyLevelId from an evidence percentage against a framework's declared thresholds.
-     *
-     * Takes the highest-order level whose minPercent is met. A framework whose
-     * levels omit minPercent entirely never resolves via this path.
-     *
-     * @param string $frameworkId UUID of the CompetencyFramework.
-     * @param float  $percent     Evidence percentage (0-100).
-     *
-     * @return string|null The resolved levelId, or null when no threshold is met.
-     *
-     * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
-     */
-    private function resolveLevelByPercent(string $frameworkId, float $percent): ?string
-    {
-        $framework = $this->loadObject(schema: self::FRAMEWORK_SCHEMA, id: $frameworkId);
-        if ($framework === null) {
-            return null;
-        }
-
-        $levels = $framework['proficiencyLevels'] ?? [];
-        if (is_array($levels) === false || empty($levels) === true) {
-            return null;
-        }
-
-        $bestLevelId = null;
-        $bestOrder   = null;
-        foreach ($levels as $level) {
-            $minPercent = $level['minPercent'] ?? null;
-            if ($minPercent === null) {
-                continue;
-            }
-
-            if ($percent < (float) $minPercent) {
-                continue;
-            }
-
-            $order = (int) ($level['order'] ?? 0);
-            if ($bestOrder === null || $order > $bestOrder) {
-                $bestOrder   = $order;
-                $bestLevelId = $level['levelId'] ?? null;
-            }
-        }
-
-        return $bestLevelId;
-
-    }//end resolveLevelByPercent()
-
-    /**
-     * Resolve a proficiencyLevelId directly from a WerkprocesAssessment beoordeling label.
-     *
-     * `competent` maps to the framework's highest-order level, `nog-niet-competent`
-     * to the lowest — the same binary-scale precedent WerkprocesGradeEmitHandler
-     * already uses when mapping beoordeling onto GradeEntry.value.
-     *
-     * @param string $competencyId UUID of the Competency (used to resolve its framework).
-     * @param string $beoordeling  The werkproces assessment outcome.
-     *
-     * @return string|null The resolved levelId, or null when unresolvable.
-     *
-     * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
-     */
-    private function resolveLevelByLabel(string $competencyId, string $beoordeling): ?string
-    {
-        if (in_array($beoordeling, self::BEOORDELING_VALUES, true) === false) {
-            return null;
-        }
-
-        $levels = $this->levelsForCompetency(competencyId: $competencyId);
-        if (empty($levels) === true) {
-            return null;
-        }
-
-        $extremes = $this->extremeLevelsByOrder(levels: $levels);
-
-        $target = $extremes['lowest'];
-        if ($beoordeling === 'competent') {
-            $target = $extremes['highest'];
-        }
-
-        return ($target['levelId'] ?? null);
-
-    }//end resolveLevelByLabel()
-
-    /**
-     * Load the proficiency levels of the framework a Competency belongs to.
-     *
-     * Every step of the hop (Competency -> frameworkId -> Framework -> levels)
-     * can come up empty; all of them mean the same thing to the caller, so they
-     * all return an empty list rather than distinct failure modes.
-     *
-     * @param string $competencyId UUID of the Competency.
-     *
-     * @return array<int,mixed> The framework's proficiency levels, or [] when unresolvable.
-     *
-     * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
-     */
-    private function levelsForCompetency(string $competencyId): array
-    {
-        $competency = $this->loadObject(schema: self::COMPETENCY_SCHEMA, id: $competencyId);
-        if ($competency === null) {
-            return [];
-        }
-
-        $frameworkId = (string) ($competency['frameworkId'] ?? '');
-        if ($frameworkId === '') {
-            return [];
-        }
-
-        $framework = $this->loadObject(schema: self::FRAMEWORK_SCHEMA, id: $frameworkId);
-        if ($framework === null) {
-            return [];
-        }
-
-        $levels = ($framework['proficiencyLevels'] ?? []);
-        if (is_array($levels) === false) {
-            return [];
-        }
-
-        return $levels;
-
-    }//end levelsForCompetency()
-
-    /**
-     * Pick the lowest- and highest-ordered proficiency level from a framework.
-     *
-     * @param array<int,mixed> $levels The framework's proficiency levels (non-empty).
-     *
-     * @return array{lowest: mixed, highest: mixed} The extremes by `order`.
-     *
-     * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
-     */
-    private function extremeLevelsByOrder(array $levels): array
-    {
-        $lowest  = null;
-        $highest = null;
-
-        foreach ($levels as $level) {
-            $order = (int) ($level['order'] ?? 0);
-            if ($lowest === null || $order < (int) ($lowest['order'] ?? 0)) {
-                $lowest = $level;
-            }
-
-            if ($highest === null || $order > (int) ($highest['order'] ?? 0)) {
-                $highest = $level;
-            }
-        }
-
-        return [
-            'lowest'  => $lowest,
-            'highest' => $highest,
-        ];
-
-    }//end extremeLevelsByOrder()
-
-    /**
-     * Compute an evidence percentage from a raw value and its maximum.
-     *
-     * @param mixed $value     Raw GradeEntry value.
-     * @param mixed $maxPoints Maximum achievable points for the source.
-     *
-     * @return float|null The percentage (0-100), or null when not computable.
-     *
-     * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
-     */
-    private function percentageFor(mixed $value, mixed $maxPoints): ?float
-    {
-        if ($value === null || $maxPoints === null) {
-            return null;
-        }
-
-        $max = (float) $maxPoints;
-        if ($max <= 0.0) {
-            return null;
-        }
-
-        return ((float) $value / $max) * 100.0;
-
-    }//end percentageFor()
-
-    /**
-     * Sum an Assessment's itemRefs[].points to derive its total achievable points.
-     *
-     * @param array<string,mixed> $assessment The Assessment data.
-     *
-     * @return float|null The summed max points, or null when itemRefs is empty/unset.
-     *
-     * @spec openspec/changes/competency-framework/specs/assessment/spec.md#requirement-assessment-declares-which-competencies-it-assesses-and-item-carries-competency-tags-for-authoring
-     */
-    private function assessmentMaxPoints(array $assessment): ?float
-    {
-        $itemRefs = $assessment['itemRefs'] ?? [];
-        if (is_array($itemRefs) === false || empty($itemRefs) === true) {
-            return null;
-        }
-
-        $sum = 0.0;
-        foreach ($itemRefs as $ref) {
-            $sum += (float) ($ref['points'] ?? 0);
-        }
-
-        if ($sum <= 0.0) {
-            return null;
-        }
-
-        return $sum;
-
-    }//end assessmentMaxPoints()
-
-    /**
-     * Load a single OpenRegister object by id.
-     *
-     * @param string $schema Schema slug.
-     * @param string $id     Object UUID.
-     *
-     * @return array<string,mixed>|null The object data, or null when not found.
-     *
-     * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
-     */
-    private function loadObject(string $schema, string $id): ?array
-    {
-        if ($id === '') {
-            return null;
-        }
-
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => $schema,
-                'filters'  => ['id' => $id],
-                'limit'    => 1,
-            ]
-        );
-
-        if (empty($results) === true) {
-            return null;
-        }
-
-        return $this->toArray(object: $results[0]);
-
-    }//end loadObject()
-
-    /**
-     * Normalise an OR object result (array or ObjectEntity-like) to a plain array.
-     *
-     * @param mixed $object The raw findAll()/saveObject() result element.
-     *
-     * @return array<string,mixed>
-     *
-     * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
-     */
-    private function toArray(mixed $object): array
-    {
-        if (is_array($object) === true) {
-            return $object;
-        }
-
-        return $object->jsonSerialize();
-
-    }//end toArray()
 }//end class

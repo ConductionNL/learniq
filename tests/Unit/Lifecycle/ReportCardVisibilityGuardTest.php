@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Scholiq\Tests\Unit\Lifecycle;
 
 use DateTime;
+use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Lifecycle\ReportCardVisibilityGuard;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -66,6 +67,7 @@ class ReportCardVisibilityGuardTest extends TestCase
 
         $timeFactory = $this->createMock(ITimeFactory::class);
         $timeFactory->method('getDateTime')->willReturn($now);
+        $timeFactory->method('now')->willReturn(DateTimeImmutable::createFromMutable($now));
 
         return new ReportCardVisibilityGuard($objectService, $timeFactory, $this->createMock(LoggerInterface::class));
 
