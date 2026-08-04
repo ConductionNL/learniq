@@ -51,13 +51,13 @@ jobs:
       additional-apps: '[{"repo":"ConductionNL/openregister","app":"openregister","ref":"development"}]'
       enable-sbom: true
 
-      # ── Integration tests ────────────────────────────────────────────────
-      # Was explicitly `false`. tests/integration/scholiq.postman_collection.json
-      # had never executed in CI. It sits at the default
-      # `newman-collection-path` (tests/integration), which is both the
-      # directory the validator counts collections in and the directory the run
-      # step globs `*.postman_collection.json` in — flat, not recursively.
-      enable-newman: true
+      # Integration Tests (Newman) stays OFF here, deliberately. The
+      # `enable-newman: false` further up is not a default nobody chose: it
+      # records that the collection's requests hard-code URLs with no
+      # `/index.php/` prefix (404 under the CI PHP built-in server) and assume a
+      # seeded `scholiq` register. Turning it on would produce a guaranteed red
+      # whose cause is already written down. Flipped back on in the commit that
+      # rewrites the collection to the CI base_url and adds the seed step.
 
       # ── Frontend Check legs ──────────────────────────────────────────────
       # `frontend-checks` defaults to `[]`, and an empty list means the shared
