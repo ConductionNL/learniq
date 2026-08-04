@@ -296,7 +296,7 @@ class ConferenceScheduleGenerator implements IEventListener
         return [
             'confirmedByTeacher' => $confirmedByTeacher,
             'activeSlotKeys'     => $activeSlotKeys,
-            'intervalsBySignup'  => $intervalsBySignup,
+            'intervalsBySignup'  => $assignedIntervalsBySignup,
         ];
 
     }//end indexExistingSlots()
