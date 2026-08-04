@@ -263,10 +263,7 @@ class ApplicationConversionHandler implements IEventListener
             return [];
         }
 
-        $data = $programme;
-        if (is_array($programme) === false) {
-            $data = $programme->jsonSerialize();
-        }
+        $data = $programme->jsonSerialize();
 
         $courseIds = $data['courseIds'] ?? [];
 

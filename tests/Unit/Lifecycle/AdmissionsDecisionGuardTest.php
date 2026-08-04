@@ -25,6 +25,7 @@ namespace OCA\Scholiq\Tests\Unit\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Lifecycle\AdmissionsDecisionGuard;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -63,10 +64,13 @@ class AdmissionsDecisionGuardTest extends TestCase
      */
     private function wireRound(?array $round): void
     {
+        // OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
+        // and returns ?ObjectEntity. willReturnCallback() hands the closure the
+        // mock's arguments POSITIONALLY, so the closure must mirror that order.
         $this->objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) use ($round) {
-                if ($schema === 'admissions-round') {
-                    return $round;
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($round) {
+                if ($schema === 'admissions-round' && $round !== null) {
+                    return OrEntityFactory::make($round, 'admissions-round');
                 }
 
                 return null;

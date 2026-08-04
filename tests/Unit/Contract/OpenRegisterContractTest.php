@@ -24,6 +24,9 @@ declare(strict_types=1);
 namespace OCA\Scholiq\Tests\Unit\Contract;
 
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -188,6 +191,98 @@ final class OpenRegisterContractTest extends TestCase
         $this->assertSame('1280', $serialized['@self']['schema']);
 
     }//end testObjectEntityRoundTripsThroughMagicAccessors()
+
+
+    /**
+     * TransitionEngine::transition() returns the transitioned entity.
+     *
+     * The stub declared `: void`. Any test whose `transition` callback returned
+     * nothing was green standalone and threw against the real class; and the
+     * two handlers that wrap the call in `catch (\Throwable)` passed in CI
+     * while swallowing that TypeError, which is worse than failing.
+     *
+     * @return void
+     */
+    public function testTransitionEngineReturnsAnEntity(): void
+    {
+        $this->assertReturnTypeIs(
+            new ReflectionMethod(TransitionEngine::class, 'transition'),
+            ObjectEntity::class
+        );
+
+    }//end testTransitionEngineReturnsAnEntity()
+
+
+    /**
+     * ObjectCreatedEvent carries only the entity; its sibling carries more.
+     *
+     * Register and schema are read off the ENTITY for a created event (that is
+     * what ListenerSchemaResolver is for). ObjectTransitionedEvent genuinely
+     * does expose them. Mirroring the difference is the whole point.
+     *
+     * @return void
+     */
+    public function testObjectEventSurfacesDifferAsExpected(): void
+    {
+        $created = new ReflectionClass(ObjectCreatedEvent::class);
+
+        foreach (['getRegister', 'getSchema'] as $absent) {
+            $this->assertFalse(
+                $created->hasMethod($absent),
+                sprintf(
+                    'ObjectCreatedEvent::%s() does not exist on the real event. Mocking it throws '
+                    .'MethodCannotBeConfiguredException in CI — resolve register/schema from the entity instead.',
+                    $absent
+                )
+            );
+        }
+
+        $this->assertTrue($created->hasMethod('getObject'));
+
+        $transitioned = new ReflectionClass(ObjectTransitionedEvent::class);
+        foreach (['getObject', 'getRegister', 'getSchema'] as $present) {
+            $this->assertTrue(
+                $transitioned->hasMethod($present),
+                'ObjectTransitionedEvent::'.$present.'() is relied on by the lifecycle listeners.'
+            );
+        }
+
+    }//end testObjectEventSurfacesDifferAsExpected()
+
+
+    /**
+     * The entity's magic accessors are invisible to `method_exists()`.
+     *
+     * This is not a curiosity: production code guarded OpenRegister accessors
+     * with `method_exists($entity, 'getSchema')`, which is FALSE for a `__call`
+     * accessor, so `ListenerSchemaResolver::schemaSlug()` returned '' for every
+     * real entity and every listener read that as "not my object" and returned
+     * early. `is_callable()` is the correct probe.
+     *
+     * @return void
+     */
+    public function testMethodExistsDoesNotSeeMagicAccessors(): void
+    {
+        $entity = new ObjectEntity();
+        $entity->setSchema('s-1');
+
+        foreach (['getUuid', 'getRegister', 'getSchema'] as $accessor) {
+            $this->assertFalse(
+                method_exists($entity, $accessor),
+                'method_exists() must not be used to probe ObjectEntity::'.$accessor.'().'
+            );
+            $this->assertTrue(
+                is_callable([$entity, $accessor]),
+                'is_callable() is the correct probe for ObjectEntity::'.$accessor.'().'
+            );
+        }
+
+        $this->assertTrue(
+            method_exists($entity, 'jsonSerialize'),
+            'jsonSerialize() IS a declared method, so method_exists() is fine for that one.'
+        );
+
+    }//end testMethodExistsDoesNotSeeMagicAccessors()
 
 
     /**

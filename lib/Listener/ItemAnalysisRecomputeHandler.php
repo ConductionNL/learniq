@@ -248,10 +248,6 @@ class ItemAnalysisRecomputeHandler implements IEventListener
             )
         );
 
-        if ($saved === null) {
-            return null;
-        }
-
         $savedData = $this->toArrayData(object: $saved);
 
         return ($savedData['id'] ?? ($savedData['uuid'] ?? null));

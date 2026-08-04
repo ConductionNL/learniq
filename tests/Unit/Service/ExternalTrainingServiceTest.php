@@ -29,6 +29,7 @@ namespace OCA\Scholiq\Tests\Unit\Service;
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Service\ExternalTrainingService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -216,9 +217,9 @@ class ExternalTrainingServiceTest extends TestCase
         $objectService->expects($this->exactly(2))
             ->method('saveObject')
             ->willReturnCallback(
-                static function (string $register, string $schema, array $object) use (&$saved): array {
+                static function (array $object, ?array $extend=[], $register=null, $schema=null) use (&$saved) {
                     $saved[] = $object;
-                    return $object;
+                    return OrEntityFactory::make($object, (string) $schema, (string) $register);
                 }
             );
 

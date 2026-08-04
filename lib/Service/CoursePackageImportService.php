@@ -1566,15 +1566,7 @@ class CoursePackageImportService
             ]
         );
 
-        if (is_array($saved) === true) {
-            return $saved;
-        }
-
-        if (is_object($saved) === true && method_exists($saved, 'jsonSerialize') === true) {
-            return (array) $saved->jsonSerialize();
-        }
-
-        return [];
+        return $saved->jsonSerialize();
     }//end persistReport()
 
     /**
@@ -1597,7 +1589,12 @@ class CoursePackageImportService
             return null;
         }
 
-        if (is_object($saved) === true && method_exists($saved, 'getUuid') === true) {
+        // `is_callable()`, NOT `method_exists()`. ObjectEntity::getUuid() is
+        // OCP\AppFramework\Db\Entity::__call magic, so method_exists() is FALSE
+        // for it on a real entity — this branch never fired and extractUuid()
+        // returned null for every save, leaving createCourse() with no course
+        // id and skipping the whole QTI item-bank import.
+        if (is_object($saved) === true && is_callable([$saved, 'getUuid']) === true) {
             $uuid = $saved->getUuid();
             if (is_string($uuid) === true) {
                 return $uuid;

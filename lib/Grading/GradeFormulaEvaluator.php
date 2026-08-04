@@ -214,14 +214,7 @@ class GradeFormulaEvaluator
             return null;
         }
 
-        $scale = [];
-        if (is_array($obj) === true) {
-            $scale = $obj;
-        }
-
-        if (is_array($obj) === false) {
-            $scale = $obj->jsonSerialize();
-        }
+        $scale = $obj->jsonSerialize();
 
         $threshold = $scale['passThreshold'] ?? null;
         if ($threshold === null) {

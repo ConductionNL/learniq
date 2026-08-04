@@ -156,10 +156,7 @@ class BsaProgressFlagHandler implements IEventListener
             return [];
         }
 
-        $courseData = $course;
-        if (is_array($course) === false) {
-            $courseData = $course->jsonSerialize();
-        }
+        $courseData = $course->jsonSerialize();
 
         $programmeIds = $courseData['programmeIds'] ?? [];
         if (is_array($programmeIds) === false) {

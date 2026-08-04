@@ -25,7 +25,7 @@ namespace OCA\Scholiq\Tests\Unit\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Lifecycle\RubricScoresCompletionGuard;
-use PHPUnit\Framework\MockObject\MockObject;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -65,18 +65,21 @@ class RubricScoresCompletionGuardTest extends TestCase
     private function makeGuard(?array $assignment, ?array $rubric, ?array $submission): RubricScoresCompletionGuard
     {
         $objectService = $this->createMock(ObjectService::class);
+        // OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
+        // and returns ?ObjectEntity. willReturnCallback() hands the closure the
+        // mock's arguments POSITIONALLY, so the closure must mirror that order.
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) use ($assignment, $rubric, $submission) {
-                if ($schema === 'assignment') {
-                    return $assignment;
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($assignment, $rubric, $submission) {
+                if ($schema === 'assignment' && $assignment !== null) {
+                    return OrEntityFactory::make($assignment, 'assignment');
                 }
 
-                if ($schema === 'rubric') {
-                    return $rubric;
+                if ($schema === 'rubric' && $rubric !== null) {
+                    return OrEntityFactory::make($rubric, 'rubric');
                 }
 
-                if ($schema === 'submission') {
-                    return $submission;
+                if ($schema === 'submission' && $submission !== null) {
+                    return OrEntityFactory::make($submission, 'submission');
                 }
 
                 return null;

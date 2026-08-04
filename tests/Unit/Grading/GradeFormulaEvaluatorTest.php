@@ -35,6 +35,7 @@ namespace OCA\Scholiq\Tests\Unit\Grading;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Grading\GradeFormulaEvaluator;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -44,20 +45,21 @@ class GradeFormulaEvaluatorTest extends TestCase
 {
 
     /**
-     * Wrap a data array in an ObjectEntity-like mock, as
+     * Wrap a data array in a real ObjectEntity, as
      * GradeFormulaEvaluator::fetchPlan()/fetchPassThreshold() expect from
      * ObjectService::find() (unlike findAll(), which may return raw arrays).
      *
-     * @param array<string,mixed> $data The jsonSerialize() payload.
+     * ObjectEntity cannot be mocked for this purpose: `getRegister()` /
+     * `getSchema()` / `getUuid()` come from `OCP\AppFramework\Db\Entity::__call`.
+     *
+     * @param array<string,mixed> $data   The object payload.
+     * @param string              $schema Schema slug the object belongs to.
      *
      * @return ObjectEntity
      */
-    private function makeObjectEntity(array $data): ObjectEntity
+    private function makeObjectEntity(array $data, string $schema): ObjectEntity
     {
-        $entity = $this->createMock(ObjectEntity::class);
-        $entity->method('jsonSerialize')->willReturn($data);
-
-        return $entity;
+        return OrEntityFactory::make($data, $schema);
 
     }//end makeObjectEntity()
 
@@ -74,11 +76,11 @@ class GradeFormulaEvaluatorTest extends TestCase
     {
         $objectService = $this->createMock(ObjectService::class);
 
-        $planEntity  = $this->makeObjectEntity(data: $plan);
-        $scaleEntity = $scale === null ? null : $this->makeObjectEntity(data: $scale);
+        $planEntity  = $this->makeObjectEntity(data: $plan, schema: 'curriculum-plan');
+        $scaleEntity = $scale === null ? null : $this->makeObjectEntity(data: $scale, schema: 'grade-scale');
 
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) use ($planEntity, $scaleEntity) {
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($planEntity, $scaleEntity) {
                 if ($schema === 'curriculum-plan') {
                     return $planEntity;
                 }

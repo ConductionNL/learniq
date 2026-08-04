@@ -295,10 +295,6 @@ class EnrolmentPrerequisiteListener implements IEventListener
             return null;
         }
 
-        if (is_array($object) === true) {
-            return $object;
-        }
-
         return $object->jsonSerialize();
 
     }//end resolveObject()

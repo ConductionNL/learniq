@@ -30,11 +30,11 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Tests\Unit\Listener;
 
-use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\EnrolmentPrerequisiteListener;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -117,8 +117,13 @@ class EnrolmentPrerequisiteListenerTest extends TestCase
         $objectService = $this->createMock(ObjectService::class);
 
         $objectService->method('find')->willReturnCallback(
-            function (string $id, $register=null, $schema=null) {
-                return $this->db[$schema][$id] ?? null;
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) {
+                $record = ($this->db[$schema][$id] ?? null);
+                if ($record === null) {
+                    return null;
+                }
+
+                return OrEntityFactory::make($record, (string) $schema);
             }
         );
 
@@ -156,7 +161,7 @@ class EnrolmentPrerequisiteListenerTest extends TestCase
     }//end makeListener()
 
     /**
-     * Build a real ObjectCreatingEvent wrapping a mocked `enrolment` ObjectEntity.
+     * Build a real ObjectCreatingEvent wrapping a real `enrolment` ObjectEntity.
      *
      * @param array<string, mixed> $payload The Enrolment jsonSerialize() payload being created.
      *
@@ -164,10 +169,7 @@ class EnrolmentPrerequisiteListenerTest extends TestCase
      */
     private function eventFor(array $payload): ObjectCreatingEvent
     {
-        $entity = $this->createMock(ObjectEntity::class);
-        $entity->method('jsonSerialize')->willReturn($payload);
-        $entity->method('getRegister')->willReturn('9');
-        $entity->method('getSchema')->willReturn('1280');
+        $entity = OrEntityFactory::make($payload, '1280', '9');
         $this->stubResolver('enrolment');
 
         return new ObjectCreatingEvent($entity);
@@ -335,10 +337,7 @@ class EnrolmentPrerequisiteListenerTest extends TestCase
      */
     public function testOtherSchemaIgnored(): void
     {
-        $entity = $this->createMock(ObjectEntity::class);
-        $entity->method('jsonSerialize')->willReturn(['id' => 'x']);
-        $entity->method('getRegister')->willReturn('9');
-        $entity->method('getSchema')->willReturn('1281');
+        $entity = OrEntityFactory::make(['id' => 'x'], '1281', '9');
         $this->stubResolver('course');
 
         $event = new ObjectCreatingEvent($entity);

@@ -291,18 +291,7 @@ class AttendanceFlagCreationHandler implements IEventListener
             object: $job
         );
 
-        if ($saved === null) {
-            $this->logger->warning(
-                '[AttendanceFlagCreationHandler] Failed to queue DataExchangeJob for target {t}, learner {l}.',
-                ['t' => $target, 'l' => $learnerId]
-            );
-            return null;
-        }
-
-        $savedData = $saved;
-        if (is_array($saved) === false) {
-            $savedData = $saved->jsonSerialize();
-        }
+        $savedData = $saved->jsonSerialize();
 
         $jobId = $savedData['id'] ?? ($savedData['uuid'] ?? null);
 

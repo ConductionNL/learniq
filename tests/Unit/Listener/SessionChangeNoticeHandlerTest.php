@@ -27,6 +27,7 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\SessionChangeNoticeHandler;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -100,9 +101,10 @@ class SessionChangeNoticeHandlerTest extends TestCase
         );
 
         $this->objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
-                $this->saved[] = $object;
-                return $object;
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $data          = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+                $this->saved[] = $data;
+                return OrEntityFactory::make($data, (string) $schema, (string) $register);
             }
         );
 

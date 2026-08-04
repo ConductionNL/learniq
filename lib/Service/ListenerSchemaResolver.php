@@ -125,7 +125,17 @@ class ListenerSchemaResolver
      */
     public function schemaSlug(?object $entity): string
     {
-        if ($entity === null || method_exists($entity, 'getSchema') === false) {
+        // `is_callable()`, NOT `method_exists()`. OpenRegister's ObjectEntity
+        // gets getSchema()/getRegister()/getUuid() from
+        // OCP\AppFramework\Db\Entity::__call, so `method_exists()` returns
+        // FALSE for them on a real entity — measured, not assumed. This guard
+        // therefore used to reject every genuine ObjectEntity and return '',
+        // which every caller reads as "not my object" and returns early: all of
+        // scholiq's OpenRegister listeners silently did nothing in production.
+        // The unit suite did not catch it because the old tests/Stubs entity
+        // declared those accessors concretely, so method_exists() was true
+        // there and only there.
+        if ($entity === null || is_callable([$entity, 'getSchema']) === false) {
             return '';
         }
 
@@ -157,7 +167,8 @@ class ListenerSchemaResolver
      */
     public function registerSlug(?object $entity): string
     {
-        if ($entity === null || method_exists($entity, 'getRegister') === false) {
+        // `is_callable()`, not `method_exists()` — see schemaSlug().
+        if ($entity === null || is_callable([$entity, 'getRegister']) === false) {
             return '';
         }
 
@@ -192,7 +203,8 @@ class ListenerSchemaResolver
      */
     public function isOwnRegister(?object $entity): bool
     {
-        if ($entity === null || method_exists($entity, 'getRegister') === false) {
+        // `is_callable()`, not `method_exists()` — see schemaSlug().
+        if ($entity === null || is_callable([$entity, 'getRegister']) === false) {
             return false;
         }
 

@@ -30,6 +30,7 @@ use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\LessonProgressHandler;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -132,12 +133,19 @@ class LessonProgressHandlerTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $schema = (string) $schema;
+                $object = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+
                 if (isset($object['id']) === false) {
                     $object['id'] = $schema.'-auto-'.(count($this->db[$schema] ?? []) + 1);
                 }
 
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => $schema,
+                    'object'   => $object,
+                ];
 
                 $existingIndex = null;
                 foreach (($this->db[$schema] ?? []) as $index => $rec) {
@@ -153,7 +161,7 @@ class LessonProgressHandlerTest extends TestCase
                     $this->db[$schema][] = $object;
                 }
 
-                return $object;
+                return OrEntityFactory::make($object, $schema, (string) $register);
             }
         );
 
@@ -192,10 +200,7 @@ class LessonProgressHandlerTest extends TestCase
      */
     private function makeXapiEvent(array $data): ObjectCreatedEvent
     {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($data);
-        $objectEntity->method('getRegister')->willReturn('9');
-        $objectEntity->method('getSchema')->willReturn('1280');
+        $objectEntity = OrEntityFactory::make($data, '1280', '9');
         $this->stubResolver('xapi-statement');
 
         $event = $this->createMock(ObjectCreatedEvent::class);
@@ -432,10 +437,7 @@ class LessonProgressHandlerTest extends TestCase
         $now     = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
         $handler = $this->makeHandler(now: $now);
 
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn(['id' => 'x']);
-        $objectEntity->method('getRegister')->willReturn('9');
-        $objectEntity->method('getSchema')->willReturn('1281');
+        $objectEntity = OrEntityFactory::make(['id' => 'x'], '1281', '9');
         $this->stubResolver('grade-entry');
 
         $event = $this->createMock(ObjectCreatedEvent::class);

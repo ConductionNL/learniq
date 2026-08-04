@@ -32,6 +32,7 @@ namespace OCA\Scholiq\Tests\Unit\Lifecycle;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Lifecycle\EntitlementOrderPaidGuard;
 use OCA\Scholiq\Lifecycle\FeeItemVoluntaryEntitlementGuard;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -54,18 +55,21 @@ class FeeItemVoluntaryEntitlementGuardTest extends TestCase
     private function makeGuard(?array $feeItem, ?array $orderLine=null, ?array $order=null): FeeItemVoluntaryEntitlementGuard
     {
         $objectService = $this->createMock(ObjectService::class);
+        // OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
+        // and returns ?ObjectEntity. willReturnCallback() hands the closure the
+        // mock's arguments POSITIONALLY, so the closure must mirror that order.
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) use ($feeItem, $orderLine, $order) {
-                if ($schema === 'fee-item') {
-                    return $feeItem;
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($feeItem, $orderLine, $order) {
+                if ($schema === 'fee-item' && $feeItem !== null) {
+                    return OrEntityFactory::make($feeItem, 'fee-item');
                 }
 
-                if ($schema === 'order-line') {
-                    return $orderLine;
+                if ($schema === 'order-line' && $orderLine !== null) {
+                    return OrEntityFactory::make($orderLine, 'order-line');
                 }
 
-                if ($schema === 'order') {
-                    return $order;
+                if ($schema === 'order' && $order !== null) {
+                    return OrEntityFactory::make($order, 'order');
                 }
 
                 return null;
