@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Scholiq\Tests\Unit\Listener;
 
 use DateTime;
+use DateTimeImmutable;
 use DateTimeZone;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
@@ -184,6 +185,7 @@ class EngagementSignalHandlerTest extends TestCase
 
         $timeFactory = $this->createMock(ITimeFactory::class);
         $timeFactory->method('getDateTime')->willReturn($now);
+        $timeFactory->method('now')->willReturn(DateTimeImmutable::createFromMutable($now));
 
         return new EngagementSignalHandler($objectService, $evaluator, $this->schemaResolver, $timeFactory);
 

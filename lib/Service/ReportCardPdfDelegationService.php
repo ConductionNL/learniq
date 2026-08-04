@@ -144,9 +144,10 @@ class ReportCardPdfDelegationService
         $object['docudeskRequestedAt'] = date('c');
 
         try {
-            $result = $this->callDocudeskRender(reportCard: $object);
+            $result   = $this->callDocudeskRender(reportCard: $object);
+            $rendered = ($result !== null && ($result['documentRef'] ?? null) !== null);
 
-            if ($result !== null && ($result['documentRef'] ?? null) !== null) {
+            if ($rendered === true) {
                 $object['docudeskRenderStatus'] = 'rendered';
                 $object['docudeskDocumentRef']  = (string) $result['documentRef'];
                 $object['docudeskRenderError']  = null;
@@ -154,7 +155,9 @@ class ReportCardPdfDelegationService
                     '[ReportCardPdfDelegationService] ReportCard {id} rendered — docudeskDocumentRef {ref}.',
                     ['id' => $reportId, 'ref' => $result['documentRef']]
                 );
-            } else {
+            }
+
+            if ($rendered === false) {
                 $object['docudeskRenderStatus'] = 'failed';
                 $object['docudeskRenderError']  = 'docudesk render failed or returned no document reference '
                     .'(the docudesk-side endpoint is a proposed, not-yet-verified contract — see design.md).';

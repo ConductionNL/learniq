@@ -260,7 +260,7 @@ class ConferenceScheduleGenerator implements IEventListener
         $activeSlotKeys = [];
         // Every non-cancelled interval already assigned to a signup (any
         // teacher) — the overlap guard for newly assigned slots in this pass.
-        $assignedIntervalsBySignup = [];
+        $intervalsBySignup = [];
 
         foreach ($existingSlots as $slot) {
             $status    = ($slot['lifecycle'] ?? '');
@@ -289,14 +289,14 @@ class ConferenceScheduleGenerator implements IEventListener
 
             if ($signupId !== '') {
                 $activeSlotKeys[$signupId.'|'.$teacherId] = true;
-                $assignedIntervalsBySignup[$signupId][]   = $interval;
+                $intervalsBySignup[$signupId][]           = $interval;
             }
         }//end foreach
 
         return [
             'confirmedByTeacher' => $confirmedByTeacher,
             'activeSlotKeys'     => $activeSlotKeys,
-            'intervalsBySignup'  => $assignedIntervalsBySignup,
+            'intervalsBySignup'  => $intervalsBySignup,
         ];
 
     }//end indexExistingSlots()
@@ -566,8 +566,11 @@ class ConferenceScheduleGenerator implements IEventListener
      */
     private function popNextNonOverlapping(array &$queue, array $blocked): ?array
     {
-        while (count($queue) > 0) {
+        $remaining = count($queue);
+
+        while ($remaining > 0) {
             $candidate = array_shift($queue);
+            $remaining = count($queue);
             if ($this->overlapsAny(candidate: $candidate, intervals: $blocked) === false) {
                 return $candidate;
             }

@@ -31,6 +31,15 @@ namespace OCA\Scholiq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Service\CommonCartridgeParser;
+use OCA\Scholiq\Service\CoursePackage\CommonCartridgeCourseImporter;
+use OCA\Scholiq\Service\CoursePackage\CommonCartridgeResourceRouter;
+use OCA\Scholiq\Service\CoursePackage\CoursePackageFileWriter;
+use OCA\Scholiq\Service\CoursePackage\CoursePackageImportReporter;
+use OCA\Scholiq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Scholiq\Service\CoursePackage\MoodleActivityRouter;
+use OCA\Scholiq\Service\CoursePackage\MoodleCourseImporter;
+use OCA\Scholiq\Service\CoursePackage\PackageXmlValueReader;
+use OCA\Scholiq\Service\CoursePackage\ScholiqJsonCourseImporter;
 use OCA\Scholiq\Service\CoursePackageImportService;
 use OCA\Scholiq\Service\MbzExtractor;
 use OCA\Scholiq\Service\MoodleBackupParser;
@@ -103,15 +112,42 @@ class CoursePackageImportServiceTest extends TestCase
 
         $qtiImportService = new QtiImportService($objectService, new NullLogger());
 
-        return new CoursePackageImportService(
-            $objectService,
+        $logger       = new NullLogger();
+        $objectWriter = new CoursePackageObjectWriter($objectService);
+        $fileWriter   = new CoursePackageFileWriter($rootFolder, $logger);
+        $reporter     = new CoursePackageImportReporter($objectService);
+        $xmlReader    = new PackageXmlValueReader();
+
+        $ccImporter = new CommonCartridgeCourseImporter(
             $qtiImportService,
-            new MbzExtractor(),
             new CommonCartridgeParser(),
+            new CommonCartridgeResourceRouter($objectWriter, $fileWriter, $reporter, $xmlReader, $logger),
+            $objectWriter,
+            $reporter,
+        );
+
+        $moodleImporter = new MoodleCourseImporter(
+            new MbzExtractor(),
             new MoodleBackupParser(),
-            new MoodleQuizQuestionMapper(),
-            $rootFolder,
-            new NullLogger(),
+            new MoodleActivityRouter(
+                new MoodleQuizQuestionMapper(),
+                $objectWriter,
+                $fileWriter,
+                $reporter,
+                $xmlReader,
+                $logger
+            ),
+            $objectWriter,
+            $reporter,
+        );
+
+        return new CoursePackageImportService(
+            $ccImporter,
+            $moodleImporter,
+            new ScholiqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
+            $fileWriter,
+            $reporter,
+            $logger,
         );
     }//end service()
 

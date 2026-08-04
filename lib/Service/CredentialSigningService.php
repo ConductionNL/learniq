@@ -139,11 +139,10 @@ class CredentialSigningService
             default: ''
         );
 
+        $kid = 'unknown';
         if ($publicKey !== '') {
             // Use 32-char fingerprint (128-bit) to match KeyManagementService. Fixes #193.
             $kid = substr(hash('sha256', $publicKey), 0, 32);
-        } else {
-            $kid = 'unknown';
         }
 
         $payload['proof'] = [
@@ -271,11 +270,11 @@ class CredentialSigningService
             key: self::PUBLIC_KEY_PREFIX.$tenantId,
             default: ''
         );
+
+        $kid = 'unknown';
         if ($publicKeyPem !== '') {
             // Use 32-char fingerprint (128-bit) to match KeyManagementService. Fixes #193.
             $kid = substr(hash('sha256', $publicKeyPem), 0, 32);
-        } else {
-            $kid = 'unknown';
         }
 
         // H6: RFC 8785 (JCS) — sort keys recursively before encoding so the

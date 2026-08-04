@@ -36,6 +36,7 @@ namespace OCA\Scholiq\Tests\Unit\Cron;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Cron\LtiAgsScorePollJob;
+use OCA\Scholiq\Service\LtiAgsPullClient;
 use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Http\Client\IClient;
@@ -209,11 +210,20 @@ class LtiAgsScorePollJobTest extends TestCase
 
         $this->clientService->method('newClient')->willReturn($client);
 
+        // The pull transport is a real collaborator wired to the mocked HTTP
+        // client, so the sweep is still driven end-to-end through the same
+        // JSON body the OpenConnector endpoint would return.
+        $pullClient = new LtiAgsPullClient(
+            clientService: $this->clientService,
+            urlGenerator: $this->urlGenerator,
+            appConfig: $this->appConfig,
+            logger: new NullLogger()
+        );
+
         return new LtiAgsScorePollJob(
             time: $this->createMock(ITimeFactory::class),
             objectService: $this->objectService,
-            clientService: $this->clientService,
-            urlGenerator: $this->urlGenerator,
+            pullClient: $pullClient,
             appConfig: $this->appConfig,
             logger: new NullLogger()
         );
@@ -351,8 +361,12 @@ class LtiAgsScorePollJobTest extends TestCase
         $job = new LtiAgsScorePollJob(
             time: $this->createMock(ITimeFactory::class),
             objectService: $this->objectService,
-            clientService: $this->clientService,
-            urlGenerator: $this->urlGenerator,
+            pullClient: new LtiAgsPullClient(
+                clientService: $this->clientService,
+                urlGenerator: $this->urlGenerator,
+                appConfig: $this->appConfig,
+                logger: new NullLogger()
+            ),
             appConfig: $this->appConfig,
             logger: new NullLogger()
         );

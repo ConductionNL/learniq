@@ -145,8 +145,6 @@ class AdmissionsDecisionGuard
             return false;
         }
 
-        $kind = (string) ($round['kind'] ?? 'generic');
-
         if ($to === 'intake-completed') {
             return $this->checkMandatoryIntake(round: $round, object: $object);
         }
@@ -155,6 +153,29 @@ class AdmissionsDecisionGuard
             // Not a transition this guard governs (e.g. submit, scheduleIntake, withdraw).
             return true;
         }
+
+        return $this->checkDecision(round: $round, object: $object, roundId: $roundId, to: $to);
+
+    }//end check()
+
+    /**
+     * Run the three decision-transition branches (schooladvies, toelatingsrecht, capacity).
+     *
+     * Reached only for a transition targeting placed|waitlisted|rejected, with
+     * the referenced AdmissionsRound already resolved by check().
+     *
+     * @param array<string,mixed> $round   AdmissionsRound property array.
+     * @param array<string,mixed> $object  Application property array.
+     * @param string              $roundId AdmissionsRound UUID.
+     * @param string              $to      Target lifecycle state.
+     *
+     * @return bool True when the decision may proceed; false blocks the transition.
+     *
+     * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
+     */
+    private function checkDecision(array $round, array $object, string $roundId, string $to): bool
+    {
+        $kind = (string) ($round['kind'] ?? 'generic');
 
         if ($kind === 'vo-schooladvies-doorstroomtoets' && $this->schooladviesAdjustmentSatisfied(object: $object) === false) {
             $this->logger->info(
@@ -184,7 +205,7 @@ class AdmissionsDecisionGuard
 
         return true;
 
-    }//end check()
+    }//end checkDecision()
 
     /**
      * Mandatory-intake gate for the completeIntake transition.
@@ -238,10 +259,10 @@ class AdmissionsDecisionGuard
             $withinDeadline = ($deadlineTs !== false && $submittedTs !== false && $submittedTs <= $deadlineTs);
         }
 
-        $studiekeuzeadviesGiven = ($object['studiekeuzeadviesGiven'] ?? false) === true;
-        $decisionReason         = trim((string) ($object['decisionReason'] ?? ''));
+        $adviesGiven    = ($object['studiekeuzeadviesGiven'] ?? false) === true;
+        $decisionReason = trim((string) ($object['decisionReason'] ?? ''));
 
-        return $withinDeadline === true && $studiekeuzeadviesGiven === true && $decisionReason === '';
+        return $withinDeadline === true && $adviesGiven === true && $decisionReason === '';
 
     }//end toelatingsrechtBlocksRejection()
 
@@ -259,21 +280,9 @@ class AdmissionsDecisionGuard
         $schooladvies = $object['schooladviesLevel'] ?? null;
         $doorstroom   = $object['doorstroomtoetsLevel'] ?? null;
 
-        if (is_string($schooladvies) === false || is_string($doorstroom) === false) {
-            // Nothing recorded to compare — nothing to adjust.
-            return true;
-        }
-
-        $schooladviesRank = array_search($schooladvies, self::ORDINAL_LEVELS, true);
-        $doorstroomRank   = array_search($doorstroom, self::ORDINAL_LEVELS, true);
-
-        if ($schooladviesRank === false || $doorstroomRank === false) {
-            // Unrecognised ordinal value — cannot compare; do not block on bad data.
-            return true;
-        }
-
-        if ($doorstroomRank <= $schooladviesRank) {
-            // Toets did not score higher — nothing to adjust.
+        if ($this->doorstroomOutranks(schooladvies: $schooladvies, doorstroom: $doorstroom) === false) {
+            // Nothing recorded to compare, an unrecognised ordinal value, or a
+            // toets that did not score higher — nothing to adjust.
             return true;
         }
 
@@ -298,6 +307,37 @@ class AdmissionsDecisionGuard
         return false;
 
     }//end schooladviesAdjustmentSatisfied()
+
+    /**
+     * Whether the doorstroomtoets result outranks the schooladvies on the shared ordinal.
+     *
+     * Returns false — "nothing to adjust" — whenever the two values cannot be
+     * compared at all: either level missing/non-string, or a value that is not
+     * on the ordinal. The guard never blocks a decision on unreadable data.
+     *
+     * @param mixed $schooladvies The Application's schooladviesLevel.
+     * @param mixed $doorstroom   The Application's doorstroomtoetsLevel.
+     *
+     * @return bool True only when both levels are comparable and the toets scored higher.
+     *
+     * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
+     */
+    private function doorstroomOutranks(mixed $schooladvies, mixed $doorstroom): bool
+    {
+        if (is_string($schooladvies) === false || is_string($doorstroom) === false) {
+            return false;
+        }
+
+        $schooladviesRank = array_search($schooladvies, self::ORDINAL_LEVELS, true);
+        $doorstroomRank   = array_search($doorstroom, self::ORDINAL_LEVELS, true);
+
+        if ($schooladviesRank === false || $doorstroomRank === false) {
+            return false;
+        }
+
+        return $doorstroomRank > $schooladviesRank;
+
+    }//end doorstroomOutranks()
 
     /**
      * Capacity branch: whether the round's placed/converted count has reached capacity.

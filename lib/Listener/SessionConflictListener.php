@@ -90,11 +90,16 @@ class SessionConflictListener implements IEventListener
      */
     public function handle(Event $event): void
     {
+        $object = null;
         if ($event instanceof ObjectCreatedEvent === true) {
             $object = $event->getObject();
-        } else if ($event instanceof ObjectUpdatedEvent === true) {
+        }
+
+        if ($event instanceof ObjectUpdatedEvent === true) {
             $object = $event->getObject();
-        } else {
+        }
+
+        if ($object === null) {
             return;
         }
 

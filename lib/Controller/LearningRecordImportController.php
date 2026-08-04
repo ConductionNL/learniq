@@ -34,23 +34,15 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Controller;
 
-use DateTimeImmutable;
-use DateTimeInterface;
-use DateTimeZone;
-use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
-use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\AppInfo\Application;
 use OCA\Scholiq\Service\ActionAuthService;
+use OCA\Scholiq\Service\LearningRecordImportIntakeService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\Files\IRootFolder;
-use OCP\IConfig;
 use OCP\IRequest;
-use OCP\IUser;
 use OCP\IUserSession;
-use Psr\Log\LoggerInterface;
 
 /**
  * Handles prior-institution learning-record upload during Application intake.
@@ -65,33 +57,21 @@ use Psr\Log\LoggerInterface;
  */
 class LearningRecordImportController extends Controller
 {
-
-    private const SCHOLIQ_REGISTER = 'scholiq';
-    private const SCHEMA           = 'learning-record-import';
-
     /**
      * Constructor.
      *
-     * @param IRequest          $request          HTTP request.
-     * @param ObjectService     $objectService    OR object create/read service.
-     * @param TransitionEngine  $transitionEngine OR lifecycle engine used to dispatch the `parse` transition.
-     * @param IUserSession      $userSession      Nextcloud user session.
-     * @param ActionAuthService $actionAuth       ADR-023 action authorization service.
-     * @param IRootFolder       $rootFolder       NC root folder for writing the uploaded bytes.
-     * @param IConfig           $config           Nextcloud config for tenant resolution.
-     * @param LoggerInterface   $logger           PSR logger.
+     * @param IRequest                          $request       HTTP request.
+     * @param IUserSession                      $userSession   Nextcloud user session.
+     * @param ActionAuthService                 $actionAuth    ADR-023 action authorization service.
+     * @param LearningRecordImportIntakeService $intakeService Storage + object creation for an accepted upload.
      *
      * @return void
      */
     public function __construct(
         IRequest $request,
-        private readonly ObjectService $objectService,
-        private readonly TransitionEngine $transitionEngine,
         private readonly IUserSession $userSession,
         private readonly ActionAuthService $actionAuth,
-        private readonly IRootFolder $rootFolder,
-        private readonly IConfig $config,
-        private readonly LoggerInterface $logger,
+        private readonly LearningRecordImportIntakeService $intakeService,
     ) {
         parent::__construct(appName: Application::APP_ID, request: $request);
     }//end __construct()
@@ -129,9 +109,9 @@ class LearningRecordImportController extends Controller
 
         $sourceFilename = (string) ($uploadedFile['name'] ?? 'learning-record.json');
         $tmpPath        = (string) $uploadedFile['tmp_name'];
-        $tenantId       = $this->resolveTenantId(user: $user);
+        $tenantId       = $this->intakeService->resolveTenantId(user: $user);
 
-        $sourceRef = $this->writeUploadToFiles(
+        $sourceRef = $this->intakeService->storeUpload(
             tmpPath: $tmpPath,
             ownerUid: $user->getUID(),
             tenantId: $tenantId
@@ -143,43 +123,22 @@ class LearningRecordImportController extends Controller
             );
         }
 
-        $uploadedAt = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-
-        $created = $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::SCHEMA,
-            object: [
-                'applicationId'  => $applicationId,
-                'sourceFilename' => $sourceFilename,
-                'sourceFormat'   => $sourceFormat,
-                'uploadedBy'     => $user->getUID(),
-                'uploadedAt'     => $uploadedAt,
-                'sourceRef'      => $sourceRef,
-                'lifecycle'      => 'uploaded',
-                'tenant_id'      => $tenantId,
-            ]
+        $imported = $this->intakeService->createImport(
+            applicationId: $applicationId,
+            sourceFilename: $sourceFilename,
+            sourceFormat: $sourceFormat,
+            uploadedBy: $user->getUID(),
+            sourceRef: $sourceRef,
+            tenantId: $tenantId
         );
-
-        $createdId = $this->extractId(saved: $created);
-        if ($createdId === null) {
+        if ($imported === null) {
             return new JSONResponse(
                 data: ['error' => 'Could not create the LearningRecordImport record.'],
                 statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
             );
         }
 
-        try {
-            $this->transitionEngine->transition($createdId, 'parse');
-        } catch (\Throwable $e) {
-            $this->logger->warning(
-                '[LearningRecordImportController] parse transition for {id} raised: {msg}',
-                ['id' => $createdId, 'msg' => $e->getMessage()]
-            );
-        }
-
-        $final = $this->objectService->find(id: $createdId, register: self::SCHOLIQ_REGISTER, schema: self::SCHEMA);
-
-        return new JSONResponse(data: $this->toArray(row: $final), statusCode: Http::STATUS_OK);
+        return new JSONResponse(data: $imported, statusCode: Http::STATUS_OK);
     }//end upload()
 
     /**
@@ -227,130 +186,4 @@ class LearningRecordImportController extends Controller
         return null;
 
     }//end rejectUpload()
-
-    /**
-     * Resolve the requesting tenant's ID.
-     *
-     * The authenticated user's own tenant binding wins; `instanceid` is only the
-     * fallback, because it is the same for every tenant on the instance.
-     *
-     * @param IUser $user Authenticated user whose tenant binding is read.
-     *
-     * @return string Tenant UUID, or the instance id when unbound.
-     *
-     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-learner-can-upload-a-portable-learning-record-for-an-application
-     */
-    private function resolveTenantId(IUser $user): string
-    {
-        $userTenantId = $this->config->getUserValue(
-            userId: $user->getUID(),
-            appName: 'scholiq',
-            key: 'tenant_id',
-            default: ''
-        );
-
-        if ($userTenantId !== '') {
-            return $userTenantId;
-        }
-
-        return (string) $this->config->getSystemValue('instanceid', '');
-
-    }//end resolveTenantId()
-
-    /**
-     * Write the raw uploaded bytes into the caller's nc:files home, mirroring
-     * `CoursePackageImportService::writeBytesToFiles()`'s destination
-     * convention (`Scholiq/{tenant}/...`).
-     *
-     * @param string $tmpPath  Absolute path to the uploaded tmp file.
-     * @param string $ownerUid Nextcloud user id who will own the file.
-     * @param string $tenantId Tenant UUID, used to namespace the destination folder.
-     *
-     * @return string|null The nc:files path (relative, no leading slash), or null on failure.
-     */
-    private function writeUploadToFiles(string $tmpPath, string $ownerUid, string $tenantId): ?string
-    {
-        try {
-            $content = (string) file_get_contents($tmpPath);
-
-            $tenantSegment = 'default';
-            if ($tenantId !== '') {
-                $tenantSegment = $tenantId;
-            }
-
-            $ncBaseDir = 'Scholiq/'.$tenantSegment.'/learning-record-imports';
-            $ncPath    = $ncBaseDir.'/'.bin2hex(random_bytes(8)).'.json';
-
-            $userFolder = $this->rootFolder->getUserFolder($ownerUid);
-
-            $segments = array_filter(explode('/', $ncBaseDir));
-            $current  = '';
-            foreach ($segments as $segment) {
-                if ($current === '') {
-                    $current = $segment;
-                } else {
-                    $current = $current.'/'.$segment;
-                }
-
-                try {
-                    $userFolder->get($current);
-                } catch (\OCP\Files\NotFoundException $e) {
-                    $userFolder->newFolder($current);
-                }
-            }
-
-            $userFolder->newFile($ncPath, $content);
-
-            return $ncPath;
-        } catch (\Throwable $e) {
-            $this->logger->warning(
-                '[LearningRecordImportController] Could not write uploaded bundle: {msg}',
-                ['msg' => $e->getMessage()]
-            );
-            return null;
-        }//end try
-    }//end writeUploadToFiles()
-
-    /**
-     * Extract a created object's UUID from an `ObjectService::saveObject()` return value.
-     *
-     * @param mixed $saved Return value of `saveObject()` (array or an ObjectEntity-like object).
-     *
-     * @return string|null The UUID, or null if it could not be resolved.
-     */
-    private function extractId(mixed $saved): ?string
-    {
-        $data = $this->toArray(row: $saved);
-
-        $id = $data['id'] ?? ($data['uuid'] ?? null);
-
-        if (is_string($id) === true) {
-            return $id;
-        }
-
-        return null;
-    }//end extractId()
-
-    /**
-     * Normalise an OR result row (a raw array or an ObjectEntity-like object) to a plain array.
-     *
-     * @param mixed $row Raw row from ObjectService.
-     *
-     * @return array<string,mixed>
-     */
-    private function toArray(mixed $row): array
-    {
-        if (is_array($row) === true) {
-            return $row;
-        }
-
-        if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-            $serialized = $row->jsonSerialize();
-            if (is_array($serialized) === true) {
-                return $serialized;
-            }
-        }
-
-        return [];
-    }//end toArray()
 }//end class

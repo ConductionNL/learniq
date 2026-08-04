@@ -222,20 +222,10 @@ class BsaProgressFlagHandler implements IEventListener
             return;
         }
 
-        $windowOpensAt = $trajectory['windowOpensAt'] ?? null;
-        if (is_string($windowOpensAt) === false || $windowOpensAt === '') {
-            return;
-        }
-
-        $now = DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime());
-        try {
-            $windowOpensAtDate = new DateTimeImmutable($windowOpensAt);
-        } catch (\Exception) {
-            return;
-        }
-
-        if ($now < $windowOpensAtDate) {
-            // Interim-check window has not opened yet.
+        $now = $this->timeFactory->now();
+        if ($this->windowHasOpened(trajectory: $trajectory, now: $now) === false) {
+            // No usable windowOpensAt, or the interim-check window has not
+            // opened yet.
             return;
         }
 
@@ -278,6 +268,36 @@ class BsaProgressFlagHandler implements IEventListener
         );
 
     }//end checkTrajectory()
+
+    /**
+     * Whether a trajectory's interim-check window has opened at the given moment.
+     *
+     * A missing, empty, or unparsable `windowOpensAt` counts as "not opened" —
+     * the handler never flags a learner off a date it cannot read.
+     *
+     * @param array<string,mixed> $trajectory BsaTrajectory data.
+     * @param DateTimeImmutable   $now        The current moment.
+     *
+     * @return bool True when the window has opened and the check may proceed.
+     *
+     * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+     */
+    private function windowHasOpened(array $trajectory, DateTimeImmutable $now): bool
+    {
+        $windowOpensAt = $trajectory['windowOpensAt'] ?? null;
+        if (is_string($windowOpensAt) === false || $windowOpensAt === '') {
+            return false;
+        }
+
+        try {
+            $windowOpensAtDate = new DateTimeImmutable($windowOpensAt);
+        } catch (\Exception) {
+            return false;
+        }
+
+        return $now >= $windowOpensAtDate;
+
+    }//end windowHasOpened()
 
     /**
      * Check whether a still-open BsaProgressFlag already exists for this

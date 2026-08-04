@@ -157,7 +157,7 @@ class AdmissionsWaitlistPromoter implements IEventListener
                 'limit'    => 2000,
             ]
         );
-        $waitlisted = array_map([$this, 'normalise'], $waitlisted);
+        $waitlisted = array_map(fn (mixed $row): array => $this->normalise(row: $row), $waitlisted);
 
         if (count($waitlisted) === 0) {
             return;

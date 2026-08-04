@@ -143,7 +143,7 @@ class ReportCardVisibilityGuard
      */
     private function firstUnreleasedGradeEntry(array $subjectRows, string $tenantId): ?array
     {
-        $now = DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime());
+        $now = $this->timeFactory->now();
 
         foreach ($subjectRows as $row) {
             if (is_array($row) === false) {

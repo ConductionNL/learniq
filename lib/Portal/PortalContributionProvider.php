@@ -167,174 +167,227 @@ class PortalContributionProvider
     {
         return [
             'label'         => 'Scholiq',
-            'collections'   => [
-                [
-                    'id'         => 'studentGrades',
-                    'register'   => self::REGISTER,
-                    'schema'     => 'grade-entry',
-                    'scopeField' => 'learnerRef',
-                    'scopeClaim' => 'learnerRef',
-                    'label'      => 'My grades',
-                    'listable'   => true,
-                    'minTrust'   => 'low',
-                    'fields'     => [
-                        'learnerRef',
-                        'courseId',
-                        'curriculumPlanId',
-                        'componentId',
-                        'value',
-                        'gradeScaleId',
-                        'period',
-                        'gradedAt',
-                    ],
-                ],
-                [
-                    'id'         => 'studentFinalGrades',
-                    'register'   => self::REGISTER,
-                    'schema'     => 'final-grade',
-                    'scopeField' => 'learnerRef',
-                    'scopeClaim' => 'learnerRef',
-                    'label'      => 'My final grades',
-                    'listable'   => true,
-                    'minTrust'   => 'low',
-                    'fields'     => [
-                        'learnerRef',
-                        'courseId',
-                        'programmeId',
-                        'curriculumPlanId',
-                        'gradeScaleId',
-                        'value',
-                        'passed',
-                        'lastRecomputedAt',
-                    ],
-                ],
-                [
-                    'id'         => 'studentAttendance',
-                    'register'   => self::REGISTER,
-                    'schema'     => 'attendance-record',
-                    'scopeField' => 'learnerRef',
-                    'scopeClaim' => 'learnerRef',
-                    'label'      => 'My attendance',
-                    'listable'   => true,
-                    'minTrust'   => 'low',
-                    'fields'     => [
-                        'learnerRef',
-                        'sessionId',
-                        'cohortId',
-                        'status',
-                        'minutesAttended',
-                        'markedAt',
-                    ],
-                ],
-                [
-                    'id'         => 'studentEnrolments',
-                    'register'   => self::REGISTER,
-                    'schema'     => 'enrolment',
-                    'scopeField' => 'learnerRef',
-                    'scopeClaim' => 'learnerRef',
-                    'label'      => 'My enrolments',
-                    'listable'   => true,
-                    'fields'     => [
-                        'learnerRef',
-                        'courseId',
-                        'mandatory',
-                        'dueDate',
-                        'source',
-                        'regulationSlug',
-                        'cohortId',
-                    ],
-                ],
-                [
-                    'id'         => 'studentSubmissions',
-                    'register'   => self::REGISTER,
-                    'schema'     => 'submission',
-                    'scopeField' => 'learnerRefs',
-                    'scopeClaim' => 'learnerRef',
-                    'label'      => 'My submissions',
-                    'listable'   => true,
-                    'fields'     => [
-                        'learnerRefs',
-                        'assignmentId',
-                        'attachmentRefs',
-                        'submittedAt',
-                        'feedbackText',
-                        'lifecycle',
-                    ],
-                ],
-                [
-                    'id'         => 'studentExcuseRequests',
-                    'register'   => self::REGISTER,
-                    'schema'     => 'excuse-request',
-                    'scopeField' => 'learnerRef',
-                    'scopeClaim' => 'learnerRef',
-                    'label'      => 'My absence excuses',
-                    'listable'   => true,
-                    'fields'     => [
-                        'learnerRef',
-                        'dateFrom',
-                        'dateTo',
-                        'reason',
-                        'reasonKind',
-                        'attachmentRef',
-                        'lifecycle',
-                        'decidedAt',
-                    ],
-                ],
-                // Inbox (contract v2): the learner's grade-published
-                // notifications, scoped by learnerRef. Portaliq renders
-                // `kind: inbox` collections in the shared inbox surface.
-                [
-                    'id'         => 'studentInbox',
-                    'kind'       => 'inbox',
-                    'register'   => self::REGISTER,
-                    'schema'     => 'grade-notification',
-                    'scopeField' => 'learnerRef',
-                    'scopeClaim' => 'learnerRef',
-                    'label'      => 'Notifications',
-                    'listable'   => true,
-                    'fields'     => [
-                        'learnerRef',
-                        'event',
-                        'courseId',
-                    ],
-                ],
-            ],
-            'actions'       => [
-                [
-                    'id'         => 'createSubmission',
-                    'type'       => 'create',
-                    'label'      => 'Hand in an assignment',
-                    'register'   => self::REGISTER,
-                    'schema'     => 'submission',
-                    'scopeField' => 'learnerRefs',
-                    'scopeClaim' => 'learnerRef',
-                    'fields'     => [
-                        'assignmentId',
-                        'attachmentRefs',
-                    ],
-                ],
-                [
-                    'id'         => 'createExcuseRequest',
-                    'type'       => 'create',
-                    'label'      => 'Report an absence',
-                    'register'   => self::REGISTER,
-                    'schema'     => 'excuse-request',
-                    'scopeField' => 'learnerRef',
-                    'scopeClaim' => 'learnerRef',
-                    'minTrust'   => 'low',
-                    'fields'     => [
-                        'dateFrom',
-                        'dateTo',
-                        'reason',
-                        'reasonKind',
-                        'attachmentRef',
-                    ],
-                ],
-            ],
+            'collections'   => array_merge(
+                $this->studentResultCollections(),
+                $this->studentActivityCollections()
+            ),
+            'actions'       => $this->studentActions(),
             'notifications' => [],
         ];
 
     }//end studentContribution()
+
+    /**
+     * The learner's own result collections — grades, final grades and attendance.
+     *
+     * Every entry is scoped by `learnerRef` == the student's own LearnerProfile
+     * UUID and field-projected to hide staff-only columns.
+     *
+     * @return array<int, array<string, mixed>> Student result collections.
+     *
+     * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+     */
+    private function studentResultCollections(): array
+    {
+        return [
+            [
+                'id'         => 'studentGrades',
+                'register'   => self::REGISTER,
+                'schema'     => 'grade-entry',
+                'scopeField' => 'learnerRef',
+                'scopeClaim' => 'learnerRef',
+                'label'      => 'My grades',
+                'listable'   => true,
+                'minTrust'   => 'low',
+                'fields'     => [
+                    'learnerRef',
+                    'courseId',
+                    'curriculumPlanId',
+                    'componentId',
+                    'value',
+                    'gradeScaleId',
+                    'period',
+                    'gradedAt',
+                ],
+            ],
+            [
+                'id'         => 'studentFinalGrades',
+                'register'   => self::REGISTER,
+                'schema'     => 'final-grade',
+                'scopeField' => 'learnerRef',
+                'scopeClaim' => 'learnerRef',
+                'label'      => 'My final grades',
+                'listable'   => true,
+                'minTrust'   => 'low',
+                'fields'     => [
+                    'learnerRef',
+                    'courseId',
+                    'programmeId',
+                    'curriculumPlanId',
+                    'gradeScaleId',
+                    'value',
+                    'passed',
+                    'lastRecomputedAt',
+                ],
+            ],
+            [
+                'id'         => 'studentAttendance',
+                'register'   => self::REGISTER,
+                'schema'     => 'attendance-record',
+                'scopeField' => 'learnerRef',
+                'scopeClaim' => 'learnerRef',
+                'label'      => 'My attendance',
+                'listable'   => true,
+                'minTrust'   => 'low',
+                'fields'     => [
+                    'learnerRef',
+                    'sessionId',
+                    'cohortId',
+                    'status',
+                    'minutesAttended',
+                    'markedAt',
+                ],
+            ],
+        ];
+
+    }//end studentResultCollections()
+
+    /**
+     * The learner's own activity collections — enrolments, submissions, excuses and inbox.
+     *
+     * Submissions are scoped by membership in `learnerRefs`; the rest by
+     * `learnerRef`. The inbox entry carries `kind: inbox` so portaliq renders it
+     * in the shared inbox surface rather than as a plain collection.
+     *
+     * @return array<int, array<string, mixed>> Student activity collections.
+     *
+     * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+     */
+    private function studentActivityCollections(): array
+    {
+        return [
+            [
+                'id'         => 'studentEnrolments',
+                'register'   => self::REGISTER,
+                'schema'     => 'enrolment',
+                'scopeField' => 'learnerRef',
+                'scopeClaim' => 'learnerRef',
+                'label'      => 'My enrolments',
+                'listable'   => true,
+                'fields'     => [
+                    'learnerRef',
+                    'courseId',
+                    'mandatory',
+                    'dueDate',
+                    'source',
+                    'regulationSlug',
+                    'cohortId',
+                ],
+            ],
+            [
+                'id'         => 'studentSubmissions',
+                'register'   => self::REGISTER,
+                'schema'     => 'submission',
+                'scopeField' => 'learnerRefs',
+                'scopeClaim' => 'learnerRef',
+                'label'      => 'My submissions',
+                'listable'   => true,
+                'fields'     => [
+                    'learnerRefs',
+                    'assignmentId',
+                    'attachmentRefs',
+                    'submittedAt',
+                    'feedbackText',
+                    'lifecycle',
+                ],
+            ],
+            [
+                'id'         => 'studentExcuseRequests',
+                'register'   => self::REGISTER,
+                'schema'     => 'excuse-request',
+                'scopeField' => 'learnerRef',
+                'scopeClaim' => 'learnerRef',
+                'label'      => 'My absence excuses',
+                'listable'   => true,
+                'fields'     => [
+                    'learnerRef',
+                    'dateFrom',
+                    'dateTo',
+                    'reason',
+                    'reasonKind',
+                    'attachmentRef',
+                    'lifecycle',
+                    'decidedAt',
+                ],
+            ],
+            // Inbox (contract v2): the learner's grade-published
+            // notifications, scoped by learnerRef. Portaliq renders
+            // `kind: inbox` collections in the shared inbox surface.
+            [
+                'id'         => 'studentInbox',
+                'kind'       => 'inbox',
+                'register'   => self::REGISTER,
+                'schema'     => 'grade-notification',
+                'scopeField' => 'learnerRef',
+                'scopeClaim' => 'learnerRef',
+                'label'      => 'Notifications',
+                'listable'   => true,
+                'fields'     => [
+                    'learnerRef',
+                    'event',
+                    'courseId',
+                ],
+            ],
+        ];
+
+    }//end studentActivityCollections()
+
+    /**
+     * The learner's own create-actions — hand in an assignment, report an absence.
+     *
+     * Strict field whitelists: grades, status, staff decision and assurance
+     * fields stay server-authoritative and are never client-writable.
+     *
+     * @return array<int, array<string, mixed>> Student create-actions.
+     *
+     * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+     */
+    private function studentActions(): array
+    {
+        return [
+            [
+                'id'         => 'createSubmission',
+                'type'       => 'create',
+                'label'      => 'Hand in an assignment',
+                'register'   => self::REGISTER,
+                'schema'     => 'submission',
+                'scopeField' => 'learnerRefs',
+                'scopeClaim' => 'learnerRef',
+                'fields'     => [
+                    'assignmentId',
+                    'attachmentRefs',
+                ],
+            ],
+            [
+                'id'         => 'createExcuseRequest',
+                'type'       => 'create',
+                'label'      => 'Report an absence',
+                'register'   => self::REGISTER,
+                'schema'     => 'excuse-request',
+                'scopeField' => 'learnerRef',
+                'scopeClaim' => 'learnerRef',
+                'minTrust'   => 'low',
+                'fields'     => [
+                    'dateFrom',
+                    'dateTo',
+                    'reason',
+                    'reasonKind',
+                    'attachmentRef',
+                ],
+            ],
+        ];
+
+    }//end studentActions()
 
     /**
      * Manifest for the `parent` audience (a guardian of the learner).
@@ -388,97 +441,10 @@ class PortalContributionProvider
 
         return [
             'label'         => 'Scholiq',
-            'collections'   => [
-                [
-                    'id'         => 'parentGrades',
-                    'register'   => self::REGISTER,
-                    'schema'     => 'grade-entry',
-                    'scopeField' => 'learnerRef',
-                    'scopeClaim' => 'guardianRef',
-                    'via'        => $childJoin,
-                    'label'      => "My child's grades",
-                    'listable'   => true,
-                    'minTrust'   => 'substantial',
-                    'fields'     => [
-                        'learnerRef',
-                        'courseId',
-                        'curriculumPlanId',
-                        'componentId',
-                        'value',
-                        'gradeScaleId',
-                        'period',
-                        'gradedAt',
-                    ],
-                ],
-                [
-                    'id'         => 'parentAttendance',
-                    'register'   => self::REGISTER,
-                    'schema'     => 'attendance-record',
-                    'scopeField' => 'learnerRef',
-                    'scopeClaim' => 'guardianRef',
-                    'via'        => $childJoin,
-                    'label'      => "My child's attendance",
-                    'listable'   => true,
-                    'minTrust'   => 'substantial',
-                    'fields'     => [
-                        'learnerRef',
-                        'sessionId',
-                        'cohortId',
-                        'status',
-                        'minutesAttended',
-                        'markedAt',
-                    ],
-                ],
-                [
-                    'id'         => 'parentExcuseRequests',
-                    'register'   => self::REGISTER,
-                    'schema'     => 'excuse-request',
-                    'scopeField' => 'learnerRef',
-                    'scopeClaim' => 'guardianRef',
-                    'via'        => $childJoin,
-                    'label'      => "My child's absence excuses",
-                    'listable'   => true,
-                    'minTrust'   => 'substantial',
-                    'fields'     => [
-                        'learnerRef',
-                        'dateFrom',
-                        'dateTo',
-                        'reason',
-                        'reasonKind',
-                        'attachmentRef',
-                        'lifecycle',
-                        'decidedAt',
-                    ],
-                ],
-                [
-                    'id'         => 'parentReportCards',
-                    'register'   => self::REGISTER,
-                    'schema'     => 'report-card',
-                    'scopeField' => 'learnerRef',
-                    'scopeClaim' => 'guardianRef',
-                    'via'        => $childJoin,
-                    'label'      => "My child's report cards",
-                    'listable'   => true,
-                    'minTrust'   => 'substantial',
-                    // Server-side lifecycle filter, mirroring report-card's own
-                    // "never draft/rapportvergadering-review/finalised" requirement —
-                    // a guardian must only ever see a published-to-parents ReportCard,
-                    // never one still under internal review. Key is singular `filter`
-                    // (ContributionController::collection() reads $collection['filter'],
-                    // applied by PortalObjectReader::readCollection() BEFORE the scope
-                    // filter, so it can only ever subset the guardian's own rows —
-                    // mirrors pipelinq's PortalContributionProvider's own `filter` usage).
-                    'filter'     => ['lifecycle' => 'published-to-parents'],
-                    'fields'     => [
-                        'learnerRef',
-                        'reportPeriodId',
-                        'subjectGrades',
-                        'attendanceSummary',
-                        'mentorComment',
-                        'docudeskDocumentRef',
-                    ],
-                ],
-            ],
+            'collections'   => array_merge(
+                $this->parentResultCollections(childJoin: $childJoin),
+                $this->parentWelfareCollections(childJoin: $childJoin)
+            ),
             // No parent create action yet. A guardian reporting an absence for
             // a child would supply the child `learnerRef` in the create body,
             // but portaliq's writer only server-stamps the scope field
@@ -495,6 +461,136 @@ class PortalContributionProvider
         ];
 
     }//end parentContribution()
+
+    /**
+     * The guardian's result collections — the child's grades and attendance.
+     *
+     * Both route through the one-hop reverse `via` join so a guardian can only
+     * ever see rows whose `learnerRef` is one of their own children's
+     * LearnerProfile UUIDs, and both are `minTrust: substantial`.
+     *
+     * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
+     *
+     * @return array<int, array<string, mixed>> Parent result collections.
+     *
+     * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+     */
+    private function parentResultCollections(array $childJoin): array
+    {
+        return [
+            [
+                'id'         => 'parentGrades',
+                'register'   => self::REGISTER,
+                'schema'     => 'grade-entry',
+                'scopeField' => 'learnerRef',
+                'scopeClaim' => 'guardianRef',
+                'via'        => $childJoin,
+                'label'      => "My child's grades",
+                'listable'   => true,
+                'minTrust'   => 'substantial',
+                'fields'     => [
+                    'learnerRef',
+                    'courseId',
+                    'curriculumPlanId',
+                    'componentId',
+                    'value',
+                    'gradeScaleId',
+                    'period',
+                    'gradedAt',
+                ],
+            ],
+            [
+                'id'         => 'parentAttendance',
+                'register'   => self::REGISTER,
+                'schema'     => 'attendance-record',
+                'scopeField' => 'learnerRef',
+                'scopeClaim' => 'guardianRef',
+                'via'        => $childJoin,
+                'label'      => "My child's attendance",
+                'listable'   => true,
+                'minTrust'   => 'substantial',
+                'fields'     => [
+                    'learnerRef',
+                    'sessionId',
+                    'cohortId',
+                    'status',
+                    'minutesAttended',
+                    'markedAt',
+                ],
+            ],
+        ];
+
+    }//end parentResultCollections()
+
+    /**
+     * The guardian's welfare collections — the child's absence excuses and report cards.
+     *
+     * Both route through the same one-hop reverse `via` join and are
+     * `minTrust: substantial`. `parentReportCards` additionally carries a
+     * server-side singular `filter` so only a `published-to-parents` ReportCard
+     * is ever exposed — never one still under internal review.
+     *
+     * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
+     *
+     * @return array<int, array<string, mixed>> Parent welfare collections.
+     *
+     * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+     */
+    private function parentWelfareCollections(array $childJoin): array
+    {
+        return [
+            [
+                'id'         => 'parentExcuseRequests',
+                'register'   => self::REGISTER,
+                'schema'     => 'excuse-request',
+                'scopeField' => 'learnerRef',
+                'scopeClaim' => 'guardianRef',
+                'via'        => $childJoin,
+                'label'      => "My child's absence excuses",
+                'listable'   => true,
+                'minTrust'   => 'substantial',
+                'fields'     => [
+                    'learnerRef',
+                    'dateFrom',
+                    'dateTo',
+                    'reason',
+                    'reasonKind',
+                    'attachmentRef',
+                    'lifecycle',
+                    'decidedAt',
+                ],
+            ],
+            [
+                'id'         => 'parentReportCards',
+                'register'   => self::REGISTER,
+                'schema'     => 'report-card',
+                'scopeField' => 'learnerRef',
+                'scopeClaim' => 'guardianRef',
+                'via'        => $childJoin,
+                'label'      => "My child's report cards",
+                'listable'   => true,
+                'minTrust'   => 'substantial',
+                // Server-side lifecycle filter, mirroring report-card's own
+                // "never draft/rapportvergadering-review/finalised" requirement —
+                // a guardian must only ever see a published-to-parents ReportCard,
+                // never one still under internal review. Key is singular `filter`
+                // (ContributionController::collection() reads $collection['filter'],
+                // applied by PortalObjectReader::readCollection() BEFORE the scope
+                // filter, so it can only ever subset the guardian's own rows —
+                // mirrors pipelinq's PortalContributionProvider's own `filter` usage).
+                'filter'     => ['lifecycle' => 'published-to-parents'],
+                'fields'     => [
+                    'learnerRef',
+                    'reportPeriodId',
+                    'subjectGrades',
+                    'attendanceSummary',
+                    'mentorComment',
+                    'docudeskDocumentRef',
+                ],
+            ],
+        ];
+
+    }//end parentWelfareCollections()
 
     /**
      * Manifest for the `praktijkopleider` audience (the workplace supervisor conducting BPV).

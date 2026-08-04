@@ -216,9 +216,10 @@ class CohortTalkMembershipHandler implements IEventListener
 
             if ($add === true) {
                 $this->addParticipant(room: $room, learnerId: $learnerId, cohortId: $cohortId);
-            } else {
-                $this->removeParticipant(room: $room, learnerId: $learnerId, cohortId: $cohortId);
+                continue;
             }
+
+            $this->removeParticipant(room: $room, learnerId: $learnerId, cohortId: $cohortId);
         }//end foreach
 
     }//end syncParticipant()

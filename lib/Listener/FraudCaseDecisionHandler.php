@@ -119,17 +119,14 @@ class FraudCaseDecisionHandler implements IEventListener
         $case   = $event->getObject()->jsonSerialize();
         $caseId = $case['id'] ?? ($case['uuid'] ?? '');
 
-        // NB: deliberately NOT aligned. Generic.Formatting.MultipleStatementAlignment
-        // falls back to requiring exactly one space once a group's longest variable
-        // would push the padding past maxPadding, and $contestedGradeEntryId does.
-        $verdict = $case['verdict'] ?? '';
-        $contestedGradeEntryId = $case['contestedGradeEntryId'] ?? null;
+        $verdict          = $case['verdict'] ?? '';
+        $contestedEntryId = $case['contestedGradeEntryId'] ?? null;
 
         if ($verdict !== 'fraud-proven') {
             return;
         }
 
-        if ($contestedGradeEntryId === null || $contestedGradeEntryId === '') {
+        if ($contestedEntryId === null || $contestedEntryId === '') {
             $this->logger->info(
                 '[FraudCaseDecisionHandler] FraudCase {id} decided fraud-proven with no contestedGradeEntryId — nothing to invalidate.',
                 ['id' => $caseId]
@@ -137,12 +134,12 @@ class FraudCaseDecisionHandler implements IEventListener
             return;
         }
 
-        $entry = $this->fetchGradeEntry(gradeEntryId: (string) $contestedGradeEntryId);
+        $entry = $this->fetchGradeEntry(gradeEntryId: (string) $contestedEntryId);
 
         if ($entry === null) {
             $this->logger->warning(
                 '[FraudCaseDecisionHandler] FraudCase {id} contestedGradeEntryId {entryId} not found — skipping.',
-                ['id' => $caseId, 'entryId' => $contestedGradeEntryId]
+                ['id' => $caseId, 'entryId' => $contestedEntryId]
             );
             return;
         }
@@ -157,16 +154,16 @@ class FraudCaseDecisionHandler implements IEventListener
             $this->logger->warning(
                 '[FraudCaseDecisionHandler] FraudCase {id} contestedGradeEntryId {entryId} is not concept '
                 .'({lifecycle}) — refusing to auto-invalidate.',
-                ['id' => $caseId, 'entryId' => $contestedGradeEntryId, 'lifecycle' => $lifecycle]
+                ['id' => $caseId, 'entryId' => $contestedEntryId, 'lifecycle' => $lifecycle]
             );
             return;
         }
 
-        $this->transitionEngine->transition((string) $contestedGradeEntryId, 'invalidate');
+        $this->transitionEngine->transition((string) $contestedEntryId, 'invalidate');
 
         $this->logger->info(
             '[FraudCaseDecisionHandler] FraudCase {id} decided fraud-proven — invalidated GradeEntry {entryId}.',
-            ['id' => $caseId, 'entryId' => $contestedGradeEntryId]
+            ['id' => $caseId, 'entryId' => $contestedEntryId]
         );
 
     }//end invalidateContestedGradeEntry()
