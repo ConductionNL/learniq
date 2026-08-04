@@ -36,6 +36,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\ItemAnalysisRecomputeHandler;
 use OCA\Scholiq\Service\ItemAnalysisService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -115,12 +116,19 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $schema = (string) $schema;
+                $object = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+
                 if (isset($object['id']) === false) {
                     $object['id'] = $schema.'-auto-'.(count($this->db[$schema] ?? []) + 1);
                 }
 
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => $schema,
+                    'object'   => $object,
+                ];
 
                 $existingIndex = null;
                 foreach (($this->db[$schema] ?? []) as $index => $rec) {
@@ -136,7 +144,7 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase
                     $this->db[$schema][] = $object;
                 }
 
-                return $object;
+                return OrEntityFactory::make($object, $schema, (string) $register);
             }
         );
 

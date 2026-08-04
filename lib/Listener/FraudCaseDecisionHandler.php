@@ -190,10 +190,6 @@ class FraudCaseDecisionHandler implements IEventListener
             return null;
         }
 
-        if (is_array($obj) === true) {
-            return $obj;
-        }
-
         return $obj->jsonSerialize();
 
     }//end fetchGradeEntry()

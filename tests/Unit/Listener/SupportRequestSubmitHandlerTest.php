@@ -36,6 +36,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\SupportRequestSubmitHandler;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -76,8 +77,10 @@ class SupportRequestSubmitHandlerTest extends TestCase
     /**
      * Build a handler with stubbed collaborators.
      *
-     * @param string|null              $savedJobId             UUID to return for the DataExchangeJob save, or null
-     *                                                         to simulate a save failure.
+     * @param string|null              $savedJobId             UUID to return for the DataExchangeJob save, or null to
+     *                                                         simulate a save that yields no id. OpenRegister's
+     *                                                         `saveObject(): ObjectEntity` is non-nullable, so the
+     *                                                         failure mode is an entity without an id, not a null.
      * @param array<string,mixed>|null $mappingProfile         DataMappingProfile row to resolve for target=swv, or
      *                                                         null when none is configured.
      * @param array<string,mixed>|null $existingSupportRequest The SupportRequest row findAll() returns when the
@@ -109,25 +112,34 @@ class SupportRequestSubmitHandlerTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) use ($savedJobId) {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null) use ($savedJobId): ObjectEntity {
+                $schema               = (string) $schema;
+                $data                 = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => $schema,
+                    'object'   => $data,
+                ];
 
                 if ($schema === 'data-exchange-job') {
                     if ($savedJobId === null) {
-                        return null;
+                        $idless = $data;
+                        unset($idless['id'], $idless['uuid']);
+                        return OrEntityFactory::make($idless, $schema, (string) $register);
                     }
 
-                    return array_merge($object, ['id' => $savedJobId]);
+                    return OrEntityFactory::make(array_merge($data, ['id' => $savedJobId]), $schema, (string) $register);
                 }
 
-                return $object;
+                return OrEntityFactory::make($data, $schema, (string) $register);
             }
         );
 
         $transitionEngine = $this->createMock(TransitionEngine::class);
         $transitionEngine->method('transition')->willReturnCallback(
-            function (string $objectId, string $action) {
+            function (string $objectId, string $action): ObjectEntity {
                 $this->transitions[] = ['objectId' => $objectId, 'action' => $action];
+                return OrEntityFactory::make(['id' => $objectId], 'data-exchange-job');
             }
         );
 

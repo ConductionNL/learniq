@@ -28,6 +28,7 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\PeerFeedbackAggregator;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
@@ -70,13 +71,13 @@ class PeerFeedbackAggregatorTest extends TestCase
         $objectService = $this->createMock(ObjectService::class);
 
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) use ($assignment) {
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($assignment): ?ObjectEntity {
                 if ($schema === 'assignment') {
-                    return $assignment;
+                    return OrEntityFactory::make($assignment, 'assignment');
                 }
 
                 if ($schema === 'submission') {
-                    return ['id' => $id, 'tenant_id' => 'tenant-1'];
+                    return OrEntityFactory::make(['id' => (string) $id, 'tenant_id' => 'tenant-1'], 'submission');
                 }
 
                 return null;
@@ -98,9 +99,14 @@ class PeerFeedbackAggregatorTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
-                return $object;
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $data                 = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => (string) $schema,
+                    'object'   => $data,
+                ];
+                return OrEntityFactory::make($data, (string) $schema, (string) $register);
             }
         );
 

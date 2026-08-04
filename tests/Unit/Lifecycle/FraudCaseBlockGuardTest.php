@@ -26,6 +26,7 @@ namespace OCA\Scholiq\Tests\Unit\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Lifecycle\FraudCaseBlockGuard;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -45,7 +46,10 @@ class FraudCaseBlockGuardTest extends TestCase
     private function makeGuard(?array $fraudCase): FraudCaseBlockGuard
     {
         $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn($fraudCase);
+        // OpenRegister's find() returns ?ObjectEntity, never an array.
+        $objectService->method('find')->willReturn(
+            $fraudCase === null ? null : OrEntityFactory::make($fraudCase, 'fraud-case')
+        );
 
         return new FraudCaseBlockGuard($objectService, $this->createMock(LoggerInterface::class));
 

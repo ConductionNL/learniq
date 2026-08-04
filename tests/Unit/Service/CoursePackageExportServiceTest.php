@@ -26,6 +26,7 @@ namespace OCA\Scholiq\Tests\Unit\Service;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Service\CoursePackageExportService;
 use OCA\Scholiq\Service\QtiExportService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -52,14 +53,24 @@ class CoursePackageExportServiceTest extends TestCase
     private function service(): CoursePackageExportService
     {
         $objectService = $this->createMock(ObjectService::class);
+        // `ObjectService::find()` is declared
+        // `find($id, $_extend, $files, $register, $schema, ...): ?ObjectEntity`
+        // — the callback receives those positionally, and may only hand back an
+        // ObjectEntity or null.
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) {
-                return match ([$schema, $id]) {
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) {
+                $row = match ([$schema, $id]) {
                     ['course', 'course-1'] => ['id' => 'course-1', 'name' => 'Physics 101', 'tenant_id' => 't1'],
                     ['item', 'item-1'] => ['id' => 'item-1', 'itemBankId' => 'bank-1', 'qtiBody' => '<x/>'],
                     ['rubric', 'rubric-1'] => ['id' => 'rubric-1', 'name' => 'Essay rubric'],
                     default => null,
                 };
+
+                if ($row === null) {
+                    return null;
+                }
+
+                return OrEntityFactory::make($row, (string) $schema);
             }
         );
         $objectService->method('findAll')->willReturnCallback(

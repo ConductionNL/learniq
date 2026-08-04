@@ -247,10 +247,7 @@ class PaymentTransactionController extends Controller
             schema: self::PAYMENT_TRANSACTION_SCHEMA
         );
 
-        $savedData = $saved;
-        if (is_array($saved) === false) {
-            $savedData = $saved->jsonSerialize();
-        }
+        $savedData = $saved->jsonSerialize();
 
         $transactionId = $savedData['id'] ?? ($savedData['uuid'] ?? null);
 
@@ -404,10 +401,6 @@ class PaymentTransactionController extends Controller
 
         if ($object === null) {
             return null;
-        }
-
-        if (is_array($object) === true) {
-            return $object;
         }
 
         return $object->jsonSerialize();

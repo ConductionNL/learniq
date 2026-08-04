@@ -35,6 +35,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Controller\LessonReleaseController;
 use OCA\Scholiq\Release\LessonReleaseEvaluator;
 use OCA\Scholiq\Service\DashboardRoleService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
 use OCP\IUser;
@@ -120,11 +121,14 @@ class LessonReleaseControllerTest extends TestCase
     {
         $objectService = $this->createMock(ObjectService::class);
 
+        // OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
+        // and returns ?ObjectEntity. willReturnCallback() hands the closure the
+        // mock's arguments POSITIONALLY, so the closure must mirror that order.
         $objectService->method('find')->willReturnCallback(
-            function (string $id, $register=null, $schema=null) {
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) {
                 foreach (($this->db[$schema] ?? []) as $rec) {
                     if (($rec['id'] ?? null) === $id) {
-                        return $rec;
+                        return OrEntityFactory::make($rec, (string) $schema);
                     }
                 }
 
@@ -137,7 +141,7 @@ class LessonReleaseControllerTest extends TestCase
                 $schema  = $config['schema'];
                 $filters = ($config['filters'] ?? []);
 
-                return array_values(
+                $rows = array_values(
                     array_filter(
                         ($this->db[$schema] ?? []),
                         static function (array $rec) use ($filters) {
@@ -151,6 +155,8 @@ class LessonReleaseControllerTest extends TestCase
                         }
                     )
                 );
+
+                return OrEntityFactory::makeMany($rows, (string) $schema);
             }
         );
 

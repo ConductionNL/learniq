@@ -114,3 +114,9 @@ if (class_exists(\OCA\OpenRegister\Service\TalkLinkService::class) === false) {
 if (interface_exists(\OC\Hooks\Emitter::class) === false) {
     include_once __DIR__.'/Stubs/Hooks/Emitter.php';
 }
+
+// Test-support helpers. Deliberately required rather than registered in
+// composer `autoload-dev`: a dev-built vendor/ bakes autoload-dev into the
+// runtime classmap and can shadow real app classes instance-wide
+// (openregister#2036) — the same hazard the stub registration above avoids.
+require_once __DIR__.'/Support/OrEntityFactory.php';

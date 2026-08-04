@@ -25,6 +25,7 @@ namespace OCA\Scholiq\Tests\Unit\PeerReview;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\PeerReview\PeerReviewAllocationService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -68,9 +69,9 @@ class PeerReviewAllocationServiceTest extends TestCase
         $objectService = $this->createMock(ObjectService::class);
 
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) use ($assignment) {
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($assignment) {
                 if ($schema === 'assignment' && $id === self::ASSIGNMENT_ID) {
-                    return $assignment;
+                    return OrEntityFactory::make($assignment, 'assignment');
                 }
 
                 return null;
@@ -92,9 +93,13 @@ class PeerReviewAllocationServiceTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
-                return $object;
+            function (array $object, ?array $extend=[], $register=null, $schema=null) {
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => (string) $schema,
+                    'object'   => $object,
+                ];
+                return OrEntityFactory::make($object, (string) $schema, (string) $register);
             }
         );
 

@@ -37,6 +37,7 @@ namespace OCA\Scholiq\Tests\Unit\Release;
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Release\LessonReleaseEvaluator;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -87,11 +88,16 @@ class LessonReleaseEvaluatorTest extends TestCase
     {
         $objectService = $this->createMock(ObjectService::class);
 
+        // `ObjectService::find()` is
+        // `find($id, $_extend, $files, $register, $schema, ...): ?ObjectEntity`.
+        // The callback is invoked with those arguments POSITIONALLY, so the
+        // register/schema pair sits at positions 4 and 5 — and the return value
+        // must be an ObjectEntity, never the raw fixture row.
         $objectService->method('find')->willReturnCallback(
-            function (string $id, $register=null, $schema=null) {
-                foreach (($this->db[$schema] ?? []) as $rec) {
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) {
+                foreach (($this->db[(string) $schema] ?? []) as $rec) {
                     if (($rec['id'] ?? null) === $id) {
-                        return $rec;
+                        return OrEntityFactory::make($rec, (string) $schema);
                     }
                 }
 

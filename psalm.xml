@@ -16,6 +16,23 @@
     </projectFiles>
     <stubs>
         <file name="vendor/nextcloud/ocp/OCP/Capabilities/ICapability.php" preloadClasses="true" />
+        <!-- AppHost engine base classes (GenericSettingsSection, GenericAdminSettings,
+             GenericInitializeActions) so Sections\SettingsSection, Settings\AdminSettings
+             and Repair\InitializeActions resolve the classes they extend when the
+             openregister sibling app is absent from the analysis path (ADR-040).
+             Analysis-only — never loaded at runtime. The real classes live in
+             openregister/lib/AppHost/. -->
+        <file name="tests/Stubs/openregister-apphost.stub.php" preloadClasses="true" />
+        <!-- AppHost action-authorization engine. Service\ActionAuthService is a
+             one-line subclass of this, so Psalm needs the parent's constructor and
+             its ADR-023 methods (requireAction/getMatrix/setMatrix) to type-check
+             both the DI factory in AppInfo\Application and every controller that
+             type-hints ActionAuthService. -->
+        <file name="tests/Stubs/Service/AppHost/GenericActionAuthService.php" preloadClasses="true" />
+        <!-- Cross-app OpenRegister services that Scholiq resolves dynamically from the
+             container. Real classes live in openregister/lib/Service/. -->
+        <file name="tests/Stubs/Service/TenantKeyService.php" preloadClasses="true" />
+        <file name="tests/Stubs/Service/TalkLinkService.php" preloadClasses="true" />
     </stubs>
     <issueHandlers>
         <UndefinedDocblockClass errorLevel="suppress"/>
@@ -95,22 +112,6 @@
                 <referencedClass name="GuzzleHttp\Exception\GuzzleException"/>
             </errorLevel>
         </UndefinedClass>
-        <UndefinedMethod>
-            <errorLevel type="suppress">
-                <!--
-                    ActionAuthService (lib/Service/ActionAuthService.php) is a one-line
-                    subclass of the real OCA\OpenRegister\AppHost\Service\
-                    GenericActionAuthService, which Psalm cannot resolve (not scanned —
-                    see the referencedClass suppression above). Every domain controller
-                    that type-hints ActionAuthService and calls one of its inherited
-                    ADR-023 methods trips UndefinedMethod as a result; this is a Psalm
-                    resolution gap, not a real missing method.
-                -->
-                <referencedMethod name="OCA\Scholiq\Service\ActionAuthService::requireAction"/>
-                <referencedMethod name="OCA\Scholiq\Service\ActionAuthService::getMatrix"/>
-                <referencedMethod name="OCA\Scholiq\Service\ActionAuthService::setMatrix"/>
-            </errorLevel>
-        </UndefinedMethod>
         <UndefinedMagicMethod errorLevel="suppress"/>
         <UnusedClass errorLevel="suppress"/>
         <PossiblyUnusedMethod errorLevel="suppress"/>

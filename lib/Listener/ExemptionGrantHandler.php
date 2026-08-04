@@ -150,18 +150,7 @@ class ExemptionGrantHandler implements IEventListener
             object: $gradeEntry
         );
 
-        if ($saved === null) {
-            $this->logger->warning(
-                '[ExemptionGrantHandler] ExemptionCase {id} — GradeEntry creation returned null; not publishing.',
-                ['id' => $caseId]
-            );
-            return;
-        }
-
-        $savedData = $saved;
-        if (is_array($saved) === false) {
-            $savedData = $saved->jsonSerialize();
-        }
+        $savedData = $saved->jsonSerialize();
 
         $gradeEntryId = $savedData['id'] ?? ($savedData['uuid'] ?? null);
 

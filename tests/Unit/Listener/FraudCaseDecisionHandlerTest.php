@@ -34,6 +34,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\FraudCaseDecisionHandler;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -73,12 +74,15 @@ class FraudCaseDecisionHandlerTest extends TestCase
     private function makeHandler(?array $gradeEntry): FraudCaseDecisionHandler
     {
         $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn($gradeEntry);
+        $objectService->method('find')->willReturn(
+            ($gradeEntry === null) ? null : OrEntityFactory::make($gradeEntry, 'grade-entry')
+        );
 
         $transitionEngine = $this->createMock(TransitionEngine::class);
         $transitionEngine->method('transition')->willReturnCallback(
-            function (string $objectId, string $action) {
+            function (string $objectId, string $action): ObjectEntity {
                 $this->transitions[] = ['objectId' => $objectId, 'action' => $action];
+                return OrEntityFactory::make(['id' => $objectId], 'grade-entry');
             }
         );
 

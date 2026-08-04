@@ -320,18 +320,7 @@ class AiLocalityClassifier
             return null;
         }
 
-        if (is_array($result) === true) {
-            return $result;
-        }
-
-        if (is_object($result) === true && method_exists($result, 'jsonSerialize') === true) {
-            $serialized = $result->jsonSerialize();
-            if (is_array($serialized) === true) {
-                return $serialized;
-            }
-        }
-
-        return null;
+        return $result->jsonSerialize();
 
     }//end findBrokeredCredential()
 }//end class

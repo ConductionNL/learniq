@@ -29,6 +29,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\PaymentTransactionStatusHandler;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -71,7 +72,9 @@ class PaymentTransactionStatusHandlerTest extends TestCase
     public function testFullPaymentRollsOrderToPaid(): void
     {
         $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn(['id' => 'order-1', 'lifecycle' => 'open', 'totalAmount' => 50.00]);
+        $objectService->method('find')->willReturn(
+            OrEntityFactory::make(['id' => 'order-1', 'lifecycle' => 'open', 'totalAmount' => 50.00], 'order')
+        );
         $objectService->method('findAll')->willReturn(
             [['id' => 'txn-1', 'orderId' => 'order-1', 'lifecycle' => 'succeeded', 'amount' => 50.00]]
         );
@@ -94,7 +97,9 @@ class PaymentTransactionStatusHandlerTest extends TestCase
     public function testPartialPaymentRollsOrderToPartiallyPaid(): void
     {
         $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn(['id' => 'order-1', 'lifecycle' => 'open', 'totalAmount' => 50.00]);
+        $objectService->method('find')->willReturn(
+            OrEntityFactory::make(['id' => 'order-1', 'lifecycle' => 'open', 'totalAmount' => 50.00], 'order')
+        );
         $objectService->method('findAll')->willReturn(
             [['id' => 'txn-1', 'orderId' => 'order-1', 'lifecycle' => 'succeeded', 'amount' => 20.00]]
         );
@@ -115,7 +120,9 @@ class PaymentTransactionStatusHandlerTest extends TestCase
     public function testAlreadyPaidOrderIsNotRetriggered(): void
     {
         $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn(['id' => 'order-1', 'lifecycle' => 'paid', 'totalAmount' => 50.00]);
+        $objectService->method('find')->willReturn(
+            OrEntityFactory::make(['id' => 'order-1', 'lifecycle' => 'paid', 'totalAmount' => 50.00], 'order')
+        );
 
         $transitionEngine = $this->createMock(TransitionEngine::class);
         $transitionEngine->expects($this->never())->method('transition');
@@ -136,7 +143,9 @@ class PaymentTransactionStatusHandlerTest extends TestCase
     public function testRefundRevokesOrderAndActiveEntitlements(): void
     {
         $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn(['id' => 'order-1', 'lifecycle' => 'paid']);
+        $objectService->method('find')->willReturn(
+            OrEntityFactory::make(['id' => 'order-1', 'lifecycle' => 'paid'], 'order')
+        );
         $objectService->method('findAll')->willReturnCallback(
             function (array $config) {
                 if ($config['schema'] === 'order-line') {
@@ -154,8 +163,9 @@ class PaymentTransactionStatusHandlerTest extends TestCase
         $transitionEngine = $this->createMock(TransitionEngine::class);
         $calls            = [];
         $transitionEngine->method('transition')->willReturnCallback(
-            function (string $id, string $action) use (&$calls) {
+            function (string $id, string $action) use (&$calls): ObjectEntity {
                 $calls[] = [$id, $action];
+                return OrEntityFactory::make(['id' => $id], 'order');
             }
         );
 

@@ -197,11 +197,7 @@ class EngagementSignalHandler implements IEventListener
             object: $data
         );
 
-        if (is_array($saved) === false) {
-            $saved = $saved->jsonSerialize();
-        }
-
-        return $saved;
+        return $saved->jsonSerialize();
 
     }//end recomputeEngagementScore()
 
@@ -454,10 +450,7 @@ class EngagementSignalHandler implements IEventListener
             return false;
         }
 
-        $cohortData = $cohort;
-        if (is_array($cohort) === false) {
-            $cohortData = $cohort->jsonSerialize();
-        }
+        $cohortData = $cohort->jsonSerialize();
 
         $learnerIds = $cohortData['learnerIds'] ?? [];
         if (is_array($learnerIds) === false) {

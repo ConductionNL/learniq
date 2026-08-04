@@ -28,6 +28,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\ApplicationConversionHandler;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -77,9 +78,9 @@ class ApplicationConversionHandlerTest extends TestCase
         $objectService = $this->createMock(ObjectService::class);
 
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) use ($programme) {
-                if ($schema === 'programme') {
-                    return $programme;
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($programme) {
+                if ($schema === 'programme' && $programme !== null) {
+                    return OrEntityFactory::make($programme, 'programme');
                 }
 
                 return null;
@@ -88,27 +89,40 @@ class ApplicationConversionHandlerTest extends TestCase
 
         $counter = ['learner-profile' => 0, 'enrolment' => 0];
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) use (&$counter) {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null) use (&$counter): ObjectEntity {
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => (string) $schema,
+                    'object'   => $object,
+                ];
 
                 if ($schema === 'learner-profile') {
                     $counter['learner-profile']++;
-                    return array_merge($object, ['id' => 'profile-'.$counter['learner-profile']]);
+                    return OrEntityFactory::make(
+                        array_merge($object, ['id' => 'profile-'.$counter['learner-profile']]),
+                        (string) $schema,
+                        (string) $register
+                    );
                 }
 
                 if ($schema === 'enrolment') {
                     $counter['enrolment']++;
-                    return array_merge($object, ['id' => 'enrolment-'.$counter['enrolment']]);
+                    return OrEntityFactory::make(
+                        array_merge($object, ['id' => 'enrolment-'.$counter['enrolment']]),
+                        (string) $schema,
+                        (string) $register
+                    );
                 }
 
-                return $object;
+                return OrEntityFactory::make($object, (string) $schema, (string) $register);
             }
         );
 
         $transitionEngine = $this->createMock(TransitionEngine::class);
         $transitionEngine->method('transition')->willReturnCallback(
-            function (string $objectId, string $action) {
+            function (string $objectId, string $action): ObjectEntity {
                 $this->transitions[] = ['objectId' => $objectId, 'action' => $action];
+                return OrEntityFactory::make(['id' => $objectId], 'application');
             }
         );
 

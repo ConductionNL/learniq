@@ -33,6 +33,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\ExemptionGrantHandler;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -73,29 +74,41 @@ class ExemptionGrantHandlerTest extends TestCase
     /**
      * Build a handler with stubbed collaborators.
      *
-     * @param mixed $savedGradeEntry What ObjectService::saveObject() returns for the grade-entry save
-     *                               (an array, an ObjectEntity, or null).
+     * @param array<string,mixed>|ObjectEntity $savedGradeEntry What ObjectService::saveObject() returns for
+     *                                                          the grade-entry save. An array is wrapped in a
+     *                                                          real ObjectEntity, matching OpenRegister's
+     *                                                          non-nullable `saveObject(): ObjectEntity`.
      *
      * @return ExemptionGrantHandler
      */
-    private function makeHandler(mixed $savedGradeEntry): ExemptionGrantHandler
+    private function makeHandler(array | ObjectEntity $savedGradeEntry): ExemptionGrantHandler
     {
         $objectService = $this->createMock(ObjectService::class);
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) use ($savedGradeEntry) {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
-                if ($schema === 'grade-entry') {
-                    return $savedGradeEntry;
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null) use ($savedGradeEntry): ObjectEntity {
+                $data                 = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => (string) $schema,
+                    'object'   => $data,
+                ];
+                if ((string) $schema === 'grade-entry') {
+                    if ($savedGradeEntry instanceof ObjectEntity) {
+                        return $savedGradeEntry;
+                    }
+
+                    return OrEntityFactory::make($savedGradeEntry, 'grade-entry');
                 }
 
-                return $object;
+                return OrEntityFactory::make($data, (string) $schema, (string) $register);
             }
         );
 
         $transitionEngine = $this->createMock(TransitionEngine::class);
         $transitionEngine->method('transition')->willReturnCallback(
-            function (string $objectId, string $action) {
+            function (string $objectId, string $action): ObjectEntity {
                 $this->transitions[] = ['objectId' => $objectId, 'action' => $action];
+                return OrEntityFactory::make(['id' => $objectId], 'grade-entry');
             }
         );
 
@@ -179,8 +192,7 @@ class ExemptionGrantHandlerTest extends TestCase
      */
     public function testHandlesObjectEntityReturnFromSaveObject(): void
     {
-        $entity = $this->createMock(ObjectEntity::class);
-        $entity->method('jsonSerialize')->willReturn(['id' => 'entry-2']);
+        $entity = OrEntityFactory::make(['id' => 'entry-2'], 'grade-entry');
 
         $handler = $this->makeHandler(savedGradeEntry: $entity);
 
