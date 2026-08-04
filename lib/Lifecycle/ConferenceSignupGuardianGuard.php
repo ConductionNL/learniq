@@ -122,8 +122,41 @@ class ConferenceSignupGuardianGuard
 
         $callerUid = $user->getUID();
 
-        $tenantId = $object['tenant_id'] ?? '';
+        $profile = $this->loadLearnerProfile(learnerId: (string) $learnerId, tenantId: (string) ($object['tenant_id'] ?? ''));
+        if ($profile === null) {
+            $this->logger->warning(
+                '[ConferenceSignupGuardianGuard] No LearnerProfile found for learnerId {learnerId}; blocking submit (fail closed).',
+                ['learnerId' => $learnerId]
+            );
+            return false;
+        }
 
+        if ($this->callerMayActForLearner(profile: $profile, callerUid: $callerUid) === true) {
+            return true;
+        }
+
+        $this->logger->info(
+            '[ConferenceSignupGuardianGuard] Caller {caller} is not a linked guardian of learner '
+            .'{learnerId} and is not the learner; blocking submit.',
+            ['caller' => $callerUid, 'learnerId' => $learnerId]
+        );
+
+        return false;
+
+    }//end check()
+
+    /**
+     * Load the LearnerProfile the signup is about, scoped to its tenant.
+     *
+     * @param string $learnerId The learner's NC user id.
+     * @param string $tenantId  Tenant UUID, or '' when unknown.
+     *
+     * @return array<string,mixed>|null The profile, or null when it does not resolve.
+     *
+     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-only-a-linked-guardian-or-the-learner-may-sign-up
+     */
+    private function loadLearnerProfile(string $learnerId, string $tenantId): ?array
+    {
         $filters = ['ncUserId' => $learnerId];
         if ($tenantId !== '') {
             $filters['tenant_id'] = $tenantId;
@@ -139,11 +172,7 @@ class ConferenceSignupGuardianGuard
         );
 
         if (empty($profiles) === true) {
-            $this->logger->warning(
-                '[ConferenceSignupGuardianGuard] No LearnerProfile found for learnerId {learnerId}; blocking submit (fail closed).',
-                ['learnerId' => $learnerId]
-            );
-            return false;
+            return null;
         }
 
         $profile = $profiles[0];
@@ -151,25 +180,35 @@ class ConferenceSignupGuardianGuard
             $profile = $profile->jsonSerialize();
         }
 
+        return (array) $profile;
+
+    }//end loadLearnerProfile()
+
+    /**
+     * Whether the caller may sign this learner up: either they ARE the learner
+     * (18+ self-signup) or they are one of the profile's linked guardians.
+     *
+     * Fails closed — anything that is not one of those two relationships is a no.
+     *
+     * @param array<string,mixed> $profile   The learner's LearnerProfile.
+     * @param string              $callerUid The authenticated caller's NC user id.
+     *
+     * @return bool True when the caller is authorised to act for this learner.
+     *
+     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-only-a-linked-guardian-or-the-learner-may-sign-up
+     */
+    private function callerMayActForLearner(array $profile, string $callerUid): bool
+    {
         // 18+ self-signup: caller IS the learner.
-        $profileNcUserId = $profile['ncUserId'] ?? '';
+        $profileNcUserId = ($profile['ncUserId'] ?? '');
         if ($profileNcUserId !== '' && $profileNcUserId === $callerUid) {
             return true;
         }
 
         // Linked guardian: caller's uid is in the LearnerProfile's parentIds.
-        $parentIds = $profile['parentIds'] ?? [];
-        if (is_array($parentIds) === true && in_array($callerUid, $parentIds, true) === true) {
-            return true;
-        }
+        $parentIds = ($profile['parentIds'] ?? []);
 
-        $this->logger->info(
-            '[ConferenceSignupGuardianGuard] Caller {caller} is not a linked guardian of learner '
-            .'{learnerId} and is not the learner; blocking submit.',
-            ['caller' => $callerUid, 'learnerId' => $learnerId]
-        );
+        return (is_array($parentIds) === true && in_array($callerUid, $parentIds, true) === true);
 
-        return false;
-
-    }//end check()
+    }//end callerMayActForLearner()
 }//end class

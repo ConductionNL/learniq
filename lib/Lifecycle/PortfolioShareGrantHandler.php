@@ -252,26 +252,47 @@ class PortfolioShareGrantHandler implements IEventListener
             ]
         );
 
+        $shared = $this->shareEntryFiles(
+            entries: $entries,
+            ownerId: (string) $ownerId,
+            teacherId: (string) $teacherId,
+            entryIdFilter: $entryIdFilter
+        );
+
+        $this->logger->info(
+            '[PortfolioShareGrantHandler] PortfolioShare {id} granted — {n} file(s) shared with teacher {t}.',
+            ['id' => $shareId, 'n' => $shared, 't' => $teacherId]
+        );
+
+    }//end createTeacherFileShare()
+
+    /**
+     * Share every eligible entry's attachment with the teacher.
+     *
+     * @param array<int,mixed> $entries       The Portfolio's entries.
+     * @param string           $ownerId       The learner who owns the files.
+     * @param string           $teacherId     The teacher being granted access.
+     * @param mixed            $entryIdFilter The share's entryIds restriction, when it has one.
+     *
+     * @return int How many files were shared.
+     *
+     * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-sharing-a-portfolio-with-a-teacher-grants-read-access-to-its-evidence-files
+     */
+    private function shareEntryFiles(array $entries, string $ownerId, string $teacherId, mixed $entryIdFilter): int
+    {
         $shared = 0;
+
         foreach ($entries as $entry) {
             $entryData = $entry;
             if (is_array($entry) === false) {
                 $entryData = $entry->jsonSerialize();
             }
 
-            if (($entryData['evidenceKind'] ?? '') !== 'file') {
+            if ($this->entryIsShareable(entryData: $entryData, entryIdFilter: $entryIdFilter) === false) {
                 continue;
             }
 
-            $entryId = $entryData['id'] ?? ($entryData['uuid'] ?? '');
-            if (is_array($entryIdFilter) === true
-                && empty($entryIdFilter) === false
-                && in_array($entryId, $entryIdFilter, true) === false
-            ) {
-                continue;
-            }
-
-            $attachmentRef = $entryData['attachmentRef'] ?? '';
+            $attachmentRef = ($entryData['attachmentRef'] ?? '');
             if ($attachmentRef === '') {
                 continue;
             }
@@ -281,12 +302,39 @@ class PortfolioShareGrantHandler implements IEventListener
             }
         }//end foreach
 
-        $this->logger->info(
-            '[PortfolioShareGrantHandler] PortfolioShare {id} granted — {n} file(s) shared with teacher {t}.',
-            ['id' => $shareId, 'n' => $shared, 't' => $teacherId]
-        );
+        return $shared;
 
-    }//end createTeacherFileShare()
+    }//end shareEntryFiles()
+
+    /**
+     * Whether one Portfolio entry falls inside this share's grant.
+     *
+     * Only file evidence can be shared through NC Files at all. An `entryIds`
+     * restriction narrows the grant further; an absent or empty one means the
+     * share covers every file entry.
+     *
+     * @param array<string,mixed> $entryData     One PortfolioEntry.
+     * @param mixed               $entryIdFilter The share's entryIds restriction, when it has one.
+     *
+     * @return bool True when this entry's file should be shared.
+     *
+     * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-sharing-a-portfolio-with-a-teacher-grants-read-access-to-its-evidence-files
+     */
+    private function entryIsShareable(array $entryData, mixed $entryIdFilter): bool
+    {
+        if (($entryData['evidenceKind'] ?? '') !== 'file') {
+            return false;
+        }
+
+        if (is_array($entryIdFilter) === false || empty($entryIdFilter) === true) {
+            return true;
+        }
+
+        $entryId = ($entryData['id'] ?? ($entryData['uuid'] ?? ''));
+
+        return in_array($entryId, $entryIdFilter, true);
+
+    }//end entryIsShareable()
 
     /**
      * Resolve one attachmentRef to an NC Node under the owner's home and create a

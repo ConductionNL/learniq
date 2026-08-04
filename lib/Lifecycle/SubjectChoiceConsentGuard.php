@@ -130,8 +130,41 @@ class SubjectChoiceConsentGuard
 
         $callerUid = $user->getUID();
 
-        $tenantId = $object['tenant_id'] ?? '';
+        $profile = $this->loadLearnerProfile(learnerId: (string) $learnerId, tenantId: (string) ($object['tenant_id'] ?? ''));
+        if ($profile === null) {
+            $this->logger->warning(
+                '[SubjectChoiceConsentGuard] No LearnerProfile found for learnerId {learnerId}; blocking submit (fail closed).',
+                ['learnerId' => $learnerId]
+            );
+            return false;
+        }
 
+        if ($this->callerMayActForLearner(profile: $profile, callerUid: $callerUid) === true) {
+            return true;
+        }
+
+        $this->logger->info(
+            '[SubjectChoiceConsentGuard] Caller {caller} is not a linked guardian of learner '
+            .'{learnerId} and is not the learner; blocking submit.',
+            ['caller' => $callerUid, 'learnerId' => $learnerId]
+        );
+
+        return false;
+
+    }//end check()
+
+    /**
+     * Load the LearnerProfile the subject choice is about, scoped to its tenant.
+     *
+     * @param string $learnerId The learner's NC user id.
+     * @param string $tenantId  Tenant UUID, or '' when unknown.
+     *
+     * @return array<string,mixed>|null The profile, or null when it does not resolve.
+     *
+     * @spec openspec/changes/subject-choice/specs/subject-choice/spec.md#requirement-a-subject-choice-requires-guardian-consent-before-submission
+     */
+    private function loadLearnerProfile(string $learnerId, string $tenantId): ?array
+    {
         $filters = ['ncUserId' => $learnerId];
         if ($tenantId !== '') {
             $filters['tenant_id'] = $tenantId;
@@ -147,11 +180,7 @@ class SubjectChoiceConsentGuard
         );
 
         if (empty($profiles) === true) {
-            $this->logger->warning(
-                '[SubjectChoiceConsentGuard] No LearnerProfile found for learnerId {learnerId}; blocking submit (fail closed).',
-                ['learnerId' => $learnerId]
-            );
-            return false;
+            return null;
         }
 
         $profile = $profiles[0];
@@ -159,25 +188,35 @@ class SubjectChoiceConsentGuard
             $profile = $profile->jsonSerialize();
         }
 
+        return (array) $profile;
+
+    }//end loadLearnerProfile()
+
+    /**
+     * Whether the caller may submit for this learner: either they ARE the
+     * learner (18+ self-submission) or they are one of the linked guardians.
+     *
+     * Fails closed — anything that is not one of those two relationships is a no.
+     *
+     * @param array<string,mixed> $profile   The learner's LearnerProfile.
+     * @param string              $callerUid The authenticated caller's NC user id.
+     *
+     * @return bool True when the caller is authorised to act for this learner.
+     *
+     * @spec openspec/changes/subject-choice/specs/subject-choice/spec.md#requirement-a-subject-choice-requires-guardian-consent-before-submission
+     */
+    private function callerMayActForLearner(array $profile, string $callerUid): bool
+    {
         // 18+ self-submission: caller IS the learner.
-        $profileNcUserId = $profile['ncUserId'] ?? '';
+        $profileNcUserId = ($profile['ncUserId'] ?? '');
         if ($profileNcUserId !== '' && $profileNcUserId === $callerUid) {
             return true;
         }
 
         // Linked guardian: caller's uid is in the LearnerProfile's parentIds.
-        $parentIds = $profile['parentIds'] ?? [];
-        if (is_array($parentIds) === true && in_array($callerUid, $parentIds, true) === true) {
-            return true;
-        }
+        $parentIds = ($profile['parentIds'] ?? []);
 
-        $this->logger->info(
-            '[SubjectChoiceConsentGuard] Caller {caller} is not a linked guardian of learner '
-            .'{learnerId} and is not the learner; blocking submit.',
-            ['caller' => $callerUid, 'learnerId' => $learnerId]
-        );
+        return (is_array($parentIds) === true && in_array($callerUid, $parentIds, true) === true);
 
-        return false;
-
-    }//end check()
+    }//end callerMayActForLearner()
 }//end class

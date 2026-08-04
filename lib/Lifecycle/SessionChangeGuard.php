@@ -122,7 +122,7 @@ class SessionChangeGuard
             return false;
         }
 
-        if (is_string($reasonKind) === false || $reasonKind === '') {
+        if ($this->isNonEmptyString(value: $reasonKind) === false) {
             $this->logger->info(
                 '[SessionChangeGuard] {a} refused — changeReasonKind is not set.',
                 ['a' => $action]
@@ -130,15 +130,12 @@ class SessionChangeGuard
             return false;
         }
 
-        if (in_array($action, self::SUBSTITUTE_ACTIONS, true) === true) {
-            $substituteTeacherId = $object['substituteTeacherId'] ?? null;
-            if (is_string($substituteTeacherId) === false || $substituteTeacherId === '') {
-                $this->logger->info(
-                    '[SessionChangeGuard] {a} refused — substituteTeacherId is not set.',
-                    ['a' => $action]
-                );
-                return false;
-            }
+        if ($this->hasRequiredSubstitute(object: $object, action: $action) === false) {
+            $this->logger->info(
+                '[SessionChangeGuard] {a} refused — substituteTeacherId is not set.',
+                ['a' => $action]
+            );
+            return false;
         }
 
         if ($this->actorIsOverrideRole(actor: $actor) === true) {
@@ -172,6 +169,47 @@ class SessionChangeGuard
         return false;
 
     }//end check()
+
+    /**
+     * Whether a context value is present as a non-empty string.
+     *
+     * The lifecycle context is untyped, so 'set' has to mean 'a string with
+     * something in it' rather than merely 'not null'.
+     *
+     * @param mixed $value The value from the transition context or object.
+     *
+     * @return bool True when the value is a non-empty string.
+     *
+     * @spec openspec/changes/timetabling/specs/timetabling/spec.md#requirement-session-changes-are-authorised-and-carry-a-reason
+     */
+    private function isNonEmptyString(mixed $value): bool
+    {
+        return (is_string($value) === true && $value !== '');
+
+    }//end isNonEmptyString()
+
+    /**
+     * Whether the transition carries the substitute teacher it requires.
+     *
+     * Only the substitute actions demand one; every other action is unaffected
+     * and passes this check trivially.
+     *
+     * @param array<string,mixed> $object The Session being transitioned.
+     * @param string              $action The transition name.
+     *
+     * @return bool True when the action does not need a substitute, or names one.
+     *
+     * @spec openspec/changes/timetabling/specs/timetabling/spec.md#requirement-session-changes-are-authorised-and-carry-a-reason
+     */
+    private function hasRequiredSubstitute(array $object, string $action): bool
+    {
+        if (in_array($action, self::SUBSTITUTE_ACTIONS, true) === false) {
+            return true;
+        }
+
+        return $this->isNonEmptyString(value: ($object['substituteTeacherId'] ?? null));
+
+    }//end hasRequiredSubstitute()
 
     /**
      * Whether the actor is a member of one of OVERRIDE_GROUPS.
