@@ -569,25 +569,19 @@ class ReportCardComposer implements IEventListener
 
             $total++;
 
-            $status = (string) ($record['status'] ?? '');
-            switch ($status) {
-                case 'present':
-                    $summary['presentCount']++;
-                    break;
-                case 'absent-unexcused':
-                    $summary['absentUnexcusedCount']++;
-                    break;
-                case 'absent-excused':
-                    $summary['absentExcusedCount']++;
-                    break;
-                case 'late':
-                    $summary['lateCount']++;
-                    break;
-                case 'left-early':
-                    $summary['leftEarlyCount']++;
-                    break;
-                default:
-                    break;
+            // An unrecognised status still counts toward the total but has no
+            // counter of its own, which is what the null arm means.
+            $counter = match ((string) ($record['status'] ?? '')) {
+                'present' => 'presentCount',
+                'absent-unexcused' => 'absentUnexcusedCount',
+                'absent-excused' => 'absentExcusedCount',
+                'late' => 'lateCount',
+                'left-early' => 'leftEarlyCount',
+                default => null,
+            };
+
+            if ($counter !== null) {
+                $summary[$counter] = ((int) $summary[$counter] + 1);
             }
         }//end foreach
 

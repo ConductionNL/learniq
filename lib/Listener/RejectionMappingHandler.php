@@ -398,34 +398,7 @@ class RejectionMappingHandler implements IEventListener
             return null;
         }
 
-        $candidates = array_map(
-            static function ($item) {
-                if (is_array($item) === true) {
-                    return $item;
-                }
-
-                return $item->jsonSerialize();
-            },
-            $results
-        );
-
-        $exactMatch   = null;
-        $genericMatch = null;
-
-        foreach ($candidates as $candidate) {
-            $candidateTarget = $candidate['target'] ?? null;
-
-            if ($candidateTarget === $target) {
-                $exactMatch = $candidate;
-                break;
-            }
-
-            if ($candidateTarget === null && $genericMatch === null) {
-                $genericMatch = $candidate;
-            }
-        }
-
-        $match = $exactMatch ?? $genericMatch;
+        $match = $this->bestErrorCodeMatch(results: $results, target: $target);
         if ($match === null) {
             return null;
         }
@@ -439,6 +412,50 @@ class RejectionMappingHandler implements IEventListener
         return $matchId;
 
     }//end resolveErrorCodeRef()
+
+    /**
+     * Pick the ErrorCode that best describes a rejection for a given target.
+     *
+     * A code declared for this exact target wins outright. Failing that, a
+     * target-agnostic code (`target` is null) is used, so a generic code still
+     * describes the rejection rather than leaving it unmapped. A code belonging
+     * to a DIFFERENT target is never used.
+     *
+     * @param array<int,mixed> $results Candidate ErrorCode rows from OR.
+     * @param string           $target  The data-exchange target the rejection came from.
+     *
+     * @return array<string,mixed>|null The best match, or null when none applies.
+     *
+     * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.2
+     */
+    private function bestErrorCodeMatch(array $results, string $target): ?array
+    {
+        $genericMatch = null;
+
+        foreach ($results as $result) {
+            $candidate = $result;
+            if (is_array($candidate) === false) {
+                $candidate = $candidate->jsonSerialize();
+            }
+
+            $candidateTarget = ($candidate['target'] ?? null);
+
+            if ($candidateTarget === $target) {
+                return (array) $candidate;
+            }
+
+            if ($candidateTarget === null && $genericMatch === null) {
+                $genericMatch = $candidate;
+            }
+        }
+
+        if ($genericMatch === null) {
+            return null;
+        }
+
+        return (array) $genericMatch;
+
+    }//end bestErrorCodeMatch()
 
     /**
      * Load the set of recordIds already mapped as ExchangeRejection rows for this job.
@@ -545,22 +562,9 @@ class RejectionMappingHandler implements IEventListener
      */
     private function handleResubmissionOutcome(array $job, array $rejections): void
     {
-        $validationReport = $job['result']['validationReport'] ?? [];
-        if (is_array($validationReport) === false) {
-            $validationReport = [];
-        }
-
-        $entriesByRecordId = [];
-        foreach ($validationReport as $entry) {
-            if (is_array($entry) === false) {
-                continue;
-            }
-
-            $recordId = $entry['recordId'] ?? null;
-            if (is_string($recordId) === true && $recordId !== '') {
-                $entriesByRecordId[$recordId] = $entry;
-            }
-        }
+        $entriesByRecordId = $this->indexValidationEntries(
+            validationReport: ($job['result']['validationReport'] ?? [])
+        );
 
         foreach ($rejections as $rejection) {
             $rejectionId = $rejection['id'] ?? ($rejection['uuid'] ?? '');
@@ -593,6 +597,40 @@ class RejectionMappingHandler implements IEventListener
         }//end foreach
 
     }//end handleResubmissionOutcome()
+
+    /**
+     * Index a job's validationReport entries by the record they are about.
+     *
+     * An entry with no usable `recordId` cannot be matched back to a rejection,
+     * so it is dropped rather than being attached to an arbitrary one.
+     *
+     * @param mixed $validationReport The job result's validationReport, whatever shape it arrived in.
+     *
+     * @return array<string,array<string,mixed>> Map of recordId => validation entry.
+     *
+     * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.2
+     */
+    private function indexValidationEntries(mixed $validationReport): array
+    {
+        if (is_array($validationReport) === false) {
+            return [];
+        }
+
+        $entriesByRecordId = [];
+        foreach ($validationReport as $entry) {
+            if (is_array($entry) === false) {
+                continue;
+            }
+
+            $recordId = ($entry['recordId'] ?? null);
+            if (is_string($recordId) === true && $recordId !== '') {
+                $entriesByRecordId[$recordId] = $entry;
+            }
+        }
+
+        return $entriesByRecordId;
+
+    }//end indexValidationEntries()
 
     /**
      * Attempt an ExchangeRejection lifecycle transition, logging (not throwing)
