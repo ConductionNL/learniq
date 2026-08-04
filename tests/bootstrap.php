@@ -39,6 +39,12 @@ if (is_dir($ocpRoot)) {
     });
 }
 
+// Test-support helpers. Deliberately required rather than registered in
+// composer `autoload-dev`: a dev-built vendor/ bakes autoload-dev into the
+// runtime classmap and can shadow real app classes instance-wide
+// (openregister#2036) — the same hazard the stub registration above avoids.
+require_once __DIR__ . '/Support/OrEntityFactory.php';
+
 // Shared guard: base.php exits() rather than throwing on a bad NC instance, so
 // loading it unconditionally silently truncates the suite to zero tests while
 // still exiting 0. See tests/bootstrap-nc-guard.php for the full rationale.

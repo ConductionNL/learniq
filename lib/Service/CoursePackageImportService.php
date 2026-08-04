@@ -545,9 +545,9 @@ class CoursePackageImportService
         }
 
         $itemBank     = $this->objectService->saveObject(
-            self::SCHOLIQ_REGISTER,
-            'item-bank',
-            ['name' => 'Imported items', 'tenant_id' => $tenantId, 'lifecycle' => 'draft']
+            register: self::SCHOLIQ_REGISTER,
+            schema: 'item-bank',
+            object: ['name' => 'Imported items', 'tenant_id' => $tenantId, 'lifecycle' => 'draft']
         );
         $itemBankId   = $this->extractUuid(saved: $itemBank);
         $createdUuids = [];
@@ -727,9 +727,9 @@ class CoursePackageImportService
         foreach ((array) ($tree['lessons'] ?? []) as $lesson) {
             $lesson    = (array) $lesson;
             $saved     = $this->objectService->saveObject(
-                self::SCHOLIQ_REGISTER,
-                'lesson',
-                [
+                register: self::SCHOLIQ_REGISTER,
+                schema: 'lesson',
+                object: [
                     'courseId'    => $courseId,
                     'name'        => $lesson['name'] ?? '',
                     'order'       => $lesson['order'] ?? 0,
@@ -784,9 +784,9 @@ class CoursePackageImportService
         foreach ((array) ($tree['rubrics'] ?? []) as $rubric) {
             $rubric    = (array) $rubric;
             $saved     = $this->objectService->saveObject(
-                self::SCHOLIQ_REGISTER,
-                'rubric',
-                [
+                register: self::SCHOLIQ_REGISTER,
+                schema: 'rubric',
+                object: [
                     'name'      => $rubric['name'] ?? '',
                     'criteria'  => $rubric['criteria'] ?? [],
                     'maxPoints' => $rubric['maxPoints'] ?? 100,
@@ -808,9 +808,9 @@ class CoursePackageImportService
         foreach ((array) ($tree['assessments'] ?? []) as $assessment) {
             $assessment = (array) $assessment;
             $saved      = $this->objectService->saveObject(
-                self::SCHOLIQ_REGISTER,
-                'assessment',
-                [
+                register: self::SCHOLIQ_REGISTER,
+                schema: 'assessment',
+                object: [
                     'title'     => $assessment['title'] ?? '',
                     'courseId'  => $courseId,
                     'lifecycle' => 'draft',
@@ -942,9 +942,9 @@ class CoursePackageImportService
 
                 case 'assign':
                     $assignmentId = $this->objectService->saveObject(
-                        self::SCHOLIQ_REGISTER,
-                        'assignment',
-                        [
+                        register: self::SCHOLIQ_REGISTER,
+                        schema: 'assignment',
+                        object: [
                             'title'        => $activity['title'],
                             'instructions' => '',
                             'courseId'     => $courseId,
@@ -1040,9 +1040,9 @@ class CoursePackageImportService
         }
 
         $itemBank   = $this->objectService->saveObject(
-            self::SCHOLIQ_REGISTER,
-            'item-bank',
-            ['name' => $activity['title'], 'tenant_id' => $tenantId, 'lifecycle' => 'draft']
+            register: self::SCHOLIQ_REGISTER,
+            schema: 'item-bank',
+            object: ['name' => $activity['title'], 'tenant_id' => $tenantId, 'lifecycle' => 'draft']
         );
         $itemBankId = $this->extractUuid(saved: $itemBank);
 
@@ -1064,7 +1064,11 @@ class CoursePackageImportService
                 continue;
             }
 
-            $savedItem = $this->objectService->saveObject(self::SCHOLIQ_REGISTER, 'item', $question['itemData']);
+            $savedItem = $this->objectService->saveObject(
+                register: self::SCHOLIQ_REGISTER,
+                schema: 'item',
+                object: $question['itemData']
+            );
             $entries[] = $this->entry(
                 resourceIdentifier: $resourceIdentifier,
                 resourceType: 'quiz-question:'.$question['moodleQuestionType'],
@@ -1091,9 +1095,9 @@ class CoursePackageImportService
     private function createCourse(string $title, ?string $parentCourseId, string $tenantId): ?string
     {
         $saved = $this->objectService->saveObject(
-            self::SCHOLIQ_REGISTER,
-            'course',
-            [
+            register: self::SCHOLIQ_REGISTER,
+            schema: 'course',
+            object: [
                 'code'           => 'IMPORT-'.substr(md5($title.microtime()), 0, 8),
                 'name'           => $title,
                 'level'          => 'other',
@@ -1126,9 +1130,9 @@ class CoursePackageImportService
     private function createLessonForMaterial(?string $courseId, string $title, int $order, string $contentRef, string $tenantId): void
     {
         $this->objectService->saveObject(
-            self::SCHOLIQ_REGISTER,
-            'lesson',
-            [
+            register: self::SCHOLIQ_REGISTER,
+            schema: 'lesson',
+            object: [
                 'courseId'    => $courseId,
                 'name'        => $title,
                 'order'       => $order,
@@ -1157,9 +1161,9 @@ class CoursePackageImportService
     private function createMaterial(string $title, string $kind, ?string $fileRef, ?string $url, ?string $courseId, string $tenantId): ?string
     {
         $saved = $this->objectService->saveObject(
-            self::SCHOLIQ_REGISTER,
-            'material',
-            [
+            register: self::SCHOLIQ_REGISTER,
+            schema: 'material',
+            object: [
                 'title'     => $title,
                 'kind'      => $kind,
                 'fileRef'   => $fileRef ?? '',
@@ -1185,9 +1189,9 @@ class CoursePackageImportService
     private function createLtiPlacement(?string $courseId, string $tenantId): ?string
     {
         $saved = $this->objectService->saveObject(
-            self::SCHOLIQ_REGISTER,
-            'lti-tool-placement',
-            [
+            register: self::SCHOLIQ_REGISTER,
+            schema: 'lti-tool-placement',
+            object: [
                 // Left blank: the package carries no live OpenConnector deployment binding.
                 // An admin configures this before the placement can launch — reported as
                 // `degraded`, never a silent success (see routeResource()).
@@ -1543,9 +1547,9 @@ class CoursePackageImportService
         }
 
         $saved = $this->objectService->saveObject(
-            self::SCHOLIQ_REGISTER,
-            self::REPORT_SCHEMA,
-            [
+            register: self::SCHOLIQ_REGISTER,
+            schema: self::REPORT_SCHEMA,
+            object: [
                 'sourceFormat'      => $sourceFormat,
                 'sourceFilename'    => $sourceFilename,
                 'courseId'          => $courseId,

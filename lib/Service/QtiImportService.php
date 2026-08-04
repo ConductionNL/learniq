@@ -527,19 +527,18 @@ class QtiImportService
             'tenant_id'       => $tenantId,
         ];
 
-        $saved = $this->objectService->saveObject('scholiq', 'item', $itemData);
-        if ($saved === null) {
-            return null;
-        }
+        // OpenRegister's saveObject() takes the payload FIRST and returns a
+        // non-nullable ObjectEntity. This used to be called positionally as
+        // saveObject('scholiq', 'item', $itemData), which passes the register
+        // slug as the payload — a guaranteed TypeError against the real
+        // service. Named arguments are the only safe call shape here.
+        $saved = $this->objectService->saveObject(
+            register: 'scholiq',
+            schema: 'item',
+            object: $itemData
+        );
 
-        $uuid = null;
-        if (is_array($saved) === true) {
-            $uuid = $saved['uuid'] ?? null;
-        }
-
-        if (is_array($saved) === false && is_object($saved) === true) {
-            $uuid = $saved->getUuid() ?? null;
-        }
+        $uuid = $saved->getUuid();
 
         if (is_string($uuid) === true) {
             return $uuid;
