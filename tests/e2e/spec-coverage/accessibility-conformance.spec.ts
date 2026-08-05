@@ -237,14 +237,24 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 		// see ADR-074 rule 4 / hydra gate 58.
 		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
 
-		// Soft: only meaningful once the scholiq register is imported into
-		// OpenRegister and CnDetailPage's isCreateMode form has actually
-		// mounted its fields (index-pages.spec.ts documents the same
-		// "32/35 schemas can't be imported yet" gap this environment may be
-		// in). The route-resolves-without-a-fatal-error bar above always
-		// holds regardless.
+		// ⚠️ HARD, not soft. This used to be
+		// `if (await affectedSurfaceField.isVisible().catch(() => false)) { … }`
+		// — i.e. if the create form failed to mount, the ENTIRE body of this
+		// test was skipped and it reported green having asserted nothing about
+		// the requirement it is named after. That was defensible while the
+		// register import was best-effort. It is not any more: ci-seed.sh is
+		// now the workflow's `playwright-seed-command`, it verifies the
+		// register, the six core schemas and the seeded-row floor, and it exits
+		// non-zero (the step runs under `bash -e`) if any of them is missing.
+		// So on CI the form not mounting can no longer mean "the environment
+		// was not provisioned" — it can only mean the create form is broken,
+		// which is exactly what this test exists to catch.
 		const affectedSurfaceField = page.getByLabel(/Affected Surface/i).first()
-		if (await affectedSurfaceField.isVisible({ timeout: 5_000 }).catch(() => false)) {
+		await expect(affectedSurfaceField, 'the AccessibilityFeedback create form must mount its fields — ci-seed.sh has already verified the register is provisioned').toBeVisible({ timeout: 15_000 })
+		// The bare block is what is left of the old `if`. Kept so this change
+		// reads as "the guard became an assertion" and not as a re-indent of
+		// eighty lines; delete it in any commit that touches the body anyway.
+		{
 			await affectedSurfaceField.fill('Course authoring — lesson reorder')
 			// ⚠️ The accessible name of a REQUIRED field carries the required
 			// marker: the rendered control is `textbox "Description *"`, not
@@ -255,11 +265,51 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 			// which is why only this one field looked "missing".
 			await page.getByLabel(/^Description\s*\*?$/i).first().fill('The reorder control has no keyboard-operable equivalent.')
 
+			// ⚠️ Severity is REQUIRED and is selected with the KEYBOARD, not by
+			// clicking the option row. That is not a stylistic preference —
+			// clicking the option is IMPOSSIBLE in this dialog.
+			//
+			// Measured, run 30889902343, from this test's own trace: the
+			// `serious` option resolves, Playwright reports it "visible,
+			// enabled and stable", and then every click attempt is refused for
+			// the full test timeout with
+			//
+			//     <input id="nc-vue-124" placeholder="Tenant UUID (multi-tenant
+			//     isolation)."> from <div role="dialog" aria-modal="true" …>
+			//     subtree intercepts pointer events
+			//
+			// The NcSelect dropdown (`vs__dropdown-menu`, id `vs-nc-vue-123`)
+			// is rendered INLINE in the form instead of teleported, and the
+			// field rendered immediately after it — Tenant ID, `nc-vue-124` —
+			// paints on top. Only the first option is reachable with a mouse;
+			// `serious` is option-1. That is a real defect in the create dialog
+			// (it is not specific to this schema — every required enum on every
+			// CnDetailPage create form is affected) and it is reported
+			// separately. It is NOT what this test is about, and the old
+			// `.catch(() => {})` turned it into sixty seconds of silence.
+			//
+			// The keyboard path is immune to the overlap, and in an
+			// accessibility-conformance spec it is the more appropriate
+			// interaction anyway: type to filter, Enter to take the highlighted
+			// option.
 			const severityField = page.getByLabel(/Severity/i).first()
-			if (await severityField.isVisible({ timeout: 2_000 }).catch(() => false)) {
-				await severityField.click()
-				await page.getByRole('option', { name: /serious/i }).first().click().catch(() => {})
-			}
+			await expect(severityField, 'Severity is a required field of AccessibilityFeedback and must be present on the create form').toBeVisible({ timeout: 10_000 })
+			await severityField.click()
+			// `keyboard.type` rather than `fill`: vue-select marks its search
+			// input readonly when the select is not searchable, and `fill`
+			// throws on a readonly input while typing into the focused control
+			// works either way.
+			await page.keyboard.type('serious')
+			const seriousOption = page.getByRole('option', { name: /serious/i }).first()
+			await expect(seriousOption, 'typing "serious" must leave the serious option offered').toBeVisible({ timeout: 10_000 })
+			await page.keyboard.press('Enter')
+			// The listbox closing is the proof the Enter was consumed as a
+			// SELECTION rather than ignored. If it were ignored the options
+			// would still be on screen — which is exactly the state run
+			// 30889902343 captured. The assertion is only meaningful because
+			// the option was asserted VISIBLE one line above: a `toBeHidden`
+			// on an element that never rendered would pass for free.
+			await expect(seriousOption, 'choosing a severity must close the listbox').toBeHidden({ timeout: 10_000 })
 
 			const reporterField = page.getByLabel(/Reporter User Id/i).first()
 			if (await reporterField.isVisible({ timeout: 2_000 }).catch(() => false)) {
