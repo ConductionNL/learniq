@@ -245,7 +245,7 @@ export default {
 					fetch(generateUrl('/apps/openregister/api/objects/scholiq/Course?limit=500'), {
 						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 					}),
-					fetch(generateUrl('/apps/openregister/api/objects/scholiq/EvaluationCampaign?limit=200'), {
+					fetch(generateUrl('/apps/openregister/api/objects/scholiq/evaluation-campaign?limit=200'), {
 						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 					}),
 				])
@@ -303,10 +303,10 @@ export default {
 			try {
 				const courseId = encodeURIComponent(this.selectedCourseId)
 				const [scoresResp, responsesResp] = await Promise.all([
-					fetch(generateUrl(`/apps/openregister/api/objects/scholiq/CourseQualityScore?courseId=${courseId}&limit=100`), {
+					fetch(generateUrl(`/apps/openregister/api/objects/scholiq/course-quality-score?courseId=${courseId}&limit=100`), {
 						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 					}),
-					fetch(generateUrl(`/apps/openregister/api/objects/scholiq/CourseEvaluationResponse?courseId=${courseId}&limit=200`), {
+					fetch(generateUrl(`/apps/openregister/api/objects/scholiq/course-evaluation-response?courseId=${courseId}&limit=200`), {
 						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 					}),
 				])

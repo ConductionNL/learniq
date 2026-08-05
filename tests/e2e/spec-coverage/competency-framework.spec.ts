@@ -28,7 +28,10 @@
  */
 import { test, expect } from '../fixtures'
 
-const SKILLS_GAP_DASHBOARD_URL = '/index.php/apps/scholiq/#/competencies/skills-gap'
+// ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
+// `#/…` URL resolves to a location no route matches and renders an empty app body.
+// See accessibility-conformance.spec.ts for the measurement.
+const SKILLS_GAP_DASHBOARD_URL = '/index.php/apps/scholiq/competencies/skills-gap'
 
 test.describe('competency-framework — Skills gap dashboard', () => {
 

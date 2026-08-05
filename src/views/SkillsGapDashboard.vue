@@ -213,7 +213,11 @@ export default {
 
 				const [profile, attainments, enrolments, competencies] = await Promise.all([
 					this.fetchLearnerProfile(targetLearnerId),
-					this.fetchCollection('CompetencyAttainment', { learnerId: targetLearnerId, limit: 200 }),
+					// The slug declared in lib/Settings/scholiq_register.json, verbatim.
+					// The resolver lowercases both sides, so casing is irrelevant — the
+					// hyphen is the structural difference that made the PascalCase key
+					// 404. ⚠️ Look the slug up rather than kebab-casing by rule.
+					this.fetchCollection('competency-attainment', { learnerId: targetLearnerId, limit: 200 }),
 					this.fetchCollection('Enrolment', { learnerId: targetLearnerId, limit: 200 }),
 					this.fetchCollection('Competency', { limit: 500 }),
 				])
@@ -253,7 +257,8 @@ export default {
 		 * @return {Promise<object|null>}
 		 */
 		async fetchLearnerProfile(ncUserId) {
-			const results = await this.fetchCollection('LearnerProfile', { ncUserId, limit: 1 })
+			// Declared slug, verbatim (see above).
+			const results = await this.fetchCollection('learner-profile', { ncUserId, limit: 1 })
 			return results[0] ?? null
 		},
 

@@ -15,13 +15,13 @@
 
   Talks only to OpenRegister's REST API:
     - GET  /api/objects/scholiq/Portfolio/:id
-    - GET  /api/objects/scholiq/PortfolioTemplate/:id           (when templateId set)
-    - GET  /api/objects/scholiq/PortfolioEntry?filters[portfolioId]=:id
+    - GET  /api/objects/scholiq/portfolio-template/:id           (when templateId set)
+    - GET  /api/objects/scholiq/portfolio-entry?filters[portfolioId]=:id
     - GET  /api/objects/scholiq/Submission?filters[learnerIds]=:learnerId
-    - GET  /api/objects/scholiq/WerkprocesAssessment?filters[...]
-    - GET  /api/objects/scholiq/ExternalTrainingRecord?filters[learnerId]=:learnerId
+    - GET  /api/objects/scholiq/werkproces-assessment?filters[...]
+    - GET  /api/objects/scholiq/external-training-record?filters[learnerId]=:learnerId
     - GET  /api/objects/scholiq/Credential?filters[learnerId]=:learnerId
-    - POST /api/objects/scholiq/PortfolioEntry
+    - POST /api/objects/scholiq/portfolio-entry
     - POST /api/objects/scholiq/Portfolio/:id/transition/submit
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
@@ -529,7 +529,7 @@ export default {
 			}
 
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/PortfolioEntry')
+				const url = generateUrl('/apps/openregister/api/objects/scholiq/portfolio-entry')
 				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {

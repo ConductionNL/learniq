@@ -165,7 +165,7 @@ export default {
 			this.error = null
 
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/ProctoringSession?limit=100')
+				const url = generateUrl('/apps/openregister/api/objects/scholiq/proctoring-session?limit=100')
 				const resp = await fetch(url, {
 					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 				})
@@ -243,7 +243,7 @@ export default {
 				})
 
 				const url = generateUrl(
-					`/apps/openregister/api/objects/scholiq/ProctoringSession/${session.uuid}`,
+					`/apps/openregister/api/objects/scholiq/proctoring-session/${session.uuid}`,
 				)
 				const resp = await fetch(url, {
 					method: 'PUT',

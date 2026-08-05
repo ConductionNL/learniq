@@ -16,7 +16,11 @@
  */
 import { test, expect } from '../fixtures'
 
-const SETTINGS_URL = '/apps/scholiq/Settings'
+// `/index.php/` prefix is load-bearing on CI (a bare `php -S` does not rewrite
+// pretty URLs and `server/apps/scholiq/` exists without an index.php), and the
+// manifest route is `/settings` — vue-router is case-sensitive, so `/Settings`
+// resolved to no route at all. See nextcloud-app.spec.ts.
+const SETTINGS_URL = '/index.php/apps/scholiq/settings'
 
 test.describe('avg-verwerkingsregister — AVG Art. 30 compliance section', () => {
 

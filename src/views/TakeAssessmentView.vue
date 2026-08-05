@@ -350,7 +350,7 @@ export default {
 		if (!this.submitted && this.proctoringSession?.uuid
 			&& typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/ProctoringSession/${this.proctoringSession.uuid}/transition/end`,
+				`/apps/openregister/api/objects/scholiq/proctoring-session/${this.proctoringSession.uuid}/transition/end`,
 			)
 			const blob = new Blob([JSON.stringify({})], { type: 'application/json' })
 			navigator.sendBeacon(url, blob)
@@ -476,7 +476,7 @@ export default {
 			const currentUser = getCurrentUser()
 			const learnerId = currentUser?.uid ?? 'anonymous'
 
-			const url = generateUrl('/apps/openregister/api/objects/scholiq/AssessmentResult')
+			const url = generateUrl('/apps/openregister/api/objects/scholiq/assessment-result')
 			const resp = await fetch(url, {
 				method: 'POST',
 				headers: {
@@ -515,7 +515,7 @@ export default {
 		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
 		 */
 		async fetchResult(resultId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/AssessmentResult/${resultId}`)
+			const url = generateUrl(`/apps/openregister/api/objects/scholiq/assessment-result/${resultId}`)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -540,7 +540,7 @@ export default {
 			const currentUser = getCurrentUser()
 			const learnerId = currentUser?.uid ?? 'anonymous'
 
-			const url = generateUrl('/apps/openregister/api/objects/scholiq/AssessmentResult?limit=100')
+			const url = generateUrl('/apps/openregister/api/objects/scholiq/assessment-result?limit=100')
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -757,7 +757,7 @@ export default {
 		 */
 		async flagConcurrentSessionForBlockedTab(resultId) {
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/ProctoringSession?limit=100')
+				const url = generateUrl('/apps/openregister/api/objects/scholiq/proctoring-session?limit=100')
 				const resp = await fetch(url, {
 					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 				})
@@ -786,7 +786,7 @@ export default {
 			const currentUser = getCurrentUser()
 			const learnerId = currentUser?.uid ?? 'anonymous'
 
-			const url = generateUrl('/apps/openregister/api/objects/scholiq/ProctoringSession')
+			const url = generateUrl('/apps/openregister/api/objects/scholiq/proctoring-session')
 			const resp = await fetch(url, {
 				method: 'POST',
 				headers: {
@@ -809,7 +809,7 @@ export default {
 			this.proctoringSession = json.object ?? json ?? {}
 
 			const transitionUrl = generateUrl(
-				`/apps/openregister/api/objects/scholiq/ProctoringSession/${this.proctoringSession.uuid}/transition/activate`,
+				`/apps/openregister/api/objects/scholiq/proctoring-session/${this.proctoringSession.uuid}/transition/activate`,
 			)
 			const transitionResp = await fetch(transitionUrl, {
 				method: 'POST',
@@ -933,7 +933,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					`/apps/openregister/api/objects/scholiq/ProctoringSession/${this.proctoringSession.uuid}`,
+					`/apps/openregister/api/objects/scholiq/proctoring-session/${this.proctoringSession.uuid}`,
 				)
 				const resp = await fetch(url, {
 					method: 'PUT',
@@ -977,7 +977,7 @@ export default {
 			if (this.proctoringSession?.uuid) {
 				try {
 					const transitionUrl = generateUrl(
-						`/apps/openregister/api/objects/scholiq/ProctoringSession/${this.proctoringSession.uuid}/transition/end`,
+						`/apps/openregister/api/objects/scholiq/proctoring-session/${this.proctoringSession.uuid}/transition/end`,
 					)
 					const resp = await fetch(transitionUrl, {
 						method: 'POST',
@@ -1058,7 +1058,7 @@ export default {
 			try {
 				// Persist responses.
 				const patchUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/AssessmentResult/${this.resultId}`,
+					`/apps/openregister/api/objects/scholiq/assessment-result/${this.resultId}`,
 				)
 				const patchResp = await fetch(patchUrl, {
 					method: 'PUT',
@@ -1078,7 +1078,7 @@ export default {
 
 				// Dispatch submit transition (triggers AssessmentScoringHandler).
 				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/AssessmentResult/${this.resultId}/transition/submit`,
+					`/apps/openregister/api/objects/scholiq/assessment-result/${this.resultId}/transition/submit`,
 				)
 				const transitionResp = await fetch(transitionUrl, {
 					method: 'POST',

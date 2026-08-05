@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"dependencies": [
 		"openregister",
-		"openconnector"
+		{ "id": "openconnector", "required": false, "name": "OpenConnector" }
 	],
 	"observability": {
 		"health": {
