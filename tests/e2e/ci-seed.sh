@@ -311,11 +311,21 @@ fi
 # bundle is absent, Nextcloud does not 404. It serves its HTML error page with
 # **HTTP 200 and Content-Type text/html**, so `npm run build` producing nothing
 # looks, to every status-code check in the pipeline, exactly like success.
+#
+# The content type alone is NOT enough, and this is the second half of the same
+# trap. A TRUNCATED bundle — `npm run build` exiting 0 after webpack wrote an
+# empty chunk, an artifact that uploaded before the write finished — still
+# serves as `application/javascript`, with HTTP 200, at zero bytes. Content
+# type says "JavaScript", the status says "fine", and the SPA mounts nothing.
+# So the size is gated too. The real bundle measured 11,688,751 bytes
+# (run 30889902343); the floor is 1 MB, two orders of magnitude below that and
+# far above anything a truncation would leave behind.
+BUNDLE_MIN_BYTES=1048576
 if [ "${GITHUB_ACTIONS:-}" = "true" ] || [ "${CI:-}" = "true" ]; then
-	case "$BUNDLE_INFO" in
-		*javascript*)
-			echo "[ci-seed] bundle verified as JavaScript."
-			;;
+	BUNDLE_TYPE="$(printf '%s' "$BUNDLE_INFO" | awk '{print $2}')"
+	BUNDLE_BYTES="$(printf '%s' "$BUNDLE_INFO" | awk '{print $3}')"
+	case "$BUNDLE_TYPE" in
+		*javascript*) ;;
 		*)
 			echo "::error::The Scholiq frontend bundle did not serve as JavaScript (got: ${BUNDLE_INFO:-<not found>})."
 			echo "::error::The SPA cannot mount, so every UI spec would fail on a selector timeout with a misleading cause."
@@ -323,6 +333,13 @@ if [ "${GITHUB_ACTIONS:-}" = "true" ] || [ "${CI:-}" = "true" ]; then
 			exit 1
 			;;
 	esac
+	if [ "${BUNDLE_BYTES:-0}" -lt "$BUNDLE_MIN_BYTES" ]; then
+		echo "::error::The Scholiq frontend bundle served as JavaScript but is only ${BUNDLE_BYTES:-0} bytes (floor ${BUNDLE_MIN_BYTES})."
+		echo "::error::A truncated bundle keeps the JavaScript content type and the HTTP 200, so the type check above cannot see it."
+		echo "::error::The SPA would mount nothing and every UI spec would fail on a selector timeout with a misleading cause."
+		exit 1
+	fi
+	echo "[ci-seed] bundle verified as JavaScript, ${BUNDLE_BYTES} bytes (floor ${BUNDLE_MIN_BYTES})."
 fi
 
 echo "[ci-seed] done."
