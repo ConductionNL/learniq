@@ -81,11 +81,33 @@ jobs:
       enable-coverage-guard: true
 
       # ── Hydra mechanical gates ───────────────────────────────────────────
-      # `enable-hydra-gates` defaults to FALSE, so this tier has never executed
-      # here — the job reported `skipped`, which the Quality Report renders
-      # identically to a pass. Pinned to v1.0.1 so a change to the gate package
-      # cannot move this repo's verdict without a commit here.
+      # The tier is ON. Pinned to a tag, not `main`, so a change to the gate
+      # package cannot move this repo's verdict without a commit here.
+      #
+      # Moved v1.0.1 -> v1.2.0 for two reasons that are specific to THIS repo:
+      #
+      #   1. v1.0.1's gate-5 (route-auth) reported four FALSE findings here on
+      #      every PR, a dependency-only Dependabot bump included. Scholiq
+      #      adopts ADR-040 AppHost, so its health/metrics/preferences
+      #      controllers are OpenRegister generics aliased at runtime by
+      #      Bootstrap::register() — the files are absent BY DESIGN and the
+      #      auth attributes live in the openregister package. The gate was
+      #      reporting "I could not open the class" as "the attribute is
+      #      missing". Fixed in ConductionNL/.github#162 (#153), and the gate
+      #      is now diff-scoped per ADR-020.
+      #
+      #   2. v1.0.1's gate-5 read route names through `'[a-z_]+#…'`, so every
+      #      camelCase slug was invisible to it. Measured here: 14 of 37 routed
+      #      names matched; the other 23 — `paymentTransaction#callback`,
+      #      `keyAdmin#generateKey`, `credentialVerify#verify` among them —
+      #      were never opened. EXPECT NEW, REAL FINDINGS from this pin move.
+      #      That is the point of it, not a regression.
+      #
+      # v1.2.0 also brings the runner's COVERAGE accounting (absent in v1.0.1,
+      # whose summary could not distinguish "62 gates green" from "62 gates
+      # never ran") and a countable gate-22.
+      #
       # `enable-axe` deliberately NOT set: a vanilla Nextcloud 34 already carries
       # serious/critical violations from core's own UI.
       enable-hydra-gates: true
-      hydra-gates-ref: v1.0.1
+      hydra-gates-ref: v1.2.0
