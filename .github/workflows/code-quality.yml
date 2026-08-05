@@ -51,6 +51,42 @@ jobs:
       additional-apps: '[{"repo":"ConductionNL/openregister","app":"openregister","ref":"development"}]'
       enable-sbom: true
 
+      # ── E2E browser tests (Playwright) ───────────────────────────────────
+      # `enable-playwright` defaults to FALSE in the shared workflow, and this
+      # caller did not set it AT ALL — not to `false` with a reason, just
+      # absent. So the "E2E Tests (Playwright)" job has reported `skipped` on
+      # every run this repo has ever produced, while tests/e2e/ grew to 34 spec
+      # files / 433 tests. The Quality Report renders `skipped` the same way it
+      # renders a pass, so none of that was ever visible as missing.
+      #
+      # `playwright-test-path` does double duty in the shared workflow:
+      #   1. it is the directory the "Validate Playwright tests exist" step
+      #      counts *.spec.ts in;
+      #   2. it is the FIRST place the run step looks for a config —
+      #      `${playwright-test-path}/playwright.config.ts`, falling back to the
+      #      repo root only if that file is absent.
+      # tests/e2e/playwright.config.ts is added in this commit precisely so
+      # lookup (2) hits it. The run step passes no `--project`, so whichever
+      # config it picks, every project in that config runs — and the ROOT
+      # config's HTML report goes to `test-results/playwright-report`, which
+      # matches NEITHER path the "Upload Playwright report" step collects. With
+      # `if-no-files-found: ignore` that would have uploaded an EMPTY artifact
+      # on a red run. The tests/e2e config writes the report to the app root
+      # instead, which is the path the workflow actually uploads.
+      enable-playwright: true
+      playwright-test-path: tests/e2e
+      # `playwright-seed-command` deliberately NOT set. Unlike opencatalogi,
+      # this repo already seeds from inside Playwright: tests/e2e/global-setup.ts
+      # shells out to tests/e2e/seed-example-data.mjs, which imports
+      # lib/Settings/scholiq_register.json over the admin API and then creates
+      # the example dataset. Wiring a seed command here would run that import
+      # twice. The seed is best-effort by the repo's own design (OR's partial
+      # register-import gap, openregister#1487 / scholiq#35) and the index-page
+      # specs are written to drop their row-count assertions when it does not
+      # complete — so a seed failure degrades what is measured rather than
+      # failing the job. Promote it to a loud `ci-seed.sh` once #1487 is closed
+      # and a complete import can honestly be made a hard requirement.
+
       # Integration Tests (Newman) stays OFF here, deliberately. The
       # `enable-newman: false` further up is not a default nobody chose: it
       # records that the collection's requests hard-code URLs with no
