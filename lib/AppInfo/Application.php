@@ -74,6 +74,16 @@ class Application extends App implements IBootstrap
      * @param IRegistrationContext $context The registration context
      *
      * @return void
+     *
+     * @SuppressWarnings(PHPMD.StaticAccess) Both static calls here are
+     * composition-root calls that cannot be injected. This method IS the
+     * composition root, so there is no container to resolve an adapter from
+     * yet, and declaring a typed dependency on a possibly-absent foreign class
+     * would 500 every route (a param type is a class reference the router
+     * reflects over). AppInfo\OpenRegisterAutoloader::register() is the ADR-040
+     * load-order prelude, which must run before any OCA\OpenRegister\ name is
+     * resolved; OCA\OpenRegister\AppHost\Bootstrap::register() is OpenRegister's
+     * published AppHost entry point in a sibling app.
      */
     public function register(IRegistrationContext $context): void
     {
