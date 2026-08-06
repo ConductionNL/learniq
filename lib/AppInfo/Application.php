@@ -74,6 +74,16 @@ class Application extends App implements IBootstrap
      * @param IRegistrationContext $context The registration context
      *
      * @return void
+     *
+     * @SuppressWarnings(PHPMD.StaticAccess) Both static calls here are
+     * composition-root calls that cannot be injected. This method IS the
+     * composition root, so there is no container to resolve an adapter from
+     * yet, and declaring a typed dependency on a possibly-absent foreign class
+     * would 500 every route (a param type is a class reference the router
+     * reflects over). AppInfo\OpenRegisterAutoloader::register() is the ADR-040
+     * load-order prelude, which must run before any OCA\OpenRegister\ name is
+     * resolved; OCA\OpenRegister\AppHost\Bootstrap::register() is OpenRegister's
+     * published AppHost entry point in a sibling app.
      */
     public function register(IRegistrationContext $context): void
     {
@@ -87,6 +97,27 @@ class Application extends App implements IBootstrap
         // The MCP provider alias (formerly hand-written here) and the deep-link
         // listener (formerly bespoke PHP patterns) are handled by Bootstrap from
         // the `mcpProvider` option + the manifest `deepLinks` block.
+        //
+        // LOAD-ORDER PRELUDE (ADR-040). OC_App::getEnabledApps() sort()s the app
+        // list, and Coordinator::registerApps() walks THAT sorted list calling
+        // OC_App::registerAutoloading($appId) and then $app->register() for one
+        // app at a time — so every app registers BEFORE the PSR-4 prefix of every
+        // alphabetically-LATER app exists. `scholiq` sorts after `openregister`,
+        // so OCA\OpenRegister\ happens to be autoloadable here today; that is the
+        // alphabet, not a design property. The Bootstrap::register() call below is
+        // UNGUARDED, so the moment the ordering stops holding the resulting \Error
+        // aborts this ENTIRE register() — Coordinator catches it, logs an
+        // 'emergency' and continues, leaving Scholiq enabled and serving with the
+        // two registrars below silently never wired.
+        //
+        // Registering the prefix ourselves removes the dependency on ordering.
+        // OC_App::registerAutoloading() touches only the autoloader and is
+        // idempotent (it early-returns on an $alreadyRegistered key), so on the
+        // current ordering this call costs nothing. IAppManager::loadApp() would
+        // NOT be correct here: it marks OpenRegister loaded and calls
+        // Coordinator::bootApp(), booting it before its own register() has run.
+        OpenRegisterAutoloader::register();
+
         Bootstrap::register(
             $context,
             self::APP_ID,
