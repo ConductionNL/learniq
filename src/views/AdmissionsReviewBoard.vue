@@ -139,7 +139,7 @@ export default {
 					fetch(generateUrl('/apps/openregister/api/objects/scholiq/Application?limit=200'), {
 						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 					}),
-					fetch(generateUrl('/apps/openregister/api/objects/scholiq/AdmissionsRound?limit=200'), {
+					fetch(generateUrl('/apps/openregister/api/objects/scholiq/admissions-round?limit=200'), {
 						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 					}),
 				])

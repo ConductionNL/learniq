@@ -112,7 +112,12 @@ import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
 
 const REGISTER = 'scholiq'
-const POLICY_SCHEMA = 'SovereigntyPolicy'
+// The slug this schema declares in lib/Settings/scholiq_register.json, verbatim.
+// The resolver lowercases both sides, so casing is irrelevant — but a structural
+// difference (here the hyphen) is not: 'SovereigntyPolicy' lowercases to
+// 'sovereigntypolicy', which is not the declared 'sovereignty-policy'.
+// ⚠️ Look the slug up; do not kebab-case by rule (AiFeature's slug is 'AiFeature').
+const POLICY_SCHEMA = 'sovereignty-policy'
 const POLICY_TYPE = `${REGISTER}-${POLICY_SCHEMA}`
 
 export default {

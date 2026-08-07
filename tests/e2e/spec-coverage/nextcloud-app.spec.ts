@@ -20,10 +20,32 @@
 import { test, expect } from '../fixtures'
 import { apiUrl } from '../base-url'
 
-const SETTINGS_URL = '/apps/scholiq/Settings'
-const API_SETTINGS = '/apps/scholiq/api/settings'
+// Two fixes in these constants, both of which made the target unreachable:
+//
+//  1. The `/index.php/` prefix is load-bearing on CI. The shared workflow serves
+//     Nextcloud with a bare `php -S` and no router script, so pretty URLs are
+//     not rewritten: the built-in server only falls back to index.php for paths
+//     that do NOT exist on disk, and `server/apps/scholiq/` DOES exist without
+//     an index.php — so `/apps/scholiq/...` is a hard 404. 29 of this suite's
+//     34 spec files already used the `/index.php/` form.
+//  2. This is the NEXTCLOUD ADMIN settings panel, not an in-app route. Every
+//     assertion below ("Scholiq Settings", the OpenRegister section, the register
+//     combobox, "Credential Signing") targets src/views/settings/AdminRoot.vue,
+//     which `src/settings.js` mounts into `#scholiq-settings` on the NC admin
+//     page. The old `/apps/scholiq/Settings` was neither: `/Settings` is not a
+//     declared route (the manifest's in-app settings page is `/settings`, and
+//     vue-router is case-sensitive), and the in-app `/settings` page is a
+//     different surface — navigating there on CI run 30798535945 rendered a
+//     generic "Settings" heading and a disabled Save button, with no "Scholiq
+//     Settings" heading anywhere.
+//
+//     The section id is `scholiq`: OpenRegister's AppHost `Bootstrap::register`
+//     defaults `sectionId` to the app id, and lib/AppInfo/Application.php passes
+//     only `namespace`, `sectionName` and `mcpProvider` — no `sectionId` override.
+const SETTINGS_URL = '/index.php/settings/admin/scholiq'
+const API_SETTINGS = '/index.php/apps/scholiq/api/settings'
 const APP_URL = '/index.php/apps/scholiq/'
-const PREFS_API = '/apps/openregister/api/notification-preferences'
+const PREFS_API = '/index.php/apps/openregister/api/notification-preferences'
 
 test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 
@@ -93,10 +115,25 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		const picker = page.locator('select, [role="combobox"]').first()
 		await expect(picker).toBeVisible()
 
-		// AI Features heading must also be present (loaded in parallel)
+		// AI Features section must also be present (loaded in parallel)
 		await expect(page.locator('h2').filter({ hasText: /AI Features/i })).toBeVisible()
-		// Table columns confirm structure loaded
-		await expect(page.locator('th').filter({ hasText: /Feature/i })).toBeVisible()
+
+		// This used to assert a `<th>Feature</th>`, i.e. that Scholiq rendered its
+		// OWN AI-feature register table. That surface no longer exists: under
+		// ADR-005 the EU AI Act high-risk feature register and the DPO
+		// acknowledgement are centralised in Hermiq, and ScholiqSettings.vue now
+		// renders the section as a delegation — see the "Section 2: AI features —
+		// governance delegated to Hermiq (ADR-005)" NcSettingsSection. There is no
+		// <th> anywhere in the settings views, so the old assertion could only ever
+		// fail; it was asserting against a removed surface, not a regression.
+		//
+		// Assert the delegation the app actually implements. Both branches are
+		// legitimate and depend only on whether Hermiq is installed on the
+		// instance, so accept either — but require one of them, so a section that
+		// rendered empty still fails.
+		const hermiqLink = page.getByRole('button', { name: /Open the AI-feature register in Hermiq/i })
+		const hermiqMissingNotice = page.getByText(/Install and enable the Hermiq app/i)
+		await expect(hermiqLink.or(hermiqMissingNotice).first()).toBeVisible()
 	})
 
 	// @e2e openspec/specs/nextcloud-app/spec.md#saving-the-default-register

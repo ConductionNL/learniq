@@ -19,12 +19,12 @@
   as ExamCaseDossierView's own documented limit).
 
   Talks only to OpenRegister's REST API:
-    - GET  /api/objects/scholiq/PeerReview/:id
+    - GET  /api/objects/scholiq/peer-review/:id
     - GET  /api/objects/scholiq/Assignment/:id
     - GET  /api/objects/scholiq/Rubric/:id
     - GET  /api/objects/scholiq/Submission/:id (only when anonymity is not double-blind)
-    - PUT  /api/objects/scholiq/PeerReview/:id
-    - POST /api/objects/scholiq/PeerReview/:id/transition/submit
+    - PUT  /api/objects/scholiq/peer-review/:id
+    - POST /api/objects/scholiq/peer-review/:id/transition/submit
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView.
@@ -295,7 +295,7 @@ export default {
 		 */
 		async loadPeerReview(peerReviewId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/PeerReview/${peerReviewId}`,
+				`/apps/openregister/api/objects/scholiq/peer-review/${peerReviewId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -419,7 +419,7 @@ export default {
 
 			try {
 				const updateUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/PeerReview/${this.id}`,
+					`/apps/openregister/api/objects/scholiq/peer-review/${this.id}`,
 				)
 				const updateResp = await fetch(updateUrl, {
 					method: 'PUT',
@@ -439,7 +439,7 @@ export default {
 				}
 
 				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/PeerReview/${this.id}/transition/submit`,
+					`/apps/openregister/api/objects/scholiq/peer-review/${this.id}/transition/submit`,
 				)
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',

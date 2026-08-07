@@ -255,4 +255,46 @@ class LearningRecordShareVerifyControllerTest extends TestCase
         self::assertSame('not_found', $response->getData()['reason']);
         self::assertSame(404, $response->getStatus());
     }//end testUnknownShareIsDenied()
+
+    /**
+     * A THROWING ObjectService is denied, not propagated.
+     *
+     * `find()` does not only return null for an id that does not resolve — it
+     * THROWS, both for an unknown object and, via ObjectService::setSchema(),
+     * for a schema the register has never imported. verify() is a
+     * `#[PublicPage]`, so an escaping exception makes Nextcloud render
+     * printExceptionErrorPage() and the caller receives an HTML error page
+     * where it asked for JSON; the verify view then dies on
+     * `SyntaxError: Unexpected token '<'`.
+     *
+     * The other tests on this class cannot reach that path: the shared
+     * ObjectService mock RETURNS null for an unknown id, so `not_found` is
+     * produced by the `$obj === null` branch and the `catch` block is never
+     * entered. This test installs a mock that throws instead, which is the
+     * only way the fail-closed behaviour is actually exercised.
+     *
+     * @return void
+     */
+    public function testThrowingObjectServiceIsDeniedRatherThanPropagated(): void
+    {
+        /** @var ObjectService&MockObject $throwingObjectService */
+        $throwingObjectService = $this->createMock(ObjectService::class);
+        $throwingObjectService->method('find')->willThrowException(
+            new \OCP\AppFramework\Db\DoesNotExistException('schema not imported')
+        );
+
+        $controller = new LearningRecordShareVerifyController(
+            request: $this->createMock(IRequest::class),
+            objectService: $throwingObjectService,
+            signingService: $this->signingService,
+            rootFolder: $this->createMock(IRootFolder::class),
+        );
+
+        $response = $controller->verify('any-id');
+
+        self::assertInstanceOf(JSONResponse::class, $response);
+        self::assertFalse($response->getData()['valid']);
+        self::assertSame('not_found', $response->getData()['reason']);
+        self::assertSame(404, $response->getStatus());
+    }//end testThrowingObjectServiceIsDeniedRatherThanPropagated()
 }//end class

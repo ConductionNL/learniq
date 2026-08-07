@@ -53,13 +53,44 @@ test.describe('Scholiq shell', () => {
 
 		const pageContent = await page.content()
 
-		// The manifest defines these menu items — check at least some are present in the DOM
-		const expectedItems = ['Dashboard', 'Courses', 'Enrolments', 'Credentials', 'Compliance']
+		// Menu entries the manifest declares with no `visibleIf` gate — every session
+		// must see these.
+		const expectedItems = ['Dashboard', 'Courses', 'Enrolments', 'Credentials']
 		for (const item of expectedItems) {
 			expect(
 				pageContent,
 				`Menu item "${item}" should be present in the page`,
 			).toContain(item)
+		}
+
+		// "Compliance" used to be in the list above. It is NOT unconditional: the
+		// manifest gates it on
+		//     visibleIf: { "user.primaryRole": { in: ["compliance-officer", "hr"] } }
+		// and the CI session resolves `primaryRole` to the default `learner`
+		// (src/main.js: loadState('scholiq', 'primaryRole', 'learner')). Asserting it
+		// unconditionally contradicted the manifest's own declared visibility rule and
+		// failed on CI run 30798535945.
+		//
+		// Inverted into a real assertion rather than dropped: for a session whose role
+		// is not one of the gated roles, the entry MUST be absent. That is a stronger
+		// check than the one it replaces — it proves `visibleIf` is enforced, which the
+		// old assertion could not have detected being broken.
+		const primaryRole = await page.evaluate(() => {
+			const el = document.querySelector('#initial-state-scholiq-primaryRole')
+			try {
+				return el ? JSON.parse(atob(el.textContent ?? '')) : null
+			} catch {
+				return null
+			}
+		})
+		if (primaryRole !== 'compliance-officer' && primaryRole !== 'hr') {
+			const complianceNav = page
+				.locator('#app-navigation-vue a, #app-navigation-vue button')
+				.filter({ hasText: /^\s*Compliance\s*$/ })
+			expect(
+				await complianceNav.count(),
+				`"Compliance" is visibleIf-gated on primaryRole in [compliance-officer, hr]; this session is "${primaryRole}", so it must not appear in the app nav`,
+			).toBe(0)
 		}
 	})
 })

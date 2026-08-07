@@ -69,7 +69,7 @@ export default {
 		async fetchAverage() {
 			this.loading = true
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/EngagementScore?_limit=200')
+				const url = generateUrl('/apps/openregister/api/objects/scholiq/engagement-score?_limit=200')
 				const response = await axios.get(url)
 				const data = response.data ?? {}
 				const rows = data.results ?? (Array.isArray(data) ? data : [])

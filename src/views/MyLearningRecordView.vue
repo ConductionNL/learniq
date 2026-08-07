@@ -283,6 +283,19 @@ export default {
 					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 				})
 
+				// A 404 here is an EXPECTED state, not a failure: it means this
+				// Nextcloud user has no bound LearnerProfile, so there is no record
+				// to show yet. Treating it as an exception made the component log
+				// `console.error('[MyLearningRecordView] loadRecord error', ...)`
+				// on a perfectly normal account — noise that is indistinguishable
+				// from a real outage in the console, and which the e2e suite
+				// correctly flags as fatal. Render the declared error branch with an
+				// accurate message instead of throwing.
+				if (resp.status === 404) {
+					this.loadError = this.t('scholiq', 'You do not have a learning record yet. A learning record is created once you are enrolled as a learner.')
+					return
+				}
+
 				if (!resp.ok) {
 					throw new Error(`Failed to load learning record: ${resp.status}`)
 				}
@@ -314,7 +327,7 @@ export default {
 			const nowIso = new Date().toISOString()
 
 			try {
-				const createUrl = generateUrl('/apps/openregister/api/objects/scholiq/LearningRecordExport')
+				const createUrl = generateUrl('/apps/openregister/api/objects/scholiq/learning-record-export')
 				const createResp = await fetch(createUrl, {
 					method: 'POST',
 					headers: {
@@ -340,7 +353,7 @@ export default {
 				const created = await createResp.json()
 				const exportId = created.id ?? created.uuid
 
-				const transitionUrl = generateUrl(`/apps/openregister/api/objects/scholiq/LearningRecordExport/${exportId}/transition/generate`)
+				const transitionUrl = generateUrl(`/apps/openregister/api/objects/scholiq/learning-record-export/${exportId}/transition/generate`)
 				await fetch(transitionUrl, {
 					method: 'POST',
 					headers: {
@@ -351,7 +364,7 @@ export default {
 					body: JSON.stringify({}),
 				})
 
-				const finalUrl = generateUrl(`/apps/openregister/api/objects/scholiq/LearningRecordExport/${exportId}`)
+				const finalUrl = generateUrl(`/apps/openregister/api/objects/scholiq/learning-record-export/${exportId}`)
 				const finalResp = await fetch(finalUrl, {
 					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 				})
@@ -387,7 +400,7 @@ export default {
 			const uid = getCurrentUser()?.uid ?? ''
 
 			try {
-				const createUrl = generateUrl('/apps/openregister/api/objects/scholiq/LearningRecordShare')
+				const createUrl = generateUrl('/apps/openregister/api/objects/scholiq/learning-record-share')
 				const createResp = await fetch(createUrl, {
 					method: 'POST',
 					headers: {
@@ -414,7 +427,7 @@ export default {
 				const created = await createResp.json()
 				const shareId = created.id ?? created.uuid
 
-				const transitionUrl = generateUrl(`/apps/openregister/api/objects/scholiq/LearningRecordShare/${shareId}/transition/grant`)
+				const transitionUrl = generateUrl(`/apps/openregister/api/objects/scholiq/learning-record-share/${shareId}/transition/grant`)
 				await fetch(transitionUrl, {
 					method: 'POST',
 					headers: {
@@ -446,7 +459,7 @@ export default {
 		 */
 		async revokeShare(shareId) {
 			try {
-				const url = generateUrl(`/apps/openregister/api/objects/scholiq/LearningRecordShare/${shareId}/transition/revoke`)
+				const url = generateUrl(`/apps/openregister/api/objects/scholiq/learning-record-share/${shareId}/transition/revoke`)
 				await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -472,7 +485,7 @@ export default {
 			if (!this.latestExport) return
 
 			const exportId = this.latestExport.id ?? this.latestExport.uuid
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/LearningRecordShare?filters[learningRecordExportId]=${exportId}&limit=100`)
+			const url = generateUrl(`/apps/openregister/api/objects/scholiq/learning-record-share?filters[learningRecordExportId]=${exportId}&limit=100`)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})

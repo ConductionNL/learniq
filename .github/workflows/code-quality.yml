@@ -4,6 +4,17 @@ on:
   push:
     branches: [main, development, feature/**, bugfix/**, hotfix/**]
   pull_request:
+    # `synchronize` — a push to an open PR — was missing. Without it the quality
+    # suite runs ONCE, when the PR is opened, and every commit after that is
+    # merged unchecked while the PR still shows the first run's green tick. A
+    # green check here described code that no longer existed.
+    #
+    # The branch list on `push:` does not cover the gap: it names `feature/**`
+    # while the convention in practice is also `feat/**`, `fix/**` and `ci/**`.
+    #
+    # Cost is bounded by the `concurrency` block below — a new push cancels the
+    # in-flight run for the same head ref rather than queueing beside it.
+    types: [opened, reopened, synchronize]
     branches: [main, master, development, beta]
   workflow_dispatch:
 
@@ -44,18 +55,33 @@ concurrency:
 
 # Permission CEILING for the called quality pipeline. GitHub statically
 # validates the called workflow's declared job permissions against this
-# grant — even for jobs that are disabled — so it must cover the maximum
-# any nested job declares: journeydoc-capture (contents+actions write),
-# update-baseline / features-extract (contents write), and the Quality
-# Report PR comment (issues / pull-requests write).
+# grant — even for jobs that are disabled — so it must cover the maximum any
+# nested job declares: journeydoc-capture (contents+actions write),
+# update-baseline / features-extract (contents write), SBOM (packages read),
+# and the Quality Report PR comment (issues / pull-requests write).
+#
+# A caller cannot grant a reusable workflow more than it holds itself, so
+# capping any of these at `read` makes the whole call fail to START: zero jobs,
+# no annotations — indistinguishable from "nothing to run". `development` at
+# cb101f1 shows exactly that, two `startup_failure` runs in a row.
+#
+# This block is the UNION of both branches' grants, which agreed on every entry
+# except `packages: read`. Dropping development's half would silently lose the
+# PR comment; dropping this branch's half would stop the pipeline starting.
 permissions:
   contents: write
   actions: write
+  packages: read
   issues: write
   pull-requests: write
 
 jobs:
   quality:
+    # A branch-creation push carries `github.event.created == true` and runs
+    # with an empty `before` SHA; the shared workflow's diff-scoped gates have
+    # nothing to compare against. Skipping it means the FIRST push to a new
+    # branch does not produce a run that looks green because it ran nothing.
+    if: github.event_name != 'push' || github.event.created != true
     uses: ConductionNL/.github/.github/workflows/quality.yml@main
     with:
       app-name: scholiq
@@ -79,8 +105,62 @@ jobs:
       # and Application.php registers listeners for OR lifecycle events; OR's
       # `development` carries ObjectCreatedEvent/ObjectTransitionedEvent + the
       # IMcpToolProvider interface the ScholiqToolProvider tests need.
+      #
+      # openconnector is deliberately NOT installed here. It is a SOFT
+      # dependency in src/manifest.json: scholiq proxies to it only for the LTI
+      # 1.3 launch (LtiToolPlacementController) and PSP payment initiation
+      # (PaymentTransactionController). Nothing else in the app touches it, so
+      # its absence must degrade those two features, not block the shell.
       additional-apps: '[{"repo":"ConductionNL/openregister","app":"openregister","ref":"development"}]'
       enable-sbom: true
+
+      # ── E2E browser tests (Playwright) ───────────────────────────────────
+      # `enable-playwright` defaults to FALSE in the shared workflow, and this
+      # caller did not set it AT ALL — not to `false` with a reason, just
+      # absent. So the "E2E Tests (Playwright)" job has reported `skipped` on
+      # every run this repo has ever produced, while tests/e2e/ grew to 34 spec
+      # files / 433 tests. The Quality Report renders `skipped` the same way it
+      # renders a pass, so none of that was ever visible as missing.
+      #
+      # `playwright-test-path` does double duty in the shared workflow:
+      #   1. it is the directory the "Validate Playwright tests exist" step
+      #      counts *.spec.ts in;
+      #   2. it is the FIRST place the run step looks for a config —
+      #      `${playwright-test-path}/playwright.config.ts`, falling back to the
+      #      repo root only if that file is absent.
+      # tests/e2e/playwright.config.ts is added in this commit precisely so
+      # lookup (2) hits it. The run step passes no `--project`, so whichever
+      # config it picks, every project in that config runs — and the ROOT
+      # config's HTML report goes to `test-results/playwright-report`, which
+      # matches NEITHER path the "Upload Playwright report" step collects. With
+      # `if-no-files-found: ignore` that would have uploaded an EMPTY artifact
+      # on a red run. The tests/e2e config writes the report to the app root
+      # instead, which is the path the workflow actually uploads.
+      enable-playwright: true
+      playwright-test-path: tests/e2e
+      # `playwright-seed-command` runs BEFORE Playwright starts, with the
+      # Nextcloud server root as its cwd.
+      #
+      # It is set rather than left to global-setup.ts because `occ app:enable
+      # scholiq` cannot be trusted to provision the register on its own: the
+      # register-import repair step runs with no user session (OpenRegister
+      # RBAC can deny it), swallows its own exception as "Non-fatal", `occ`
+      # still exits 0, and the non-forced import advances the recorded version
+      # WITHOUT applying the register. ci-seed.sh imports explicitly over the
+      # admin API, parses the RESPONSE BODY (settings/load answers HTTP 200
+      # with success:false), seeds the example dataset, and then fails loudly
+      # if the register, the six core schemas, the seeded-row floor or the
+      # frontend bundle are not really there.
+      #
+      # The bundle gate is not redundant with the HTTP status: a missing
+      # Nextcloud asset does NOT 404 — Nextcloud serves its own HTML error page
+      # with HTTP 200 and Content-Type: text/html, so a status-code-only check
+      # reads a completely broken frontend as success. The gate asserts the
+      # content type is javascript.
+      #
+      # global-setup.ts detects the marker this script writes and skips its own
+      # seed, so the import does not run twice.
+      playwright-seed-command: 'bash apps/scholiq/tests/e2e/ci-seed.sh'
 
       # Integration Tests (Newman) stays OFF here, deliberately. The
       # `enable-newman: false` further up is not a default nobody chose: it

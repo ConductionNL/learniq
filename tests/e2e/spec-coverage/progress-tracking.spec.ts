@@ -25,7 +25,10 @@
  */
 import { test, expect } from '../fixtures'
 
-const LESSON_LIST_API = '/apps/openregister/api/objects/scholiq/Lesson?limit=200'
+// `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
+// pretty URLs, and `server/apps/openregister/` exists without an index.php, so
+// the short form returns a hard 404. See adaptive-release.spec.ts.
+const LESSON_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/Lesson?limit=200'
 
 /**
  * Fetch every Lesson and return the first one matching the given predicate,
