@@ -1852,7 +1852,7 @@
 						"id": "cpir-summary",
 						"type": "data",
 						"title": "Import summary",
-						"icon": "PackageVariant",
+						"icon": "Package",
 						"content": {
 							"columns": 2,
 							"include": [
@@ -1874,7 +1874,7 @@
 						"id": "cpir-entries",
 						"type": "data",
 						"title": "Resource entries",
-						"icon": "Table",
+						"icon": "TableColumn",
 						"content": {
 							"columns": 1,
 							"include": [
@@ -4079,7 +4079,7 @@
 						"type": "integration",
 						"integrationId": "talk",
 						"title": "Class space",
-						"icon": "ChatOutline"
+						"icon": "MessageTextOutline"
 					}
 				],
 				"layout": [
@@ -4370,7 +4370,7 @@
 						"type": "integration",
 						"integrationId": "talk",
 						"title": "Join call",
-						"icon": "VideoOutline"
+						"icon": "Phone"
 					}
 				],
 				"layout": [
@@ -5345,7 +5345,7 @@
 						"content": {
 							"columns": 2
 						},
-						"icon": "AccountSwitchOutline"
+						"icon": "AccountGroup"
 					},
 					{
 						"id": "pr-related",
@@ -5433,7 +5433,7 @@
 						"content": {
 							"columns": 2
 						},
-						"icon": "AccountCheckOutline"
+						"icon": "ClipboardCheckOutline"
 					},
 					{
 						"id": "sa-related",
@@ -6141,7 +6141,7 @@
 						"content": {
 							"columns": 2
 						},
-						"icon": "ChartBoxOutline"
+						"icon": "ChartBar"
 					},
 					{
 						"id": "istat-related",
@@ -6217,7 +6217,7 @@
 						"content": {
 							"columns": 2
 						},
-						"icon": "ChartBoxOutline"
+						"icon": "ChartBar"
 					},
 					{
 						"id": "arel-related",
@@ -6296,7 +6296,7 @@
 						"content": {
 							"columns": 2
 						},
-						"icon": "FlagOutline"
+						"icon": "AlertCircleOutline"
 					},
 					{
 						"id": "irf-related",
@@ -12065,7 +12065,7 @@
 							"emptyText": "No competencies found.",
 							"allowCreate": false
 						},
-						"icon": "Target"
+						"icon": "Sitemap"
 					},
 					{
 						"id": "cfw-related",
@@ -12160,7 +12160,7 @@
 						"content": {
 							"columns": 2
 						},
-						"icon": "Target"
+						"icon": "Sitemap"
 					},
 					{
 						"id": "comp-kpis",
@@ -12229,7 +12229,7 @@
 							"emptyText": "No sub-competencies found — this is a leaf node (learning outcome).",
 							"allowCreate": false
 						},
-						"icon": "Target"
+						"icon": "Sitemap"
 					},
 					{
 						"id": "comp-related",
@@ -12481,7 +12481,7 @@
 						"content": {
 							"columns": 2
 						},
-						"icon": "ChartLineVariant"
+						"icon": "ChartLine"
 					},
 					{
 						"id": "es-related",
@@ -12714,7 +12714,7 @@
 						"content": {
 							"columns": 2
 						},
-						"icon": "FlagOutline"
+						"icon": "AlertCircleOutline"
 					},
 					{
 						"id": "erf-related",
@@ -12799,7 +12799,7 @@
 						"content": {
 							"columns": 2
 						},
-						"icon": "CalendarRangeOutline"
+						"icon": "Calendar"
 					},
 					{
 						"id": "period-cards",
@@ -12838,7 +12838,7 @@
 							"emptyText": "No report cards composed yet.",
 							"allowCreate": false
 						},
-						"icon": "FileChartOutline"
+						"icon": "FileDocument"
 					},
 					{
 						"id": "period-related",
@@ -12924,7 +12924,7 @@
 						"content": {
 							"columns": 2
 						},
-						"icon": "FileChartOutline"
+						"icon": "FileDocument"
 					},
 					{
 						"id": "card-related",
@@ -14158,7 +14158,7 @@
 						"id": "app-learning-record-imports",
 						"type": "object-list",
 						"title": "Prior learning records",
-						"icon": "FileImportOutline",
+						"icon": "FileDocument",
 						"_note": "portable-learning-record: presentation-only related-index panel resolving LearningRecordImport rows uploaded as evidence for this Application. Application's own schema is unchanged.",
 						"content": {
 							"register": "scholiq",
