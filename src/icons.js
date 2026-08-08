@@ -119,9 +119,11 @@ import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
 import NotebookOutline from 'vue-material-design-icons/NotebookOutline.vue'
 import OfficeBuilding from 'vue-material-design-icons/OfficeBuilding.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
+import Package from 'vue-material-design-icons/Package.vue'
 import PackageVariant from 'vue-material-design-icons/PackageVariant.vue'
 import Pen from 'vue-material-design-icons/Pen.vue'
 import Percent from 'vue-material-design-icons/Percent.vue'
+import Phone from 'vue-material-design-icons/Phone.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import PodiumGold from 'vue-material-design-icons/PodiumGold.vue'
 import RobotOutline from 'vue-material-design-icons/RobotOutline.vue'
@@ -260,9 +262,11 @@ export default {
 	NotebookOutline,
 	OfficeBuilding,
 	OpenInNew,
+	Package,
 	PackageVariant,
 	Pen,
 	Percent,
+	Phone,
 	Plus,
 	PodiumGold,
 	RobotOutline,
