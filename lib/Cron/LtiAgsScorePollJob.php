@@ -304,7 +304,7 @@ class LtiAgsScorePollJob extends TimedJob
      *
      * @return array{placement: array<string,mixed>, placementId: string}|null The placement, or null when unresolvable.
      *
-     * @spec openspec/changes/lti-ags-grade-passback/tasks.md#task-4.2
+     * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.2
      */
     private function resolvePlacementForMessage(array $data, string $resultId): ?array
     {
@@ -347,7 +347,7 @@ class LtiAgsScorePollJob extends TimedJob
      *
      * @return array{learnerId: string, scoreGiven: float, scoreMaximum: float|null}|null The score, or null when insufficient.
      *
-     * @spec openspec/changes/lti-ags-grade-passback/tasks.md#task-4.2
+     * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.2
      */
     private function extractScore(array $data, string $resultId): ?array
     {

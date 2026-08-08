@@ -154,7 +154,7 @@ class LearningRecordImportController extends Controller
      *
      * @return JSONResponse|null The rejection to return, or null when the upload is acceptable.
      *
-     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-learner-can-upload-a-portable-learning-record-for-an-application
+     * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
      */
     private function rejectUpload(mixed $uploadedFile, string $sourceFormat): ?JSONResponse
     {

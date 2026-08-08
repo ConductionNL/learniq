@@ -350,7 +350,7 @@ class LearningRecordAggregationService
      *
      * @return array<string,mixed> Map of courseId => progressPercent.
      *
-     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-lesson-completions-are-summarised-per-course-never-exported-raw
+     * @spec openspec/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
      */
     private function progressPercentByCourseId(array $enrolments): array
     {
@@ -378,7 +378,7 @@ class LearningRecordAggregationService
      *
      * @return array<string,array{courseId: string|null, completedCount: int}> Counts keyed by course.
      *
-     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-lesson-completions-are-summarised-per-course-never-exported-raw
+     * @spec openspec/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
      */
     private function completionCountsByCourseId(array $lessonCompletions): array
     {
