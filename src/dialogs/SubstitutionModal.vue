@@ -35,12 +35,12 @@
 			</NcNoteCard>
 
 			<div class="substitution-modal__mode" role="group" :aria-label="t('scholiq', 'Action')">
-				<NcButton :type="mode === 'cancel' ? 'primary' : 'secondary'"
+				<NcButton :variant="mode === 'cancel' ? 'primary' : 'secondary'"
 					:disabled="saving"
 					@click="mode = 'cancel'">
 					{{ t('scholiq', 'Cancel session') }}
 				</NcButton>
-				<NcButton :type="mode === 'substitute' ? 'primary' : 'secondary'"
+				<NcButton :variant="mode === 'substitute' ? 'primary' : 'secondary'"
 					:disabled="saving"
 					@click="mode = 'substitute'">
 					{{ t('scholiq', 'Assign substitute teacher') }}
@@ -78,7 +78,7 @@
 			<NcButton @click="$emit('close')">
 				{{ t('scholiq', 'Close') }}
 			</NcButton>
-			<NcButton type="primary"
+			<NcButton variant="primary"
 				:disabled="!canSubmit || saving"
 				@click="submit">
 				{{ saving ? t('scholiq', 'Saving…') : submitLabel }}

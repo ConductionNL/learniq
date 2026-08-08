@@ -32,6 +32,8 @@ namespace OCA\Scholiq\Tests\Unit\Controller;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Controller\PaymentTransactionController;
+use OCA\Scholiq\Service\PaymentInitiationClient;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Http;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -124,13 +126,22 @@ class PaymentTransactionControllerTest extends TestCase
      */
     private function controller(): PaymentTransactionController
     {
+        // The outbound PSP transport is a real collaborator wired to the mocked
+        // HTTP client, so initiate() is still driven end-to-end through the same
+        // OpenConnector request/response the controller would make in production.
+        $initiationClient = new PaymentInitiationClient(
+            clientService: $this->clientService,
+            urlGenerator: $this->urlGenerator,
+            appConfig: $this->appConfig,
+            logger: new NullLogger()
+        );
+
         return new PaymentTransactionController(
             request: $this->request,
             userSession: $this->userSession,
             objectService: $this->objectService,
             transitionEngine: $this->transitionEngine,
-            clientService: $this->clientService,
-            urlGenerator: $this->urlGenerator,
+            initiationClient: $initiationClient,
             appConfig: $this->appConfig,
             logger: new NullLogger()
         );
@@ -166,10 +177,15 @@ class PaymentTransactionControllerTest extends TestCase
         $this->signInAs('payer-1');
 
         $this->objectService->method('find')->willReturn(
-            ['id' => 'order-1', 'lifecycle' => 'open', 'totalAmount' => 50.00, 'currency' => 'EUR']
+            OrEntityFactory::make(
+                ['id' => 'order-1', 'lifecycle' => 'open', 'totalAmount' => 50.00, 'currency' => 'EUR'],
+                'order'
+            )
         );
         $this->objectService->method('findAll')->willReturn([]);
-        $this->objectService->method('saveObject')->willReturn(['id' => 'txn-1']);
+        $this->objectService->method('saveObject')->willReturn(
+            OrEntityFactory::make(['id' => 'txn-1'], 'payment-transaction')
+        );
 
         $this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
             static fn (string $path): string => 'https://scholiq.example'.$path
@@ -204,10 +220,15 @@ class PaymentTransactionControllerTest extends TestCase
         $this->signInAs('payer-1');
 
         $this->objectService->method('find')->willReturn(
-            ['id' => 'order-1', 'lifecycle' => 'open', 'totalAmount' => 50.00, 'currency' => 'EUR']
+            OrEntityFactory::make(
+                ['id' => 'order-1', 'lifecycle' => 'open', 'totalAmount' => 50.00, 'currency' => 'EUR'],
+                'order'
+            )
         );
         $this->objectService->method('findAll')->willReturn([]);
-        $this->objectService->method('saveObject')->willReturn(['id' => 'txn-1']);
+        $this->objectService->method('saveObject')->willReturn(
+            OrEntityFactory::make(['id' => 'txn-1'], 'payment-transaction')
+        );
 
         $this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
             static fn (string $path): string => 'https://scholiq.example'.$path
@@ -282,7 +303,9 @@ class PaymentTransactionControllerTest extends TestCase
     public function testInitiateRefusesOrderNotOpenForPayment(): void
     {
         $this->signInAs('payer-1');
-        $this->objectService->method('find')->willReturn(['id' => 'order-1', 'lifecycle' => 'draft', 'totalAmount' => 50.00]);
+        $this->objectService->method('find')->willReturn(
+            OrEntityFactory::make(['id' => 'order-1', 'lifecycle' => 'draft', 'totalAmount' => 50.00], 'order')
+        );
 
         $result = $this->controller()->initiate(orderId: 'order-1', pspProvider: 'mollie');
 
@@ -298,9 +321,14 @@ class PaymentTransactionControllerTest extends TestCase
     public function testInitiateRefusesAlreadyFullyPaidOrder(): void
     {
         $this->signInAs('payer-1');
-        $this->objectService->method('find')->willReturn(['id' => 'order-1', 'lifecycle' => 'open', 'totalAmount' => 50.00]);
+        $this->objectService->method('find')->willReturn(
+            OrEntityFactory::make(['id' => 'order-1', 'lifecycle' => 'open', 'totalAmount' => 50.00], 'order')
+        );
         $this->objectService->method('findAll')->willReturn(
-            [['id' => 'txn-old', 'orderId' => 'order-1', 'lifecycle' => 'succeeded', 'amount' => 50.00]]
+            OrEntityFactory::makeMany(
+                [['id' => 'txn-old', 'orderId' => 'order-1', 'lifecycle' => 'succeeded', 'amount' => 50.00]],
+                'payment-transaction'
+            )
         );
 
         $result = $this->controller()->initiate(orderId: 'order-1', pspProvider: 'mollie');
@@ -327,7 +355,9 @@ class PaymentTransactionControllerTest extends TestCase
             ]
         );
 
-        $this->objectService->method('find')->willReturn(['id' => 'txn-1', 'lifecycle' => 'awaiting-redirect']);
+        $this->objectService->method('find')->willReturn(
+            OrEntityFactory::make(['id' => 'txn-1', 'lifecycle' => 'awaiting-redirect'], 'payment-transaction')
+        );
 
         $this->transitionEngine->expects($this->once())->method('transition')->with('txn-1', 'succeed');
 

@@ -30,6 +30,15 @@ namespace OCA\Scholiq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Service\CommonCartridgeParser;
+use OCA\Scholiq\Service\CoursePackage\CommonCartridgeCourseImporter;
+use OCA\Scholiq\Service\CoursePackage\CommonCartridgeResourceRouter;
+use OCA\Scholiq\Service\CoursePackage\CoursePackageFileWriter;
+use OCA\Scholiq\Service\CoursePackage\CoursePackageImportReporter;
+use OCA\Scholiq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Scholiq\Service\CoursePackage\MoodleActivityRouter;
+use OCA\Scholiq\Service\CoursePackage\MoodleCourseImporter;
+use OCA\Scholiq\Service\CoursePackage\PackageXmlValueReader;
+use OCA\Scholiq\Service\CoursePackage\ScholiqJsonCourseImporter;
 use OCA\Scholiq\Service\CoursePackageExportService;
 use OCA\Scholiq\Service\CoursePackageImportService;
 use OCA\Scholiq\Service\MbzExtractor;
@@ -37,6 +46,7 @@ use OCA\Scholiq\Service\MoodleBackupParser;
 use OCA\Scholiq\Service\MoodleQuizQuestionMapper;
 use OCA\Scholiq\Service\QtiExportService;
 use OCA\Scholiq\Service\QtiImportService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -62,12 +72,18 @@ class CoursePackageRoundTripTest extends TestCase
         // --- Seed source object graph (mocked ObjectService, export side). ---
         $exportObjectService = $this->createMock(ObjectService::class);
         $exportObjectService->method('find')->willReturnCallback(
-            static function (string $id, string $register, string $schema) {
-                return match ([$schema, $id]) {
+            static function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) {
+                $row = match ([$schema, $id]) {
                     ['course', 'course-source'] => ['id' => 'course-source', 'name' => 'Physics 101', 'tenant_id' => 't1'],
                     ['rubric', 'rubric-source'] => ['id' => 'rubric-source', 'name' => 'Essay rubric', 'criteria' => [], 'maxPoints' => 20],
                     default => null,
                 };
+
+                if ($row === null) {
+                    return null;
+                }
+
+                return OrEntityFactory::make($row, (string) $schema);
             }
         );
         $exportObjectService->method('findAll')->willReturnCallback(
@@ -107,11 +123,18 @@ class CoursePackageRoundTripTest extends TestCase
         $savedByschema = [];
         $importObjectService = $this->createMock(ObjectService::class);
         $importObjectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) use (&$savedByschema): array {
-                $savedByschema[$schema] ??= [];
-                $object['uuid']              = $schema.'-reimported-'.(count($savedByschema[$schema]) + 1);
-                $savedByschema[$schema][]    = $object;
-                return $object;
+            static function (array $object, ?array $extend=[], $register=null, $schema=null) use (&$savedByschema) {
+                $schemaSlug = (string) $schema;
+
+                $savedByschema[$schemaSlug] ??= [];
+                $savedByschema[$schemaSlug][] = $object;
+
+                return OrEntityFactory::make(
+                    $object,
+                    $schemaSlug,
+                    (string) $register,
+                    $schemaSlug.'-reimported-'.count($savedByschema[$schemaSlug])
+                );
             }
         );
 
@@ -126,15 +149,38 @@ class CoursePackageRoundTripTest extends TestCase
         $tmpJsonFile = tempnam(sys_get_temp_dir(), 'scholiq_roundtrip_');
         file_put_contents($tmpJsonFile, $json);
 
+        $importLogger = new NullLogger();
+        $objectWriter = new CoursePackageObjectWriter($importObjectService);
+        $fileWriter   = new CoursePackageFileWriter($importRootFolder, $importLogger);
+        $reporter     = new CoursePackageImportReporter($importObjectService);
+        $xmlReader    = new PackageXmlValueReader();
+
         $importService = new CoursePackageImportService(
-            $importObjectService,
-            new QtiImportService($importObjectService, new NullLogger()),
-            new MbzExtractor(),
-            new CommonCartridgeParser(),
-            new MoodleBackupParser(),
-            new MoodleQuizQuestionMapper(),
-            $importRootFolder,
-            new NullLogger(),
+            new CommonCartridgeCourseImporter(
+                new QtiImportService($importObjectService, $importLogger),
+                new CommonCartridgeParser(),
+                new CommonCartridgeResourceRouter($objectWriter, $fileWriter, $reporter, $xmlReader, $importLogger),
+                $objectWriter,
+                $reporter,
+            ),
+            new MoodleCourseImporter(
+                new MbzExtractor(),
+                new MoodleBackupParser(),
+                new MoodleActivityRouter(
+                    new MoodleQuizQuestionMapper(),
+                    $objectWriter,
+                    $fileWriter,
+                    $reporter,
+                    $xmlReader,
+                    $importLogger
+                ),
+                $objectWriter,
+                $reporter,
+            ),
+            new ScholiqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
+            $fileWriter,
+            $reporter,
+            $importLogger,
         );
 
         $report = $importService->import($tmpJsonFile, 'course-export.json', 'teacher1', 't1');

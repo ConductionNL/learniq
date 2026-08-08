@@ -40,15 +40,17 @@ declare(strict_types=1);
 namespace OCA\Scholiq\Service;
 
 use DOMDocument;
+use DOMElement;
+use DOMNodeList;
 use DOMXPath;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
-use ZipArchive;
 
 /**
  * Imports QTI 2.x / 3.0 packages and Common Cartridge files into the Scholiq
  * ItemBank as `Item` objects.
+ *
+ * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
  */
 class QtiImportService
 {
@@ -80,14 +82,24 @@ class QtiImportService
     /**
      * Constructor.
      *
-     * @param ObjectService   $objectService OR object service for creating Item objects.
-     * @param LoggerInterface $logger        PSR logger.
+     * The two extracted collaborators carry no dependencies of their own, so
+     * they are defaulted here as well as autowired: existing call sites that
+     * construct this service with only its two real dependencies keep working
+     * unchanged, while Nextcloud's DI container still injects the shared
+     * instances.
+     *
+     * @param ObjectService       $objectService    OR object service for creating Item objects.
+     * @param LoggerInterface     $logger           PSR logger.
+     * @param QtiPackageExtractor $packageExtractor Hardened ZIP extraction + temp-dir cleanup.
+     * @param QtiManifestScanner  $manifestScanner  Manifest format detection + item path collection.
      *
      * @return void
      */
     public function __construct(
         private readonly ObjectService $objectService,
         private readonly LoggerInterface $logger,
+        private readonly QtiPackageExtractor $packageExtractor=new QtiPackageExtractor(),
+        private readonly QtiManifestScanner $manifestScanner=new QtiManifestScanner(),
     ) {
     }//end __construct()
 
@@ -127,7 +139,7 @@ class QtiImportService
 
             return $createdUuids;
         } finally {
-            $this->removeDirectory(dir: $tmpDir);
+            $this->packageExtractor->removeDirectory(dir: $tmpDir);
         }//end try
     }//end import()
 
@@ -152,8 +164,8 @@ class QtiImportService
      */
     public function importFromDirectory(string $dir, string $itemBankId, string $tenantId=''): array
     {
-        $packageType  = $this->detectPackageType(dir: $dir);
-        $itemXmlPaths = $this->collectItemPaths(dir: $dir, packageType: $packageType);
+        $packageType  = $this->manifestScanner->detectPackageType(dir: $dir);
+        $itemXmlPaths = $this->manifestScanner->collectItemPaths(dir: $dir, packageType: $packageType);
 
         $createdUuids = [];
         foreach ($itemXmlPaths as $xmlPath) {
@@ -179,7 +191,8 @@ class QtiImportService
      * Common Cartridge archive's *entire* tree (not just item XML) through this
      * exact hardened path instead of duplicating the zip-slip/decompression-bomb
      * guards — design.md "Why extraction is refactored, not duplicated": "zero
-     * duplicated security logic".
+     * duplicated security logic". The guards themselves now live in
+     * `QtiPackageExtractor`; this stays the published entry-point onto them.
      *
      * @param string $zipPath   Absolute path to the ZIP file.
      * @param string $targetDir Absolute path to the destination directory.
@@ -192,235 +205,31 @@ class QtiImportService
      */
     public function extractZip(string $zipPath, string $targetDir): void
     {
-        // #207: decompression-bomb cap — 256 MB total uncompressed per import.
-        $maxTotalBytes    = 256 * 1024 * 1024;
-        $maxFileSizeBytes = 100 * 1024 * 1024;
+        $this->packageExtractor->extractZip(zipPath: $zipPath, targetDir: $targetDir);
 
-        $zip    = new ZipArchive();
-        $result = $zip->open($zipPath);
-        if ($result !== true) {
-            throw new RuntimeException("Cannot open ZIP archive '{$zipPath}': ZipArchive error {$result}.");
-        }
-
-        // #207: pre-flight check — total uncompressed size before extracting anything.
-        $totalUncompressed = 0;
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $stat = $zip->statIndex($i);
-            if ($stat === false) {
-                continue;
-            }
-
-            $totalUncompressed += $stat['size'];
-        }
-
-        if ($totalUncompressed > $maxTotalBytes) {
-            $zip->close();
-            throw new RuntimeException(
-                "ZIP archive exceeds maximum allowed uncompressed size ({$maxTotalBytes} bytes)."
-            );
-        }
-
-        // #207: extract entry by entry to prevent zip-slip path traversal.
-        $targetDirReal = realpath($targetDir);
-        if ($targetDirReal === false) {
-            // Ensure target directory exists before calling realpath.
-            mkdir(directory: $targetDir, permissions: 0700, recursive: true);
-            $targetDirReal = realpath($targetDir);
-        }
-
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $stat = $zip->statIndex($i);
-            if ($stat === false) {
-                continue;
-            }
-
-            // #207: reject individual files larger than the per-file cap.
-            if ($stat['size'] > $maxFileSizeBytes) {
-                $zip->close();
-                throw new RuntimeException(
-                    "ZIP entry '{$stat['name']}' exceeds maximum allowed file size ({$maxFileSizeBytes} bytes)."
-                );
-            }
-
-            $entryName = $stat['name'];
-
-            // Build absolute destination path and resolve any '..' segments.
-            $destPath = $targetDirReal.DIRECTORY_SEPARATOR.$entryName;
-
-            // For directories: ensure they exist inside targetDir.
-            if (str_ends_with($entryName, '/') === true) {
-                mkdir(directory: $destPath, permissions: 0700, recursive: true);
-                continue;
-            }
-
-            // Ensure parent directory exists.
-            $parentDir = dirname($destPath);
-            if (is_dir($parentDir) === false) {
-                mkdir(directory: $parentDir, permissions: 0700, recursive: true);
-            }
-
-            // #207: zip-slip check — resolved path must start with targetDir.
-            $resolvedParent = realpath($parentDir);
-            if ($resolvedParent === false || str_starts_with($resolvedParent, $targetDirReal) === false) {
-                $zip->close();
-                throw new RuntimeException(
-                    "ZIP entry '{$entryName}' would extract outside the target directory (zip-slip attack)."
-                );
-            }
-
-            $content = $zip->getFromIndex($i);
-            if ($content === false) {
-                continue;
-            }
-
-            file_put_contents(filename: $destPath, data: $content);
-        }//end for
-
-        $zip->close();
     }//end extractZip()
 
     /**
-     * Detect the package type from the extracted manifest.
+     * Return the first element node of a node list, or null.
      *
-     * @param string $dir Extracted package directory.
+     * `DOMNodeList::item()` is declared to return `DOMNode|null`, so callers that
+     * need the element API have to narrow it. Doing that here — behind a declared
+     * `?DOMElement` return type — keeps the narrowing in one place and lets both
+     * static analysers type the call sites without an inline annotation.
      *
-     * @return string 'qti3' | 'qti2' | 'cc' | 'unknown'
+     * @param DOMNodeList $nodes The node list to take the first element from.
      *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
+     * @return DOMElement|null The first element node, or null when there is none.
      */
-    private function detectPackageType(string $dir): string
+    private function firstElement(DOMNodeList $nodes): ?DOMElement
     {
-        // Check for IMS manifest first (Common Cartridge and QTI packages both use imsmanifest.xml).
-        $manifest = $dir.'/imsmanifest.xml';
-        if (file_exists($manifest) === false) {
-            return 'unknown';
+        $node = $nodes->item(0);
+        if ($node instanceof DOMElement) {
+            return $node;
         }
 
-        $content = (string) file_get_contents($manifest);
-        if (str_contains($content, 'imsqtiasi_v3p0') === true || str_contains($content, 'imsqti_v3p0') === true) {
-            return 'qti3';
-        }
-
-        if (str_contains($content, 'imsqti_v2p') === true || str_contains($content, 'imsqti_v2p1') === true) {
-            return 'qti2';
-        }
-
-        // IMS Common Cartridge 1.x signature.
-        if (str_contains($content, 'imscc_xmlv1') === true || str_contains($content, 'imsccv1') === true) {
-            return 'cc';
-        }
-
-        // Fallback: look for QTI 3.0 namespace in any XML.
-        if (str_contains($content, 'imsglobal.org/xsd/imsqtiasi_v3p0') === true) {
-            return 'qti3';
-        }
-
-        return 'unknown';
-    }//end detectPackageType()
-
-    /**
-     * Collect paths of all item XML files in the extracted package.
-     *
-     * @param string $dir         Extracted package directory.
-     * @param string $packageType Package type string.
-     *
-     * @return string[] Absolute paths to item XML files.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
-     */
-    private function collectItemPaths(string $dir, string $packageType): array
-    {
-        // Parse the manifest to find item resource hrefs.
-        $manifestPath = $dir.'/imsmanifest.xml';
-        if (file_exists($manifestPath) === false) {
-            // Fallback: glob for any .xml files that look like items.
-            $globResult = glob($dir.'/**/*.xml');
-            if ($globResult === false) {
-                return [];
-            }
-
-            return $globResult;
-        }
-
-        $xml = new DOMDocument();
-        if ($xml->load($manifestPath) === false) {
-            return [];
-        }
-
-        $paths = [];
-        $xpath = new DOMXPath($xml);
-        $xpath->registerNamespace('imscp', 'http://www.imsglobal.org/xsd/imscp_v1p1');
-
-        // QTI packages list items as resources in the manifest.
-        $resourceNodes = $xpath->query('//imscp:resource[@type]');
-        if ($resourceNodes === false || $resourceNodes->length === 0) {
-            // Try without namespace.
-            $resourceNodes = $xml->getElementsByTagName('resource');
-        }
-
-        foreach ($resourceNodes as $node) {
-            if (($node instanceof \DOMElement) === false) {
-                continue;
-            }
-
-            $type = $node->getAttribute('type');
-
-            $isQtiItem = (str_contains($type, 'imsqti_item') === true || str_contains($type, 'imsqti_test') === true);
-            $isCcItem  = (str_contains($type, 'imsqti') === true && $packageType === 'cc');
-
-            if ($isQtiItem === false && $isCcItem === false) {
-                continue;
-            }
-
-            $href = $node->getAttribute('href');
-            if ($href === '') {
-                // Fallback to first <file href=...> child.
-                $fileNodes = $node->getElementsByTagName('file');
-                $firstFile = $fileNodes->item(0);
-                if ($firstFile instanceof \DOMElement) {
-                    $href = $firstFile->getAttribute('href');
-                }
-            }
-
-            if ($href !== '') {
-                $fullPath = $dir.'/'.$href;
-                // H3: prevent path traversal via crafted manifest href values.
-                // Resolve symlinks and '..' segments, then verify the canonical
-                // path is still inside the extraction directory.
-                $realFull = realpath($fullPath);
-                $realDir  = realpath($dir);
-                if ($realFull !== false
-                    && $realDir !== false
-                    && str_starts_with($realFull, $realDir.DIRECTORY_SEPARATOR) === true
-                    && file_exists($realFull) === true
-                ) {
-                    $paths[] = $realFull;
-                }
-            }
-        }//end foreach
-
-        // If no items found via manifest, look for XML files with QTI namespaces.
-        if (empty($paths) === true) {
-            $globAll = glob($dir.'/*.xml');
-            $allXml  = [];
-            if ($globAll !== false) {
-                $allXml = $globAll;
-            }
-
-            foreach ($allXml as $xmlFile) {
-                if ($xmlFile === $manifestPath) {
-                    continue;
-                }
-
-                $content = (string) file_get_contents($xmlFile);
-                if (str_contains($content, 'assessmentItem') === true) {
-                    $paths[] = $xmlFile;
-                }
-            }
-        }
-
-        return $paths;
-    }//end collectItemPaths()
+        return null;
+    }//end firstElement()
 
     /**
      * Parse a single QTI item XML and create an Item object in OR.
@@ -439,9 +248,12 @@ class QtiImportService
      */
     private function importSingleItem(string $xmlPath, string $itemBankId, string $tenantId=''): ?string
     {
+        // `loadXML(file_get_contents())`, NOT `load($path)` — Nextcloud's
+        // XXE-blocking external entity loader makes `load()` fail on the
+        // primary document. See CommonCartridgeParser::parseManifest().
         $xml = new DOMDocument();
         libxml_use_internal_errors(true);
-        if ($xml->load($xmlPath) === false) {
+        if ($xml->loadXML((string) file_get_contents($xmlPath)) === false) {
             $this->logger->warning('[QtiImportService] Failed to parse XML: {path}', ['path' => $xmlPath]);
             return null;
         }
@@ -455,13 +267,9 @@ class QtiImportService
         $xpath->registerNamespace('qti2', self::QTI2_NS);
 
         // Detect the root assessmentItem element.
-        $root = $xml->getElementsByTagName('assessmentItem')->item(0);
+        $root = $this->firstElement(nodes: $xml->getElementsByTagName('assessmentItem'));
         if ($root === null) {
             $this->logger->warning('[QtiImportService] No assessmentItem in: {path}', ['path' => $xmlPath]);
-            return null;
-        }
-
-        if (($root instanceof \DOMElement) === false) {
             return null;
         }
 
@@ -507,19 +315,18 @@ class QtiImportService
             'tenant_id'       => $tenantId,
         ];
 
-        $saved = $this->objectService->saveObject('scholiq', 'item', $itemData);
-        if ($saved === null) {
-            return null;
-        }
+        // OpenRegister's saveObject() takes the payload FIRST and returns a
+        // non-nullable ObjectEntity. This used to be called positionally as
+        // saveObject('scholiq', 'item', $itemData), which passes the register
+        // slug as the payload — a guaranteed TypeError against the real
+        // service. Named arguments are the only safe call shape here.
+        $saved = $this->objectService->saveObject(
+            register: 'scholiq',
+            schema: 'item',
+            object: $itemData
+        );
 
-        $uuid = null;
-        if (is_array($saved) === true) {
-            $uuid = $saved['uuid'] ?? null;
-        }
-
-        if (is_array($saved) === false && is_object($saved) === true) {
-            $uuid = $saved->getUuid() ?? null;
-        }
+        $uuid = $saved->getUuid();
 
         if (is_string($uuid) === true) {
             return $uuid;
@@ -616,41 +423,4 @@ class QtiImportService
 
         return 1.0;
     }//end parseOutcomeMaxScore()
-
-    /**
-     * Recursively remove a directory and its contents.
-     *
-     * @param string $dir Absolute path to the directory.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
-     */
-    private function removeDirectory(string $dir): void
-    {
-        if (is_dir($dir) === false) {
-            return;
-        }
-
-        $items = scandir($dir);
-        if ($items === false) {
-            return;
-        }
-
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-
-            $path = $dir.'/'.$item;
-            if (is_dir($path) === true) {
-                $this->removeDirectory(dir: $path);
-                continue;
-            }
-
-            unlink($path);
-        }
-
-        rmdir($dir);
-    }//end removeDirectory()
 }//end class

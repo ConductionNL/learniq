@@ -25,6 +25,7 @@ namespace OCA\Scholiq\Tests\Unit\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Lifecycle\FraudCaseInvalidationGuard;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -44,7 +45,10 @@ class FraudCaseInvalidationGuardTest extends TestCase
     private function makeGuard(?array $fraudCase): FraudCaseInvalidationGuard
     {
         $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn($fraudCase);
+        // OpenRegister's find() returns ?ObjectEntity, never an array.
+        $objectService->method('find')->willReturn(
+            $fraudCase === null ? null : OrEntityFactory::make($fraudCase, 'fraud-case')
+        );
 
         return new FraudCaseInvalidationGuard($objectService, $this->createMock(LoggerInterface::class));
 

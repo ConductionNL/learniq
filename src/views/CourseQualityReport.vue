@@ -42,7 +42,7 @@
 					label="label"
 					:input-label="t('scholiq', 'Course')"
 					:aria-label-combobox="t('scholiq', 'Course')"
-					@input="onCourseChange" />
+					@update:modelValue="onCourseChange" />
 			</div>
 
 			<div v-if="selectedCourseId" class="course-quality-report__field">
@@ -54,7 +54,7 @@
 					label="label"
 					:input-label="t('scholiq', 'Teacher')"
 					:aria-label-combobox="t('scholiq', 'Teacher')"
-					@input="onTeacherChange" />
+					@update:modelValue="onTeacherChange" />
 			</div>
 
 			<NcLoadingIcon v-if="loadingReport" :size="32" />
@@ -111,7 +111,7 @@
 						</p>
 					</section>
 
-					<NcButton type="secondary" @click="draftImprovementAction">
+					<NcButton variant="secondary" @click="draftImprovementAction">
 						{{ t('scholiq', 'Draft improvement action') }}
 					</NcButton>
 				</template>
@@ -245,7 +245,7 @@ export default {
 					fetch(generateUrl('/apps/openregister/api/objects/scholiq/Course?limit=500'), {
 						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 					}),
-					fetch(generateUrl('/apps/openregister/api/objects/scholiq/EvaluationCampaign?limit=200'), {
+					fetch(generateUrl('/apps/openregister/api/objects/scholiq/evaluation-campaign?limit=200'), {
 						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 					}),
 				])
@@ -303,10 +303,10 @@ export default {
 			try {
 				const courseId = encodeURIComponent(this.selectedCourseId)
 				const [scoresResp, responsesResp] = await Promise.all([
-					fetch(generateUrl(`/apps/openregister/api/objects/scholiq/CourseQualityScore?courseId=${courseId}&limit=100`), {
+					fetch(generateUrl(`/apps/openregister/api/objects/scholiq/course-quality-score?courseId=${courseId}&limit=100`), {
 						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 					}),
-					fetch(generateUrl(`/apps/openregister/api/objects/scholiq/CourseEvaluationResponse?courseId=${courseId}&limit=200`), {
+					fetch(generateUrl(`/apps/openregister/api/objects/scholiq/course-evaluation-response?courseId=${courseId}&limit=200`), {
 						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 					}),
 				])

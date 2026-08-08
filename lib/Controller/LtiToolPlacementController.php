@@ -234,10 +234,6 @@ class LtiToolPlacementController extends Controller
             return null;
         }
 
-        if (is_array($object) === true) {
-            return $object;
-        }
-
         return $object->jsonSerialize();
 
     }//end resolvePlacement()
@@ -273,15 +269,17 @@ class LtiToolPlacementController extends Controller
             'timeout' => 30,
         ];
 
-        if ($apiToken !== '') {
-            $requestOptions['headers'] = [
-                'Authorization' => 'Bearer '.$apiToken,
-            ];
-        } else {
+        if ($apiToken === '') {
             $this->logger->warning(
                 '[LtiToolPlacementController] No OpenConnector API token configured ('
                 .'scholiq.openconnector_api_token); the launch call may fail with 401/403.'
             );
+        }
+
+        if ($apiToken !== '') {
+            $requestOptions['headers'] = [
+                'Authorization' => 'Bearer '.$apiToken,
+            ];
         }
 
         try {

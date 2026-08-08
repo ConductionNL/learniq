@@ -138,16 +138,18 @@ class ScholiqToolProvider implements IMcpToolProvider
     /**
      * Constructor for ScholiqToolProvider.
      *
-     * @param ObjectService   $objectService The OpenRegister object service (reads).
-     * @param IUserSession    $userSession   The current user session.
-     * @param IGroupManager   $groupManager  The group manager (for admin checks).
-     * @param LoggerInterface $logger        The PSR-3 logger.
+     * @param ObjectService       $objectService The OpenRegister object service (reads).
+     * @param IUserSession        $userSession   The current user session.
+     * @param IGroupManager       $groupManager  The group manager (for admin checks).
+     * @param LoggerInterface     $logger        The PSR-3 logger.
+     * @param CourseToolPresenter $presenter     Normalises OR objects into the privacy-safe MCP payloads.
      */
     public function __construct(
         private readonly ObjectService $objectService,
         private readonly IUserSession $userSession,
         private readonly IGroupManager $groupManager,
         private readonly LoggerInterface $logger,
+        private readonly CourseToolPresenter $presenter,
     ) {
     }//end __construct()
 
@@ -240,35 +242,9 @@ class ScholiqToolProvider implements IMcpToolProvider
             ];
         }
 
-        // M2: non-admin callers must only see published courses — they must not
-        // discover draft or archived courses via the MCP surface.
-        $callerIsAdmin = false;
-        $sessionUser   = $this->userSession->getUser();
-        if ($sessionUser !== null && $this->groupManager->isAdmin($sessionUser->getUID()) === true) {
-            $callerIsAdmin = true;
-        }
-
-        // Hard cap at LIST_CAP regardless of the requested limit.
-        $config = [
-            'register' => self::REGISTER_SLUG,
-            'schema'   => self::SCHEMA_COURSE,
-            'limit'    => min((int) $validated['limit'], self::LIST_CAP),
-        ];
-
-        if ($validated['status'] !== null) {
-            // Respect the requested status filter, but non-admins can only request 'published'.
-            if ($callerIsAdmin === false && $validated['status'] !== 'published') {
-                return [
-                    'isError' => true,
-                    'error'   => 'forbidden',
-                    'message' => "Status filter '{$validated['status']}' is not available to non-admin users.",
-                ];
-            }
-
-            $config['filters'] = ['lifecycle' => $validated['status']];
-        } else if ($callerIsAdmin === false) {
-            // No status requested by non-admin — restrict to published only.
-            $config['filters'] = ['lifecycle' => 'published'];
+        $config = $this->buildCourseListConfig(validated: $validated);
+        if (isset($config['error']) === true) {
+            return $config['error'];
         }
 
         try {
@@ -288,10 +264,10 @@ class ScholiqToolProvider implements IMcpToolProvider
         $courses = [];
         $sources = [];
         foreach ($rawCourses as $raw) {
-            $course     = $this->toArray(item: $raw);
-            $courseUuid = $this->extractUuid(item: $course);
-            $courses[]  = $this->courseSummary(course: $course);
-            $sources[]  = $this->courseSource(course: $course, courseUuid: $courseUuid);
+            $course     = $this->presenter->toArray(item: $raw);
+            $courseUuid = $this->presenter->extractUuid(item: $course);
+            $courses[]  = $this->presenter->courseSummary(course: $course);
+            $sources[]  = $this->presenter->courseSource(course: $course, courseUuid: $courseUuid);
         }
 
         return [
@@ -301,6 +277,79 @@ class ScholiqToolProvider implements IMcpToolProvider
         ];
 
     }//end handleListCourses()
+
+    /**
+     * Build the `ObjectService::findAll()` config for a listCourses call, or the
+     * error response when the caller may not ask for what they asked for.
+     *
+     * M2: non-admin callers must only see published courses — they must not be
+     * able to discover draft or archived courses through the MCP surface, either
+     * by filtering for them explicitly or by omitting the filter.
+     *
+     * @param array{limit?: int, status?: string|null} $validated Validated listCourses arguments.
+     *
+     * @return array<string, mixed> The findAll config, or `['error' => <response>]`.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-ai-companion-tools/tasks.md#task-3
+     */
+    private function buildCourseListConfig(array $validated): array
+    {
+        $callerIsAdmin = $this->callerIsAdmin();
+        $status        = ($validated['status'] ?? null);
+
+        // Hard cap at LIST_CAP regardless of the requested limit.
+        $config = [
+            'register' => self::REGISTER_SLUG,
+            'schema'   => self::SCHEMA_COURSE,
+            'limit'    => min((int) $validated['limit'], self::LIST_CAP),
+        ];
+
+        if ($status === null) {
+            // No status requested by a non-admin — restrict to published only.
+            if ($callerIsAdmin === false) {
+                $config['filters'] = ['lifecycle' => 'published'];
+            }
+
+            return $config;
+        }
+
+        // Respect the requested status filter, but non-admins can only request 'published'.
+        if ($callerIsAdmin === false && $status !== 'published') {
+            return [
+                'error' => [
+                    'isError' => true,
+                    'error'   => 'forbidden',
+                    'message' => "Status filter '{$status}' is not available to non-admin users.",
+                ],
+            ];
+        }
+
+        $config['filters'] = ['lifecycle' => $status];
+
+        return $config;
+
+    }//end buildCourseListConfig()
+
+    /**
+     * Whether the caller of the current MCP request is a Nextcloud admin.
+     *
+     * An unauthenticated caller is never an admin, so every MCP surface that
+     * gates draft/archived content asks this one question.
+     *
+     * @return bool True when a signed-in admin is making the call.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-ai-companion-tools/tasks.md#task-3
+     */
+    private function callerIsAdmin(): bool
+    {
+        $user = $this->userSession->getUser();
+        if ($user === null) {
+            return false;
+        }
+
+        return $this->groupManager->isAdmin($user->getUID());
+
+    }//end callerIsAdmin()
 
     /**
      * Validate scholiq.listCourses arguments.
@@ -411,46 +460,31 @@ class ScholiqToolProvider implements IMcpToolProvider
             ];
         }
 
-        // #197: non-admin learners must not see draft courses via MCP.
-        // Admins may view drafts; regular authenticated users see only published courses.
-        $courseLifecycle = $course['lifecycle'] ?? ($course['status'] ?? 'published');
-        if ($courseLifecycle !== 'published') {
-            $user   = $this->userSession->getUser();
-            $userId = '';
-            if ($user !== null) {
-                $userId = $user->getUID();
-            }
-
-            if ($userId === '' || $this->groupManager->isAdmin($userId) === false) {
-                // Non-admin trying to view a non-published course via MCP → not found
-                // (do not leak existence of drafts to learners).
-                return [
-                    'isError' => true,
-                    'error'   => 'not_found',
-                    'message' => 'Course not found.',
-                ];
-            }
-        }
-
-        $courseUuid = $this->extractUuid(item: $course);
-        $modules    = $this->loadCourseModules(courseUuid: $courseUuid);
-
-        $sources = [$this->courseSource(course: $course, courseUuid: $courseUuid)];
-        foreach ($modules as $module) {
-            $moduleUuid = (string) ($module['uuid'] ?? '');
-            $sources[]  = [
-                'type'  => 'scholiq.module',
-                'uuid'  => $moduleUuid,
-                'url'   => $this->buildDeepLink(type: 'module', uuid: $moduleUuid),
-                'label' => (string) ($module['name'] ?? 'Module'),
+        // #197: non-admin learners must not see draft courses via MCP. Admins may
+        // view drafts; regular authenticated users see only published courses. The
+        // refusal is 'not_found', not 'forbidden', so the existence of a draft is
+        // never leaked to a learner.
+        $courseLifecycle = ($course['lifecycle'] ?? ($course['status'] ?? 'published'));
+        if ($courseLifecycle !== 'published' && $this->callerIsAdmin() === false) {
+            return [
+                'isError' => true,
+                'error'   => 'not_found',
+                'message' => 'Course not found.',
             ];
         }
 
+        $courseUuid = $this->presenter->extractUuid(item: $course);
+        $modules    = $this->loadCourseModules(courseUuid: $courseUuid);
+
         return [
             'success' => true,
-            'course'  => $this->courseSummary(course: $course),
+            'course'  => $this->presenter->courseSummary(course: $course),
             'modules' => $modules,
-            'sources' => $sources,
+            'sources' => $this->presenter->buildCourseDetailSources(
+                course: $course,
+                courseUuid: $courseUuid,
+                modules: $modules
+            ),
         ];
 
     }//end handleGetCourseDetails()
@@ -487,7 +521,7 @@ class ScholiqToolProvider implements IMcpToolProvider
 
         $modules = [];
         foreach ($rawLessons as $raw) {
-            $modules[] = $this->moduleSummary(lesson: $this->toArray(item: $raw));
+            $modules[] = $this->presenter->moduleSummary(lesson: $this->presenter->toArray(item: $raw));
         }
 
         // Stable ordering by the 1-based `order` field.
@@ -501,27 +535,6 @@ class ScholiqToolProvider implements IMcpToolProvider
         return $modules;
 
     }//end loadCourseModules()
-
-    /**
-     * Build a citation source descriptor for a course object.
-     *
-     * @param array<string, mixed> $course     The normalised course array.
-     * @param string               $courseUuid The course UUID.
-     *
-     * @return array<string, string>
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-ai-companion-tools/tasks.md#task-3
-     */
-    private function courseSource(array $course, string $courseUuid): array
-    {
-        return [
-            'type'  => 'scholiq.course',
-            'uuid'  => $courseUuid,
-            'url'   => $this->buildDeepLink(type: 'course', uuid: $courseUuid),
-            'label' => (string) ($course['name'] ?? $course['code'] ?? 'course'),
-        ];
-
-    }//end courseSource()
 
     // =========================================================================
     // Private helpers
@@ -586,7 +599,7 @@ class ScholiqToolProvider implements IMcpToolProvider
             schema: self::SCHEMA_COURSE
         );
         if ($entity !== null) {
-            return $this->toArray(item: $entity);
+            return $this->presenter->toArray(item: $entity);
         }
 
         // Fall back to a filtered search by slug then by course code.
@@ -600,144 +613,11 @@ class ScholiqToolProvider implements IMcpToolProvider
                 ]
             );
             if (empty($matches) === false) {
-                return $this->toArray(item: $matches[0]);
+                return $this->presenter->toArray(item: $matches[0]);
             }
         }
 
         return null;
 
     }//end findCourse()
-
-    /**
-     * Build a privacy-safe summary of a course object.
-     *
-     * Only catalogue-level fields are included. No learner-related fields are
-     * present on the Course schema, but we still allow-list explicitly.
-     *
-     * @param array<string, mixed> $course The normalised course array.
-     *
-     * @return array<string, mixed>
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-ai-companion-tools/tasks.md#task-3
-     */
-    private function courseSummary(array $course): array
-    {
-        return [
-            'uuid'              => $this->extractUuid(item: $course),
-            'code'              => $course['code'] ?? null,
-            'name'              => $course['name'] ?? null,
-            'name_nl'           => $course['name_nl'] ?? null,
-            'description'       => $course['description'] ?? null,
-            'level'             => $course['level'] ?? null,
-            'language'          => $course['language'] ?? null,
-            'tags'              => $course['tags'] ?? [],
-            'mandatoryTraining' => $course['mandatoryTraining'] ?? false,
-            'regulationSlug'    => $course['regulationSlug'] ?? null,
-            'renewalCourseSlug' => $course['renewalCourseSlug'] ?? null,
-            'lifecycle'         => $course['lifecycle'] ?? null,
-        ];
-
-    }//end courseSummary()
-
-    /**
-     * Build a privacy-safe summary of a Lesson (module) object.
-     *
-     * @param array<string, mixed> $lesson The normalised lesson array.
-     *
-     * @return array<string, mixed>
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-ai-companion-tools/tasks.md#task-4
-     */
-    private function moduleSummary(array $lesson): array
-    {
-        $order = null;
-        if (isset($lesson['order']) === true) {
-            $order = (int) $lesson['order'];
-        }
-
-        return [
-            'uuid'               => $this->extractUuid(item: $lesson),
-            'name'               => $lesson['name'] ?? null,
-            'order'              => $order,
-            'contentType'        => $lesson['contentType'] ?? null,
-            'durationMinutes'    => $lesson['durationMinutes'] ?? null,
-            'learningObjectives' => $lesson['learningObjectives'] ?? [],
-            'mandatoryTraining'  => $lesson['mandatoryTraining'] ?? false,
-            'regulationSlug'     => $lesson['regulationSlug'] ?? null,
-            'lifecycle'          => $lesson['lifecycle'] ?? null,
-        ];
-
-    }//end moduleSummary()
-
-    /**
-     * Build a deep link URL for a Scholiq resource.
-     *
-     * @param string $type One of: course, module.
-     * @param string $uuid The object UUID.
-     *
-     * @return string The deep link path, e.g. /apps/scholiq/courses/<uuid>.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-ai-companion-tools/tasks.md#task-4
-     */
-    private function buildDeepLink(string $type, string $uuid): string
-    {
-        $paths = [
-            'course' => '/apps/scholiq/courses',
-            'module' => '/apps/scholiq/modules',
-        ];
-
-        $base = $paths[$type] ?? "/apps/scholiq/{$type}s";
-        return "{$base}/{$uuid}";
-
-    }//end buildDeepLink()
-
-    /**
-     * Normalise an OpenRegister object to a plain PHP array.
-     *
-     * @param mixed $item Raw item from ObjectService.
-     *
-     * @return array<string, mixed>
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-ai-companion-tools/tasks.md#task-5
-     */
-    private function toArray(mixed $item): array
-    {
-        if (is_array(value: $item) === true) {
-            return $item;
-        }
-
-        if (is_object(value: $item) === true) {
-            foreach (['getObject', 'jsonSerialize'] as $method) {
-                if (method_exists($item, $method) === false) {
-                    continue;
-                }
-
-                $value = $item->$method();
-                if (is_array(value: $value) === true) {
-                    return $value;
-                }
-            }
-        }
-
-        return (array) $item;
-
-    }//end toArray()
-
-    /**
-     * Extract the UUID from a normalised object array.
-     *
-     * Checks multiple common field names to handle different OR object shapes.
-     *
-     * @param array<string, mixed> $item The normalised object array.
-     *
-     * @return string The UUID, or empty string when not found.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-ai-companion-tools/tasks.md#task-5
-     */
-    private function extractUuid(array $item): string
-    {
-        $uuid = $item['uuid'] ?? $item['id'] ?? ($item['@self']['uuid'] ?? ($item['@self']['id'] ?? ''));
-        return (string) $uuid;
-
-    }//end extractUuid()
 }//end class

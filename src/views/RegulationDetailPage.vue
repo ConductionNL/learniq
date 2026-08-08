@@ -163,7 +163,7 @@ export default {
 	 * @return {void}
 	 * @spec openspec/specs/realtime-updates/spec.md
 	 */
-	beforeDestroy() {
+	beforeUnmount() {
 		this.releaseLiveSubscription()
 	},
 

@@ -157,7 +157,9 @@ class WalletRevocationPropagationService
                     '[WalletRevocationPropagationService] Propagated revocation for wallet offer {ref}',
                     ['ref' => $attestationRef]
                 );
-            } else {
+            }
+
+            if ($handled === false) {
                 $object['walletOfferError'] = 'Wallet revocation propagation failed or openconnector is unavailable.';
                 $this->logger->warning(
                     '[WalletRevocationPropagationService] Revocation propagation for wallet offer {ref} did not succeed',

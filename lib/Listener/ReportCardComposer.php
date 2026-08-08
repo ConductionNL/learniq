@@ -53,6 +53,7 @@ namespace OCA\Scholiq\Listener;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\Service\AttendanceWindowAggregator;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -69,23 +70,22 @@ use Psr\Log\LoggerInterface;
 class ReportCardComposer implements IEventListener
 {
 
-    private const SCHOLIQ_REGISTER         = 'scholiq';
-    private const REPORT_PERIOD_SCHEMA     = 'report-period';
-    private const REPORT_CARD_SCHEMA       = 'report-card';
-    private const COHORT_SCHEMA            = 'cohort';
-    private const CURRICULUM_PLAN_SCHEMA   = 'curriculum-plan';
-    private const FINAL_GRADE_SCHEMA       = 'final-grade';
-    private const GRADE_ENTRY_SCHEMA       = 'grade-entry';
-    private const SESSION_SCHEMA           = 'session';
-    private const ATTENDANCE_RECORD_SCHEMA = 'attendance-record';
-    private const LEARNER_PROFILE_SCHEMA   = 'learner-profile';
+    private const SCHOLIQ_REGISTER       = 'scholiq';
+    private const REPORT_PERIOD_SCHEMA   = 'report-period';
+    private const REPORT_CARD_SCHEMA     = 'report-card';
+    private const COHORT_SCHEMA          = 'cohort';
+    private const CURRICULUM_PLAN_SCHEMA = 'curriculum-plan';
+    private const FINAL_GRADE_SCHEMA     = 'final-grade';
+    private const GRADE_ENTRY_SCHEMA     = 'grade-entry';
+    private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 
     /**
      * Constructor.
      *
-     * @param ObjectService   $objectService OR object access service.
-     * @param ITimeFactory    $timeFactory   NC time source (injectable "now" for tests).
-     * @param LoggerInterface $logger        PSR logger.
+     * @param ObjectService              $objectService OR object access service.
+     * @param ITimeFactory               $timeFactory   NC time source (injectable "now" for tests).
+     * @param LoggerInterface            $logger        PSR logger.
+     * @param AttendanceWindowAggregator $attendance    Resolves window Sessions and aggregates attendance.
      *
      * @return void
      */
@@ -93,6 +93,7 @@ class ReportCardComposer implements IEventListener
         private readonly ObjectService $objectService,
         private readonly ITimeFactory $timeFactory,
         private readonly LoggerInterface $logger,
+        private readonly AttendanceWindowAggregator $attendance,
     ) {
     }//end __construct()
 
@@ -160,7 +161,7 @@ class ReportCardComposer implements IEventListener
 
         $sessionIds = [];
         if ($attendanceIncluded === true) {
-            $sessionIds = $this->fetchWindowSessionIds(cohortIds: $cohortIds, startDate: $startDate, endDate: $endDate);
+            $sessionIds = $this->attendance->fetchWindowSessionIds(cohortIds: $cohortIds, startDate: $startDate, endDate: $endDate);
         }
 
         $createdCount = 0;
@@ -173,7 +174,7 @@ class ReportCardComposer implements IEventListener
             );
             $attendanceSummary = null;
             if ($attendanceIncluded === true) {
-                $attendanceSummary = $this->buildAttendanceSummary(learnerId: $learnerId, sessionIds: $sessionIds);
+                $attendanceSummary = $this->attendance->buildAttendanceSummary(learnerId: $learnerId, sessionIds: $sessionIds);
             }
 
             $reportCard = [
@@ -254,8 +255,8 @@ class ReportCardComposer implements IEventListener
         $attendanceSummary = null;
         if ($attendanceIncluded === true) {
             $cohortIds         = $this->stringList(value: $periodData['cohortIds'] ?? []);
-            $sessionIds        = $this->fetchWindowSessionIds(cohortIds: $cohortIds, startDate: $startDate, endDate: $endDate);
-            $attendanceSummary = $this->buildAttendanceSummary(learnerId: $learnerId, sessionIds: $sessionIds);
+            $sessionIds        = $this->attendance->fetchWindowSessionIds(cohortIds: $cohortIds, startDate: $startDate, endDate: $endDate);
+            $attendanceSummary = $this->attendance->buildAttendanceSummary(learnerId: $learnerId, sessionIds: $sessionIds);
         }
 
         $updated = $card;
@@ -431,174 +432,6 @@ class ReportCardComposer implements IEventListener
         return $rows;
 
     }//end buildSubjectGrades()
-
-    /**
-     * Resolve every Session UUID in `cohortIds[]` whose `[startsAt, endsAt]`
-     * overlaps `[startDate, endDate]`, mirroring
-     * `TimetableController::fetchSessions()`'s window-overlap style.
-     *
-     * @param array<int,string> $cohortIds ReportPeriod.cohortIds.
-     * @param string            $startDate Window start (ISO 8601 date).
-     * @param string            $endDate   Window end (ISO 8601 date).
-     *
-     * @return array<int,string> Session UUIDs within the window.
-     */
-    private function fetchWindowSessionIds(array $cohortIds, string $startDate, string $endDate): array
-    {
-        $fromTs = strtotime($startDate);
-        $toTs   = strtotime($endDate);
-
-        $sessionIds = [];
-
-        foreach ($cohortIds as $cohortId) {
-            $rows = $this->objectService->findAll(
-                [
-                    'register' => self::SCHOLIQ_REGISTER,
-                    'schema'   => self::SESSION_SCHEMA,
-                    'filters'  => ['cohortId' => $cohortId],
-                    'limit'    => 5000,
-                ]
-            );
-
-            foreach ($rows as $row) {
-                $session = $this->normalise(row: $row);
-
-                if ($this->sessionOverlapsWindow(session: $session, fromTs: $fromTs, toTs: $toTs) === false) {
-                    continue;
-                }
-
-                $sessionId = (string) ($session['id'] ?? ($session['uuid'] ?? ''));
-                if ($sessionId !== '') {
-                    $sessionIds[$sessionId] = true;
-                }
-            }
-        }//end foreach
-
-        return array_keys($sessionIds);
-
-    }//end fetchWindowSessionIds()
-
-    /**
-     * Whether a Session overlaps a `[fromTs, toTs]` window — starts before
-     * the window end AND ends after (or at) the window start. When
-     * unparseable window bounds are given, the session is included rather
-     * than silently dropped (mirrors `TimetableController::overlapsWindow()`).
-     *
-     * @param array<string,mixed> $session The Session data.
-     * @param int|false           $fromTs  Window start as a unix timestamp.
-     * @param int|false           $toTs    Window end as a unix timestamp.
-     *
-     * @return bool True when the session overlaps the window.
-     */
-    private function sessionOverlapsWindow(array $session, int|false $fromTs, int|false $toTs): bool
-    {
-        if ($fromTs === false || $toTs === false) {
-            return true;
-        }
-
-        $startsAt = (string) ($session['startsAt'] ?? '');
-        if ($startsAt === '') {
-            return false;
-        }
-
-        $startTs = strtotime($startsAt);
-        if ($startTs === false) {
-            return false;
-        }
-
-        $endsAtRaw = (string) ($session['endsAt'] ?? '');
-        $endTs     = $startTs;
-        if ($endsAtRaw !== '') {
-            $endTs = strtotime($endsAtRaw);
-        }
-
-        if ($endTs === false) {
-            $endTs = $startTs;
-        }
-
-        return ($startTs <= $toTs && $endTs >= $fromTs);
-
-    }//end sessionOverlapsWindow()
-
-    /**
-     * Aggregate a learner's `AttendanceRecord`s whose `sessionId` is in
-     * `$sessionIds` into an `attendanceSummary` object, mirroring the formula
-     * documented on `ReportCard.attendanceSummary.attendancePercent`:
-     * `(present + late + leftEarly) / total`, null when the window has zero
-     * sessions for this learner.
-     *
-     * @param string            $learnerId  NC user ID.
-     * @param array<int,string> $sessionIds Session UUIDs within the ReportPeriod's window.
-     *
-     * @return array<string,mixed>
-     */
-    private function buildAttendanceSummary(string $learnerId, array $sessionIds): array
-    {
-        $summary = [
-            'presentCount'         => 0,
-            'absentUnexcusedCount' => 0,
-            'absentExcusedCount'   => 0,
-            'lateCount'            => 0,
-            'leftEarlyCount'       => 0,
-            'attendancePercent'    => null,
-        ];
-
-        if (empty($sessionIds) === true) {
-            return $summary;
-        }
-
-        $sessionIdSet = array_flip($sessionIds);
-
-        $records = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::ATTENDANCE_RECORD_SCHEMA,
-                'filters'  => ['learnerId' => $learnerId],
-                'limit'    => 5000,
-            ]
-        );
-
-        $total = 0;
-
-        foreach ($records as $row) {
-            $record    = $this->normalise(row: $row);
-            $sessionId = (string) ($record['sessionId'] ?? '');
-            if ($sessionId === '' || isset($sessionIdSet[$sessionId]) === false) {
-                continue;
-            }
-
-            $total++;
-
-            $status = (string) ($record['status'] ?? '');
-            switch ($status) {
-                case 'present':
-                    $summary['presentCount']++;
-                    break;
-                case 'absent-unexcused':
-                    $summary['absentUnexcusedCount']++;
-                    break;
-                case 'absent-excused':
-                    $summary['absentExcusedCount']++;
-                    break;
-                case 'late':
-                    $summary['lateCount']++;
-                    break;
-                case 'left-early':
-                    $summary['leftEarlyCount']++;
-                    break;
-                default:
-                    break;
-            }
-        }//end foreach
-
-        if ($total > 0) {
-            $attended = $summary['presentCount'] + $summary['lateCount'] + $summary['leftEarlyCount'];
-            $summary['attendancePercent'] = round(($attended / $total) * 100, 2);
-        }
-
-        return $summary;
-
-    }//end buildAttendanceSummary()
 
     /**
      * Resolve a learner's `LearnerProfile` object UUID (ADR-046 `learnerRef`),

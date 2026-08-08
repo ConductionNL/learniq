@@ -8,10 +8,11 @@
  * - initiate(orderId): outbound. Resolves the Order, computes the remaining
  *   balance server-side (never trusts a client-supplied amount), creates a
  *   `pending` PaymentTransaction, and delegates to OpenConnector's
- *   (not-yet-built) mollie-stripe-payment-adapter using the exact
- *   IClientService + IURLGenerator::getAbsoluteURL() + IAppConfig
- *   bearer-token shape LtiToolPlacementController::callOpenConnectorLaunch()
- *   and DataExchangeRunHandler::callOpenConnector() already establish, under
+ *   (not-yet-built) mollie-stripe-payment-adapter via
+ *   `PaymentInitiationClient`, which uses the exact IClientService +
+ *   IURLGenerator::getAbsoluteURL() + IAppConfig bearer-token shape
+ *   LtiToolPlacementController::callOpenConnectorLaunch() and
+ *   DataExchangeRunHandler::callOpenConnector() already establish, under
  *   the existing scholiq.openconnector_api_token config key — a fourth
  *   instance of this established pattern, not a new one
  *   (WalletOfferDelegationService explicitly reuses the same shape too).
@@ -62,16 +63,15 @@ use DateTimeImmutable;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\AppInfo\Application;
+use OCA\Scholiq\Service\PaymentInitiationClient;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IRequest;
-use OCP\IURLGenerator;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -109,33 +109,6 @@ class PaymentTransactionController extends Controller
     ];
 
     /**
-     * ASSUMED OpenConnector REST endpoint for PSP launch-initiation
-     * (mirrors LtiToolPlacementController::OPENCONNECTOR_LAUNCH_PATH's
-     * "documented assumption" convention). OpenConnector's own
-     * mollie-stripe-payment-adapter does not exist yet at HEAD (see
-     * proposal.md "Why") — this constant names the path that adapter would
-     * need to expose, following the same path-shape convention as the
-     * existing lti/deployments and sources endpoints. Update once the real
-     * endpoint lands.
-     *
-     * Assumed request body: {orderId, amount, currency, pspProvider,
-     * callbackReference} where callbackReference is this PaymentTransaction's
-     * own scholiq-side id, echoed back on the callback() call.
-     * Assumed response body: {checkoutUrl: string, pspPaymentId?: string}.
-     *
-     * @var string
-     */
-    private const OPENCONNECTOR_INITIATE_PATH = '/apps/openconnector/api/payments/initiate';
-
-    /**
-     * App-config key for the outbound OpenConnector API token. Same key
-     * LtiToolPlacementController/DataExchangeRunHandler already use.
-     *
-     * @var string
-     */
-    private const OPENCONNECTOR_TOKEN_KEY = 'openconnector_api_token';
-
-    /**
      * App-config key for the INBOUND callback shared secret. Deliberately
      * separate from OPENCONNECTOR_TOKEN_KEY — design.md requires callback()
      * to use its own documented authentication mechanism, not the outbound
@@ -149,22 +122,20 @@ class PaymentTransactionController extends Controller
     /**
      * Constructor.
      *
-     * @param IRequest         $request          The current request.
-     * @param IUserSession     $userSession      NC user session.
-     * @param ObjectService    $objectService    OR object access service.
-     * @param TransitionEngine $transitionEngine OR lifecycle engine.
-     * @param IClientService   $clientService    NC HTTP client factory.
-     * @param IURLGenerator    $urlGenerator     NC URL generator for internal requests.
-     * @param IAppConfig       $appConfig        NC app config for token lookup.
-     * @param LoggerInterface  $logger           PSR logger.
+     * @param IRequest                $request          The current request.
+     * @param IUserSession            $userSession      NC user session.
+     * @param ObjectService           $objectService    OR object access service.
+     * @param TransitionEngine        $transitionEngine OR lifecycle engine.
+     * @param PaymentInitiationClient $initiationClient OpenConnector PSP initiation transport.
+     * @param IAppConfig              $appConfig        NC app config for the callback token lookup.
+     * @param LoggerInterface         $logger           PSR logger.
      */
     public function __construct(
         IRequest $request,
         private readonly IUserSession $userSession,
         private readonly ObjectService $objectService,
         private readonly TransitionEngine $transitionEngine,
-        private readonly IClientService $clientService,
-        private readonly IURLGenerator $urlGenerator,
+        private readonly PaymentInitiationClient $initiationClient,
         private readonly IAppConfig $appConfig,
         private readonly LoggerInterface $logger,
     ) {
@@ -247,10 +218,7 @@ class PaymentTransactionController extends Controller
             schema: self::PAYMENT_TRANSACTION_SCHEMA
         );
 
-        $savedData = $saved;
-        if (is_array($saved) === false) {
-            $savedData = $saved->jsonSerialize();
-        }
+        $savedData = $saved->jsonSerialize();
 
         $transactionId = $savedData['id'] ?? ($savedData['uuid'] ?? null);
 
@@ -264,7 +232,7 @@ class PaymentTransactionController extends Controller
 
         $transactionId = (string) $transactionId;
 
-        $launchResponse = $this->callOpenConnectorInitiate(
+        $launchResponse = $this->initiationClient->initiate(
             paymentTransactionId: $transactionId,
             orderId: $orderId,
             amount: $remaining,
@@ -406,10 +374,6 @@ class PaymentTransactionController extends Controller
             return null;
         }
 
-        if (is_array($object) === true) {
-            return $object;
-        }
-
         return $object->jsonSerialize();
 
     }//end resolveOrder()
@@ -446,77 +410,4 @@ class PaymentTransactionController extends Controller
         return $sum;
 
     }//end sumSucceededTransactions()
-
-    /**
-     * Call OpenConnector's (assumed, see {@see self::OPENCONNECTOR_INITIATE_PATH})
-     * PSP launch-initiation endpoint.
-     *
-     * @param string $paymentTransactionId UUID of the newly-created PaymentTransaction —
-     *                                     sent as the callback reference.
-     * @param string $orderId              UUID of the Order being paid.
-     * @param float  $amount               Amount to charge.
-     * @param string $currency             ISO 4217 currency code.
-     * @param string $pspProvider          "mollie" or "stripe".
-     *
-     * @return array<string,mixed>|null The opaque launch response, or null on failure.
-     *
-     * @spec openspec/changes/school-payments/tasks.md#task-3.5
-     */
-    private function callOpenConnectorInitiate(
-        string $paymentTransactionId,
-        string $orderId,
-        float $amount,
-        string $currency,
-        string $pspProvider
-    ): ?array {
-        $url = $this->urlGenerator->getAbsoluteURL('/index.php'.self::OPENCONNECTOR_INITIATE_PATH);
-
-        $apiToken = $this->appConfig->getValueString(
-            app: Application::APP_ID,
-            key: self::OPENCONNECTOR_TOKEN_KEY,
-            default: ''
-        );
-
-        $requestOptions = [
-            'json'    => [
-                'orderId'           => $orderId,
-                'amount'            => $amount,
-                'currency'          => $currency,
-                'pspProvider'       => $pspProvider,
-                'callbackReference' => $paymentTransactionId,
-            ],
-            'timeout' => 30,
-        ];
-
-        if ($apiToken !== '') {
-            $requestOptions['headers'] = [
-                'Authorization' => 'Bearer '.$apiToken,
-            ];
-        } else {
-            $this->logger->warning(
-                '[PaymentTransactionController] No OpenConnector API token configured ('
-                .'scholiq.openconnector_api_token); the initiate call may fail with 401/403.'
-            );
-        }
-
-        try {
-            $client   = $this->clientService->newClient();
-            $response = $client->post($url, $requestOptions);
-
-            $body = json_decode($response->getBody(), true);
-            if (is_array($body) === false) {
-                $this->logger->error('[PaymentTransactionController] OpenConnector returned non-JSON for initiate.');
-                return null;
-            }
-
-            return $body;
-        } catch (Throwable $exception) {
-            $this->logger->error(
-                '[PaymentTransactionController] OpenConnector initiate call failed: {msg}',
-                ['msg' => $exception->getMessage()]
-            );
-            return null;
-        }//end try
-
-    }//end callOpenConnectorInitiate()
 }//end class

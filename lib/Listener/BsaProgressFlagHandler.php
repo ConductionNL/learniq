@@ -62,10 +62,10 @@ use OCP\EventDispatcher\IEventListener;
 class BsaProgressFlagHandler implements IEventListener
 {
 
-    private const SCHOLIQ_REGISTER      = 'scholiq';
-    private const GRADE_ENTRY_SCHEMA    = 'grade-entry';
-    private const COURSE_SCHEMA         = 'course';
-    private const BSA_TRAJECTORY_SCHEMA = 'bsa-trajectory';
+    private const SCHOLIQ_REGISTER         = 'scholiq';
+    private const GRADE_ENTRY_SCHEMA       = 'grade-entry';
+    private const COURSE_SCHEMA            = 'course';
+    private const BSA_TRAJECTORY_SCHEMA    = 'bsa-trajectory';
     private const BSA_PROGRESS_FLAG_SCHEMA = 'bsa-progress-flag';
 
     /**
@@ -126,7 +126,7 @@ class BsaProgressFlagHandler implements IEventListener
             return;
         }
 
-        $programmeIds = $this->resolveProgrammeIds(courseId: $courseId, tenantId: $tenantId);
+        $programmeIds = $this->resolveProgrammeIds(courseId: $courseId);
 
         foreach ($programmeIds as $programmeId) {
             $this->checkProgramme(programmeId: $programmeId, learnerId: $learnerId, tenantId: $tenantId);
@@ -137,13 +137,14 @@ class BsaProgressFlagHandler implements IEventListener
     /**
      * Resolve the Programme(s) a Course belongs to.
      *
+     * The Course is resolved by id, which is already tenant-unique, so no
+     * tenant argument is needed to scope the lookup.
+     *
      * @param string $courseId UUID of the Course.
-     * @param string $tenantId Tenant ID (unused for lookup scoping; Course is
-     *                         resolved by id, which is already tenant-unique).
      *
      * @return array<int, string>
      */
-    private function resolveProgrammeIds(string $courseId, string $tenantId): array
+    private function resolveProgrammeIds(string $courseId): array
     {
         $course = $this->objectService->find(
             id: $courseId,
@@ -155,10 +156,7 @@ class BsaProgressFlagHandler implements IEventListener
             return [];
         }
 
-        $courseData = $course;
-        if (is_array($course) === false) {
-            $courseData = $course->jsonSerialize();
-        }
+        $courseData = $course->jsonSerialize();
 
         $programmeIds = $courseData['programmeIds'] ?? [];
         if (is_array($programmeIds) === false) {
@@ -208,8 +206,8 @@ class BsaProgressFlagHandler implements IEventListener
      * Evaluate a single BsaTrajectory for a learner and create a flag if at risk.
      *
      * @param array<string,mixed> $trajectory BsaTrajectory data.
-     * @param string               $learnerId  NC user ID of the learner.
-     * @param string               $tenantId   Tenant ID.
+     * @param string              $learnerId  NC user ID of the learner.
+     * @param string              $tenantId   Tenant ID.
      *
      * @return void
      *
@@ -224,26 +222,16 @@ class BsaProgressFlagHandler implements IEventListener
             return;
         }
 
-        $windowOpensAt = $trajectory['windowOpensAt'] ?? null;
-        if (is_string($windowOpensAt) === false || $windowOpensAt === '') {
+        $now = $this->timeFactory->now();
+        if ($this->windowHasOpened(trajectory: $trajectory, now: $now) === false) {
+            // No usable windowOpensAt, or the interim-check window has not
+            // opened yet.
             return;
         }
 
-        $now = DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime());
-        try {
-            $windowOpensAtDate = new DateTimeImmutable($windowOpensAt);
-        } catch (\Exception) {
-            return;
-        }
-
-        if ($now < $windowOpensAtDate) {
-            // Interim-check window has not opened yet.
-            return;
-        }
-
-        $programmeId    = $trajectory['programmeId'] ?? '';
+        $programmeId     = $trajectory['programmeId'] ?? '';
         $bsaTrajectoryId = $trajectory['id'] ?? ($trajectory['uuid'] ?? '');
-        $academicYear   = $trajectory['academicYear'] ?? '';
+        $academicYear    = $trajectory['academicYear'] ?? '';
 
         if ($programmeId === '' || $bsaTrajectoryId === '') {
             return;
@@ -280,6 +268,36 @@ class BsaProgressFlagHandler implements IEventListener
         );
 
     }//end checkTrajectory()
+
+    /**
+     * Whether a trajectory's interim-check window has opened at the given moment.
+     *
+     * A missing, empty, or unparsable `windowOpensAt` counts as "not opened" —
+     * the handler never flags a learner off a date it cannot read.
+     *
+     * @param array<string,mixed> $trajectory BsaTrajectory data.
+     * @param DateTimeImmutable   $now        The current moment.
+     *
+     * @return bool True when the window has opened and the check may proceed.
+     *
+     * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+     */
+    private function windowHasOpened(array $trajectory, DateTimeImmutable $now): bool
+    {
+        $windowOpensAt = $trajectory['windowOpensAt'] ?? null;
+        if (is_string($windowOpensAt) === false || $windowOpensAt === '') {
+            return false;
+        }
+
+        try {
+            $windowOpensAtDate = new DateTimeImmutable($windowOpensAt);
+        } catch (\Exception) {
+            return false;
+        }
+
+        return $now >= $windowOpensAtDate;
+
+    }//end windowHasOpened()
 
     /**
      * Check whether a still-open BsaProgressFlag already exists for this

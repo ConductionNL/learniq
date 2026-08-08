@@ -32,6 +32,7 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Controller\LearningRecordShareVerifyController;
 use OCA\Scholiq\Service\LearningRecordExportSigningService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -94,16 +95,19 @@ class LearningRecordShareVerifyControllerTest extends TestCase
         $this->bundleFileContent = '{}';
 
         $this->objectService = $this->createMock(ObjectService::class);
+        // OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
+        // and returns ?ObjectEntity. willReturnCallback() hands the closure the
+        // mock's arguments POSITIONALLY, so the closure must mirror that order.
+        // ObjectEntity's getters come from Entity::__call, so a real instance is
+        // required — a mock cannot configure them.
         $this->objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema): ?ObjectEntity {
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null): ?ObjectEntity {
                 $data = $this->objectsBySchemaId[$schema.':'.$id] ?? null;
                 if ($data === null) {
                     return null;
                 }
 
-                $mock = $this->createMock(ObjectEntity::class);
-                $mock->method('jsonSerialize')->willReturn($data);
-                return $mock;
+                return OrEntityFactory::make($data, (string) $schema, 'scholiq', (string) $id);
             }
         );
 
@@ -251,4 +255,46 @@ class LearningRecordShareVerifyControllerTest extends TestCase
         self::assertSame('not_found', $response->getData()['reason']);
         self::assertSame(404, $response->getStatus());
     }//end testUnknownShareIsDenied()
+
+    /**
+     * A THROWING ObjectService is denied, not propagated.
+     *
+     * `find()` does not only return null for an id that does not resolve — it
+     * THROWS, both for an unknown object and, via ObjectService::setSchema(),
+     * for a schema the register has never imported. verify() is a
+     * `#[PublicPage]`, so an escaping exception makes Nextcloud render
+     * printExceptionErrorPage() and the caller receives an HTML error page
+     * where it asked for JSON; the verify view then dies on
+     * `SyntaxError: Unexpected token '<'`.
+     *
+     * The other tests on this class cannot reach that path: the shared
+     * ObjectService mock RETURNS null for an unknown id, so `not_found` is
+     * produced by the `$obj === null` branch and the `catch` block is never
+     * entered. This test installs a mock that throws instead, which is the
+     * only way the fail-closed behaviour is actually exercised.
+     *
+     * @return void
+     */
+    public function testThrowingObjectServiceIsDeniedRatherThanPropagated(): void
+    {
+        /** @var ObjectService&MockObject $throwingObjectService */
+        $throwingObjectService = $this->createMock(ObjectService::class);
+        $throwingObjectService->method('find')->willThrowException(
+            new \OCP\AppFramework\Db\DoesNotExistException('schema not imported')
+        );
+
+        $controller = new LearningRecordShareVerifyController(
+            request: $this->createMock(IRequest::class),
+            objectService: $throwingObjectService,
+            signingService: $this->signingService,
+            rootFolder: $this->createMock(IRootFolder::class),
+        );
+
+        $response = $controller->verify('any-id');
+
+        self::assertInstanceOf(JSONResponse::class, $response);
+        self::assertFalse($response->getData()['valid']);
+        self::assertSame('not_found', $response->getData()['reason']);
+        self::assertSame(404, $response->getStatus());
+    }//end testThrowingObjectServiceIsDeniedRatherThanPropagated()
 }//end class

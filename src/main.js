@@ -1,59 +1,65 @@
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (C) 2026 Conduction B.V.
 
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import { PiniaVuePlugin } from 'pinia'
+import { createApp, h } from 'vue'
+import { createRouter, createWebHistory } from 'vue-router'
 import { translate as t, translatePlural as n, loadTranslations } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
 import {
 	CnPageRenderer,
-	CnAuditTrailWidget,
 	defaultPageTypes,
 	registerIcons,
 	registerTranslations,
 	buildManifest,
-	registerDashboardWidget,
+	registerBuiltinDashboardWidgets,
 } from '@conduction/nextcloud-vue'
 import pinia from './pinia.js'
 import App from './App.vue'
 import bundledManifest from './manifest.json'
 import menuLayout from './menu-layout.json'
 import registry from './registry.js'
+import appIcons from './icons.js'
 
 // Library CSS — must be explicit import (webpack tree-shakes side-effect imports from aliased packages)
 import '@conduction/nextcloud-vue/css/index.css'
 
+// gridstack is a REQUIRED peer of @conduction/nextcloud-vue that no consumer
+// declares; it used to resolve by accident from a hoisted node_modules outside
+// the repo. Its stylesheet is the silent half: v12 sizes items with
+// `width: var(--gs-column-width)`, so without the CSS every dashboard item
+// renders 0 px wide with no console error at all.
+import 'gridstack/dist/gridstack.min.css'
+
 // Global (unscoped) app styles
 import './assets/app.css'
 
-// Bootstrap the library's built-in `audit-trail` widget (CnAuditTrailWidget)
-// into the shared widget-type catalog. CnDetailPage's config-grid body resolves
-// widget `type` via getWidgetTypeEntry (the dashboard-widget catalog), NOT via
-// BUILT_IN_WIDGETS — and the library only self-seeds chart/stats-block/table/
-// related into that catalog, so `audit-trail` must be registered here for the
-// 36 detail-page audit-trail widgets to render. This dissolves the former
-// bespoke AuditTrailWidget adapter (deleted) down to the library component and
-// works around the dissolution renderer gap tracked in nextcloud-vue#89 (the
-// library should self-seed audit-trail into the detail-page catalog too; once
-// it does, this bootstrap can be removed outright). The v2 slot/widgetKey path
-// already resolves `audit-trail` via the library's BUILT_IN_WIDGETS map.
-registerDashboardWidget('audit-trail', {
-	renderer: CnAuditTrailWidget,
-	form: null,
-	defaultContent: {},
-	displayName: 'Audit trail',
-	icon: 'History',
-	surfaces: ['detail-page'],
-})
-
-Vue.mixin({ methods: { t, n } })
-Vue.use(PiniaVuePlugin)
-Vue.use(VueRouter)
+// Seed the library's built-in dashboard-widget catalog. CnDetailPage's
+// config-grid body resolves a widget `type` through getWidgetTypeEntry (this
+// catalog), so nothing renders until it is populated. Webpack can otherwise
+// tree-shake the bare side-effect imports that do the registering, and the
+// widgets then render "Widget not available" with no error anywhere.
+// Must run BEFORE any page renders.
+//
+// ⚠️ This REPLACES an app-local `registerDashboardWidget('audit-trail', {
+// renderer: CnAuditTrailWidget, … })` bootstrap. Two reasons it had to go:
+//   1. `CnAuditTrailWidget` is NOT a public export of 2.1.0-vue3.13 — the
+//      component exists in the package but the barrel never re-exports it
+//      (verified by enumerating all 402 explicit named exports of
+//      dist/esm/index.js; `CnAuditTrailCard` and the other 18 symbols this app
+//      imports all resolve, so the absence is real and not a bad lookup). The
+//      import would have silently bound `undefined` and registered a widget
+//      type with no renderer.
+//   2. It is no longer needed. The gap it worked around — nextcloud-vue#89,
+//      "the library should self-seed audit-trail into the detail-page catalog
+//      too" — is closed: registerBuiltinDashboardWidgets() now imports
+//      CnAuditTrailWidget/dashboardRegistration.js, which registers
+//      `audit-trail` with surfaces:['detail-page'] AND its config form, which
+//      the app-local copy did not have (`form: null`).
+registerBuiltinDashboardWidgets()
 
 // Register library-side icon set + lib translations once at bootstrap.
-registerIcons()
+registerIcons(appIcons)
 try {
 	registerTranslations()
 } catch (e) {
@@ -77,9 +83,9 @@ function tryLoadTranslations() {
 	}
 }
 
-// Shallow-clone CnPageRenderer to give Vue Router an extensible component
+// Shallow-clone CnPageRenderer so the router gets an extensible component
 // object — lib barrel exports are non-extensible (webpack ESM module records)
-// and Vue 2's Vue.extend() adds an internal _Ctor cache entry.
+// and the router/renderer may attach internal bookkeeping to the definition.
 const RoutePageRenderer = { ...CnPageRenderer }
 
 /**
@@ -87,7 +93,7 @@ const RoutePageRenderer = { ...CnPageRenderer }
  * one route; the route name IS page.id (per the lib's manifest contract).
  *
  * @param {object} manifest The bundled manifest (with `pages[]`).
- * @return {Array<object>} vue-router 3 routes config.
+ * @return {Array<object>} vue-router 4 routes config.
  */
 function routesFromManifest(manifest) {
 	const routes = manifest.pages.map((page) => ({
@@ -96,8 +102,11 @@ function routesFromManifest(manifest) {
 		component: RoutePageRenderer,
 		props: page.route.includes(':'),
 	}))
-	// Catch-all redirect to dashboard, preserving prior router behaviour.
-	routes.push({ path: '*', redirect: '/' })
+	// Catch-all redirect to the dashboard, preserving prior router behaviour.
+	// ⚠️ vue-router 4 REMOVED the bare `path: '*'` wildcard. It does not warn:
+	// the route simply never matches, so the app shell renders and `<main>`
+	// stays empty on any unknown URL. The named-param form is the v4 spelling.
+	routes.push({ path: '/:pathMatch(.*)*', redirect: '/' })
 	return routes
 }
 
@@ -130,37 +139,44 @@ const fragmentCtx = require.context('./manifest.d/', false, /\.json$/)
 const fragments = fragmentCtx.keys().sort().map((key) => fragmentCtx(key))
 const mergedManifest = buildManifest(bundledManifest, fragments, menuLayout)
 
-const router = new VueRouter({
-	mode: 'history',
-	base: generateUrl('/apps/scholiq'),
+const router = createRouter({
+	history: createWebHistory(generateUrl('/apps/scholiq')),
 	routes: routesFromManifest(mergedManifest),
 })
 
 tryLoadTranslations()
 
 // Pass shallow copies of the registry maps to CnAppRoot. The lib exports
-// `defaultPageTypes` (and our `registry`) as frozen module objects in some
-// bundle shapes — Vue 2's `Vue.extend()` mutates component definitions to
-// attach an internal `_Ctor` cache, which throws "Cannot add property _Ctor,
-// object is not extensible" against a frozen source map. Cloning yields
-// extensible objects without altering the values the lib resolves at render
-// time.
+// `defaultPageTypes` (and our `registry`) as FROZEN module objects in some
+// bundle shapes, and the renderer may attach bookkeeping to what it is handed.
+// Cloning yields extensible objects without altering the values the lib
+// resolves at render time.
 const pageTypesProp = { ...defaultPageTypes }
 const registryProp = { ...registry }
 
-// Boot order: initializeStores() must resolve before mount so that any
-// `created()` hooks that call OR APIs run against a configured store.
-;(async () => {
-	// eslint-disable-next-line no-new
-	new Vue({
-		pinia,
-		router,
-		render: (h) => h(App, {
-			props: {
-				manifest: mergedManifest,
-				registry: registryProp,
-				pageTypes: pageTypesProp,
-			},
-		}),
-	}).$mount('#content')
-})()
+const app = createApp({
+	render: () => h(App, {
+		manifest: mergedManifest,
+		registry: registryProp,
+		pageTypes: pageTypesProp,
+	}),
+})
+
+app.use(pinia)
+app.use(router)
+
+// Vue 2's `Vue.mixin` was global to the whole runtime; Vue 3 scopes mixins to
+// one app instance, so this must be applied to `app`, not to an import.
+app.mixin({ methods: { t, n } })
+
+// ⚠️ Mount host: `#scholiq-app`, NOT `#content`.
+//
+// Vue 2's `$mount(sel)` REPLACED the matched element; Vue 3's `mount(sel)`
+// renders INSIDE it. templates/index.php used to declare its own
+// `<div id="content">`, which is a DUPLICATE of the `#content` wrapper
+// Nextcloud's own layout.user.php already emits. Under Vue 2 the app replaced
+// core's wrapper, so the duplication never showed; under Vue 3 the app would
+// render inside core's wrapper and inherit its layout. Renaming the host
+// element is the fix — reasoning about which of two identically-ided divs
+// `mount()` picks is not.
+app.mount('#scholiq-app')

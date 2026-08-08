@@ -107,7 +107,8 @@ class FraudCaseInvalidationGuard
 
         if ($lifecycle !== 'decided' || $verdict !== 'fraud-proven') {
             $this->logger->info(
-                '[FraudCaseInvalidationGuard] GradeEntry {id} linked FraudCase {caseId} is not decided fraud-proven ({state}/{verdict}) — denying invalidate.',
+                '[FraudCaseInvalidationGuard] GradeEntry {id} linked FraudCase {caseId} is not decided '
+                .'fraud-proven ({state}/{verdict}) — denying invalidate.',
                 ['id' => $entryId, 'caseId' => $fraudCaseId, 'state' => $lifecycle, 'verdict' => $verdict]
             );
             return false;
@@ -134,10 +135,6 @@ class FraudCaseInvalidationGuard
 
         if ($obj === null) {
             return null;
-        }
-
-        if (is_array($obj) === true) {
-            return $obj;
         }
 
         return $obj->jsonSerialize();

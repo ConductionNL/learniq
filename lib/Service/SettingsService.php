@@ -132,13 +132,44 @@ class SettingsService
     /**
      * Load configuration from scholiq_register.json via OpenRegister.
      *
-     * @param bool $force Force re-import even if already configured.
+     * Version-gated: OpenRegister skips the import when the content-addressed
+     * version is already installed. Use reloadConfiguration() to re-import
+     * unconditionally.
      *
      * @return array<string,mixed> Result with success flag, message, and version.
      *
      * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-26
      */
-    public function loadConfiguration(bool $force=false): array
+    public function loadConfiguration(): array
+    {
+        return $this->importRegisterConfiguration(force: false);
+    }//end loadConfiguration()
+
+    /**
+     * Re-import the configuration from scholiq_register.json unconditionally.
+     *
+     * Bypasses OpenRegister's version fast-skip so an operator-triggered
+     * re-import always rewrites the register and schema definitions.
+     *
+     * @return array<string,mixed> Result with success flag, message, and version.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-26
+     */
+    public function reloadConfiguration(): array
+    {
+        return $this->importRegisterConfiguration(force: true);
+    }//end reloadConfiguration()
+
+    /**
+     * Shared implementation behind loadConfiguration() and reloadConfiguration().
+     *
+     * @param bool $force Whether to bypass OpenRegister's version fast-skip.
+     *
+     * @return array<string,mixed> Result with success flag, message, and version.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-26
+     */
+    private function importRegisterConfiguration(bool $force): array
     {
         if ($this->isOpenRegisterAvailable() === false) {
             $this->logger->warning('Scholiq: OpenRegister not available, skipping register initialization');
@@ -216,5 +247,5 @@ class SettingsService
                 'message' => $e->getMessage(),
             ];
         }//end try
-    }//end loadConfiguration()
+    }//end importRegisterConfiguration()
 }//end class

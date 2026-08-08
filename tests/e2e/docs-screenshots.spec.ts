@@ -1,6 +1,6 @@
 /*
  * SPDX-FileCopyrightText: 2026 Scholiq Contributors
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: EUPL-1.2
  *
  * Documentation screenshot capture suite — scholiq.
  *
@@ -12,7 +12,7 @@
  * Run manually whenever the UI changes and tutorial screenshots need
  * to be refreshed:
  *
- *     PW_BASE_URL=http://localhost:8080 \
+ *     PLAYWRIGHT_BASE_URL=http://localhost:8088 \
  *       npx playwright test --project docs-capture
  *
  * Excluded from the default regression run via the `docs-capture`
@@ -85,7 +85,25 @@ async function dismissOverlays(page: Page): Promise<void> {
 async function go(page: Page, route: string): Promise<void> {
 	const url = route.startsWith('/apps/') || route.startsWith('/settings/') ? route : `${APP}${route.startsWith('/') ? route : `/${route}`}`
 	await page.goto(url).catch(() => { /* tolerate a 404 — caller decides */ })
-	await page.waitForLoadState('networkidle').catch(() => { /* idle never fires on some pages */ })
+	// ⚠️ The timeout is load-bearing, and the `.catch()` alone was NOT enough.
+	//
+	// `waitForLoadState` with no timeout inherits the test's budget, so it can
+	// never reject — the `.catch()` here was dead code and the helper blocked
+	// until the whole test timed out. That is exactly what happened on
+	// /grades/entries under Vue 3: the page fires a schema fetch that 404s, and
+	// @conduction/nextcloud-vue's useObjectStore does `if (!response.ok) return
+	// null` WITHOUT consuming or cancelling the response body, so the browser
+	// keeps the request open forever and `networkidle` is unreachable.
+	//
+	// Measured on this instance, same page, same session:
+	//   Vue 2: 90 requests, 0 still in flight after 40 s  -> test passes (~57 s)
+	//   Vue 3: 93 requests, 1 still in flight after 40 s  -> test hangs past 300 s
+	//          (the straggler is GET /apps/openregister/api/schemas/grade-entry)
+	//
+	// Reported upstream against nc-vue. Bounding the wait here matches what
+	// index-pages, detail-pages, shell and accessibility-axe-scan already do in
+	// this same suite; it changes no assertion.
+	await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => { /* idle never fires on some pages */ })
 	await dismissOverlays(page)
 	await page.waitForTimeout(900)
 }

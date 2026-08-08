@@ -65,12 +65,11 @@ namespace OCA\Scholiq\Cron;
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\AppInfo\Application;
+use OCA\Scholiq\Service\LtiAgsPullClient;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
-use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
-use OCP\IURLGenerator;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -99,31 +98,6 @@ class LtiAgsScorePollJob extends TimedJob
     private const GRADE_SCALE_SCHEMA = 'grade-scale';
 
     /**
-     * The real (verified at HEAD) OpenConnector `events-cloudevents` pull
-     * endpoint — REQ-LTI-003 / retrofit-2026-05-24-events-cloudevents
-     * task 3. Unlike the launch endpoint this one genuinely exists.
-     *
-     * @var string
-     */
-    private const OPENCONNECTOR_PULL_PATH = '/apps/openconnector/api/events/subscriptions/%s/pull';
-
-    /**
-     * App-config key for the OpenConnector internal API token. Same key
-     * `DataExchangeRunHandler`/`LtiToolPlacementController` already use.
-     *
-     * @var string
-     */
-    private const OPENCONNECTOR_TOKEN_KEY = 'openconnector_api_token';
-
-    /**
-     * App-config key for the NC username the pull request authenticates as
-     * (Basic auth, see class docblock auth note). New in this change.
-     *
-     * @var string
-     */
-    private const OPENCONNECTOR_USER_KEY = 'openconnector_api_user';
-
-    /**
      * App-config key for the scholiq-owned `event_subscription` UUID.
      *
      * @var string
@@ -140,18 +114,16 @@ class LtiAgsScorePollJob extends TimedJob
     /**
      * Constructor.
      *
-     * @param ITimeFactory    $time          Time factory for job scheduling.
-     * @param ObjectService   $objectService OR object access service.
-     * @param IClientService  $clientService NC HTTP client factory.
-     * @param IURLGenerator   $urlGenerator  NC URL generator for internal requests.
-     * @param IAppConfig      $appConfig     NC app config for token/cursor lookup.
-     * @param LoggerInterface $logger        PSR logger.
+     * @param ITimeFactory     $time          Time factory for job scheduling.
+     * @param ObjectService    $objectService OR object access service.
+     * @param LtiAgsPullClient $pullClient    OpenConnector AGS pull transport.
+     * @param IAppConfig       $appConfig     NC app config for subscription/cursor lookup.
+     * @param LoggerInterface  $logger        PSR logger.
      */
     public function __construct(
         ITimeFactory $time,
         private readonly ObjectService $objectService,
-        private readonly IClientService $clientService,
-        private readonly IURLGenerator $urlGenerator,
+        private readonly LtiAgsPullClient $pullClient,
         private readonly IAppConfig $appConfig,
         private readonly LoggerInterface $logger,
     ) {
@@ -187,9 +159,10 @@ class LtiAgsScorePollJob extends TimedJob
             return;
         }
 
-        $pulled = $this->pull(subscriptionId: $subscriptionId);
+        $cursor = $this->appConfig->getValueString(app: Application::APP_ID, key: self::PULL_CURSOR_KEY, default: '');
+        $pulled = $this->pullClient->pull(subscriptionId: $subscriptionId, cursor: $cursor);
         if ($pulled === null) {
-            // Logged inside pull(); one failed sweep does not wedge the cron schedule.
+            // Logged inside the pull client; one failed sweep does not wedge the cron schedule.
             return;
         }
 
@@ -198,9 +171,12 @@ class LtiAgsScorePollJob extends TimedJob
         $skipped  = 0;
         foreach ($messages as $message) {
             try {
-                if ($this->processMessage(message: $this->toArray(row: $message)) === true) {
+                $accepted = $this->processMessage(message: $this->toArray(row: $message));
+                if ($accepted === true) {
                     $created++;
-                } else {
+                }
+
+                if ($accepted === false) {
                     $skipped++;
                 }
             } catch (Throwable $exception) {
@@ -223,79 +199,6 @@ class LtiAgsScorePollJob extends TimedJob
         );
 
     }//end run()
-
-    /**
-     * Pull pending AGS messages from OpenConnector for the configured subscription.
-     *
-     * @param string $subscriptionId The scholiq-owned event_subscription UUID.
-     *
-     * @return array{messages: array<int,mixed>, cursor: string|null}|null The pull result, or null on failure.
-     *
-     * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.1
-     */
-    private function pull(string $subscriptionId): ?array
-    {
-        $cursor = $this->appConfig->getValueString(app: Application::APP_ID, key: self::PULL_CURSOR_KEY, default: '');
-
-        $path  = sprintf(self::OPENCONNECTOR_PULL_PATH, rawurlencode($subscriptionId));
-        $query = ['limit' => 100];
-        if ($cursor !== '') {
-            $query['cursor'] = $cursor;
-        }
-
-        $url = $this->urlGenerator->getAbsoluteURL('/index.php'.$path).'?'.http_build_query($query);
-
-        $apiUser  = $this->appConfig->getValueString(app: Application::APP_ID, key: self::OPENCONNECTOR_USER_KEY, default: '');
-        $apiToken = $this->appConfig->getValueString(app: Application::APP_ID, key: self::OPENCONNECTOR_TOKEN_KEY, default: '');
-
-        $requestOptions = ['timeout' => 30];
-
-        if ($apiUser !== '' && $apiToken !== '') {
-            // See class docblock auth note: EventsController::pull() requires
-            // an authenticated NC session, not a bearer token — Basic auth
-            // with an app-password is the correct cross-app mechanism here.
-            $requestOptions['auth'] = [$apiUser, $apiToken];
-        } else {
-            $this->logger->warning(
-                '[LtiAgsScorePollJob] OpenConnector API user/token not fully configured '
-                .'(scholiq.openconnector_api_user / scholiq.openconnector_api_token); '
-                .'the pull call may fail with 401/403.'
-            );
-        }
-
-        try {
-            $client   = $this->clientService->newClient();
-            $response = $client->get($url, $requestOptions);
-
-            $body = json_decode($response->getBody(), true);
-            if (is_array($body) === false) {
-                $this->logger->error('[LtiAgsScorePollJob] OpenConnector returned non-JSON for pull.');
-                return null;
-            }
-
-            $messages = [];
-            if (is_array($body['messages'] ?? null) === true) {
-                $messages = $body['messages'];
-            }
-
-            $pullCursor = null;
-            if (is_string($body['cursor'] ?? null) === true) {
-                $pullCursor = $body['cursor'];
-            }
-
-            return [
-                'messages' => $messages,
-                'cursor'   => $pullCursor,
-            ];
-        } catch (Throwable $exception) {
-            $this->logger->error(
-                '[LtiAgsScorePollJob] OpenConnector pull call failed: {msg}',
-                ['msg' => $exception->getMessage()]
-            );
-            return null;
-        }//end try
-
-    }//end pull()
 
     /**
      * Process one pulled `event_message` row.
@@ -328,37 +231,24 @@ class LtiAgsScorePollJob extends TimedJob
             return false;
         }
 
-        $deploymentUuid = (string) ($data['deploymentUuid'] ?? '');
-        if ($deploymentUuid === '') {
-            $this->logger->warning('[LtiAgsScorePollJob] Message {id} has no deploymentUuid — skipping.', ['id' => $resultId]);
+        $resolved = $this->resolvePlacementForMessage(data: $data, resultId: $resultId);
+        if ($resolved === null) {
             return false;
         }
 
-        $placement = $this->resolvePlacementByDeployment(deploymentUuid: $deploymentUuid);
-        if ($placement === null) {
-            // Task 4.2: an orphaned subscription message (e.g. a placement
-            // deleted after the score was already in flight) — log and skip.
-            $this->logger->info(
-                '[LtiAgsScorePollJob] No LtiToolPlacement for deployment {dep} (message {id}) — skipping (orphan).',
-                ['dep' => $deploymentUuid, 'id' => $resultId]
-            );
-            return false;
-        }
-
-        $placementId = (string) ($placement['id'] ?? ($placement['uuid'] ?? ''));
-        if ($placementId === '') {
-            $this->logger->warning('[LtiAgsScorePollJob] Resolved placement has no id — skipping message {id}.', ['id' => $resultId]);
-            return false;
-        }
+        $placement   = $resolved['placement'];
+        $placementId = $resolved['placementId'];
 
         if ($this->gradeEntryAlreadyExists(placementId: $placementId, resultId: $resultId) === true) {
             // Task 4.3 / design.md D4: redelivery — do not create a duplicate.
             return false;
         }
 
-        $componentId = $placement['gradeEntryComponentId'] ?? null;
-        $planId      = $placement['curriculumPlanId'] ?? null;
-        if ($componentId === null || $componentId === '' || $planId === null || $planId === '') {
+        // A GradeEntry needs a curriculum plan AND a component within it; a
+        // placement carrying only one of the two has nothing to write to.
+        $componentId = ($placement['gradeEntryComponentId'] ?? null);
+        $planId      = ($placement['curriculumPlanId'] ?? null);
+        if (in_array($componentId, [null, ''], true) === true || in_array($planId, [null, ''], true) === true) {
             $this->logger->info(
                 '[LtiAgsScorePollJob] Placement {pid} is not configured for grade passback — skipping message {id}.',
                 ['pid' => $placementId, 'id' => $resultId]
@@ -366,42 +256,25 @@ class LtiAgsScorePollJob extends TimedJob
             return false;
         }
 
-        $score = [];
-        if (is_array($data['score'] ?? null) === true) {
-            $score = $data['score'];
-        }
-
-        $learnerId  = (string) ($score['userId'] ?? '');
-        $scoreGiven = $score['scoreGiven'] ?? null;
-
-        if ($learnerId === '' || $scoreGiven === null) {
-            $this->logger->info(
-                '[LtiAgsScorePollJob] AGS score for message {id} has no userId/scoreGiven — insufficient data, skipping.',
-                ['id' => $resultId]
-            );
+        $score = $this->extractScore(data: $data, resultId: $resultId);
+        if ($score === null) {
             return false;
         }
 
-        $scoreMaximum = null;
-        if (isset($score['scoreMaximum']) === true) {
-            $scoreMaximum = (float) $score['scoreMaximum'];
-        }
-
         $scaleId = (string) ($placement['gradeScaleId'] ?? '');
-        $value   = $this->normaliseScore(
-            scoreGiven: (float) $scoreGiven,
-            scoreMaximum: $scoreMaximum,
-            gradeScaleId: $scaleId
-        );
 
         $gradeEntry = [
-            'learnerId'          => $learnerId,
+            'learnerId'          => $score['learnerId'],
             'curriculumPlanId'   => $planId,
             'componentId'        => $componentId,
             'sourceKind'         => 'lti-ags',
             'ltiToolPlacementId' => $placementId,
             'ltiAgsResultId'     => $resultId,
-            'value'              => $value,
+            'value'              => $this->normaliseScore(
+                scoreGiven: $score['scoreGiven'],
+                scoreMaximum: $score['scoreMaximum'],
+                gradeScaleId: $scaleId
+            ),
             'gradeScaleId'       => $scaleId,
             'grader'             => 'lti-ags',
             'gradedAt'           => (new DateTimeImmutable())->format(\DATE_ATOM),
@@ -418,6 +291,94 @@ class LtiAgsScorePollJob extends TimedJob
         return true;
 
     }//end processMessage()
+
+    /**
+     * Resolve the LtiToolPlacement an AGS message belongs to.
+     *
+     * Task 4.2: an orphaned subscription message (e.g. a placement deleted
+     * while the score was already in flight) is logged and skipped, not
+     * treated as an error.
+     *
+     * @param array<string,mixed> $data     The message payload.
+     * @param string              $resultId The AGS result id, for the log lines.
+     *
+     * @return array{placement: array<string,mixed>, placementId: string}|null The placement, or null when unresolvable.
+     *
+     * @spec openspec/changes/lti-ags-grade-passback/tasks.md#task-4.2
+     */
+    private function resolvePlacementForMessage(array $data, string $resultId): ?array
+    {
+        $deploymentUuid = (string) ($data['deploymentUuid'] ?? '');
+        if ($deploymentUuid === '') {
+            $this->logger->warning('[LtiAgsScorePollJob] Message {id} has no deploymentUuid — skipping.', ['id' => $resultId]);
+            return null;
+        }
+
+        $placement = $this->resolvePlacementByDeployment(deploymentUuid: $deploymentUuid);
+        if ($placement === null) {
+            $this->logger->info(
+                '[LtiAgsScorePollJob] No LtiToolPlacement for deployment {dep} (message {id}) — skipping (orphan).',
+                ['dep' => $deploymentUuid, 'id' => $resultId]
+            );
+            return null;
+        }
+
+        $placementId = (string) ($placement['id'] ?? ($placement['uuid'] ?? ''));
+        if ($placementId === '') {
+            $this->logger->warning('[LtiAgsScorePollJob] Resolved placement has no id — skipping message {id}.', ['id' => $resultId]);
+            return null;
+        }
+
+        return [
+            'placement'   => $placement,
+            'placementId' => $placementId,
+        ];
+
+    }//end resolvePlacementForMessage()
+
+    /**
+     * Extract the learner and score values an AGS message must carry.
+     *
+     * A message without both a userId and a scoreGiven cannot produce a
+     * GradeEntry, so it is skipped rather than written with a guessed value.
+     *
+     * @param array<string,mixed> $data     The message payload.
+     * @param string              $resultId The AGS result id, for the log line.
+     *
+     * @return array{learnerId: string, scoreGiven: float, scoreMaximum: float|null}|null The score, or null when insufficient.
+     *
+     * @spec openspec/changes/lti-ags-grade-passback/tasks.md#task-4.2
+     */
+    private function extractScore(array $data, string $resultId): ?array
+    {
+        $score = [];
+        if (is_array($data['score'] ?? null) === true) {
+            $score = $data['score'];
+        }
+
+        $learnerId  = (string) ($score['userId'] ?? '');
+        $scoreGiven = ($score['scoreGiven'] ?? null);
+
+        if ($learnerId === '' || $scoreGiven === null) {
+            $this->logger->info(
+                '[LtiAgsScorePollJob] AGS score for message {id} has no userId/scoreGiven — insufficient data, skipping.',
+                ['id' => $resultId]
+            );
+            return null;
+        }
+
+        $scoreMaximum = null;
+        if (isset($score['scoreMaximum']) === true) {
+            $scoreMaximum = (float) $score['scoreMaximum'];
+        }
+
+        return [
+            'learnerId'    => $learnerId,
+            'scoreGiven'   => (float) $scoreGiven,
+            'scoreMaximum' => $scoreMaximum,
+        ];
+
+    }//end extractScore()
 
     /**
      * Resolve an `LtiToolPlacement` by `openconnectorDeploymentId`.
@@ -500,8 +461,8 @@ class LtiAgsScorePollJob extends TimedJob
         }
 
         $scaleData = $this->toArray(row: $scale);
-        $kind      = $scaleData['kind'] ?? null;
-        if ($kind !== 'numeric' && $kind !== 'percentage') {
+        $kind      = ($scaleData['kind'] ?? null);
+        if (in_array($kind, ['numeric', 'percentage'], true) === false) {
             return $scoreGiven;
         }
 

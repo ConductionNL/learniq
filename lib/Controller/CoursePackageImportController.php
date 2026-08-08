@@ -59,17 +59,17 @@ class CoursePackageImportController extends Controller
     /**
      * Constructor.
      *
-     * @param IRequest                   $request                    HTTP request.
-     * @param CoursePackageImportService $coursePackageImportService Course-package import service.
-     * @param IUserSession               $userSession                Nextcloud user session.
-     * @param ActionAuthService          $actionAuth                 ADR-023 action authorization service.
-     * @param IConfig                    $config                     Nextcloud config for tenant resolution.
+     * @param IRequest                   $request       HTTP request.
+     * @param CoursePackageImportService $importService Course-package import service.
+     * @param IUserSession               $userSession   Nextcloud user session.
+     * @param ActionAuthService          $actionAuth    ADR-023 action authorization service.
+     * @param IConfig                    $config        Nextcloud config for tenant resolution.
      *
      * @return void
      */
     public function __construct(
         IRequest $request,
-        private readonly CoursePackageImportService $coursePackageImportService,
+        private readonly CoursePackageImportService $importService,
         private readonly IUserSession $userSession,
         private readonly ActionAuthService $actionAuth,
         private readonly IConfig $config,
@@ -139,7 +139,7 @@ class CoursePackageImportController extends Controller
         }
 
         try {
-            $report = $this->coursePackageImportService->import(
+            $report = $this->importService->import(
                 packagePath: $tmpPath,
                 sourceFilename: $sourceFilename,
                 importedBy: $user->getUID(),

@@ -23,8 +23,11 @@
  */
 import { test, expect } from '../fixtures'
 
-const QUALITY_REPORT_URL = '/index.php/apps/scholiq/#/course-evaluation/quality-report'
-const IMPROVEMENT_ACTIONS_URL = '/index.php/apps/scholiq/#/course-evaluation/improvement-actions'
+// ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
+// `#/…` URL resolves to a location no route matches and renders an empty app body.
+// See accessibility-conformance.spec.ts for the measurement.
+const QUALITY_REPORT_URL = '/index.php/apps/scholiq/course-evaluation/quality-report'
+const IMPROVEMENT_ACTIONS_URL = '/index.php/apps/scholiq/course-evaluation/improvement-actions'
 
 function collectFatalErrors(errors: string[]): string[] {
 	return errors.filter(
@@ -50,8 +53,12 @@ test.describe('course-evaluation — quality report and improvement actions', ()
 		})
 
 		await page.goto(QUALITY_REPORT_URL)
-		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		// Readiness signal: the Vue root has rendered. NOT `networkidle` — it
+		// can never settle on Nextcloud (the notification poll keeps a request
+		// in flight all session), so it silently burns its full 30 s out of
+		// this test's 60 s budget and surfaces as a bare timeout that looks
+		// like an app outage. ADR-074 rule 4 / hydra gate 58.
+		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		// The custom CourseQualityReport component resolved (not a blank/404
 		// shell) — its heading and course picker are present.

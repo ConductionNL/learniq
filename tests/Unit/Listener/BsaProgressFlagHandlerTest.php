@@ -24,12 +24,14 @@ declare(strict_types=1);
 namespace OCA\Scholiq\Tests\Unit\Listener;
 
 use DateTime;
+use DateTimeImmutable;
 use DateTimeZone;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\BsaProgressFlagHandler;
 use OCA\Scholiq\StudyProgress\BsaProgressEvaluator;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -82,9 +84,9 @@ class BsaProgressFlagHandlerTest extends TestCase
         $objectService = $this->createMock(ObjectService::class);
 
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) use ($programmeIds) {
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($programmeIds) {
                 if ($schema === 'course') {
-                    return ['id' => $id, 'programmeIds' => $programmeIds];
+                    return OrEntityFactory::make(['id' => (string) $id, 'programmeIds' => $programmeIds], 'course');
                 }
 
                 return null;
@@ -107,9 +109,13 @@ class BsaProgressFlagHandlerTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
-                return $object;
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => (string) $schema,
+                    'object'   => $object,
+                ];
+                return OrEntityFactory::make($object, (string) $schema, (string) $register);
             }
         );
 
@@ -118,6 +124,7 @@ class BsaProgressFlagHandlerTest extends TestCase
 
         $timeFactory = $this->createMock(ITimeFactory::class);
         $timeFactory->method('getDateTime')->willReturn($now);
+        $timeFactory->method('now')->willReturn(DateTimeImmutable::createFromMutable($now));
 
         return new BsaProgressFlagHandler($objectService, $evaluator, $timeFactory);
 

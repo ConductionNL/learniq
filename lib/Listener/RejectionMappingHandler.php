@@ -57,8 +57,9 @@ declare(strict_types=1);
 namespace OCA\Scholiq\Listener;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
-use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\Service\ExchangeRejectionContract;
+use OCA\Scholiq\Service\RejectionResubmissionResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -87,42 +88,18 @@ class RejectionMappingHandler implements IEventListener
     private const TERMINAL_STATES = ['succeeded', 'partial', 'failed'];
 
     /**
-     * Whitelisted scope.schema slugs this change supports as an ExchangeRejection
-     * sourceKind, mapped to the typed $ref id field that carries the resolved
-     * source object's id. The schema slug IS the sourceKind enum value for every
-     * entry — mirrors GradeEntry.sourceKind's "one nullable typed field per enum
-     * value" shape (design.md "sourceKind enum + per-kind typed $ref").
-     *
-     * @var array<string,string>
-     */
-    private const SOURCE_KIND_FIELD_MAP = [
-        'learner-profile' => 'learnerProfileId',
-        'enrolment'       => 'enrolmentId',
-        'final-grade'     => 'finalGradeId',
-        'attendance-flag' => 'attendanceFlagId',
-        'support-request' => 'supportRequestId',
-    ];
-
-    /**
-     * Upper bound on existing ExchangeRejection rows queried per job for the
-     * idempotency check. A single job rejecting more than this many distinct
-     * records in one run is not expected; raise if ever hit in practice.
-     */
-    private const MAX_REJECTIONS_PER_JOB = 5000;
-
-    /**
      * Constructor.
      *
-     * @param ObjectService    $objectService    OR object access service.
-     * @param TransitionEngine $transitionEngine OR lifecycle engine for rejection state transitions.
-     * @param LoggerInterface  $logger           PSR logger.
+     * @param ObjectService                 $objectService OR object access service.
+     * @param LoggerInterface               $logger        PSR logger.
+     * @param RejectionResubmissionResolver $resubmission  Accepts/reopens rejections a resubmission job just answered.
      *
      * @return void
      */
     public function __construct(
         private readonly ObjectService $objectService,
-        private readonly TransitionEngine $transitionEngine,
         private readonly LoggerInterface $logger,
+        private readonly RejectionResubmissionResolver $resubmission,
     ) {
     }//end __construct()
 
@@ -179,10 +156,10 @@ class RejectionMappingHandler implements IEventListener
 
         $tenantId = (string) ($job['tenant_id'] ?? '');
 
-        $resubmissionRejections = $this->findRejectionsByResubmittedJobId(jobId: $jobId, tenantId: $tenantId);
+        $linkedRejections = $this->resubmission->findRejectionsByResubmittedJobId(jobId: $jobId, tenantId: $tenantId);
 
-        if (empty($resubmissionRejections) === false) {
-            $this->handleResubmissionOutcome(job: $job, rejections: $resubmissionRejections);
+        if (empty($linkedRejections) === false) {
+            $this->resubmission->handleResubmissionOutcome(job: $job, rejections: $linkedRejections);
             return;
         }
 
@@ -209,7 +186,7 @@ class RejectionMappingHandler implements IEventListener
         $scope      = $job['scope'] ?? [];
         $sourceKind = (string) ($scope['schema'] ?? '');
 
-        if (isset(self::SOURCE_KIND_FIELD_MAP[$sourceKind]) === false) {
+        if (isset(ExchangeRejectionContract::SOURCE_KIND_FIELD_MAP[$sourceKind]) === false) {
             $this->logger->info(
                 '[RejectionMappingHandler] Job {id} scope.schema "{schema}" is not a supported ExchangeRejection '
                 .'sourceKind — skipping rejection mapping.',
@@ -218,7 +195,7 @@ class RejectionMappingHandler implements IEventListener
             return;
         }
 
-        $sourceField      = self::SOURCE_KIND_FIELD_MAP[$sourceKind];
+        $sourceField      = ExchangeRejectionContract::SOURCE_KIND_FIELD_MAP[$sourceKind];
         $target           = (string) ($job['target'] ?? '');
         $validationReport = $job['result']['validationReport'] ?? [];
 
@@ -398,34 +375,7 @@ class RejectionMappingHandler implements IEventListener
             return null;
         }
 
-        $candidates = array_map(
-            static function ($item) {
-                if (is_array($item) === true) {
-                    return $item;
-                }
-
-                return $item->jsonSerialize();
-            },
-            $results
-        );
-
-        $exactMatch   = null;
-        $genericMatch = null;
-
-        foreach ($candidates as $candidate) {
-            $candidateTarget = $candidate['target'] ?? null;
-
-            if ($candidateTarget === $target) {
-                $exactMatch = $candidate;
-                break;
-            }
-
-            if ($candidateTarget === null && $genericMatch === null) {
-                $genericMatch = $candidate;
-            }
-        }
-
-        $match = $exactMatch ?? $genericMatch;
+        $match = $this->bestErrorCodeMatch(results: $results, target: $target);
         if ($match === null) {
             return null;
         }
@@ -439,6 +389,50 @@ class RejectionMappingHandler implements IEventListener
         return $matchId;
 
     }//end resolveErrorCodeRef()
+
+    /**
+     * Pick the ErrorCode that best describes a rejection for a given target.
+     *
+     * A code declared for this exact target wins outright. Failing that, a
+     * target-agnostic code (`target` is null) is used, so a generic code still
+     * describes the rejection rather than leaving it unmapped. A code belonging
+     * to a DIFFERENT target is never used.
+     *
+     * @param array<int,mixed> $results Candidate ErrorCode rows from OR.
+     * @param string           $target  The data-exchange target the rejection came from.
+     *
+     * @return array<string,mixed>|null The best match, or null when none applies.
+     *
+     * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.2
+     */
+    private function bestErrorCodeMatch(array $results, string $target): ?array
+    {
+        $genericMatch = null;
+
+        foreach ($results as $result) {
+            $candidate = $result;
+            if (is_array($candidate) === false) {
+                $candidate = $candidate->jsonSerialize();
+            }
+
+            $candidateTarget = ($candidate['target'] ?? null);
+
+            if ($candidateTarget === $target) {
+                return (array) $candidate;
+            }
+
+            if ($candidateTarget === null && $genericMatch === null) {
+                $genericMatch = $candidate;
+            }
+        }
+
+        if ($genericMatch === null) {
+            return null;
+        }
+
+        return (array) $genericMatch;
+
+    }//end bestErrorCodeMatch()
 
     /**
      * Load the set of recordIds already mapped as ExchangeRejection rows for this job.
@@ -462,7 +456,7 @@ class RejectionMappingHandler implements IEventListener
                 'register' => self::SCHOLIQ_REGISTER,
                 'schema'   => self::REJECTION_SCHEMA,
                 'filters'  => $filters,
-                'limit'    => self::MAX_REJECTIONS_PER_JOB,
+                'limit'    => ExchangeRejectionContract::MAX_REJECTIONS_PER_JOB,
             ]
         );
 
@@ -475,7 +469,7 @@ class RejectionMappingHandler implements IEventListener
             }
 
             $sourceKind  = $row['sourceKind'] ?? '';
-            $sourceField = self::SOURCE_KIND_FIELD_MAP[$sourceKind] ?? null;
+            $sourceField = ExchangeRejectionContract::SOURCE_KIND_FIELD_MAP[$sourceKind] ?? null;
             if ($sourceField === null) {
                 continue;
             }
@@ -489,178 +483,4 @@ class RejectionMappingHandler implements IEventListener
         return $existing;
 
     }//end findExistingRecordIds()
-
-    /**
-     * Load ExchangeRejection rows whose resubmittedJobId points at the given job.
-     *
-     * @param string $jobId    UUID of the (possibly resubmission) DataExchangeJob.
-     * @param string $tenantId Tenant ID to enforce as a mandatory filter.
-     *
-     * @return array<int,array<string,mixed>> The referencing ExchangeRejection rows.
-     *
-     * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.2
-     */
-    private function findRejectionsByResubmittedJobId(string $jobId, string $tenantId): array
-    {
-        $filters = ['resubmittedJobId' => $jobId];
-        if ($tenantId !== '') {
-            $filters['tenant_id'] = $tenantId;
-        }
-
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::REJECTION_SCHEMA,
-                'filters'  => $filters,
-                'limit'    => self::MAX_REJECTIONS_PER_JOB,
-            ]
-        );
-
-        return array_map(
-            static function ($item) {
-                if (is_array($item) === true) {
-                    return $item;
-                }
-
-                return $item->jsonSerialize();
-            },
-            $results
-        );
-
-    }//end findRejectionsByResubmittedJobId()
-
-    /**
-     * Resubmission-outcome path: for each ExchangeRejection referencing this job,
-     * accept it when its recordId no longer appears in this job's validationReport,
-     * or reopen it (with refreshed errorCode/errorMessage) when it still does.
-     *
-     * @param array<string,mixed>            $job        The finished (resubmission) DataExchangeJob data.
-     * @param array<int,array<string,mixed>> $rejections ExchangeRejection rows referencing this job.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.2
-     * @spec openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-a-resubmitted-record-that-duo-now-accepts-closes-its-rejection
-     * @spec openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-a-resubmitted-record-duo-rejects-again-reopens-its-rejection
-     */
-    private function handleResubmissionOutcome(array $job, array $rejections): void
-    {
-        $validationReport = $job['result']['validationReport'] ?? [];
-        if (is_array($validationReport) === false) {
-            $validationReport = [];
-        }
-
-        $entriesByRecordId = [];
-        foreach ($validationReport as $entry) {
-            if (is_array($entry) === false) {
-                continue;
-            }
-
-            $recordId = $entry['recordId'] ?? null;
-            if (is_string($recordId) === true && $recordId !== '') {
-                $entriesByRecordId[$recordId] = $entry;
-            }
-        }
-
-        foreach ($rejections as $rejection) {
-            $rejectionId = $rejection['id'] ?? ($rejection['uuid'] ?? '');
-            if ($rejectionId === '') {
-                continue;
-            }
-
-            $sourceKind  = $rejection['sourceKind'] ?? '';
-            $sourceField = self::SOURCE_KIND_FIELD_MAP[$sourceKind] ?? null;
-
-            $recordId = null;
-            if ($sourceField !== null) {
-                $recordId = $rejection[$sourceField] ?? null;
-            }
-
-            if (is_string($recordId) === true && isset($entriesByRecordId[$recordId]) === true) {
-                $entry = $entriesByRecordId[$recordId];
-                $this->saveRejectionFields(
-                    rejectionId: $rejectionId,
-                    fields: [
-                        'errorCode'    => (string) ($entry['errorCode'] ?? ''),
-                        'errorMessage' => (string) ($entry['errorMessage'] ?? ''),
-                    ]
-                );
-                $this->attemptTransition(rejectionId: $rejectionId, action: 'reopen');
-                continue;
-            }
-
-            $this->attemptTransition(rejectionId: $rejectionId, action: 'accept');
-        }//end foreach
-
-    }//end handleResubmissionOutcome()
-
-    /**
-     * Attempt an ExchangeRejection lifecycle transition, logging (not throwing)
-     * on failure — a single unresolvable rejection must not abort the rest of
-     * the resubmission-outcome batch.
-     *
-     * @param string $rejectionId UUID of the ExchangeRejection.
-     * @param string $action      Transition action name ('accept' or 'reopen').
-     *
-     * @return void
-     *
-     * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.2
-     */
-    private function attemptTransition(string $rejectionId, string $action): void
-    {
-        try {
-            $this->transitionEngine->transition($rejectionId, $action);
-        } catch (\Throwable $e) {
-            $this->logger->warning(
-                '[RejectionMappingHandler] Could not transition ExchangeRejection {id} via {action}: {msg}',
-                ['id' => $rejectionId, 'action' => $action, 'msg' => $e->getMessage()]
-            );
-        }
-
-    }//end attemptTransition()
-
-    /**
-     * Persist updated fields on an ExchangeRejection without triggering a
-     * lifecycle event loop (mirrors DataExchangeRunHandler::saveJobFields()).
-     *
-     * @param string              $rejectionId UUID of the ExchangeRejection.
-     * @param array<string,mixed> $fields      Fields to update.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.2
-     */
-    private function saveRejectionFields(string $rejectionId, array $fields): void
-    {
-        $existing = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::REJECTION_SCHEMA,
-                'filters'  => ['id' => $rejectionId],
-                'limit'    => 1,
-            ]
-        );
-
-        if (empty($existing) === true) {
-            $this->logger->warning(
-                '[RejectionMappingHandler] ExchangeRejection {id} not found for field update.',
-                ['id' => $rejectionId]
-            );
-            return;
-        }
-
-        $current = $existing[0];
-        if (is_array($existing[0]) === false) {
-            $current = $existing[0]->jsonSerialize();
-        }
-
-        $updated = array_merge($current, $fields);
-
-        $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::REJECTION_SCHEMA,
-            object: $updated
-        );
-
-    }//end saveRejectionFields()
 }//end class

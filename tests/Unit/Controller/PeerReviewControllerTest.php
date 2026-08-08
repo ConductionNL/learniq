@@ -26,6 +26,7 @@ namespace OCA\Scholiq\Tests\Unit\Controller;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Controller\PeerReviewController;
 use OCA\Scholiq\PeerReview\PeerReviewAllocationService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IGroupManager;
@@ -61,18 +62,21 @@ class PeerReviewControllerTest extends TestCase
         string $uid = 'teacher-1',
     ): PeerReviewController {
         $objectService = $this->createMock(ObjectService::class);
+        // OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
+        // and returns ?ObjectEntity. willReturnCallback() hands the closure the
+        // mock's arguments POSITIONALLY, so the closure must mirror that order.
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) use ($assignment, $cohort, $session) {
-                if ($schema === 'assignment') {
-                    return $assignment;
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($assignment, $cohort, $session) {
+                if ($schema === 'assignment' && $assignment !== null) {
+                    return OrEntityFactory::make($assignment, 'assignment');
                 }
 
-                if ($schema === 'cohort') {
-                    return $cohort;
+                if ($schema === 'cohort' && $cohort !== null) {
+                    return OrEntityFactory::make($cohort, 'cohort');
                 }
 
-                if ($schema === 'session') {
-                    return $session;
+                if ($schema === 'session' && $session !== null) {
+                    return OrEntityFactory::make($session, 'session');
                 }
 
                 return null;

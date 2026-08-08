@@ -58,6 +58,7 @@ namespace OCA\Scholiq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -91,13 +92,15 @@ class EnrolmentPrerequisiteListener implements IEventListener
     /**
      * Constructor.
      *
-     * @param ObjectService   $objectService OR object access service.
-     * @param LoggerInterface $logger        PSR logger.
+     * @param ObjectService          $objectService  OR object access service.
+     * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+     * @param LoggerInterface        $logger         PSR logger.
      *
      * @return void
      */
     public function __construct(
         private readonly ObjectService $objectService,
+        private readonly ListenerSchemaResolver $schemaResolver,
         private readonly LoggerInterface $logger,
     ) {
     }//end __construct()
@@ -145,7 +148,9 @@ class EnrolmentPrerequisiteListener implements IEventListener
     private function evaluate(ObjectCreatingEvent $event): void
     {
         $entity = $event->getObject();
-        if ($entity->getRegister() !== self::SCHOLIQ_REGISTER || $entity->getSchema() !== self::ENROLMENT_SCHEMA) {
+        if ($this->schemaResolver->registerSlug(entity: $entity) !== self::SCHOLIQ_REGISTER
+            || $this->schemaResolver->schemaSlug(entity: $entity) !== self::ENROLMENT_SCHEMA
+        ) {
             return;
         }
 
@@ -288,10 +293,6 @@ class EnrolmentPrerequisiteListener implements IEventListener
         $object = $this->objectService->find(id: $id, register: self::SCHOLIQ_REGISTER, schema: $schema);
         if ($object === null) {
             return null;
-        }
-
-        if (is_array($object) === true) {
-            return $object;
         }
 
         return $object->jsonSerialize();

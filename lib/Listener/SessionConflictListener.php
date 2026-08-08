@@ -47,6 +47,7 @@ namespace OCA\Scholiq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCA\Scholiq\Timetabling\TimetableConflictDetector;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -67,12 +68,14 @@ class SessionConflictListener implements IEventListener
     /**
      * Constructor.
      *
-     * @param TimetableConflictDetector $detector The pairwise overlap scan engine.
+     * @param TimetableConflictDetector $detector       The pairwise overlap scan engine.
+     * @param ListenerSchemaResolver    $schemaResolver Resolves the entity's register/schema ids to slugs.
      *
      * @return void
      */
     public function __construct(
         private readonly TimetableConflictDetector $detector,
+        private readonly ListenerSchemaResolver $schemaResolver,
     ) {
     }//end __construct()
 
@@ -87,15 +90,22 @@ class SessionConflictListener implements IEventListener
      */
     public function handle(Event $event): void
     {
+        $object = null;
         if ($event instanceof ObjectCreatedEvent === true) {
             $object = $event->getObject();
-        } else if ($event instanceof ObjectUpdatedEvent === true) {
+        }
+
+        if ($event instanceof ObjectUpdatedEvent === true) {
             $object = $event->getObject();
-        } else {
+        }
+
+        if ($object === null) {
             return;
         }
 
-        if ($object->getRegister() !== self::SCHOLIQ_REGISTER || $object->getSchema() !== self::SESSION_SCHEMA) {
+        if ($this->schemaResolver->registerSlug(entity: $object) !== self::SCHOLIQ_REGISTER
+            || $this->schemaResolver->schemaSlug(entity: $object) !== self::SESSION_SCHEMA
+        ) {
             return;
         }
 

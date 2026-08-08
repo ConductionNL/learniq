@@ -27,6 +27,7 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\PortfolioGradeEmitHandler;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -80,13 +81,20 @@ class PortfolioGradeEmitHandlerTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
-                if ($schema === 'grade-entry' && ($object['id'] ?? null) === null) {
-                    $object['id'] = 'grade-entry-generated';
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $schema = (string) $schema;
+                $data   = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => $schema,
+                    'object'   => $data,
+                ];
+                if ($schema === 'grade-entry' && ($data['id'] ?? null) === null) {
+                    $data['id'] = 'grade-entry-generated';
                 }
 
-                return $object;
+                return OrEntityFactory::make($data, $schema, (string) $register);
             }
         );
 

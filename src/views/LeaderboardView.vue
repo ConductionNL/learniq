@@ -53,7 +53,7 @@
 					label="name"
 					:input-label="t('scholiq', 'Leaderboard')"
 					:aria-label-combobox="t('scholiq', 'Leaderboard')"
-					@input="loadRankings" />
+					@update:modelValue="loadRankings" />
 			</div>
 
 			<NcCheckboxRadioSwitch

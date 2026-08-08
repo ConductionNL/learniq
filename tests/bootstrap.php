@@ -39,13 +39,38 @@ if (is_dir($ocpRoot)) {
     });
 }
 
+// Test-support helpers. Deliberately required rather than registered in
+// composer `autoload-dev`: a dev-built vendor/ bakes autoload-dev into the
+// runtime classmap and can shadow real app classes instance-wide
+// (openregister#2036) — the same hazard the stub registration above avoids.
+require_once __DIR__ . '/Support/OrEntityFactory.php';
+
+// Shared guard: base.php exits() rather than throwing on a bad NC instance, so
+// loading it unconditionally silently truncates the suite to zero tests while
+// still exiting 0. See tests/bootstrap-nc-guard.php for the full rationale.
+require_once __DIR__ . '/bootstrap-nc-guard.php';
+
 // Bootstrap Nextcloud if not already done.
 if (!defined('OC_CONSOLE')) {
-    if (file_exists(__DIR__ . '/../../../lib/base.php')) {
-        require_once __DIR__ . '/../../../lib/base.php';
+    $scholiqNcRoot = __DIR__ . '/../../..';
+    if (scholiq_nc_base_is_safe_to_load($scholiqNcRoot) === true) {
+        require_once $scholiqNcRoot . '/lib/base.php';
+    } else if (is_file($scholiqNcRoot . '/lib/base.php') === true) {
+        fwrite(
+            STDERR,
+            "[scholiq/tests/bootstrap] Nextcloud root found at " . $scholiqNcRoot
+            . " but it is not usable (not installed, or config/ not writable).\n"
+            . "  Skipping the NC bootstrap and running on Composer autoload + tests/Stubs/ only.\n"
+            . "  Loading base.php anyway would exit() and silently truncate this suite to zero tests.\n"
+        );
     }
 
-    if (file_exists(__DIR__ . '/../../../tests/autoload.php')) {
+    // NC's own tests/autoload.php starts with `require_once ../lib/base.php`,
+    // so it inherits the exit()-on-failure hazard verbatim. Load it only once
+    // base.php has actually succeeded — \OC_App exists exactly then.
+    if (class_exists('\OC_App') === true
+        && file_exists(__DIR__ . '/../../../tests/autoload.php') === true
+    ) {
         require_once __DIR__ . '/../../../tests/autoload.php';
     }
 
@@ -64,4 +89,22 @@ if (!defined('OC_CONSOLE')) {
 // This lets ScholiqToolProvider unit tests run in standalone CI environments.
 if (interface_exists(\OCA\OpenRegister\Mcp\IMcpToolProvider::class) === false) {
     require_once __DIR__ . '/Stubs/Mcp/IMcpToolProvider.php';
+}
+
+// OC\Hooks\Emitter stub — loaded when the live Nextcloud server runtime (which
+// ships lib/private/Hooks/Emitter.php) is absent.
+//
+// `OCP\Files\IRootFolder extends Folder, Emitter`, and `Emitter` is an
+// OC-internal (non-OCP) interface that the nextcloud/ocp Composer package does
+// not ship. The PSR-4 rules registered above cover `OCP\` and
+// `OCA\OpenRegister\` but nothing covers the `OC\` namespace, so IRootFolder
+// could not resolve its full interface hierarchy and every test that mocks it
+// errored with `Class or interface "OCP\Files\IRootFolder" does not exist` —
+// 33 of the 41 errors this suite reported.
+//
+// tests/bootstrap-unit.php has always loaded this stub; tests/bootstrap.php
+// (used by the default phpunit.xml, and therefore by `composer test:unit`)
+// never did. The two bootstraps had silently diverged.
+if (interface_exists(\OC\Hooks\Emitter::class) === false) {
+    require_once __DIR__ . '/Stubs/Hooks/Emitter.php';
 }

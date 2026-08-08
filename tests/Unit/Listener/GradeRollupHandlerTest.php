@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace OCA\Scholiq\Tests\Unit\Listener;
 
 use DateTime;
+use DateTimeImmutable;
 use DateTimeZone;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -37,6 +38,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Grading\GradeFormulaEvaluator;
 use OCA\Scholiq\Grading\GradeVisibilityResolver;
 use OCA\Scholiq\Listener\GradeRollupHandler;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -79,9 +81,9 @@ class GradeRollupHandlerTest extends TestCase
         $objectService = $this->createMock(ObjectService::class);
 
         $objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema) use ($curriculumPlan) {
-                if ($schema === 'curriculum-plan') {
-                    return $curriculumPlan;
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($curriculumPlan): ?ObjectEntity {
+                if ($schema === 'curriculum-plan' && $curriculumPlan !== null) {
+                    return OrEntityFactory::make($curriculumPlan, 'curriculum-plan');
                 }
 
                 return null;
@@ -103,9 +105,14 @@ class GradeRollupHandlerTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
-                return $object;
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $data                 = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => (string) $schema,
+                    'object'   => $data,
+                ];
+                return OrEntityFactory::make($data, (string) $schema, (string) $register);
             }
         );
 
@@ -120,7 +127,7 @@ class GradeRollupHandlerTest extends TestCase
         );
 
         $timeFactory = $this->createMock(ITimeFactory::class);
-        $timeFactory->method('getDateTime')->willReturn($now);
+        $timeFactory->method('now')->willReturn(DateTimeImmutable::createFromMutable($now));
 
         return new GradeRollupHandler(
             $objectService,

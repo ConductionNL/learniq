@@ -243,7 +243,7 @@ export default {
 		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 		 */
 		async loadItemStatistics() {
-			const url = generateUrl('/apps/openregister/api/objects/scholiq/ItemStatistics?limit=200')
+			const url = generateUrl('/apps/openregister/api/objects/scholiq/item-statistics?limit=200')
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -263,7 +263,7 @@ export default {
 		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
 		 */
 		async loadReliability() {
-			const url = generateUrl('/apps/openregister/api/objects/scholiq/AssessmentReliability?limit=200')
+			const url = generateUrl('/apps/openregister/api/objects/scholiq/assessment-reliability?limit=200')
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})

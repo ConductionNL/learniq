@@ -64,6 +64,7 @@ use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Analytics\EngagementScoreEvaluator;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -94,15 +95,17 @@ class EngagementSignalHandler implements IEventListener
     /**
      * Constructor.
      *
-     * @param ObjectService            $objectService OR object access.
-     * @param EngagementScoreEvaluator $evaluator     Engagement calculation engine.
-     * @param ITimeFactory             $timeFactory   NC time source (injectable "now" for tests).
+     * @param ObjectService            $objectService  OR object access.
+     * @param EngagementScoreEvaluator $evaluator      Engagement calculation engine.
+     * @param ListenerSchemaResolver   $schemaResolver Resolves the entity's register/schema ids to slugs.
+     * @param ITimeFactory             $timeFactory    NC time source (injectable "now" for tests).
      *
      * @return void
      */
     public function __construct(
         private readonly ObjectService $objectService,
         private readonly EngagementScoreEvaluator $evaluator,
+        private readonly ListenerSchemaResolver $schemaResolver,
         private readonly ITimeFactory $timeFactory,
     ) {
     }//end __construct()
@@ -124,8 +127,8 @@ class EngagementSignalHandler implements IEventListener
 
         $objectEntity = $event->getObject();
 
-        if ($objectEntity->getRegister() !== self::SCHOLIQ_REGISTER
-            || $objectEntity->getSchema() !== self::XAPI_SCHEMA
+        if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
+            || $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::XAPI_SCHEMA
         ) {
             return;
         }
@@ -173,7 +176,7 @@ class EngagementSignalHandler implements IEventListener
         $result = $this->evaluator->evaluate(
             learnerId: $learnerId,
             courseId: $courseId,
-            previousLastActivityAt: $existing['lastActivityAt'] ?? null
+            previousActivityAt: $existing['lastActivityAt'] ?? null
         );
 
         $data = array_merge(
@@ -194,11 +197,7 @@ class EngagementSignalHandler implements IEventListener
             object: $data
         );
 
-        if (is_array($saved) === false) {
-            $saved = $saved->jsonSerialize();
-        }
-
-        return $saved;
+        return $saved->jsonSerialize();
 
     }//end recomputeEngagementScore()
 
@@ -331,7 +330,7 @@ class EngagementSignalHandler implements IEventListener
         }
 
         $metricValue = $this->resolveMetricValue(metric: $metric, engagementScore: $engagementScore);
-        $now         = DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime());
+        $now         = $this->timeFactory->now();
 
         $engagementScoreId = $engagementScore['id'] ?? ($engagementScore['uuid'] ?? null);
 
@@ -425,7 +424,7 @@ class EngagementSignalHandler implements IEventListener
             return null;
         }
 
-        $now = DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime());
+        $now = $this->timeFactory->now();
 
         return (int) floor(($now->getTimestamp() - $last->getTimestamp()) / 86400);
 
@@ -451,10 +450,7 @@ class EngagementSignalHandler implements IEventListener
             return false;
         }
 
-        $cohortData = $cohort;
-        if (is_array($cohort) === false) {
-            $cohortData = $cohort->jsonSerialize();
-        }
+        $cohortData = $cohort->jsonSerialize();
 
         $learnerIds = $cohortData['learnerIds'] ?? [];
         if (is_array($learnerIds) === false) {

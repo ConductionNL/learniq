@@ -29,6 +29,9 @@ declare(strict_types=1);
 namespace OCA\Scholiq\Tests\Unit\Timetabling;
 
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Scholiq\Timetabling\SessionOverlapEvaluator;
+use OCA\Scholiq\Timetabling\SessionWindowLoader;
 use OCA\Scholiq\Timetabling\TimetableConflictDetector;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -114,13 +117,22 @@ class TimetableConflictDetectorTest extends TestCase
         );
 
         $this->objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
-                $this->saves[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
-                return $object;
+            function (array $object, ?array $extend=[], $register=null, $schema=null) {
+                $this->saves[] = [
+                    'register' => (string) $register,
+                    'schema'   => (string) $schema,
+                    'object'   => $object,
+                ];
+                return OrEntityFactory::make($object, (string) $schema, (string) $register);
             }
         );
 
-        return new TimetableConflictDetector($this->objectService, new NullLogger());
+        return new TimetableConflictDetector(
+            $this->objectService,
+            new SessionWindowLoader($this->objectService),
+            new SessionOverlapEvaluator(),
+            new NullLogger()
+        );
 
     }//end detector()
 

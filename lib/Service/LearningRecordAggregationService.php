@@ -138,9 +138,9 @@ class LearningRecordAggregationService
      */
     public function compose(string $learnerRef): array
     {
-        $enrolments            = $this->findAllByLearnerRef(schema: self::SCHEMA_ENROLMENT, learnerRef: $learnerRef);
-        $finalGrades           = $this->findAllByLearnerRef(schema: self::SCHEMA_FINAL_GRADE, learnerRef: $learnerRef);
-        $competencyAttainments = $this->findAllByLearnerRef(schema: self::SCHEMA_COMPETENCY_ATTAINMENT, learnerRef: $learnerRef);
+        $enrolments  = $this->findAllByLearnerRef(schema: self::SCHEMA_ENROLMENT, learnerRef: $learnerRef);
+        $finalGrades = $this->findAllByLearnerRef(schema: self::SCHEMA_FINAL_GRADE, learnerRef: $learnerRef);
+        $attainments = $this->findAllByLearnerRef(schema: self::SCHEMA_COMPETENCY_ATTAINMENT, learnerRef: $learnerRef);
 
         // Credential has no learnerRef field of its own — its existing
         // `learnerId` property is already typed as a LearnerProfile UUID
@@ -151,27 +151,27 @@ class LearningRecordAggregationService
         $portfolios       = $this->findAllByLearnerRef(schema: self::SCHEMA_PORTFOLIO, learnerRef: $learnerRef);
         $portfolioEntries = $this->resolvePortfolioEntries(portfolios: $portfolios);
 
-        $externalTrainingRecords = $this->findVerifiedExternalTrainingRecords(learnerRef: $learnerRef);
+        $externalRecords = $this->findVerifiedExternalTrainingRecords(learnerRef: $learnerRef);
 
-        $bpvPlacements         = $this->findAllByLearnerRef(schema: self::SCHEMA_BPV_PLACEMENT, learnerRef: $learnerRef);
-        $werkprocesAssessments = $this->resolveWerkprocesAssessments(bpvPlacements: $bpvPlacements);
+        $bpvPlacements     = $this->findAllByLearnerRef(schema: self::SCHEMA_BPV_PLACEMENT, learnerRef: $learnerRef);
+        $werkprocesResults = $this->resolveWerkprocesAssessments(bpvPlacements: $bpvPlacements);
 
-        $lessonCompletions       = $this->findAllByLearnerRef(schema: self::SCHEMA_LESSON_COMPLETION, learnerRef: $learnerRef);
-        $lessonCompletionSummary = $this->summariseLessonCompletions(lessonCompletions: $lessonCompletions, enrolments: $enrolments);
+        $lessonCompletions = $this->findAllByLearnerRef(schema: self::SCHEMA_LESSON_COMPLETION, learnerRef: $learnerRef);
+        $lessonSummary     = $this->summariseLessonCompletions(lessonCompletions: $lessonCompletions, enrolments: $enrolments);
 
         $reportCards = $this->findPublishedReportCards(learnerRef: $learnerRef);
 
         return [
             'enrolments'              => $enrolments,
             'finalGrades'             => $finalGrades,
-            'competencyAttainments'   => $competencyAttainments,
+            'competencyAttainments'   => $attainments,
             'credentials'             => $credentials,
             'portfolios'              => $portfolios,
             'portfolioEntries'        => $portfolioEntries,
-            'externalTrainingRecords' => $externalTrainingRecords,
+            'externalTrainingRecords' => $externalRecords,
             'bpvPlacements'           => $bpvPlacements,
-            'werkprocesAssessments'   => $werkprocesAssessments,
-            'lessonCompletions'       => $lessonCompletionSummary,
+            'werkprocesAssessments'   => $werkprocesResults,
+            'lessonCompletions'       => $lessonSummary,
             'reportCards'             => $reportCards,
         ];
     }//end compose()
@@ -322,30 +322,8 @@ class LearningRecordAggregationService
      */
     private function summariseLessonCompletions(array $lessonCompletions, array $enrolments): array
     {
-        $percentageByCourseId = [];
-        foreach ($enrolments as $enrolment) {
-            $courseId = $enrolment['courseId'] ?? null;
-            if (is_string($courseId) === false || $courseId === '') {
-                continue;
-            }
-
-            $percentageByCourseId[$courseId] = $enrolment['progressPercent'] ?? null;
-        }
-
-        $countByCourseId = [];
-        foreach ($lessonCompletions as $completion) {
-            $courseId = $completion['courseId'] ?? null;
-            if (is_string($courseId) === false || $courseId === '') {
-                $courseId = null;
-            }
-
-            $key = $courseId ?? '';
-            if (isset($countByCourseId[$key]) === false) {
-                $countByCourseId[$key] = ['courseId' => $courseId, 'completedCount' => 0];
-            }
-
-            $countByCourseId[$key]['completedCount']++;
-        }
+        $percentageByCourseId = $this->progressPercentByCourseId(enrolments: $enrolments);
+        $countByCourseId      = $this->completionCountsByCourseId(lessonCompletions: $lessonCompletions);
 
         $summary = [];
         foreach ($countByCourseId as $row) {
@@ -364,6 +342,68 @@ class LearningRecordAggregationService
 
         return $summary;
     }//end summariseLessonCompletions()
+
+    /**
+     * Index each enrolment's progress percentage by its course.
+     *
+     * @param array<int,array<string,mixed>> $enrolments The learner's enrolments.
+     *
+     * @return array<string,mixed> Map of courseId => progressPercent.
+     *
+     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-lesson-completions-are-summarised-per-course-never-exported-raw
+     */
+    private function progressPercentByCourseId(array $enrolments): array
+    {
+        $percentageByCourseId = [];
+        foreach ($enrolments as $enrolment) {
+            $courseId = ($enrolment['courseId'] ?? null);
+            if (is_string($courseId) === false || $courseId === '') {
+                continue;
+            }
+
+            $percentageByCourseId[$courseId] = ($enrolment['progressPercent'] ?? null);
+        }
+
+        return $percentageByCourseId;
+
+    }//end progressPercentByCourseId()
+
+    /**
+     * Count lesson completions per course.
+     *
+     * Completions with no usable courseId are not dropped — they collect under
+     * a single null-course bucket, so the total still accounts for them.
+     *
+     * @param array<int,array<string,mixed>> $lessonCompletions The learner's lesson completions.
+     *
+     * @return array<string,array{courseId: string|null, completedCount: int}> Counts keyed by course.
+     *
+     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-lesson-completions-are-summarised-per-course-never-exported-raw
+     */
+    private function completionCountsByCourseId(array $lessonCompletions): array
+    {
+        $countByCourseId = [];
+
+        foreach ($lessonCompletions as $completion) {
+            $courseId = ($completion['courseId'] ?? null);
+            if (is_string($courseId) === false || $courseId === '') {
+                $courseId = null;
+            }
+
+            $key = ($courseId ?? '');
+            if (isset($countByCourseId[$key]) === false) {
+                $countByCourseId[$key] = [
+                    'courseId'       => $courseId,
+                    'completedCount' => 0,
+                ];
+            }
+
+            $countByCourseId[$key]['completedCount']++;
+        }
+
+        return $countByCourseId;
+
+    }//end completionCountsByCourseId()
 
     /**
      * Normalise an OR `findAll()`/`find()` result row (a raw array or an

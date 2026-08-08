@@ -52,7 +52,7 @@
 					<LockOutline />
 				</template>
 				<template #action>
-					<NcButton type="secondary" @click="goBack">
+					<NcButton variant="secondary" @click="goBack">
 						{{ t('scholiq', 'Back to course') }}
 					</NcButton>
 				</template>
@@ -83,7 +83,7 @@
 						<AlertCircleOutline />
 					</template>
 					<template #action>
-						<NcButton type="secondary" @click="launchLti">
+						<NcButton variant="secondary" @click="launchLti">
 							{{ t('scholiq', 'Try again') }}
 						</NcButton>
 					</template>
@@ -104,7 +104,7 @@
 						<ApplicationOutline />
 					</template>
 					<template #action>
-						<NcButton type="secondary" @click="launchLti">
+						<NcButton variant="secondary" @click="launchLti">
 							{{ t('scholiq', 'Open tool again') }}
 						</NcButton>
 					</template>
@@ -154,7 +154,7 @@
 					<!-- quiz -->
 					<div v-else-if="block.type === 'quiz'" class="lesson-player__block-quiz">
 						<p>{{ assessmentFor(block) ? assessmentFor(block).title : t('scholiq', 'Quiz') }}</p>
-						<NcButton type="primary" @click="startQuiz(block)">
+						<NcButton variant="primary" @click="startQuiz(block)">
 							{{ t('scholiq', 'Start quiz') }}
 						</NcButton>
 					</div>
@@ -162,7 +162,7 @@
 					<!-- assignment -->
 					<div v-else-if="block.type === 'assignment'" class="lesson-player__block-assignment">
 						<p>{{ assignmentFor(block) ? assignmentFor(block).title : t('scholiq', 'Assignment') }}</p>
-						<NcButton type="secondary" @click="openAssignment(block)">
+						<NcButton variant="secondary" @click="openAssignment(block)">
 							{{ t('scholiq', 'View assignment') }}
 						</NcButton>
 					</div>
@@ -176,7 +176,7 @@
 						<p v-else-if="blockLtiState[block.blockId] && blockLtiState[block.blockId].error" role="alert">
 							{{ blockLtiState[block.blockId].error }}
 						</p>
-						<NcButton v-else type="secondary" @click="launchLtiForBlock(block)">
+						<NcButton v-else variant="secondary" @click="launchLtiForBlock(block)">
 							{{ t('scholiq', 'Open external tool') }}
 						</NcButton>
 					</div>
@@ -200,7 +200,7 @@
 			<footer class="lesson-player__footer">
 				<NcButton
 					v-if="showManualCompleteAction"
-					type="primary"
+					variant="primary"
 					:disabled="manualCompletion.completed || manualCompletion.saving"
 					@click="markLessonComplete">
 					{{ manualCompletion.completed ? t('scholiq', 'Completed') : t('scholiq', 'Mark lesson complete') }}
@@ -208,7 +208,7 @@
 				<p v-if="manualCompletion.error" class="lesson-player__manual-complete-error" role="alert">
 					{{ manualCompletion.error }}
 				</p>
-				<NcButton type="secondary" @click="goBack">
+				<NcButton variant="secondary" @click="goBack">
 					{{ t('scholiq', 'Back to course') }}
 				</NcButton>
 			</footer>
@@ -479,7 +479,7 @@ export default {
 					)
 					if (!resp.ok) return
 					const json = await resp.json()
-					this.$set(target, id, json.object ?? json ?? {})
+					target[id] = json.object ?? json ?? {}
 				} catch {
 					// Best-effort — the block renders its "unavailable" state.
 				}
@@ -603,14 +603,14 @@ export default {
 		async launchLtiForBlock(block) {
 			const placementId = block.ltiToolPlacementId
 			if (!placementId) {
-				this.$set(this.blockLtiState, block.blockId, {
+				this.blockLtiState[block.blockId] = {
 					launching: false,
 					error: this.t('scholiq', 'This block has no LTI tool placement configured.'),
-				})
+				}
 				return
 			}
 
-			this.$set(this.blockLtiState, block.blockId, { launching: true, error: '' })
+			this.blockLtiState[block.blockId] = { launching: true, error: '' }
 
 			try {
 				const res = await fetch(
@@ -625,10 +625,10 @@ export default {
 					throw new Error(this.t('scholiq', 'OpenConnector returned an unexpected launch response.'))
 				}
 
-				this.$set(this.blockLtiState, block.blockId, { launching: false, error: '' })
+				this.blockLtiState[block.blockId] = { launching: false, error: '' }
 				this.submitLtiLaunchForm(body)
 			} catch (e) {
-				this.$set(this.blockLtiState, block.blockId, { launching: false, error: e?.message ?? String(e) })
+				this.blockLtiState[block.blockId] = { launching: false, error: e?.message ?? String(e) }
 			}
 		},
 
@@ -649,7 +649,7 @@ export default {
 				const learnerId = currentUser?.uid ?? ''
 				if (!learnerId) return
 
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/LessonCompletion?limit=100')
+				const url = generateUrl('/apps/openregister/api/objects/scholiq/lesson-completion?limit=100')
 				const resp = await fetch(url, {
 					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 				})
@@ -719,7 +719,7 @@ export default {
 				const currentUser = getCurrentUser()
 				const learnerId = currentUser?.uid ?? ''
 
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/LessonCompletion')
+				const url = generateUrl('/apps/openregister/api/objects/scholiq/lesson-completion')
 				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {

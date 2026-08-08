@@ -45,6 +45,7 @@ namespace OCA\Scholiq\Listener;
 use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\Scholiq\Engagement\PointEngagementEvaluator;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -69,15 +70,17 @@ class LearnerEngagementRollupHandler implements IEventListener
     /**
      * Constructor.
      *
-     * @param ObjectService            $objectService OpenRegister object access.
-     * @param PointEngagementEvaluator $evaluator     Totals/level/streak calculation engine.
-     * @param ITimeFactory             $timeFactory   NC time source (injectable "now" for tests).
+     * @param ObjectService            $objectService  OpenRegister object access.
+     * @param PointEngagementEvaluator $evaluator      Totals/level/streak calculation engine.
+     * @param ListenerSchemaResolver   $schemaResolver Resolves the entity's register/schema ids to slugs.
+     * @param ITimeFactory             $timeFactory    NC time source (injectable "now" for tests).
      *
      * @return void
      */
     public function __construct(
         private readonly ObjectService $objectService,
         private readonly PointEngagementEvaluator $evaluator,
+        private readonly ListenerSchemaResolver $schemaResolver,
         private readonly ITimeFactory $timeFactory,
     ) {
     }//end __construct()
@@ -99,8 +102,8 @@ class LearnerEngagementRollupHandler implements IEventListener
 
         $objectEntity = $event->getObject();
 
-        if ($objectEntity->getRegister() !== self::SCHOLIQ_REGISTER
-            || $objectEntity->getSchema() !== self::POINT_AWARD_SCHEMA
+        if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
+            || $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::POINT_AWARD_SCHEMA
         ) {
             return;
         }

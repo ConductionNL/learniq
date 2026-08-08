@@ -33,8 +33,11 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Tests\Unit\Cron;
 
+use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Cron\LtiAgsScorePollJob;
+use OCA\Scholiq\Service\LtiAgsPullClient;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -154,18 +157,21 @@ class LtiAgsScorePollJobTest extends TestCase
                         return [];
                     }
 
-                    return [$this->placementFixture];
+                    return OrEntityFactory::makeMany([$this->placementFixture], 'lti-tool-placement');
                 }
 
                 if ($schema === 'grade-entry') {
                     $placementId = $filters['ltiToolPlacementId'] ?? null;
                     $resultId    = $filters['ltiAgsResultId'] ?? null;
-                    return array_values(
-                        array_filter(
-                            $this->existingGradeEntries,
-                            static fn (array $e): bool => ($e['ltiToolPlacementId'] ?? null) === $placementId
-                                && ($e['ltiAgsResultId'] ?? null) === $resultId
-                        )
+                    return OrEntityFactory::makeMany(
+                        array_values(
+                            array_filter(
+                                $this->existingGradeEntries,
+                                static fn (array $e): bool => ($e['ltiToolPlacementId'] ?? null) === $placementId
+                                    && ($e['ltiAgsResultId'] ?? null) === $resultId
+                            )
+                        ),
+                        'grade-entry'
                     );
                 }
 
@@ -173,11 +179,15 @@ class LtiAgsScorePollJobTest extends TestCase
             }
         );
 
+        // OpenRegister's saveObject() is saveObject($object, $extend, $register, $schema, ...)
+        // — the PAYLOAD IS FIRST — and returns a non-nullable ObjectEntity.
+        // willReturnCallback() hands the closure the mock's arguments
+        // POSITIONALLY, so the closure must mirror that order.
         $this->objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object): array {
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
                 $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
                 $object['id']         = 'grade-entry-new';
-                return $object;
+                return OrEntityFactory::make($object, (string) $schema, (string) $register);
             }
         );
     }//end setUp()
@@ -200,11 +210,20 @@ class LtiAgsScorePollJobTest extends TestCase
 
         $this->clientService->method('newClient')->willReturn($client);
 
+        // The pull transport is a real collaborator wired to the mocked HTTP
+        // client, so the sweep is still driven end-to-end through the same
+        // JSON body the OpenConnector endpoint would return.
+        $pullClient = new LtiAgsPullClient(
+            clientService: $this->clientService,
+            urlGenerator: $this->urlGenerator,
+            appConfig: $this->appConfig,
+            logger: new NullLogger()
+        );
+
         return new LtiAgsScorePollJob(
             time: $this->createMock(ITimeFactory::class),
             objectService: $this->objectService,
-            clientService: $this->clientService,
-            urlGenerator: $this->urlGenerator,
+            pullClient: $pullClient,
             appConfig: $this->appConfig,
             logger: new NullLogger()
         );
@@ -342,8 +361,12 @@ class LtiAgsScorePollJobTest extends TestCase
         $job = new LtiAgsScorePollJob(
             time: $this->createMock(ITimeFactory::class),
             objectService: $this->objectService,
-            clientService: $this->clientService,
-            urlGenerator: $this->urlGenerator,
+            pullClient: new LtiAgsPullClient(
+                clientService: $this->clientService,
+                urlGenerator: $this->urlGenerator,
+                appConfig: $this->appConfig,
+                logger: new NullLogger()
+            ),
             appConfig: $this->appConfig,
             logger: new NullLogger()
         );

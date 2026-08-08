@@ -119,14 +119,14 @@ class FraudCaseDecisionHandler implements IEventListener
         $case   = $event->getObject()->jsonSerialize();
         $caseId = $case['id'] ?? ($case['uuid'] ?? '');
 
-        $verdict              = $case['verdict'] ?? '';
-        $contestedGradeEntryId = $case['contestedGradeEntryId'] ?? null;
+        $verdict          = $case['verdict'] ?? '';
+        $contestedEntryId = $case['contestedGradeEntryId'] ?? null;
 
         if ($verdict !== 'fraud-proven') {
             return;
         }
 
-        if ($contestedGradeEntryId === null || $contestedGradeEntryId === '') {
+        if ($contestedEntryId === null || $contestedEntryId === '') {
             $this->logger->info(
                 '[FraudCaseDecisionHandler] FraudCase {id} decided fraud-proven with no contestedGradeEntryId — nothing to invalidate.',
                 ['id' => $caseId]
@@ -134,12 +134,12 @@ class FraudCaseDecisionHandler implements IEventListener
             return;
         }
 
-        $entry = $this->fetchGradeEntry(gradeEntryId: (string) $contestedGradeEntryId);
+        $entry = $this->fetchGradeEntry(gradeEntryId: (string) $contestedEntryId);
 
         if ($entry === null) {
             $this->logger->warning(
                 '[FraudCaseDecisionHandler] FraudCase {id} contestedGradeEntryId {entryId} not found — skipping.',
-                ['id' => $caseId, 'entryId' => $contestedGradeEntryId]
+                ['id' => $caseId, 'entryId' => $contestedEntryId]
             );
             return;
         }
@@ -152,17 +152,18 @@ class FraudCaseDecisionHandler implements IEventListener
             // already-notified grade out from under a learner — that needs a manual,
             // out-of-band correction (design.md §4/§8), not automation here.
             $this->logger->warning(
-                '[FraudCaseDecisionHandler] FraudCase {id} contestedGradeEntryId {entryId} is not concept ({lifecycle}) — refusing to auto-invalidate.',
-                ['id' => $caseId, 'entryId' => $contestedGradeEntryId, 'lifecycle' => $lifecycle]
+                '[FraudCaseDecisionHandler] FraudCase {id} contestedGradeEntryId {entryId} is not concept '
+                .'({lifecycle}) — refusing to auto-invalidate.',
+                ['id' => $caseId, 'entryId' => $contestedEntryId, 'lifecycle' => $lifecycle]
             );
             return;
         }
 
-        $this->transitionEngine->transition((string) $contestedGradeEntryId, 'invalidate');
+        $this->transitionEngine->transition((string) $contestedEntryId, 'invalidate');
 
         $this->logger->info(
             '[FraudCaseDecisionHandler] FraudCase {id} decided fraud-proven — invalidated GradeEntry {entryId}.',
-            ['id' => $caseId, 'entryId' => $contestedGradeEntryId]
+            ['id' => $caseId, 'entryId' => $contestedEntryId]
         );
 
     }//end invalidateContestedGradeEntry()
@@ -184,10 +185,6 @@ class FraudCaseDecisionHandler implements IEventListener
 
         if ($obj === null) {
             return null;
-        }
-
-        if (is_array($obj) === true) {
-            return $obj;
         }
 
         return $obj->jsonSerialize();

@@ -18,18 +18,41 @@
  * REST calls are REST-for-setup only; assertions are DOM-based.
  */
 import { test, expect } from '../fixtures'
+import { apiUrl } from '../base-url'
 
-const SETTINGS_URL = '/apps/scholiq/Settings'
-const API_SETTINGS = '/apps/scholiq/api/settings'
+// Two fixes in these constants, both of which made the target unreachable:
+//
+//  1. The `/index.php/` prefix is load-bearing on CI. The shared workflow serves
+//     Nextcloud with a bare `php -S` and no router script, so pretty URLs are
+//     not rewritten: the built-in server only falls back to index.php for paths
+//     that do NOT exist on disk, and `server/apps/scholiq/` DOES exist without
+//     an index.php — so `/apps/scholiq/...` is a hard 404. 29 of this suite's
+//     34 spec files already used the `/index.php/` form.
+//  2. This is the NEXTCLOUD ADMIN settings panel, not an in-app route. Every
+//     assertion below ("Scholiq Settings", the OpenRegister section, the register
+//     combobox, "Credential Signing") targets src/views/settings/AdminRoot.vue,
+//     which `src/settings.js` mounts into `#scholiq-settings` on the NC admin
+//     page. The old `/apps/scholiq/Settings` was neither: `/Settings` is not a
+//     declared route (the manifest's in-app settings page is `/settings`, and
+//     vue-router is case-sensitive), and the in-app `/settings` page is a
+//     different surface — navigating there on CI run 30798535945 rendered a
+//     generic "Settings" heading and a disabled Save button, with no "Scholiq
+//     Settings" heading anywhere.
+//
+//     The section id is `scholiq`: OpenRegister's AppHost `Bootstrap::register`
+//     defaults `sectionId` to the app id, and lib/AppInfo/Application.php passes
+//     only `namespace`, `sectionName` and `mcpProvider` — no `sectionId` override.
+const SETTINGS_URL = '/index.php/settings/admin/scholiq'
+const API_SETTINGS = '/index.php/apps/scholiq/api/settings'
 const APP_URL = '/index.php/apps/scholiq/'
-const PREFS_API = '/apps/openregister/api/notification-preferences'
+const PREFS_API = '/index.php/apps/openregister/api/notification-preferences'
 
 test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 
 	// @e2e openspec/specs/nextcloud-app/spec.md#reading-current-settings
 	test('reading-current-settings: GET /api/settings returns register, openregisters, isAdmin', async ({ loggedInPage: page }) => {
 		// Use the REST API as setup-only verification; the UI must also reflect the response.
-		const resp = await page.request.get(`http://localhost:8080${API_SETTINGS}`, {
+		const resp = await page.request.get(apiUrl(API_SETTINGS), {
 			headers: { 'OCS-APIREQUEST': 'true' },
 		})
 		expect(resp.status()).toBe(200)
@@ -52,7 +75,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		// POST a known register slug and check the response echoes it back
 		const requestToken = await page.evaluate(() => (window as any).OC?.requestToken ?? '')
 
-		const resp = await page.request.post(`http://localhost:8080${API_SETTINGS}`, {
+		const resp = await page.request.post(apiUrl(API_SETTINGS), {
 			headers: {
 				'Content-Type': 'application/json',
 				'requesttoken': requestToken,
@@ -92,10 +115,25 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		const picker = page.locator('select, [role="combobox"]').first()
 		await expect(picker).toBeVisible()
 
-		// AI Features heading must also be present (loaded in parallel)
+		// AI Features section must also be present (loaded in parallel)
 		await expect(page.locator('h2').filter({ hasText: /AI Features/i })).toBeVisible()
-		// Table columns confirm structure loaded
-		await expect(page.locator('th').filter({ hasText: /Feature/i })).toBeVisible()
+
+		// This used to assert a `<th>Feature</th>`, i.e. that Scholiq rendered its
+		// OWN AI-feature register table. That surface no longer exists: under
+		// ADR-005 the EU AI Act high-risk feature register and the DPO
+		// acknowledgement are centralised in Hermiq, and ScholiqSettings.vue now
+		// renders the section as a delegation — see the "Section 2: AI features —
+		// governance delegated to Hermiq (ADR-005)" NcSettingsSection. There is no
+		// <th> anywhere in the settings views, so the old assertion could only ever
+		// fail; it was asserting against a removed surface, not a regression.
+		//
+		// Assert the delegation the app actually implements. Both branches are
+		// legitimate and depend only on whether Hermiq is installed on the
+		// instance, so accept either — but require one of them, so a section that
+		// rendered empty still fails.
+		const hermiqLink = page.getByRole('button', { name: /Open the AI-feature register in Hermiq/i })
+		const hermiqMissingNotice = page.getByText(/Install and enable the Hermiq app/i)
+		await expect(hermiqLink.or(hermiqMissingNotice).first()).toBeVisible()
 	})
 
 	// @e2e openspec/specs/nextcloud-app/spec.md#saving-the-default-register
@@ -195,7 +233,7 @@ test.describe('nextcloud-app — per-user notification preferences', () => {
 	test('preferences-reflect-current-overrides: GET notification-preferences is queryable and per-user dialog wires to it', async ({ loggedInPage: page }) => {
 		// The per-user dialog reads overrides from OpenRegister's endpoint. Confirm the
 		// endpoint is reachable (OR installed) and returns a JSON shape the panel consumes.
-		const resp = await page.request.get(`http://localhost:8080${PREFS_API}`, {
+		const resp = await page.request.get(apiUrl(PREFS_API), {
 			headers: { 'OCS-APIREQUEST': 'true' },
 		})
 		// OpenRegister must answer (200) — the panel depends on this contract.
@@ -216,7 +254,7 @@ test.describe('nextcloud-app — per-user notification preferences', () => {
 
 		// Writing an override goes to OpenRegister's PUT endpoint (no scholiq-local store).
 		// Assert the endpoint accepts the override-write contract the panel uses.
-		const resp = await page.request.put(`http://localhost:8080${PREFS_API}`, {
+		const resp = await page.request.put(apiUrl(PREFS_API), {
 			headers: {
 				'Content-Type': 'application/json',
 				'requesttoken': requestToken,

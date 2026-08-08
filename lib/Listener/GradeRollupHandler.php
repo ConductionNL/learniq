@@ -190,7 +190,7 @@ class GradeRollupHandler implements IEventListener
         $resolved = $this->visibilityResolver->resolve(
             override: $override,
             policy: $policy,
-            publishedAt: DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime())
+            publishedAt: $this->timeFactory->now()
         );
 
         $visibleFrom = $resolved->format(\DATE_ATOM);
@@ -226,10 +226,7 @@ class GradeRollupHandler implements IEventListener
             return null;
         }
 
-        $planData = $plan;
-        if (is_array($plan) === false) {
-            $planData = $plan->jsonSerialize();
-        }
+        $planData = $plan->jsonSerialize();
 
         $policy = $planData['gradeVisibilityPolicy'] ?? null;
         if (is_array($policy) === false) {
@@ -453,14 +450,7 @@ class GradeRollupHandler implements IEventListener
             object: $gradeEntry
         );
 
-        if ($saved === null) {
-            return;
-        }
-
-        $savedData = $saved;
-        if (is_array($saved) === false) {
-            $savedData = $saved->jsonSerialize();
-        }
+        $savedData = $saved->jsonSerialize();
 
         $gradeEntryId = $savedData['id'] ?? null;
 

@@ -159,42 +159,13 @@ class LearningPlanEvaluationHandler implements IEventListener
             $plan = $plans[0]->jsonSerialize();
         }
 
-        $goals = $plan['goals'] ?? [];
+        $applied = $this->applyOutcomesToGoals(
+            goals: ($plan['goals'] ?? []),
+            outcomeMap: $this->buildOutcomeMap(goalOutcomes: $goalOutcomes)
+        );
 
-        // Build a goalId → outcome map for O(1) lookups.
-        $outcomeMap = [];
-        foreach ($goalOutcomes as $outcome) {
-            $goalId = $outcome['goalId'] ?? null;
-            if ($goalId !== null) {
-                $outcomeMap[$goalId] = $outcome['outcome'] ?? 'continued';
-            }
-        }
-
-        // Update goal statuses.
-        $changed = false;
-        foreach ($goals as &$goal) {
-            $goalId  = $goal['goalId'] ?? null;
-            $outcome = null;
-            if ($goalId !== null) {
-                $outcome = $outcomeMap[$goalId] ?? null;
-            }
-
-            if ($outcome === null) {
-                continue;
-            }
-
-            if (isset(self::OUTCOME_TO_STATUS[$outcome]) === true) {
-                $newStatus = self::OUTCOME_TO_STATUS[$outcome];
-                if (($goal['status'] ?? 'open') !== $newStatus) {
-                    $goal['status'] = $newStatus;
-                    $changed        = true;
-                }
-            }
-
-            // 'continued' → leave status as-is.
-        }//end foreach
-
-        unset($goal);
+        $goals   = $applied['goals'];
+        $changed = $applied['changed'];
 
         // Update nextReviewAt if provided.
         if ($nextReviewAt !== null) {
@@ -224,4 +195,76 @@ class LearningPlanEvaluationHandler implements IEventListener
         );
 
     }//end handleEvaluationRecorded()
+
+    /**
+     * Build the goalId => outcome map for O(1) lookups.
+     *
+     * An outcome row naming no goal cannot be applied to anything, so it is
+     * dropped rather than defaulted onto an arbitrary goal.
+     *
+     * @param array<int,array<string,mixed>> $goalOutcomes The evaluation's goalOutcomes rows.
+     *
+     * @return array<string,mixed> Map of goalId => outcome.
+     *
+     * @spec openspec/changes/learning-plan/specs/learning-plan/spec.md#requirement-recording-an-evaluation-updates-its-learning-plan-s-goal-statuses
+     */
+    private function buildOutcomeMap(array $goalOutcomes): array
+    {
+        $outcomeMap = [];
+        foreach ($goalOutcomes as $outcome) {
+            $goalId = $outcome['goalId'] ?? null;
+            if ($goalId !== null) {
+                $outcomeMap[$goalId] = ($outcome['outcome'] ?? 'continued');
+            }
+        }
+
+        return $outcomeMap;
+
+    }//end buildOutcomeMap()
+
+    /**
+     * Apply the recorded outcomes to the plan's goals.
+     *
+     * A goal the evaluation did not mention is left alone, and so is one whose
+     * outcome is `continued` — only an outcome that maps to a different status
+     * changes anything, which is what makes the `changed` flag meaningful.
+     *
+     * @param array<int,array<string,mixed>> $goals      The LearningPlan's goals.
+     * @param array<string,mixed>            $outcomeMap Map of goalId => outcome.
+     *
+     * @return array{goals: array<int,array<string,mixed>>, changed: bool}
+     *
+     * @spec openspec/changes/learning-plan/specs/learning-plan/spec.md#requirement-recording-an-evaluation-updates-its-learning-plan-s-goal-statuses
+     */
+    private function applyOutcomesToGoals(array $goals, array $outcomeMap): array
+    {
+        $changed = false;
+
+        foreach ($goals as &$goal) {
+            $goalId = $goal['goalId'] ?? null;
+            if ($goalId === null) {
+                continue;
+            }
+
+            $outcome = ($outcomeMap[$goalId] ?? null);
+            if ($outcome === null || isset(self::OUTCOME_TO_STATUS[$outcome]) === false) {
+                // Unmentioned, or 'continued' — leave the status as-is.
+                continue;
+            }
+
+            $newStatus = self::OUTCOME_TO_STATUS[$outcome];
+            if (($goal['status'] ?? 'open') !== $newStatus) {
+                $goal['status'] = $newStatus;
+                $changed        = true;
+            }
+        }//end foreach
+
+        unset($goal);
+
+        return [
+            'goals'   => $goals,
+            'changed' => $changed,
+        ];
+
+    }//end applyOutcomesToGoals()
 }//end class

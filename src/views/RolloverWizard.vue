@@ -32,7 +32,7 @@
 				v-model="toAcademicYear"
 				type="text"
 				placeholder="2026/2027">
-			<NcButton type="secondary" :disabled="!fromAcademicYear" @click="propose">
+			<NcButton variant="secondary" :disabled="!fromAcademicYear" @click="propose">
 				{{ t('scholiq', 'Propose mapping') }}
 			</NcButton>
 		</div>
@@ -70,10 +70,10 @@
 			:description="t('scholiq', 'Enter a from-year and propose a mapping to begin.')" />
 
 		<div v-if="mappings.length > 0" class="rollover-wizard__actions">
-			<NcButton type="secondary" @click="preview">
+			<NcButton variant="secondary" @click="preview">
 				{{ t('scholiq', 'Preview') }}
 			</NcButton>
-			<NcButton type="primary" :disabled="!canExecute" @click="execute">
+			<NcButton variant="primary" :disabled="!canExecute" @click="execute">
 				{{ t('scholiq', 'Execute rollover') }}
 			</NcButton>
 		</div>

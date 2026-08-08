@@ -18,7 +18,7 @@
     - POST /api/objects/scholiq/Course | Lesson | CourseTemplate
     - PUT  /api/objects/scholiq/Course/:id | Lesson/:id  (order updates)
     - DELETE /api/objects/scholiq/Course/:id | Lesson/:id
-    - GET  /api/objects/scholiq/CourseTemplate
+    - GET  /api/objects/scholiq/course-template
 
   No new PHP controller: every write is a call against OpenRegister's
   existing object-create/update/delete endpoints (ADR-022). Template
@@ -657,7 +657,7 @@ export default {
 					tenant_id: module.tenant_id,
 				})
 				module.lessons.push(created)
-				this.$set(this.newLessonNames, module.id, '')
+				this.newLessonNames[module.id] = ''
 			} catch (err) {
 				this.error = this.t('scholiq', 'Failed to add lesson. Please try again.')
 				// eslint-disable-next-line no-console

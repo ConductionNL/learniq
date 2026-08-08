@@ -32,8 +32,10 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Tests\Unit\Controller;
 
+use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Controller\LtiToolPlacementController;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Http;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -145,14 +147,20 @@ class LtiToolPlacementControllerTest extends TestCase
     {
         $this->signInAs('learner-1');
 
+        // OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
+        // and returns ?ObjectEntity. willReturnCallback() hands the closure the
+        // mock's arguments POSITIONALLY, so the closure must mirror that order.
         $this->objectService->method('find')->willReturnCallback(
-            function (string $id, string $register, string $schema): ?array {
+            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null): ?ObjectEntity {
                 if ($register === 'scholiq' && $schema === 'lti-tool-placement' && $id === 'placement-1') {
-                    return [
-                        'id'                        => 'placement-1',
-                        'openconnectorDeploymentId' => 'deployment-uuid-1',
-                        'launchMode'                => 'resource-link',
-                    ];
+                    return OrEntityFactory::make(
+                        [
+                            'id'                        => 'placement-1',
+                            'openconnectorDeploymentId' => 'deployment-uuid-1',
+                            'launchMode'                => 'resource-link',
+                        ],
+                        'lti-tool-placement'
+                    );
                 }
 
                 return null;
@@ -214,11 +222,14 @@ class LtiToolPlacementControllerTest extends TestCase
         $this->signInAs('learner-1');
 
         $this->objectService->method('find')->willReturn(
-            [
-                'id'                        => 'placement-1',
-                'openconnectorDeploymentId' => 'deployment-uuid-1',
-                'launchMode'                => 'resource-link',
-            ]
+            OrEntityFactory::make(
+                [
+                    'id'                        => 'placement-1',
+                    'openconnectorDeploymentId' => 'deployment-uuid-1',
+                    'launchMode'                => 'resource-link',
+                ],
+                'lti-tool-placement'
+            )
         );
 
         $this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(

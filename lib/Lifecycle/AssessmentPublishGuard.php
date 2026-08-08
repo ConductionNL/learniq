@@ -121,16 +121,16 @@ class AssessmentPublishGuard
     /**
      * Constructor.
      *
-     * @param ObjectService            $objectService            OR object service for the Hermiq AI-feature
-     *                                                           lookup and, since
-     *                                                           assessment-item-pools-and-analysis, the
-     *                                                           random-draw item-pool resolvability check.
-     * @param ItemPoolFilter           $poolFilter               Pool filter/variant-grouping collaborator (assessment-item-pools-and-analysis).
-     * @param IAppManager              $appManager               Used to tell "Hermiq absent" from "feature not enabled".
-     * @param AiLocalityClassifier     $localityClassifier       Derives the active AI provider's locality verdict (sovereign-ai-guarantee).
-     * @param SovereigntyPolicyService $sovereigntyPolicyService Evaluates the locality verdict against the
-     *                                                           school's SovereigntyPolicy (sovereign-ai-guarantee).
-     * @param LoggerInterface          $logger                   PSR logger.
+     * @param ObjectService            $objectService      OR object service for the Hermiq AI-feature
+     *                                                     lookup and, since
+     *                                                     assessment-item-pools-and-analysis, the
+     *                                                     random-draw item-pool resolvability check.
+     * @param ItemPoolFilter           $poolFilter         Pool filter/variant-grouping collaborator (assessment-item-pools-and-analysis).
+     * @param IAppManager              $appManager         Used to tell "Hermiq absent" from "feature not enabled".
+     * @param AiLocalityClassifier     $localityClassifier Derives the active AI provider's locality verdict (sovereign-ai-guarantee).
+     * @param SovereigntyPolicyService $policyService      Evaluates the locality verdict against the
+     *                                                     school's SovereigntyPolicy (sovereign-ai-guarantee).
+     * @param LoggerInterface          $logger             PSR logger.
      *
      * @return void
      */
@@ -139,7 +139,7 @@ class AssessmentPublishGuard
         private readonly ItemPoolFilter $poolFilter,
         private readonly IAppManager $appManager,
         private readonly AiLocalityClassifier $localityClassifier,
-        private readonly SovereigntyPolicyService $sovereigntyPolicyService,
+        private readonly SovereigntyPolicyService $policyService,
         private readonly LoggerInterface $logger,
     ) {
     }//end __construct()
@@ -214,7 +214,7 @@ class AssessmentPublishGuard
         // accept? A distinct log message from the DPO-gate block above so an
         // admin can tell the two failure reasons apart.
         $verdict = $this->localityClassifier->classifyActiveProvider();
-        if ($this->sovereigntyPolicyService->isCompliant(locality: $verdict['locality'], verified: $verdict['verified']) === false) {
+        if ($this->policyService->isCompliant(locality: $verdict['locality'], verified: $verdict['verified']) === false) {
             $verifiedLabel = 'false';
             if ($verdict['verified'] === true) {
                 $verifiedLabel = 'true';

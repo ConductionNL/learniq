@@ -31,11 +31,21 @@ namespace OCA\Scholiq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Service\CommonCartridgeParser;
+use OCA\Scholiq\Service\CoursePackage\CommonCartridgeCourseImporter;
+use OCA\Scholiq\Service\CoursePackage\CommonCartridgeResourceRouter;
+use OCA\Scholiq\Service\CoursePackage\CoursePackageFileWriter;
+use OCA\Scholiq\Service\CoursePackage\CoursePackageImportReporter;
+use OCA\Scholiq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Scholiq\Service\CoursePackage\MoodleActivityRouter;
+use OCA\Scholiq\Service\CoursePackage\MoodleCourseImporter;
+use OCA\Scholiq\Service\CoursePackage\PackageXmlValueReader;
+use OCA\Scholiq\Service\CoursePackage\ScholiqJsonCourseImporter;
 use OCA\Scholiq\Service\CoursePackageImportService;
 use OCA\Scholiq\Service\MbzExtractor;
 use OCA\Scholiq\Service\MoodleBackupParser;
 use OCA\Scholiq\Service\MoodleQuizQuestionMapper;
 use OCA\Scholiq\Service\QtiImportService;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -70,12 +80,24 @@ class CoursePackageImportServiceTest extends TestCase
         $this->savedByschema = [];
 
         $objectService = $this->createMock(ObjectService::class);
+
+        // `ObjectService::saveObject()` takes the PAYLOAD first
+        // ($object, $extend, $register, $schema, ...) and returns a
+        // non-nullable ObjectEntity — the uuid the importer reads back via
+        // `extractUuid()` lives on the entity, not in the payload array.
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object): array {
-                $this->savedByschema[$schema] ??= [];
-                $object['uuid']                  = $schema.'-'.(count($this->savedByschema[$schema]) + 1);
-                $this->savedByschema[$schema][] = $object;
-                return $object;
+            function (array $object, ?array $extend=[], $register=null, $schema=null) {
+                $schemaSlug = (string) $schema;
+
+                $this->savedByschema[$schemaSlug] ??= [];
+                $this->savedByschema[$schemaSlug][] = $object;
+
+                return OrEntityFactory::make(
+                    $object,
+                    $schemaSlug,
+                    (string) $register,
+                    $schemaSlug.'-'.count($this->savedByschema[$schemaSlug])
+                );
             }
         );
 
@@ -90,15 +112,42 @@ class CoursePackageImportServiceTest extends TestCase
 
         $qtiImportService = new QtiImportService($objectService, new NullLogger());
 
-        return new CoursePackageImportService(
-            $objectService,
+        $logger       = new NullLogger();
+        $objectWriter = new CoursePackageObjectWriter($objectService);
+        $fileWriter   = new CoursePackageFileWriter($rootFolder, $logger);
+        $reporter     = new CoursePackageImportReporter($objectService);
+        $xmlReader    = new PackageXmlValueReader();
+
+        $ccImporter = new CommonCartridgeCourseImporter(
             $qtiImportService,
-            new MbzExtractor(),
             new CommonCartridgeParser(),
+            new CommonCartridgeResourceRouter($objectWriter, $fileWriter, $reporter, $xmlReader, $logger),
+            $objectWriter,
+            $reporter,
+        );
+
+        $moodleImporter = new MoodleCourseImporter(
+            new MbzExtractor(),
             new MoodleBackupParser(),
-            new MoodleQuizQuestionMapper(),
-            $rootFolder,
-            new NullLogger(),
+            new MoodleActivityRouter(
+                new MoodleQuizQuestionMapper(),
+                $objectWriter,
+                $fileWriter,
+                $reporter,
+                $xmlReader,
+                $logger
+            ),
+            $objectWriter,
+            $reporter,
+        );
+
+        return new CoursePackageImportService(
+            $ccImporter,
+            $moodleImporter,
+            new ScholiqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
+            $fileWriter,
+            $reporter,
+            $logger,
         );
     }//end service()
 

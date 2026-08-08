@@ -33,6 +33,8 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Listener\RejectionMappingHandler;
+use OCA\Scholiq\Service\RejectionResubmissionResolver;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -123,20 +125,34 @@ class RejectionMappingHandlerTest extends TestCase
         );
 
         $objectService->method('saveObject')->willReturnCallback(
-            function (string $register, string $schema, array $object) {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
-                return array_merge(['id' => 'saved-'.count($this->savedObjects)], $object);
+            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
+                $data                 = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+                $this->savedObjects[] = [
+                    'register' => (string) $register,
+                    'schema'   => (string) $schema,
+                    'object'   => $data,
+                ];
+                return OrEntityFactory::make(
+                    array_merge(['id' => 'saved-'.count($this->savedObjects)], $data),
+                    (string) $schema,
+                    (string) $register
+                );
             }
         );
 
         $transitionEngine = $this->createMock(TransitionEngine::class);
         $transitionEngine->method('transition')->willReturnCallback(
-            function (string $objectId, string $action) {
+            function (string $objectId, string $action): ObjectEntity {
                 $this->transitions[] = ['objectId' => $objectId, 'action' => $action];
+                return OrEntityFactory::make(['id' => $objectId], 'exchange-rejection');
             }
         );
 
-        return new RejectionMappingHandler($objectService, $transitionEngine, new NullLogger());
+        return new RejectionMappingHandler(
+            $objectService,
+            new NullLogger(),
+            new RejectionResubmissionResolver($objectService, $transitionEngine, new NullLogger())
+        );
 
     }//end makeHandler()
 

@@ -23,10 +23,11 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Tests\Unit\Listener;
 
-use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\Scholiq\Listener\SessionConflictListener;
+use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\Scholiq\Tests\Support\OrEntityFactory;
 use OCA\Scholiq\Timetabling\TimetableConflictDetector;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -43,14 +44,35 @@ class SessionConflictListenerTest extends TestCase
     private TimetableConflictDetector&MockObject $detector;
 
     /**
+     * @var ListenerSchemaResolver&MockObject
+     */
+    private ListenerSchemaResolver&MockObject $schemaResolver;
+
+    /**
      * @return void
      */
     protected function setUp(): void
     {
         parent::setUp();
-        $this->detector = $this->createMock(TimetableConflictDetector::class);
+        $this->detector       = $this->createMock(TimetableConflictDetector::class);
+        $this->schemaResolver = $this->createMock(ListenerSchemaResolver::class);
 
     }//end setUp()
+
+    /**
+     * Stub the resolver the way OpenRegister behaves in production: the entity
+     * carries numeric ids and the resolver turns them into slugs.
+     *
+     * @param string $schemaSlug The slug the resolver resolves the schema id to.
+     *
+     * @return void
+     */
+    private function stubResolver(string $schemaSlug): void
+    {
+        $this->schemaResolver->method('registerSlug')->willReturn('scholiq');
+        $this->schemaResolver->method('schemaSlug')->willReturn($schemaSlug);
+
+    }//end stubResolver()
 
     /**
      * A created Session invokes the detector with its data.
@@ -59,17 +81,19 @@ class SessionConflictListenerTest extends TestCase
      */
     public function testCreatedSessionInvokesDetector(): void
     {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('getRegister')->willReturn('scholiq');
-        $objectEntity->method('getSchema')->willReturn('session');
-        $objectEntity->method('jsonSerialize')->willReturn(['id' => 'session-1']);
+        $objectEntity = OrEntityFactory::make(['id' => 'session-1'], '1280', '9');
+        $this->stubResolver('session');
 
         $event = $this->createMock(ObjectCreatedEvent::class);
         $event->method('getObject')->willReturn($objectEntity);
 
-        $this->detector->expects(self::once())->method('scan')->with([['id' => 'session-1']]);
+        $this->detector->expects(self::once())->method('scan')->with(
+            self::callback(
+                static fn (array $rows): bool => count($rows) === 1 && ($rows[0]['id'] ?? null) === 'session-1'
+            )
+        );
 
-        (new SessionConflictListener($this->detector))->handle($event);
+        (new SessionConflictListener($this->detector, $this->schemaResolver))->handle($event);
 
     }//end testCreatedSessionInvokesDetector()
 
@@ -80,17 +104,19 @@ class SessionConflictListenerTest extends TestCase
      */
     public function testUpdatedSessionInvokesDetector(): void
     {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('getRegister')->willReturn('scholiq');
-        $objectEntity->method('getSchema')->willReturn('session');
-        $objectEntity->method('jsonSerialize')->willReturn(['id' => 'session-2']);
+        $objectEntity = OrEntityFactory::make(['id' => 'session-2'], '1280', '9');
+        $this->stubResolver('session');
 
         $event = $this->createMock(ObjectUpdatedEvent::class);
         $event->method('getObject')->willReturn($objectEntity);
 
-        $this->detector->expects(self::once())->method('scan')->with([['id' => 'session-2']]);
+        $this->detector->expects(self::once())->method('scan')->with(
+            self::callback(
+                static fn (array $rows): bool => count($rows) === 1 && ($rows[0]['id'] ?? null) === 'session-2'
+            )
+        );
 
-        (new SessionConflictListener($this->detector))->handle($event);
+        (new SessionConflictListener($this->detector, $this->schemaResolver))->handle($event);
 
     }//end testUpdatedSessionInvokesDetector()
 
@@ -101,16 +127,15 @@ class SessionConflictListenerTest extends TestCase
      */
     public function testDifferentSchemaIsIgnored(): void
     {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('getRegister')->willReturn('scholiq');
-        $objectEntity->method('getSchema')->willReturn('cohort');
+        $objectEntity = OrEntityFactory::make(['id' => 'cohort-1'], '1281', '9');
+        $this->stubResolver('cohort');
 
         $event = $this->createMock(ObjectCreatedEvent::class);
         $event->method('getObject')->willReturn($objectEntity);
 
         $this->detector->expects(self::never())->method('scan');
 
-        (new SessionConflictListener($this->detector))->handle($event);
+        (new SessionConflictListener($this->detector, $this->schemaResolver))->handle($event);
 
     }//end testDifferentSchemaIsIgnored()
 }//end class

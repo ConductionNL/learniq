@@ -18,6 +18,12 @@
  *   - exam-clash             : any overlap kind above where at least one of
  *     the two Sessions has a linked Assessment.
  *
+ * This class is the orchestrator of that scan and the only thing that writes:
+ * the OpenRegister reads live in {@see SessionWindowLoader} and the pairwise
+ * and capacity rules live in {@see SessionOverlapEvaluator}, so the decision
+ * logic is testable without a register and the register access is testable
+ * without the rules.
+ *
  * Each finding is persisted as a `TimetableConflict` row, idempotent by
  * (sessionIds, kind) against any existing `open` row — a re-scan of an
  * unchanged window never spams duplicates. This class NEVER edits, cancels,
@@ -67,31 +73,23 @@ use Psr\Log\LoggerInterface;
 class TimetableConflictDetector
 {
 
-    private const SCHOLIQ_REGISTER  = 'scholiq';
-    private const SESSION_SCHEMA    = 'session';
-    private const COHORT_SCHEMA     = 'cohort';
-    private const ROOM_SCHEMA       = 'room';
-    private const ASSESSMENT_SCHEMA = 'assessment';
+    private const SCHOLIQ_REGISTER          = 'scholiq';
     private const TIMETABLE_CONFLICT_SCHEMA = 'timetable-conflict';
-
-    /**
-     * Lifecycle states excluded from the pairwise scan — a cancelled Session
-     * no longer occupies its slot.
-     *
-     * @var string[]
-     */
-    private const EXCLUDED_LIFECYCLES = ['cancelled'];
 
     /**
      * Constructor.
      *
-     * @param ObjectService   $objectService OR object access service.
-     * @param LoggerInterface $logger        PSR logger.
+     * @param ObjectService           $objectService OR object access service.
+     * @param SessionWindowLoader     $loader        Read-only OR access for the scan window and its lookups.
+     * @param SessionOverlapEvaluator $evaluator     Pure overlap and capacity rules.
+     * @param LoggerInterface         $logger        PSR logger.
      *
      * @return void
      */
     public function __construct(
         private readonly ObjectService $objectService,
+        private readonly SessionWindowLoader $loader,
+        private readonly SessionOverlapEvaluator $evaluator,
         private readonly LoggerInterface $logger,
     ) {
     }//end __construct()
@@ -114,9 +112,9 @@ class TimetableConflictDetector
         }
 
         $tenantId = (string) ($sessions[0]['tenant_id'] ?? '');
-        $buckets  = $this->collectDayBuckets(sessions: $sessions);
+        $buckets  = $this->loader->dayBuckets(sessions: $sessions);
 
-        $window = $this->loadWindow(sessions: $sessions, buckets: $buckets, tenantId: $tenantId);
+        $window = $this->loader->loadWindow(sessions: $sessions, buckets: $buckets, tenantId: $tenantId);
         if (count($window) < 1) {
             return;
         }
@@ -125,7 +123,7 @@ class TimetableConflictDetector
         $roomCache       = [];
         $assessmentCache = [];
 
-        $existingOpen = $this->loadExistingOpenKeys(tenantId: $tenantId);
+        $existingOpen = $this->existingOpenKeys(tenantId: $tenantId);
         $toCreate     = [];
 
         $ids   = array_keys($window);
@@ -133,16 +131,16 @@ class TimetableConflictDetector
 
         for ($i = 0; $i < $count; $i++) {
             for ($j = ($i + 1); $j < $count; $j++) {
-                $a = $window[$ids[$i]];
-                $b = $window[$ids[$j]];
+                $sessionA = $window[$ids[$i]];
+                $sessionB = $window[$ids[$j]];
 
-                if ($this->overlaps(a: $a, b: $b) === false) {
+                if ($this->evaluator->overlaps(sessionA: $sessionA, sessionB: $sessionB) === false) {
                     continue;
                 }
 
                 $this->evaluatePair(
-                    a: $a,
-                    b: $b,
+                    sessionA: $sessionA,
+                    sessionB: $sessionB,
                     tenantId: $tenantId,
                     cohortCache: $cohortCache,
                     assessmentCache: $assessmentCache,
@@ -185,8 +183,8 @@ class TimetableConflictDetector
      * Evaluate the pairwise overlap kinds for one Session pair, appending any
      * finding to `$toCreate` (idempotent against `$existingOpen`).
      *
-     * @param array<string,mixed>               $a               Session A.
-     * @param array<string,mixed>               $b               Session B.
+     * @param array<string,mixed>               $sessionA        Session A.
+     * @param array<string,mixed>               $sessionB        Session B.
      * @param string                            $tenantId        Tenant scope.
      * @param array<string,array<string,mixed>> $cohortCache     Cohort cache, keyed by cohortId (mutated: entries added).
      * @param array<string,string|null>         $assessmentCache Session -> linked Assessment id cache (mutated: entries added).
@@ -196,64 +194,34 @@ class TimetableConflictDetector
      * @return void
      */
     private function evaluatePair(
-        array $a,
-        array $b,
+        array $sessionA,
+        array $sessionB,
         string $tenantId,
         array &$cohortCache,
         array &$assessmentCache,
         array $existingOpen,
         array &$toCreate
     ): void {
-        $idA = (string) ($a['id'] ?? ($a['uuid'] ?? ''));
-        $idB = (string) ($b['id'] ?? ($b['uuid'] ?? ''));
+        $idA = (string) ($sessionA['id'] ?? ($sessionA['uuid'] ?? ''));
+        $idB = (string) ($sessionB['id'] ?? ($sessionB['uuid'] ?? ''));
         if ($idA === '' || $idB === '' || $idA === $idB) {
             return;
         }
 
-        $cohortA = $this->loadCohort(cohortId: (string) ($a['cohortId'] ?? ''), tenantId: $tenantId, cache: $cohortCache);
-        $cohortB = $this->loadCohort(cohortId: (string) ($b['cohortId'] ?? ''), tenantId: $tenantId, cache: $cohortCache);
-
-        $kinds = [];
-
-        // Teacher-double-booking.
-        $teachersA      = $this->assignedTeacherIds(session: $a, cohort: $cohortA);
-        $teachersB      = $this->assignedTeacherIds(session: $b, cohort: $cohortB);
-        $sharedTeachers = array_values(array_intersect($teachersA, $teachersB));
-        if (count($sharedTeachers) > 0) {
-            $kinds['teacher-double-booking'] = $sharedTeachers[0];
-        }
-
-        // Room-double-booking.
-        $roomA = (string) ($a['roomId'] ?? '');
-        $roomB = (string) ($b['roomId'] ?? '');
-        if ($roomA !== '' && $roomA === $roomB) {
-            $kinds['room-double-booking'] = $roomA;
-        }
-
-        // Cohort-double-booking.
-        $cohortIdA = (string) ($a['cohortId'] ?? '');
-        $cohortIdB = (string) ($b['cohortId'] ?? '');
-        if ($cohortIdA !== '' && $cohortIdA === $cohortIdB) {
-            $kinds['cohort-double-booking'] = $cohortIdA;
-        }
-
-        // Learner-double-booking (different cohorts, overlapping learnerIds).
-        if ($cohortIdA !== '' && $cohortIdB !== '' && $cohortIdA !== $cohortIdB) {
-            $learnersA      = $this->stringList(value: $cohortA['learnerIds'] ?? []);
-            $learnersB      = $this->stringList(value: $cohortB['learnerIds'] ?? []);
-            $sharedLearners = array_values(array_intersect($learnersA, $learnersB));
-            if (count($sharedLearners) > 0) {
-                $kinds['learner-double-booking'] = $sharedLearners[0];
-            }
-        }
+        $kinds = $this->evaluator->overlapKinds(
+            sessionA: $sessionA,
+            sessionB: $sessionB,
+            cohortA: $this->cohortFor(session: $sessionA, tenantId: $tenantId, cache: $cohortCache),
+            cohortB: $this->cohortFor(session: $sessionB, tenantId: $tenantId, cache: $cohortCache),
+        );
 
         if (empty($kinds) === true) {
             return;
         }
 
         // Exam-clash: any overlap kind above, when at least one Session has a linked Assessment.
-        $hasAssessment = $this->hasLinkedAssessment(sessionId: $idA, tenantId: $tenantId, cache: $assessmentCache)
-            || $this->hasLinkedAssessment(sessionId: $idB, tenantId: $tenantId, cache: $assessmentCache);
+        $hasAssessment = $this->loader->hasLinkedAssessment(sessionId: $idA, tenantId: $tenantId, cache: $assessmentCache)
+            || $this->loader->hasLinkedAssessment(sessionId: $idB, tenantId: $tenantId, cache: $assessmentCache);
         if ($hasAssessment === true) {
             $kinds['exam-clash'] = null;
         }
@@ -299,20 +267,18 @@ class TimetableConflictDetector
             return;
         }
 
-        if ($this->hasLinkedAssessment(sessionId: $sessionId, tenantId: $tenantId, cache: $assessmentCache) === false) {
+        $linked = $this->loader->hasLinkedAssessment(sessionId: $sessionId, tenantId: $tenantId, cache: $assessmentCache);
+        if ($linked === false) {
             return;
         }
 
-        $room = $this->loadRoom(roomId: $roomId, tenantId: $tenantId, cache: $roomCache);
+        $room = $this->loader->loadRoom(roomId: $roomId, tenantId: $tenantId, cache: $roomCache);
         if ($room === null) {
             return;
         }
 
-        $cohort         = $this->loadCohort(cohortId: (string) ($session['cohortId'] ?? ''), tenantId: $tenantId, cache: $cohortCache);
-        $candidateCount = count($this->stringList(value: $cohort['learnerIds'] ?? []));
-        $capacity       = (int) ($room['capacity'] ?? 0);
-
-        if ($capacity <= 0 || $candidateCount <= $capacity) {
+        $cohort = $this->cohortFor(session: $session, tenantId: $tenantId, cache: $cohortCache);
+        if ($this->evaluator->exceedsCapacity(cohort: $cohort, room: $room) === false) {
             return;
         }
 
@@ -326,6 +292,25 @@ class TimetableConflictDetector
         );
 
     }//end evaluateCapacity()
+
+    /**
+     * Resolve a Session's Cohort through the per-scan cache.
+     *
+     * @param array<string,mixed>               $session  The Session data.
+     * @param string                            $tenantId Tenant scope.
+     * @param array<string,array<string,mixed>> $cache    Cohort cache (mutated: entries added).
+     *
+     * @return array<string,mixed>|null The cohort data, or null.
+     */
+    private function cohortFor(array $session, string $tenantId, array &$cache): ?array
+    {
+        return $this->loader->loadCohort(
+            cohortId: (string) ($session['cohortId'] ?? ''),
+            tenantId: $tenantId,
+            cache: $cache
+        );
+
+    }//end cohortFor()
 
     /**
      * Queue a TimetableConflict row for creation unless an `open` row already
@@ -390,347 +375,29 @@ class TimetableConflictDetector
     }//end conflictKey()
 
     /**
-     * Load every `open` TimetableConflict's (sessionIds, kind) key for the tenant.
+     * Build the (sessionIds, kind) key set of every `open` TimetableConflict
+     * for the tenant, so an unchanged window never re-creates a finding.
      *
      * @param string $tenantId Tenant scope.
      *
      * @return array<string,true> Map of composite key -> true.
      */
-    private function loadExistingOpenKeys(string $tenantId): array
+    private function existingOpenKeys(string $tenantId): array
     {
-        $filters = ['lifecycle' => 'open'];
-        if ($tenantId !== '') {
-            $filters['tenant_id'] = $tenantId;
-        }
-
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::TIMETABLE_CONFLICT_SCHEMA,
-                'filters'  => $filters,
-                'limit'    => 5000,
-            ]
-        );
-
         $keys = [];
-        foreach ($results as $row) {
-            $data       = $this->normalise(row: $row);
+        foreach ($this->loader->loadOpenConflicts(tenantId: $tenantId) as $data) {
             $sessionIds = $data['sessionIds'] ?? [];
             if (is_array($sessionIds) === false) {
                 continue;
             }
 
-            $keys[$this->conflictKey(sessionIds: $this->stringList(value: $sessionIds), kind: (string) ($data['kind'] ?? ''))] = true;
+            $ids = $this->evaluator->stringList(value: $sessionIds);
+            $key = $this->conflictKey(sessionIds: $ids, kind: (string) ($data['kind'] ?? ''));
+
+            $keys[$key] = true;
         }
 
         return $keys;
 
-    }//end loadExistingOpenKeys()
-
-    /**
-     * Whether a Session has at least one linked Assessment (Assessment.sessionId === this Session).
-     *
-     * @param string                    $sessionId Session UUID.
-     * @param string                    $tenantId  Tenant scope.
-     * @param array<string,string|null> $cache     Per-scan cache, keyed by sessionId (mutated: entries added).
-     *
-     * @return bool True when a linked Assessment exists.
-     */
-    private function hasLinkedAssessment(string $sessionId, string $tenantId, array &$cache): bool
-    {
-        if ($sessionId === '') {
-            return false;
-        }
-
-        if (array_key_exists($sessionId, $cache) === true) {
-            return $cache[$sessionId] !== null;
-        }
-
-        $filters = ['sessionId' => $sessionId];
-        if ($tenantId !== '') {
-            $filters['tenant_id'] = $tenantId;
-        }
-
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::ASSESSMENT_SCHEMA,
-                'filters'  => $filters,
-                'limit'    => 1,
-            ]
-        );
-
-        if (empty($results) === true) {
-            $cache[$sessionId] = null;
-            return false;
-        }
-
-        $assessment        = $this->normalise(row: $results[0]);
-        $cache[$sessionId] = (string) ($assessment['id'] ?? ($assessment['uuid'] ?? 'unknown'));
-
-        return true;
-
-    }//end hasLinkedAssessment()
-
-    /**
-     * Resolve the "assigned teacher" identity set for a Session: the
-     * substitute teacher once assigned, else the Cohort's teacherIds.
-     *
-     * @param array<string,mixed>      $session Session data.
-     * @param array<string,mixed>|null $cohort  The Session's Cohort data, or null.
-     *
-     * @return array<int,string> The assigned teacher Nextcloud user ids.
-     */
-    private function assignedTeacherIds(array $session, ?array $cohort): array
-    {
-        $substituteId = (string) ($session['substituteTeacherId'] ?? '');
-        if ($substituteId !== '') {
-            return [$substituteId];
-        }
-
-        if ($cohort === null) {
-            return [];
-        }
-
-        return $this->stringList(value: $cohort['teacherIds'] ?? []);
-
-    }//end assignedTeacherIds()
-
-    /**
-     * Whether two Sessions' [startsAt, endsAt) intervals overlap.
-     *
-     * @param array<string,mixed> $a Session A.
-     * @param array<string,mixed> $b Session B.
-     *
-     * @return bool True when the intervals overlap.
-     */
-    private function overlaps(array $a, array $b): bool
-    {
-        $aStart = strtotime((string) ($a['startsAt'] ?? ''));
-        $aEnd   = strtotime((string) ($a['endsAt'] ?? ''));
-        $bStart = strtotime((string) ($b['startsAt'] ?? ''));
-        $bEnd   = strtotime((string) ($b['endsAt'] ?? ''));
-
-        if ($aStart === false || $aEnd === false || $bStart === false || $bEnd === false) {
-            return false;
-        }
-
-        return ($aStart < $bEnd && $bStart < $aEnd);
-
-    }//end overlaps()
-
-    /**
-     * Collect the distinct `sessionDayBucket` values (or a computed
-     * fallback derived from `startsAt`'s calendar date) present in the given
-     * Sessions.
-     *
-     * @param array<int,array<string,mixed>> $sessions Session data arrays.
-     *
-     * @return array<int,int|string> Distinct day-bucket values.
-     */
-    private function collectDayBuckets(array $sessions): array
-    {
-        $buckets = [];
-        foreach ($sessions as $session) {
-            if (isset($session['sessionDayBucket']) === true) {
-                $buckets[$session['sessionDayBucket']] = true;
-                continue;
-            }
-
-            $startsAt = (string) ($session['startsAt'] ?? '');
-            $ts       = strtotime($startsAt);
-            if ($ts === false) {
-                continue;
-            }
-
-            $buckets[gmdate('Y-m-d', $ts)] = true;
-        }
-
-        return array_keys($buckets);
-
-    }//end collectDayBuckets()
-
-    /**
-     * Load the scan window: every non-cancelled Session sharing one of the
-     * given day buckets (same tenant), merged with the input Sessions
-     * themselves (in case a freshly-saved row has not yet materialised its
-     * `sessionDayBucket`) — never a full-register scan.
-     *
-     * @param array<int,array<string,mixed>> $sessions The input Session data arrays.
-     * @param array<int,int|string>          $buckets  Distinct day-bucket values.
-     * @param string                         $tenantId Tenant scope.
-     *
-     * @return array<string,array<string,mixed>> Window sessions keyed by id, lifecycle-filtered.
-     */
-    private function loadWindow(array $sessions, array $buckets, string $tenantId): array
-    {
-        $window = [];
-
-        foreach ($sessions as $session) {
-            $id = (string) ($session['id'] ?? ($session['uuid'] ?? ''));
-            if ($id === '' || in_array(($session['lifecycle'] ?? ''), self::EXCLUDED_LIFECYCLES, true) === true) {
-                continue;
-            }
-
-            $window[$id] = $session;
-        }
-
-        foreach ($buckets as $bucket) {
-            $filters = ['sessionDayBucket' => $bucket];
-            if ($tenantId !== '') {
-                $filters['tenant_id'] = $tenantId;
-            }
-
-            $results = $this->objectService->findAll(
-                [
-                    'register' => self::SCHOLIQ_REGISTER,
-                    'schema'   => self::SESSION_SCHEMA,
-                    'filters'  => $filters,
-                    'limit'    => 2000,
-                ]
-            );
-
-            foreach ($results as $row) {
-                $data = $this->normalise(row: $row);
-                $id   = (string) ($data['id'] ?? ($data['uuid'] ?? ''));
-                if ($id === '' || in_array(($data['lifecycle'] ?? ''), self::EXCLUDED_LIFECYCLES, true) === true) {
-                    continue;
-                }
-
-                $window[$id] = $data;
-            }
-        }//end foreach
-
-        return $window;
-
-    }//end loadWindow()
-
-    /**
-     * Load a Cohort by UUID, cached per scan.
-     *
-     * @param string                            $cohortId Cohort UUID.
-     * @param string                            $tenantId Tenant scope.
-     * @param array<string,array<string,mixed>> $cache    Per-scan cache (mutated: entries added).
-     *
-     * @return array<string,mixed>|null The cohort data, or null.
-     */
-    private function loadCohort(string $cohortId, string $tenantId, array &$cache): ?array
-    {
-        if ($cohortId === '') {
-            return null;
-        }
-
-        if (array_key_exists($cohortId, $cache) === true) {
-            return $cache[$cohortId];
-        }
-
-        $filters = ['id' => $cohortId];
-        if ($tenantId !== '') {
-            $filters['tenant_id'] = $tenantId;
-        }
-
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::COHORT_SCHEMA,
-                'filters'  => $filters,
-                'limit'    => 1,
-            ]
-        );
-
-        $cohort = null;
-        if (empty($results) === false) {
-            $cohort = $this->normalise(row: $results[0]);
-        }
-
-        $cache[$cohortId] = $cohort;
-
-        return $cohort;
-
-    }//end loadCohort()
-
-    /**
-     * Load a Room by UUID, cached per scan.
-     *
-     * @param string                            $roomId   Room UUID.
-     * @param string                            $tenantId Tenant scope.
-     * @param array<string,array<string,mixed>> $cache    Per-scan cache (mutated: entries added).
-     *
-     * @return array<string,mixed>|null The room data, or null.
-     */
-    private function loadRoom(string $roomId, string $tenantId, array &$cache): ?array
-    {
-        if ($roomId === '') {
-            return null;
-        }
-
-        if (array_key_exists($roomId, $cache) === true) {
-            return $cache[$roomId];
-        }
-
-        $filters = ['id' => $roomId];
-        if ($tenantId !== '') {
-            $filters['tenant_id'] = $tenantId;
-        }
-
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::ROOM_SCHEMA,
-                'filters'  => $filters,
-                'limit'    => 1,
-            ]
-        );
-
-        $room = null;
-        if (empty($results) === false) {
-            $room = $this->normalise(row: $results[0]);
-        }
-
-        $cache[$roomId] = $room;
-
-        return $room;
-
-    }//end loadRoom()
-
-    /**
-     * Coerce a schema array-of-strings value into a de-duplicated string list.
-     *
-     * @param mixed $value The raw property value.
-     *
-     * @return array<int,string> The string list.
-     */
-    private function stringList(mixed $value): array
-    {
-        if (is_array($value) === false) {
-            return [];
-        }
-
-        $out = [];
-        foreach ($value as $item) {
-            if (is_string($item) === true && $item !== '') {
-                $out[$item] = true;
-            }
-        }
-
-        return array_keys($out);
-
-    }//end stringList()
-
-    /**
-     * Normalise an ObjectService row to a plain array.
-     *
-     * @param mixed $row Raw row from ObjectService::findAll().
-     *
-     * @return array<string,mixed>
-     */
-    private function normalise(mixed $row): array
-    {
-        if (is_array($row) === true) {
-            return $row;
-        }
-
-        return $row->jsonSerialize();
-
-    }//end normalise()
+    }//end existingOpenKeys()
 }//end class

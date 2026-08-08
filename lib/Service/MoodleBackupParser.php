@@ -72,9 +72,12 @@ class MoodleBackupParser
             throw new RuntimeException("No moodle_backup.xml found in '{$dir}' — not a recognisable Moodle backup archive.");
         }
 
+        // `loadXML(file_get_contents())`, NOT `load($path)` — Nextcloud's
+        // XXE-blocking external entity loader makes `load()` fail on the
+        // primary document. See CommonCartridgeParser::parseManifest().
         $xml = new DOMDocument();
         libxml_use_internal_errors(true);
-        $loaded = $xml->load($manifestPath);
+        $loaded = $xml->loadXML((string) file_get_contents($manifestPath));
         libxml_clear_errors();
         if ($loaded === false) {
             throw new RuntimeException("Could not parse moodle_backup.xml in '{$dir}' as XML.");
@@ -83,10 +86,6 @@ class MoodleBackupParser
         $sectionNodes = [];
         $order        = 0;
         foreach ($xml->getElementsByTagName('section') as $sectionEl) {
-            if (($sectionEl instanceof DOMElement) === false) {
-                continue;
-            }
-
             // Only <section> elements directly under <sections> carry a <sectionid>; skip any
             // unrelated same-named elements elsewhere in the document.
             $sectionId = $this->childText(element: $sectionEl, tagName: 'sectionid');
@@ -105,10 +104,6 @@ class MoodleBackupParser
         $activities = [];
         $order      = 0;
         foreach ($xml->getElementsByTagName('activity') as $activityEl) {
-            if (($activityEl instanceof DOMElement) === false) {
-                continue;
-            }
-
             $moduleId = $this->childText(element: $activityEl, tagName: 'moduleid');
             if ($moduleId === null) {
                 continue;

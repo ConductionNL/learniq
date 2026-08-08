@@ -41,6 +41,7 @@ namespace OCA\Scholiq\Lifecycle;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\Service\RolloverExecutionService;
 use OCA\Scholiq\Service\RolloverService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -67,13 +68,15 @@ class RolloverExecutionHandler implements IEventListener
     /**
      * Constructor.
      *
-     * @param ObjectService   $objectService   OR object access service.
-     * @param RolloverService $rolloverService Rollover preview/execution logic.
-     * @param LoggerInterface $logger          PSR logger.
+     * @param ObjectService            $objectService    OR object access service.
+     * @param RolloverService          $rolloverService  Rollover preview logic (the dry-run gate).
+     * @param RolloverExecutionService $executionService Rollover execution logic (the writes).
+     * @param LoggerInterface          $logger           PSR logger.
      */
     public function __construct(
         private readonly ObjectService $objectService,
         private readonly RolloverService $rolloverService,
+        private readonly RolloverExecutionService $executionService,
         private readonly LoggerInterface $logger,
     ) {
     }//end __construct()
@@ -111,7 +114,7 @@ class RolloverExecutionHandler implements IEventListener
         }
 
         try {
-            $progress = $this->rolloverService->execute(plan: $plan);
+            $progress = $this->executionService->execute(plan: $plan);
 
             $plan['perMappingProgress'] = $progress;
             $plan['lifecycle']          = 'completed';

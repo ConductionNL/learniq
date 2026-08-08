@@ -218,17 +218,17 @@ class WalletOfferDelegationService
             return null;
         }
 
-        $kind = (string) ($credential['kind'] ?? '');
-        $credentialConfigurationId = 'edci-diploma';
+        $kind       = (string) ($credential['kind'] ?? '');
+        $configName = 'edci-diploma';
         if ($kind === 'badge' || $kind === 'microcredential') {
-            $credentialConfigurationId = 'open-badges-3';
+            $configName = 'open-badges-3';
         }
 
         return [
             'credentialPayload'         => $payload,
             'format'                    => 'jwt_vc_json',
             'subjectId'                 => $subjectId,
-            'credentialConfigurationId' => $credentialConfigurationId,
+            'credentialConfigurationId' => $configName,
         ];
     }//end buildOfferRequest()
 
@@ -254,9 +254,11 @@ class WalletOfferDelegationService
 
         $path     = (string) parse_url($uri, PHP_URL_PATH);
         $segments = explode('/', trim($path, '/'));
-        $uuid     = end($segments);
+        // Explode always yields at least one element, so end() cannot return
+        // false here and the value is always a string.
+        $uuid = end($segments);
 
-        if (is_string($uuid) === false || $uuid === '') {
+        if ($uuid === '') {
             return null;
         }
 

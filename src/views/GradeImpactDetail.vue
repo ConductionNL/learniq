@@ -324,7 +324,7 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		async loadEntry(entryId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/GradeEntry/${entryId}`)
+			const url = generateUrl(`/apps/openregister/api/objects/scholiq/grade-entry/${entryId}`)
 			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
 			if (!resp.ok) {
 				throw new Error(`GradeEntry fetch failed: ${resp.status}`)
@@ -346,7 +346,7 @@ export default {
 				return
 			}
 
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/CurriculumPlan/${planId}`)
+			const url = generateUrl(`/apps/openregister/api/objects/scholiq/curriculum-plan/${planId}`)
 			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
 			if (!resp.ok) {
 				return
@@ -373,7 +373,7 @@ export default {
 			}
 
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/GradeEntry?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&period=${encodeURIComponent(period)}&lifecycle=published&limit=100`,
+				`/apps/openregister/api/objects/scholiq/grade-entry?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&period=${encodeURIComponent(period)}&lifecycle=published&limit=100`,
 			)
 			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
 			if (!resp.ok) {
@@ -401,7 +401,7 @@ export default {
 			}
 
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/FinalGrade?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&limit=1`,
+				`/apps/openregister/api/objects/scholiq/final-grade?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&limit=1`,
 			)
 			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
 			if (!resp.ok) {

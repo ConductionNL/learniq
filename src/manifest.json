@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"dependencies": [
 		"openregister",
-		"openconnector"
+		{ "id": "openconnector", "required": false, "name": "OpenConnector" }
 	],
 	"observability": {
 		"health": {
@@ -71,125 +71,125 @@
 		{
 			"id": "GroupLearning",
 			"label": "Learning",
-			"icon": "icon-folder",
+			"icon": "SchoolOutline",
 			"order": 10,
 			"children": [
 				{
 					"id": "Courses",
 					"label": "Courses",
-					"icon": "icon-folder",
+					"icon": "BookOpenPageVariantOutline",
 					"route": "Courses",
 					"order": 10
 				},
 				{
 					"id": "CoursePackageImportMenu",
 					"label": "Import course package",
-					"icon": "icon-upload",
+					"icon": "DatabaseImportOutline",
 					"route": "CoursePackageImportView",
 					"order": 11
 				},
 				{
 					"id": "CoursePackageExportMenu",
 					"label": "Export course package",
-					"icon": "icon-download",
+					"icon": "DatabaseExportOutline",
 					"route": "CoursePackageExport",
 					"order": 12
 				},
 				{
 					"id": "CoursePackageImportReportsMenu",
 					"label": "Course package import reports",
-					"icon": "icon-details",
+					"icon": "DatabaseImportOutline",
 					"route": "CoursePackageImportReports",
 					"order": 13
 				},
 				{
 					"id": "Curriculum",
 					"label": "Curriculum",
-					"icon": "icon-projects",
+					"icon": "BriefcaseOutline",
 					"route": "Programmes",
 					"order": 20
 				},
 				{
 					"id": "CourseTemplatesMenu",
 					"label": "Course templates",
-					"icon": "icon-clone",
+					"icon": "FileReplaceOutline",
 					"route": "CourseTemplates",
 					"order": 22
 				},
 				{
 					"id": "LearningPlans",
 					"label": "Learning plans",
-					"icon": "icon-files",
+					"icon": "SchoolOutline",
 					"route": "LearningPlans",
 					"order": 30
 				},
 				{
 					"id": "GroupPlans",
 					"label": "Group plans",
-					"icon": "icon-group",
+					"icon": "AccountGroupOutline",
 					"route": "GroupPlans",
 					"order": 32
 				},
 				{
 					"id": "SupportRequests",
 					"label": "Support requests",
-					"icon": "icon-comment",
+					"icon": "CommentOutline",
 					"route": "SupportRequests",
 					"order": 35
 				},
 				{
 					"id": "Assignments",
 					"label": "Assignments",
-					"icon": "icon-file-text",
+					"icon": "ClipboardTextOutline",
 					"route": "Assignments",
 					"order": 40
 				},
 				{
 					"id": "SubjectChoicesMenu",
 					"label": "Subject choices",
-					"icon": "icon-checkmark",
+					"icon": "Check",
 					"route": "SubjectChoices",
 					"order": 45
 				},
 				{
 					"id": "SubjectChoicePickerMenu",
 					"label": "Pick electives",
-					"icon": "icon-checkmark",
+					"icon": "Check",
 					"route": "SubjectChoicePicker",
 					"order": 46
 				},
 				{
 					"id": "Assessments",
 					"label": "Assessments",
-					"icon": "icon-clippy",
+					"icon": "ClipboardOutline",
 					"route": "Assessments",
 					"order": 50
 				},
 				{
 					"id": "Grades",
 					"label": "Grades",
-					"icon": "icon-quota",
+					"icon": "Gauge",
 					"route": "GradeEntries",
 					"order": 60
 				},
 				{
 					"id": "ReportPeriodsMenu",
 					"label": "Report periods",
-					"icon": "icon-quota",
+					"icon": "ChartBoxOutline",
 					"route": "ReportPeriods",
 					"order": 62
 				},
 				{
 					"id": "ReportCardsMenu",
 					"label": "Report cards",
-					"icon": "icon-quota",
+					"icon": "ChartBoxOutline",
 					"route": "ReportCards",
 					"order": 64
 				},
 				{
 					"id": "LtiToolPlacementsMenu",
 					"label": "LTI tools",
-					"icon": "icon-external",
+					"icon": "OpenInNew",
 					"route": "LtiToolPlacements",
 					"order": 65
 				}
@@ -198,27 +198,27 @@
 		{
 			"id": "GroupAdmissions",
 			"label": "Admissions",
-			"icon": "icon-add",
+			"icon": "Plus",
 			"order": 15,
 			"children": [
 				{
 					"id": "AdmissionsReviewBoardMenu",
 					"label": "Review board",
-					"icon": "icon-checkmark",
+					"icon": "CommentOutline",
 					"route": "AdmissionsReviewBoard",
 					"order": 10
 				},
 				{
 					"id": "ApplicationsMenu",
 					"label": "Applications",
-					"icon": "icon-contacts",
+					"icon": "ApplicationOutline",
 					"route": "Applications",
 					"order": 20
 				},
 				{
 					"id": "AdmissionsRoundsMenu",
 					"label": "Admissions rounds",
-					"icon": "icon-calendar",
+					"icon": "Calendar",
 					"route": "AdmissionsRounds",
 					"order": 30
 				}
@@ -227,34 +227,34 @@
 		{
 			"id": "GroupPeople",
 			"label": "People",
-			"icon": "icon-contacts",
+			"icon": "AccountMultipleOutline",
 			"order": 20,
 			"children": [
 				{
 					"id": "LearnerProfilesMenu",
 					"label": "Learners",
-					"icon": "icon-contacts",
+					"icon": "AccountBox",
 					"route": "LearnerProfiles",
 					"order": 10
 				},
 				{
 					"id": "Enrolments",
 					"label": "Enrolments",
-					"icon": "icon-group",
+					"icon": "AccountGroup",
 					"route": "Enrolments",
 					"order": 20
 				},
 				{
 					"id": "Attendance",
 					"label": "Attendance",
-					"icon": "icon-calendar",
+					"icon": "Calendar",
 					"route": "AttendanceRecords",
 					"order": 30
 				},
 				{
 					"id": "Credentials",
 					"label": "Credentials",
-					"icon": "icon-checkmark",
+					"icon": "Check",
 					"route": "Credentials",
 					"order": 40
 				}
@@ -263,27 +263,27 @@
 		{
 			"id": "GroupPupilDossier",
 			"label": "Pupil dossier",
-			"icon": "icon-comment",
+			"icon": "AccountSchoolOutline",
 			"order": 27,
 			"children": [
 				{
 					"id": "DossierNotesMenu",
 					"label": "Dossier notes",
-					"icon": "icon-comment",
+					"icon": "CommentOutline",
 					"route": "DossierNotes",
 					"order": 10
 				},
 				{
 					"id": "BehaviourIncidentsMenu",
 					"label": "Behaviour incidents",
-					"icon": "icon-flag",
+					"icon": "AlertOutline",
 					"route": "BehaviourIncidents",
 					"order": 20
 				},
 				{
 					"id": "WellbeingCheckInsMenu",
 					"label": "Wellbeing check-ins",
-					"icon": "icon-projects",
+					"icon": "BriefcaseOutline",
 					"route": "WellbeingCheckIns",
 					"order": 30
 				}
@@ -292,13 +292,13 @@
 		{
 			"id": "GroupInsight",
 			"label": "Insight",
-			"icon": "icon-projects",
+			"icon": "BriefcaseOutline",
 			"order": 30,
 			"children": [
 				{
 					"id": "DashboardAdmin",
 					"label": "Administration",
-					"icon": "icon-home",
+					"icon": "ShieldAccountOutline",
 					"route": "DashboardAdmin",
 					"order": 5,
 					"visibleIf": {
@@ -310,7 +310,7 @@
 				{
 					"id": "DashboardTeacher",
 					"label": "Teaching",
-					"icon": "icon-home",
+					"icon": "Home",
 					"route": "DashboardTeacher",
 					"order": 6,
 					"visibleIf": {
@@ -322,7 +322,7 @@
 				{
 					"id": "DashboardStudent",
 					"label": "My learning",
-					"icon": "icon-home",
+					"icon": "SchoolOutline",
 					"route": "DashboardStudent",
 					"order": 7,
 					"visibleIf": {
@@ -334,7 +334,7 @@
 				{
 					"id": "Compliance",
 					"label": "Compliance",
-					"icon": "icon-password",
+					"icon": "ClipboardCheckOutline",
 					"route": "Compliance",
 					"order": 30,
 					"visibleIf": {
@@ -349,14 +349,14 @@
 				{
 					"id": "Accessibility",
 					"label": "Accessibility",
-					"icon": "icon-info",
+					"icon": "InformationOutline",
 					"route": "AccessibilityStatement",
 					"order": 40
 				},
 				{
 					"id": "AccessibilityLimitationsMenu",
 					"label": "Accessibility limitations",
-					"icon": "icon-flag",
+					"icon": "HumanWheelchair",
 					"route": "AccessibilityLimitations",
 					"order": 41,
 					"visibleIf": {
@@ -371,7 +371,7 @@
 				{
 					"id": "AiProcessingDisclosureMenu",
 					"label": "AI processing disclosure",
-					"icon": "icon-password",
+					"icon": "Lock",
 					"route": "AiProcessingDisclosure",
 					"order": 42,
 					"visibleIf": {
@@ -386,7 +386,7 @@
 				{
 					"id": "AccessibilityFeedbacksMenu",
 					"label": "Accessibility feedback",
-					"icon": "icon-comment",
+					"icon": "CommentOutline",
 					"route": "AccessibilityFeedbacks",
 					"order": 42,
 					"visibleIf": {
@@ -403,13 +403,13 @@
 		{
 			"id": "GroupDataExchange",
 			"label": "Data exchange",
-			"icon": "icon-external",
+			"icon": "DatabaseOutline",
 			"order": 31,
 			"children": [
 				{
 					"id": "DataMappingProfilesMenu",
 					"label": "Mapping profiles",
-					"icon": "icon-projects",
+					"icon": "SwapHorizontal",
 					"route": "DataMappingProfiles",
 					"order": 10,
 					"visibleIf": {
@@ -421,7 +421,7 @@
 				{
 					"id": "DataExchangeJobsMenu",
 					"label": "Exchange jobs",
-					"icon": "icon-shared",
+					"icon": "ShareVariant",
 					"route": "DataExchangeJobs",
 					"order": 20,
 					"visibleIf": {
@@ -433,7 +433,7 @@
 				{
 					"id": "ExchangeRejectionsMenu",
 					"label": "Rejections",
-					"icon": "icon-flag",
+					"icon": "CloseCircleOutline",
 					"route": "ExchangeRejections",
 					"order": 30,
 					"visibleIf": {
@@ -445,7 +445,7 @@
 				{
 					"id": "ExchangeErrorCodesMenu",
 					"label": "Error codes",
-					"icon": "icon-info",
+					"icon": "InformationOutline",
 					"route": "ExchangeErrorCodes",
 					"order": 40,
 					"visibleIf": {
@@ -459,27 +459,27 @@
 		{
 			"id": "GroupExamBoard",
 			"label": "Exam board",
-			"icon": "icon-password",
+			"icon": "ClipboardTextOutline",
 			"order": 28,
 			"children": [
 				{
 					"id": "ExemptionCasesMenu",
 					"label": "Exemption requests",
-					"icon": "icon-checkmark",
+					"icon": "Check",
 					"route": "ExemptionCases",
 					"order": 10
 				},
 				{
 					"id": "FraudCasesMenu",
 					"label": "Fraud cases",
-					"icon": "icon-password",
+					"icon": "FolderAccountOutline",
 					"route": "FraudCases",
 					"order": 20
 				},
 				{
 					"id": "ItemRevisionFlagsMenu",
 					"label": "Item revision flags",
-					"icon": "icon-flag",
+					"icon": "FlagVariantOutline",
 					"route": "ItemRevisionFlags",
 					"order": 30
 				}
@@ -488,34 +488,34 @@
 		{
 			"id": "GroupStudyProgress",
 			"label": "Study progress (BSA)",
-			"icon": "icon-projects",
+			"icon": "TrendingUp",
 			"order": 29,
 			"children": [
 				{
 					"id": "BsaRiskDashboardMenu",
 					"label": "Risk dashboard",
-					"icon": "icon-projects",
+					"icon": "ViewDashboardOutline",
 					"route": "BsaRiskDashboard",
 					"order": 10
 				},
 				{
 					"id": "BsaTrajectoriesMenu",
 					"label": "Trajectories",
-					"icon": "icon-projects",
+					"icon": "BriefcaseOutline",
 					"route": "BsaTrajectories",
 					"order": 20
 				},
 				{
 					"id": "BsaWarningsMenu",
 					"label": "Warnings",
-					"icon": "icon-password",
+					"icon": "Lock",
 					"route": "BsaWarnings",
 					"order": 30
 				},
 				{
 					"id": "BsaDecisionsMenu",
 					"label": "Decisions",
-					"icon": "icon-password",
+					"icon": "Gavel",
 					"route": "BsaDecisions",
 					"order": 40
 				}
@@ -524,34 +524,34 @@
 		{
 			"id": "GroupCompetency",
 			"label": "Competencies",
-			"icon": "icon-clippy",
+			"icon": "MedalOutline",
 			"order": 30,
 			"children": [
 				{
 					"id": "SkillsGapDashboardMenu",
 					"label": "Skills gap dashboard",
-					"icon": "icon-checkmark",
+					"icon": "ViewDashboardOutline",
 					"route": "SkillsGapDashboard",
 					"order": 10
 				},
 				{
 					"id": "CompetencyFrameworksMenu",
 					"label": "Frameworks",
-					"icon": "icon-folder",
+					"icon": "Folder",
 					"route": "CompetencyFrameworks",
 					"order": 20
 				},
 				{
 					"id": "CompetenciesMenu",
 					"label": "Competencies",
-					"icon": "icon-clippy",
+					"icon": "MedalOutline",
 					"route": "Competencies",
 					"order": 30
 				},
 				{
 					"id": "CompetencyAttainmentsMenu",
 					"label": "Attainment",
-					"icon": "icon-projects",
+					"icon": "BriefcaseOutline",
 					"route": "CompetencyAttainments",
 					"order": 40
 				}
@@ -560,13 +560,13 @@
 		{
 			"id": "GroupStudentAnalytics",
 			"label": "Progress & analytics",
-			"icon": "icon-projects",
+			"icon": "ChartLineVariant",
 			"order": 31,
 			"children": [
 				{
 					"id": "GroupTrendHeatmapMenu",
 					"label": "Group trend heat map",
-					"icon": "icon-projects",
+					"icon": "AccountGroupOutline",
 					"route": "GroupTrendHeatmap",
 					"order": 10,
 					"visibleIf": {
@@ -578,21 +578,21 @@
 				{
 					"id": "LessonCompletionsMenu",
 					"label": "Lesson completions",
-					"icon": "icon-checkmark",
+					"icon": "Check",
 					"route": "LessonCompletions",
 					"order": 20
 				},
 				{
 					"id": "EngagementScoresMenu",
 					"label": "Engagement scores",
-					"icon": "icon-chart",
+					"icon": "ChartLine",
 					"route": "EngagementScores",
 					"order": 30
 				},
 				{
 					"id": "EngagementRiskThresholdsMenu",
 					"label": "Engagement thresholds",
-					"icon": "icon-toggle",
+					"icon": "Eye",
 					"route": "EngagementRiskThresholds",
 					"order": 40,
 					"visibleIf": {
@@ -604,7 +604,7 @@
 				{
 					"id": "EngagementRiskFlagsMenu",
 					"label": "Engagement flags",
-					"icon": "icon-password",
+					"icon": "Lock",
 					"route": "EngagementRiskFlags",
 					"order": 50
 				}
@@ -613,20 +613,20 @@
 		{
 			"id": "GroupEngagement",
 			"label": "Engagement",
-			"icon": "icon-chart",
+			"icon": "ChartLine",
 			"order": 32,
 			"children": [
 				{
 					"id": "LeaderboardViewMenu",
 					"label": "Leaderboard",
-					"icon": "icon-chart",
+					"icon": "AccountArrowRightOutline",
 					"route": "LeaderboardView",
 					"order": 10
 				},
 				{
 					"id": "PointRulesMenu",
 					"label": "Point rules",
-					"icon": "icon-toggle",
+					"icon": "Eye",
 					"route": "PointRules",
 					"order": 20,
 					"visibleIf": {
@@ -638,7 +638,7 @@
 				{
 					"id": "EngagementLevelsMenu",
 					"label": "Levels",
-					"icon": "icon-clippy",
+					"icon": "ClipboardOutline",
 					"route": "EngagementLevels",
 					"order": 30,
 					"visibleIf": {
@@ -650,7 +650,7 @@
 				{
 					"id": "LeaderboardsMenu",
 					"label": "Leaderboards (config)",
-					"icon": "icon-flag",
+					"icon": "AccountArrowRightOutline",
 					"route": "Leaderboards",
 					"order": 40,
 					"visibleIf": {
@@ -662,7 +662,7 @@
 				{
 					"id": "PointAwardsMenu",
 					"label": "Point awards",
-					"icon": "icon-history",
+					"icon": "History",
 					"route": "PointAwards",
 					"order": 50,
 					"visibleIf": {
@@ -674,7 +674,7 @@
 				{
 					"id": "LearnerEngagementsMenu",
 					"label": "Learner engagement",
-					"icon": "icon-chart",
+					"icon": "ChartLine",
 					"route": "LearnerEngagements",
 					"order": 60
 				}
@@ -683,27 +683,27 @@
 		{
 			"id": "GroupCourseEvaluation",
 "label": "Course evaluation",
-"icon": "icon-quota",
+"icon": "BookOpenPageVariantOutline",
 "order": 33,
 "children": [
 {
 "id": "EvaluationCampaignsMenu",
 "label": "Evaluation campaigns",
-"icon": "icon-clippy",
+"icon": "ClipboardOutline",
 "route": "EvaluationCampaigns",
 "order": 10
 },
 {
 "id": "CourseQualityReportMenu",
 "label": "Quality report",
-"icon": "icon-chart",
+"icon": "ChartBoxOutline",
 "route": "CourseQualityReport",
 "order": 20
 },
 {
 "id": "CourseEvaluationResponsesMenu",
 "label": "Responses",
-"icon": "icon-comment",
+"icon": "CommentOutline",
 "route": "CourseEvaluationResponses",
 "order": 30,
 "visibleIf": {
@@ -715,7 +715,7 @@
 {
 "id": "ImprovementActionsMenu",
 "label": "Improvement actions",
-"icon": "icon-checkmark",
+"icon": "Check",
 "route": "ImprovementActions",
 "order": 40
 }
@@ -724,41 +724,41 @@
 {
 "id": "GroupBpv",
 			"label": "BPV",
-			"icon": "icon-briefcase",
+			"icon": "BriefcaseOutline",
 			"order": 26,
 			"children": [
 				{
 					"id": "BpvPlacementsMenu",
 					"label": "Placements",
-					"icon": "icon-briefcase",
+					"icon": "BriefcaseOutline",
 					"route": "BpvPlacements",
 					"order": 10
 				},
 				{
 					"id": "PraktijkovereenkomstenMenu",
 					"label": "Praktijkovereenkomsten",
-					"icon": "icon-file",
+					"icon": "FileOutline",
 					"route": "Praktijkovereenkomsten",
 					"order": 20
 				},
 				{
 					"id": "WerkprocesAssessmentsMenu",
 					"label": "Werkproces assessments",
-					"icon": "icon-checkmark",
+					"icon": "Check",
 					"route": "WerkprocesAssessments",
 					"order": 30
 				},
 				{
 					"id": "BpvVisitReportsMenu",
 					"label": "Visit reports",
-					"icon": "icon-calendar",
+					"icon": "ChartBoxOutline",
 					"route": "BpvVisitReports",
 					"order": 40
 				},
 				{
 					"id": "PraktijkopleidersMenu",
 					"label": "Praktijkopleiders",
-					"icon": "icon-contacts",
+					"icon": "AccountBox",
 					"route": "Praktijkopleiders",
 					"order": 50
 				}
@@ -767,41 +767,41 @@
 		{
 			"id": "GroupPortfolio",
 			"label": "Portfolios",
-			"icon": "icon-briefcase",
+			"icon": "BriefcaseOutline",
 			"order": 27,
 			"children": [
 				{
 					"id": "PortfoliosMenu",
 					"label": "Portfolios",
-					"icon": "icon-briefcase",
+					"icon": "BriefcaseOutline",
 					"route": "Portfolios",
 					"order": 10
 				},
 				{
 					"id": "PortfolioTemplatesMenu",
 					"label": "Portfolio templates",
-					"icon": "icon-clippy",
+					"icon": "FileReplaceOutline",
 					"route": "PortfolioTemplates",
 					"order": 20
 				},
 				{
 					"id": "PortfolioEntriesMenu",
 					"label": "Portfolio entries",
-					"icon": "icon-file",
+					"icon": "BriefcaseOutline",
 					"route": "PortfolioEntries",
 					"order": 30
 				},
 				{
 					"id": "PortfolioSharesMenu",
 					"label": "Portfolio shares",
-					"icon": "icon-shared",
+					"icon": "BriefcaseOutline",
 					"route": "PortfolioShares",
 					"order": 40
 				},
 				{
 					"id": "ExternalAssessorsMenu",
 					"label": "External assessors",
-					"icon": "icon-contacts",
+					"icon": "AccountBox",
 					"route": "ExternalAssessors",
 					"order": 50
 				}
@@ -810,27 +810,27 @@
 		{
 			"id": "MyTimetableMenu",
 			"label": "My timetable",
-			"icon": "icon-calendar",
+			"icon": "TableClock",
 			"route": "MyTimetable",
 			"order": 25
 		},
 		{
 			"id": "MyLearningRecordMenu",
 			"label": "My learning record",
-			"icon": "icon-quota",
+			"icon": "SchoolOutline",
 			"route": "MyLearningRecordView",
 			"order": 26
 		},
 		{
 			"id": "GroupConferences",
 			"label": "Parent conferences",
-			"icon": "icon-calendar",
+			"icon": "Calendar",
 			"order": 27,
 			"children": [
 				{
 					"id": "BookConferenceSlotsMenu",
 					"label": "Book a conversation",
-					"icon": "icon-calendar",
+					"icon": "Calendar",
 					"route": "BookConferenceSlotsView",
 					"order": 10,
 					"visibleIf": {
@@ -842,21 +842,21 @@
 				{
 					"id": "ConferenceRoundsMenu",
 					"label": "Conference rounds",
-					"icon": "icon-calendar",
+					"icon": "Calendar",
 					"route": "ConferenceRounds",
 					"order": 20
 				},
 				{
 					"id": "TeacherAvailabilitiesMenu",
 					"label": "Teacher availability",
-					"icon": "icon-calendar",
+					"icon": "Calendar",
 					"route": "TeacherAvailabilities",
 					"order": 30
 				},
 				{
 					"id": "ConferenceScheduleBoardMenu",
 					"label": "Schedule board",
-					"icon": "icon-checkmark",
+					"icon": "Check",
 					"route": "ConferenceScheduleBoard",
 					"order": 40,
 					"visibleIf": {
@@ -868,7 +868,7 @@
 				{
 					"id": "ConferenceReportsMenu",
 					"label": "Conference reports",
-					"icon": "icon-file-text",
+					"icon": "ChartBoxOutline",
 					"route": "ConferenceReports",
 					"order": 50
 				}
@@ -877,20 +877,20 @@
 		{
 			"id": "GroupTimetabling",
 			"label": "Timetabling",
-			"icon": "icon-calendar",
+			"icon": "Calendar",
 			"order": 28,
 			"children": [
 				{
 					"id": "RoomsMenu",
 					"label": "Rooms",
-					"icon": "icon-category-office",
+					"icon": "OfficeBuilding",
 					"route": "Rooms",
 					"order": 10
 				},
 				{
 					"id": "TimetableConflictQueueMenu",
 					"label": "Timetable conflicts",
-					"icon": "icon-error",
+					"icon": "TableClock",
 					"route": "TimetableConflictQueue",
 					"order": 20,
 					"visibleIf": {
@@ -902,7 +902,7 @@
 				{
 					"id": "ExamAccommodationsMenu",
 					"label": "Exam accommodations",
-					"icon": "icon-favorite",
+					"icon": "ClipboardTextOutline",
 					"route": "ExamAccommodations",
 					"order": 30
 				}
@@ -911,20 +911,20 @@
 		{
 			"id": "GroupPayments",
 			"label": "Payments",
-			"icon": "icon-quota",
+			"icon": "CreditCardOutline",
 			"order": 34,
 			"children": [
 				{
 					"id": "OrdersMenu",
 					"label": "Orders",
-					"icon": "icon-clippy",
+					"icon": "ClipboardListOutline",
 					"route": "Orders",
 					"order": 10
 				},
 				{
 					"id": "FeeItemsMenu",
 					"label": "Fee items",
-					"icon": "icon-flag",
+					"icon": "CurrencyEur",
 					"route": "FeeItems",
 					"order": 20,
 					"visibleIf": {
@@ -936,7 +936,7 @@
 				{
 					"id": "OrderLinesMenu",
 					"label": "Order lines",
-					"icon": "icon-file",
+					"icon": "ClipboardListOutline",
 					"route": "OrderLines",
 					"order": 30,
 					"visibleIf": {
@@ -948,7 +948,7 @@
 				{
 					"id": "PaymentTransactionsMenu",
 					"label": "Payment transactions",
-					"icon": "icon-chart",
+					"icon": "CreditCardOutline",
 					"route": "PaymentTransactions",
 					"order": 40,
 					"visibleIf": {
@@ -960,7 +960,7 @@
 				{
 					"id": "EntitlementsMenu",
 					"label": "Entitlements",
-					"icon": "icon-checkmark",
+					"icon": "Check",
 					"route": "Entitlements",
 					"order": 50,
 					"visibleIf": {
@@ -974,7 +974,7 @@
 		{
 			"id": "Documentation",
 			"label": "Documentation",
-			"icon": "icon-info",
+			"icon": "BookOpenVariantOutline",
 			"href": "https://scholiq.conduction.nl",
 			"section": "footer",
 			"order": 90
@@ -982,7 +982,7 @@
 		{
 			"id": "FeaturesRoadmapMenu",
 			"label": "Features & roadmap",
-			"icon": "icon-toggle",
+			"icon": "MapMarkerPath",
 			"route": "FeaturesRoadmap",
 			"section": "footer",
 			"order": 100
@@ -990,7 +990,7 @@
 		{
 			"id": "XapiStatementsMenu",
 			"label": "xAPI statements",
-			"icon": "icon-history",
+			"icon": "History",
 			"route": "XapiStatements",
 			"section": "settings",
 			"order": 94
@@ -998,7 +998,7 @@
 		{
 			"id": "Rollover",
 			"label": "School-year rollover",
-			"icon": "icon-history",
+			"icon": "History",
 			"route": "RolloverWizard",
 			"order": 46,
 			"visibleIf": {
@@ -1012,7 +1012,7 @@
 		{
 			"id": "ExternalTraining",
 			"label": "External training",
-			"icon": "icon-add",
+			"icon": "Plus",
 			"route": "ExternalTrainingRecords",
 			"order": 52,
 			"visibleIf": {
@@ -1874,7 +1874,7 @@
 						"id": "cpir-entries",
 						"type": "data",
 						"title": "Resource entries",
-						"icon": "TableOutline",
+						"icon": "Table",
 						"content": {
 							"columns": 1,
 							"include": [

@@ -204,7 +204,7 @@ export default {
 					fetch(generateUrl('/apps/openregister/api/objects/scholiq/Cohort?limit=200'), {
 						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 					}),
-					fetch(generateUrl('/apps/openregister/api/objects/scholiq/GradeEntry?limit=500&lifecycle=published'), {
+					fetch(generateUrl('/apps/openregister/api/objects/scholiq/grade-entry?limit=500&lifecycle=published'), {
 						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 					}),
 				])

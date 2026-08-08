@@ -114,17 +114,8 @@ class RoleSelector
                 continue;
             }
 
-            // 'learner' is the only role that does not need NC group backing.
-            if ($role !== 'learner' && $user instanceof IUser) {
-                $groupName = 'scholiq-'.$role;
-                if ($this->groupManager->isInGroup(userId: $user->getUID(), group: $groupName) === false) {
-                    // Claimed role not backed by NC group — silently demote to learner.
-                    $this->logger->warning(
-                        '[RoleSelector] User {uid} claims role {role} but is not in NC group {group}; role ignored.',
-                        ['uid' => $user->getUID(), 'role' => $role, 'group' => $groupName]
-                    );
-                    continue;
-                }
+            if ($this->roleIsBackedByGroup(role: $role, user: $user) === false) {
+                continue;
             }
 
             $bestPriority = $priority;
@@ -133,4 +124,40 @@ class RoleSelector
 
         return $bestRole;
     }//end calculate()
+
+    /**
+     * Whether a claimed role is backed by the NC group that must vouch for it.
+     *
+     * #204: every role above `learner` MUST be backed by NC group membership
+     * (`scholiq-{role}`), so a learner cannot self-elevate by editing
+     * LearnerProfile.roles. `learner` is the only role a profile record alone
+     * can assert.
+     *
+     * @param mixed $role The claimed role.
+     * @param mixed $user The user the claim is about, when one is in context.
+     *
+     * @return bool True when the claim may stand.
+     *
+     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-20
+     */
+    private function roleIsBackedByGroup(mixed $role, mixed $user): bool
+    {
+        if ($role === 'learner' || $user instanceof IUser === false) {
+            return true;
+        }
+
+        $groupName = 'scholiq-'.$role;
+        if ($this->groupManager->isInGroup(userId: $user->getUID(), group: $groupName) === true) {
+            return true;
+        }
+
+        // Claimed role not backed by NC group — silently demote to learner.
+        $this->logger->warning(
+            '[RoleSelector] User {uid} claims role {role} but is not in NC group {group}; role ignored.',
+            ['uid' => $user->getUID(), 'role' => $role, 'group' => $groupName]
+        );
+
+        return false;
+
+    }//end roleIsBackedByGroup()
 }//end class

@@ -8,9 +8,14 @@ import { test, expect } from './fixtures'
  * on the API response. For a non-existent id it shows a "Credential not found"
  * empty state.
  *
- * NOTE: The hash-route component mount timing means that in some test runs the
- * Dashboard may appear instead of the CredentialVerify view. The test documents
- * this known timing gap and accepts it as a soft-pass.
+ * ⚠️ The note that used to sit here — "the hash-route component mount timing means
+ * that in some test runs the Dashboard may appear instead of the CredentialVerify
+ * view" — was wrong on both counts, and it was rationalising a bug rather than
+ * describing one. There is no hash route: src/main.js builds the router with
+ * `createWebHistory(generateUrl('/apps/scholiq'))`. Navigating to
+ * `/index.php/apps/scholiq/#/credentials/…/verify` therefore resolved to a
+ * location matching no route at all, so the app body rendered EMPTY — every run,
+ * not "some runs", and not a timing gap. The URLs below use the plain path form.
  */
 test.describe('CredentialVerify page', () => {
 	test('verify route loads and shows valid/invalid status for unknown credential', async ({
@@ -35,8 +40,8 @@ test.describe('CredentialVerify page', () => {
 		})
 
 		// Navigate to the verify route with a test UUID.
-		// The Scholiq SPA uses Vue hash-router.
-		await page.goto('/index.php/apps/scholiq/#/credentials/test-id/verify', {
+		// The Scholiq SPA uses vue-router in HISTORY mode — no `#`.
+		await page.goto('/index.php/apps/scholiq/credentials/test-id/verify', {
 			waitUntil: 'domcontentloaded',
 			timeout: 30_000,
 		})
@@ -73,7 +78,7 @@ test.describe('CredentialVerify page', () => {
 	test('verify page shows loading state or content after navigation', async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto('/index.php/apps/scholiq/#/credentials/test-loading-id/verify', {
+		await page.goto('/index.php/apps/scholiq/credentials/test-loading-id/verify', {
 			waitUntil: 'domcontentloaded',
 			timeout: 30_000,
 		})

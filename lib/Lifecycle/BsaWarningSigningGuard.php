@@ -63,7 +63,6 @@ use Psr\Log\LoggerInterface;
  */
 class BsaWarningSigningGuard
 {
-
     /**
      * Constructor.
      *

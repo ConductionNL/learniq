@@ -52,11 +52,11 @@ use Psr\Log\LoggerInterface;
 class BsaDecisionGuard
 {
 
-    private const SCHOLIQ_REGISTER = 'scholiq';
+    private const SCHOLIQ_REGISTER   = 'scholiq';
     private const BSA_WARNING_SCHEMA = 'bsa-warning';
 
     /**
-     * decisionType values that trigger the warning + rationale requirement.
+     * DecisionType values that trigger the warning + rationale requirement.
      *
      * @var string[]
      */
@@ -114,11 +114,18 @@ class BsaDecisionGuard
         $isNegative = in_array($decisionType, self::NEGATIVE_DECISION_TYPES, true);
 
         if ($isNegative === true) {
-            $learnerId   = $object['learnerId'] ?? '';
-            $programmeId = $object['programmeId'] ?? '';
+            $learnerId    = $object['learnerId'] ?? '';
+            $programmeId  = $object['programmeId'] ?? '';
             $academicYear = $object['academicYear'] ?? '';
 
-            if ($this->hasIssuedWarning(learnerId: $learnerId, programmeId: $programmeId, academicYear: $academicYear, tenantId: $tenantId) === false) {
+            $hasWarning = $this->hasIssuedWarning(
+                learnerId: $learnerId,
+                programmeId: $programmeId,
+                academicYear: $academicYear,
+                tenantId: $tenantId
+            );
+
+            if ($hasWarning === false) {
                 $this->logger->info(
                     'BsaDecisionGuard: no issued BsaWarning found for learner {l}, programme {p}, year {y} — blocking negative decision.',
                     ['l' => $learnerId, 'p' => $programmeId, 'y' => $academicYear]
