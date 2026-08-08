@@ -77,8 +77,9 @@ Scholiq SHALL serve its per-user preferences, action authorization, repair-step 
 #### Scenario: Settings endpoints parity
 
 - **GIVEN** an admin
-- **WHEN** they call `GET /api/settings`, `POST /api/settings`, and `POST /api/settings/load`
+- **WHEN** they call `GET /api/settings`, `PUT /api/settings`, `POST /api/settings`, and `POST /api/settings/load`
 - **THEN** the responses MUST match the pre-adoption shapes (config keys incl. `register`, `openregisters`, `isAdmin`; load re-imports `scholiq_register.json`), still gated by `#[AuthorizedAdminSetting]`
+- **AND** `PUT /api/settings` (`settings#update`) MUST be the canonical write while `POST /api/settings` (`settings#create`) remains a behaviourally identical legacy alias delegating to it — neither verb may resolve to a missing route (405) or a missing method (500)
 - @e2e exclude API-only endpoint — covered by the OR AppHost Newman contract collection
 
 
