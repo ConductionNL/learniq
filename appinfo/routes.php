@@ -4,12 +4,20 @@
 declare(strict_types=1);
 
 /*
- * AppHost adoption (ADR-040): the settings, preferences, health and metrics
- * controllers are the OpenRegister AppHost generics, aliased onto Scholiq's
- * conventional controller class names in lib/AppInfo/Application.php via
+ * AppHost adoption (ADR-040): the preferences, health and metrics controllers
+ * are the OpenRegister AppHost generics, aliased onto Scholiq's conventional
+ * controller class names in lib/AppInfo/Application.php via
  * \OCA\OpenRegister\AppHost\Bootstrap::register(). The route entries below keep
  * Scholiq's URLs and route names so info.xml navigation + frontend
- * `generateUrl` calls are unchanged; only the controller bodies are now engine-owned.
+ * `generateUrl` calls are unchanged; only those controller bodies are engine-owned.
+ *
+ * Settings is NOT one of them. Bootstrap::aliasControllerUnlessLeafDefinesIt()
+ * registers the DI alias only when the leaf app does NOT ship a controller of
+ * that name, and Scholiq ships lib/Controller/SettingsController.php — so
+ * `settings#*` dispatches to Scholiq's own bespoke controller and the generic
+ * is never constructed. (An earlier revision of this comment claimed the
+ * opposite; that claim is what let `settings#update` stay unrouted unnoticed.)
+ * The same holds for the domain controllers and for PageController below.
  *
  * Routes::standard() is intentionally NOT used for the SPA shell: Scholiq's
  * `page#index`/`page#catchAll` keep pointing at the bespoke PageController,
@@ -108,9 +116,21 @@ return [
         // Metrics#index → GenericMetricsController (admin-only Prometheus text).
         ['name' => 'metrics#index', 'url' => '/api/metrics', 'verb' => 'GET'],
 
-        // Settings (admin-only) — AppHost GenericSettingsController.
+        // Settings (admin-only) — Scholiq's OWN bespoke SettingsController, NOT
+        // the AppHost generic: Bootstrap::aliasControllerUnlessLeafDefinesIt()
+        // skips the alias whenever the leaf ships the class, and Scholiq ships
+        // lib/Controller/SettingsController.php. This is deliberate (see the
+        // apphost-adoption spec: the register-import path calls OpenRegister
+        // ConfigurationService::importFromApp(appId, data, version, force), a
+        // signature the generic settings service does not drive). Consequence:
+        // every method the canonical table routes here must exist on the
+        // bespoke class — a missing one is a 500, or, with no route entry at
+        // all, a 405.
+        // `settings#update` (PUT) is the canonical write; `settings#create`
+        // (POST) is the retained legacy alias that delegates to it.
         ['name' => 'settings#index',  'url' => '/api/settings',      'verb' => 'GET'],
         ['name' => 'settings#create', 'url' => '/api/settings',      'verb' => 'POST'],
+        ['name' => 'settings#update', 'url' => '/api/settings',      'verb' => 'PUT'],
         ['name' => 'settings#load',   'url' => '/api/settings/load', 'verb' => 'POST'],
 
         // ADR-023 action-authorization matrix (admin-only via #[AuthorizedAdminSetting]).
