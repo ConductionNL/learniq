@@ -161,7 +161,7 @@ class SubjectChoiceConsentGuard
      *
      * @return array<string,mixed>|null The profile, or null when it does not resolve.
      *
-     * @spec openspec/changes/subject-choice/specs/subject-choice/spec.md#requirement-a-subject-choice-requires-guardian-consent-before-submission
+     * @spec openspec/specs/school-structure/spec.md#requirement-guardian-consent-gates-a-minor-s-subject-choice-submission
      */
     private function loadLearnerProfile(string $learnerId, string $tenantId): ?array
     {
@@ -203,7 +203,7 @@ class SubjectChoiceConsentGuard
      *
      * @return bool True when the caller is authorised to act for this learner.
      *
-     * @spec openspec/changes/subject-choice/specs/subject-choice/spec.md#requirement-a-subject-choice-requires-guardian-consent-before-submission
+     * @spec openspec/specs/school-structure/spec.md#requirement-guardian-consent-gates-a-minor-s-subject-choice-submission
      */
     private function callerMayActForLearner(array $profile, string $callerUid): bool
     {

@@ -153,7 +153,7 @@ class ConferenceSignupGuardianGuard
      *
      * @return array<string,mixed>|null The profile, or null when it does not resolve.
      *
-     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-only-a-linked-guardian-or-the-learner-may-sign-up
+     * @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
      */
     private function loadLearnerProfile(string $learnerId, string $tenantId): ?array
     {
@@ -195,7 +195,7 @@ class ConferenceSignupGuardianGuard
      *
      * @return bool True when the caller is authorised to act for this learner.
      *
-     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-only-a-linked-guardian-or-the-learner-may-sign-up
+     * @spec openspec/specs/parent-conferences/spec.md#requirement-a-guardian-or-self-signup-submission-is-gated-by-a-per-object-authorization-guard
      */
     private function callerMayActForLearner(array $profile, string $callerUid): bool
     {

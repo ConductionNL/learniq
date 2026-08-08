@@ -15,7 +15,7 @@
  the plan's mappings and drives proposal/preview/execute through the
  Scholiq rollover API + OR object API.
 
- @spec openspec/specs/school-year-rollover/spec.md#requirement-mandatory-side-effect-free-preview-gate
+ @spec openspec/specs/school-year-rollover/spec.md#requirement-preview-must-be-side-effect-free-and-produce-a-complete-dry-run-report
 -->
 <template>
 	<div class="rollover-wizard">

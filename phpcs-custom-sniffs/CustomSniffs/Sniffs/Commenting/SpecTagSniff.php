@@ -3,10 +3,26 @@
  * Warn when a PHP class or public method lacks an @spec PHPDoc tag.
  *
  * ConductionNL ADR-003 (Backend rules) mandates that every class and public
- * method MUST have one or more @spec PHPDoc tags linking back to the OpenSpec
- * change that caused the code to exist:
+ * method MUST have one or more @spec PHPDoc tags linking back to the
+ * requirement the code exists to satisfy:
  *
- *     @spec openspec/changes/{change-name}/tasks.md#task-N
+ *     @spec openspec/specs/{capability}/spec.md#requirement-...
+ *
+ * POINT AT THE CANONICAL SPEC, NOT AT A CHANGE DIRECTORY.
+ *
+ * This guidance used to read `openspec/changes/{change-name}/tasks.md#task-N`,
+ * and tags written to it dangle by construction: `openspec/changes/<name>/`
+ * is temporary — archiving moves it to `openspec/changes/archive/<date>-<name>/`
+ * and renaming a change or dropping it removes the target outright. Gate-46
+ * (spec-anchor-existence) then reports the tag, and the developer who wrote it
+ * had followed this sniff's own instruction. Measured on scholiq 2026-08-08:
+ * 35 unresolved targets, 22 of them tags into change directories that no
+ * longer resolve under the name they were written with. Fleet context and the
+ * cross-repo measurement are in ConductionNL/.github#228.
+ *
+ * A `openspec/changes/...` target is still ACCEPTED — this sniff only checks
+ * that a tag is present, and gate-46 resolves archived paths — but it is no
+ * longer what this sniff tells you to write.
  *
  * This sniff emits warnings (not errors) so that CI surfaces the gap without
  * blocking merges while teams backfill coverage. Tests files and magic
@@ -130,7 +146,7 @@ class SpecTagSniff implements Sniff
             return;
         }
 
-        $message = 'Class %s is missing @spec PHPDoc tag — link back to openspec/changes/{name}/tasks.md#task-N';
+        $message = 'Class %s is missing @spec PHPDoc tag — link back to openspec/specs/{capability}/spec.md#requirement-... (a change dir is temporary; the tag dangles when it is archived)';
         $phpcsFile->addWarning($message, $stackPtr, 'MissingClassSpec', [$className]);
 
     }//end processClass()
@@ -179,7 +195,7 @@ class SpecTagSniff implements Sniff
             return;
         }
 
-        $message = 'Public method %s::%s() is missing @spec PHPDoc tag';
+        $message = 'Public method %s::%s() is missing @spec PHPDoc tag — link back to openspec/specs/{capability}/spec.md#requirement-...';
         $phpcsFile->addWarning($message, $stackPtr, 'MissingMethodSpec', [$className, $methodName]);
 
     }//end processFunction()

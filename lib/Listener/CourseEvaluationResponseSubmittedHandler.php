@@ -163,7 +163,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener
      *
      * @return bool True when this handler should act on it.
      *
-     * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-submitting-a-response-marks-the-learner-s-invitation-responded-without-linking-the-two
+     * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
      */
     private function isResponseSubmission(ObjectTransitionedEvent $event): bool
     {
@@ -188,7 +188,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener
      *
      * @return array<string,mixed>|null The invitation, or null when there is none.
      *
-     * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-submitting-a-response-marks-the-learner-s-invitation-responded-without-linking-the-two
+     * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
      */
     private function findInvitation(string $campaignId, string $callerUid, string $tenantId): ?array
     {

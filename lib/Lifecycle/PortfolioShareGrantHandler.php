@@ -276,7 +276,7 @@ class PortfolioShareGrantHandler implements IEventListener
      *
      * @return int How many files were shared.
      *
-     * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-sharing-a-portfolio-with-a-teacher-grants-read-access-to-its-evidence-files
+     * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
      */
     private function shareEntryFiles(array $entries, string $ownerId, string $teacherId, mixed $entryIdFilter): int
     {
@@ -318,7 +318,7 @@ class PortfolioShareGrantHandler implements IEventListener
      *
      * @return bool True when this entry's file should be shared.
      *
-     * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-sharing-a-portfolio-with-a-teacher-grants-read-access-to-its-evidence-files
+     * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
      */
     private function entryIsShareable(array $entryData, mixed $entryIdFilter): bool
     {

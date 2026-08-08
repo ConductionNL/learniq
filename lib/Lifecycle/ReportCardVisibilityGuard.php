@@ -139,7 +139,7 @@ class ReportCardVisibilityGuard
      *
      * @return array{plan: mixed, entry: string}|null The blocking entry, or null when all are released.
      *
-     * @spec openspec/changes/report-cards/specs/report-cards/spec.md#requirement-a-report-card-cannot-be-released-before-its-source-grades-are-visible
+     * @spec openspec/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
      */
     private function firstUnreleasedGradeEntry(array $subjectRows, string $tenantId): ?array
     {
@@ -172,7 +172,7 @@ class ReportCardVisibilityGuard
      *
      * @return string|null The blocking GradeEntry id, or null when the row is clear.
      *
-     * @spec openspec/changes/report-cards/specs/report-cards/spec.md#requirement-a-report-card-cannot-be-released-before-its-source-grades-are-visible
+     * @spec openspec/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
      */
     private function firstUnreleasedEntryInRow(array $row, string $tenantId, mixed $now): ?string
     {

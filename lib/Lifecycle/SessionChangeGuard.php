@@ -180,7 +180,7 @@ class SessionChangeGuard
      *
      * @return bool True when the value is a non-empty string.
      *
-     * @spec openspec/changes/timetabling/specs/timetabling/spec.md#requirement-session-changes-are-authorised-and-carry-a-reason
+     * @spec openspec/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
      */
     private function isNonEmptyString(mixed $value): bool
     {
@@ -199,7 +199,7 @@ class SessionChangeGuard
      *
      * @return bool True when the action does not need a substitute, or names one.
      *
-     * @spec openspec/changes/timetabling/specs/timetabling/spec.md#requirement-session-changes-are-authorised-and-carry-a-reason
+     * @spec openspec/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
      */
     private function hasRequiredSubstitute(array $object, string $action): bool
     {
