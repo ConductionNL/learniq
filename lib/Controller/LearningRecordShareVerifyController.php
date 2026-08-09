@@ -13,8 +13,14 @@
  *
  * Legitimate PHP per ADR-031 "External-system contract — public
  * verification surface that must bypass NC session middleware via
+ * `@PublicPage` + `@NoCSRFRequired`."
  *
- * @PublicPage + @NoCSRFRequired."
+ * Those two are deliberately backticked and kept off the start of the line.
+ * Nextcloud's ControllerMethodReflector matches `^\h+\*\h+@([A-Z]\w+)(.*)$`,
+ * so an @-prefixed word sitting at docblock-tag position is read AS the
+ * annotation even when the surrounding sentence is only describing it. A
+ * sibling app shipped `* @NoCSRFRequired removed to close ...` in prose and
+ * that sentence re-enabled the annotation on two admin POSTs.
  *
  * Read-only except for `lastAccessedAt`/`accessCount`, which this
  * controller stamps on every SUCCESSFUL verification — never on a denied
