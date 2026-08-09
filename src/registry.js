@@ -20,7 +20,6 @@ import PeerReviewMarkingView from './views/PeerReviewMarkingView.vue'
 import SelfAssessmentView from './views/SelfAssessmentView.vue'
 import ProctoringReviewQueue from './views/ProctoringReviewQueue.vue'
 import RegulationDetailPage from './views/RegulationDetailPage.vue'
-import ScholiqSettings from './views/ScholiqSettings.vue'
 import TakeAssessmentView from './views/TakeAssessmentView.vue'
 import ScholiqDashboards from './views/ScholiqDashboards.vue'
 // bsa-study-progress-guard / competency-framework: these two custom views
@@ -135,6 +134,7 @@ import TimetableConflictQueue from './views/TimetableConflictQueue.vue'
 import MyLearningRecordView from './views/MyLearningRecordView.vue'
 import LearningRecordImportView from './views/LearningRecordImportView.vue'
 import LearningRecordShareVerifyView from './views/LearningRecordShareVerifyView.vue'
+import OrderPaymentPanel from './views/OrderPaymentPanel.vue'
 
 /**
  * Wrap a Vue component into the v2 registry shape required by CnAppRoot's
@@ -191,6 +191,7 @@ export default {
 	MarkSubmissionView: page(MarkSubmissionView),
 	MyLearningRecordView: page(MyLearningRecordView),
 	MyTimetable: page(MyTimetable),
+	OrderPaymentPanel: page(OrderPaymentPanel),
 	PeerReviewMarkingView: page(PeerReviewMarkingView),
 	PeopleDashboard: page(PeopleDashboard),
 	PortfolioBuilder: page(PortfolioBuilder),
@@ -205,7 +206,6 @@ export default {
 	ScholiqCompliance: page(ScholiqCompliance),
 	ScholiqDashboards: page(ScholiqDashboards),
 	ScholiqLearnerHome: page(ScholiqLearnerHome),
-	ScholiqSettings: page(ScholiqSettings),
 	SelfAssessmentView: page(SelfAssessmentView),
 	SkillsGapDashboard: page(SkillsGapDashboard),
 	SubjectChoicePicker: page(SubjectChoicePicker),
