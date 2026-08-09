@@ -155,6 +155,7 @@
 							v-model="choice.label"
 							class="item-author__input"
 							type="text"
+							:aria-label="t('scholiq', 'Text of option {n}', { n: idx + 1 })"
 							:placeholder="t('scholiq', 'Option {n}', { n: idx + 1 })">
 						<button
 							class="item-author__remove-btn"
