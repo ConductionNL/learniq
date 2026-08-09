@@ -298,4 +298,36 @@ class LessonReleaseControllerTest extends TestCase
         self::assertSame(['available', 'reason', 'availableAt'], array_keys($response->getData()));
 
     }//end testResponseShapeIsMinimal()
+
+    /**
+     * An unknown lesson id returns 404 when ObjectService THROWS.
+     *
+     * ObjectService::find() raises DoesNotExistException for an unknown id
+     * rather than returning null, so before the catch in resolveObject() the
+     * exception escaped status() and became a 500 with a stack trace.
+     *
+     * @return void
+     */
+    public function testUnknownLessonThrowingFromObjectServiceReturns404(): void
+    {
+        $this->signInAs('learner-1');
+
+        $objectService = $this->createMock(ObjectService::class);
+        $objectService->method('find')->willThrowException(
+            new \OCP\AppFramework\Db\DoesNotExistException('no such object')
+        );
+
+        $controller = new LessonReleaseController(
+            request: $this->createMock(IRequest::class),
+            userSession: $this->userSession,
+            objectService: $objectService,
+            releaseEvaluator: $this->createMock(LessonReleaseEvaluator::class),
+            dashboardRoleService: $this->dashboardRoleService,
+        );
+
+        $response = $controller->status('nope');
+
+        self::assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
+
+    }//end testUnknownLessonThrowingFromObjectServiceReturns404()
 }//end class
