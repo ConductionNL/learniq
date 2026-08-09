@@ -46,10 +46,11 @@ test.describe('Scholiq shell', () => {
 	test('nav contains expected menu items', async ({ loggedInPage: page }) => {
 		await page.goto('/index.php/apps/scholiq/')
 
-		// Wait for the page to settle
-		await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {
-			// networkidle may never fire in some setups; continue regardless
-		})
+		// Wait for the document to be parsed. NOT `networkidle`: Nextcloud's
+		// notification poll keeps a request in flight for the whole session, so
+		// it never settles — it just burned its full timeout on every run and
+		// then continued anyway (ADR-074 rule 4 / hydra gate 58).
+		await page.waitForLoadState('domcontentloaded')
 
 		const pageContent = await page.content()
 

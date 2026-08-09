@@ -80,7 +80,7 @@ function fatalOnly(errors: string[]): string[] {
 async function openLessonPlayer(page: import('@playwright/test').Page, courseId: string, lessonId: string) {
 	await page.goto(`/index.php/apps/scholiq/#/courses/${courseId}/lessons/${lessonId}/play`)
 	await page.waitForSelector('body', { timeout: 15_000 })
-	await page.waitForLoadState('networkidle').catch(() => {})
+	await page.waitForLoadState('domcontentloaded')
 }
 
 test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate locked state', () => {

@@ -97,7 +97,7 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 
 		await page.goto(GROUP_PLANS_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -116,7 +116,7 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 		// the manifest wiring exists to guarantee.
 		await page.goto(GROUP_PLAN_DETAIL_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -130,7 +130,7 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 
 		await page.goto(GROUP_PLAN_SUBGROUP_DETAIL_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -144,7 +144,7 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 
 		await page.goto(GROUP_PLAN_EVALUATION_DETAIL_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -161,7 +161,7 @@ test.describe('groepsplan — GroupPlanSubgroupLearnerContext resolves (registry
 
 		await page.goto(LEARNER_CONTEXT_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -179,7 +179,7 @@ test.describe('groepsplan — GroupPlanSubgroupLearnerContext resolves (registry
 
 		await page.goto(`${LEARNER_CONTEXT_URL}?subgroupId=${id}`)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)

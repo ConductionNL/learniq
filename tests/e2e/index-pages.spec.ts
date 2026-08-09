@@ -91,7 +91,7 @@ test.describe(`Scholiq index pages (${indexPages.length})`, () => {
 
 			await page.goto(`${APP_BASE}${p.route === '/' ? '/' : p.route}`, { waitUntil: 'domcontentloaded', timeout: 20_000 })
 			// Give the SPA + the index page's data fetch a moment to settle.
-			await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {})
+			await page.waitForLoadState('domcontentloaded')
 
 			// (hard) The Scholiq SPA shell was served for this route — the page title
 			// says so, the body isn't blank, and it's not an NC 404/500 error page.

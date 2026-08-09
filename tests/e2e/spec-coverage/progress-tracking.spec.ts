@@ -73,7 +73,7 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 		const lessonId = lesson.id ?? lesson.uuid
 		await page.goto(`/index.php/apps/scholiq/#/courses/${courseId}/lessons/${lessonId}/play`)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const markButton = page.getByRole('button', { name: 'Mark lesson complete' })
 		const alreadyCompleted = page.getByRole('button', { name: 'Completed' })
@@ -111,7 +111,7 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 		const lessonId = lesson.id ?? lesson.uuid
 		await page.goto(`/index.php/apps/scholiq/#/courses/${courseId}/lessons/${lessonId}/play`)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const markButton = page.getByRole('button', { name: 'Mark lesson complete' })
 		await expect(markButton).toHaveCount(0)

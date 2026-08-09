@@ -100,7 +100,7 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 	test('a published statement shows channel identity, status, evaluation method/date, standard applied, feedback contact, and escalation route', async ({ loggedInPage: page }) => {
 		await page.goto(STATEMENT_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		// Soft: only meaningful once a published AccessibilityStatement is
@@ -121,7 +121,7 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 	test('the "Report an accessibility problem" entry point is always present, regardless of whether a statement is published', async ({ loggedInPage: page }) => {
 		await page.goto(STATEMENT_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.getByRole('button', { name: /Report an accessibility problem/i }).first()).toBeVisible()
 	})
@@ -135,7 +135,7 @@ test.describe('accessibility-conformance — the known-limitations register', ()
 
 		await page.goto(LIMITATIONS_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -202,7 +202,7 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 
 		await page.goto(FEEDBACK_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
