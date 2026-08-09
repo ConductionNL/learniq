@@ -108,10 +108,12 @@
 			</section>
 
 			<section class="self-assessment-view__comments">
-				<h3>{{ t('scholiq', 'Your reflection') }}</h3>
+				<h3 id="self-assessment-comments-label">{{ t('scholiq', 'Your reflection') }}</h3>
 				<textarea
+					id="self-assessment-comments"
 					v-model="comments"
 					class="self-assessment-view__comments-input"
+					aria-labelledby="self-assessment-comments-label"
 					:placeholder="t('scholiq', 'Reflect on your own work...')"
 					:disabled="saving"
 					rows="5" />

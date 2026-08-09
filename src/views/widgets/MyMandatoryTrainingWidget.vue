@@ -48,11 +48,12 @@
 						<span class="my-training-widget__progress-label">{{ enrolment.progressPercent }}%</span>
 					</div>
 				</div>
-				<a
+				<router-link
+					v-if="enrolment.courseId"
 					class="my-training-widget__start-link"
-					@click.prevent="startCourse(enrolment)">
+					:to="courseLessonsPath(enrolment)">
 					{{ t('scholiq', 'Start') }}
-				</a>
+				</router-link>
 			</li>
 		</ul>
 	</div>
@@ -127,17 +128,19 @@ export default {
 		},
 
 		/**
-		 * Navigate to the lessons view for the enrolment's course.
+		 * Router path to the lessons view for the enrolment's course.
+		 *
+		 * Returned as a route rather than pushed from a click handler so the
+		 * control renders as a real <router-link> anchor — focusable, activatable
+		 * by keyboard, and openable in a new tab. The previous <a> carried no
+		 * href, so it was not in the tab order at all.
 		 *
 		 * @param {object} enrolment Enrolment object
-		 * @return {void}
+		 * @return {string} Router path for the course's lessons view.
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
 		 */
-		startCourse(enrolment) {
-			const courseId = enrolment.courseId
-			if (courseId) {
-				this.$router.push('/courses/' + courseId + '/lessons').catch(() => {})
-			}
+		courseLessonsPath(enrolment) {
+			return '/courses/' + enrolment.courseId + '/lessons'
 		},
 	},
 }

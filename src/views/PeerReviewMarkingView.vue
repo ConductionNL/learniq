@@ -119,10 +119,12 @@
 			</section>
 
 			<section class="peer-review-marking-view__comments">
-				<h3>{{ t('scholiq', 'Comments for the author') }}</h3>
+				<h3 id="peer-review-comments-label">{{ t('scholiq', 'Comments for the author') }}</h3>
 				<textarea
+					id="peer-review-comments"
 					v-model="comments"
 					class="peer-review-marking-view__comments-input"
+					aria-labelledby="peer-review-comments-label"
 					:placeholder="t('scholiq', 'Write feedback for the author...')"
 					:disabled="saving"
 					rows="5" />

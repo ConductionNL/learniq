@@ -160,10 +160,12 @@
 
 			<!-- Feedback text -->
 			<section class="mark-submission-view__feedback">
-				<h3>{{ t('scholiq', 'Teacher feedback') }}</h3>
+				<h3 id="mark-submission-feedback-label">{{ t('scholiq', 'Teacher feedback') }}</h3>
 				<textarea
+					id="mark-submission-feedback"
 					v-model="feedbackText"
 					class="mark-submission-view__feedback-input"
+					aria-labelledby="mark-submission-feedback-label"
 					:placeholder="t('scholiq', 'Write feedback for the learner...')"
 					:disabled="saving"
 					rows="5" />

@@ -12,13 +12,13 @@
  component.
 -->
 <template>
-	<div class="kpi-engagement-score" :class="link ? 'kpi-engagement-score--linkable' : ''" @click="navigate">
+	<div class="kpi-engagement-score" :class="link ? 'kpi-engagement-score--linkable' : ''">
 		<CnStatsBlock
 			:title="t('scholiq', 'Avg. engagement score')"
 			:count="displayValue"
 			:loading="loading"
 			variant="primary"
-			:clickable="!!link"
+			:route="routeTarget"
 			horizontal />
 	</div>
 </template>
@@ -53,6 +53,21 @@ export default {
 		displayValue() {
 			return this.average === null ? '—' : this.average
 		},
+
+		/**
+		 * Vue Router location for the tile, or null when the tile is static.
+		 *
+		 * Passing `route` (rather than `clickable` + a click handler) makes
+		 * CnStatsBlock render a real <router-link>, so the tile is reachable by
+		 * keyboard, exposed to assistive tech as a link, and supports
+		 * middle-click / open-in-new-tab. A bare <div @click> was none of those.
+		 *
+		 * @return {object|null} Router location object, or null when not linkable.
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-persist-engagementscore-domain-objects-in-openregister
+		 */
+		routeTarget() {
+			return this.link ? { path: this.link } : null
+		},
 	},
 
 	created() {
@@ -81,17 +96,6 @@ export default {
 				this.average = null
 			} finally {
 				this.loading = false
-			}
-		},
-
-		/**
-		 * Navigate to the engagement scores index.
-		 *
-		 * @return {void}
-		 */
-		navigate() {
-			if (this.link) {
-				this.$router.push(this.link).catch(() => {})
 			}
 		},
 	},
