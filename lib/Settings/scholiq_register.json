@@ -7355,6 +7355,7 @@
                                 "itemId": {
                                     "type": "string",
                                     "format": "uuid",
+                                    "$ref": "Item",
                                     "title": "Item ID",
                                     "description": "UUID of the referenced assessment item from the ItemBank."
                                 },
@@ -7814,6 +7815,7 @@
                                 "itemId": {
                                     "type": "string",
                                     "format": "uuid",
+                                    "$ref": "Item",
                                     "title": "Item ID",
                                     "description": "UUID of the item this response is for."
                                 },

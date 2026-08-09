@@ -48,6 +48,7 @@ use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -224,11 +225,19 @@ class LtiToolPlacementController extends Controller
      */
     private function resolvePlacement(string $placementId): ?array
     {
-        $object = $this->objectService->find(
-            id: $placementId,
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::PLACEMENT_SCHEMA
-        );
+        // ObjectService::find() THROWS DoesNotExistException for an unknown id —
+        // it does not return null — so without this catch the `=== null` check
+        // below was dead code and an unknown placementId escaped as a 500 instead
+        // of the 404 this resolver's nullable contract promises the caller.
+        try {
+            $object = $this->objectService->find(
+                id: $placementId,
+                register: self::SCHOLIQ_REGISTER,
+                schema: self::PLACEMENT_SCHEMA
+            );
+        } catch (DoesNotExistException $e) {
+            return null;
+        }
 
         if ($object === null) {
             return null;

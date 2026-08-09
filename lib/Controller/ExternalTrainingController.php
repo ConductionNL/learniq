@@ -43,6 +43,7 @@ use OCA\Scholiq\Service\ExternalTrainingService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -150,11 +151,18 @@ class ExternalTrainingController extends Controller
             return new JSONResponse(data: ['error' => 'recordId is required'], statusCode: Http::STATUS_BAD_REQUEST);
         }
 
-        $recordObj = $this->objectService->find(
-            id: $recordId,
-            register: 'scholiq',
-            schema: 'external-training-record'
-        );
+        // ObjectService::find() THROWS DoesNotExistException for an unknown id —
+        // it does not return null — so without this catch the 404 below was dead
+        // code and an unknown recordId escaped as a 500 with a stack trace.
+        try {
+            $recordObj = $this->objectService->find(
+                id: $recordId,
+                register: 'scholiq',
+                schema: 'external-training-record'
+            );
+        } catch (DoesNotExistException $e) {
+            return new JSONResponse(data: ['error' => 'Record not found'], statusCode: Http::STATUS_NOT_FOUND);
+        }
 
         if ($recordObj === null) {
             return new JSONResponse(data: ['error' => 'Record not found'], statusCode: Http::STATUS_NOT_FOUND);
