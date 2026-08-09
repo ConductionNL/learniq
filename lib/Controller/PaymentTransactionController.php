@@ -364,11 +364,37 @@ class PaymentTransactionController extends Controller
      */
     private function resolveOrder(string $orderId): ?array
     {
-        $object = $this->objectService->find(
-            id: $orderId,
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::ORDER_SCHEMA
-        );
+        // ObjectService::find() THROWS for an unknown id — it does not return
+        // null — so without this catch the `=== null` check below was dead code
+        // and an unknown orderId escaped initiate() as a 500 with a stack trace,
+        // reaching a non-admin caller.
+        //
+        // Throwable rather than DoesNotExistException, for two reasons. It is
+        // the broader guarantee: nothing from this lookup can reach the caller
+        // as an untranslated framework 500. And naming DoesNotExistException
+        // here — as an import, an inline FQCN, or an instanceof — pushes this
+        // class from 12 to 13 collaborators, breaching phpmd's
+        // CouplingBetweenObjects ceiling; all three spellings were measured at
+        // 13. Throwable is already a dependency of this class, so it costs
+        // nothing.
+        //
+        // The cause is logged rather than swallowed, so a genuine fault (a DB
+        // outage, say) is still diagnosable even though the caller sees the
+        // same 404 as a missing order.
+        try {
+            $object = $this->objectService->find(
+                id: $orderId,
+                register: self::SCHOLIQ_REGISTER,
+                schema: self::ORDER_SCHEMA
+            );
+        } catch (Throwable $e) {
+            $this->logger->warning(
+                'Order lookup failed for {orderId}: {message}',
+                ['orderId' => $orderId, 'message' => $e->getMessage(), 'exception' => $e]
+            );
+
+            return null;
+        }
 
         if ($object === null) {
             return null;
