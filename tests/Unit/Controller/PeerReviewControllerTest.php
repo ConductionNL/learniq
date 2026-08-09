@@ -246,4 +246,49 @@ class PeerReviewControllerTest extends TestCase
 
         self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
     }//end testMissingAssignmentIdReturns400()
+
+    /**
+     * An unknown assignment id returns 404, not a 500.
+     *
+     * OpenRegister's ObjectService::find() THROWS DoesNotExistException for an
+     * unknown id rather than returning null, so before the catch in
+     * fetchObject() this path escaped the controller entirely and surfaced as a
+     * 500 with a stack trace. The `$assignment === null` branch that was
+     * supposed to produce the 404 could never be reached.
+     *
+     * Asserting on the STATUS CODE, not merely that no exception escaped: a
+     * test that only wrapped the call in a try/catch would still pass if the
+     * controller returned a 500 body.
+     *
+     * @return void
+     */
+    public function testUnknownAssignmentThrowingFromObjectServiceReturns404(): void
+    {
+        $objectService = $this->createMock(ObjectService::class);
+        $objectService->method('find')->willThrowException(
+            new \OCP\AppFramework\Db\DoesNotExistException('no such object')
+        );
+
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('teacher-1');
+
+        $userSession = $this->createMock(IUserSession::class);
+        $userSession->method('getUser')->willReturn($user);
+
+        $groupManager = $this->createMock(IGroupManager::class);
+        $groupManager->method('isAdmin')->willReturn(true);
+
+        $controller = new PeerReviewController(
+            request: $this->createMock(IRequest::class),
+            userSession: $userSession,
+            groupManager: $groupManager,
+            objectService: $objectService,
+            allocationService: $this->createMock(PeerReviewAllocationService::class),
+        );
+
+        $response = $controller->allocate(self::ASSIGNMENT_ID);
+
+        self::assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
+        self::assertSame('Assignment not found', $this->body($response)['error'] ?? null);
+    }//end testUnknownAssignmentThrowingFromObjectServiceReturns404()
 }//end class

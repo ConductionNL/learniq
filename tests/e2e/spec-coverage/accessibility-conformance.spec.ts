@@ -231,6 +231,24 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 	})
 
 	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
+	// @e2e accessibility-conformance::a-user-submits-a-barrier-report-and-it-notifies-the-compliance-officer
+	//
+	// ⚠️ WHAT THIS TAG DOES AND DOES NOT CLAIM.
+	//
+	// Covered, and hard-asserted below: the scenario's WHEN ("describe the
+	// barrier, and submit") and its first THEN ("an AccessibilityFeedback
+	// record is created in `submitted` state"). The form must mount, every
+	// required field is filled, the Create button must leave the disabled
+	// state, and the submit must either navigate off /new or confirm — none of
+	// which can pass if the create path is broken. The preceding test covers
+	// the GIVEN (reaching this form from the statement page's "Report an
+	// accessibility problem" entry point).
+	//
+	// NOT covered: the scenario's second THEN — "the compliance-officer and
+	// admin groups receive an nc-notification". Nothing in this suite reads the
+	// NC notification surface. That gap is real and is reported alongside this
+	// change rather than buried: the tag is on the strength of the create flow,
+	// not the fan-out.
 	test('a user fills and submits the AccessibilityFeedback create form and it lands as a submitted record', async ({ loggedInPage: page }) => {
 		await page.goto(FEEDBACK_CREATE_URL)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` —

@@ -39,6 +39,7 @@ use OCA\Scholiq\Service\RolloverService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -145,7 +146,15 @@ class RolloverController extends Controller
             return new JSONResponse(data: ['error' => 'planId is required'], statusCode: Http::STATUS_BAD_REQUEST);
         }
 
-        $planObj = $this->objectService->find(id: $planId, register: 'scholiq', schema: 'rollover-plan');
+        // ObjectService::find() THROWS DoesNotExistException for an unknown id —
+        // it does not return null — so without this catch the 404 below was dead
+        // code and an unknown planId escaped as a 500 with a stack trace.
+        try {
+            $planObj = $this->objectService->find(id: $planId, register: 'scholiq', schema: 'rollover-plan');
+        } catch (DoesNotExistException $e) {
+            return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
+        }
+
         if ($planObj === null) {
             return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
         }

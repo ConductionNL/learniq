@@ -63,6 +63,14 @@ const sample: SampledPage[] = [...indexPages, ...customPages]
 
 test.describe(`Scholiq axe-core accessibility scan (WCAG 2.1 A/AA, ${sample.length} sampled pages)`, () => {
 	for (const p of sample) {
+		// @e2e accessibility-conformance::the-axe-core-scan-runs-against-manifest-pages-and-fails-on-a-violation
+		//
+		// This is the scenario's THEN, asserted directly: the scan visits a
+		// sampled manifest page, axe-core reports every WCAG 2.1 A/AA violation
+		// it finds, and a `serious`/`critical` one fails the test run
+		// (BLOCKING_IMPACTS + the `toHaveLength(0)` below). Plant a serious
+		// violation on any sampled page and this test goes red — which is what
+		// makes the tag a measurement rather than a claim.
 		test(`${p.id} — ${APP_BASE}${p.route} has no serious/critical WCAG 2.1 A/AA violations`, async ({ loggedInPage: page }) => {
 			await page.goto(`${APP_BASE}${p.route === '/' ? '/' : p.route}`, { waitUntil: 'domcontentloaded', timeout: 20_000 })
 			await page.waitForLoadState('domcontentloaded')

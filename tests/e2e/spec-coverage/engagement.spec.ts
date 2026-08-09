@@ -42,6 +42,17 @@ function fatalErrors(errors: string[]): string[] {
 test.describe('engagement-gamification — points/level widget and leaderboard', () => {
 
 	// @e2e openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+	// @e2e engagement::a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+	//
+	// The discriminating assertion is `toContain('My points')`. That string is
+	// the KpiPointsLevelWidget's own title (src/views/widgets/
+	// KpiPointsLevelWidget.vue:20, declared as a dashboard widget slot in
+	// ScholiqDashboards.vue:290) — it is NOT a manifest menu label, so it
+	// cannot be satisfied by the app nav alone. Drop the widget from the
+	// student dashboard and this test goes red, which is what the scenario's
+	// THEN ("their points/level KPI widget renders") asks for. The widget's
+	// rendered totalPoints/levelId VALUES are not asserted — that half is
+	// reported as a remaining gap rather than claimed here.
 	test('student dashboard renders the points/level KPI widget without a fatal error', async ({ loggedInPage: page }) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {

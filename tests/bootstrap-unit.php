@@ -84,6 +84,18 @@ if (class_exists(\OCA\OpenRegister\Service\Lifecycle\TransitionEngine::class) ==
     include_once __DIR__.'/Stubs/Service/Lifecycle/TransitionEngine.php';
 }
 
+// GenericActionAuthService stub.
+//
+// Needs an explicit include: the PSR-4 map above resolves
+// OCA\OpenRegister\AppHost\Service\* to Stubs/AppHost/Service/*, but this stub
+// lives at Stubs/Service/AppHost/*. It was added for phpstan, where the path
+// does not matter, so nothing noticed that the unit suite could never autoload
+// it — any test that mocks ActionAuthService (which extends it) died with
+// "Class ...GenericActionAuthService not found".
+if (class_exists(\OCA\OpenRegister\AppHost\Service\GenericActionAuthService::class) === false) {
+    include_once __DIR__.'/Stubs/Service/AppHost/GenericActionAuthService.php';
+}
+
 // Event stubs.
 if (class_exists(\OCA\OpenRegister\Event\ObjectCreatedEvent::class) === false) {
     include_once __DIR__.'/Stubs/Event/ObjectCreatedEvent.php';

@@ -39,6 +39,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IUser;
 use OCP\IUserSession;
 use Throwable;
@@ -244,11 +245,20 @@ class LessonReleaseController extends Controller
      * @param string $id     UUID of the object.
      * @param string $schema Schema slug.
      *
-     * @return array<string, mixed>|null
+     * @return array<string, mixed>|null Null when no such object exists.
      */
     private function resolveObject(string $id, string $schema): ?array
     {
-        $object = $this->objectService->find(id: $id, register: self::SCHOLIQ_REGISTER, schema: $schema);
+        // ObjectService::find() THROWS DoesNotExistException for an unknown id —
+        // it does not return null — so without this catch the `=== null` check
+        // below was dead code and an unknown id escaped as a 500 instead of the
+        // 404 this resolver's nullable contract promises the caller.
+        try {
+            $object = $this->objectService->find(id: $id, register: self::SCHOLIQ_REGISTER, schema: $schema);
+        } catch (DoesNotExistException $e) {
+            return null;
+        }
+
         if ($object === null) {
             return null;
         }
