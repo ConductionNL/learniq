@@ -78,10 +78,10 @@
 				<table v-else class="ai-processing-disclosure__table">
 					<thead>
 						<tr>
-							<th>{{ t('scholiq', 'Feature') }}</th>
-							<th>{{ t('scholiq', 'DPO state') }}</th>
-							<th>{{ t('scholiq', 'Purpose (AVG)') }}</th>
-							<th>{{ t('scholiq', 'Locality') }}</th>
+							<th scope="col">{{ t('scholiq', 'Feature') }}</th>
+							<th scope="col">{{ t('scholiq', 'DPO state') }}</th>
+							<th scope="col">{{ t('scholiq', 'Purpose (AVG)') }}</th>
+							<th scope="col">{{ t('scholiq', 'Locality') }}</th>
 						</tr>
 					</thead>
 					<tbody>

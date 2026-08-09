@@ -83,11 +83,11 @@
 			<table v-else class="accessibility-statement__limitations">
 				<thead>
 					<tr>
-						<th>{{ t('scholiq', 'WCAG criterion') }}</th>
-						<th>{{ t('scholiq', 'Severity') }}</th>
-						<th>{{ t('scholiq', 'Affected surface') }}</th>
-						<th>{{ t('scholiq', 'Status') }}</th>
-						<th>{{ t('scholiq', 'Planned fix date') }}</th>
+						<th scope="col">{{ t('scholiq', 'WCAG criterion') }}</th>
+						<th scope="col">{{ t('scholiq', 'Severity') }}</th>
+						<th scope="col">{{ t('scholiq', 'Affected surface') }}</th>
+						<th scope="col">{{ t('scholiq', 'Status') }}</th>
+						<th scope="col">{{ t('scholiq', 'Planned fix date') }}</th>
 					</tr>
 				</thead>
 				<tbody>

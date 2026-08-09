@@ -60,10 +60,10 @@
 		<table v-else-if="waitlisted.length > 0" class="conference-schedule-board__table">
 			<thead>
 				<tr>
-					<th>{{ t('scholiq', 'Learner') }}</th>
-					<th>{{ t('scholiq', 'Requested teachers') }}</th>
-					<th>{{ t('scholiq', 'Unmet') }}</th>
-					<th>{{ t('scholiq', 'Manual placement') }}</th>
+					<th scope="col">{{ t('scholiq', 'Learner') }}</th>
+					<th scope="col">{{ t('scholiq', 'Requested teachers') }}</th>
+					<th scope="col">{{ t('scholiq', 'Unmet') }}</th>
+					<th scope="col">{{ t('scholiq', 'Manual placement') }}</th>
 				</tr>
 			</thead>
 			<tbody>

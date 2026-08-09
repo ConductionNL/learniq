@@ -52,13 +52,13 @@
 					<table class="rapportvergadering-review__table">
 						<thead>
 							<tr>
-								<th>{{ t('scholiq', 'Learner') }}</th>
-								<th v-for="plan in subjectColumns" :key="plan.id">
+								<th scope="col">{{ t('scholiq', 'Learner') }}</th>
+								<th v-for="plan in subjectColumns" :key="plan.id" scope="col">
 									{{ plan.label }}
 								</th>
-								<th>{{ t('scholiq', 'Mentor comment') }}</th>
-								<th>{{ t('scholiq', 'Status') }}</th>
-								<th>{{ t('scholiq', 'Actions') }}</th>
+								<th scope="col">{{ t('scholiq', 'Mentor comment') }}</th>
+								<th scope="col">{{ t('scholiq', 'Status') }}</th>
+								<th scope="col">{{ t('scholiq', 'Actions') }}</th>
 							</tr>
 						</thead>
 						<tbody>

@@ -8,14 +8,14 @@
  CnStatsBlock (big number + label); NcLoadingIcon while fetching; "0" on failure.
 -->
 <template>
-	<div class="kpi-card" :class="link ? 'kpi-card--linkable' : ''" @click="navigate">
+	<div class="kpi-card" :class="link ? 'kpi-card--linkable' : ''">
 		<CnStatsBlock
 			:title="label"
 			:count="count"
 			:loading="loading"
 			:icon="icon"
 			:variant="variant"
-			:clickable="!!link"
+			:route="routeTarget"
 			horizontal />
 	</div>
 </template>
@@ -72,6 +72,23 @@ export default {
 		}
 	},
 
+	computed: {
+		/**
+		 * Vue Router location for the tile, or null when the tile is static.
+		 *
+		 * Passing `route` (rather than `clickable` + a click handler) makes
+		 * CnStatsBlock render a real <router-link>, so the tile is reachable by
+		 * keyboard, exposed to assistive tech as a link, and supports
+		 * middle-click / open-in-new-tab. A bare <div @click> was none of those.
+		 *
+		 * @return {object|null} Router location object, or null when not linkable.
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
+		 */
+		routeTarget() {
+			return this.link ? { path: this.link } : null
+		},
+	},
+
 	created() {
 		this.fetchCount()
 	},
@@ -98,18 +115,6 @@ export default {
 				this.count = 0
 			} finally {
 				this.loading = false
-			}
-		},
-
-		/**
-		 * Navigate to the configured router link when the card is clickable.
-		 *
-		 * @return {void}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
-		 */
-		navigate() {
-			if (this.link) {
-				this.$router.push(this.link).catch(() => {})
 			}
 		},
 	},
