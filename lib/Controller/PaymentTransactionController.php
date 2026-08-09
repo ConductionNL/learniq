@@ -72,7 +72,6 @@ use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
 use OCP\IRequest;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -365,19 +364,11 @@ class PaymentTransactionController extends Controller
      */
     private function resolveOrder(string $orderId): ?array
     {
-        // ObjectService::find() THROWS DoesNotExistException for an unknown id —
-        // it does not return null — so without this catch the `=== null` check
-        // below was dead code and an unknown orderId escaped as a 500 instead of
-        // the 404 this resolver's nullable contract promises the caller.
-        try {
-            $object = $this->objectService->find(
-                id: $orderId,
-                register: self::SCHOLIQ_REGISTER,
-                schema: self::ORDER_SCHEMA
-            );
-        } catch (DoesNotExistException $e) {
-            return null;
-        }
+        $object = $this->objectService->find(
+            id: $orderId,
+            register: self::SCHOLIQ_REGISTER,
+            schema: self::ORDER_SCHEMA
+        );
 
         if ($object === null) {
             return null;
