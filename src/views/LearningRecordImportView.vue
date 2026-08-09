@@ -107,10 +107,10 @@
 			<table class="learning-record-import__table">
 				<thead>
 					<tr>
-						<th>{{ t('scholiq', 'Title') }}</th>
-						<th>{{ t('scholiq', 'Source schema') }}</th>
-						<th>{{ t('scholiq', 'Outcome') }}</th>
-						<th>{{ t('scholiq', 'Reason') }}</th>
+						<th scope="col">{{ t('scholiq', 'Title') }}</th>
+						<th scope="col">{{ t('scholiq', 'Source schema') }}</th>
+						<th scope="col">{{ t('scholiq', 'Outcome') }}</th>
+						<th scope="col">{{ t('scholiq', 'Reason') }}</th>
 					</tr>
 				</thead>
 				<tbody>
