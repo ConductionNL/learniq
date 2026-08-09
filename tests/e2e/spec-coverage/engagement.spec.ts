@@ -52,7 +52,7 @@ test.describe('engagement-gamification — points/level widget and leaderboard',
 
 		await page.goto(STUDENT_DASHBOARD_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The dashboard resolved the student view (not a blank/404 shell) and
 		// the "My points" KPI tile is present among the widget slots.
@@ -74,7 +74,7 @@ test.describe('engagement-gamification — points/level widget and leaderboard',
 
 		await page.goto(LEADERBOARD_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The page resolved the custom LeaderboardView component (its heading,
 		// or the empty/error/loading state) rather than a blank/404 shell.
@@ -89,7 +89,7 @@ test.describe('engagement-gamification — points/level widget and leaderboard',
 	test('LeaderboardView surfaces the opt-out toggle when an active leaderboard exists', async ({ loggedInPage: page }) => {
 		await page.goto(LEADERBOARD_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The opt-out switch only renders once at least one active Leaderboard
 		// exists for the current tenant (seed-data dependent). Its absence

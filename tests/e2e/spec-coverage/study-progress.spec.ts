@@ -34,7 +34,7 @@ test.describe('bsa-study-progress-guard — BSA risk dashboard', () => {
 
 		await page.goto(RISK_DASHBOARD_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The dashboard heading or its empty/error/loading state must be
 		// present (page resolved the custom BsaRiskDashboard component, not a

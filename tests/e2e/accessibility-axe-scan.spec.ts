@@ -65,7 +65,7 @@ test.describe(`Scholiq axe-core accessibility scan (WCAG 2.1 A/AA, ${sample.leng
 	for (const p of sample) {
 		test(`${p.id} — ${APP_BASE}${p.route} has no serious/critical WCAG 2.1 A/AA violations`, async ({ loggedInPage: page }) => {
 			await page.goto(`${APP_BASE}${p.route === '/' ? '/' : p.route}`, { waitUntil: 'domcontentloaded', timeout: 20_000 })
-			await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {})
+			await page.waitForLoadState('domcontentloaded')
 
 			const results = await new AxeBuilder({ page })
 				.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

@@ -76,7 +76,7 @@ function fatalOnly(errors: string[]): string[] {
 async function openCourseBuilder(page: import('@playwright/test').Page, courseId: string) {
 	await page.goto(`/index.php/apps/scholiq/#/courses/${courseId}/builder`)
 	await page.waitForSelector('body', { timeout: 15_000 })
-	await page.waitForLoadState('networkidle').catch(() => {})
+	await page.waitForLoadState('domcontentloaded')
 }
 
 test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPlayer', () => {
@@ -171,7 +171,7 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 
 		await moduleRow.getByRole('button', { name: 'Compose' }).click()
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 		await expect(page.getByText('Compose lesson')).toBeVisible()
 
 		// Add two richText blocks (no file-picker/NcSelect data dependency —
@@ -195,7 +195,7 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		// LessonPlayer renders the persisted, reordered blocks.
 		await page.getByRole('button', { name: 'Preview' }).click()
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const rendered = page.locator('.lesson-player__block-richtext')
 		await expect(rendered).toHaveCount(2)

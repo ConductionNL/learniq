@@ -58,7 +58,7 @@ test.describe('secure-exam-test-mode — TakeAssessmentView + ProctoringReviewQu
 
 		await page.goto(TAKE_ASSESSMENT_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The component resolves (loading spinner, then the "failed to load"
 		// error state for an unseeded id) — not a blank/404 shell.
@@ -75,7 +75,7 @@ test.describe('secure-exam-test-mode — TakeAssessmentView + ProctoringReviewQu
 
 		await page.goto(REVIEW_QUEUE_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)

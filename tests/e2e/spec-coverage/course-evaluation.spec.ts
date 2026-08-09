@@ -81,7 +81,7 @@ test.describe('course-evaluation — quality report and improvement actions', ()
 
 		await page.goto(IMPROVEMENT_ACTIONS_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
