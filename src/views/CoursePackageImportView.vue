@@ -104,11 +104,11 @@
 			<table class="course-package-import__table">
 				<thead>
 					<tr>
-						<th>{{ t('scholiq', 'Title') }}</th>
-						<th>{{ t('scholiq', 'Resource type') }}</th>
-						<th>{{ t('scholiq', 'Outcome') }}</th>
-						<th>{{ t('scholiq', 'Target') }}</th>
-						<th>{{ t('scholiq', 'Reason') }}</th>
+						<th scope="col">{{ t('scholiq', 'Title') }}</th>
+						<th scope="col">{{ t('scholiq', 'Resource type') }}</th>
+						<th scope="col">{{ t('scholiq', 'Outcome') }}</th>
+						<th scope="col">{{ t('scholiq', 'Target') }}</th>
+						<th scope="col">{{ t('scholiq', 'Reason') }}</th>
 					</tr>
 				</thead>
 				<tbody>
