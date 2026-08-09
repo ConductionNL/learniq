@@ -17,7 +17,10 @@ one Scholiq instance is one school (verified: no `organisation`/`tenantId` field
 
 #### Scenario: A school sets its locality policy
 
-<!-- @e2e tests/e2e/spec-coverage/sovereign-ai-guarantee.spec.ts -->
+<!-- NO e2e COVERAGE. `tests/e2e/spec-coverage/sovereign-ai-guarantee.spec.ts` was
+     cited here but has never existed in this repository — the reference claimed a
+     proof no file could supply. Removed rather than repointed: this scenario is
+     genuinely untested, and gate-19 reports it as such. -->
 
 - **GIVEN** an admin or compliance-officer on the AI processing disclosure page
 - **WHEN** they set the policy to `on-premises-only` and save
@@ -150,7 +153,10 @@ nonetheless allowed to run. No verdict SHALL render as compliant/green unless `v
 
 #### Scenario: The disclosure page lists every Hermiq-governed feature with its locality verdict
 
-<!-- @e2e tests/e2e/spec-coverage/sovereign-ai-guarantee.spec.ts -->
+<!-- NO e2e COVERAGE. `tests/e2e/spec-coverage/sovereign-ai-guarantee.spec.ts` was
+     cited here but has never existed in this repository — the reference claimed a
+     proof no file could supply. Removed rather than repointed: this scenario is
+     genuinely untested, and gate-19 reports it as such. -->
 
 - **GIVEN** Hermiq is installed with the `assessment-ai-proctor-review` feature registered
 - **WHEN** an admin/compliance-officer opens the AI processing disclosure page
@@ -158,7 +164,10 @@ nonetheless allowed to run. No verdict SHALL render as compliant/green unless `v
 
 #### Scenario: An unverified locality never renders as compliant
 
-<!-- @e2e tests/e2e/spec-coverage/sovereign-ai-guarantee.spec.ts -->
+<!-- NO e2e COVERAGE. `tests/e2e/spec-coverage/sovereign-ai-guarantee.spec.ts` was
+     cited here but has never existed in this repository — the reference claimed a
+     proof no file could supply. Removed rather than repointed: this scenario is
+     genuinely untested, and gate-19 reports it as such. -->
 
 - **GIVEN** the active Hermiq provider classifies as `unverified`
 - **AND** the school's `SovereigntyPolicy` is `third-country-allowed` (the feature is therefore allowed to run)
@@ -182,7 +191,10 @@ it.
 
 #### Scenario: The page is reachable from navigation
 
-<!-- @e2e tests/e2e/spec-coverage/sovereign-ai-guarantee.spec.ts -->
+<!-- NO e2e COVERAGE. `tests/e2e/spec-coverage/sovereign-ai-guarantee.spec.ts` was
+     cited here but has never existed in this repository — the reference claimed a
+     proof no file could supply. Removed rather than repointed: this scenario is
+     genuinely untested, and gate-19 reports it as such. -->
 
 - **GIVEN** an admin or compliance-officer signed in
 - **WHEN** they scan the navigation menu
@@ -190,7 +202,10 @@ it.
 
 #### Scenario: A non-privileged user does not see the navigation entry
 
-<!-- @e2e tests/e2e/spec-coverage/sovereign-ai-guarantee.spec.ts -->
+<!-- NO e2e COVERAGE. `tests/e2e/spec-coverage/sovereign-ai-guarantee.spec.ts` was
+     cited here but has never existed in this repository — the reference claimed a
+     proof no file could supply. Removed rather than repointed: this scenario is
+     genuinely untested, and gate-19 reports it as such. -->
 
 - **GIVEN** an authenticated user without the `admin` or `compliance-officer` role
 - **WHEN** they scan the navigation menu
