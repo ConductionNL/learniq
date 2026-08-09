@@ -78,7 +78,7 @@ test.describe('portable-learning-record — declarative index pages', () => {
 
 		await page.goto(LEARNING_RECORD_EXPORTS_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -91,7 +91,7 @@ test.describe('portable-learning-record — declarative index pages', () => {
 
 		await page.goto(LEARNING_RECORD_SHARES_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -105,7 +105,7 @@ test.describe('portable-learning-record — declarative index pages', () => {
 
 		await page.goto(LEARNING_RECORD_IMPORTS_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -121,7 +121,7 @@ test.describe('portable-learning-record — declarative index pages', () => {
 
 		await page.goto(APPLICATIONS_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -165,7 +165,7 @@ test.describe('portable-learning-record — custom views resolve (registry.js wi
 
 		await page.goto('/index.php/apps/scholiq/admissions/applications/00000000-0000-0000-0000-000000000000/learning-record-import')
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)

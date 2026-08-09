@@ -27,7 +27,7 @@ test.describe('avg-verwerkingsregister — AVG Art. 30 compliance section', () =
 	// @e2e openspec/specs/avg-verwerkingsregister/spec.md#privacy-officer-browses-scholiqs-register-slice
 	test('compliance section surfaces the register slice scoped to scholiq', async ({ loggedInPage: page }) => {
 		await page.goto(SETTINGS_URL)
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 		await expect(page.locator('body')).toBeVisible()
 		await expect(page).not.toHaveURL(/\/login/)
 
@@ -45,7 +45,7 @@ test.describe('avg-verwerkingsregister — AVG Art. 30 compliance section', () =
 	// @e2e openspec/specs/avg-verwerkingsregister/spec.md#fresh-install-seeds-the-register-as-drafts
 	test('controller identity & accountability deep-link is offered, not blocked', async ({ loggedInPage: page }) => {
 		await page.goto(SETTINGS_URL)
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 		await expect(page.locator('body')).toBeVisible()
 
 		const bodyText = await page.locator('body').innerText().catch(() => '')

@@ -32,7 +32,7 @@ test.describe('external-training-recording — records index page', () => {
 
 		await page.goto(RECORDS_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The page must render content (index page or an NcEmptyContent), not blank.
 		const bodyText = await page.innerText('body')

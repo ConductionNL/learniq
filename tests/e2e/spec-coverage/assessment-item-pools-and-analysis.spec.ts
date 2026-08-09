@@ -67,7 +67,7 @@ async function assertRendersWithoutFatalError(page: import('@playwright/test').P
 
 	await page.goto(url)
 	await page.waitForSelector('body', { timeout: 15_000 })
-	await page.waitForLoadState('networkidle').catch(() => {})
+	await page.waitForLoadState('domcontentloaded')
 
 	const bodyText = await page.innerText('body')
 	expect(bodyText.trim().length).toBeGreaterThan(0)

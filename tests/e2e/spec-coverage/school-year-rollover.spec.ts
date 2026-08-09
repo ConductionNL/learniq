@@ -33,7 +33,7 @@ test.describe('school-year-rollover — rollover wizard page', () => {
 
 		await page.goto(WIZARD_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The wizard heading or its year inputs must be present (page resolved the
 		// custom RolloverWizard component, not a blank/404 shell).

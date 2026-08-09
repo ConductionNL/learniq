@@ -55,7 +55,7 @@ test.describe(`Scholiq detail pages (${detailPages.length})`, () => {
 			page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
 
 			await page.goto(`${APP_BASE}${p.resolved}`, { waitUntil: 'domcontentloaded', timeout: 20_000 })
-			await page.waitForLoadState('networkidle', { timeout: 12_000 }).catch(() => {})
+			await page.waitForLoadState('domcontentloaded')
 
 			// (hard) The Scholiq SPA was served for this detail route — not blank, not
 			// an NC error page. (The detail renderer 404s on the missing object and —

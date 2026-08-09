@@ -68,7 +68,7 @@ test.describe('duo-afkeurmelding-correction — declarative index pages', () => 
 
 		await page.goto(EXCHANGE_REJECTIONS_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -81,7 +81,7 @@ test.describe('duo-afkeurmelding-correction — declarative index pages', () => 
 
 		await page.goto(EXCHANGE_ERROR_CODES_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -106,7 +106,7 @@ test.describe('duo-afkeurmelding-correction — detail page resolves (manifest w
 		// file header).
 		await page.goto(EXCHANGE_REJECTION_DETAIL_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)

@@ -72,7 +72,7 @@ test.describe('eportfolio — declarative index pages', () => {
 
 		await page.goto(PORTFOLIOS_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -85,7 +85,7 @@ test.describe('eportfolio — declarative index pages', () => {
 
 		await page.goto(PORTFOLIO_TEMPLATES_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -100,7 +100,7 @@ test.describe('eportfolio — declarative index pages', () => {
 
 		await page.goto(PORTFOLIO_ENTRIES_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -126,7 +126,7 @@ test.describe('eportfolio — custom views resolve (registry.js wiring)', () => 
 		// repo's coverage style).
 		await page.goto('/index.php/apps/scholiq/#/eportfolio/portfolios/00000000-0000-0000-0000-000000000000/build')
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -140,7 +140,7 @@ test.describe('eportfolio — custom views resolve (registry.js wiring)', () => 
 
 		await page.goto('/index.php/apps/scholiq/#/eportfolio/portfolios/00000000-0000-0000-0000-000000000000/review')
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
