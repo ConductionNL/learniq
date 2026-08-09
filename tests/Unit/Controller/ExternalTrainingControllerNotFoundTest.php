@@ -102,4 +102,54 @@ class ExternalTrainingControllerNotFoundTest extends TestCase
 
         self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
     }//end testIssueCredentialRequiresARecordId()
+
+    /**
+     * learnerCoverage() reports the service's verdict and evidence class.
+     *
+     * Asserts on BOTH fields of the payload, not just the status: the endpoint
+     * exists to answer "is this learner covered, and by what" — a 200 carrying
+     * a wrong or absent `covered` flag is the failure that matters, and a
+     * status-only assertion would pass straight through it.
+     *
+     * @return void
+     */
+    public function testLearnerCoverageReturnsTheServiceVerdict(): void
+    {
+        $trainingService = $this->createMock(ExternalTrainingService::class);
+        $trainingService->method('isLearnerCovered')->willReturn(true);
+        $trainingService->method('coveringEvidenceClass')->willReturn('credential');
+
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('officer-1');
+
+        $userSession = $this->createMock(IUserSession::class);
+        $userSession->method('getUser')->willReturn($user);
+
+        $controller = new ExternalTrainingController(
+            request: $this->createMock(IRequest::class),
+            userSession: $userSession,
+            actionAuth: $this->createMock(ActionAuthService::class),
+            trainingService: $trainingService,
+            objectService: $this->createMock(ObjectService::class),
+        );
+
+        $response = $controller->learnerCoverage('learner-1', 'NIS2');
+        $data     = (array) $response->getData();
+
+        self::assertSame(Http::STATUS_OK, $response->getStatus());
+        self::assertTrue($data['covered']);
+        self::assertSame('credential', $data['evidenceClass']);
+    }//end testLearnerCoverageReturnsTheServiceVerdict()
+
+    /**
+     * learnerCoverage() requires both identifying parameters.
+     *
+     * @return void
+     */
+    public function testLearnerCoverageRequiresBothParameters(): void
+    {
+        $response = $this->controllerWithThrowingFind()->learnerCoverage('learner-1', '');
+
+        self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+    }//end testLearnerCoverageRequiresBothParameters()
 }//end class

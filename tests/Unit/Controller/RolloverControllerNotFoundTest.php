@@ -99,4 +99,67 @@ class RolloverControllerNotFoundTest extends TestCase
 
         self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
     }//end testPreviewRequiresAPlanId()
+
+    /**
+     * proposeMapping() forwards the year's cohorts to the service and returns
+     * the mapping it produces.
+     *
+     * Asserts the mapping CONTENT, not just a 200: the endpoint's whole job is
+     * to hand back a proposal, and an empty `mappings` array — which is what a
+     * silently-unfiltered or failed cohort lookup produces — would still be a
+     * 200. Also asserts the service actually received the cohorts, so a
+     * regression that dropped them on the floor cannot pass.
+     *
+     * @return void
+     */
+    public function testProposeMappingReturnsTheServiceMapping(): void
+    {
+        $objectService = $this->createMock(ObjectService::class);
+        $objectService->method('findAll')->willReturn(
+            [['id' => 'cohort-1', 'academicYear' => '2025-2026']]
+        );
+
+        $expected = [['fromCohortId' => 'cohort-1', 'action' => 'promote', 'toCohortName' => '2026-2027']];
+
+        $rolloverService = $this->createMock(RolloverService::class);
+        $rolloverService->expects(self::once())
+            ->method('proposeDefaultMapping')
+            ->with(self::callback(
+                static function (array $fromCohorts): bool {
+                    return count($fromCohorts) === 1 && ($fromCohorts[0]['id'] ?? null) === 'cohort-1';
+                }
+            ))
+            ->willReturn($expected);
+
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('planner-1');
+
+        $userSession = $this->createMock(IUserSession::class);
+        $userSession->method('getUser')->willReturn($user);
+
+        $controller = new RolloverController(
+            request: $this->createMock(IRequest::class),
+            userSession: $userSession,
+            actionAuth: $this->createMock(ActionAuthService::class),
+            rolloverService: $rolloverService,
+            objectService: $objectService,
+        );
+
+        $response = $controller->proposeMapping('2025-2026');
+
+        self::assertSame(Http::STATUS_OK, $response->getStatus());
+        self::assertSame($expected, ((array) $response->getData())['mappings']);
+    }//end testProposeMappingReturnsTheServiceMapping()
+
+    /**
+     * proposeMapping() requires the from-year.
+     *
+     * @return void
+     */
+    public function testProposeMappingRequiresAFromAcademicYear(): void
+    {
+        $response = $this->controllerWithThrowingFind()->proposeMapping('');
+
+        self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+    }//end testProposeMappingRequiresAFromAcademicYear()
 }//end class
