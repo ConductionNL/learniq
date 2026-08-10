@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/tasks.md#35-add-ocascholiqservicecoursepackageimportservice-spdx-the-orchestrator-detects-cc-vs-moodle-from-the-archive-delegates-to-mbzextractor-or-the-existing-extractzip-equivalent-runs-the-matching-parser-and-for-each-resource-descriptor-creates-courselesson-organization-nodes-material-web-contentweblinkresourcepageurl-delegates-to-qtiimportserviceimportfromdirectory-qticc-assessment-items-or-moodlequizquestionmapper-moodle-quiz-items-creates-ltitoolplacement-basiclti-resources-creates-assignment-moodle-assign-modules-existing-schema-per-assignments-capability-unmodified-or-records-a-dropped-entry-forumwikiglossarycmi5-scorm-embeddedunrecognised-assembles-and-persists-the-coursepackageimportreport-throughout-resolving-its-final-lifecycle-per-the-report-requirements-rule
+ * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-course-lesson-material-hierarchy
  */
 
 declare(strict_types=1);

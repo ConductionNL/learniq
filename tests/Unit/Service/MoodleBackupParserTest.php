@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/tasks.md#33-add-ocascholiqservicemoodlebackupparser-spdx-walks-an-extracted-mbzs-moodle_backupxml--per-sectionmodule-xml-classifies-each-module-resourcepageurlquizassignforumwikiglossaryother-and-returns-the-same-resource-descriptor-shape-commoncartridgeparser-returns
+ * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-course-lesson-material-hierarchy
  */
 
 declare(strict_types=1);

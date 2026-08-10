@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/tasks.md#81-openspec-validate-course-package-import-export---strict-clean-phpunit-green-for-all-new-php-classes-plus-the-qtiimportservice-regression-suite-playwright-course-package-import-exportspects-green-no-dangling-refs-in-the-register-json-and-a-round-trip-smoke-test-export-a-seeded-course-as-scholiq-native-json-re-import-it-diff-the-resulting-object-graph-passes
+ * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
  */
 
 declare(strict_types=1);

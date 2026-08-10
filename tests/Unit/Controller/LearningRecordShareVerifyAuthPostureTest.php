@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-shared-learning-record-is-verifiable-without-a-nextcloud-session
+ * @spec openspec/specs/portable-learning-record/spec.md#requirement-a-public-verification-page-resolves-an-active-unexpired-share-and-denies-otherwise
  */
 
 declare(strict_types=1);
