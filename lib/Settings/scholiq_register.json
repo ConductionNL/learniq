@@ -18842,7 +18842,8 @@
                                     "type": "string",
                                     "format": "uuid",
                                     "title": "Source ID",
-                                    "description": "UUID of the source object this entry reports on."
+                                    "description": "UUID of the source object this entry reports on.",
+                                    "x-relation-schema-field": "sourceSchema"
                                 },
                                 "sourceTitle": {
                                     "type": "string",
@@ -20370,7 +20371,8 @@
                                     "nullable": true,
                                     "format": "uuid",
                                     "title": "Target ID",
-                                    "description": "UUID of the created object named by targetType. Null when outcome is dropped."
+                                    "description": "UUID of the created object named by targetType. Null when outcome is dropped.",
+                                    "x-relation-schema-field": "targetType"
                                 },
                                 "reason": {
                                     "type": "string",
