@@ -16,13 +16,46 @@ export default defineConfig({
 	testDir: './tests/e2e',
 	/* Maximum time one test can run (includes login overhead of ~15-20s) */
 	timeout: 60_000,
+	/*
+	 * Stop the whole run on our own clock, before CI kills it.
+	 *
+	 * The shared ConductionNL quality workflow caps this job at
+	 * `timeout-minutes: 45`. A job cancelled by that cap produces NO verdict:
+	 * Playwright never prints its tally, the `if: failure()` trace upload never
+	 * fires, and the `if: always()` report upload does not run on a cancelled
+	 * job either. The run you most need to read is then the one that leaves
+	 * nothing behind — and it still shows up as "fail" in `gh pr checks` while
+	 * carrying no information. Runs cancelled at ~45m16s have been observed in
+	 * this fleet.
+	 *
+	 * Measured overhead in that job before `Run Playwright tests` even starts
+	 * is 2.0-2.4 min, and the upload steps after it take seconds, so 38m leaves
+	 * roughly 7 minutes of margin under the cap while guaranteeing both a
+	 * failure count and the artifacts that explain it.
+	 */
+	globalTimeout: 38 * 60_000,
 	/* Reporter */
 	reporter: [['list'], ['html', { open: 'never', outputFolder: 'test-results/playwright-report' }]],
 	/* Shared settings */
 	use: {
 		baseURL: baseUrl(),
-		/* Collect trace on first retry */
-		trace: 'on-first-retry',
+		/*
+		 * Keep the trace of every FAILED test.
+		 *
+		 * This was `on-first-retry`, which only writes a trace when a retry
+		 * actually happens — and this config sets no `retries` key at all, so
+		 * Playwright's default of 0 applied and there was never a first retry
+		 * to trigger on. The result: this suite has written ZERO traces for its
+		 * entire history, while the file read as though tracing were
+		 * configured. Nothing in it hinted otherwise, because the `retries`
+		 * half of the pair was not written down anywhere.
+		 *
+		 * `retain-on-failure` captures every test and retains only the failures.
+		 * It is strictly more informative than `on-first-retry` and, crucially,
+		 * does not depend on the retry count — so it cannot be silently
+		 * disabled by a setting in a different part of the file.
+		 */
+		trace: 'retain-on-failure',
 		/* Screenshot on failure */
 		screenshot: 'only-on-failure',
 		/* Headless */

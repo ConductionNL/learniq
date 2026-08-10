@@ -100,7 +100,7 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 	test('a published statement shows channel identity, status, evaluation method/date, standard applied, feedback contact, and escalation route', async ({ loggedInPage: page }) => {
 		await page.goto(STATEMENT_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		// Soft: only meaningful once a published AccessibilityStatement is
@@ -121,7 +121,7 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 	test('the "Report an accessibility problem" entry point is always present, regardless of whether a statement is published', async ({ loggedInPage: page }) => {
 		await page.goto(STATEMENT_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		await expect(page.getByRole('button', { name: /Report an accessibility problem/i }).first()).toBeVisible()
 	})
@@ -135,7 +135,7 @@ test.describe('accessibility-conformance — the known-limitations register', ()
 
 		await page.goto(LIMITATIONS_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -202,7 +202,7 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 
 		await page.goto(FEEDBACK_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -231,6 +231,24 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 	})
 
 	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
+	// @e2e accessibility-conformance::a-user-submits-a-barrier-report-and-it-notifies-the-compliance-officer
+	//
+	// ⚠️ WHAT THIS TAG DOES AND DOES NOT CLAIM.
+	//
+	// Covered, and hard-asserted below: the scenario's WHEN ("describe the
+	// barrier, and submit") and its first THEN ("an AccessibilityFeedback
+	// record is created in `submitted` state"). The form must mount, every
+	// required field is filled, the Create button must leave the disabled
+	// state, and the submit must either navigate off /new or confirm — none of
+	// which can pass if the create path is broken. The preceding test covers
+	// the GIVEN (reaching this form from the statement page's "Report an
+	// accessibility problem" entry point).
+	//
+	// NOT covered: the scenario's second THEN — "the compliance-officer and
+	// admin groups receive an nc-notification". Nothing in this suite reads the
+	// NC notification surface. That gap is real and is reported alongside this
+	// change rather than buried: the tag is on the strength of the create flow,
+	// not the fan-out.
 	test('a user fills and submits the AccessibilityFeedback create form and it lands as a submitted record', async ({ loggedInPage: page }) => {
 		await page.goto(FEEDBACK_CREATE_URL)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` —

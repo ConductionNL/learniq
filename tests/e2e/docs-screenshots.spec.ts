@@ -103,7 +103,7 @@ async function go(page: Page, route: string): Promise<void> {
 	// Reported upstream against nc-vue. Bounding the wait here matches what
 	// index-pages, detail-pages, shell and accessibility-axe-scan already do in
 	// this same suite; it changes no assertion.
-	await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => { /* idle never fires on some pages */ })
+	await page.waitForLoadState('domcontentloaded')
 	await dismissOverlays(page)
 	await page.waitForTimeout(900)
 }

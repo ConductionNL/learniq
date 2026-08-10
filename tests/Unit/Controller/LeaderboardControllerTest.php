@@ -335,4 +335,43 @@ class LeaderboardControllerTest extends TestCase
         self::assertSame('learner-3', $results[0]['learnerId']);
         self::assertSame('learner-2', $results[1]['learnerId']);
     }//end testTopNLimitsResults()
+
+    /**
+     * An unknown cohort id returns 404 when ObjectService THROWS.
+     *
+     * ObjectService::find() raises DoesNotExistException for an unknown id
+     * rather than returning null, so before the catch in fetchObject() the
+     * exception escaped getRankings() and became a 500 with a stack trace.
+     *
+     * @return void
+     */
+    public function testUnknownCohortThrowingFromObjectServiceReturns404(): void
+    {
+        $objectService = $this->createMock(ObjectService::class);
+        $objectService->method('find')->willThrowException(
+            new \OCP\AppFramework\Db\DoesNotExistException('no such object')
+        );
+
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('learner-1');
+
+        $userSession = $this->createMock(IUserSession::class);
+        $userSession->method('getUser')->willReturn($user);
+
+        $groupManager = $this->createMock(IGroupManager::class);
+        $groupManager->method('isAdmin')->willReturn(true);
+
+        $controller = new LeaderboardController(
+            request: $this->createMock(IRequest::class),
+            userSession: $userSession,
+            groupManager: $groupManager,
+            objectService: $objectService,
+            config: $this->createMock(IConfig::class),
+        );
+
+        $response = $controller->getRankings(self::COHORT_ID);
+
+        self::assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
+        self::assertSame('Cohort not found', $this->body($response)['error'] ?? null);
+    }//end testUnknownCohortThrowingFromObjectServiceReturns404()
 }//end class

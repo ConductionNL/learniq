@@ -206,7 +206,7 @@ class LearningPlanEvaluationHandler implements IEventListener
      *
      * @return array<string,mixed> Map of goalId => outcome.
      *
-     * @spec openspec/changes/learning-plan/specs/learning-plan/spec.md#requirement-recording-an-evaluation-updates-its-learning-plan-s-goal-statuses
+     * @spec openspec/changes/learning-plan/specs/learning-plan/spec.md#requirement-learningplanevaluation-schema-persistence-and-goal-status-update
      */
     private function buildOutcomeMap(array $goalOutcomes): array
     {
@@ -234,7 +234,7 @@ class LearningPlanEvaluationHandler implements IEventListener
      *
      * @return array{goals: array<int,array<string,mixed>>, changed: bool}
      *
-     * @spec openspec/changes/learning-plan/specs/learning-plan/spec.md#requirement-recording-an-evaluation-updates-its-learning-plan-s-goal-statuses
+     * @spec openspec/changes/learning-plan/specs/learning-plan/spec.md#requirement-learningplanevaluation-schema-persistence-and-goal-status-update
      */
     private function applyOutcomesToGoals(array $goals, array $outcomeMap): array
     {

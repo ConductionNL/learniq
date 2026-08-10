@@ -447,4 +447,33 @@ class PaymentTransactionControllerTest extends TestCase
         self::assertSame(Http::STATUS_NOT_FOUND, $result->getStatus());
 
     }//end testCallbackReturnsNotFoundForUnknownTransaction()
+
+    /**
+     * initiate() answers 404 when the Order lookup THROWS, not a 500.
+     *
+     * ObjectService::find() raises for an unknown id rather than returning
+     * null, so before resolveOrder() caught it the exception escaped initiate()
+     * and became a framework 500 with a stack trace — on a #[NoAdminRequired]
+     * endpoint, i.e. reaching a non-admin caller. The method's own
+     * `Order not found` branch was unreachable.
+     *
+     * Asserts the status AND the error body: initiate() has several 4xx exits
+     * (unauthenticated, missing orderId, order not payable), so a status-only
+     * assertion could not tell "no such order" from "order is not open".
+     *
+     * @return void
+     */
+    public function testInitiateReturnsNotFoundWhenTheOrderLookupThrows(): void
+    {
+        $this->signInAs('learner-1');
+        $this->objectService->method('find')->willThrowException(
+            new \RuntimeException('database is on fire')
+        );
+
+        $result = $this->controller()->initiate(orderId: 'nope', pspProvider: 'mollie');
+
+        self::assertSame(Http::STATUS_NOT_FOUND, $result->getStatus());
+        self::assertSame('Order not found', ((array) $result->getData())['error'] ?? null);
+
+    }//end testInitiateReturnsNotFoundWhenTheOrderLookupThrows()
 }//end class

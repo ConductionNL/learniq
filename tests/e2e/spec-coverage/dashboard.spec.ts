@@ -28,7 +28,7 @@ test.describe('dashboard — role-aware dashboard surface', () => {
 	test('single-cndashboardpage-per-route: no dashboard-in-dashboard nesting', async ({ loggedInPage: page }) => {
 		await page.goto(APP_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The dashboard route renders the role-aware component. There must be at most
 		// one CnDashboardPage host on the page (the antipattern produced nested ones).
@@ -71,7 +71,7 @@ test.describe('dashboard — role-aware dashboard surface', () => {
 		// validate-manifest gate + unit test. Here we assert the rendered dashboard
 		// shows multiple distinct widget tiles rather than one wrapper card.
 		void manifest
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 		const widgetTiles = page.locator('[class*="widget"], .cn-widget-wrapper, .cn-card')
 		const tileCount = await widgetTiles.count().catch(() => 0)
 		// Either multiple tiles render (admin KPI grid) or the body renders content;
@@ -88,7 +88,7 @@ test.describe('dashboard — role-aware dashboard surface', () => {
 	test('role-switcher and single Dashboards entry: only one Dashboards menu item, switcher when multi-role', async ({ loggedInPage: page }) => {
 		await page.goto(APP_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// There must be at most one top-level "Dashboards" navigation entry — never a
 		// separate per-role menu item (no "Teacher dashboard" / "Student dashboard").

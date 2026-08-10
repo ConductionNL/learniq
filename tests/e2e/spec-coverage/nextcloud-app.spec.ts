@@ -96,14 +96,14 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 
 		// Also verify through the Settings UI that the page loads without error
 		await page.goto(SETTINGS_URL)
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 		await expect(page.locator('h2, h1').filter({ hasText: /Scholiq Settings/i })).toBeVisible()
 	})
 
 	// @e2e openspec/specs/nextcloud-app/spec.md#loading-the-register-picker
 	test('loading-the-register-picker: admin settings view shows populated register combobox', async ({ loggedInPage: page }) => {
 		await page.goto(SETTINGS_URL)
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The settings page must be visible
 		await expect(page.locator('text=Scholiq Settings')).toBeVisible({ timeout: 15_000 })
@@ -139,7 +139,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 	// @e2e openspec/specs/nextcloud-app/spec.md#saving-the-default-register
 	test('saving-the-default-register: selecting a register in the picker POSTs to settings API', async ({ loggedInPage: page }) => {
 		await page.goto(SETTINGS_URL)
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 		await expect(page.locator('text=Scholiq Settings')).toBeVisible({ timeout: 15_000 })
 
 		// Intercept the POST to /api/settings to verify it fires with a register slug
@@ -182,7 +182,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 	// @e2e openspec/specs/nextcloud-app/spec.md#rotating-the-signing-key
 	test('rotating-the-signing-key: clicking Rotate signing key shows success or failure message', async ({ loggedInPage: page }) => {
 		await page.goto(SETTINGS_URL)
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 		await expect(page.locator('text=Credential Signing')).toBeVisible({ timeout: 15_000 })
 
 		// The rotate button must be present
@@ -243,7 +243,7 @@ test.describe('nextcloud-app — per-user notification preferences', () => {
 		// slot without a fatal error (the panel is the only per-user settings surface).
 		await page.goto(APP_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
 	})

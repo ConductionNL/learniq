@@ -73,7 +73,7 @@ test.describe('pupil-dossier — declarative index pages', () => {
 
 		await page.goto(DOSSIER_NOTES_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -88,7 +88,7 @@ test.describe('pupil-dossier — declarative index pages', () => {
 
 		await page.goto(BEHAVIOUR_INCIDENTS_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -103,7 +103,7 @@ test.describe('pupil-dossier — declarative index pages', () => {
 
 		await page.goto(WELLBEING_CHECKINS_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -125,7 +125,7 @@ test.describe('pupil-dossier — declarative index pages', () => {
 		// spec in this repo's smoke-coverage style.
 		await page.goto(BEHAVIOUR_INCIDENT_DETAIL_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -142,7 +142,7 @@ test.describe('pupil-dossier — PupilDossierTimelineView resolves (registry.js 
 
 		await page.goto(TIMELINE_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -164,7 +164,7 @@ test.describe('pupil-dossier — PupilDossierTimelineView resolves (registry.js 
 		// every other custom-view spec in this repo's coverage style.
 		await page.goto(TIMELINE_WITH_LEARNER_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)

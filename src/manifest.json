@@ -2421,23 +2421,6 @@
 			"_note": "course-authoring-ux: the per-lesson block editor — add/remove/reorder (drag-and-drop AND keyboard, WCAG 2.1 AA SC 2.1.1) typed content blocks (richText/media/quiz/assignment/ltiTool) and edit each block's payload, persisting the full Lesson.blocks array via OR's existing object-update endpoint. No lib analogue."
 		},
 		{
-			"id": "Settings",
-			"route": "/settings",
-			"type": "settings",
-			"title": "Settings",
-			"config": {
-				"sections": [
-					{
-						"id": "scholiq",
-						"title": "Settings"
-					}
-				]
-			},
-			"slots": {
-				"section-scholiq": "ScholiqSettings"
-			}
-		},
-		{
 			"id": "EnrolmentDetail",
 			"route": "/enrolments/:id",
 			"type": "detail",

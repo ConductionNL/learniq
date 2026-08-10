@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/tasks.md#31-add-ocascholiqservicembzextractor-spdx-adr-031-external-format-import-exception-extracts-a-gzipped-tar-mbz-archive-via-phardata-porting-qtiimportserviceextractzips-zip-slip--decompression-bomb--per-file-size-guards-to-the-tar-extraction-path-fixes-for-207-ported-not-re-invented
+ * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-course-lesson-material-hierarchy
  */
 
 declare(strict_types=1);

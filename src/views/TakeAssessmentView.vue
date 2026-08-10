@@ -134,10 +134,12 @@
 
 				<!-- Extended text (essay) interaction -->
 				<div v-else-if="currentItem.interactionType === 'extendedText'" class="take-assessment__essay">
-					<p class="take-assessment__qti-body" v-html="extractPrompt(currentItem.qtiBody)" />
+					<p id="take-assessment-essay-prompt" class="take-assessment__qti-body" v-html="extractPrompt(currentItem.qtiBody)" />
 					<textarea
+						id="take-assessment-essay-input"
 						class="take-assessment__essay-input"
 						rows="10"
+						aria-labelledby="take-assessment-essay-prompt"
 						:placeholder="t('scholiq', 'Write your response here...')"
 						:value="currentResponse || ''"
 						@input="setResponse($event.target.value)" />
@@ -148,13 +150,15 @@
 
 				<!-- Other interaction types — no in-browser editor yet -->
 				<div v-else class="take-assessment__other-interaction">
-					<p class="take-assessment__qti-body" v-html="extractPrompt(currentItem.qtiBody)" />
+					<p id="take-assessment-other-prompt" class="take-assessment__qti-body" v-html="extractPrompt(currentItem.qtiBody)" />
 					<p class="take-assessment__interaction-note">
 						{{ t('scholiq', 'Interaction type "{type}" — please provide your response:', { type: currentItem.interactionType }) }}
 					</p>
 					<textarea
+						id="take-assessment-other-input"
 						class="take-assessment__essay-input"
 						rows="6"
+						aria-labelledby="take-assessment-other-prompt"
 						:placeholder="t('scholiq', 'Enter your response...')"
 						:value="currentResponse || ''"
 						@input="setResponse($event.target.value)" />

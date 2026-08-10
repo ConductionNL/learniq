@@ -40,7 +40,7 @@ test.describe('school-payments — OrderPaymentPanel', () => {
 
 		await page.goto(ORDER_PAYMENT_PANEL_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The panel resolved the custom OrderPaymentPanel component (its own
 		// loading/error state, not a blank/404 shell).

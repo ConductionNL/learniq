@@ -51,9 +51,9 @@
 			<table class="order-payment-panel__lines">
 				<thead>
 					<tr>
-						<th>{{ t('scholiq', 'Description') }}</th>
-						<th>{{ t('scholiq', 'Quantity') }}</th>
-						<th>{{ t('scholiq', 'Amount') }}</th>
+						<th scope="col">{{ t('scholiq', 'Description') }}</th>
+						<th scope="col">{{ t('scholiq', 'Quantity') }}</th>
+						<th scope="col">{{ t('scholiq', 'Amount') }}</th>
 					</tr>
 				</thead>
 				<tbody>

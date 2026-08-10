@@ -264,6 +264,29 @@ class LtiToolPlacementControllerTest extends TestCase
     }//end testLaunchReturnsNotFoundForUnknownPlacement()
 
     /**
+     * An unknown placement id returns 404 when ObjectService THROWS.
+     *
+     * ObjectService::find() raises DoesNotExistException for an unknown id
+     * rather than returning null, so before the catch in resolvePlacement()
+     * the exception escaped launch() entirely and became a 500 with a stack
+     * trace — the 404 above was unreachable in production, and only passed
+     * here because the mock returned null instead of throwing.
+     *
+     * @return void
+     */
+    public function testLaunchReturnsNotFoundWhenObjectServiceThrows(): void
+    {
+        $this->signInAs('learner-1');
+        $this->objectService->method('find')->willThrowException(
+            new \OCP\AppFramework\Db\DoesNotExistException('no such object')
+        );
+
+        $result = $this->controller()->launch(placementId: 'nope');
+
+        self::assertSame(Http::STATUS_NOT_FOUND, $result->getStatus());
+    }//end testLaunchReturnsNotFoundWhenObjectServiceThrows()
+
+    /**
      * An unauthenticated caller receives 401, never proceeds to launch.
      *
      * @return void

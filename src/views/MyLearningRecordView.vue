@@ -147,9 +147,9 @@
 					<table v-if="latestExport.coverageReport && latestExport.coverageReport.length" class="my-learning-record__table">
 						<thead>
 							<tr>
-								<th>{{ t('scholiq', 'Source') }}</th>
-								<th>{{ t('scholiq', 'Outcome') }}</th>
-								<th>{{ t('scholiq', 'Reason') }}</th>
+								<th scope="col">{{ t('scholiq', 'Source') }}</th>
+								<th scope="col">{{ t('scholiq', 'Outcome') }}</th>
+								<th scope="col">{{ t('scholiq', 'Reason') }}</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -179,7 +179,14 @@
 					<input id="recipient-name" v-model="newShare.recipientName" type="text">
 
 					<label for="recipient-email">{{ t('scholiq', 'Recipient email (optional)') }}</label>
-					<input id="recipient-email" v-model="newShare.recipientEmail" type="email">
+					<!-- autocomplete="off", not "email": this collects a THIRD PARTY's address
+					     (an employer, a receiving school), never the signed-in user's own, so
+					     offering the user's own email here would be the wrong suggestion. -->
+					<input
+						id="recipient-email"
+						v-model="newShare.recipientEmail"
+						type="email"
+						autocomplete="off">
 
 					<label for="expires-at">{{ t('scholiq', 'Expires on') }}</label>
 					<input id="expires-at" v-model="newShare.expiresAt" type="date">
@@ -202,11 +209,11 @@
 				<table v-if="shares.length" class="my-learning-record__table">
 					<thead>
 						<tr>
-							<th>{{ t('scholiq', 'Recipient') }}</th>
-							<th>{{ t('scholiq', 'Expires') }}</th>
-							<th>{{ t('scholiq', 'Status') }}</th>
-							<th>{{ t('scholiq', 'Verification link') }}</th>
-							<th>{{ t('scholiq', 'Action') }}</th>
+							<th scope="col">{{ t('scholiq', 'Recipient') }}</th>
+							<th scope="col">{{ t('scholiq', 'Expires') }}</th>
+							<th scope="col">{{ t('scholiq', 'Status') }}</th>
+							<th scope="col">{{ t('scholiq', 'Verification link') }}</th>
+							<th scope="col">{{ t('scholiq', 'Action') }}</th>
 						</tr>
 					</thead>
 					<tbody>

@@ -15,7 +15,7 @@
  the plan's mappings and drives proposal/preview/execute through the
  Scholiq rollover API + OR object API.
 
- @spec openspec/specs/school-year-rollover/spec.md#requirement-mandatory-side-effect-free-preview-gate
+ @spec openspec/specs/school-year-rollover/spec.md#requirement-preview-must-be-side-effect-free-and-produce-a-complete-dry-run-report
 -->
 <template>
 	<div class="rollover-wizard">
@@ -42,9 +42,9 @@
 		<table v-else-if="mappings.length > 0" class="rollover-wizard__table">
 			<thead>
 				<tr>
-					<th>{{ t('scholiq', 'From cohort') }}</th>
-					<th>{{ t('scholiq', 'Action') }}</th>
-					<th>{{ t('scholiq', 'To cohort') }}</th>
+					<th scope="col">{{ t('scholiq', 'From cohort') }}</th>
+					<th scope="col">{{ t('scholiq', 'Action') }}</th>
+					<th scope="col">{{ t('scholiq', 'To cohort') }}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -58,7 +58,11 @@
 							:aria-label-combobox="t('scholiq', 'Action')" />
 					</td>
 					<td>
-						<input v-model="m.toCohortName" type="text" :placeholder="t('scholiq', 'New cohort name')">
+						<input
+							v-model="m.toCohortName"
+							type="text"
+							:aria-label="t('scholiq', 'New cohort name for {from}', { from: m.fromCohortId })"
+							:placeholder="t('scholiq', 'New cohort name')">
 					</td>
 				</tr>
 			</tbody>

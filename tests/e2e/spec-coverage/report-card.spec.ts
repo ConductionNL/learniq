@@ -90,7 +90,7 @@ function fatalOnly(errors: string[]): string[] {
 async function openRoute(page: import('@playwright/test').Page, route: string) {
 	await page.goto(`/index.php/apps/scholiq/#${route}`)
 	await page.waitForSelector('body', { timeout: 15_000 })
-	await page.waitForLoadState('networkidle').catch(() => {})
+	await page.waitForLoadState('domcontentloaded')
 }
 
 test.describe('report-card-composer — declarative pages resolve without a fatal error', () => {

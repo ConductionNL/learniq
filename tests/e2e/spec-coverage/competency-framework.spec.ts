@@ -47,7 +47,7 @@ test.describe('competency-framework — Skills gap dashboard', () => {
 
 		await page.goto(SKILLS_GAP_DASHBOARD_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The dashboard heading or its loading/error state must be present
 		// (page resolved the custom SkillsGapDashboard component, not a
