@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/tasks.md#32-add-ocascholiqservicecommoncartridgeparser-spdx-walks-an-extracted-cc-13-imsmanifestxml-classifies-each-resource-type--organizationwebcontentweblinkimsqti_itemimsqti_testbasiclticourseother-and-returns-a-resource-descriptor-list-the-orchestrator-consumes
+ * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-course-lesson-material-hierarchy
  */
 
 declare(strict_types=1);

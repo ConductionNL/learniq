@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/tasks.md#34-add-ocascholiqservicemoodlequizquestionmapper-spdx-maps-moodles-quizquizxml-single-answer-multi-answer-short-answer-and-essay-question-types-to-item-objects-matching-qtiimportservices-item-shape-every-other-moodle-question-subtype-returns-a-dropped-marked-descriptor-rather-than-a-partially-correct-item
+ * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-course-lesson-material-hierarchy
  */
 
 declare(strict_types=1);

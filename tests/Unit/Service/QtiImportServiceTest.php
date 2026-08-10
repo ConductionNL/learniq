@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/tasks.md#21-refactor-qtiimportserviceimport-extract-the-existing-collectitempathsimportsingleitem-loop-into-a-new-public-function-importfromdirectorystring-dir-string-itembankid-string-tenantid---array-import-becomes-extractzip-then-importfromdirectory-no-behavior-change-for-the-existing-qtiimportcontroller-caller
+ * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-course-lesson-material-hierarchy
  */
 
 declare(strict_types=1);
