@@ -51,11 +51,14 @@
  * assertions below are environment-stable and check the same property a
  * baseline is meant to check: that this route really renders THIS component.
  */
-import type { Page } from '@playwright/test'
-
 import { test as authed, expect } from '../fixtures'
 import { createObject, firstObjectId } from '../or-api'
 import manifest from '../../../src/manifest.json'
+
+// `import type { Page } from '@playwright/test'` trips
+// `n/no-unpublished-import` because Playwright is a devDependency; every other
+// spec in this repo spells the type inline for the same reason.
+type Page = import('@playwright/test').Page
 
 /**
  * ⚠️ THE APP BASE IS RESOLVED AT RUNTIME, NOT HARDCODED.
@@ -90,7 +93,7 @@ async function resolveAppBase(page: Page): Promise<string> {
 	if (appBase) return appBase
 	await page.goto(ENTRY_URL)
 	const base = await page.evaluate(
-		() => (window as unknown as { OC: { generateUrl: (p: string) => string } })
+		() => (window as unknown as { OC: { generateUrl: (_p: string) => string } })
 			.OC.generateUrl('/apps/scholiq'),
 	)
 	expect(base, 'OC.generateUrl did not resolve the scholiq app base').toBeTruthy()
@@ -129,7 +132,6 @@ function collectFatalErrors(page: Page): string[] {
  * Assert the collected console errors contain nothing fatal.
  *
  * @param errors The array returned by collectFatalErrors.
- * @return void
  */
 function assertNoFatalErrors(errors: string[]): void {
 	const fatal = errors.filter(

@@ -31,10 +31,13 @@
  * never out of the spec, so those markers proved nothing and the gate correctly
  * kept reporting the scenarios as uncovered.
  */
-import type { Page } from '@playwright/test'
-
 import { test, expect } from '../fixtures'
 import manifest from '../../../src/manifest.json'
+
+// `import type { Page } from '@playwright/test'` trips
+// `n/no-unpublished-import` because Playwright is a devDependency; every other
+// spec in this repo spells the type inline for the same reason.
+type Page = import('@playwright/test').Page
 
 type ManifestPage = {
 	id?: string
@@ -65,7 +68,7 @@ async function resolveAppBase(page: Page): Promise<string> {
 	if (appBase) return appBase
 	await page.goto('/index.php/apps/scholiq/')
 	const base = await page.evaluate(
-		() => (window as unknown as { OC: { generateUrl: (p: string) => string } })
+		() => (window as unknown as { OC: { generateUrl: (_p: string) => string } })
 			.OC.generateUrl('/apps/scholiq'),
 	)
 	expect(base, 'OC.generateUrl did not resolve the scholiq app base').toBeTruthy()
@@ -90,7 +93,6 @@ function pagesUnder(prefixes: string[]): ManifestPage[] {
  *
  * @param prefixes       Route prefixes that delimit the feature area.
  * @param expectedCustom The `[route, component]` pairs that MAY be custom.
- * @return void
  */
 function assertDeclarativeExcept(
 	prefixes: string[],
