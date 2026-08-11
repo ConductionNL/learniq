@@ -191,8 +191,31 @@ async function assertNoCrudController(page: Page, slugs: string[]): Promise<void
 
 test.describe('declarative frontends with named custom views', () => {
 
+	/*
+	 * ⚠️ **SPLIT IN TWO ON PURPOSE — DO NOT RECOMBINE.**
+	 * parent-conferences is the only area declaring TWO custom views, so as one
+	 * test it drove two full SPA loads plus the eight catch-all probes and became
+	 * the slowest test in the suite by 7.6 s, sitting ON the 40 s per-test cap:
+	 * measured at **39.1 s in the run that PASSED and 42.8 s in the one that
+	 * failed — the same commit, `916c5ed`** (runs 31526866579 vs 31526872644).
+	 * A test with 0.9 s of headroom fails on runner contention alone.
+	 *
+	 * Both halves are kept: each view is still navigated to in a real browser and
+	 * still asserted to render, the manifest claim is still asserted in full in
+	 * BOTH tests, and the absence probe still runs with its positive control.
+	 * Nothing is skipped, loosened or re-timed — the same work is spread across
+	 * two per-test budgets instead of one. Both carry the same `@e2e` anchor, so
+	 * gate-19 coverage of the scenario is unchanged.
+	 *
+	 * ⚠️ Do NOT "speed this up" with `waitUntil: 'domcontentloaded'`. Measured on
+	 * a clean rig: the test went from 23.3 s passing to **25.1–26.3 s FAILING** —
+	 * the shell has not bootstrapped the router at DOMContentLoaded, so the view
+	 * never mounts. It is slower AND wrong. (`networkidle` is the other trap: it
+	 * hides the race it appears to fix.)
+	 */
+
 	// @e2e openspec/specs/parent-conferences/spec.md#booking-and-coordinator-resolution-use-the-two-named-custom-views-only
-	test('parent-conferences: only BookConferenceSlotsView and ConferenceScheduleBoard are custom', async ({ loggedInPage: page }) => {
+	test('parent-conferences: BookConferenceSlotsView is one of exactly two custom pages, and it renders', async ({ loggedInPage: page }) => {
 		assertDeclarativeExcept(['/conferences'], [
 			['/conferences/book', 'BookConferenceSlotsView'],
 			['/conferences/schedule-board', 'ConferenceScheduleBoard'],
@@ -201,6 +224,15 @@ test.describe('declarative frontends with named custom views', () => {
 
 		await page.goto(`${base}/conferences/book`)
 		await expect(page.locator('.book-conference-slots')).toBeVisible({ timeout: 20_000 })
+	})
+
+	// @e2e openspec/specs/parent-conferences/spec.md#booking-and-coordinator-resolution-use-the-two-named-custom-views-only
+	test('parent-conferences: ConferenceScheduleBoard renders and no PHP CRUD controller answers', async ({ loggedInPage: page }) => {
+		assertDeclarativeExcept(['/conferences'], [
+			['/conferences/book', 'BookConferenceSlotsView'],
+			['/conferences/schedule-board', 'ConferenceScheduleBoard'],
+		])
+		const base = await resolveAppBase(page)
 
 		await page.goto(`${base}/conferences/schedule-board`)
 		await expect(page.locator('.conference-schedule-board')).toBeVisible({ timeout: 20_000 })
