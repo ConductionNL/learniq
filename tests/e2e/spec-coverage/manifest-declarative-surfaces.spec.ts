@@ -155,20 +155,37 @@ async function assertRouteAnswers(page: Page): Promise<void> {
  * probe that could never have produced the answer it was looking for, which is
  * exactly the failure mode `assertRouteAnswers` exists to catch.
  *
- * @param page An authenticated page.
- * @param slug The schema slug, e.g. `conference-round`.
- * @return void
+ * ⚠️ **CONCURRENT ON PURPOSE, AND THE SEQUENTIAL VERSION DID NOT FIT.**
+ * Every one of these probes hits the catch-all, which renders the FULL SPA
+ * shell — so each is a page-sized response, not a cheap 404. The
+ * parent-conferences case probes 4 slugs x 2 spellings = 8 of them, and awaiting
+ * them one at a time blew the 40 s per-test budget on CI (run 31519400527:
+ * `Test timeout of 40000ms exceeded` at `apiRequestContext.get`, while the same
+ * test passed locally at 1 worker). Firing them together costs one round of
+ * latency instead of eight and **changes no assertion** — every path is still
+ * probed and every content type is still checked.
+ *
+ * ⚠️ Do NOT "fix" a recurrence by dropping the plural spelling or by raising
+ * `timeout`. The plural is half the coverage, and the per-test timeout is sized
+ * against the slowest PASSING test in the suite (see
+ * tests/e2e/playwright.config.ts).
+ *
+ * @param page  An authenticated page.
+ * @param slugs The schema slugs, e.g. `['conference-round', 'conference-slot']`.
  */
-async function assertNoCrudController(page: Page, slug: string): Promise<void> {
-	for (const path of [`/index.php/apps/scholiq/api/${slug}`, `/index.php/apps/scholiq/api/${slug}s`]) {
+async function assertNoCrudController(page: Page, slugs: string[]): Promise<void> {
+	const paths = slugs.flatMap((slug) => [
+		`/index.php/apps/scholiq/api/${slug}`,
+		`/index.php/apps/scholiq/api/${slug}s`,
+	])
+	const results = await Promise.all(paths.map(async (path) => {
 		const resp = await page.request.get(path, {
 			headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 		})
-		const type = resp.headers()['content-type'] ?? ''
-		expect(
-			`${path} -> ${resp.status()} ${type}`,
-			`a scholiq CRUD controller answers for ${slug}`,
-		).toMatch(/text\/html/)
+		return `${path} -> ${resp.status()} ${resp.headers()['content-type'] ?? ''}`
+	}))
+	for (const line of results) {
+		expect(line, 'a scholiq CRUD controller answers for this schema').toMatch(/text\/html/)
 	}
 }
 
@@ -189,9 +206,7 @@ test.describe('declarative frontends with named custom views', () => {
 		await expect(page.locator('.conference-schedule-board')).toBeVisible({ timeout: 20_000 })
 
 		await assertRouteAnswers(page)
-		for (const slug of ['conference-round', 'conference-slot', 'conference-signup', 'conference-report']) {
-			await assertNoCrudController(page, slug)
-		}
+		await assertNoCrudController(page, ['conference-round', 'conference-slot', 'conference-signup', 'conference-report'])
 	})
 
 	// @e2e openspec/specs/timetabling/spec.md#render-the-timetabling-surface-declaratively-with-named-views
@@ -206,9 +221,7 @@ test.describe('declarative frontends with named custom views', () => {
 		await expect(page.locator('.timetable-conflict-queue__title')).toHaveText(/Timetable conflicts/i)
 
 		await assertRouteAnswers(page)
-		for (const slug of ['room', 'timetable-conflict', 'exam-accommodation']) {
-			await assertNoCrudController(page, slug)
-		}
+		await assertNoCrudController(page, ['room', 'timetable-conflict', 'exam-accommodation'])
 	})
 
 	// @e2e openspec/specs/exam-board/spec.md#pages-are-manifest-declared-with-one-shared-dossier-view-exception
@@ -224,9 +237,7 @@ test.describe('declarative frontends with named custom views', () => {
 		await expect(page.locator('.exam-case-dossier')).toHaveCount(0)
 
 		await assertRouteAnswers(page)
-		for (const slug of ['exemption-case', 'fraud-case']) {
-			await assertNoCrudController(page, slug)
-		}
+		await assertNoCrudController(page, ['exemption-case', 'fraud-case'])
 	})
 
 	// @e2e openspec/specs/pupil-dossier/spec.md#pages-are-manifest-declared-with-one-shared-timeline-view-exception
@@ -240,9 +251,7 @@ test.describe('declarative frontends with named custom views', () => {
 		await expect(page.locator('.pupil-dossier-timeline')).toBeVisible({ timeout: 20_000 })
 
 		await assertRouteAnswers(page)
-		for (const slug of ['dossier-note', 'behaviour-incident', 'wellbeing-check-in']) {
-			await assertNoCrudController(page, slug)
-		}
+		await assertNoCrudController(page, ['dossier-note', 'behaviour-incident', 'wellbeing-check-in'])
 	})
 
 	// @e2e openspec/specs/report-card/spec.md#pages-and-custom-views-are-manifest-declared
@@ -256,9 +265,7 @@ test.describe('declarative frontends with named custom views', () => {
 		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		await assertRouteAnswers(page)
-		for (const slug of ['report-period', 'report-card']) {
-			await assertNoCrudController(page, slug)
-		}
+		await assertNoCrudController(page, ['report-period', 'report-card'])
 	})
 
 	// @e2e openspec/specs/bpv/spec.md#pages-are-manifest-declared-with-one-signing-exception
@@ -272,8 +279,6 @@ test.describe('declarative frontends with named custom views', () => {
 		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		await assertRouteAnswers(page)
-		for (const slug of ['bpv-placement', 'praktijkopleider', 'praktijkovereenkomst', 'werkproces-assessment', 'bpv-visit-report']) {
-			await assertNoCrudController(page, slug)
-		}
+		await assertNoCrudController(page, ['bpv-placement', 'praktijkopleider', 'praktijkovereenkomst', 'werkproces-assessment', 'bpv-visit-report'])
 	})
 })
