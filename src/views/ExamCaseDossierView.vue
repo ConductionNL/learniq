@@ -254,11 +254,6 @@
 import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
 
-const SCHEMA_TITLES = {
-	'exemption-case': 'ExemptionCase',
-	'fraud-case': 'FraudCase',
-}
-
 export default {
 	name: 'ExamCaseDossierView',
 
@@ -326,13 +321,39 @@ export default {
 	},
 
 	methods: {
-		schemaTitle() {
-			return SCHEMA_TITLES[this.schema] || this.schema
-		},
-
+		/**
+		 * The OpenRegister object endpoint for this case.
+		 *
+		 * ⚠️ ADDRESS THE SCHEMA BY ITS SLUG, NEVER BY ITS TITLE.
+		 *
+		 * This used to translate `config.schema` through a
+		 * `{'exemption-case': 'ExemptionCase', 'fraud-case': 'FraudCase'}` map
+		 * before building the url. OpenRegister resolves a schema identifier by
+		 * SLUGIFYING it and matching the slug, so `ExemptionCase` becomes
+		 * `exemptioncase`, which matches nothing. Measured against a live
+		 * instance holding one real ExemptionCase row:
+		 *
+		 *   .../objects/scholiq/ExemptionCase/<uuid>   -> 404
+		 *   .../objects/scholiq/exemptioncase/<uuid>   -> 404
+		 *   .../objects/scholiq/Exemption-Case/<uuid>  -> 200
+		 *   .../objects/scholiq/exemption-case/<uuid>  -> 200
+		 *
+		 * So BOTH dossier routes (`/exam-board/exemptions/:id` and
+		 * `/exam-board/fraud-cases/:id`) could never load a case: the view
+		 * rendered its "Case not found." branch for every real id. A
+		 * single-word title hides this — `Item` slugifies to `item` and happens
+		 * to resolve — which is why the same pattern looks fine elsewhere.
+		 *
+		 * `config.schema` in the manifest is already the slug, so pass it
+		 * through untouched.
+		 *
+		 * @param {string} suffix Optional path suffix appended to the object url.
+		 * @return {string} The generated OpenRegister object url.
+		 * @spec openspec/specs/exam-board/spec.md#requirement-frontend-is-declarative-with-one-shared-custom-detail-view
+		 */
 		objectUrl(suffix = '') {
 			return generateUrl(
-				`/apps/openregister/api/objects/${this.register}/${this.schemaTitle()}/${this.id}${suffix}`,
+				`/apps/openregister/api/objects/${this.register}/${this.schema}/${this.id}${suffix}`,
 			)
 		},
 
