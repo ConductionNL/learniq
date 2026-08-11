@@ -112,6 +112,13 @@ class ListenerSchemaResolverTest extends TestCase
                     throw new \RuntimeException('not found');
                 }
 
+                // Mirrors the REAL collaborator, not the caller's expectations.
+                // OpenRegister's Db\Schema and Db\Register declare getSlug() as a
+                // `@method` docblock only and serve it from
+                // OCP\AppFramework\Db\Entity::__call — so method_exists() is FALSE
+                // for it on a genuine entity. A double that declares getSlug()
+                // concretely inverts the exact predicate under test and makes the
+                // suite green while production resolves nothing.
                 return new class($this->map[$id]) {
                     /**
                      * Constructor.
@@ -123,14 +130,23 @@ class ListenerSchemaResolverTest extends TestCase
                     }//end __construct()
 
                     /**
-                     * The slug.
+                     * Serve getSlug() magically, exactly as Entity::__call does.
+                     *
+                     * @param string       $name      The invoked method name.
+                     * @param array<mixed> $arguments The invoked arguments.
                      *
                      * @return string
+                     *
+                     * @throws \BadFunctionCallException When the method is unknown.
                      */
-                    public function getSlug(): string
+                    public function __call(string $name, array $arguments): string
                     {
-                        return $this->slug;
-                    }//end getSlug()
+                        if ($name === 'getSlug') {
+                            return $this->slug;
+                        }
+
+                        throw new \BadFunctionCallException($name.' does not exist');
+                    }//end __call()
                 };
             }//end find()
         };

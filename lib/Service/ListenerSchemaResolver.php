@@ -238,7 +238,15 @@ class ListenerSchemaResolver
     {
         try {
             $entity = $this->container->get($service)->find($id);
-            if (is_object($entity) === true && method_exists($entity, 'getSlug') === true) {
+            // `is_callable()`, NOT `method_exists()` — the same trap schemaSlug()
+            // documents, one layer down. OpenRegister's Db\Schema and Db\Register
+            // declare getSlug() as a `@method` docblock only; it is reached through
+            // OCP\AppFramework\Db\Entity::__call. Measured on both classes:
+            // method_exists(getSlug)=false, is_callable=true, while the concretely
+            // declared Schema::setSlug reads true on both. With method_exists this
+            // returned '' for every real entity, so isOwnRegister() compared ''
+            // against 'scholiq' and every listener guard rejected every object.
+            if (is_object($entity) === true && is_callable([$entity, 'getSlug']) === true) {
                 return (string) ($entity->getSlug() ?? '');
             }
         } catch (Throwable $e) {
