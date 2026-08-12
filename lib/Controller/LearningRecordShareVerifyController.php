@@ -69,182 +69,177 @@ use OCP\IRequest;
  *
  * @spec openspec/changes/portable-learning-record/tasks.md#task-3-2
  */
-class LearningRecordShareVerifyController extends Controller
-{
+class LearningRecordShareVerifyController extends Controller {
 
-    private const SCHOLIQ_REGISTER = 'scholiq';
-    private const SHARE_SCHEMA     = 'learning-record-share';
-    private const EXPORT_SCHEMA    = 'learning-record-export';
+	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SHARE_SCHEMA = 'learning-record-share';
+	private const EXPORT_SCHEMA = 'learning-record-export';
 
-    /**
-     * Constructor.
-     *
-     * @param IRequest                           $request        HTTP request.
-     * @param ObjectService                      $objectService  OR object read/update service.
-     * @param LearningRecordExportSigningService $signingService JWS verification.
-     * @param IRootFolder                        $rootFolder     NC root folder for reading the bundle file.
-     *
-     * @return void
-     */
-    public function __construct(
-        IRequest $request,
-        private readonly ObjectService $objectService,
-        private readonly LearningRecordExportSigningService $signingService,
-        private readonly IRootFolder $rootFolder,
-    ) {
-        parent::__construct(appName: Application::APP_ID, request: $request);
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param IRequest $request HTTP request.
+	 * @param ObjectService $objectService OR object read/update service.
+	 * @param LearningRecordExportSigningService $signingService JWS verification.
+	 * @param IRootFolder $rootFolder NC root folder for reading the bundle file.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		IRequest $request,
+		private readonly ObjectService $objectService,
+		private readonly LearningRecordExportSigningService $signingService,
+		private readonly IRootFolder $rootFolder,
+	) {
+		parent::__construct(appName: Application::APP_ID, request: $request);
+	}//end __construct()
 
-    /**
-     * Verify a LearningRecordShare by UUID without requiring authentication.
-     *
-     * @param string $id LearningRecordShare UUID.
-     *
-     * @return JSONResponse `{valid: true, bundle: {...}}` on success, `{valid: false, reason}` otherwise.
-     *
-     * @NoCSRFRequired
-     * @PublicPage
-     *
-     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-valid-unexpired-share-resolves-to-the-shared-bundle
-     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-an-expired-share-is-denied-even-though-its-lifecycle-is-still-active
-     */
-    #[NoCSRFRequired]
-    #[PublicPage]
-    public function verify(string $id): JSONResponse
-    {
-        $share = $this->fetchObject(id: $id, schema: self::SHARE_SCHEMA);
-        if ($share === null) {
-            return new JSONResponse(['valid' => false, 'reason' => 'not_found'], 404);
-        }
+	/**
+	 * Verify a LearningRecordShare by UUID without requiring authentication.
+	 *
+	 * @param string $id LearningRecordShare UUID.
+	 *
+	 * @return JSONResponse `{valid: true, bundle: {...}}` on success, `{valid: false, reason}` otherwise.
+	 *
+	 * @NoCSRFRequired
+	 * @PublicPage
+	 *
+	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-valid-unexpired-share-resolves-to-the-shared-bundle
+	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-an-expired-share-is-denied-even-though-its-lifecycle-is-still-active
+	 */
+	#[NoCSRFRequired]
+	#[PublicPage]
+	public function verify(string $id): JSONResponse {
+		$share = $this->fetchObject(id: $id, schema: self::SHARE_SCHEMA);
+		if ($share === null) {
+			return new JSONResponse(['valid' => false, 'reason' => 'not_found'], 404);
+		}
 
-        $lifecycle = $share['lifecycle'] ?? '';
-        if ($lifecycle === 'revoked') {
-            return new JSONResponse(['valid' => false, 'reason' => 'revoked'], 200);
-        }
+		$lifecycle = $share['lifecycle'] ?? '';
+		if ($lifecycle === 'revoked') {
+			return new JSONResponse(['valid' => false, 'reason' => 'revoked'], 200);
+		}
 
-        if (($share['isExpired'] ?? false) === true) {
-            return new JSONResponse(['valid' => false, 'reason' => 'expired'], 200);
-        }
+		if (($share['isExpired'] ?? false) === true) {
+			return new JSONResponse(['valid' => false, 'reason' => 'expired'], 200);
+		}
 
-        $exportId = $share['learningRecordExportId'] ?? '';
-        $export   = null;
-        if ($exportId !== '') {
-            $export = $this->fetchObject(id: (string) $exportId, schema: self::EXPORT_SCHEMA);
-        }
+		$exportId = $share['learningRecordExportId'] ?? '';
+		$export = null;
+		if ($exportId !== '') {
+			$export = $this->fetchObject(id: (string)$exportId, schema: self::EXPORT_SCHEMA);
+		}
 
-        if ($export === null) {
-            return new JSONResponse(['valid' => false, 'reason' => 'export_not_found'], 200);
-        }
+		if ($export === null) {
+			return new JSONResponse(['valid' => false, 'reason' => 'export_not_found'], 200);
+		}
 
-        $bundle = $this->readBundle(export: $export);
-        if ($bundle === null) {
-            return new JSONResponse(['valid' => false, 'reason' => 'bundle_unreadable'], 200);
-        }
+		$bundle = $this->readBundle(export: $export);
+		if ($bundle === null) {
+			return new JSONResponse(['valid' => false, 'reason' => 'bundle_unreadable'], 200);
+		}
 
-        $jws      = (string) ($export['bundleSignature'] ?? '');
-        $tenantId = (string) ($export['tenant_id'] ?? '');
-        if ($jws === '' || $this->signingService->verify(jws: $jws, bundle: $bundle, tenantId: $tenantId) === false) {
-            return new JSONResponse(['valid' => false, 'reason' => 'signature_invalid'], 200);
-        }
+		$jws = (string)($export['bundleSignature'] ?? '');
+		$tenantId = (string)($export['tenant_id'] ?? '');
+		if ($jws === '' || $this->signingService->verify(jws: $jws, bundle: $bundle, tenantId: $tenantId) === false) {
+			return new JSONResponse(['valid' => false, 'reason' => 'signature_invalid'], 200);
+		}
 
-        $this->stampAccess(share: $share);
+		$this->stampAccess(share: $share);
 
-        return new JSONResponse(['valid' => true, 'bundle' => $bundle], 200);
-    }//end verify()
+		return new JSONResponse(['valid' => true, 'bundle' => $bundle], 200);
+	}//end verify()
 
-    /**
-     * Read and decode the signed bundle file referenced by a
-     * `LearningRecordExport.bundleRef`, owned by the export's `learnerId`.
-     *
-     * @param array<string,mixed> $export The LearningRecordExport data array.
-     *
-     * @return array<string,mixed>|null The decoded bundle, or null when unreadable.
-     */
-    private function readBundle(array $export): ?array
-    {
-        $bundleRef = (string) ($export['bundleRef'] ?? '');
-        $ownerUid  = (string) ($export['learnerId'] ?? '');
-        if ($bundleRef === '' || $ownerUid === '') {
-            return null;
-        }
+	/**
+	 * Read and decode the signed bundle file referenced by a
+	 * `LearningRecordExport.bundleRef`, owned by the export's `learnerId`.
+	 *
+	 * @param array<string,mixed> $export The LearningRecordExport data array.
+	 *
+	 * @return array<string,mixed>|null The decoded bundle, or null when unreadable.
+	 */
+	private function readBundle(array $export): ?array {
+		$bundleRef = (string)($export['bundleRef'] ?? '');
+		$ownerUid = (string)($export['learnerId'] ?? '');
+		if ($bundleRef === '' || $ownerUid === '') {
+			return null;
+		}
 
-        try {
-            $userFolder = $this->rootFolder->getUserFolder($ownerUid);
-            $node       = $userFolder->get(ltrim($bundleRef, '/'));
-            if (($node instanceof File) === false) {
-                return null;
-            }
+		try {
+			$userFolder = $this->rootFolder->getUserFolder($ownerUid);
+			$node = $userFolder->get(ltrim($bundleRef, '/'));
+			if (($node instanceof File) === false) {
+				return null;
+			}
 
-            $decoded = json_decode($node->getContent(), associative: true);
+			$decoded = json_decode($node->getContent(), associative: true);
 
-            if (is_array($decoded) === true) {
-                return $decoded;
-            }
+			if (is_array($decoded) === true) {
+				return $decoded;
+			}
 
-            return null;
-        } catch (\Throwable) {
-            return null;
-        }
-    }//end readBundle()
+			return null;
+		} catch (\Throwable) {
+			return null;
+		}
+	}//end readBundle()
 
-    /**
-     * Stamp `lastAccessedAt`/`accessCount` on a successful verification.
-     *
-     * @param array<string,mixed> $share The LearningRecordShare data array (with its own `id`).
-     *
-     * @return void
-     */
-    private function stampAccess(array $share): void
-    {
-        $now         = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-        $accessCount = (int) ($share['accessCount'] ?? 0);
+	/**
+	 * Stamp `lastAccessedAt`/`accessCount` on a successful verification.
+	 *
+	 * @param array<string,mixed> $share The LearningRecordShare data array (with its own `id`).
+	 *
+	 * @return void
+	 */
+	private function stampAccess(array $share): void {
+		$now = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+		$accessCount = (int)($share['accessCount'] ?? 0);
 
-        $updated = $share;
-        $updated['lastAccessedAt'] = $now;
-        $updated['accessCount']    = $accessCount + 1;
+		$updated = $share;
+		$updated['lastAccessedAt'] = $now;
+		$updated['accessCount'] = $accessCount + 1;
 
-        try {
-            $this->objectService->saveObject(
-                register: self::SCHOLIQ_REGISTER,
-                schema: self::SHARE_SCHEMA,
-                object: $updated
-            );
-        } catch (\Throwable) {
-            // Best-effort — a failed access-stamp must never block a valid verification response.
-        }
-    }//end stampAccess()
+		try {
+			$this->objectService->saveObject(
+				register: self::SCHOLIQ_REGISTER,
+				schema: self::SHARE_SCHEMA,
+				object: $updated
+			);
+		} catch (\Throwable) {
+			// Best-effort — a failed access-stamp must never block a valid verification response.
+		}
+	}//end stampAccess()
 
-    /**
-     * Fetch an object by id/schema, normalising the OpenRegister entity to an
-     * array — mirrors `LeaderboardController::fetchObject()`.
-     *
-     * @param string $id     UUID of the object.
-     * @param string $schema Schema slug.
-     *
-     * @return array<string,mixed>|null
-     */
-    private function fetchObject(string $id, string $schema): ?array
-    {
-        // `find()` THROWS for a share id that does not resolve — DoesNotExistException
-        // for an unknown object, and ObjectService::setSchema() rethrows the same for a
-        // schema the register has not imported. This is a #[PublicPage], so letting that
-        // escape means Nextcloud's dispatcher renders printExceptionErrorPage() and the
-        // caller receives an HTML error page where it asked for JSON. The verify view then
-        // fails with `SyntaxError: Unexpected token '<', "<!DOCTYPE "...`.
-        //
-        // An unresolvable share is exactly the denied case this endpoint is specified to
-        // fail closed on, so it must return null and let the caller emit the denied JSON —
-        // matching the `catch (\Throwable)` already used by the other methods on this class.
-        try {
-            $obj = $this->objectService->find(id: $id, register: self::SCHOLIQ_REGISTER, schema: $schema);
-        } catch (\Throwable) {
-            return null;
-        }
+	/**
+	 * Fetch an object by id/schema, normalising the OpenRegister entity to an
+	 * array — mirrors `LeaderboardController::fetchObject()`.
+	 *
+	 * @param string $id UUID of the object.
+	 * @param string $schema Schema slug.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private function fetchObject(string $id, string $schema): ?array {
+		// `find()` THROWS for a share id that does not resolve — DoesNotExistException
+		// for an unknown object, and ObjectService::setSchema() rethrows the same for a
+		// schema the register has not imported. This is a #[PublicPage], so letting that
+		// escape means Nextcloud's dispatcher renders printExceptionErrorPage() and the
+		// caller receives an HTML error page where it asked for JSON. The verify view then
+		// fails with `SyntaxError: Unexpected token '<', "<!DOCTYPE "...`.
+		//
+		// An unresolvable share is exactly the denied case this endpoint is specified to
+		// fail closed on, so it must return null and let the caller emit the denied JSON —
+		// matching the `catch (\Throwable)` already used by the other methods on this class.
+		try {
+			$obj = $this->objectService->find(id: $id, register: self::SCHOLIQ_REGISTER, schema: $schema);
+		} catch (\Throwable) {
+			return null;
+		}
 
-        if ($obj === null) {
-            return null;
-        }
+		if ($obj === null) {
+			return null;
+		}
 
-        return $obj->jsonSerialize();
-    }//end fetchObject()
+		return $obj->jsonSerialize();
+	}//end fetchObject()
 }//end class

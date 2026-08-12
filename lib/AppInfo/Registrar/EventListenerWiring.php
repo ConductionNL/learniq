@@ -43,39 +43,36 @@ use OCP\EventDispatcher\IEventDispatcher;
 /**
  * Names every listener registrar and the bootstrap phase it belongs to.
  */
-class EventListenerWiring
-{
-    /**
-     * Run every register()-phase listener registrar.
-     *
-     * @param IRegistrationContext $context Nextcloud registration context.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-     */
-    public function registerAll(IRegistrationContext $context): void
-    {
-        (new GradingListenerRegistrar())->register(context: $context);
-        (new CaseListenerRegistrar())->register(context: $context);
-        (new CollaborationListenerRegistrar())->register(context: $context);
-        (new SchedulingListenerRegistrar())->register(context: $context);
+class EventListenerWiring {
+	/**
+	 * Run every register()-phase listener registrar.
+	 *
+	 * @param IRegistrationContext $context Nextcloud registration context.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 */
+	public function registerAll(IRegistrationContext $context): void {
+		(new GradingListenerRegistrar())->register(context: $context);
+		(new CaseListenerRegistrar())->register(context: $context);
+		(new CollaborationListenerRegistrar())->register(context: $context);
+		(new SchedulingListenerRegistrar())->register(context: $context);
 
-    }//end registerAll()
+	}//end registerAll()
 
-    /**
-     * Subscribe every boot()-phase filtered object listener.
-     *
-     * @param IEventDispatcher $dispatcher The live event dispatcher.
-     * @param string           $appId      The Scholiq app id (log context only).
-     *
-     * @return void
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-     */
-    public function bootFilteredListeners(IEventDispatcher $dispatcher, string $appId): void
-    {
-        (new BootListenerRegistrar())->register(dispatcher: $dispatcher, appId: $appId);
+	/**
+	 * Subscribe every boot()-phase filtered object listener.
+	 *
+	 * @param IEventDispatcher $dispatcher The live event dispatcher.
+	 * @param string $appId The Scholiq app id (log context only).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 */
+	public function bootFilteredListeners(IEventDispatcher $dispatcher, string $appId): void {
+		(new BootListenerRegistrar())->register(dispatcher: $dispatcher, appId: $appId);
 
-    }//end bootFilteredListeners()
+	}//end bootFilteredListeners()
 }//end class

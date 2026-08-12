@@ -38,250 +38,236 @@ use Psr\Log\LoggerInterface;
  * Tests for BpvLeerbedrijfVerificationHandler::handle() on
  * BpvPlacement → sbb-verification-pending.
  */
-class BpvLeerbedrijfVerificationHandlerTest extends TestCase
-{
+class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 
-    /**
-     * Recorded saveObject() calls, captured by the ObjectService stub used per test.
-     *
-     * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
-     */
-    private array $savedObjects = [];
+	/**
+	 * Recorded saveObject() calls, captured by the ObjectService stub used per test.
+	 *
+	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
+	 */
+	private array $savedObjects = [];
 
-    /**
-     * Reset the capture buffer before each test.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->savedObjects = [];
+	/**
+	 * Reset the capture buffer before each test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->savedObjects = [];
 
-    }//end setUp()
+	}//end setUp()
 
-    /**
-     * Build a handler with a stubbed ObjectService and the given container.
-     *
-     * @param ContainerInterface $container DI container stub.
-     *
-     * @return BpvLeerbedrijfVerificationHandler
-     */
-    private function makeHandler(ContainerInterface $container): BpvLeerbedrijfVerificationHandler
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('saveObject')->willReturnCallback(
-            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
-                $this->savedObjects[] = [
-                    'register' => (string) $register,
-                    'schema'   => (string) $schema,
-                    'object'   => $object,
-                ];
-                return OrEntityFactory::make($object, (string) $schema, (string) $register);
-            }
-        );
+	/**
+	 * Build a handler with a stubbed ObjectService and the given container.
+	 *
+	 * @param ContainerInterface $container DI container stub.
+	 *
+	 * @return BpvLeerbedrijfVerificationHandler
+	 */
+	private function makeHandler(ContainerInterface $container): BpvLeerbedrijfVerificationHandler {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('saveObject')->willReturnCallback(
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+				$this->savedObjects[] = [
+					'register' => (string)$register,
+					'schema' => (string)$schema,
+					'object' => $object,
+				];
+				return OrEntityFactory::make($object, (string)$schema, (string)$register);
+			}
+		);
 
-        return new BpvLeerbedrijfVerificationHandler($objectService, $container, $this->createMock(LoggerInterface::class));
+		return new BpvLeerbedrijfVerificationHandler($objectService, $container, $this->createMock(LoggerInterface::class));
+	}//end makeHandler()
 
-    }//end makeHandler()
+	/**
+	 * Build a mocked ObjectTransitionedEvent for a BpvPlacement → sbb-verification-pending
+	 * transition.
+	 *
+	 * @param array<string, mixed> $placementData The BpvPlacement's jsonSerialize() payload.
+	 *
+	 * @return ObjectTransitionedEvent
+	 */
+	private function makeEvent(array $placementData): ObjectTransitionedEvent {
+		$objectEntity = $this->createMock(ObjectEntity::class);
+		$objectEntity->method('jsonSerialize')->willReturn($placementData);
 
-    /**
-     * Build a mocked ObjectTransitionedEvent for a BpvPlacement → sbb-verification-pending
-     * transition.
-     *
-     * @param array<string, mixed> $placementData The BpvPlacement's jsonSerialize() payload.
-     *
-     * @return ObjectTransitionedEvent
-     */
-    private function makeEvent(array $placementData): ObjectTransitionedEvent
-    {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($placementData);
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getObject')->willReturn($objectEntity);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('bpv-placement');
+		$event->method('getTo')->willReturn('sbb-verification-pending');
+		$event->method('getFrom')->willReturn('proposed');
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getObject')->willReturn($objectEntity);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('bpv-placement');
-        $event->method('getTo')->willReturn('sbb-verification-pending');
-        $event->method('getFrom')->willReturn('proposed');
+		return $event;
+	}//end makeEvent()
 
-        return $event;
+	/**
+	 * A configured, resolvable, `verified`-returning provider writes the full result back onto
+	 * the BpvPlacement.
+	 *
+	 * @return void
+	 */
+	public function testConfiguredProviderWritesVerifiedResultBack(): void {
+		$fakeProvider = new class implements ProvidesLeerbedrijfVerification {
+			public function verify(string $kvkOrErkenningNumber): array {
+				return [
+					'status' => 'verified',
+					'erkenningNumber' => 'SBB-999',
+					'expiresAt' => '2027-01-01T00:00:00+00:00',
+					'raw' => ['source' => 'fake'],
+				];
+			}
+		};
 
-    }//end makeEvent()
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->with('FakeSbbAdapter')->willReturn($fakeProvider);
 
-    /**
-     * A configured, resolvable, `verified`-returning provider writes the full result back onto
-     * the BpvPlacement.
-     *
-     * @return void
-     */
-    public function testConfiguredProviderWritesVerifiedResultBack(): void
-    {
-        $fakeProvider = new class implements ProvidesLeerbedrijfVerification {
-            public function verify(string $kvkOrErkenningNumber): array
-            {
-                return [
-                    'status'          => 'verified',
-                    'erkenningNumber' => 'SBB-999',
-                    'expiresAt'       => '2027-01-01T00:00:00+00:00',
-                    'raw'             => ['source' => 'fake'],
-                ];
-            }
-        };
+		$handler = $this->makeHandler($container);
+		$placement = [
+			'id' => 'placement-1',
+			'leerbedrijfKvkNumber' => '12345678',
+			'leerbedrijfVerification' => ['provider' => 'FakeSbbAdapter', 'status' => 'unverified'],
+		];
 
-        $container = $this->createMock(ContainerInterface::class);
-        $container->method('get')->with('FakeSbbAdapter')->willReturn($fakeProvider);
+		$handler->handle($this->makeEvent($placement));
 
-        $handler   = $this->makeHandler($container);
-        $placement = [
-            'id'                      => 'placement-1',
-            'leerbedrijfKvkNumber'    => '12345678',
-            'leerbedrijfVerification' => ['provider' => 'FakeSbbAdapter', 'status' => 'unverified'],
-        ];
+		$this->assertCount(1, $this->savedObjects);
+		$saved = $this->savedObjects[0]['object']['leerbedrijfVerification'];
+		$this->assertSame('verified', $saved['status']);
+		$this->assertSame('SBB-999', $saved['erkenningNumber']);
+		$this->assertSame('2027-01-01T00:00:00+00:00', $saved['expiresAt']);
+		$this->assertSame(['source' => 'fake'], $saved['raw']);
+		$this->assertNotEmpty($saved['verifiedAt']);
 
-        $handler->handle($this->makeEvent($placement));
+	}//end testConfiguredProviderWritesVerifiedResultBack()
 
-        $this->assertCount(1, $this->savedObjects);
-        $saved = $this->savedObjects[0]['object']['leerbedrijfVerification'];
-        $this->assertSame('verified', $saved['status']);
-        $this->assertSame('SBB-999', $saved['erkenningNumber']);
-        $this->assertSame('2027-01-01T00:00:00+00:00', $saved['expiresAt']);
-        $this->assertSame(['source' => 'fake'], $saved['raw']);
-        $this->assertNotEmpty($saved['verifiedAt']);
+	/**
+	 * An unconfigured provider (empty/null `provider` config) is a no-op — the placement stays
+	 * in sbb-verification-pending, no exception thrown, nothing saved.
+	 *
+	 * @return void
+	 */
+	public function testUnconfiguredProviderIsNoOp(): void {
+		$container = $this->createMock(ContainerInterface::class);
+		$container->expects($this->never())->method('get');
 
-    }//end testConfiguredProviderWritesVerifiedResultBack()
+		$handler = $this->makeHandler($container);
+		$placement = [
+			'id' => 'placement-1',
+			'leerbedrijfKvkNumber' => '12345678',
+			'leerbedrijfVerification' => ['provider' => null, 'status' => 'unverified'],
+		];
 
-    /**
-     * An unconfigured provider (empty/null `provider` config) is a no-op — the placement stays
-     * in sbb-verification-pending, no exception thrown, nothing saved.
-     *
-     * @return void
-     */
-    public function testUnconfiguredProviderIsNoOp(): void
-    {
-        $container = $this->createMock(ContainerInterface::class);
-        $container->expects($this->never())->method('get');
+		$handler->handle($this->makeEvent($placement));
 
-        $handler   = $this->makeHandler($container);
-        $placement = [
-            'id'                      => 'placement-1',
-            'leerbedrijfKvkNumber'    => '12345678',
-            'leerbedrijfVerification' => ['provider' => null, 'status' => 'unverified'],
-        ];
+		$this->assertCount(0, $this->savedObjects);
 
-        $handler->handle($this->makeEvent($placement));
+	}//end testUnconfiguredProviderIsNoOp()
 
-        $this->assertCount(0, $this->savedObjects);
+	/**
+	 * A configured provider FQCN the container cannot resolve is also a no-op — the handler
+	 * never throws.
+	 *
+	 * @return void
+	 */
+	public function testUnresolvableProviderIsNoOp(): void {
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willThrowException(
+			$this->createMock(NotFoundExceptionInterface::class)
+		);
 
-    }//end testUnconfiguredProviderIsNoOp()
+		$handler = $this->makeHandler($container);
+		$placement = [
+			'id' => 'placement-1',
+			'leerbedrijfKvkNumber' => '12345678',
+			'leerbedrijfVerification' => ['provider' => 'MissingClass', 'status' => 'unverified'],
+		];
 
-    /**
-     * A configured provider FQCN the container cannot resolve is also a no-op — the handler
-     * never throws.
-     *
-     * @return void
-     */
-    public function testUnresolvableProviderIsNoOp(): void
-    {
-        $container = $this->createMock(ContainerInterface::class);
-        $container->method('get')->willThrowException(
-            $this->createMock(NotFoundExceptionInterface::class)
-        );
+		$handler->handle($this->makeEvent($placement));
 
-        $handler   = $this->makeHandler($container);
-        $placement = [
-            'id'                      => 'placement-1',
-            'leerbedrijfKvkNumber'    => '12345678',
-            'leerbedrijfVerification' => ['provider' => 'MissingClass', 'status' => 'unverified'],
-        ];
+		$this->assertCount(0, $this->savedObjects);
 
-        $handler->handle($this->makeEvent($placement));
+	}//end testUnresolvableProviderIsNoOp()
 
-        $this->assertCount(0, $this->savedObjects);
+	/**
+	 * A resolved service that does NOT implement ProvidesLeerbedrijfVerification is treated as
+	 * unconfigured (no-op) — never called, never crashes.
+	 *
+	 * @return void
+	 */
+	public function testResolvedServiceNotImplementingInterfaceIsNoOp(): void {
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willReturn(new \stdClass());
 
-    }//end testUnresolvableProviderIsNoOp()
+		$handler = $this->makeHandler($container);
+		$placement = [
+			'id' => 'placement-1',
+			'leerbedrijfKvkNumber' => '12345678',
+			'leerbedrijfVerification' => ['provider' => 'NotAnAdapter', 'status' => 'unverified'],
+		];
 
-    /**
-     * A resolved service that does NOT implement ProvidesLeerbedrijfVerification is treated as
-     * unconfigured (no-op) — never called, never crashes.
-     *
-     * @return void
-     */
-    public function testResolvedServiceNotImplementingInterfaceIsNoOp(): void
-    {
-        $container = $this->createMock(ContainerInterface::class);
-        $container->method('get')->willReturn(new \stdClass());
+		$handler->handle($this->makeEvent($placement));
 
-        $handler   = $this->makeHandler($container);
-        $placement = [
-            'id'                      => 'placement-1',
-            'leerbedrijfKvkNumber'    => '12345678',
-            'leerbedrijfVerification' => ['provider' => 'NotAnAdapter', 'status' => 'unverified'],
-        ];
+		$this->assertCount(0, $this->savedObjects);
 
-        $handler->handle($this->makeEvent($placement));
+	}//end testResolvedServiceNotImplementingInterfaceIsNoOp()
 
-        $this->assertCount(0, $this->savedObjects);
+	/**
+	 * A `rejected`/`pending` result is written back without advancing the lifecycle (the
+	 * handler only ever writes the leerbedrijfVerification field — it never calls the
+	 * transition engine).
+	 *
+	 * @return void
+	 */
+	public function testRejectedResultIsWrittenBackWithoutTransition(): void {
+		$fakeProvider = new class implements ProvidesLeerbedrijfVerification {
+			public function verify(string $kvkOrErkenningNumber): array {
+				return ['status' => 'rejected', 'erkenningNumber' => null, 'expiresAt' => null, 'raw' => []];
+			}
+		};
 
-    }//end testResolvedServiceNotImplementingInterfaceIsNoOp()
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willReturn($fakeProvider);
 
-    /**
-     * A `rejected`/`pending` result is written back without advancing the lifecycle (the
-     * handler only ever writes the leerbedrijfVerification field — it never calls the
-     * transition engine).
-     *
-     * @return void
-     */
-    public function testRejectedResultIsWrittenBackWithoutTransition(): void
-    {
-        $fakeProvider = new class implements ProvidesLeerbedrijfVerification {
-            public function verify(string $kvkOrErkenningNumber): array
-            {
-                return ['status' => 'rejected', 'erkenningNumber' => null, 'expiresAt' => null, 'raw' => []];
-            }
-        };
+		$handler = $this->makeHandler($container);
+		$placement = [
+			'id' => 'placement-1',
+			'leerbedrijfKvkNumber' => '12345678',
+			'leerbedrijfVerification' => ['provider' => 'FakeSbbAdapter', 'status' => 'unverified'],
+		];
 
-        $container = $this->createMock(ContainerInterface::class);
-        $container->method('get')->willReturn($fakeProvider);
+		$handler->handle($this->makeEvent($placement));
 
-        $handler   = $this->makeHandler($container);
-        $placement = [
-            'id'                      => 'placement-1',
-            'leerbedrijfKvkNumber'    => '12345678',
-            'leerbedrijfVerification' => ['provider' => 'FakeSbbAdapter', 'status' => 'unverified'],
-        ];
+		$this->assertCount(1, $this->savedObjects);
+		$this->assertSame('rejected', $this->savedObjects[0]['object']['leerbedrijfVerification']['status']);
+		// No lifecycle field write attempted — the saved object carries no 'lifecycle' change
+		// beyond what was already on the placement (none was present here).
+		$this->assertArrayNotHasKey('lifecycle', $this->savedObjects[0]['object']);
 
-        $handler->handle($this->makeEvent($placement));
+	}//end testRejectedResultIsWrittenBackWithoutTransition()
 
-        $this->assertCount(1, $this->savedObjects);
-        $this->assertSame('rejected', $this->savedObjects[0]['object']['leerbedrijfVerification']['status']);
-        // No lifecycle field write attempted — the saved object carries no 'lifecycle' change
-        // beyond what was already on the placement (none was present here).
-        $this->assertArrayNotHasKey('lifecycle', $this->savedObjects[0]['object']);
+	/**
+	 * Events for other schemas/states are ignored entirely.
+	 *
+	 * @return void
+	 */
+	public function testIgnoresUnrelatedEvents(): void {
+		$container = $this->createMock(ContainerInterface::class);
+		$container->expects($this->never())->method('get');
+		$handler = $this->makeHandler($container);
 
-    }//end testRejectedResultIsWrittenBackWithoutTransition()
+		$objectEntity = $this->createMock(ObjectEntity::class);
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getObject')->willReturn($objectEntity);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('praktijkovereenkomst');
+		$event->method('getTo')->willReturn('sbb-verification-pending');
 
-    /**
-     * Events for other schemas/states are ignored entirely.
-     *
-     * @return void
-     */
-    public function testIgnoresUnrelatedEvents(): void
-    {
-        $container = $this->createMock(ContainerInterface::class);
-        $container->expects($this->never())->method('get');
-        $handler = $this->makeHandler($container);
+		$handler->handle($event);
 
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $event        = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getObject')->willReturn($objectEntity);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('praktijkovereenkomst');
-        $event->method('getTo')->willReturn('sbb-verification-pending');
+		$this->assertCount(0, $this->savedObjects);
 
-        $handler->handle($event);
-
-        $this->assertCount(0, $this->savedObjects);
-
-    }//end testIgnoresUnrelatedEvents()
+	}//end testIgnoresUnrelatedEvents()
 }//end class

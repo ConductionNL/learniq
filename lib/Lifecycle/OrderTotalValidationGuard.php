@@ -50,73 +50,70 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-finalizing-an-order-with-a-mismatched-total-is-refused
  * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-finalizing-an-order-with-a-correct-total-succeeds
  */
-class OrderTotalValidationGuard
-{
+class OrderTotalValidationGuard {
 
-    /**
-     * Floating-point comparison tolerance for currency amounts (half a cent).
-     *
-     * @var float
-     */
-    private const AMOUNT_EPSILON = 0.005;
+	/**
+	 * Floating-point comparison tolerance for currency amounts (half a cent).
+	 *
+	 * @var float
+	 */
+	private const AMOUNT_EPSILON = 0.005;
 
-    /**
-     * Constructor.
-     *
-     * @param OrderTotalEvaluator $evaluator Sums an Order's OrderLine.lineTotal rows.
-     * @param LoggerInterface     $logger    PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly OrderTotalEvaluator $evaluator,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param OrderTotalEvaluator $evaluator Sums an Order's OrderLine.lineTotal rows.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly OrderTotalEvaluator $evaluator,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Allow the `finalize` transition only when totalAmount matches the sum
-     * of the Order's OrderLines.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the Order data array
-     *                                               - 'transition' : 'finalize'
-     *
-     * @return bool True if the transition is allowed; false blocks it (HTTP 422).
-     *
-     * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-finalizing-an-order-with-a-mismatched-total-is-refused
-     * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-finalizing-an-order-with-a-correct-total-succeeds
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $order       = $transitionContext['object'] ?? [];
-        $orderId     = $order['id'] ?? ($order['uuid'] ?? '');
-        $storedTotal = (float) ($order['totalAmount'] ?? 0);
+	/**
+	 * Allow the `finalize` transition only when totalAmount matches the sum
+	 * of the Order's OrderLines.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the Order data array
+	 *                                               - 'transition' : 'finalize'
+	 *
+	 * @return bool True if the transition is allowed; false blocks it (HTTP 422).
+	 *
+	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-finalizing-an-order-with-a-mismatched-total-is-refused
+	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-finalizing-an-order-with-a-correct-total-succeeds
+	 */
+	public function check(array &$transitionContext): bool {
+		$order = $transitionContext['object'] ?? [];
+		$orderId = $order['id'] ?? ($order['uuid'] ?? '');
+		$storedTotal = (float)($order['totalAmount'] ?? 0);
 
-        $result = $this->evaluator->evaluate(orderId: (string) $orderId);
+		$result = $this->evaluator->evaluate(orderId: (string)$orderId);
 
-        if ($result['lineCount'] === 0) {
-            $this->logger->info(
-                '[OrderTotalValidationGuard] Order {id} has no OrderLines — refusing finalize (nothing to finalize).',
-                ['id' => $orderId]
-            );
-            return false;
-        }
+		if ($result['lineCount'] === 0) {
+			$this->logger->info(
+				'[OrderTotalValidationGuard] Order {id} has no OrderLines — refusing finalize (nothing to finalize).',
+				['id' => $orderId]
+			);
+			return false;
+		}
 
-        if (abs($result['total'] - $storedTotal) > self::AMOUNT_EPSILON) {
-            $this->logger->info(
-                '[OrderTotalValidationGuard] Order {id} totalAmount ({stored}) does not match'
-                .' the sum of its OrderLines ({computed}) — refusing finalize.',
-                [
-                    'id'       => $orderId,
-                    'stored'   => $storedTotal,
-                    'computed' => $result['total'],
-                ]
-            );
-            return false;
-        }
+		if (abs($result['total'] - $storedTotal) > self::AMOUNT_EPSILON) {
+			$this->logger->info(
+				'[OrderTotalValidationGuard] Order {id} totalAmount ({stored}) does not match'
+				. ' the sum of its OrderLines ({computed}) — refusing finalize.',
+				[
+					'id' => $orderId,
+					'stored' => $storedTotal,
+					'computed' => $result['total'],
+				]
+			);
+			return false;
+		}
 
-        return true;
-
-    }//end check()
+		return true;
+	}//end check()
 }//end class

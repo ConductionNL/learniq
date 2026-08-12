@@ -29,20 +29,17 @@ namespace OCA\Talk;
 /**
  * Minimal stub of the spreed room manager.
  */
-class Manager
-{
-    /**
-     * Resolve a room by its token, unscoped to any particular user.
-     *
-     * @param string      $token         The room token.
-     * @param string|null $preloadUserId Unused in the stub.
-     * @param string|null $serverUrl     Unused in the stub.
-     *
-     * @return Room The resolved room.
-     */
-    public function getRoomByToken(string $token, ?string $preloadUserId=null, ?string $serverUrl=null): Room
-    {
-        return new Room();
-
-    }//end getRoomByToken()
+class Manager {
+	/**
+	 * Resolve a room by its token, unscoped to any particular user.
+	 *
+	 * @param string $token The room token.
+	 * @param string|null $preloadUserId Unused in the stub.
+	 * @param string|null $serverUrl Unused in the stub.
+	 *
+	 * @return Room The resolved room.
+	 */
+	public function getRoomByToken(string $token, ?string $preloadUserId = null, ?string $serverUrl = null): Room {
+		return new Room();
+	}//end getRoomByToken()
 }//end class

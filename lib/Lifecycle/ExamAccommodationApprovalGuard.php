@@ -48,87 +48,82 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-exam-accommodations-are-recorded-as-approved-evidence-backed-entitlements
  */
-class ExamAccommodationApprovalGuard
-{
+class ExamAccommodationApprovalGuard {
 
-    /**
-     * NC groups whose members may approve an ExamAccommodation.
-     *
-     * @var string[]
-     */
-    private const AUTHORISED_GROUPS = ['admin', 'compliance-officer', 'mentor'];
+	/**
+	 * NC groups whose members may approve an ExamAccommodation.
+	 *
+	 * @var string[]
+	 */
+	private const AUTHORISED_GROUPS = ['admin', 'compliance-officer', 'mentor'];
 
-    /**
-     * Constructor.
-     *
-     * @param IGroupManager   $groupManager OR/NC group manager to resolve the acting user's role groups.
-     * @param IUserManager    $userManager  User manager to resolve the acting user object for membership checks.
-     * @param LoggerInterface $logger       PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly IGroupManager $groupManager,
-        private readonly IUserManager $userManager,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param IGroupManager $groupManager OR/NC group manager to resolve the acting user's role groups.
+	 * @param IUserManager $userManager User manager to resolve the acting user object for membership checks.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly IGroupManager $groupManager,
+		private readonly IUserManager $userManager,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'  : the ExamAccommodation data array
-     *                                               - 'actor'   : NC user ID of the requester
-     *                                               - 'payload' : mutable array; approvedBy is stamped here
-     *
-     * @return bool True when the transition is allowed; false blocks it.
-     *
-     * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-requests-an-accommodation-and-a-mentor-approves-it
-     * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-cannot-self-approve-their-own-accommodation
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $actor = (string) ($transitionContext['actor'] ?? '');
+	/**
+	 * OR lifecycle guard entry-point.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'  : the ExamAccommodation data array
+	 *                                               - 'actor'   : NC user ID of the requester
+	 *                                               - 'payload' : mutable array; approvedBy is stamped here
+	 *
+	 * @return bool True when the transition is allowed; false blocks it.
+	 *
+	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-requests-an-accommodation-and-a-mentor-approves-it
+	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-cannot-self-approve-their-own-accommodation
+	 */
+	public function check(array &$transitionContext): bool {
+		$actor = (string)($transitionContext['actor'] ?? '');
 
-        if ($actor === '') {
-            $this->logger->info('[ExamAccommodationApprovalGuard] No actor in transitionContext — denying approve.');
-            return false;
-        }
+		if ($actor === '') {
+			$this->logger->info('[ExamAccommodationApprovalGuard] No actor in transitionContext — denying approve.');
+			return false;
+		}
 
-        if ($this->actorIsAuthorised(actor: $actor) === false) {
-            $this->logger->info(
-                '[ExamAccommodationApprovalGuard] Actor {a} is not admin/compliance-officer/mentor — denying approve.',
-                ['a' => $actor]
-            );
-            return false;
-        }
+		if ($this->actorIsAuthorised(actor: $actor) === false) {
+			$this->logger->info(
+				'[ExamAccommodationApprovalGuard] Actor {a} is not admin/compliance-officer/mentor — denying approve.',
+				['a' => $actor]
+			);
+			return false;
+		}
 
-        // Stamp approvedBy server-side — never trust a caller-supplied value,
-        // mirroring MunicipalityFeedbackGuard's recordedBy stamping.
-        $transitionContext['payload']['approvedBy'] = $actor;
+		// Stamp approvedBy server-side — never trust a caller-supplied value,
+		// mirroring MunicipalityFeedbackGuard's recordedBy stamping.
+		$transitionContext['payload']['approvedBy'] = $actor;
 
-        return true;
+		return true;
+	}//end check()
 
-    }//end check()
+	/**
+	 * Whether the acting user is a member of one of AUTHORISED_GROUPS.
+	 *
+	 * @param string $actor NC user ID of the requester.
+	 *
+	 * @return bool True when the user is in admin/compliance-officer/mentor.
+	 */
+	private function actorIsAuthorised(string $actor): bool {
+		$user = $this->userManager->get($actor);
+		if ($user === null) {
+			return false;
+		}
 
-    /**
-     * Whether the acting user is a member of one of AUTHORISED_GROUPS.
-     *
-     * @param string $actor NC user ID of the requester.
-     *
-     * @return bool True when the user is in admin/compliance-officer/mentor.
-     */
-    private function actorIsAuthorised(string $actor): bool
-    {
-        $user = $this->userManager->get($actor);
-        if ($user === null) {
-            return false;
-        }
+		$actorGroups = $this->groupManager->getUserGroupIds($user);
 
-        $actorGroups = $this->groupManager->getUserGroupIds($user);
-
-        return count(array_intersect($actorGroups, self::AUTHORISED_GROUPS)) > 0;
-
-    }//end actorIsAuthorised()
+		return count(array_intersect($actorGroups, self::AUTHORISED_GROUPS)) > 0;
+	}//end actorIsAuthorised()
 }//end class

@@ -52,32 +52,30 @@ namespace OCA\Scholiq\Service;
  * context, mirroring `AssessmentScoringHandler`'s "always-true handler that
  * mutates the object" shape.
  */
-class WalletClaimSyncService
-{
-    /**
-     * OR lifecycle guard entry-point.
-     *
-     * Called before executing the `recordWalletClaim` transition on a
-     * Credential object. Writes `walletOfferStatus=claimed` and
-     * `walletClaimedAt=now` into the context.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the Credential data array (mutated)
-     *                                               - 'transition' : 'recordWalletClaim'
-     *                                               - 'from'       : 'issued'
-     *                                               - 'to'         : 'issued'
-     *
-     * @return bool Always true — this transition has no failure mode.
-     *
-     * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $object = &$transitionContext['object'];
+class WalletClaimSyncService {
+	/**
+	 * OR lifecycle guard entry-point.
+	 *
+	 * Called before executing the `recordWalletClaim` transition on a
+	 * Credential object. Writes `walletOfferStatus=claimed` and
+	 * `walletClaimedAt=now` into the context.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the Credential data array (mutated)
+	 *                                               - 'transition' : 'recordWalletClaim'
+	 *                                               - 'from'       : 'issued'
+	 *                                               - 'to'         : 'issued'
+	 *
+	 * @return bool Always true — this transition has no failure mode.
+	 *
+	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+	 */
+	public function check(array &$transitionContext): bool {
+		$object = &$transitionContext['object'];
 
-        $object['walletOfferStatus'] = 'claimed';
-        $object['walletClaimedAt']   = gmdate('c');
+		$object['walletOfferStatus'] = 'claimed';
+		$object['walletClaimedAt'] = gmdate('c');
 
-        return true;
-    }//end check()
+		return true;
+	}//end check()
 }//end class

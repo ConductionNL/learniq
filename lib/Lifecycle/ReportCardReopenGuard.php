@@ -48,74 +48,71 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-the-rapportvergadering-review-lifecycle-gates-parent-visibility-behind-a-finalise-step
  */
-class ReportCardReopenGuard
-{
+class ReportCardReopenGuard {
 
-    /**
-     * Groups whose members may reopen a finalised report card.
-     *
-     * @var string[]
-     */
-    private const REOPEN_GROUPS = ['admin', 'mentor', 'principal'];
+	/**
+	 * Groups whose members may reopen a finalised report card.
+	 *
+	 * @var string[]
+	 */
+	private const REOPEN_GROUPS = ['admin', 'mentor', 'principal'];
 
-    /**
-     * Constructor.
-     *
-     * @param IGroupManager   $groupManager OR/NC group manager to resolve the acting user's role groups.
-     * @param IUserManager    $userManager  User manager to resolve the acting user object for membership checks.
-     * @param LoggerInterface $logger       PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly IGroupManager $groupManager,
-        private readonly IUserManager $userManager,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param IGroupManager $groupManager OR/NC group manager to resolve the acting user's role groups.
+	 * @param IUserManager $userManager User manager to resolve the acting user object for membership checks.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly IGroupManager $groupManager,
+		private readonly IUserManager $userManager,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the ReportCard data array
-     *                                               - 'transition' : 'reopen'
-     *                                               - 'actor'      : NC user ID of the requester
-     *
-     * @return bool True when the actor holds admin/mentor/principal; false blocks it.
-     *
-     * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $object = $transitionContext['object'] ?? [];
-        $actor  = (string) ($transitionContext['actor'] ?? '');
+	/**
+	 * OR lifecycle guard entry-point.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the ReportCard data array
+	 *                                               - 'transition' : 'reopen'
+	 *                                               - 'actor'      : NC user ID of the requester
+	 *
+	 * @return bool True when the actor holds admin/mentor/principal; false blocks it.
+	 *
+	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
+	 */
+	public function check(array &$transitionContext): bool {
+		$object = $transitionContext['object'] ?? [];
+		$actor = (string)($transitionContext['actor'] ?? '');
 
-        if ($actor === '') {
-            $this->logger->warning('[ReportCardReopenGuard] No actor in transitionContext — denying reopen.');
-            return false;
-        }
+		if ($actor === '') {
+			$this->logger->warning('[ReportCardReopenGuard] No actor in transitionContext — denying reopen.');
+			return false;
+		}
 
-        $user = $this->userManager->get($actor);
-        if ($user === null) {
-            $this->logger->info(
-                '[ReportCardReopenGuard] Actor {actor} could not be resolved — denying reopen.',
-                ['actor' => $actor]
-            );
-            return false;
-        }
+		$user = $this->userManager->get($actor);
+		if ($user === null) {
+			$this->logger->info(
+				'[ReportCardReopenGuard] Actor {actor} could not be resolved — denying reopen.',
+				['actor' => $actor]
+			);
+			return false;
+		}
 
-        $actorGroups = $this->groupManager->getUserGroupIds($user);
+		$actorGroups = $this->groupManager->getUserGroupIds($user);
 
-        if (count(array_intersect($actorGroups, self::REOPEN_GROUPS)) === 0) {
-            $this->logger->info(
-                '[ReportCardReopenGuard] ReportCard {id} reopen denied — actor {actor} holds no admin/mentor/principal role.',
-                ['id' => ($object['id'] ?? ($object['uuid'] ?? '')), 'actor' => $actor]
-            );
-            return false;
-        }
+		if (count(array_intersect($actorGroups, self::REOPEN_GROUPS)) === 0) {
+			$this->logger->info(
+				'[ReportCardReopenGuard] ReportCard {id} reopen denied — actor {actor} holds no admin/mentor/principal role.',
+				['id' => ($object['id'] ?? ($object['uuid'] ?? '')), 'actor' => $actor]
+			);
+			return false;
+		}
 
-        return true;
-
-    }//end check()
+		return true;
+	}//end check()
 }//end class

@@ -65,74 +65,73 @@ use OCP\IUserSession;
  *
  * @spec openspec/specs/avg-verwerkingsregister/spec.md
  */
-class AuditPackExportController extends Controller
-{
-    /**
-     * Constructor.
-     *
-     * @param IRequest          $request     HTTP request.
-     * @param IUserSession      $userSession Nextcloud user session.
-     * @param ActionAuthService $actionAuth  ADR-023 action authorization service.
-     * @param AuditPackBuilder  $packBuilder Audit-pack assembly (query, verify, render, zip).
-     */
-    public function __construct(
-        IRequest $request,
-        private readonly IUserSession $userSession,
-        private readonly ActionAuthService $actionAuth,
-        private readonly AuditPackBuilder $packBuilder,
-    ) {
-        parent::__construct(appName: Application::APP_ID, request: $request);
-    }//end __construct()
+class AuditPackExportController extends Controller {
+	/**
+	 * Constructor.
+	 *
+	 * @param IRequest $request HTTP request.
+	 * @param IUserSession $userSession Nextcloud user session.
+	 * @param ActionAuthService $actionAuth ADR-023 action authorization service.
+	 * @param AuditPackBuilder $packBuilder Audit-pack assembly (query, verify, render, zip).
+	 */
+	public function __construct(
+		IRequest $request,
+		private readonly IUserSession $userSession,
+		private readonly ActionAuthService $actionAuth,
+		private readonly AuditPackBuilder $packBuilder,
+	) {
+		parent::__construct(appName: Application::APP_ID, request: $request);
+	}//end __construct()
 
-    /**
-     * Export the compliance audit pack as a ZIP download.
-     *
-     * @param string $regulationSlug Regulation slug to filter (e.g. 'NIS2').
-     * @param string $dateFrom       ISO-8601 date lower bound (inclusive).
-     * @param string $dateTo         ISO-8601 date upper bound (inclusive).
-     *
-     * @return DataDownloadResponse|JSONResponse ZIP stream or JSON error.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-     */
-    #[NoAdminRequired]
-    public function export(
-        string $regulationSlug='',
-        string $dateFrom='',
-        string $dateTo='',
-    ): DataDownloadResponse|JSONResponse {
-        $user = $this->userSession->getUser();
-        if ($user === null) {
-            return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
-        }
+	/**
+	 * Export the compliance audit pack as a ZIP download.
+	 *
+	 * @param string $regulationSlug Regulation slug to filter (e.g. 'NIS2').
+	 * @param string $dateFrom ISO-8601 date lower bound (inclusive).
+	 * @param string $dateTo ISO-8601 date upper bound (inclusive).
+	 *
+	 * @return DataDownloadResponse|JSONResponse ZIP stream or JSON error.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 */
+	#[NoAdminRequired]
+	public function export(
+		string $regulationSlug = '',
+		string $dateFrom = '',
+		string $dateTo = '',
+	): DataDownloadResponse|JSONResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
 
-        $this->actionAuth->requireAction(user: $user, action: 'audit-pack.export');
+		$this->actionAuth->requireAction(user: $user, action: 'audit-pack.export');
 
-        if ($regulationSlug === '' || $dateFrom === '' || $dateTo === '') {
-            return new JSONResponse(
-                data: ['error' => 'regulationSlug, dateFrom, and dateTo are required'],
-                statusCode: Http::STATUS_BAD_REQUEST
-            );
-        }
+		if ($regulationSlug === '' || $dateFrom === '' || $dateTo === '') {
+			return new JSONResponse(
+				data: ['error' => 'regulationSlug, dateFrom, and dateTo are required'],
+				statusCode: Http::STATUS_BAD_REQUEST
+			);
+		}
 
-        $zipContent = $this->packBuilder->build(
-            user: $user,
-            regulationSlug: $regulationSlug,
-            dateFrom: $dateFrom,
-            dateTo: $dateTo
-        );
+		$zipContent = $this->packBuilder->build(
+			user: $user,
+			regulationSlug: $regulationSlug,
+			dateFrom: $dateFrom,
+			dateTo: $dateTo
+		);
 
-        $filename = sprintf(
-            'audit-pack_%s_%s_%s.zip',
-            $regulationSlug,
-            $dateFrom,
-            $dateTo
-        );
+		$filename = sprintf(
+			'audit-pack_%s_%s_%s.zip',
+			$regulationSlug,
+			$dateFrom,
+			$dateTo
+		);
 
-        return new DataDownloadResponse(
-            data: $zipContent,
-            filename: $filename,
-            contentType: 'application/zip'
-        );
-    }//end export()
+		return new DataDownloadResponse(
+			data: $zipContent,
+			filename: $filename,
+			contentType: 'application/zip'
+		);
+	}//end export()
 }//end class

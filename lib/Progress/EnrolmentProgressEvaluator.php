@@ -42,108 +42,102 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * Computes progressPercent = round(completedLessonCount / totalPublishedLessonCount * 100).
  */
-class EnrolmentProgressEvaluator
-{
+class EnrolmentProgressEvaluator {
 
-    private const SCHOLIQ_REGISTER         = 'scholiq';
-    private const LESSON_SCHEMA            = 'lesson';
-    private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
+	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const LESSON_SCHEMA = 'lesson';
+	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService $objectService OpenRegister object access.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OpenRegister object access.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+	) {
+	}//end __construct()
 
-    /**
-     * Evaluate progressPercent for a learner + course.
-     *
-     * Counts the learner's LessonCompletion rows for the course and the
-     * course's published Lessons, then computes a null-safe percentage —
-     * 0 (never a divide-by-zero error) when either count is 0.
-     *
-     * @param string $learnerId NC user ID of the learner.
-     * @param string $courseId  UUID of the Course.
-     *
-     * @return array{progressPercent: int, completedLessonCount: int, totalPublishedLessonCount: int}
-     *
-     * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
-     */
-    public function evaluate(string $learnerId, string $courseId): array
-    {
-        $completedLessonCount = $this->countCompletedLessons(learnerId: $learnerId, courseId: $courseId);
-        $publishedCount       = $this->countPublishedLessons(courseId: $courseId);
+	/**
+	 * Evaluate progressPercent for a learner + course.
+	 *
+	 * Counts the learner's LessonCompletion rows for the course and the
+	 * course's published Lessons, then computes a null-safe percentage —
+	 * 0 (never a divide-by-zero error) when either count is 0.
+	 *
+	 * @param string $learnerId NC user ID of the learner.
+	 * @param string $courseId UUID of the Course.
+	 *
+	 * @return array{progressPercent: int, completedLessonCount: int, totalPublishedLessonCount: int}
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
+	 */
+	public function evaluate(string $learnerId, string $courseId): array {
+		$completedLessonCount = $this->countCompletedLessons(learnerId: $learnerId, courseId: $courseId);
+		$publishedCount = $this->countPublishedLessons(courseId: $courseId);
 
-        if ($completedLessonCount === 0 || $publishedCount === 0) {
-            return [
-                'progressPercent'           => 0,
-                'completedLessonCount'      => $completedLessonCount,
-                'totalPublishedLessonCount' => $publishedCount,
-            ];
-        }
+		if ($completedLessonCount === 0 || $publishedCount === 0) {
+			return [
+				'progressPercent' => 0,
+				'completedLessonCount' => $completedLessonCount,
+				'totalPublishedLessonCount' => $publishedCount,
+			];
+		}
 
-        $progressPercent = (int) round(($completedLessonCount / $publishedCount) * 100);
+		$progressPercent = (int)round(($completedLessonCount / $publishedCount) * 100);
 
-        return [
-            'progressPercent'           => $progressPercent,
-            'completedLessonCount'      => $completedLessonCount,
-            'totalPublishedLessonCount' => $publishedCount,
-        ];
+		return [
+			'progressPercent' => $progressPercent,
+			'completedLessonCount' => $completedLessonCount,
+			'totalPublishedLessonCount' => $publishedCount,
+		];
 
-    }//end evaluate()
+	}//end evaluate()
 
-    /**
-     * Count the learner's LessonCompletion rows for a course.
-     *
-     * @param string $learnerId NC user ID of the learner.
-     * @param string $courseId  UUID of the Course.
-     *
-     * @return int
-     */
-    private function countCompletedLessons(string $learnerId, string $courseId): int
-    {
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::LESSON_COMPLETION_SCHEMA,
-                'filters'  => [
-                    'learnerId' => $learnerId,
-                    'courseId'  => $courseId,
-                ],
-            ]
-        );
+	/**
+	 * Count the learner's LessonCompletion rows for a course.
+	 *
+	 * @param string $learnerId NC user ID of the learner.
+	 * @param string $courseId UUID of the Course.
+	 *
+	 * @return int
+	 */
+	private function countCompletedLessons(string $learnerId, string $courseId): int {
+		$results = $this->objectService->findAll(
+			[
+				'register' => self::SCHOLIQ_REGISTER,
+				'schema' => self::LESSON_COMPLETION_SCHEMA,
+				'filters' => [
+					'learnerId' => $learnerId,
+					'courseId' => $courseId,
+				],
+			]
+		);
 
-        return count($results);
+		return count($results);
+	}//end countCompletedLessons()
 
-    }//end countCompletedLessons()
+	/**
+	 * Count a course's published Lessons.
+	 *
+	 * @param string $courseId UUID of the Course.
+	 *
+	 * @return int
+	 */
+	private function countPublishedLessons(string $courseId): int {
+		$results = $this->objectService->findAll(
+			[
+				'register' => self::SCHOLIQ_REGISTER,
+				'schema' => self::LESSON_SCHEMA,
+				'filters' => [
+					'courseId' => $courseId,
+					'lifecycle' => 'published',
+				],
+			]
+		);
 
-    /**
-     * Count a course's published Lessons.
-     *
-     * @param string $courseId UUID of the Course.
-     *
-     * @return int
-     */
-    private function countPublishedLessons(string $courseId): int
-    {
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::LESSON_SCHEMA,
-                'filters'  => [
-                    'courseId'  => $courseId,
-                    'lifecycle' => 'published',
-                ],
-            ]
-        );
-
-        return count($results);
-
-    }//end countPublishedLessons()
+		return count($results);
+	}//end countPublishedLessons()
 }//end class

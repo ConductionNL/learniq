@@ -50,50 +50,48 @@ use OCP\IUserSession;
  *
  * @spec openspec/changes/portable-learning-record/tasks.md#task-2-2
  */
-class LearningRecordController extends Controller
-{
-    /**
-     * Constructor.
-     *
-     * @param IRequest                         $request            HTTP request.
-     * @param IUserSession                     $userSession        Current user session.
-     * @param LearningRecordAggregationService $aggregationService Cross-schema read composition.
-     *
-     * @return void
-     */
-    public function __construct(
-        IRequest $request,
-        private readonly IUserSession $userSession,
-        private readonly LearningRecordAggregationService $aggregationService,
-    ) {
-        parent::__construct(appName: Application::APP_ID, request: $request);
-    }//end __construct()
+class LearningRecordController extends Controller {
+	/**
+	 * Constructor.
+	 *
+	 * @param IRequest $request HTTP request.
+	 * @param IUserSession $userSession Current user session.
+	 * @param LearningRecordAggregationService $aggregationService Cross-schema read composition.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		IRequest $request,
+		private readonly IUserSession $userSession,
+		private readonly LearningRecordAggregationService $aggregationService,
+	) {
+		parent::__construct(appName: Application::APP_ID, request: $request);
+	}//end __construct()
 
-    /**
-     * Return the calling user's own composed learning-record trajectory.
-     *
-     * @return JSONResponse `{learnerRef, ...composition}` or an error response.
-     *
-     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-learner-opens-their-aggregate-record-and-sees-composed-read-only-data
-     */
-    #[NoAdminRequired]
-    public function mine(): JSONResponse
-    {
-        $user = $this->userSession->getUser();
-        if ($user === null) {
-            return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
-        }
+	/**
+	 * Return the calling user's own composed learning-record trajectory.
+	 *
+	 * @return JSONResponse `{learnerRef, ...composition}` or an error response.
+	 *
+	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-learner-opens-their-aggregate-record-and-sees-composed-read-only-data
+	 */
+	#[NoAdminRequired]
+	public function mine(): JSONResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
 
-        $learnerRef = $this->aggregationService->resolveLearnerRefForUser(ncUserId: $user->getUID());
-        if ($learnerRef === null) {
-            return new JSONResponse(
-                data: ['error' => 'No LearnerProfile is bound to this account.'],
-                statusCode: Http::STATUS_NOT_FOUND
-            );
-        }
+		$learnerRef = $this->aggregationService->resolveLearnerRefForUser(ncUserId: $user->getUID());
+		if ($learnerRef === null) {
+			return new JSONResponse(
+				data: ['error' => 'No LearnerProfile is bound to this account.'],
+				statusCode: Http::STATUS_NOT_FOUND
+			);
+		}
 
-        $composition = $this->aggregationService->compose(learnerRef: $learnerRef);
+		$composition = $this->aggregationService->compose(learnerRef: $learnerRef);
 
-        return new JSONResponse(data: array_merge(['learnerRef' => $learnerRef], $composition));
-    }//end mine()
+		return new JSONResponse(data: array_merge(['learnerRef' => $learnerRef], $composition));
+	}//end mine()
 }//end class

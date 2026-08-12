@@ -48,64 +48,62 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-9
  * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
  */
-class AssignmentPublishGuard
-{
-    /**
-     * Constructor.
-     *
-     * @param LoggerInterface $logger PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+class AssignmentPublishGuard {
+	/**
+	 * Constructor.
+	 *
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point.
-     *
-     * Called by OpenRegister's lifecycle engine before executing the `publish`
-     * transition on an Assignment object. Returns true only when the Assignment has
-     * a non-null courseId or a non-null sessionId, AND (peer-and-self-assessment)
-     * when peerReviewEnabled or selfAssessmentEnabled is true, rubricId is set.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the Assignment data array
-     *                                               - 'transition' : 'publish'
-     *                                               - 'from'       : current lifecycle state
-     *                                               - 'to'         : 'published'
-     *
-     * @return bool True if the Assignment has courseId or sessionId (and, when peer/self
-     *              assessment is enabled, a rubricId); false blocks the transition.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-9
-     * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $object    = $transitionContext['object'] ?? [];
-        $courseId  = $object['courseId'] ?? null;
-        $sessionId = $object['sessionId'] ?? null;
+	/**
+	 * OR lifecycle guard entry-point.
+	 *
+	 * Called by OpenRegister's lifecycle engine before executing the `publish`
+	 * transition on an Assignment object. Returns true only when the Assignment has
+	 * a non-null courseId or a non-null sessionId, AND (peer-and-self-assessment)
+	 * when peerReviewEnabled or selfAssessmentEnabled is true, rubricId is set.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the Assignment data array
+	 *                                               - 'transition' : 'publish'
+	 *                                               - 'from'       : current lifecycle state
+	 *                                               - 'to'         : 'published'
+	 *
+	 * @return bool True if the Assignment has courseId or sessionId (and, when peer/self
+	 *              assessment is enabled, a rubricId); false blocks the transition.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-9
+	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-publish-is-blocked-when-peerself-assessment-is-enabled-without-a-rubric
+	 */
+	public function check(array &$transitionContext): bool {
+		$object = $transitionContext['object'] ?? [];
+		$courseId = $object['courseId'] ?? null;
+		$sessionId = $object['sessionId'] ?? null;
 
-        if ($courseId === null && $sessionId === null) {
-            $this->logger->info(
-                '[AssignmentPublishGuard] Assignment has no courseId or sessionId; blocking publish.'
-            );
-            return false;
-        }
+		if ($courseId === null && $sessionId === null) {
+			$this->logger->info(
+				'[AssignmentPublishGuard] Assignment has no courseId or sessionId; blocking publish.'
+			);
+			return false;
+		}
 
-        $peerReviewOn = ($object['peerReviewEnabled'] ?? false) === true;
-        $selfAssessOn = ($object['selfAssessmentEnabled'] ?? false) === true;
-        $rubricId     = $object['rubricId'] ?? null;
+		$peerReviewOn = ($object['peerReviewEnabled'] ?? false) === true;
+		$selfAssessOn = ($object['selfAssessmentEnabled'] ?? false) === true;
+		$rubricId = $object['rubricId'] ?? null;
 
-        if (($peerReviewOn === true || $selfAssessOn === true) && $rubricId === null) {
-            $this->logger->info(
-                '[AssignmentPublishGuard] peerReviewEnabled or selfAssessmentEnabled is true but rubricId is unset; blocking publish.'
-            );
-            return false;
-        }
+		if (($peerReviewOn === true || $selfAssessOn === true) && $rubricId === null) {
+			$this->logger->info(
+				'[AssignmentPublishGuard] peerReviewEnabled or selfAssessmentEnabled is true but rubricId is unset; blocking publish.'
+			);
+			return false;
+		}
 
-        return true;
-    }//end check()
+		return true;
+	}//end check()
 }//end class

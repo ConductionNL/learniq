@@ -34,218 +34,211 @@ use Psr\Log\LoggerInterface;
 /**
  * Service for managing Scholiq application configuration and settings.
  */
-class SettingsService
-{
+class SettingsService {
 
-    /**
-     * Configuration keys managed by this service.
-     *
-     * @var array<string>
-     */
-    private const CONFIG_KEYS = [
-        'register',
-    ];
+	/**
+	 * Configuration keys managed by this service.
+	 *
+	 * @var array<string>
+	 */
+	private const CONFIG_KEYS = [
+		'register',
+	];
 
-    /**
-     * Constructor for the SettingsService.
-     *
-     * @param IAppConfig         $appConfig    The app config interface
-     * @param IAppManager        $appManager   The app manager
-     * @param ContainerInterface $container    The container
-     * @param IGroupManager      $groupManager The group manager
-     * @param IUserSession       $userSession  The user session
-     * @param LoggerInterface    $logger       The logger
-     *
-     * @return void
-     */
-    public function __construct(
-        private IAppConfig $appConfig,
-        private IAppManager $appManager,
-        private ContainerInterface $container,
-        private IGroupManager $groupManager,
-        private IUserSession $userSession,
-        private LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor for the SettingsService.
+	 *
+	 * @param IAppConfig $appConfig The app config interface
+	 * @param IAppManager $appManager The app manager
+	 * @param ContainerInterface $container The container
+	 * @param IGroupManager $groupManager The group manager
+	 * @param IUserSession $userSession The user session
+	 * @param LoggerInterface $logger The logger
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private IAppConfig $appConfig,
+		private IAppManager $appManager,
+		private ContainerInterface $container,
+		private IGroupManager $groupManager,
+		private IUserSession $userSession,
+		private LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Check whether OpenRegister is installed and available.
-     *
-     * @return bool
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-26
-     */
-    public function isOpenRegisterAvailable(): bool
-    {
-        return $this->appManager->isInstalled('openregister');
-    }//end isOpenRegisterAvailable()
+	/**
+	 * Check whether OpenRegister is installed and available.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-26
+	 */
+	public function isOpenRegisterAvailable(): bool {
+		return $this->appManager->isInstalled('openregister');
+	}//end isOpenRegisterAvailable()
 
-    /**
-     * Retrieve all current settings.
-     *
-     * Returns a flat array containing all app config values plus metadata
-     * fields (openregisters, isAdmin) consumed by the frontend.
-     *
-     * @return array<string,mixed>
-     *
-     * @spec openspec/changes/retrofit-2026-05-25-app-shell-settings/tasks.md#task-1
-     */
-    public function getSettings(): array
-    {
-        $settings = [];
-        foreach (self::CONFIG_KEYS as $key) {
-            $settings[$key] = $this->appConfig->getValueString(Application::APP_ID, $key, '');
-        }
+	/**
+	 * Retrieve all current settings.
+	 *
+	 * Returns a flat array containing all app config values plus metadata
+	 * fields (openregisters, isAdmin) consumed by the frontend.
+	 *
+	 * @return array<string,mixed>
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-25-app-shell-settings/tasks.md#task-1
+	 */
+	public function getSettings(): array {
+		$settings = [];
+		foreach (self::CONFIG_KEYS as $key) {
+			$settings[$key] = $this->appConfig->getValueString(Application::APP_ID, $key, '');
+		}
 
-        $user    = $this->userSession->getUser();
-        $isAdmin = ($user !== null && $this->groupManager->isAdmin($user->getUID()));
+		$user = $this->userSession->getUser();
+		$isAdmin = ($user !== null && $this->groupManager->isAdmin($user->getUID()));
 
-        return array_merge(
-            $settings,
-            [
-                'openregisters' => $this->isOpenRegisterAvailable(),
-                'isAdmin'       => $isAdmin,
-            ]
-        );
-    }//end getSettings()
+		return array_merge(
+			$settings,
+			[
+				'openregisters' => $this->isOpenRegisterAvailable(),
+				'isAdmin' => $isAdmin,
+			]
+		);
+	}//end getSettings()
 
-    /**
-     * Update settings with the provided data.
-     *
-     * @param array<string,mixed> $data The data to update
-     *
-     * @return array<string,mixed> The updated settings
-     *
-     * @spec openspec/changes/retrofit-2026-05-25-app-shell-settings/tasks.md#task-1
-     */
-    public function updateSettings(array $data): array
-    {
-        foreach (self::CONFIG_KEYS as $key) {
-            if (isset($data[$key]) === true) {
-                $this->appConfig->setValueString(Application::APP_ID, $key, (string) $data[$key]);
-            }
-        }
+	/**
+	 * Update settings with the provided data.
+	 *
+	 * @param array<string,mixed> $data The data to update
+	 *
+	 * @return array<string,mixed> The updated settings
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-25-app-shell-settings/tasks.md#task-1
+	 */
+	public function updateSettings(array $data): array {
+		foreach (self::CONFIG_KEYS as $key) {
+			if (isset($data[$key]) === true) {
+				$this->appConfig->setValueString(Application::APP_ID, $key, (string)$data[$key]);
+			}
+		}
 
-        return $this->getSettings();
-    }//end updateSettings()
+		return $this->getSettings();
+	}//end updateSettings()
 
-    /**
-     * Load configuration from scholiq_register.json via OpenRegister.
-     *
-     * Version-gated: OpenRegister skips the import when the content-addressed
-     * version is already installed. Use reloadConfiguration() to re-import
-     * unconditionally.
-     *
-     * @return array<string,mixed> Result with success flag, message, and version.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-26
-     */
-    public function loadConfiguration(): array
-    {
-        return $this->importRegisterConfiguration(force: false);
-    }//end loadConfiguration()
+	/**
+	 * Load configuration from scholiq_register.json via OpenRegister.
+	 *
+	 * Version-gated: OpenRegister skips the import when the content-addressed
+	 * version is already installed. Use reloadConfiguration() to re-import
+	 * unconditionally.
+	 *
+	 * @return array<string,mixed> Result with success flag, message, and version.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-26
+	 */
+	public function loadConfiguration(): array {
+		return $this->importRegisterConfiguration(force: false);
+	}//end loadConfiguration()
 
-    /**
-     * Re-import the configuration from scholiq_register.json unconditionally.
-     *
-     * Bypasses OpenRegister's version fast-skip so an operator-triggered
-     * re-import always rewrites the register and schema definitions.
-     *
-     * @return array<string,mixed> Result with success flag, message, and version.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-26
-     */
-    public function reloadConfiguration(): array
-    {
-        return $this->importRegisterConfiguration(force: true);
-    }//end reloadConfiguration()
+	/**
+	 * Re-import the configuration from scholiq_register.json unconditionally.
+	 *
+	 * Bypasses OpenRegister's version fast-skip so an operator-triggered
+	 * re-import always rewrites the register and schema definitions.
+	 *
+	 * @return array<string,mixed> Result with success flag, message, and version.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-26
+	 */
+	public function reloadConfiguration(): array {
+		return $this->importRegisterConfiguration(force: true);
+	}//end reloadConfiguration()
 
-    /**
-     * Shared implementation behind loadConfiguration() and reloadConfiguration().
-     *
-     * @param bool $force Whether to bypass OpenRegister's version fast-skip.
-     *
-     * @return array<string,mixed> Result with success flag, message, and version.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-26
-     */
-    private function importRegisterConfiguration(bool $force): array
-    {
-        if ($this->isOpenRegisterAvailable() === false) {
-            $this->logger->warning('Scholiq: OpenRegister not available, skipping register initialization');
-            return [
-                'success' => false,
-                'message' => 'OpenRegister is not installed or enabled.',
-            ];
-        }
+	/**
+	 * Shared implementation behind loadConfiguration() and reloadConfiguration().
+	 *
+	 * @param bool $force Whether to bypass OpenRegister's version fast-skip.
+	 *
+	 * @return array<string,mixed> Result with success flag, message, and version.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-26
+	 */
+	private function importRegisterConfiguration(bool $force): array {
+		if ($this->isOpenRegisterAvailable() === false) {
+			$this->logger->warning('Scholiq: OpenRegister not available, skipping register initialization');
+			return [
+				'success' => false,
+				'message' => 'OpenRegister is not installed or enabled.',
+			];
+		}
 
-        try {
-            $configPath = __DIR__.'/../Settings/scholiq_register.json';
-            if (file_exists($configPath) === false) {
-                $this->logger->error('Scholiq: scholiq_register.json not found at '.$configPath);
-                return [
-                    'success' => false,
-                    'message' => 'Configuration file scholiq_register.json not found.',
-                ];
-            }
+		try {
+			$configPath = __DIR__ . '/../Settings/scholiq_register.json';
+			if (file_exists($configPath) === false) {
+				$this->logger->error('Scholiq: scholiq_register.json not found at ' . $configPath);
+				return [
+					'success' => false,
+					'message' => 'Configuration file scholiq_register.json not found.',
+				];
+			}
 
-            $configContent = file_get_contents($configPath);
-            if ($configContent === false) {
-                $this->logger->error('Scholiq: failed to read scholiq_register.json');
-                return [
-                    'success' => false,
-                    'message' => 'Failed to read configuration file.',
-                ];
-            }
+			$configContent = file_get_contents($configPath);
+			if ($configContent === false) {
+				$this->logger->error('Scholiq: failed to read scholiq_register.json');
+				return [
+					'success' => false,
+					'message' => 'Failed to read configuration file.',
+				];
+			}
 
-            $configData = json_decode($configContent, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                $this->logger->error('Scholiq: failed to parse scholiq_register.json: '.json_last_error_msg());
-                return [
-                    'success' => false,
-                    'message' => 'Failed to parse configuration file: '.json_last_error_msg(),
-                ];
-            }
+			$configData = json_decode($configContent, true);
+			if (json_last_error() !== JSON_ERROR_NONE) {
+				$this->logger->error('Scholiq: failed to parse scholiq_register.json: ' . json_last_error_msg());
+				return [
+					'success' => false,
+					'message' => 'Failed to parse configuration file: ' . json_last_error_msg(),
+				];
+			}
 
-            // Content-address the version so the import re-runs whenever the register
-            // definition changes, even if info.version was not bumped. Without this, dropping
-            // the forced import (below) would let a schema change silently no-op on an
-            // OpenRegister that predates the content-aware gate (#426): OR's app-level fast-skip
-            // would compare only info.version and skip. Appending a sha256 of the definitional
-            // payload makes any content change bump the version and re-import — matching the
-            // `+frag.<hash>` pattern the fragmented apps (hrmq/doriath/procest/shillinq) use.
-            $configVersion = ($configData['info']['version'] ?? '0.0.0');
-            $definitional  = ($configData['components'] ?? $configData);
-            $encoded       = json_encode($definitional);
-            if ($encoded !== false) {
-                $configVersion .= '+def.'.substr(hash('sha256', $encoded), 0, 12);
-            }
+			// Content-address the version so the import re-runs whenever the register
+			// definition changes, even if info.version was not bumped. Without this, dropping
+			// the forced import (below) would let a schema change silently no-op on an
+			// OpenRegister that predates the content-aware gate (#426): OR's app-level fast-skip
+			// would compare only info.version and skip. Appending a sha256 of the definitional
+			// payload makes any content change bump the version and re-import — matching the
+			// `+frag.<hash>` pattern the fragmented apps (hrmq/doriath/procest/shillinq) use.
+			$configVersion = ($configData['info']['version'] ?? '0.0.0');
+			$definitional = ($configData['components'] ?? $configData);
+			$encoded = json_encode($definitional);
+			if ($encoded !== false) {
+				$configVersion .= '+def.' . substr(hash('sha256', $encoded), 0, 12);
+			}
 
-            $configurationService = $this->container->get('OCA\OpenRegister\Service\ConfigurationService');
-            $result = $configurationService->importFromApp(appId: Application::APP_ID, data: $configData, version: $configVersion, force: $force);
+			$configurationService = $this->container->get('OCA\OpenRegister\Service\ConfigurationService');
+			$result = $configurationService->importFromApp(appId: Application::APP_ID, data: $configData, version: $configVersion, force: $force);
 
-            if (empty($result) === false) {
-                $this->logger->info('Scholiq: register configuration imported successfully');
-                return [
-                    'success' => true,
-                    'message' => 'Configuration imported successfully.',
-                    'version' => ($result['version'] ?? 'unknown'),
-                ];
-            }
+			if (empty($result) === false) {
+				$this->logger->info('Scholiq: register configuration imported successfully');
+				return [
+					'success' => true,
+					'message' => 'Configuration imported successfully.',
+					'version' => ($result['version'] ?? 'unknown'),
+				];
+			}
 
-            return [
-                'success' => false,
-                'message' => 'Import returned an empty result.',
-            ];
-        } catch (\Throwable $e) {
-            $this->logger->error(
-                'Scholiq: configuration import failed',
-                ['exception' => $e->getMessage()]
-            );
-            return [
-                'success' => false,
-                'message' => $e->getMessage(),
-            ];
-        }//end try
-    }//end importRegisterConfiguration()
+			return [
+				'success' => false,
+				'message' => 'Import returned an empty result.',
+			];
+		} catch (\Throwable $e) {
+			$this->logger->error(
+				'Scholiq: configuration import failed',
+				['exception' => $e->getMessage()]
+			);
+			return [
+				'success' => false,
+				'message' => $e->getMessage(),
+			];
+		}//end try
+	}//end importRegisterConfiguration()
 }//end class

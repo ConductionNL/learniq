@@ -56,55 +56,52 @@ namespace OCA\Scholiq\Lifecycle;
  * `running`; they must first pass through `pending-parent-review` and be
  * approved via `approveDossier`.
  */
-class DataExchangeRunGuard
-{
+class DataExchangeRunGuard {
 
-    /**
-     * Literal, explicit allowlist of target strings whose composed dossier is
-     * OSO-format and therefore requires parent review before running.
-     * Adding a target here must be a deliberate, named decision — never
-     * inferred from dossier composition shape (DataExchangeRunGuardTest).
-     *
-     * @var string[]
-     */
-    private const GATED_TARGETS = ['oso', 'swv'];
+	/**
+	 * Literal, explicit allowlist of target strings whose composed dossier is
+	 * OSO-format and therefore requires parent review before running.
+	 * Adding a target here must be a deliberate, named decision — never
+	 * inferred from dossier composition shape (DataExchangeRunGuardTest).
+	 *
+	 * @var string[]
+	 */
+	private const GATED_TARGETS = ['oso', 'swv'];
 
-    /**
-     * Allow the `queued → running` transition.
-     *
-     * For gated targets (see GATED_TARGETS): returns false when the job is
-     * still in `queued` state, because these jobs must enter
-     * `pending-parent-review` first and be approved via the `approveDossier`
-     * transition (which also leads to `running`, bypassing this guard via its
-     * own path).
-     *
-     * For all other targets: returns true unconditionally.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the DataExchangeJob data array
-     *                                               - 'transition' : 'run'
-     *                                               - 'from'       : current state (expected: 'queued')
-     *                                               - 'to'         : 'running'
-     *
-     * @return bool False for gated-target jobs in queued state; true otherwise.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
-     * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.4
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $object = $transitionContext['object'] ?? [];
-        $target = $object['target'] ?? '';
-        $from   = $transitionContext['from'] ?? '';
+	/**
+	 * Allow the `queued → running` transition.
+	 *
+	 * For gated targets (see GATED_TARGETS): returns false when the job is
+	 * still in `queued` state, because these jobs must enter
+	 * `pending-parent-review` first and be approved via the `approveDossier`
+	 * transition (which also leads to `running`, bypassing this guard via its
+	 * own path).
+	 *
+	 * For all other targets: returns true unconditionally.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the DataExchangeJob data array
+	 *                                               - 'transition' : 'run'
+	 *                                               - 'from'       : current state (expected: 'queued')
+	 *                                               - 'to'         : 'running'
+	 *
+	 * @return bool False for gated-target jobs in queued state; true otherwise.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
+	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.4
+	 */
+	public function check(array &$transitionContext): bool {
+		$object = $transitionContext['object'] ?? [];
+		$target = $object['target'] ?? '';
+		$from = $transitionContext['from'] ?? '';
 
-        // Gated-target jobs must NOT move directly from queued to running.
-        // They must first enter pending-parent-review via the pendingParentReview
-        // transition, and then proceed via approveDossier → running.
-        if (in_array($target, self::GATED_TARGETS, true) === true && $from === 'queued') {
-            return false;
-        }
+		// Gated-target jobs must NOT move directly from queued to running.
+		// They must first enter pending-parent-review via the pendingParentReview
+		// transition, and then proceed via approveDossier → running.
+		if (in_array($target, self::GATED_TARGETS, true) === true && $from === 'queued') {
+			return false;
+		}
 
-        return true;
-
-    }//end check()
+		return true;
+	}//end check()
 }//end class

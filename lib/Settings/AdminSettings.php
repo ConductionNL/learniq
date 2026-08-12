@@ -34,6 +34,5 @@ use OCA\OpenRegister\AppHost\Settings\GenericAdminSettings;
 /**
  * AppHost stub for Scholiq's admin settings panel.
  */
-class AdminSettings extends GenericAdminSettings
-{
+class AdminSettings extends GenericAdminSettings {
 }//end class

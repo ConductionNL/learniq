@@ -35,6 +35,5 @@ use OCA\OpenRegister\AppHost\Service\GenericActionAuthService;
 /**
  * AppHost stub for Scholiq's ADR-023 action-authorization service.
  */
-class ActionAuthService extends GenericActionAuthService
-{
+class ActionAuthService extends GenericActionAuthService {
 }//end class

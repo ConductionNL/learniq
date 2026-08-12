@@ -51,328 +51,321 @@ use Psr\Log\NullLogger;
 /**
  * Tests for LtiAgsScorePollJob::run().
  */
-class LtiAgsScorePollJobTest extends TestCase
-{
+class LtiAgsScorePollJobTest extends TestCase {
 
-    /**
-     * ObjectService mock.
-     *
-     * @var ObjectService&MockObject
-     */
-    private ObjectService&MockObject $objectService;
+	/**
+	 * ObjectService mock.
+	 *
+	 * @var ObjectService&MockObject
+	 */
+	private ObjectService&MockObject $objectService;
 
-    /**
-     * HTTP client-service mock.
-     *
-     * @var IClientService&MockObject
-     */
-    private IClientService&MockObject $clientService;
+	/**
+	 * HTTP client-service mock.
+	 *
+	 * @var IClientService&MockObject
+	 */
+	private IClientService&MockObject $clientService;
 
-    /**
-     * URL generator mock.
-     *
-     * @var IURLGenerator&MockObject
-     */
-    private IURLGenerator&MockObject $urlGenerator;
+	/**
+	 * URL generator mock.
+	 *
+	 * @var IURLGenerator&MockObject
+	 */
+	private IURLGenerator&MockObject $urlGenerator;
 
-    /**
-     * App-config mock.
-     *
-     * @var IAppConfig&MockObject
-     */
-    private IAppConfig&MockObject $appConfig;
+	/**
+	 * App-config mock.
+	 *
+	 * @var IAppConfig&MockObject
+	 */
+	private IAppConfig&MockObject $appConfig;
 
-    /**
-     * @var array<string,string>
-     */
-    private array $configValues = [];
+	/**
+	 * @var array<string,string>
+	 */
+	private array $configValues = [];
 
-    /**
-     * The placement fixture returned for the 'lti-tool-placement' schema.
-     *
-     * @var array<string,mixed>|null
-     */
-    private ?array $placementFixture = null;
+	/**
+	 * The placement fixture returned for the 'lti-tool-placement' schema.
+	 *
+	 * @var array<string,mixed>|null
+	 */
+	private ?array $placementFixture = null;
 
-    /**
-     * The GradeEntry fixtures ObjectService::findAll('grade-entry') should
-     * report as already existing (idempotency fixtures).
-     *
-     * @var array<int,array<string,mixed>>
-     */
-    private array $existingGradeEntries = [];
+	/**
+	 * The GradeEntry fixtures ObjectService::findAll('grade-entry') should
+	 * report as already existing (idempotency fixtures).
+	 *
+	 * @var array<int,array<string,mixed>>
+	 */
+	private array $existingGradeEntries = [];
 
-    /**
-     * Objects saved via ObjectService::saveObject during the test.
-     *
-     * @var array<int,array{register:string,schema:string,object:array<string,mixed>}>
-     */
-    private array $savedObjects = [];
+	/**
+	 * Objects saved via ObjectService::saveObject during the test.
+	 *
+	 * @var array<int,array{register:string,schema:string,object:array<string,mixed>}>
+	 */
+	private array $savedObjects = [];
 
-    /**
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->objectService = $this->createMock(ObjectService::class);
-        $this->clientService = $this->createMock(IClientService::class);
-        $this->urlGenerator  = $this->createMock(IURLGenerator::class);
-        $this->appConfig     = $this->createMock(IAppConfig::class);
+	/**
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->objectService = $this->createMock(ObjectService::class);
+		$this->clientService = $this->createMock(IClientService::class);
+		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
 
-        $this->configValues = [
-            'lti_ags_subscription_id' => 'sub-1',
-            'lti_ags_pull_cursor'     => '',
-            'openconnector_api_user'  => 'lti-service-user',
-            'openconnector_api_token' => 'token-abc',
-        ];
+		$this->configValues = [
+			'lti_ags_subscription_id' => 'sub-1',
+			'lti_ags_pull_cursor' => '',
+			'openconnector_api_user' => 'lti-service-user',
+			'openconnector_api_token' => 'token-abc',
+		];
 
-        $this->appConfig->method('getValueString')->willReturnCallback(
-            function (string $app, string $key, string $default=''): string {
-                return $this->configValues[$key] ?? $default;
-            }
-        );
-        $this->appConfig->method('setValueString')->willReturnCallback(
-            function (string $app, string $key, string $value): bool {
-                $this->configValues[$key] = $value;
-                return true;
-            }
-        );
+		$this->appConfig->method('getValueString')->willReturnCallback(
+			function (string $app, string $key, string $default = ''): string {
+				return $this->configValues[$key] ?? $default;
+			}
+		);
+		$this->appConfig->method('setValueString')->willReturnCallback(
+			function (string $app, string $key, string $value): bool {
+				$this->configValues[$key] = $value;
+				return true;
+			}
+		);
 
-        $this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
-            static fn (string $path): string => 'https://scholiq.example'.$path
-        );
+		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
+			static fn (string $path): string => 'https://scholiq.example' . $path
+		);
 
-        $this->objectService->method('findAll')->willReturnCallback(
-            function (array $config): array {
-                $schema  = $config['schema'] ?? '';
-                $filters = $config['filters'] ?? [];
+		$this->objectService->method('findAll')->willReturnCallback(
+			function (array $config): array {
+				$schema = $config['schema'] ?? '';
+				$filters = $config['filters'] ?? [];
 
-                if ($schema === 'lti-tool-placement') {
-                    if ($this->placementFixture === null) {
-                        return [];
-                    }
+				if ($schema === 'lti-tool-placement') {
+					if ($this->placementFixture === null) {
+						return [];
+					}
 
-                    if (($filters['openconnectorDeploymentId'] ?? null) !== $this->placementFixture['openconnectorDeploymentId']) {
-                        return [];
-                    }
+					if (($filters['openconnectorDeploymentId'] ?? null) !== $this->placementFixture['openconnectorDeploymentId']) {
+						return [];
+					}
 
-                    return OrEntityFactory::makeMany([$this->placementFixture], 'lti-tool-placement');
-                }
+					return OrEntityFactory::makeMany([$this->placementFixture], 'lti-tool-placement');
+				}
 
-                if ($schema === 'grade-entry') {
-                    $placementId = $filters['ltiToolPlacementId'] ?? null;
-                    $resultId    = $filters['ltiAgsResultId'] ?? null;
-                    return OrEntityFactory::makeMany(
-                        array_values(
-                            array_filter(
-                                $this->existingGradeEntries,
-                                static fn (array $e): bool => ($e['ltiToolPlacementId'] ?? null) === $placementId
-                                    && ($e['ltiAgsResultId'] ?? null) === $resultId
-                            )
-                        ),
-                        'grade-entry'
-                    );
-                }
+				if ($schema === 'grade-entry') {
+					$placementId = $filters['ltiToolPlacementId'] ?? null;
+					$resultId = $filters['ltiAgsResultId'] ?? null;
+					return OrEntityFactory::makeMany(
+						array_values(
+							array_filter(
+								$this->existingGradeEntries,
+								static fn (array $e): bool => ($e['ltiToolPlacementId'] ?? null) === $placementId
+									&& ($e['ltiAgsResultId'] ?? null) === $resultId
+							)
+						),
+						'grade-entry'
+					);
+				}
 
-                return [];
-            }
-        );
+				return [];
+			}
+		);
 
-        // OpenRegister's saveObject() is saveObject($object, $extend, $register, $schema, ...)
-        // — the PAYLOAD IS FIRST — and returns a non-nullable ObjectEntity.
-        // willReturnCallback() hands the closure the mock's arguments
-        // POSITIONALLY, so the closure must mirror that order.
-        $this->objectService->method('saveObject')->willReturnCallback(
-            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
-                $object['id']         = 'grade-entry-new';
-                return OrEntityFactory::make($object, (string) $schema, (string) $register);
-            }
-        );
-    }//end setUp()
+		// OpenRegister's saveObject() is saveObject($object, $extend, $register, $schema, ...)
+		// — the PAYLOAD IS FIRST — and returns a non-nullable ObjectEntity.
+		// willReturnCallback() hands the closure the mock's arguments
+		// POSITIONALLY, so the closure must mirror that order.
+		$this->objectService->method('saveObject')->willReturnCallback(
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+				$this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
+				$object['id'] = 'grade-entry-new';
+				return OrEntityFactory::make($object, (string)$schema, (string)$register);
+			}
+		);
+	}//end setUp()
 
-    /**
-     * Build the job under test, wired to return the given pulled messages.
-     *
-     * @param array<int,array<string,mixed>> $messages The messages the pull() HTTP call should return.
-     * @param string|null                    $cursor   The cursor value the pull() call should return.
-     *
-     * @return LtiAgsScorePollJob
-     */
-    private function job(array $messages, ?string $cursor='cursor-1'): LtiAgsScorePollJob
-    {
-        $response = $this->createMock(IResponse::class);
-        $response->method('getBody')->willReturn(json_encode(['messages' => $messages, 'cursor' => $cursor]));
+	/**
+	 * Build the job under test, wired to return the given pulled messages.
+	 *
+	 * @param array<int,array<string,mixed>> $messages The messages the pull() HTTP call should return.
+	 * @param string|null $cursor The cursor value the pull() call should return.
+	 *
+	 * @return LtiAgsScorePollJob
+	 */
+	private function job(array $messages, ?string $cursor = 'cursor-1'): LtiAgsScorePollJob {
+		$response = $this->createMock(IResponse::class);
+		$response->method('getBody')->willReturn(json_encode(['messages' => $messages, 'cursor' => $cursor]));
 
-        $client = $this->createMock(IClient::class);
-        $client->method('get')->willReturn($response);
+		$client = $this->createMock(IClient::class);
+		$client->method('get')->willReturn($response);
 
-        $this->clientService->method('newClient')->willReturn($client);
+		$this->clientService->method('newClient')->willReturn($client);
 
-        // The pull transport is a real collaborator wired to the mocked HTTP
-        // client, so the sweep is still driven end-to-end through the same
-        // JSON body the OpenConnector endpoint would return.
-        $pullClient = new LtiAgsPullClient(
-            clientService: $this->clientService,
-            urlGenerator: $this->urlGenerator,
-            appConfig: $this->appConfig,
-            logger: new NullLogger()
-        );
+		// The pull transport is a real collaborator wired to the mocked HTTP
+		// client, so the sweep is still driven end-to-end through the same
+		// JSON body the OpenConnector endpoint would return.
+		$pullClient = new LtiAgsPullClient(
+			clientService: $this->clientService,
+			urlGenerator: $this->urlGenerator,
+			appConfig: $this->appConfig,
+			logger: new NullLogger()
+		);
 
-        return new LtiAgsScorePollJob(
-            time: $this->createMock(ITimeFactory::class),
-            objectService: $this->objectService,
-            pullClient: $pullClient,
-            appConfig: $this->appConfig,
-            logger: new NullLogger()
-        );
-    }//end job()
+		return new LtiAgsScorePollJob(
+			time: $this->createMock(ITimeFactory::class),
+			objectService: $this->objectService,
+			pullClient: $pullClient,
+			appConfig: $this->appConfig,
+			logger: new NullLogger()
+		);
+	}//end job()
 
-    /**
-     * A pulled AGS message for a configured placement creates exactly one
-     * concept GradeEntry with the correct componentId/curriculumPlanId/ltiAgsResultId.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.7
-     */
-    public function testCreatesConceptGradeEntryForConfiguredPlacement(): void
-    {
-        $this->placementFixture = [
-            'id'                        => 'placement-1',
-            'openconnectorDeploymentId' => 'deployment-1',
-            'curriculumPlanId'          => 'plan-1',
-            'gradeEntryComponentId'     => 'component-1',
-            'gradeScaleId'              => '',
-            'tenant_id'                 => 'tenant-1',
-        ];
+	/**
+	 * A pulled AGS message for a configured placement creates exactly one
+	 * concept GradeEntry with the correct componentId/curriculumPlanId/ltiAgsResultId.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.7
+	 */
+	public function testCreatesConceptGradeEntryForConfiguredPlacement(): void {
+		$this->placementFixture = [
+			'id' => 'placement-1',
+			'openconnectorDeploymentId' => 'deployment-1',
+			'curriculumPlanId' => 'plan-1',
+			'gradeEntryComponentId' => 'component-1',
+			'gradeScaleId' => '',
+			'tenant_id' => 'tenant-1',
+		];
 
-        $message = [
-            'id'      => 'msg-1',
-            'payload' => [
-                'deploymentUuid' => 'deployment-1',
-                'score'          => [
-                    'userId'       => 'learner-1',
-                    'scoreGiven'   => 8.5,
-                    'scoreMaximum' => 10,
-                ],
-            ],
-        ];
+		$message = [
+			'id' => 'msg-1',
+			'payload' => [
+				'deploymentUuid' => 'deployment-1',
+				'score' => [
+					'userId' => 'learner-1',
+					'scoreGiven' => 8.5,
+					'scoreMaximum' => 10,
+				],
+			],
+		];
 
-        $job = $this->job(messages: [$message]);
-        $job->run(null);
+		$job = $this->job(messages: [$message]);
+		$job->run(null);
 
-        self::assertCount(1, $this->savedObjects);
-        $saved = $this->savedObjects[0];
-        self::assertSame('scholiq', $saved['register']);
-        self::assertSame('grade-entry', $saved['schema']);
-        self::assertSame('lti-ags', $saved['object']['sourceKind']);
-        self::assertSame('component-1', $saved['object']['componentId']);
-        self::assertSame('plan-1', $saved['object']['curriculumPlanId']);
-        self::assertSame('placement-1', $saved['object']['ltiToolPlacementId']);
-        self::assertSame('msg-1', $saved['object']['ltiAgsResultId']);
-        self::assertSame('learner-1', $saved['object']['learnerId']);
-        self::assertSame('concept', $saved['object']['lifecycle']);
-        self::assertSame(8.5, $saved['object']['value']);
+		self::assertCount(1, $this->savedObjects);
+		$saved = $this->savedObjects[0];
+		self::assertSame('scholiq', $saved['register']);
+		self::assertSame('grade-entry', $saved['schema']);
+		self::assertSame('lti-ags', $saved['object']['sourceKind']);
+		self::assertSame('component-1', $saved['object']['componentId']);
+		self::assertSame('plan-1', $saved['object']['curriculumPlanId']);
+		self::assertSame('placement-1', $saved['object']['ltiToolPlacementId']);
+		self::assertSame('msg-1', $saved['object']['ltiAgsResultId']);
+		self::assertSame('learner-1', $saved['object']['learnerId']);
+		self::assertSame('concept', $saved['object']['lifecycle']);
+		self::assertSame(8.5, $saved['object']['value']);
 
-        // Cursor advanced.
-        self::assertSame('cursor-1', $this->configValues['lti_ags_pull_cursor']);
-    }//end testCreatesConceptGradeEntryForConfiguredPlacement()
+		// Cursor advanced.
+		self::assertSame('cursor-1', $this->configValues['lti_ags_pull_cursor']);
+	}//end testCreatesConceptGradeEntryForConfiguredPlacement()
 
-    /**
-     * Pulling the same message twice (simulating a redelivery) creates
-     * exactly one GradeEntry, not two.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.8
-     */
-    public function testRedeliveredMessageDoesNotCreateDuplicate(): void
-    {
-        $this->placementFixture = [
-            'id'                        => 'placement-1',
-            'openconnectorDeploymentId' => 'deployment-1',
-            'curriculumPlanId'          => 'plan-1',
-            'gradeEntryComponentId'     => 'component-1',
-            'gradeScaleId'              => '',
-            'tenant_id'                 => 'tenant-1',
-        ];
+	/**
+	 * Pulling the same message twice (simulating a redelivery) creates
+	 * exactly one GradeEntry, not two.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.8
+	 */
+	public function testRedeliveredMessageDoesNotCreateDuplicate(): void {
+		$this->placementFixture = [
+			'id' => 'placement-1',
+			'openconnectorDeploymentId' => 'deployment-1',
+			'curriculumPlanId' => 'plan-1',
+			'gradeEntryComponentId' => 'component-1',
+			'gradeScaleId' => '',
+			'tenant_id' => 'tenant-1',
+		];
 
-        // Simulate a GradeEntry already created for this exact pair.
-        $this->existingGradeEntries = [
-            ['ltiToolPlacementId' => 'placement-1', 'ltiAgsResultId' => 'msg-1'],
-        ];
+		// Simulate a GradeEntry already created for this exact pair.
+		$this->existingGradeEntries = [
+			['ltiToolPlacementId' => 'placement-1', 'ltiAgsResultId' => 'msg-1'],
+		];
 
-        $message = [
-            'id'      => 'msg-1',
-            'payload' => [
-                'deploymentUuid' => 'deployment-1',
-                'score'          => ['userId' => 'learner-1', 'scoreGiven' => 8.5, 'scoreMaximum' => 10],
-            ],
-        ];
+		$message = [
+			'id' => 'msg-1',
+			'payload' => [
+				'deploymentUuid' => 'deployment-1',
+				'score' => ['userId' => 'learner-1', 'scoreGiven' => 8.5, 'scoreMaximum' => 10],
+			],
+		];
 
-        $job = $this->job(messages: [$message]);
-        $job->run(null);
+		$job = $this->job(messages: [$message]);
+		$job->run(null);
 
-        self::assertCount(0, $this->savedObjects);
-    }//end testRedeliveredMessageDoesNotCreateDuplicate()
+		self::assertCount(0, $this->savedObjects);
+	}//end testRedeliveredMessageDoesNotCreateDuplicate()
 
-    /**
-     * A message whose deploymentUuid matches no LtiToolPlacement is logged
-     * and skipped without throwing.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.9
-     */
-    public function testOrphanMessageIsSkippedWithoutThrowing(): void
-    {
-        $this->placementFixture = null;
+	/**
+	 * A message whose deploymentUuid matches no LtiToolPlacement is logged
+	 * and skipped without throwing.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.9
+	 */
+	public function testOrphanMessageIsSkippedWithoutThrowing(): void {
+		$this->placementFixture = null;
 
-        $message = [
-            'id'      => 'msg-orphan',
-            'payload' => [
-                'deploymentUuid' => 'deployment-unknown',
-                'score'          => ['userId' => 'learner-1', 'scoreGiven' => 5, 'scoreMaximum' => 10],
-            ],
-        ];
+		$message = [
+			'id' => 'msg-orphan',
+			'payload' => [
+				'deploymentUuid' => 'deployment-unknown',
+				'score' => ['userId' => 'learner-1', 'scoreGiven' => 5, 'scoreMaximum' => 10],
+			],
+		];
 
-        $job = $this->job(messages: [$message]);
+		$job = $this->job(messages: [$message]);
 
-        // Must not throw.
-        $job->run(null);
+		// Must not throw.
+		$job->run(null);
 
-        self::assertCount(0, $this->savedObjects);
-    }//end testOrphanMessageIsSkippedWithoutThrowing()
+		self::assertCount(0, $this->savedObjects);
+	}//end testOrphanMessageIsSkippedWithoutThrowing()
 
-    /**
-     * A job with no configured subscription id no-ops without calling the
-     * HTTP client at all.
-     *
-     * @return void
-     */
-    public function testNoOpsWhenSubscriptionNotConfigured(): void
-    {
-        $this->configValues['lti_ags_subscription_id'] = '';
+	/**
+	 * A job with no configured subscription id no-ops without calling the
+	 * HTTP client at all.
+	 *
+	 * @return void
+	 */
+	public function testNoOpsWhenSubscriptionNotConfigured(): void {
+		$this->configValues['lti_ags_subscription_id'] = '';
 
-        $this->clientService->expects($this->never())->method('newClient');
+		$this->clientService->expects($this->never())->method('newClient');
 
-        $job = new LtiAgsScorePollJob(
-            time: $this->createMock(ITimeFactory::class),
-            objectService: $this->objectService,
-            pullClient: new LtiAgsPullClient(
-                clientService: $this->clientService,
-                urlGenerator: $this->urlGenerator,
-                appConfig: $this->appConfig,
-                logger: new NullLogger()
-            ),
-            appConfig: $this->appConfig,
-            logger: new NullLogger()
-        );
+		$job = new LtiAgsScorePollJob(
+			time: $this->createMock(ITimeFactory::class),
+			objectService: $this->objectService,
+			pullClient: new LtiAgsPullClient(
+				clientService: $this->clientService,
+				urlGenerator: $this->urlGenerator,
+				appConfig: $this->appConfig,
+				logger: new NullLogger()
+			),
+			appConfig: $this->appConfig,
+			logger: new NullLogger()
+		);
 
-        $job->run(null);
+		$job->run(null);
 
-        self::assertCount(0, $this->savedObjects);
-    }//end testNoOpsWhenSubscriptionNotConfigured()
+		self::assertCount(0, $this->savedObjects);
+	}//end testNoOpsWhenSubscriptionNotConfigured()
 }//end class

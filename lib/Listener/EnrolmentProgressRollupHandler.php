@@ -45,113 +45,109 @@ use OCP\EventDispatcher\IEventListener;
  *
  * @implements IEventListener<Event>
  */
-class EnrolmentProgressRollupHandler implements IEventListener
-{
+class EnrolmentProgressRollupHandler implements IEventListener {
 
-    private const SCHOLIQ_REGISTER         = 'scholiq';
-    private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
-    private const ENROLMENT_SCHEMA         = 'enrolment';
+	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
+	private const ENROLMENT_SCHEMA = 'enrolment';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService              $objectService  OR object access.
-     * @param EnrolmentProgressEvaluator $evaluator      progressPercent calculation engine.
-     * @param ListenerSchemaResolver     $schemaResolver Resolves the entity's register/schema ids to slugs.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly EnrolmentProgressEvaluator $evaluator,
-        private readonly ListenerSchemaResolver $schemaResolver,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access.
+	 * @param EnrolmentProgressEvaluator $evaluator progressPercent calculation engine.
+	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly EnrolmentProgressEvaluator $evaluator,
+		private readonly ListenerSchemaResolver $schemaResolver,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an ObjectCreatedEvent.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
-     */
-    public function handle(Event $event): void
-    {
-        if ($event instanceof ObjectCreatedEvent === false) {
-            return;
-        }
+	/**
+	 * Handle an ObjectCreatedEvent.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 */
+	public function handle(Event $event): void {
+		if ($event instanceof ObjectCreatedEvent === false) {
+			return;
+		}
 
-        $objectEntity = $event->getObject();
+		$objectEntity = $event->getObject();
 
-        if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
-            || $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::LESSON_COMPLETION_SCHEMA
-        ) {
-            return;
-        }
+		if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
+			|| $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::LESSON_COMPLETION_SCHEMA
+		) {
+			return;
+		}
 
-        $completion = $objectEntity->jsonSerialize();
-        $learnerId  = $completion['learnerId'] ?? '';
-        // LessonCompletion already denormalizes courseId (mirrors
-        // XapiStatement.courseId/.lessonId) — no extra Lesson lookup needed
-        // to resolve the course scope.
-        $courseId = $completion['courseId'] ?? '';
+		$completion = $objectEntity->jsonSerialize();
+		$learnerId = $completion['learnerId'] ?? '';
+		// LessonCompletion already denormalizes courseId (mirrors
+		// XapiStatement.courseId/.lessonId) — no extra Lesson lookup needed
+		// to resolve the course scope.
+		$courseId = $completion['courseId'] ?? '';
 
-        if ($learnerId === '' || $courseId === '') {
-            return;
-        }
+		if ($learnerId === '' || $courseId === '') {
+			return;
+		}
 
-        $enrolment = $this->findActiveEnrolment(learnerId: $learnerId, courseId: $courseId);
-        if ($enrolment === null) {
-            // No active Enrolment for this learner+course — nothing to
-            // recompute onto. Skipped without error.
-            return;
-        }
+		$enrolment = $this->findActiveEnrolment(learnerId: $learnerId, courseId: $courseId);
+		if ($enrolment === null) {
+			// No active Enrolment for this learner+course — nothing to
+			// recompute onto. Skipped without error.
+			return;
+		}
 
-        $result = $this->evaluator->evaluate(learnerId: $learnerId, courseId: $courseId);
+		$result = $this->evaluator->evaluate(learnerId: $learnerId, courseId: $courseId);
 
-        $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::ENROLMENT_SCHEMA,
-            object: array_merge($enrolment, ['progressPercent' => $result['progressPercent']])
-        );
+		$this->objectService->saveObject(
+			register: self::SCHOLIQ_REGISTER,
+			schema: self::ENROLMENT_SCHEMA,
+			object: array_merge($enrolment, ['progressPercent' => $result['progressPercent']])
+		);
 
-    }//end handle()
+	}//end handle()
 
-    /**
-     * Find the learner's active Enrolment for a course.
-     *
-     * @param string $learnerId NC user ID of the learner.
-     * @param string $courseId  UUID of the Course.
-     *
-     * @return array<string, mixed>|null
-     */
-    private function findActiveEnrolment(string $learnerId, string $courseId): ?array
-    {
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::ENROLMENT_SCHEMA,
-                'filters'  => [
-                    'learnerId' => $learnerId,
-                    'courseId'  => $courseId,
-                    'lifecycle' => 'active',
-                ],
-                'limit'    => 1,
-            ]
-        );
+	/**
+	 * Find the learner's active Enrolment for a course.
+	 *
+	 * @param string $learnerId NC user ID of the learner.
+	 * @param string $courseId UUID of the Course.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function findActiveEnrolment(string $learnerId, string $courseId): ?array {
+		$results = $this->objectService->findAll(
+			[
+				'register' => self::SCHOLIQ_REGISTER,
+				'schema' => self::ENROLMENT_SCHEMA,
+				'filters' => [
+					'learnerId' => $learnerId,
+					'courseId' => $courseId,
+					'lifecycle' => 'active',
+				],
+				'limit' => 1,
+			]
+		);
 
-        if (empty($results) === true) {
-            return null;
-        }
+		if (empty($results) === true) {
+			return null;
+		}
 
-        $enrolment = $results[0];
-        if (is_array($enrolment) === false) {
-            $enrolment = $enrolment->jsonSerialize();
-        }
+		$enrolment = $results[0];
+		if (is_array($enrolment) === false) {
+			$enrolment = $enrolment->jsonSerialize();
+		}
 
-        return $enrolment;
-
-    }//end findActiveEnrolment()
+		return $enrolment;
+	}//end findActiveEnrolment()
 }//end class

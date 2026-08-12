@@ -59,23 +59,22 @@ namespace OCA\Scholiq\Bpv;
  * - `status` in the returned array MUST be one of `verified`, `rejected`, or
  *   `pending`. Only `verified` satisfies BpvConfirmationGuard.
  */
-interface ProvidesLeerbedrijfVerification
-{
-    /**
-     * Verify whether a company is an SBB-erkend leerbedrijf.
-     *
-     * @param string $kvkOrErkenningNumber The company's KVK number or an existing SBB
-     *                                     erkenning number to re-check.
-     *
-     * @return array{status: string, erkenningNumber: ?string, expiresAt: ?string, raw: array}
-     *                                     `status` is one of `verified`|`rejected`|`pending`.
-     *                                     `erkenningNumber` and `expiresAt` are populated when
-     *                                     `status` is `verified`. `raw` carries the provider's
-     *                                     raw response payload for audit purposes.
-     *
-     * @throws \RuntimeException When the provider cannot be reached.
-     *
-     * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
-     */
-    public function verify(string $kvkOrErkenningNumber): array;
+interface ProvidesLeerbedrijfVerification {
+	/**
+	 * Verify whether a company is an SBB-erkend leerbedrijf.
+	 *
+	 * @param string $kvkOrErkenningNumber The company's KVK number or an existing SBB
+	 *                                     erkenning number to re-check.
+	 *
+	 * @return array{status: string, erkenningNumber: ?string, expiresAt: ?string, raw: array}
+	 *                                                                                         `status` is one of `verified`|`rejected`|`pending`.
+	 *                                                                                         `erkenningNumber` and `expiresAt` are populated when
+	 *                                                                                         `status` is `verified`. `raw` carries the provider's
+	 *                                                                                         raw response payload for audit purposes.
+	 *
+	 * @throws \RuntimeException When the provider cannot be reached.
+	 *
+	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 */
+	public function verify(string $kvkOrErkenningNumber): array;
 }//end interface

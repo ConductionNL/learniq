@@ -35,246 +35,235 @@ use Psr\Log\LoggerInterface;
  * Tests for WerkprocesGradeEmitHandler::handle() on
  * WerkprocesAssessment → confirmed.
  */
-class WerkprocesGradeEmitHandlerTest extends TestCase
-{
+class WerkprocesGradeEmitHandlerTest extends TestCase {
 
-    /**
-     * Recorded saveObject() calls, captured by the ObjectService stub used per test.
-     *
-     * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
-     */
-    private array $savedObjects = [];
+	/**
+	 * Recorded saveObject() calls, captured by the ObjectService stub used per test.
+	 *
+	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
+	 */
+	private array $savedObjects = [];
 
-    /**
-     * Reset the capture buffer before each test.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->savedObjects = [];
+	/**
+	 * Reset the capture buffer before each test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->savedObjects = [];
 
-    }//end setUp()
+	}//end setUp()
 
-    /**
-     * Build a handler backed by an ObjectService stub.
-     *
-     * @param array<string, mixed>|null      $placement       BpvPlacement returned for
-     *                                                         bpv-placement lookups.
-     * @param array<string, mixed>|null      $curriculumPlan  CurriculumPlan returned for
-     *                                                         curriculum-plan lookups.
-     * @param array<int, array<string,mixed>> $existingEntries GradeEntry rows returned for
-     *                                                         grade-entry lookups.
-     *
-     * @return WerkprocesGradeEmitHandler
-     */
-    private function makeHandler(?array $placement, ?array $curriculumPlan, array $existingEntries=[]): WerkprocesGradeEmitHandler
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('findAll')->willReturnCallback(
-            function (array $config) use ($placement, $curriculumPlan, $existingEntries) {
-                if ($config['schema'] === 'bpv-placement') {
-                    return ($placement === null) ? [] : [$placement];
-                }
+	/**
+	 * Build a handler backed by an ObjectService stub.
+	 *
+	 * @param array<string, mixed>|null $placement BpvPlacement returned for
+	 *                                             bpv-placement lookups.
+	 * @param array<string, mixed>|null $curriculumPlan CurriculumPlan returned for
+	 *                                                  curriculum-plan lookups.
+	 * @param array<int, array<string,mixed>> $existingEntries GradeEntry rows returned for
+	 *                                                         grade-entry lookups.
+	 *
+	 * @return WerkprocesGradeEmitHandler
+	 */
+	private function makeHandler(?array $placement, ?array $curriculumPlan, array $existingEntries = []): WerkprocesGradeEmitHandler {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config) use ($placement, $curriculumPlan, $existingEntries) {
+				if ($config['schema'] === 'bpv-placement') {
+					return ($placement === null) ? [] : [$placement];
+				}
 
-                if ($config['schema'] === 'curriculum-plan') {
-                    return ($curriculumPlan === null) ? [] : [$curriculumPlan];
-                }
+				if ($config['schema'] === 'curriculum-plan') {
+					return ($curriculumPlan === null) ? [] : [$curriculumPlan];
+				}
 
-                if ($config['schema'] === 'grade-entry') {
-                    return $existingEntries;
-                }
+				if ($config['schema'] === 'grade-entry') {
+					return $existingEntries;
+				}
 
-                return [];
-            }
-        );
+				return [];
+			}
+		);
 
-        $objectService->method('saveObject')->willReturnCallback(
-            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
-                $data                 = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
-                $this->savedObjects[] = [
-                    'register' => (string) $register,
-                    'schema'   => (string) $schema,
-                    'object'   => $data,
-                ];
-                return OrEntityFactory::make($data, (string) $schema, (string) $register);
-            }
-        );
+		$objectService->method('saveObject')->willReturnCallback(
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+				$this->savedObjects[] = [
+					'register' => (string)$register,
+					'schema' => (string)$schema,
+					'object' => $data,
+				];
+				return OrEntityFactory::make($data, (string)$schema, (string)$register);
+			}
+		);
 
-        return new WerkprocesGradeEmitHandler($objectService, $this->createMock(LoggerInterface::class));
+		return new WerkprocesGradeEmitHandler($objectService, $this->createMock(LoggerInterface::class));
+	}//end makeHandler()
 
-    }//end makeHandler()
+	/**
+	 * Build a mocked ObjectTransitionedEvent for a WerkprocesAssessment → confirmed transition.
+	 *
+	 * @param array<string, mixed> $assessmentData The WerkprocesAssessment's jsonSerialize() payload.
+	 *
+	 * @return ObjectTransitionedEvent
+	 */
+	private function makeEvent(array $assessmentData): ObjectTransitionedEvent {
+		$objectEntity = $this->createMock(ObjectEntity::class);
+		$objectEntity->method('jsonSerialize')->willReturn($assessmentData);
 
-    /**
-     * Build a mocked ObjectTransitionedEvent for a WerkprocesAssessment → confirmed transition.
-     *
-     * @param array<string, mixed> $assessmentData The WerkprocesAssessment's jsonSerialize() payload.
-     *
-     * @return ObjectTransitionedEvent
-     */
-    private function makeEvent(array $assessmentData): ObjectTransitionedEvent
-    {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($assessmentData);
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getObject')->willReturn($objectEntity);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('werkproces-assessment');
+		$event->method('getTo')->willReturn('confirmed');
+		$event->method('getFrom')->willReturn('submitted');
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getObject')->willReturn($objectEntity);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('werkproces-assessment');
-        $event->method('getTo')->willReturn('confirmed');
-        $event->method('getFrom')->willReturn('submitted');
+		return $event;
+	}//end makeEvent()
 
-        return $event;
+	/**
+	 * A `competent` assessment with no existing GradeEntry creates a new one with value 1.0,
+	 * sourceKind 'manual', and no final-grade computation of its own.
+	 *
+	 * @return void
+	 */
+	public function testCompetentAssessmentCreatesGradeEntry(): void {
+		$placement = ['id' => 'placement-1', 'learnerId' => 'learner-7', 'tenant_id' => 'tenant-a'];
+		$plan = ['id' => 'plan-1', 'gradeScaleId' => 'scale-pass-fail'];
 
-    }//end makeEvent()
+		$handler = $this->makeHandler($placement, $plan, []);
 
-    /**
-     * A `competent` assessment with no existing GradeEntry creates a new one with value 1.0,
-     * sourceKind 'manual', and no final-grade computation of its own.
-     *
-     * @return void
-     */
-    public function testCompetentAssessmentCreatesGradeEntry(): void
-    {
-        $placement = ['id' => 'placement-1', 'learnerId' => 'learner-7', 'tenant_id' => 'tenant-a'];
-        $plan      = ['id' => 'plan-1', 'gradeScaleId' => 'scale-pass-fail'];
+		$assessment = [
+			'id' => 'wpa-1',
+			'bpvPlacementId' => 'placement-1',
+			'curriculumPlanId' => 'plan-1',
+			'componentId' => 'component-bpv',
+			'beoordeling' => 'competent',
+		];
 
-        $handler = $this->makeHandler($placement, $plan, []);
+		$handler->handle($this->makeEvent($assessment));
 
-        $assessment = [
-            'id'               => 'wpa-1',
-            'bpvPlacementId'   => 'placement-1',
-            'curriculumPlanId' => 'plan-1',
-            'componentId'      => 'component-bpv',
-            'beoordeling'      => 'competent',
-        ];
+		$gradeSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'grade-entry'));
+		$this->assertCount(1, $gradeSaves);
 
-        $handler->handle($this->makeEvent($assessment));
+		$saved = $gradeSaves[0]['object'];
+		$this->assertSame('learner-7', $saved['learnerId']);
+		$this->assertSame('plan-1', $saved['curriculumPlanId']);
+		$this->assertSame('component-bpv', $saved['componentId']);
+		$this->assertSame(1.0, $saved['value']);
+		$this->assertSame('manual', $saved['sourceKind']);
+		$this->assertSame('scale-pass-fail', $saved['gradeScaleId']);
+		$this->assertSame('tenant-a', $saved['tenant_id']);
+		$this->assertSame('concept', $saved['lifecycle']);
 
-        $gradeSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'grade-entry'));
-        $this->assertCount(1, $gradeSaves);
+	}//end testCompetentAssessmentCreatesGradeEntry()
 
-        $saved = $gradeSaves[0]['object'];
-        $this->assertSame('learner-7', $saved['learnerId']);
-        $this->assertSame('plan-1', $saved['curriculumPlanId']);
-        $this->assertSame('component-bpv', $saved['componentId']);
-        $this->assertSame(1.0, $saved['value']);
-        $this->assertSame('manual', $saved['sourceKind']);
-        $this->assertSame('scale-pass-fail', $saved['gradeScaleId']);
-        $this->assertSame('tenant-a', $saved['tenant_id']);
-        $this->assertSame('concept', $saved['lifecycle']);
+	/**
+	 * A `nog-niet-competent` assessment maps to value 0.0.
+	 *
+	 * @return void
+	 */
+	public function testNogNietCompetentMapsToZero(): void {
+		$placement = ['id' => 'placement-1', 'learnerId' => 'learner-7', 'tenant_id' => 'tenant-a'];
+		$plan = ['id' => 'plan-1', 'gradeScaleId' => 'scale-pass-fail'];
 
-    }//end testCompetentAssessmentCreatesGradeEntry()
+		$handler = $this->makeHandler($placement, $plan, []);
 
-    /**
-     * A `nog-niet-competent` assessment maps to value 0.0.
-     *
-     * @return void
-     */
-    public function testNogNietCompetentMapsToZero(): void
-    {
-        $placement = ['id' => 'placement-1', 'learnerId' => 'learner-7', 'tenant_id' => 'tenant-a'];
-        $plan      = ['id' => 'plan-1', 'gradeScaleId' => 'scale-pass-fail'];
+		$assessment = [
+			'id' => 'wpa-2',
+			'bpvPlacementId' => 'placement-1',
+			'curriculumPlanId' => 'plan-1',
+			'componentId' => 'component-bpv',
+			'beoordeling' => 'nog-niet-competent',
+		];
 
-        $handler = $this->makeHandler($placement, $plan, []);
+		$handler->handle($this->makeEvent($assessment));
 
-        $assessment = [
-            'id'               => 'wpa-2',
-            'bpvPlacementId'   => 'placement-1',
-            'curriculumPlanId' => 'plan-1',
-            'componentId'      => 'component-bpv',
-            'beoordeling'      => 'nog-niet-competent',
-        ];
+		$gradeSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'grade-entry'));
+		$this->assertCount(1, $gradeSaves);
+		$this->assertSame(0.0, $gradeSaves[0]['object']['value']);
 
-        $handler->handle($this->makeEvent($assessment));
+	}//end testNogNietCompetentMapsToZero()
 
-        $gradeSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'grade-entry'));
-        $this->assertCount(1, $gradeSaves);
-        $this->assertSame(0.0, $gradeSaves[0]['object']['value']);
+	/**
+	 * When a GradeEntry already exists for the same learner/plan/component, the handler updates
+	 * it in place (preserving its id) instead of creating a duplicate.
+	 *
+	 * @return void
+	 */
+	public function testExistingGradeEntryIsUpdatedInPlace(): void {
+		$placement = ['id' => 'placement-1', 'learnerId' => 'learner-7', 'tenant_id' => 'tenant-a'];
+		$plan = ['id' => 'plan-1', 'gradeScaleId' => 'scale-pass-fail'];
+		$existing = [
+			'id' => 'entry-existing',
+			'learnerId' => 'learner-7',
+			'curriculumPlanId' => 'plan-1',
+			'componentId' => 'component-bpv',
+			'value' => 0.0,
+			'lifecycle' => 'concept',
+		];
 
-    }//end testNogNietCompetentMapsToZero()
+		$handler = $this->makeHandler($placement, $plan, [$existing]);
 
-    /**
-     * When a GradeEntry already exists for the same learner/plan/component, the handler updates
-     * it in place (preserving its id) instead of creating a duplicate.
-     *
-     * @return void
-     */
-    public function testExistingGradeEntryIsUpdatedInPlace(): void
-    {
-        $placement = ['id' => 'placement-1', 'learnerId' => 'learner-7', 'tenant_id' => 'tenant-a'];
-        $plan      = ['id' => 'plan-1', 'gradeScaleId' => 'scale-pass-fail'];
-        $existing  = [
-            'id'               => 'entry-existing',
-            'learnerId'        => 'learner-7',
-            'curriculumPlanId' => 'plan-1',
-            'componentId'      => 'component-bpv',
-            'value'            => 0.0,
-            'lifecycle'        => 'concept',
-        ];
+		$assessment = [
+			'id' => 'wpa-3',
+			'bpvPlacementId' => 'placement-1',
+			'curriculumPlanId' => 'plan-1',
+			'componentId' => 'component-bpv',
+			'beoordeling' => 'competent',
+		];
 
-        $handler = $this->makeHandler($placement, $plan, [$existing]);
+		$handler->handle($this->makeEvent($assessment));
 
-        $assessment = [
-            'id'               => 'wpa-3',
-            'bpvPlacementId'   => 'placement-1',
-            'curriculumPlanId' => 'plan-1',
-            'componentId'      => 'component-bpv',
-            'beoordeling'      => 'competent',
-        ];
+		$gradeSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'grade-entry'));
+		$this->assertCount(1, $gradeSaves);
+		$this->assertSame('entry-existing', $gradeSaves[0]['object']['id']);
+		$this->assertSame(1.0, $gradeSaves[0]['object']['value']);
 
-        $handler->handle($this->makeEvent($assessment));
+	}//end testExistingGradeEntryIsUpdatedInPlace()
 
-        $gradeSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'grade-entry'));
-        $this->assertCount(1, $gradeSaves);
-        $this->assertSame('entry-existing', $gradeSaves[0]['object']['id']);
-        $this->assertSame(1.0, $gradeSaves[0]['object']['value']);
+	/**
+	 * A BpvPlacement that cannot be resolved is a safe no-op — no GradeEntry is written.
+	 *
+	 * @return void
+	 */
+	public function testUnresolvablePlacementIsNoOp(): void {
+		$handler = $this->makeHandler(null, null, []);
 
-    }//end testExistingGradeEntryIsUpdatedInPlace()
+		$assessment = [
+			'id' => 'wpa-4',
+			'bpvPlacementId' => 'placement-missing',
+			'curriculumPlanId' => 'plan-1',
+			'componentId' => 'component-bpv',
+			'beoordeling' => 'competent',
+		];
 
-    /**
-     * A BpvPlacement that cannot be resolved is a safe no-op — no GradeEntry is written.
-     *
-     * @return void
-     */
-    public function testUnresolvablePlacementIsNoOp(): void
-    {
-        $handler = $this->makeHandler(null, null, []);
+		$handler->handle($this->makeEvent($assessment));
 
-        $assessment = [
-            'id'               => 'wpa-4',
-            'bpvPlacementId'   => 'placement-missing',
-            'curriculumPlanId' => 'plan-1',
-            'componentId'      => 'component-bpv',
-            'beoordeling'      => 'competent',
-        ];
+		$this->assertCount(0, $this->savedObjects);
 
-        $handler->handle($this->makeEvent($assessment));
+	}//end testUnresolvablePlacementIsNoOp()
 
-        $this->assertCount(0, $this->savedObjects);
+	/**
+	 * Events for other schemas/states are ignored entirely.
+	 *
+	 * @return void
+	 */
+	public function testIgnoresUnrelatedEvents(): void {
+		$handler = $this->makeHandler(['id' => 'placement-1', 'learnerId' => 'learner-7'], null, []);
 
-    }//end testUnresolvablePlacementIsNoOp()
+		$objectEntity = $this->createMock(ObjectEntity::class);
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getObject')->willReturn($objectEntity);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('bpv-placement');
+		$event->method('getTo')->willReturn('confirmed');
 
-    /**
-     * Events for other schemas/states are ignored entirely.
-     *
-     * @return void
-     */
-    public function testIgnoresUnrelatedEvents(): void
-    {
-        $handler = $this->makeHandler(['id' => 'placement-1', 'learnerId' => 'learner-7'], null, []);
+		$handler->handle($event);
 
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $event        = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getObject')->willReturn($objectEntity);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('bpv-placement');
-        $event->method('getTo')->willReturn('confirmed');
+		$this->assertCount(0, $this->savedObjects);
 
-        $handler->handle($event);
-
-        $this->assertCount(0, $this->savedObjects);
-
-    }//end testIgnoresUnrelatedEvents()
+	}//end testIgnoresUnrelatedEvents()
 }//end class

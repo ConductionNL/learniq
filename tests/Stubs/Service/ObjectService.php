@@ -39,78 +39,73 @@ use OCP\IUser;
 /**
  * Mirror of OpenRegister's ObjectService for standalone Scholiq unit tests.
  */
-abstract class ObjectService
-{
+abstract class ObjectService {
 
+	/**
+	 * Find a single object.
+	 *
+	 * @param int|string $id Object identifier.
+	 * @param array<string,mixed>|null $_extend Extend directives.
+	 * @param bool $files Include files.
+	 * @param Register|string|int|null $register Register context.
+	 * @param Schema|string|int|null $schema Schema context.
+	 * @param bool $_rbac Apply RBAC.
+	 * @param bool $_multitenancy Apply multitenancy.
+	 * @param bool $_render Render the result.
+	 *
+	 * @return ObjectEntity|null
+	 */
+	abstract public function find(
+		int|string $id,
+		?array $_extend = [],
+		bool $files = false,
+		Register|string|int|null $register = null,
+		Schema|string|int|null $schema = null,
+		bool $_rbac = true,
+		bool $_multitenancy = true,
+		bool $_render = true,
+	): ?ObjectEntity;
 
-    /**
-     * Find a single object.
-     *
-     * @param int|string                    $id             Object identifier.
-     * @param array<string,mixed>|null      $_extend        Extend directives.
-     * @param bool                          $files          Include files.
-     * @param Register|string|int|null      $register       Register context.
-     * @param Schema|string|int|null        $schema         Schema context.
-     * @param bool                          $_rbac          Apply RBAC.
-     * @param bool                          $_multitenancy  Apply multitenancy.
-     * @param bool                          $_render        Render the result.
-     *
-     * @return ObjectEntity|null
-     */
-    abstract public function find(
-        int | string $id,
-        ?array $_extend=[],
-        bool $files=false,
-        Register | string | int | null $register=null,
-        Schema | string | int | null $schema=null,
-        bool $_rbac=true,
-        bool $_multitenancy=true,
-        bool $_render=true
-    ): ?ObjectEntity;
+	/**
+	 * Find all objects matching a config.
+	 *
+	 * @param array<string,mixed> $config Query config.
+	 * @param bool $_rbac Apply RBAC.
+	 * @param bool $_multitenancy Apply multitenancy.
+	 *
+	 * @return array<int,mixed>
+	 */
+	abstract public function findAll(array $config = [], bool $_rbac = true, bool $_multitenancy = true): array;
 
-
-    /**
-     * Find all objects matching a config.
-     *
-     * @param array<string,mixed> $config        Query config.
-     * @param bool                $_rbac         Apply RBAC.
-     * @param bool                $_multitenancy Apply multitenancy.
-     *
-     * @return array<int,mixed>
-     */
-    abstract public function findAll(array $config=[], bool $_rbac=true, bool $_multitenancy=true): array;
-
-
-    /**
-     * Persist an object.
-     *
-     * @param array<string,mixed>|ObjectEntity $object        Object payload.
-     * @param array<string,mixed>|null         $extend        Extend directives.
-     * @param Register|string|int|null         $register      Register context.
-     * @param Schema|string|int|null           $schema        Schema context.
-     * @param string|null                      $uuid          Explicit uuid.
-     * @param bool                             $_rbac         Apply RBAC.
-     * @param bool                             $_multitenancy Apply multitenancy.
-     * @param bool                             $silent        Suppress events.
-     * @param array<string,mixed>|null         $uploadedFiles Uploaded files.
-     * @param IUser|null                       $currentUser   Acting user.
-     * @param bool                             $failIfExists  Fail on conflict.
-     *
-     * @return ObjectEntity
-     */
-    abstract public function saveObject(
-        array | ObjectEntity $object,
-        ?array $extend=[],
-        Register | string | int | null $register=null,
-        Schema | string | int | null $schema=null,
-        ?string $uuid=null,
-        bool $_rbac=true,
-        bool $_multitenancy=true,
-        bool $silent=false,
-        ?array $uploadedFiles=null,
-        ?IUser $currentUser=null,
-        bool $failIfExists=false
-    ): ObjectEntity;
-
+	/**
+	 * Persist an object.
+	 *
+	 * @param array<string,mixed>|ObjectEntity $object Object payload.
+	 * @param array<string,mixed>|null $extend Extend directives.
+	 * @param Register|string|int|null $register Register context.
+	 * @param Schema|string|int|null $schema Schema context.
+	 * @param string|null $uuid Explicit uuid.
+	 * @param bool $_rbac Apply RBAC.
+	 * @param bool $_multitenancy Apply multitenancy.
+	 * @param bool $silent Suppress events.
+	 * @param array<string,mixed>|null $uploadedFiles Uploaded files.
+	 * @param IUser|null $currentUser Acting user.
+	 * @param bool $failIfExists Fail on conflict.
+	 *
+	 * @return ObjectEntity
+	 */
+	abstract public function saveObject(
+		array|ObjectEntity $object,
+		?array $extend = [],
+		Register|string|int|null $register = null,
+		Schema|string|int|null $schema = null,
+		?string $uuid = null,
+		bool $_rbac = true,
+		bool $_multitenancy = true,
+		bool $silent = false,
+		?array $uploadedFiles = null,
+		?IUser $currentUser = null,
+		bool $failIfExists = false,
+	): ObjectEntity;
 
 }//end class

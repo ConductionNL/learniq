@@ -73,587 +73,573 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  */
-class ConferenceScheduleGenerator implements IEventListener
-{
-
-    private const SCHOLIQ_REGISTER            = 'scholiq';
-    private const CONFERENCE_ROUND_SCHEMA     = 'conference-round';
-    private const TEACHER_AVAILABILITY_SCHEMA = 'teacher-availability';
-    private const CONFERENCE_SIGNUP_SCHEMA    = 'conference-signup';
-    private const CONFERENCE_SLOT_SCHEMA      = 'conference-slot';
-
-    /**
-     * Non-cancelled ConferenceSlot lifecycle states — a slot in one of these
-     * states already occupies the teacher's/signup's time and must not be
-     * duplicated or re-assigned.
-     *
-     * @var string[]
-     */
-    private const ACTIVE_SLOT_STATES = ['proposed', 'confirmed', 'completed'];
-
-    /**
-     * Constructor.
-     *
-     * @param ObjectService   $objectService OR object access service.
-     * @param LoggerInterface $logger        PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
-
-    /**
-     * Handle an ObjectTransitionedEvent.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
-     */
-    public function handle(Event $event): void
-    {
-        if (($event instanceof ObjectTransitionedEvent) === false) {
-            return;
-        }
-
-        if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
-            return;
-        }
-
-        if ($event->getSchema() !== self::CONFERENCE_ROUND_SCHEMA || $event->getTo() !== 'scheduled') {
-            return;
-        }
-
-        $this->generateForRound(round: $event->getObject()->jsonSerialize());
-
-    }//end handle()
-
-    /**
-     * Run the greedy conflict-free generation pass for one ConferenceRound.
-     *
-     * @param array<string,mixed> $round The ConferenceRound property array.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
-     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
-     */
-    private function generateForRound(array $round): void
-    {
-        $roundId = $round['id'] ?? ($round['uuid'] ?? '');
-        if ($roundId === '') {
-            $this->logger->warning('[ConferenceScheduleGenerator] ConferenceRound has no id; aborting generation.');
-            return;
-        }
-
-        $tenantId            = $round['tenant_id'] ?? '';
-        $slotDurationMinutes = (int) ($round['slotDurationMinutes'] ?? 10);
-        $bufferMinutes       = (int) ($round['bufferMinutes'] ?? 0);
-
-        $availabilities = array_merge(
-            $this->fetchByRoundAndLifecycle(schema: self::TEACHER_AVAILABILITY_SCHEMA, roundId: $roundId, lifecycle: 'submitted'),
-            $this->fetchByRoundAndLifecycle(schema: self::TEACHER_AVAILABILITY_SCHEMA, roundId: $roundId, lifecycle: 'locked'),
-        );
-
-        $existingSlots = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::CONFERENCE_SLOT_SCHEMA,
-                'filters'  => ['conferenceRoundId' => $roundId],
-                'limit'    => 5000,
-            ]
-        );
-        $existingSlots = array_map([$this, 'normalise'], $existingSlots);
-
-        // Step 4 (regenerate) — a cancelled signup frees its ConferenceSlots'
-        // minutes back to the teacher's queue: cancel any still-active slot
-        // belonging to a cancelled signup so its interval is not re-treated as
-        // consumed below. A confirmed slot belonging to a *still-live* signup
-        // is untouched (design.md "regenerate MUST NOT re-shuffle confirmed
-        // ConferenceSlots").
-        $cancelledSignupIds = array_map(
-            function ($signup): string {
-                $signup = $this->normalise(row: $signup);
-                return (string) ($signup['id'] ?? ($signup['uuid'] ?? ''));
-            },
-            $this->fetchByRoundAndLifecycle(schema: self::CONFERENCE_SIGNUP_SCHEMA, roundId: $roundId, lifecycle: 'cancelled')
-        );
-        $cancelledSignupIds = array_flip(array_filter($cancelledSignupIds, static fn (string $id): bool => $id !== ''));
-
-        $pinned = $this->indexExistingSlots(existingSlots: $existingSlots, cancelledSignupIds: $cancelledSignupIds);
-
-        // Step 1 — slice availability into a per-teacher slot queue, excluding
-        // minutes already consumed by a confirmed slot for that teacher.
-        $queues = $this->buildTeacherQueues(
-            availabilities: $availabilities,
-            slotDurationMinutes: $slotDurationMinutes,
-            bufferMinutes: $bufferMinutes,
-            confirmedByTeacher: $pinned['confirmedByTeacher']
-        );
-
-        // Step 2 — walk submitted + waitlisted signups in submission order.
-        $signups = array_merge(
-            $this->fetchByRoundAndLifecycle(schema: self::CONFERENCE_SIGNUP_SCHEMA, roundId: $roundId, lifecycle: 'submitted'),
-            $this->fetchByRoundAndLifecycle(schema: self::CONFERENCE_SIGNUP_SCHEMA, roundId: $roundId, lifecycle: 'waitlisted'),
-        );
-        $signups = array_map([$this, 'normalise'], $signups);
-        usort($signups, static fn (array $a, array $b): int => strcmp((string) ($a['createdAt'] ?? ''), (string) ($b['createdAt'] ?? '')));
-
-        $outcome = $this->assignSignups(
-            signups: $signups,
-            roundId: (string) $roundId,
-            tenantId: (string) $tenantId,
-            queues: $queues,
-            activeSlotKeys: $pinned['activeSlotKeys'],
-            intervalsBySignup: $pinned['intervalsBySignup']
-        );
-
-        foreach ($outcome['newSlots'] as $slot) {
-            $this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $slot);
-        }
-
-        foreach ($outcome['signupSaves'] as $signup) {
-            $this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::CONFERENCE_SIGNUP_SCHEMA, object: $signup);
-        }
-
-        $this->logger->info(
-            '[ConferenceScheduleGenerator] Round {round}: {slots} slot(s) written, {scheduled} signup(s) scheduled, {waitlisted} waitlisted.',
-            [
-                'round'      => $roundId,
-                'slots'      => count($outcome['newSlots']),
-                'scheduled'  => $outcome['scheduledCount'],
-                'waitlisted' => $outcome['waitlistedCount'],
-            ]
-        );
-
-    }//end generateForRound()
-
-    /**
-     * Index the round's existing ConferenceSlots into the three lookups the
-     * generation pass needs, cancelling any slot whose signup has been cancelled.
-     *
-     * Step 4 (regenerate): a cancelled signup frees its slots' minutes back to
-     * the teacher's queue, so those slots are cancelled here rather than being
-     * re-treated as consumed. A confirmed slot belonging to a still-live signup
-     * is untouched (design.md "regenerate MUST NOT re-shuffle confirmed
-     * ConferenceSlots").
-     *
-     * @param array<int,array<string,mixed>> $existingSlots      Normalised existing slots for the round.
-     * @param array<string,int>              $cancelledSignupIds Set of cancelled signup ids (keys).
-     *
-     * @return array{confirmedByTeacher: array<string,array<int,array<string,mixed>>>,
-     *               activeSlotKeys: array<string,true>,
-     *               intervalsBySignup: array<string,array<int,array<string,mixed>>>}
-     *
-     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
-     */
-    private function indexExistingSlots(array $existingSlots, array $cancelledSignupIds): array
-    {
-        // Confirmed slots are pinned — their minutes are excluded from re-slicing.
-        $confirmedByTeacher = [];
-        // Any non-cancelled slot for a (signupId, teacherId) pair means that
-        // teacher-request is already satisfied — never duplicate it.
-        $activeSlotKeys = [];
-        // Every non-cancelled interval already assigned to a signup (any
-        // teacher) — the overlap guard for newly assigned slots in this pass.
-        $intervalsBySignup = [];
-
-        foreach ($existingSlots as $slot) {
-            $status    = ($slot['lifecycle'] ?? '');
-            $teacherId = ($slot['teacherId'] ?? '');
-            $signupId  = ($slot['signupId'] ?? '');
-
-            if (in_array($status, self::ACTIVE_SLOT_STATES, true) === false) {
-                continue;
-            }
-
-            if ($signupId !== '' && isset($cancelledSignupIds[$signupId]) === true) {
-                $freedSlot = $slot;
-                $freedSlot['lifecycle'] = 'cancelled';
-                $this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $freedSlot);
-                continue;
-            }
-
-            $interval = [
-                'startsAt' => ($slot['startsAt'] ?? ''),
-                'endsAt'   => ($slot['endsAt'] ?? ''),
-            ];
-
-            if ($status === 'confirmed') {
-                $confirmedByTeacher[$teacherId][] = $interval;
-            }
-
-            if ($signupId !== '') {
-                $activeSlotKeys[$signupId.'|'.$teacherId] = true;
-                $intervalsBySignup[$signupId][]           = $interval;
-            }
-        }//end foreach
-
-        return [
-            'confirmedByTeacher' => $confirmedByTeacher,
-            'activeSlotKeys'     => $activeSlotKeys,
-            'intervalsBySignup'  => $intervalsBySignup,
-        ];
-
-    }//end indexExistingSlots()
-
-    /**
-     * Step 1 — build the per-teacher queue of free candidate slots, in
-     * chronological order, excluding minutes a confirmed slot already consumes.
-     *
-     * @param array<int,mixed>                             $availabilities      Submitted + locked TeacherAvailability rows.
-     * @param int                                          $slotDurationMinutes Length of one slot in minutes.
-     * @param int                                          $bufferMinutes       Gap between consecutive slots in minutes.
-     * @param array<string,array<int,array<string,mixed>>> $confirmedByTeacher  Pinned confirmed intervals per teacher.
-     *
-     * @return array<string,array<int,array<string,mixed>>> Map of teacherId => ordered free slots.
-     *
-     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
-     */
-    private function buildTeacherQueues(
-        array $availabilities,
-        int $slotDurationMinutes,
-        int $bufferMinutes,
-        array $confirmedByTeacher
-    ): array {
-        $queues = [];
-
-        foreach ($availabilities as $availability) {
-            $availability = $this->normalise(row: $availability);
-            $teacherId    = ($availability['teacherId'] ?? '');
-
-            $sliced = self::sliceAvailability(
-                blocks: ($availability['blocks'] ?? []),
-                slotDurationMinutes: $slotDurationMinutes,
-                bufferMinutes: $bufferMinutes
-            );
-
-            $confirmed = ($confirmedByTeacher[$teacherId] ?? []);
-            $free      = array_values(
-                array_filter(
-                    $sliced,
-                    fn (array $candidate): bool => $this->overlapsAny(candidate: $candidate, intervals: $confirmed) === false
-                )
-            );
-
-            $queues[$teacherId] = array_merge(($queues[$teacherId] ?? []), $free);
-        }//end foreach
-
-        foreach ($queues as $teacherId => $queue) {
-            usort($queue, static fn (array $a, array $b): int => strcmp((string) $a['startsAt'], (string) $b['startsAt']));
-            $queues[$teacherId] = $queue;
-        }
-
-        return $queues;
-
-    }//end buildTeacherQueues()
-
-    /**
-     * Step 2 — walk the signups in submission order, taking slots off the teacher
-     * queues, and decide each signup's resulting lifecycle.
-     *
-     * A signup whose every requested teacher was met becomes `scheduled`; one
-     * with any unmet request becomes `waitlisted` with the unmet teachers named
-     * in its notes, so the reason is never left implicit.
-     *
-     * @param array<int,array<string,mixed>>               $signups           Signups in submission order.
-     * @param string                                       $roundId           The ConferenceRound id.
-     * @param string                                       $tenantId          Tenant scope stamped on new slots.
-     * @param array<string,array<int,array<string,mixed>>> $queues            Per-teacher slot queues (mutated: slots are consumed).
-     * @param array<string,true>                           $activeSlotKeys    Satisfied (signupId|teacherId) keys (mutated: keys added).
-     * @param array<string,array<int,array<string,mixed>>> $intervalsBySignup Intervals already assigned per signup.
-     *
-     * @return array{newSlots: array<int,array<string,mixed>>, signupSaves: array<int,array<string,mixed>>, scheduledCount: int, waitlistedCount: int}
-     *
-     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
-     */
-    private function assignSignups(
-        array $signups,
-        string $roundId,
-        string $tenantId,
-        array &$queues,
-        array &$activeSlotKeys,
-        array $intervalsBySignup
-    ): array {
-        $newSlots        = [];
-        $signupSaves     = [];
-        $scheduledCount  = 0;
-        $waitlistedCount = 0;
-
-        foreach ($signups as $signup) {
-            $signupId = ($signup['id'] ?? ($signup['uuid'] ?? ''));
-
-            $assigned = $this->assignSlotsForSignup(
-                signup: $signup,
-                signupId: (string) $signupId,
-                roundId: $roundId,
-                tenantId: $tenantId,
-                queues: $queues,
-                activeSlotKeys: $activeSlotKeys,
-                assignedIntervals: ($intervalsBySignup[$signupId] ?? [])
-            );
-
-            $newSlots = array_merge($newSlots, $assigned['newSlots']);
-
-            if (count($assigned['unmetTeacherIds']) === 0) {
-                $signup['lifecycle'] = 'scheduled';
-                $scheduledCount++;
-                $signupSaves[] = $signup;
-                continue;
-            }
-
-            // Waitlisted: name the unmet teacher-requests in the notes so the
-            // reason is never left implicit. array_filter drops the existing
-            // notes when they are empty, so the ' | ' separator only appears
-            // when there is something to separate.
-            $reason = 'Unmet teacher-request(s): '.implode(', ', $assigned['unmetTeacherIds']);
-
-            $signup['lifecycle'] = 'waitlisted';
-            $signup['notes']     = implode(' | ', array_filter([(string) ($signup['notes'] ?? ''), $reason]));
-
-            $signupSaves[] = $signup;
-            $waitlistedCount++;
-        }//end foreach
-
-        return [
-            'newSlots'        => $newSlots,
-            'signupSaves'     => $signupSaves,
-            'scheduledCount'  => $scheduledCount,
-            'waitlistedCount' => $waitlistedCount,
-        ];
-
-    }//end assignSignups()
-
-    /**
-     * Take one slot off each requested teacher's queue for a single signup.
-     *
-     * A teacher-request already satisfied by an existing non-cancelled slot is an
-     * idempotent no-op, which is what makes regeneration safe to re-run.
-     *
-     * @param array<string,mixed>                          $signup            The signup row.
-     * @param string                                       $signupId          The signup id.
-     * @param string                                       $roundId           The ConferenceRound id.
-     * @param string                                       $tenantId          Tenant scope stamped on new slots.
-     * @param array<string,array<int,array<string,mixed>>> $queues            Per-teacher slot queues (mutated: slots are consumed).
-     * @param array<string,true>                           $activeSlotKeys    Satisfied (signupId|teacherId) keys (mutated: keys added).
-     * @param array<int,array<string,mixed>>               $assignedIntervals Intervals this signup already occupies.
-     *
-     * @return array{newSlots: array<int,array<string,mixed>>, unmetTeacherIds: array<int,string>}
-     *
-     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
-     */
-    private function assignSlotsForSignup(
-        array $signup,
-        string $signupId,
-        string $roundId,
-        string $tenantId,
-        array &$queues,
-        array &$activeSlotKeys,
-        array $assignedIntervals
-    ): array {
-        $newSlots        = [];
-        $unmetTeacherIds = [];
-
-        foreach (($signup['requestedTeacherIds'] ?? []) as $teacherId) {
-            if (isset($activeSlotKeys[$signupId.'|'.$teacherId]) === true) {
-                // Already satisfied by an existing non-cancelled slot — idempotent no-op.
-                continue;
-            }
-
-            $queue = ($queues[$teacherId] ?? []);
-            $slot  = $this->popNextNonOverlapping(queue: $queue, blocked: $assignedIntervals);
-            $queues[$teacherId] = $queue;
-
-            if ($slot === null) {
-                $unmetTeacherIds[] = $teacherId;
-                continue;
-            }
-
-            $newSlots[] = [
-                'conferenceRoundId' => $roundId,
-                'teacherId'         => $teacherId,
-                'learnerId'         => ($signup['learnerId'] ?? ''),
-                'learnerRef'        => ($signup['learnerRef'] ?? null),
-                'signupId'          => $signupId,
-                'startsAt'          => $slot['startsAt'],
-                'endsAt'            => $slot['endsAt'],
-                'location'          => null,
-                'tenant_id'         => $tenantId,
-                'lifecycle'         => 'proposed',
-            ];
-
-            $assignedIntervals[] = $slot;
-            $activeSlotKeys[$signupId.'|'.$teacherId] = true;
-        }//end foreach
-
-        return [
-            'newSlots'        => $newSlots,
-            'unmetTeacherIds' => $unmetTeacherIds,
-        ];
-
-    }//end assignSlotsForSignup()
-
-    /**
-     * Step 1 — slice a teacher's declared free blocks into a chronologically
-     * ordered list of candidate `{startsAt, endsAt}` slots, slotDurationMinutes
-     * long with a bufferMinutes gap between consecutive slots. Pure function,
-     * no side effects, deterministic for the same input (design.md "Step 1").
-     *
-     * @param array<int,array<string,mixed>> $blocks              Free blocks: [{startsAt, endsAt}, ...].
-     * @param int                            $slotDurationMinutes Length of one slot in minutes.
-     * @param int                            $bufferMinutes       Gap between consecutive slots in minutes.
-     *
-     * @return array<int,array{startsAt:string,endsAt:string}> Candidate slots, in chronological order.
-     *
-     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-a-conference-round-declares-its-scope-slot-duration-and-buffer-time
-     */
-    public static function sliceAvailability(array $blocks, int $slotDurationMinutes, int $bufferMinutes): array
-    {
-        if ($slotDurationMinutes <= 0) {
-            return [];
-        }
-
-        $slots = [];
-
-        foreach ($blocks as $block) {
-            $startRaw = $block['startsAt'] ?? null;
-            $endRaw   = $block['endsAt'] ?? null;
-
-            if ($startRaw === null || $endRaw === null) {
-                continue;
-            }
-
-            try {
-                $cursor    = new DateTimeImmutable((string) $startRaw, new DateTimeZone('UTC'));
-                $blockEnds = new DateTimeImmutable((string) $endRaw, new DateTimeZone('UTC'));
-            } catch (\Exception) {
-                continue;
-            }
-
-            while (true) {
-                $slotEnd = $cursor->modify('+'.$slotDurationMinutes.' minutes');
-                if ($slotEnd > $blockEnds) {
-                    break;
-                }
-
-                $slots[] = [
-                    'startsAt' => $cursor->format(DATE_ATOM),
-                    'endsAt'   => $slotEnd->format(DATE_ATOM),
-                ];
-
-                $cursor = $slotEnd->modify('+'.$bufferMinutes.' minutes');
-            }
-        }//end foreach
-
-        return $slots;
-
-    }//end sliceAvailability()
-
-    /**
-     * Pop candidate slots from the front of a teacher's queue until one is
-     * found that does not overlap any interval in `$blocked`, or the queue is
-     * exhausted. A rejected-for-overlap candidate is discarded permanently
-     * (design.md "Complexity" — visited at most once per pass), not requeued.
-     *
-     * @param array<int,array{startsAt:string,endsAt:string}> $queue   The teacher's candidate queue (mutated: consumed from the front).
-     * @param array<int,array{startsAt:string,endsAt:string}> $blocked Intervals already assigned to the current signup.
-     *
-     * @return array{startsAt:string,endsAt:string}|null The first non-overlapping slot, or null if the queue is exhausted.
-     */
-    private function popNextNonOverlapping(array &$queue, array $blocked): ?array
-    {
-        $remaining = count($queue);
-
-        while ($remaining > 0) {
-            $candidate = array_shift($queue);
-            $remaining = count($queue);
-            if ($this->overlapsAny(candidate: $candidate, intervals: $blocked) === false) {
-                return $candidate;
-            }
-        }
-
-        return null;
-
-    }//end popNextNonOverlapping()
-
-    /**
-     * Whether a candidate interval overlaps any interval in a set.
-     *
-     * Half-open interval overlap: [a.start, a.end) intersects [b.start, b.end)
-     * iff a.start < b.end AND b.start < a.end.
-     *
-     * @param array{startsAt:string,endsAt:string}            $candidate The candidate interval.
-     * @param array<int,array{startsAt:string,endsAt:string}> $intervals The intervals to check against.
-     *
-     * @return bool True if the candidate overlaps at least one interval.
-     */
-    private function overlapsAny(array $candidate, array $intervals): bool
-    {
-        $candidateStart = strtotime((string) $candidate['startsAt']);
-        $candidateEnd   = strtotime((string) $candidate['endsAt']);
-
-        foreach ($intervals as $interval) {
-            $intervalStart = strtotime((string) $interval['startsAt']);
-            $intervalEnd   = strtotime((string) $interval['endsAt']);
-
-            if ($candidateStart === false || $candidateEnd === false || $intervalStart === false || $intervalEnd === false) {
-                continue;
-            }
-
-            if ($candidateStart < $intervalEnd && $intervalStart < $candidateEnd) {
-                return true;
-            }
-        }
-
-        return false;
-
-    }//end overlapsAny()
-
-    /**
-     * Fetch OR objects for a schema filtered to a ConferenceRound + a single
-     * lifecycle state.
-     *
-     * @param string $schema    OR schema slug.
-     * @param string $roundId   ConferenceRound UUID.
-     * @param string $lifecycle Lifecycle state to filter on.
-     *
-     * @return array<int,mixed> Raw rows as returned by ObjectService::findAll().
-     */
-    private function fetchByRoundAndLifecycle(string $schema, string $roundId, string $lifecycle): array
-    {
-        return $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => $schema,
-                'filters'  => [
-                    'conferenceRoundId' => $roundId,
-                    'lifecycle'         => $lifecycle,
-                ],
-                'limit'    => 2000,
-            ]
-        );
-
-    }//end fetchByRoundAndLifecycle()
-
-    /**
-     * Normalise an ObjectService row to a plain array, whether it was
-     * returned as an array already or as an object exposing jsonSerialize().
-     *
-     * @param mixed $row Raw row from ObjectService::findAll().
-     *
-     * @return array<string,mixed>
-     */
-    private function normalise(mixed $row): array
-    {
-        if (is_array($row) === true) {
-            return $row;
-        }
-
-        return $row->jsonSerialize();
-
-    }//end normalise()
+class ConferenceScheduleGenerator implements IEventListener {
+
+	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const CONFERENCE_ROUND_SCHEMA = 'conference-round';
+	private const TEACHER_AVAILABILITY_SCHEMA = 'teacher-availability';
+	private const CONFERENCE_SIGNUP_SCHEMA = 'conference-signup';
+	private const CONFERENCE_SLOT_SCHEMA = 'conference-slot';
+
+	/**
+	 * Non-cancelled ConferenceSlot lifecycle states — a slot in one of these
+	 * states already occupies the teacher's/signup's time and must not be
+	 * duplicated or re-assigned.
+	 *
+	 * @var string[]
+	 */
+	private const ACTIVE_SLOT_STATES = ['proposed', 'confirmed', 'completed'];
+
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access service.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
+
+	/**
+	 * Handle an ObjectTransitionedEvent.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-schedule-generation-is-a-declared-greedy-solver-triggered-by-a-round-transition-not-a-php-crud-controller
+	 */
+	public function handle(Event $event): void {
+		if (($event instanceof ObjectTransitionedEvent) === false) {
+			return;
+		}
+
+		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+			return;
+		}
+
+		if ($event->getSchema() !== self::CONFERENCE_ROUND_SCHEMA || $event->getTo() !== 'scheduled') {
+			return;
+		}
+
+		$this->generateForRound(round: $event->getObject()->jsonSerialize());
+
+	}//end handle()
+
+	/**
+	 * Run the greedy conflict-free generation pass for one ConferenceRound.
+	 *
+	 * @param array<string,mixed> $round The ConferenceRound property array.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
+	 */
+	private function generateForRound(array $round): void {
+		$roundId = $round['id'] ?? ($round['uuid'] ?? '');
+		if ($roundId === '') {
+			$this->logger->warning('[ConferenceScheduleGenerator] ConferenceRound has no id; aborting generation.');
+			return;
+		}
+
+		$tenantId = $round['tenant_id'] ?? '';
+		$slotDurationMinutes = (int)($round['slotDurationMinutes'] ?? 10);
+		$bufferMinutes = (int)($round['bufferMinutes'] ?? 0);
+
+		$availabilities = array_merge(
+			$this->fetchByRoundAndLifecycle(schema: self::TEACHER_AVAILABILITY_SCHEMA, roundId: $roundId, lifecycle: 'submitted'),
+			$this->fetchByRoundAndLifecycle(schema: self::TEACHER_AVAILABILITY_SCHEMA, roundId: $roundId, lifecycle: 'locked'),
+		);
+
+		$existingSlots = $this->objectService->findAll(
+			[
+				'register' => self::SCHOLIQ_REGISTER,
+				'schema' => self::CONFERENCE_SLOT_SCHEMA,
+				'filters' => ['conferenceRoundId' => $roundId],
+				'limit' => 5000,
+			]
+		);
+		$existingSlots = array_map([$this, 'normalise'], $existingSlots);
+
+		// Step 4 (regenerate) — a cancelled signup frees its ConferenceSlots'
+		// minutes back to the teacher's queue: cancel any still-active slot
+		// belonging to a cancelled signup so its interval is not re-treated as
+		// consumed below. A confirmed slot belonging to a *still-live* signup
+		// is untouched (design.md "regenerate MUST NOT re-shuffle confirmed
+		// ConferenceSlots").
+		$cancelledSignupIds = array_map(
+			function ($signup): string {
+				$signup = $this->normalise(row: $signup);
+				return (string)($signup['id'] ?? ($signup['uuid'] ?? ''));
+			},
+			$this->fetchByRoundAndLifecycle(schema: self::CONFERENCE_SIGNUP_SCHEMA, roundId: $roundId, lifecycle: 'cancelled')
+		);
+		$cancelledSignupIds = array_flip(array_filter($cancelledSignupIds, static fn (string $id): bool => $id !== ''));
+
+		$pinned = $this->indexExistingSlots(existingSlots: $existingSlots, cancelledSignupIds: $cancelledSignupIds);
+
+		// Step 1 — slice availability into a per-teacher slot queue, excluding
+		// minutes already consumed by a confirmed slot for that teacher.
+		$queues = $this->buildTeacherQueues(
+			availabilities: $availabilities,
+			slotDurationMinutes: $slotDurationMinutes,
+			bufferMinutes: $bufferMinutes,
+			confirmedByTeacher: $pinned['confirmedByTeacher']
+		);
+
+		// Step 2 — walk submitted + waitlisted signups in submission order.
+		$signups = array_merge(
+			$this->fetchByRoundAndLifecycle(schema: self::CONFERENCE_SIGNUP_SCHEMA, roundId: $roundId, lifecycle: 'submitted'),
+			$this->fetchByRoundAndLifecycle(schema: self::CONFERENCE_SIGNUP_SCHEMA, roundId: $roundId, lifecycle: 'waitlisted'),
+		);
+		$signups = array_map([$this, 'normalise'], $signups);
+		usort($signups, static fn (array $a, array $b): int => strcmp((string)($a['createdAt'] ?? ''), (string)($b['createdAt'] ?? '')));
+
+		$outcome = $this->assignSignups(
+			signups: $signups,
+			roundId: (string)$roundId,
+			tenantId: (string)$tenantId,
+			queues: $queues,
+			activeSlotKeys: $pinned['activeSlotKeys'],
+			intervalsBySignup: $pinned['intervalsBySignup']
+		);
+
+		foreach ($outcome['newSlots'] as $slot) {
+			$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $slot);
+		}
+
+		foreach ($outcome['signupSaves'] as $signup) {
+			$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::CONFERENCE_SIGNUP_SCHEMA, object: $signup);
+		}
+
+		$this->logger->info(
+			'[ConferenceScheduleGenerator] Round {round}: {slots} slot(s) written, {scheduled} signup(s) scheduled, {waitlisted} waitlisted.',
+			[
+				'round' => $roundId,
+				'slots' => count($outcome['newSlots']),
+				'scheduled' => $outcome['scheduledCount'],
+				'waitlisted' => $outcome['waitlistedCount'],
+			]
+		);
+
+	}//end generateForRound()
+
+	/**
+	 * Index the round's existing ConferenceSlots into the three lookups the
+	 * generation pass needs, cancelling any slot whose signup has been cancelled.
+	 *
+	 * Step 4 (regenerate): a cancelled signup frees its slots' minutes back to
+	 * the teacher's queue, so those slots are cancelled here rather than being
+	 * re-treated as consumed. A confirmed slot belonging to a still-live signup
+	 * is untouched (design.md "regenerate MUST NOT re-shuffle confirmed
+	 * ConferenceSlots").
+	 *
+	 * @param array<int,array<string,mixed>> $existingSlots Normalised existing slots for the round.
+	 * @param array<string,int> $cancelledSignupIds Set of cancelled signup ids (keys).
+	 *
+	 * @return array{confirmedByTeacher: array<string,array<int,array<string,mixed>>>,
+	 *               activeSlotKeys: array<string,true>,
+	 *               intervalsBySignup: array<string,array<int,array<string,mixed>>>}
+	 *
+	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-republish-after-a-last-minute-cancellation-does-not-disturb-confirmed-slots
+	 */
+	private function indexExistingSlots(array $existingSlots, array $cancelledSignupIds): array {
+		// Confirmed slots are pinned — their minutes are excluded from re-slicing.
+		$confirmedByTeacher = [];
+		// Any non-cancelled slot for a (signupId, teacherId) pair means that
+		// teacher-request is already satisfied — never duplicate it.
+		$activeSlotKeys = [];
+		// Every non-cancelled interval already assigned to a signup (any
+		// teacher) — the overlap guard for newly assigned slots in this pass.
+		$intervalsBySignup = [];
+
+		foreach ($existingSlots as $slot) {
+			$status = ($slot['lifecycle'] ?? '');
+			$teacherId = ($slot['teacherId'] ?? '');
+			$signupId = ($slot['signupId'] ?? '');
+
+			if (in_array($status, self::ACTIVE_SLOT_STATES, true) === false) {
+				continue;
+			}
+
+			if ($signupId !== '' && isset($cancelledSignupIds[$signupId]) === true) {
+				$freedSlot = $slot;
+				$freedSlot['lifecycle'] = 'cancelled';
+				$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $freedSlot);
+				continue;
+			}
+
+			$interval = [
+				'startsAt' => ($slot['startsAt'] ?? ''),
+				'endsAt' => ($slot['endsAt'] ?? ''),
+			];
+
+			if ($status === 'confirmed') {
+				$confirmedByTeacher[$teacherId][] = $interval;
+			}
+
+			if ($signupId !== '') {
+				$activeSlotKeys[$signupId . '|' . $teacherId] = true;
+				$intervalsBySignup[$signupId][] = $interval;
+			}
+		}//end foreach
+
+		return [
+			'confirmedByTeacher' => $confirmedByTeacher,
+			'activeSlotKeys' => $activeSlotKeys,
+			'intervalsBySignup' => $intervalsBySignup,
+		];
+
+	}//end indexExistingSlots()
+
+	/**
+	 * Step 1 — build the per-teacher queue of free candidate slots, in
+	 * chronological order, excluding minutes a confirmed slot already consumes.
+	 *
+	 * @param array<int,mixed> $availabilities Submitted + locked TeacherAvailability rows.
+	 * @param int $slotDurationMinutes Length of one slot in minutes.
+	 * @param int $bufferMinutes Gap between consecutive slots in minutes.
+	 * @param array<string,array<int,array<string,mixed>>> $confirmedByTeacher Pinned confirmed intervals per teacher.
+	 *
+	 * @return array<string,array<int,array<string,mixed>>> Map of teacherId => ordered free slots.
+	 *
+	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+	 */
+	private function buildTeacherQueues(
+		array $availabilities,
+		int $slotDurationMinutes,
+		int $bufferMinutes,
+		array $confirmedByTeacher,
+	): array {
+		$queues = [];
+
+		foreach ($availabilities as $availability) {
+			$availability = $this->normalise(row: $availability);
+			$teacherId = ($availability['teacherId'] ?? '');
+
+			$sliced = self::sliceAvailability(
+				blocks: ($availability['blocks'] ?? []),
+				slotDurationMinutes: $slotDurationMinutes,
+				bufferMinutes: $bufferMinutes
+			);
+
+			$confirmed = ($confirmedByTeacher[$teacherId] ?? []);
+			$free = array_values(
+				array_filter(
+					$sliced,
+					fn (array $candidate): bool => $this->overlapsAny(candidate: $candidate, intervals: $confirmed) === false
+				)
+			);
+
+			$queues[$teacherId] = array_merge(($queues[$teacherId] ?? []), $free);
+		}//end foreach
+
+		foreach ($queues as $teacherId => $queue) {
+			usort($queue, static fn (array $a, array $b): int => strcmp((string)$a['startsAt'], (string)$b['startsAt']));
+			$queues[$teacherId] = $queue;
+		}
+
+		return $queues;
+	}//end buildTeacherQueues()
+
+	/**
+	 * Step 2 — walk the signups in submission order, taking slots off the teacher
+	 * queues, and decide each signup's resulting lifecycle.
+	 *
+	 * A signup whose every requested teacher was met becomes `scheduled`; one
+	 * with any unmet request becomes `waitlisted` with the unmet teachers named
+	 * in its notes, so the reason is never left implicit.
+	 *
+	 * @param array<int,array<string,mixed>> $signups Signups in submission order.
+	 * @param string $roundId The ConferenceRound id.
+	 * @param string $tenantId Tenant scope stamped on new slots.
+	 * @param array<string,array<int,array<string,mixed>>> $queues Per-teacher slot queues (mutated: slots are consumed).
+	 * @param array<string,true> $activeSlotKeys Satisfied (signupId|teacherId) keys (mutated: keys added).
+	 * @param array<string,array<int,array<string,mixed>>> $intervalsBySignup Intervals already assigned per signup.
+	 *
+	 * @return array{newSlots: array<int,array<string,mixed>>, signupSaves: array<int,array<string,mixed>>, scheduledCount: int, waitlistedCount: int}
+	 *
+	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+	 */
+	private function assignSignups(
+		array $signups,
+		string $roundId,
+		string $tenantId,
+		array &$queues,
+		array &$activeSlotKeys,
+		array $intervalsBySignup,
+	): array {
+		$newSlots = [];
+		$signupSaves = [];
+		$scheduledCount = 0;
+		$waitlistedCount = 0;
+
+		foreach ($signups as $signup) {
+			$signupId = ($signup['id'] ?? ($signup['uuid'] ?? ''));
+
+			$assigned = $this->assignSlotsForSignup(
+				signup: $signup,
+				signupId: (string)$signupId,
+				roundId: $roundId,
+				tenantId: $tenantId,
+				queues: $queues,
+				activeSlotKeys: $activeSlotKeys,
+				assignedIntervals: ($intervalsBySignup[$signupId] ?? [])
+			);
+
+			$newSlots = array_merge($newSlots, $assigned['newSlots']);
+
+			if (count($assigned['unmetTeacherIds']) === 0) {
+				$signup['lifecycle'] = 'scheduled';
+				$scheduledCount++;
+				$signupSaves[] = $signup;
+				continue;
+			}
+
+			// Waitlisted: name the unmet teacher-requests in the notes so the
+			// reason is never left implicit. array_filter drops the existing
+			// notes when they are empty, so the ' | ' separator only appears
+			// when there is something to separate.
+			$reason = 'Unmet teacher-request(s): ' . implode(', ', $assigned['unmetTeacherIds']);
+
+			$signup['lifecycle'] = 'waitlisted';
+			$signup['notes'] = implode(' | ', array_filter([(string)($signup['notes'] ?? ''), $reason]));
+
+			$signupSaves[] = $signup;
+			$waitlistedCount++;
+		}//end foreach
+
+		return [
+			'newSlots' => $newSlots,
+			'signupSaves' => $signupSaves,
+			'scheduledCount' => $scheduledCount,
+			'waitlistedCount' => $waitlistedCount,
+		];
+
+	}//end assignSignups()
+
+	/**
+	 * Take one slot off each requested teacher's queue for a single signup.
+	 *
+	 * A teacher-request already satisfied by an existing non-cancelled slot is an
+	 * idempotent no-op, which is what makes regeneration safe to re-run.
+	 *
+	 * @param array<string,mixed> $signup The signup row.
+	 * @param string $signupId The signup id.
+	 * @param string $roundId The ConferenceRound id.
+	 * @param string $tenantId Tenant scope stamped on new slots.
+	 * @param array<string,array<int,array<string,mixed>>> $queues Per-teacher slot queues (mutated: slots are consumed).
+	 * @param array<string,true> $activeSlotKeys Satisfied (signupId|teacherId) keys (mutated: keys added).
+	 * @param array<int,array<string,mixed>> $assignedIntervals Intervals this signup already occupies.
+	 *
+	 * @return array{newSlots: array<int,array<string,mixed>>, unmetTeacherIds: array<int,string>}
+	 *
+	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
+	 */
+	private function assignSlotsForSignup(
+		array $signup,
+		string $signupId,
+		string $roundId,
+		string $tenantId,
+		array &$queues,
+		array &$activeSlotKeys,
+		array $assignedIntervals,
+	): array {
+		$newSlots = [];
+		$unmetTeacherIds = [];
+
+		foreach (($signup['requestedTeacherIds'] ?? []) as $teacherId) {
+			if (isset($activeSlotKeys[$signupId . '|' . $teacherId]) === true) {
+				// Already satisfied by an existing non-cancelled slot — idempotent no-op.
+				continue;
+			}
+
+			$queue = ($queues[$teacherId] ?? []);
+			$slot = $this->popNextNonOverlapping(queue: $queue, blocked: $assignedIntervals);
+			$queues[$teacherId] = $queue;
+
+			if ($slot === null) {
+				$unmetTeacherIds[] = $teacherId;
+				continue;
+			}
+
+			$newSlots[] = [
+				'conferenceRoundId' => $roundId,
+				'teacherId' => $teacherId,
+				'learnerId' => ($signup['learnerId'] ?? ''),
+				'learnerRef' => ($signup['learnerRef'] ?? null),
+				'signupId' => $signupId,
+				'startsAt' => $slot['startsAt'],
+				'endsAt' => $slot['endsAt'],
+				'location' => null,
+				'tenant_id' => $tenantId,
+				'lifecycle' => 'proposed',
+			];
+
+			$assignedIntervals[] = $slot;
+			$activeSlotKeys[$signupId . '|' . $teacherId] = true;
+		}//end foreach
+
+		return [
+			'newSlots' => $newSlots,
+			'unmetTeacherIds' => $unmetTeacherIds,
+		];
+
+	}//end assignSlotsForSignup()
+
+	/**
+	 * Step 1 — slice a teacher's declared free blocks into a chronologically
+	 * ordered list of candidate `{startsAt, endsAt}` slots, slotDurationMinutes
+	 * long with a bufferMinutes gap between consecutive slots. Pure function,
+	 * no side effects, deterministic for the same input (design.md "Step 1").
+	 *
+	 * @param array<int,array<string,mixed>> $blocks Free blocks: [{startsAt, endsAt}, ...].
+	 * @param int $slotDurationMinutes Length of one slot in minutes.
+	 * @param int $bufferMinutes Gap between consecutive slots in minutes.
+	 *
+	 * @return array<int,array{startsAt:string,endsAt:string}> Candidate slots, in chronological order.
+	 *
+	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-a-conference-round-declares-its-scope-slot-duration-and-buffer-time
+	 */
+	public static function sliceAvailability(array $blocks, int $slotDurationMinutes, int $bufferMinutes): array {
+		if ($slotDurationMinutes <= 0) {
+			return [];
+		}
+
+		$slots = [];
+
+		foreach ($blocks as $block) {
+			$startRaw = $block['startsAt'] ?? null;
+			$endRaw = $block['endsAt'] ?? null;
+
+			if ($startRaw === null || $endRaw === null) {
+				continue;
+			}
+
+			try {
+				$cursor = new DateTimeImmutable((string)$startRaw, new DateTimeZone('UTC'));
+				$blockEnds = new DateTimeImmutable((string)$endRaw, new DateTimeZone('UTC'));
+			} catch (\Exception) {
+				continue;
+			}
+
+			while (true) {
+				$slotEnd = $cursor->modify('+' . $slotDurationMinutes . ' minutes');
+				if ($slotEnd > $blockEnds) {
+					break;
+				}
+
+				$slots[] = [
+					'startsAt' => $cursor->format(DATE_ATOM),
+					'endsAt' => $slotEnd->format(DATE_ATOM),
+				];
+
+				$cursor = $slotEnd->modify('+' . $bufferMinutes . ' minutes');
+			}
+		}//end foreach
+
+		return $slots;
+	}//end sliceAvailability()
+
+	/**
+	 * Pop candidate slots from the front of a teacher's queue until one is
+	 * found that does not overlap any interval in `$blocked`, or the queue is
+	 * exhausted. A rejected-for-overlap candidate is discarded permanently
+	 * (design.md "Complexity" — visited at most once per pass), not requeued.
+	 *
+	 * @param array<int,array{startsAt:string,endsAt:string}> $queue The teacher's candidate queue (mutated: consumed from the front).
+	 * @param array<int,array{startsAt:string,endsAt:string}> $blocked Intervals already assigned to the current signup.
+	 *
+	 * @return array{startsAt:string,endsAt:string}|null The first non-overlapping slot, or null if the queue is exhausted.
+	 */
+	private function popNextNonOverlapping(array &$queue, array $blocked): ?array {
+		$remaining = count($queue);
+
+		while ($remaining > 0) {
+			$candidate = array_shift($queue);
+			$remaining = count($queue);
+			if ($this->overlapsAny(candidate: $candidate, intervals: $blocked) === false) {
+				return $candidate;
+			}
+		}
+
+		return null;
+	}//end popNextNonOverlapping()
+
+	/**
+	 * Whether a candidate interval overlaps any interval in a set.
+	 *
+	 * Half-open interval overlap: [a.start, a.end) intersects [b.start, b.end)
+	 * iff a.start < b.end AND b.start < a.end.
+	 *
+	 * @param array{startsAt:string,endsAt:string} $candidate The candidate interval.
+	 * @param array<int,array{startsAt:string,endsAt:string}> $intervals The intervals to check against.
+	 *
+	 * @return bool True if the candidate overlaps at least one interval.
+	 */
+	private function overlapsAny(array $candidate, array $intervals): bool {
+		$candidateStart = strtotime((string)$candidate['startsAt']);
+		$candidateEnd = strtotime((string)$candidate['endsAt']);
+
+		foreach ($intervals as $interval) {
+			$intervalStart = strtotime((string)$interval['startsAt']);
+			$intervalEnd = strtotime((string)$interval['endsAt']);
+
+			if ($candidateStart === false || $candidateEnd === false || $intervalStart === false || $intervalEnd === false) {
+				continue;
+			}
+
+			if ($candidateStart < $intervalEnd && $intervalStart < $candidateEnd) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end overlapsAny()
+
+	/**
+	 * Fetch OR objects for a schema filtered to a ConferenceRound + a single
+	 * lifecycle state.
+	 *
+	 * @param string $schema OR schema slug.
+	 * @param string $roundId ConferenceRound UUID.
+	 * @param string $lifecycle Lifecycle state to filter on.
+	 *
+	 * @return array<int,mixed> Raw rows as returned by ObjectService::findAll().
+	 */
+	private function fetchByRoundAndLifecycle(string $schema, string $roundId, string $lifecycle): array {
+		return $this->objectService->findAll(
+			[
+				'register' => self::SCHOLIQ_REGISTER,
+				'schema' => $schema,
+				'filters' => [
+					'conferenceRoundId' => $roundId,
+					'lifecycle' => $lifecycle,
+				],
+				'limit' => 2000,
+			]
+		);
+
+	}//end fetchByRoundAndLifecycle()
+
+	/**
+	 * Normalise an ObjectService row to a plain array, whether it was
+	 * returned as an array already or as an object exposing jsonSerialize().
+	 *
+	 * @param mixed $row Raw row from ObjectService::findAll().
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function normalise(mixed $row): array {
+		if (is_array($row) === true) {
+			return $row;
+		}
+
+		return $row->jsonSerialize();
+	}//end normalise()
 }//end class

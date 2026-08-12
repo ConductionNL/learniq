@@ -33,35 +33,31 @@ use OCP\IUser;
 /**
  * Minimal stub of the spreed participant service.
  */
-class ParticipantService
-{
-    /**
-     * Add users as participants of a room.
-     *
-     * @param Room                            $room               The room.
-     * @param array<int,array<string,string>> $participants       Actor rows (`{actorType, actorId}`).
-     * @param IUser|null                      $addedBy            Unused in the stub.
-     * @param bool                            $bansAlreadyChecked Unused in the stub.
-     *
-     * @return array<int,mixed>
-     */
-    public function addUsers(Room $room, array $participants, ?IUser $addedBy=null, bool $bansAlreadyChecked=false): array
-    {
-        return [];
+class ParticipantService {
+	/**
+	 * Add users as participants of a room.
+	 *
+	 * @param Room $room The room.
+	 * @param array<int,array<string,string>> $participants Actor rows (`{actorType, actorId}`).
+	 * @param IUser|null $addedBy Unused in the stub.
+	 * @param bool $bansAlreadyChecked Unused in the stub.
+	 *
+	 * @return array<int,mixed>
+	 */
+	public function addUsers(Room $room, array $participants, ?IUser $addedBy = null, bool $bansAlreadyChecked = false): array {
+		return [];
+	}//end addUsers()
 
-    }//end addUsers()
-
-    /**
-     * Remove a user's participation from a room. No-ops (per the real
-     * implementation) when the user is not currently a participant.
-     *
-     * @param Room   $room   The room.
-     * @param IUser  $user   The user to remove.
-     * @param string $reason Removal reason.
-     *
-     * @return void
-     */
-    public function removeUser(Room $room, IUser $user, string $reason): void
-    {
-    }//end removeUser()
+	/**
+	 * Remove a user's participation from a room. No-ops (per the real
+	 * implementation) when the user is not currently a participant.
+	 *
+	 * @param Room $room The room.
+	 * @param IUser $user The user to remove.
+	 * @param string $reason Removal reason.
+	 *
+	 * @return void
+	 */
+	public function removeUser(Room $room, IUser $user, string $reason): void {
+	}//end removeUser()
 }//end class

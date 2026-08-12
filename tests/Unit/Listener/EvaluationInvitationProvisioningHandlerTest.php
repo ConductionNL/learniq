@@ -34,264 +34,255 @@ use Psr\Log\LoggerInterface;
 /**
  * Tests for EvaluationInvitationProvisioningHandler::handle() on EvaluationCampaign → open.
  */
-class EvaluationInvitationProvisioningHandlerTest extends TestCase
-{
+class EvaluationInvitationProvisioningHandlerTest extends TestCase {
 
-    /**
-     * Recorded saveObject() calls, captured by the ObjectService stub used per test.
-     *
-     * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
-     */
-    private array $savedObjects = [];
+	/**
+	 * Recorded saveObject() calls, captured by the ObjectService stub used per test.
+	 *
+	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
+	 */
+	private array $savedObjects = [];
 
-    /**
-     * Reset the capture buffer before each test.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->savedObjects = [];
+	/**
+	 * Reset the capture buffer before each test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->savedObjects = [];
 
-    }//end setUp()
+	}//end setUp()
 
-    /**
-     * Build a handler with a stubbed ObjectService.
-     *
-     * @param array<int, array<string, mixed>> $cohorts            Cohort rows returned by find()/findAll().
-     * @param array<int, array<string, mixed>> $existingInvitations Existing EvaluationInvitation rows for the campaign.
-     *
-     * @return EvaluationInvitationProvisioningHandler
-     */
-    private function makeHandler(array $cohorts, array $existingInvitations = []): EvaluationInvitationProvisioningHandler
-    {
-        $objectService = $this->createMock(ObjectService::class);
+	/**
+	 * Build a handler with a stubbed ObjectService.
+	 *
+	 * @param array<int, array<string, mixed>> $cohorts Cohort rows returned by find()/findAll().
+	 * @param array<int, array<string, mixed>> $existingInvitations Existing EvaluationInvitation rows for the campaign.
+	 *
+	 * @return EvaluationInvitationProvisioningHandler
+	 */
+	private function makeHandler(array $cohorts, array $existingInvitations = []): EvaluationInvitationProvisioningHandler {
+		$objectService = $this->createMock(ObjectService::class);
 
-        $cohortsById = [];
-        foreach ($cohorts as $cohort) {
-            $cohortsById[$cohort['id']] = $cohort;
-        }
+		$cohortsById = [];
+		foreach ($cohorts as $cohort) {
+			$cohortsById[$cohort['id']] = $cohort;
+		}
 
-        $objectService->method('find')->willReturnCallback(
-            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($cohortsById): ?ObjectEntity {
-                if ($schema === 'cohort' && isset($cohortsById[$id]) === true) {
-                    return OrEntityFactory::make($cohortsById[$id], 'cohort');
-                }
+		$objectService->method('find')->willReturnCallback(
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($cohortsById): ?ObjectEntity {
+				if ($schema === 'cohort' && isset($cohortsById[$id]) === true) {
+					return OrEntityFactory::make($cohortsById[$id], 'cohort');
+				}
 
-                return null;
-            }
-        );
+				return null;
+			}
+		);
 
-        $objectService->method('findAll')->willReturnCallback(
-            function (array $config) use ($cohorts, $existingInvitations) {
-                if ($config['schema'] === 'cohort') {
-                    $courseId = $config['filters']['courseId'] ?? null;
-                    return array_values(array_filter($cohorts, static fn ($c) => ($c['courseId'] ?? null) === $courseId));
-                }
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config) use ($cohorts, $existingInvitations) {
+				if ($config['schema'] === 'cohort') {
+					$courseId = $config['filters']['courseId'] ?? null;
+					return array_values(array_filter($cohorts, static fn ($c) => ($c['courseId'] ?? null) === $courseId));
+				}
 
-                if ($config['schema'] === 'evaluation-invitation') {
-                    return $existingInvitations;
-                }
+				if ($config['schema'] === 'evaluation-invitation') {
+					return $existingInvitations;
+				}
 
-                return [];
-            }
-        );
+				return [];
+			}
+		);
 
-        $objectService->method('saveObject')->willReturnCallback(
-            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
-                $data                 = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
-                $this->savedObjects[] = [
-                    'register' => (string) $register,
-                    'schema'   => (string) $schema,
-                    'object'   => $data,
-                ];
-                return OrEntityFactory::make($data, (string) $schema, (string) $register);
-            }
-        );
+		$objectService->method('saveObject')->willReturnCallback(
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+				$this->savedObjects[] = [
+					'register' => (string)$register,
+					'schema' => (string)$schema,
+					'object' => $data,
+				];
+				return OrEntityFactory::make($data, (string)$schema, (string)$register);
+			}
+		);
 
-        return new EvaluationInvitationProvisioningHandler(
-            $objectService,
-            $this->createMock(LoggerInterface::class),
-        );
+		return new EvaluationInvitationProvisioningHandler(
+			$objectService,
+			$this->createMock(LoggerInterface::class),
+		);
 
-    }//end makeHandler()
+	}//end makeHandler()
 
-    /**
-     * Build a mocked ObjectTransitionedEvent for an EvaluationCampaign → open transition.
-     *
-     * @param array<string, mixed> $campaignData The EvaluationCampaign's jsonSerialize() payload.
-     *
-     * @return ObjectTransitionedEvent
-     */
-    private function makeEvent(array $campaignData): ObjectTransitionedEvent
-    {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($campaignData);
+	/**
+	 * Build a mocked ObjectTransitionedEvent for an EvaluationCampaign → open transition.
+	 *
+	 * @param array<string, mixed> $campaignData The EvaluationCampaign's jsonSerialize() payload.
+	 *
+	 * @return ObjectTransitionedEvent
+	 */
+	private function makeEvent(array $campaignData): ObjectTransitionedEvent {
+		$objectEntity = $this->createMock(ObjectEntity::class);
+		$objectEntity->method('jsonSerialize')->willReturn($campaignData);
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getObject')->willReturn($objectEntity);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('evaluation-campaign');
-        $event->method('getTo')->willReturn('open');
-        $event->method('getFrom')->willReturn('draft');
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getObject')->willReturn($objectEntity);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('evaluation-campaign');
+		$event->method('getTo')->willReturn('open');
+		$event->method('getFrom')->willReturn('draft');
 
-        return $event;
+		return $event;
+	}//end makeEvent()
 
-    }//end makeEvent()
+	/**
+	 * One EvaluationInvitation is provisioned per distinct learner across a
+	 * multi-cohort campaign (a learner appearing in two qualifying cohorts
+	 * gets exactly one invitation).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+	 */
+	public function testOneInvitationPerLearnerAcrossMultiCohortCampaign(): void {
+		$cohorts = [
+			[
+				'id' => 'cohort-1',
+				'courseId' => 'course-1',
+				'learnerIds' => ['learner-1', 'learner-2'],
+			],
+			[
+				'id' => 'cohort-2',
+				'courseId' => 'course-1',
+				'learnerIds' => ['learner-2', 'learner-3'],
+			],
+		];
 
-    /**
-     * One EvaluationInvitation is provisioned per distinct learner across a
-     * multi-cohort campaign (a learner appearing in two qualifying cohorts
-     * gets exactly one invitation).
-     *
-     * @return void
-     *
-     * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
-     */
-    public function testOneInvitationPerLearnerAcrossMultiCohortCampaign(): void
-    {
-        $cohorts = [
-            [
-                'id'         => 'cohort-1',
-                'courseId'   => 'course-1',
-                'learnerIds' => ['learner-1', 'learner-2'],
-            ],
-            [
-                'id'         => 'cohort-2',
-                'courseId'   => 'course-1',
-                'learnerIds' => ['learner-2', 'learner-3'],
-            ],
-        ];
+		$handler = $this->makeHandler(cohorts: $cohorts);
 
-        $handler = $this->makeHandler(cohorts: $cohorts);
+		$campaign = [
+			'id' => 'campaign-1',
+			'courseIds' => ['course-1'],
+			'cohortIds' => [],
+			'academicYear' => '2025-2026',
+			'period' => 'Q1',
+			'closesAt' => '2026-08-01T00:00:00+02:00',
+			'tenant_id' => 'tenant-a',
+		];
 
-        $campaign = [
-            'id'            => 'campaign-1',
-            'courseIds'     => ['course-1'],
-            'cohortIds'     => [],
-            'academicYear'  => '2025-2026',
-            'period'        => 'Q1',
-            'closesAt'      => '2026-08-01T00:00:00+02:00',
-            'tenant_id'     => 'tenant-a',
-        ];
+		$handler->handle($this->makeEvent($campaign));
 
-        $handler->handle($this->makeEvent($campaign));
+		$invitationSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'evaluation-invitation'));
+		self::assertCount(3, $invitationSaves, 'Exactly one invitation per distinct learner (learner-1, learner-2, learner-3)');
 
-        $invitationSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'evaluation-invitation'));
-        self::assertCount(3, $invitationSaves, 'Exactly one invitation per distinct learner (learner-1, learner-2, learner-3)');
+		$learnerIds = array_map(static fn ($s) => $s['object']['learnerId'], $invitationSaves);
+		self::assertEqualsCanonicalizing(['learner-1', 'learner-2', 'learner-3'], $learnerIds);
 
-        $learnerIds = array_map(static fn ($s) => $s['object']['learnerId'], $invitationSaves);
-        self::assertEqualsCanonicalizing(['learner-1', 'learner-2', 'learner-3'], $learnerIds);
+		foreach ($invitationSaves as $save) {
+			self::assertSame('campaign-1', $save['object']['campaignId']);
+			self::assertSame('course-1', $save['object']['courseId']);
+			self::assertFalse($save['object']['hasResponded']);
+			self::assertSame('2026-08-01T00:00:00+02:00', $save['object']['campaignClosesAt']);
+			self::assertSame('2025-2026', $save['object']['academicYear']);
+			self::assertSame('Q1', $save['object']['period']);
+		}
 
-        foreach ($invitationSaves as $save) {
-            self::assertSame('campaign-1', $save['object']['campaignId']);
-            self::assertSame('course-1', $save['object']['courseId']);
-            self::assertFalse($save['object']['hasResponded']);
-            self::assertSame('2026-08-01T00:00:00+02:00', $save['object']['campaignClosesAt']);
-            self::assertSame('2025-2026', $save['object']['academicYear']);
-            self::assertSame('Q1', $save['object']['period']);
-        }
+	}//end testOneInvitationPerLearnerAcrossMultiCohortCampaign()
 
-    }//end testOneInvitationPerLearnerAcrossMultiCohortCampaign()
+	/**
+	 * A duplicate/replayed open event does not create duplicate invitations
+	 * for a learner who already has one for this campaign.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
+	 */
+	public function testNoDuplicateInvitationOnRepeatedOpenEvent(): void {
+		$cohorts = [
+			[
+				'id' => 'cohort-1',
+				'courseId' => 'course-1',
+				'learnerIds' => ['learner-1', 'learner-2'],
+			],
+		];
 
-    /**
-     * A duplicate/replayed open event does not create duplicate invitations
-     * for a learner who already has one for this campaign.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
-     */
-    public function testNoDuplicateInvitationOnRepeatedOpenEvent(): void
-    {
-        $cohorts = [
-            [
-                'id'         => 'cohort-1',
-                'courseId'   => 'course-1',
-                'learnerIds' => ['learner-1', 'learner-2'],
-            ],
-        ];
+		$existing = [
+			['campaignId' => 'campaign-1', 'learnerId' => 'learner-1', 'hasResponded' => false],
+		];
 
-        $existing = [
-            ['campaignId' => 'campaign-1', 'learnerId' => 'learner-1', 'hasResponded' => false],
-        ];
+		$handler = $this->makeHandler(cohorts: $cohorts, existingInvitations: $existing);
 
-        $handler = $this->makeHandler(cohorts: $cohorts, existingInvitations: $existing);
+		$campaign = [
+			'id' => 'campaign-1',
+			'courseIds' => ['course-1'],
+			'cohortIds' => [],
+			'academicYear' => '2025-2026',
+			'period' => 'Q1',
+			'closesAt' => '2026-08-01T00:00:00+02:00',
+			'tenant_id' => 'tenant-a',
+		];
 
-        $campaign = [
-            'id'           => 'campaign-1',
-            'courseIds'    => ['course-1'],
-            'cohortIds'    => [],
-            'academicYear' => '2025-2026',
-            'period'       => 'Q1',
-            'closesAt'     => '2026-08-01T00:00:00+02:00',
-            'tenant_id'    => 'tenant-a',
-        ];
+		$handler->handle($this->makeEvent($campaign));
 
-        $handler->handle($this->makeEvent($campaign));
+		$invitationSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'evaluation-invitation'));
+		self::assertCount(1, $invitationSaves, 'Only the not-yet-invited learner-2 gets a new row');
+		self::assertSame('learner-2', $invitationSaves[0]['object']['learnerId']);
 
-        $invitationSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'evaluation-invitation'));
-        self::assertCount(1, $invitationSaves, 'Only the not-yet-invited learner-2 gets a new row');
-        self::assertSame('learner-2', $invitationSaves[0]['object']['learnerId']);
+	}//end testNoDuplicateInvitationOnRepeatedOpenEvent()
 
-    }//end testNoDuplicateInvitationOnRepeatedOpenEvent()
+	/**
+	 * A transition to a state other than `open` is ignored entirely.
+	 *
+	 * @return void
+	 */
+	public function testIgnoresNonOpenTransitions(): void {
+		$handler = $this->makeHandler(cohorts: []);
 
-    /**
-     * A transition to a state other than `open` is ignored entirely.
-     *
-     * @return void
-     */
-    public function testIgnoresNonOpenTransitions(): void
-    {
-        $handler = $this->makeHandler(cohorts: []);
+		$objectEntity = $this->createMock(ObjectEntity::class);
+		$objectEntity->method('jsonSerialize')->willReturn(['id' => 'campaign-1']);
 
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn(['id' => 'campaign-1']);
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getObject')->willReturn($objectEntity);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('evaluation-campaign');
+		$event->method('getTo')->willReturn('closed');
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getObject')->willReturn($objectEntity);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('evaluation-campaign');
-        $event->method('getTo')->willReturn('closed');
+		$handler->handle($event);
 
-        $handler->handle($event);
+		self::assertEmpty($this->savedObjects);
 
-        self::assertEmpty($this->savedObjects);
+	}//end testIgnoresNonOpenTransitions()
 
-    }//end testIgnoresNonOpenTransitions()
+	/**
+	 * A cohort in scope with no courseId is skipped (logged, not fatal) —
+	 * its learners receive no invitation.
+	 *
+	 * @return void
+	 */
+	public function testCohortWithNoCourseIdIsSkipped(): void {
+		$cohorts = [
+			[
+				'id' => 'cohort-1',
+				'courseId' => null,
+				'learnerIds' => ['learner-1'],
+			],
+		];
 
-    /**
-     * A cohort in scope with no courseId is skipped (logged, not fatal) —
-     * its learners receive no invitation.
-     *
-     * @return void
-     */
-    public function testCohortWithNoCourseIdIsSkipped(): void
-    {
-        $cohorts = [
-            [
-                'id'         => 'cohort-1',
-                'courseId'   => null,
-                'learnerIds' => ['learner-1'],
-            ],
-        ];
+		$handler = $this->makeHandler(cohorts: $cohorts);
 
-        $handler = $this->makeHandler(cohorts: $cohorts);
+		$campaign = [
+			'id' => 'campaign-1',
+			'courseIds' => [],
+			'cohortIds' => ['cohort-1'],
+			'academicYear' => '2025-2026',
+			'period' => 'Q1',
+			'closesAt' => '2026-08-01T00:00:00+02:00',
+			'tenant_id' => 'tenant-a',
+		];
 
-        $campaign = [
-            'id'           => 'campaign-1',
-            'courseIds'    => [],
-            'cohortIds'    => ['cohort-1'],
-            'academicYear' => '2025-2026',
-            'period'       => 'Q1',
-            'closesAt'     => '2026-08-01T00:00:00+02:00',
-            'tenant_id'    => 'tenant-a',
-        ];
+		$handler->handle($this->makeEvent($campaign));
 
-        $handler->handle($this->makeEvent($campaign));
+		self::assertEmpty($this->savedObjects, 'No invitation can be provisioned without a courseId');
 
-        self::assertEmpty($this->savedObjects, 'No invitation can be provisioned without a courseId');
-
-    }//end testCohortWithNoCourseIdIsSkipped()
+	}//end testCohortWithNoCourseIdIsSkipped()
 }//end class

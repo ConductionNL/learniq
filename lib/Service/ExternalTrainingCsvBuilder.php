@@ -41,221 +41,212 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/changes/external-training-recording/tasks.md
  */
-class ExternalTrainingCsvBuilder
-{
+class ExternalTrainingCsvBuilder {
 
-    /**
-     * The CSV header, also returned verbatim when there is nothing to export.
-     *
-     * @var string
-     */
-    private const HEADER = "learner_id,title,provider,kind,regulation_slug,completed_at,"
-        ."valid_until,verified_by,verified_at,credential_id,evidence_files\n";
+	/**
+	 * The CSV header, also returned verbatim when there is nothing to export.
+	 *
+	 * @var string
+	 */
+	private const HEADER = 'learner_id,title,provider,kind,regulation_slug,completed_at,'
+		. "valid_until,verified_by,verified_at,credential_id,evidence_files\n";
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService    $objectService OR object service for the record query.
-     * @param CsvCellSanitizer $sanitizer     CSV formula-injection neutraliser.
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly CsvCellSanitizer $sanitizer,
-    ) {
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object service for the record query.
+	 * @param CsvCellSanitizer $sanitizer CSV formula-injection neutraliser.
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly CsvCellSanitizer $sanitizer,
+	) {
 
-    }//end __construct()
+	}//end __construct()
 
-    /**
-     * Render verified external-training records for the regulation as CSV.
-     *
-     * @param string $regulationSlug Regulation slug to filter (matches the pack).
-     * @param string $dateFrom       ISO date lower bound (inclusive) on completedAt.
-     * @param string $dateTo         ISO date upper bound (inclusive) on completedAt.
-     * @param string $tenantId       Tenant scope so other tenants are never exported.
-     *
-     * @return string CSV string (header-only when there are no matching records).
-     *
-     * @spec openspec/changes/external-training-recording/tasks.md
-     */
-    public function build(
-        string $regulationSlug,
-        string $dateFrom,
-        string $dateTo,
-        string $tenantId,
-    ): string {
-        $rows = $this->objectService->findAll(
-            [
-                'register' => 'scholiq',
-                'schema'   => 'external-training-record',
-                'filters'  => [
-                    'regulationSlug' => $regulationSlug,
-                    'lifecycle'      => 'verified',
-                    'tenant_id'      => $tenantId,
-                ],
-                'sort'     => ['completedAt' => 'ASC'],
-            ]
-        );
+	/**
+	 * Render verified external-training records for the regulation as CSV.
+	 *
+	 * @param string $regulationSlug Regulation slug to filter (matches the pack).
+	 * @param string $dateFrom ISO date lower bound (inclusive) on completedAt.
+	 * @param string $dateTo ISO date upper bound (inclusive) on completedAt.
+	 * @param string $tenantId Tenant scope so other tenants are never exported.
+	 *
+	 * @return string CSV string (header-only when there are no matching records).
+	 *
+	 * @spec openspec/changes/external-training-recording/tasks.md
+	 */
+	public function build(
+		string $regulationSlug,
+		string $dateFrom,
+		string $dateTo,
+		string $tenantId,
+	): string {
+		$rows = $this->objectService->findAll(
+			[
+				'register' => 'scholiq',
+				'schema' => 'external-training-record',
+				'filters' => [
+					'regulationSlug' => $regulationSlug,
+					'lifecycle' => 'verified',
+					'tenant_id' => $tenantId,
+				],
+				'sort' => ['completedAt' => 'ASC'],
+			]
+		);
 
-        if (empty($rows) === true) {
-            return self::HEADER;
-        }
+		if (empty($rows) === true) {
+			return self::HEADER;
+		}
 
-        $handle = fopen('php://memory', 'r+');
-        if ($handle === false) {
-            return self::HEADER;
-        }
+		$handle = fopen('php://memory', 'r+');
+		if ($handle === false) {
+			return self::HEADER;
+		}
 
-        fputcsv(
-            $handle,
-            [
-                'learner_id',
-                'title',
-                'provider',
-                'kind',
-                'regulation_slug',
-                'completed_at',
-                'valid_until',
-                'verified_by',
-                'verified_at',
-                'credential_id',
-                'evidence_files',
-            ]
-        );
+		fputcsv(
+			$handle,
+			[
+				'learner_id',
+				'title',
+				'provider',
+				'kind',
+				'regulation_slug',
+				'completed_at',
+				'valid_until',
+				'verified_by',
+				'verified_at',
+				'credential_id',
+				'evidence_files',
+			]
+		);
 
-        foreach ($rows as $row) {
-            $rec = $this->normaliseRecord(row: $row);
+		foreach ($rows as $row) {
+			$rec = $this->normaliseRecord(row: $row);
 
-            $completedAt = (string) ($rec['completedAt'] ?? '');
-            if ($this->completedAtInRange(completedAt: $completedAt, dateFrom: $dateFrom, dateTo: $dateTo) === false) {
-                continue;
-            }
+			$completedAt = (string)($rec['completedAt'] ?? '');
+			if ($this->completedAtInRange(completedAt: $completedAt, dateFrom: $dateFrom, dateTo: $dateTo) === false) {
+				continue;
+			}
 
-            fputcsv($handle, $this->csvRow(rec: $rec, completedAt: $completedAt));
-        }
+			fputcsv($handle, $this->csvRow(rec: $rec, completedAt: $completedAt));
+		}
 
-        rewind($handle);
-        $csv = (string) stream_get_contents($handle);
-        fclose($handle);
+		rewind($handle);
+		$csv = (string)stream_get_contents($handle);
+		fclose($handle);
 
-        // Header-only file when every row was filtered out by the date range.
-        if (trim($csv) === '' || str_starts_with($csv, 'learner_id') === false) {
-            return self::HEADER.$csv;
-        }
+		// Header-only file when every row was filtered out by the date range.
+		if (trim($csv) === '' || str_starts_with($csv, 'learner_id') === false) {
+			return self::HEADER . $csv;
+		}
 
-        return $csv;
+		return $csv;
+	}//end build()
 
-    }//end build()
+	/**
+	 * Normalise one external-training row to a plain array.
+	 *
+	 * `ObjectService::findAll()` may hand back either entities or already-rendered
+	 * arrays depending on the render mode, so both shapes are accepted here.
+	 *
+	 * @param mixed $row One row as returned by the OR object service.
+	 *
+	 * @return array<string,mixed> The record as a plain array.
+	 *
+	 * @spec openspec/changes/external-training-recording/tasks.md
+	 */
+	private function normaliseRecord(mixed $row): array {
+		if (is_array($row) === true) {
+			return $row;
+		}
 
-    /**
-     * Normalise one external-training row to a plain array.
-     *
-     * `ObjectService::findAll()` may hand back either entities or already-rendered
-     * arrays depending on the render mode, so both shapes are accepted here.
-     *
-     * @param mixed $row One row as returned by the OR object service.
-     *
-     * @return array<string,mixed> The record as a plain array.
-     *
-     * @spec openspec/changes/external-training-recording/tasks.md
-     */
-    private function normaliseRecord(mixed $row): array
-    {
-        if (is_array($row) === true) {
-            return $row;
-        }
+		return (array)$row->jsonSerialize();
+	}//end normaliseRecord()
 
-        return (array) $row->jsonSerialize();
+	/**
+	 * Decide whether a record's `completedAt` falls inside the pack's date range.
+	 *
+	 * A lexical comparison is valid for ISO-8601 timestamps. An empty
+	 * `completedAt` is kept rather than dropped, so a record is never silently
+	 * excluded for lacking the field.
+	 *
+	 * @param string $completedAt Record completion timestamp ('' when absent).
+	 * @param string $dateFrom ISO date lower bound (inclusive).
+	 * @param string $dateTo ISO date upper bound (inclusive, end of day).
+	 *
+	 * @return bool True when the record belongs in this pack.
+	 *
+	 * @spec openspec/changes/external-training-recording/tasks.md
+	 */
+	private function completedAtInRange(string $completedAt, string $dateFrom, string $dateTo): bool {
+		if ($completedAt === '') {
+			return true;
+		}
 
-    }//end normaliseRecord()
+		if ($completedAt < $dateFrom) {
+			return false;
+		}
 
-    /**
-     * Decide whether a record's `completedAt` falls inside the pack's date range.
-     *
-     * A lexical comparison is valid for ISO-8601 timestamps. An empty
-     * `completedAt` is kept rather than dropped, so a record is never silently
-     * excluded for lacking the field.
-     *
-     * @param string $completedAt Record completion timestamp ('' when absent).
-     * @param string $dateFrom    ISO date lower bound (inclusive).
-     * @param string $dateTo      ISO date upper bound (inclusive, end of day).
-     *
-     * @return bool True when the record belongs in this pack.
-     *
-     * @spec openspec/changes/external-training-recording/tasks.md
-     */
-    private function completedAtInRange(string $completedAt, string $dateFrom, string $dateTo): bool
-    {
-        if ($completedAt === '') {
-            return true;
-        }
+		return $completedAt <= ($dateTo . 'T23:59:59Z');
+	}//end completedAtInRange()
 
-        if ($completedAt < $dateFrom) {
-            return false;
-        }
+	/**
+	 * Collect the display names of the OR file attachments on a record.
+	 *
+	 * The bytes stay in OR's attachment API — the pack only references them by
+	 * name, so an attachment is listed whether it arrives as a bare string or as
+	 * a descriptor array.
+	 *
+	 * @param array<string,mixed> $rec The normalised external-training record.
+	 *
+	 * @return array<int,string> Attachment names in record order.
+	 *
+	 * @spec openspec/changes/external-training-recording/tasks.md
+	 */
+	private function evidenceFileNames(array $rec): array {
+		$files = ($rec['@self']['files'] ?? ($rec['files'] ?? []));
+		if (is_array($files) === false) {
+			return [];
+		}
 
-        return $completedAt <= ($dateTo.'T23:59:59Z');
+		$fileNames = [];
+		foreach ($files as $file) {
+			if (is_array($file) === false) {
+				$fileNames[] = (string)$file;
+				continue;
+			}
 
-    }//end completedAtInRange()
+			$fileNames[] = (string)($file['name'] ?? ($file['title'] ?? ($file['id'] ?? '')));
+		}
 
-    /**
-     * Collect the display names of the OR file attachments on a record.
-     *
-     * The bytes stay in OR's attachment API — the pack only references them by
-     * name, so an attachment is listed whether it arrives as a bare string or as
-     * a descriptor array.
-     *
-     * @param array<string,mixed> $rec The normalised external-training record.
-     *
-     * @return array<int,string> Attachment names in record order.
-     *
-     * @spec openspec/changes/external-training-recording/tasks.md
-     */
-    private function evidenceFileNames(array $rec): array
-    {
-        $files = ($rec['@self']['files'] ?? ($rec['files'] ?? []));
-        if (is_array($files) === false) {
-            return [];
-        }
+		return $fileNames;
+	}//end evidenceFileNames()
 
-        $fileNames = [];
-        foreach ($files as $file) {
-            if (is_array($file) === false) {
-                $fileNames[] = (string) $file;
-                continue;
-            }
+	/**
+	 * Render one external-training record as a sanitised CSV cell list.
+	 *
+	 * @param array<string,mixed> $rec The normalised external-training record.
+	 * @param string $completedAt Completion timestamp already coerced by the caller.
+	 *
+	 * @return array<int,string> Cells in the order of the CSV header.
+	 *
+	 * @spec openspec/changes/external-training-recording/tasks.md
+	 */
+	private function csvRow(array $rec, string $completedAt): array {
+		return [
+			$this->sanitizer->sanitize(value: (string)($rec['learnerId'] ?? '')),
+			$this->sanitizer->sanitize(value: (string)($rec['title'] ?? '')),
+			$this->sanitizer->sanitize(value: (string)($rec['provider'] ?? '')),
+			$this->sanitizer->sanitize(value: (string)($rec['kind'] ?? '')),
+			$this->sanitizer->sanitize(value: (string)($rec['regulationSlug'] ?? '')),
+			$this->sanitizer->sanitize(value: $completedAt),
+			$this->sanitizer->sanitize(value: (string)($rec['validUntil'] ?? '')),
+			$this->sanitizer->sanitize(value: (string)($rec['verifiedBy'] ?? '')),
+			$this->sanitizer->sanitize(value: (string)($rec['verifiedAt'] ?? '')),
+			$this->sanitizer->sanitize(value: (string)($rec['credentialId'] ?? '')),
+			$this->sanitizer->sanitize(value: implode('; ', $this->evidenceFileNames(rec: $rec))),
+		];
 
-            $fileNames[] = (string) ($file['name'] ?? ($file['title'] ?? ($file['id'] ?? '')));
-        }
-
-        return $fileNames;
-
-    }//end evidenceFileNames()
-
-    /**
-     * Render one external-training record as a sanitised CSV cell list.
-     *
-     * @param array<string,mixed> $rec         The normalised external-training record.
-     * @param string              $completedAt Completion timestamp already coerced by the caller.
-     *
-     * @return array<int,string> Cells in the order of the CSV header.
-     *
-     * @spec openspec/changes/external-training-recording/tasks.md
-     */
-    private function csvRow(array $rec, string $completedAt): array
-    {
-        return [
-            $this->sanitizer->sanitize(value: (string) ($rec['learnerId'] ?? '')),
-            $this->sanitizer->sanitize(value: (string) ($rec['title'] ?? '')),
-            $this->sanitizer->sanitize(value: (string) ($rec['provider'] ?? '')),
-            $this->sanitizer->sanitize(value: (string) ($rec['kind'] ?? '')),
-            $this->sanitizer->sanitize(value: (string) ($rec['regulationSlug'] ?? '')),
-            $this->sanitizer->sanitize(value: $completedAt),
-            $this->sanitizer->sanitize(value: (string) ($rec['validUntil'] ?? '')),
-            $this->sanitizer->sanitize(value: (string) ($rec['verifiedBy'] ?? '')),
-            $this->sanitizer->sanitize(value: (string) ($rec['verifiedAt'] ?? '')),
-            $this->sanitizer->sanitize(value: (string) ($rec['credentialId'] ?? '')),
-            $this->sanitizer->sanitize(value: implode('; ', $this->evidenceFileNames(rec: $rec))),
-        ];
-
-    }//end csvRow()
+	}//end csvRow()
 }//end class

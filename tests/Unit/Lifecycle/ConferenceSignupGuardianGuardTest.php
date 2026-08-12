@@ -34,186 +34,175 @@ use Psr\Log\LoggerInterface;
 /**
  * Tests for the ConferenceSignupGuardianGuard lifecycle guard (draft → submitted).
  */
-class ConferenceSignupGuardianGuardTest extends TestCase
-{
+class ConferenceSignupGuardianGuardTest extends TestCase {
 
-    /**
-     * ObjectService mock.
-     *
-     * @var ObjectService&MockObject
-     */
-    private ObjectService&MockObject $objectService;
+	/**
+	 * ObjectService mock.
+	 *
+	 * @var ObjectService&MockObject
+	 */
+	private ObjectService&MockObject $objectService;
 
-    /**
-     * User-session mock.
-     *
-     * @var IUserSession&MockObject
-     */
-    private IUserSession&MockObject $userSession;
+	/**
+	 * User-session mock.
+	 *
+	 * @var IUserSession&MockObject
+	 */
+	private IUserSession&MockObject $userSession;
 
-    /**
-     * Set up fresh mocks before each test.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->objectService = $this->createMock(ObjectService::class);
-        $this->userSession   = $this->createMock(IUserSession::class);
+	/**
+	 * Set up fresh mocks before each test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->objectService = $this->createMock(ObjectService::class);
+		$this->userSession = $this->createMock(IUserSession::class);
 
-    }//end setUp()
+	}//end setUp()
 
-    /**
-     * Make IUserSession return a user with the given uid.
-     *
-     * @param string $uid The user id.
-     *
-     * @return void
-     */
-    private function signInAs(string $uid): void
-    {
-        $user = $this->createMock(IUser::class);
-        $user->method('getUID')->willReturn($uid);
-        $this->userSession->method('getUser')->willReturn($user);
+	/**
+	 * Make IUserSession return a user with the given uid.
+	 *
+	 * @param string $uid The user id.
+	 *
+	 * @return void
+	 */
+	private function signInAs(string $uid): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn($uid);
+		$this->userSession->method('getUser')->willReturn($user);
 
-    }//end signInAs()
+	}//end signInAs()
 
-    /**
-     * Wire ObjectService::findAll to return the given LearnerProfile row(s) for
-     * a learner-profile query, empty for everything else.
-     *
-     * @param array<int, array<string, mixed>> $profiles Rows to return for a learner-profile query.
-     *
-     * @return void
-     */
-    private function wireLearnerProfile(array $profiles): void
-    {
-        $this->objectService->method('findAll')->willReturnCallback(
-            function (array $config) use ($profiles) {
-                if ($config['schema'] === 'learner-profile') {
-                    return $profiles;
-                }
+	/**
+	 * Wire ObjectService::findAll to return the given LearnerProfile row(s) for
+	 * a learner-profile query, empty for everything else.
+	 *
+	 * @param array<int, array<string, mixed>> $profiles Rows to return for a learner-profile query.
+	 *
+	 * @return void
+	 */
+	private function wireLearnerProfile(array $profiles): void {
+		$this->objectService->method('findAll')->willReturnCallback(
+			function (array $config) use ($profiles) {
+				if ($config['schema'] === 'learner-profile') {
+					return $profiles;
+				}
 
-                return [];
-            }
-        );
+				return [];
+			}
+		);
 
-    }//end wireLearnerProfile()
+	}//end wireLearnerProfile()
 
-    /**
-     * Build the guard under test.
-     *
-     * @return ConferenceSignupGuardianGuard
-     */
-    private function makeGuard(): ConferenceSignupGuardianGuard
-    {
-        return new ConferenceSignupGuardianGuard(
-            $this->userSession,
-            $this->objectService,
-            $this->createMock(LoggerInterface::class),
-        );
+	/**
+	 * Build the guard under test.
+	 *
+	 * @return ConferenceSignupGuardianGuard
+	 */
+	private function makeGuard(): ConferenceSignupGuardianGuard {
+		return new ConferenceSignupGuardianGuard(
+			$this->userSession,
+			$this->objectService,
+			$this->createMock(LoggerInterface::class),
+		);
 
-    }//end makeGuard()
+	}//end makeGuard()
 
-    /**
-     * A linked guardian (caller's uid is in LearnerProfile.parentIds) may submit.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
-     */
-    public function testLinkedGuardianPasses(): void
-    {
-        $this->signInAs('parent-1');
-        $this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => ['parent-1', 'parent-2']]]);
+	/**
+	 * A linked guardian (caller's uid is in LearnerProfile.parentIds) may submit.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
+	 */
+	public function testLinkedGuardianPasses(): void {
+		$this->signInAs('parent-1');
+		$this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => ['parent-1', 'parent-2']]]);
 
-        $context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
 
-        self::assertTrue($this->makeGuard()->check($context));
+		self::assertTrue($this->makeGuard()->check($context));
 
-    }//end testLinkedGuardianPasses()
+	}//end testLinkedGuardianPasses()
 
-    /**
-     * An unrelated user (neither a linked guardian nor the learner) is blocked.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-an-unrelated-user-cannot-submit-a-signup-for-someone-elses-child
-     */
-    public function testUnrelatedUserIsBlocked(): void
-    {
-        $this->signInAs('stranger-1');
-        $this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => ['parent-1', 'parent-2']]]);
+	/**
+	 * An unrelated user (neither a linked guardian nor the learner) is blocked.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-an-unrelated-user-cannot-submit-a-signup-for-someone-elses-child
+	 */
+	public function testUnrelatedUserIsBlocked(): void {
+		$this->signInAs('stranger-1');
+		$this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => ['parent-1', 'parent-2']]]);
 
-        $context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
 
-        self::assertFalse($this->makeGuard()->check($context));
+		self::assertFalse($this->makeGuard()->check($context));
 
-    }//end testUnrelatedUserIsBlocked()
+	}//end testUnrelatedUserIsBlocked()
 
-    /**
-     * An 18+ learner signing up for themselves (caller uid === LearnerProfile.ncUserId) passes,
-     * even with no parentIds linked.
-     *
-     * @return void
-     */
-    public function testSelfSignupPasses(): void
-    {
-        $this->signInAs('learner-1');
-        $this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => []]]);
+	/**
+	 * An 18+ learner signing up for themselves (caller uid === LearnerProfile.ncUserId) passes,
+	 * even with no parentIds linked.
+	 *
+	 * @return void
+	 */
+	public function testSelfSignupPasses(): void {
+		$this->signInAs('learner-1');
+		$this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => []]]);
 
-        $context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
 
-        self::assertTrue($this->makeGuard()->check($context));
+		self::assertTrue($this->makeGuard()->check($context));
 
-    }//end testSelfSignupPasses()
+	}//end testSelfSignupPasses()
 
-    /**
-     * A missing LearnerProfile fails closed.
-     *
-     * @return void
-     */
-    public function testMissingLearnerProfileFailsClosed(): void
-    {
-        $this->signInAs('parent-1');
-        $this->wireLearnerProfile([]);
+	/**
+	 * A missing LearnerProfile fails closed.
+	 *
+	 * @return void
+	 */
+	public function testMissingLearnerProfileFailsClosed(): void {
+		$this->signInAs('parent-1');
+		$this->wireLearnerProfile([]);
 
-        $context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
 
-        self::assertFalse($this->makeGuard()->check($context));
+		self::assertFalse($this->makeGuard()->check($context));
 
-    }//end testMissingLearnerProfileFailsClosed()
+	}//end testMissingLearnerProfileFailsClosed()
 
-    /**
-     * A missing learnerId on the signup fails closed without querying.
-     *
-     * @return void
-     */
-    public function testMissingLearnerIdFailsClosedWithoutQuerying(): void
-    {
-        $this->signInAs('parent-1');
-        $this->objectService->expects(self::never())->method('findAll');
+	/**
+	 * A missing learnerId on the signup fails closed without querying.
+	 *
+	 * @return void
+	 */
+	public function testMissingLearnerIdFailsClosedWithoutQuerying(): void {
+		$this->signInAs('parent-1');
+		$this->objectService->expects(self::never())->method('findAll');
 
-        $context = ['object' => ['tenant_id' => 'tenant-a']];
+		$context = ['object' => ['tenant_id' => 'tenant-a']];
 
-        self::assertFalse($this->makeGuard()->check($context));
+		self::assertFalse($this->makeGuard()->check($context));
 
-    }//end testMissingLearnerIdFailsClosedWithoutQuerying()
+	}//end testMissingLearnerIdFailsClosedWithoutQuerying()
 
-    /**
-     * No authenticated session (getUser() returns null) fails closed.
-     *
-     * @return void
-     */
-    public function testNoAuthenticatedUserFailsClosed(): void
-    {
-        $this->userSession->method('getUser')->willReturn(null);
-        $this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => ['parent-1']]]);
+	/**
+	 * No authenticated session (getUser() returns null) fails closed.
+	 *
+	 * @return void
+	 */
+	public function testNoAuthenticatedUserFailsClosed(): void {
+		$this->userSession->method('getUser')->willReturn(null);
+		$this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => ['parent-1']]]);
 
-        $context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
 
-        self::assertFalse($this->makeGuard()->check($context));
+		self::assertFalse($this->makeGuard()->check($context));
 
-    }//end testNoAuthenticatedUserFailsClosed()
+	}//end testNoAuthenticatedUserFailsClosed()
 }//end class

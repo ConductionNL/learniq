@@ -36,223 +36,210 @@ use Psr\Log\NullLogger;
 /**
  * Tests for AdmissionsWaitlistPromoter::handle() on Application withdrawn/rejected FROM placed.
  */
-class AdmissionsWaitlistPromoterTest extends TestCase
-{
+class AdmissionsWaitlistPromoterTest extends TestCase {
 
-    /**
-     * Recorded transition() calls.
-     *
-     * @var array<int, array{objectId: string, action: string}>
-     */
-    private array $transitions = [];
+	/**
+	 * Recorded transition() calls.
+	 *
+	 * @var array<int, array{objectId: string, action: string}>
+	 */
+	private array $transitions = [];
 
-    /**
-     * Reset the capture buffer before each test.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->transitions = [];
+	/**
+	 * Reset the capture buffer before each test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->transitions = [];
 
-    }//end setUp()
+	}//end setUp()
 
-    /**
-     * Build a handler with stubbed collaborators.
-     *
-     * @param array<int, array<string, mixed>> $waitlisted Rows returned for a waitlisted-application query.
-     *
-     * @return AdmissionsWaitlistPromoter
-     */
-    private function makeHandler(array $waitlisted): AdmissionsWaitlistPromoter
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('findAll')->willReturnCallback(
-            function (array $config) use ($waitlisted) {
-                if (($config['schema'] ?? '') === 'application' && ($config['filters']['lifecycle'] ?? '') === 'waitlisted') {
-                    return $waitlisted;
-                }
+	/**
+	 * Build a handler with stubbed collaborators.
+	 *
+	 * @param array<int, array<string, mixed>> $waitlisted Rows returned for a waitlisted-application query.
+	 *
+	 * @return AdmissionsWaitlistPromoter
+	 */
+	private function makeHandler(array $waitlisted): AdmissionsWaitlistPromoter {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config) use ($waitlisted) {
+				if (($config['schema'] ?? '') === 'application' && ($config['filters']['lifecycle'] ?? '') === 'waitlisted') {
+					return $waitlisted;
+				}
 
-                return [];
-            }
-        );
+				return [];
+			}
+		);
 
-        $transitionEngine = $this->createMock(TransitionEngine::class);
-        $transitionEngine->method('transition')->willReturnCallback(
-            function (string $objectId, string $action): ObjectEntity {
-                $this->transitions[] = ['objectId' => $objectId, 'action' => $action];
-                return OrEntityFactory::make(['id' => $objectId], 'application');
-            }
-        );
+		$transitionEngine = $this->createMock(TransitionEngine::class);
+		$transitionEngine->method('transition')->willReturnCallback(
+			function (string $objectId, string $action): ObjectEntity {
+				$this->transitions[] = ['objectId' => $objectId, 'action' => $action];
+				return OrEntityFactory::make(['id' => $objectId], 'application');
+			}
+		);
 
-        return new AdmissionsWaitlistPromoter($objectService, $transitionEngine, new NullLogger());
+		return new AdmissionsWaitlistPromoter($objectService, $transitionEngine, new NullLogger());
+	}//end makeHandler()
 
-    }//end makeHandler()
+	/**
+	 * Build a mocked ObjectTransitionedEvent for an Application `placed -> $to` transition.
+	 *
+	 * @param array<string, mixed> $freedData The freed Application's jsonSerialize() payload.
+	 * @param string $to Target lifecycle state (withdrawn|rejected).
+	 *
+	 * @return ObjectTransitionedEvent
+	 */
+	private function makeEvent(array $freedData, string $to): ObjectTransitionedEvent {
+		$objectEntity = $this->createMock(ObjectEntity::class);
+		$objectEntity->method('jsonSerialize')->willReturn($freedData);
 
-    /**
-     * Build a mocked ObjectTransitionedEvent for an Application `placed -> $to` transition.
-     *
-     * @param array<string, mixed> $freedData The freed Application's jsonSerialize() payload.
-     * @param string                $to        Target lifecycle state (withdrawn|rejected).
-     *
-     * @return ObjectTransitionedEvent
-     */
-    private function makeEvent(array $freedData, string $to): ObjectTransitionedEvent
-    {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($freedData);
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getObject')->willReturn($objectEntity);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('application');
+		$event->method('getFrom')->willReturn('placed');
+		$event->method('getTo')->willReturn($to);
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getObject')->willReturn($objectEntity);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('application');
-        $event->method('getFrom')->willReturn('placed');
-        $event->method('getTo')->willReturn($to);
+		return $event;
+	}//end makeEvent()
 
-        return $event;
+	/**
+	 * A withdrawal promotes the oldest waitlisted applicant; a later one is untouched.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-withdrawal-promotes-the-oldest-waitlisted-applicant
+	 */
+	public function testOldestWaitlistedApplicationPromotedOnWithdrawal(): void {
+		$waitlisted = [
+			['id' => 'app-b', 'submittedAt' => '2026-02-01T09:00:00+01:00'],
+			['id' => 'app-a', 'submittedAt' => '2026-01-01T09:00:00+01:00'],
+		];
 
-    }//end makeEvent()
+		$handler = $this->makeHandler(waitlisted: $waitlisted);
 
-    /**
-     * A withdrawal promotes the oldest waitlisted applicant; a later one is untouched.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-withdrawal-promotes-the-oldest-waitlisted-applicant
-     */
-    public function testOldestWaitlistedApplicationPromotedOnWithdrawal(): void
-    {
-        $waitlisted = [
-            ['id' => 'app-b', 'submittedAt' => '2026-02-01T09:00:00+01:00'],
-            ['id' => 'app-a', 'submittedAt' => '2026-01-01T09:00:00+01:00'],
-        ];
+		$freed = ['id' => 'app-placed', 'admissionsRoundId' => 'round-1', 'tenant_id' => 'tenant-a'];
 
-        $handler = $this->makeHandler(waitlisted: $waitlisted);
+		$handler->handle($this->makeEvent($freed, 'withdrawn'));
 
-        $freed = ['id' => 'app-placed', 'admissionsRoundId' => 'round-1', 'tenant_id' => 'tenant-a'];
+		self::assertCount(1, $this->transitions);
+		self::assertSame('app-a', $this->transitions[0]['objectId']);
+		self::assertSame('promote', $this->transitions[0]['action']);
 
-        $handler->handle($this->makeEvent($freed, 'withdrawn'));
+	}//end testOldestWaitlistedApplicationPromotedOnWithdrawal()
 
-        self::assertCount(1, $this->transitions);
-        self::assertSame('app-a', $this->transitions[0]['objectId']);
-        self::assertSame('promote', $this->transitions[0]['action']);
+	/**
+	 * A rejection FROM placed also promotes the oldest waitlisted applicant.
+	 *
+	 * @return void
+	 */
+	public function testOldestWaitlistedApplicationPromotedOnRejection(): void {
+		$waitlisted = [['id' => 'app-a', 'submittedAt' => '2026-01-01T09:00:00+01:00']];
 
-    }//end testOldestWaitlistedApplicationPromotedOnWithdrawal()
+		$handler = $this->makeHandler(waitlisted: $waitlisted);
 
-    /**
-     * A rejection FROM placed also promotes the oldest waitlisted applicant.
-     *
-     * @return void
-     */
-    public function testOldestWaitlistedApplicationPromotedOnRejection(): void
-    {
-        $waitlisted = [['id' => 'app-a', 'submittedAt' => '2026-01-01T09:00:00+01:00']];
+		$freed = ['id' => 'app-placed', 'admissionsRoundId' => 'round-1', 'tenant_id' => 'tenant-a'];
 
-        $handler = $this->makeHandler(waitlisted: $waitlisted);
+		$handler->handle($this->makeEvent($freed, 'rejected'));
 
-        $freed = ['id' => 'app-placed', 'admissionsRoundId' => 'round-1', 'tenant_id' => 'tenant-a'];
+		self::assertCount(1, $this->transitions);
+		self::assertSame('app-a', $this->transitions[0]['objectId']);
+		self::assertSame('promote', $this->transitions[0]['action']);
 
-        $handler->handle($this->makeEvent($freed, 'rejected'));
+	}//end testOldestWaitlistedApplicationPromotedOnRejection()
 
-        self::assertCount(1, $this->transitions);
-        self::assertSame('app-a', $this->transitions[0]['objectId']);
-        self::assertSame('promote', $this->transitions[0]['action']);
+	/**
+	 * No waitlisted applications for the round is a no-op.
+	 *
+	 * @return void
+	 */
+	public function testNoWaitlistedApplicationsIsNoop(): void {
+		$handler = $this->makeHandler(waitlisted: []);
 
-    }//end testOldestWaitlistedApplicationPromotedOnRejection()
+		$freed = ['id' => 'app-placed', 'admissionsRoundId' => 'round-1', 'tenant_id' => 'tenant-a'];
 
-    /**
-     * No waitlisted applications for the round is a no-op.
-     *
-     * @return void
-     */
-    public function testNoWaitlistedApplicationsIsNoop(): void
-    {
-        $handler = $this->makeHandler(waitlisted: []);
+		$handler->handle($this->makeEvent($freed, 'withdrawn'));
 
-        $freed = ['id' => 'app-placed', 'admissionsRoundId' => 'round-1', 'tenant_id' => 'tenant-a'];
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($this->makeEvent($freed, 'withdrawn'));
+	}//end testNoWaitlistedApplicationsIsNoop()
 
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A transition NOT from `placed` is ignored.
+	 *
+	 * @return void
+	 */
+	public function testNotFromPlacedIgnored(): void {
+		$handler = $this->makeHandler(waitlisted: [['id' => 'app-a', 'submittedAt' => '2026-01-01T09:00:00+01:00']]);
 
-    }//end testNoWaitlistedApplicationsIsNoop()
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('application');
+		$event->method('getFrom')->willReturn('intake-completed');
+		$event->method('getTo')->willReturn('rejected');
 
-    /**
-     * A transition NOT from `placed` is ignored.
-     *
-     * @return void
-     */
-    public function testNotFromPlacedIgnored(): void
-    {
-        $handler = $this->makeHandler(waitlisted: [['id' => 'app-a', 'submittedAt' => '2026-01-01T09:00:00+01:00']]);
+		$handler->handle($event);
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('application');
-        $event->method('getFrom')->willReturn('intake-completed');
-        $event->method('getTo')->willReturn('rejected');
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($event);
+	}//end testNotFromPlacedIgnored()
 
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A target state other than withdrawn/rejected is ignored.
+	 *
+	 * @return void
+	 */
+	public function testUnrelatedTargetStateIgnored(): void {
+		$handler = $this->makeHandler(waitlisted: [['id' => 'app-a', 'submittedAt' => '2026-01-01T09:00:00+01:00']]);
 
-    }//end testNotFromPlacedIgnored()
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('application');
+		$event->method('getFrom')->willReturn('placed');
+		$event->method('getTo')->willReturn('converted');
 
-    /**
-     * A target state other than withdrawn/rejected is ignored.
-     *
-     * @return void
-     */
-    public function testUnrelatedTargetStateIgnored(): void
-    {
-        $handler = $this->makeHandler(waitlisted: [['id' => 'app-a', 'submittedAt' => '2026-01-01T09:00:00+01:00']]);
+		$handler->handle($event);
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('application');
-        $event->method('getFrom')->willReturn('placed');
-        $event->method('getTo')->willReturn('converted');
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($event);
+	}//end testUnrelatedTargetStateIgnored()
 
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A wrong schema is ignored.
+	 *
+	 * @return void
+	 */
+	public function testWrongSchemaIgnored(): void {
+		$handler = $this->makeHandler(waitlisted: [['id' => 'app-a', 'submittedAt' => '2026-01-01T09:00:00+01:00']]);
 
-    }//end testUnrelatedTargetStateIgnored()
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('subject-choice');
+		$event->method('getFrom')->willReturn('placed');
+		$event->method('getTo')->willReturn('withdrawn');
 
-    /**
-     * A wrong schema is ignored.
-     *
-     * @return void
-     */
-    public function testWrongSchemaIgnored(): void
-    {
-        $handler = $this->makeHandler(waitlisted: [['id' => 'app-a', 'submittedAt' => '2026-01-01T09:00:00+01:00']]);
+		$handler->handle($event);
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('subject-choice');
-        $event->method('getFrom')->willReturn('placed');
-        $event->method('getTo')->willReturn('withdrawn');
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($event);
+	}//end testWrongSchemaIgnored()
 
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A non-ObjectTransitionedEvent is ignored.
+	 *
+	 * @return void
+	 */
+	public function testNonMatchingEventTypeIgnored(): void {
+		$handler = $this->makeHandler(waitlisted: []);
 
-    }//end testWrongSchemaIgnored()
+		$handler->handle($this->createMock(Event::class));
 
-    /**
-     * A non-ObjectTransitionedEvent is ignored.
-     *
-     * @return void
-     */
-    public function testNonMatchingEventTypeIgnored(): void
-    {
-        $handler = $this->makeHandler(waitlisted: []);
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($this->createMock(Event::class));
-
-        self::assertCount(0, $this->transitions);
-
-    }//end testNonMatchingEventTypeIgnored()
+	}//end testNonMatchingEventTypeIgnored()
 }//end class

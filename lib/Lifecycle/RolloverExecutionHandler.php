@@ -53,94 +53,91 @@ use Throwable;
  *
  * @spec openspec/changes/school-year-rollover/tasks.md
  */
-class RolloverExecutionHandler implements IEventListener
-{
-    /**
-     * OpenRegister register slug.
-     */
-    private const SCHOLIQ_REGISTER = 'scholiq';
+class RolloverExecutionHandler implements IEventListener {
+	/**
+	 * OpenRegister register slug.
+	 */
+	private const SCHOLIQ_REGISTER = 'scholiq';
 
-    /**
-     * RolloverPlan schema slug.
-     */
-    private const SCHEMA = 'rollover-plan';
+	/**
+	 * RolloverPlan schema slug.
+	 */
+	private const SCHEMA = 'rollover-plan';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService            $objectService    OR object access service.
-     * @param RolloverService          $rolloverService  Rollover preview logic (the dry-run gate).
-     * @param RolloverExecutionService $executionService Rollover execution logic (the writes).
-     * @param LoggerInterface          $logger           PSR logger.
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly RolloverService $rolloverService,
-        private readonly RolloverExecutionService $executionService,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access service.
+	 * @param RolloverService $rolloverService Rollover preview logic (the dry-run gate).
+	 * @param RolloverExecutionService $executionService Rollover execution logic (the writes).
+	 * @param LoggerInterface $logger PSR logger.
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly RolloverService $rolloverService,
+		private readonly RolloverExecutionService $executionService,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an ObjectTransitionedEvent for a RolloverPlan reaching `executing`.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/school-year-rollover/tasks.md
-     */
-    public function handle(Event $event): void
-    {
-        if (($event instanceof ObjectTransitionedEvent) === false) {
-            return;
-        }
+	/**
+	 * Handle an ObjectTransitionedEvent for a RolloverPlan reaching `executing`.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 */
+	public function handle(Event $event): void {
+		if (($event instanceof ObjectTransitionedEvent) === false) {
+			return;
+		}
 
-        if ($event->getRegister() !== self::SCHOLIQ_REGISTER
-            || $event->getSchema() !== self::SCHEMA
-            || $event->getTo() !== 'executing'
-        ) {
-            return;
-        }
+		if ($event->getRegister() !== self::SCHOLIQ_REGISTER
+			|| $event->getSchema() !== self::SCHEMA
+			|| $event->getTo() !== 'executing'
+		) {
+			return;
+		}
 
-        $plan   = (array) $event->getObject()->jsonSerialize();
-        $planId = (string) ($plan['id'] ?? ($plan['uuid'] ?? ''));
+		$plan = (array)$event->getObject()->jsonSerialize();
+		$planId = (string)($plan['id'] ?? ($plan['uuid'] ?? ''));
 
-        // Guard: a plan may only execute from a matching preview (the dry-run gate).
-        if ($this->rolloverService->previewMatchesMappings(plan: $plan) === false) {
-            $this->logger->warning('[RolloverExecutionHandler] Preview does not match mappings — failing plan {p}.', ['p' => $planId]);
-            $this->failPlan(plan: $plan, reason: 'Preview does not match current mappings');
-            return;
-        }
+		// Guard: a plan may only execute from a matching preview (the dry-run gate).
+		if ($this->rolloverService->previewMatchesMappings(plan: $plan) === false) {
+			$this->logger->warning('[RolloverExecutionHandler] Preview does not match mappings — failing plan {p}.', ['p' => $planId]);
+			$this->failPlan(plan: $plan, reason: 'Preview does not match current mappings');
+			return;
+		}
 
-        try {
-            $progress = $this->executionService->execute(plan: $plan);
+		try {
+			$progress = $this->executionService->execute(plan: $plan);
 
-            $plan['perMappingProgress'] = $progress;
-            $plan['lifecycle']          = 'completed';
-            $plan['executedAt']         = date('c');
-            $this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::SCHEMA, object: $plan);
+			$plan['perMappingProgress'] = $progress;
+			$plan['lifecycle'] = 'completed';
+			$plan['executedAt'] = date('c');
+			$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::SCHEMA, object: $plan);
 
-            $this->logger->info('[RolloverExecutionHandler] Rollover plan {p} completed.', ['p' => $planId]);
-        } catch (Throwable $e) {
-            // Record progress so far + fail; the plan is resumable via `retry`.
-            $this->logger->error('[RolloverExecutionHandler] Rollover plan {p} failed: {m}.', ['p' => $planId, 'm' => $e->getMessage()]);
-            $this->failPlan(plan: $plan, reason: $e->getMessage());
-        }
-    }//end handle()
+			$this->logger->info('[RolloverExecutionHandler] Rollover plan {p} completed.', ['p' => $planId]);
+		} catch (Throwable $e) {
+			// Record progress so far + fail; the plan is resumable via `retry`.
+			$this->logger->error('[RolloverExecutionHandler] Rollover plan {p} failed: {m}.', ['p' => $planId, 'm' => $e->getMessage()]);
+			$this->failPlan(plan: $plan, reason: $e->getMessage());
+		}
+	}//end handle()
 
-    /**
-     * Transition a plan to `failed`, recording the reason.
-     *
-     * @param array<string,mixed> $plan   The plan object.
-     * @param string              $reason The failure reason.
-     *
-     * @return void
-     */
-    private function failPlan(array $plan, string $reason): void
-    {
-        $plan['lifecycle']     = 'failed';
-        $plan['failureReason'] = $reason;
-        $this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::SCHEMA, object: $plan);
-    }//end failPlan()
+	/**
+	 * Transition a plan to `failed`, recording the reason.
+	 *
+	 * @param array<string,mixed> $plan The plan object.
+	 * @param string $reason The failure reason.
+	 *
+	 * @return void
+	 */
+	private function failPlan(array $plan, string $reason): void {
+		$plan['lifecycle'] = 'failed';
+		$plan['failureReason'] = $reason;
+		$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::SCHEMA, object: $plan);
+	}//end failPlan()
 }//end class

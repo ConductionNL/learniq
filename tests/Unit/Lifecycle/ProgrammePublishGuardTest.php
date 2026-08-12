@@ -40,113 +40,108 @@ use Psr\Log\LoggerInterface;
 /**
  * Tests for ProgrammePublishGuard::check() — the Programme `draft -> published` transition.
  */
-class ProgrammePublishGuardTest extends TestCase
-{
+class ProgrammePublishGuardTest extends TestCase {
 
-    /**
-     * A Programme with a published CurriculumPlan carrying required courses
-     * is allowed to publish — unchanged by the OOAPI publication-contract
-     * spec sync.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
-     */
-    public function testProgrammeWithPublishedPlanAndRequiredCoursesIsAllowedToPublish(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('findAll')->willReturn(
-            [
-                [
-                    'id'                 => 'plan-1',
-                    'lifecycle'          => 'published',
-                    'requiredCourseIds'  => ['course-1', 'course-2'],
-                ],
-            ]
-        );
+	/**
+	 * A Programme with a published CurriculumPlan carrying required courses
+	 * is allowed to publish — unchanged by the OOAPI publication-contract
+	 * spec sync.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
+	 */
+	public function testProgrammeWithPublishedPlanAndRequiredCoursesIsAllowedToPublish(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn(
+			[
+				[
+					'id' => 'plan-1',
+					'lifecycle' => 'published',
+					'requiredCourseIds' => ['course-1', 'course-2'],
+				],
+			]
+		);
 
-        $guard   = new ProgrammePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-        $context = [
-            'object'     => ['id' => 'programme-1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a'],
-            'transition' => 'publish',
-            'from'       => 'draft',
-            'to'         => 'published',
-        ];
+		$guard = new ProgrammePublishGuard($objectService, $this->createMock(LoggerInterface::class));
+		$context = [
+			'object' => ['id' => 'programme-1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a'],
+			'transition' => 'publish',
+			'from' => 'draft',
+			'to' => 'published',
+		];
 
-        self::assertTrue($guard->check($context));
+		self::assertTrue($guard->check($context));
 
-    }//end testProgrammeWithPublishedPlanAndRequiredCoursesIsAllowedToPublish()
+	}//end testProgrammeWithPublishedPlanAndRequiredCoursesIsAllowedToPublish()
 
-    /**
-     * A Programme with no CurriculumPlan assigned is blocked from publishing.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
-     */
-    public function testProgrammeWithoutCurriculumPlanIsBlocked(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->expects($this->never())->method('findAll');
+	/**
+	 * A Programme with no CurriculumPlan assigned is blocked from publishing.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
+	 */
+	public function testProgrammeWithoutCurriculumPlanIsBlocked(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects($this->never())->method('findAll');
 
-        $guard   = new ProgrammePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-        $context = [
-            'object'     => ['id' => 'programme-2', 'tenant_id' => 'tenant-a'],
-            'transition' => 'publish',
-            'from'       => 'draft',
-            'to'         => 'published',
-        ];
+		$guard = new ProgrammePublishGuard($objectService, $this->createMock(LoggerInterface::class));
+		$context = [
+			'object' => ['id' => 'programme-2', 'tenant_id' => 'tenant-a'],
+			'transition' => 'publish',
+			'from' => 'draft',
+			'to' => 'published',
+		];
 
-        self::assertFalse($guard->check($context));
+		self::assertFalse($guard->check($context));
 
-    }//end testProgrammeWithoutCurriculumPlanIsBlocked()
+	}//end testProgrammeWithoutCurriculumPlanIsBlocked()
 
-    /**
-     * A Programme whose CurriculumPlan is not (yet) published is blocked.
-     *
-     * @return void
-     */
-    public function testProgrammeWithUnpublishedPlanIsBlocked(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('findAll')->willReturn([]);
+	/**
+	 * A Programme whose CurriculumPlan is not (yet) published is blocked.
+	 *
+	 * @return void
+	 */
+	public function testProgrammeWithUnpublishedPlanIsBlocked(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn([]);
 
-        $guard   = new ProgrammePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-        $context = [
-            'object'     => ['id' => 'programme-3', 'curriculumPlanId' => 'plan-3', 'tenant_id' => 'tenant-a'],
-            'transition' => 'publish',
-            'from'       => 'draft',
-            'to'         => 'published',
-        ];
+		$guard = new ProgrammePublishGuard($objectService, $this->createMock(LoggerInterface::class));
+		$context = [
+			'object' => ['id' => 'programme-3', 'curriculumPlanId' => 'plan-3', 'tenant_id' => 'tenant-a'],
+			'transition' => 'publish',
+			'from' => 'draft',
+			'to' => 'published',
+		];
 
-        self::assertFalse($guard->check($context));
+		self::assertFalse($guard->check($context));
 
-    }//end testProgrammeWithUnpublishedPlanIsBlocked()
+	}//end testProgrammeWithUnpublishedPlanIsBlocked()
 
-    /**
-     * A published CurriculumPlan with zero required courses still blocks
-     * publish — unchanged by the OOAPI publication-contract spec sync.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
-     */
-    public function testProgrammeWithPublishedPlanButNoRequiredCoursesIsBlocked(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('findAll')->willReturn(
-            [['id' => 'plan-4', 'lifecycle' => 'published', 'requiredCourseIds' => []]]
-        );
+	/**
+	 * A published CurriculumPlan with zero required courses still blocks
+	 * publish — unchanged by the OOAPI publication-contract spec sync.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
+	 */
+	public function testProgrammeWithPublishedPlanButNoRequiredCoursesIsBlocked(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn(
+			[['id' => 'plan-4', 'lifecycle' => 'published', 'requiredCourseIds' => []]]
+		);
 
-        $guard   = new ProgrammePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-        $context = [
-            'object'     => ['id' => 'programme-4', 'curriculumPlanId' => 'plan-4', 'tenant_id' => 'tenant-a'],
-            'transition' => 'publish',
-            'from'       => 'draft',
-            'to'         => 'published',
-        ];
+		$guard = new ProgrammePublishGuard($objectService, $this->createMock(LoggerInterface::class));
+		$context = [
+			'object' => ['id' => 'programme-4', 'curriculumPlanId' => 'plan-4', 'tenant_id' => 'tenant-a'],
+			'transition' => 'publish',
+			'from' => 'draft',
+			'to' => 'published',
+		];
 
-        self::assertFalse($guard->check($context));
+		self::assertFalse($guard->check($context));
 
-    }//end testProgrammeWithPublishedPlanButNoRequiredCoursesIsBlocked()
+	}//end testProgrammeWithPublishedPlanButNoRequiredCoursesIsBlocked()
 }//end class

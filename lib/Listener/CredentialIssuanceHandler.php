@@ -47,186 +47,179 @@ use OCP\EventDispatcher\IEventListener;
  *
  * @implements IEventListener<Event>
  */
-class CredentialIssuanceHandler implements IEventListener
-{
-    private const ENROLMENT_SCHEMA = 'enrolment';
-    private const SCHOLIQ_REGISTER = 'scholiq';
-    private const COMPLETED_STATE  = 'completed';
+class CredentialIssuanceHandler implements IEventListener {
+	private const ENROLMENT_SCHEMA = 'enrolment';
+	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const COMPLETED_STATE = 'completed';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService $objectService Reads Course and writes Credential via OpenRegister.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService Reads Course and writes Credential via OpenRegister.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an ObjectTransitionedEvent.
-     *
-     * Only acts on Enrolment objects transitioning to `completed` within the
-     * scholiq register. When the related Course has `certificateTemplate` set,
-     * creates a Credential via OR — the `issue` lifecycle guard
-     * (CredentialSigningService) fires automatically via OR's declared requires[].
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
-     */
-    public function handle(Event $event): void
-    {
-        if ($event instanceof ObjectTransitionedEvent === false) {
-            return;
-        }
+	/**
+	 * Handle an ObjectTransitionedEvent.
+	 *
+	 * Only acts on Enrolment objects transitioning to `completed` within the
+	 * scholiq register. When the related Course has `certificateTemplate` set,
+	 * creates a Credential via OR — the `issue` lifecycle guard
+	 * (CredentialSigningService) fires automatically via OR's declared requires[].
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
+	 */
+	public function handle(Event $event): void {
+		if ($event instanceof ObjectTransitionedEvent === false) {
+			return;
+		}
 
-        // Only handle Enrolment transitions within the scholiq register.
-        if ($this->isEnrolmentCompletion(event: $event) === false) {
-            return;
-        }
+		// Only handle Enrolment transitions within the scholiq register.
+		if ($this->isEnrolmentCompletion(event: $event) === false) {
+			return;
+		}
 
-        $enrolment   = $event->getObject()->jsonSerialize();
-        $courseId    = $enrolment['courseId'] ?? null;
-        $learnerId   = $enrolment['learnerId'] ?? '';
-        $tenantId    = $enrolment['tenant_id'] ?? '';
-        $completedAt = $enrolment['completedAt'] ?? (new DateTimeImmutable())->format(\DATE_ATOM);
+		$enrolment = $event->getObject()->jsonSerialize();
+		$courseId = $enrolment['courseId'] ?? null;
+		$learnerId = $enrolment['learnerId'] ?? '';
+		$tenantId = $enrolment['tenant_id'] ?? '';
+		$completedAt = $enrolment['completedAt'] ?? (new DateTimeImmutable())->format(\DATE_ATOM);
 
-        if ($courseId === null || $learnerId === '' || $tenantId === '') {
-            return;
-        }
+		if ($courseId === null || $learnerId === '' || $tenantId === '') {
+			return;
+		}
 
-        // Read the Course to check for certificateTemplate.
-        $courseObj = $this->objectService->find(
-            id: $courseId,
-            register: self::SCHOLIQ_REGISTER,
-            schema: 'course'
-        );
+		// Read the Course to check for certificateTemplate.
+		$courseObj = $this->objectService->find(
+			id: $courseId,
+			register: self::SCHOLIQ_REGISTER,
+			schema: 'course'
+		);
 
-        if ($courseObj === null) {
-            return;
-        }
+		if ($courseObj === null) {
+			return;
+		}
 
-        $course = $courseObj->jsonSerialize();
+		$course = $courseObj->jsonSerialize();
 
-        if (empty($course['certificateTemplate']) === true) {
-            // No certificate template — do not issue (REQ-CE-001-B).
-            return;
-        }
+		if (empty($course['certificateTemplate']) === true) {
+			// No certificate template — do not issue (REQ-CE-001-B).
+			return;
+		}
 
-        $enrolmentId = $enrolment['id'] ?? ($enrolment['uuid'] ?? null);
+		$enrolmentId = $enrolment['id'] ?? ($enrolment['uuid'] ?? null);
 
-        // #181: idempotency guard — an admin re-save or an event replay must not
-        // issue a duplicate credential.
-        if ($this->credentialAlreadyIssued(enrolmentId: $enrolmentId) === true) {
-            return;
-        }
+		// #181: idempotency guard — an admin re-save or an event replay must not
+		// issue a duplicate credential.
+		if ($this->credentialAlreadyIssued(enrolmentId: $enrolmentId) === true) {
+			return;
+		}
 
-        $expiresAt = $this->resolveExpiresAt(course: $course, completedAt: (string) $completedAt);
+		$expiresAt = $this->resolveExpiresAt(course: $course, completedAt: (string)$completedAt);
 
-        // C1 fix: Do NOT write `lifecycle` — let OR auto-fire the `issue` transition
-        // from null (initial: issued) which invokes the `requires:` guard
-        // (CredentialSigningService::check()) before persisting the object.
-        // Writing any lifecycle value directly bypasses the signing guard.
-        $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: 'credential',
-            object: [
-                'learnerId'      => $learnerId,
-                'courseId'       => $courseId,
-                'enrolmentId'    => $enrolmentId,
-                'kind'           => 'certificate',
-                'issuedAt'       => $completedAt,
-                'expiresAt'      => $expiresAt,
-                'issuedBy'       => $course['issuerName'] ?? '',
-                'source'         => 'auto',
-                'regulationSlug' => $course['regulationSlug'] ?? null,
-                'tenant_id'      => $tenantId,
-            ]
-        );
-    }//end handle()
+		// C1 fix: Do NOT write `lifecycle` — let OR auto-fire the `issue` transition
+		// from null (initial: issued) which invokes the `requires:` guard
+		// (CredentialSigningService::check()) before persisting the object.
+		// Writing any lifecycle value directly bypasses the signing guard.
+		$this->objectService->saveObject(
+			register: self::SCHOLIQ_REGISTER,
+			schema: 'credential',
+			object: [
+				'learnerId' => $learnerId,
+				'courseId' => $courseId,
+				'enrolmentId' => $enrolmentId,
+				'kind' => 'certificate',
+				'issuedAt' => $completedAt,
+				'expiresAt' => $expiresAt,
+				'issuedBy' => $course['issuerName'] ?? '',
+				'source' => 'auto',
+				'regulationSlug' => $course['regulationSlug'] ?? null,
+				'tenant_id' => $tenantId,
+			]
+		);
+	}//end handle()
 
-    /**
-     * Whether this transition is a scholiq Enrolment entering `completed`.
-     *
-     * @param ObjectTransitionedEvent $event The transition event.
-     *
-     * @return bool True when this handler should act on it.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-11
-     */
-    private function isEnrolmentCompletion(ObjectTransitionedEvent $event): bool
-    {
-        if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
-            return false;
-        }
+	/**
+	 * Whether this transition is a scholiq Enrolment entering `completed`.
+	 *
+	 * @param ObjectTransitionedEvent $event The transition event.
+	 *
+	 * @return bool True when this handler should act on it.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-11
+	 */
+	private function isEnrolmentCompletion(ObjectTransitionedEvent $event): bool {
+		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+			return false;
+		}
 
-        if ($event->getSchema() !== self::ENROLMENT_SCHEMA) {
-            return false;
-        }
+		if ($event->getSchema() !== self::ENROLMENT_SCHEMA) {
+			return false;
+		}
 
-        return ($event->getTo() === self::COMPLETED_STATE);
+		return ($event->getTo() === self::COMPLETED_STATE);
+	}//end isEnrolmentCompletion()
 
-    }//end isEnrolmentCompletion()
+	/**
+	 * Whether an auto-issued Credential already exists for this enrolment.
+	 *
+	 * #181: without this, an admin re-save or a replayed event mints a second
+	 * certificate for the same completion. An enrolment with no id cannot be
+	 * checked, so it is allowed through rather than blocked.
+	 *
+	 * @param mixed $enrolmentId The Enrolment id, when it has one.
+	 *
+	 * @return bool True when a credential has already been issued.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-11
+	 */
+	private function credentialAlreadyIssued(mixed $enrolmentId): bool {
+		if ($enrolmentId === null) {
+			return false;
+		}
 
-    /**
-     * Whether an auto-issued Credential already exists for this enrolment.
-     *
-     * #181: without this, an admin re-save or a replayed event mints a second
-     * certificate for the same completion. An enrolment with no id cannot be
-     * checked, so it is allowed through rather than blocked.
-     *
-     * @param mixed $enrolmentId The Enrolment id, when it has one.
-     *
-     * @return bool True when a credential has already been issued.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-11
-     */
-    private function credentialAlreadyIssued(mixed $enrolmentId): bool
-    {
-        if ($enrolmentId === null) {
-            return false;
-        }
+		$existing = $this->objectService->findAll(
+			[
+				'register' => self::SCHOLIQ_REGISTER,
+				'schema' => 'credential',
+				'filters' => [
+					'enrolmentId' => $enrolmentId,
+					'source' => 'auto',
+				],
+				'limit' => 1,
+			]
+		);
 
-        $existing = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => 'credential',
-                'filters'  => [
-                    'enrolmentId' => $enrolmentId,
-                    'source'      => 'auto',
-                ],
-                'limit'    => 1,
-            ]
-        );
+		return (empty($existing) === false);
+	}//end credentialAlreadyIssued()
 
-        return (empty($existing) === false);
+	/**
+	 * Calculate the credential's expiry from the course's validity period.
+	 *
+	 * @param array<string,mixed> $course The Course being certified.
+	 * @param string $completedAt When the enrolment completed.
+	 *
+	 * @return string|null The expiry timestamp, or null when the course sets no validity period.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-11
+	 */
+	private function resolveExpiresAt(array $course, string $completedAt): ?string {
+		if (empty($course['defaultExpiresAfterDays']) === true) {
+			return null;
+		}
 
-    }//end credentialAlreadyIssued()
+		return (new DateTimeImmutable($completedAt))
+			->modify('+' . (int)$course['defaultExpiresAfterDays'] . ' days')
+			->format(\DATE_ATOM);
 
-    /**
-     * Calculate the credential's expiry from the course's validity period.
-     *
-     * @param array<string,mixed> $course      The Course being certified.
-     * @param string              $completedAt When the enrolment completed.
-     *
-     * @return string|null The expiry timestamp, or null when the course sets no validity period.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-11
-     */
-    private function resolveExpiresAt(array $course, string $completedAt): ?string
-    {
-        if (empty($course['defaultExpiresAfterDays']) === true) {
-            return null;
-        }
-
-        return (new DateTimeImmutable($completedAt))
-            ->modify('+'.(int) $course['defaultExpiresAfterDays'].' days')
-            ->format(\DATE_ATOM);
-
-    }//end resolveExpiresAt()
+	}//end resolveExpiresAt()
 }//end class

@@ -46,346 +46,327 @@ use Psr\Log\NullLogger;
  * @category Tests
  * @package  OCA\Scholiq\Tests\Integration\Lifecycle
  */
-class XapiCompletionHandlerIntegrationTest extends TestCase
-{
+class XapiCompletionHandlerIntegrationTest extends TestCase {
 
-    /** @var ObjectService|null */
-    private ?ObjectService $objectService = null;
+	/** @var ObjectService|null */
+	private ?ObjectService $objectService = null;
 
-    /** @var XapiCompletionHandler|null */
-    private ?XapiCompletionHandler $handler = null;
+	/** @var XapiCompletionHandler|null */
+	private ?XapiCompletionHandler $handler = null;
 
-    /** Cleanup: UUIDs of objects created by this test run. */
-    private array $createdUuids = [];
+	/** Cleanup: UUIDs of objects created by this test run. */
+	private array $createdUuids = [];
 
+	/**
+	 * Set up the test: verify OR is available, resolve services.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
 
-    /**
-     * Set up the test: verify OR is available, resolve services.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
+		// Skip if Nextcloud server is not bootstrapped.
+		if (class_exists(\OC::class) === false || isset(\OC::$server) === false) {
+			$this->markTestSkipped('Nextcloud not bootstrapped — set up a live NC + OR environment to run integration tests.');
+		}
 
-        // Skip if Nextcloud server is not bootstrapped.
-        if (class_exists(\OC::class) === false || isset(\OC::$server) === false) {
-            $this->markTestSkipped('Nextcloud not bootstrapped — set up a live NC + OR environment to run integration tests.');
-        }
+		// Skip if openregister app is not installed.
+		if (class_exists(ObjectService::class) === false) {
+			$this->markTestSkipped('openregister app is not installed — integration tests require OR.');
+		}
 
-        // Skip if openregister app is not installed.
-        if (class_exists(ObjectService::class) === false) {
-            $this->markTestSkipped('openregister app is not installed — integration tests require OR.');
-        }
+		try {
+			$this->objectService = \OC::$server->get(ObjectService::class);
 
-        try {
-            $this->objectService = \OC::$server->get(ObjectService::class);
+			// TransitionEngine is final; we use the real one via the DI container.
+			$transitionEngine = \OC::$server->get(\OCA\OpenRegister\Service\Lifecycle\TransitionEngine::class);
 
-            // TransitionEngine is final; we use the real one via the DI container.
-            $transitionEngine = \OC::$server->get(\OCA\OpenRegister\Service\Lifecycle\TransitionEngine::class);
+			// The listener guards on register/schema SLUGS while OpenRegister
+			// stamps numeric ids onto the entity; the real resolver from the
+			// container is what turns one into the other in production.
+			$schemaResolver = \OC::$server->get(\OCA\Scholiq\Service\ListenerSchemaResolver::class);
 
-            // The listener guards on register/schema SLUGS while OpenRegister
-            // stamps numeric ids onto the entity; the real resolver from the
-            // container is what turns one into the other in production.
-            $schemaResolver = \OC::$server->get(\OCA\Scholiq\Service\ListenerSchemaResolver::class);
+			$this->handler = new XapiCompletionHandler(
+				$this->objectService,
+				$transitionEngine,
+				$schemaResolver,
+				new NullLogger(),
+			);
+		} catch (\Throwable $e) {
+			$this->markTestSkipped('Could not resolve OR services from DI container: ' . $e->getMessage());
+		}
 
-            $this->handler = new XapiCompletionHandler(
-                $this->objectService,
-                $transitionEngine,
-                $schemaResolver,
-                new NullLogger(),
-            );
-        } catch (\Throwable $e) {
-            $this->markTestSkipped('Could not resolve OR services from DI container: ' . $e->getMessage());
-        }
+	}//end setUp()
 
-    }//end setUp()
+	/**
+	 * Tear down: remove objects created during the test to leave the DB clean.
+	 *
+	 * @return void
+	 */
+	protected function tearDown(): void {
+		if ($this->objectService !== null && empty($this->createdUuids) === false) {
+			foreach (array_reverse($this->createdUuids) as ['register' => $register, 'schema' => $schema, 'uuid' => $uuid]) {
+				try {
+					$this->objectService->deleteObject($uuid);
+				} catch (\Throwable) {
+					// Best-effort cleanup; ignore failures.
+				}
+			}
+		}
 
+		parent::tearDown();
 
-    /**
-     * Tear down: remove objects created during the test to leave the DB clean.
-     *
-     * @return void
-     */
-    protected function tearDown(): void
-    {
-        if ($this->objectService !== null && empty($this->createdUuids) === false) {
-            foreach (array_reverse($this->createdUuids) as ['register' => $register, 'schema' => $schema, 'uuid' => $uuid]) {
-                try {
-                    $this->objectService->deleteObject($uuid);
-                } catch (\Throwable) {
-                    // Best-effort cleanup; ignore failures.
-                }
-            }
-        }
+	}//end tearDown()
 
-        parent::tearDown();
+	/**
+	 * Create an object via OR's ObjectService and record its UUID for cleanup.
+	 *
+	 * @param string $schema Schema name (e.g. 'Course').
+	 * @param array $data Object payload.
+	 *
+	 * @return array The created object as an associative array.
+	 */
+	private function createObject(string $schema, array $data): array {
+		try {
+			$obj = $this->objectService->saveObject(
+				register: 'scholiq',
+				schema: $schema,
+				object: $data,
+			);
+		} catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
+			// The Scholiq OpenRegister register/schemas aren't provisioned in
+			// this environment (CI installs the app but doesn't seed the
+			// register); these integration tests need a live, seeded OR.
+			$this->markTestSkipped('Scholiq register/schema not seeded: ' . $e->getMessage());
+		}
 
-    }//end tearDown()
+		$this->createdUuids[] = [
+			'register' => 'scholiq',
+			'schema' => $schema,
+			'uuid' => $obj['uuid'],
+		];
 
+		return $obj;
+	}//end createObject()
 
-    /**
-     * Create an object via OR's ObjectService and record its UUID for cleanup.
-     *
-     * @param string $schema Schema name (e.g. 'Course').
-     * @param array  $data   Object payload.
-     *
-     * @return array The created object as an associative array.
-     */
-    private function createObject(string $schema, array $data): array
-    {
-        try {
-            $obj = $this->objectService->saveObject(
-                register: 'scholiq',
-                schema: $schema,
-                object: $data,
-            );
-        } catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
-            // The Scholiq OpenRegister register/schemas aren't provisioned in
-            // this environment (CI installs the app but doesn't seed the
-            // register); these integration tests need a live, seeded OR.
-            $this->markTestSkipped('Scholiq register/schema not seeded: ' . $e->getMessage());
-        }
+	/**
+	 * Build a minimal xAPI "completed" event carrying $payload.
+	 *
+	 * @param array $payload xAPI statement payload.
+	 *
+	 * @return Event An anonymous event object that implements getData().
+	 */
+	private function makeXapiEvent(array $payload): Event {
+		return new class($payload) extends Event {
+			/**
+			 * Constructor.
+			 *
+			 * @param array $data xAPI statement payload.
+			 *
+			 * @return void
+			 */
+			public function __construct(
+				private readonly array $data,
+			) {
+				parent::__construct();
+			}
 
-        $this->createdUuids[] = [
-            'register' => 'scholiq',
-            'schema'   => $schema,
-            'uuid'     => $obj['uuid'],
-        ];
+			/**
+			 * Return the xAPI statement payload.
+			 *
+			 * @return array
+			 */
+			public function getData(): array {
+				return $this->data;
+			}
+		};
 
-        return $obj;
+	}//end makeXapiEvent()
 
-    }//end createObject()
+	/**
+	 * Happy-path: completing the final mandatory lesson transitions the Enrolment
+	 * to `completed` and OR writes an enrolment.completed audit entry.
+	 *
+	 * @return void
+	 */
+	public function testCompletingFinalMandatoryLessonTransitionsEnrolment(): void {
+		// ── Seed data ──────────────────────────────────────────────────
+		// 1. Course (published).
+		$course = $this->createObject(
+			'Course',
+			[
+				'title' => 'Integration Test Course ' . uniqid(),
+				'lifecycle' => 'published',
+			]
+		);
 
+		$courseId = $course['uuid'];
 
-    /**
-     * Build a minimal xAPI "completed" event carrying $payload.
-     *
-     * @param array $payload xAPI statement payload.
-     *
-     * @return Event An anonymous event object that implements getData().
-     */
-    private function makeXapiEvent(array $payload): Event
-    {
-        return new class($payload) extends Event {
+		$xapiObjectId1 = 'https://scholiq.test/lessons/' . uniqid();
+		$xapiObjectId2 = 'https://scholiq.test/lessons/' . uniqid();
 
-            /**
-             * Constructor.
-             *
-             * @param array $data xAPI statement payload.
-             *
-             * @return void
-             */
-            public function __construct(private readonly array $data)
-            {
-                parent::__construct();
-            }
+		// 2. Lesson 1 — published, not mandatory.
+		$this->createObject(
+			'Lesson',
+			[
+				'title' => 'Lesson 1',
+				'courseId' => $courseId,
+				'lifecycle' => 'published',
+				'mandatoryTraining' => false,
+				'xapiObjectId' => $xapiObjectId1,
+			]
+		);
 
+		// 3. Lesson 2 — published, mandatory training (the final lesson).
+		$lesson2 = $this->createObject(
+			'Lesson',
+			[
+				'title' => 'Lesson 2 — Mandatory',
+				'courseId' => $courseId,
+				'lifecycle' => 'published',
+				'mandatoryTraining' => true,
+				'xapiObjectId' => $xapiObjectId2,
+			]
+		);
 
-            /**
-             * Return the xAPI statement payload.
-             *
-             * @return array
-             */
-            public function getData(): array
-            {
-                return $this->data;
-            }
-        };
+		$learnerId = 'learner-' . uniqid();
 
-    }//end makeXapiEvent()
+		// 4. Active Enrolment for the learner.
+		$enrolment = $this->createObject(
+			'Enrolment',
+			[
+				'learnerId' => $learnerId,
+				'courseId' => $courseId,
+				'lifecycle' => 'active',
+			]
+		);
 
+		$enrolmentId = $enrolment['uuid'];
 
-    /**
-     * Happy-path: completing the final mandatory lesson transitions the Enrolment
-     * to `completed` and OR writes an enrolment.completed audit entry.
-     *
-     * @return void
-     */
-    public function testCompletingFinalMandatoryLessonTransitionsEnrolment(): void
-    {
-        // ── Seed data ──────────────────────────────────────────────────
-        // 1. Course (published).
-        $course = $this->createObject(
-            'Course',
-            [
-                'title'     => 'Integration Test Course ' . uniqid(),
-                'lifecycle' => 'published',
-            ]
-        );
+		// ── Fire event ─────────────────────────────────────────────────
+		$xapiStatement = [
+			'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
+			'object' => ['id' => $xapiObjectId2],
+			'actor' => ['account' => ['name' => $learnerId]],
+		];
 
-        $courseId = $course['uuid'];
+		$event = $this->makeXapiEvent($xapiStatement);
+		$this->handler->handle($event);
 
-        $xapiObjectId1 = 'https://scholiq.test/lessons/' . uniqid();
-        $xapiObjectId2 = 'https://scholiq.test/lessons/' . uniqid();
+		// ── Assertions ─────────────────────────────────────────────────
+		// The Enrolment should now be in `completed` state.
+		$updated = $this->objectService->get(
+			register: 'scholiq',
+			schema: 'Enrolment',
+			uuid: $enrolmentId,
+		);
 
-        // 2. Lesson 1 — published, not mandatory.
-        $this->createObject(
-            'Lesson',
-            [
-                'title'            => 'Lesson 1',
-                'courseId'         => $courseId,
-                'lifecycle'        => 'published',
-                'mandatoryTraining' => false,
-                'xapiObjectId'     => $xapiObjectId1,
-            ]
-        );
+		$this->assertSame(
+			'completed',
+			$updated['lifecycle'] ?? null,
+			'Enrolment lifecycle should be "completed" after xAPI completed statement for final mandatory lesson.'
+		);
 
-        // 3. Lesson 2 — published, mandatory training (the final lesson).
-        $lesson2 = $this->createObject(
-            'Lesson',
-            [
-                'title'            => 'Lesson 2 — Mandatory',
-                'courseId'         => $courseId,
-                'lifecycle'        => 'published',
-                'mandatoryTraining' => true,
-                'xapiObjectId'     => $xapiObjectId2,
-            ]
-        );
+		// OR should have written an audit-trail entry for the transition.
+		// We check the audit log if the AuditTrailMapper is available.
+		if (class_exists(\OCA\OpenRegister\Db\AuditTrailMapper::class)) {
+			try {
+				$auditMapper = \OC::$server->get(\OCA\OpenRegister\Db\AuditTrailMapper::class);
+				$entries = $auditMapper->findAll(
+					filters: [
+						'object_uuid' => $enrolmentId,
+						'action' => 'enrolment.completed',
+					],
+					limit: 5
+				);
+				$this->assertNotEmpty(
+					$entries,
+					'OR audit trail should contain an enrolment.completed entry after the lifecycle transition.'
+				);
+			} catch (\Throwable) {
+				// AuditTrailMapper may not expose this query method in all OR versions; skip gracefully.
+				$this->addWarning('Could not verify audit trail entry — AuditTrailMapper query not available in this OR version.');
+			}
+		}
 
-        $learnerId = 'learner-' . uniqid();
+	}//end testCompletingFinalMandatoryLessonTransitionsEnrolment()
 
-        // 4. Active Enrolment for the learner.
-        $enrolment = $this->createObject(
-            'Enrolment',
-            [
-                'learnerId' => $learnerId,
-                'courseId'  => $courseId,
-                'lifecycle' => 'active',
-            ]
-        );
+	/**
+	 * Non-mandatory lesson completion does NOT transition the Enrolment.
+	 *
+	 * @return void
+	 */
+	public function testNonMandatoryLessonCompletionIsIgnored(): void {
+		$course = $this->createObject('Course', ['title' => 'Course ' . uniqid(), 'lifecycle' => 'published']);
+		$courseId = $course['uuid'];
 
-        $enrolmentId = $enrolment['uuid'];
+		$xapiObjectId = 'https://scholiq.test/lessons/' . uniqid();
+		$this->createObject(
+			'Lesson',
+			[
+				'title' => 'Optional Lesson',
+				'courseId' => $courseId,
+				'lifecycle' => 'published',
+				'mandatoryTraining' => false,
+				'xapiObjectId' => $xapiObjectId,
+			]
+		);
 
-        // ── Fire event ─────────────────────────────────────────────────
-        $xapiStatement = [
-            'verb'   => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
-            'object' => ['id' => $xapiObjectId2],
-            'actor'  => ['account' => ['name' => $learnerId]],
-        ];
+		$learnerId = 'learner-' . uniqid();
+		$enrolment = $this->createObject('Enrolment', ['learnerId' => $learnerId, 'courseId' => $courseId, 'lifecycle' => 'active']);
 
-        $event = $this->makeXapiEvent($xapiStatement);
-        $this->handler->handle($event);
+		$event = $this->makeXapiEvent(
+			[
+				'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
+				'object' => ['id' => $xapiObjectId],
+				'actor' => ['account' => ['name' => $learnerId]],
+			]
+		);
 
-        // ── Assertions ─────────────────────────────────────────────────
-        // The Enrolment should now be in `completed` state.
-        $updated = $this->objectService->get(
-            register: 'scholiq',
-            schema: 'Enrolment',
-            uuid: $enrolmentId,
-        );
+		$this->handler->handle($event);
 
-        $this->assertSame(
-            'completed',
-            $updated['lifecycle'] ?? null,
-            'Enrolment lifecycle should be "completed" after xAPI completed statement for final mandatory lesson.'
-        );
+		$still = $this->objectService->get(register: 'scholiq', schema: 'Enrolment', uuid: $enrolment['uuid']);
+		$this->assertSame('active', $still['lifecycle'] ?? null, 'Enrolment should remain active after non-mandatory lesson completion.');
 
-        // OR should have written an audit-trail entry for the transition.
-        // We check the audit log if the AuditTrailMapper is available.
-        if (class_exists(\OCA\OpenRegister\Db\AuditTrailMapper::class)) {
-            try {
-                $auditMapper = \OC::$server->get(\OCA\OpenRegister\Db\AuditTrailMapper::class);
-                $entries     = $auditMapper->findAll(
-                    filters: [
-                        'object_uuid' => $enrolmentId,
-                        'action'      => 'enrolment.completed',
-                    ],
-                    limit: 5
-                );
-                $this->assertNotEmpty(
-                    $entries,
-                    'OR audit trail should contain an enrolment.completed entry after the lifecycle transition.'
-                );
-            } catch (\Throwable) {
-                // AuditTrailMapper may not expose this query method in all OR versions; skip gracefully.
-                $this->addWarning('Could not verify audit trail entry — AuditTrailMapper query not available in this OR version.');
-            }
-        }
+	}//end testNonMandatoryLessonCompletionIsIgnored()
 
-    }//end testCompletingFinalMandatoryLessonTransitionsEnrolment()
+	/**
+	 * Unknown verb in xAPI statement is ignored (no Enrolment change).
+	 *
+	 * @return void
+	 */
+	public function testUnknownVerbIsIgnored(): void {
+		$course = $this->createObject('Course', ['title' => 'Course ' . uniqid(), 'lifecycle' => 'published']);
+		$courseId = $course['uuid'];
 
+		$xapiObjectId = 'https://scholiq.test/lessons/' . uniqid();
+		$this->createObject(
+			'Lesson',
+			[
+				'title' => 'Mandatory Lesson',
+				'courseId' => $courseId,
+				'lifecycle' => 'published',
+				'mandatoryTraining' => true,
+				'xapiObjectId' => $xapiObjectId,
+			]
+		);
 
-    /**
-     * Non-mandatory lesson completion does NOT transition the Enrolment.
-     *
-     * @return void
-     */
-    public function testNonMandatoryLessonCompletionIsIgnored(): void
-    {
-        $course   = $this->createObject('Course', ['title' => 'Course ' . uniqid(), 'lifecycle' => 'published']);
-        $courseId = $course['uuid'];
+		$learnerId = 'learner-' . uniqid();
+		$enrolment = $this->createObject('Enrolment', ['learnerId' => $learnerId, 'courseId' => $courseId, 'lifecycle' => 'active']);
 
-        $xapiObjectId = 'https://scholiq.test/lessons/' . uniqid();
-        $this->createObject(
-            'Lesson',
-            [
-                'title'            => 'Optional Lesson',
-                'courseId'         => $courseId,
-                'lifecycle'        => 'published',
-                'mandatoryTraining' => false,
-                'xapiObjectId'     => $xapiObjectId,
-            ]
-        );
+		$event = $this->makeXapiEvent(
+			[
+				'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/launched'],
+				'object' => ['id' => $xapiObjectId],
+				'actor' => ['account' => ['name' => $learnerId]],
+			]
+		);
 
-        $learnerId = 'learner-' . uniqid();
-        $enrolment = $this->createObject('Enrolment', ['learnerId' => $learnerId, 'courseId' => $courseId, 'lifecycle' => 'active']);
+		$this->handler->handle($event);
 
-        $event = $this->makeXapiEvent(
-            [
-                'verb'   => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
-                'object' => ['id' => $xapiObjectId],
-                'actor'  => ['account' => ['name' => $learnerId]],
-            ]
-        );
+		$still = $this->objectService->get(register: 'scholiq', schema: 'Enrolment', uuid: $enrolment['uuid']);
+		$this->assertSame('active', $still['lifecycle'] ?? null, 'Enrolment should remain active for non-completion verbs.');
 
-        $this->handler->handle($event);
-
-        $still = $this->objectService->get(register: 'scholiq', schema: 'Enrolment', uuid: $enrolment['uuid']);
-        $this->assertSame('active', $still['lifecycle'] ?? null, 'Enrolment should remain active after non-mandatory lesson completion.');
-
-    }//end testNonMandatoryLessonCompletionIsIgnored()
-
-
-    /**
-     * Unknown verb in xAPI statement is ignored (no Enrolment change).
-     *
-     * @return void
-     */
-    public function testUnknownVerbIsIgnored(): void
-    {
-        $course   = $this->createObject('Course', ['title' => 'Course ' . uniqid(), 'lifecycle' => 'published']);
-        $courseId = $course['uuid'];
-
-        $xapiObjectId = 'https://scholiq.test/lessons/' . uniqid();
-        $this->createObject(
-            'Lesson',
-            [
-                'title'            => 'Mandatory Lesson',
-                'courseId'         => $courseId,
-                'lifecycle'        => 'published',
-                'mandatoryTraining' => true,
-                'xapiObjectId'     => $xapiObjectId,
-            ]
-        );
-
-        $learnerId = 'learner-' . uniqid();
-        $enrolment = $this->createObject('Enrolment', ['learnerId' => $learnerId, 'courseId' => $courseId, 'lifecycle' => 'active']);
-
-        $event = $this->makeXapiEvent(
-            [
-                'verb'   => ['id' => 'http://adlnet.gov/expapi/verbs/launched'],
-                'object' => ['id' => $xapiObjectId],
-                'actor'  => ['account' => ['name' => $learnerId]],
-            ]
-        );
-
-        $this->handler->handle($event);
-
-        $still = $this->objectService->get(register: 'scholiq', schema: 'Enrolment', uuid: $enrolment['uuid']);
-        $this->assertSame('active', $still['lifecycle'] ?? null, 'Enrolment should remain active for non-completion verbs.');
-
-    }//end testUnknownVerbIsIgnored()
-
+	}//end testUnknownVerbIsIgnored()
 
 }//end class

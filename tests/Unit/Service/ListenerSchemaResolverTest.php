@@ -40,319 +40,308 @@ use Psr\Log\LoggerInterface;
 /**
  * Covers slug resolution, register scoping and the default-off gate.
  */
-class ListenerSchemaResolverTest extends TestCase
-{
-    /**
-     * Build a resolver over a fixed id => slug map.
-     *
-     * @param array<string,string> $schemas   Schema id => slug.
-     * @param array<string,string> $registers Register id => slug.
-     * @param bool                 $enabled   Whether the slug contract is on.
-     *
-     * @return ListenerSchemaResolver
-     */
-    private function resolver(array $schemas, array $registers, bool $enabled=true): ListenerSchemaResolver
-    {
-        $schemaMapper   = $this->mapperReturning(map: $schemas);
-        $registerMapper = $this->mapperReturning(map: $registers);
+class ListenerSchemaResolverTest extends TestCase {
+	/**
+	 * Build a resolver over a fixed id => slug map.
+	 *
+	 * @param array<string,string> $schemas Schema id => slug.
+	 * @param array<string,string> $registers Register id => slug.
+	 * @param bool $enabled Whether the slug contract is on.
+	 *
+	 * @return ListenerSchemaResolver
+	 */
+	private function resolver(array $schemas, array $registers, bool $enabled = true): ListenerSchemaResolver {
+		$schemaMapper = $this->mapperReturning(map: $schemas);
+		$registerMapper = $this->mapperReturning(map: $registers);
 
-        $container = $this->createMock(ContainerInterface::class);
-        $container->method('get')->willReturnCallback(
-            static function (string $service) use ($schemaMapper, $registerMapper) {
-                if (str_contains($service, 'SchemaMapper') === true) {
-                    return $schemaMapper;
-                }
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willReturnCallback(
+			static function (string $service) use ($schemaMapper, $registerMapper) {
+				if (str_contains($service, 'SchemaMapper') === true) {
+					return $schemaMapper;
+				}
 
-                return $registerMapper;
-            }
-        );
+				return $registerMapper;
+			}
+		);
 
-        $contract = $this->createMock(ListenerSlugContract::class);
-        $contract->method('isEnabled')->willReturn($enabled);
+		$contract = $this->createMock(ListenerSlugContract::class);
+		$contract->method('isEnabled')->willReturn($enabled);
 
-        return new ListenerSchemaResolver(
-            container: $container,
-            contract: $contract,
-            logger: $this->createMock(LoggerInterface::class),
-        );
+		return new ListenerSchemaResolver(
+			container: $container,
+			contract: $contract,
+			logger: $this->createMock(LoggerInterface::class),
+		);
 
-    }//end resolver()
+	}//end resolver()
 
-    /**
-     * A stand-in mapper whose find() resolves ids from a map.
-     *
-     * @param array<string,string> $map Id => slug.
-     *
-     * @return object
-     */
-    private function mapperReturning(array $map): object
-    {
-        return new class($map) {
-            /**
-             * Constructor.
-             *
-             * @param array<string,string> $map Id => slug.
-             */
-            public function __construct(private array $map)
-            {
-            }//end __construct()
+	/**
+	 * A stand-in mapper whose find() resolves ids from a map.
+	 *
+	 * @param array<string,string> $map Id => slug.
+	 *
+	 * @return object
+	 */
+	private function mapperReturning(array $map): object {
+		return new class($map) {
+			/**
+			 * Constructor.
+			 *
+			 * @param array<string,string> $map Id => slug.
+			 */
+			public function __construct(
+				private array $map,
+			) {
+			}//end __construct()
 
-            /**
-             * Resolve an id to a slug-bearing entity.
-             *
-             * @param string $id The id to resolve.
-             *
-             * @return object
-             *
-             * @throws \RuntimeException When the id is unknown.
-             */
-            public function find(string $id): object
-            {
-                if (array_key_exists($id, $this->map) === false) {
-                    throw new \RuntimeException('not found');
-                }
+			/**
+			 * Resolve an id to a slug-bearing entity.
+			 *
+			 * @param string $id The id to resolve.
+			 *
+			 * @return object
+			 *
+			 * @throws \RuntimeException When the id is unknown.
+			 */
+			public function find(string $id): object {
+				if (array_key_exists($id, $this->map) === false) {
+					throw new \RuntimeException('not found');
+				}
 
-                // Mirrors the REAL collaborator, not the caller's expectations.
-                // OpenRegister's Db\Schema and Db\Register declare getSlug() as a
-                // `@method` docblock only and serve it from
-                // OCP\AppFramework\Db\Entity::__call — so method_exists() is FALSE
-                // for it on a genuine entity. A double that declares getSlug()
-                // concretely inverts the exact predicate under test and makes the
-                // suite green while production resolves nothing.
-                return new class($this->map[$id]) {
-                    /**
-                     * Constructor.
-                     *
-                     * @param string $slug The slug.
-                     */
-                    public function __construct(private string $slug)
-                    {
-                    }//end __construct()
+				// Mirrors the REAL collaborator, not the caller's expectations.
+				// OpenRegister's Db\Schema and Db\Register declare getSlug() as a
+				// `@method` docblock only and serve it from
+				// OCP\AppFramework\Db\Entity::__call — so method_exists() is FALSE
+				// for it on a genuine entity. A double that declares getSlug()
+				// concretely inverts the exact predicate under test and makes the
+				// suite green while production resolves nothing.
+				return new class($this->map[$id]) {
+					/**
+					 * Constructor.
+					 *
+					 * @param string $slug The slug.
+					 */
+					public function __construct(
+						private string $slug,
+					) {
+					}//end __construct()
 
-                    /**
-                     * Serve getSlug() magically, exactly as Entity::__call does.
-                     *
-                     * @param string       $name      The invoked method name.
-                     * @param array<mixed> $arguments The invoked arguments.
-                     *
-                     * @return string
-                     *
-                     * @throws \BadFunctionCallException When the method is unknown.
-                     */
-                    public function __call(string $name, array $arguments): string
-                    {
-                        if ($name === 'getSlug') {
-                            return $this->slug;
-                        }
+					/**
+					 * Serve getSlug() magically, exactly as Entity::__call does.
+					 *
+					 * @param string $name The invoked method name.
+					 * @param array<mixed> $arguments The invoked arguments.
+					 *
+					 * @return string
+					 *
+					 * @throws \BadFunctionCallException When the method is unknown.
+					 */
+					public function __call(string $name, array $arguments): string {
+						if ($name === 'getSlug') {
+							return $this->slug;
+						}
 
-                        throw new \BadFunctionCallException($name.' does not exist');
-                    }//end __call()
-                };
-            }//end find()
-        };
+						throw new \BadFunctionCallException($name . ' does not exist');
+					}//end __call()
+				};
+			}//end find()
+		};
 
-    }//end mapperReturning()
+	}//end mapperReturning()
 
-    /**
-     * An ObjectEntity-shaped stub carrying ids, exactly as MagicMapper emits.
-     *
-     * @param string $registerId The register id.
-     * @param string $schemaId   The schema id.
-     *
-     * @return object
-     */
-    private function entity(string $registerId, string $schemaId): object
-    {
-        return new class($registerId, $schemaId) {
-            /**
-             * Constructor.
-             *
-             * @param string $registerId The register id.
-             * @param string $schemaId   The schema id.
-             */
-            public function __construct(private string $registerId, private string $schemaId)
-            {
-            }//end __construct()
+	/**
+	 * An ObjectEntity-shaped stub carrying ids, exactly as MagicMapper emits.
+	 *
+	 * @param string $registerId The register id.
+	 * @param string $schemaId The schema id.
+	 *
+	 * @return object
+	 */
+	private function entity(string $registerId, string $schemaId): object {
+		return new class($registerId, $schemaId) {
+			/**
+			 * Constructor.
+			 *
+			 * @param string $registerId The register id.
+			 * @param string $schemaId The schema id.
+			 */
+			public function __construct(
+				private string $registerId,
+				private string $schemaId,
+			) {
+			}//end __construct()
 
-            /**
-             * The register id, as OpenRegister stamps it.
-             *
-             * @return string
-             */
-            public function getRegister(): string
-            {
-                return $this->registerId;
-            }//end getRegister()
+			/**
+			 * The register id, as OpenRegister stamps it.
+			 *
+			 * @return string
+			 */
+			public function getRegister(): string {
+				return $this->registerId;
+			}//end getRegister()
 
-            /**
-             * The schema id, as OpenRegister stamps it.
-             *
-             * @return string
-             */
-            public function getSchema(): string
-            {
-                return $this->schemaId;
-            }//end getSchema()
-        };
+			/**
+			 * The schema id, as OpenRegister stamps it.
+			 *
+			 * @return string
+			 */
+			public function getSchema(): string {
+				return $this->schemaId;
+			}//end getSchema()
+		};
 
-    }//end entity()
+	}//end entity()
 
-    /**
-     * POSITIVE CONTROL: an id-shaped entity resolves to both slugs the
-     * listener guards compare against. Before the fix these returned '9' and
-     * '1280', so every guard missed.
-     *
-     * @return void
-     */
-    public function testResolvesRegisterAndSchemaIdsToSlugs(): void
-    {
-        $resolver = $this->resolver(
-            schemas: ['1280' => 'xapi-statement'],
-            registers: ['9' => 'scholiq'],
-        );
+	/**
+	 * POSITIVE CONTROL: an id-shaped entity resolves to both slugs the
+	 * listener guards compare against. Before the fix these returned '9' and
+	 * '1280', so every guard missed.
+	 *
+	 * @return void
+	 */
+	public function testResolvesRegisterAndSchemaIdsToSlugs(): void {
+		$resolver = $this->resolver(
+			schemas: ['1280' => 'xapi-statement'],
+			registers: ['9' => 'scholiq'],
+		);
 
-        $entity = $this->entity(registerId: '9', schemaId: '1280');
+		$entity = $this->entity(registerId: '9', schemaId: '1280');
 
-        $this->assertSame('scholiq', $resolver->registerSlug(entity: $entity));
-        $this->assertSame('xapi-statement', $resolver->schemaSlug(entity: $entity));
+		$this->assertSame('scholiq', $resolver->registerSlug(entity: $entity));
+		$this->assertSame('xapi-statement', $resolver->schemaSlug(entity: $entity));
 
-    }//end testResolvesRegisterAndSchemaIdsToSlugs()
+	}//end testResolvesRegisterAndSchemaIdsToSlugs()
 
-    /**
-     * The same holds for the other in-scope gate schemas.
-     *
-     * @return void
-     */
-    public function testResolvesTheOtherGuardedSchemas(): void
-    {
-        $resolver = $this->resolver(
-            schemas: [
-                '1309' => 'enrolment',
-                '1286' => 'session',
-                '1293' => 'assessment-result',
-            ],
-            registers: ['9' => 'scholiq'],
-        );
+	/**
+	 * The same holds for the other in-scope gate schemas.
+	 *
+	 * @return void
+	 */
+	public function testResolvesTheOtherGuardedSchemas(): void {
+		$resolver = $this->resolver(
+			schemas: [
+				'1309' => 'enrolment',
+				'1286' => 'session',
+				'1293' => 'assessment-result',
+			],
+			registers: ['9' => 'scholiq'],
+		);
 
-        $this->assertSame(
-            'enrolment',
-            $resolver->schemaSlug(entity: $this->entity(registerId: '9', schemaId: '1309'))
-        );
-        $this->assertSame(
-            'session',
-            $resolver->schemaSlug(entity: $this->entity(registerId: '9', schemaId: '1286'))
-        );
-        $this->assertSame(
-            'assessment-result',
-            $resolver->schemaSlug(entity: $this->entity(registerId: '9', schemaId: '1293'))
-        );
+		$this->assertSame(
+			'enrolment',
+			$resolver->schemaSlug(entity: $this->entity(registerId: '9', schemaId: '1309'))
+		);
+		$this->assertSame(
+			'session',
+			$resolver->schemaSlug(entity: $this->entity(registerId: '9', schemaId: '1286'))
+		);
+		$this->assertSame(
+			'assessment-result',
+			$resolver->schemaSlug(entity: $this->entity(registerId: '9', schemaId: '1293'))
+		);
 
-    }//end testResolvesTheOtherGuardedSchemas()
+	}//end testResolvesTheOtherGuardedSchemas()
 
-    /**
-     * The register scope is what stops a schema-only literal firing on another
-     * app's objects. Schema 5103 is also slugged `automation`, exactly like
-     * schema 71 — but it lives in a different register.
-     *
-     * @return void
-     */
-    public function testForeignRegisterYieldsEmptySlug(): void
-    {
-        $resolver = $this->resolver(
-            schemas: [
-                '71'   => 'automation',
-                '5103' => 'automation',
-            ],
-            registers: [
-                '9'   => 'scholiq',
-                '264' => 'shillinq',
-            ],
-        );
+	/**
+	 * The register scope is what stops a schema-only literal firing on another
+	 * app's objects. Schema 5103 is also slugged `automation`, exactly like
+	 * schema 71 — but it lives in a different register.
+	 *
+	 * @return void
+	 */
+	public function testForeignRegisterYieldsEmptySlug(): void {
+		$resolver = $this->resolver(
+			schemas: [
+				'71' => 'automation',
+				'5103' => 'automation',
+			],
+			registers: [
+				'9' => 'scholiq',
+				'264' => 'shillinq',
+			],
+		);
 
-        // Same slug, foreign register -> refused.
-        $this->assertSame(
-            '',
-            $resolver->schemaSlug(entity: $this->entity(registerId: '264', schemaId: '5103'))
-        );
+		// Same slug, foreign register -> refused.
+		$this->assertSame(
+			'',
+			$resolver->schemaSlug(entity: $this->entity(registerId: '264', schemaId: '5103'))
+		);
 
-        // Positive control for the same call shape: own register -> resolved.
-        $this->assertSame(
-            'automation',
-            $resolver->schemaSlug(entity: $this->entity(registerId: '9', schemaId: '71'))
-        );
+		// Positive control for the same call shape: own register -> resolved.
+		$this->assertSame(
+			'automation',
+			$resolver->schemaSlug(entity: $this->entity(registerId: '9', schemaId: '71'))
+		);
 
-    }//end testForeignRegisterYieldsEmptySlug()
+	}//end testForeignRegisterYieldsEmptySlug()
 
-    /**
-     * With the contract disabled the resolver reproduces the pre-fix behaviour
-     * exactly: it hands back the raw ids, so every listener guard still misses.
-     *
-     * @return void
-     */
-    public function testDisabledContractReturnsRawIdsSoListenersStayDead(): void
-    {
-        $resolver = $this->resolver(
-            schemas: ['1280' => 'xapi-statement'],
-            registers: ['9' => 'scholiq'],
-            enabled: false,
-        );
+	/**
+	 * With the contract disabled the resolver reproduces the pre-fix behaviour
+	 * exactly: it hands back the raw ids, so every listener guard still misses.
+	 *
+	 * @return void
+	 */
+	public function testDisabledContractReturnsRawIdsSoListenersStayDead(): void {
+		$resolver = $this->resolver(
+			schemas: ['1280' => 'xapi-statement'],
+			registers: ['9' => 'scholiq'],
+			enabled: false,
+		);
 
-        $entity = $this->entity(registerId: '9', schemaId: '1280');
+		$entity = $this->entity(registerId: '9', schemaId: '1280');
 
-        $this->assertSame('9', $resolver->registerSlug(entity: $entity));
-        $this->assertSame('1280', $resolver->schemaSlug(entity: $entity));
+		$this->assertSame('9', $resolver->registerSlug(entity: $entity));
+		$this->assertSame('1280', $resolver->schemaSlug(entity: $entity));
 
-    }//end testDisabledContractReturnsRawIdsSoListenersStayDead()
+	}//end testDisabledContractReturnsRawIdsSoListenersStayDead()
 
-    /**
-     * OpenRegister is a soft dependency: an absent mapper must degrade to '',
-     * never throw into the object-write path.
-     *
-     * @return void
-     */
-    public function testUnresolvableSchemaDegradesToEmptyString(): void
-    {
-        $resolver = $this->resolver(schemas: [], registers: ['9' => 'scholiq']);
+	/**
+	 * OpenRegister is a soft dependency: an absent mapper must degrade to '',
+	 * never throw into the object-write path.
+	 *
+	 * @return void
+	 */
+	public function testUnresolvableSchemaDegradesToEmptyString(): void {
+		$resolver = $this->resolver(schemas: [], registers: ['9' => 'scholiq']);
 
-        $this->assertSame(
-            '',
-            $resolver->schemaSlug(entity: $this->entity(registerId: '9', schemaId: '9999'))
-        );
+		$this->assertSame(
+			'',
+			$resolver->schemaSlug(entity: $this->entity(registerId: '9', schemaId: '9999'))
+		);
 
-    }//end testUnresolvableSchemaDegradesToEmptyString()
+	}//end testUnresolvableSchemaDegradesToEmptyString()
 
-    /**
-     * A null entity is not a match.
-     *
-     * @return void
-     */
-    public function testNullEntityIsNotAMatch(): void
-    {
-        $resolver = $this->resolver(schemas: [], registers: []);
+	/**
+	 * A null entity is not a match.
+	 *
+	 * @return void
+	 */
+	public function testNullEntityIsNotAMatch(): void {
+		$resolver = $this->resolver(schemas: [], registers: []);
 
-        $this->assertSame('', $resolver->schemaSlug(entity: null));
-        $this->assertSame('', $resolver->registerSlug(entity: null));
-        $this->assertFalse($resolver->isOwnRegister(entity: null));
+		$this->assertSame('', $resolver->schemaSlug(entity: null));
+		$this->assertSame('', $resolver->registerSlug(entity: null));
+		$this->assertFalse($resolver->isOwnRegister(entity: null));
 
-    }//end testNullEntityIsNotAMatch()
+	}//end testNullEntityIsNotAMatch()
 
-    /**
-     * An entity that already carries a slug (a hand-built one, or a future
-     * OpenRegister that stops stamping ids) is still recognised.
-     *
-     * @return void
-     */
-    public function testRegisterSlugIsAcceptedDirectly(): void
-    {
-        $resolver = $this->resolver(
-            schemas: ['1280' => 'xapi-statement'],
-            registers: [],
-        );
+	/**
+	 * An entity that already carries a slug (a hand-built one, or a future
+	 * OpenRegister that stops stamping ids) is still recognised.
+	 *
+	 * @return void
+	 */
+	public function testRegisterSlugIsAcceptedDirectly(): void {
+		$resolver = $this->resolver(
+			schemas: ['1280' => 'xapi-statement'],
+			registers: [],
+		);
 
-        $entity = $this->entity(registerId: 'scholiq', schemaId: '1280');
+		$entity = $this->entity(registerId: 'scholiq', schemaId: '1280');
 
-        $this->assertTrue($resolver->isOwnRegister(entity: $entity));
-        $this->assertSame('scholiq', $resolver->registerSlug(entity: $entity));
+		$this->assertTrue($resolver->isOwnRegister(entity: $entity));
+		$this->assertSame('scholiq', $resolver->registerSlug(entity: $entity));
 
-    }//end testRegisterSlugIsAcceptedDirectly()
+	}//end testRegisterSlugIsAcceptedDirectly()
 }//end class

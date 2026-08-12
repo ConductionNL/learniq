@@ -28,16 +28,13 @@ namespace OCA\Talk;
 /**
  * Minimal stub of the spreed Room entity.
  */
-class Room
-{
-    /**
-     * The room token.
-     *
-     * @return string
-     */
-    public function getToken(): string
-    {
-        return 'stub-token';
-
-    }//end getToken()
+class Room {
+	/**
+	 * The room token.
+	 *
+	 * @return string
+	 */
+	public function getToken(): string {
+		return 'stub-token';
+	}//end getToken()
 }//end class

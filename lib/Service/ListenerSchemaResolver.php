@@ -67,200 +67,192 @@ use Throwable;
  * Turns an OpenRegister entity's schema id into its slug, scoped to scholiq's
  * own register.
  */
-class ListenerSchemaResolver
-{
+class ListenerSchemaResolver {
 
-    /**
-     * The OpenRegister register slug owning scholiq's schemas.
-     *
-     * @var string
-     */
-    public const REGISTER_SLUG = 'scholiq';
+	/**
+	 * The OpenRegister register slug owning scholiq's schemas.
+	 *
+	 * @var string
+	 */
+	public const REGISTER_SLUG = 'scholiq';
 
-    /**
-     * FQCN of OpenRegister's schema mapper.
-     *
-     * @var string
-     */
-    private const SCHEMA_MAPPER = 'OCA\\OpenRegister\\Db\\SchemaMapper';
+	/**
+	 * FQCN of OpenRegister's schema mapper.
+	 *
+	 * @var string
+	 */
+	private const SCHEMA_MAPPER = 'OCA\\OpenRegister\\Db\\SchemaMapper';
 
-    /**
-     * FQCN of OpenRegister's register mapper.
-     *
-     * @var string
-     */
-    private const REGISTER_MAPPER = 'OCA\\OpenRegister\\Db\\RegisterMapper';
+	/**
+	 * FQCN of OpenRegister's register mapper.
+	 *
+	 * @var string
+	 */
+	private const REGISTER_MAPPER = 'OCA\\OpenRegister\\Db\\RegisterMapper';
 
-    /**
-     * Constructor.
-     *
-     * @param ContainerInterface   $container DI container — OpenRegister mappers are resolved
-     *                                        lazily so scholiq boots without OpenRegister.
-     * @param ListenerSlugContract $contract  Default-off gate for the corrected matching.
-     * @param LoggerInterface      $logger    Logger for fail-soft diagnostics.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ContainerInterface $container,
-        private readonly ListenerSlugContract $contract,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ContainerInterface $container DI container — OpenRegister mappers are resolved
+	 *                                      lazily so scholiq boots without OpenRegister.
+	 * @param ListenerSlugContract $contract Default-off gate for the corrected matching.
+	 * @param LoggerInterface $logger Logger for fail-soft diagnostics.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ContainerInterface $container,
+		private readonly ListenerSlugContract $contract,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Resolve the schema slug of an OpenRegister object entity.
-     *
-     * Returns `''` when the object does not belong to scholiq's register, when
-     * the schema cannot be resolved, or when OpenRegister is unavailable — every
-     * caller treats `''` as "not my object" and returns early, so an
-     * unresolvable entity is never mistaken for a match.
-     *
-     * While {@see ListenerSlugContract} is disabled this deliberately returns
-     * the entity's raw schema value (an id), preserving the pre-fix behaviour.
-     *
-     * @param object|null $entity The OpenRegister ObjectEntity from the event.
-     *
-     * @return string The schema slug, or '' when this is not a scholiq object.
-     */
-    public function schemaSlug(?object $entity): string
-    {
-        // `is_callable()`, NOT `method_exists()`. OpenRegister's ObjectEntity
-        // gets getSchema()/getRegister()/getUuid() from
-        // OCP\AppFramework\Db\Entity::__call, so `method_exists()` returns
-        // FALSE for them on a real entity — measured, not assumed. This guard
-        // therefore used to reject every genuine ObjectEntity and return '',
-        // which every caller reads as "not my object" and returns early: all of
-        // scholiq's OpenRegister listeners silently did nothing in production.
-        // The unit suite did not catch it because the old tests/Stubs entity
-        // declared those accessors concretely, so method_exists() was true
-        // there and only there.
-        if ($entity === null || is_callable([$entity, 'getSchema']) === false) {
-            return '';
-        }
+	/**
+	 * Resolve the schema slug of an OpenRegister object entity.
+	 *
+	 * Returns `''` when the object does not belong to scholiq's register, when
+	 * the schema cannot be resolved, or when OpenRegister is unavailable — every
+	 * caller treats `''` as "not my object" and returns early, so an
+	 * unresolvable entity is never mistaken for a match.
+	 *
+	 * While {@see ListenerSlugContract} is disabled this deliberately returns
+	 * the entity's raw schema value (an id), preserving the pre-fix behaviour.
+	 *
+	 * @param object|null $entity The OpenRegister ObjectEntity from the event.
+	 *
+	 * @return string The schema slug, or '' when this is not a scholiq object.
+	 */
+	public function schemaSlug(?object $entity): string {
+		// `is_callable()`, NOT `method_exists()`. OpenRegister's ObjectEntity
+		// gets getSchema()/getRegister()/getUuid() from
+		// OCP\AppFramework\Db\Entity::__call, so `method_exists()` returns
+		// FALSE for them on a real entity — measured, not assumed. This guard
+		// therefore used to reject every genuine ObjectEntity and return '',
+		// which every caller reads as "not my object" and returns early: all of
+		// scholiq's OpenRegister listeners silently did nothing in production.
+		// The unit suite did not catch it because the old tests/Stubs entity
+		// declared those accessors concretely, so method_exists() was true
+		// there and only there.
+		if ($entity === null || is_callable([$entity, 'getSchema']) === false) {
+			return '';
+		}
 
-        $rawSchema = (string) ($entity->getSchema() ?? '');
+		$rawSchema = (string)($entity->getSchema() ?? '');
 
-        // Gate closed: reproduce the pre-fix comparison exactly.
-        if ($this->contract->isEnabled() === false) {
-            return $rawSchema;
-        }
+		// Gate closed: reproduce the pre-fix comparison exactly.
+		if ($this->contract->isEnabled() === false) {
+			return $rawSchema;
+		}
 
-        if ($rawSchema === '' || $this->isOwnRegister(entity: $entity) === false) {
-            return '';
-        }
+		if ($rawSchema === '' || $this->isOwnRegister(entity: $entity) === false) {
+			return '';
+		}
 
-        return $this->resolveSlug(service: self::SCHEMA_MAPPER, id: $rawSchema);
+		return $this->resolveSlug(service: self::SCHEMA_MAPPER, id: $rawSchema);
+	}//end schemaSlug()
 
-    }//end schemaSlug()
+	/**
+	 * Resolve the register slug of an OpenRegister object entity.
+	 *
+	 * Listeners guard on register and schema together; this returns the value
+	 * their `REGISTER` literal is compared against. While the contract is
+	 * disabled it returns the raw (id) value, preserving today's behaviour.
+	 *
+	 * @param object|null $entity The OpenRegister ObjectEntity from the event.
+	 *
+	 * @return string The register slug, or '' when unresolvable.
+	 */
+	public function registerSlug(?object $entity): string {
+		// `is_callable()`, not `method_exists()` — see schemaSlug().
+		if ($entity === null || is_callable([$entity, 'getRegister']) === false) {
+			return '';
+		}
 
-    /**
-     * Resolve the register slug of an OpenRegister object entity.
-     *
-     * Listeners guard on register and schema together; this returns the value
-     * their `REGISTER` literal is compared against. While the contract is
-     * disabled it returns the raw (id) value, preserving today's behaviour.
-     *
-     * @param object|null $entity The OpenRegister ObjectEntity from the event.
-     *
-     * @return string The register slug, or '' when unresolvable.
-     */
-    public function registerSlug(?object $entity): string
-    {
-        // `is_callable()`, not `method_exists()` — see schemaSlug().
-        if ($entity === null || is_callable([$entity, 'getRegister']) === false) {
-            return '';
-        }
+		$rawRegister = (string)($entity->getRegister() ?? '');
 
-        $rawRegister = (string) ($entity->getRegister() ?? '');
+		if ($this->contract->isEnabled() === false) {
+			return $rawRegister;
+		}
 
-        if ($this->contract->isEnabled() === false) {
-            return $rawRegister;
-        }
+		if ($rawRegister === '') {
+			return '';
+		}
 
-        if ($rawRegister === '') {
-            return '';
-        }
+		if (strcasecmp($rawRegister, self::REGISTER_SLUG) === 0) {
+			return self::REGISTER_SLUG;
+		}
 
-        if (strcasecmp($rawRegister, self::REGISTER_SLUG) === 0) {
-            return self::REGISTER_SLUG;
-        }
+		return $this->resolveSlug(service: self::REGISTER_MAPPER, id: $rawRegister);
+	}//end registerSlug()
 
-        return $this->resolveSlug(service: self::REGISTER_MAPPER, id: $rawRegister);
+	/**
+	 * Whether the entity belongs to scholiq's own OpenRegister register.
+	 *
+	 * This is the guard that keeps a schema-only literal (for example the two
+	 * distinct schemas both slugged `automation`) from firing on another app's
+	 * objects.
+	 *
+	 * @param object|null $entity The OpenRegister ObjectEntity from the event.
+	 *
+	 * @return bool True when the entity sits in scholiq's register.
+	 */
+	public function isOwnRegister(?object $entity): bool {
+		// `is_callable()`, not `method_exists()` — see schemaSlug().
+		if ($entity === null || is_callable([$entity, 'getRegister']) === false) {
+			return false;
+		}
 
-    }//end registerSlug()
+		$rawRegister = (string)($entity->getRegister() ?? '');
+		if ($rawRegister === '') {
+			return false;
+		}
 
-    /**
-     * Whether the entity belongs to scholiq's own OpenRegister register.
-     *
-     * This is the guard that keeps a schema-only literal (for example the two
-     * distinct schemas both slugged `automation`) from firing on another app's
-     * objects.
-     *
-     * @param object|null $entity The OpenRegister ObjectEntity from the event.
-     *
-     * @return bool True when the entity sits in scholiq's register.
-     */
-    public function isOwnRegister(?object $entity): bool
-    {
-        // `is_callable()`, not `method_exists()` — see schemaSlug().
-        if ($entity === null || is_callable([$entity, 'getRegister']) === false) {
-            return false;
-        }
+		// Tolerate an entity that already carries a slug (a hand-built entity in
+		// a test, or a future OpenRegister that stops stamping ids).
+		if (strcasecmp($rawRegister, self::REGISTER_SLUG) === 0) {
+			return true;
+		}
 
-        $rawRegister = (string) ($entity->getRegister() ?? '');
-        if ($rawRegister === '') {
-            return false;
-        }
+		return strcasecmp(
+			$this->resolveSlug(service: self::REGISTER_MAPPER, id: $rawRegister),
+			self::REGISTER_SLUG
+		) === 0;
 
-        // Tolerate an entity that already carries a slug (a hand-built entity in
-        // a test, or a future OpenRegister that stops stamping ids).
-        if (strcasecmp($rawRegister, self::REGISTER_SLUG) === 0) {
-            return true;
-        }
+	}//end isOwnRegister()
 
-        return strcasecmp(
-            $this->resolveSlug(service: self::REGISTER_MAPPER, id: $rawRegister),
-            self::REGISTER_SLUG
-        ) === 0;
+	/**
+	 * Look an OpenRegister entity's slug up by id through a mapper FQCN.
+	 *
+	 * @param string $service The mapper FQCN (SchemaMapper or RegisterMapper).
+	 * @param string $id The id to resolve.
+	 *
+	 * @return string The slug, or '' when unresolvable / OpenRegister absent.
+	 */
+	private function resolveSlug(string $service, string $id): string {
+		try {
+			$entity = $this->container->get($service)->find($id);
+			// `is_callable()`, NOT `method_exists()` — the same trap schemaSlug()
+			// documents, one layer down. OpenRegister's Db\Schema and Db\Register
+			// declare getSlug() as a `@method` docblock only; it is reached through
+			// OCP\AppFramework\Db\Entity::__call. Measured on both classes:
+			// method_exists(getSlug)=false, is_callable=true, while the concretely
+			// declared Schema::setSlug reads true on both. With method_exists this
+			// returned '' for every real entity, so isOwnRegister() compared ''
+			// against 'scholiq' and every listener guard rejected every object.
+			if (is_object($entity) === true && is_callable([$entity, 'getSlug']) === true) {
+				return (string)($entity->getSlug() ?? '');
+			}
+		} catch (Throwable $e) {
+			$this->logger->debug(
+				'Scholiq: could not resolve an OpenRegister slug for a listener guard',
+				[
+					'service' => $service,
+					'id' => $id,
+					'exception' => $e->getMessage(),
+				]
+			);
+		}//end try
 
-    }//end isOwnRegister()
-
-    /**
-     * Look an OpenRegister entity's slug up by id through a mapper FQCN.
-     *
-     * @param string $service The mapper FQCN (SchemaMapper or RegisterMapper).
-     * @param string $id      The id to resolve.
-     *
-     * @return string The slug, or '' when unresolvable / OpenRegister absent.
-     */
-    private function resolveSlug(string $service, string $id): string
-    {
-        try {
-            $entity = $this->container->get($service)->find($id);
-            // `is_callable()`, NOT `method_exists()` — the same trap schemaSlug()
-            // documents, one layer down. OpenRegister's Db\Schema and Db\Register
-            // declare getSlug() as a `@method` docblock only; it is reached through
-            // OCP\AppFramework\Db\Entity::__call. Measured on both classes:
-            // method_exists(getSlug)=false, is_callable=true, while the concretely
-            // declared Schema::setSlug reads true on both. With method_exists this
-            // returned '' for every real entity, so isOwnRegister() compared ''
-            // against 'scholiq' and every listener guard rejected every object.
-            if (is_object($entity) === true && is_callable([$entity, 'getSlug']) === true) {
-                return (string) ($entity->getSlug() ?? '');
-            }
-        } catch (Throwable $e) {
-            $this->logger->debug(
-                'Scholiq: could not resolve an OpenRegister slug for a listener guard',
-                [
-                    'service'   => $service,
-                    'id'        => $id,
-                    'exception' => $e->getMessage(),
-                ]
-            );
-        }//end try
-
-        return '';
-
-    }//end resolveSlug()
+		return '';
+	}//end resolveSlug()
 }//end class

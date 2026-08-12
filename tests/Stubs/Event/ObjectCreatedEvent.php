@@ -31,16 +31,13 @@ use OCP\EventDispatcher\Event;
 /**
  * Mirror of OpenRegister's ObjectCreatedEvent for standalone Scholiq unit tests.
  */
-abstract class ObjectCreatedEvent extends Event
-{
+abstract class ObjectCreatedEvent extends Event {
 
-
-    /**
-     * The created object.
-     *
-     * @return ObjectEntity
-     */
-    abstract public function getObject(): ObjectEntity;
-
+	/**
+	 * The created object.
+	 *
+	 * @return ObjectEntity
+	 */
+	abstract public function getObject(): ObjectEntity;
 
 }//end class

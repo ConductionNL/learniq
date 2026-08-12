@@ -54,146 +54,141 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-publication-fans-out-a-learner-parent-notification-mirroring-gradenotifications-reason
  */
-class ReportCardPublishHandler implements IEventListener
-{
+class ReportCardPublishHandler implements IEventListener {
 
-    private const SCHOLIQ_REGISTER       = 'scholiq';
-    private const REPORT_CARD_SCHEMA     = 'report-card';
-    private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
-    private const REPORT_CARD_PARENT_NOTIFICATION_SCHEMA = 'report-card-parent-notification';
+	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const REPORT_CARD_SCHEMA = 'report-card';
+	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
+	private const REPORT_CARD_PARENT_NOTIFICATION_SCHEMA = 'report-card-parent-notification';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService   $objectService OR object access service.
-     * @param ITimeFactory    $timeFactory   NC time source (injectable "now" for tests).
-     * @param LoggerInterface $logger        PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly ITimeFactory $timeFactory,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access service.
+	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly ITimeFactory $timeFactory,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an ObjectTransitionedEvent.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
-     */
-    public function handle(Event $event): void
-    {
-        if (($event instanceof ObjectTransitionedEvent) === false) {
-            return;
-        }
+	/**
+	 * Handle an ObjectTransitionedEvent.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+	 */
+	public function handle(Event $event): void {
+		if (($event instanceof ObjectTransitionedEvent) === false) {
+			return;
+		}
 
-        if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
-            return;
-        }
+		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+			return;
+		}
 
-        if ($event->getSchema() !== self::REPORT_CARD_SCHEMA || $event->getTo() !== 'published-to-parents') {
-            return;
-        }
+		if ($event->getSchema() !== self::REPORT_CARD_SCHEMA || $event->getTo() !== 'published-to-parents') {
+			return;
+		}
 
-        $this->fanOutParentNotifications(reportCard: $event->getObject()->jsonSerialize());
+		$this->fanOutParentNotifications(reportCard: $event->getObject()->jsonSerialize());
 
-    }//end handle()
+	}//end handle()
 
-    /**
-     * Resolve `LearnerProfile.parentIds[]` for the report card's learner and
-     * create one `ReportCardParentNotification` per parent.
-     *
-     * @param array<string,mixed> $reportCard The published-to-parents ReportCard data array.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
-     */
-    private function fanOutParentNotifications(array $reportCard): void
-    {
-        $reportCardId = (string) ($reportCard['id'] ?? ($reportCard['uuid'] ?? ''));
-        $learnerId    = (string) ($reportCard['learnerId'] ?? '');
+	/**
+	 * Resolve `LearnerProfile.parentIds[]` for the report card's learner and
+	 * create one `ReportCardParentNotification` per parent.
+	 *
+	 * @param array<string,mixed> $reportCard The published-to-parents ReportCard data array.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+	 */
+	private function fanOutParentNotifications(array $reportCard): void {
+		$reportCardId = (string)($reportCard['id'] ?? ($reportCard['uuid'] ?? ''));
+		$learnerId = (string)($reportCard['learnerId'] ?? '');
 
-        if ($reportCardId === '' || $learnerId === '') {
-            $this->logger->warning('[ReportCardPublishHandler] ReportCard missing id/learnerId; aborting parent fan-out.');
-            return;
-        }
+		if ($reportCardId === '' || $learnerId === '') {
+			$this->logger->warning('[ReportCardPublishHandler] ReportCard missing id/learnerId; aborting parent fan-out.');
+			return;
+		}
 
-        $profiles = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::LEARNER_PROFILE_SCHEMA,
-                'filters'  => ['learnerId' => $learnerId],
-                'limit'    => 1,
-            ]
-        );
+		$profiles = $this->objectService->findAll(
+			[
+				'register' => self::SCHOLIQ_REGISTER,
+				'schema' => self::LEARNER_PROFILE_SCHEMA,
+				'filters' => ['learnerId' => $learnerId],
+				'limit' => 1,
+			]
+		);
 
-        if (empty($profiles) === true) {
-            return;
-        }
+		if (empty($profiles) === true) {
+			return;
+		}
 
-        $profile   = $this->normalise(row: $profiles[0]);
-        $parentIds = $profile['parentIds'] ?? [];
+		$profile = $this->normalise(row: $profiles[0]);
+		$parentIds = $profile['parentIds'] ?? [];
 
-        if (is_array($parentIds) === false || empty($parentIds) === true) {
-            return;
-        }
+		if (is_array($parentIds) === false || empty($parentIds) === true) {
+			return;
+		}
 
-        $learnerRef  = $reportCard['learnerRef'] ?? null;
-        $tenantId    = (string) ($reportCard['tenant_id'] ?? '');
-        $visibleFrom = $this->timeFactory->getDateTime()->format(\DATE_ATOM);
+		$learnerRef = $reportCard['learnerRef'] ?? null;
+		$tenantId = (string)($reportCard['tenant_id'] ?? '');
+		$visibleFrom = $this->timeFactory->getDateTime()->format(\DATE_ATOM);
 
-        $notifiedCount = 0;
+		$notifiedCount = 0;
 
-        foreach ($parentIds as $parentId) {
-            if (empty($parentId) === true) {
-                continue;
-            }
+		foreach ($parentIds as $parentId) {
+			if (empty($parentId) === true) {
+				continue;
+			}
 
-            $this->objectService->saveObject(
-                register: self::SCHOLIQ_REGISTER,
-                schema: self::REPORT_CARD_PARENT_NOTIFICATION_SCHEMA,
-                object: [
-                    'event'          => 'reportCardPublished',
-                    'recipient'      => $parentId,
-                    'sourceId'       => $reportCardId,
-                    'learnerId'      => $learnerId,
-                    'learnerRef'     => $learnerRef,
-                    'idempotencyKey' => $reportCardId.'-parent-'.$parentId,
-                    'visibleFrom'    => $visibleFrom,
-                    'tenant_id'      => $tenantId,
-                ]
-            );
-            $notifiedCount++;
-        }//end foreach
+			$this->objectService->saveObject(
+				register: self::SCHOLIQ_REGISTER,
+				schema: self::REPORT_CARD_PARENT_NOTIFICATION_SCHEMA,
+				object: [
+					'event' => 'reportCardPublished',
+					'recipient' => $parentId,
+					'sourceId' => $reportCardId,
+					'learnerId' => $learnerId,
+					'learnerRef' => $learnerRef,
+					'idempotencyKey' => $reportCardId . '-parent-' . $parentId,
+					'visibleFrom' => $visibleFrom,
+					'tenant_id' => $tenantId,
+				]
+			);
+			$notifiedCount++;
+		}//end foreach
 
-        $this->logger->info(
-            '[ReportCardPublishHandler] ReportCard {id} published — {count} parent notification(s) created.',
-            ['id' => $reportCardId, 'count' => $notifiedCount]
-        );
+		$this->logger->info(
+			'[ReportCardPublishHandler] ReportCard {id} published — {count} parent notification(s) created.',
+			['id' => $reportCardId, 'count' => $notifiedCount]
+		);
 
-    }//end fanOutParentNotifications()
+	}//end fanOutParentNotifications()
 
-    /**
-     * Normalise an ObjectService row to a plain array.
-     *
-     * @param mixed $row Raw row from ObjectService::findAll().
-     *
-     * @return array<string,mixed>
-     */
-    private function normalise(mixed $row): array
-    {
-        if (is_array($row) === true) {
-            return $row;
-        }
+	/**
+	 * Normalise an ObjectService row to a plain array.
+	 *
+	 * @param mixed $row Raw row from ObjectService::findAll().
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function normalise(mixed $row): array {
+		if (is_array($row) === true) {
+			return $row;
+		}
 
-        return $row->jsonSerialize();
-
-    }//end normalise()
+		return $row->jsonSerialize();
+	}//end normalise()
 }//end class

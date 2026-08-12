@@ -36,284 +36,271 @@ use Psr\Log\NullLogger;
 /**
  * Tests for ApplicationConversionHandler::handle() on Application -> placed.
  */
-class ApplicationConversionHandlerTest extends TestCase
-{
+class ApplicationConversionHandlerTest extends TestCase {
 
-    /**
-     * Recorded saveObject() calls.
-     *
-     * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
-     */
-    private array $savedObjects = [];
+	/**
+	 * Recorded saveObject() calls.
+	 *
+	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
+	 */
+	private array $savedObjects = [];
 
-    /**
-     * Recorded transition() calls.
-     *
-     * @var array<int, array{objectId: string, action: string}>
-     */
-    private array $transitions = [];
+	/**
+	 * Recorded transition() calls.
+	 *
+	 * @var array<int, array{objectId: string, action: string}>
+	 */
+	private array $transitions = [];
 
-    /**
-     * Reset capture buffers before each test.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->savedObjects = [];
-        $this->transitions  = [];
+	/**
+	 * Reset capture buffers before each test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->savedObjects = [];
+		$this->transitions = [];
 
-    }//end setUp()
+	}//end setUp()
 
-    /**
-     * Build a handler with stubbed collaborators.
-     *
-     * @param array<string, mixed>|null $programme Programme data returned by find(), or null.
-     *
-     * @return ApplicationConversionHandler
-     */
-    private function makeHandler(?array $programme): ApplicationConversionHandler
-    {
-        $objectService = $this->createMock(ObjectService::class);
+	/**
+	 * Build a handler with stubbed collaborators.
+	 *
+	 * @param array<string, mixed>|null $programme Programme data returned by find(), or null.
+	 *
+	 * @return ApplicationConversionHandler
+	 */
+	private function makeHandler(?array $programme): ApplicationConversionHandler {
+		$objectService = $this->createMock(ObjectService::class);
 
-        $objectService->method('find')->willReturnCallback(
-            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($programme) {
-                if ($schema === 'programme' && $programme !== null) {
-                    return OrEntityFactory::make($programme, 'programme');
-                }
+		$objectService->method('find')->willReturnCallback(
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($programme) {
+				if ($schema === 'programme' && $programme !== null) {
+					return OrEntityFactory::make($programme, 'programme');
+				}
 
-                return null;
-            }
-        );
+				return null;
+			}
+		);
 
-        $counter = ['learner-profile' => 0, 'enrolment' => 0];
-        $objectService->method('saveObject')->willReturnCallback(
-            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null) use (&$counter): ObjectEntity {
-                $this->savedObjects[] = [
-                    'register' => (string) $register,
-                    'schema'   => (string) $schema,
-                    'object'   => $object,
-                ];
+		$counter = ['learner-profile' => 0, 'enrolment' => 0];
+		$objectService->method('saveObject')->willReturnCallback(
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use (&$counter): ObjectEntity {
+				$this->savedObjects[] = [
+					'register' => (string)$register,
+					'schema' => (string)$schema,
+					'object' => $object,
+				];
 
-                if ($schema === 'learner-profile') {
-                    $counter['learner-profile']++;
-                    return OrEntityFactory::make(
-                        array_merge($object, ['id' => 'profile-'.$counter['learner-profile']]),
-                        (string) $schema,
-                        (string) $register
-                    );
-                }
+				if ($schema === 'learner-profile') {
+					$counter['learner-profile']++;
+					return OrEntityFactory::make(
+						array_merge($object, ['id' => 'profile-' . $counter['learner-profile']]),
+						(string)$schema,
+						(string)$register
+					);
+				}
 
-                if ($schema === 'enrolment') {
-                    $counter['enrolment']++;
-                    return OrEntityFactory::make(
-                        array_merge($object, ['id' => 'enrolment-'.$counter['enrolment']]),
-                        (string) $schema,
-                        (string) $register
-                    );
-                }
+				if ($schema === 'enrolment') {
+					$counter['enrolment']++;
+					return OrEntityFactory::make(
+						array_merge($object, ['id' => 'enrolment-' . $counter['enrolment']]),
+						(string)$schema,
+						(string)$register
+					);
+				}
 
-                return OrEntityFactory::make($object, (string) $schema, (string) $register);
-            }
-        );
+				return OrEntityFactory::make($object, (string)$schema, (string)$register);
+			}
+		);
 
-        $transitionEngine = $this->createMock(TransitionEngine::class);
-        $transitionEngine->method('transition')->willReturnCallback(
-            function (string $objectId, string $action): ObjectEntity {
-                $this->transitions[] = ['objectId' => $objectId, 'action' => $action];
-                return OrEntityFactory::make(['id' => $objectId], 'application');
-            }
-        );
+		$transitionEngine = $this->createMock(TransitionEngine::class);
+		$transitionEngine->method('transition')->willReturnCallback(
+			function (string $objectId, string $action): ObjectEntity {
+				$this->transitions[] = ['objectId' => $objectId, 'action' => $action];
+				return OrEntityFactory::make(['id' => $objectId], 'application');
+			}
+		);
 
-        return new ApplicationConversionHandler($objectService, $transitionEngine, new NullLogger());
+		return new ApplicationConversionHandler($objectService, $transitionEngine, new NullLogger());
+	}//end makeHandler()
 
-    }//end makeHandler()
+	/**
+	 * Build a mocked ObjectTransitionedEvent for an Application -> placed transition.
+	 *
+	 * @param array<string, mixed> $applicationData The Application's jsonSerialize() payload.
+	 *
+	 * @return ObjectTransitionedEvent
+	 */
+	private function makeEvent(array $applicationData): ObjectTransitionedEvent {
+		$objectEntity = $this->createMock(ObjectEntity::class);
+		$objectEntity->method('jsonSerialize')->willReturn($applicationData);
 
-    /**
-     * Build a mocked ObjectTransitionedEvent for an Application -> placed transition.
-     *
-     * @param array<string, mixed> $applicationData The Application's jsonSerialize() payload.
-     *
-     * @return ObjectTransitionedEvent
-     */
-    private function makeEvent(array $applicationData): ObjectTransitionedEvent
-    {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($applicationData);
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getObject')->willReturn($objectEntity);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('application');
+		$event->method('getTo')->willReturn('placed');
+		$event->method('getFrom')->willReturn('intake-completed');
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getObject')->willReturn($objectEntity);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('application');
-        $event->method('getTo')->willReturn('placed');
-        $event->method('getFrom')->willReturn('intake-completed');
+		return $event;
+	}//end makeEvent()
 
-        return $event;
+	/**
+	 * Placement creates a LearnerProfile (guardianRefs stamped) and one Enrolment per
+	 * Programme course, stamps both reference fields, and drives the Application to converted.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
+	 */
+	public function testPlacementCreatesLearnerProfileAndEnrolments(): void {
+		$programme = ['id' => 'programme-1', 'courseIds' => ['course-a', 'course-b', 'course-c']];
+		$handler = $this->makeHandler(programme: $programme);
 
-    }//end makeEvent()
+		$application = [
+			'id' => 'app-1',
+			'programmeId' => 'programme-1',
+			'guardianRef' => 'guardian-ref-1',
+			'applicantGivenName' => 'Kim',
+			'applicantFamilyName' => 'Jansen',
+			'tenant_id' => 'tenant-a',
+			'lifecycle' => 'placed',
+		];
 
-    /**
-     * Placement creates a LearnerProfile (guardianRefs stamped) and one Enrolment per
-     * Programme course, stamps both reference fields, and drives the Application to converted.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
-     */
-    public function testPlacementCreatesLearnerProfileAndEnrolments(): void
-    {
-        $programme = ['id' => 'programme-1', 'courseIds' => ['course-a', 'course-b', 'course-c']];
-        $handler   = $this->makeHandler(programme: $programme);
+		$handler->handle($this->makeEvent($application));
 
-        $application = [
-            'id'                  => 'app-1',
-            'programmeId'         => 'programme-1',
-            'guardianRef'         => 'guardian-ref-1',
-            'applicantGivenName'  => 'Kim',
-            'applicantFamilyName' => 'Jansen',
-            'tenant_id'           => 'tenant-a',
-            'lifecycle'           => 'placed',
-        ];
+		$profileSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'learner-profile'));
+		self::assertCount(1, $profileSaves);
+		self::assertSame(['guardian-ref-1'], $profileSaves[0]['object']['guardianRefs']);
+		self::assertSame(['learner'], $profileSaves[0]['object']['roles']);
+		self::assertSame('Kim', $profileSaves[0]['object']['givenName']);
 
-        $handler->handle($this->makeEvent($application));
+		$enrolmentSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'enrolment'));
+		self::assertCount(3, $enrolmentSaves);
+		foreach ($enrolmentSaves as $save) {
+			self::assertSame('admission', $save['object']['source']);
+		}
 
-        $profileSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'learner-profile'));
-        self::assertCount(1, $profileSaves);
-        self::assertSame(['guardian-ref-1'], $profileSaves[0]['object']['guardianRefs']);
-        self::assertSame(['learner'], $profileSaves[0]['object']['roles']);
-        self::assertSame('Kim', $profileSaves[0]['object']['givenName']);
+		$applicationSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'application'));
+		self::assertCount(1, $applicationSaves);
+		self::assertSame('profile-1', $applicationSaves[0]['object']['convertedLearnerProfileId']);
+		self::assertCount(3, $applicationSaves[0]['object']['convertedEnrolmentIds']);
 
-        $enrolmentSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'enrolment'));
-        self::assertCount(3, $enrolmentSaves);
-        foreach ($enrolmentSaves as $save) {
-            self::assertSame('admission', $save['object']['source']);
-        }
+		self::assertCount(1, $this->transitions);
+		self::assertSame('app-1', $this->transitions[0]['objectId']);
+		self::assertSame('convert', $this->transitions[0]['action']);
 
-        $applicationSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'application'));
-        self::assertCount(1, $applicationSaves);
-        self::assertSame('profile-1', $applicationSaves[0]['object']['convertedLearnerProfileId']);
-        self::assertCount(3, $applicationSaves[0]['object']['convertedEnrolmentIds']);
+	}//end testPlacementCreatesLearnerProfileAndEnrolments()
 
-        self::assertCount(1, $this->transitions);
-        self::assertSame('app-1', $this->transitions[0]['objectId']);
-        self::assertSame('convert', $this->transitions[0]['action']);
+	/**
+	 * No NC user account or LMS provisioning side effect — only OpenRegister writes happen
+	 * (no unexpected schema is saved).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
+	 */
+	public function testNoUnexpectedSideEffectSchemasWritten(): void {
+		$programme = ['id' => 'programme-1', 'courseIds' => ['course-a']];
+		$handler = $this->makeHandler(programme: $programme);
 
-    }//end testPlacementCreatesLearnerProfileAndEnrolments()
+		$application = ['id' => 'app-2', 'programmeId' => 'programme-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'placed'];
 
-    /**
-     * No NC user account or LMS provisioning side effect — only OpenRegister writes happen
-     * (no unexpected schema is saved).
-     *
-     * @return void
-     *
-     * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-accepted-application-converts-into-a-learnerprofile-and-enrolments
-     */
-    public function testNoUnexpectedSideEffectSchemasWritten(): void
-    {
-        $programme = ['id' => 'programme-1', 'courseIds' => ['course-a']];
-        $handler   = $this->makeHandler(programme: $programme);
+		$handler->handle($this->makeEvent($application));
 
-        $application = ['id' => 'app-2', 'programmeId' => 'programme-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'placed'];
+		$writtenSchemas = array_unique(array_column($this->savedObjects, 'schema'));
+		sort($writtenSchemas);
+		self::assertSame(['application', 'enrolment', 'learner-profile'], $writtenSchemas);
 
-        $handler->handle($this->makeEvent($application));
+	}//end testNoUnexpectedSideEffectSchemasWritten()
 
-        $writtenSchemas = array_unique(array_column($this->savedObjects, 'schema'));
-        sort($writtenSchemas);
-        self::assertSame(['application', 'enrolment', 'learner-profile'], $writtenSchemas);
+	/**
+	 * A missing guardianRef leaves guardianRefs empty rather than containing a null entry.
+	 *
+	 * @return void
+	 */
+	public function testMissingGuardianRefLeavesGuardianRefsEmpty(): void {
+		$programme = ['id' => 'programme-1', 'courseIds' => []];
+		$handler = $this->makeHandler(programme: $programme);
 
-    }//end testNoUnexpectedSideEffectSchemasWritten()
+		$application = ['id' => 'app-3', 'programmeId' => 'programme-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'placed'];
 
-    /**
-     * A missing guardianRef leaves guardianRefs empty rather than containing a null entry.
-     *
-     * @return void
-     */
-    public function testMissingGuardianRefLeavesGuardianRefsEmpty(): void
-    {
-        $programme = ['id' => 'programme-1', 'courseIds' => []];
-        $handler   = $this->makeHandler(programme: $programme);
+		$handler->handle($this->makeEvent($application));
 
-        $application = ['id' => 'app-3', 'programmeId' => 'programme-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'placed'];
+		$profileSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'learner-profile'));
+		self::assertSame([], $profileSaves[0]['object']['guardianRefs']);
 
-        $handler->handle($this->makeEvent($application));
+	}//end testMissingGuardianRefLeavesGuardianRefsEmpty()
 
-        $profileSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'learner-profile'));
-        self::assertSame([], $profileSaves[0]['object']['guardianRefs']);
+	/**
+	 * A missing Application id aborts conversion — nothing is saved or transitioned.
+	 *
+	 * @return void
+	 */
+	public function testMissingApplicationIdAborts(): void {
+		$handler = $this->makeHandler(programme: ['id' => 'programme-1', 'courseIds' => ['course-a']]);
 
-    }//end testMissingGuardianRefLeavesGuardianRefsEmpty()
+		$handler->handle($this->makeEvent(['programmeId' => 'programme-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'placed']));
 
-    /**
-     * A missing Application id aborts conversion — nothing is saved or transitioned.
-     *
-     * @return void
-     */
-    public function testMissingApplicationIdAborts(): void
-    {
-        $handler = $this->makeHandler(programme: ['id' => 'programme-1', 'courseIds' => ['course-a']]);
+		self::assertCount(0, $this->savedObjects);
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($this->makeEvent(['programmeId' => 'programme-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'placed']));
+	}//end testMissingApplicationIdAborts()
 
-        self::assertCount(0, $this->savedObjects);
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A wrong schema is ignored.
+	 *
+	 * @return void
+	 */
+	public function testWrongSchemaIgnored(): void {
+		$handler = $this->makeHandler(programme: null);
 
-    }//end testMissingApplicationIdAborts()
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('subject-choice');
+		$event->method('getTo')->willReturn('placed');
 
-    /**
-     * A wrong schema is ignored.
-     *
-     * @return void
-     */
-    public function testWrongSchemaIgnored(): void
-    {
-        $handler = $this->makeHandler(programme: null);
+		$handler->handle($event);
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('subject-choice');
-        $event->method('getTo')->willReturn('placed');
+		self::assertCount(0, $this->savedObjects);
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($event);
+	}//end testWrongSchemaIgnored()
 
-        self::assertCount(0, $this->savedObjects);
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A target state other than `placed` is ignored.
+	 *
+	 * @return void
+	 */
+	public function testWrongTargetStateIgnored(): void {
+		$handler = $this->makeHandler(programme: null);
 
-    }//end testWrongSchemaIgnored()
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('application');
+		$event->method('getTo')->willReturn('rejected');
 
-    /**
-     * A target state other than `placed` is ignored.
-     *
-     * @return void
-     */
-    public function testWrongTargetStateIgnored(): void
-    {
-        $handler = $this->makeHandler(programme: null);
+		$handler->handle($event);
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('application');
-        $event->method('getTo')->willReturn('rejected');
+		self::assertCount(0, $this->savedObjects);
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($event);
+	}//end testWrongTargetStateIgnored()
 
-        self::assertCount(0, $this->savedObjects);
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A non-ObjectTransitionedEvent is ignored.
+	 *
+	 * @return void
+	 */
+	public function testNonMatchingEventTypeIgnored(): void {
+		$handler = $this->makeHandler(programme: null);
 
-    }//end testWrongTargetStateIgnored()
+		$handler->handle($this->createMock(Event::class));
 
-    /**
-     * A non-ObjectTransitionedEvent is ignored.
-     *
-     * @return void
-     */
-    public function testNonMatchingEventTypeIgnored(): void
-    {
-        $handler = $this->makeHandler(programme: null);
+		self::assertCount(0, $this->savedObjects);
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($this->createMock(Event::class));
-
-        self::assertCount(0, $this->savedObjects);
-        self::assertCount(0, $this->transitions);
-
-    }//end testNonMatchingEventTypeIgnored()
+	}//end testNonMatchingEventTypeIgnored()
 }//end class

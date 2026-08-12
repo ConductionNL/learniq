@@ -32,103 +32,95 @@ use Psr\Log\LoggerInterface;
 /**
  * Tests for the FraudCaseInvalidationGuard (GradeEntry concept → invalidated).
  */
-class FraudCaseInvalidationGuardTest extends TestCase
-{
+class FraudCaseInvalidationGuardTest extends TestCase {
 
-    /**
-     * Build a guard whose ObjectService::find() returns the given FraudCase (or null).
-     *
-     * @param array<string,mixed>|null $fraudCase FraudCase data, or null (not found).
-     *
-     * @return FraudCaseInvalidationGuard
-     */
-    private function makeGuard(?array $fraudCase): FraudCaseInvalidationGuard
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        // OpenRegister's find() returns ?ObjectEntity, never an array.
-        $objectService->method('find')->willReturn(
-            $fraudCase === null ? null : OrEntityFactory::make($fraudCase, 'fraud-case')
-        );
+	/**
+	 * Build a guard whose ObjectService::find() returns the given FraudCase (or null).
+	 *
+	 * @param array<string,mixed>|null $fraudCase FraudCase data, or null (not found).
+	 *
+	 * @return FraudCaseInvalidationGuard
+	 */
+	private function makeGuard(?array $fraudCase): FraudCaseInvalidationGuard {
+		$objectService = $this->createMock(ObjectService::class);
+		// OpenRegister's find() returns ?ObjectEntity, never an array.
+		$objectService->method('find')->willReturn(
+			$fraudCase === null ? null : OrEntityFactory::make($fraudCase, 'fraud-case')
+		);
 
-        return new FraudCaseInvalidationGuard($objectService, $this->createMock(LoggerInterface::class));
+		return new FraudCaseInvalidationGuard($objectService, $this->createMock(LoggerInterface::class));
+	}//end makeGuard()
 
-    }//end makeGuard()
+	/**
+	 * No fraudCaseId set → blocked (fail closed).
+	 *
+	 * @return void
+	 */
+	public function testNoFraudCaseIdBlocks(): void {
+		$guard = $this->makeGuard(fraudCase: null);
+		$context = ['object' => ['id' => 'entry-1']];
 
-    /**
-     * No fraudCaseId set → blocked (fail closed).
-     *
-     * @return void
-     */
-    public function testNoFraudCaseIdBlocks(): void
-    {
-        $guard   = $this->makeGuard(fraudCase: null);
-        $context = ['object' => ['id' => 'entry-1']];
+		self::assertFalse($guard->check($context));
 
-        self::assertFalse($guard->check($context));
+	}//end testNoFraudCaseIdBlocks()
 
-    }//end testNoFraudCaseIdBlocks()
+	/**
+	 * A linked FraudCase that is decided fraud-proven allows invalidate.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-invalidate-succeeds-once-the-linked-case-is-decided-fraud-proven
+	 */
+	public function testDecidedFraudProvenAllowsInvalidate(): void {
+		$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'fraud-proven']);
+		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
 
-    /**
-     * A linked FraudCase that is decided fraud-proven allows invalidate.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-invalidate-succeeds-once-the-linked-case-is-decided-fraud-proven
-     */
-    public function testDecidedFraudProvenAllowsInvalidate(): void
-    {
-        $guard   = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'fraud-proven']);
-        $context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
+		self::assertTrue($guard->check($context));
 
-        self::assertTrue($guard->check($context));
+	}//end testDecidedFraudProvenAllowsInvalidate()
 
-    }//end testDecidedFraudProvenAllowsInvalidate()
+	/**
+	 * A FraudCase not yet decided blocks invalidate.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-invalidate-is-blocked-without-a-fraud-proven-decision
+	 */
+	public function testNotYetDecidedBlocks(): void {
+		foreach (['reported', 'hearing-scheduled', 'heard'] as $state) {
+			$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => $state]);
+			$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
 
-    /**
-     * A FraudCase not yet decided blocks invalidate.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-invalidate-is-blocked-without-a-fraud-proven-decision
-     */
-    public function testNotYetDecidedBlocks(): void
-    {
-        foreach (['reported', 'hearing-scheduled', 'heard'] as $state) {
-            $guard   = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => $state]);
-            $context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
+			self::assertFalse($guard->check($context), "state '{$state}' should block invalidate");
+		}
 
-            self::assertFalse($guard->check($context), "state '{$state}' should block invalidate");
-        }
+	}//end testNotYetDecidedBlocks()
 
-    }//end testNotYetDecidedBlocks()
+	/**
+	 * A FraudCase decided unfounded blocks invalidate.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-invalidate-is-blocked-without-a-fraud-proven-decision
+	 */
+	public function testDecidedUnfoundedBlocks(): void {
+		$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'unfounded']);
+		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
 
-    /**
-     * A FraudCase decided unfounded blocks invalidate.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-invalidate-is-blocked-without-a-fraud-proven-decision
-     */
-    public function testDecidedUnfoundedBlocks(): void
-    {
-        $guard   = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'unfounded']);
-        $context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
+		self::assertFalse($guard->check($context));
 
-        self::assertFalse($guard->check($context));
+	}//end testDecidedUnfoundedBlocks()
 
-    }//end testDecidedUnfoundedBlocks()
+	/**
+	 * An unresolvable fraudCaseId fails closed.
+	 *
+	 * @return void
+	 */
+	public function testUnresolvableFraudCaseFailsClosed(): void {
+		$guard = $this->makeGuard(fraudCase: null);
+		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-missing']];
 
-    /**
-     * An unresolvable fraudCaseId fails closed.
-     *
-     * @return void
-     */
-    public function testUnresolvableFraudCaseFailsClosed(): void
-    {
-        $guard   = $this->makeGuard(fraudCase: null);
-        $context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-missing']];
+		self::assertFalse($guard->check($context));
 
-        self::assertFalse($guard->check($context));
-
-    }//end testUnresolvableFraudCaseFailsClosed()
+	}//end testUnresolvableFraudCaseFailsClosed()
 }//end class

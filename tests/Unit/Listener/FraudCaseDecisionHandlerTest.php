@@ -42,235 +42,221 @@ use Psr\Log\NullLogger;
 /**
  * Tests for FraudCaseDecisionHandler::handle() on FraudCase → decided.
  */
-class FraudCaseDecisionHandlerTest extends TestCase
-{
+class FraudCaseDecisionHandlerTest extends TestCase {
 
-    /**
-     * Recorded transition() calls.
-     *
-     * @var array<int, array{objectId: string, action: string}>
-     */
-    private array $transitions = [];
+	/**
+	 * Recorded transition() calls.
+	 *
+	 * @var array<int, array{objectId: string, action: string}>
+	 */
+	private array $transitions = [];
 
-    /**
-     * Reset the capture buffer before each test.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->transitions = [];
+	/**
+	 * Reset the capture buffer before each test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->transitions = [];
 
-    }//end setUp()
+	}//end setUp()
 
-    /**
-     * Build a handler whose ObjectService::find() returns the given contested GradeEntry.
-     *
-     * @param array<string,mixed>|null $gradeEntry GradeEntry data returned by find(), or null.
-     *
-     * @return FraudCaseDecisionHandler
-     */
-    private function makeHandler(?array $gradeEntry): FraudCaseDecisionHandler
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn(
-            ($gradeEntry === null) ? null : OrEntityFactory::make($gradeEntry, 'grade-entry')
-        );
+	/**
+	 * Build a handler whose ObjectService::find() returns the given contested GradeEntry.
+	 *
+	 * @param array<string,mixed>|null $gradeEntry GradeEntry data returned by find(), or null.
+	 *
+	 * @return FraudCaseDecisionHandler
+	 */
+	private function makeHandler(?array $gradeEntry): FraudCaseDecisionHandler {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturn(
+			($gradeEntry === null) ? null : OrEntityFactory::make($gradeEntry, 'grade-entry')
+		);
 
-        $transitionEngine = $this->createMock(TransitionEngine::class);
-        $transitionEngine->method('transition')->willReturnCallback(
-            function (string $objectId, string $action): ObjectEntity {
-                $this->transitions[] = ['objectId' => $objectId, 'action' => $action];
-                return OrEntityFactory::make(['id' => $objectId], 'grade-entry');
-            }
-        );
+		$transitionEngine = $this->createMock(TransitionEngine::class);
+		$transitionEngine->method('transition')->willReturnCallback(
+			function (string $objectId, string $action): ObjectEntity {
+				$this->transitions[] = ['objectId' => $objectId, 'action' => $action];
+				return OrEntityFactory::make(['id' => $objectId], 'grade-entry');
+			}
+		);
 
-        return new FraudCaseDecisionHandler($objectService, $transitionEngine, new NullLogger());
+		return new FraudCaseDecisionHandler($objectService, $transitionEngine, new NullLogger());
+	}//end makeHandler()
 
-    }//end makeHandler()
+	/**
+	 * Build a mocked ObjectTransitionedEvent for a FraudCase → decided transition.
+	 *
+	 * @param array<string, mixed> $caseData The FraudCase's jsonSerialize() payload.
+	 *
+	 * @return ObjectTransitionedEvent
+	 */
+	private function makeEvent(array $caseData): ObjectTransitionedEvent {
+		$objectEntity = $this->createMock(ObjectEntity::class);
+		$objectEntity->method('jsonSerialize')->willReturn($caseData);
 
-    /**
-     * Build a mocked ObjectTransitionedEvent for a FraudCase → decided transition.
-     *
-     * @param array<string, mixed> $caseData The FraudCase's jsonSerialize() payload.
-     *
-     * @return ObjectTransitionedEvent
-     */
-    private function makeEvent(array $caseData): ObjectTransitionedEvent
-    {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($caseData);
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getObject')->willReturn($objectEntity);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('fraud-case');
+		$event->method('getTo')->willReturn('decided');
+		$event->method('getFrom')->willReturn('heard');
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getObject')->willReturn($objectEntity);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('fraud-case');
-        $event->method('getTo')->willReturn('decided');
-        $event->method('getFrom')->willReturn('heard');
+		return $event;
+	}//end makeEvent()
 
-        return $event;
+	/**
+	 * verdict=fraud-proven with a still-concept contested entry drives invalidate.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#scenario-a-fraud-proven-decision-invalidates-the-blocked-still-concept-entry
+	 */
+	public function testFraudProvenInvalidatesConceptContestedEntry(): void {
+		$handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);
 
-    }//end makeEvent()
+		$case = [
+			'id' => 'case-1',
+			'verdict' => 'fraud-proven',
+			'contestedGradeEntryId' => 'entry-1',
+		];
 
-    /**
-     * verdict=fraud-proven with a still-concept contested entry drives invalidate.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#scenario-a-fraud-proven-decision-invalidates-the-blocked-still-concept-entry
-     */
-    public function testFraudProvenInvalidatesConceptContestedEntry(): void
-    {
-        $handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);
+		$handler->handle($this->makeEvent($case));
 
-        $case = [
-            'id'                     => 'case-1',
-            'verdict'                => 'fraud-proven',
-            'contestedGradeEntryId'  => 'entry-1',
-        ];
+		self::assertCount(1, $this->transitions);
+		self::assertSame('entry-1', $this->transitions[0]['objectId']);
+		self::assertSame('invalidate', $this->transitions[0]['action']);
 
-        $handler->handle($this->makeEvent($case));
+	}//end testFraudProvenInvalidatesConceptContestedEntry()
 
-        self::assertCount(1, $this->transitions);
-        self::assertSame('entry-1', $this->transitions[0]['objectId']);
-        self::assertSame('invalidate', $this->transitions[0]['action']);
+	/**
+	 * verdict=unfounded never triggers invalidate, even with a contestedGradeEntryId set.
+	 *
+	 * @return void
+	 */
+	public function testUnfoundedVerdictDoesNotInvalidate(): void {
+		$handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);
 
-    }//end testFraudProvenInvalidatesConceptContestedEntry()
+		$case = [
+			'id' => 'case-1',
+			'verdict' => 'unfounded',
+			'contestedGradeEntryId' => 'entry-1',
+		];
 
-    /**
-     * verdict=unfounded never triggers invalidate, even with a contestedGradeEntryId set.
-     *
-     * @return void
-     */
-    public function testUnfoundedVerdictDoesNotInvalidate(): void
-    {
-        $handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);
+		$handler->handle($this->makeEvent($case));
 
-        $case = [
-            'id'                    => 'case-1',
-            'verdict'               => 'unfounded',
-            'contestedGradeEntryId' => 'entry-1',
-        ];
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($this->makeEvent($case));
+	}//end testUnfoundedVerdictDoesNotInvalidate()
 
-        self::assertCount(0, $this->transitions);
+	/**
+	 * No contestedGradeEntryId is a no-op even with verdict=fraud-proven.
+	 *
+	 * @return void
+	 */
+	public function testNoContestedGradeEntryIdIsNoOp(): void {
+		$handler = $this->makeHandler(gradeEntry: null);
 
-    }//end testUnfoundedVerdictDoesNotInvalidate()
+		$case = ['id' => 'case-1', 'verdict' => 'fraud-proven'];
 
-    /**
-     * No contestedGradeEntryId is a no-op even with verdict=fraud-proven.
-     *
-     * @return void
-     */
-    public function testNoContestedGradeEntryIdIsNoOp(): void
-    {
-        $handler = $this->makeHandler(gradeEntry: null);
+		$handler->handle($this->makeEvent($case));
 
-        $case = ['id' => 'case-1', 'verdict' => 'fraud-proven'];
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($this->makeEvent($case));
+	}//end testNoContestedGradeEntryIdIsNoOp()
 
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A contested GradeEntry already published is left untouched — defensive skip,
+	 * never mutates a published, notified grade out from under a learner.
+	 *
+	 * @return void
+	 */
+	public function testAlreadyPublishedContestedEntryIsLeftUntouched(): void {
+		$handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'published']);
 
-    }//end testNoContestedGradeEntryIdIsNoOp()
+		$case = [
+			'id' => 'case-1',
+			'verdict' => 'fraud-proven',
+			'contestedGradeEntryId' => 'entry-1',
+		];
 
-    /**
-     * A contested GradeEntry already published is left untouched — defensive skip,
-     * never mutates a published, notified grade out from under a learner.
-     *
-     * @return void
-     */
-    public function testAlreadyPublishedContestedEntryIsLeftUntouched(): void
-    {
-        $handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'published']);
+		$handler->handle($this->makeEvent($case));
 
-        $case = [
-            'id'                    => 'case-1',
-            'verdict'               => 'fraud-proven',
-            'contestedGradeEntryId' => 'entry-1',
-        ];
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($this->makeEvent($case));
+	}//end testAlreadyPublishedContestedEntryIsLeftUntouched()
 
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A contestedGradeEntryId that resolves to no GradeEntry is skipped.
+	 *
+	 * @return void
+	 */
+	public function testUnresolvableContestedGradeEntrySkipped(): void {
+		$handler = $this->makeHandler(gradeEntry: null);
 
-    }//end testAlreadyPublishedContestedEntryIsLeftUntouched()
+		$case = [
+			'id' => 'case-1',
+			'verdict' => 'fraud-proven',
+			'contestedGradeEntryId' => 'entry-missing',
+		];
 
-    /**
-     * A contestedGradeEntryId that resolves to no GradeEntry is skipped.
-     *
-     * @return void
-     */
-    public function testUnresolvableContestedGradeEntrySkipped(): void
-    {
-        $handler = $this->makeHandler(gradeEntry: null);
+		$handler->handle($this->makeEvent($case));
 
-        $case = [
-            'id'                    => 'case-1',
-            'verdict'               => 'fraud-proven',
-            'contestedGradeEntryId' => 'entry-missing',
-        ];
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($this->makeEvent($case));
+	}//end testUnresolvableContestedGradeEntrySkipped()
 
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A non-FraudCase event (wrong schema) is ignored.
+	 *
+	 * @return void
+	 */
+	public function testWrongSchemaIgnored(): void {
+		$handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);
 
-    }//end testUnresolvableContestedGradeEntrySkipped()
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('exemption-case');
+		$event->method('getTo')->willReturn('decided');
 
-    /**
-     * A non-FraudCase event (wrong schema) is ignored.
-     *
-     * @return void
-     */
-    public function testWrongSchemaIgnored(): void
-    {
-        $handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);
+		$handler->handle($event);
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('exemption-case');
-        $event->method('getTo')->willReturn('decided');
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($event);
+	}//end testWrongSchemaIgnored()
 
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A transition to a state other than `decided` is ignored.
+	 *
+	 * @return void
+	 */
+	public function testWrongTargetStateIgnored(): void {
+		$handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);
 
-    }//end testWrongSchemaIgnored()
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('fraud-case');
+		$event->method('getTo')->willReturn('dismissed');
 
-    /**
-     * A transition to a state other than `decided` is ignored.
-     *
-     * @return void
-     */
-    public function testWrongTargetStateIgnored(): void
-    {
-        $handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);
+		$handler->handle($event);
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('fraud-case');
-        $event->method('getTo')->willReturn('dismissed');
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($event);
+	}//end testWrongTargetStateIgnored()
 
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A non-ObjectTransitionedEvent is ignored.
+	 *
+	 * @return void
+	 */
+	public function testNonMatchingEventTypeIgnored(): void {
+		$handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);
 
-    }//end testWrongTargetStateIgnored()
+		$handler->handle($this->createMock(Event::class));
 
-    /**
-     * A non-ObjectTransitionedEvent is ignored.
-     *
-     * @return void
-     */
-    public function testNonMatchingEventTypeIgnored(): void
-    {
-        $handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($this->createMock(Event::class));
-
-        self::assertCount(0, $this->transitions);
-
-    }//end testNonMatchingEventTypeIgnored()
+	}//end testNonMatchingEventTypeIgnored()
 }//end class

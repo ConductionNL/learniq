@@ -59,279 +59,269 @@ use OCP\EventDispatcher\IEventListener;
  *
  * @implements IEventListener<Event>
  */
-class BsaProgressFlagHandler implements IEventListener
-{
+class BsaProgressFlagHandler implements IEventListener {
 
-    private const SCHOLIQ_REGISTER         = 'scholiq';
-    private const GRADE_ENTRY_SCHEMA       = 'grade-entry';
-    private const COURSE_SCHEMA            = 'course';
-    private const BSA_TRAJECTORY_SCHEMA    = 'bsa-trajectory';
-    private const BSA_PROGRESS_FLAG_SCHEMA = 'bsa-progress-flag';
+	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
+	private const COURSE_SCHEMA = 'course';
+	private const BSA_TRAJECTORY_SCHEMA = 'bsa-trajectory';
+	private const BSA_PROGRESS_FLAG_SCHEMA = 'bsa-progress-flag';
 
-    /**
-     * BsaProgressFlag lifecycle states that count as "still open" for
-     * idempotency purposes — a resolved flag does not block a fresh one.
-     *
-     * @var string[]
-     */
-    private const OPEN_FLAG_STATES = ['open', 'in-handling', 'warned'];
+	/**
+	 * BsaProgressFlag lifecycle states that count as "still open" for
+	 * idempotency purposes — a resolved flag does not block a fresh one.
+	 *
+	 * @var string[]
+	 */
+	private const OPEN_FLAG_STATES = ['open', 'in-handling', 'warned'];
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService        $objectService OR object access.
-     * @param BsaProgressEvaluator $evaluator     ectsEarned calculation engine.
-     * @param ITimeFactory         $timeFactory   NC time source (injectable "now" for tests).
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly BsaProgressEvaluator $evaluator,
-        private readonly ITimeFactory $timeFactory,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access.
+	 * @param BsaProgressEvaluator $evaluator ectsEarned calculation engine.
+	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly BsaProgressEvaluator $evaluator,
+		private readonly ITimeFactory $timeFactory,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an ObjectTransitionedEvent.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
-     */
-    public function handle(Event $event): void
-    {
-        if (($event instanceof ObjectTransitionedEvent) === false) {
-            return;
-        }
+	/**
+	 * Handle an ObjectTransitionedEvent.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 */
+	public function handle(Event $event): void {
+		if (($event instanceof ObjectTransitionedEvent) === false) {
+			return;
+		}
 
-        if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
-            return;
-        }
+		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+			return;
+		}
 
-        if ($event->getSchema() !== self::GRADE_ENTRY_SCHEMA || $event->getTo() !== 'published') {
-            return;
-        }
+		if ($event->getSchema() !== self::GRADE_ENTRY_SCHEMA || $event->getTo() !== 'published') {
+			return;
+		}
 
-        $entry     = $event->getObject()->jsonSerialize();
-        $learnerId = $entry['learnerId'] ?? '';
-        $courseId  = $entry['courseId'] ?? null;
-        $tenantId  = $entry['tenant_id'] ?? '';
+		$entry = $event->getObject()->jsonSerialize();
+		$learnerId = $entry['learnerId'] ?? '';
+		$courseId = $entry['courseId'] ?? null;
+		$tenantId = $entry['tenant_id'] ?? '';
 
-        if ($learnerId === '' || $courseId === null) {
-            // Cohort-only GradeEntries (no courseId) carry no Programme scope
-            // to check trajectories against — nothing to do.
-            return;
-        }
+		if ($learnerId === '' || $courseId === null) {
+			// Cohort-only GradeEntries (no courseId) carry no Programme scope
+			// to check trajectories against — nothing to do.
+			return;
+		}
 
-        $programmeIds = $this->resolveProgrammeIds(courseId: $courseId);
+		$programmeIds = $this->resolveProgrammeIds(courseId: $courseId);
 
-        foreach ($programmeIds as $programmeId) {
-            $this->checkProgramme(programmeId: $programmeId, learnerId: $learnerId, tenantId: $tenantId);
-        }
+		foreach ($programmeIds as $programmeId) {
+			$this->checkProgramme(programmeId: $programmeId, learnerId: $learnerId, tenantId: $tenantId);
+		}
 
-    }//end handle()
+	}//end handle()
 
-    /**
-     * Resolve the Programme(s) a Course belongs to.
-     *
-     * The Course is resolved by id, which is already tenant-unique, so no
-     * tenant argument is needed to scope the lookup.
-     *
-     * @param string $courseId UUID of the Course.
-     *
-     * @return array<int, string>
-     */
-    private function resolveProgrammeIds(string $courseId): array
-    {
-        $course = $this->objectService->find(
-            id: $courseId,
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::COURSE_SCHEMA
-        );
+	/**
+	 * Resolve the Programme(s) a Course belongs to.
+	 *
+	 * The Course is resolved by id, which is already tenant-unique, so no
+	 * tenant argument is needed to scope the lookup.
+	 *
+	 * @param string $courseId UUID of the Course.
+	 *
+	 * @return array<int, string>
+	 */
+	private function resolveProgrammeIds(string $courseId): array {
+		$course = $this->objectService->find(
+			id: $courseId,
+			register: self::SCHOLIQ_REGISTER,
+			schema: self::COURSE_SCHEMA
+		);
 
-        if ($course === null) {
-            return [];
-        }
+		if ($course === null) {
+			return [];
+		}
 
-        $courseData = $course->jsonSerialize();
+		$courseData = $course->jsonSerialize();
 
-        $programmeIds = $courseData['programmeIds'] ?? [];
-        if (is_array($programmeIds) === false) {
-            return [];
-        }
+		$programmeIds = $courseData['programmeIds'] ?? [];
+		if (is_array($programmeIds) === false) {
+			return [];
+		}
 
-        return array_values(array_filter($programmeIds, static fn ($id) => is_string($id) && $id !== ''));
+		return array_values(array_filter($programmeIds, static fn ($id) => is_string($id) && $id !== ''));
+	}//end resolveProgrammeIds()
 
-    }//end resolveProgrammeIds()
+	/**
+	 * Check every active BsaTrajectory for a Programme against the learner's
+	 * recomputed ectsEarned, creating a flag when at risk.
+	 *
+	 * @param string $programmeId Programme UUID.
+	 * @param string $learnerId NC user ID of the learner.
+	 * @param string $tenantId Tenant ID.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 */
+	private function checkProgramme(string $programmeId, string $learnerId, string $tenantId): void {
+		$trajectories = $this->objectService->findAll(
+			[
+				'register' => self::SCHOLIQ_REGISTER,
+				'schema' => self::BSA_TRAJECTORY_SCHEMA,
+				'filters' => [
+					'programmeId' => $programmeId,
+					'lifecycle' => 'active',
+				],
+			]
+		);
 
-    /**
-     * Check every active BsaTrajectory for a Programme against the learner's
-     * recomputed ectsEarned, creating a flag when at risk.
-     *
-     * @param string $programmeId Programme UUID.
-     * @param string $learnerId   NC user ID of the learner.
-     * @param string $tenantId    Tenant ID.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
-     */
-    private function checkProgramme(string $programmeId, string $learnerId, string $tenantId): void
-    {
-        $trajectories = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::BSA_TRAJECTORY_SCHEMA,
-                'filters'  => [
-                    'programmeId' => $programmeId,
-                    'lifecycle'   => 'active',
-                ],
-            ]
-        );
+		foreach ($trajectories as $trajectory) {
+			if (is_array($trajectory) === false) {
+				$trajectory = $trajectory->jsonSerialize();
+			}
 
-        foreach ($trajectories as $trajectory) {
-            if (is_array($trajectory) === false) {
-                $trajectory = $trajectory->jsonSerialize();
-            }
+			$this->checkTrajectory(trajectory: $trajectory, learnerId: $learnerId, tenantId: $tenantId);
+		}
 
-            $this->checkTrajectory(trajectory: $trajectory, learnerId: $learnerId, tenantId: $tenantId);
-        }
+	}//end checkProgramme()
 
-    }//end checkProgramme()
+	/**
+	 * Evaluate a single BsaTrajectory for a learner and create a flag if at risk.
+	 *
+	 * @param array<string,mixed> $trajectory BsaTrajectory data.
+	 * @param string $learnerId NC user ID of the learner.
+	 * @param string $tenantId Tenant ID.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 */
+	private function checkTrajectory(array $trajectory, string $learnerId, string $tenantId): void {
+		$interimNormEcts = $trajectory['interimNormEcts'] ?? null;
+		if ($interimNormEcts === null) {
+			// No interim pace threshold configured — nothing to check ahead
+			// of the guideline for this trajectory.
+			return;
+		}
 
-    /**
-     * Evaluate a single BsaTrajectory for a learner and create a flag if at risk.
-     *
-     * @param array<string,mixed> $trajectory BsaTrajectory data.
-     * @param string              $learnerId  NC user ID of the learner.
-     * @param string              $tenantId   Tenant ID.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
-     */
-    private function checkTrajectory(array $trajectory, string $learnerId, string $tenantId): void
-    {
-        $interimNormEcts = $trajectory['interimNormEcts'] ?? null;
-        if ($interimNormEcts === null) {
-            // No interim pace threshold configured — nothing to check ahead
-            // of the guideline for this trajectory.
-            return;
-        }
+		$now = $this->timeFactory->now();
+		if ($this->windowHasOpened(trajectory: $trajectory, now: $now) === false) {
+			// No usable windowOpensAt, or the interim-check window has not
+			// opened yet.
+			return;
+		}
 
-        $now = $this->timeFactory->now();
-        if ($this->windowHasOpened(trajectory: $trajectory, now: $now) === false) {
-            // No usable windowOpensAt, or the interim-check window has not
-            // opened yet.
-            return;
-        }
+		$programmeId = $trajectory['programmeId'] ?? '';
+		$bsaTrajectoryId = $trajectory['id'] ?? ($trajectory['uuid'] ?? '');
+		$academicYear = $trajectory['academicYear'] ?? '';
 
-        $programmeId     = $trajectory['programmeId'] ?? '';
-        $bsaTrajectoryId = $trajectory['id'] ?? ($trajectory['uuid'] ?? '');
-        $academicYear    = $trajectory['academicYear'] ?? '';
+		if ($programmeId === '' || $bsaTrajectoryId === '') {
+			return;
+		}
 
-        if ($programmeId === '' || $bsaTrajectoryId === '') {
-            return;
-        }
+		$result = $this->evaluator->evaluate(programmeId: $programmeId, learnerId: $learnerId);
+		$ectsEarned = $result['ectsEarned'];
 
-        $result     = $this->evaluator->evaluate(programmeId: $programmeId, learnerId: $learnerId);
-        $ectsEarned = $result['ectsEarned'];
+		if ($ectsEarned >= (float)$interimNormEcts) {
+			// Not at risk.
+			return;
+		}
 
-        if ($ectsEarned >= (float) $interimNormEcts) {
-            // Not at risk.
-            return;
-        }
+		if ($this->hasOpenFlag(learnerId: $learnerId, bsaTrajectoryId: $bsaTrajectoryId) === true) {
+			// Idempotency: do not duplicate an already-open flag for this
+			// learner + trajectory.
+			return;
+		}
 
-        if ($this->hasOpenFlag(learnerId: $learnerId, bsaTrajectoryId: $bsaTrajectoryId) === true) {
-            // Idempotency: do not duplicate an already-open flag for this
-            // learner + trajectory.
-            return;
-        }
+		$this->objectService->saveObject(
+			register: self::SCHOLIQ_REGISTER,
+			schema: self::BSA_PROGRESS_FLAG_SCHEMA,
+			object: [
+				'learnerId' => $learnerId,
+				'programmeId' => $programmeId,
+				'bsaTrajectoryId' => $bsaTrajectoryId,
+				'academicYear' => $academicYear,
+				'ectsEarned' => $ectsEarned,
+				'ectsRequiredAtCheck' => (float)$interimNormEcts,
+				'flaggedAt' => $now->format(\DATE_ATOM),
+				'lifecycle' => 'open',
+				'tenant_id' => $tenantId,
+			]
+		);
 
-        $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::BSA_PROGRESS_FLAG_SCHEMA,
-            object: [
-                'learnerId'           => $learnerId,
-                'programmeId'         => $programmeId,
-                'bsaTrajectoryId'     => $bsaTrajectoryId,
-                'academicYear'        => $academicYear,
-                'ectsEarned'          => $ectsEarned,
-                'ectsRequiredAtCheck' => (float) $interimNormEcts,
-                'flaggedAt'           => $now->format(\DATE_ATOM),
-                'lifecycle'           => 'open',
-                'tenant_id'           => $tenantId,
-            ]
-        );
+	}//end checkTrajectory()
 
-    }//end checkTrajectory()
+	/**
+	 * Whether a trajectory's interim-check window has opened at the given moment.
+	 *
+	 * A missing, empty, or unparsable `windowOpensAt` counts as "not opened" —
+	 * the handler never flags a learner off a date it cannot read.
+	 *
+	 * @param array<string,mixed> $trajectory BsaTrajectory data.
+	 * @param DateTimeImmutable $now The current moment.
+	 *
+	 * @return bool True when the window has opened and the check may proceed.
+	 *
+	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 */
+	private function windowHasOpened(array $trajectory, DateTimeImmutable $now): bool {
+		$windowOpensAt = $trajectory['windowOpensAt'] ?? null;
+		if (is_string($windowOpensAt) === false || $windowOpensAt === '') {
+			return false;
+		}
 
-    /**
-     * Whether a trajectory's interim-check window has opened at the given moment.
-     *
-     * A missing, empty, or unparsable `windowOpensAt` counts as "not opened" —
-     * the handler never flags a learner off a date it cannot read.
-     *
-     * @param array<string,mixed> $trajectory BsaTrajectory data.
-     * @param DateTimeImmutable   $now        The current moment.
-     *
-     * @return bool True when the window has opened and the check may proceed.
-     *
-     * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
-     */
-    private function windowHasOpened(array $trajectory, DateTimeImmutable $now): bool
-    {
-        $windowOpensAt = $trajectory['windowOpensAt'] ?? null;
-        if (is_string($windowOpensAt) === false || $windowOpensAt === '') {
-            return false;
-        }
+		try {
+			$windowOpensAtDate = new DateTimeImmutable($windowOpensAt);
+		} catch (\Exception) {
+			return false;
+		}
 
-        try {
-            $windowOpensAtDate = new DateTimeImmutable($windowOpensAt);
-        } catch (\Exception) {
-            return false;
-        }
+		return $now >= $windowOpensAtDate;
+	}//end windowHasOpened()
 
-        return $now >= $windowOpensAtDate;
+	/**
+	 * Check whether a still-open BsaProgressFlag already exists for this
+	 * learner + trajectory.
+	 *
+	 * @param string $learnerId NC user ID of the learner.
+	 * @param string $bsaTrajectoryId UUID of the BsaTrajectory.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
+	 */
+	private function hasOpenFlag(string $learnerId, string $bsaTrajectoryId): bool {
+		foreach (self::OPEN_FLAG_STATES as $state) {
+			$existing = $this->objectService->findAll(
+				[
+					'register' => self::SCHOLIQ_REGISTER,
+					'schema' => self::BSA_PROGRESS_FLAG_SCHEMA,
+					'filters' => [
+						'learnerId' => $learnerId,
+						'bsaTrajectoryId' => $bsaTrajectoryId,
+						'lifecycle' => $state,
+					],
+					'limit' => 1,
+				]
+			);
 
-    }//end windowHasOpened()
+			if (empty($existing) === false) {
+				return true;
+			}
+		}
 
-    /**
-     * Check whether a still-open BsaProgressFlag already exists for this
-     * learner + trajectory.
-     *
-     * @param string $learnerId       NC user ID of the learner.
-     * @param string $bsaTrajectoryId UUID of the BsaTrajectory.
-     *
-     * @return bool
-     *
-     * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
-     */
-    private function hasOpenFlag(string $learnerId, string $bsaTrajectoryId): bool
-    {
-        foreach (self::OPEN_FLAG_STATES as $state) {
-            $existing = $this->objectService->findAll(
-                [
-                    'register' => self::SCHOLIQ_REGISTER,
-                    'schema'   => self::BSA_PROGRESS_FLAG_SCHEMA,
-                    'filters'  => [
-                        'learnerId'       => $learnerId,
-                        'bsaTrajectoryId' => $bsaTrajectoryId,
-                        'lifecycle'       => $state,
-                    ],
-                    'limit'    => 1,
-                ]
-            );
-
-            if (empty($existing) === false) {
-                return true;
-            }
-        }
-
-        return false;
-
-    }//end hasOpenFlag()
+		return false;
+	}//end hasOpenFlag()
 }//end class

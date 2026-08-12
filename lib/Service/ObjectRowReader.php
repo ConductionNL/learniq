@@ -39,72 +39,67 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * Reads a single Scholiq-register object by id, normalised to a plain array.
  */
-class ObjectRowReader
-{
+class ObjectRowReader {
 
-    private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'scholiq';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService $objectService OR object access service.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access service.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+	) {
+	}//end __construct()
 
-    /**
-     * Load a single OpenRegister object by id.
-     *
-     * @param string $schema Schema slug.
-     * @param string $id     Object UUID.
-     *
-     * @return array<string,mixed>|null The object data, or null when not found.
-     *
-     * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
-     */
-    public function load(string $schema, string $id): ?array
-    {
-        if ($id === '') {
-            return null;
-        }
+	/**
+	 * Load a single OpenRegister object by id.
+	 *
+	 * @param string $schema Schema slug.
+	 * @param string $id Object UUID.
+	 *
+	 * @return array<string,mixed>|null The object data, or null when not found.
+	 *
+	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 */
+	public function load(string $schema, string $id): ?array {
+		if ($id === '') {
+			return null;
+		}
 
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => $schema,
-                'filters'  => ['id' => $id],
-                'limit'    => 1,
-            ]
-        );
+		$results = $this->objectService->findAll(
+			[
+				'register' => self::SCHOLIQ_REGISTER,
+				'schema' => $schema,
+				'filters' => ['id' => $id],
+				'limit' => 1,
+			]
+		);
 
-        if (empty($results) === true) {
-            return null;
-        }
+		if (empty($results) === true) {
+			return null;
+		}
 
-        return $this->toArray(object: $results[0]);
+		return $this->toArray(object: $results[0]);
+	}//end load()
 
-    }//end load()
+	/**
+	 * Normalise an OR object result (array or ObjectEntity-like) to a plain array.
+	 *
+	 * @param mixed $object The raw findAll()/saveObject() result element.
+	 *
+	 * @return array<string,mixed>
+	 *
+	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
+	 */
+	public function toArray(mixed $object): array {
+		if (is_array($object) === true) {
+			return $object;
+		}
 
-    /**
-     * Normalise an OR object result (array or ObjectEntity-like) to a plain array.
-     *
-     * @param mixed $object The raw findAll()/saveObject() result element.
-     *
-     * @return array<string,mixed>
-     *
-     * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
-     */
-    public function toArray(mixed $object): array
-    {
-        if (is_array($object) === true) {
-            return $object;
-        }
-
-        return $object->jsonSerialize();
-
-    }//end toArray()
+		return $object->jsonSerialize();
+	}//end toArray()
 }//end class

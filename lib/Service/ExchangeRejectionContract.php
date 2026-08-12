@@ -32,30 +32,29 @@ namespace OCA\Scholiq\Service;
 /**
  * Shared ExchangeRejection constants: sourceKind field map and the per-job row cap.
  */
-final class ExchangeRejectionContract
-{
+final class ExchangeRejectionContract {
 
-    /**
-     * Whitelisted scope.schema slugs supported as an ExchangeRejection
-     * sourceKind, mapped to the typed $ref id field that carries the resolved
-     * source object's id. The schema slug IS the sourceKind enum value for every
-     * entry — mirrors GradeEntry.sourceKind's "one nullable typed field per enum
-     * value" shape (design.md "sourceKind enum + per-kind typed $ref").
-     *
-     * @var array<string,string>
-     */
-    public const SOURCE_KIND_FIELD_MAP = [
-        'learner-profile' => 'learnerProfileId',
-        'enrolment'       => 'enrolmentId',
-        'final-grade'     => 'finalGradeId',
-        'attendance-flag' => 'attendanceFlagId',
-        'support-request' => 'supportRequestId',
-    ];
+	/**
+	 * Whitelisted scope.schema slugs supported as an ExchangeRejection
+	 * sourceKind, mapped to the typed $ref id field that carries the resolved
+	 * source object's id. The schema slug IS the sourceKind enum value for every
+	 * entry — mirrors GradeEntry.sourceKind's "one nullable typed field per enum
+	 * value" shape (design.md "sourceKind enum + per-kind typed $ref").
+	 *
+	 * @var array<string,string>
+	 */
+	public const SOURCE_KIND_FIELD_MAP = [
+		'learner-profile' => 'learnerProfileId',
+		'enrolment' => 'enrolmentId',
+		'final-grade' => 'finalGradeId',
+		'attendance-flag' => 'attendanceFlagId',
+		'support-request' => 'supportRequestId',
+	];
 
-    /**
-     * Upper bound on existing ExchangeRejection rows queried per job for the
-     * idempotency check. A single job rejecting more than this many distinct
-     * records in one run is not expected; raise if ever hit in practice.
-     */
-    public const MAX_REJECTIONS_PER_JOB = 5000;
+	/**
+	 * Upper bound on existing ExchangeRejection rows queried per job for the
+	 * idempotency check. A single job rejecting more than this many distinct
+	 * records in one run is not expected; raise if ever hit in practice.
+	 */
+	public const MAX_REJECTIONS_PER_JOB = 5000;
 }//end class

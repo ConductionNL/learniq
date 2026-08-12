@@ -29,19 +29,16 @@ use OCA\OpenRegister\Db\ObjectEntity;
 /**
  * Mirror of OpenRegister's TransitionEngine for standalone Scholiq unit tests.
  */
-abstract class TransitionEngine
-{
+abstract class TransitionEngine {
 
-
-    /**
-     * Run a lifecycle transition and return the resulting entity.
-     *
-     * @param string $objectId Object uuid.
-     * @param string $action   Transition action name.
-     *
-     * @return ObjectEntity
-     */
-    abstract public function transition(string $objectId, string $action): ObjectEntity;
-
+	/**
+	 * Run a lifecycle transition and return the resulting entity.
+	 *
+	 * @param string $objectId Object uuid.
+	 * @param string $action Transition action name.
+	 *
+	 * @return ObjectEntity
+	 */
+	abstract public function transition(string $objectId, string $action): ObjectEntity;
 
 }//end class
