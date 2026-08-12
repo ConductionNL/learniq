@@ -25,22 +25,17 @@ use OCP\AppFramework\Db\Entity;
 /**
  * Mirror of OpenRegister's Register entity for standalone Scholiq unit tests.
  */
-class Register extends Entity implements JsonSerializable
-{
+class Register extends Entity implements JsonSerializable {
 
-    protected ?string $slug = null;
+	protected ?string $slug = null;
 
-
-    /**
-     * Serialize the register.
-     *
-     * @return array<string,mixed>
-     */
-    public function jsonSerialize(): array
-    {
-        return ['id' => $this->id, 'slug' => $this->slug];
-
-    }//end jsonSerialize()
-
+	/**
+	 * Serialize the register.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function jsonSerialize(): array {
+		return ['id' => $this->id, 'slug' => $this->slug];
+	}//end jsonSerialize()
 
 }//end class

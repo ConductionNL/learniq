@@ -38,39 +38,34 @@ use OCP\IUser;
  * parent's concrete implementations at runtime. Declaring these `abstract`
  * here would force phpstan to demand overrides that don't exist.
  */
-class GenericActionAuthService
-{
-    /**
-     * @param string $appId
-     * @param mixed  $appConfig
-     * @param mixed  $groupManager
-     */
-    public function __construct($appId, $appConfig, $groupManager)
-    {
-    }//end __construct()
+class GenericActionAuthService {
+	/**
+	 * @param string $appId
+	 * @param mixed $appConfig
+	 * @param mixed $groupManager
+	 */
+	public function __construct($appId, $appConfig, $groupManager) {
+	}//end __construct()
 
-    /**
-     * @param IUser  $user
-     * @param string $action
-     * @return void
-     */
-    public function requireAction(IUser $user, string $action): void
-    {
-    }//end requireAction()
+	/**
+	 * @param IUser $user
+	 * @param string $action
+	 * @return void
+	 */
+	public function requireAction(IUser $user, string $action): void {
+	}//end requireAction()
 
-    /**
-     * @return array<string,array<int,string>>
-     */
-    public function getMatrix(): array
-    {
-        return [];
-    }//end getMatrix()
+	/**
+	 * @return array<string,array<int,string>>
+	 */
+	public function getMatrix(): array {
+		return [];
+	}//end getMatrix()
 
-    /**
-     * @param array<string,array<int,string>> $matrix
-     * @return void
-     */
-    public function setMatrix(array $matrix): void
-    {
-    }//end setMatrix()
+	/**
+	 * @param array<string,array<int,string>> $matrix
+	 * @return void
+	 */
+	public function setMatrix(array $matrix): void {
+	}//end setMatrix()
 }//end class

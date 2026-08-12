@@ -46,288 +46,275 @@ use PHPUnit\Framework\TestCase;
 /**
  * Tests for LessonReleaseController::status() / assessmentStatus().
  */
-class LessonReleaseControllerTest extends TestCase
-{
+class LessonReleaseControllerTest extends TestCase {
 
-    /**
-     * In-memory fake OR datastore, keyed by schema slug.
-     *
-     * @var array<string, array<int, array<string,mixed>>>
-     */
-    private array $db = [];
+	/**
+	 * In-memory fake OR datastore, keyed by schema slug.
+	 *
+	 * @var array<string, array<int, array<string,mixed>>>
+	 */
+	private array $db = [];
 
-    /**
-     * @var IUserSession&MockObject
-     */
-    private IUserSession&MockObject $userSession;
+	/**
+	 * @var IUserSession&MockObject
+	 */
+	private IUserSession&MockObject $userSession;
 
-    /**
-     * @var DashboardRoleService&MockObject
-     */
-    private DashboardRoleService&MockObject $dashboardRoleService;
+	/**
+	 * @var DashboardRoleService&MockObject
+	 */
+	private DashboardRoleService&MockObject $dashboardRoleService;
 
-    /**
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->db                  = [];
-        $this->userSession         = $this->createMock(IUserSession::class);
-        $this->dashboardRoleService = $this->createMock(DashboardRoleService::class);
+	/**
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->db = [];
+		$this->userSession = $this->createMock(IUserSession::class);
+		$this->dashboardRoleService = $this->createMock(DashboardRoleService::class);
 
-    }//end setUp()
+	}//end setUp()
 
-    /**
-     * Seed a record into the fake datastore.
-     *
-     * @param string               $schema Schema slug.
-     * @param array<string, mixed> $record Record data.
-     *
-     * @return void
-     */
-    private function seed(string $schema, array $record): void
-    {
-        $this->db[$schema][] = $record;
+	/**
+	 * Seed a record into the fake datastore.
+	 *
+	 * @param string $schema Schema slug.
+	 * @param array<string, mixed> $record Record data.
+	 *
+	 * @return void
+	 */
+	private function seed(string $schema, array $record): void {
+		$this->db[$schema][] = $record;
 
-    }//end seed()
+	}//end seed()
 
-    /**
-     * Sign the caller in as the given uid with the given Scholiq views.
-     *
-     * @param string   $uid   NC user id.
-     * @param string[] $views DashboardRoleService::resolveViews() result.
-     *
-     * @return void
-     */
-    private function signInAs(string $uid, array $views=['student']): void
-    {
-        $user = $this->createMock(IUser::class);
-        $user->method('getUID')->willReturn($uid);
-        $this->userSession->method('getUser')->willReturn($user);
-        $this->dashboardRoleService->method('resolveViews')->willReturn($views);
+	/**
+	 * Sign the caller in as the given uid with the given Scholiq views.
+	 *
+	 * @param string $uid NC user id.
+	 * @param string[] $views DashboardRoleService::resolveViews() result.
+	 *
+	 * @return void
+	 */
+	private function signInAs(string $uid, array $views = ['student']): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn($uid);
+		$this->userSession->method('getUser')->willReturn($user);
+		$this->dashboardRoleService->method('resolveViews')->willReturn($views);
 
-    }//end signInAs()
+	}//end signInAs()
 
-    /**
-     * Build the controller under test, with a real ObjectService double and
-     * an evaluator that always returns a fixed, recognisable decision.
-     *
-     * @param array{available: bool, reason: string|null, availableAt: string|null}|null $evaluatorResult
-     *
-     * @return LessonReleaseController
-     */
-    private function controller(?array $evaluatorResult=null): LessonReleaseController
-    {
-        $objectService = $this->createMock(ObjectService::class);
+	/**
+	 * Build the controller under test, with a real ObjectService double and
+	 * an evaluator that always returns a fixed, recognisable decision.
+	 *
+	 * @param array{available: bool, reason: string|null, availableAt: string|null}|null $evaluatorResult
+	 *
+	 * @return LessonReleaseController
+	 */
+	private function controller(?array $evaluatorResult = null): LessonReleaseController {
+		$objectService = $this->createMock(ObjectService::class);
 
-        // OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
-        // and returns ?ObjectEntity. willReturnCallback() hands the closure the
-        // mock's arguments POSITIONALLY, so the closure must mirror that order.
-        $objectService->method('find')->willReturnCallback(
-            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) {
-                foreach (($this->db[$schema] ?? []) as $rec) {
-                    if (($rec['id'] ?? null) === $id) {
-                        return OrEntityFactory::make($rec, (string) $schema);
-                    }
-                }
+		// OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
+		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
+		// mock's arguments POSITIONALLY, so the closure must mirror that order.
+		$objectService->method('find')->willReturnCallback(
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+				foreach (($this->db[$schema] ?? []) as $rec) {
+					if (($rec['id'] ?? null) === $id) {
+						return OrEntityFactory::make($rec, (string)$schema);
+					}
+				}
 
-                return null;
-            }
-        );
+				return null;
+			}
+		);
 
-        $objectService->method('findAll')->willReturnCallback(
-            function (array $config) {
-                $schema  = $config['schema'];
-                $filters = ($config['filters'] ?? []);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config) {
+				$schema = $config['schema'];
+				$filters = ($config['filters'] ?? []);
 
-                $rows = array_values(
-                    array_filter(
-                        ($this->db[$schema] ?? []),
-                        static function (array $rec) use ($filters) {
-                            foreach ($filters as $key => $value) {
-                                if (($rec[$key] ?? null) !== $value) {
-                                    return false;
-                                }
-                            }
+				$rows = array_values(
+					array_filter(
+						($this->db[$schema] ?? []),
+						static function (array $rec) use ($filters) {
+							foreach ($filters as $key => $value) {
+								if (($rec[$key] ?? null) !== $value) {
+									return false;
+								}
+							}
 
-                            return true;
-                        }
-                    )
-                );
+							return true;
+						}
+					)
+				);
 
-                return OrEntityFactory::makeMany($rows, (string) $schema);
-            }
-        );
+				return OrEntityFactory::makeMany($rows, (string)$schema);
+			}
+		);
 
-        $evaluator = $this->createMock(LessonReleaseEvaluator::class);
-        $evaluator->method('evaluate')->willReturn(
-            $evaluatorResult ?? ['available' => true, 'reason' => null, 'availableAt' => null]
-        );
+		$evaluator = $this->createMock(LessonReleaseEvaluator::class);
+		$evaluator->method('evaluate')->willReturn(
+			$evaluatorResult ?? ['available' => true, 'reason' => null, 'availableAt' => null]
+		);
 
-        return new LessonReleaseController(
-            request: $this->createMock(IRequest::class),
-            userSession: $this->userSession,
-            objectService: $objectService,
-            releaseEvaluator: $evaluator,
-            dashboardRoleService: $this->dashboardRoleService,
-        );
+		return new LessonReleaseController(
+			request: $this->createMock(IRequest::class),
+			userSession: $this->userSession,
+			objectService: $objectService,
+			releaseEvaluator: $evaluator,
+			dashboardRoleService: $this->dashboardRoleService,
+		);
 
-    }//end controller()
+	}//end controller()
 
-    /**
-     * An enrolled learner receives the evaluator's real decision.
-     *
-     * @return void
-     */
-    public function testEnrolledLearnerGetsRealDecision(): void
-    {
-        $this->seed('lesson', ['id' => 'lesson-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']);
-        $this->seed('enrolment', ['id' => 'enrolment-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1']);
-        $this->signInAs('learner-1');
+	/**
+	 * An enrolled learner receives the evaluator's real decision.
+	 *
+	 * @return void
+	 */
+	public function testEnrolledLearnerGetsRealDecision(): void {
+		$this->seed('lesson', ['id' => 'lesson-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']);
+		$this->seed('enrolment', ['id' => 'enrolment-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1']);
+		$this->signInAs('learner-1');
 
-        $controller = $this->controller(['available' => false, 'reason' => 'Complete "Lesson A" first.', 'availableAt' => null]);
-        $response   = $controller->status('lesson-1');
+		$controller = $this->controller(['available' => false, 'reason' => 'Complete "Lesson A" first.', 'availableAt' => null]);
+		$response = $controller->status('lesson-1');
 
-        self::assertSame(Http::STATUS_OK, $response->getStatus());
-        self::assertFalse($response->getData()['available']);
-        self::assertSame('Complete "Lesson A" first.', $response->getData()['reason']);
+		self::assertSame(Http::STATUS_OK, $response->getStatus());
+		self::assertFalse($response->getData()['available']);
+		self::assertSame('Complete "Lesson A" first.', $response->getData()['reason']);
 
-    }//end testEnrolledLearnerGetsRealDecision()
+	}//end testEnrolledLearnerGetsRealDecision()
 
-    /**
-     * A non-enrolled, non-staff caller is denied with 403.
-     *
-     * @return void
-     */
-    public function testNonEnrolledNonStaffCallerIsDenied(): void
-    {
-        $this->seed('lesson', ['id' => 'lesson-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']);
-        $this->signInAs('learner-2', views: ['student']);
+	/**
+	 * A non-enrolled, non-staff caller is denied with 403.
+	 *
+	 * @return void
+	 */
+	public function testNonEnrolledNonStaffCallerIsDenied(): void {
+		$this->seed('lesson', ['id' => 'lesson-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']);
+		$this->signInAs('learner-2', views: ['student']);
 
-        $controller = $this->controller();
-        $response   = $controller->status('lesson-1');
+		$controller = $this->controller();
+		$response = $controller->status('lesson-1');
 
-        self::assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		self::assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
 
-    }//end testNonEnrolledNonStaffCallerIsDenied()
+	}//end testNonEnrolledNonStaffCallerIsDenied()
 
-    /**
-     * A staff (admin/teacher view) caller gets a real decision even without
-     * holding a personal Enrolment for the course.
-     *
-     * @return void
-     */
-    public function testStaffCallerGetsDecisionWithoutOwnEnrolment(): void
-    {
-        $this->seed('lesson', ['id' => 'lesson-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']);
-        $this->signInAs('teacher-1', views: ['teacher', 'student']);
+	/**
+	 * A staff (admin/teacher view) caller gets a real decision even without
+	 * holding a personal Enrolment for the course.
+	 *
+	 * @return void
+	 */
+	public function testStaffCallerGetsDecisionWithoutOwnEnrolment(): void {
+		$this->seed('lesson', ['id' => 'lesson-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']);
+		$this->signInAs('teacher-1', views: ['teacher', 'student']);
 
-        $controller = $this->controller(['available' => true, 'reason' => null, 'availableAt' => null]);
-        $response   = $controller->status('lesson-1');
+		$controller = $this->controller(['available' => true, 'reason' => null, 'availableAt' => null]);
+		$response = $controller->status('lesson-1');
 
-        self::assertSame(Http::STATUS_OK, $response->getStatus());
-        self::assertTrue($response->getData()['available']);
+		self::assertSame(Http::STATUS_OK, $response->getStatus());
+		self::assertTrue($response->getData()['available']);
 
-    }//end testStaffCallerGetsDecisionWithoutOwnEnrolment()
+	}//end testStaffCallerGetsDecisionWithoutOwnEnrolment()
 
-    /**
-     * An admin-view caller is also treated as staff.
-     *
-     * @return void
-     */
-    public function testAdminViewCallerIsTreatedAsStaff(): void
-    {
-        $this->seed('assessment', ['id' => 'assessment-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']);
-        $this->signInAs('admin-1', views: ['admin', 'teacher', 'student']);
+	/**
+	 * An admin-view caller is also treated as staff.
+	 *
+	 * @return void
+	 */
+	public function testAdminViewCallerIsTreatedAsStaff(): void {
+		$this->seed('assessment', ['id' => 'assessment-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']);
+		$this->signInAs('admin-1', views: ['admin', 'teacher', 'student']);
 
-        $controller = $this->controller();
-        $response   = $controller->assessmentStatus('assessment-1');
+		$controller = $this->controller();
+		$response = $controller->assessmentStatus('assessment-1');
 
-        self::assertSame(Http::STATUS_OK, $response->getStatus());
+		self::assertSame(Http::STATUS_OK, $response->getStatus());
 
-    }//end testAdminViewCallerIsTreatedAsStaff()
+	}//end testAdminViewCallerIsTreatedAsStaff()
 
-    /**
-     * An unauthenticated caller is rejected with 401.
-     *
-     * @return void
-     */
-    public function testUnauthenticatedCallerRejected(): void
-    {
-        $this->userSession->method('getUser')->willReturn(null);
+	/**
+	 * An unauthenticated caller is rejected with 401.
+	 *
+	 * @return void
+	 */
+	public function testUnauthenticatedCallerRejected(): void {
+		$this->userSession->method('getUser')->willReturn(null);
 
-        $controller = $this->controller();
-        $response   = $controller->status('lesson-1');
+		$controller = $this->controller();
+		$response = $controller->status('lesson-1');
 
-        self::assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
+		self::assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
 
-    }//end testUnauthenticatedCallerRejected()
+	}//end testUnauthenticatedCallerRejected()
 
-    /**
-     * An unknown Lesson id returns 404.
-     *
-     * @return void
-     */
-    public function testUnknownLessonReturnsNotFound(): void
-    {
-        $this->signInAs('learner-1');
+	/**
+	 * An unknown Lesson id returns 404.
+	 *
+	 * @return void
+	 */
+	public function testUnknownLessonReturnsNotFound(): void {
+		$this->signInAs('learner-1');
 
-        $controller = $this->controller();
-        $response   = $controller->status('does-not-exist');
+		$controller = $this->controller();
+		$response = $controller->status('does-not-exist');
 
-        self::assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
+		self::assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
 
-    }//end testUnknownLessonReturnsNotFound()
+	}//end testUnknownLessonReturnsNotFound()
 
-    /**
-     * The response carries only {available, reason, availableAt} — no raw
-     * releaseConditions configuration or other data.
-     *
-     * @return void
-     */
-    public function testResponseShapeIsMinimal(): void
-    {
-        $this->seed('lesson', ['id' => 'lesson-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']);
-        $this->seed('enrolment', ['id' => 'enrolment-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1']);
-        $this->signInAs('learner-1');
+	/**
+	 * The response carries only {available, reason, availableAt} — no raw
+	 * releaseConditions configuration or other data.
+	 *
+	 * @return void
+	 */
+	public function testResponseShapeIsMinimal(): void {
+		$this->seed('lesson', ['id' => 'lesson-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']);
+		$this->seed('enrolment', ['id' => 'enrolment-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1']);
+		$this->signInAs('learner-1');
 
-        $controller = $this->controller(['available' => true, 'reason' => null, 'availableAt' => null]);
-        $response   = $controller->status('lesson-1');
+		$controller = $this->controller(['available' => true, 'reason' => null, 'availableAt' => null]);
+		$response = $controller->status('lesson-1');
 
-        self::assertSame(['available', 'reason', 'availableAt'], array_keys($response->getData()));
+		self::assertSame(['available', 'reason', 'availableAt'], array_keys($response->getData()));
 
-    }//end testResponseShapeIsMinimal()
+	}//end testResponseShapeIsMinimal()
 
-    /**
-     * An unknown lesson id returns 404 when ObjectService THROWS.
-     *
-     * ObjectService::find() raises DoesNotExistException for an unknown id
-     * rather than returning null, so before the catch in resolveObject() the
-     * exception escaped status() and became a 500 with a stack trace.
-     *
-     * @return void
-     */
-    public function testUnknownLessonThrowingFromObjectServiceReturns404(): void
-    {
-        $this->signInAs('learner-1');
+	/**
+	 * An unknown lesson id returns 404 when ObjectService THROWS.
+	 *
+	 * ObjectService::find() raises DoesNotExistException for an unknown id
+	 * rather than returning null, so before the catch in resolveObject() the
+	 * exception escaped status() and became a 500 with a stack trace.
+	 *
+	 * @return void
+	 */
+	public function testUnknownLessonThrowingFromObjectServiceReturns404(): void {
+		$this->signInAs('learner-1');
 
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willThrowException(
-            new \OCP\AppFramework\Db\DoesNotExistException('no such object')
-        );
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willThrowException(
+			new \OCP\AppFramework\Db\DoesNotExistException('no such object')
+		);
 
-        $controller = new LessonReleaseController(
-            request: $this->createMock(IRequest::class),
-            userSession: $this->userSession,
-            objectService: $objectService,
-            releaseEvaluator: $this->createMock(LessonReleaseEvaluator::class),
-            dashboardRoleService: $this->dashboardRoleService,
-        );
+		$controller = new LessonReleaseController(
+			request: $this->createMock(IRequest::class),
+			userSession: $this->userSession,
+			objectService: $objectService,
+			releaseEvaluator: $this->createMock(LessonReleaseEvaluator::class),
+			dashboardRoleService: $this->dashboardRoleService,
+		);
 
-        $response = $controller->status('nope');
+		$response = $controller->status('nope');
 
-        self::assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
+		self::assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
 
-    }//end testUnknownLessonThrowingFromObjectServiceReturns404()
+	}//end testUnknownLessonThrowingFromObjectServiceReturns404()
 }//end class

@@ -49,121 +49,117 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/portable-learning-record/tasks.md#task-2-3
  */
-class LearningRecordBundleWriter
-{
-    /**
-     * Constructor.
-     *
-     * @param IRootFolder     $rootFolder NC root folder for writing the signed bundle.
-     * @param LoggerInterface $logger     PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly IRootFolder $rootFolder,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+class LearningRecordBundleWriter {
+	/**
+	 * Constructor.
+	 *
+	 * @param IRootFolder $rootFolder NC root folder for writing the signed bundle.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly IRootFolder $rootFolder,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Write the signed bundle JSON to the owner's nc:files home, mirroring
-     * `CoursePackageImportService::writeBytesToFiles()`'s destination
-     * convention (`Scholiq/{tenant}/...`).
-     *
-     * @param array<string,mixed> $bundle   The signed bundle (bundle itself, not the JWS).
-     * @param string              $ownerUid Nextcloud user id who will own the file.
-     * @param string              $tenantId Tenant UUID, used to namespace the destination folder.
-     * @param string              $exportId LearningRecordExport UUID, used as the filename.
-     *
-     * @return string|null The nc:files path, or null on failure.
-     *
-     * @spec openspec/changes/portable-learning-record/tasks.md#task-2-3
-     */
-    public function write(array $bundle, string $ownerUid, string $tenantId, string $exportId): ?string
-    {
-        if ($ownerUid === '') {
-            return null;
-        }
+	/**
+	 * Write the signed bundle JSON to the owner's nc:files home, mirroring
+	 * `CoursePackageImportService::writeBytesToFiles()`'s destination
+	 * convention (`Scholiq/{tenant}/...`).
+	 *
+	 * @param array<string,mixed> $bundle The signed bundle (bundle itself, not the JWS).
+	 * @param string $ownerUid Nextcloud user id who will own the file.
+	 * @param string $tenantId Tenant UUID, used to namespace the destination folder.
+	 * @param string $exportId LearningRecordExport UUID, used as the filename.
+	 *
+	 * @return string|null The nc:files path, or null on failure.
+	 *
+	 * @spec openspec/changes/portable-learning-record/tasks.md#task-2-3
+	 */
+	public function write(array $bundle, string $ownerUid, string $tenantId, string $exportId): ?string {
+		if ($ownerUid === '') {
+			return null;
+		}
 
-        $encoded = json_encode($bundle, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-        if ($encoded === false) {
-            return null;
-        }
+		$encoded = json_encode($bundle, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+		if ($encoded === false) {
+			return null;
+		}
 
-        try {
-            $tenantSegment = 'default';
-            if ($tenantId !== '') {
-                $tenantSegment = $tenantId;
-            }
+		try {
+			$tenantSegment = 'default';
+			if ($tenantId !== '') {
+				$tenantSegment = $tenantId;
+			}
 
-            $ncBaseDir = 'Scholiq/'.$tenantSegment.'/learning-record-exports';
-            $ncPath    = $ncBaseDir.'/'.$exportId.'.json';
+			$ncBaseDir = 'Scholiq/' . $tenantSegment . '/learning-record-exports';
+			$ncPath = $ncBaseDir . '/' . $exportId . '.json';
 
-            $userFolder = $this->rootFolder->getUserFolder($ownerUid);
-            $this->ensureFolder(userFolder: $userFolder, path: $ncBaseDir);
-            $this->putContents(userFolder: $userFolder, path: $ncPath, content: $encoded);
+			$userFolder = $this->rootFolder->getUserFolder($ownerUid);
+			$this->ensureFolder(userFolder: $userFolder, path: $ncBaseDir);
+			$this->putContents(userFolder: $userFolder, path: $ncPath, content: $encoded);
 
-            return '/'.$ncPath;
-        } catch (\Throwable $e) {
-            $this->logger->warning(
-                '[LearningRecordBundleWriter] Could not write signed bundle for export {id}: {msg}',
-                ['id' => $exportId, 'msg' => $e->getMessage()]
-            );
-            return null;
-        }//end try
+			return '/' . $ncPath;
+		} catch (\Throwable $e) {
+			$this->logger->warning(
+				'[LearningRecordBundleWriter] Could not write signed bundle for export {id}: {msg}',
+				['id' => $exportId, 'msg' => $e->getMessage()]
+			);
+			return null;
+		}//end try
 
-    }//end write()
+	}//end write()
 
-    /**
-     * Create the bundle file, or overwrite it when a previous generation of the
-     * same export already wrote one.
-     *
-     * @param Folder $userFolder The owner's user folder.
-     * @param string $path       Relative nc:files path of the bundle file.
-     * @param string $content    Encoded bundle JSON.
-     *
-     * @return void
-     */
-    private function putContents(Folder $userFolder, string $path, string $content): void
-    {
-        if ($userFolder->nodeExists($path) === false) {
-            $userFolder->newFile($path, $content);
-            return;
-        }
+	/**
+	 * Create the bundle file, or overwrite it when a previous generation of the
+	 * same export already wrote one.
+	 *
+	 * @param Folder $userFolder The owner's user folder.
+	 * @param string $path Relative nc:files path of the bundle file.
+	 * @param string $content Encoded bundle JSON.
+	 *
+	 * @return void
+	 */
+	private function putContents(Folder $userFolder, string $path, string $content): void {
+		if ($userFolder->nodeExists($path) === false) {
+			$userFolder->newFile($path, $content);
+			return;
+		}
 
-        $existingNode = $userFolder->get($path);
-        if ($existingNode instanceof File) {
-            $existingNode->putContent($content);
-        }
+		$existingNode = $userFolder->get($path);
+		if ($existingNode instanceof File) {
+			$existingNode->putContent($content);
+		}
 
-    }//end putContents()
+	}//end putContents()
 
-    /**
-     * Ensure a nested nc:files folder path exists under the given folder.
-     *
-     * @param Folder $userFolder The root user folder.
-     * @param string $path       Slash-separated relative path to ensure.
-     *
-     * @return void
-     */
-    private function ensureFolder(Folder $userFolder, string $path): void
-    {
-        $segments = array_filter(explode('/', $path));
-        $current  = '';
-        foreach ($segments as $segment) {
-            $prefix = '';
-            if ($current !== '') {
-                $prefix = $current.'/';
-            }
+	/**
+	 * Ensure a nested nc:files folder path exists under the given folder.
+	 *
+	 * @param Folder $userFolder The root user folder.
+	 * @param string $path Slash-separated relative path to ensure.
+	 *
+	 * @return void
+	 */
+	private function ensureFolder(Folder $userFolder, string $path): void {
+		$segments = array_filter(explode('/', $path));
+		$current = '';
+		foreach ($segments as $segment) {
+			$prefix = '';
+			if ($current !== '') {
+				$prefix = $current . '/';
+			}
 
-            $current = $prefix.$segment;
+			$current = $prefix . $segment;
 
-            try {
-                $userFolder->get($current);
-            } catch (NotFoundException $e) {
-                $userFolder->newFolder($current);
-            }
-        }
+			try {
+				$userFolder->get($current);
+			} catch (NotFoundException $e) {
+				$userFolder->newFolder($current);
+			}
+		}
 
-    }//end ensureFolder()
+	}//end ensureFolder()
 }//end class

@@ -24,25 +24,24 @@ namespace OCA\OpenRegister\Service;
  * reached only via OpenRegister's own `TalkLinksController` from the
  * frontend `integration`/`talk` manifest widgets.
  */
-abstract class TalkLinkService
-{
-    /**
-     * Whether NC Talk (spreed) is installed + enabled for the current user.
-     *
-     * @return bool
-     */
-    abstract public function isTalkAvailable(): bool;
+abstract class TalkLinkService {
+	/**
+	 * Whether NC Talk (spreed) is installed + enabled for the current user.
+	 *
+	 * @return bool
+	 */
+	abstract public function isTalkAvailable(): bool;
 
-    /**
-     * Return the Talk conversations currently linked to an OR object.
-     *
-     * Each row carries at least `roomToken` (the real class also caches
-     * `roomName`, `roomType`, `subtitle`, `participantCount`,
-     * `lastMessageData`, `lastActivity`, `linkedBy`, `linkedAt`).
-     *
-     * @param string $objectUuid Parent OR object uuid.
-     *
-     * @return array<int,array<string,mixed>>
-     */
-    abstract public function getLinkedRooms(string $objectUuid): array;
+	/**
+	 * Return the Talk conversations currently linked to an OR object.
+	 *
+	 * Each row carries at least `roomToken` (the real class also caches
+	 * `roomName`, `roomType`, `subtitle`, `participantCount`,
+	 * `lastMessageData`, `lastActivity`, `linkedBy`, `linkedAt`).
+	 *
+	 * @param string $objectUuid Parent OR object uuid.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	abstract public function getLinkedRooms(string $objectUuid): array;
 }//end class

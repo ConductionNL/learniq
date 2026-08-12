@@ -39,107 +39,102 @@ use Psr\Log\LoggerInterface;
 /**
  * Tests for CoursePublishGuard::check() — the Course `draft -> published` transition.
  */
-class CoursePublishGuardTest extends TestCase
-{
+class CoursePublishGuardTest extends TestCase {
 
-    /**
-     * A Course with at least one published Lesson is allowed to publish —
-     * unchanged by the OOAPI publication-contract spec sync.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
-     */
-    public function testCourseWithPublishedLessonIsAllowedToPublish(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('findAll')->willReturn([['id' => 'lesson-1', 'lifecycle' => 'published']]);
+	/**
+	 * A Course with at least one published Lesson is allowed to publish —
+	 * unchanged by the OOAPI publication-contract spec sync.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
+	 */
+	public function testCourseWithPublishedLessonIsAllowedToPublish(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn([['id' => 'lesson-1', 'lifecycle' => 'published']]);
 
-        $guard   = new CoursePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-        $context = [
-            'object'     => ['id' => 'course-1', 'tenant_id' => 'tenant-a'],
-            'transition' => 'publish',
-            'from'       => 'draft',
-            'to'         => 'published',
-        ];
+		$guard = new CoursePublishGuard($objectService, $this->createMock(LoggerInterface::class));
+		$context = [
+			'object' => ['id' => 'course-1', 'tenant_id' => 'tenant-a'],
+			'transition' => 'publish',
+			'from' => 'draft',
+			'to' => 'published',
+		];
 
-        self::assertTrue($guard->check($context));
+		self::assertTrue($guard->check($context));
 
-    }//end testCourseWithPublishedLessonIsAllowedToPublish()
+	}//end testCourseWithPublishedLessonIsAllowedToPublish()
 
-    /**
-     * A Course with no published Lesson is blocked from publishing —
-     * unchanged by the OOAPI publication-contract spec sync.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
-     */
-    public function testCourseWithoutPublishedLessonIsBlocked(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('findAll')->willReturn([]);
+	/**
+	 * A Course with no published Lesson is blocked from publishing —
+	 * unchanged by the OOAPI publication-contract spec sync.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
+	 */
+	public function testCourseWithoutPublishedLessonIsBlocked(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn([]);
 
-        $guard   = new CoursePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-        $context = [
-            'object'     => ['id' => 'course-2', 'tenant_id' => 'tenant-a'],
-            'transition' => 'publish',
-            'from'       => 'draft',
-            'to'         => 'published',
-        ];
+		$guard = new CoursePublishGuard($objectService, $this->createMock(LoggerInterface::class));
+		$context = [
+			'object' => ['id' => 'course-2', 'tenant_id' => 'tenant-a'],
+			'transition' => 'publish',
+			'from' => 'draft',
+			'to' => 'published',
+		];
 
-        self::assertFalse($guard->check($context));
+		self::assertFalse($guard->check($context));
 
-    }//end testCourseWithoutPublishedLessonIsBlocked()
+	}//end testCourseWithoutPublishedLessonIsBlocked()
 
-    /**
-     * A transition context with no course id blocks the publish outright.
-     *
-     * @return void
-     */
-    public function testMissingCourseIdBlocksPublish(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->expects($this->never())->method('findAll');
+	/**
+	 * A transition context with no course id blocks the publish outright.
+	 *
+	 * @return void
+	 */
+	public function testMissingCourseIdBlocksPublish(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects($this->never())->method('findAll');
 
-        $guard   = new CoursePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-        $context = ['object' => [], 'transition' => 'publish', 'from' => 'draft', 'to' => 'published'];
+		$guard = new CoursePublishGuard($objectService, $this->createMock(LoggerInterface::class));
+		$context = ['object' => [], 'transition' => 'publish', 'from' => 'draft', 'to' => 'published'];
 
-        self::assertFalse($guard->check($context));
+		self::assertFalse($guard->check($context));
 
-    }//end testMissingCourseIdBlocksPublish()
+	}//end testMissingCourseIdBlocksPublish()
 
-    /**
-     * The Lesson lookup is scoped to the Course's own tenant — H1 isolation,
-     * unaffected by the OOAPI contract.
-     *
-     * @return void
-     */
-    public function testLessonLookupIsScopedToTenant(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->expects($this->once())
-            ->method('findAll')
-            ->with(
-                self::callback(
-                    function (array $params): bool {
-                        return ($params['filters']['tenant_id'] ?? null) === 'tenant-b'
-                            && ($params['filters']['courseId'] ?? null) === 'course-3'
-                            && ($params['schema'] ?? null) === 'lesson';
-                    }
-                )
-            )
-            ->willReturn([['id' => 'lesson-9', 'lifecycle' => 'published']]);
+	/**
+	 * The Lesson lookup is scoped to the Course's own tenant — H1 isolation,
+	 * unaffected by the OOAPI contract.
+	 *
+	 * @return void
+	 */
+	public function testLessonLookupIsScopedToTenant(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects($this->once())
+			->method('findAll')
+			->with(
+				self::callback(
+					function (array $params): bool {
+						return ($params['filters']['tenant_id'] ?? null) === 'tenant-b'
+							&& ($params['filters']['courseId'] ?? null) === 'course-3'
+							&& ($params['schema'] ?? null) === 'lesson';
+					}
+				)
+			)
+			->willReturn([['id' => 'lesson-9', 'lifecycle' => 'published']]);
 
-        $guard   = new CoursePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-        $context = [
-            'object'     => ['id' => 'course-3', 'tenant_id' => 'tenant-b'],
-            'transition' => 'publish',
-            'from'       => 'draft',
-            'to'         => 'published',
-        ];
+		$guard = new CoursePublishGuard($objectService, $this->createMock(LoggerInterface::class));
+		$context = [
+			'object' => ['id' => 'course-3', 'tenant_id' => 'tenant-b'],
+			'transition' => 'publish',
+			'from' => 'draft',
+			'to' => 'published',
+		];
 
-        self::assertTrue($guard->check($context));
+		self::assertTrue($guard->check($context));
 
-    }//end testLessonLookupIsScopedToTenant()
+	}//end testLessonLookupIsScopedToTenant()
 }//end class

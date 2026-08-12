@@ -42,313 +42,297 @@ use Psr\Log\LoggerInterface;
 /**
  * Tests for AiLocalityClassifier::classify()/classifyActiveProvider().
  */
-class AiLocalityClassifierTest extends TestCase
-{
+class AiLocalityClassifierTest extends TestCase {
 
-    /**
-     * Build a classifier with explicit collaborators (all mocked unless overridden).
-     *
-     * @param ObjectService|null $objectService OR object service mock.
-     * @param IAppConfig|null    $appConfig     App config mock.
-     * @param IAppManager|null   $appManager    App manager mock (defaults: hermiq installed).
-     *
-     * @return AiLocalityClassifier
-     */
-    private function buildClassifier(
-        ?ObjectService $objectService=null,
-        ?IAppConfig $appConfig=null,
-        ?IAppManager $appManager=null
-    ): AiLocalityClassifier {
-        $objectService ??= $this->createMock(ObjectService::class);
-        $appConfig     ??= $this->createMock(IAppConfig::class);
+	/**
+	 * Build a classifier with explicit collaborators (all mocked unless overridden).
+	 *
+	 * @param ObjectService|null $objectService OR object service mock.
+	 * @param IAppConfig|null $appConfig App config mock.
+	 * @param IAppManager|null $appManager App manager mock (defaults: hermiq installed).
+	 *
+	 * @return AiLocalityClassifier
+	 */
+	private function buildClassifier(
+		?ObjectService $objectService = null,
+		?IAppConfig $appConfig = null,
+		?IAppManager $appManager = null,
+	): AiLocalityClassifier {
+		$objectService ??= $this->createMock(ObjectService::class);
+		$appConfig ??= $this->createMock(IAppConfig::class);
 
-        if ($appManager === null) {
-            $appManager = $this->createMock(IAppManager::class);
-            $appManager->method('isInstalled')->with('hermiq')->willReturn(true);
-        }
+		if ($appManager === null) {
+			$appManager = $this->createMock(IAppManager::class);
+			$appManager->method('isInstalled')->with('hermiq')->willReturn(true);
+		}
 
-        return new AiLocalityClassifier($objectService, $appConfig, $appManager, $this->createMock(LoggerInterface::class));
+		return new AiLocalityClassifier($objectService, $appConfig, $appManager, $this->createMock(LoggerInterface::class));
+	}//end buildClassifier()
 
-    }//end buildClassifier()
+	/**
+	 * Build the `brokeredcredential` ObjectEntity that ObjectService::find()
+	 * returns for a credential-broker lookup.
+	 *
+	 * find() is declared `: ?ObjectEntity`, so a stub may not hand back a raw
+	 * array; and ObjectEntity's getters are `Entity::__call` magic, so it may
+	 * not be a mock either.
+	 *
+	 * @param string $id Credential UUID.
+	 * @param string $provider Catalogue provider identifier.
+	 *
+	 * @return ObjectEntity
+	 */
+	private function brokeredCredential(string $id, string $provider): ObjectEntity {
+		return OrEntityFactory::make(
+			['id' => $id, 'provider' => $provider],
+			'brokeredcredential',
+			'credential-broker'
+		);
 
-    /**
-     * Build the `brokeredcredential` ObjectEntity that ObjectService::find()
-     * returns for a credential-broker lookup.
-     *
-     * find() is declared `: ?ObjectEntity`, so a stub may not hand back a raw
-     * array; and ObjectEntity's getters are `Entity::__call` magic, so it may
-     * not be a mock either.
-     *
-     * @param string $id       Credential UUID.
-     * @param string $provider Catalogue provider identifier.
-     *
-     * @return ObjectEntity
-     */
-    private function brokeredCredential(string $id, string $provider): ObjectEntity
-    {
-        return OrEntityFactory::make(
-            ['id' => $id, 'provider' => $provider],
-            'brokeredcredential',
-            'credential-broker'
-        );
+	}//end brokeredCredential()
 
-    }//end brokeredCredential()
+	/**
+	 * A catalogued third-country SaaS provider (openai) classifies as
+	 * verified third-country.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-a-catalogued-third-country-saas-provider-classifies-as-verified-third-country
+	 */
+	public function testOpenAiCredentialClassifiesAsVerifiedThirdCountry(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturn($this->brokeredCredential('cred-1', 'openai'));
 
-    /**
-     * A catalogued third-country SaaS provider (openai) classifies as
-     * verified third-country.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-a-catalogued-third-country-saas-provider-classifies-as-verified-third-country
-     */
-    public function testOpenAiCredentialClassifiesAsVerifiedThirdCountry(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn($this->brokeredCredential('cred-1', 'openai'));
+		$classifier = $this->buildClassifier(objectService: $objectService);
+		$result = $classifier->classify('openai', 'cred-1');
 
-        $classifier = $this->buildClassifier(objectService: $objectService);
-        $result     = $classifier->classify('openai', 'cred-1');
+		self::assertSame('third-country', $result['locality']);
+		self::assertTrue($result['verified']);
+		self::assertNotEmpty($result['evidence']);
 
-        self::assertSame('third-country', $result['locality']);
-        self::assertTrue($result['verified']);
-        self::assertNotEmpty($result['evidence']);
+	}//end testOpenAiCredentialClassifiesAsVerifiedThirdCountry()
 
-    }//end testOpenAiCredentialClassifiesAsVerifiedThirdCountry()
+	/**
+	 * Fireworks — same broker path, same verdict.
+	 *
+	 * @return void
+	 */
+	public function testFireworksCredentialClassifiesAsVerifiedThirdCountry(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturn($this->brokeredCredential('cred-2', 'fireworks'));
 
-    /**
-     * Fireworks — same broker path, same verdict.
-     *
-     * @return void
-     */
-    public function testFireworksCredentialClassifiesAsVerifiedThirdCountry(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn($this->brokeredCredential('cred-2', 'fireworks'));
+		$classifier = $this->buildClassifier(objectService: $objectService);
+		$result = $classifier->classify('fireworks', 'cred-2');
 
-        $classifier = $this->buildClassifier(objectService: $objectService);
-        $result     = $classifier->classify('fireworks', 'cred-2');
+		self::assertSame('third-country', $result['locality']);
+		self::assertTrue($result['verified']);
 
-        self::assertSame('third-country', $result['locality']);
-        self::assertTrue($result['verified']);
+	}//end testFireworksCredentialClassifiesAsVerifiedThirdCountry()
 
-    }//end testFireworksCredentialClassifiesAsVerifiedThirdCountry()
+	/**
+	 * Anthropic (API key) — same broker path, same verdict.
+	 *
+	 * @return void
+	 */
+	public function testAnthropicCredentialClassifiesAsVerifiedThirdCountry(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturn($this->brokeredCredential('cred-3', 'anthropic'));
 
-    /**
-     * Anthropic (API key) — same broker path, same verdict.
-     *
-     * @return void
-     */
-    public function testAnthropicCredentialClassifiesAsVerifiedThirdCountry(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn($this->brokeredCredential('cred-3', 'anthropic'));
+		$classifier = $this->buildClassifier(objectService: $objectService);
+		$result = $classifier->classify('anthropic', 'cred-3');
 
-        $classifier = $this->buildClassifier(objectService: $objectService);
-        $result     = $classifier->classify('anthropic', 'cred-3');
+		self::assertSame('third-country', $result['locality']);
+		self::assertTrue($result['verified']);
 
-        self::assertSame('third-country', $result['locality']);
-        self::assertTrue($result['verified']);
+	}//end testAnthropicCredentialClassifiesAsVerifiedThirdCountry()
 
-    }//end testAnthropicCredentialClassifiesAsVerifiedThirdCountry()
+	/**
+	 * Anthropic (Claude Max OAuth) — the catalogue's second host-locked
+	 * anthropic entry — also verifies.
+	 *
+	 * @return void
+	 */
+	public function testAnthropicOAuthCredentialClassifiesAsVerifiedThirdCountry(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturn($this->brokeredCredential('cred-4', 'anthropic-oauth'));
 
-    /**
-     * Anthropic (Claude Max OAuth) — the catalogue's second host-locked
-     * anthropic entry — also verifies.
-     *
-     * @return void
-     */
-    public function testAnthropicOAuthCredentialClassifiesAsVerifiedThirdCountry(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn($this->brokeredCredential('cred-4', 'anthropic-oauth'));
+		$classifier = $this->buildClassifier(objectService: $objectService);
+		$result = $classifier->classify('anthropic', 'cred-4');
 
-        $classifier = $this->buildClassifier(objectService: $objectService);
-        $result     = $classifier->classify('anthropic', 'cred-4');
+		self::assertSame('third-country', $result['locality']);
+		self::assertTrue($result['verified']);
 
-        self::assertSame('third-country', $result['locality']);
-        self::assertTrue($result['verified']);
+	}//end testAnthropicOAuthCredentialClassifiesAsVerifiedThirdCountry()
 
-    }//end testAnthropicOAuthCredentialClassifiesAsVerifiedThirdCountry()
+	/**
+	 * A self-hosted Ollama configuration classifies as unverified, never as
+	 * on-premises, regardless of what the configured URL looks like.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-a-self-hosted-ollama-configuration-classifies-as-unverified-never-as-on-premises
+	 */
+	public function testOllamaAlwaysClassifiesUnverified(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects($this->never())->method('find');
 
-    /**
-     * A self-hosted Ollama configuration classifies as unverified, never as
-     * on-premises, regardless of what the configured URL looks like.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-a-self-hosted-ollama-configuration-classifies-as-unverified-never-as-on-premises
-     */
-    public function testOllamaAlwaysClassifiesUnverified(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->expects($this->never())->method('find');
+		$classifier = $this->buildClassifier(objectService: $objectService);
+		$result = $classifier->classify('ollama', null);
 
-        $classifier = $this->buildClassifier(objectService: $objectService);
-        $result     = $classifier->classify('ollama', null);
+		self::assertSame('unverified', $result['locality']);
+		self::assertFalse($result['verified']);
 
-        self::assertSame('unverified', $result['locality']);
-        self::assertFalse($result['verified']);
+	}//end testOllamaAlwaysClassifiesUnverified()
 
-    }//end testOllamaAlwaysClassifiesUnverified()
+	/**
+	 * `nextcloud` (opaque TaskProcessing backend) classifies as unverified.
+	 *
+	 * @return void
+	 */
+	public function testNextcloudTaskProcessingClassifiesUnverified(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects($this->never())->method('find');
 
-    /**
-     * `nextcloud` (opaque TaskProcessing backend) classifies as unverified.
-     *
-     * @return void
-     */
-    public function testNextcloudTaskProcessingClassifiesUnverified(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->expects($this->never())->method('find');
+		$classifier = $this->buildClassifier(objectService: $objectService);
+		$result = $classifier->classify('nextcloud', null);
 
-        $classifier = $this->buildClassifier(objectService: $objectService);
-        $result     = $classifier->classify('nextcloud', null);
+		self::assertSame('unverified', $result['locality']);
+		self::assertFalse($result['verified']);
 
-        self::assertSame('unverified', $result['locality']);
-        self::assertFalse($result['verified']);
+	}//end testNextcloudTaskProcessingClassifiesUnverified()
 
-    }//end testNextcloudTaskProcessingClassifiesUnverified()
+	/**
+	 * A broker-mediated provider whose credential is an inject-only
+	 * `generic-*` type (not host-locked) classifies as unverified.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-an-inject-only-broker-credential-classifies-as-unverified
+	 */
+	public function testInjectOnlyCredentialClassifiesUnverified(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturn($this->brokeredCredential('cred-5', 'generic-apikey'));
 
-    /**
-     * A broker-mediated provider whose credential is an inject-only
-     * `generic-*` type (not host-locked) classifies as unverified.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#scenario-an-inject-only-broker-credential-classifies-as-unverified
-     */
-    public function testInjectOnlyCredentialClassifiesUnverified(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn($this->brokeredCredential('cred-5', 'generic-apikey'));
+		$classifier = $this->buildClassifier(objectService: $objectService);
+		$result = $classifier->classify('openai', 'cred-5');
 
-        $classifier = $this->buildClassifier(objectService: $objectService);
-        $result     = $classifier->classify('openai', 'cred-5');
+		self::assertSame('unverified', $result['locality']);
+		self::assertFalse($result['verified']);
 
-        self::assertSame('unverified', $result['locality']);
-        self::assertFalse($result['verified']);
+	}//end testInjectOnlyCredentialClassifiesUnverified()
 
-    }//end testInjectOnlyCredentialClassifiesUnverified()
+	/**
+	 * A broker-mediated provider whose credential cannot be resolved (RBAC
+	 * denial, deleted, or a thrown exception) degrades to unverified — never
+	 * throws, never assumes compliant.
+	 *
+	 * @return void
+	 */
+	public function testUnresolvableCredentialDegradesToUnverified(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willThrowException(new \RuntimeException('RBAC denied'));
 
-    /**
-     * A broker-mediated provider whose credential cannot be resolved (RBAC
-     * denial, deleted, or a thrown exception) degrades to unverified — never
-     * throws, never assumes compliant.
-     *
-     * @return void
-     */
-    public function testUnresolvableCredentialDegradesToUnverified(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willThrowException(new \RuntimeException('RBAC denied'));
+		$classifier = $this->buildClassifier(objectService: $objectService);
+		$result = $classifier->classify('openai', 'cred-6');
 
-        $classifier = $this->buildClassifier(objectService: $objectService);
-        $result     = $classifier->classify('openai', 'cred-6');
+		self::assertSame('unverified', $result['locality']);
+		self::assertFalse($result['verified']);
 
-        self::assertSame('unverified', $result['locality']);
-        self::assertFalse($result['verified']);
+	}//end testUnresolvableCredentialDegradesToUnverified()
 
-    }//end testUnresolvableCredentialDegradesToUnverified()
+	/**
+	 * A broker-mediated provider with no credentialId at all classifies as
+	 * unverified.
+	 *
+	 * @return void
+	 */
+	public function testBrokerMediatedProviderWithNoCredentialIdClassifiesUnverified(): void {
+		$classifier = $this->buildClassifier();
+		$result = $classifier->classify('openai', null);
 
-    /**
-     * A broker-mediated provider with no credentialId at all classifies as
-     * unverified.
-     *
-     * @return void
-     */
-    public function testBrokerMediatedProviderWithNoCredentialIdClassifiesUnverified(): void
-    {
-        $classifier = $this->buildClassifier();
-        $result     = $classifier->classify('openai', null);
+		self::assertSame('unverified', $result['locality']);
+		self::assertFalse($result['verified']);
 
-        self::assertSame('unverified', $result['locality']);
-        self::assertFalse($result['verified']);
+	}//end testBrokerMediatedProviderWithNoCredentialIdClassifiesUnverified()
 
-    }//end testBrokerMediatedProviderWithNoCredentialIdClassifiesUnverified()
+	/**
+	 * Hermiq not installed classifies unverified via classifyActiveProvider().
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
+	 */
+	public function testHermiqAbsentOrUnconfiguredClassifiesUnverified(): void {
+		$appManager = $this->createMock(IAppManager::class);
+		$appManager->method('isInstalled')->with('hermiq')->willReturn(false);
 
-    /**
-     * Hermiq not installed classifies unverified via classifyActiveProvider().
-     *
-     * @return void
-     *
-     * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-derive-an-ai-feature-s-processing-locality-from-real-code-enforced-configuration-never-a-hand-typed-field
-     */
-    public function testHermiqAbsentOrUnconfiguredClassifiesUnverified(): void
-    {
-        $appManager = $this->createMock(IAppManager::class);
-        $appManager->method('isInstalled')->with('hermiq')->willReturn(false);
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->expects($this->never())->method('getValueString');
 
-        $appConfig = $this->createMock(IAppConfig::class);
-        $appConfig->expects($this->never())->method('getValueString');
+		$classifier = $this->buildClassifier(appConfig: $appConfig, appManager: $appManager);
+		$result = $classifier->classifyActiveProvider();
 
-        $classifier = $this->buildClassifier(appConfig: $appConfig, appManager: $appManager);
-        $result     = $classifier->classifyActiveProvider();
+		self::assertSame('unverified', $result['locality']);
+		self::assertFalse($result['verified']);
 
-        self::assertSame('unverified', $result['locality']);
-        self::assertFalse($result['verified']);
+	}//end testHermiqAbsentOrUnconfiguredClassifiesUnverified()
 
-    }//end testHermiqAbsentOrUnconfiguredClassifiesUnverified()
+	/**
+	 * Hermiq installed but `hermiq.llm` unset/empty classifies unverified.
+	 *
+	 * @return void
+	 */
+	public function testHermiqInstalledButUnconfiguredClassifiesUnverified(): void {
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->method('getValueString')->with('hermiq', 'llm', '{}')->willReturn('{}');
 
-    /**
-     * Hermiq installed but `hermiq.llm` unset/empty classifies unverified.
-     *
-     * @return void
-     */
-    public function testHermiqInstalledButUnconfiguredClassifiesUnverified(): void
-    {
-        $appConfig = $this->createMock(IAppConfig::class);
-        $appConfig->method('getValueString')->with('hermiq', 'llm', '{}')->willReturn('{}');
+		$classifier = $this->buildClassifier(appConfig: $appConfig);
+		$result = $classifier->classifyActiveProvider();
 
-        $classifier = $this->buildClassifier(appConfig: $appConfig);
-        $result     = $classifier->classifyActiveProvider();
+		self::assertSame('unverified', $result['locality']);
+		self::assertFalse($result['verified']);
 
-        self::assertSame('unverified', $result['locality']);
-        self::assertFalse($result['verified']);
+	}//end testHermiqInstalledButUnconfiguredClassifiesUnverified()
 
-    }//end testHermiqInstalledButUnconfiguredClassifiesUnverified()
+	/**
+	 * classifyActiveProvider() extracts chatProvider + the matching
+	 * `<provider>Config.credentialId` from the decoded hermiq.llm blob and
+	 * reaches a verified verdict end-to-end.
+	 *
+	 * @return void
+	 */
+	public function testClassifyActiveProviderExtractsCredentialIdFromLlmConfig(): void {
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->method('getValueString')->with('hermiq', 'llm', '{}')->willReturn(
+			json_encode(['chatProvider' => 'openai', 'openaiConfig' => ['credentialId' => 'cred-7']])
+		);
 
-    /**
-     * classifyActiveProvider() extracts chatProvider + the matching
-     * `<provider>Config.credentialId` from the decoded hermiq.llm blob and
-     * reaches a verified verdict end-to-end.
-     *
-     * @return void
-     */
-    public function testClassifyActiveProviderExtractsCredentialIdFromLlmConfig(): void
-    {
-        $appConfig = $this->createMock(IAppConfig::class);
-        $appConfig->method('getValueString')->with('hermiq', 'llm', '{}')->willReturn(
-            json_encode(['chatProvider' => 'openai', 'openaiConfig' => ['credentialId' => 'cred-7']])
-        );
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturn($this->brokeredCredential('cred-7', 'openai'));
 
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn($this->brokeredCredential('cred-7', 'openai'));
+		$classifier = $this->buildClassifier(objectService: $objectService, appConfig: $appConfig);
+		$result = $classifier->classifyActiveProvider();
 
-        $classifier = $this->buildClassifier(objectService: $objectService, appConfig: $appConfig);
-        $result     = $classifier->classifyActiveProvider();
+		self::assertSame('third-country', $result['locality']);
+		self::assertTrue($result['verified']);
 
-        self::assertSame('third-country', $result['locality']);
-        self::assertTrue($result['verified']);
+	}//end testClassifyActiveProviderExtractsCredentialIdFromLlmConfig()
 
-    }//end testClassifyActiveProviderExtractsCredentialIdFromLlmConfig()
+	/**
+	 * Malformed JSON in hermiq.llm degrades to unverified rather than
+	 * throwing.
+	 *
+	 * @return void
+	 */
+	public function testMalformedLlmConfigJsonDegradesToUnverified(): void {
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->method('getValueString')->with('hermiq', 'llm', '{}')->willReturn('{not valid json');
 
-    /**
-     * Malformed JSON in hermiq.llm degrades to unverified rather than
-     * throwing.
-     *
-     * @return void
-     */
-    public function testMalformedLlmConfigJsonDegradesToUnverified(): void
-    {
-        $appConfig = $this->createMock(IAppConfig::class);
-        $appConfig->method('getValueString')->with('hermiq', 'llm', '{}')->willReturn('{not valid json');
+		$classifier = $this->buildClassifier(appConfig: $appConfig);
+		$result = $classifier->classifyActiveProvider();
 
-        $classifier = $this->buildClassifier(appConfig: $appConfig);
-        $result     = $classifier->classifyActiveProvider();
+		self::assertSame('unverified', $result['locality']);
+		self::assertFalse($result['verified']);
 
-        self::assertSame('unverified', $result['locality']);
-        self::assertFalse($result['verified']);
-
-    }//end testMalformedLlmConfigJsonDegradesToUnverified()
+	}//end testMalformedLlmConfigJsonDegradesToUnverified()
 }//end class

@@ -51,144 +51,132 @@ use PHPUnit\Framework\TestCase;
  *
  * @coversNothing
  */
-final class NextcloudXmlLoaderContractTest extends TestCase
-{
+final class NextcloudXmlLoaderContractTest extends TestCase {
 
-    /**
-     * Temp directory holding this test's fixtures.
-     *
-     * @var string
-     */
-    private string $dir = '';
+	/**
+	 * Temp directory holding this test's fixtures.
+	 *
+	 * @var string
+	 */
+	private string $dir = '';
 
+	/**
+	 * Create a fixture directory and install Nextcloud's entity loader.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
 
-    /**
-     * Create a fixture directory and install Nextcloud's entity loader.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
+		$this->dir = sys_get_temp_dir() . '/scholiq_xmlguard_' . bin2hex(random_bytes(6));
+		mkdir($this->dir, 0700, true);
 
-        $this->dir = sys_get_temp_dir().'/scholiq_xmlguard_'.bin2hex(random_bytes(6));
-        mkdir($this->dir, 0700, true);
+		libxml_set_external_entity_loader(static function () {
+			return null;
+		});
 
-        libxml_set_external_entity_loader(static function () {
-            return null;
-        });
+	}//end setUp()
 
-    }//end setUp()
+	/**
+	 * Restore libxml's default loader and clean up.
+	 *
+	 * The loader is process-global, so leaving it installed would leak into
+	 * every later test in the run.
+	 *
+	 * @return void
+	 */
+	protected function tearDown(): void {
+		libxml_set_external_entity_loader(null);
 
+		foreach ((glob($this->dir . '/*') ?: []) as $file) {
+			unlink($file);
+		}
 
-    /**
-     * Restore libxml's default loader and clean up.
-     *
-     * The loader is process-global, so leaving it installed would leak into
-     * every later test in the run.
-     *
-     * @return void
-     */
-    protected function tearDown(): void
-    {
-        libxml_set_external_entity_loader(null);
+		if (is_dir($this->dir) === true) {
+			rmdir($this->dir);
+		}
 
-        foreach ((glob($this->dir.'/*') ?: []) as $file) {
-            unlink($file);
-        }
+		parent::tearDown();
 
-        if (is_dir($this->dir) === true) {
-            rmdir($this->dir);
-        }
+	}//end tearDown()
 
-        parent::tearDown();
+	/**
+	 * The premise: this is the behaviour the parsers have to survive.
+	 *
+	 * If this ever starts failing, Nextcloud or libxml changed and the
+	 * `loadXML()` workaround in the parsers can be revisited.
+	 *
+	 * @return void
+	 */
+	public function testDomDocumentLoadFromPathIsBrokenByNextcloudsEntityLoader(): void {
+		$path = $this->dir . '/probe.xml';
+		file_put_contents($path, '<?xml version="1.0"?><manifest><a/></manifest>');
 
-    }//end tearDown()
+		$viaPath = new DOMDocument();
+		libxml_use_internal_errors(true);
+		$loadedViaPath = $viaPath->load($path);
+		libxml_clear_errors();
 
+		$viaString = new DOMDocument();
+		libxml_use_internal_errors(true);
+		$loadedViaString = $viaString->loadXML((string)file_get_contents($path));
+		libxml_clear_errors();
 
-    /**
-     * The premise: this is the behaviour the parsers have to survive.
-     *
-     * If this ever starts failing, Nextcloud or libxml changed and the
-     * `loadXML()` workaround in the parsers can be revisited.
-     *
-     * @return void
-     */
-    public function testDomDocumentLoadFromPathIsBrokenByNextcloudsEntityLoader(): void
-    {
-        $path = $this->dir.'/probe.xml';
-        file_put_contents($path, '<?xml version="1.0"?><manifest><a/></manifest>');
+		$this->assertFalse(
+			$loadedViaPath,
+			'DOMDocument::load($path) is expected to FAIL under Nextcloud\'s external entity loader. '
+			. 'If it now succeeds, this constraint is gone and the parsers can go back to load().'
+		);
 
-        $viaPath = new DOMDocument();
-        libxml_use_internal_errors(true);
-        $loadedViaPath = $viaPath->load($path);
-        libxml_clear_errors();
+		$this->assertTrue(
+			$loadedViaString,
+			'DOMDocument::loadXML($string) must keep working — it is what every scholiq parser relies on.'
+		);
 
-        $viaString = new DOMDocument();
-        libxml_use_internal_errors(true);
-        $loadedViaString = $viaString->loadXML((string) file_get_contents($path));
-        libxml_clear_errors();
+	}//end testDomDocumentLoadFromPathIsBrokenByNextcloudsEntityLoader()
 
-        $this->assertFalse(
-            $loadedViaPath,
-            'DOMDocument::load($path) is expected to FAIL under Nextcloud\'s external entity loader. '
-            .'If it now succeeds, this constraint is gone and the parsers can go back to load().'
-        );
+	/**
+	 * CommonCartridgeParser parses a manifest with the loader installed.
+	 *
+	 * @return void
+	 */
+	public function testCommonCartridgeParserWorksUnderNextcloudsEntityLoader(): void {
+		file_put_contents(
+			$this->dir . '/imsmanifest.xml',
+			'<?xml version="1.0"?>'
+			. '<manifest xmlns="http://www.imsglobal.org/xsd/imscp_v1p1">'
+			. '<organizations><organization><item identifier="i1" identifierref="r1">'
+			. '<title>Lesson One</title></item></organization></organizations>'
+			. '<resources><resource identifier="r1" type="webcontent" href="a.html"/></resources>'
+			. '</manifest>'
+		);
 
-        $this->assertTrue(
-            $loadedViaString,
-            'DOMDocument::loadXML($string) must keep working — it is what every scholiq parser relies on.'
-        );
+		$parsed = (new CommonCartridgeParser())->parseManifest(dir: $this->dir);
 
-    }//end testDomDocumentLoadFromPathIsBrokenByNextcloudsEntityLoader()
+		$this->assertCount(1, $parsed['organizationNodes']);
+		$this->assertSame('Lesson One', $parsed['organizationNodes'][0]['title']);
+		$this->assertCount(1, $parsed['resources']);
 
+	}//end testCommonCartridgeParserWorksUnderNextcloudsEntityLoader()
 
-    /**
-     * CommonCartridgeParser parses a manifest with the loader installed.
-     *
-     * @return void
-     */
-    public function testCommonCartridgeParserWorksUnderNextcloudsEntityLoader(): void
-    {
-        file_put_contents(
-            $this->dir.'/imsmanifest.xml',
-            '<?xml version="1.0"?>'
-            .'<manifest xmlns="http://www.imsglobal.org/xsd/imscp_v1p1">'
-            .'<organizations><organization><item identifier="i1" identifierref="r1">'
-            .'<title>Lesson One</title></item></organization></organizations>'
-            .'<resources><resource identifier="r1" type="webcontent" href="a.html"/></resources>'
-            .'</manifest>'
-        );
+	/**
+	 * MoodleBackupParser parses a manifest with the loader installed.
+	 *
+	 * @return void
+	 */
+	public function testMoodleBackupParserWorksUnderNextcloudsEntityLoader(): void {
+		file_put_contents(
+			$this->dir . '/moodle_backup.xml',
+			'<?xml version="1.0"?><moodle_backup><information><contents><activities>'
+			. '<activity><moduleid>1</moduleid><modulename>quiz</modulename>'
+			. '<title>Quiz One</title><directory>activities/quiz_1</directory></activity>'
+			. '</activities></contents></information></moodle_backup>'
+		);
 
-        $parsed = (new CommonCartridgeParser())->parseManifest(dir: $this->dir);
+		$parsed = (new MoodleBackupParser())->parseManifest(dir: $this->dir);
 
-        $this->assertCount(1, $parsed['organizationNodes']);
-        $this->assertSame('Lesson One', $parsed['organizationNodes'][0]['title']);
-        $this->assertCount(1, $parsed['resources']);
+		$this->assertNotEmpty($parsed['activities']);
 
-    }//end testCommonCartridgeParserWorksUnderNextcloudsEntityLoader()
-
-
-    /**
-     * MoodleBackupParser parses a manifest with the loader installed.
-     *
-     * @return void
-     */
-    public function testMoodleBackupParserWorksUnderNextcloudsEntityLoader(): void
-    {
-        file_put_contents(
-            $this->dir.'/moodle_backup.xml',
-            '<?xml version="1.0"?><moodle_backup><information><contents><activities>'
-            .'<activity><moduleid>1</moduleid><modulename>quiz</modulename>'
-            .'<title>Quiz One</title><directory>activities/quiz_1</directory></activity>'
-            .'</activities></contents></information></moodle_backup>'
-        );
-
-        $parsed = (new MoodleBackupParser())->parseManifest(dir: $this->dir);
-
-        $this->assertNotEmpty($parsed['activities']);
-
-    }//end testMoodleBackupParserWorksUnderNextcloudsEntityLoader()
-
+	}//end testMoodleBackupParserWorksUnderNextcloudsEntityLoader()
 
 }//end class

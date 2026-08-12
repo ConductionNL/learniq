@@ -48,104 +48,101 @@ use OCP\IUserSession;
  *
  * Single endpoint: GET /api/course-management/course-package-export?courseId=...&format=...
  */
-class CoursePackageExportController extends Controller
-{
-    /**
-     * Constructor.
-     *
-     * @param IRequest                   $request       HTTP request.
-     * @param CoursePackageExportService $exportService Course-package export service.
-     * @param IUserSession               $userSession   Nextcloud user session.
-     * @param ActionAuthService          $actionAuth    ADR-023 action authorization service.
-     *
-     * @return void
-     */
-    public function __construct(
-        IRequest $request,
-        private readonly CoursePackageExportService $exportService,
-        private readonly IUserSession $userSession,
-        private readonly ActionAuthService $actionAuth,
-    ) {
-        parent::__construct(appName: Application::APP_ID, request: $request);
-    }//end __construct()
+class CoursePackageExportController extends Controller {
+	/**
+	 * Constructor.
+	 *
+	 * @param IRequest $request HTTP request.
+	 * @param CoursePackageExportService $exportService Course-package export service.
+	 * @param IUserSession $userSession Nextcloud user session.
+	 * @param ActionAuthService $actionAuth ADR-023 action authorization service.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		IRequest $request,
+		private readonly CoursePackageExportService $exportService,
+		private readonly IUserSession $userSession,
+		private readonly ActionAuthService $actionAuth,
+	) {
+		parent::__construct(appName: Application::APP_ID, request: $request);
+	}//end __construct()
 
-    /**
-     * Export a Course as Common Cartridge or scholiq-native JSON.
-     *
-     * @param string $courseId UUID of the Course to export.
-     * @param string $format   `common-cartridge` or `scholiq-json`.
-     *
-     * @return DataDownloadResponse|JSONResponse The download, or a JSON error.
-     *
-     * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
-     */
-    #[NoAdminRequired]
-    public function export(string $courseId='', string $format=''): DataDownloadResponse|JSONResponse
-    {
-        $user = $this->userSession->getUser();
-        if ($user === null) {
-            return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
-        }
+	/**
+	 * Export a Course as Common Cartridge or scholiq-native JSON.
+	 *
+	 * @param string $courseId UUID of the Course to export.
+	 * @param string $format `common-cartridge` or `scholiq-json`.
+	 *
+	 * @return DataDownloadResponse|JSONResponse The download, or a JSON error.
+	 *
+	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+	 */
+	#[NoAdminRequired]
+	public function export(string $courseId = '', string $format = ''): DataDownloadResponse|JSONResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
 
-        $this->actionAuth->requireAction(user: $user, action: 'course-package.export');
+		$this->actionAuth->requireAction(user: $user, action: 'course-package.export');
 
-        if ($courseId === '') {
-            return new JSONResponse(data: ['error' => 'courseId is required'], statusCode: Http::STATUS_BAD_REQUEST);
-        }
+		if ($courseId === '') {
+			return new JSONResponse(data: ['error' => 'courseId is required'], statusCode: Http::STATUS_BAD_REQUEST);
+		}
 
-        if (in_array($format, ['common-cartridge', 'scholiq-json'], strict: true) === false) {
-            return new JSONResponse(
-                data: ['error' => "format must be 'common-cartridge' or 'scholiq-json'"],
-                statusCode: Http::STATUS_BAD_REQUEST
-            );
-        }
+		if (in_array($format, ['common-cartridge', 'scholiq-json'], strict: true) === false) {
+			return new JSONResponse(
+				data: ['error' => "format must be 'common-cartridge' or 'scholiq-json'"],
+				statusCode: Http::STATUS_BAD_REQUEST
+			);
+		}
 
-        try {
-            $download = $this->buildDownload(format: $format, courseId: $courseId, exportingUser: $user->getUID());
-        } catch (\RuntimeException $e) {
-            return new JSONResponse(
-                data: ['error' => $e->getMessage()],
-                statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
-            );
-        } catch (\Throwable $e) {
-            return new JSONResponse(
-                data: ['error' => 'Export failed: '.$e->getMessage()],
-                statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-            );
-        }//end try
+		try {
+			$download = $this->buildDownload(format: $format, courseId: $courseId, exportingUser: $user->getUID());
+		} catch (\RuntimeException $e) {
+			return new JSONResponse(
+				data: ['error' => $e->getMessage()],
+				statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		} catch (\Throwable $e) {
+			return new JSONResponse(
+				data: ['error' => 'Export failed: ' . $e->getMessage()],
+				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
+			);
+		}//end try
 
-        return new DataDownloadResponse(
-            data: $download['content'],
-            filename: $download['filename'],
-            contentType: $download['contentType']
-        );
-    }//end export()
+		return new DataDownloadResponse(
+			data: $download['content'],
+			filename: $download['filename'],
+			contentType: $download['contentType']
+		);
+	}//end export()
 
-    /**
-     * Build the download payload for the requested export format.
-     *
-     * @param string $format        `common-cartridge` or `scholiq-json` (already validated).
-     * @param string $courseId      UUID of the Course to export.
-     * @param string $exportingUser NC user id of the caller.
-     *
-     * @return array{content: string, filename: string, contentType: string} The download payload.
-     *
-     * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
-     */
-    private function buildDownload(string $format, string $courseId, string $exportingUser): array
-    {
-        if ($format === 'common-cartridge') {
-            return [
-                'content'     => $this->exportService->exportCommonCartridge(courseId: $courseId, exportingUser: $exportingUser),
-                'filename'    => 'course-'.$courseId.'_common-cartridge.zip',
-                'contentType' => 'application/zip',
-            ];
-        }
+	/**
+	 * Build the download payload for the requested export format.
+	 *
+	 * @param string $format `common-cartridge` or `scholiq-json` (already validated).
+	 * @param string $courseId UUID of the Course to export.
+	 * @param string $exportingUser NC user id of the caller.
+	 *
+	 * @return array{content: string, filename: string, contentType: string} The download payload.
+	 *
+	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
+	 */
+	private function buildDownload(string $format, string $courseId, string $exportingUser): array {
+		if ($format === 'common-cartridge') {
+			return [
+				'content' => $this->exportService->exportCommonCartridge(courseId: $courseId, exportingUser: $exportingUser),
+				'filename' => 'course-' . $courseId . '_common-cartridge.zip',
+				'contentType' => 'application/zip',
+			];
+		}
 
-        return [
-            'content'     => $this->exportService->exportScholiqJson(courseId: $courseId, exportingUser: $exportingUser),
-            'filename'    => 'course-'.$courseId.'_scholiq.json',
-            'contentType' => 'application/json',
-        ];
-    }//end buildDownload()
+		return [
+			'content' => $this->exportService->exportScholiqJson(courseId: $courseId, exportingUser: $exportingUser),
+			'filename' => 'course-' . $courseId . '_scholiq.json',
+			'contentType' => 'application/json',
+		];
+	}//end buildDownload()
 }//end class

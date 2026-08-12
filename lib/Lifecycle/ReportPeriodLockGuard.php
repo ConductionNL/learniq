@@ -84,181 +84,174 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/report-card-composer/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
-class ReportPeriodLockGuard
-{
+class ReportPeriodLockGuard {
 
-    private const SCHOLIQ_REGISTER     = 'scholiq';
-    private const REPORT_PERIOD_SCHEMA = 'report-period';
+	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const REPORT_PERIOD_SCHEMA = 'report-period';
 
-    /**
-     * Roles whose members may override a locked report period and publish
-     * anyway (an explicit, logged correction).
-     *
-     * @var string[]
-     */
-    private const OVERRIDE_GROUPS = ['admin', 'mentor', 'principal'];
+	/**
+	 * Roles whose members may override a locked report period and publish
+	 * anyway (an explicit, logged correction).
+	 *
+	 * @var string[]
+	 */
+	private const OVERRIDE_GROUPS = ['admin', 'mentor', 'principal'];
 
-    /**
-     * Constructor.
-     *
-     * @param FraudCaseBlockGuard $fraudCaseBlockGuard The original guard this class composes (unchanged behaviour, called first).
-     * @param ObjectService       $objectService       OR object access service.
-     * @param IGroupManager       $groupManager        OR/NC group manager to resolve the acting user's role groups.
-     * @param IUserManager        $userManager         User manager to resolve the acting user object for membership checks.
-     * @param LoggerInterface     $logger              PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly FraudCaseBlockGuard $fraudCaseBlockGuard,
-        private readonly ObjectService $objectService,
-        private readonly IGroupManager $groupManager,
-        private readonly IUserManager $userManager,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param FraudCaseBlockGuard $fraudCaseBlockGuard The original guard this class composes (unchanged behaviour, called first).
+	 * @param ObjectService $objectService OR object access service.
+	 * @param IGroupManager $groupManager OR/NC group manager to resolve the acting user's role groups.
+	 * @param IUserManager $userManager User manager to resolve the acting user object for membership checks.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly FraudCaseBlockGuard $fraudCaseBlockGuard,
+		private readonly ObjectService $objectService,
+		private readonly IGroupManager $groupManager,
+		private readonly IUserManager $userManager,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point.
-     *
-     * Called by OpenRegister's lifecycle engine before executing the
-     * `publish`/`republish` transition on a GradeEntry object.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the GradeEntry data array
-     *                                               - 'transition' : 'publish' or 'republish'
-     *                                               - 'actor'      : NC user ID of the requester (when available)
-     *
-     * @return bool True if the transition is allowed; false blocks it.
-     *
-     * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
-     * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
-     * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
-     */
-    public function check(array &$transitionContext): bool
-    {
-        // 1. Preserve the original fraud-case check byte-for-byte.
-        if ($this->fraudCaseBlockGuard->check($transitionContext) === false) {
-            return false;
-        }
+	/**
+	 * OR lifecycle guard entry-point.
+	 *
+	 * Called by OpenRegister's lifecycle engine before executing the
+	 * `publish`/`republish` transition on a GradeEntry object.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the GradeEntry data array
+	 *                                               - 'transition' : 'publish' or 'republish'
+	 *                                               - 'actor'      : NC user ID of the requester (when available)
+	 *
+	 * @return bool True if the transition is allowed; false blocks it.
+	 *
+	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
+	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
+	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
+	 */
+	public function check(array &$transitionContext): bool {
+		// 1. Preserve the original fraud-case check byte-for-byte.
+		if ($this->fraudCaseBlockGuard->check($transitionContext) === false) {
+			return false;
+		}
 
-        $entry = $transitionContext['object'] ?? [];
+		$entry = $transitionContext['object'] ?? [];
 
-        $period           = (string) ($entry['period'] ?? '');
-        $curriculumPlanId = (string) ($entry['curriculumPlanId'] ?? '');
-        $tenantId         = (string) ($entry['tenant_id'] ?? '');
-        $entryId          = $entry['id'] ?? ($entry['uuid'] ?? '');
+		$period = (string)($entry['period'] ?? '');
+		$curriculumPlanId = (string)($entry['curriculumPlanId'] ?? '');
+		$tenantId = (string)($entry['tenant_id'] ?? '');
+		$entryId = $entry['id'] ?? ($entry['uuid'] ?? '');
 
-        if ($period === '' || $curriculumPlanId === '') {
-            // Nothing to match a ReportPeriod against.
-            return true;
-        }
+		if ($period === '' || $curriculumPlanId === '') {
+			// Nothing to match a ReportPeriod against.
+			return true;
+		}
 
-        $reportPeriod = $this->findGoverningReportPeriod(
-            period: $period,
-            curriculumPlanId: $curriculumPlanId,
-            tenantId: $tenantId
-        );
+		$reportPeriod = $this->findGoverningReportPeriod(
+			period: $period,
+			curriculumPlanId: $curriculumPlanId,
+			tenantId: $tenantId
+		);
 
-        if ($reportPeriod === null) {
-            // No ReportPeriod governs this entry — fail open, mirroring
-            // AttendanceFlagReportGuard's "no linked job -> allow
-            // unconditionally" posture.
-            return true;
-        }
+		if ($reportPeriod === null) {
+			// No ReportPeriod governs this entry — fail open, mirroring
+			// AttendanceFlagReportGuard's "no linked job -> allow
+			// unconditionally" posture.
+			return true;
+		}
 
-        $isLocked = $reportPeriod['isLocked'] ?? false;
+		$isLocked = $reportPeriod['isLocked'] ?? false;
 
-        if ($isLocked !== true) {
-            return true;
-        }
+		if ($isLocked !== true) {
+			return true;
+		}
 
-        $actor = (string) ($transitionContext['actor'] ?? '');
+		$actor = (string)($transitionContext['actor'] ?? '');
 
-        if ($this->actorMayOverride(actor: $actor) === true) {
-            $this->logger->info(
-                '[ReportPeriodLockGuard] GradeEntry {id} publish allowed — actor {actor} overrides locked ReportPeriod {period}.',
-                ['id' => $entryId, 'actor' => $actor, 'period' => $reportPeriod['id'] ?? ($reportPeriod['uuid'] ?? '')]
-            );
-            return true;
-        }
+		if ($this->actorMayOverride(actor: $actor) === true) {
+			$this->logger->info(
+				'[ReportPeriodLockGuard] GradeEntry {id} publish allowed — actor {actor} overrides locked ReportPeriod {period}.',
+				['id' => $entryId, 'actor' => $actor, 'period' => $reportPeriod['id'] ?? ($reportPeriod['uuid'] ?? '')]
+			);
+			return true;
+		}
 
-        $this->logger->info(
-            '[ReportPeriodLockGuard] GradeEntry {id} blocked — governing ReportPeriod {period} is locked and actor {actor} holds no override role.',
-            ['id' => $entryId, 'period' => $reportPeriod['id'] ?? ($reportPeriod['uuid'] ?? ''), 'actor' => $actor]
-        );
+		$this->logger->info(
+			'[ReportPeriodLockGuard] GradeEntry {id} blocked — governing ReportPeriod {period} is locked and actor {actor} holds no override role.',
+			['id' => $entryId, 'period' => $reportPeriod['id'] ?? ($reportPeriod['uuid'] ?? ''), 'actor' => $actor]
+		);
 
-        return false;
+		return false;
+	}//end check()
 
-    }//end check()
+	/**
+	 * Resolve the ReportPeriod (if any) governing this GradeEntry's period +
+	 * curriculumPlanId, scoped to the same tenant.
+	 *
+	 * @param string $period GradeEntry.period value.
+	 * @param string $curriculumPlanId GradeEntry.curriculumPlanId value.
+	 * @param string $tenantId GradeEntry.tenant_id value.
+	 *
+	 * @return array<string,mixed>|null The governing ReportPeriod data array, or null when none matches.
+	 */
+	private function findGoverningReportPeriod(string $period, string $curriculumPlanId, string $tenantId): ?array {
+		$filters = ['periodCode' => $period];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
 
-    /**
-     * Resolve the ReportPeriod (if any) governing this GradeEntry's period +
-     * curriculumPlanId, scoped to the same tenant.
-     *
-     * @param string $period           GradeEntry.period value.
-     * @param string $curriculumPlanId GradeEntry.curriculumPlanId value.
-     * @param string $tenantId         GradeEntry.tenant_id value.
-     *
-     * @return array<string,mixed>|null The governing ReportPeriod data array, or null when none matches.
-     */
-    private function findGoverningReportPeriod(string $period, string $curriculumPlanId, string $tenantId): ?array
-    {
-        $filters = ['periodCode' => $period];
-        if ($tenantId !== '') {
-            $filters['tenant_id'] = $tenantId;
-        }
+		$candidates = $this->objectService->findAll(
+			[
+				'register' => self::SCHOLIQ_REGISTER,
+				'schema' => self::REPORT_PERIOD_SCHEMA,
+				'filters' => $filters,
+				'limit' => 500,
+			]
+		);
 
-        $candidates = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::REPORT_PERIOD_SCHEMA,
-                'filters'  => $filters,
-                'limit'    => 500,
-            ]
-        );
+		foreach ($candidates as $candidate) {
+			$candidateData = $candidate;
+			if (is_array($candidate) === false) {
+				$candidateData = $candidate->jsonSerialize();
+			}
 
-        foreach ($candidates as $candidate) {
-            $candidateData = $candidate;
-            if (is_array($candidate) === false) {
-                $candidateData = $candidate->jsonSerialize();
-            }
+			$curriculumPlanIds = $candidateData['curriculumPlanIds'] ?? [];
+			if (is_array($curriculumPlanIds) === false) {
+				continue;
+			}
 
-            $curriculumPlanIds = $candidateData['curriculumPlanIds'] ?? [];
-            if (is_array($curriculumPlanIds) === false) {
-                continue;
-            }
+			if (in_array($curriculumPlanId, $curriculumPlanIds, true) === true) {
+				return $candidateData;
+			}
+		}//end foreach
 
-            if (in_array($curriculumPlanId, $curriculumPlanIds, true) === true) {
-                return $candidateData;
-            }
-        }//end foreach
+		return null;
+	}//end findGoverningReportPeriod()
 
-        return null;
+	/**
+	 * Whether the acting user holds an override role (admin/mentor/principal).
+	 *
+	 * @param string $actor NC user ID of the requester.
+	 *
+	 * @return bool True when the user is in one of the override groups.
+	 */
+	private function actorMayOverride(string $actor): bool {
+		if ($actor === '') {
+			return false;
+		}
 
-    }//end findGoverningReportPeriod()
+		$user = $this->userManager->get($actor);
+		if ($user === null) {
+			return false;
+		}
 
-    /**
-     * Whether the acting user holds an override role (admin/mentor/principal).
-     *
-     * @param string $actor NC user ID of the requester.
-     *
-     * @return bool True when the user is in one of the override groups.
-     */
-    private function actorMayOverride(string $actor): bool
-    {
-        if ($actor === '') {
-            return false;
-        }
+		$actorGroups = $this->groupManager->getUserGroupIds($user);
 
-        $user = $this->userManager->get($actor);
-        if ($user === null) {
-            return false;
-        }
-
-        $actorGroups = $this->groupManager->getUserGroupIds($user);
-
-        return count(array_intersect($actorGroups, self::OVERRIDE_GROUPS)) > 0;
-
-    }//end actorMayOverride()
+		return count(array_intersect($actorGroups, self::OVERRIDE_GROUPS)) > 0;
+	}//end actorMayOverride()
 }//end class

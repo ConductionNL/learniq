@@ -54,73 +54,70 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
  */
-class BpvConfirmationGuard
-{
+class BpvConfirmationGuard {
 
-    /**
-     * The verification status value that satisfies the gate.
-     */
-    private const VERIFIED_STATUS = 'verified';
+	/**
+	 * The verification status value that satisfies the gate.
+	 */
+	private const VERIFIED_STATUS = 'verified';
 
-    /**
-     * Constructor.
-     *
-     * @param LoggerInterface $logger PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point.
-     *
-     * Called by OpenRegister's lifecycle engine before executing the
-     * `confirm` transition on a BpvPlacement object.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the BpvPlacement data array
-     *                                               - 'transition' : 'confirm'
-     *                                               - 'from'       : 'sbb-verification-pending'
-     *                                               - 'to'         : 'confirmed'
-     *
-     * @return bool True when leerbedrijfVerification.status is `verified`; false blocks the
-     *              transition (HTTP 422).
-     *
-     * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $placement    = $transitionContext['object'] ?? [];
-        $placementId  = $placement['id'] ?? ($placement['uuid'] ?? '');
-        $verification = $placement['leerbedrijfVerification'] ?? null;
+	/**
+	 * OR lifecycle guard entry-point.
+	 *
+	 * Called by OpenRegister's lifecycle engine before executing the
+	 * `confirm` transition on a BpvPlacement object.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the BpvPlacement data array
+	 *                                               - 'transition' : 'confirm'
+	 *                                               - 'from'       : 'sbb-verification-pending'
+	 *                                               - 'to'         : 'confirmed'
+	 *
+	 * @return bool True when leerbedrijfVerification.status is `verified`; false blocks the
+	 *              transition (HTTP 422).
+	 *
+	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
+	 */
+	public function check(array &$transitionContext): bool {
+		$placement = $transitionContext['object'] ?? [];
+		$placementId = $placement['id'] ?? ($placement['uuid'] ?? '');
+		$verification = $placement['leerbedrijfVerification'] ?? null;
 
-        if (is_array($verification) === false) {
-            $this->logger->info(
-                '[BpvConfirmationGuard] BpvPlacement {id} has no leerbedrijfVerification block; blocking confirm.',
-                ['id' => $placementId]
-            );
-            return false;
-        }
+		if (is_array($verification) === false) {
+			$this->logger->info(
+				'[BpvConfirmationGuard] BpvPlacement {id} has no leerbedrijfVerification block; blocking confirm.',
+				['id' => $placementId]
+			);
+			return false;
+		}
 
-        $status = $verification['status'] ?? 'unverified';
+		$status = $verification['status'] ?? 'unverified';
 
-        if ($status !== self::VERIFIED_STATUS) {
-            $this->logger->info(
-                '[BpvPlacement] {id} leerbedrijfVerification.status is "{status}", not verified; blocking confirm.',
-                ['id' => $placementId, 'status' => $status]
-            );
-            return false;
-        }
+		if ($status !== self::VERIFIED_STATUS) {
+			$this->logger->info(
+				'[BpvPlacement] {id} leerbedrijfVerification.status is "{status}", not verified; blocking confirm.',
+				['id' => $placementId, 'status' => $status]
+			);
+			return false;
+		}
 
-        $this->logger->info(
-            '[BpvConfirmationGuard] BpvPlacement {id} leerbedrijf is verified — allowing confirm.',
-            ['id' => $placementId]
-        );
+		$this->logger->info(
+			'[BpvConfirmationGuard] BpvPlacement {id} leerbedrijf is verified — allowing confirm.',
+			['id' => $placementId]
+		);
 
-        return true;
-
-    }//end check()
+		return true;
+	}//end check()
 }//end class

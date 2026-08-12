@@ -30,64 +30,60 @@ use PHPUnit\Framework\TestCase;
 /**
  * Tests for OrderTotalEvaluator::evaluate().
  */
-class OrderTotalEvaluatorTest extends TestCase
-{
-    /**
-     * Sums lineTotal across every OrderLine for the given orderId.
-     *
-     * @return void
-     */
-    public function testSumsLineTotalsForTheOrder(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('findAll')->willReturn(
-            [
-                ['id' => 'line-1', 'orderId' => 'order-1', 'lineTotal' => 15.00],
-                ['id' => 'line-2', 'orderId' => 'order-1', 'lineTotal' => 30.00],
-            ]
-        );
+class OrderTotalEvaluatorTest extends TestCase {
+	/**
+	 * Sums lineTotal across every OrderLine for the given orderId.
+	 *
+	 * @return void
+	 */
+	public function testSumsLineTotalsForTheOrder(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn(
+			[
+				['id' => 'line-1', 'orderId' => 'order-1', 'lineTotal' => 15.00],
+				['id' => 'line-2', 'orderId' => 'order-1', 'lineTotal' => 30.00],
+			]
+		);
 
-        $evaluator = new OrderTotalEvaluator($objectService);
-        $result    = $evaluator->evaluate(orderId: 'order-1');
+		$evaluator = new OrderTotalEvaluator($objectService);
+		$result = $evaluator->evaluate(orderId: 'order-1');
 
-        self::assertSame(45.0, $result['total']);
-        self::assertSame(2, $result['lineCount']);
+		self::assertSame(45.0, $result['total']);
+		self::assertSame(2, $result['lineCount']);
 
-    }//end testSumsLineTotalsForTheOrder()
+	}//end testSumsLineTotalsForTheOrder()
 
-    /**
-     * No OrderLines returns a zero total and zero line count.
-     *
-     * @return void
-     */
-    public function testNoOrderLinesReturnsZero(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('findAll')->willReturn([]);
+	/**
+	 * No OrderLines returns a zero total and zero line count.
+	 *
+	 * @return void
+	 */
+	public function testNoOrderLinesReturnsZero(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn([]);
 
-        $evaluator = new OrderTotalEvaluator($objectService);
-        $result    = $evaluator->evaluate(orderId: 'order-1');
+		$evaluator = new OrderTotalEvaluator($objectService);
+		$result = $evaluator->evaluate(orderId: 'order-1');
 
-        self::assertSame(0.0, $result['total']);
-        self::assertSame(0, $result['lineCount']);
+		self::assertSame(0.0, $result['total']);
+		self::assertSame(0, $result['lineCount']);
 
-    }//end testNoOrderLinesReturnsZero()
+	}//end testNoOrderLinesReturnsZero()
 
-    /**
-     * An empty orderId short-circuits without calling ObjectService.
-     *
-     * @return void
-     */
-    public function testEmptyOrderIdShortCircuits(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->expects($this->never())->method('findAll');
+	/**
+	 * An empty orderId short-circuits without calling ObjectService.
+	 *
+	 * @return void
+	 */
+	public function testEmptyOrderIdShortCircuits(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects($this->never())->method('findAll');
 
-        $evaluator = new OrderTotalEvaluator($objectService);
-        $result    = $evaluator->evaluate(orderId: '');
+		$evaluator = new OrderTotalEvaluator($objectService);
+		$result = $evaluator->evaluate(orderId: '');
 
-        self::assertSame(0.0, $result['total']);
-        self::assertSame(0, $result['lineCount']);
+		self::assertSame(0.0, $result['total']);
+		self::assertSame(0, $result['lineCount']);
 
-    }//end testEmptyOrderIdShortCircuits()
+	}//end testEmptyOrderIdShortCircuits()
 }//end class

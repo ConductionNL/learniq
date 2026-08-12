@@ -33,8 +33,8 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Tests\Integration\Lifecycle;
 
-use OCA\OpenRegister\Service\ObjectService;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
+use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -48,176 +48,164 @@ use PHPUnit\Framework\TestCase;
  * @category Tests
  * @package  OCA\Scholiq\Tests\Integration\Lifecycle
  */
-class AssessmentPublishGuardRandomDrawIntegrationTest extends TestCase
-{
+class AssessmentPublishGuardRandomDrawIntegrationTest extends TestCase {
 
-    /** @var ObjectService|null */
-    private ?ObjectService $objectService = null;
+	/** @var ObjectService|null */
+	private ?ObjectService $objectService = null;
 
-    /** @var TransitionEngine|null */
-    private ?TransitionEngine $transitionEngine = null;
+	/** @var TransitionEngine|null */
+	private ?TransitionEngine $transitionEngine = null;
 
-    /** Cleanup: UUIDs of objects created by this test run. */
-    private array $createdUuids = [];
+	/** Cleanup: UUIDs of objects created by this test run. */
+	private array $createdUuids = [];
 
+	/**
+	 * Set up the test: verify OR is available, resolve services.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
 
-    /**
-     * Set up the test: verify OR is available, resolve services.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
+		if (class_exists(\OC::class) === false || isset(\OC::$server) === false) {
+			$this->markTestSkipped('Nextcloud not bootstrapped — set up a live NC + OR environment to run integration tests.');
+		}
 
-        if (class_exists(\OC::class) === false || isset(\OC::$server) === false) {
-            $this->markTestSkipped('Nextcloud not bootstrapped — set up a live NC + OR environment to run integration tests.');
-        }
+		if (class_exists(ObjectService::class) === false) {
+			$this->markTestSkipped('openregister app is not installed — integration tests require OR.');
+		}
 
-        if (class_exists(ObjectService::class) === false) {
-            $this->markTestSkipped('openregister app is not installed — integration tests require OR.');
-        }
+		try {
+			$this->objectService = \OC::$server->get(ObjectService::class);
+			$this->transitionEngine = \OC::$server->get(TransitionEngine::class);
+		} catch (\Throwable $e) {
+			$this->markTestSkipped('Could not resolve OR services from DI container: ' . $e->getMessage());
+		}
 
-        try {
-            $this->objectService   = \OC::$server->get(ObjectService::class);
-            $this->transitionEngine = \OC::$server->get(TransitionEngine::class);
-        } catch (\Throwable $e) {
-            $this->markTestSkipped('Could not resolve OR services from DI container: '.$e->getMessage());
-        }
+	}//end setUp()
 
-    }//end setUp()
+	/**
+	 * Tear down: remove objects created during the test to leave the DB clean.
+	 *
+	 * @return void
+	 */
+	protected function tearDown(): void {
+		if ($this->objectService !== null && empty($this->createdUuids) === false) {
+			foreach (array_reverse($this->createdUuids) as ['schema' => $schema, 'uuid' => $uuid]) {
+				try {
+					$this->objectService->deleteObject($uuid);
+				} catch (\Throwable) {
+					// Best-effort cleanup; ignore failures.
+				}
+			}
+		}
 
+		parent::tearDown();
 
-    /**
-     * Tear down: remove objects created during the test to leave the DB clean.
-     *
-     * @return void
-     */
-    protected function tearDown(): void
-    {
-        if ($this->objectService !== null && empty($this->createdUuids) === false) {
-            foreach (array_reverse($this->createdUuids) as ['schema' => $schema, 'uuid' => $uuid]) {
-                try {
-                    $this->objectService->deleteObject($uuid);
-                } catch (\Throwable) {
-                    // Best-effort cleanup; ignore failures.
-                }
-            }
-        }
+	}//end tearDown()
 
-        parent::tearDown();
+	/**
+	 * Create an object via OR's ObjectService and record its UUID for cleanup.
+	 *
+	 * @param string $schema Schema name (e.g. 'Assessment').
+	 * @param array $data Object payload.
+	 *
+	 * @return array The created object as an associative array.
+	 */
+	private function createObject(string $schema, array $data): array {
+		try {
+			$obj = $this->objectService->saveObject(register: 'scholiq', schema: $schema, object: $data);
+		} catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
+			$this->markTestSkipped('Scholiq register/schema not seeded: ' . $e->getMessage());
+		}
 
-    }//end tearDown()
+		$this->createdUuids[] = ['schema' => $schema, 'uuid' => $obj['uuid']];
 
+		return $obj;
+	}//end createObject()
 
-    /**
-     * Create an object via OR's ObjectService and record its UUID for cleanup.
-     *
-     * @param string $schema Schema name (e.g. 'Assessment').
-     * @param array  $data   Object payload.
-     *
-     * @return array The created object as an associative array.
-     */
-    private function createObject(string $schema, array $data): array
-    {
-        try {
-            $obj = $this->objectService->saveObject(register: 'scholiq', schema: $schema, object: $data);
-        } catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
-            $this->markTestSkipped('Scholiq register/schema not seeded: '.$e->getMessage());
-        }
+	/**
+	 * A random-draw Assessment whose ItemBank has fewer distinct variant
+	 * groups than drawCount cannot publish.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-random-draw-assessment-with-an-insufficient-pool-cannot-publish
+	 */
+	public function testInsufficientPoolBlocksPublish(): void {
+		$bank = $this->createObject('ItemBank', ['name' => 'Integration Test Bank ' . uniqid()]);
 
-        $this->createdUuids[] = ['schema' => $schema, 'uuid' => $obj['uuid']];
+		// Only 6 published items — fewer than drawCount 10.
+		for ($i = 0; $i < 6; $i++) {
+			$this->createObject(
+				'Item',
+				[
+					'itemBankId' => $bank['uuid'],
+					'title' => 'Item ' . $i,
+					'interactionType' => 'textEntry',
+					'qtiBody' => '<assessmentItem/>',
+					'maxScore' => 1,
+					'lifecycle' => 'published',
+				]
+			);
+		}
 
-        return $obj;
+		$assessment = $this->createObject(
+			'Assessment',
+			[
+				'title' => 'Integration Test Assessment ' . uniqid(),
+				'itemSelectionMode' => 'random-draw',
+				'itemPoolConfig' => ['itemBankId' => $bank['uuid'], 'drawCount' => 10],
+			]
+		);
 
-    }//end createObject()
+		$result = $this->transitionEngine->transition($assessment['uuid'], 'publish');
 
+		self::assertFalse(
+			($result === true || (is_array($result) === true && ($result['success'] ?? false) === true)),
+			'publish MUST be blocked when the pool has fewer than drawCount distinct variant groups'
+		);
 
-    /**
-     * A random-draw Assessment whose ItemBank has fewer distinct variant
-     * groups than drawCount cannot publish.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-random-draw-assessment-with-an-insufficient-pool-cannot-publish
-     */
-    public function testInsufficientPoolBlocksPublish(): void
-    {
-        $bank = $this->createObject('ItemBank', ['name' => 'Integration Test Bank '.uniqid()]);
+	}//end testInsufficientPoolBlocksPublish()
 
-        // Only 6 published items — fewer than drawCount 10.
-        for ($i = 0; $i < 6; $i++) {
-            $this->createObject(
-                'Item',
-                [
-                    'itemBankId'      => $bank['uuid'],
-                    'title'           => 'Item '.$i,
-                    'interactionType' => 'textEntry',
-                    'qtiBody'         => '<assessmentItem/>',
-                    'maxScore'        => 1,
-                    'lifecycle'       => 'published',
-                ]
-            );
-        }
+	/**
+	 * A random-draw Assessment whose ItemBank has at least drawCount
+	 * distinct published Items can publish.
+	 *
+	 * @return void
+	 */
+	public function testSufficientPoolAllowsPublish(): void {
+		$bank = $this->createObject('ItemBank', ['name' => 'Integration Test Bank ' . uniqid()]);
 
-        $assessment = $this->createObject(
-            'Assessment',
-            [
-                'title'             => 'Integration Test Assessment '.uniqid(),
-                'itemSelectionMode' => 'random-draw',
-                'itemPoolConfig'    => ['itemBankId' => $bank['uuid'], 'drawCount' => 10],
-            ]
-        );
+		for ($i = 0; $i < 10; $i++) {
+			$this->createObject(
+				'Item',
+				[
+					'itemBankId' => $bank['uuid'],
+					'title' => 'Item ' . $i,
+					'interactionType' => 'textEntry',
+					'qtiBody' => '<assessmentItem/>',
+					'maxScore' => 1,
+					'lifecycle' => 'published',
+				]
+			);
+		}
 
-        $result = $this->transitionEngine->transition($assessment['uuid'], 'publish');
+		$assessment = $this->createObject(
+			'Assessment',
+			[
+				'title' => 'Integration Test Assessment ' . uniqid(),
+				'itemSelectionMode' => 'random-draw',
+				'itemPoolConfig' => ['itemBankId' => $bank['uuid'], 'drawCount' => 5],
+			]
+		);
 
-        self::assertFalse(
-            ($result === true || (is_array($result) === true && ($result['success'] ?? false) === true)),
-            'publish MUST be blocked when the pool has fewer than drawCount distinct variant groups'
-        );
+		$result = $this->transitionEngine->transition($assessment['uuid'], 'publish');
 
-    }//end testInsufficientPoolBlocksPublish()
+		self::assertTrue(
+			($result === true || (is_array($result) === true && ($result['success'] ?? false) === true)),
+			'publish MUST succeed when the pool has at least drawCount distinct published Items'
+		);
 
-
-    /**
-     * A random-draw Assessment whose ItemBank has at least drawCount
-     * distinct published Items can publish.
-     *
-     * @return void
-     */
-    public function testSufficientPoolAllowsPublish(): void
-    {
-        $bank = $this->createObject('ItemBank', ['name' => 'Integration Test Bank '.uniqid()]);
-
-        for ($i = 0; $i < 10; $i++) {
-            $this->createObject(
-                'Item',
-                [
-                    'itemBankId'      => $bank['uuid'],
-                    'title'           => 'Item '.$i,
-                    'interactionType' => 'textEntry',
-                    'qtiBody'         => '<assessmentItem/>',
-                    'maxScore'        => 1,
-                    'lifecycle'       => 'published',
-                ]
-            );
-        }
-
-        $assessment = $this->createObject(
-            'Assessment',
-            [
-                'title'             => 'Integration Test Assessment '.uniqid(),
-                'itemSelectionMode' => 'random-draw',
-                'itemPoolConfig'    => ['itemBankId' => $bank['uuid'], 'drawCount' => 5],
-            ]
-        );
-
-        $result = $this->transitionEngine->transition($assessment['uuid'], 'publish');
-
-        self::assertTrue(
-            ($result === true || (is_array($result) === true && ($result['success'] ?? false) === true)),
-            'publish MUST succeed when the pool has at least drawCount distinct published Items'
-        );
-
-    }//end testSufficientPoolAllowsPublish()
+	}//end testSufficientPoolAllowsPublish()
 }//end class

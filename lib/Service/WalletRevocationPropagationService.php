@@ -69,153 +69,150 @@ use Throwable;
  * config, HTTP error, thrown exception) is logged and swallowed — the
  * `revoke` transition itself is never blocked.
  */
-class WalletRevocationPropagationService
-{
+class WalletRevocationPropagationService {
 
-    /**
-     * OpenConnector REST endpoint template for consumer-gated offer
-     * revocation (openconnector `eudi-wallet-credential-issuance` REQ-EUDI-009,
-     * `appinfo/routes.php`: `eudiWallet#revoke`). `%s` is the offer uuid
-     * (Credential.walletAttestationRef).
-     *
-     * @var string
-     */
-    private const OPENCONNECTOR_REVOKE_PATH = '/apps/openconnector/api/eudi/credential-offers/%s/revoke';
+	/**
+	 * OpenConnector REST endpoint template for consumer-gated offer
+	 * revocation (openconnector `eudi-wallet-credential-issuance` REQ-EUDI-009,
+	 * `appinfo/routes.php`: `eudiWallet#revoke`). `%s` is the offer uuid
+	 * (Credential.walletAttestationRef).
+	 *
+	 * @var string
+	 */
+	private const OPENCONNECTOR_REVOKE_PATH = '/apps/openconnector/api/eudi/credential-offers/%s/revoke';
 
-    /**
-     * App-config key for the OpenConnector bearer credential. Same key
-     * {@see WalletOfferDelegationService} uses.
-     *
-     * @var string
-     */
-    private const OPENCONNECTOR_TOKEN_KEY = 'openconnector_api_token';
+	/**
+	 * App-config key for the OpenConnector bearer credential. Same key
+	 * {@see WalletOfferDelegationService} uses.
+	 *
+	 * @var string
+	 */
+	private const OPENCONNECTOR_TOKEN_KEY = 'openconnector_api_token';
 
-    /**
-     * Wallet-offer statuses that still have something outstanding to revoke.
-     *
-     * @var string[]
-     */
-    private const OUTSTANDING_STATUSES = ['offered', 'claimed'];
+	/**
+	 * Wallet-offer statuses that still have something outstanding to revoke.
+	 *
+	 * @var string[]
+	 */
+	private const OUTSTANDING_STATUSES = ['offered', 'claimed'];
 
-    /**
-     * Constructor.
-     *
-     * @param IClientService  $clientService NC HTTP client factory.
-     * @param IURLGenerator   $urlGenerator  NC URL generator for internal requests.
-     * @param IAppConfig      $appConfig     NC app config for token lookup.
-     * @param LoggerInterface $logger        PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly IClientService $clientService,
-        private readonly IURLGenerator $urlGenerator,
-        private readonly IAppConfig $appConfig,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param IClientService $clientService NC HTTP client factory.
+	 * @param IURLGenerator $urlGenerator NC URL generator for internal requests.
+	 * @param IAppConfig $appConfig NC app config for token lookup.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly IClientService $clientService,
+		private readonly IURLGenerator $urlGenerator,
+		private readonly IAppConfig $appConfig,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point.
-     *
-     * Called before executing the `revoke` transition on a Credential
-     * object. When there is an outstanding wallet offer, propagates the
-     * revocation to openconnector best-effort. Always returns true — never
-     * blocks `revoke`.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the Credential data array (mutated)
-     *                                               - 'transition' : 'revoke'
-     *                                               - 'from'       : 'issued'
-     *                                               - 'to'         : 'revoked'
-     *
-     * @return bool Always true (fail-soft by design).
-     *
-     * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $object = &$transitionContext['object'];
+	/**
+	 * OR lifecycle guard entry-point.
+	 *
+	 * Called before executing the `revoke` transition on a Credential
+	 * object. When there is an outstanding wallet offer, propagates the
+	 * revocation to openconnector best-effort. Always returns true — never
+	 * blocks `revoke`.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the Credential data array (mutated)
+	 *                                               - 'transition' : 'revoke'
+	 *                                               - 'from'       : 'issued'
+	 *                                               - 'to'         : 'revoked'
+	 *
+	 * @return bool Always true (fail-soft by design).
+	 *
+	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
+	 */
+	public function check(array &$transitionContext): bool {
+		$object = &$transitionContext['object'];
 
-        $walletOfferStatus = ($object['walletOfferStatus'] ?? null);
-        if (in_array($walletOfferStatus, self::OUTSTANDING_STATUSES, true) === false) {
-            // Nothing outstanding to revoke — no-op.
-            return true;
-        }
+		$walletOfferStatus = ($object['walletOfferStatus'] ?? null);
+		if (in_array($walletOfferStatus, self::OUTSTANDING_STATUSES, true) === false) {
+			// Nothing outstanding to revoke — no-op.
+			return true;
+		}
 
-        $attestationRef = (string) ($object['walletAttestationRef'] ?? '');
-        if ($attestationRef === '') {
-            // No correlation key to revoke by — nothing we can propagate.
-            return true;
-        }
+		$attestationRef = (string)($object['walletAttestationRef'] ?? '');
+		if ($attestationRef === '') {
+			// No correlation key to revoke by — nothing we can propagate.
+			return true;
+		}
 
-        try {
-            $handled = $this->callOpenConnectorRevoke(attestationRef: $attestationRef);
-            if ($handled === true) {
-                $object['walletOfferStatus'] = 'revoked';
-                $this->logger->info(
-                    '[WalletRevocationPropagationService] Propagated revocation for wallet offer {ref}',
-                    ['ref' => $attestationRef]
-                );
-            }
+		try {
+			$handled = $this->callOpenConnectorRevoke(attestationRef: $attestationRef);
+			if ($handled === true) {
+				$object['walletOfferStatus'] = 'revoked';
+				$this->logger->info(
+					'[WalletRevocationPropagationService] Propagated revocation for wallet offer {ref}',
+					['ref' => $attestationRef]
+				);
+			}
 
-            if ($handled === false) {
-                $object['walletOfferError'] = 'Wallet revocation propagation failed or openconnector is unavailable.';
-                $this->logger->warning(
-                    '[WalletRevocationPropagationService] Revocation propagation for wallet offer {ref} did not succeed',
-                    ['ref' => $attestationRef]
-                );
-            }
-        } catch (Throwable $exception) {
-            // Fail-soft by design: never block revoke on the wallet rail.
-            $object['walletOfferError'] = 'Wallet revocation propagation error: '.$exception->getMessage();
-            $this->logger->warning(
-                '[WalletRevocationPropagationService] Revocation propagation threw: {msg}',
-                ['msg' => $exception->getMessage()]
-            );
-        }//end try
+			if ($handled === false) {
+				$object['walletOfferError'] = 'Wallet revocation propagation failed or openconnector is unavailable.';
+				$this->logger->warning(
+					'[WalletRevocationPropagationService] Revocation propagation for wallet offer {ref} did not succeed',
+					['ref' => $attestationRef]
+				);
+			}
+		} catch (Throwable $exception) {
+			// Fail-soft by design: never block revoke on the wallet rail.
+			$object['walletOfferError'] = 'Wallet revocation propagation error: ' . $exception->getMessage();
+			$this->logger->warning(
+				'[WalletRevocationPropagationService] Revocation propagation threw: {msg}',
+				['msg' => $exception->getMessage()]
+			);
+		}//end try
 
-        return true;
-    }//end check()
+		return true;
+	}//end check()
 
-    /**
-     * Call openconnector's consumer-gated offer-revocation endpoint.
-     *
-     * @param string $attestationRef The offer uuid to revoke.
-     *
-     * @return bool True when openconnector confirmed the revocation (or it was already revoked).
-     */
-    private function callOpenConnectorRevoke(string $attestationRef): bool
-    {
-        $path = sprintf(self::OPENCONNECTOR_REVOKE_PATH, rawurlencode($attestationRef));
-        $url  = $this->urlGenerator->getAbsoluteURL('/index.php'.$path);
+	/**
+	 * Call openconnector's consumer-gated offer-revocation endpoint.
+	 *
+	 * @param string $attestationRef The offer uuid to revoke.
+	 *
+	 * @return bool True when openconnector confirmed the revocation (or it was already revoked).
+	 */
+	private function callOpenConnectorRevoke(string $attestationRef): bool {
+		$path = sprintf(self::OPENCONNECTOR_REVOKE_PATH, rawurlencode($attestationRef));
+		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . $path);
 
-        $apiToken = $this->appConfig->getValueString(
-            app: 'scholiq',
-            key: self::OPENCONNECTOR_TOKEN_KEY,
-            default: ''
-        );
+		$apiToken = $this->appConfig->getValueString(
+			app: 'scholiq',
+			key: self::OPENCONNECTOR_TOKEN_KEY,
+			default: ''
+		);
 
-        if ($apiToken === '') {
-            $this->logger->warning(
-                '[WalletRevocationPropagationService] No OpenConnector API token configured ('
-                .'scholiq.openconnector_api_token); the revocation call will fail with 401.'
-            );
-            return false;
-        }
+		if ($apiToken === '') {
+			$this->logger->warning(
+				'[WalletRevocationPropagationService] No OpenConnector API token configured ('
+				. 'scholiq.openconnector_api_token); the revocation call will fail with 401.'
+			);
+			return false;
+		}
 
-        $requestOptions = [
-            'timeout' => 30,
-            'headers' => [
-                'Authorization' => 'Bearer '.$apiToken,
-            ],
-        ];
+		$requestOptions = [
+			'timeout' => 30,
+			'headers' => [
+				'Authorization' => 'Bearer ' . $apiToken,
+			],
+		];
 
-        $client   = $this->clientService->newClient();
-        $response = $client->post($url, $requestOptions);
+		$client = $this->clientService->newClient();
+		$response = $client->post($url, $requestOptions);
 
-        $body = json_decode($response->getBody(), true);
+		$body = json_decode($response->getBody(), true);
 
-        return (is_array($body) === true && ($body['status'] ?? null) === 'revoked');
-    }//end callOpenConnectorRevoke()
+		return (is_array($body) === true && ($body['status'] ?? null) === 'revoked');
+	}//end callOpenConnectorRevoke()
 }//end class

@@ -56,87 +56,82 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-lock-date-is-enforced-by-a-materialised-calculation-and-guards-not-an-automatic-transition
  */
-class ReportPeriodComposeGuard
-{
-    /**
-     * Constructor.
-     *
-     * @param LoggerInterface $logger PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+class ReportPeriodComposeGuard {
+	/**
+	 * Constructor.
+	 *
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point.
-     *
-     * Called by OpenRegister's lifecycle engine before executing the
-     * `compose` transition on a ReportPeriod object. Returns true only when
-     * `isLocked` (the materialised lockDate-passed calculation) is `true`.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the ReportPeriod data array
-     *                                               - 'transition' : 'compose'
-     *                                               - 'from'       : 'open'
-     *                                               - 'to'         : 'composed'
-     *
-     * @return bool True when the period is locked; false blocks the transition.
-     *
-     * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
-     * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $object   = $transitionContext['object'] ?? [];
-        $periodId = $object['id'] ?? ($object['uuid'] ?? '');
+	/**
+	 * OR lifecycle guard entry-point.
+	 *
+	 * Called by OpenRegister's lifecycle engine before executing the
+	 * `compose` transition on a ReportPeriod object. Returns true only when
+	 * `isLocked` (the materialised lockDate-passed calculation) is `true`.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the ReportPeriod data array
+	 *                                               - 'transition' : 'compose'
+	 *                                               - 'from'       : 'open'
+	 *                                               - 'to'         : 'composed'
+	 *
+	 * @return bool True when the period is locked; false blocks the transition.
+	 *
+	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
+	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+	 */
+	public function check(array &$transitionContext): bool {
+		$object = $transitionContext['object'] ?? [];
+		$periodId = $object['id'] ?? ($object['uuid'] ?? '');
 
-        $isLocked = $object['isLocked'] ?? null;
+		$isLocked = $object['isLocked'] ?? null;
 
-        if (is_bool($isLocked) === false) {
-            // Materialised value absent — defensive fallback, computed the same
-            // way as the declared x-openregister-calculations expression.
-            $isLocked = $this->computeIsLocked(object: $object);
-        }
+		if (is_bool($isLocked) === false) {
+			// Materialised value absent — defensive fallback, computed the same
+			// way as the declared x-openregister-calculations expression.
+			$isLocked = $this->computeIsLocked(object: $object);
+		}
 
-        if ($isLocked === false) {
-            $this->logger->info(
-                '[ReportPeriodComposeGuard] ReportPeriod {id} is not yet locked — denying compose transition.',
-                ['id' => $periodId]
-            );
-            return false;
-        }
+		if ($isLocked === false) {
+			$this->logger->info(
+				'[ReportPeriodComposeGuard] ReportPeriod {id} is not yet locked — denying compose transition.',
+				['id' => $periodId]
+			);
+			return false;
+		}
 
-        return true;
+		return true;
+	}//end check()
 
-    }//end check()
+	/**
+	 * Defensive fallback: compute whether `lockDate` has passed `@now`,
+	 * mirroring the declared `isLocked` x-openregister-calculations
+	 * expression exactly (`lockDate` set AND `lockDate < now`).
+	 *
+	 * @param array<string,mixed> $object The ReportPeriod data array.
+	 *
+	 * @return bool True when lockDate is set and in the past.
+	 */
+	private function computeIsLocked(array $object): bool {
+		$lockDate = $object['lockDate'] ?? null;
 
-    /**
-     * Defensive fallback: compute whether `lockDate` has passed `@now`,
-     * mirroring the declared `isLocked` x-openregister-calculations
-     * expression exactly (`lockDate` set AND `lockDate < now`).
-     *
-     * @param array<string,mixed> $object The ReportPeriod data array.
-     *
-     * @return bool True when lockDate is set and in the past.
-     */
-    private function computeIsLocked(array $object): bool
-    {
-        $lockDate = $object['lockDate'] ?? null;
+		if ($lockDate === null || $lockDate === '') {
+			return false;
+		}
 
-        if ($lockDate === null || $lockDate === '') {
-            return false;
-        }
+		$lockTimestamp = strtotime((string)$lockDate);
 
-        $lockTimestamp = strtotime((string) $lockDate);
+		if ($lockTimestamp === false) {
+			return false;
+		}
 
-        if ($lockTimestamp === false) {
-            return false;
-        }
-
-        return $lockTimestamp < time();
-
-    }//end computeIsLocked()
+		return $lockTimestamp < time();
+	}//end computeIsLocked()
 }//end class

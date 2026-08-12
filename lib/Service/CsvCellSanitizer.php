@@ -34,35 +34,32 @@ namespace OCA\Scholiq\Service;
  *
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
  */
-class CsvCellSanitizer
-{
-    /**
-     * Sanitize a single CSV cell to prevent formula-injection attacks.
-     *
-     * Excel and LibreOffice Calc treat cells starting with `=`, `+`, `-`, `@`, `\t`,
-     * or `\r` as formula expressions. Prefixing such values with a tab character
-     * neutralises the injection without altering the visible cell content in most
-     * spreadsheet applications. Fixes #191.
-     *
-     * @param string $value The raw cell value.
-     *
-     * @return string The sanitised cell value.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-     */
-    public function sanitize(string $value): string
-    {
-        if ($value === '') {
-            return $value;
-        }
+class CsvCellSanitizer {
+	/**
+	 * Sanitize a single CSV cell to prevent formula-injection attacks.
+	 *
+	 * Excel and LibreOffice Calc treat cells starting with `=`, `+`, `-`, `@`, `\t`,
+	 * or `\r` as formula expressions. Prefixing such values with a tab character
+	 * neutralises the injection without altering the visible cell content in most
+	 * spreadsheet applications. Fixes #191.
+	 *
+	 * @param string $value The raw cell value.
+	 *
+	 * @return string The sanitised cell value.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 */
+	public function sanitize(string $value): string {
+		if ($value === '') {
+			return $value;
+		}
 
-        // Trim leading whitespace first so we test the true first character.
-        $first = $value[0];
-        if (in_array($first, ['=', '+', '-', '@', "\t", "\r"], strict: true) === true) {
-            return "\t".$value;
-        }
+		// Trim leading whitespace first so we test the true first character.
+		$first = $value[0];
+		if (in_array($first, ['=', '+', '-', '@', "\t", "\r"], strict: true) === true) {
+			return "\t" . $value;
+		}
 
-        return $value;
-
-    }//end sanitize()
+		return $value;
+	}//end sanitize()
 }//end class

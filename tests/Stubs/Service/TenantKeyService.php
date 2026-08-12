@@ -22,16 +22,15 @@ namespace OCA\OpenRegister\Service;
 /**
  * Stub for TenantKeyService.
  */
-abstract class TenantKeyService
-{
+abstract class TenantKeyService {
 
-    /**
-     * Return the current HMAC signing key for the given tenant.
-     *
-     * @param string $tenantId The tenant identifier.
-     *
-     * @return string The current tenant key (empty string when no key is configured).
-     */
-    abstract public function getCurrentTenantKey(string $tenantId): string;
+	/**
+	 * Return the current HMAC signing key for the given tenant.
+	 *
+	 * @param string $tenantId The tenant identifier.
+	 *
+	 * @return string The current tenant key (empty string when no key is configured).
+	 */
+	abstract public function getCurrentTenantKey(string $tenantId): string;
 
 }//end class

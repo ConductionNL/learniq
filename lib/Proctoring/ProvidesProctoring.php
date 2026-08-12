@@ -58,59 +58,58 @@ namespace OCA\Scholiq\Proctoring;
  *   Review decisions (allowed/annulled) are set by invigilators, never by
  *   the provider or by automated logic.
  */
-interface ProvidesProctoring
-{
-    /**
-     * Start a proctoring session for an assessment attempt.
-     *
-     * Creates a provider-side session and returns the provider's session identifier.
-     * The caller is responsible for creating a `ProctoringSession` OR object and
-     * storing the returned identifier in `providerSessionId`.
-     *
-     * @param string               $assessmentResultId UUID of the AssessmentResult being proctored.
-     * @param array<string, mixed> $config             Proctoring configuration from Assessment.proctoring
-     *                                                 (provider, lockdownBrowser, recordWebcam, flagReviewMode).
-     *
-     * @return string Provider-side session identifier (opaque string).
-     *
-     * @throws \RuntimeException When the provider cannot create a session.
-     */
-    public function startSession(string $assessmentResultId, array $config): string;
+interface ProvidesProctoring {
+	/**
+	 * Start a proctoring session for an assessment attempt.
+	 *
+	 * Creates a provider-side session and returns the provider's session identifier.
+	 * The caller is responsible for creating a `ProctoringSession` OR object and
+	 * storing the returned identifier in `providerSessionId`.
+	 *
+	 * @param string $assessmentResultId UUID of the AssessmentResult being proctored.
+	 * @param array<string, mixed> $config Proctoring configuration from Assessment.proctoring
+	 *                                     (provider, lockdownBrowser, recordWebcam, flagReviewMode).
+	 *
+	 * @return string Provider-side session identifier (opaque string).
+	 *
+	 * @throws \RuntimeException When the provider cannot create a session.
+	 */
+	public function startSession(string $assessmentResultId, array $config): string;
 
-    /**
-     * End a proctoring session.
-     *
-     * Signals the provider that the associated assessment attempt has been submitted.
-     * Recorded artefacts may still be processed asynchronously by the provider after this call.
-     *
-     * @param string $providerSessionId The provider's session identifier (returned by startSession).
-     *
-     * @return void
-     *
-     * @throws \RuntimeException When the provider cannot end the session.
-     */
-    public function endSession(string $providerSessionId): void;
+	/**
+	 * End a proctoring session.
+	 *
+	 * Signals the provider that the associated assessment attempt has been submitted.
+	 * Recorded artefacts may still be processed asynchronously by the provider after this call.
+	 *
+	 * @param string $providerSessionId The provider's session identifier (returned by startSession).
+	 *
+	 * @return void
+	 *
+	 * @throws \RuntimeException When the provider cannot end the session.
+	 */
+	public function endSession(string $providerSessionId): void;
 
-    /**
-     * Fetch flagged events for a proctoring session.
-     *
-     * Returns an array of flags raised by the provider. The caller is responsible for
-     * merging these into the `ProctoringSession.flags` array. Flag review decisions
-     * (allowed/annulled) MUST be set only by a human invigilator — never by the
-     * adapter or any automated process (EU AI Act Art. 14 human oversight requirement).
-     *
-     * @param string $providerSessionId The provider's session identifier.
-     *
-     * @return array<int, array<string, mixed>> Array of flag objects. Each flag MUST contain:
-     *                                           - flagId (string)
-     *                                           - kind (string)
-     *                                           - occurredAt (string, ISO-8601)
-     *                                           - severity (string: low|medium|high)
-     *                                          Optional fields:
-     *                                           - description (string)
-     *                                           - metadata (array)
-     *
-     * @throws \RuntimeException When the provider cannot be reached.
-     */
-    public function fetchFlags(string $providerSessionId): array;
+	/**
+	 * Fetch flagged events for a proctoring session.
+	 *
+	 * Returns an array of flags raised by the provider. The caller is responsible for
+	 * merging these into the `ProctoringSession.flags` array. Flag review decisions
+	 * (allowed/annulled) MUST be set only by a human invigilator — never by the
+	 * adapter or any automated process (EU AI Act Art. 14 human oversight requirement).
+	 *
+	 * @param string $providerSessionId The provider's session identifier.
+	 *
+	 * @return array<int, array<string, mixed>> Array of flag objects. Each flag MUST contain:
+	 *                                          - flagId (string)
+	 *                                          - kind (string)
+	 *                                          - occurredAt (string, ISO-8601)
+	 *                                          - severity (string: low|medium|high)
+	 *                                          Optional fields:
+	 *                                          - description (string)
+	 *                                          - metadata (array)
+	 *
+	 * @throws \RuntimeException When the provider cannot be reached.
+	 */
+	public function fetchFlags(string $providerSessionId): array;
 }//end interface

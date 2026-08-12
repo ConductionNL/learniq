@@ -23,23 +23,22 @@ namespace OC\Hooks;
  * sync with the real interface (`lib/private/Hooks/Emitter.php`
  * upstream) — method signatures only, no behaviour.
  */
-interface Emitter
-{
-    /**
-     * @param string   $scope
-     * @param string   $method
-     * @param callable $callback
-     *
-     * @return void
-     */
-    public function listen($scope, $method, callable $callback);
+interface Emitter {
+	/**
+	 * @param string $scope
+	 * @param string $method
+	 * @param callable $callback
+	 *
+	 * @return void
+	 */
+	public function listen($scope, $method, callable $callback);
 
-    /**
-     * @param string|null   $scope
-     * @param string|null   $method
-     * @param callable|null $callback
-     *
-     * @return void
-     */
-    public function removeListener($scope=null, $method=null, callable $callback=null);
+	/**
+	 * @param string|null $scope
+	 * @param string|null $method
+	 * @param callable|null $callback
+	 *
+	 * @return void
+	 */
+	public function removeListener($scope = null, $method = null, ?callable $callback = null);
 }//end interface

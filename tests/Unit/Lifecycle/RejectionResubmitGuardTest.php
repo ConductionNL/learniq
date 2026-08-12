@@ -37,323 +37,311 @@ use Psr\Log\NullLogger;
  * Tests for RejectionResubmitGuard::check() — the ExchangeRejection
  * `corrected → resubmitted` transition.
  */
-class RejectionResubmitGuardTest extends TestCase
-{
+class RejectionResubmitGuardTest extends TestCase {
 
-    /**
-     * Recorded saveObject() calls.
-     *
-     * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
-     */
-    private array $savedObjects = [];
+	/**
+	 * Recorded saveObject() calls.
+	 *
+	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
+	 */
+	private array $savedObjects = [];
 
-    /**
-     * Reset capture buffer before each test.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->savedObjects = [];
+	/**
+	 * Reset capture buffer before each test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->savedObjects = [];
 
-    }//end setUp()
+	}//end setUp()
 
-    /**
-     * Build a guard whose user/group managers report the given group
-     * membership for a known 'actor-1' user, and whose ObjectService resolves
-     * the originating job + records saveObject() calls.
-     *
-     * @param string[]                  $groups      Group IDs 'actor-1' belongs to.
-     * @param array<string,mixed>|null  $originalJob The originating DataExchangeJob row findAll() returns, or null.
-     * @param string|null               $newJobId    UUID to return for the new DataExchangeJob save, or null to
-     *                                               simulate a save that yields no usable id.
-     *
-     * @return RejectionResubmitGuard
-     */
-    private function makeGuard(array $groups, ?array $originalJob, ?string $newJobId='new-job-1'): RejectionResubmitGuard
-    {
-        $user = $this->createMock(IUser::class);
+	/**
+	 * Build a guard whose user/group managers report the given group
+	 * membership for a known 'actor-1' user, and whose ObjectService resolves
+	 * the originating job + records saveObject() calls.
+	 *
+	 * @param string[] $groups Group IDs 'actor-1' belongs to.
+	 * @param array<string,mixed>|null $originalJob The originating DataExchangeJob row findAll() returns, or null.
+	 * @param string|null $newJobId UUID to return for the new DataExchangeJob save, or null to
+	 *                              simulate a save that yields no usable id.
+	 *
+	 * @return RejectionResubmitGuard
+	 */
+	private function makeGuard(array $groups, ?array $originalJob, ?string $newJobId = 'new-job-1'): RejectionResubmitGuard {
+		$user = $this->createMock(IUser::class);
 
-        $userManager = $this->createMock(IUserManager::class);
-        $userManager->method('get')->willReturnCallback(
-            static function (string $uid) use ($user): ?IUser {
-                return $uid === 'actor-1' ? $user : null;
-            }
-        );
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('get')->willReturnCallback(
+			static function (string $uid) use ($user): ?IUser {
+				return $uid === 'actor-1' ? $user : null;
+			}
+		);
 
-        $groupManager = $this->createMock(IGroupManager::class);
-        $groupManager->method('getUserGroupIds')->willReturn($groups);
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('getUserGroupIds')->willReturn($groups);
 
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('findAll')->willReturnCallback(
-            function (array $config) use ($originalJob): array {
-                if (($config['schema'] ?? '') !== 'data-exchange-job') {
-                    return [];
-                }
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config) use ($originalJob): array {
+				if (($config['schema'] ?? '') !== 'data-exchange-job') {
+					return [];
+				}
 
-                if ($originalJob === null) {
-                    return [];
-                }
+				if ($originalJob === null) {
+					return [];
+				}
 
-                return OrEntityFactory::makeMany([$originalJob], 'data-exchange-job');
-            }
-        );
+				return OrEntityFactory::makeMany([$originalJob], 'data-exchange-job');
+			}
+		);
 
-        // OpenRegister's saveObject() is saveObject($object, $extend, $register, $schema, ...)
-        // — the PAYLOAD IS FIRST — and returns a non-nullable ObjectEntity.
-        // willReturnCallback() hands the closure the mock's arguments
-        // POSITIONALLY, so the closure must mirror that order.
-        $objectService->method('saveObject')->willReturnCallback(
-            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null) use ($newJobId): ObjectEntity {
-                $this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
+		// OpenRegister's saveObject() is saveObject($object, $extend, $register, $schema, ...)
+		// — the PAYLOAD IS FIRST — and returns a non-nullable ObjectEntity.
+		// willReturnCallback() hands the closure the mock's arguments
+		// POSITIONALLY, so the closure must mirror that order.
+		$objectService->method('saveObject')->willReturnCallback(
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use ($newJobId): ObjectEntity {
+				$this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
 
-                if ($newJobId === null) {
-                    // saveObject() cannot return null — its declared return type
-                    // is a non-nullable ObjectEntity. The in-band failure the
-                    // guard actually has to survive is a saved entity that
-                    // carries no usable id.
-                    return OrEntityFactory::make($object, 'data-exchange-job', 'scholiq', null);
-                }
+				if ($newJobId === null) {
+					// saveObject() cannot return null — its declared return type
+					// is a non-nullable ObjectEntity. The in-band failure the
+					// guard actually has to survive is a saved entity that
+					// carries no usable id.
+					return OrEntityFactory::make($object, 'data-exchange-job', 'scholiq', null);
+				}
 
-                return OrEntityFactory::make(array_merge($object, ['id' => $newJobId]), 'data-exchange-job');
-            }
-        );
+				return OrEntityFactory::make(array_merge($object, ['id' => $newJobId]), 'data-exchange-job');
+			}
+		);
 
-        return new RejectionResubmitGuard($objectService, $groupManager, $userManager, new NullLogger());
+		return new RejectionResubmitGuard($objectService, $groupManager, $userManager, new NullLogger());
+	}//end makeGuard()
 
-    }//end makeGuard()
+	/**
+	 * A coordinator resubmitting a corrected rejection is allowed: exactly one
+	 * new DataExchangeJob is created with the original job's target/
+	 * mappingProfileId, scope.filters.id = sourceObjectId, and
+	 * resubmittedJobId is stamped into the transition payload.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-resubmit-creates-exactly-one-scoped-job-and-stamps-the-link
+	 */
+	public function testCoordinatorResubmitCreatesScopedJobAndStampsLink(): void {
+		$guard = $this->makeGuard(
+			['coordinator'],
+			['id' => 'job-orig', 'target' => 'bron-rod', 'mappingProfileId' => 'profile-1']
+		);
 
-    /**
-     * A coordinator resubmitting a corrected rejection is allowed: exactly one
-     * new DataExchangeJob is created with the original job's target/
-     * mappingProfileId, scope.filters.id = sourceObjectId, and
-     * resubmittedJobId is stamped into the transition payload.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-resubmit-creates-exactly-one-scoped-job-and-stamps-the-link
-     */
-    public function testCoordinatorResubmitCreatesScopedJobAndStampsLink(): void
-    {
-        $guard = $this->makeGuard(
-            ['coordinator'],
-            ['id' => 'job-orig', 'target' => 'bron-rod', 'mappingProfileId' => 'profile-1']
-        );
+		$context = [
+			'object' => [
+				'id' => 'rej-1',
+				'sourceKind' => 'learner-profile',
+				'learnerProfileId' => 'lp-1',
+				'dataExchangeJobId' => 'job-orig',
+				'tenant_id' => 'tenant-a',
+			],
+			'actor' => 'actor-1',
+			'payload' => [],
+		];
 
-        $context = [
-            'object' => [
-                'id'                => 'rej-1',
-                'sourceKind'        => 'learner-profile',
-                'learnerProfileId'  => 'lp-1',
-                'dataExchangeJobId' => 'job-orig',
-                'tenant_id'         => 'tenant-a',
-            ],
-            'actor'   => 'actor-1',
-            'payload' => [],
-        ];
+		self::assertTrue($guard->check($context));
 
-        self::assertTrue($guard->check($context));
+		self::assertCount(1, $this->savedObjects);
+		$newJob = $this->savedObjects[0]['object'];
+		self::assertSame('bron-rod', $newJob['target']);
+		self::assertSame('profile-1', $newJob['mappingProfileId']);
+		self::assertSame('learner-profile', $newJob['scope']['schema']);
+		self::assertSame('lp-1', $newJob['scope']['filters']['id']);
+		self::assertSame('queued', $newJob['lifecycle']);
+		self::assertSame('actor-1', $newJob['requestedBy']);
+		self::assertSame('tenant-a', $newJob['tenant_id']);
 
-        self::assertCount(1, $this->savedObjects);
-        $newJob = $this->savedObjects[0]['object'];
-        self::assertSame('bron-rod', $newJob['target']);
-        self::assertSame('profile-1', $newJob['mappingProfileId']);
-        self::assertSame('learner-profile', $newJob['scope']['schema']);
-        self::assertSame('lp-1', $newJob['scope']['filters']['id']);
-        self::assertSame('queued', $newJob['lifecycle']);
-        self::assertSame('actor-1', $newJob['requestedBy']);
-        self::assertSame('tenant-a', $newJob['tenant_id']);
+		self::assertSame('new-job-1', $context['payload']['resubmittedJobId']);
 
-        self::assertSame('new-job-1', $context['payload']['resubmittedJobId']);
+	}//end testCoordinatorResubmitCreatesScopedJobAndStampsLink()
 
-    }//end testCoordinatorResubmitCreatesScopedJobAndStampsLink()
+	/**
+	 * An admin resubmitting is also allowed.
+	 *
+	 * @return void
+	 */
+	public function testAdminResubmitIsAllowed(): void {
+		$guard = $this->makeGuard(
+			['admin'],
+			['id' => 'job-orig', 'target' => 'leerplicht', 'mappingProfileId' => null]
+		);
 
-    /**
-     * An admin resubmitting is also allowed.
-     *
-     * @return void
-     */
-    public function testAdminResubmitIsAllowed(): void
-    {
-        $guard = $this->makeGuard(
-            ['admin'],
-            ['id' => 'job-orig', 'target' => 'leerplicht', 'mappingProfileId' => null]
-        );
+		$context = [
+			'object' => [
+				'id' => 'rej-1',
+				'sourceKind' => 'attendance-flag',
+				'attendanceFlagId' => 'flag-1',
+				'dataExchangeJobId' => 'job-orig',
+				'tenant_id' => 'tenant-a',
+			],
+			'actor' => 'actor-1',
+			'payload' => [],
+		];
 
-        $context = [
-            'object' => [
-                'id'                => 'rej-1',
-                'sourceKind'        => 'attendance-flag',
-                'attendanceFlagId'  => 'flag-1',
-                'dataExchangeJobId' => 'job-orig',
-                'tenant_id'         => 'tenant-a',
-            ],
-            'actor'   => 'actor-1',
-            'payload' => [],
-        ];
+		self::assertTrue($guard->check($context));
 
-        self::assertTrue($guard->check($context));
+	}//end testAdminResubmitIsAllowed()
 
-    }//end testAdminResubmitIsAllowed()
+	/**
+	 * A caller-supplied resubmittedJobId is overwritten with the actual new
+	 * job id — never trust a caller-supplied value for this link.
+	 *
+	 * @return void
+	 */
+	public function testCallerSuppliedResubmittedJobIdIsOverwritten(): void {
+		$guard = $this->makeGuard(
+			['coordinator'],
+			['id' => 'job-orig', 'target' => 'bron-rod', 'mappingProfileId' => 'profile-1']
+		);
 
-    /**
-     * A caller-supplied resubmittedJobId is overwritten with the actual new
-     * job id — never trust a caller-supplied value for this link.
-     *
-     * @return void
-     */
-    public function testCallerSuppliedResubmittedJobIdIsOverwritten(): void
-    {
-        $guard = $this->makeGuard(
-            ['coordinator'],
-            ['id' => 'job-orig', 'target' => 'bron-rod', 'mappingProfileId' => 'profile-1']
-        );
+		$context = [
+			'object' => [
+				'id' => 'rej-1',
+				'sourceKind' => 'learner-profile',
+				'learnerProfileId' => 'lp-1',
+				'dataExchangeJobId' => 'job-orig',
+				'tenant_id' => 'tenant-a',
+			],
+			'actor' => 'actor-1',
+			'payload' => ['resubmittedJobId' => 'attacker-supplied-id'],
+		];
 
-        $context = [
-            'object' => [
-                'id'                => 'rej-1',
-                'sourceKind'        => 'learner-profile',
-                'learnerProfileId'  => 'lp-1',
-                'dataExchangeJobId' => 'job-orig',
-                'tenant_id'         => 'tenant-a',
-            ],
-            'actor'   => 'actor-1',
-            'payload' => ['resubmittedJobId' => 'attacker-supplied-id'],
-        ];
+		self::assertTrue($guard->check($context));
+		self::assertSame('new-job-1', $context['payload']['resubmittedJobId']);
 
-        self::assertTrue($guard->check($context));
-        self::assertSame('new-job-1', $context['payload']['resubmittedJobId']);
+	}//end testCallerSuppliedResubmittedJobIdIsOverwritten()
 
-    }//end testCallerSuppliedResubmittedJobIdIsOverwritten()
+	/**
+	 * A learner (no privileged group) is denied — no job created.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-a-non-authorised-user-cannot-resubmit-or-waive
+	 */
+	public function testUnauthorisedActorIsDenied(): void {
+		$guard = $this->makeGuard(
+			[],
+			['id' => 'job-orig', 'target' => 'bron-rod', 'mappingProfileId' => 'profile-1']
+		);
 
-    /**
-     * A learner (no privileged group) is denied — no job created.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-a-non-authorised-user-cannot-resubmit-or-waive
-     */
-    public function testUnauthorisedActorIsDenied(): void
-    {
-        $guard = $this->makeGuard(
-            [],
-            ['id' => 'job-orig', 'target' => 'bron-rod', 'mappingProfileId' => 'profile-1']
-        );
+		$context = [
+			'object' => [
+				'id' => 'rej-1',
+				'sourceKind' => 'learner-profile',
+				'learnerProfileId' => 'lp-1',
+				'dataExchangeJobId' => 'job-orig',
+				'tenant_id' => 'tenant-a',
+			],
+			'actor' => 'actor-1',
+			'payload' => [],
+		];
 
-        $context = [
-            'object' => [
-                'id'                => 'rej-1',
-                'sourceKind'        => 'learner-profile',
-                'learnerProfileId'  => 'lp-1',
-                'dataExchangeJobId' => 'job-orig',
-                'tenant_id'         => 'tenant-a',
-            ],
-            'actor'   => 'actor-1',
-            'payload' => [],
-        ];
+		self::assertFalse($guard->check($context));
+		self::assertCount(0, $this->savedObjects);
 
-        self::assertFalse($guard->check($context));
-        self::assertCount(0, $this->savedObjects);
+	}//end testUnauthorisedActorIsDenied()
 
-    }//end testUnauthorisedActorIsDenied()
+	/**
+	 * No actor in the transition context is denied.
+	 *
+	 * @return void
+	 */
+	public function testNoActorIsDenied(): void {
+		$guard = $this->makeGuard(['coordinator'], ['id' => 'job-orig', 'target' => 'bron-rod']);
 
-    /**
-     * No actor in the transition context is denied.
-     *
-     * @return void
-     */
-    public function testNoActorIsDenied(): void
-    {
-        $guard = $this->makeGuard(['coordinator'], ['id' => 'job-orig', 'target' => 'bron-rod']);
+		$context = [
+			'object' => ['id' => 'rej-1', 'sourceKind' => 'learner-profile', 'learnerProfileId' => 'lp-1', 'dataExchangeJobId' => 'job-orig'],
+			'payload' => [],
+		];
 
-        $context = [
-            'object'  => ['id' => 'rej-1', 'sourceKind' => 'learner-profile', 'learnerProfileId' => 'lp-1', 'dataExchangeJobId' => 'job-orig'],
-            'payload' => [],
-        ];
+		self::assertFalse($guard->check($context));
 
-        self::assertFalse($guard->check($context));
+	}//end testNoActorIsDenied()
 
-    }//end testNoActorIsDenied()
+	/**
+	 * An unresolvable originating DataExchangeJob denies the transition —
+	 * no partial job is created.
+	 *
+	 * @return void
+	 */
+	public function testUnresolvableOriginalJobIsDenied(): void {
+		$guard = $this->makeGuard(['coordinator'], null);
 
-    /**
-     * An unresolvable originating DataExchangeJob denies the transition —
-     * no partial job is created.
-     *
-     * @return void
-     */
-    public function testUnresolvableOriginalJobIsDenied(): void
-    {
-        $guard = $this->makeGuard(['coordinator'], null);
+		$context = [
+			'object' => [
+				'id' => 'rej-1',
+				'sourceKind' => 'learner-profile',
+				'learnerProfileId' => 'lp-1',
+				'dataExchangeJobId' => 'job-missing',
+				'tenant_id' => 'tenant-a',
+			],
+			'actor' => 'actor-1',
+			'payload' => [],
+		];
 
-        $context = [
-            'object' => [
-                'id'                => 'rej-1',
-                'sourceKind'        => 'learner-profile',
-                'learnerProfileId'  => 'lp-1',
-                'dataExchangeJobId' => 'job-missing',
-                'tenant_id'         => 'tenant-a',
-            ],
-            'actor'   => 'actor-1',
-            'payload' => [],
-        ];
+		self::assertFalse($guard->check($context));
+		self::assertCount(0, $this->savedObjects);
 
-        self::assertFalse($guard->check($context));
-        self::assertCount(0, $this->savedObjects);
+	}//end testUnresolvableOriginalJobIsDenied()
 
-    }//end testUnresolvableOriginalJobIsDenied()
+	/**
+	 * A job save that yields no usable id denies the transition.
+	 *
+	 * @return void
+	 */
+	public function testJobSaveFailureIsDenied(): void {
+		$guard = $this->makeGuard(
+			['coordinator'],
+			['id' => 'job-orig', 'target' => 'bron-rod'],
+			newJobId: null
+		);
 
-    /**
-     * A job save that yields no usable id denies the transition.
-     *
-     * @return void
-     */
-    public function testJobSaveFailureIsDenied(): void
-    {
-        $guard = $this->makeGuard(
-            ['coordinator'],
-            ['id' => 'job-orig', 'target' => 'bron-rod'],
-            newJobId: null
-        );
+		$context = [
+			'object' => [
+				'id' => 'rej-1',
+				'sourceKind' => 'learner-profile',
+				'learnerProfileId' => 'lp-1',
+				'dataExchangeJobId' => 'job-orig',
+				'tenant_id' => 'tenant-a',
+			],
+			'actor' => 'actor-1',
+			'payload' => [],
+		];
 
-        $context = [
-            'object' => [
-                'id'                => 'rej-1',
-                'sourceKind'        => 'learner-profile',
-                'learnerProfileId'  => 'lp-1',
-                'dataExchangeJobId' => 'job-orig',
-                'tenant_id'         => 'tenant-a',
-            ],
-            'actor'   => 'actor-1',
-            'payload' => [],
-        ];
+		self::assertFalse($guard->check($context));
 
-        self::assertFalse($guard->check($context));
+	}//end testJobSaveFailureIsDenied()
 
-    }//end testJobSaveFailureIsDenied()
+	/**
+	 * An unsupported sourceKind on the rejection denies the transition.
+	 *
+	 * @return void
+	 */
+	public function testUnsupportedSourceKindIsDenied(): void {
+		$guard = $this->makeGuard(['coordinator'], ['id' => 'job-orig', 'target' => 'bron-rod']);
 
-    /**
-     * An unsupported sourceKind on the rejection denies the transition.
-     *
-     * @return void
-     */
-    public function testUnsupportedSourceKindIsDenied(): void
-    {
-        $guard = $this->makeGuard(['coordinator'], ['id' => 'job-orig', 'target' => 'bron-rod']);
+		$context = [
+			'object' => [
+				'id' => 'rej-1',
+				'sourceKind' => 'cohort',
+				'dataExchangeJobId' => 'job-orig',
+				'tenant_id' => 'tenant-a',
+			],
+			'actor' => 'actor-1',
+			'payload' => [],
+		];
 
-        $context = [
-            'object' => [
-                'id'                => 'rej-1',
-                'sourceKind'        => 'cohort',
-                'dataExchangeJobId' => 'job-orig',
-                'tenant_id'         => 'tenant-a',
-            ],
-            'actor'   => 'actor-1',
-            'payload' => [],
-        ];
+		self::assertFalse($guard->check($context));
+		self::assertCount(0, $this->savedObjects);
 
-        self::assertFalse($guard->check($context));
-        self::assertCount(0, $this->savedObjects);
-
-    }//end testUnsupportedSourceKindIsDenied()
+	}//end testUnsupportedSourceKindIsDenied()
 }//end class

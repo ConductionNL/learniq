@@ -63,210 +63,199 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
  */
-class ReportCardVisibilityGuard
-{
+class ReportCardVisibilityGuard {
 
-    private const SCHOLIQ_REGISTER   = 'scholiq';
-    private const GRADE_ENTRY_SCHEMA = 'grade-entry';
+	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService   $objectService OR object access service.
-     * @param ITimeFactory    $timeFactory   NC time source (injectable "now" for tests).
-     * @param LoggerInterface $logger        PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly ITimeFactory $timeFactory,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access service.
+	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly ITimeFactory $timeFactory,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the ReportCard data array
-     *                                               - 'transition' : 'publishToParents'
-     *                                               - 'from'       : 'finalised'
-     *                                               - 'to'         : 'published-to-parents'
-     *
-     * @return bool True when every contributing GradeEntry's visibleFrom has passed; false blocks it.
-     *
-     * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publish-is-blocked-while-a-contributing-grades-visibility-window-has-not-opened
-     * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publish-succeeds-once-every-contributing-grades-window-has-opened
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $object      = $transitionContext['object'] ?? [];
-        $objectId    = $object['id'] ?? ($object['uuid'] ?? '');
-        $subjectRows = $object['subjectGrades'] ?? [];
-        $tenantId    = (string) ($object['tenant_id'] ?? '');
+	/**
+	 * OR lifecycle guard entry-point.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the ReportCard data array
+	 *                                               - 'transition' : 'publishToParents'
+	 *                                               - 'from'       : 'finalised'
+	 *                                               - 'to'         : 'published-to-parents'
+	 *
+	 * @return bool True when every contributing GradeEntry's visibleFrom has passed; false blocks it.
+	 *
+	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publish-is-blocked-while-a-contributing-grades-visibility-window-has-not-opened
+	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publish-succeeds-once-every-contributing-grades-window-has-opened
+	 */
+	public function check(array &$transitionContext): bool {
+		$object = $transitionContext['object'] ?? [];
+		$objectId = $object['id'] ?? ($object['uuid'] ?? '');
+		$subjectRows = $object['subjectGrades'] ?? [];
+		$tenantId = (string)($object['tenant_id'] ?? '');
 
-        if (is_array($subjectRows) === false) {
-            return true;
-        }
+		if (is_array($subjectRows) === false) {
+			return true;
+		}
 
-        $blocking = $this->firstUnreleasedGradeEntry(subjectRows: $subjectRows, tenantId: $tenantId);
-        if ($blocking !== null) {
-            $this->logger->info(
-                '[ReportCardVisibilityGuard] ReportCard {id} blocked — subject {plan} sourceGradeEntry {entry} visibleFrom has not passed.',
-                [
-                    'id'    => $objectId,
-                    'plan'  => $blocking['plan'],
-                    'entry' => $blocking['entry'],
-                ]
-            );
-            return false;
-        }
+		$blocking = $this->firstUnreleasedGradeEntry(subjectRows: $subjectRows, tenantId: $tenantId);
+		if ($blocking !== null) {
+			$this->logger->info(
+				'[ReportCardVisibilityGuard] ReportCard {id} blocked — subject {plan} sourceGradeEntry {entry} visibleFrom has not passed.',
+				[
+					'id' => $objectId,
+					'plan' => $blocking['plan'],
+					'entry' => $blocking['entry'],
+				]
+			);
+			return false;
+		}
 
-        return true;
+		return true;
+	}//end check()
 
-    }//end check()
+	/**
+	 * Find the first source GradeEntry whose `visibleFrom` has not yet passed.
+	 *
+	 * Rows and ids that are not usable are skipped rather than treated as
+	 * blocking — the guard only refuses on a grade it can actually show is
+	 * still embargoed.
+	 *
+	 * @param array<int,mixed> $subjectRows The ReportCard's subjectGrades rows.
+	 * @param string $tenantId Tenant UUID scope.
+	 *
+	 * @return array{plan: mixed, entry: string}|null The blocking entry, or null when all are released.
+	 *
+	 * @spec openspec/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
+	 */
+	private function firstUnreleasedGradeEntry(array $subjectRows, string $tenantId): ?array {
+		$now = $this->timeFactory->now();
 
-    /**
-     * Find the first source GradeEntry whose `visibleFrom` has not yet passed.
-     *
-     * Rows and ids that are not usable are skipped rather than treated as
-     * blocking — the guard only refuses on a grade it can actually show is
-     * still embargoed.
-     *
-     * @param array<int,mixed> $subjectRows The ReportCard's subjectGrades rows.
-     * @param string           $tenantId    Tenant UUID scope.
-     *
-     * @return array{plan: mixed, entry: string}|null The blocking entry, or null when all are released.
-     *
-     * @spec openspec/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
-     */
-    private function firstUnreleasedGradeEntry(array $subjectRows, string $tenantId): ?array
-    {
-        $now = $this->timeFactory->now();
+		foreach ($subjectRows as $row) {
+			if (is_array($row) === false) {
+				continue;
+			}
 
-        foreach ($subjectRows as $row) {
-            if (is_array($row) === false) {
-                continue;
-            }
+			$entry = $this->firstUnreleasedEntryInRow(row: $row, tenantId: $tenantId, now: $now);
+			if ($entry !== null) {
+				return [
+					'plan' => ($row['curriculumPlanId'] ?? '?'),
+					'entry' => $entry,
+				];
+			}
+		}
 
-            $entry = $this->firstUnreleasedEntryInRow(row: $row, tenantId: $tenantId, now: $now);
-            if ($entry !== null) {
-                return [
-                    'plan'  => ($row['curriculumPlanId'] ?? '?'),
-                    'entry' => $entry,
-                ];
-            }
-        }
+		return null;
+	}//end firstUnreleasedGradeEntry()
 
-        return null;
+	/**
+	 * Find the first still-embargoed source GradeEntry within one subject row.
+	 *
+	 * @param array<string,mixed> $row One subjectGrades row.
+	 * @param string $tenantId Tenant UUID scope.
+	 * @param mixed $now The current time, resolved once by the caller.
+	 *
+	 * @return string|null The blocking GradeEntry id, or null when the row is clear.
+	 *
+	 * @spec openspec/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
+	 */
+	private function firstUnreleasedEntryInRow(array $row, string $tenantId, mixed $now): ?string {
+		$sourceIds = ($row['sourceGradeEntryIds'] ?? []);
+		if (is_array($sourceIds) === false) {
+			return null;
+		}
 
-    }//end firstUnreleasedGradeEntry()
+		foreach ($sourceIds as $gradeEntryId) {
+			if (is_string($gradeEntryId) === false || $gradeEntryId === '') {
+				continue;
+			}
 
-    /**
-     * Find the first still-embargoed source GradeEntry within one subject row.
-     *
-     * @param array<string,mixed> $row      One subjectGrades row.
-     * @param string              $tenantId Tenant UUID scope.
-     * @param mixed               $now      The current time, resolved once by the caller.
-     *
-     * @return string|null The blocking GradeEntry id, or null when the row is clear.
-     *
-     * @spec openspec/specs/report-card/spec.md#requirement-publishtoparents-must-not-surface-a-grade-before-its-own-scheduled-visibility-window
-     */
-    private function firstUnreleasedEntryInRow(array $row, string $tenantId, mixed $now): ?string
-    {
-        $sourceIds = ($row['sourceGradeEntryIds'] ?? []);
-        if (is_array($sourceIds) === false) {
-            return null;
-        }
+			$visibleFrom = $this->fetchVisibleFrom(gradeEntryId: $gradeEntryId, tenantId: $tenantId);
+			if ($this->hasPassed(visibleFrom: $visibleFrom, now: $now) === false) {
+				return $gradeEntryId;
+			}
+		}
 
-        foreach ($sourceIds as $gradeEntryId) {
-            if (is_string($gradeEntryId) === false || $gradeEntryId === '') {
-                continue;
-            }
+		return null;
+	}//end firstUnreleasedEntryInRow()
 
-            $visibleFrom = $this->fetchVisibleFrom(gradeEntryId: $gradeEntryId, tenantId: $tenantId);
-            if ($this->hasPassed(visibleFrom: $visibleFrom, now: $now) === false) {
-                return $gradeEntryId;
-            }
-        }
+	/**
+	 * Fetch a GradeEntry's current `visibleFrom` value.
+	 *
+	 * @param string $gradeEntryId UUID of the GradeEntry.
+	 * @param string $tenantId Tenant ID to enforce as a mandatory filter.
+	 *
+	 * @return string|null The visibleFrom value, or null when unresolvable/unset.
+	 */
+	private function fetchVisibleFrom(string $gradeEntryId, string $tenantId): ?string {
+		$filters = ['id' => $gradeEntryId];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
 
-        return null;
+		$results = $this->objectService->findAll(
+			[
+				'register' => self::SCHOLIQ_REGISTER,
+				'schema' => self::GRADE_ENTRY_SCHEMA,
+				'filters' => $filters,
+				'limit' => 1,
+			]
+		);
 
-    }//end firstUnreleasedEntryInRow()
+		if (empty($results) === true) {
+			$this->logger->warning(
+				'[ReportCardVisibilityGuard] GradeEntry {id} not found — treating visibleFrom as not-yet-passed (fail closed).',
+				['id' => $gradeEntryId]
+			);
+			return null;
+		}
 
-    /**
-     * Fetch a GradeEntry's current `visibleFrom` value.
-     *
-     * @param string $gradeEntryId UUID of the GradeEntry.
-     * @param string $tenantId     Tenant ID to enforce as a mandatory filter.
-     *
-     * @return string|null The visibleFrom value, or null when unresolvable/unset.
-     */
-    private function fetchVisibleFrom(string $gradeEntryId, string $tenantId): ?string
-    {
-        $filters = ['id' => $gradeEntryId];
-        if ($tenantId !== '') {
-            $filters['tenant_id'] = $tenantId;
-        }
+		$entry = $results[0];
+		if (is_array($results[0]) === false) {
+			$entry = $results[0]->jsonSerialize();
+		}
 
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::GRADE_ENTRY_SCHEMA,
-                'filters'  => $filters,
-                'limit'    => 1,
-            ]
-        );
+		$visibleFrom = $entry['visibleFrom'] ?? null;
+		if (is_string($visibleFrom) === false || $visibleFrom === '') {
+			return null;
+		}
 
-        if (empty($results) === true) {
-            $this->logger->warning(
-                '[ReportCardVisibilityGuard] GradeEntry {id} not found — treating visibleFrom as not-yet-passed (fail closed).',
-                ['id' => $gradeEntryId]
-            );
-            return null;
-        }
+		return $visibleFrom;
+	}//end fetchVisibleFrom()
 
-        $entry = $results[0];
-        if (is_array($results[0]) === false) {
-            $entry = $results[0]->jsonSerialize();
-        }
+	/**
+	 * Whether a `visibleFrom` value has already passed the given "now".
+	 *
+	 * A null/unresolvable `visibleFrom` is treated as NOT yet passed
+	 * (fail closed) — the whole point of this guard is to never surface a
+	 * grade whose scheduled visibility is uncertain or still pending.
+	 *
+	 * @param string|null $visibleFrom ISO-8601 visibleFrom value, or null.
+	 * @param DateTimeImmutable $now The current moment.
+	 *
+	 * @return bool True when visibleFrom is set and in the past.
+	 */
+	private function hasPassed(?string $visibleFrom, DateTimeImmutable $now): bool {
+		if ($visibleFrom === null) {
+			return false;
+		}
 
-        $visibleFrom = $entry['visibleFrom'] ?? null;
-        if (is_string($visibleFrom) === false || $visibleFrom === '') {
-            return null;
-        }
+		try {
+			$visibleFromDate = new DateTimeImmutable($visibleFrom);
+		} catch (\Exception) {
+			return false;
+		}
 
-        return $visibleFrom;
-
-    }//end fetchVisibleFrom()
-
-    /**
-     * Whether a `visibleFrom` value has already passed the given "now".
-     *
-     * A null/unresolvable `visibleFrom` is treated as NOT yet passed
-     * (fail closed) — the whole point of this guard is to never surface a
-     * grade whose scheduled visibility is uncertain or still pending.
-     *
-     * @param string|null       $visibleFrom ISO-8601 visibleFrom value, or null.
-     * @param DateTimeImmutable $now         The current moment.
-     *
-     * @return bool True when visibleFrom is set and in the past.
-     */
-    private function hasPassed(?string $visibleFrom, DateTimeImmutable $now): bool
-    {
-        if ($visibleFrom === null) {
-            return false;
-        }
-
-        try {
-            $visibleFromDate = new DateTimeImmutable($visibleFrom);
-        } catch (\Exception) {
-            return false;
-        }
-
-        return $visibleFromDate <= $now;
-
-    }//end hasPassed()
+		return $visibleFromDate <= $now;
+	}//end hasPassed()
 }//end class

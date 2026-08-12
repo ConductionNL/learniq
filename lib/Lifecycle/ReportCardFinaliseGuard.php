@@ -46,57 +46,54 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-the-rapportvergadering-review-lifecycle-gates-parent-visibility-behind-a-finalise-step
  */
-class ReportCardFinaliseGuard
-{
-    /**
-     * Constructor.
-     *
-     * @param LoggerInterface $logger PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+class ReportCardFinaliseGuard {
+	/**
+	 * Constructor.
+	 *
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the ReportCard data array
-     *                                               - 'transition' : 'finalise'
-     *                                               - 'from'       : 'rapportvergadering-review'
-     *                                               - 'to'         : 'finalised'
-     *
-     * @return bool True when the card carries a mentor comment and at least one subject grade; false blocks it.
-     *
-     * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $object   = $transitionContext['object'] ?? [];
-        $objectId = $object['id'] ?? ($object['uuid'] ?? '');
-        $comment  = $object['mentorComment'] ?? null;
-        $subjects = $object['subjectGrades'] ?? [];
+	/**
+	 * OR lifecycle guard entry-point.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the ReportCard data array
+	 *                                               - 'transition' : 'finalise'
+	 *                                               - 'from'       : 'rapportvergadering-review'
+	 *                                               - 'to'         : 'finalised'
+	 *
+	 * @return bool True when the card carries a mentor comment and at least one subject grade; false blocks it.
+	 *
+	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-finalise-is-blocked-without-a-mentor-comment
+	 */
+	public function check(array &$transitionContext): bool {
+		$object = $transitionContext['object'] ?? [];
+		$objectId = $object['id'] ?? ($object['uuid'] ?? '');
+		$comment = $object['mentorComment'] ?? null;
+		$subjects = $object['subjectGrades'] ?? [];
 
-        if (is_string($comment) === false || trim($comment) === '') {
-            $this->logger->info(
-                '[ReportCardFinaliseGuard] ReportCard {id} has no mentorComment — denying finalise.',
-                ['id' => $objectId]
-            );
-            return false;
-        }
+		if (is_string($comment) === false || trim($comment) === '') {
+			$this->logger->info(
+				'[ReportCardFinaliseGuard] ReportCard {id} has no mentorComment — denying finalise.',
+				['id' => $objectId]
+			);
+			return false;
+		}
 
-        if (is_array($subjects) === false || empty($subjects) === true) {
-            $this->logger->info(
-                '[ReportCardFinaliseGuard] ReportCard {id} has no subjectGrades — denying finalise.',
-                ['id' => $objectId]
-            );
-            return false;
-        }
+		if (is_array($subjects) === false || empty($subjects) === true) {
+			$this->logger->info(
+				'[ReportCardFinaliseGuard] ReportCard {id} has no subjectGrades — denying finalise.',
+				['id' => $objectId]
+			);
+			return false;
+		}
 
-        return true;
-
-    }//end check()
+		return true;
+	}//end check()
 }//end class

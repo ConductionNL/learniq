@@ -65,100 +65,95 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
  */
-class FeeItemVoluntaryEntitlementGuard
-{
+class FeeItemVoluntaryEntitlementGuard {
 
-    private const SCHOLIQ_REGISTER = 'scholiq';
-    private const FEE_ITEM_SCHEMA  = 'fee-item';
+	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const FEE_ITEM_SCHEMA = 'fee-item';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService             $objectService  OR object access service.
-     * @param EntitlementOrderPaidGuard $orderPaidGuard Composed payment-status guard,
-     *                                                  invoked after the voluntary
-     *                                                  check passes.
-     * @param LoggerInterface           $logger         PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly EntitlementOrderPaidGuard $orderPaidGuard,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access service.
+	 * @param EntitlementOrderPaidGuard $orderPaidGuard Composed payment-status guard,
+	 *                                                  invoked after the voluntary
+	 *                                                  check passes.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly EntitlementOrderPaidGuard $orderPaidGuard,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Refuse the `grant` transition unconditionally for a voluntary FeeItem;
-     * otherwise delegate to the composed EntitlementOrderPaidGuard.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the Entitlement data array
-     *                                               - 'transition' : 'grant'
-     *
-     * @return bool True only when the linked FeeItem is non-voluntary AND the
-     *              linked Order is paid; false blocks the transition (HTTP 422).
-     *
-     * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $entitlement   = $transitionContext['object'] ?? [];
-        $entitlementId = $entitlement['id'] ?? ($entitlement['uuid'] ?? '');
-        $feeItemId     = $entitlement['feeItemId'] ?? null;
+	/**
+	 * Refuse the `grant` transition unconditionally for a voluntary FeeItem;
+	 * otherwise delegate to the composed EntitlementOrderPaidGuard.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the Entitlement data array
+	 *                                               - 'transition' : 'grant'
+	 *
+	 * @return bool True only when the linked FeeItem is non-voluntary AND the
+	 *              linked Order is paid; false blocks the transition (HTTP 422).
+	 *
+	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
+	 */
+	public function check(array &$transitionContext): bool {
+		$entitlement = $transitionContext['object'] ?? [];
+		$entitlementId = $entitlement['id'] ?? ($entitlement['uuid'] ?? '');
+		$feeItemId = $entitlement['feeItemId'] ?? null;
 
-        if (is_string($feeItemId) === false || $feeItemId === '') {
-            $this->logger->warning(
-                '[FeeItemVoluntaryEntitlementGuard] Entitlement {id} has no feeItemId — denying grant (fail closed).',
-                ['id' => $entitlementId]
-            );
-            return false;
-        }
+		if (is_string($feeItemId) === false || $feeItemId === '') {
+			$this->logger->warning(
+				'[FeeItemVoluntaryEntitlementGuard] Entitlement {id} has no feeItemId — denying grant (fail closed).',
+				['id' => $entitlementId]
+			);
+			return false;
+		}
 
-        $feeItem = $this->fetchFeeItem(feeItemId: $feeItemId);
-        if ($feeItem === null) {
-            $this->logger->warning(
-                '[FeeItemVoluntaryEntitlementGuard] Entitlement {id} links FeeItem {feeItemId} which was not found — denying grant (fail closed).',
-                ['id' => $entitlementId, 'feeItemId' => $feeItemId]
-            );
-            return false;
-        }
+		$feeItem = $this->fetchFeeItem(feeItemId: $feeItemId);
+		if ($feeItem === null) {
+			$this->logger->warning(
+				'[FeeItemVoluntaryEntitlementGuard] Entitlement {id} links FeeItem {feeItemId} which was not found — denying grant (fail closed).',
+				['id' => $entitlementId, 'feeItemId' => $feeItemId]
+			);
+			return false;
+		}
 
-        if (($feeItem['voluntary'] ?? false) === true) {
-            $this->logger->info(
-                '[FeeItemVoluntaryEntitlementGuard] Entitlement {id} permanently blocked — linked FeeItem'
-                .' {feeItemId} is voluntary (Wet vrijwillige ouderbijdrage); no Order status can override this.',
-                ['id' => $entitlementId, 'feeItemId' => $feeItemId]
-            );
-            return false;
-        }
+		if (($feeItem['voluntary'] ?? false) === true) {
+			$this->logger->info(
+				'[FeeItemVoluntaryEntitlementGuard] Entitlement {id} permanently blocked — linked FeeItem'
+				. ' {feeItemId} is voluntary (Wet vrijwillige ouderbijdrage); no Order status can override this.',
+				['id' => $entitlementId, 'feeItemId' => $feeItemId]
+			);
+			return false;
+		}
 
-        // Voluntary check passed — compose the payment-status check.
-        return $this->orderPaidGuard->check($transitionContext);
+		// Voluntary check passed — compose the payment-status check.
+		return $this->orderPaidGuard->check($transitionContext);
+	}//end check()
 
-    }//end check()
+	/**
+	 * Fetch the linked FeeItem by id.
+	 *
+	 * @param string $feeItemId UUID of the FeeItem.
+	 *
+	 * @return array<string,mixed>|null The FeeItem data array, or null if not found.
+	 */
+	private function fetchFeeItem(string $feeItemId): ?array {
+		$obj = $this->objectService->find(
+			id: $feeItemId,
+			register: self::SCHOLIQ_REGISTER,
+			schema: self::FEE_ITEM_SCHEMA
+		);
 
-    /**
-     * Fetch the linked FeeItem by id.
-     *
-     * @param string $feeItemId UUID of the FeeItem.
-     *
-     * @return array<string,mixed>|null The FeeItem data array, or null if not found.
-     */
-    private function fetchFeeItem(string $feeItemId): ?array
-    {
-        $obj = $this->objectService->find(
-            id: $feeItemId,
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::FEE_ITEM_SCHEMA
-        );
+		if ($obj === null) {
+			return null;
+		}
 
-        if ($obj === null) {
-            return null;
-        }
-
-        return $obj->jsonSerialize();
-
-    }//end fetchFeeItem()
+		return $obj->jsonSerialize();
+	}//end fetchFeeItem()
 }//end class

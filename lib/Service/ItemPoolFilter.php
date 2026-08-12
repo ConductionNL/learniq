@@ -43,110 +43,103 @@ namespace OCA\Scholiq\Service;
  *
  * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
  */
-class ItemPoolFilter
-{
-    /**
-     * Filter the ItemBank's `published` Items by itemPoolConfig's
-     * subjectTags/difficulty filters and group the survivors by
-     * variantGroupId (an Item with no variantGroupId is its own singleton
-     * group).
-     *
-     * @param array<int,mixed>    $items      Raw findAll() rows (array or ObjectEntity-like).
-     * @param array<string,mixed> $poolConfig itemPoolConfig (subjectTags, difficultyMin/Max).
-     *
-     * @return array<string,array<int,string>> variantGroupId (or synthetic singleton key) => item UUIDs.
-     *
-     * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
-     */
-    public function filterAndGroupByVariant(array $items, array $poolConfig): array
-    {
-        $subjectTags   = $poolConfig['subjectTags'] ?? [];
-        $difficultyMin = $poolConfig['difficultyMin'] ?? null;
-        $difficultyMax = $poolConfig['difficultyMax'] ?? null;
+class ItemPoolFilter {
+	/**
+	 * Filter the ItemBank's `published` Items by itemPoolConfig's
+	 * subjectTags/difficulty filters and group the survivors by
+	 * variantGroupId (an Item with no variantGroupId is its own singleton
+	 * group).
+	 *
+	 * @param array<int,mixed> $items Raw findAll() rows (array or ObjectEntity-like).
+	 * @param array<string,mixed> $poolConfig itemPoolConfig (subjectTags, difficultyMin/Max).
+	 *
+	 * @return array<string,array<int,string>> variantGroupId (or synthetic singleton key) => item UUIDs.
+	 *
+	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
+	 */
+	public function filterAndGroupByVariant(array $items, array $poolConfig): array {
+		$subjectTags = $poolConfig['subjectTags'] ?? [];
+		$difficultyMin = $poolConfig['difficultyMin'] ?? null;
+		$difficultyMax = $poolConfig['difficultyMax'] ?? null;
 
-        $groups = [];
-        foreach ($items as $item) {
-            $itemData = $item;
-            if (is_array($item) === false) {
-                $itemData = $item->jsonSerialize();
-            }
+		$groups = [];
+		foreach ($items as $item) {
+			$itemData = $item;
+			if (is_array($item) === false) {
+				$itemData = $item->jsonSerialize();
+			}
 
-            if ($this->matchesFilters(
-                item: $itemData,
-                subjectTags: $subjectTags,
-                difficultyMin: $difficultyMin,
-                difficultyMax: $difficultyMax
-            ) === false
-            ) {
-                continue;
-            }
+			if ($this->matchesFilters(
+				item: $itemData,
+				subjectTags: $subjectTags,
+				difficultyMin: $difficultyMin,
+				difficultyMax: $difficultyMax
+			) === false
+			) {
+				continue;
+			}
 
-            $itemId = $itemData['id'] ?? ($itemData['uuid'] ?? null);
-            if ($itemId === null) {
-                continue;
-            }
+			$itemId = $itemData['id'] ?? ($itemData['uuid'] ?? null);
+			if ($itemId === null) {
+				continue;
+			}
 
-            $groupKey            = $itemData['variantGroupId'] ?? ('__singleton__'.$itemId);
-            $groups[$groupKey][] = $itemId;
-        }//end foreach
+			$groupKey = $itemData['variantGroupId'] ?? ('__singleton__' . $itemId);
+			$groups[$groupKey][] = $itemId;
+		}//end foreach
 
-        return $groups;
+		return $groups;
+	}//end filterAndGroupByVariant()
 
-    }//end filterAndGroupByVariant()
+	/**
+	 * Whether an Item matches the itemPoolConfig's subjectTags/difficulty filters.
+	 *
+	 * @param array<string,mixed> $item Item data.
+	 * @param array<int,string> $subjectTags Required tags (OR match — empty = no filter).
+	 * @param float|null $difficultyMin Inclusive lower bound, or null.
+	 * @param float|null $difficultyMax Inclusive upper bound, or null.
+	 *
+	 * @return bool
+	 */
+	private function matchesFilters(array $item, array $subjectTags, ?float $difficultyMin, ?float $difficultyMax): bool {
+		if ($this->matchesSubjectTags(item: $item, subjectTags: $subjectTags) === false) {
+			return false;
+		}
 
-    /**
-     * Whether an Item matches the itemPoolConfig's subjectTags/difficulty filters.
-     *
-     * @param array<string,mixed> $item          Item data.
-     * @param array<int,string>   $subjectTags   Required tags (OR match — empty = no filter).
-     * @param float|null          $difficultyMin Inclusive lower bound, or null.
-     * @param float|null          $difficultyMax Inclusive upper bound, or null.
-     *
-     * @return bool
-     */
-    private function matchesFilters(array $item, array $subjectTags, ?float $difficultyMin, ?float $difficultyMax): bool
-    {
-        if ($this->matchesSubjectTags(item: $item, subjectTags: $subjectTags) === false) {
-            return false;
-        }
+		$difficulty = $item['difficulty'] ?? null;
 
-        $difficulty = $item['difficulty'] ?? null;
+		if ($difficultyMin !== null && ($difficulty === null || $difficulty < $difficultyMin)) {
+			return false;
+		}
 
-        if ($difficultyMin !== null && ($difficulty === null || $difficulty < $difficultyMin)) {
-            return false;
-        }
+		if ($difficultyMax !== null && ($difficulty === null || $difficulty > $difficultyMax)) {
+			return false;
+		}
 
-        if ($difficultyMax !== null && ($difficulty === null || $difficulty > $difficultyMax)) {
-            return false;
-        }
+		return true;
+	}//end matchesFilters()
 
-        return true;
+	/**
+	 * Whether an Item's subjectTags intersect the pool's required tags (OR
+	 * match — empty required list means no filter, always matches).
+	 *
+	 * @param array<string,mixed> $item Item data.
+	 * @param array<int,string> $subjectTags Required tags.
+	 *
+	 * @return bool
+	 */
+	private function matchesSubjectTags(array $item, array $subjectTags): bool {
+		if (empty($subjectTags) === true) {
+			return true;
+		}
 
-    }//end matchesFilters()
+		$itemTags = $item['subjectTags'] ?? [];
+		foreach ($subjectTags as $tag) {
+			if (in_array($tag, $itemTags, true) === true) {
+				return true;
+			}
+		}
 
-    /**
-     * Whether an Item's subjectTags intersect the pool's required tags (OR
-     * match — empty required list means no filter, always matches).
-     *
-     * @param array<string,mixed> $item        Item data.
-     * @param array<int,string>   $subjectTags Required tags.
-     *
-     * @return bool
-     */
-    private function matchesSubjectTags(array $item, array $subjectTags): bool
-    {
-        if (empty($subjectTags) === true) {
-            return true;
-        }
-
-        $itemTags = $item['subjectTags'] ?? [];
-        foreach ($subjectTags as $tag) {
-            if (in_array($tag, $itemTags, true) === true) {
-                return true;
-            }
-        }
-
-        return false;
-
-    }//end matchesSubjectTags()
+		return false;
+	}//end matchesSubjectTags()
 }//end class

@@ -61,460 +61,442 @@ use ZipArchive;
  *
  * @spec openspec/specs/avg-verwerkingsregister/spec.md
  */
-class AuditPackBuilder
-{
-    /**
-     * Constructor.
-     *
-     * @param AuditTrailMapper              $auditTrailMapper OR audit-trail database mapper.
-     * @param AuditHashService              $auditHashService OR HMAC chain verification service.
-     * @param IConfig                       $config           NC config for tenant ID lookup.
-     * @param CsvCellSanitizer              $sanitizer        CSV formula-injection neutraliser.
-     * @param VerwerkingsregisterCsvBuilder $registerCsv      AVG Art. 30 register artefact builder.
-     * @param ExternalTrainingCsvBuilder    $trainingCsv      External-training evidence artefact builder.
-     */
-    public function __construct(
-        private readonly AuditTrailMapper $auditTrailMapper,
-        private readonly AuditHashService $auditHashService,
-        private readonly IConfig $config,
-        private readonly CsvCellSanitizer $sanitizer,
-        private readonly VerwerkingsregisterCsvBuilder $registerCsv,
-        private readonly ExternalTrainingCsvBuilder $trainingCsv,
-    ) {
+class AuditPackBuilder {
+	/**
+	 * Constructor.
+	 *
+	 * @param AuditTrailMapper $auditTrailMapper OR audit-trail database mapper.
+	 * @param AuditHashService $auditHashService OR HMAC chain verification service.
+	 * @param IConfig $config NC config for tenant ID lookup.
+	 * @param CsvCellSanitizer $sanitizer CSV formula-injection neutraliser.
+	 * @param VerwerkingsregisterCsvBuilder $registerCsv AVG Art. 30 register artefact builder.
+	 * @param ExternalTrainingCsvBuilder $trainingCsv External-training evidence artefact builder.
+	 */
+	public function __construct(
+		private readonly AuditTrailMapper $auditTrailMapper,
+		private readonly AuditHashService $auditHashService,
+		private readonly IConfig $config,
+		private readonly CsvCellSanitizer $sanitizer,
+		private readonly VerwerkingsregisterCsvBuilder $registerCsv,
+		private readonly ExternalTrainingCsvBuilder $trainingCsv,
+	) {
 
-    }//end __construct()
+	}//end __construct()
 
-    /**
-     * Build the audit-pack ZIP bytes for one request.
-     *
-     * #184: the audit-trail query is always scoped to the requesting user's own
-     * tenant so entries from other tenants are never returned.
-     *
-     * @param IUser  $user           Authenticated user whose tenant scopes the pack.
-     * @param string $regulationSlug Regulation slug to filter (e.g. 'NIS2').
-     * @param string $dateFrom       ISO-8601 date lower bound (inclusive).
-     * @param string $dateTo         ISO-8601 date upper bound (inclusive).
-     *
-     * @return string Raw ZIP bytes.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-     */
-    public function build(IUser $user, string $regulationSlug, string $dateFrom, string $dateTo): string
-    {
-        $tenantId = $this->resolveTenantId(user: $user);
+	/**
+	 * Build the audit-pack ZIP bytes for one request.
+	 *
+	 * #184: the audit-trail query is always scoped to the requesting user's own
+	 * tenant so entries from other tenants are never returned.
+	 *
+	 * @param IUser $user Authenticated user whose tenant scopes the pack.
+	 * @param string $regulationSlug Regulation slug to filter (e.g. 'NIS2').
+	 * @param string $dateFrom ISO-8601 date lower bound (inclusive).
+	 * @param string $dateTo ISO-8601 date upper bound (inclusive).
+	 *
+	 * @return string Raw ZIP bytes.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 */
+	public function build(IUser $user, string $regulationSlug, string $dateFrom, string $dateTo): string {
+		$tenantId = $this->resolveTenantId(user: $user);
 
-        // Query OR's audit trail via the real mapper — filters available columns.
-        $entries = $this->auditTrailMapper->findAll(
-            filters: [
-                'created'   => $dateFrom.','.$dateTo,
-                'tenant_id' => $tenantId,
-            ],
-            sort: ['created' => 'ASC']
-        );
+		// Query OR's audit trail via the real mapper — filters available columns.
+		$entries = $this->auditTrailMapper->findAll(
+			filters: [
+				'created' => $dateFrom . ',' . $dateTo,
+				'tenant_id' => $tenantId,
+			],
+			sort: ['created' => 'ASC']
+		);
 
-        $events = $this->collectMatchingEvents(entries: $entries, regulationSlug: $regulationSlug);
+		$events = $this->collectMatchingEvents(entries: $entries, regulationSlug: $regulationSlug);
 
-        // #192: scope verifyChain to the ID range of the matched events so the
-        // integrity report covers exactly the entries that appear in the export,
-        // not the whole audit log. Fixes #192.
-        $bounds       = $this->resolveExportedIdBounds(events: $events);
-        $verification = $this->verifyChainForRange(minId: $bounds['minId'], maxId: $bounds['maxId']);
+		// #192: scope verifyChain to the ID range of the matched events so the
+		// integrity report covers exactly the entries that appear in the export,
+		// not the whole audit log. Fixes #192.
+		$bounds = $this->resolveExportedIdBounds(events: $events);
+		$verification = $this->verifyChainForRange(minId: $bounds['minId'], maxId: $bounds['maxId']);
 
-        return $this->buildZip(
-            files: $this->buildPackFiles(
-                events: $events,
-                verification: $verification,
-                tenantId: $tenantId,
-                regulationSlug: $regulationSlug,
-                dateFrom: $dateFrom,
-                dateTo: $dateTo,
-            )
-        );
+		return $this->buildZip(
+			files: $this->buildPackFiles(
+				events: $events,
+				verification: $verification,
+				tenantId: $tenantId,
+				regulationSlug: $regulationSlug,
+				dateFrom: $dateFrom,
+				dateTo: $dateTo,
+			)
+		);
 
-    }//end build()
+	}//end build()
 
-    /**
-     * Resolve the requesting tenant's ID.
-     *
-     * #184: `instanceid` is the same for every tenant on the instance, so the
-     * authenticated user's own tenant binding (written by the admin module) is
-     * preferred; `instanceid` is only the fallback when no per-user mapping exists.
-     *
-     * @param IUser $user Authenticated user whose tenant binding is read.
-     *
-     * @return string Tenant UUID, or the instance id when unbound.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-     */
-    private function resolveTenantId(IUser $user): string
-    {
-        $userTenantId = $this->config->getUserValue(
-            userId: $user->getUID(),
-            appName: 'scholiq',
-            key: 'tenant_id',
-            default: ''
-        );
+	/**
+	 * Resolve the requesting tenant's ID.
+	 *
+	 * #184: `instanceid` is the same for every tenant on the instance, so the
+	 * authenticated user's own tenant binding (written by the admin module) is
+	 * preferred; `instanceid` is only the fallback when no per-user mapping exists.
+	 *
+	 * @param IUser $user Authenticated user whose tenant binding is read.
+	 *
+	 * @return string Tenant UUID, or the instance id when unbound.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 */
+	private function resolveTenantId(IUser $user): string {
+		$userTenantId = $this->config->getUserValue(
+			userId: $user->getUID(),
+			appName: 'scholiq',
+			key: 'tenant_id',
+			default: ''
+		);
 
-        if ($userTenantId !== '') {
-            return $userTenantId;
-        }
+		if ($userTenantId !== '') {
+			return $userTenantId;
+		}
 
-        return (string) $this->config->getSystemValue('instanceid', 'unknown');
+		return (string)$this->config->getSystemValue('instanceid', 'unknown');
+	}//end resolveTenantId()
 
-    }//end resolveTenantId()
+	/**
+	 * Serialise the audit-trail entities and keep only the entries whose
+	 * `changed` payload carries the requested regulation slug.
+	 *
+	 * @param array<int,mixed> $entries AuditTrail entities from the OR mapper.
+	 * @param string $regulationSlug Regulation slug to filter on ('' keeps everything).
+	 *
+	 * @return array<int,array<string,mixed>> Serialised, filtered events in mapper order.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 */
+	private function collectMatchingEvents(array $entries, string $regulationSlug): array {
+		$events = [];
+		foreach ($entries as $entry) {
+			$row = (array)$entry->jsonSerialize();
 
-    /**
-     * Serialise the audit-trail entities and keep only the entries whose
-     * `changed` payload carries the requested regulation slug.
-     *
-     * @param array<int,mixed> $entries        AuditTrail entities from the OR mapper.
-     * @param string           $regulationSlug Regulation slug to filter on ('' keeps everything).
-     *
-     * @return array<int,array<string,mixed>> Serialised, filtered events in mapper order.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-     */
-    private function collectMatchingEvents(array $entries, string $regulationSlug): array
-    {
-        $events = [];
-        foreach ($entries as $entry) {
-            $row = (array) $entry->jsonSerialize();
+			// The regulation slug lives inside the `changed` JSON field.
+			$changed = [];
+			if (is_string($row['changed'] ?? null) === true) {
+				$changed = (array)json_decode($row['changed'], associative: true);
+			}
 
-            // The regulation slug lives inside the `changed` JSON field.
-            $changed = [];
-            if (is_string($row['changed'] ?? null) === true) {
-                $changed = (array) json_decode($row['changed'], associative: true);
-            }
+			if ($regulationSlug !== '' && ($changed['regulationSlug'] ?? '') !== $regulationSlug) {
+				continue;
+			}
 
-            if ($regulationSlug !== '' && ($changed['regulationSlug'] ?? '') !== $regulationSlug) {
-                continue;
-            }
+			$events[] = $row;
+		}
 
-            $events[] = $row;
-        }
+		return $events;
+	}//end collectMatchingEvents()
 
-        return $events;
+	/**
+	 * Find the lowest and highest audit-entry ID among the exported events.
+	 *
+	 * #192: these bounds scope the HMAC chain verification to the same entries
+	 * the pack contains. Entries without a usable id are ignored rather than
+	 * collapsing the range to zero.
+	 *
+	 * @param array<int,array<string,mixed>> $events Serialised, filtered events.
+	 *
+	 * @return array{minId: int|null, maxId: int|null} Bounds, both null when no event carried an id.
+	 *
+	 * @spec openspec/specs/compliance-audit/spec.md
+	 */
+	private function resolveExportedIdBounds(array $events): array {
+		$minId = null;
+		$maxId = null;
 
-    }//end collectMatchingEvents()
+		foreach ($events as $event) {
+			$id = (int)($event['id'] ?? 0);
+			if ($id === 0) {
+				continue;
+			}
 
-    /**
-     * Find the lowest and highest audit-entry ID among the exported events.
-     *
-     * #192: these bounds scope the HMAC chain verification to the same entries
-     * the pack contains. Entries without a usable id are ignored rather than
-     * collapsing the range to zero.
-     *
-     * @param array<int,array<string,mixed>> $events Serialised, filtered events.
-     *
-     * @return array{minId: int|null, maxId: int|null} Bounds, both null when no event carried an id.
-     *
-     * @spec openspec/specs/compliance-audit/spec.md
-     */
-    private function resolveExportedIdBounds(array $events): array
-    {
-        $minId = null;
-        $maxId = null;
+			if ($minId === null || $id < $minId) {
+				$minId = $id;
+			}
 
-        foreach ($events as $event) {
-            $id = (int) ($event['id'] ?? 0);
-            if ($id === 0) {
-                continue;
-            }
+			if ($maxId === null || $id > $maxId) {
+				$maxId = $id;
+			}
+		}
 
-            if ($minId === null || $id < $minId) {
-                $minId = $id;
-            }
+		return [
+			'minId' => $minId,
+			'maxId' => $maxId,
+		];
 
-            if ($maxId === null || $id > $maxId) {
-                $maxId = $id;
-            }
-        }
+	}//end resolveExportedIdBounds()
 
-        return [
-            'minId' => $minId,
-            'maxId' => $maxId,
-        ];
+	/**
+	 * Verify the audit HMAC chain, scoped to the exported ID range when one exists.
+	 *
+	 * #192: the integrity report must cover the same entries as the export, so the
+	 * date-scoped ID bounds are forwarded when both are known. When either bound is
+	 * absent there is no range to scope to and the whole chain is verified.
+	 *
+	 * The argument names MUST stay `from`/`to`: they bind by name against
+	 * OpenRegister's real `AuditHashService::verifyChain(?int $from, ?int $to)`.
+	 *
+	 * @param int|null $minId Lowest exported audit-entry ID, or null when unknown.
+	 * @param int|null $maxId Highest exported audit-entry ID, or null when unknown.
+	 *
+	 * @return array<string,mixed> OR AuditHashService::verifyChain() response.
+	 *
+	 * @spec openspec/specs/compliance-audit/spec.md
+	 */
+	private function verifyChainForRange(?int $minId, ?int $maxId): array {
+		if ($minId === null || $maxId === null) {
+			return $this->auditHashService->verifyChain();
+		}
 
-    }//end resolveExportedIdBounds()
+		return $this->auditHashService->verifyChain(from: $minId, to: $maxId);
+	}//end verifyChainForRange()
 
-    /**
-     * Verify the audit HMAC chain, scoped to the exported ID range when one exists.
-     *
-     * #192: the integrity report must cover the same entries as the export, so the
-     * date-scoped ID bounds are forwarded when both are known. When either bound is
-     * absent there is no range to scope to and the whole chain is verified.
-     *
-     * The argument names MUST stay `from`/`to`: they bind by name against
-     * OpenRegister's real `AuditHashService::verifyChain(?int $from, ?int $to)`.
-     *
-     * @param int|null $minId Lowest exported audit-entry ID, or null when unknown.
-     * @param int|null $maxId Highest exported audit-entry ID, or null when unknown.
-     *
-     * @return array<string,mixed> OR AuditHashService::verifyChain() response.
-     *
-     * @spec openspec/specs/compliance-audit/spec.md
-     */
-    private function verifyChainForRange(?int $minId, ?int $maxId): array
-    {
-        if ($minId === null || $maxId === null) {
-            return $this->auditHashService->verifyChain();
-        }
+	/**
+	 * Build every artefact that goes into the audit-pack ZIP, keyed by its
+	 * in-archive filename.
+	 *
+	 * The verwerkingsregister and external-training artefacts are always
+	 * present: when the platform capability behind one is missing it degrades
+	 * to loud warning content rather than being silently omitted.
+	 *
+	 * @param array<int,array<string,mixed>> $events Serialised, filtered events.
+	 * @param array<string,mixed> $verification OR AuditHashService::verifyChain() response.
+	 * @param string $tenantId Resolved tenant scope.
+	 * @param string $regulationSlug Regulation slug for this pack.
+	 * @param string $dateFrom ISO-8601 period start.
+	 * @param string $dateTo ISO-8601 period end.
+	 *
+	 * @return array<string,string> Archive filename => file content.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 */
+	private function buildPackFiles(
+		array $events,
+		array $verification,
+		string $tenantId,
+		string $regulationSlug,
+		string $dateFrom,
+		string $dateTo,
+	): array {
+		$signatureStatus = 'broken';
+		if (($verification['valid'] ?? false) === true) {
+			$signatureStatus = 'valid';
+		}
 
-        return $this->auditHashService->verifyChain(from: $minId, to: $maxId);
+		// A broken chain cannot vouch for the key it was signed with either.
+		$keyFingerprint = (string)($verification['keyFingerprint'] ?? 'unavailable');
+		if (array_key_exists('brokenAt', $verification) === true) {
+			$keyFingerprint = 'unavailable';
+		}
 
-    }//end verifyChainForRange()
+		$exportTimestamp = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 
-    /**
-     * Build every artefact that goes into the audit-pack ZIP, keyed by its
-     * in-archive filename.
-     *
-     * The verwerkingsregister and external-training artefacts are always
-     * present: when the platform capability behind one is missing it degrades
-     * to loud warning content rather than being silently omitted.
-     *
-     * @param array<int,array<string,mixed>> $events         Serialised, filtered events.
-     * @param array<string,mixed>            $verification   OR AuditHashService::verifyChain() response.
-     * @param string                         $tenantId       Resolved tenant scope.
-     * @param string                         $regulationSlug Regulation slug for this pack.
-     * @param string                         $dateFrom       ISO-8601 period start.
-     * @param string                         $dateTo         ISO-8601 period end.
-     *
-     * @return array<string,string> Archive filename => file content.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-     */
-    private function buildPackFiles(
-        array $events,
-        array $verification,
-        string $tenantId,
-        string $regulationSlug,
-        string $dateFrom,
-        string $dateTo,
-    ): array {
-        $signatureStatus = 'broken';
-        if (($verification['valid'] ?? false) === true) {
-            $signatureStatus = 'valid';
-        }
+		return [
+			'audit-trail.ndjson' => $this->buildNdjson(events: $events),
+			'audit-trail.csv' => $this->buildCsv(events: $events),
+			'manifest.json' => $this->buildManifestJson(
+				tenantId: $tenantId,
+				regulationSlug: $regulationSlug,
+				dateFrom: $dateFrom,
+				dateTo: $dateTo,
+				eventCount: count($events),
+				signatureStatus: $signatureStatus,
+				exportTimestamp: $exportTimestamp,
+				keyFingerprint: $keyFingerprint,
+			),
+			'signature-verification.txt' => $this->buildVerificationTxt(verification: $verification),
+			'verwerkingsregister.csv' => $this->registerCsv->build(
+				dateFrom: $dateFrom,
+				dateTo: $dateTo,
+			),
+			'external-training.csv' => $this->trainingCsv->build(
+				regulationSlug: $regulationSlug,
+				dateFrom: $dateFrom,
+				dateTo: $dateTo,
+				tenantId: $tenantId,
+			),
+		];
 
-        // A broken chain cannot vouch for the key it was signed with either.
-        $keyFingerprint = (string) ($verification['keyFingerprint'] ?? 'unavailable');
-        if (array_key_exists('brokenAt', $verification) === true) {
-            $keyFingerprint = 'unavailable';
-        }
+	}//end buildPackFiles()
 
-        $exportTimestamp = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+	/**
+	 * Render events as newline-delimited JSON (one object per line).
+	 *
+	 * @param array<int,array<string,mixed>> $events Audit-trail events.
+	 *
+	 * @return string NDJSON string.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 */
+	private function buildNdjson(array $events): string {
+		$lines = [];
+		foreach ($events as $event) {
+			$lines[] = (string)json_encode($event, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+		}
 
-        return [
-            'audit-trail.ndjson'         => $this->buildNdjson(events: $events),
-            'audit-trail.csv'            => $this->buildCsv(events: $events),
-            'manifest.json'              => $this->buildManifestJson(
-                tenantId: $tenantId,
-                regulationSlug: $regulationSlug,
-                dateFrom: $dateFrom,
-                dateTo: $dateTo,
-                eventCount: count($events),
-                signatureStatus: $signatureStatus,
-                exportTimestamp: $exportTimestamp,
-                keyFingerprint: $keyFingerprint,
-            ),
-            'signature-verification.txt' => $this->buildVerificationTxt(verification: $verification),
-            'verwerkingsregister.csv'    => $this->registerCsv->build(
-                dateFrom: $dateFrom,
-                dateTo: $dateTo,
-            ),
-            'external-training.csv'      => $this->trainingCsv->build(
-                regulationSlug: $regulationSlug,
-                dateFrom: $dateFrom,
-                dateTo: $dateTo,
-                tenantId: $tenantId,
-            ),
-        ];
+		return implode("\n", $lines) . "\n";
+	}//end buildNdjson()
 
-    }//end buildPackFiles()
+	/**
+	 * Render events as a flat CSV (header row + one data row per event).
+	 *
+	 * @param array<int,array<string,mixed>> $events Audit-trail events.
+	 *
+	 * @return string CSV string.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 */
+	private function buildCsv(array $events): string {
+		if (empty($events) === true) {
+			return "event_id,action,object,register,schema,user,created\n";
+		}
 
-    /**
-     * Render events as newline-delimited JSON (one object per line).
-     *
-     * @param array<int,array<string,mixed>> $events Audit-trail events.
-     *
-     * @return string NDJSON string.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-     */
-    private function buildNdjson(array $events): string
-    {
-        $lines = [];
-        foreach ($events as $event) {
-            $lines[] = (string) json_encode($event, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        }
+		$handle = fopen('php://memory', 'r+');
+		if ($handle === false) {
+			return '';
+		}
 
-        return implode("\n", $lines)."\n";
+		fputcsv($handle, ['event_id', 'action', 'object', 'register', 'schema', 'user', 'created']);
 
-    }//end buildNdjson()
+		foreach ($events as $event) {
+			fputcsv(
+				$handle,
+				[
+					$this->sanitizer->sanitize(value: $event['uuid'] ?? ''),
+					$this->sanitizer->sanitize(value: $event['action'] ?? ''),
+					$this->sanitizer->sanitize(value: $event['object'] ?? ''),
+					$this->sanitizer->sanitize(value: $event['register'] ?? ''),
+					$this->sanitizer->sanitize(value: $event['schema'] ?? ''),
+					$this->sanitizer->sanitize(value: $event['user'] ?? ''),
+					$this->sanitizer->sanitize(value: $event['created'] ?? ''),
+				]
+			);
+		}
 
-    /**
-     * Render events as a flat CSV (header row + one data row per event).
-     *
-     * @param array<int,array<string,mixed>> $events Audit-trail events.
-     *
-     * @return string CSV string.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-     */
-    private function buildCsv(array $events): string
-    {
-        if (empty($events) === true) {
-            return "event_id,action,object,register,schema,user,created\n";
-        }
+		rewind($handle);
+		$csv = (string)stream_get_contents($handle);
+		fclose($handle);
 
-        $handle = fopen('php://memory', 'r+');
-        if ($handle === false) {
-            return '';
-        }
+		return $csv;
+	}//end buildCsv()
 
-        fputcsv($handle, ['event_id', 'action', 'object', 'register', 'schema', 'user', 'created']);
+	/**
+	 * Build the manifest.json content per ADR-008 §6.
+	 *
+	 * @param string $tenantId Tenant UUID or instanceid.
+	 * @param string $regulationSlug Regulation slug.
+	 * @param string $dateFrom Period start.
+	 * @param string $dateTo Period end.
+	 * @param int $eventCount Total events in pack.
+	 * @param string $signatureStatus OR chain verification result.
+	 * @param string $exportTimestamp ISO-8601 timestamp of this export.
+	 * @param string $keyFingerprint Public verification key fingerprint.
+	 *
+	 * @return string JSON string.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 */
+	private function buildManifestJson(
+		string $tenantId,
+		string $regulationSlug,
+		string $dateFrom,
+		string $dateTo,
+		int $eventCount,
+		string $signatureStatus,
+		string $exportTimestamp,
+		string $keyFingerprint,
+	): string {
+		$manifest = [
+			'schema_version' => '1.0',
+			'tenant_id' => $tenantId,
+			'regulation_slug' => $regulationSlug,
+			'period' => ['from' => $dateFrom, 'to' => $dateTo],
+			'event_count' => $eventCount,
+			'signature_status' => $signatureStatus,
+			'export_timestamp' => $exportTimestamp,
+			'key_fingerprint' => $keyFingerprint,
+			'generator' => 'scholiq/AuditPackExportController@0.1.0',
+		];
 
-        foreach ($events as $event) {
-            fputcsv(
-                    $handle,
-                    [
-                        $this->sanitizer->sanitize(value: $event['uuid'] ?? ''),
-                        $this->sanitizer->sanitize(value: $event['action'] ?? ''),
-                        $this->sanitizer->sanitize(value: $event['object'] ?? ''),
-                        $this->sanitizer->sanitize(value: $event['register'] ?? ''),
-                        $this->sanitizer->sanitize(value: $event['schema'] ?? ''),
-                        $this->sanitizer->sanitize(value: $event['user'] ?? ''),
-                        $this->sanitizer->sanitize(value: $event['created'] ?? ''),
-                    ]
-                    );
-        }
+		return (string)json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+	}//end buildManifestJson()
 
-        rewind($handle);
-        $csv = (string) stream_get_contents($handle);
-        fclose($handle);
+	/**
+	 * Build the signature-verification.txt content from OR's chain verification result.
+	 *
+	 * @param array<string,mixed> $verification OR AuditHashService::verifyChain() response.
+	 *
+	 * @return string Plain-text verification report.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-2
+	 */
+	private function buildVerificationTxt(array $verification): string {
+		$valid = ($verification['valid'] ?? false) === true;
+		$status = 'broken';
+		if ($valid === true) {
+			$status = 'valid';
+		}
 
-        return $csv;
+		$entriesVerified = $verification['entriesVerified'] ?? 0;
+		$brokenAt = $verification['brokenAt'] ?? null;
 
-    }//end buildCsv()
+		$lines = [];
+		$lines[] = '=== Scholiq Compliance Audit Pack — Signature Verification Report ===';
+		$lines[] = '';
+		$lines[] = 'Status          : ' . $status;
+		$lines[] = 'Entries verified: ' . $entriesVerified;
 
-    /**
-     * Build the manifest.json content per ADR-008 §6.
-     *
-     * @param string $tenantId        Tenant UUID or instanceid.
-     * @param string $regulationSlug  Regulation slug.
-     * @param string $dateFrom        Period start.
-     * @param string $dateTo          Period end.
-     * @param int    $eventCount      Total events in pack.
-     * @param string $signatureStatus OR chain verification result.
-     * @param string $exportTimestamp ISO-8601 timestamp of this export.
-     * @param string $keyFingerprint  Public verification key fingerprint.
-     *
-     * @return string JSON string.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-     */
-    private function buildManifestJson(
-        string $tenantId,
-        string $regulationSlug,
-        string $dateFrom,
-        string $dateTo,
-        int $eventCount,
-        string $signatureStatus,
-        string $exportTimestamp,
-        string $keyFingerprint,
-    ): string {
-        $manifest = [
-            'schema_version'   => '1.0',
-            'tenant_id'        => $tenantId,
-            'regulation_slug'  => $regulationSlug,
-            'period'           => ['from' => $dateFrom, 'to' => $dateTo],
-            'event_count'      => $eventCount,
-            'signature_status' => $signatureStatus,
-            'export_timestamp' => $exportTimestamp,
-            'key_fingerprint'  => $keyFingerprint,
-            'generator'        => 'scholiq/AuditPackExportController@0.1.0',
-        ];
+		$lines[] = '';
+		if ($brokenAt !== null) {
+			$lines[] = 'WARNING: Chain integrity broken at entry id: ' . $brokenAt;
+			$lines[] = 'This indicates a record was modified or deleted after recording.';
+		}
 
-        return (string) json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+		if ($brokenAt === null) {
+			$lines[] = 'All HMAC signatures verified. Evidence log is intact.';
+		}
 
-    }//end buildManifestJson()
+		$lines[] = '';
+		$lines[] = 'This report is generated by OpenRegister\'s AuditHashService::verifyChain().';
+		$lines[] = 'For offline verification cross-reference the NDJSON file with the chain hashes.';
 
-    /**
-     * Build the signature-verification.txt content from OR's chain verification result.
-     *
-     * @param array<string,mixed> $verification OR AuditHashService::verifyChain() response.
-     *
-     * @return string Plain-text verification report.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-2
-     */
-    private function buildVerificationTxt(array $verification): string
-    {
-        $valid  = ($verification['valid'] ?? false) === true;
-        $status = 'broken';
-        if ($valid === true) {
-            $status = 'valid';
-        }
+		return implode("\n", $lines) . "\n";
+	}//end buildVerificationTxt()
 
-        $entriesVerified = $verification['entriesVerified'] ?? 0;
-        $brokenAt        = $verification['brokenAt'] ?? null;
+	/**
+	 * Build an in-memory ZIP archive from named string content entries.
+	 *
+	 * @param array<string,string> $files Map of filename => content.
+	 *
+	 * @return string Raw ZIP bytes.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
+	 */
+	private function buildZip(array $files): string {
+		$tmpFile = tempnam(sys_get_temp_dir(), 'scholiq_audit_');
+		if ($tmpFile === false) {
+			return '';
+		}
 
-        $lines   = [];
-        $lines[] = '=== Scholiq Compliance Audit Pack — Signature Verification Report ===';
-        $lines[] = '';
-        $lines[] = 'Status          : '.$status;
-        $lines[] = 'Entries verified: '.$entriesVerified;
+		$zip = new ZipArchive();
+		if ($zip->open($tmpFile, ZipArchive::OVERWRITE) !== true) {
+			unlink($tmpFile);
+			return '';
+		}
 
-        $lines[] = '';
-        if ($brokenAt !== null) {
-            $lines[] = 'WARNING: Chain integrity broken at entry id: '.$brokenAt;
-            $lines[] = 'This indicates a record was modified or deleted after recording.';
-        }
+		foreach ($files as $filename => $content) {
+			$zip->addFromString($filename, $content);
+		}
 
-        if ($brokenAt === null) {
-            $lines[] = 'All HMAC signatures verified. Evidence log is intact.';
-        }
+		$zip->close();
 
-        $lines[] = '';
-        $lines[] = 'This report is generated by OpenRegister\'s AuditHashService::verifyChain().';
-        $lines[] = 'For offline verification cross-reference the NDJSON file with the chain hashes.';
+		$zipContent = (string)file_get_contents($tmpFile);
+		unlink($tmpFile);
 
-        return implode("\n", $lines)."\n";
-
-    }//end buildVerificationTxt()
-
-    /**
-     * Build an in-memory ZIP archive from named string content entries.
-     *
-     * @param array<string,string> $files Map of filename => content.
-     *
-     * @return string Raw ZIP bytes.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
-     */
-    private function buildZip(array $files): string
-    {
-        $tmpFile = tempnam(sys_get_temp_dir(), 'scholiq_audit_');
-        if ($tmpFile === false) {
-            return '';
-        }
-
-        $zip = new ZipArchive();
-        if ($zip->open($tmpFile, ZipArchive::OVERWRITE) !== true) {
-            unlink($tmpFile);
-            return '';
-        }
-
-        foreach ($files as $filename => $content) {
-            $zip->addFromString($filename, $content);
-        }
-
-        $zip->close();
-
-        $zipContent = (string) file_get_contents($tmpFile);
-        unlink($tmpFile);
-
-        return $zipContent;
-
-    }//end buildZip()
+		return $zipContent;
+	}//end buildZip()
 }//end class

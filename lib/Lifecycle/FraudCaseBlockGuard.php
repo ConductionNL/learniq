@@ -51,112 +51,107 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
  */
-class FraudCaseBlockGuard
-{
+class FraudCaseBlockGuard {
 
-    private const SCHOLIQ_REGISTER  = 'scholiq';
-    private const FRAUD_CASE_SCHEMA = 'fraud-case';
+	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const FRAUD_CASE_SCHEMA = 'fraud-case';
 
-    /**
-     * FraudCase lifecycle states that keep the linked GradeEntry blocked from publish.
-     *
-     * `decided` is handled separately (blocked only when verdict=fraud-proven).
-     *
-     * @var string[]
-     */
-    private const OPEN_STATES = ['reported', 'hearing-scheduled', 'heard'];
+	/**
+	 * FraudCase lifecycle states that keep the linked GradeEntry blocked from publish.
+	 *
+	 * `decided` is handled separately (blocked only when verdict=fraud-proven).
+	 *
+	 * @var string[]
+	 */
+	private const OPEN_STATES = ['reported', 'hearing-scheduled', 'heard'];
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService   $objectService OR object access service.
-     * @param LoggerInterface $logger        PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access service.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Allow the `publish`/`republish` transition unless a linked FraudCase blocks it.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the GradeEntry data array
-     *                                               - 'transition' : 'publish' or 'republish'
-     *
-     * @return bool True if the transition is allowed; false blocks it (HTTP 422).
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
-     * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $entry       = $transitionContext['object'] ?? [];
-        $entryId     = $entry['id'] ?? ($entry['uuid'] ?? '');
-        $fraudCaseId = $entry['fraudCaseId'] ?? null;
+	/**
+	 * Allow the `publish`/`republish` transition unless a linked FraudCase blocks it.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the GradeEntry data array
+	 *                                               - 'transition' : 'publish' or 'republish'
+	 *
+	 * @return bool True if the transition is allowed; false blocks it (HTTP 422).
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
+	 */
+	public function check(array &$transitionContext): bool {
+		$entry = $transitionContext['object'] ?? [];
+		$entryId = $entry['id'] ?? ($entry['uuid'] ?? '');
+		$fraudCaseId = $entry['fraudCaseId'] ?? null;
 
-        if ($fraudCaseId === null || $fraudCaseId === '') {
-            return true;
-        }
+		if ($fraudCaseId === null || $fraudCaseId === '') {
+			return true;
+		}
 
-        $fraudCase = $this->fetchFraudCase(fraudCaseId: (string) $fraudCaseId);
+		$fraudCase = $this->fetchFraudCase(fraudCaseId: (string)$fraudCaseId);
 
-        if ($fraudCase === null) {
-            $this->logger->warning(
-                '[FraudCaseBlockGuard] GradeEntry {id} links FraudCase {caseId} which was not found — denying publish (fail closed).',
-                ['id' => $entryId, 'caseId' => $fraudCaseId]
-            );
-            return false;
-        }
+		if ($fraudCase === null) {
+			$this->logger->warning(
+				'[FraudCaseBlockGuard] GradeEntry {id} links FraudCase {caseId} which was not found — denying publish (fail closed).',
+				['id' => $entryId, 'caseId' => $fraudCaseId]
+			);
+			return false;
+		}
 
-        $lifecycle = $fraudCase['lifecycle'] ?? '';
-        $verdict   = $fraudCase['verdict'] ?? '';
+		$lifecycle = $fraudCase['lifecycle'] ?? '';
+		$verdict = $fraudCase['verdict'] ?? '';
 
-        if (in_array($lifecycle, self::OPEN_STATES, true) === true) {
-            $this->logger->info(
-                '[FraudCaseBlockGuard] GradeEntry {id} blocked — linked FraudCase {caseId} is still open ({state}).',
-                ['id' => $entryId, 'caseId' => $fraudCaseId, 'state' => $lifecycle]
-            );
-            return false;
-        }
+		if (in_array($lifecycle, self::OPEN_STATES, true) === true) {
+			$this->logger->info(
+				'[FraudCaseBlockGuard] GradeEntry {id} blocked — linked FraudCase {caseId} is still open ({state}).',
+				['id' => $entryId, 'caseId' => $fraudCaseId, 'state' => $lifecycle]
+			);
+			return false;
+		}
 
-        if ($lifecycle === 'decided' && $verdict === 'fraud-proven') {
-            $this->logger->info(
-                '[FraudCaseBlockGuard] GradeEntry {id} permanently blocked — linked FraudCase {caseId} '
-                .'decided fraud-proven; the only forward path is invalidate.',
-                ['id' => $entryId, 'caseId' => $fraudCaseId]
-            );
-            return false;
-        }
+		if ($lifecycle === 'decided' && $verdict === 'fraud-proven') {
+			$this->logger->info(
+				'[FraudCaseBlockGuard] GradeEntry {id} permanently blocked — linked FraudCase {caseId} '
+				. 'decided fraud-proven; the only forward path is invalidate.',
+				['id' => $entryId, 'caseId' => $fraudCaseId]
+			);
+			return false;
+		}
 
-        // Decided/unfounded or dismissed — publication may proceed.
-        return true;
+		// Decided/unfounded or dismissed — publication may proceed.
+		return true;
+	}//end check()
 
-    }//end check()
+	/**
+	 * Fetch the linked FraudCase by id.
+	 *
+	 * @param string $fraudCaseId UUID of the FraudCase.
+	 *
+	 * @return array<string,mixed>|null The FraudCase data array, or null if not found.
+	 */
+	private function fetchFraudCase(string $fraudCaseId): ?array {
+		$obj = $this->objectService->find(
+			id: $fraudCaseId,
+			register: self::SCHOLIQ_REGISTER,
+			schema: self::FRAUD_CASE_SCHEMA
+		);
 
-    /**
-     * Fetch the linked FraudCase by id.
-     *
-     * @param string $fraudCaseId UUID of the FraudCase.
-     *
-     * @return array<string,mixed>|null The FraudCase data array, or null if not found.
-     */
-    private function fetchFraudCase(string $fraudCaseId): ?array
-    {
-        $obj = $this->objectService->find(
-            id: $fraudCaseId,
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::FRAUD_CASE_SCHEMA
-        );
+		if ($obj === null) {
+			return null;
+		}
 
-        if ($obj === null) {
-            return null;
-        }
-
-        return $obj->jsonSerialize();
-
-    }//end fetchFraudCase()
+		return $obj->jsonSerialize();
+	}//end fetchFraudCase()
 }//end class

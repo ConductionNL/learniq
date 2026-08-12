@@ -35,6 +35,5 @@ use OCA\OpenRegister\AppHost\Repair\GenericInitializeActions;
 /**
  * AppHost stub for Scholiq's ADR-023 action-matrix seed repair step.
  */
-class InitializeActions extends GenericInitializeActions
-{
+class InitializeActions extends GenericInitializeActions {
 }//end class

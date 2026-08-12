@@ -44,282 +44,271 @@ use Psr\Log\NullLogger;
 /**
  * Tests for SupportRequestSubmitHandler::handle() on SupportRequest → submitted.
  */
-class SupportRequestSubmitHandlerTest extends TestCase
-{
+class SupportRequestSubmitHandlerTest extends TestCase {
 
-    /**
-     * Recorded saveObject() calls.
-     *
-     * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
-     */
-    private array $savedObjects = [];
+	/**
+	 * Recorded saveObject() calls.
+	 *
+	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
+	 */
+	private array $savedObjects = [];
 
-    /**
-     * Recorded transition() calls.
-     *
-     * @var array<int, array{objectId: string, action: string}>
-     */
-    private array $transitions = [];
+	/**
+	 * Recorded transition() calls.
+	 *
+	 * @var array<int, array{objectId: string, action: string}>
+	 */
+	private array $transitions = [];
 
-    /**
-     * Reset capture buffers before each test.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->savedObjects = [];
-        $this->transitions  = [];
+	/**
+	 * Reset capture buffers before each test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->savedObjects = [];
+		$this->transitions = [];
 
-    }//end setUp()
+	}//end setUp()
 
-    /**
-     * Build a handler with stubbed collaborators.
-     *
-     * @param string|null              $savedJobId             UUID to return for the DataExchangeJob save, or null to
-     *                                                         simulate a save that yields no id. OpenRegister's
-     *                                                         `saveObject(): ObjectEntity` is non-nullable, so the
-     *                                                         failure mode is an entity without an id, not a null.
-     * @param array<string,mixed>|null $mappingProfile         DataMappingProfile row to resolve for target=swv, or
-     *                                                         null when none is configured.
-     * @param array<string,mixed>|null $existingSupportRequest The SupportRequest row findAll() returns when the
-     *                                                         handler looks it up to stamp dataExchangeJobId back on.
-     *
-     * @return SupportRequestSubmitHandler
-     */
-    private function makeHandler(
-        ?string $savedJobId,
-        ?array $mappingProfile=null,
-        ?array $existingSupportRequest=null,
-    ): SupportRequestSubmitHandler {
-        $objectService = $this->createMock(ObjectService::class);
+	/**
+	 * Build a handler with stubbed collaborators.
+	 *
+	 * @param string|null $savedJobId UUID to return for the DataExchangeJob save, or null to
+	 *                                simulate a save that yields no id. OpenRegister's
+	 *                                `saveObject(): ObjectEntity` is non-nullable, so the
+	 *                                failure mode is an entity without an id, not a null.
+	 * @param array<string,mixed>|null $mappingProfile DataMappingProfile row to resolve for target=swv, or
+	 *                                                 null when none is configured.
+	 * @param array<string,mixed>|null $existingSupportRequest The SupportRequest row findAll() returns when the
+	 *                                                         handler looks it up to stamp dataExchangeJobId back on.
+	 *
+	 * @return SupportRequestSubmitHandler
+	 */
+	private function makeHandler(
+		?string $savedJobId,
+		?array $mappingProfile = null,
+		?array $existingSupportRequest = null,
+	): SupportRequestSubmitHandler {
+		$objectService = $this->createMock(ObjectService::class);
 
-        $objectService->method('findAll')->willReturnCallback(
-            function (array $config) use ($mappingProfile, $existingSupportRequest): array {
-                $schema = $config['schema'] ?? '';
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config) use ($mappingProfile, $existingSupportRequest): array {
+				$schema = $config['schema'] ?? '';
 
-                if ($schema === 'data-mapping-profile') {
-                    return $mappingProfile === null ? [] : [$mappingProfile];
-                }
+				if ($schema === 'data-mapping-profile') {
+					return $mappingProfile === null ? [] : [$mappingProfile];
+				}
 
-                if ($schema === 'support-request') {
-                    return $existingSupportRequest === null ? [] : [$existingSupportRequest];
-                }
+				if ($schema === 'support-request') {
+					return $existingSupportRequest === null ? [] : [$existingSupportRequest];
+				}
 
-                return [];
-            }
-        );
+				return [];
+			}
+		);
 
-        $objectService->method('saveObject')->willReturnCallback(
-            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null) use ($savedJobId): ObjectEntity {
-                $schema               = (string) $schema;
-                $data                 = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
-                $this->savedObjects[] = [
-                    'register' => (string) $register,
-                    'schema'   => $schema,
-                    'object'   => $data,
-                ];
+		$objectService->method('saveObject')->willReturnCallback(
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use ($savedJobId): ObjectEntity {
+				$schema = (string)$schema;
+				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+				$this->savedObjects[] = [
+					'register' => (string)$register,
+					'schema' => $schema,
+					'object' => $data,
+				];
 
-                if ($schema === 'data-exchange-job') {
-                    if ($savedJobId === null) {
-                        $idless = $data;
-                        unset($idless['id'], $idless['uuid']);
-                        return OrEntityFactory::make($idless, $schema, (string) $register);
-                    }
+				if ($schema === 'data-exchange-job') {
+					if ($savedJobId === null) {
+						$idless = $data;
+						unset($idless['id'], $idless['uuid']);
+						return OrEntityFactory::make($idless, $schema, (string)$register);
+					}
 
-                    return OrEntityFactory::make(array_merge($data, ['id' => $savedJobId]), $schema, (string) $register);
-                }
+					return OrEntityFactory::make(array_merge($data, ['id' => $savedJobId]), $schema, (string)$register);
+				}
 
-                return OrEntityFactory::make($data, $schema, (string) $register);
-            }
-        );
+				return OrEntityFactory::make($data, $schema, (string)$register);
+			}
+		);
 
-        $transitionEngine = $this->createMock(TransitionEngine::class);
-        $transitionEngine->method('transition')->willReturnCallback(
-            function (string $objectId, string $action): ObjectEntity {
-                $this->transitions[] = ['objectId' => $objectId, 'action' => $action];
-                return OrEntityFactory::make(['id' => $objectId], 'data-exchange-job');
-            }
-        );
+		$transitionEngine = $this->createMock(TransitionEngine::class);
+		$transitionEngine->method('transition')->willReturnCallback(
+			function (string $objectId, string $action): ObjectEntity {
+				$this->transitions[] = ['objectId' => $objectId, 'action' => $action];
+				return OrEntityFactory::make(['id' => $objectId], 'data-exchange-job');
+			}
+		);
 
-        return new SupportRequestSubmitHandler($objectService, $transitionEngine, new NullLogger());
+		return new SupportRequestSubmitHandler($objectService, $transitionEngine, new NullLogger());
+	}//end makeHandler()
 
-    }//end makeHandler()
+	/**
+	 * Build a mocked ObjectTransitionedEvent for a SupportRequest → submitted transition.
+	 *
+	 * @param array<string,mixed> $requestData The SupportRequest's jsonSerialize() payload.
+	 *
+	 * @return ObjectTransitionedEvent
+	 */
+	private function makeEvent(array $requestData): ObjectTransitionedEvent {
+		$objectEntity = $this->createMock(ObjectEntity::class);
+		$objectEntity->method('jsonSerialize')->willReturn($requestData);
 
-    /**
-     * Build a mocked ObjectTransitionedEvent for a SupportRequest → submitted transition.
-     *
-     * @param array<string,mixed> $requestData The SupportRequest's jsonSerialize() payload.
-     *
-     * @return ObjectTransitionedEvent
-     */
-    private function makeEvent(array $requestData): ObjectTransitionedEvent
-    {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($requestData);
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getObject')->willReturn($objectEntity);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('support-request');
+		$event->method('getTo')->willReturn('submitted');
+		$event->method('getFrom')->willReturn('draft');
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getObject')->willReturn($objectEntity);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('support-request');
-        $event->method('getTo')->willReturn('submitted');
-        $event->method('getFrom')->willReturn('draft');
+		return $event;
+	}//end makeEvent()
 
-        return $event;
+	/**
+	 * Submitting a SupportRequest queues a DataExchangeJob (target: swv,
+	 * scope.schema: support-request), stamps dataExchangeJobId back onto the
+	 * request, and advances the job into pending-parent-review.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/specs/learning-plan/spec.md#scenario-submitting-a-supportrequest-queues-a-gated-swv-dossier-job
+	 */
+	public function testSubmittedRequestQueuesSwvJobAndAdvancesToPendingParentReview(): void {
+		$handler = $this->makeHandler(
+			savedJobId: 'job-1',
+			mappingProfile: ['id' => 'profile-1', 'target' => 'swv'],
+			existingSupportRequest: ['id' => 'sr-1', 'learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']
+		);
 
-    }//end makeEvent()
+		$supportRequest = [
+			'id' => 'sr-1',
+			'learnerId' => 'learner-1',
+			'raisedBy' => 'coordinator-1',
+			'tenant_id' => 'tenant-a',
+			'lifecycle' => 'submitted',
+		];
 
-    /**
-     * Submitting a SupportRequest queues a DataExchangeJob (target: swv,
-     * scope.schema: support-request), stamps dataExchangeJobId back onto the
-     * request, and advances the job into pending-parent-review.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/zorgvraag-swv-tlv-chain/specs/learning-plan/spec.md#scenario-submitting-a-supportrequest-queues-a-gated-swv-dossier-job
-     */
-    public function testSubmittedRequestQueuesSwvJobAndAdvancesToPendingParentReview(): void
-    {
-        $handler = $this->makeHandler(
-            savedJobId: 'job-1',
-            mappingProfile: ['id' => 'profile-1', 'target' => 'swv'],
-            existingSupportRequest: ['id' => 'sr-1', 'learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']
-        );
+		$handler->handle($this->makeEvent($supportRequest));
 
-        $supportRequest = [
-            'id'        => 'sr-1',
-            'learnerId' => 'learner-1',
-            'raisedBy'  => 'coordinator-1',
-            'tenant_id' => 'tenant-a',
-            'lifecycle' => 'submitted',
-        ];
+		$jobSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'data-exchange-job'));
+		self::assertCount(1, $jobSaves);
+		self::assertSame('swv', $jobSaves[0]['object']['target']);
+		self::assertSame('support-request', $jobSaves[0]['object']['scope']['schema']);
+		self::assertSame('learner-1', $jobSaves[0]['object']['scope']['filters']['learnerId']);
+		self::assertSame('sr-1', $jobSaves[0]['object']['scope']['filters']['supportRequestId']);
+		self::assertSame('profile-1', $jobSaves[0]['object']['mappingProfileId']);
+		self::assertSame('coordinator-1', $jobSaves[0]['object']['requestedBy']);
+		self::assertSame('queued', $jobSaves[0]['object']['lifecycle']);
 
-        $handler->handle($this->makeEvent($supportRequest));
+		$requestSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'support-request'));
+		self::assertCount(1, $requestSaves);
+		self::assertSame('job-1', $requestSaves[0]['object']['dataExchangeJobId']);
 
-        $jobSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'data-exchange-job'));
-        self::assertCount(1, $jobSaves);
-        self::assertSame('swv', $jobSaves[0]['object']['target']);
-        self::assertSame('support-request', $jobSaves[0]['object']['scope']['schema']);
-        self::assertSame('learner-1', $jobSaves[0]['object']['scope']['filters']['learnerId']);
-        self::assertSame('sr-1', $jobSaves[0]['object']['scope']['filters']['supportRequestId']);
-        self::assertSame('profile-1', $jobSaves[0]['object']['mappingProfileId']);
-        self::assertSame('coordinator-1', $jobSaves[0]['object']['requestedBy']);
-        self::assertSame('queued', $jobSaves[0]['object']['lifecycle']);
+		self::assertCount(1, $this->transitions);
+		self::assertSame('job-1', $this->transitions[0]['objectId']);
+		self::assertSame('pendingParentReview', $this->transitions[0]['action']);
 
-        $requestSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'support-request'));
-        self::assertCount(1, $requestSaves);
-        self::assertSame('job-1', $requestSaves[0]['object']['dataExchangeJobId']);
+	}//end testSubmittedRequestQueuesSwvJobAndAdvancesToPendingParentReview()
 
-        self::assertCount(1, $this->transitions);
-        self::assertSame('job-1', $this->transitions[0]['objectId']);
-        self::assertSame('pendingParentReview', $this->transitions[0]['action']);
+	/**
+	 * No active swv DataMappingProfile is configured — the job is still queued
+	 * (mappingProfileId null), fail-closed enforcement happens later at
+	 * buildPayload() time via MANDATORY_PROFILE_TARGETS, not here.
+	 *
+	 * @return void
+	 */
+	public function testQueuesJobWithNullMappingProfileIdWhenNoneConfigured(): void {
+		$handler = $this->makeHandler(
+			savedJobId: 'job-2',
+			mappingProfile: null,
+			existingSupportRequest: ['id' => 'sr-2', 'learnerId' => 'learner-2', 'tenant_id' => 'tenant-a']
+		);
 
-    }//end testSubmittedRequestQueuesSwvJobAndAdvancesToPendingParentReview()
+		$supportRequest = [
+			'id' => 'sr-2',
+			'learnerId' => 'learner-2',
+			'raisedBy' => 'coordinator-2',
+			'tenant_id' => 'tenant-a',
+		];
 
-    /**
-     * No active swv DataMappingProfile is configured — the job is still queued
-     * (mappingProfileId null), fail-closed enforcement happens later at
-     * buildPayload() time via MANDATORY_PROFILE_TARGETS, not here.
-     *
-     * @return void
-     */
-    public function testQueuesJobWithNullMappingProfileIdWhenNoneConfigured(): void
-    {
-        $handler = $this->makeHandler(
-            savedJobId: 'job-2',
-            mappingProfile: null,
-            existingSupportRequest: ['id' => 'sr-2', 'learnerId' => 'learner-2', 'tenant_id' => 'tenant-a']
-        );
+		$handler->handle($this->makeEvent($supportRequest));
 
-        $supportRequest = [
-            'id'        => 'sr-2',
-            'learnerId' => 'learner-2',
-            'raisedBy'  => 'coordinator-2',
-            'tenant_id' => 'tenant-a',
-        ];
+		$jobSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'data-exchange-job'));
+		self::assertCount(1, $jobSaves);
+		self::assertNull($jobSaves[0]['object']['mappingProfileId']);
 
-        $handler->handle($this->makeEvent($supportRequest));
+	}//end testQueuesJobWithNullMappingProfileIdWhenNoneConfigured()
 
-        $jobSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'data-exchange-job'));
-        self::assertCount(1, $jobSaves);
-        self::assertNull($jobSaves[0]['object']['mappingProfileId']);
+	/**
+	 * A SupportRequest with no learnerId is skipped — no DataExchangeJob queued.
+	 *
+	 * @return void
+	 */
+	public function testMissingLearnerIdSkips(): void {
+		$handler = $this->makeHandler(savedJobId: 'job-3');
 
-    }//end testQueuesJobWithNullMappingProfileIdWhenNoneConfigured()
+		$supportRequest = ['id' => 'sr-3', 'raisedBy' => 'coordinator-1', 'tenant_id' => 'tenant-a'];
 
-    /**
-     * A SupportRequest with no learnerId is skipped — no DataExchangeJob queued.
-     *
-     * @return void
-     */
-    public function testMissingLearnerIdSkips(): void
-    {
-        $handler = $this->makeHandler(savedJobId: 'job-3');
+		$handler->handle($this->makeEvent($supportRequest));
 
-        $supportRequest = ['id' => 'sr-3', 'raisedBy' => 'coordinator-1', 'tenant_id' => 'tenant-a'];
+		self::assertCount(0, $this->savedObjects);
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($this->makeEvent($supportRequest));
+	}//end testMissingLearnerIdSkips()
 
-        self::assertCount(0, $this->savedObjects);
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A non-SupportRequest event (wrong schema) is ignored.
+	 *
+	 * @return void
+	 */
+	public function testWrongSchemaIgnored(): void {
+		$handler = $this->makeHandler(savedJobId: 'job-4');
 
-    }//end testMissingLearnerIdSkips()
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('learning-plan');
+		$event->method('getTo')->willReturn('submitted');
 
-    /**
-     * A non-SupportRequest event (wrong schema) is ignored.
-     *
-     * @return void
-     */
-    public function testWrongSchemaIgnored(): void
-    {
-        $handler = $this->makeHandler(savedJobId: 'job-4');
+		$handler->handle($event);
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('learning-plan');
-        $event->method('getTo')->willReturn('submitted');
+		self::assertCount(0, $this->savedObjects);
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($event);
+	}//end testWrongSchemaIgnored()
 
-        self::assertCount(0, $this->savedObjects);
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A transition to a state other than `submitted` is ignored.
+	 *
+	 * @return void
+	 */
+	public function testWrongTargetStateIgnored(): void {
+		$handler = $this->makeHandler(savedJobId: 'job-5');
 
-    }//end testWrongSchemaIgnored()
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getSchema')->willReturn('support-request');
+		$event->method('getTo')->willReturn('closed');
 
-    /**
-     * A transition to a state other than `submitted` is ignored.
-     *
-     * @return void
-     */
-    public function testWrongTargetStateIgnored(): void
-    {
-        $handler = $this->makeHandler(savedJobId: 'job-5');
+		$handler->handle($event);
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('support-request');
-        $event->method('getTo')->willReturn('closed');
+		self::assertCount(0, $this->savedObjects);
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($event);
+	}//end testWrongTargetStateIgnored()
 
-        self::assertCount(0, $this->savedObjects);
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A non-ObjectTransitionedEvent is ignored.
+	 *
+	 * @return void
+	 */
+	public function testNonMatchingEventTypeIgnored(): void {
+		$handler = $this->makeHandler(savedJobId: 'job-6');
 
-    }//end testWrongTargetStateIgnored()
+		$handler->handle($this->createMock(Event::class));
 
-    /**
-     * A non-ObjectTransitionedEvent is ignored.
-     *
-     * @return void
-     */
-    public function testNonMatchingEventTypeIgnored(): void
-    {
-        $handler = $this->makeHandler(savedJobId: 'job-6');
+		self::assertCount(0, $this->savedObjects);
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($this->createMock(Event::class));
-
-        self::assertCount(0, $this->savedObjects);
-        self::assertCount(0, $this->transitions);
-
-    }//end testNonMatchingEventTypeIgnored()
+	}//end testNonMatchingEventTypeIgnored()
 }//end class

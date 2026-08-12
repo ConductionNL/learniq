@@ -76,317 +76,305 @@ use Psr\Log\LoggerInterface;
  * @implements IEventListener<Event>
  * @spec       openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
  */
-class AssessmentDrawResolver implements IEventListener
-{
+class AssessmentDrawResolver implements IEventListener {
 
-    private const SCHOLIQ_REGISTER         = 'scholiq';
-    private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
-    private const ASSESSMENT_SCHEMA        = 'assessment';
-    private const ITEM_SCHEMA = 'item';
+	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
+	private const ASSESSMENT_SCHEMA = 'assessment';
+	private const ITEM_SCHEMA = 'item';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService          $objectService  OR object service for Assessment/Item lookups and the follow-up save.
-     * @param QtiChoiceOrderResolver $choiceResolver QTI simpleChoice parsing/permutation collaborator.
-     * @param ItemPoolFilter         $poolFilter     Pool filter/variant-grouping collaborator.
-     * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
-     * @param LoggerInterface        $logger         PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly QtiChoiceOrderResolver $choiceResolver,
-        private readonly ItemPoolFilter $poolFilter,
-        private readonly ListenerSchemaResolver $schemaResolver,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object service for Assessment/Item lookups and the follow-up save.
+	 * @param QtiChoiceOrderResolver $choiceResolver QTI simpleChoice parsing/permutation collaborator.
+	 * @param ItemPoolFilter $poolFilter Pool filter/variant-grouping collaborator.
+	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly QtiChoiceOrderResolver $choiceResolver,
+		private readonly ItemPoolFilter $poolFilter,
+		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an incoming ObjectCreatedEvent.
-     *
-     * @param Event $event The dispatched event from OR.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
-     */
-    public function handle(Event $event): void
-    {
-        if (($event instanceof ObjectCreatedEvent) === false) {
-            return;
-        }
+	/**
+	 * Handle an incoming ObjectCreatedEvent.
+	 *
+	 * @param Event $event The dispatched event from OR.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
+	 */
+	public function handle(Event $event): void {
+		if (($event instanceof ObjectCreatedEvent) === false) {
+			return;
+		}
 
-        $objectEntity = $event->getObject();
+		$objectEntity = $event->getObject();
 
-        if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
-            || $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::ASSESSMENT_RESULT_SCHEMA
-        ) {
-            return;
-        }
+		if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
+			|| $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::ASSESSMENT_RESULT_SCHEMA
+		) {
+			return;
+		}
 
-        $result       = $objectEntity->jsonSerialize();
-        $assessmentId = $result['assessmentId'] ?? null;
-        $tenantId     = $result['tenant_id'] ?? '';
+		$result = $objectEntity->jsonSerialize();
+		$assessmentId = $result['assessmentId'] ?? null;
+		$tenantId = $result['tenant_id'] ?? '';
 
-        if ($assessmentId === null) {
-            return;
-        }
+		if ($assessmentId === null) {
+			return;
+		}
 
-        $assessment = $this->fetchOne(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId, tenantId: $tenantId);
-        if ($assessment === null) {
-            // Fail-CLOSED: parent Assessment unreachable — leave drawnItemRefs at its
-            // default [] rather than trusting anything client-supplied.
-            $this->logger->warning(
-                '[AssessmentDrawResolver] Assessment {id} not found or out-of-tenant; leaving drawnItemRefs empty (fail-closed).',
-                ['id' => $assessmentId]
-            );
-            return;
-        }
+		$assessment = $this->fetchOne(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId, tenantId: $tenantId);
+		if ($assessment === null) {
+			// Fail-CLOSED: parent Assessment unreachable — leave drawnItemRefs at its
+			// default [] rather than trusting anything client-supplied.
+			$this->logger->warning(
+				'[AssessmentDrawResolver] Assessment {id} not found or out-of-tenant; leaving drawnItemRefs empty (fail-closed).',
+				['id' => $assessmentId]
+			);
+			return;
+		}
 
-        $itemSequence = $this->resolveItemSequence(assessment: $assessment, tenantId: $tenantId);
-        if ($itemSequence === null) {
-            $this->logger->error(
-                '[AssessmentDrawResolver] Item pool for Assessment {id} cannot supply the configured '
-                .'drawCount across distinct variant groups; leaving drawnItemRefs empty (fail-closed).',
-                ['id' => $assessmentId]
-            );
-            return;
-        }
+		$itemSequence = $this->resolveItemSequence(assessment: $assessment, tenantId: $tenantId);
+		if ($itemSequence === null) {
+			$this->logger->error(
+				'[AssessmentDrawResolver] Item pool for Assessment {id} cannot supply the configured '
+				. 'drawCount across distinct variant groups; leaving drawnItemRefs empty (fail-closed).',
+				['id' => $assessmentId]
+			);
+			return;
+		}
 
-        $drawnItemRefs = $this->buildDrawnItemRefs(
-            itemSequence: $itemSequence,
-            shuffleAnswerOptions: (($assessment['shuffleAnswerOptions'] ?? false) === true),
-            tenantId: $tenantId
-        );
+		$drawnItemRefs = $this->buildDrawnItemRefs(
+			itemSequence: $itemSequence,
+			shuffleAnswerOptions: (($assessment['shuffleAnswerOptions'] ?? false) === true),
+			tenantId: $tenantId
+		);
 
-        $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::ASSESSMENT_RESULT_SCHEMA,
-            object: array_merge($result, ['drawnItemRefs' => $drawnItemRefs])
-        );
+		$this->objectService->saveObject(
+			register: self::SCHOLIQ_REGISTER,
+			schema: self::ASSESSMENT_RESULT_SCHEMA,
+			object: array_merge($result, ['drawnItemRefs' => $drawnItemRefs])
+		);
 
-        $this->logger->info(
-            '[AssessmentDrawResolver] Resolved {count} drawnItemRefs for AssessmentResult on Assessment {id}.',
-            ['count' => count($drawnItemRefs), 'id' => $assessmentId]
-        );
+		$this->logger->info(
+			'[AssessmentDrawResolver] Resolved {count} drawnItemRefs for AssessmentResult on Assessment {id}.',
+			['count' => count($drawnItemRefs), 'id' => $assessmentId]
+		);
 
-    }//end handle()
+	}//end handle()
 
-    /**
-     * Resolve the ordered item-id sequence and any per-item points overrides
-     * for this attempt: `random-draw` delegates to resolveRandomDraw();
-     * `fixed` reads Assessment.itemRefs in declared order. shuffleItemOrder
-     * (independent of selection mode) permutes the resulting sequence.
-     *
-     * @param array<string,mixed> $assessment Assessment data.
-     * @param string              $tenantId   Tenant ID to scope the random-draw Item lookup.
-     *
-     * @return array{itemIds: array<int,string>, pointsOverride: array<string,mixed>}|null
-     *               Null when random-draw fails closed (pool cannot supply drawCount).
-     *
-     * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
-     */
-    private function resolveItemSequence(array $assessment, string $tenantId): ?array
-    {
-        $shuffleItemOrder = (($assessment['shuffleItemOrder'] ?? false) === true);
+	/**
+	 * Resolve the ordered item-id sequence and any per-item points overrides
+	 * for this attempt: `random-draw` delegates to resolveRandomDraw();
+	 * `fixed` reads Assessment.itemRefs in declared order. shuffleItemOrder
+	 * (independent of selection mode) permutes the resulting sequence.
+	 *
+	 * @param array<string,mixed> $assessment Assessment data.
+	 * @param string $tenantId Tenant ID to scope the random-draw Item lookup.
+	 *
+	 * @return array{itemIds: array<int,string>, pointsOverride: array<string,mixed>}|null
+	 *                                                                                     Null when random-draw fails closed (pool cannot supply drawCount).
+	 *
+	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
+	 */
+	private function resolveItemSequence(array $assessment, string $tenantId): ?array {
+		$shuffleItemOrder = (($assessment['shuffleItemOrder'] ?? false) === true);
 
-        if (($assessment['itemSelectionMode'] ?? 'fixed') === 'random-draw') {
-            $itemIds = $this->resolveRandomDraw(assessment: $assessment, tenantId: $tenantId);
-            if ($itemIds === null) {
-                return null;
-            }
+		if (($assessment['itemSelectionMode'] ?? 'fixed') === 'random-draw') {
+			$itemIds = $this->resolveRandomDraw(assessment: $assessment, tenantId: $tenantId);
+			if ($itemIds === null) {
+				return null;
+			}
 
-            if ($shuffleItemOrder === true) {
-                $itemIds = $this->secureShuffle(items: $itemIds);
-            }
+			if ($shuffleItemOrder === true) {
+				$itemIds = $this->secureShuffle(items: $itemIds);
+			}
 
-            return ['itemIds' => $itemIds, 'pointsOverride' => []];
-        }
+			return ['itemIds' => $itemIds, 'pointsOverride' => []];
+		}
 
-        $itemIds        = [];
-        $pointsOverride = [];
-        foreach (($assessment['itemRefs'] ?? []) as $itemRef) {
-            $itemId = $itemRef['itemId'] ?? null;
-            if ($itemId === null) {
-                continue;
-            }
+		$itemIds = [];
+		$pointsOverride = [];
+		foreach (($assessment['itemRefs'] ?? []) as $itemRef) {
+			$itemId = $itemRef['itemId'] ?? null;
+			if ($itemId === null) {
+				continue;
+			}
 
-            $itemIds[] = $itemId;
-            $pointsOverride[$itemId] = $itemRef['points'] ?? null;
-        }
+			$itemIds[] = $itemId;
+			$pointsOverride[$itemId] = $itemRef['points'] ?? null;
+		}
 
-        if ($shuffleItemOrder === true) {
-            $itemIds = $this->secureShuffle(items: $itemIds);
-        }
+		if ($shuffleItemOrder === true) {
+			$itemIds = $this->secureShuffle(items: $itemIds);
+		}
 
-        return ['itemIds' => $itemIds, 'pointsOverride' => $pointsOverride];
+		return ['itemIds' => $itemIds, 'pointsOverride' => $pointsOverride];
+	}//end resolveItemSequence()
 
-    }//end resolveItemSequence()
+	/**
+	 * Resolve each item id to a concrete drawnItemRefs entry (points +
+	 * optional shuffled optionOrder), skipping any item that has become
+	 * unreachable since resolution (out-of-tenant / deleted between publish
+	 * and attempt).
+	 *
+	 * @param array<string,mixed> $itemSequence resolveItemSequence()'s {itemIds, pointsOverride} result.
+	 * @param bool $shuffleAnswerOptions Whether to resolve a permuted optionOrder per item.
+	 * @param string $tenantId Tenant ID to scope the Item lookup.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function buildDrawnItemRefs(array $itemSequence, bool $shuffleAnswerOptions, string $tenantId): array {
+		$drawnItemRefs = [];
 
-    /**
-     * Resolve each item id to a concrete drawnItemRefs entry (points +
-     * optional shuffled optionOrder), skipping any item that has become
-     * unreachable since resolution (out-of-tenant / deleted between publish
-     * and attempt).
-     *
-     * @param array<string,mixed> $itemSequence         resolveItemSequence()'s {itemIds, pointsOverride} result.
-     * @param bool                $shuffleAnswerOptions Whether to resolve a permuted optionOrder per item.
-     * @param string              $tenantId             Tenant ID to scope the Item lookup.
-     *
-     * @return array<int,array<string,mixed>>
-     */
-    private function buildDrawnItemRefs(array $itemSequence, bool $shuffleAnswerOptions, string $tenantId): array
-    {
-        $drawnItemRefs = [];
+		foreach ($itemSequence['itemIds'] as $itemId) {
+			$item = $this->fetchOne(schema: self::ITEM_SCHEMA, uuid: $itemId, tenantId: $tenantId);
+			if ($item === null) {
+				continue;
+			}
 
-        foreach ($itemSequence['itemIds'] as $itemId) {
-            $item = $this->fetchOne(schema: self::ITEM_SCHEMA, uuid: $itemId, tenantId: $tenantId);
-            if ($item === null) {
-                continue;
-            }
+			$optionOrder = null;
+			if ($shuffleAnswerOptions === true) {
+				$optionOrder = $this->choiceResolver->resolveOrder(item: $item);
+			}
 
-            $optionOrder = null;
-            if ($shuffleAnswerOptions === true) {
-                $optionOrder = $this->choiceResolver->resolveOrder(item: $item);
-            }
+			$drawnItemRefs[] = [
+				'itemId' => $itemId,
+				'points' => ($itemSequence['pointsOverride'][$itemId] ?? ($item['maxScore'] ?? 0)),
+				'optionOrder' => $optionOrder,
+			];
+		}
 
-            $drawnItemRefs[] = [
-                'itemId'      => $itemId,
-                'points'      => ($itemSequence['pointsOverride'][$itemId] ?? ($item['maxScore'] ?? 0)),
-                'optionOrder' => $optionOrder,
-            ];
-        }
+		return $drawnItemRefs;
+	}//end buildDrawnItemRefs()
 
-        return $drawnItemRefs;
+	/**
+	 * Resolve a random draw: filter published Items in the configured ItemBank
+	 * by subjectTags/difficulty, group by variantGroupId (an Item with no
+	 * variantGroupId is its own singleton group), draw drawCount distinct
+	 * groups via a cryptographically-strong RNG, then pick one Item per drawn
+	 * group.
+	 *
+	 * @param array<string,mixed> $assessment Assessment data (itemPoolConfig).
+	 * @param string $tenantId Tenant ID to scope the Item lookup.
+	 *
+	 * @return array<int,string>|null Ordered list of drawn Item UUIDs, or null
+	 *                                when the pool cannot supply drawCount
+	 *                                distinct variant groups (fail-closed).
+	 *
+	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
+	 */
+	private function resolveRandomDraw(array $assessment, string $tenantId): ?array {
+		$poolConfig = $assessment['itemPoolConfig'] ?? null;
+		if (is_array($poolConfig) === false) {
+			return null;
+		}
 
-    }//end buildDrawnItemRefs()
+		$itemBankId = $poolConfig['itemBankId'] ?? null;
+		$drawCount = (int)($poolConfig['drawCount'] ?? 0);
+		if ($itemBankId === null || $drawCount < 1) {
+			return null;
+		}
 
-    /**
-     * Resolve a random draw: filter published Items in the configured ItemBank
-     * by subjectTags/difficulty, group by variantGroupId (an Item with no
-     * variantGroupId is its own singleton group), draw drawCount distinct
-     * groups via a cryptographically-strong RNG, then pick one Item per drawn
-     * group.
-     *
-     * @param array<string,mixed> $assessment Assessment data (itemPoolConfig).
-     * @param string              $tenantId   Tenant ID to scope the Item lookup.
-     *
-     * @return array<int,string>|null Ordered list of drawn Item UUIDs, or null
-     *                                when the pool cannot supply drawCount
-     *                                distinct variant groups (fail-closed).
-     *
-     * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
-     */
-    private function resolveRandomDraw(array $assessment, string $tenantId): ?array
-    {
-        $poolConfig = $assessment['itemPoolConfig'] ?? null;
-        if (is_array($poolConfig) === false) {
-            return null;
-        }
+		$filters = ['itemBankId' => $itemBankId, 'lifecycle' => 'published'];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
 
-        $itemBankId = $poolConfig['itemBankId'] ?? null;
-        $drawCount  = (int) ($poolConfig['drawCount'] ?? 0);
-        if ($itemBankId === null || $drawCount < 1) {
-            return null;
-        }
+		$items = $this->objectService->findAll(
+			[
+				'register' => self::SCHOLIQ_REGISTER,
+				'schema' => self::ITEM_SCHEMA,
+				'filters' => $filters,
+			]
+		);
 
-        $filters = ['itemBankId' => $itemBankId, 'lifecycle' => 'published'];
-        if ($tenantId !== '') {
-            $filters['tenant_id'] = $tenantId;
-        }
+		$groups = $this->poolFilter->filterAndGroupByVariant(items: $items, poolConfig: $poolConfig);
 
-        $items = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::ITEM_SCHEMA,
-                'filters'  => $filters,
-            ]
-        );
+		if (count($groups) < $drawCount) {
+			// Not enough DISTINCT variant groups to satisfy drawCount — fail closed.
+			return null;
+		}
 
-        $groups = $this->poolFilter->filterAndGroupByVariant(items: $items, poolConfig: $poolConfig);
+		$drawnGroupKeys = array_slice($this->secureShuffle(items: array_keys($groups)), 0, $drawCount);
 
-        if (count($groups) < $drawCount) {
-            // Not enough DISTINCT variant groups to satisfy drawCount — fail closed.
-            return null;
-        }
+		$drawn = [];
+		foreach ($drawnGroupKeys as $groupKey) {
+			$candidates = $groups[$groupKey];
+			$pickIndex = 0;
+			if (count($candidates) > 1) {
+				$pickIndex = random_int(0, count($candidates) - 1);
+			}
 
-        $drawnGroupKeys = array_slice($this->secureShuffle(items: array_keys($groups)), 0, $drawCount);
+			$drawn[] = $candidates[$pickIndex];
+		}
 
-        $drawn = [];
-        foreach ($drawnGroupKeys as $groupKey) {
-            $candidates = $groups[$groupKey];
-            $pickIndex  = 0;
-            if (count($candidates) > 1) {
-                $pickIndex = random_int(0, count($candidates) - 1);
-            }
+		return $drawn;
+	}//end resolveRandomDraw()
 
-            $drawn[] = $candidates[$pickIndex];
-        }
+	/**
+	 * Fisher-Yates shuffle using `random_int()` (cryptographically-strong,
+	 * unlike Mersenne-Twister-backed `shuffle()`/`array_rand()`).
+	 *
+	 * @param array<int,mixed> $items Items to permute.
+	 *
+	 * @return array<int,mixed> A new, permuted, re-indexed array.
+	 */
+	private function secureShuffle(array $items): array {
+		$items = array_values($items);
+		$count = count($items);
 
-        return $drawn;
+		for ($i = ($count - 1); $i > 0; $i--) {
+			$swapIndex = random_int(0, $i);
+			[$items[$i], $items[$swapIndex]] = [$items[$swapIndex], $items[$i]];
+		}
 
-    }//end resolveRandomDraw()
+		return $items;
+	}//end secureShuffle()
 
-    /**
-     * Fisher-Yates shuffle using `random_int()` (cryptographically-strong,
-     * unlike Mersenne-Twister-backed `shuffle()`/`array_rand()`).
-     *
-     * @param array<int,mixed> $items Items to permute.
-     *
-     * @return array<int,mixed> A new, permuted, re-indexed array.
-     */
-    private function secureShuffle(array $items): array
-    {
-        $items = array_values($items);
-        $count = count($items);
+	/**
+	 * Fetch a single object by uuid, scoped to the given tenant when one is set.
+	 *
+	 * @param string $schema OR schema slug.
+	 * @param string $uuid Object UUID.
+	 * @param string $tenantId Tenant ID, or '' to skip tenant scoping.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private function fetchOne(string $schema, string $uuid, string $tenantId): ?array {
+		$filters = ['uuid' => $uuid];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
 
-        for ($i = ($count - 1); $i > 0; $i--) {
-            $swapIndex = random_int(0, $i);
-            [$items[$i], $items[$swapIndex]] = [$items[$swapIndex], $items[$i]];
-        }
+		$matches = $this->objectService->findAll(
+			[
+				'register' => self::SCHOLIQ_REGISTER,
+				'schema' => $schema,
+				'filters' => $filters,
+				'limit' => 1,
+			]
+		);
 
-        return $items;
+		if (empty($matches) === true) {
+			return null;
+		}
 
-    }//end secureShuffle()
+		$match = $matches[0];
+		if (is_array($match) === true) {
+			return $match;
+		}
 
-    /**
-     * Fetch a single object by uuid, scoped to the given tenant when one is set.
-     *
-     * @param string $schema   OR schema slug.
-     * @param string $uuid     Object UUID.
-     * @param string $tenantId Tenant ID, or '' to skip tenant scoping.
-     *
-     * @return array<string,mixed>|null
-     */
-    private function fetchOne(string $schema, string $uuid, string $tenantId): ?array
-    {
-        $filters = ['uuid' => $uuid];
-        if ($tenantId !== '') {
-            $filters['tenant_id'] = $tenantId;
-        }
-
-        $matches = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => $schema,
-                'filters'  => $filters,
-                'limit'    => 1,
-            ]
-        );
-
-        if (empty($matches) === true) {
-            return null;
-        }
-
-        $match = $matches[0];
-        if (is_array($match) === true) {
-            return $match;
-        }
-
-        return $match->jsonSerialize();
-
-    }//end fetchOne()
+		return $match->jsonSerialize();
+	}//end fetchOne()
 }//end class

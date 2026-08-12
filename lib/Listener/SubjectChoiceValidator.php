@@ -60,347 +60,330 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
  */
-class SubjectChoiceValidator implements IEventListener
-{
+class SubjectChoiceValidator implements IEventListener {
 
-    private const SCHOLIQ_REGISTER       = 'scholiq';
-    private const SUBJECT_CHOICE_SCHEMA  = 'subject-choice';
-    private const CURRICULUM_PLAN_SCHEMA = 'curriculum-plan';
+	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SUBJECT_CHOICE_SCHEMA = 'subject-choice';
+	private const CURRICULUM_PLAN_SCHEMA = 'curriculum-plan';
 
-    /**
-     * SubjectChoice lifecycle states that occupy capacityByCourseId seats.
-     *
-     * @var string[]
-     */
-    private const OCCUPYING_STATES = ['approved', 'locked'];
+	/**
+	 * SubjectChoice lifecycle states that occupy capacityByCourseId seats.
+	 *
+	 * @var string[]
+	 */
+	private const OCCUPYING_STATES = ['approved', 'locked'];
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService   $objectService OR object access service.
-     * @param LoggerInterface $logger        PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access service.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an ObjectTransitionedEvent.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
-     */
-    public function handle(Event $event): void
-    {
-        if (($event instanceof ObjectTransitionedEvent) === false) {
-            return;
-        }
+	/**
+	 * Handle an ObjectTransitionedEvent.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-a-submitted-subject-choice-is-validated-against-the-plan-s-elective-rules-not-persisted-unchecked
+	 */
+	public function handle(Event $event): void {
+		if (($event instanceof ObjectTransitionedEvent) === false) {
+			return;
+		}
 
-        if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
-            return;
-        }
+		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+			return;
+		}
 
-        if ($event->getSchema() !== self::SUBJECT_CHOICE_SCHEMA || $event->getTo() !== 'submitted') {
-            return;
-        }
+		if ($event->getSchema() !== self::SUBJECT_CHOICE_SCHEMA || $event->getTo() !== 'submitted') {
+			return;
+		}
 
-        $this->validate(choice: $event->getObject()->jsonSerialize());
+		$this->validate(choice: $event->getObject()->jsonSerialize());
 
-    }//end handle()
+	}//end handle()
 
-    /**
-     * Validate a submitted SubjectChoice and write validated/needs-revision.
-     *
-     * @param array<string,mixed> $choice The submitted SubjectChoice property array.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-satisfying-every-rule-validates
-     * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-violating-a-mandatory-combination-is-sent-back-for-revision
-     * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-exceeding-a-course-s-capacity-is-sent-back-for-revision
-     */
-    private function validate(array $choice): void
-    {
-        $choiceId         = (string) ($choice['id'] ?? ($choice['uuid'] ?? ''));
-        $curriculumPlanId = (string) ($choice['curriculumPlanId'] ?? '');
-        $tenantId         = (string) ($choice['tenant_id'] ?? '');
+	/**
+	 * Validate a submitted SubjectChoice and write validated/needs-revision.
+	 *
+	 * @param array<string,mixed> $choice The submitted SubjectChoice property array.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-satisfying-every-rule-validates
+	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-violating-a-mandatory-combination-is-sent-back-for-revision
+	 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-choice-exceeding-a-course-s-capacity-is-sent-back-for-revision
+	 */
+	private function validate(array $choice): void {
+		$choiceId = (string)($choice['id'] ?? ($choice['uuid'] ?? ''));
+		$curriculumPlanId = (string)($choice['curriculumPlanId'] ?? '');
+		$tenantId = (string)($choice['tenant_id'] ?? '');
 
-        $selected = $choice['selectedElectiveCourseIds'] ?? [];
-        if (is_array($selected) === false) {
-            $selected = [];
-        }
+		$selected = $choice['selectedElectiveCourseIds'] ?? [];
+		if (is_array($selected) === false) {
+			$selected = [];
+		}
 
-        if ($choiceId === '' || $curriculumPlanId === '') {
-            $this->logger->warning('[SubjectChoiceValidator] SubjectChoice has no id or curriculumPlanId; skipping validation.');
-            return;
-        }
+		if ($choiceId === '' || $curriculumPlanId === '') {
+			$this->logger->warning('[SubjectChoiceValidator] SubjectChoice has no id or curriculumPlanId; skipping validation.');
+			return;
+		}
 
-        $plan  = $this->fetchPlan(curriculumPlanId: $curriculumPlanId);
-        $rules = ($plan['electiveRules'] ?? null);
-        if (is_array($rules) === false) {
-            $rules = [];
-        }
+		$plan = $this->fetchPlan(curriculumPlanId: $curriculumPlanId);
+		$rules = ($plan['electiveRules'] ?? null);
+		if (is_array($rules) === false) {
+			$rules = [];
+		}
 
-        $errors = array_merge(
-            $this->checkMinMax(rules: $rules, selected: $selected),
-            $this->checkMandatoryCombinations(rules: $rules, selected: $selected),
-            $this->checkMutuallyExclusive(rules: $rules, selected: $selected),
-            $this->checkCapacity(
-                rules: $rules,
-                selected: $selected,
-                curriculumPlanId: $curriculumPlanId,
-                tenantId: $tenantId,
-                choiceId: (string) $choiceId
-            )
-        );
+		$errors = array_merge(
+			$this->checkMinMax(rules: $rules, selected: $selected),
+			$this->checkMandatoryCombinations(rules: $rules, selected: $selected),
+			$this->checkMutuallyExclusive(rules: $rules, selected: $selected),
+			$this->checkCapacity(
+				rules: $rules,
+				selected: $selected,
+				curriculumPlanId: $curriculumPlanId,
+				tenantId: $tenantId,
+				choiceId: (string)$choiceId
+			)
+		);
 
-        $updated = $choice;
-        $updated['lifecycle']        = 'needs-revision';
-        $updated['validationErrors'] = $errors;
+		$updated = $choice;
+		$updated['lifecycle'] = 'needs-revision';
+		$updated['validationErrors'] = $errors;
 
-        if (count($errors) === 0) {
-            $updated['lifecycle']        = 'validated';
-            $updated['validationErrors'] = [];
-        }
+		if (count($errors) === 0) {
+			$updated['lifecycle'] = 'validated';
+			$updated['validationErrors'] = [];
+		}
 
-        $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::SUBJECT_CHOICE_SCHEMA,
-            object: $updated
-        );
+		$this->objectService->saveObject(
+			register: self::SCHOLIQ_REGISTER,
+			schema: self::SUBJECT_CHOICE_SCHEMA,
+			object: $updated
+		);
 
-        $this->logger->info(
-            '[SubjectChoiceValidator] SubjectChoice {id} -> {result} ({count} error(s)).',
-            ['id' => $choiceId, 'result' => $updated['lifecycle'], 'count' => count($errors)]
-        );
+		$this->logger->info(
+			'[SubjectChoiceValidator] SubjectChoice {id} -> {result} ({count} error(s)).',
+			['id' => $choiceId, 'result' => $updated['lifecycle'], 'count' => count($errors)]
+		);
 
-    }//end validate()
+	}//end validate()
 
-    /**
-     * MinElectives/maxElectives check.
-     *
-     * @param array<string,mixed> $rules    electiveRules block.
-     * @param array<int,mixed>    $selected selectedElectiveCourseIds.
-     *
-     * @return string[]
-     */
-    private function checkMinMax(array $rules, array $selected): array
-    {
-        $errors = [];
-        $count  = count($selected);
+	/**
+	 * MinElectives/maxElectives check.
+	 *
+	 * @param array<string,mixed> $rules electiveRules block.
+	 * @param array<int,mixed> $selected selectedElectiveCourseIds.
+	 *
+	 * @return string[]
+	 */
+	private function checkMinMax(array $rules, array $selected): array {
+		$errors = [];
+		$count = count($selected);
 
-        $min = $rules['minElectives'] ?? null;
-        if (is_int($min) === true && $count < $min) {
-            $errors[] = sprintf('At least %d elective(s) required (selected %d).', $min, $count);
-        }
+		$min = $rules['minElectives'] ?? null;
+		if (is_int($min) === true && $count < $min) {
+			$errors[] = sprintf('At least %d elective(s) required (selected %d).', $min, $count);
+		}
 
-        $max = $rules['maxElectives'] ?? null;
-        if (is_int($max) === true && $count > $max) {
-            $errors[] = sprintf('At most %d elective(s) allowed (selected %d).', $max, $count);
-        }
+		$max = $rules['maxElectives'] ?? null;
+		if (is_int($max) === true && $count > $max) {
+			$errors[] = sprintf('At most %d elective(s) allowed (selected %d).', $max, $count);
+		}
 
-        return $errors;
+		return $errors;
+	}//end checkMinMax()
 
-    }//end checkMinMax()
+	/**
+	 * MandatoryCombinations check — every named combination must be selected in full.
+	 *
+	 * @param array<string,mixed> $rules electiveRules block.
+	 * @param array<int,mixed> $selected selectedElectiveCourseIds.
+	 *
+	 * @return string[]
+	 */
+	private function checkMandatoryCombinations(array $rules, array $selected): array {
+		$errors = [];
+		$combinations = $rules['mandatoryCombinations'] ?? [];
+		if (is_array($combinations) === false) {
+			return $errors;
+		}
 
-    /**
-     * MandatoryCombinations check — every named combination must be selected in full.
-     *
-     * @param array<string,mixed> $rules    electiveRules block.
-     * @param array<int,mixed>    $selected selectedElectiveCourseIds.
-     *
-     * @return string[]
-     */
-    private function checkMandatoryCombinations(array $rules, array $selected): array
-    {
-        $errors       = [];
-        $combinations = $rules['mandatoryCombinations'] ?? [];
-        if (is_array($combinations) === false) {
-            return $errors;
-        }
+		foreach ($combinations as $combination) {
+			if (is_array($combination) === false || count($combination) === 0) {
+				continue;
+			}
 
-        foreach ($combinations as $combination) {
-            if (is_array($combination) === false || count($combination) === 0) {
-                continue;
-            }
+			$missing = array_values(array_diff($combination, $selected));
+			if (count($missing) > 0) {
+				$errors[] = sprintf('Mandatory combination not fully selected: missing %s.', implode(', ', $missing));
+			}
+		}
 
-            $missing = array_values(array_diff($combination, $selected));
-            if (count($missing) > 0) {
-                $errors[] = sprintf('Mandatory combination not fully selected: missing %s.', implode(', ', $missing));
-            }
-        }
+		return $errors;
+	}//end checkMandatoryCombinations()
 
-        return $errors;
+	/**
+	 * MutuallyExclusive check — at most one course per named set.
+	 *
+	 * @param array<string,mixed> $rules electiveRules block.
+	 * @param array<int,mixed> $selected selectedElectiveCourseIds.
+	 *
+	 * @return string[]
+	 */
+	private function checkMutuallyExclusive(array $rules, array $selected): array {
+		$errors = [];
+		$groups = $rules['mutuallyExclusive'] ?? [];
+		if (is_array($groups) === false) {
+			return $errors;
+		}
 
-    }//end checkMandatoryCombinations()
+		foreach ($groups as $group) {
+			if (is_array($group) === false) {
+				continue;
+			}
 
-    /**
-     * MutuallyExclusive check — at most one course per named set.
-     *
-     * @param array<string,mixed> $rules    electiveRules block.
-     * @param array<int,mixed>    $selected selectedElectiveCourseIds.
-     *
-     * @return string[]
-     */
-    private function checkMutuallyExclusive(array $rules, array $selected): array
-    {
-        $errors = [];
-        $groups = $rules['mutuallyExclusive'] ?? [];
-        if (is_array($groups) === false) {
-            return $errors;
-        }
+			$chosen = array_values(array_intersect($group, $selected));
+			if (count($chosen) > 1) {
+				$errors[] = sprintf('Mutually exclusive courses selected together: %s.', implode(', ', $chosen));
+			}
+		}
 
-        foreach ($groups as $group) {
-            if (is_array($group) === false) {
-                continue;
-            }
+		return $errors;
+	}//end checkMutuallyExclusive()
 
-            $chosen = array_values(array_intersect($group, $selected));
-            if (count($chosen) > 1) {
-                $errors[] = sprintf('Mutually exclusive courses selected together: %s.', implode(', ', $chosen));
-            }
-        }
+	/**
+	 * CapacityByCourseId check — counts sibling approved/locked SubjectChoice rows.
+	 *
+	 * @param array<string,mixed> $rules electiveRules block.
+	 * @param array<int,mixed> $selected selectedElectiveCourseIds.
+	 * @param string $curriculumPlanId The governing CurriculumPlan UUID.
+	 * @param string $tenantId Tenant ID.
+	 * @param string $choiceId The SubjectChoice being validated (excluded from occupancy).
+	 *
+	 * @return string[]
+	 */
+	private function checkCapacity(array $rules, array $selected, string $curriculumPlanId, string $tenantId, string $choiceId): array {
+		$errors = [];
+		$capacityByCourseId = $rules['capacityByCourseId'] ?? null;
+		if (is_array($capacityByCourseId) === false || count($capacityByCourseId) === 0) {
+			return $errors;
+		}
 
-        return $errors;
+		$siblings = $this->fetchOccupyingSiblings(curriculumPlanId: $curriculumPlanId, tenantId: $tenantId, excludeId: $choiceId);
 
-    }//end checkMutuallyExclusive()
+		foreach ($capacityByCourseId as $courseId => $limit) {
+			if (in_array($courseId, $selected, true) === false || is_int($limit) === false) {
+				continue;
+			}
 
-    /**
-     * CapacityByCourseId check — counts sibling approved/locked SubjectChoice rows.
-     *
-     * @param array<string,mixed> $rules            electiveRules block.
-     * @param array<int,mixed>    $selected         selectedElectiveCourseIds.
-     * @param string              $curriculumPlanId The governing CurriculumPlan UUID.
-     * @param string              $tenantId         Tenant ID.
-     * @param string              $choiceId         The SubjectChoice being validated (excluded from occupancy).
-     *
-     * @return string[]
-     */
-    private function checkCapacity(array $rules, array $selected, string $curriculumPlanId, string $tenantId, string $choiceId): array
-    {
-        $errors = [];
-        $capacityByCourseId = $rules['capacityByCourseId'] ?? null;
-        if (is_array($capacityByCourseId) === false || count($capacityByCourseId) === 0) {
-            return $errors;
-        }
+			$occupied = $this->countOccupied(siblings: $siblings, courseId: (string)$courseId);
 
-        $siblings = $this->fetchOccupyingSiblings(curriculumPlanId: $curriculumPlanId, tenantId: $tenantId, excludeId: $choiceId);
+			if ($occupied >= $limit) {
+				$errors[] = sprintf('Capacity reached for course %s (limit %d).', $courseId, $limit);
+			}
+		}
 
-        foreach ($capacityByCourseId as $courseId => $limit) {
-            if (in_array($courseId, $selected, true) === false || is_int($limit) === false) {
-                continue;
-            }
+		return $errors;
+	}//end checkCapacity()
 
-            $occupied = $this->countOccupied(siblings: $siblings, courseId: (string) $courseId);
+	/**
+	 * Count how many sibling SubjectChoice rows already occupy a seat on `$courseId`.
+	 *
+	 * @param array<int,array<string,mixed>> $siblings Sibling rows in an occupying lifecycle state.
+	 * @param string $courseId The elective course UUID to count occupancy for.
+	 *
+	 * @return int
+	 */
+	private function countOccupied(array $siblings, string $courseId): int {
+		$occupied = 0;
 
-            if ($occupied >= $limit) {
-                $errors[] = sprintf('Capacity reached for course %s (limit %d).', $courseId, $limit);
-            }
-        }
+		foreach ($siblings as $sibling) {
+			$siblingSelected = $sibling['selectedElectiveCourseIds'] ?? [];
+			if (is_array($siblingSelected) === true && in_array($courseId, $siblingSelected, true) === true) {
+				$occupied++;
+			}
+		}
 
-        return $errors;
+		return $occupied;
+	}//end countOccupied()
 
-    }//end checkCapacity()
+	/**
+	 * Fetch sibling SubjectChoice rows in an occupying state for the same plan.
+	 *
+	 * @param string $curriculumPlanId Governing CurriculumPlan UUID.
+	 * @param string $tenantId Tenant ID.
+	 * @param string $excludeId The SubjectChoice id being validated, excluded from results.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function fetchOccupyingSiblings(string $curriculumPlanId, string $tenantId, string $excludeId): array {
+		$siblings = [];
 
-    /**
-     * Count how many sibling SubjectChoice rows already occupy a seat on `$courseId`.
-     *
-     * @param array<int,array<string,mixed>> $siblings Sibling rows in an occupying lifecycle state.
-     * @param string                         $courseId The elective course UUID to count occupancy for.
-     *
-     * @return int
-     */
-    private function countOccupied(array $siblings, string $courseId): int
-    {
-        $occupied = 0;
+		foreach (self::OCCUPYING_STATES as $lifecycle) {
+			$filters = [
+				'curriculumPlanId' => $curriculumPlanId,
+				'lifecycle' => $lifecycle,
+			];
+			if ($tenantId !== '') {
+				$filters['tenant_id'] = $tenantId;
+			}
 
-        foreach ($siblings as $sibling) {
-            $siblingSelected = $sibling['selectedElectiveCourseIds'] ?? [];
-            if (is_array($siblingSelected) === true && in_array($courseId, $siblingSelected, true) === true) {
-                $occupied++;
-            }
-        }
+			$rows = $this->objectService->findAll(
+				[
+					'register' => self::SCHOLIQ_REGISTER,
+					'schema' => self::SUBJECT_CHOICE_SCHEMA,
+					'filters' => $filters,
+					'limit' => 5000,
+				]
+			);
 
-        return $occupied;
+			foreach ($rows as $row) {
+				if (is_array($row) === false) {
+					$row = $row->jsonSerialize();
+				}
 
-    }//end countOccupied()
+				$id = (string)($row['id'] ?? ($row['uuid'] ?? ''));
+				if ($id !== '' && $id === $excludeId) {
+					continue;
+				}
 
-    /**
-     * Fetch sibling SubjectChoice rows in an occupying state for the same plan.
-     *
-     * @param string $curriculumPlanId Governing CurriculumPlan UUID.
-     * @param string $tenantId         Tenant ID.
-     * @param string $excludeId        The SubjectChoice id being validated, excluded from results.
-     *
-     * @return array<int,array<string,mixed>>
-     */
-    private function fetchOccupyingSiblings(string $curriculumPlanId, string $tenantId, string $excludeId): array
-    {
-        $siblings = [];
+				$siblings[] = $row;
+			}
+		}//end foreach
 
-        foreach (self::OCCUPYING_STATES as $lifecycle) {
-            $filters = [
-                'curriculumPlanId' => $curriculumPlanId,
-                'lifecycle'        => $lifecycle,
-            ];
-            if ($tenantId !== '') {
-                $filters['tenant_id'] = $tenantId;
-            }
+		return $siblings;
+	}//end fetchOccupyingSiblings()
 
-            $rows = $this->objectService->findAll(
-                [
-                    'register' => self::SCHOLIQ_REGISTER,
-                    'schema'   => self::SUBJECT_CHOICE_SCHEMA,
-                    'filters'  => $filters,
-                    'limit'    => 5000,
-                ]
-            );
+	/**
+	 * Fetch the referenced CurriculumPlan, normalised to a plain array.
+	 *
+	 * @param string $curriculumPlanId CurriculumPlan UUID.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private function fetchPlan(string $curriculumPlanId): ?array {
+		$plan = $this->objectService->find(
+			id: $curriculumPlanId,
+			register: self::SCHOLIQ_REGISTER,
+			schema: self::CURRICULUM_PLAN_SCHEMA
+		);
 
-            foreach ($rows as $row) {
-                if (is_array($row) === false) {
-                    $row = $row->jsonSerialize();
-                }
+		if ($plan === null) {
+			return null;
+		}
 
-                $id = (string) ($row['id'] ?? ($row['uuid'] ?? ''));
-                if ($id !== '' && $id === $excludeId) {
-                    continue;
-                }
-
-                $siblings[] = $row;
-            }
-        }//end foreach
-
-        return $siblings;
-
-    }//end fetchOccupyingSiblings()
-
-    /**
-     * Fetch the referenced CurriculumPlan, normalised to a plain array.
-     *
-     * @param string $curriculumPlanId CurriculumPlan UUID.
-     *
-     * @return array<string,mixed>|null
-     */
-    private function fetchPlan(string $curriculumPlanId): ?array
-    {
-        $plan = $this->objectService->find(
-            id: $curriculumPlanId,
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::CURRICULUM_PLAN_SCHEMA
-        );
-
-        if ($plan === null) {
-            return null;
-        }
-
-        return $plan->jsonSerialize();
-
-    }//end fetchPlan()
+		return $plan->jsonSerialize();
+	}//end fetchPlan()
 }//end class

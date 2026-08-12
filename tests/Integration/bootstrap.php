@@ -23,13 +23,13 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 // Full Nextcloud bootstrap (provides \OC::$server).
 if (file_exists(__DIR__ . '/../../../../../../lib/base.php')) {
-    require_once __DIR__ . '/../../../../../../lib/base.php';
+	require_once __DIR__ . '/../../../../../../lib/base.php';
 } elseif (file_exists(__DIR__ . '/../../../../lib/base.php')) {
-    require_once __DIR__ . '/../../../../lib/base.php';
+	require_once __DIR__ . '/../../../../lib/base.php';
 }
 
 if (file_exists(__DIR__ . '/../../../../../../tests/autoload.php')) {
-    require_once __DIR__ . '/../../../../../../tests/autoload.php';
+	require_once __DIR__ . '/../../../../../../tests/autoload.php';
 }
 
 \OC_App::loadApps();

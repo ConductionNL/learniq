@@ -60,118 +60,115 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  */
-class WalletOfferConcludedListener implements IEventListener
-{
-    private const SCHOLIQ_REGISTER  = 'scholiq';
-    private const CREDENTIAL_SCHEMA = 'credential';
-    private const CLAIM_ACTION      = 'recordWalletClaim';
+class WalletOfferConcludedListener implements IEventListener {
+	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const CREDENTIAL_SCHEMA = 'credential';
+	private const CLAIM_ACTION = 'recordWalletClaim';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService    $objectService    OR object service used to resolve the matching Credential.
-     * @param TransitionEngine $transitionEngine OR lifecycle engine used to apply `recordWalletClaim`.
-     * @param LoggerInterface  $logger           PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly TransitionEngine $transitionEngine,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object service used to resolve the matching Credential.
+	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to apply `recordWalletClaim`.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly TransitionEngine $transitionEngine,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an inbound `WalletOfferConcludedEvent`.
-     *
-     * Defensive duck-typing: the event class is openconnector's and is
-     * optional at runtime (see class docblock — it does not exist today),
-     * so calls on `$event` are guarded by `method_exists()` rather than a
-     * hard type import.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
-     */
-    public function handle(Event $event): void
-    {
-        if (method_exists($event, 'getExternalReference') === false
-            || method_exists($event, 'getStatus') === false
-        ) {
-            return;
-        }
+	/**
+	 * Handle an inbound `WalletOfferConcludedEvent`.
+	 *
+	 * Defensive duck-typing: the event class is openconnector's and is
+	 * optional at runtime (see class docblock — it does not exist today),
+	 * so calls on `$event` are guarded by `method_exists()` rather than a
+	 * hard type import.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
+	 */
+	public function handle(Event $event): void {
+		if (method_exists($event, 'getExternalReference') === false
+			|| method_exists($event, 'getStatus') === false
+		) {
+			return;
+		}
 
-        try {
-            $status = strtolower((string) $event->getStatus());
-            if ($status !== 'claimed') {
-                return;
-            }
+		try {
+			$status = strtolower((string)$event->getStatus());
+			if ($status !== 'claimed') {
+				return;
+			}
 
-            $externalReference = (string) $event->getExternalReference();
-            if ($externalReference === '') {
-                return;
-            }
+			$externalReference = (string)$event->getExternalReference();
+			if ($externalReference === '') {
+				return;
+			}
 
-            $credential = $this->resolveCredentialByAttestationRef(attestationRef: $externalReference);
-            if ($credential === null) {
-                $this->logger->warning(
-                    '[WalletOfferConcludedListener] No Credential found for wallet attestation ref {ref}',
-                    ['ref' => $externalReference]
-                );
-                return;
-            }
+			$credential = $this->resolveCredentialByAttestationRef(attestationRef: $externalReference);
+			if ($credential === null) {
+				$this->logger->warning(
+					'[WalletOfferConcludedListener] No Credential found for wallet attestation ref {ref}',
+					['ref' => $externalReference]
+				);
+				return;
+			}
 
-            $credentialId = (string) ($credential['id'] ?? ($credential['uuid'] ?? ''));
-            if ($credentialId === '') {
-                return;
-            }
+			$credentialId = (string)($credential['id'] ?? ($credential['uuid'] ?? ''));
+			if ($credentialId === '') {
+				return;
+			}
 
-            $this->transitionEngine->transition(objectId: $credentialId, action: self::CLAIM_ACTION);
+			$this->transitionEngine->transition(objectId: $credentialId, action: self::CLAIM_ACTION);
 
-            $this->logger->info(
-                '[WalletOfferConcludedListener] Recorded wallet claim for Credential {id}',
-                ['id' => $credentialId]
-            );
-        } catch (Throwable $exception) {
-            // Never block event delivery on our own derivation failure.
-            $this->logger->warning(
-                '[WalletOfferConcludedListener] Could not record wallet claim: {msg}',
-                ['msg' => $exception->getMessage()]
-            );
-        }//end try
-    }//end handle()
+			$this->logger->info(
+				'[WalletOfferConcludedListener] Recorded wallet claim for Credential {id}',
+				['id' => $credentialId]
+			);
+		} catch (Throwable $exception) {
+			// Never block event delivery on our own derivation failure.
+			$this->logger->warning(
+				'[WalletOfferConcludedListener] Could not record wallet claim: {msg}',
+				['msg' => $exception->getMessage()]
+			);
+		}//end try
+	}//end handle()
 
-    /**
-     * Resolve the Credential whose `walletAttestationRef` matches the given
-     * reference.
-     *
-     * @param string $attestationRef The opaque wallet-offer correlation key.
-     *
-     * @return array<string,mixed>|null The Credential data array, or null when not found.
-     */
-    private function resolveCredentialByAttestationRef(string $attestationRef): ?array
-    {
-        $matches = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::CREDENTIAL_SCHEMA,
-                'filters'  => ['walletAttestationRef' => $attestationRef],
-                'limit'    => 1,
-            ]
-        );
+	/**
+	 * Resolve the Credential whose `walletAttestationRef` matches the given
+	 * reference.
+	 *
+	 * @param string $attestationRef The opaque wallet-offer correlation key.
+	 *
+	 * @return array<string,mixed>|null The Credential data array, or null when not found.
+	 */
+	private function resolveCredentialByAttestationRef(string $attestationRef): ?array {
+		$matches = $this->objectService->findAll(
+			[
+				'register' => self::SCHOLIQ_REGISTER,
+				'schema' => self::CREDENTIAL_SCHEMA,
+				'filters' => ['walletAttestationRef' => $attestationRef],
+				'limit' => 1,
+			]
+		);
 
-        $result = ($matches[0] ?? null);
-        if ($result === null) {
-            return null;
-        }
+		$result = ($matches[0] ?? null);
+		if ($result === null) {
+			return null;
+		}
 
-        if (is_array($result) === true) {
-            return $result;
-        }
+		if (is_array($result) === true) {
+			return $result;
+		}
 
-        return $result->jsonSerialize();
-    }//end resolveCredentialByAttestationRef()
+		return $result->jsonSerialize();
+	}//end resolveCredentialByAttestationRef()
 }//end class

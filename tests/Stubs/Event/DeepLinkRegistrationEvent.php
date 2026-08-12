@@ -16,12 +16,11 @@ use OCP\EventDispatcher\Event;
 /**
  * Stub for DeepLinkRegistrationEvent.
  */
-abstract class DeepLinkRegistrationEvent extends Event
-{
-    abstract public function register(
-        string $appId,
-        string $registerSlug,
-        string $schemaSlug,
-        string $urlTemplate
-    ): void;
+abstract class DeepLinkRegistrationEvent extends Event {
+	abstract public function register(
+		string $appId,
+		string $registerSlug,
+		string $schemaSlug,
+		string $urlTemplate,
+	): void;
 }//end class

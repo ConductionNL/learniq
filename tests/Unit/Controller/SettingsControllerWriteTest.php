@@ -42,199 +42,187 @@ use PHPUnit\Framework\TestCase;
  *
  * @covers \OCA\Scholiq\Controller\SettingsController
  */
-class SettingsControllerWriteTest extends TestCase
-{
+class SettingsControllerWriteTest extends TestCase {
 
-    /**
-     * Mock IRequest.
-     *
-     * @var IRequest&MockObject
-     */
-    private IRequest&MockObject $request;
+	/**
+	 * Mock IRequest.
+	 *
+	 * @var IRequest&MockObject
+	 */
+	private IRequest&MockObject $request;
 
-    /**
-     * Mock SettingsService.
-     *
-     * @var SettingsService&MockObject
-     */
-    private SettingsService&MockObject $settingsService;
+	/**
+	 * Mock SettingsService.
+	 *
+	 * @var SettingsService&MockObject
+	 */
+	private SettingsService&MockObject $settingsService;
 
-    /**
-     * The controller under test.
-     *
-     * @var SettingsController
-     */
-    private SettingsController $controller;
+	/**
+	 * The controller under test.
+	 *
+	 * @var SettingsController
+	 */
+	private SettingsController $controller;
 
+	/**
+	 * Set up test fixtures.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
 
-    /**
-     * Set up test fixtures.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
+		$this->request = $this->createMock(IRequest::class);
+		$this->settingsService = $this->createMock(SettingsService::class);
 
-        $this->request         = $this->createMock(IRequest::class);
-        $this->settingsService = $this->createMock(SettingsService::class);
+		$this->controller = new SettingsController(
+			request: $this->request,
+			settingsService: $this->settingsService,
+		);
 
-        $this->controller = new SettingsController(
-            request: $this->request,
-            settingsService: $this->settingsService,
-        );
+	}//end setUp()
 
-    }//end setUp()
+	/**
+	 * PUT /api/settings must persist the request parameters and return the
+	 * config the service actually stored.
+	 *
+	 * @return void
+	 */
+	public function testUpdatePersistsTheRequestParametersAndReturnsTheStoredConfig(): void {
+		$submitted = ['register' => 'new-uuid'];
+		$stored = [
+			'register' => 'new-uuid',
+			'openregisters' => true,
+			'isAdmin' => true,
+		];
 
+		$this->request->expects($this->once())
+			->method('getParams')
+			->willReturn($submitted);
 
-    /**
-     * PUT /api/settings must persist the request parameters and return the
-     * config the service actually stored.
-     *
-     * @return void
-     */
-    public function testUpdatePersistsTheRequestParametersAndReturnsTheStoredConfig(): void
-    {
-        $submitted = ['register' => 'new-uuid'];
-        $stored    = [
-            'register'      => 'new-uuid',
-            'openregisters' => true,
-            'isAdmin'       => true,
-        ];
+		// The ITEM: the write reaches the service, with the submitted params.
+		$this->settingsService->expects($this->once())
+			->method('updateSettings')
+			->with($submitted)
+			->willReturn($stored);
 
-        $this->request->expects($this->once())
-            ->method('getParams')
-            ->willReturn($submitted);
+		$response = $this->controller->update();
 
-        // The ITEM: the write reaches the service, with the submitted params.
-        $this->settingsService->expects($this->once())
-            ->method('updateSettings')
-            ->with($submitted)
-            ->willReturn($stored);
+		$this->assertSame(
+			[
+				'success' => true,
+				'config' => $stored,
+			],
+			$response->getData(),
+			'update() must return the config the service stored, not the raw submission'
+		);
 
-        $response = $this->controller->update();
+	}//end testUpdatePersistsTheRequestParametersAndReturnsTheStoredConfig()
 
-        $this->assertSame(
-            [
-                'success' => true,
-                'config'  => $stored,
-            ],
-            $response->getData(),
-            'update() must return the config the service stored, not the raw submission'
-        );
+	/**
+	 * POST /api/settings is the legacy alias and must write identically.
+	 *
+	 * Both of Scholiq's own frontend writers still POST here, so the alias
+	 * staying a real write — not an empty success — is load-bearing.
+	 *
+	 * @return void
+	 */
+	public function testCreateDelegatesToUpdateAndStillWrites(): void {
+		$submitted = ['default_register' => 'scholiq'];
+		$stored = [
+			'default_register' => 'scholiq',
+			'openregisters' => true,
+			'isAdmin' => true,
+		];
 
-    }//end testUpdatePersistsTheRequestParametersAndReturnsTheStoredConfig()
+		$this->request->expects($this->once())
+			->method('getParams')
+			->willReturn($submitted);
 
+		$this->settingsService->expects($this->once())
+			->method('updateSettings')
+			->with($submitted)
+			->willReturn($stored);
 
-    /**
-     * POST /api/settings is the legacy alias and must write identically.
-     *
-     * Both of Scholiq's own frontend writers still POST here, so the alias
-     * staying a real write — not an empty success — is load-bearing.
-     *
-     * @return void
-     */
-    public function testCreateDelegatesToUpdateAndStillWrites(): void
-    {
-        $submitted = ['default_register' => 'scholiq'];
-        $stored    = [
-            'default_register' => 'scholiq',
-            'openregisters'    => true,
-            'isAdmin'          => true,
-        ];
+		$response = $this->controller->create();
 
-        $this->request->expects($this->once())
-            ->method('getParams')
-            ->willReturn($submitted);
+		$this->assertSame(
+			[
+				'success' => true,
+				'config' => $stored,
+			],
+			$response->getData(),
+			'create() must produce the same written result as update()'
+		);
 
-        $this->settingsService->expects($this->once())
-            ->method('updateSettings')
-            ->with($submitted)
-            ->willReturn($stored);
+	}//end testCreateDelegatesToUpdateAndStillWrites()
 
-        $response = $this->controller->create();
+	/**
+	 * The two verbs must be behaviourally indistinguishable.
+	 *
+	 * Asserted by driving both against the same stubbed service and comparing
+	 * the payloads, rather than by inspecting `create()`'s source — a source
+	 * check would not notice a future divergence introduced inside `update()`.
+	 *
+	 * @return void
+	 */
+	public function testCreateAndUpdateProduceIdenticalPayloads(): void {
+		$submitted = ['register' => 'shared-uuid'];
+		$stored = ['register' => 'shared-uuid'];
 
-        $this->assertSame(
-            [
-                'success' => true,
-                'config'  => $stored,
-            ],
-            $response->getData(),
-            'create() must produce the same written result as update()'
-        );
+		$this->request->method('getParams')->willReturn($submitted);
 
-    }//end testCreateDelegatesToUpdateAndStillWrites()
+		$this->settingsService->expects($this->exactly(2))
+			->method('updateSettings')
+			->with($submitted)
+			->willReturn($stored);
 
+		$viaUpdate = $this->controller->update()->getData();
+		$viaCreate = $this->controller->create()->getData();
 
-    /**
-     * The two verbs must be behaviourally indistinguishable.
-     *
-     * Asserted by driving both against the same stubbed service and comparing
-     * the payloads, rather than by inspecting `create()`'s source — a source
-     * check would not notice a future divergence introduced inside `update()`.
-     *
-     * @return void
-     */
-    public function testCreateAndUpdateProduceIdenticalPayloads(): void
-    {
-        $submitted = ['register' => 'shared-uuid'];
-        $stored    = ['register' => 'shared-uuid'];
+		$this->assertSame(
+			$viaUpdate,
+			$viaCreate,
+			'create() is a legacy alias for update() — the payloads must not diverge'
+		);
 
-        $this->request->method('getParams')->willReturn($submitted);
+	}//end testCreateAndUpdateProduceIdenticalPayloads()
 
-        $this->settingsService->expects($this->exactly(2))
-            ->method('updateSettings')
-            ->with($submitted)
-            ->willReturn($stored);
+	/**
+	 * An empty submission must still be a real round-trip: the service is
+	 * called (it decides which keys are managed) and the refreshed config is
+	 * returned.
+	 *
+	 * This pins the "no silent empty-success" half of the contract.
+	 *
+	 * @return void
+	 */
+	public function testUpdateWithNoManagedKeysStillReturnsTheRefreshedConfig(): void {
+		$stored = [
+			'register' => 'unchanged-uuid',
+			'openregisters' => true,
+		];
 
-        $viaUpdate = $this->controller->update()->getData();
-        $viaCreate = $this->controller->create()->getData();
+		$this->request->expects($this->once())
+			->method('getParams')
+			->willReturn([]);
 
-        $this->assertSame(
-            $viaUpdate,
-            $viaCreate,
-            'create() is a legacy alias for update() — the payloads must not diverge'
-        );
+		$this->settingsService->expects($this->once())
+			->method('updateSettings')
+			->with([])
+			->willReturn($stored);
 
-    }//end testCreateAndUpdateProduceIdenticalPayloads()
+		$response = $this->controller->update();
 
+		$this->assertSame(
+			[
+				'success' => true,
+				'config' => $stored,
+			],
+			$response->getData()
+		);
 
-    /**
-     * An empty submission must still be a real round-trip: the service is
-     * called (it decides which keys are managed) and the refreshed config is
-     * returned.
-     *
-     * This pins the "no silent empty-success" half of the contract.
-     *
-     * @return void
-     */
-    public function testUpdateWithNoManagedKeysStillReturnsTheRefreshedConfig(): void
-    {
-        $stored = [
-            'register'      => 'unchanged-uuid',
-            'openregisters' => true,
-        ];
-
-        $this->request->expects($this->once())
-            ->method('getParams')
-            ->willReturn([]);
-
-        $this->settingsService->expects($this->once())
-            ->method('updateSettings')
-            ->with([])
-            ->willReturn($stored);
-
-        $response = $this->controller->update();
-
-        $this->assertSame(
-            [
-                'success' => true,
-                'config'  => $stored,
-            ],
-            $response->getData()
-        );
-
-    }//end testUpdateWithNoManagedKeysStillReturnsTheRefreshedConfig()
-
+	}//end testUpdateWithNoManagedKeysStillReturnsTheRefreshedConfig()
 
 }//end class
