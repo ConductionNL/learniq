@@ -87,8 +87,13 @@ jobs:
       app-name: scholiq
       php-version: "8.3"
       php-test-versions: '["8.3", "8.4"]'
-      # appinfo/info.xml requires <nextcloud min-version="33"/>, so only stable33+.
-      nextcloud-test-refs: '["stable34"]'
+      # THE LIST IS THE WHOLE DECLARED RANGE. This comment previously read
+      # "appinfo/info.xml requires <nextcloud min-version="33"/>, so only
+      # stable33+" — that floor is no longer 33. The file on this branch declares
+      # <nextcloud min-version="32" max-version="34"/>, so stable32 is inside the
+      # supported range and needs a leg: a reason that names a state of the world
+      # rots the moment the world moves, and this one had.
+      nextcloud-test-refs: '["stable34", "stable32", "stable33"]'
       enable-psalm: true
       enable-phpstan: true
       enable-phpmetrics: true
