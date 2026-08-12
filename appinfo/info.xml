@@ -93,33 +93,19 @@ Vrij en open source onder de EUPL-1.2-licentie.
         `openregister` constraint in lib/Settings/scholiq_register.json.
     -->
     <dependencies>
-        <app>openregister</app>
-        <app>openconnector</app>
-        <nextcloud min-version="32" max-version="34"/>
+        <!--
+        App dependencies: openregister and openconnector. Recorded as prose, not
+        as elements. The App Store schema (info.xsd) has no app child under
+        dependencies, so shipping one fails App Store validation; Nextcloud's
+        DependencyAnalyzer does not read it either (it handles only php,
+        database, command, lib, os, architecture and the server version), so the
+        elements never enforced anything at install time. The openregister
+        version floor is recorded as the `openregister` constraint in
+        lib/Settings/scholiq_register.json, as noted above.
+        -->
         <php min-version="8.3" max-version="8.4"/>
+        <nextcloud min-version="32" max-version="34"/>
     </dependencies>
-
-    <navigations>
-        <navigation>
-            <id>scholiq</id>
-            <name>Scholiq</name>
-            <route>scholiq.page.index</route>
-            <icon>app.svg</icon>
-        </navigation>
-    </navigations>
-
-    <repair-steps>
-        <install>
-            <step>OCA\Scholiq\Repair\InitializeSettings</step>
-            <!-- ADR-023: seed the action-authorization matrix (default admin-only). -->
-            <step>OCA\Scholiq\Repair\InitializeActions</step>
-        </install>
-        <post-migration>
-            <step>OCA\Scholiq\Repair\InitializeSettings</step>
-            <!-- ADR-023: seed the action-authorization matrix (default admin-only). -->
-            <step>OCA\Scholiq\Repair\InitializeActions</step>
-        </post-migration>
-    </repair-steps>
 
     <background-jobs>
         <!--
@@ -132,8 +118,30 @@ Vrij en open source onder de EUPL-1.2-licentie.
         <job>OCA\Scholiq\Cron\LtiAgsScorePollJob</job>
     </background-jobs>
 
+    <repair-steps>
+        <post-migration>
+            <step>OCA\Scholiq\Repair\InitializeSettings</step>
+            <!-- ADR-023: seed the action-authorization matrix (default admin-only). -->
+            <step>OCA\Scholiq\Repair\InitializeActions</step>
+        </post-migration>
+        <install>
+            <step>OCA\Scholiq\Repair\InitializeSettings</step>
+            <!-- ADR-023: seed the action-authorization matrix (default admin-only). -->
+            <step>OCA\Scholiq\Repair\InitializeActions</step>
+        </install>
+    </repair-steps>
+
     <settings>
         <admin>OCA\Scholiq\Settings\AdminSettings</admin>
         <admin-section>OCA\Scholiq\Sections\SettingsSection</admin-section>
     </settings>
+
+    <navigations>
+        <navigation>
+            <id>scholiq</id>
+            <name>Scholiq</name>
+            <route>scholiq.page.index</route>
+            <icon>app.svg</icon>
+        </navigation>
+    </navigations>
 </info>
