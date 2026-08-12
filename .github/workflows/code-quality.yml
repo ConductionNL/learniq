@@ -88,7 +88,7 @@ jobs:
       php-version: "8.3"
       php-test-versions: '["8.3", "8.4"]'
       # appinfo/info.xml requires <nextcloud min-version="33"/>, so only stable33+.
-      nextcloud-test-refs: '["stable33"]'
+      nextcloud-test-refs: '["stable34"]'
       enable-psalm: true
       enable-phpstan: true
       enable-phpmetrics: true
