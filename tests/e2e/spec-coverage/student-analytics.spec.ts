@@ -27,12 +27,14 @@ import { test, expect } from '../fixtures'
 // ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
 // `#/…` URL resolves to a location no route matches and renders an empty app body.
 // See accessibility-conformance.spec.ts for the measurement.
-const GROUP_TREND_HEATMAP_URL = '/index.php/apps/scholiq/progress/group-trend-heatmap'
+const GROUP_TREND_HEATMAP_URL =
+	'/index.php/apps/scholiq/progress/group-trend-heatmap'
 
 test.describe('learning-progress-and-analytics — Group trend heat map', () => {
-
 	// @e2e openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
-	test('Group trend heat map renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('Group trend heat map renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -72,9 +74,16 @@ test.describe('learning-progress-and-analytics — Group trend heat map', () => 
 
 		const hasError = await errorState.isVisible().catch(() => false)
 		if (hasError === false) {
-			const hasTable = await table.isVisible({ timeout: 15_000 }).catch(() => false)
-			const hasEmpty = await emptyState.isVisible({ timeout: 5_000 }).catch(() => false)
-			expect(hasTable || hasEmpty, 'expected either the heat map table or the empty state to be visible').toBeTruthy()
+			const hasTable = await table
+				.isVisible({ timeout: 15_000 })
+				.catch(() => false)
+			const hasEmpty = await emptyState
+				.isVisible({ timeout: 5_000 })
+				.catch(() => false)
+			expect(
+				hasTable || hasEmpty,
+				'expected either the heat map table or the empty state to be visible',
+			).toBeTruthy()
 		}
 
 		const fatal = errors.filter(
@@ -86,6 +95,8 @@ test.describe('learning-progress-and-analytics — Group trend heat map', () => 
 				&& !e.includes('Failed to fetch')
 				&& !e.includes('ERR_CONNECTION_REFUSED'),
 		)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

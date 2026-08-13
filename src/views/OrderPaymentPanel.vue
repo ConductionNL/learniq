@@ -90,14 +90,18 @@
 					:input-label="t('scholiq', 'Payment provider')"
 					:aria-label-combobox="t('scholiq', 'Payment provider')" />
 
-				<NcButton
-					variant="primary"
-					:disabled="paying"
-					@click="payNow">
-					{{ paying ? t('scholiq', 'Starting payment…') : t('scholiq', 'Pay now') }}
+				<NcButton variant="primary" :disabled="paying" @click="payNow">
+					{{
+						paying
+							? t('scholiq', 'Starting payment…')
+							: t('scholiq', 'Pay now')
+					}}
 				</NcButton>
 
-				<p v-if="payError" class="order-payment-panel__pay-error" role="alert">
+				<p
+					v-if="payError"
+					class="order-payment-panel__pay-error"
+					role="alert">
 					{{ payError }}
 				</p>
 			</section>
@@ -114,7 +118,9 @@
 			<NcEmptyContent
 				v-else
 				:name="t('scholiq', 'This order cannot be paid')"
-				:description="t('scholiq', 'Its current status does not allow payment.')">
+				:description="
+					t('scholiq', 'Its current status does not allow payment.')
+				">
 				<template #icon>
 					<AlertCircleOutline />
 				</template>
@@ -201,7 +207,9 @@ export default {
 			if (!this.order) {
 				return ''
 			}
-			return this.t('scholiq', 'Order status: {status}', { status: this.order.lifecycle })
+			return this.t('scholiq', 'Order status: {status}', {
+				status: this.order.lifecycle,
+			})
 		},
 	},
 
@@ -220,17 +228,35 @@ export default {
 
 			try {
 				const [orderRes, linesRes] = await Promise.all([
-					fetch(generateUrl('/apps/openregister/api/objects/scholiq/order/' + this.orderId)),
-					fetch(generateUrl('/apps/openregister/api/objects/scholiq/order-line?orderId=' + this.orderId + '&limit=100')),
+					fetch(
+						generateUrl(
+							'/apps/openregister/api/objects/scholiq/order/'
+								+ this.orderId,
+						),
+					),
+					fetch(
+						generateUrl(
+							'/apps/openregister/api/objects/scholiq/order-line?orderId='
+								+ this.orderId
+								+ '&limit=100',
+						),
+					),
 				])
 
 				if (!orderRes.ok) {
-					throw new Error(this.t('scholiq', 'This order does not exist or you do not have access to it.'))
+					throw new Error(
+						this.t(
+							'scholiq',
+							'This order does not exist or you do not have access to it.',
+						),
+					)
 				}
 
 				this.order = await orderRes.json()
 
-				const linesBody = linesRes.ok ? await linesRes.json() : { results: [] }
+				const linesBody = linesRes.ok
+					? await linesRes.json()
+					: { results: [] }
 				this.orderLines = linesBody?.results ?? linesBody ?? []
 			} catch (e) {
 				this.error = e?.message ?? String(e)
@@ -246,7 +272,10 @@ export default {
 		 */
 		formatAmount(amount) {
 			const currency = this.order?.currency ?? 'EUR'
-			return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount ?? 0)
+			return new Intl.NumberFormat(undefined, {
+				style: 'currency',
+				currency,
+			}).format(amount ?? 0)
 		},
 
 		/**
@@ -263,7 +292,9 @@ export default {
 
 			try {
 				const res = await fetch(
-					generateUrl('/apps/scholiq/api/payments/' + this.orderId + '/initiate'),
+					generateUrl(
+						'/apps/scholiq/api/payments/' + this.orderId + '/initiate',
+					),
 					{
 						method: 'POST',
 						headers: {
@@ -275,7 +306,14 @@ export default {
 				)
 				const body = await res.json().catch(() => ({}))
 				if (!res.ok) {
-					throw new Error(body?.error || this.t('scholiq', 'Failed to start payment (HTTP {status})', { status: res.status }))
+					throw new Error(
+						body?.error
+							|| this.t(
+								'scholiq',
+								'Failed to start payment (HTTP {status})',
+								{ status: res.status },
+							),
+					)
 				}
 
 				this.checkoutReference = body?.checkoutUrl ?? ''

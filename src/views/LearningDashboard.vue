@@ -18,10 +18,7 @@
 -->
 <template>
 	<div class="scholiq-domain-dashboard">
-		<CnDashboardPage
-			:title="pageTitle"
-			:widgets="widgets"
-			:layout="layout">
+		<CnDashboardPage :title="pageTitle" :widgets="widgets" :layout="layout">
 			<template #widget-kpi-courses>
 				<KpiCoursesWidget />
 			</template>
@@ -108,13 +105,41 @@ export default {
 		 */
 		widgets() {
 			return [
-				{ id: 'kpi-courses', title: this.t('scholiq', 'Courses'), type: 'custom' },
-				{ id: 'manage-courses', title: this.t('scholiq', 'Courses'), type: 'custom' },
-				{ id: 'manage-curriculum', title: this.t('scholiq', 'Curriculum'), type: 'custom' },
-				{ id: 'manage-assignments', title: this.t('scholiq', 'Assignments'), type: 'custom' },
-				{ id: 'manage-assessments', title: this.t('scholiq', 'Assessments'), type: 'custom' },
-				{ id: 'manage-learning-plans', title: this.t('scholiq', 'Learning plans'), type: 'custom' },
-				{ id: 'manage-grades', title: this.t('scholiq', 'Grades'), type: 'custom' },
+				{
+					id: 'kpi-courses',
+					title: this.t('scholiq', 'Courses'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-courses',
+					title: this.t('scholiq', 'Courses'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-curriculum',
+					title: this.t('scholiq', 'Curriculum'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-assignments',
+					title: this.t('scholiq', 'Assignments'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-assessments',
+					title: this.t('scholiq', 'Assessments'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-learning-plans',
+					title: this.t('scholiq', 'Learning plans'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-grades',
+					title: this.t('scholiq', 'Grades'),
+					type: 'custom',
+				},
 			]
 		},
 
@@ -125,13 +150,63 @@ export default {
 		 */
 		layout() {
 			return [
-				{ id: 1, widgetId: 'kpi-courses', gridX: 0, gridY: 0, gridWidth: 3, gridHeight: 2, showTitle: false },
-				{ id: 2, widgetId: 'manage-courses', gridX: 0, gridY: 2, gridWidth: 6, gridHeight: 4 },
-				{ id: 3, widgetId: 'manage-curriculum', gridX: 6, gridY: 2, gridWidth: 6, gridHeight: 4 },
-				{ id: 4, widgetId: 'manage-assignments', gridX: 0, gridY: 6, gridWidth: 6, gridHeight: 4 },
-				{ id: 5, widgetId: 'manage-assessments', gridX: 6, gridY: 6, gridWidth: 6, gridHeight: 4 },
-				{ id: 6, widgetId: 'manage-learning-plans', gridX: 0, gridY: 10, gridWidth: 6, gridHeight: 4 },
-				{ id: 7, widgetId: 'manage-grades', gridX: 6, gridY: 10, gridWidth: 6, gridHeight: 4 },
+				{
+					id: 1,
+					widgetId: 'kpi-courses',
+					gridX: 0,
+					gridY: 0,
+					gridWidth: 3,
+					gridHeight: 2,
+					showTitle: false,
+				},
+				{
+					id: 2,
+					widgetId: 'manage-courses',
+					gridX: 0,
+					gridY: 2,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 3,
+					widgetId: 'manage-curriculum',
+					gridX: 6,
+					gridY: 2,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 4,
+					widgetId: 'manage-assignments',
+					gridX: 0,
+					gridY: 6,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 5,
+					widgetId: 'manage-assessments',
+					gridX: 6,
+					gridY: 6,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 6,
+					widgetId: 'manage-learning-plans',
+					gridX: 0,
+					gridY: 10,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 7,
+					widgetId: 'manage-grades',
+					gridX: 6,
+					gridY: 10,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
 			]
 		},
 	},

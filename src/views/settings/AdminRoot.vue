@@ -7,11 +7,18 @@
 			:is-up-to-date="true"
 			:show-update-button="true"
 			:title="t('scholiq', 'Version Information')"
-			:description="t('scholiq', 'Information about the current Scholiq installation')">
+			:description="
+				t('scholiq', 'Information about the current Scholiq installation')
+			">
 			<template #footer>
 				<div class="cn-support-info">
 					<h4>{{ t('scholiq', 'Support') }}</h4>
-					<p>{{ t('scholiq', 'For support, contact us at') }} <a href="mailto:support@conduction.nl">support@conduction.nl</a></p>
+					<p>
+						{{ t('scholiq', 'For support, contact us at') }}
+						<a href="mailto:support@conduction.nl"
+							>support@conduction.nl</a
+						>
+					</p>
 				</div>
 			</template>
 		</CnVersionInfoCard>

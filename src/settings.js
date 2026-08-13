@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: EUPL-1.2
 import { createApp, h } from 'vue'
-import { translate as t, translatePlural as n, loadTranslations } from '@nextcloud/l10n'
+import {
+	translate as t,
+	translatePlural as n,
+	loadTranslations,
+} from '@nextcloud/l10n'
 import pinia from './pinia.js'
 import AdminRoot from './views/settings/AdminRoot.vue'
 
@@ -23,7 +27,10 @@ app.mixin({ methods: { t, n } })
 try {
 	const result = loadTranslations('scholiq', () => {})
 	if (result && typeof result.then === 'function') {
-		result.then(() => {}, () => {})
+		result.then(
+			() => {},
+			() => {},
+		)
 	}
 } catch {
 	// no-op — English source strings are the fallback.

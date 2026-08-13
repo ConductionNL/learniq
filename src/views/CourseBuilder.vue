@@ -56,12 +56,20 @@
 			</p>
 
 			<header class="course-builder__header">
-				<h2>{{ t('scholiq', 'Course builder: {name}', { name: course.name || '' }) }}</h2>
+				<h2>
+					{{
+						t('scholiq', 'Course builder: {name}', {
+							name: course.name || '',
+						})
+					}}
+				</h2>
 				<div class="course-builder__header-actions">
 					<button class="button-vue" @click="goBack">
 						{{ t('scholiq', 'Back to course') }}
 					</button>
-					<button class="button-vue" @click="showSaveTemplate = !showSaveTemplate">
+					<button
+						class="button-vue"
+						@click="showSaveTemplate = !showSaveTemplate">
 						{{ t('scholiq', 'Save as template') }}
 					</button>
 					<button class="button-vue" @click="onOpenInstantiate">
@@ -80,7 +88,7 @@
 					id="cb-template-name"
 					v-model="saveTemplateForm.name"
 					type="text"
-					class="course-builder__input">
+					class="course-builder__input" />
 				<label class="course-builder__field-label" for="cb-template-desc">
 					{{ t('scholiq', 'Description') }}
 				</label>
@@ -94,14 +102,23 @@
 						class="button-vue button-vue--primary"
 						:disabled="savingTemplate || !saveTemplateForm.name"
 						@click="saveAsTemplate">
-						<span v-if="savingTemplate" class="icon-loading" aria-hidden="true" />
+						<span
+							v-if="savingTemplate"
+							class="icon-loading"
+							aria-hidden="true" />
 						{{ t('scholiq', 'Save template') }}
 					</button>
 				</div>
-				<p v-if="saveTemplateError" role="alert" class="course-builder__inline-error">
+				<p
+					v-if="saveTemplateError"
+					role="alert"
+					class="course-builder__inline-error">
 					{{ saveTemplateError }}
 				</p>
-				<p v-if="saveTemplateDone" role="status" class="course-builder__inline-success">
+				<p
+					v-if="saveTemplateDone"
+					role="status"
+					class="course-builder__inline-success">
 					{{ t('scholiq', 'Template saved.') }}
 				</p>
 			</section>
@@ -122,17 +139,27 @@
 					id="cb-new-course-name"
 					v-model="instantiateForm.name"
 					type="text"
-					class="course-builder__input">
+					class="course-builder__input" />
 				<div class="course-builder__panel-actions">
 					<button
 						class="button-vue button-vue--primary"
-						:disabled="instantiating || !instantiateForm.templateId || !instantiateForm.name"
+						:disabled="
+							instantiating
+							|| !instantiateForm.templateId
+							|| !instantiateForm.name
+						"
 						@click="instantiateTemplate">
-						<span v-if="instantiating" class="icon-loading" aria-hidden="true" />
+						<span
+							v-if="instantiating"
+							class="icon-loading"
+							aria-hidden="true" />
 						{{ t('scholiq', 'Create course') }}
 					</button>
 				</div>
-				<p v-if="instantiateError" role="alert" class="course-builder__inline-error">
+				<p
+					v-if="instantiateError"
+					role="alert"
+					class="course-builder__inline-error">
 					{{ instantiateError }}
 				</p>
 			</section>
@@ -152,13 +179,21 @@
 						:key="module.id"
 						class="course-builder__module">
 						<div class="course-builder__module-row">
-							<span class="course-builder__handle icon-menu" aria-hidden="true" />
-							<span class="course-builder__module-name">{{ module.name }}</span>
+							<span
+								class="course-builder__handle icon-menu"
+								aria-hidden="true" />
+							<span class="course-builder__module-name">{{
+								module.name
+							}}</span>
 							<button
 								type="button"
 								class="course-builder__icon-btn"
 								:disabled="mIdx === 0"
-								:aria-label="t('scholiq', 'Move module \'{name}\' up', { name: module.name })"
+								:aria-label="
+									t('scholiq', 'Move module \'{name}\' up', {
+										name: module.name,
+									})
+								"
 								@click="moveModuleUp(mIdx)">
 								<ChevronUp :size="18" />
 							</button>
@@ -166,14 +201,22 @@
 								type="button"
 								class="course-builder__icon-btn"
 								:disabled="mIdx === modules.length - 1"
-								:aria-label="t('scholiq', 'Move module \'{name}\' down', { name: module.name })"
+								:aria-label="
+									t('scholiq', 'Move module \'{name}\' down', {
+										name: module.name,
+									})
+								"
 								@click="moveModuleDown(mIdx)">
 								<ChevronDown :size="18" />
 							</button>
 							<button
 								type="button"
 								class="course-builder__icon-btn"
-								:aria-label="t('scholiq', 'Delete module \'{name}\'', { name: module.name })"
+								:aria-label="
+									t('scholiq', 'Delete module \'{name}\'', {
+										name: module.name,
+									})
+								"
 								@click="deleteModule(module, mIdx)">
 								<DeleteOutline :size="18" />
 							</button>
@@ -189,14 +232,24 @@
 								v-for="(lesson, lIdx) in module.lessons"
 								:key="lesson.id"
 								class="course-builder__lesson">
-								<span class="course-builder__handle icon-menu" aria-hidden="true" />
-								<span class="course-builder__lesson-name">{{ lesson.name }}</span>
-								<span class="course-builder__lesson-type">{{ lesson.contentType }}</span>
+								<span
+									class="course-builder__handle icon-menu"
+									aria-hidden="true" />
+								<span class="course-builder__lesson-name">{{
+									lesson.name
+								}}</span>
+								<span class="course-builder__lesson-type">{{
+									lesson.contentType
+								}}</span>
 								<button
 									type="button"
 									class="course-builder__icon-btn"
 									:disabled="lIdx === 0"
-									:aria-label="t('scholiq', 'Move lesson \'{name}\' up', { name: lesson.name })"
+									:aria-label="
+										t('scholiq', 'Move lesson \'{name}\' up', {
+											name: lesson.name,
+										})
+									"
 									@click="moveLessonUp(module, lIdx)">
 									<ChevronUp :size="16" />
 								</button>
@@ -204,7 +257,11 @@
 									type="button"
 									class="course-builder__icon-btn"
 									:disabled="lIdx === module.lessons.length - 1"
-									:aria-label="t('scholiq', 'Move lesson \'{name}\' down', { name: lesson.name })"
+									:aria-label="
+										t('scholiq', 'Move lesson \'{name}\' down', {
+											name: lesson.name,
+										})
+									"
 									@click="moveLessonDown(module, lIdx)">
 									<ChevronDown :size="16" />
 								</button>
@@ -223,7 +280,11 @@
 								<button
 									type="button"
 									class="course-builder__icon-btn"
-									:aria-label="t('scholiq', 'Delete lesson \'{name}\'', { name: lesson.name })"
+									:aria-label="
+										t('scholiq', 'Delete lesson \'{name}\'', {
+											name: lesson.name,
+										})
+									"
 									@click="deleteLesson(module, lIdx)">
 									<DeleteOutline :size="16" />
 								</button>
@@ -236,7 +297,13 @@
 								type="text"
 								class="course-builder__input"
 								:placeholder="t('scholiq', 'New lesson name')"
-								:aria-label="t('scholiq', 'New lesson name for module {name}', { name: module.name })">
+								:aria-label="
+									t(
+										'scholiq',
+										'New lesson name for module {name}',
+										{ name: module.name },
+									)
+								" />
 							<button
 								type="button"
 								class="button-vue"
@@ -255,7 +322,7 @@
 						type="text"
 						class="course-builder__input"
 						:placeholder="t('scholiq', 'New module name')"
-						:aria-label="t('scholiq', 'New module name')">
+						:aria-label="t('scholiq', 'New module name')" />
 					<button
 						type="button"
 						class="button-vue button-vue--secondary"
@@ -356,16 +423,25 @@ export default {
 			this.error = ''
 			try {
 				this.course = await this.fetchObject('Course', this.courseId)
-				const modules = await this.fetchList('Course', `filters[parentCourseId]=${this.courseId}&limit=200`)
+				const modules = await this.fetchList(
+					'Course',
+					`filters[parentCourseId]=${this.courseId}&limit=200`,
+				)
 				modules.sort(compareByOrder)
 				for (const module of modules) {
-					const lessons = await this.fetchList('Lesson', `filters[courseId]=${module.id}&limit=200`)
+					const lessons = await this.fetchList(
+						'Lesson',
+						`filters[courseId]=${module.id}&limit=200`,
+					)
 					lessons.sort(compareByOrder)
 					module.lessons = lessons
 				}
 				this.modules = modules
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load the course. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to load the course. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] load error', err)
 			} finally {
@@ -376,7 +452,9 @@ export default {
 		/** @return {void} */
 		goBack() {
 			if (this.$router) {
-				this.$router.push({ name: 'CourseDetail', params: { id: this.courseId } }).catch(() => {})
+				this.$router
+					.push({ name: 'CourseDetail', params: { id: this.courseId } })
+					.catch(() => {})
 			}
 		},
 
@@ -388,7 +466,12 @@ export default {
 		 */
 		openComposer(lesson) {
 			if (this.$router) {
-				this.$router.push({ name: 'LessonComposer', params: { courseId: this.courseId, lessonId: lesson.id } }).catch(() => {})
+				this.$router
+					.push({
+						name: 'LessonComposer',
+						params: { courseId: this.courseId, lessonId: lesson.id },
+					})
+					.catch(() => {})
 			}
 		},
 
@@ -400,7 +483,12 @@ export default {
 		 */
 		openPlayer(lesson) {
 			if (this.$router) {
-				this.$router.push({ name: 'LessonPlayer', params: { courseId: this.courseId, lessonId: lesson.id } }).catch(() => {})
+				this.$router
+					.push({
+						name: 'LessonPlayer',
+						params: { courseId: this.courseId, lessonId: lesson.id },
+					})
+					.catch(() => {})
 			}
 		},
 
@@ -412,8 +500,12 @@ export default {
 		 * @return {Promise<object>}
 		 */
 		async fetchObject(schema, objId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}/${objId}`)
-			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/${schema}/${objId}`,
+			)
+			const resp = await fetch(url, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) throw new Error(`${schema} fetch failed: ${resp.status}`)
 			const json = await resp.json()
 			return json.object ?? json ?? {}
@@ -427,8 +519,12 @@ export default {
 		 * @return {Promise<Array<object>>}
 		 */
 		async fetchList(schema, query) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}?${query}`)
-			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/${schema}?${query}`,
+			)
+			const resp = await fetch(url, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) return []
 			const json = await resp.json()
 			return json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
@@ -442,10 +538,16 @@ export default {
 		 * @return {Promise<object>} The created object.
 		 */
 		async createObject(schema, body) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/${schema}`,
+			)
 			const resp = await fetch(url, {
 				method: 'POST',
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json', 'Content-Type': 'application/json' },
+				headers: {
+					'OCS-APIREQUEST': 'true',
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
 				body: JSON.stringify(body),
 			})
 			if (!resp.ok) throw new Error(`${schema} create failed: ${resp.status}`)
@@ -463,10 +565,16 @@ export default {
 		 * @return {Promise<void>}
 		 */
 		async updateObject(schema, objId, patch) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}/${objId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/${schema}/${objId}`,
+			)
 			const resp = await fetch(url, {
 				method: 'PUT',
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json', 'Content-Type': 'application/json' },
+				headers: {
+					'OCS-APIREQUEST': 'true',
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
 				body: JSON.stringify(patch),
 			})
 			if (!resp.ok) throw new Error(`${schema} update failed: ${resp.status}`)
@@ -480,8 +588,13 @@ export default {
 		 * @return {Promise<void>}
 		 */
 		async deleteObject(schema, objId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}/${objId}`)
-			const resp = await fetch(url, { method: 'DELETE', headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/${schema}/${objId}`,
+			)
+			const resp = await fetch(url, {
+				method: 'DELETE',
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) throw new Error(`${schema} delete failed: ${resp.status}`)
 		},
 
@@ -502,7 +615,9 @@ export default {
 				const newOrder = idx + 1
 				if (item.order !== newOrder) {
 					item.order = newOrder
-					updates.push(this.updateObject(schema, item.id, { order: newOrder }))
+					updates.push(
+						this.updateObject(schema, item.id, { order: newOrder }),
+					)
 				}
 			})
 			if (updates.length) {
@@ -525,7 +640,8 @@ export default {
 		 * @return {Promise<void>}
 		 */
 		async reorder(list, fromIndex, toIndex, schema, noun) {
-			if (fromIndex === toIndex || toIndex < 0 || toIndex >= list.length) return
+			if (fromIndex === toIndex || toIndex < 0 || toIndex >= list.length)
+				return
 			const [moved] = list.splice(fromIndex, 1)
 			list.splice(toIndex, 0, moved)
 			await this.persistOrder(list, schema)
@@ -538,12 +654,24 @@ export default {
 
 		/** @param {number} idx Module index. @return {Promise<void>} */
 		moveModuleUp(idx) {
-			return this.reorder(this.modules, idx, idx - 1, 'Course', this.t('scholiq', 'Module'))
+			return this.reorder(
+				this.modules,
+				idx,
+				idx - 1,
+				'Course',
+				this.t('scholiq', 'Module'),
+			)
 		},
 
 		/** @param {number} idx Module index. @return {Promise<void>} */
 		moveModuleDown(idx) {
-			return this.reorder(this.modules, idx, idx + 1, 'Course', this.t('scholiq', 'Module'))
+			return this.reorder(
+				this.modules,
+				idx,
+				idx + 1,
+				'Course',
+				this.t('scholiq', 'Module'),
+			)
 		},
 
 		/**
@@ -552,7 +680,13 @@ export default {
 		 * @return {Promise<void>}
 		 */
 		moveLessonUp(module, idx) {
-			return this.reorder(module.lessons, idx, idx - 1, 'Lesson', this.t('scholiq', 'Lesson'))
+			return this.reorder(
+				module.lessons,
+				idx,
+				idx - 1,
+				'Lesson',
+				this.t('scholiq', 'Lesson'),
+			)
 		},
 
 		/**
@@ -561,7 +695,13 @@ export default {
 		 * @return {Promise<void>}
 		 */
 		moveLessonDown(module, idx) {
-			return this.reorder(module.lessons, idx, idx + 1, 'Lesson', this.t('scholiq', 'Lesson'))
+			return this.reorder(
+				module.lessons,
+				idx,
+				idx + 1,
+				'Lesson',
+				this.t('scholiq', 'Lesson'),
+			)
 		},
 
 		/**
@@ -608,7 +748,10 @@ export default {
 				this.modules.push(created)
 				this.newModuleName = ''
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to add module. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to add module. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] addModule error', err)
 			}
@@ -629,7 +772,10 @@ export default {
 				this.modules.splice(idx, 1)
 				await this.persistOrder(this.modules, 'Course')
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to delete module. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to delete module. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] deleteModule error', err)
 			}
@@ -659,7 +805,10 @@ export default {
 				module.lessons.push(created)
 				this.newLessonNames[module.id] = ''
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to add lesson. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to add lesson. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] addLesson error', err)
 			}
@@ -680,7 +829,10 @@ export default {
 				module.lessons.splice(idx, 1)
 				await this.persistOrder(module.lessons, 'Lesson')
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to delete lesson. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to delete lesson. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] deleteLesson error', err)
 			}
@@ -719,7 +871,10 @@ export default {
 							blockId: b.blockId,
 							type: 'richText',
 							order: b.order,
-							text: this.t('scholiq', 'Introduction — replace with your own text'),
+							text: this.t(
+								'scholiq',
+								'Introduction — replace with your own text',
+							),
 						})),
 				})),
 			}))
@@ -736,10 +891,18 @@ export default {
 				this.saveTemplateDone = true
 				this.saveTemplateForm = { name: '', description: '' }
 				if (this.$router && created.id) {
-					this.$router.push({ name: 'CourseTemplateDetail', params: { id: created.id } }).catch(() => {})
+					this.$router
+						.push({
+							name: 'CourseTemplateDetail',
+							params: { id: created.id },
+						})
+						.catch(() => {})
 				}
 			} catch (err) {
-				this.saveTemplateError = this.t('scholiq', 'Failed to save the template. Please try again.')
+				this.saveTemplateError = this.t(
+					'scholiq',
+					'Failed to save the template. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] saveAsTemplate error', err)
 			} finally {
@@ -772,12 +935,16 @@ export default {
 		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
 		 */
 		async instantiateTemplate() {
-			if (!this.instantiateForm.templateId || !this.instantiateForm.name) return
+			if (!this.instantiateForm.templateId || !this.instantiateForm.name)
+				return
 			this.instantiating = true
 			this.instantiateError = ''
 
 			try {
-				const template = await this.fetchObject('CourseTemplate', this.instantiateForm.templateId)
+				const template = await this.fetchObject(
+					'CourseTemplate',
+					this.instantiateForm.templateId,
+				)
 				const tenantId = template.tenant_id || this.course?.tenant_id || ''
 
 				const newCourse = await this.createObject('Course', {
@@ -788,7 +955,7 @@ export default {
 					tenant_id: tenantId,
 				})
 
-				for (const moduleSkeleton of (template.moduleStructure || [])) {
+				for (const moduleSkeleton of template.moduleStructure || []) {
 					const newModule = await this.createObject('Course', {
 						code: `${newCourse.code}-${moduleSkeleton.key}`,
 						name: moduleSkeleton.name,
@@ -800,19 +967,21 @@ export default {
 						tenant_id: tenantId,
 					})
 
-					for (const lessonSkeleton of (moduleSkeleton.lessons || [])) {
+					for (const lessonSkeleton of moduleSkeleton.lessons || []) {
 						await this.createObject('Lesson', {
 							courseId: newModule.id,
 							name: lessonSkeleton.name,
 							order: lessonSkeleton.order,
 							contentType: lessonSkeleton.contentType,
 							durationMinutes: lessonSkeleton.durationMinutes ?? null,
-							blocks: (lessonSkeleton.blocksSkeleton || []).map((b) => ({
-								blockId: b.blockId,
-								type: b.type,
-								order: b.order,
-								text: b.text ?? null,
-							})),
+							blocks: (lessonSkeleton.blocksSkeleton || []).map(
+								(b) => ({
+									blockId: b.blockId,
+									type: b.type,
+									order: b.order,
+									text: b.text ?? null,
+								}),
+							),
 							tenant_id: tenantId,
 						})
 					}
@@ -820,7 +989,9 @@ export default {
 
 				if (template.curriculumPlanSkeleton) {
 					const cp = await this.createObject('CurriculumPlan', {
-						name: this.t('scholiq', '{name} — curriculum plan', { name: this.instantiateForm.name }),
+						name: this.t('scholiq', '{name} — curriculum plan', {
+							name: this.instantiateForm.name,
+						}),
 						kind: template.curriculumPlanSkeleton.kind,
 						formula: template.curriculumPlanSkeleton.formula,
 						components: template.curriculumPlanSkeleton.components || [],
@@ -828,16 +999,26 @@ export default {
 						passRules: template.curriculumPlanSkeleton.passRules || [],
 						tenant_id: tenantId,
 					})
-					await this.updateObject('Course', newCourse.id, { curriculumPlanId: cp.id })
+					await this.updateObject('Course', newCourse.id, {
+						curriculumPlanId: cp.id,
+					})
 				}
 
 				this.instantiateForm = { templateId: '', name: '' }
 				this.showInstantiate = false
 				if (this.$router) {
-					this.$router.push({ name: 'CourseBuilder', params: { courseId: newCourse.id } }).catch(() => {})
+					this.$router
+						.push({
+							name: 'CourseBuilder',
+							params: { courseId: newCourse.id },
+						})
+						.catch(() => {})
 				}
 			} catch (err) {
-				this.instantiateError = this.t('scholiq', 'Failed to create the course from this template. Please try again.')
+				this.instantiateError = this.t(
+					'scholiq',
+					'Failed to create the course from this template. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] instantiateTemplate error', err)
 			} finally {
@@ -852,7 +1033,8 @@ export default {
 .course-builder {
 	max-width: 960px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .course-builder__loading,

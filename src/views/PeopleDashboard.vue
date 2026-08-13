@@ -18,10 +18,7 @@
 -->
 <template>
 	<div class="scholiq-domain-dashboard">
-		<CnDashboardPage
-			:title="pageTitle"
-			:widgets="widgets"
-			:layout="layout">
+		<CnDashboardPage :title="pageTitle" :widgets="widgets" :layout="layout">
 			<template #widget-kpi-learners>
 				<KpiLearnersWidget />
 			</template>
@@ -110,14 +107,46 @@ export default {
 		 */
 		widgets() {
 			return [
-				{ id: 'kpi-learners', title: this.t('scholiq', 'Learners'), type: 'custom' },
-				{ id: 'kpi-active-enrolments', title: this.t('scholiq', 'Active enrolments'), type: 'custom' },
-				{ id: 'kpi-cohorts', title: this.t('scholiq', 'Cohorts'), type: 'custom' },
-				{ id: 'kpi-open-flags', title: this.t('scholiq', 'Open attendance flags'), type: 'custom' },
-				{ id: 'manage-learners', title: this.t('scholiq', 'Learners'), type: 'custom' },
-				{ id: 'manage-enrolments', title: this.t('scholiq', 'Enrolments'), type: 'custom' },
-				{ id: 'manage-attendance', title: this.t('scholiq', 'Attendance'), type: 'custom' },
-				{ id: 'manage-credentials', title: this.t('scholiq', 'Credentials'), type: 'custom' },
+				{
+					id: 'kpi-learners',
+					title: this.t('scholiq', 'Learners'),
+					type: 'custom',
+				},
+				{
+					id: 'kpi-active-enrolments',
+					title: this.t('scholiq', 'Active enrolments'),
+					type: 'custom',
+				},
+				{
+					id: 'kpi-cohorts',
+					title: this.t('scholiq', 'Cohorts'),
+					type: 'custom',
+				},
+				{
+					id: 'kpi-open-flags',
+					title: this.t('scholiq', 'Open attendance flags'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-learners',
+					title: this.t('scholiq', 'Learners'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-enrolments',
+					title: this.t('scholiq', 'Enrolments'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-attendance',
+					title: this.t('scholiq', 'Attendance'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-credentials',
+					title: this.t('scholiq', 'Credentials'),
+					type: 'custom',
+				},
 			]
 		},
 
@@ -128,14 +157,74 @@ export default {
 		 */
 		layout() {
 			return [
-				{ id: 1, widgetId: 'kpi-learners', gridX: 0, gridY: 0, gridWidth: 3, gridHeight: 2, showTitle: false },
-				{ id: 2, widgetId: 'kpi-active-enrolments', gridX: 3, gridY: 0, gridWidth: 3, gridHeight: 2, showTitle: false },
-				{ id: 3, widgetId: 'kpi-cohorts', gridX: 6, gridY: 0, gridWidth: 3, gridHeight: 2, showTitle: false },
-				{ id: 4, widgetId: 'kpi-open-flags', gridX: 9, gridY: 0, gridWidth: 3, gridHeight: 2, showTitle: false },
-				{ id: 5, widgetId: 'manage-learners', gridX: 0, gridY: 2, gridWidth: 6, gridHeight: 4 },
-				{ id: 6, widgetId: 'manage-enrolments', gridX: 6, gridY: 2, gridWidth: 6, gridHeight: 4 },
-				{ id: 7, widgetId: 'manage-attendance', gridX: 0, gridY: 6, gridWidth: 6, gridHeight: 4 },
-				{ id: 8, widgetId: 'manage-credentials', gridX: 6, gridY: 6, gridWidth: 6, gridHeight: 4 },
+				{
+					id: 1,
+					widgetId: 'kpi-learners',
+					gridX: 0,
+					gridY: 0,
+					gridWidth: 3,
+					gridHeight: 2,
+					showTitle: false,
+				},
+				{
+					id: 2,
+					widgetId: 'kpi-active-enrolments',
+					gridX: 3,
+					gridY: 0,
+					gridWidth: 3,
+					gridHeight: 2,
+					showTitle: false,
+				},
+				{
+					id: 3,
+					widgetId: 'kpi-cohorts',
+					gridX: 6,
+					gridY: 0,
+					gridWidth: 3,
+					gridHeight: 2,
+					showTitle: false,
+				},
+				{
+					id: 4,
+					widgetId: 'kpi-open-flags',
+					gridX: 9,
+					gridY: 0,
+					gridWidth: 3,
+					gridHeight: 2,
+					showTitle: false,
+				},
+				{
+					id: 5,
+					widgetId: 'manage-learners',
+					gridX: 0,
+					gridY: 2,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 6,
+					widgetId: 'manage-enrolments',
+					gridX: 6,
+					gridY: 2,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 7,
+					widgetId: 'manage-attendance',
+					gridX: 0,
+					gridY: 6,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 8,
+					widgetId: 'manage-credentials',
+					gridX: 6,
+					gridY: 6,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
 			]
 		},
 	},
@@ -150,7 +239,10 @@ export default {
 		 * @spec exclude Presentation-only helper composing a display label from object fields; no behavioural spec requirement.
 		 */
 		learnerName(item) {
-			const full = [item.givenName, item.familyName].filter(Boolean).join(' ').trim()
+			const full = [item.givenName, item.familyName]
+				.filter(Boolean)
+				.join(' ')
+				.trim()
 			return full || item.ncUserId || item['@self']?.name || item.id
 		},
 
@@ -164,9 +256,10 @@ export default {
 		 * @spec exclude Presentation-only helper composing a "learner → course" label from resolved relations; no behavioural spec requirement.
 		 */
 		enrolmentName(item) {
-			const resolve = (rel) => (rel && typeof rel === 'object'
-				? (rel.name || rel['@self']?.name || rel.id)
-				: rel)
+			const resolve = (rel) =>
+				rel && typeof rel === 'object'
+					? rel.name || rel['@self']?.name || rel.id
+					: rel
 			const learner = resolve(item.learnerId) || '?'
 			const course = resolve(item.courseId) || '?'
 			return `${learner} → ${course}`

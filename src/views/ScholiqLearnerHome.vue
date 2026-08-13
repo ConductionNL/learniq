@@ -33,10 +33,21 @@ export default {
 	data() {
 		return {
 			widgets: [
-				{ id: 'my-mandatory-training', title: 'My mandatory training', type: 'custom' },
+				{
+					id: 'my-mandatory-training',
+					title: 'My mandatory training',
+					type: 'custom',
+				},
 			],
 			layout: [
-				{ id: 1, widgetId: 'my-mandatory-training', gridX: 0, gridY: 0, gridWidth: 6, gridHeight: 5 },
+				{
+					id: 1,
+					widgetId: 'my-mandatory-training',
+					gridX: 0,
+					gridY: 0,
+					gridWidth: 6,
+					gridHeight: 5,
+				},
 			],
 		}
 	},

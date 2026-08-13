@@ -55,8 +55,16 @@
 
 		<template v-else>
 			<header class="exam-case-dossier__header">
-				<h2>{{ isExemption ? t('scholiq', 'Exemption request') : t('scholiq', 'Fraud case') }}</h2>
-				<span class="exam-case-dossier__status" :class="'exam-case-dossier__status--' + caseObject.lifecycle">
+				<h2>
+					{{
+						isExemption
+							? t('scholiq', 'Exemption request')
+							: t('scholiq', 'Fraud case')
+					}}
+				</h2>
+				<span
+					class="exam-case-dossier__status"
+					:class="'exam-case-dossier__status--' + caseObject.lifecycle">
 					{{ caseObject.lifecycle }}
 				</span>
 			</header>
@@ -80,29 +88,56 @@
 					</template>
 				</dl>
 
-				<div v-if="caseObject.lifecycle === 'submitted'" class="exam-case-dossier__actions">
-					<button class="button-vue" :disabled="saving" @click="startAssessment">
+				<div
+					v-if="caseObject.lifecycle === 'submitted'"
+					class="exam-case-dossier__actions">
+					<button
+						class="button-vue"
+						:disabled="saving"
+						@click="startAssessment">
 						{{ t('scholiq', 'Start assessment') }}
 					</button>
 				</div>
 
-				<div v-if="caseObject.lifecycle === 'in-assessment'" class="exam-case-dossier__decision-form">
-					<label for="exemption-rationale">{{ t('scholiq', 'Decision rationale') }}</label>
+				<div
+					v-if="caseObject.lifecycle === 'in-assessment'"
+					class="exam-case-dossier__decision-form">
+					<label for="exemption-rationale">{{
+						t('scholiq', 'Decision rationale')
+					}}</label>
 					<textarea id="exemption-rationale" v-model="decisionRationale" />
-					<label for="exemption-policy">{{ t('scholiq', 'Policy reference') }}</label>
-					<input id="exemption-policy" v-model="policyReference" type="text">
+					<label for="exemption-policy">{{
+						t('scholiq', 'Policy reference')
+					}}</label>
+					<input
+						id="exemption-policy"
+						v-model="policyReference"
+						type="text" />
 					<div class="exam-case-dossier__actions">
-						<button class="button-vue" :disabled="saving" @click="grantExemption">
+						<button
+							class="button-vue"
+							:disabled="saving"
+							@click="grantExemption">
 							{{ t('scholiq', 'Grant') }}
 						</button>
-						<button class="button-vue button-vue--error" :disabled="saving" @click="rejectExemption">
+						<button
+							class="button-vue button-vue--error"
+							:disabled="saving"
+							@click="rejectExemption">
 							{{ t('scholiq', 'Reject') }}
 						</button>
 					</div>
 				</div>
 
-				<div v-if="['submitted', 'in-assessment'].includes(caseObject.lifecycle)" class="exam-case-dossier__actions">
-					<button class="button-vue" :disabled="saving" @click="withdrawExemption">
+				<div
+					v-if="
+						['submitted', 'in-assessment'].includes(caseObject.lifecycle)
+					"
+					class="exam-case-dossier__actions">
+					<button
+						class="button-vue"
+						:disabled="saving"
+						@click="withdrawExemption">
 						{{ t('scholiq', 'Withdraw') }}
 					</button>
 				</div>
@@ -131,7 +166,9 @@
 				<div v-if="canSeeInternals" class="exam-case-dossier__internal">
 					<h3>{{ t('scholiq', 'Hearing records') }}</h3>
 					<ul v-if="(caseObject.hearingRecords || []).length > 0">
-						<li v-for="(record, idx) in caseObject.hearingRecords" :key="idx">
+						<li
+							v-for="(record, idx) in caseObject.hearingRecords"
+							:key="idx">
 							{{ record.heldAt }} — {{ record.notes }}
 						</li>
 					</ul>
@@ -145,30 +182,57 @@
 					</template>
 					<template v-if="caseObject.sanctionType">
 						<h3>{{ t('scholiq', 'Sanction') }}</h3>
-						<p>{{ caseObject.sanctionType }} — {{ caseObject.sanctionDurationMonths }} {{ t('scholiq', 'month(s)') }} — {{ caseObject.sanctionScope }}</p>
+						<p>
+							{{ caseObject.sanctionType }} —
+							{{ caseObject.sanctionDurationMonths }}
+							{{ t('scholiq', 'month(s)') }} —
+							{{ caseObject.sanctionScope }}
+						</p>
 					</template>
 				</div>
 				<p v-else class="exam-case-dossier__redacted-notice">
-					{{ t('scholiq', 'Hearing details and decision internals are only visible to the exam board.') }}
+					{{
+						t(
+							'scholiq',
+							'Hearing details and decision internals are only visible to the exam board.',
+						)
+					}}
 				</p>
 
-				<div v-if="caseObject.lifecycle === 'reported'" class="exam-case-dossier__decision-form">
-					<label for="hearing-date">{{ t('scholiq', 'Hearing date') }}</label>
-					<input id="hearing-date" v-model="hearingDate" type="datetime-local">
+				<div
+					v-if="caseObject.lifecycle === 'reported'"
+					class="exam-case-dossier__decision-form">
+					<label for="hearing-date">{{
+						t('scholiq', 'Hearing date')
+					}}</label>
+					<input
+						id="hearing-date"
+						v-model="hearingDate"
+						type="datetime-local" />
 					<div class="exam-case-dossier__actions">
-						<button class="button-vue" :disabled="saving" @click="scheduleHearing">
+						<button
+							class="button-vue"
+							:disabled="saving"
+							@click="scheduleHearing">
 							{{ t('scholiq', 'Schedule hearing') }}
 						</button>
 					</div>
 				</div>
 
-				<div v-if="caseObject.lifecycle === 'hearing-scheduled'" class="exam-case-dossier__actions">
-					<button class="button-vue" :disabled="saving" @click="holdHearing">
+				<div
+					v-if="caseObject.lifecycle === 'hearing-scheduled'"
+					class="exam-case-dossier__actions">
+					<button
+						class="button-vue"
+						:disabled="saving"
+						@click="holdHearing">
 						{{ t('scholiq', 'Record hearing held') }}
 					</button>
 				</div>
 
-				<div v-if="caseObject.lifecycle === 'heard'" class="exam-case-dossier__decision-form">
+				<div
+					v-if="caseObject.lifecycle === 'heard'"
+					class="exam-case-dossier__decision-form">
 					<label for="fraud-verdict">{{ t('scholiq', 'Verdict') }}</label>
 					<select id="fraud-verdict" v-model="verdict">
 						<option value="" disabled>
@@ -181,11 +245,15 @@
 							{{ t('scholiq', 'Unfounded') }}
 						</option>
 					</select>
-					<label for="fraud-rationale">{{ t('scholiq', 'Decision rationale') }}</label>
+					<label for="fraud-rationale">{{
+						t('scholiq', 'Decision rationale')
+					}}</label>
 					<textarea id="fraud-rationale" v-model="decisionRationale" />
 
 					<template v-if="verdict === 'fraud-proven'">
-						<label for="sanction-type">{{ t('scholiq', 'Sanction type') }}</label>
+						<label for="sanction-type">{{
+							t('scholiq', 'Sanction type')
+						}}</label>
 						<select id="sanction-type" v-model="sanctionType">
 							<option value="" disabled>
 								{{ t('scholiq', 'Select a sanction') }}
@@ -206,13 +274,18 @@
 								{{ t('scholiq', 'Exclusion') }}
 							</option>
 						</select>
-						<label for="sanction-duration">{{ t('scholiq', 'Sanction duration (months, max 12)') }}</label>
-						<input id="sanction-duration"
+						<label for="sanction-duration">{{
+							t('scholiq', 'Sanction duration (months, max 12)')
+						}}</label>
+						<input
+							id="sanction-duration"
 							v-model.number="sanctionDurationMonths"
 							type="number"
 							min="1"
-							max="12">
-						<label for="sanction-scope">{{ t('scholiq', 'Sanction scope') }}</label>
+							max="12" />
+						<label for="sanction-scope">{{
+							t('scholiq', 'Sanction scope')
+						}}</label>
 						<select id="sanction-scope" v-model="sanctionScope">
 							<option value="" disabled>
 								{{ t('scholiq', 'Select a scope') }}
@@ -230,14 +303,26 @@
 					</template>
 
 					<div class="exam-case-dossier__actions">
-						<button class="button-vue" :disabled="saving" @click="decideFraudCase">
+						<button
+							class="button-vue"
+							:disabled="saving"
+							@click="decideFraudCase">
 							{{ t('scholiq', 'Decide') }}
 						</button>
 					</div>
 				</div>
 
-				<div v-if="['reported', 'hearing-scheduled'].includes(caseObject.lifecycle)" class="exam-case-dossier__actions">
-					<button class="button-vue button-vue--error" :disabled="saving" @click="dismissFraudCase">
+				<div
+					v-if="
+						['reported', 'hearing-scheduled'].includes(
+							caseObject.lifecycle,
+						)
+					"
+					class="exam-case-dossier__actions">
+					<button
+						class="button-vue button-vue--error"
+						:disabled="saving"
+						@click="dismissFraudCase">
 						{{ t('scholiq', 'Dismiss') }}
 					</button>
 				</div>
@@ -367,7 +452,10 @@ export default {
 			this.error = null
 			try {
 				const resp = await fetch(this.objectUrl(), {
-					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+					},
 				})
 				if (!resp.ok) {
 					throw new Error(`Case fetch failed: ${resp.status}`)
@@ -375,7 +463,10 @@ export default {
 				const json = await resp.json()
 				this.caseObject = json.object ?? json ?? null
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load case. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to load case. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[ExamCaseDossierView] loadCase error', err)
 			} finally {
@@ -409,9 +500,15 @@ export default {
 				}
 				await this.loadCase()
 			} catch (err) {
-				this.saveError = this.t('scholiq', 'Action failed. Please check the required fields and try again.')
+				this.saveError = this.t(
+					'scholiq',
+					'Action failed. Please check the required fields and try again.',
+				)
 				// eslint-disable-next-line no-console
-				console.error(`[ExamCaseDossierView] transition(${action}) error`, err)
+				console.error(
+					`[ExamCaseDossierView] transition(${action}) error`,
+					err,
+				)
 			} finally {
 				this.saving = false
 			}
@@ -440,7 +537,9 @@ export default {
 		},
 
 		scheduleHearing() {
-			return this.transition('scheduleHearing', { hearingDate: this.hearingDate })
+			return this.transition('scheduleHearing', {
+				hearingDate: this.hearingDate,
+			})
 		},
 
 		holdHearing() {

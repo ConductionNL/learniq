@@ -27,7 +27,8 @@
 		<h2>{{ t('scholiq', 'Conference schedule board') }}</h2>
 
 		<div class="conference-schedule-board__toolbar">
-			<NcSelect id="csb-round"
+			<NcSelect
+				id="csb-round"
 				v-model="selectedRoundId"
 				:options="roundOptions"
 				:reduce="(o) => o.id"
@@ -37,10 +38,15 @@
 				:aria-label-combobox="t('scholiq', 'Conference round')"
 				@update:modelValue="loadWaitlisted" />
 
-			<NcButton variant="secondary"
+			<NcButton
+				variant="secondary"
 				:disabled="!selectedRoundId || regenerating"
 				@click="regenerate">
-				{{ regenerating ? t('scholiq', 'Regenerating…') : t('scholiq', 'Regenerate schedule') }}
+				{{
+					regenerating
+						? t('scholiq', 'Regenerating…')
+						: t('scholiq', 'Regenerate schedule')
+				}}
 			</NcButton>
 		</div>
 
@@ -48,16 +54,29 @@
 			{{ regenerateError }}
 		</NcNoteCard>
 		<NcNoteCard v-if="regenerateSuccess" type="success">
-			{{ t('scholiq', 'Regeneration triggered. Refresh the waitlist below in a moment.') }}
+			{{
+				t(
+					'scholiq',
+					'Regeneration triggered. Refresh the waitlist below in a moment.',
+				)
+			}}
 		</NcNoteCard>
 
 		<NcLoadingIcon v-if="loadingSignups" :size="32" />
 
-		<NcEmptyContent v-else-if="selectedRoundId && waitlisted.length === 0"
+		<NcEmptyContent
+			v-else-if="selectedRoundId && waitlisted.length === 0"
 			:name="t('scholiq', 'Nothing waitlisted')"
-			:description="t('scholiq', 'Every submitted signup for this round has a full schedule.')" />
+			:description="
+				t(
+					'scholiq',
+					'Every submitted signup for this round has a full schedule.',
+				)
+			" />
 
-		<table v-else-if="waitlisted.length > 0" class="conference-schedule-board__table">
+		<table
+			v-else-if="waitlisted.length > 0"
+			class="conference-schedule-board__table">
 			<thead>
 				<tr>
 					<th scope="col">{{ t('scholiq', 'Learner') }}</th>
@@ -73,20 +92,28 @@
 					<td>{{ signup.notes || '—' }}</td>
 					<td>
 						<div class="conference-schedule-board__manual">
-							<NcSelect v-model="manualForm[signup.id].teacherId"
+							<NcSelect
+								v-model="manualForm[signup.id].teacherId"
 								:options="teacherOptions(signup)"
 								:reduce="(o) => o.id"
 								label="label"
 								:input-label="t('scholiq', 'Teacher')"
 								:aria-label-combobox="t('scholiq', 'Teacher')" />
-							<input v-model="manualForm[signup.id].startsAt"
+							<input
+								v-model="manualForm[signup.id].startsAt"
 								type="datetime-local"
-								:aria-label="t('scholiq', 'Start time')">
-							<input v-model="manualForm[signup.id].endsAt"
+								:aria-label="t('scholiq', 'Start time')" />
+							<input
+								v-model="manualForm[signup.id].endsAt"
 								type="datetime-local"
-								:aria-label="t('scholiq', 'End time')">
-							<NcButton variant="tertiary"
-								:disabled="!manualForm[signup.id].teacherId || !manualForm[signup.id].startsAt || !manualForm[signup.id].endsAt"
+								:aria-label="t('scholiq', 'End time')" />
+							<NcButton
+								variant="tertiary"
+								:disabled="
+									!manualForm[signup.id].teacherId
+									|| !manualForm[signup.id].startsAt
+									|| !manualForm[signup.id].endsAt
+								"
 								@click="createManualSlot(signup)">
 								{{ t('scholiq', 'Create slot') }}
 							</NcButton>
@@ -101,7 +128,13 @@
 <script>
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
+import {
+	NcButton,
+	NcEmptyContent,
+	NcLoadingIcon,
+	NcNoteCard,
+	NcSelect,
+} from '@nextcloud/vue'
 
 export default {
 	name: 'ConferenceScheduleBoard',
@@ -136,7 +169,10 @@ export default {
 		 * @return {Array<object>}
 		 */
 		roundOptions() {
-			return this.rounds.map((r) => ({ id: r.id || r.uuid, label: r.name || r.id || r.uuid }))
+			return this.rounds.map((r) => ({
+				id: r.id || r.uuid,
+				label: r.name || r.id || r.uuid,
+			}))
 		},
 		/**
 		 * The currently selected ConferenceRound object, or null.
@@ -144,7 +180,10 @@ export default {
 		 * @return {object|null}
 		 */
 		selectedRound() {
-			return this.rounds.find((r) => (r.id || r.uuid) === this.selectedRoundId) || null
+			return (
+				this.rounds.find((r) => (r.id || r.uuid) === this.selectedRoundId)
+				|| null
+			)
 		},
 	},
 
@@ -163,9 +202,15 @@ export default {
 		async loadRounds() {
 			this.loadingRounds = true
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/conference-round?lifecycle=scheduled&limit=100')
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/conference-round?lifecycle=scheduled&limit=100',
+				)
 				const response = await axios.get(url)
-				this.rounds = (response.data && (response.data.results || response.data.objects)) || response.data || []
+				this.rounds =
+					(response.data
+						&& (response.data.results || response.data.objects))
+					|| response.data
+					|| []
 			} catch (e) {
 				console.error('[ConferenceScheduleBoard] loadRounds failed', e)
 				this.rounds = []
@@ -182,7 +227,10 @@ export default {
 		 */
 		teacherOptions(_signup) {
 			if (!this.selectedRound) return []
-			return (this.selectedRound.teacherIds || []).map((id) => ({ id, label: id }))
+			return (this.selectedRound.teacherIds || []).map((id) => ({
+				id,
+				label: id,
+			}))
 		},
 
 		/**
@@ -203,10 +251,18 @@ export default {
 					{ roundId: this.selectedRoundId },
 				)
 				const response = await axios.get(url)
-				this.waitlisted = (response.data && (response.data.results || response.data.objects)) || response.data || []
+				this.waitlisted =
+					(response.data
+						&& (response.data.results || response.data.objects))
+					|| response.data
+					|| []
 				const forms = {}
 				this.waitlisted.forEach((s) => {
-					forms[s.id || s.uuid] = { teacherId: '', startsAt: '', endsAt: '' }
+					forms[s.id || s.uuid] = {
+						teacherId: '',
+						startsAt: '',
+						endsAt: '',
+					}
 				})
 				this.manualForm = forms
 			} catch (e) {
@@ -239,9 +295,13 @@ export default {
 					startsAt: new Date(form.startsAt).toISOString(),
 					endsAt: new Date(form.endsAt).toISOString(),
 					location: null,
-					tenant_id: this.selectedRound ? this.selectedRound.tenant_id : undefined,
+					tenant_id: this.selectedRound
+						? this.selectedRound.tenant_id
+						: undefined,
 				}
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/conference-slot')
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/conference-slot',
+				)
 				await axios.post(url, body)
 
 				// Reflect the manual placement on the signup itself so the board
@@ -268,12 +328,18 @@ export default {
 			this.regenerateSuccess = false
 
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/conference-round/{id}', { id: this.selectedRoundId })
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/conference-round/{id}',
+					{ id: this.selectedRoundId },
+				)
 				await axios.put(url, { lifecycle: 'scheduled' })
 				this.regenerateSuccess = true
 			} catch (e) {
 				console.error('[ConferenceScheduleBoard] regenerate failed', e)
-				this.regenerateError = t('scholiq', 'Could not trigger regeneration. Please try again.')
+				this.regenerateError = t(
+					'scholiq',
+					'Could not trigger regeneration. Please try again.',
+				)
 			} finally {
 				this.regenerating = false
 			}

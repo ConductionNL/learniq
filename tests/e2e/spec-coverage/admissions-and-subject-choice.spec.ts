@@ -47,9 +47,10 @@ function collectFatalErrors(errors: string[]): string[] {
 }
 
 test.describe('admissions-and-subject-choice — review board and subject-choice picker', () => {
-
 	// @e2e openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
-	test('admissions review board page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('admissions review board page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -73,11 +74,15 @@ test.describe('admissions-and-subject-choice — review board and subject-choice
 		expect(bodyText).toContain('Admissions review board')
 
 		const fatal = collectFatalErrors(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 
 	// @e2e openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#scenario-a-learner-picks-electives-with-live-rule-feedback
-	test('subject choice picker page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('subject choice picker page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -97,6 +102,8 @@ test.describe('admissions-and-subject-choice — review board and subject-choice
 		expect(bodyText).toContain('Pick electives')
 
 		const fatal = collectFatalErrors(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

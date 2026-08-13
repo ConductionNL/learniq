@@ -36,7 +36,10 @@
 <template>
 	<div class="portfolio-review-view">
 		<!-- Loading -->
-		<div v-if="loading" class="portfolio-review-view__loading" aria-live="polite">
+		<div
+			v-if="loading"
+			class="portfolio-review-view__loading"
+			aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
 			<span>{{ t('scholiq', 'Loading portfolio...') }}</span>
 		</div>
@@ -49,11 +52,23 @@
 
 		<template v-else-if="portfolio">
 			<header class="portfolio-review-view__header">
-				<h2>{{ t('scholiq', 'Review portfolio: {title}', { title: portfolio.title || '' }) }}</h2>
+				<h2>
+					{{
+						t('scholiq', 'Review portfolio: {title}', {
+							title: portfolio.title || '',
+						})
+					}}
+				</h2>
 				<p class="portfolio-review-view__meta">
-					{{ t('scholiq', 'Kind: {kind}', { kind: portfolio.kind || '' }) }}
+					{{
+						t('scholiq', 'Kind: {kind}', { kind: portfolio.kind || '' })
+					}}
 					<span class="portfolio-review-view__lifecycle">
-						{{ t('scholiq', 'Status: {status}', { status: portfolio.lifecycle || '' }) }}
+						{{
+							t('scholiq', 'Status: {status}', {
+								status: portfolio.lifecycle || '',
+							})
+						}}
 					</span>
 				</p>
 			</header>
@@ -61,19 +76,35 @@
 			<!-- Entries (read-only) -->
 			<section class="portfolio-review-view__entries">
 				<h3>{{ t('scholiq', 'Evidence entries') }}</h3>
-				<ul v-if="entries.length > 0" class="portfolio-review-view__entry-list">
-					<li v-for="entry in entries" :key="entry.id" class="portfolio-review-view__entry-item">
-						<span class="portfolio-review-view__entry-kind">{{ evidenceKindLabel(entry.evidenceKind) }}</span>
-						<span class="portfolio-review-view__entry-title">{{ entry.title }}</span>
+				<ul
+					v-if="entries.length > 0"
+					class="portfolio-review-view__entry-list">
+					<li
+						v-for="entry in entries"
+						:key="entry.id"
+						class="portfolio-review-view__entry-item">
+						<span class="portfolio-review-view__entry-kind">{{
+							evidenceKindLabel(entry.evidenceKind)
+						}}</span>
+						<span class="portfolio-review-view__entry-title">{{
+							entry.title
+						}}</span>
 
-						<p v-if="entry.evidenceKind === 'reflection'" class="portfolio-review-view__entry-reflection">
+						<p
+							v-if="entry.evidenceKind === 'reflection'"
+							class="portfolio-review-view__entry-reflection">
 							{{ entry.reflectionText }}
 						</p>
-						<p v-else-if="entry.evidenceKind === 'file' && entry.attachmentRef"
+						<p
+							v-else-if="
+								entry.evidenceKind === 'file' && entry.attachmentRef
+							"
 							class="portfolio-review-view__entry-file">
 							{{ entry.attachmentRef }}
 						</p>
-						<p v-else-if="resolvedReferences[entry.id]" class="portfolio-review-view__entry-resolved">
+						<p
+							v-else-if="resolvedReferences[entry.id]"
+							class="portfolio-review-view__entry-resolved">
 							{{ resolvedReferences[entry.id] }}
 						</p>
 					</li>
@@ -87,7 +118,9 @@
 			<section v-if="canGrade" class="portfolio-review-view__grading">
 				<h3>{{ t('scholiq', 'Grade this portfolio') }}</h3>
 
-				<label for="pr-grade-value" class="portfolio-review-view__field-label">
+				<label
+					for="pr-grade-value"
+					class="portfolio-review-view__field-label">
 					{{ t('scholiq', 'Grade value') }}
 				</label>
 				<input
@@ -95,24 +128,39 @@
 					v-model.number="gradeValue"
 					type="number"
 					class="portfolio-review-view__grade-input"
-					:disabled="grading">
+					:disabled="grading" />
 
 				<div class="portfolio-review-view__actions">
 					<button
 						class="button-vue button-vue--primary portfolio-review-view__grade-btn"
-						:disabled="grading || gradeValue === null || gradeValue === ''"
+						:disabled="
+							grading || gradeValue === null || gradeValue === ''
+						"
 						@click="gradePortfolio">
-						<span v-if="grading" class="icon-loading" aria-hidden="true" />
+						<span
+							v-if="grading"
+							class="icon-loading"
+							aria-hidden="true" />
 						{{ t('scholiq', 'Save grade & transition to graded') }}
 					</button>
 				</div>
-				<p v-if="gradeError" role="alert" class="portfolio-review-view__grade-error">
+				<p
+					v-if="gradeError"
+					role="alert"
+					class="portfolio-review-view__grade-error">
 					{{ gradeError }}
 				</p>
 			</section>
 
-			<p v-if="portfolio.lifecycle === 'graded'" class="portfolio-review-view__graded-confirmation" role="status">
-				{{ t('scholiq', 'This portfolio has been graded. Grade: {grade}', { grade: portfolio.gradeValue }) }}
+			<p
+				v-if="portfolio.lifecycle === 'graded'"
+				class="portfolio-review-view__graded-confirmation"
+				role="status">
+				{{
+					t('scholiq', 'This portfolio has been graded. Grade: {grade}', {
+						grade: portfolio.gradeValue,
+					})
+				}}
 			</p>
 		</template>
 	</div>
@@ -129,8 +177,14 @@ import { generateUrl } from '@nextcloud/router'
  */
 const REFERENCE_SCHEMAS = {
 	submission: { schema: 'Submission', idField: 'submissionId' },
-	'werkproces-assessment': { schema: 'WerkprocesAssessment', idField: 'werkprocesAssessmentId' },
-	'external-training-record': { schema: 'ExternalTrainingRecord', idField: 'externalTrainingRecordId' },
+	'werkproces-assessment': {
+		schema: 'WerkprocesAssessment',
+		idField: 'werkprocesAssessmentId',
+	},
+	'external-training-record': {
+		schema: 'ExternalTrainingRecord',
+		idField: 'externalTrainingRecordId',
+	},
 	credential: { schema: 'Credential', idField: 'credentialId' },
 }
 
@@ -173,7 +227,10 @@ export default {
 		 * @return {boolean}
 		 */
 		canGrade() {
-			return this.portfolio?.kind === 'course-bound' && this.portfolio?.lifecycle === 'submitted'
+			return (
+				this.portfolio?.kind === 'course-bound'
+				&& this.portfolio?.lifecycle === 'submitted'
+			)
 		},
 	},
 
@@ -210,10 +267,16 @@ export default {
 				this.portfolio = await this.fetchObject('Portfolio', portfolioId)
 				this.gradeValue = this.portfolio.gradeValue ?? null
 
-				this.entries = await this.fetchList('PortfolioEntry', `filters[portfolioId]=${portfolioId}&limit=100`)
+				this.entries = await this.fetchList(
+					'PortfolioEntry',
+					`filters[portfolioId]=${portfolioId}&limit=100`,
+				)
 				await this.resolveEntryReferences()
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load portfolio. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to load portfolio. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[PortfolioReviewView] loadData error', err)
 			} finally {
@@ -229,7 +292,9 @@ export default {
 		 * @return {Promise<object>}
 		 */
 		async fetchObject(schema, objId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}/${objId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/${schema}/${objId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -248,7 +313,9 @@ export default {
 		 * @return {Promise<Array<object>>}
 		 */
 		async fetchList(schema, query) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}?${query}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/${schema}?${query}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -281,14 +348,18 @@ export default {
 				}
 				try {
 					const referenced = await this.fetchObject(mapping.schema, refId)
-					resolved[entry.id] = referenced.title
+					resolved[entry.id] =
+						referenced.title
 						?? referenced.name
 						?? referenced.feedbackText
 						?? refId
 				} catch (err) {
 					// Non-fatal — the entry simply shows no resolved reference.
 					// eslint-disable-next-line no-console
-					console.error('[PortfolioReviewView] resolveEntryReferences error', err)
+					console.error(
+						'[PortfolioReviewView] resolveEntryReferences error',
+						err,
+					)
 				}
 			}
 
@@ -306,7 +377,10 @@ export default {
 				file: this.t('scholiq', 'File'),
 				submission: this.t('scholiq', 'Submission'),
 				'werkproces-assessment': this.t('scholiq', 'Werkproces assessment'),
-				'external-training-record': this.t('scholiq', 'External training record'),
+				'external-training-record': this.t(
+					'scholiq',
+					'External training record',
+				),
 				credential: this.t('scholiq', 'Credential'),
 				reflection: this.t('scholiq', 'Reflection'),
 			}
@@ -329,7 +403,9 @@ export default {
 			this.gradeError = null
 
 			try {
-				const updateUrl = generateUrl(`/apps/openregister/api/objects/scholiq/Portfolio/${this.id}`)
+				const updateUrl = generateUrl(
+					`/apps/openregister/api/objects/scholiq/Portfolio/${this.id}`,
+				)
 				const updateResp = await fetch(updateUrl, {
 					method: 'PUT',
 					headers: {
@@ -356,12 +432,17 @@ export default {
 					body: JSON.stringify({}),
 				})
 				if (!transResp.ok) {
-					throw new Error(`Portfolio grade transition failed: ${transResp.status}`)
+					throw new Error(
+						`Portfolio grade transition failed: ${transResp.status}`,
+					)
 				}
 
 				this.portfolio = await this.fetchObject('Portfolio', this.id)
 			} catch (err) {
-				this.gradeError = this.t('scholiq', 'Failed to save grade. Please try again.')
+				this.gradeError = this.t(
+					'scholiq',
+					'Failed to save grade. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[PortfolioReviewView] gradePortfolio error', err)
 			} finally {
@@ -376,7 +457,8 @@ export default {
 .portfolio-review-view {
 	max-width: 860px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .portfolio-review-view__loading,

@@ -21,9 +21,10 @@ import { test, expect } from '../fixtures'
 const WIZARD_URL = '/index.php/apps/scholiq/#/structure/rollover'
 
 test.describe('school-year-rollover — rollover wizard page', () => {
-
 	// @e2e openspec/specs/school-year-rollover/spec.md#executor-is-notified-on-completion
-	test('rollover wizard page renders the mapping editor without a fatal error', async ({ loggedInPage: page }) => {
+	test('rollover wizard page renders the mapping editor without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -49,6 +50,8 @@ test.describe('school-year-rollover — rollover wizard page', () => {
 				&& !e.includes('Failed to fetch')
 				&& !e.includes('ERR_CONNECTION_REFUSED'),
 		)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

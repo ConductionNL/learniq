@@ -26,7 +26,12 @@
 				{{ t('scholiq', 'My learning record') }}
 			</h2>
 			<p class="my-learning-record__intro">
-				{{ t('scholiq', 'Everything you have earned, everywhere in Scholiq — composed live, read-only. Nothing here can be edited or deleted from this page.') }}
+				{{
+					t(
+						'scholiq',
+						'Everything you have earned, everywhere in Scholiq — composed live, read-only. Nothing here can be edited or deleted from this page.',
+					)
+				}}
 			</p>
 		</header>
 
@@ -40,28 +45,47 @@
 		<template v-else-if="record">
 			<!-- Composed, read-only sections -->
 			<section class="my-learning-record__section">
-				<h3>{{ t('scholiq', 'Credentials') }} ({{ record.credentials.length }})</h3>
+				<h3>
+					{{ t('scholiq', 'Credentials') }} ({{
+						record.credentials.length
+					}})
+				</h3>
 				<ul class="my-learning-record__list">
 					<li v-for="c in record.credentials" :key="c.id">
 						{{ c.kind }} — {{ c.issuedAt }}
 					</li>
-					<li v-if="record.credentials.length === 0" class="my-learning-record__empty">
+					<li
+						v-if="record.credentials.length === 0"
+						class="my-learning-record__empty">
 						{{ t('scholiq', 'None yet.') }}
 					</li>
 				</ul>
 			</section>
 
 			<section class="my-learning-record__section">
-				<h3>{{ t('scholiq', 'Final grades') }} ({{ record.finalGrades.length }})</h3>
+				<h3>
+					{{ t('scholiq', 'Final grades') }} ({{
+						record.finalGrades.length
+					}})
+				</h3>
 				<ul class="my-learning-record__list">
 					<li v-for="g in record.finalGrades" :key="g.id">
-						{{ g.value ?? '—' }} — {{ g.passed === true ? t('scholiq', 'passed') : t('scholiq', 'not yet passed') }}
+						{{ g.value ?? '—' }} —
+						{{
+							g.passed === true
+								? t('scholiq', 'passed')
+								: t('scholiq', 'not yet passed')
+						}}
 					</li>
 				</ul>
 			</section>
 
 			<section class="my-learning-record__section">
-				<h3>{{ t('scholiq', 'Competency attainments') }} ({{ record.competencyAttainments.length }})</h3>
+				<h3>
+					{{ t('scholiq', 'Competency attainments') }} ({{
+						record.competencyAttainments.length
+					}})
+				</h3>
 				<ul class="my-learning-record__list">
 					<li v-for="ca in record.competencyAttainments" :key="ca.id">
 						{{ ca.proficiencyLevelId ?? t('scholiq', 'in progress') }}
@@ -70,7 +94,9 @@
 			</section>
 
 			<section class="my-learning-record__section">
-				<h3>{{ t('scholiq', 'Portfolios') }} ({{ record.portfolios.length }})</h3>
+				<h3>
+					{{ t('scholiq', 'Portfolios') }} ({{ record.portfolios.length }})
+				</h3>
 				<ul class="my-learning-record__list">
 					<li v-for="p in record.portfolios" :key="p.id">
 						{{ p.title }} ({{ p.lifecycle }})
@@ -79,7 +105,11 @@
 			</section>
 
 			<section class="my-learning-record__section">
-				<h3>{{ t('scholiq', 'Verified external training') }} ({{ record.externalTrainingRecords.length }})</h3>
+				<h3>
+					{{ t('scholiq', 'Verified external training') }} ({{
+						record.externalTrainingRecords.length
+					}})
+				</h3>
 				<ul class="my-learning-record__list">
 					<li v-for="e in record.externalTrainingRecords" :key="e.id">
 						{{ e.title }} — {{ e.provider }}
@@ -88,7 +118,11 @@
 			</section>
 
 			<section class="my-learning-record__section">
-				<h3>{{ t('scholiq', 'Work-placement (BPV)') }} ({{ record.bpvPlacements.length }})</h3>
+				<h3>
+					{{ t('scholiq', 'Work-placement (BPV)') }} ({{
+						record.bpvPlacements.length
+					}})
+				</h3>
 				<ul class="my-learning-record__list">
 					<li v-for="b in record.bpvPlacements" :key="b.id">
 						{{ b.leerbedrijfName }} — {{ b.lifecycle }}
@@ -97,39 +131,67 @@
 			</section>
 
 			<section class="my-learning-record__section">
-				<h3>{{ t('scholiq', 'Lesson completion') }} ({{ record.lessonCompletions.length }} {{ t('scholiq', 'courses') }})</h3>
+				<h3>
+					{{ t('scholiq', 'Lesson completion') }} ({{
+						record.lessonCompletions.length
+					}}
+					{{ t('scholiq', 'courses') }})
+				</h3>
 				<ul class="my-learning-record__list">
 					<li v-for="(l, idx) in record.lessonCompletions" :key="idx">
-						{{ l.courseId }} — {{ l.completedCount }} {{ t('scholiq', 'lessons') }}
-						<span v-if="l.percentage !== null"> ({{ l.percentage }}%)</span>
+						{{ l.courseId }} — {{ l.completedCount }}
+						{{ t('scholiq', 'lessons') }}
+						<span v-if="l.percentage !== null">
+							({{ l.percentage }}%)</span
+						>
 					</li>
 				</ul>
 			</section>
 
 			<section class="my-learning-record__section">
-				<h3>{{ t('scholiq', 'Report cards') }} ({{ record.reportCards.length }})</h3>
+				<h3>
+					{{ t('scholiq', 'Report cards') }} ({{
+						record.reportCards.length
+					}})
+				</h3>
 			</section>
 
 			<!-- Export -->
 			<section class="my-learning-record__section my-learning-record__export">
 				<h3>{{ t('scholiq', 'Export my record') }}</h3>
 				<p class="my-learning-record__hint">
-					{{ t('scholiq', 'Generates a signed, self-contained bundle you can carry to another school or an employer, with an honest report of exactly what is included.') }}
+					{{
+						t(
+							'scholiq',
+							'Generates a signed, self-contained bundle you can carry to another school or an employer, with an honest report of exactly what is included.',
+						)
+					}}
 				</p>
 
 				<div class="my-learning-record__period">
-					<label for="period-from">{{ t('scholiq', 'From (optional)') }}</label>
-					<input id="period-from" v-model="periodFrom" type="date">
-					<label for="period-to">{{ t('scholiq', 'To (optional)') }}</label>
-					<input id="period-to" v-model="periodTo" type="date">
+					<label for="period-from">{{
+						t('scholiq', 'From (optional)')
+					}}</label>
+					<input id="period-from" v-model="periodFrom" type="date" />
+					<label for="period-to">{{
+						t('scholiq', 'To (optional)')
+					}}</label>
+					<input id="period-to" v-model="periodTo" type="date" />
 				</div>
 
 				<button
 					class="button-vue button-vue--primary"
 					:disabled="generating"
 					@click="generateExport">
-					<span v-if="generating" class="icon-loading" aria-hidden="true" />
-					{{ generating ? t('scholiq', 'Generating…') : t('scholiq', 'Generate export') }}
+					<span
+						v-if="generating"
+						class="icon-loading"
+						aria-hidden="true" />
+					{{
+						generating
+							? t('scholiq', 'Generating…')
+							: t('scholiq', 'Generate export')
+					}}
 				</button>
 
 				<p v-if="exportError" role="alert" class="my-learning-record__error">
@@ -137,14 +199,30 @@
 				</p>
 
 				<div v-if="latestExport" class="my-learning-record__export-result">
-					<p v-if="latestExport.lifecycle === 'generated'" class="my-learning-record__success">
-						{{ t('scholiq', 'Export generated. The signed bundle is stored at {ref} in your Files.', { ref: latestExport.bundleRef }) }}
+					<p
+						v-if="latestExport.lifecycle === 'generated'"
+						class="my-learning-record__success">
+						{{
+							t(
+								'scholiq',
+								'Export generated. The signed bundle is stored at {ref} in your Files.',
+								{ ref: latestExport.bundleRef },
+							)
+						}}
 					</p>
-					<p v-else-if="latestExport.errorMessage" role="alert" class="my-learning-record__error">
+					<p
+						v-else-if="latestExport.errorMessage"
+						role="alert"
+						class="my-learning-record__error">
 						{{ latestExport.errorMessage }}
 					</p>
 
-					<table v-if="latestExport.coverageReport && latestExport.coverageReport.length" class="my-learning-record__table">
+					<table
+						v-if="
+							latestExport.coverageReport
+							&& latestExport.coverageReport.length
+						"
+						class="my-learning-record__table">
 						<thead>
 							<tr>
 								<th scope="col">{{ t('scholiq', 'Source') }}</th>
@@ -153,10 +231,13 @@
 							</tr>
 						</thead>
 						<tbody>
-							<tr v-for="(entry, idx) in latestExport.coverageReport" :key="idx">
+							<tr
+								v-for="(entry, idx) in latestExport.coverageReport"
+								:key="idx">
 								<td>{{ entry.sourceTitle }}</td>
 								<td>
-									<span :class="`my-learning-record__badge my-learning-record__badge--${entry.outcome}`">
+									<span
+										:class="`my-learning-record__badge my-learning-record__badge--${entry.outcome}`">
 										{{ entry.outcome }}
 									</span>
 								</td>
@@ -168,17 +249,31 @@
 			</section>
 
 			<!-- Share -->
-			<section v-if="latestExport && latestExport.lifecycle === 'generated'" class="my-learning-record__section my-learning-record__share">
+			<section
+				v-if="latestExport && latestExport.lifecycle === 'generated'"
+				class="my-learning-record__section my-learning-record__share">
 				<h3>{{ t('scholiq', 'Share my export') }}</h3>
 				<p class="my-learning-record__hint">
-					{{ t('scholiq', 'Grant a named recipient — an employer, a receiving school — time-boxed access to the most recently generated export.') }}
+					{{
+						t(
+							'scholiq',
+							'Grant a named recipient — an employer, a receiving school — time-boxed access to the most recently generated export.',
+						)
+					}}
 				</p>
 
 				<div class="my-learning-record__share-form">
-					<label for="recipient-name">{{ t('scholiq', 'Recipient name') }}</label>
-					<input id="recipient-name" v-model="newShare.recipientName" type="text">
+					<label for="recipient-name">{{
+						t('scholiq', 'Recipient name')
+					}}</label>
+					<input
+						id="recipient-name"
+						v-model="newShare.recipientName"
+						type="text" />
 
-					<label for="recipient-email">{{ t('scholiq', 'Recipient email (optional)') }}</label>
+					<label for="recipient-email">{{
+						t('scholiq', 'Recipient email (optional)')
+					}}</label>
 					<!-- autocomplete="off", not "email": this collects a THIRD PARTY's address
 					     (an employer, a receiving school), never the signed-in user's own, so
 					     offering the user's own email here would be the wrong suggestion. -->
@@ -186,22 +281,40 @@
 						id="recipient-email"
 						v-model="newShare.recipientEmail"
 						type="email"
-						autocomplete="off">
+						autocomplete="off" />
 
 					<label for="expires-at">{{ t('scholiq', 'Expires on') }}</label>
-					<input id="expires-at" v-model="newShare.expiresAt" type="date">
+					<input
+						id="expires-at"
+						v-model="newShare.expiresAt"
+						type="date" />
 
 					<button
 						class="button-vue button-vue--primary"
-						:disabled="creatingShare || !newShare.recipientName || !newShare.expiresAt"
+						:disabled="
+							creatingShare
+							|| !newShare.recipientName
+							|| !newShare.expiresAt
+						"
 						@click="createShare">
 						{{ t('scholiq', 'Create share') }}
 					</button>
 
-					<p v-if="!newShare.expiresAt && shareTouched" role="alert" class="my-learning-record__error">
-						{{ t('scholiq', 'An expiry date is required before a share can be created.') }}
+					<p
+						v-if="!newShare.expiresAt && shareTouched"
+						role="alert"
+						class="my-learning-record__error">
+						{{
+							t(
+								'scholiq',
+								'An expiry date is required before a share can be created.',
+							)
+						}}
 					</p>
-					<p v-if="shareError" role="alert" class="my-learning-record__error">
+					<p
+						v-if="shareError"
+						role="alert"
+						class="my-learning-record__error">
 						{{ shareError }}
 					</p>
 				</div>
@@ -212,7 +325,9 @@
 							<th scope="col">{{ t('scholiq', 'Recipient') }}</th>
 							<th scope="col">{{ t('scholiq', 'Expires') }}</th>
 							<th scope="col">{{ t('scholiq', 'Status') }}</th>
-							<th scope="col">{{ t('scholiq', 'Verification link') }}</th>
+							<th scope="col">
+								{{ t('scholiq', 'Verification link') }}
+							</th>
 							<th scope="col">{{ t('scholiq', 'Action') }}</th>
 						</tr>
 					</thead>
@@ -222,7 +337,12 @@
 							<td>{{ share.expiresAt }}</td>
 							<td>{{ share.lifecycle }}</td>
 							<td>
-								<a :href="verifyUrl(share.id)" target="_blank" rel="noopener">{{ t('scholiq', 'Open') }}</a>
+								<a
+									:href="verifyUrl(share.id)"
+									target="_blank"
+									rel="noopener"
+									>{{ t('scholiq', 'Open') }}</a
+								>
 							</td>
 							<td>
 								<button
@@ -287,7 +407,10 @@ export default {
 			try {
 				const url = generateUrl('/apps/scholiq/api/learning-records/me')
 				const resp = await fetch(url, {
-					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+					},
 				})
 
 				// A 404 here is an EXPECTED state, not a failure: it means this
@@ -299,7 +422,10 @@ export default {
 				// correctly flags as fatal. Render the declared error branch with an
 				// accurate message instead of throwing.
 				if (resp.status === 404) {
-					this.loadError = this.t('scholiq', 'You do not have a learning record yet. A learning record is created once you are enrolled as a learner.')
+					this.loadError = this.t(
+						'scholiq',
+						'You do not have a learning record yet. A learning record is created once you are enrolled as a learner.',
+					)
 					return
 				}
 
@@ -309,7 +435,10 @@ export default {
 
 				this.record = await resp.json()
 			} catch (err) {
-				this.loadError = this.t('scholiq', 'Could not load your learning record. Please try again.')
+				this.loadError = this.t(
+					'scholiq',
+					'Could not load your learning record. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[MyLearningRecordView] loadRecord error', err)
 			} finally {
@@ -334,7 +463,9 @@ export default {
 			const nowIso = new Date().toISOString()
 
 			try {
-				const createUrl = generateUrl('/apps/openregister/api/objects/scholiq/learning-record-export')
+				const createUrl = generateUrl(
+					'/apps/openregister/api/objects/scholiq/learning-record-export',
+				)
 				const createResp = await fetch(createUrl, {
 					method: 'POST',
 					headers: {
@@ -354,13 +485,17 @@ export default {
 				})
 
 				if (!createResp.ok) {
-					throw new Error(`LearningRecordExport create failed: ${createResp.status}`)
+					throw new Error(
+						`LearningRecordExport create failed: ${createResp.status}`,
+					)
 				}
 
 				const created = await createResp.json()
 				const exportId = created.id ?? created.uuid
 
-				const transitionUrl = generateUrl(`/apps/openregister/api/objects/scholiq/learning-record-export/${exportId}/transition/generate`)
+				const transitionUrl = generateUrl(
+					`/apps/openregister/api/objects/scholiq/learning-record-export/${exportId}/transition/generate`,
+				)
 				await fetch(transitionUrl, {
 					method: 'POST',
 					headers: {
@@ -371,16 +506,24 @@ export default {
 					body: JSON.stringify({}),
 				})
 
-				const finalUrl = generateUrl(`/apps/openregister/api/objects/scholiq/learning-record-export/${exportId}`)
+				const finalUrl = generateUrl(
+					`/apps/openregister/api/objects/scholiq/learning-record-export/${exportId}`,
+				)
 				const finalResp = await fetch(finalUrl, {
-					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+					},
 				})
 				const finalJson = await finalResp.json()
 				this.latestExport = finalJson.object ?? finalJson
 
 				this.shares = []
 			} catch (err) {
-				this.exportError = this.t('scholiq', 'Failed to generate the export. Please try again.')
+				this.exportError = this.t(
+					'scholiq',
+					'Failed to generate the export. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[MyLearningRecordView] generateExport error', err)
 			} finally {
@@ -397,7 +540,11 @@ export default {
 		 */
 		async createShare() {
 			this.shareTouched = true
-			if (!this.newShare.recipientName || !this.newShare.expiresAt || !this.latestExport) {
+			if (
+				!this.newShare.recipientName
+				|| !this.newShare.expiresAt
+				|| !this.latestExport
+			) {
 				return
 			}
 
@@ -407,7 +554,9 @@ export default {
 			const uid = getCurrentUser()?.uid ?? ''
 
 			try {
-				const createUrl = generateUrl('/apps/openregister/api/objects/scholiq/learning-record-share')
+				const createUrl = generateUrl(
+					'/apps/openregister/api/objects/scholiq/learning-record-share',
+				)
 				const createResp = await fetch(createUrl, {
 					method: 'POST',
 					headers: {
@@ -416,7 +565,8 @@ export default {
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({
-						learningRecordExportId: this.latestExport.id ?? this.latestExport.uuid,
+						learningRecordExportId:
+							this.latestExport.id ?? this.latestExport.uuid,
 						learnerId: uid,
 						learnerRef: this.record.learnerRef,
 						recipientName: this.newShare.recipientName,
@@ -428,13 +578,17 @@ export default {
 				})
 
 				if (!createResp.ok) {
-					throw new Error(`LearningRecordShare create failed: ${createResp.status}`)
+					throw new Error(
+						`LearningRecordShare create failed: ${createResp.status}`,
+					)
 				}
 
 				const created = await createResp.json()
 				const shareId = created.id ?? created.uuid
 
-				const transitionUrl = generateUrl(`/apps/openregister/api/objects/scholiq/learning-record-share/${shareId}/transition/grant`)
+				const transitionUrl = generateUrl(
+					`/apps/openregister/api/objects/scholiq/learning-record-share/${shareId}/transition/grant`,
+				)
 				await fetch(transitionUrl, {
 					method: 'POST',
 					headers: {
@@ -446,10 +600,17 @@ export default {
 				})
 
 				await this.loadShares()
-				this.newShare = { recipientName: '', recipientEmail: '', expiresAt: '' }
+				this.newShare = {
+					recipientName: '',
+					recipientEmail: '',
+					expiresAt: '',
+				}
 				this.shareTouched = false
 			} catch (err) {
-				this.shareError = this.t('scholiq', 'Failed to create the share. Please try again.')
+				this.shareError = this.t(
+					'scholiq',
+					'Failed to create the share. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[MyLearningRecordView] createShare error', err)
 			} finally {
@@ -466,7 +627,9 @@ export default {
 		 */
 		async revokeShare(shareId) {
 			try {
-				const url = generateUrl(`/apps/openregister/api/objects/scholiq/learning-record-share/${shareId}/transition/revoke`)
+				const url = generateUrl(
+					`/apps/openregister/api/objects/scholiq/learning-record-share/${shareId}/transition/revoke`,
+				)
 				await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -492,7 +655,9 @@ export default {
 			if (!this.latestExport) return
 
 			const exportId = this.latestExport.id ?? this.latestExport.uuid
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/learning-record-share?filters[learningRecordExportId]=${exportId}&limit=100`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/learning-record-share?filters[learningRecordExportId]=${exportId}&limit=100`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -501,7 +666,8 @@ export default {
 				return
 			}
 			const json = await resp.json()
-			this.shares = json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
+			this.shares =
+				json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
 		},
 
 		/**
@@ -511,7 +677,9 @@ export default {
 		 * @return {string}
 		 */
 		verifyUrl(shareId) {
-			return generateUrl(`/apps/scholiq/learning-record-shares/${shareId}/verify`)
+			return generateUrl(
+				`/apps/scholiq/learning-record-shares/${shareId}/verify`,
+			)
 		},
 	},
 }
@@ -521,7 +689,8 @@ export default {
 .my-learning-record {
 	max-width: 1080px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .my-learning-record__heading {

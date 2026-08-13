@@ -52,13 +52,45 @@ export default {
 		return {
 			widgets: [
 				{ id: 'kpi-regulations', title: 'Regulations', type: 'custom' },
-				{ id: 'kpi-attestations', title: 'Signed attestations', type: 'custom' },
-				{ id: 'kpi-external-training', title: 'External training', type: 'custom' },
+				{
+					id: 'kpi-attestations',
+					title: 'Signed attestations',
+					type: 'custom',
+				},
+				{
+					id: 'kpi-external-training',
+					title: 'External training',
+					type: 'custom',
+				},
 			],
 			layout: [
-				{ id: 1, widgetId: 'kpi-regulations', gridX: 0, gridY: 0, gridWidth: 3, gridHeight: 2, showTitle: false },
-				{ id: 2, widgetId: 'kpi-attestations', gridX: 3, gridY: 0, gridWidth: 3, gridHeight: 2, showTitle: false },
-				{ id: 3, widgetId: 'kpi-external-training', gridX: 0, gridY: 2, gridWidth: 3, gridHeight: 2, showTitle: false },
+				{
+					id: 1,
+					widgetId: 'kpi-regulations',
+					gridX: 0,
+					gridY: 0,
+					gridWidth: 3,
+					gridHeight: 2,
+					showTitle: false,
+				},
+				{
+					id: 2,
+					widgetId: 'kpi-attestations',
+					gridX: 3,
+					gridY: 0,
+					gridWidth: 3,
+					gridHeight: 2,
+					showTitle: false,
+				},
+				{
+					id: 3,
+					widgetId: 'kpi-external-training',
+					gridX: 0,
+					gridY: 2,
+					gridWidth: 3,
+					gridHeight: 2,
+					showTitle: false,
+				},
 			],
 		}
 	},

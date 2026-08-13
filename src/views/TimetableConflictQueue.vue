@@ -26,11 +26,19 @@
 				{{ t('scholiq', 'Timetable conflicts') }}
 			</h2>
 			<p class="timetable-conflict-queue__subtitle">
-				{{ t('scholiq', 'Detected double-bookings and capacity overruns. Nothing here is auto-resolved — review each conflict and act on the affected Sessions directly.') }}
+				{{
+					t(
+						'scholiq',
+						'Detected double-bookings and capacity overruns. Nothing here is auto-resolved — review each conflict and act on the affected Sessions directly.',
+					)
+				}}
 			</p>
 		</header>
 
-		<div v-if="loading" class="timetable-conflict-queue__loading" aria-live="polite">
+		<div
+			v-if="loading"
+			class="timetable-conflict-queue__loading"
+			aria-live="polite">
 			<NcLoadingIcon :size="32" />
 			<span>{{ t('scholiq', 'Loading conflicts…') }}</span>
 		</div>
@@ -39,40 +47,62 @@
 			{{ error }}
 		</NcNoteCard>
 
-		<NcEmptyContent v-else-if="visibleConflicts.length === 0"
+		<NcEmptyContent
+			v-else-if="visibleConflicts.length === 0"
 			:name="t('scholiq', 'No open conflicts')"
-			:description="t('scholiq', 'The timetable has no unresolved conflicts right now.')">
+			:description="
+				t('scholiq', 'The timetable has no unresolved conflicts right now.')
+			">
 			<template #icon>
 				<span class="icon-checkmark" />
 			</template>
 		</NcEmptyContent>
 
 		<ul v-else class="timetable-conflict-queue__list">
-			<li v-for="conflict in visibleConflicts"
+			<li
+				v-for="conflict in visibleConflicts"
 				:key="conflict.id"
 				class="timetable-conflict-queue__item"
 				:class="'timetable-conflict-queue__item--' + conflict.severity">
 				<div class="timetable-conflict-queue__info">
-					<span class="timetable-conflict-queue__kind">{{ kindLabel(conflict.kind) }}</span>
-					<span class="timetable-conflict-queue__severity">{{ conflict.severity }}</span>
+					<span class="timetable-conflict-queue__kind">{{
+						kindLabel(conflict.kind)
+					}}</span>
+					<span class="timetable-conflict-queue__severity">{{
+						conflict.severity
+					}}</span>
 					<span class="timetable-conflict-queue__sessions">
-						{{ t('scholiq', 'Sessions: {ids}', { ids: (conflict.sessionIds || []).join(', ') }) }}
+						{{
+							t('scholiq', 'Sessions: {ids}', {
+								ids: (conflict.sessionIds || []).join(', '),
+							})
+						}}
 					</span>
-					<span class="timetable-conflict-queue__detected">{{ formatDate(conflict.detectedAt) }}</span>
+					<span class="timetable-conflict-queue__detected">{{
+						formatDate(conflict.detectedAt)
+					}}</span>
 				</div>
 
 				<div class="timetable-conflict-queue__actions">
 					<template v-if="conflict.lifecycle === 'open'">
-						<NcButton :disabled="savingId === conflict.id" @click="transition(conflict, 'acknowledged')">
+						<NcButton
+							:disabled="savingId === conflict.id"
+							@click="transition(conflict, 'acknowledged')">
 							{{ t('scholiq', 'Acknowledge') }}
 						</NcButton>
 					</template>
-					<NcButton variant="primary" :disabled="savingId === conflict.id" @click="transition(conflict, 'resolved')">
+					<NcButton
+						variant="primary"
+						:disabled="savingId === conflict.id"
+						@click="transition(conflict, 'resolved')">
 						{{ t('scholiq', 'Resolve') }}
 					</NcButton>
 				</div>
 
-				<p v-if="itemError[conflict.id]" role="alert" class="timetable-conflict-queue__error-inline">
+				<p
+					v-if="itemError[conflict.id]"
+					role="alert"
+					class="timetable-conflict-queue__error-inline">
 					{{ itemError[conflict.id] }}
 				</p>
 			</li>
@@ -113,9 +143,15 @@ export default {
 		 */
 		visibleConflicts() {
 			return this.conflicts
-				.filter((c) => c.lifecycle === 'open' || c.lifecycle === 'acknowledged')
+				.filter(
+					(c) => c.lifecycle === 'open' || c.lifecycle === 'acknowledged',
+				)
 				.slice()
-				.sort((a, b) => String(b.detectedAt || '').localeCompare(String(a.detectedAt || '')))
+				.sort((a, b) =>
+					String(b.detectedAt || '').localeCompare(
+						String(a.detectedAt || ''),
+					),
+				)
 		},
 	},
 
@@ -136,13 +172,24 @@ export default {
 			this.error = ''
 
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/timetable-conflict?limit=200')
-				const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
-				if (!resp.ok) throw new Error(`Conflicts fetch failed: ${resp.status}`)
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/timetable-conflict?limit=200',
+				)
+				const resp = await fetch(url, {
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+					},
+				})
+				if (!resp.ok)
+					throw new Error(`Conflicts fetch failed: ${resp.status}`)
 				const json = await resp.json()
 				this.conflicts = json.results ?? json.objects ?? json ?? []
 			} catch (err) {
-				this.error = t('scholiq', 'Failed to load timetable conflicts. Please try again.')
+				this.error = t(
+					'scholiq',
+					'Failed to load timetable conflicts. Please try again.',
+				)
 				console.error('[TimetableConflictQueue] load error', err)
 			} finally {
 				this.loading = false
@@ -181,7 +228,10 @@ export default {
 			this.itemError = { ...this.itemError, [conflict.id]: null }
 
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/timetable-conflict/{id}', { id: conflict.id })
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/timetable-conflict/{id}',
+					{ id: conflict.id },
+				)
 				await axios.put(url, { lifecycle })
 
 				const idx = this.conflicts.findIndex((c) => c.id === conflict.id)
@@ -192,7 +242,10 @@ export default {
 			} catch (err) {
 				this.itemError = {
 					...this.itemError,
-					[conflict.id]: t('scholiq', 'Failed to update this conflict. Please try again.'),
+					[conflict.id]: t(
+						'scholiq',
+						'Failed to update this conflict. Please try again.',
+					),
 				}
 				console.error('[TimetableConflictQueue] transition error', err)
 			} finally {
@@ -210,7 +263,11 @@ export default {
 			if (!dt) return ''
 			try {
 				return new Intl.DateTimeFormat(navigator.language, {
-					year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+					year: 'numeric',
+					month: 'short',
+					day: 'numeric',
+					hour: '2-digit',
+					minute: '2-digit',
 				}).format(new Date(dt))
 			} catch {
 				return dt
@@ -224,7 +281,8 @@ export default {
 .timetable-conflict-queue {
 	max-width: 900px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .timetable-conflict-queue__header {
@@ -259,7 +317,8 @@ export default {
 	flex-wrap: wrap;
 	align-items: center;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 	margin-bottom: var(--default-grid-baseline, 8px);
 	border: 1px solid var(--color-border);
 	border-radius: var(--border-radius, 4px);

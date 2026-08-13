@@ -175,7 +175,11 @@ export default {
 		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
 		 */
 		pageTitle() {
-			return this.roleLabel(this.activeRole) + ' · ' + this.t('scholiq', 'Dashboard')
+			return (
+				this.roleLabel(this.activeRole)
+				+ ' · '
+				+ this.t('scholiq', 'Dashboard')
+			)
 		},
 
 		/**
@@ -220,24 +224,117 @@ export default {
 		adminConfig() {
 			return {
 				widgets: [
-					{ id: 'kpi-courses', title: this.t('scholiq', 'Courses'), type: 'custom' },
-					{ id: 'kpi-cohorts', title: this.t('scholiq', 'Cohorts'), type: 'custom' },
-					{ id: 'kpi-learners', title: this.t('scholiq', 'Learners'), type: 'custom' },
-					{ id: 'kpi-active-enrolments', title: this.t('scholiq', 'Active enrolments'), type: 'custom' },
-					{ id: 'kpi-open-flags', title: this.t('scholiq', 'Open attendance flags'), type: 'custom' },
-					{ id: 'manage-courses', title: this.t('scholiq', 'Courses'), type: 'custom' },
-					{ id: 'manage-cohorts', title: this.t('scholiq', 'Cohorts'), type: 'custom' },
-					{ id: 'manage-programmes', title: this.t('scholiq', 'Programmes'), type: 'custom' },
+					{
+						id: 'kpi-courses',
+						title: this.t('scholiq', 'Courses'),
+						type: 'custom',
+					},
+					{
+						id: 'kpi-cohorts',
+						title: this.t('scholiq', 'Cohorts'),
+						type: 'custom',
+					},
+					{
+						id: 'kpi-learners',
+						title: this.t('scholiq', 'Learners'),
+						type: 'custom',
+					},
+					{
+						id: 'kpi-active-enrolments',
+						title: this.t('scholiq', 'Active enrolments'),
+						type: 'custom',
+					},
+					{
+						id: 'kpi-open-flags',
+						title: this.t('scholiq', 'Open attendance flags'),
+						type: 'custom',
+					},
+					{
+						id: 'manage-courses',
+						title: this.t('scholiq', 'Courses'),
+						type: 'custom',
+					},
+					{
+						id: 'manage-cohorts',
+						title: this.t('scholiq', 'Cohorts'),
+						type: 'custom',
+					},
+					{
+						id: 'manage-programmes',
+						title: this.t('scholiq', 'Programmes'),
+						type: 'custom',
+					},
 				],
 				layout: [
-					{ id: 1, widgetId: 'kpi-courses', gridX: 0, gridY: 0, gridWidth: 2, gridHeight: 2, showTitle: false },
-					{ id: 2, widgetId: 'kpi-cohorts', gridX: 2, gridY: 0, gridWidth: 2, gridHeight: 2, showTitle: false },
-					{ id: 3, widgetId: 'kpi-learners', gridX: 4, gridY: 0, gridWidth: 2, gridHeight: 2, showTitle: false },
-					{ id: 4, widgetId: 'kpi-active-enrolments', gridX: 6, gridY: 0, gridWidth: 2, gridHeight: 2, showTitle: false },
-					{ id: 5, widgetId: 'kpi-open-flags', gridX: 8, gridY: 0, gridWidth: 2, gridHeight: 2, showTitle: false },
-					{ id: 6, widgetId: 'manage-courses', gridX: 0, gridY: 2, gridWidth: 4, gridHeight: 4 },
-					{ id: 7, widgetId: 'manage-cohorts', gridX: 4, gridY: 2, gridWidth: 4, gridHeight: 4 },
-					{ id: 8, widgetId: 'manage-programmes', gridX: 8, gridY: 2, gridWidth: 4, gridHeight: 4 },
+					{
+						id: 1,
+						widgetId: 'kpi-courses',
+						gridX: 0,
+						gridY: 0,
+						gridWidth: 2,
+						gridHeight: 2,
+						showTitle: false,
+					},
+					{
+						id: 2,
+						widgetId: 'kpi-cohorts',
+						gridX: 2,
+						gridY: 0,
+						gridWidth: 2,
+						gridHeight: 2,
+						showTitle: false,
+					},
+					{
+						id: 3,
+						widgetId: 'kpi-learners',
+						gridX: 4,
+						gridY: 0,
+						gridWidth: 2,
+						gridHeight: 2,
+						showTitle: false,
+					},
+					{
+						id: 4,
+						widgetId: 'kpi-active-enrolments',
+						gridX: 6,
+						gridY: 0,
+						gridWidth: 2,
+						gridHeight: 2,
+						showTitle: false,
+					},
+					{
+						id: 5,
+						widgetId: 'kpi-open-flags',
+						gridX: 8,
+						gridY: 0,
+						gridWidth: 2,
+						gridHeight: 2,
+						showTitle: false,
+					},
+					{
+						id: 6,
+						widgetId: 'manage-courses',
+						gridX: 0,
+						gridY: 2,
+						gridWidth: 4,
+						gridHeight: 4,
+					},
+					{
+						id: 7,
+						widgetId: 'manage-cohorts',
+						gridX: 4,
+						gridY: 2,
+						gridWidth: 4,
+						gridHeight: 4,
+					},
+					{
+						id: 8,
+						widgetId: 'manage-programmes',
+						gridX: 8,
+						gridY: 2,
+						gridWidth: 4,
+						gridHeight: 4,
+					},
 				],
 			}
 		},
@@ -253,20 +350,88 @@ export default {
 					// learning-progress-and-analytics: declarative KPI tiles
 					// surfacing average EngagementScore.score and open
 					// EngagementRiskFlag counts — no new chart component.
-					{ id: 'kpi-engagement-score', title: this.t('scholiq', 'Avg. engagement score'), type: 'custom' },
-					{ id: 'kpi-engagement-flags', title: this.t('scholiq', 'Open engagement flags'), type: 'custom' },
-					{ id: 'teacher-courses', title: this.t('scholiq', 'My courses'), type: 'custom' },
-					{ id: 'teacher-assignments', title: this.t('scholiq', 'Assignments to grade'), type: 'custom' },
-					{ id: 'teacher-sessions', title: this.t('scholiq', 'Sessions to mark'), type: 'custom' },
-					{ id: 'teacher-cohorts', title: this.t('scholiq', 'My cohorts'), type: 'custom' },
+					{
+						id: 'kpi-engagement-score',
+						title: this.t('scholiq', 'Avg. engagement score'),
+						type: 'custom',
+					},
+					{
+						id: 'kpi-engagement-flags',
+						title: this.t('scholiq', 'Open engagement flags'),
+						type: 'custom',
+					},
+					{
+						id: 'teacher-courses',
+						title: this.t('scholiq', 'My courses'),
+						type: 'custom',
+					},
+					{
+						id: 'teacher-assignments',
+						title: this.t('scholiq', 'Assignments to grade'),
+						type: 'custom',
+					},
+					{
+						id: 'teacher-sessions',
+						title: this.t('scholiq', 'Sessions to mark'),
+						type: 'custom',
+					},
+					{
+						id: 'teacher-cohorts',
+						title: this.t('scholiq', 'My cohorts'),
+						type: 'custom',
+					},
 				],
 				layout: [
-					{ id: 1, widgetId: 'kpi-engagement-score', gridX: 0, gridY: 0, gridWidth: 6, gridHeight: 2, showTitle: false },
-					{ id: 2, widgetId: 'kpi-engagement-flags', gridX: 6, gridY: 0, gridWidth: 6, gridHeight: 2, showTitle: false },
-					{ id: 3, widgetId: 'teacher-courses', gridX: 0, gridY: 2, gridWidth: 6, gridHeight: 4 },
-					{ id: 4, widgetId: 'teacher-assignments', gridX: 6, gridY: 2, gridWidth: 6, gridHeight: 4 },
-					{ id: 5, widgetId: 'teacher-sessions', gridX: 0, gridY: 6, gridWidth: 6, gridHeight: 4 },
-					{ id: 6, widgetId: 'teacher-cohorts', gridX: 6, gridY: 6, gridWidth: 6, gridHeight: 4 },
+					{
+						id: 1,
+						widgetId: 'kpi-engagement-score',
+						gridX: 0,
+						gridY: 0,
+						gridWidth: 6,
+						gridHeight: 2,
+						showTitle: false,
+					},
+					{
+						id: 2,
+						widgetId: 'kpi-engagement-flags',
+						gridX: 6,
+						gridY: 0,
+						gridWidth: 6,
+						gridHeight: 2,
+						showTitle: false,
+					},
+					{
+						id: 3,
+						widgetId: 'teacher-courses',
+						gridX: 0,
+						gridY: 2,
+						gridWidth: 6,
+						gridHeight: 4,
+					},
+					{
+						id: 4,
+						widgetId: 'teacher-assignments',
+						gridX: 6,
+						gridY: 2,
+						gridWidth: 6,
+						gridHeight: 4,
+					},
+					{
+						id: 5,
+						widgetId: 'teacher-sessions',
+						gridX: 0,
+						gridY: 6,
+						gridWidth: 6,
+						gridHeight: 4,
+					},
+					{
+						id: 6,
+						widgetId: 'teacher-cohorts',
+						gridX: 6,
+						gridY: 6,
+						gridWidth: 6,
+						gridHeight: 4,
+					},
 				],
 			}
 		},
@@ -284,14 +449,37 @@ export default {
 		studentConfig() {
 			return {
 				widgets: [
-					{ id: 'my-mandatory-training', title: this.t('scholiq', 'My mandatory training'), type: 'custom' },
+					{
+						id: 'my-mandatory-training',
+						title: this.t('scholiq', 'My mandatory training'),
+						type: 'custom',
+					},
 					// engagement-gamification: the learner's own points/level/streak KPI —
 					// always visible regardless of any Leaderboard/opt-out state.
-					{ id: 'kpi-points-level', title: this.t('scholiq', 'My points'), type: 'custom' },
+					{
+						id: 'kpi-points-level',
+						title: this.t('scholiq', 'My points'),
+						type: 'custom',
+					},
 				],
 				layout: [
-					{ id: 1, widgetId: 'my-mandatory-training', gridX: 0, gridY: 0, gridWidth: 6, gridHeight: 5 },
-					{ id: 2, widgetId: 'kpi-points-level', gridX: 6, gridY: 0, gridWidth: 6, gridHeight: 2, showTitle: false },
+					{
+						id: 1,
+						widgetId: 'my-mandatory-training',
+						gridX: 0,
+						gridY: 0,
+						gridWidth: 6,
+						gridHeight: 5,
+					},
+					{
+						id: 2,
+						widgetId: 'kpi-points-level',
+						gridX: 6,
+						gridY: 0,
+						gridWidth: 6,
+						gridHeight: 2,
+						showTitle: false,
+					},
 				],
 			}
 		},

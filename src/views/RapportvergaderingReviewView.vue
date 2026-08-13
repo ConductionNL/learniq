@@ -29,12 +29,21 @@
 
 		<template v-else-if="period">
 			<p class="rapportvergadering-review__meta">
-				{{ period.name }} — {{ period.academicYear }} ({{ t('scholiq', 'period {code}', { code: period.periodCode }) }})
+				{{ period.name }} — {{ period.academicYear }} ({{
+					t('scholiq', 'period {code}', { code: period.periodCode })
+				}})
 			</p>
 
-			<div v-if="period.lifecycle === 'open'" class="rapportvergadering-review__compose">
+			<div
+				v-if="period.lifecycle === 'open'"
+				class="rapportvergadering-review__compose">
 				<NcNoteCard type="info">
-					{{ t('scholiq', 'Report cards have not been composed yet for this period.') }}
+					{{
+						t(
+							'scholiq',
+							'Report cards have not been composed yet for this period.',
+						)
+					}}
 				</NcNoteCard>
 				<NcButton variant="primary" @click="showComposeModal = true">
 					{{ t('scholiq', 'Compose report cards…') }}
@@ -44,19 +53,30 @@
 			<template v-else>
 				<NcLoadingIcon v-if="loadingCards" :size="32" />
 
-				<NcEmptyContent v-else-if="cards.length === 0"
+				<NcEmptyContent
+					v-else-if="cards.length === 0"
 					:name="t('scholiq', 'No report cards')"
-					:description="t('scholiq', 'This period is composed but no report cards were generated.')" />
+					:description="
+						t(
+							'scholiq',
+							'This period is composed but no report cards were generated.',
+						)
+					" />
 
 				<div v-else class="rapportvergadering-review__table-wrap">
 					<table class="rapportvergadering-review__table">
 						<thead>
 							<tr>
 								<th scope="col">{{ t('scholiq', 'Learner') }}</th>
-								<th v-for="plan in subjectColumns" :key="plan.id" scope="col">
+								<th
+									v-for="plan in subjectColumns"
+									:key="plan.id"
+									scope="col">
 									{{ plan.label }}
 								</th>
-								<th scope="col">{{ t('scholiq', 'Mentor comment') }}</th>
+								<th scope="col">
+									{{ t('scholiq', 'Mentor comment') }}
+								</th>
 								<th scope="col">{{ t('scholiq', 'Status') }}</th>
 								<th scope="col">{{ t('scholiq', 'Actions') }}</th>
 							</tr>
@@ -67,57 +87,121 @@
 								<td v-for="plan in subjectColumns" :key="plan.id">
 									<template v-if="subjectRow(card, plan.id)">
 										<div class="rapportvergadering-review__cell">
-											<strong>{{ formatAverage(subjectRow(card, plan.id).periodAverage) }}</strong>
-											<span v-if="subjectRow(card, plan.id).passed === false" class="rapportvergadering-review__fail">
+											<strong>{{
+												formatAverage(
+													subjectRow(card, plan.id)
+														.periodAverage,
+												)
+											}}</strong>
+											<span
+												v-if="
+													subjectRow(card, plan.id).passed
+													=== false
+												"
+												class="rapportvergadering-review__fail">
 												{{ t('scholiq', 'fail') }}
 											</span>
 											<textarea
-												:value="subjectRow(card, plan.id).teacherComment"
-												:aria-label="t('scholiq', 'Teacher comment for {subject}', { subject: plan.label })"
+												:value="
+													subjectRow(card, plan.id)
+														.teacherComment
+												"
+												:aria-label="
+													t(
+														'scholiq',
+														'Teacher comment for {subject}',
+														{ subject: plan.label },
+													)
+												"
 												:disabled="!isEditable(card)"
 												rows="2"
-												@change="onTeacherCommentChange(card, plan.id, $event.target.value)" />
+												@change="
+													onTeacherCommentChange(
+														card,
+														plan.id,
+														$event.target.value,
+													)
+												" />
 										</div>
 									</template>
-									<span v-else class="rapportvergadering-review__empty">—</span>
+									<span
+										v-else
+										class="rapportvergadering-review__empty"
+										>—</span
+									>
 								</td>
 								<td>
 									<textarea
 										:value="card.mentorComment"
-										:aria-label="t('scholiq', 'Mentor comment for {learner}', { learner: card.learnerId })"
+										:aria-label="
+											t(
+												'scholiq',
+												'Mentor comment for {learner}',
+												{ learner: card.learnerId },
+											)
+										"
 										:disabled="!isEditable(card)"
 										rows="2"
-										@change="onMentorCommentChange(card, $event.target.value)" />
+										@change="
+											onMentorCommentChange(
+												card,
+												$event.target.value,
+											)
+										" />
 								</td>
 								<td>{{ card.lifecycle }}</td>
 								<td>
 									<div class="rapportvergadering-review__actions">
-										<NcButton v-if="card.lifecycle === 'draft'"
+										<NcButton
+											v-if="card.lifecycle === 'draft'"
 											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
-											@click="transition(card, 'rapportvergadering-review')">
+											@click="
+												transition(
+													card,
+													'rapportvergadering-review',
+												)
+											">
 											{{ t('scholiq', 'Pull into review') }}
 										</NcButton>
-										<NcButton v-if="card.lifecycle === 'rapportvergadering-review'"
+										<NcButton
+											v-if="
+												card.lifecycle
+												=== 'rapportvergadering-review'
+											"
 											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
 											@click="transition(card, 'finalised')">
 											{{ t('scholiq', 'Finalise') }}
 										</NcButton>
-										<NcButton v-if="card.lifecycle === 'finalised'"
+										<NcButton
+											v-if="card.lifecycle === 'finalised'"
 											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
-											@click="transition(card, 'rapportvergadering-review')">
+											@click="
+												transition(
+													card,
+													'rapportvergadering-review',
+												)
+											">
 											{{ t('scholiq', 'Reopen') }}
 										</NcButton>
-										<NcButton v-if="card.lifecycle === 'finalised'"
+										<NcButton
+											v-if="card.lifecycle === 'finalised'"
 											variant="primary"
 											:disabled="!!transitioning[cardId(card)]"
-											@click="transition(card, 'published-to-parents')">
+											@click="
+												transition(
+													card,
+													'published-to-parents',
+												)
+											">
 											{{ t('scholiq', 'Publish to parents') }}
 										</NcButton>
 									</div>
-									<NcNoteCard v-if="cardErrors[cardId(card)]" type="error">
+									<NcNoteCard
+										v-if="cardErrors[cardId(card)]"
+										type="error">
 										{{ cardErrors[cardId(card)] }}
 									</NcNoteCard>
 								</td>
@@ -132,7 +216,8 @@
 			{{ t('scholiq', 'Could not load this report period.') }}
 		</NcNoteCard>
 
-		<ComposeReportPeriodModal v-if="showComposeModal"
+		<ComposeReportPeriodModal
+			v-if="showComposeModal"
 			:report-period-id="id"
 			@close="showComposeModal = false"
 			@composed="onComposed" />
@@ -189,7 +274,10 @@ export default {
 			if (!this.period) return []
 			return (this.period.curriculumPlanIds || []).map((planId) => ({
 				id: planId,
-				label: (this.curriculumPlans[planId] && this.curriculumPlans[planId].name) || planId,
+				label:
+					(this.curriculumPlans[planId]
+						&& this.curriculumPlans[planId].name)
+					|| planId,
 			}))
 		},
 	},
@@ -210,7 +298,10 @@ export default {
 		async loadPeriod() {
 			this.loadingPeriod = true
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/report-period/{id}', { id: this.id })
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/report-period/{id}',
+					{ id: this.id },
+				)
 				const response = await axios.get(url)
 				this.period = response.data || null
 			} catch (e) {
@@ -236,11 +327,18 @@ export default {
 			await Promise.all(
 				planIds.map(async (planId) => {
 					try {
-						const url = generateUrl('/apps/openregister/api/objects/scholiq/curriculum-plan/{id}', { id: planId })
+						const url = generateUrl(
+							'/apps/openregister/api/objects/scholiq/curriculum-plan/{id}',
+							{ id: planId },
+						)
 						const response = await axios.get(url)
 						plans[planId] = response.data || null
 					} catch (e) {
-						console.error('[RapportvergaderingReviewView] loadCurriculumPlans failed for', planId, e)
+						console.error(
+							'[RapportvergaderingReviewView] loadCurriculumPlans failed for',
+							planId,
+							e,
+						)
 					}
 				}),
 			)
@@ -260,7 +358,11 @@ export default {
 					{ periodId: this.id },
 				)
 				const response = await axios.get(url)
-				this.cards = (response.data && (response.data.results || response.data.objects)) || response.data || []
+				this.cards =
+					(response.data
+						&& (response.data.results || response.data.objects))
+					|| response.data
+					|| []
 			} catch (e) {
 				console.error('[RapportvergaderingReviewView] loadCards failed', e)
 				this.cards = []
@@ -287,7 +389,9 @@ export default {
 		 * @return {object|undefined}
 		 */
 		subjectRow(card, planId) {
-			return (card.subjectGrades || []).find((row) => row.curriculumPlanId === planId)
+			return (card.subjectGrades || []).find(
+				(row) => row.curriculumPlanId === planId,
+			)
 		},
 
 		/**
@@ -363,11 +467,17 @@ export default {
 			const id = this.cardId(card)
 			if (!id) return
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/report-card/{id}', { id })
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/report-card/{id}',
+					{ id },
+				)
 				await axios.put(url, card)
 			} catch (e) {
 				console.error('[RapportvergaderingReviewView] saveCard failed', e)
-				this.cardErrors[id] = t('scholiq', 'Could not save changes. Please try again.')
+				this.cardErrors[id] = t(
+					'scholiq',
+					'Could not save changes. Please try again.',
+				)
 			}
 		},
 
@@ -388,12 +498,18 @@ export default {
 			this.transitioning[id] = true
 			this.cardErrors[id] = ''
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/report-card/{id}', { id })
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/report-card/{id}',
+					{ id },
+				)
 				await axios.put(url, { lifecycle: toLifecycle })
 				await this.loadCards()
 			} catch (e) {
 				console.error('[RapportvergaderingReviewView] transition failed', e)
-				this.cardErrors[id] = t('scholiq', 'This action was blocked. Please check the requirements and try again.')
+				this.cardErrors[id] = t(
+					'scholiq',
+					'This action was blocked. Please check the requirements and try again.',
+				)
 			} finally {
 				this.transitioning[id] = false
 			}

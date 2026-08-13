@@ -34,7 +34,8 @@ import { test, expect } from '../fixtures'
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
-const COURSE_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/Course?limit=200'
+const COURSE_LIST_API =
+	'/index.php/apps/openregister/api/objects/scholiq/Course?limit=200'
 
 /**
  * Fetch every Course and return the first top-level one (no parentCourseId),
@@ -73,16 +74,20 @@ function fatalOnly(errors: string[]): string[] {
 	)
 }
 
-async function openCourseBuilder(page: import('@playwright/test').Page, courseId: string) {
+async function openCourseBuilder(
+	page: import('@playwright/test').Page,
+	courseId: string,
+) {
 	await page.goto(`/index.php/apps/scholiq/#/courses/${courseId}/builder`)
 	await page.waitForSelector('body', { timeout: 15_000 })
 	await page.waitForLoadState('domcontentloaded')
 }
 
 test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPlayer', () => {
-
 	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-designer-sets-module-order-in-the-course-builder
-	test('course-builder-add-and-reorder-modules', async ({ loggedInPage: page }) => {
+	test('course-builder-add-and-reorder-modules', async ({
+		loggedInPage: page,
+	}) => {
 		const course = await findTopLevelCourse(page)
 		test.skip(!course, 'No top-level Course seeded in this environment.')
 
@@ -103,12 +108,16 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await expect(page.getByText('e2e Module B')).toBeVisible()
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 
 	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-teacher-reorders-lessons-within-a-course-by-drag-and-drop
 	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-teacher-reorders-lessons-within-a-course-using-only-the-keyboard
-	test('course-builder-reorders-lessons-by-drag-and-drop-and-by-keyboard', async ({ loggedInPage: page }) => {
+	test('course-builder-reorders-lessons-by-drag-and-drop-and-by-keyboard', async ({
+		loggedInPage: page,
+	}) => {
 		const course = await findTopLevelCourse(page)
 		test.skip(!course, 'No top-level Course seeded in this environment.')
 
@@ -119,7 +128,9 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await moduleNameInput.fill('e2e Reorder Module')
 		await page.getByRole('button', { name: 'Add module' }).click()
 
-		const moduleRow = page.locator('.course-builder__module', { hasText: 'e2e Reorder Module' })
+		const moduleRow = page.locator('.course-builder__module', {
+			hasText: 'e2e Reorder Module',
+		})
 		const lessonNameInput = moduleRow.getByPlaceholder('New lesson name')
 		await lessonNameInput.fill('e2e Lesson 1')
 		await moduleRow.getByRole('button', { name: 'Add lesson' }).click()
@@ -130,7 +141,9 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await expect(lessonRows).toHaveCount(2)
 
 		// Keyboard reorder: move the second lesson up via its "Move ... up" button.
-		await moduleRow.getByRole('button', { name: /Move lesson 'e2e Lesson 2' up/ }).click()
+		await moduleRow
+			.getByRole('button', { name: /Move lesson 'e2e Lesson 2' up/ })
+			.click()
 		await expect(lessonRows.first()).toContainText('e2e Lesson 2')
 
 		// Drag-and-drop reorder: drag the (now first) lesson's handle onto the
@@ -147,13 +160,17 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await expect(lessonRows).toHaveCount(2)
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 
 	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-an-instructional-designer-composes-a-lesson-from-mixed-blocks
 	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-teacher-reorders-blocks-within-a-lesson-using-only-the-keyboard
 	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-learner-opens-a-native-lesson-and-sees-its-composed-blocks-in-order
-	test('lesson-composer-adds-blocks-reorders-by-keyboard-and-lesson-player-renders-them', async ({ loggedInPage: page }) => {
+	test('lesson-composer-adds-blocks-reorders-by-keyboard-and-lesson-player-renders-them', async ({
+		loggedInPage: page,
+	}) => {
 		const course = await findTopLevelCourse(page)
 		test.skip(!course, 'No top-level Course seeded in this environment.')
 
@@ -164,7 +181,9 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await moduleNameInput.fill('e2e Compose Module')
 		await page.getByRole('button', { name: 'Add module' }).click()
 
-		const moduleRow = page.locator('.course-builder__module', { hasText: 'e2e Compose Module' })
+		const moduleRow = page.locator('.course-builder__module', {
+			hasText: 'e2e Compose Module',
+		})
 		const lessonNameInput = moduleRow.getByPlaceholder('New lesson name')
 		await lessonNameInput.fill('e2e Compose Lesson')
 		await moduleRow.getByRole('button', { name: 'Add lesson' }).click()
@@ -203,12 +222,16 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await expect(rendered.nth(1)).toContainText('First block text')
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 
 	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-an-instructional-designer-saves-a-published-course-as-a-template
 	// @e2e openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-instantiating-a-template-creates-a-fresh-independent-course-tree
-	test('save-course-as-template-and-instantiate-a-new-course-from-it', async ({ loggedInPage: page }) => {
+	test('save-course-as-template-and-instantiate-a-new-course-from-it', async ({
+		loggedInPage: page,
+	}) => {
 		const course = await findTopLevelCourse(page)
 		test.skip(!course, 'No top-level Course seeded in this environment.')
 
@@ -241,6 +264,8 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		expect(bodyText).toContain('Course builder')
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

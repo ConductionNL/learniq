@@ -27,15 +27,20 @@
 import { test, expect } from '../fixtures'
 
 const GROUP_PLANS_INDEX_URL = '/index.php/apps/scholiq/#/group-plans'
-const GROUP_PLAN_DETAIL_URL = '/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000'
-const GROUP_PLAN_SUBGROUP_DETAIL_URL = '/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000/subgroups/00000000-0000-0000-0000-000000000000'
-const GROUP_PLAN_EVALUATION_DETAIL_URL = '/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000/evaluations/00000000-0000-0000-0000-000000000000'
-const LEARNER_CONTEXT_URL = '/index.php/apps/scholiq/#/group-plans/subgroup-learner-context'
+const GROUP_PLAN_DETAIL_URL =
+	'/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000'
+const GROUP_PLAN_SUBGROUP_DETAIL_URL =
+	'/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000/subgroups/00000000-0000-0000-0000-000000000000'
+const GROUP_PLAN_EVALUATION_DETAIL_URL =
+	'/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000/evaluations/00000000-0000-0000-0000-000000000000'
+const LEARNER_CONTEXT_URL =
+	'/index.php/apps/scholiq/#/group-plans/subgroup-learner-context'
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
-const GROUP_PLAN_SUBGROUP_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/GroupPlanSubgroup?limit=200'
+const GROUP_PLAN_SUBGROUP_LIST_API =
+	'/index.php/apps/openregister/api/objects/scholiq/GroupPlanSubgroup?limit=200'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise
@@ -86,13 +91,21 @@ async function findIntensiefSubgroup(page: import('@playwright/test').Page) {
 
 	const json = await resp.json()
 	const subgroups = json.results ?? json.objects ?? json ?? []
-	return subgroups.find((s: any) => s.instructieniveau === 'intensief' && Array.isArray(s.learnerIds) && s.learnerIds.length > 0) ?? null
+	return (
+		subgroups.find(
+			(s: any) =>
+				s.instructieniveau === 'intensief'
+				&& Array.isArray(s.learnerIds)
+				&& s.learnerIds.length > 0,
+		) ?? null
+	)
 }
 
 test.describe('groepsplan — declarative index/detail pages', () => {
-
 	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
-	test('Group plans index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('Group plans index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(GROUP_PLANS_INDEX_URL)
@@ -106,7 +119,9 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 	})
 
 	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
-	test('Group plan detail route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
+	test('Group plan detail route resolves the registered component, not a blank/404 shell', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		// A non-existent id is enough to prove the ROUTE resolves the declarative
@@ -125,7 +140,9 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 	})
 
 	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
-	test('Group plan subgroup detail route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
+	test('Group plan subgroup detail route resolves the registered component, not a blank/404 shell', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(GROUP_PLAN_SUBGROUP_DETAIL_URL)
@@ -139,7 +156,9 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 	})
 
 	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
-	test('Group plan evaluation detail route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
+	test('Group plan evaluation detail route resolves the registered component, not a blank/404 shell', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(GROUP_PLAN_EVALUATION_DETAIL_URL)
@@ -154,9 +173,10 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 })
 
 test.describe('groepsplan — GroupPlanSubgroupLearnerContext resolves (registry.js wiring)', () => {
-
 	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
-	test('GroupPlanSubgroupLearnerContext route renders its empty-state subgroup picker with no subgroupId query param', async ({ loggedInPage: page }) => {
+	test('GroupPlanSubgroupLearnerContext route renders its empty-state subgroup picker with no subgroupId query param', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(LEARNER_CONTEXT_URL)
@@ -170,9 +190,14 @@ test.describe('groepsplan — GroupPlanSubgroupLearnerContext resolves (registry
 	})
 
 	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
-	test('GroupPlanSubgroupLearnerContext shows an active LearningPlan link for a seeded intensief-subgroup member', async ({ loggedInPage: page }) => {
+	test('GroupPlanSubgroupLearnerContext shows an active LearningPlan link for a seeded intensief-subgroup member', async ({
+		loggedInPage: page,
+	}) => {
 		const subgroup = await findIntensiefSubgroup(page)
-		test.skip(!subgroup, 'No seeded intensief GroupPlanSubgroup with members found on this dev instance yet.')
+		test.skip(
+			!subgroup,
+			'No seeded intensief GroupPlanSubgroup with members found on this dev instance yet.',
+		)
 
 		const errors = collectFatalErrors(page)
 		const id = subgroup.id ?? subgroup.uuid

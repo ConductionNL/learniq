@@ -17,7 +17,12 @@
 <template>
 	<NcSettingsSection
 		:name="t('scholiq', 'Data exchange')"
-		:description="t('scholiq', 'Manage the aanleveringen and imports scholiq exchanges with DUO/BRON, OSO, the municipality, and ELO systems. Jobs and field-mapping profiles are administered here.')">
+		:description="
+			t(
+				'scholiq',
+				'Manage the aanleveringen and imports scholiq exchanges with DUO/BRON, OSO, the municipality, and ELO systems. Jobs and field-mapping profiles are administered here.',
+			)
+		">
 		<div class="scholiq-dataexchange-settings__actions">
 			<NcButton variant="secondary" @click="open('/data-exchange/jobs')">
 				<template #icon>
@@ -25,7 +30,9 @@
 				</template>
 				{{ t('scholiq', 'Data-exchange jobs') }}
 			</NcButton>
-			<NcButton variant="secondary" @click="open('/data-exchange/mapping-profiles')">
+			<NcButton
+				variant="secondary"
+				@click="open('/data-exchange/mapping-profiles')">
 				<template #icon>
 					<MapIcon :size="20" />
 				</template>

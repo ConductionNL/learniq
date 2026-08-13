@@ -44,10 +44,13 @@ let cachedTenant: string | null = null
 export async function seededTenantId(page: Page): Promise<string> {
 	if (cachedTenant) return cachedTenant
 	try {
-		const resp = await page.request.get('/index.php/apps/openregister/api/registers?limit=1')
+		const resp = await page.request.get(
+			'/index.php/apps/openregister/api/registers?limit=1',
+		)
 		if (resp.ok()) {
 			const body = await resp.json()
-			const items = body?.results ?? body?.data ?? (Array.isArray(body) ? body : [])
+			const items =
+				body?.results ?? body?.data ?? (Array.isArray(body) ? body : [])
 			const org = items?.[0]?.organisation
 			if (typeof org === 'string' && /^[0-9a-f-]{36}$/i.test(org)) {
 				cachedTenant = org
@@ -69,7 +72,10 @@ export async function seededTenantId(page: Page): Promise<string> {
  * @param slug The schema slug (e.g. `accessibility-limitation`).
  * @return The object uuid, or null.
  */
-export async function firstObjectId(page: Page, slug: string): Promise<string | null> {
+export async function firstObjectId(
+	page: Page,
+	slug: string,
+): Promise<string | null> {
 	const resp = await page.request.get(
 		`/index.php/apps/openregister/api/objects/${REGISTER_SLUG}/${slug}?_limit=1`,
 	)
@@ -124,5 +130,7 @@ export async function ensureObject(
 	slug: string,
 	body: Record<string, unknown>,
 ): Promise<string | null> {
-	return (await firstObjectId(page, slug)) ?? (await createObject(page, slug, body))
+	return (
+		(await firstObjectId(page, slug)) ?? (await createObject(page, slug, body))
+	)
 }

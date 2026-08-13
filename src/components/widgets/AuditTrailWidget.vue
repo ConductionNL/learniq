@@ -45,8 +45,11 @@ export default {
 		 * @spec exclude presentational widget adapter — no behavioural spec; pure prop/inject resolution.
 		 */
 		ctx() {
-			const inj = this.cnObjectContext && (this.cnObjectContext.value || this.cnObjectContext)
-			const holder = this.cnDetailObjectContext && this.cnDetailObjectContext.value
+			const inj =
+				this.cnObjectContext
+				&& (this.cnObjectContext.value || this.cnObjectContext)
+			const holder =
+				this.cnDetailObjectContext && this.cnDetailObjectContext.value
 			return inj || holder || {}
 		},
 		/** @spec exclude presentational widget adapter — derives objectId from props/inject/content. */
@@ -61,7 +64,9 @@ export default {
 		resolvedSchema() {
 			const s = this.schema || this.ctx.schema || this.content.schema || ''
 			// The context may carry the schema as an object; CnAuditTrailCard wants a slug.
-			return typeof s === 'string' ? s : (s && (s.slug || s.name || s.id)) || ''
+			return typeof s === 'string'
+				? s
+				: (s && (s.slug || s.name || s.id)) || ''
 		},
 		/** @spec exclude presentational widget adapter — optional card title passthrough. */
 		resolvedTitle() {

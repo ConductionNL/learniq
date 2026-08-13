@@ -52,16 +52,21 @@ function resolvePackageEntry(id, subpath = '.') {
 		pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
 	} catch (e) {
 		// No local copy — fall back to node's resolver.
-		return require.resolve(subpath === '.' ? id : `${id}/${subpath.replace(/^\.\//, '')}`)
+		return require.resolve(
+			subpath === '.' ? id : `${id}/${subpath.replace(/^\.\//, '')}`,
+		)
 	}
 
-	let node = pkg.exports?.[subpath]
+	let node =
+		pkg.exports?.[subpath]
 		?? (subpath === '.' ? (pkg.exports ?? pkg.module ?? pkg.main) : undefined)
 	while (node && typeof node !== 'string') {
 		node = node.import ?? node.default ?? node.require ?? node.node
 	}
 	if (typeof node !== 'string') {
-		throw new Error(`webpack.config.js: cannot resolve "${id}" subpath "${subpath}"`)
+		throw new Error(
+			`webpack.config.js: cannot resolve "${id}" subpath "${subpath}"`,
+		)
 	}
 	return path.resolve(path.dirname(pkgPath), node)
 }
@@ -79,19 +84,23 @@ const useLocalLib = process.env.USE_LOCAL_LIB !== 'false' && fs.existsSync(local
 if (useLocalLib) {
 	const libPkgPath = path.resolve(__dirname, '../nextcloud-vue/package.json')
 	const appVueMajor = JSON.parse(
-		fs.readFileSync(path.resolve(__dirname, 'node_modules/vue/package.json'), 'utf8'),
+		fs.readFileSync(
+			path.resolve(__dirname, 'node_modules/vue/package.json'),
+			'utf8',
+		),
 	).version.split('.')[0]
 	const libPkg = JSON.parse(fs.readFileSync(libPkgPath, 'utf8'))
-	const libVueRange = libPkg.peerDependencies?.vue ?? libPkg.dependencies?.vue ?? ''
+	const libVueRange =
+		libPkg.peerDependencies?.vue ?? libPkg.dependencies?.vue ?? ''
 	const libVueMajor = (libVueRange.match(/(\d+)\./) || [])[1]
 
 	if (libVueMajor && libVueMajor !== appVueMajor) {
 		throw new Error(
 			`USE_LOCAL_LIB is on and ../nextcloud-vue targets Vue ${libVueMajor}, `
-			+ `but this app is on Vue ${appVueMajor} (@conduction/nextcloud-vue `
-			+ `${libPkg.version}). That build would compile Vue ${libVueMajor} library `
-			+ 'sources into a Vue 3 app and fail only at runtime. '
-			+ 'Set USE_LOCAL_LIB=false, or move the sibling checkout onto the vue3 line.',
+				+ `but this app is on Vue ${appVueMajor} (@conduction/nextcloud-vue `
+				+ `${libPkg.version}). That build would compile Vue ${libVueMajor} library `
+				+ 'sources into a Vue 3 app and fail only at runtime. '
+				+ 'Set USE_LOCAL_LIB=false, or move the sibling checkout onto the vue3 line.',
 		)
 	}
 }
@@ -131,7 +140,10 @@ webpackConfig.resolve = {
 		// every nested copy onto that one, so translations registered through one
 		// import are visible through the other.
 		'@nextcloud/l10n$': resolvePackageEntry('@nextcloud/l10n'),
-		'@nextcloud/l10n/gettext$': resolvePackageEntry('@nextcloud/l10n', './gettext'),
+		'@nextcloud/l10n/gettext$': resolvePackageEntry(
+			'@nextcloud/l10n',
+			'./gettext',
+		),
 	},
 }
 
@@ -155,7 +167,9 @@ webpackConfig.module = {
 webpackConfig.plugins = [
 	new VueLoaderPlugin(),
 	new webpack.DefinePlugin({ appName: JSON.stringify(appId) }),
-	new webpack.DefinePlugin({ appVersion: JSON.stringify(process.env.npm_package_version) }),
+	new webpack.DefinePlugin({
+		appVersion: JSON.stringify(process.env.npm_package_version),
+	}),
 	// Vue 3 reads these at runtime; without them webpack logs a
 	// "feature flag ... not explicitly defined" warning and ships the dev
 	// hydration-mismatch details into production.
@@ -183,8 +197,12 @@ webpackConfig.output = {
 // Register the exact-match style.css alias BEFORE the bare package alias:
 // enhanced-resolve applies the first matching entry.
 // dialogs v7 ships the stylesheet at dist/style.css behind its "exports" map.
-webpackConfig.resolve.alias['@nextcloud/dialogs/style.css$'] = path.resolve(__dirname, 'node_modules/@nextcloud/dialogs/dist/style.css')
-webpackConfig.resolve.alias['@nextcloud/dialogs$'] = resolvePackageEntry('@nextcloud/dialogs')
+webpackConfig.resolve.alias['@nextcloud/dialogs/style.css$'] = path.resolve(
+	__dirname,
+	'node_modules/@nextcloud/dialogs/dist/style.css',
+)
+webpackConfig.resolve.alias['@nextcloud/dialogs$'] =
+	resolvePackageEntry('@nextcloud/dialogs')
 
 // dialogs drags in a FilePicker chunk that imports node's `path`, and webpack 5 no
 // longer auto-polyfills node core modules — without this the bundle fails to emit with

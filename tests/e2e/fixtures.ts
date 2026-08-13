@@ -27,7 +27,9 @@ async function ensureLoggedIn(page: Page): Promise<void> {
 				.first()
 				.click()
 			await page
-				.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 20_000 })
+				.waitForURL((url) => !url.pathname.includes('/login'), {
+					timeout: 20_000,
+				})
 				.catch(() => {
 					// Continue even if waitForURL times out
 				})

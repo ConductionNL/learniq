@@ -34,10 +34,11 @@ import { test, expect } from '../fixtures'
 const SKILLS_GAP_DASHBOARD_URL = '/index.php/apps/scholiq/competencies/skills-gap'
 
 test.describe('competency-framework — Skills gap dashboard', () => {
-
 	// @e2e openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-learner-sees-an-unmet-programme-required-competency-as-a-gap
 	// @e2e openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-role-required-competency-surfaces-even-without-a-programme-link
-	test('Skills gap dashboard renders programme-required and role-required sections without a fatal error', async ({ loggedInPage: page }) => {
+	test('Skills gap dashboard renders programme-required and role-required sections without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -67,8 +68,12 @@ test.describe('competency-framework — Skills gap dashboard', () => {
 		const errorState = page.locator('.skills-gap-dashboard__error')
 		const hasError = await errorState.isVisible().catch(() => false)
 		if (hasError === false) {
-			await expect(page.getByRole('heading', { name: 'Required by programme' })).toBeVisible({ timeout: 15_000 })
-			await expect(page.getByRole('heading', { name: 'Required by role' })).toBeVisible({ timeout: 15_000 })
+			await expect(
+				page.getByRole('heading', { name: 'Required by programme' }),
+			).toBeVisible({ timeout: 15_000 })
+			await expect(
+				page.getByRole('heading', { name: 'Required by role' }),
+			).toBeVisible({ timeout: 15_000 })
 		}
 
 		const fatal = errors.filter(
@@ -80,6 +85,8 @@ test.describe('competency-framework — Skills gap dashboard', () => {
 				&& !e.includes('Failed to fetch')
 				&& !e.includes('ERR_CONNECTION_REFUSED'),
 		)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

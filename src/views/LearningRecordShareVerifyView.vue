@@ -26,12 +26,20 @@
 		</p>
 
 		<template v-else>
-			<div v-if="valid" class="lrs-verify__result lrs-verify__result--valid" role="status">
+			<div
+				v-if="valid"
+				class="lrs-verify__result lrs-verify__result--valid"
+				role="status">
 				<h2 class="lrs-verify__heading">
 					{{ t('scholiq', 'Verified learning record') }}
 				</h2>
 				<p class="lrs-verify__hint">
-					{{ t('scholiq', 'This bundle was signed by the issuing school and has not been tampered with.') }}
+					{{
+						t(
+							'scholiq',
+							'This bundle was signed by the issuing school and has not been tampered with.',
+						)
+					}}
 				</p>
 				<dl class="lrs-verify__bundle">
 					<dt>{{ t('scholiq', 'Issuer') }}</dt>
@@ -45,7 +53,10 @@
 				</details>
 			</div>
 
-			<div v-else class="lrs-verify__result lrs-verify__result--denied" role="alert">
+			<div
+				v-else
+				class="lrs-verify__result lrs-verify__result--denied"
+				role="alert">
 				<h2 class="lrs-verify__heading">
 					{{ t('scholiq', 'This share could not be verified') }}
 				</h2>
@@ -97,13 +108,28 @@ export default {
 		deniedReasonLabel() {
 			const labels = {
 				not_found: this.t('scholiq', 'This link does not exist.'),
-				revoked: this.t('scholiq', 'This share has been revoked by the learner.'),
+				revoked: this.t(
+					'scholiq',
+					'This share has been revoked by the learner.',
+				),
 				expired: this.t('scholiq', 'This share has expired.'),
-				export_not_found: this.t('scholiq', 'The underlying record could not be found.'),
-				bundle_unreadable: this.t('scholiq', 'The underlying record could not be read.'),
-				signature_invalid: this.t('scholiq', 'This record\'s signature could not be verified — it may have been altered.'),
+				export_not_found: this.t(
+					'scholiq',
+					'The underlying record could not be found.',
+				),
+				bundle_unreadable: this.t(
+					'scholiq',
+					'The underlying record could not be read.',
+				),
+				signature_invalid: this.t(
+					'scholiq',
+					"This record's signature could not be verified — it may have been altered.",
+				),
 			}
-			return labels[this.reason] ?? this.t('scholiq', 'This link is no longer valid.')
+			return (
+				labels[this.reason]
+				?? this.t('scholiq', 'This link is no longer valid.')
+			)
 		},
 	},
 
@@ -123,9 +149,14 @@ export default {
 			this.loading = true
 
 			try {
-				const url = generateUrl(`/apps/scholiq/api/learning-record-shares/${this.shareId}/verify`)
+				const url = generateUrl(
+					`/apps/scholiq/api/learning-record-shares/${this.shareId}/verify`,
+				)
 				const resp = await fetch(url, {
-					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+					},
 				})
 
 				// Guard on `resp.ok` BEFORE parsing. A non-2xx from this endpoint is
@@ -163,7 +194,8 @@ export default {
 .lrs-verify {
 	max-width: 720px;
 	margin: 0 auto;
-	padding: calc(var(--default-grid-baseline, 8px) * 3) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: calc(var(--default-grid-baseline, 8px) * 3)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .lrs-verify__heading {

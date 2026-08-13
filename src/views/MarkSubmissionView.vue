@@ -55,13 +55,21 @@
 		</div>
 
 		<!-- Returned confirmation -->
-		<div v-else-if="returned"
+		<div
+			v-else-if="returned"
 			class="mark-submission-view__confirmation"
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
 			<h2>{{ t('scholiq', 'Submission returned to learner') }}</h2>
-			<p>{{ t('scholiq', 'Grade: {grade} / {max}', { grade: savedGrade, max: assignment.maxPoints || '?' }) }}</p>
+			<p>
+				{{
+					t('scholiq', 'Grade: {grade} / {max}', {
+						grade: savedGrade,
+						max: assignment.maxPoints || '?',
+					})
+				}}
+			</p>
 		</div>
 
 		<!-- Marking form -->
@@ -70,22 +78,36 @@
 			<header class="mark-submission-view__header">
 				<h2>{{ t('scholiq', 'Mark submission') }}</h2>
 				<p class="mark-submission-view__meta">
-					{{ t('scholiq', 'Assignment: {title}', { title: assignment.title || '' }) }}
+					{{
+						t('scholiq', 'Assignment: {title}', {
+							title: assignment.title || '',
+						})
+					}}
 					<span
 						v-if="submission.lifecycle === 'late'"
 						class="mark-submission-view__late-badge">
-						{{ t('scholiq', 'Late — {penalty}% penalty', { penalty: assignment.latePenaltyPercent || 0 }) }}
+						{{
+							t('scholiq', 'Late — {penalty}% penalty', {
+								penalty: assignment.latePenaltyPercent || 0,
+							})
+						}}
 					</span>
 				</p>
 				<p class="mark-submission-view__learners">
-					{{ t('scholiq', 'Learner(s): {ids}', { ids: (submission.learnerIds || []).join(', ') }) }}
+					{{
+						t('scholiq', 'Learner(s): {ids}', {
+							ids: (submission.learnerIds || []).join(', '),
+						})
+					}}
 				</p>
 			</header>
 
 			<!-- Attachments -->
 			<section class="mark-submission-view__attachments">
 				<h3>{{ t('scholiq', 'Submitted files') }}</h3>
-				<ul v-if="(submission.attachmentRefs || []).length > 0" class="mark-submission-view__file-list">
+				<ul
+					v-if="(submission.attachmentRefs || []).length > 0"
+					class="mark-submission-view__file-list">
 					<li
 						v-for="ref in submission.attachmentRefs"
 						:key="ref"
@@ -100,8 +122,12 @@
 			</section>
 
 			<!-- Rubric marking (shown only when a Rubric is attached) -->
-			<section v-if="rubric && rubric.criteria && rubric.criteria.length > 0" class="mark-submission-view__rubric">
-				<h3>{{ t('scholiq', 'Rubric: {name}', { name: rubric.name || '' }) }}</h3>
+			<section
+				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
+				class="mark-submission-view__rubric">
+				<h3>
+					{{ t('scholiq', 'Rubric: {name}', { name: rubric.name || '' }) }}
+				</h3>
 
 				<div
 					v-for="criterion in rubric.criteria"
@@ -110,7 +136,11 @@
 					<h4 class="mark-submission-view__criterion-label">
 						{{ criterion.label }}
 						<span class="mark-submission-view__criterion-weight">
-							{{ t('scholiq', '(weight: {w})', { w: criterion.weight }) }}
+							{{
+								t('scholiq', '(weight: {w})', {
+									w: criterion.weight,
+								})
+							}}
 						</span>
 					</h4>
 					<div class="mark-submission-view__levels">
@@ -122,12 +152,19 @@
 								type="radio"
 								:name="criterion.criterionId"
 								:value="level.levelId"
-								:checked="getSelectedLevel(criterion.criterionId) === level.levelId"
+								:checked="
+									getSelectedLevel(criterion.criterionId)
+									=== level.levelId
+								"
 								:disabled="saving"
-								@change="selectLevel(criterion, level)">
-							<span class="mark-submission-view__level-label">{{ level.label }}</span>
+								@change="selectLevel(criterion, level)" />
+							<span class="mark-submission-view__level-label">{{
+								level.label
+							}}</span>
 							<span class="mark-submission-view__level-points">
-								{{ t('scholiq', '{pts} pts', { pts: level.points }) }}
+								{{
+									t('scholiq', '{pts} pts', { pts: level.points })
+								}}
 							</span>
 						</label>
 					</div>
@@ -135,9 +172,22 @@
 
 				<!-- Running total -->
 				<div class="mark-submission-view__score-total">
-					<strong>{{ t('scholiq', 'Score: {score} / {max}', { score: computedScore, max: assignment.maxPoints || '?' }) }}</strong>
-					<span v-if="submission.lifecycle === 'late'" class="mark-submission-view__effective-grade">
-						{{ t('scholiq', 'Effective grade after late penalty: {grade}', { grade: effectiveGrade }) }}
+					<strong>{{
+						t('scholiq', 'Score: {score} / {max}', {
+							score: computedScore,
+							max: assignment.maxPoints || '?',
+						})
+					}}</strong>
+					<span
+						v-if="submission.lifecycle === 'late'"
+						class="mark-submission-view__effective-grade">
+						{{
+							t(
+								'scholiq',
+								'Effective grade after late penalty: {grade}',
+								{ grade: effectiveGrade },
+							)
+						}}
 					</span>
 				</div>
 			</section>
@@ -146,7 +196,11 @@
 			<section v-else class="mark-submission-view__manual-score">
 				<h3>{{ t('scholiq', 'Manual score') }}</h3>
 				<label for="manual-grade" class="mark-submission-view__score-label">
-					{{ t('scholiq', 'Proposed grade (0 – {max})', { max: assignment.maxPoints || '?' }) }}
+					{{
+						t('scholiq', 'Proposed grade (0 – {max})', {
+							max: assignment.maxPoints || '?',
+						})
+					}}
 				</label>
 				<input
 					id="manual-grade"
@@ -155,12 +209,14 @@
 					min="0"
 					:max="assignment.maxPoints || undefined"
 					class="mark-submission-view__score-input"
-					:disabled="saving">
+					:disabled="saving" />
 			</section>
 
 			<!-- Feedback text -->
 			<section class="mark-submission-view__feedback">
-				<h3 id="mark-submission-feedback-label">{{ t('scholiq', 'Teacher feedback') }}</h3>
+				<h3 id="mark-submission-feedback-label">
+					{{ t('scholiq', 'Teacher feedback') }}
+				</h3>
 				<textarea
 					id="mark-submission-feedback"
 					v-model="feedbackText"
@@ -181,33 +237,65 @@
 				aria-label="Peer and self-assessment context">
 				<h3>{{ t('scholiq', 'Peer & self-assessment context') }}</h3>
 
-				<div v-if="peerFeedbackSummary" class="mark-submission-view__peer-summary">
+				<div
+					v-if="peerFeedbackSummary"
+					class="mark-submission-view__peer-summary">
 					<p class="mark-submission-view__peer-summary-line">
-						{{ t('scholiq', '{count} peer review(s), average score {avg}', {
-							count: peerFeedbackSummary.reviewCount || 0,
-							avg: peerFeedbackSummary.averageScore != null ? peerFeedbackSummary.averageScore : t('scholiq', 'n/a'),
-						}) }}
+						{{
+							t(
+								'scholiq',
+								'{count} peer review(s), average score {avg}',
+								{
+									count: peerFeedbackSummary.reviewCount || 0,
+									avg:
+										peerFeedbackSummary.averageScore != null
+											? peerFeedbackSummary.averageScore
+											: t('scholiq', 'n/a'),
+								},
+							)
+						}}
 					</p>
-					<ul v-if="(peerFeedbackSummary.feedbackItems || []).length > 0" class="mark-submission-view__peer-items">
+					<ul
+						v-if="(peerFeedbackSummary.feedbackItems || []).length > 0"
+						class="mark-submission-view__peer-items">
 						<li
-							v-for="(item, index) in peerFeedbackSummary.feedbackItems"
+							v-for="(
+								item, index
+							) in peerFeedbackSummary.feedbackItems"
 							:key="index"
 							class="mark-submission-view__peer-item">
 							<span class="mark-submission-view__peer-item-reviewer">
-								{{ item.reviewerId ? item.reviewerId : t('scholiq', 'Anonymous reviewer') }}
+								{{
+									item.reviewerId
+										? item.reviewerId
+										: t('scholiq', 'Anonymous reviewer')
+								}}
 							</span>
-							<span v-if="item.comments" class="mark-submission-view__peer-item-comment">{{ item.comments }}</span>
+							<span
+								v-if="item.comments"
+								class="mark-submission-view__peer-item-comment"
+								>{{ item.comments }}</span
+							>
 						</li>
 					</ul>
 				</div>
 
-				<div v-if="selfAssessment" class="mark-submission-view__self-summary">
+				<div
+					v-if="selfAssessment"
+					class="mark-submission-view__self-summary">
 					<p class="mark-submission-view__self-summary-line">
-						{{ t('scholiq', 'Learner self-assessment score: {score}', {
-							score: selfAssessment.totalScore != null ? selfAssessment.totalScore : t('scholiq', 'n/a'),
-						}) }}
+						{{
+							t('scholiq', 'Learner self-assessment score: {score}', {
+								score:
+									selfAssessment.totalScore != null
+										? selfAssessment.totalScore
+										: t('scholiq', 'n/a'),
+							})
+						}}
 					</p>
-					<p v-if="selfAssessment.comments" class="mark-submission-view__self-summary-comment">
+					<p
+						v-if="selfAssessment.comments"
+						class="mark-submission-view__self-summary-comment">
 						{{ selfAssessment.comments }}
 					</p>
 				</div>
@@ -217,11 +305,19 @@
 					proposedGrade. Only shown when Assignment.peerReviewWeightPercent
 					is set AND a peer average score exists.
 				-->
-				<p v-if="blendedSuggestion != null" class="mark-submission-view__blended-suggestion">
-					{{ t('scholiq', 'Suggested blended score ({weight}% peer weight): {value}', {
-						weight: assignment.peerReviewWeightPercent,
-						value: blendedSuggestion,
-					}) }}
+				<p
+					v-if="blendedSuggestion != null"
+					class="mark-submission-view__blended-suggestion">
+					{{
+						t(
+							'scholiq',
+							'Suggested blended score ({weight}% peer weight): {value}',
+							{
+								weight: assignment.peerReviewWeightPercent,
+								value: blendedSuggestion,
+							},
+						)
+					}}
 				</p>
 			</section>
 
@@ -235,7 +331,10 @@
 					{{ t('scholiq', 'Save & return to learner') }}
 				</button>
 			</div>
-			<p v-if="saveError" role="alert" class="mark-submission-view__save-error">
+			<p
+				v-if="saveError"
+				role="alert"
+				class="mark-submission-view__save-error">
 				{{ saveError }}
 			</p>
 		</template>
@@ -318,7 +417,7 @@ export default {
 		 */
 		effectiveGrade() {
 			const penalty = this.assignment.latePenaltyPercent || 0
-			const grade = this.rubric ? this.computedScore : (this.manualGrade || 0)
+			const grade = this.rubric ? this.computedScore : this.manualGrade || 0
 			return Math.round(grade * (1 - penalty / 100) * 100) / 100
 		},
 
@@ -335,15 +434,21 @@ export default {
 		 */
 		blendedSuggestion() {
 			const weightPercent = this.assignment.peerReviewWeightPercent
-			const averageScore = this.peerFeedbackSummary ? this.peerFeedbackSummary.averageScore : null
+			const averageScore = this.peerFeedbackSummary
+				? this.peerFeedbackSummary.averageScore
+				: null
 
 			if (weightPercent == null || averageScore == null) {
 				return null
 			}
 
-			const teacherScore = this.rubric ? this.computedScore : (this.manualGrade || 0)
+			const teacherScore = this.rubric
+				? this.computedScore
+				: this.manualGrade || 0
 			const w = weightPercent / 100
-			return Math.round((teacherScore * (1 - w) + averageScore * w) * 100) / 100
+			return (
+				Math.round((teacherScore * (1 - w) + averageScore * w) * 100) / 100
+			)
 		},
 	},
 
@@ -379,7 +484,9 @@ export default {
 
 			try {
 				await this.loadSubmission(submissionId)
-				await this.loadAssignment(this.submission.assignmentId ?? this.assignmentId)
+				await this.loadAssignment(
+					this.submission.assignmentId ?? this.assignmentId,
+				)
 
 				if (this.assignment.rubricId) {
 					await this.loadRubric(this.assignment.rubricId)
@@ -403,7 +510,10 @@ export default {
 					this.manualGrade = this.submission.proposedGrade
 				}
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load submission. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to load submission. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[MarkSubmissionView] loadData error', err)
 			} finally {
@@ -440,7 +550,9 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-28
 		 */
 		async loadAssignment(id) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Assignment/${id}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/Assignment/${id}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -495,7 +607,8 @@ export default {
 				return
 			}
 			const json = await resp.json()
-			const results = json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
+			const results =
+				json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
 			this.peerFeedbackSummary = results.length > 0 ? results[0] : null
 		},
 
@@ -519,7 +632,8 @@ export default {
 				return
 			}
 			const json = await resp.json()
-			const results = json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
+			const results =
+				json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
 			this.selfAssessment = results.length > 0 ? results[0] : null
 		},
 
@@ -544,7 +658,10 @@ export default {
 		selectLevel(criterion, level) {
 			this.selectedLevels = {
 				...this.selectedLevels,
-				[criterion.criterionId]: { levelId: level.levelId, points: level.points },
+				[criterion.criterionId]: {
+					levelId: level.levelId,
+					points: level.points,
+				},
 			}
 		},
 
@@ -577,7 +694,9 @@ export default {
 			this.saving = true
 			this.saveError = null
 
-			const proposedGrade = this.rubric ? this.computedScore : (this.manualGrade ?? null)
+			const proposedGrade = this.rubric
+				? this.computedScore
+				: (this.manualGrade ?? null)
 			const rubricScores = this.rubric ? this.buildRubricScores() : []
 
 			try {
@@ -634,7 +753,8 @@ export default {
 					})
 					if (gradeEntryResp.ok) {
 						const gradeEntryJson = await gradeEntryResp.json()
-						const gradeEntryId = (gradeEntryJson.object ?? gradeEntryJson)?.id ?? null
+						const gradeEntryId =
+							(gradeEntryJson.object ?? gradeEntryJson)?.id ?? null
 						if (gradeEntryId) {
 							// Back-link the GradeEntry to the Submission.
 							const linkUrl = generateUrl(
@@ -674,7 +794,10 @@ export default {
 				this.savedGrade = proposedGrade
 				this.returned = true
 			} catch (err) {
-				this.saveError = this.t('scholiq', 'Failed to save marking. Please try again.')
+				this.saveError = this.t(
+					'scholiq',
+					'Failed to save marking. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[MarkSubmissionView] saveAndReturn error', err)
 			} finally {
@@ -689,7 +812,8 @@ export default {
 .mark-submission-view {
 	max-width: 860px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .mark-submission-view__loading,

@@ -24,7 +24,12 @@
 				{{ t('scholiq', 'Import prior learning record') }}
 			</h2>
 			<p class="learning-record-import__intro">
-				{{ t('scholiq', 'Upload the applicant\'s exported Scholiq learning record, or a bare ELM/Europass credential set. Every record found in the bundle is reported — nothing is silently lost. This is evidence for your own decision, not an automatic write.') }}
+				{{
+					t(
+						'scholiq',
+						"Upload the applicant's exported Scholiq learning record, or a bare ELM/Europass credential set. Every record found in the bundle is reported — nothing is silently lost. This is evidence for your own decision, not an automatic write.",
+					)
+				}}
 			</p>
 		</header>
 
@@ -33,7 +38,10 @@
 			<label class="learning-record-import__label" for="lri-source-format">
 				{{ t('scholiq', 'Bundle format') }}
 			</label>
-			<select id="lri-source-format" v-model="sourceFormat" class="learning-record-import__select">
+			<select
+				id="lri-source-format"
+				v-model="sourceFormat"
+				class="learning-record-import__select">
 				<option value="scholiq-learning-record">
 					{{ t('scholiq', 'Scholiq learning record export') }}
 				</option>
@@ -52,7 +60,7 @@
 				type="file"
 				accept=".json"
 				:disabled="uploading"
-				@change="onFileSelected">
+				@change="onFileSelected" />
 
 			<p v-if="selectedFileName" class="learning-record-import__selected">
 				{{ t('scholiq', 'Selected: {name}', { name: selectedFileName }) }}
@@ -63,7 +71,11 @@
 				:disabled="uploading || !selectedFile"
 				@click="uploadBundle">
 				<span v-if="uploading" class="icon-loading" aria-hidden="true" />
-				{{ uploading ? t('scholiq', 'Uploading…') : t('scholiq', 'Upload and parse') }}
+				{{
+					uploading
+						? t('scholiq', 'Uploading…')
+						: t('scholiq', 'Upload and parse')
+				}}
 			</button>
 
 			<p v-if="uploadError" role="alert" class="learning-record-import__error">
@@ -87,10 +99,15 @@
 
 			<!-- Outcome filter -->
 			<div class="learning-record-import__filter">
-				<label class="learning-record-import__label" for="lri-outcome-filter">
+				<label
+					class="learning-record-import__label"
+					for="lri-outcome-filter">
 					{{ t('scholiq', 'Filter by outcome') }}
 				</label>
-				<select id="lri-outcome-filter" v-model="outcomeFilter" class="learning-record-import__select">
+				<select
+					id="lri-outcome-filter"
+					v-model="outcomeFilter"
+					class="learning-record-import__select">
 					<option value="all">
 						{{ t('scholiq', 'All records') }}
 					</option>
@@ -118,7 +135,8 @@
 						<td>{{ entry.sourceTitle }}</td>
 						<td>{{ entry.sourceSchema || '—' }}</td>
 						<td>
-							<span :class="`learning-record-import__badge learning-record-import__badge--${entry.outcome}`">
+							<span
+								:class="`learning-record-import__badge learning-record-import__badge--${entry.outcome}`">
 								{{ entry.outcome }}
 							</span>
 						</td>
@@ -175,11 +193,23 @@ export default {
 		verificationLabel() {
 			if (!this.report) return ''
 			const labels = {
-				verified: this.t('scholiq', 'Verified — the signing tenant is recognised by this school.'),
-				unverifiable: this.t('scholiq', 'Unverifiable — a well-formed bundle from a system this school does not recognise. This is expected, not an error.'),
-				invalid: this.t('scholiq', 'Signature invalid — this bundle may have been tampered with.'),
+				verified: this.t(
+					'scholiq',
+					'Verified — the signing tenant is recognised by this school.',
+				),
+				unverifiable: this.t(
+					'scholiq',
+					'Unverifiable — a well-formed bundle from a system this school does not recognise. This is expected, not an error.',
+				),
+				invalid: this.t(
+					'scholiq',
+					'Signature invalid — this bundle may have been tampered with.',
+				),
 			}
-			return labels[this.report.verificationStatus] ?? this.t('scholiq', 'Could not be parsed.')
+			return (
+				labels[this.report.verificationStatus]
+				?? this.t('scholiq', 'Could not be parsed.')
+			)
 		},
 
 		/**
@@ -188,7 +218,11 @@ export default {
 		 * @return {string}
 		 */
 		verificationSeverity() {
-			const map = { verified: 'success', unverifiable: 'warning', invalid: 'error' }
+			const map = {
+				verified: 'success',
+				unverifiable: 'warning',
+				invalid: 'error',
+			}
 			return map[this.report?.verificationStatus] ?? 'error'
 		},
 
@@ -235,7 +269,9 @@ export default {
 			formData.append('sourceFormat', this.sourceFormat)
 
 			try {
-				const url = generateUrl(`/apps/scholiq/api/applications/${this.applicationId}/learning-record-imports`)
+				const url = generateUrl(
+					`/apps/scholiq/api/applications/${this.applicationId}/learning-record-imports`,
+				)
 				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -252,7 +288,10 @@ export default {
 
 				this.report = json
 			} catch (err) {
-				this.uploadError = this.t('scholiq', 'Failed to upload the bundle. Please try again.')
+				this.uploadError = this.t(
+					'scholiq',
+					'Failed to upload the bundle. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[LearningRecordImportView] uploadBundle error', err)
 			} finally {
@@ -283,7 +322,8 @@ export default {
 .learning-record-import {
 	max-width: 960px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .learning-record-import__heading {

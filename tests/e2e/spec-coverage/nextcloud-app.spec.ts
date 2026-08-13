@@ -48,9 +48,10 @@ const APP_URL = '/index.php/apps/scholiq/'
 const PREFS_API = '/index.php/apps/openregister/api/notification-preferences'
 
 test.describe('nextcloud-app — Settings API and admin settings UI', () => {
-
 	// @e2e openspec/specs/nextcloud-app/spec.md#reading-current-settings
-	test('reading-current-settings: GET /api/settings returns register, openregisters, isAdmin', async ({ loggedInPage: page }) => {
+	test('reading-current-settings: GET /api/settings returns register, openregisters, isAdmin', async ({
+		loggedInPage: page,
+	}) => {
 		// Use the REST API as setup-only verification; the UI must also reflect the response.
 		const resp = await page.request.get(apiUrl(API_SETTINGS), {
 			headers: { 'OCS-APIREQUEST': 'true' },
@@ -71,14 +72,18 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 	})
 
 	// @e2e openspec/specs/nextcloud-app/spec.md#persisting-a-changed-setting
-	test('persisting-a-changed-setting: POST /api/settings persists register key and echoes merged settings', async ({ loggedInPage: page }) => {
+	test('persisting-a-changed-setting: POST /api/settings persists register key and echoes merged settings', async ({
+		loggedInPage: page,
+	}) => {
 		// POST a known register slug and check the response echoes it back
-		const requestToken = await page.evaluate(() => (window as any).OC?.requestToken ?? '')
+		const requestToken = await page.evaluate(
+			() => (window as any).OC?.requestToken ?? '',
+		)
 
 		const resp = await page.request.post(apiUrl(API_SETTINGS), {
 			headers: {
 				'Content-Type': 'application/json',
-				'requesttoken': requestToken,
+				requesttoken: requestToken,
 				'OCS-APIREQUEST': 'true',
 			},
 			data: JSON.stringify({ register: 'scholiq' }),
@@ -97,26 +102,36 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		// Also verify through the Settings UI that the page loads without error
 		await page.goto(SETTINGS_URL)
 		await page.waitForLoadState('domcontentloaded')
-		await expect(page.locator('h2, h1').filter({ hasText: /Scholiq Settings/i })).toBeVisible()
+		await expect(
+			page.locator('h2, h1').filter({ hasText: /Scholiq Settings/i }),
+		).toBeVisible()
 	})
 
 	// @e2e openspec/specs/nextcloud-app/spec.md#loading-the-register-picker
-	test('loading-the-register-picker: admin settings view shows populated register combobox', async ({ loggedInPage: page }) => {
+	test('loading-the-register-picker: admin settings view shows populated register combobox', async ({
+		loggedInPage: page,
+	}) => {
 		await page.goto(SETTINGS_URL)
 		await page.waitForLoadState('domcontentloaded')
 
 		// The settings page must be visible
-		await expect(page.locator('text=Scholiq Settings')).toBeVisible({ timeout: 15_000 })
+		await expect(page.locator('text=Scholiq Settings')).toBeVisible({
+			timeout: 15_000,
+		})
 
 		// The OpenRegister section heading must be present
-		await expect(page.locator('h2').filter({ hasText: /OpenRegister/i })).toBeVisible()
+		await expect(
+			page.locator('h2').filter({ hasText: /OpenRegister/i }),
+		).toBeVisible()
 
 		// The register combobox must be rendered (populated from OR /api/registers)
 		const picker = page.locator('select, [role="combobox"]').first()
 		await expect(picker).toBeVisible()
 
 		// AI Features section must also be present (loaded in parallel)
-		await expect(page.locator('h2').filter({ hasText: /AI Features/i })).toBeVisible()
+		await expect(
+			page.locator('h2').filter({ hasText: /AI Features/i }),
+		).toBeVisible()
 
 		// This used to assert a `<th>Feature</th>`, i.e. that Scholiq rendered its
 		// OWN AI-feature register table. That surface no longer exists: under
@@ -131,24 +146,33 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		// legitimate and depend only on whether Hermiq is installed on the
 		// instance, so accept either — but require one of them, so a section that
 		// rendered empty still fails.
-		const hermiqLink = page.getByRole('button', { name: /Open the AI-feature register in Hermiq/i })
-		const hermiqMissingNotice = page.getByText(/Install and enable the Hermiq app/i)
+		const hermiqLink = page.getByRole('button', {
+			name: /Open the AI-feature register in Hermiq/i,
+		})
+		const hermiqMissingNotice = page.getByText(
+			/Install and enable the Hermiq app/i,
+		)
 		await expect(hermiqLink.or(hermiqMissingNotice).first()).toBeVisible()
 	})
 
 	// @e2e openspec/specs/nextcloud-app/spec.md#saving-the-default-register
-	test('saving-the-default-register: selecting a register in the picker POSTs to settings API', async ({ loggedInPage: page }) => {
+	test('saving-the-default-register: selecting a register in the picker POSTs to settings API', async ({
+		loggedInPage: page,
+	}) => {
 		await page.goto(SETTINGS_URL)
 		await page.waitForLoadState('domcontentloaded')
-		await expect(page.locator('text=Scholiq Settings')).toBeVisible({ timeout: 15_000 })
+		await expect(page.locator('text=Scholiq Settings')).toBeVisible({
+			timeout: 15_000,
+		})
 
 		// Intercept the POST to /api/settings to verify it fires with a register slug
-		const settingsPostPromise = page.waitForRequest(
-			(req) =>
-				req.url().includes('/api/settings') &&
-				req.method() === 'POST',
-			{ timeout: 10_000 },
-		).catch(() => null)
+		const settingsPostPromise = page
+			.waitForRequest(
+				(req) =>
+					req.url().includes('/api/settings') && req.method() === 'POST',
+				{ timeout: 10_000 },
+			)
+			.catch(() => null)
 
 		// Open the combobox dropdown and select 'scholiq' register
 		const combobox = page.locator('[role="combobox"]').first()
@@ -156,8 +180,13 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		await combobox.click()
 
 		// Look for an option with 'scholiq' in the dropdown
-		const scholiqOption = page.locator('[role="option"]').filter({ hasText: /scholiq/i }).first()
-		const optionVisible = await scholiqOption.isVisible({ timeout: 5_000 }).catch(() => false)
+		const scholiqOption = page
+			.locator('[role="option"]')
+			.filter({ hasText: /scholiq/i })
+			.first()
+		const optionVisible = await scholiqOption
+			.isVisible({ timeout: 5_000 })
+			.catch(() => false)
 
 		if (optionVisible) {
 			await scholiqOption.click()
@@ -180,22 +209,29 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 	})
 
 	// @e2e openspec/specs/nextcloud-app/spec.md#rotating-the-signing-key
-	test('rotating-the-signing-key: clicking Rotate signing key shows success or failure message', async ({ loggedInPage: page }) => {
+	test('rotating-the-signing-key: clicking Rotate signing key shows success or failure message', async ({
+		loggedInPage: page,
+	}) => {
 		await page.goto(SETTINGS_URL)
 		await page.waitForLoadState('domcontentloaded')
-		await expect(page.locator('text=Credential Signing')).toBeVisible({ timeout: 15_000 })
+		await expect(page.locator('text=Credential Signing')).toBeVisible({
+			timeout: 15_000,
+		})
 
 		// The rotate button must be present
-		const rotateBtn = page.locator('button').filter({ hasText: /Rotate signing key/i })
+		const rotateBtn = page
+			.locator('button')
+			.filter({ hasText: /Rotate signing key/i })
 		await expect(rotateBtn).toBeVisible()
 
 		// Intercept the POST to settings/load (the observed rotation endpoint)
-		const rotateRequest = page.waitForRequest(
-			(req) =>
-				req.url().includes('/api/settings') &&
-				req.method() === 'POST',
-			{ timeout: 8_000 },
-		).catch(() => null)
+		const rotateRequest = page
+			.waitForRequest(
+				(req) =>
+					req.url().includes('/api/settings') && req.method() === 'POST',
+				{ timeout: 8_000 },
+			)
+			.catch(() => null)
 
 		await rotateBtn.click()
 
@@ -205,7 +241,9 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		// A localized success or failure message must be shown (NC toast / inline alert)
 		// Accept any of: success toast, error toast, or inline status text.
 		const feedbackLocators = [
-			page.locator('[class*="toast"], [class*="notification"], [role="alert"]').first(),
+			page
+				.locator('[class*="toast"], [class*="notification"], [role="alert"]')
+				.first(),
 			page.locator('text=/success|error|rotated|failed|key/i').first(),
 		]
 
@@ -218,19 +256,24 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		}
 
 		// The rotate button (or a result message) must remain accessible — page did not crash
-		const btnStillVisible = await rotateBtn.isVisible({ timeout: 2_000 }).catch(() => false)
-		const pageContent = await page.textContent('body') ?? ''
+		const btnStillVisible = await rotateBtn
+			.isVisible({ timeout: 2_000 })
+			.catch(() => false)
+		const pageContent = (await page.textContent('body')) ?? ''
 		expect(
-			feedbackFound || btnStillVisible || pageContent.includes('Credential Signing'),
+			feedbackFound
+				|| btnStillVisible
+				|| pageContent.includes('Credential Signing'),
 			'Expected page to remain functional after rotate action',
 		).toBe(true)
 	})
 })
 
 test.describe('nextcloud-app — per-user notification preferences', () => {
-
 	// @e2e openspec/specs/nextcloud-app/spec.md#preferences-reflect-current-overrides
-	test('preferences-reflect-current-overrides: GET notification-preferences is queryable and per-user dialog wires to it', async ({ loggedInPage: page }) => {
+	test('preferences-reflect-current-overrides: GET notification-preferences is queryable and per-user dialog wires to it', async ({
+		loggedInPage: page,
+	}) => {
 		// The per-user dialog reads overrides from OpenRegister's endpoint. Confirm the
 		// endpoint is reachable (OR installed) and returns a JSON shape the panel consumes.
 		const resp = await page.request.get(apiUrl(PREFS_API), {
@@ -249,18 +292,26 @@ test.describe('nextcloud-app — per-user notification preferences', () => {
 	})
 
 	// @e2e openspec/specs/nextcloud-app/spec.md#user-disables-a-notification-type
-	test('user-disables-a-notification-type: PUT notification-preferences accepts an override write', async ({ loggedInPage: page }) => {
-		const requestToken = await page.evaluate(() => (window as any).OC?.requestToken ?? '')
+	test('user-disables-a-notification-type: PUT notification-preferences accepts an override write', async ({
+		loggedInPage: page,
+	}) => {
+		const requestToken = await page.evaluate(
+			() => (window as any).OC?.requestToken ?? '',
+		)
 
 		// Writing an override goes to OpenRegister's PUT endpoint (no scholiq-local store).
 		// Assert the endpoint accepts the override-write contract the panel uses.
 		const resp = await page.request.put(apiUrl(PREFS_API), {
 			headers: {
 				'Content-Type': 'application/json',
-				'requesttoken': requestToken,
+				requesttoken: requestToken,
 				'OCS-APIREQUEST': 'true',
 			},
-			data: JSON.stringify({ schema: 'Credential', notification: 'issuedToLearner', enabled: false }),
+			data: JSON.stringify({
+				schema: 'Credential',
+				notification: 'issuedToLearner',
+				enabled: false,
+			}),
 		})
 		// The OR endpoint must not reject the documented payload shape with a client error
 		// other than validation; accept the documented success/no-content/validation range.

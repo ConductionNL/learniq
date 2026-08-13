@@ -26,21 +26,31 @@
  @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-without-a-reason-is-refused
 -->
 <template>
-	<NcDialog :open="true"
+	<NcDialog
+		:open="true"
 		:name="dialogTitle"
-		@update:open="v => { if (!v) $emit('close') }">
+		@update:open="
+			(v) => {
+				if (!v) $emit('close')
+			}
+		">
 		<div class="substitution-modal">
 			<NcNoteCard v-if="error" type="error">
 				{{ error }}
 			</NcNoteCard>
 
-			<div class="substitution-modal__mode" role="group" :aria-label="t('scholiq', 'Action')">
-				<NcButton :variant="mode === 'cancel' ? 'primary' : 'secondary'"
+			<div
+				class="substitution-modal__mode"
+				role="group"
+				:aria-label="t('scholiq', 'Action')">
+				<NcButton
+					:variant="mode === 'cancel' ? 'primary' : 'secondary'"
 					:disabled="saving"
 					@click="mode = 'cancel'">
 					{{ t('scholiq', 'Cancel session') }}
 				</NcButton>
-				<NcButton :variant="mode === 'substitute' ? 'primary' : 'secondary'"
+				<NcButton
+					:variant="mode === 'substitute' ? 'primary' : 'secondary'"
 					:disabled="saving"
 					@click="mode = 'substitute'">
 					{{ t('scholiq', 'Assign substitute teacher') }}
@@ -48,26 +58,35 @@
 			</div>
 
 			<div class="substitution-modal__field">
-				<label for="substitution-reason-kind">{{ t('scholiq', 'Reason') }}</label>
-				<NcSelect id="substitution-reason-kind"
+				<label for="substitution-reason-kind">{{
+					t('scholiq', 'Reason')
+				}}</label>
+				<NcSelect
+					id="substitution-reason-kind"
 					v-model="changeReasonKind"
 					:input-label="t('scholiq', 'Reason')"
 					:options="reasonOptions"
-					:reduce="opt => opt.value"
+					:reduce="(opt) => opt.value"
 					:clearable="false" />
 			</div>
 
 			<div v-if="mode === 'substitute'" class="substitution-modal__field">
-				<label for="substitution-teacher-id">{{ t('scholiq', 'Substitute teacher (Nextcloud user ID)') }}</label>
-				<input id="substitution-teacher-id"
+				<label for="substitution-teacher-id">{{
+					t('scholiq', 'Substitute teacher (Nextcloud user ID)')
+				}}</label>
+				<input
+					id="substitution-teacher-id"
 					v-model="substituteTeacherId"
 					type="text"
-					class="substitution-modal__input">
+					class="substitution-modal__input" />
 			</div>
 
 			<div class="substitution-modal__field">
-				<label for="substitution-note">{{ t('scholiq', 'Note (optional)') }}</label>
-				<textarea id="substitution-note"
+				<label for="substitution-note">{{
+					t('scholiq', 'Note (optional)')
+				}}</label>
+				<textarea
+					id="substitution-note"
 					v-model="changeReason"
 					class="substitution-modal__textarea"
 					rows="3" />
@@ -78,7 +97,8 @@
 			<NcButton @click="$emit('close')">
 				{{ t('scholiq', 'Close') }}
 			</NcButton>
-			<NcButton variant="primary"
+			<NcButton
+				variant="primary"
 				:disabled="!canSubmit || saving"
 				@click="submit">
 				{{ saving ? t('scholiq', 'Saving…') : submitLabel }}
@@ -129,7 +149,9 @@ export default {
 		 * @return {string}
 		 */
 		dialogTitle() {
-			return t('scholiq', 'Manage "{title}"', { title: this.session.title || t('scholiq', 'Untitled session') })
+			return t('scholiq', 'Manage "{title}"', {
+				title: this.session.title || t('scholiq', 'Untitled session'),
+			})
 		},
 
 		/**
@@ -140,8 +162,14 @@ export default {
 		reasonOptions() {
 			return [
 				{ value: 'teacher-absence', label: t('scholiq', 'Teacher absence') },
-				{ value: 'room-unavailable', label: t('scholiq', 'Room unavailable') },
-				{ value: 'timetable-change', label: t('scholiq', 'Timetable change') },
+				{
+					value: 'room-unavailable',
+					label: t('scholiq', 'Room unavailable'),
+				},
+				{
+					value: 'timetable-change',
+					label: t('scholiq', 'Timetable change'),
+				},
 				{ value: 'other', label: t('scholiq', 'Other') },
 			]
 		},
@@ -152,7 +180,9 @@ export default {
 		 * @return {string}
 		 */
 		submitLabel() {
-			return this.mode === 'cancel' ? t('scholiq', 'Cancel session') : t('scholiq', 'Assign substitute')
+			return this.mode === 'cancel'
+				? t('scholiq', 'Cancel session')
+				: t('scholiq', 'Assign substitute')
 		},
 
 		/**
@@ -162,7 +192,8 @@ export default {
 		 */
 		canSubmit() {
 			if (!this.changeReasonKind) return false
-			if (this.mode === 'substitute' && !this.substituteTeacherId.trim()) return false
+			if (this.mode === 'substitute' && !this.substituteTeacherId.trim())
+				return false
 			return true
 		},
 	},
@@ -187,7 +218,8 @@ export default {
 			this.error = ''
 
 			const body = {
-				lifecycle: this.mode === 'cancel' ? 'cancelled' : this.session.lifecycle,
+				lifecycle:
+					this.mode === 'cancel' ? 'cancelled' : this.session.lifecycle,
 				changeReasonKind: this.changeReasonKind,
 				changeReason: this.changeReason || null,
 			}
@@ -196,13 +228,19 @@ export default {
 			}
 
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/session/{id}', { id: this.session.id })
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/session/{id}',
+					{ id: this.session.id },
+				)
 				await axios.put(url, body)
 				this.$emit('changed')
 				this.$emit('close')
 			} catch (e) {
 				console.error('[SubstitutionModal] submit failed', e)
-				this.error = t('scholiq', 'Could not save this change. Please check the reason and try again.')
+				this.error = t(
+					'scholiq',
+					'Could not save this change. Please check the reason and try again.',
+				)
 			} finally {
 				this.saving = false
 			}

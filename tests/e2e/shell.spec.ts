@@ -31,16 +31,19 @@ test.describe('Scholiq shell', () => {
 		// errors from other NC apps (Photos, Pipelinq, etc.) that are unrelated to Scholiq.
 		const fatalErrors = errors.filter(
 			(e) =>
-				!e.includes('favicon') &&
-				!e.includes('font') &&
-				!e.includes('Failed to load resource') &&
-				!e.includes('net::ERR_ABORTED') &&
-				!e.includes('Failed to fetch') &&
-				!e.includes('ERR_CONNECTION_REFUSED') &&
-				!e.includes('[FATAL] photos') &&
-				!e.includes('Pipelinq'),
+				!e.includes('favicon')
+				&& !e.includes('font')
+				&& !e.includes('Failed to load resource')
+				&& !e.includes('net::ERR_ABORTED')
+				&& !e.includes('Failed to fetch')
+				&& !e.includes('ERR_CONNECTION_REFUSED')
+				&& !e.includes('[FATAL] photos')
+				&& !e.includes('Pipelinq'),
 		)
-		expect(fatalErrors, `Fatal JS errors: ${fatalErrors.join('; ')}`).toHaveLength(0)
+		expect(
+			fatalErrors,
+			`Fatal JS errors: ${fatalErrors.join('; ')}`,
+		).toHaveLength(0)
 	})
 
 	test('nav contains expected menu items', async ({ loggedInPage: page }) => {

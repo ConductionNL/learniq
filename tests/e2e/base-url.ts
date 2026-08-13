@@ -58,9 +58,9 @@ export function baseUrl(): string {
 
 	throw new Error(
 		'No Nextcloud base URL configured for the e2e suite. Set one of '
-		+ candidates.join(', ')
-		+ '. There is deliberately no default: the old default was the SHARED '
-		+ 'developer instance on :8080, which bind-mounts real host checkouts.',
+			+ candidates.join(', ')
+			+ '. There is deliberately no default: the old default was the SHARED '
+			+ 'developer instance on :8080, which bind-mounts real host checkouts.',
 	)
 }
 

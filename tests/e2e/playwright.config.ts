@@ -143,7 +143,13 @@ export default defineConfig({
 
 	reporter: [
 		['list'],
-		['html', { open: 'never', outputFolder: path.join(APP_ROOT, 'playwright-report') }],
+		[
+			'html',
+			{
+				open: 'never',
+				outputFolder: path.join(APP_ROOT, 'playwright-report'),
+			},
+		],
 	],
 	outputDir: path.join(APP_ROOT, 'test-results'),
 

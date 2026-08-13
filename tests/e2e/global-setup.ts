@@ -45,9 +45,13 @@ function runSeed(): void {
 		const status = fs.readFileSync(SEED_MARKER, 'utf8').trim()
 		if (status === 'full') {
 			process.env.SCHOLIQ_E2E_SEEDED = '1'
-			console.log('[global-setup] seed already done by ci-seed.sh (full) — skipping')
+			console.log(
+				'[global-setup] seed already done by ci-seed.sh (full) — skipping',
+			)
 		} else {
-			console.warn(`[global-setup] seed already done by ci-seed.sh (${status}) — skipping; index specs will not assert row counts`)
+			console.warn(
+				`[global-setup] seed already done by ci-seed.sh (${status}) — skipping; index specs will not assert row counts`,
+			)
 		}
 		return
 	}
@@ -69,7 +73,10 @@ function runSeed(): void {
 		process.env.SCHOLIQ_E2E_SEEDED = '1'
 		console.log('[global-setup] example data seeded')
 	} catch (err: any) {
-		console.warn('[global-setup] seed skipped/failed (continuing — index specs will not assert row counts):', err?.message ?? err)
+		console.warn(
+			'[global-setup] seed skipped/failed (continuing — index specs will not assert row counts):',
+			err?.message ?? err,
+		)
 		if (err?.stdout) process.stdout.write(err.stdout)
 	}
 }
@@ -110,7 +117,9 @@ async function globalSetup(): Promise<void> {
 
 			// Wait for the redirect away from login
 			await page
-				.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 30_000 })
+				.waitForURL((url) => !url.pathname.includes('/login'), {
+					timeout: 30_000,
+				})
 				.catch(() => {
 					// May already be redirected
 				})

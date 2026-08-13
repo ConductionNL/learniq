@@ -37,9 +37,12 @@ import { test, expect } from '../fixtures'
 // ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
 // `#/…` URL resolves to a location no route matches and renders an empty app body.
 // See accessibility-conformance.spec.ts for the measurement.
-const LEARNING_RECORD_EXPORTS_INDEX_URL = '/index.php/apps/scholiq/learning-records/exports'
-const LEARNING_RECORD_SHARES_INDEX_URL = '/index.php/apps/scholiq/learning-records/shares'
-const LEARNING_RECORD_IMPORTS_INDEX_URL = '/index.php/apps/scholiq/learning-records/imports'
+const LEARNING_RECORD_EXPORTS_INDEX_URL =
+	'/index.php/apps/scholiq/learning-records/exports'
+const LEARNING_RECORD_SHARES_INDEX_URL =
+	'/index.php/apps/scholiq/learning-records/shares'
+const LEARNING_RECORD_IMPORTS_INDEX_URL =
+	'/index.php/apps/scholiq/learning-records/imports'
 const MY_LEARNING_RECORD_URL = '/index.php/apps/scholiq/learning-records/me'
 const APPLICATIONS_INDEX_URL = '/index.php/apps/scholiq/admissions/applications'
 
@@ -72,8 +75,9 @@ function assertNoFatalErrors(errors: string[]): void {
 }
 
 test.describe('portable-learning-record — declarative index pages', () => {
-
-	test('LearningRecordExports index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('LearningRecordExports index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(LEARNING_RECORD_EXPORTS_INDEX_URL)
@@ -86,7 +90,9 @@ test.describe('portable-learning-record — declarative index pages', () => {
 		assertNoFatalErrors(errors)
 	})
 
-	test('LearningRecordShares index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('LearningRecordShares index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(LEARNING_RECORD_SHARES_INDEX_URL)
@@ -100,7 +106,9 @@ test.describe('portable-learning-record — declarative index pages', () => {
 	})
 
 	// @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-an-imported-record-is-visible-from-the-application-it-was-uploaded-against
-	test('LearningRecordImports index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('LearningRecordImports index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(LEARNING_RECORD_IMPORTS_INDEX_URL)
@@ -116,7 +124,9 @@ test.describe('portable-learning-record — declarative index pages', () => {
 	// admissions-and-subject-choice already covers Applications index rendering;
 	// re-visited here only to confirm the new related-index panel (resolving
 	// LearningRecordImport rows by applicationId) does not break ApplicationDetail.
-	test('Applications index page still renders without a fatal error after the related-index panel addition', async ({ loggedInPage: page }) => {
+	test('Applications index page still renders without a fatal error after the related-index panel addition', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(APPLICATIONS_INDEX_URL)
@@ -131,12 +141,13 @@ test.describe('portable-learning-record — declarative index pages', () => {
 })
 
 test.describe('portable-learning-record — custom views resolve (registry.js wiring)', () => {
-
 	// @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-learner-opens-their-aggregate-record-and-sees-composed-read-only-data
 	// @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
 	// @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-learner-creates-a-share-with-a-mandatory-expiry
 	// @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-revoking-a-share-immediately-invalidates-its-verification-link
-	test('MyLearningRecordView route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
+	test('MyLearningRecordView route resolves the registered component, not a blank/404 shell', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		// The admin session likely has no bound LearnerProfile — MyLearningRecordView's
@@ -160,10 +171,14 @@ test.describe('portable-learning-record — custom views resolve (registry.js wi
 	})
 
 	// @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
-	test('LearningRecordImportView route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
+	test('LearningRecordImportView route resolves the registered component, not a blank/404 shell', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
-		await page.goto('/index.php/apps/scholiq/admissions/applications/00000000-0000-0000-0000-000000000000/learning-record-import')
+		await page.goto(
+			'/index.php/apps/scholiq/admissions/applications/00000000-0000-0000-0000-000000000000/learning-record-import',
+		)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
 
@@ -174,10 +189,14 @@ test.describe('portable-learning-record — custom views resolve (registry.js wi
 	})
 
 	// @e2e openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-valid-unexpired-share-resolves-to-the-shared-bundle
-	test('LearningRecordShareVerifyView route resolves the registered component and renders a denied state for an unknown share', async ({ loggedInPage: page }) => {
+	test('LearningRecordShareVerifyView route resolves the registered component and renders a denied state for an unknown share', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
-		await page.goto('/index.php/apps/scholiq/learning-record-shares/00000000-0000-0000-0000-000000000000/verify')
+		await page.goto(
+			'/index.php/apps/scholiq/learning-record-shares/00000000-0000-0000-0000-000000000000/verify',
+		)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` —
 		// see ADR-074 rule 4 / hydra gate 58.
 		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })

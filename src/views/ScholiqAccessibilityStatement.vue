@@ -23,11 +23,20 @@
 
 <template>
 	<div class="accessibility-statement">
-		<NcLoadingIcon v-if="loading" :size="44" class="accessibility-statement__loading" />
+		<NcLoadingIcon
+			v-if="loading"
+			:size="44"
+			class="accessibility-statement__loading" />
 
-		<NcEmptyContent v-else-if="!statement"
+		<NcEmptyContent
+			v-else-if="!statement"
 			:name="t('scholiq', 'No accessibility statement published yet')"
-			:description="t('scholiq', 'The compliance officer has not published a toegankelijkheidsverklaring for this environment yet.')">
+			:description="
+				t(
+					'scholiq',
+					'The compliance officer has not published a toegankelijkheidsverklaring for this environment yet.',
+				)
+			">
 			<template #icon>
 				<span class="icon-info" />
 			</template>
@@ -77,7 +86,9 @@
 			</dl>
 
 			<h3>{{ t('scholiq', 'Known limitations') }}</h3>
-			<p v-if="limitations.length === 0" class="accessibility-statement__no-limitations">
+			<p
+				v-if="limitations.length === 0"
+				class="accessibility-statement__no-limitations">
 				{{ t('scholiq', 'No known limitations are currently logged.') }}
 			</p>
 			<table v-else class="accessibility-statement__limitations">
@@ -96,7 +107,12 @@
 						<td>{{ limitation.severity }}</td>
 						<td>{{ limitation.affectedSurface }}</td>
 						<td>{{ limitation.lifecycle }}</td>
-						<td>{{ limitation.plannedFixDate || t('scholiq', 'Not yet determined') }}</td>
+						<td>
+							{{
+								limitation.plannedFixDate
+								|| t('scholiq', 'Not yet determined')
+							}}
+						</td>
 					</tr>
 				</tbody>
 			</table>
@@ -162,7 +178,10 @@ export default {
 			if (!this.statement || !this.statement.status) {
 				return ''
 			}
-			return this.t('scholiq', STATUS_LABELS[this.statement.status] ?? this.statement.status)
+			return this.t(
+				'scholiq',
+				STATUS_LABELS[this.statement.status] ?? this.statement.status,
+			)
 		},
 	},
 
@@ -184,20 +203,40 @@ export default {
 
 			if (typeof store.registerObjectType === 'function') {
 				store.registerObjectType(STATEMENT_TYPE, STATEMENT_SCHEMA, REGISTER)
-				store.registerObjectType(LIMITATION_TYPE, LIMITATION_SCHEMA, REGISTER)
+				store.registerObjectType(
+					LIMITATION_TYPE,
+					LIMITATION_SCHEMA,
+					REGISTER,
+				)
 			}
 
-			const results = typeof store.fetchCollection === 'function'
-				? await store.fetchCollection(STATEMENT_TYPE, { lifecycle: 'published', _limit: 1 }).catch(() => [])
-				: []
-			this.statement = Array.isArray(results) && results.length > 0 ? results[0] : null
+			const results =
+				typeof store.fetchCollection === 'function'
+					? await store
+							.fetchCollection(STATEMENT_TYPE, {
+								lifecycle: 'published',
+								_limit: 1,
+							})
+							.catch(() => [])
+					: []
+			this.statement =
+				Array.isArray(results) && results.length > 0 ? results[0] : null
 
 			if (this.statement) {
-				const statementId = this.statement.id ?? (this.statement['@self'] && this.statement['@self'].id)
-				const limitationResults = typeof store.fetchCollection === 'function'
-					? await store.fetchCollection(LIMITATION_TYPE, { accessibilityStatementId: statementId }).catch(() => [])
+				const statementId =
+					this.statement.id
+					?? (this.statement['@self'] && this.statement['@self'].id)
+				const limitationResults =
+					typeof store.fetchCollection === 'function'
+						? await store
+								.fetchCollection(LIMITATION_TYPE, {
+									accessibilityStatementId: statementId,
+								})
+								.catch(() => [])
+						: []
+				this.limitations = Array.isArray(limitationResults)
+					? limitationResults
 					: []
-				this.limitations = Array.isArray(limitationResults) ? limitationResults : []
 			} else {
 				this.limitations = []
 			}
@@ -240,7 +279,8 @@ export default {
 	&__fields {
 		display: grid;
 		grid-template-columns: max-content 1fr;
-		gap: calc(var(--default-grid-baseline, 4px) * 2) calc(var(--default-grid-baseline, 4px) * 4);
+		gap: calc(var(--default-grid-baseline, 4px) * 2)
+			calc(var(--default-grid-baseline, 4px) * 4);
 		margin-bottom: calc(var(--default-grid-baseline, 4px) * 6);
 
 		dt {
@@ -257,7 +297,8 @@ export default {
 		width: 100%;
 		border-collapse: collapse;
 
-		th, td {
+		th,
+		td {
 			text-align: left;
 			padding: calc(var(--default-grid-baseline, 4px) * 2);
 			border-bottom: 1px solid var(--color-border);

@@ -67,9 +67,10 @@ let appBase: string | null = null
 async function resolveAppBase(page: Page): Promise<string> {
 	if (appBase) return appBase
 	await page.goto('/index.php/apps/scholiq/')
-	const base = await page.evaluate(
-		() => (window as unknown as { OC: { generateUrl: (_p: string) => string } })
-			.OC.generateUrl('/apps/scholiq'),
+	const base = await page.evaluate(() =>
+		(
+			window as unknown as { OC: { generateUrl: (_p: string) => string } }
+		).OC.generateUrl('/apps/scholiq'),
 	)
 	expect(base, 'OC.generateUrl did not resolve the scholiq app base').toBeTruthy()
 	appBase = base.replace(/\/+$/, '')
@@ -83,8 +84,11 @@ async function resolveAppBase(page: Page): Promise<string> {
  * @return The matching manifest page entries.
  */
 function pagesUnder(prefixes: string[]): ManifestPage[] {
-	return PAGES.filter((p) => typeof p.route === 'string'
-		&& prefixes.some((x) => (p.route as string).startsWith(x)))
+	return PAGES.filter(
+		(p) =>
+			typeof p.route === 'string'
+			&& prefixes.some((x) => (p.route as string).startsWith(x)),
+	)
 }
 
 /**
@@ -99,22 +103,31 @@ function assertDeclarativeExcept(
 	expectedCustom: Array<[string, string]>,
 ): void {
 	const area = pagesUnder(prefixes)
-	expect(area.length, `no manifest pages found under ${prefixes.join(', ')}`)
-		.toBeGreaterThan(expectedCustom.length)
+	expect(
+		area.length,
+		`no manifest pages found under ${prefixes.join(', ')}`,
+	).toBeGreaterThan(expectedCustom.length)
 
 	const custom = area
 		.filter((p) => p.type === 'custom')
 		.map((p) => [p.route as string, p.component as string] as [string, string])
 		.sort((a, b) => a[0].localeCompare(b[0]))
-	expect(custom).toEqual([...expectedCustom].sort((a, b) => a[0].localeCompare(b[0])))
+	expect(custom).toEqual(
+		[...expectedCustom].sort((a, b) => a[0].localeCompare(b[0])),
+	)
 
 	// Every other page in the area is a declarative renderer type AND declares
 	// no component of its own — "declarative" means the manifest renderer draws
 	// it, not that somebody wrote `type: "custom"` somewhere else.
 	for (const p of area.filter((x) => x.type !== 'custom')) {
-		expect(['index', 'detail', 'dashboard', 'logs'], `${p.route} is not a declarative page type`)
-			.toContain(p.type)
-		expect(p.component, `${p.route} is declarative but names a component`).toBeFalsy()
+		expect(
+			['index', 'detail', 'dashboard', 'logs'],
+			`${p.route} is not a declarative page type`,
+		).toContain(p.type)
+		expect(
+			p.component,
+			`${p.route} is declarative but names a component`,
+		).toBeFalsy()
 	}
 }
 
@@ -178,19 +191,22 @@ async function assertNoCrudController(page: Page, slugs: string[]): Promise<void
 		`/index.php/apps/scholiq/api/${slug}`,
 		`/index.php/apps/scholiq/api/${slug}s`,
 	])
-	const results = await Promise.all(paths.map(async (path) => {
-		const resp = await page.request.get(path, {
-			headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-		})
-		return `${path} -> ${resp.status()} ${resp.headers()['content-type'] ?? ''}`
-	}))
+	const results = await Promise.all(
+		paths.map(async (path) => {
+			const resp = await page.request.get(path, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
+			return `${path} -> ${resp.status()} ${resp.headers()['content-type'] ?? ''}`
+		}),
+	)
 	for (const line of results) {
-		expect(line, 'a scholiq CRUD controller answers for this schema').toMatch(/text\/html/)
+		expect(line, 'a scholiq CRUD controller answers for this schema').toMatch(
+			/text\/html/,
+		)
 	}
 }
 
 test.describe('declarative frontends with named custom views', () => {
-
 	/*
 	 * ⚠️ **SPLIT IN TWO ON PURPOSE — DO NOT RECOMBINE.**
 	 * parent-conferences is the only area declaring TWO custom views, so as one
@@ -215,53 +231,88 @@ test.describe('declarative frontends with named custom views', () => {
 	 */
 
 	// @e2e openspec/specs/parent-conferences/spec.md#booking-and-coordinator-resolution-use-the-two-named-custom-views-only
-	test('parent-conferences: BookConferenceSlotsView is one of exactly two custom pages, and it renders', async ({ loggedInPage: page }) => {
-		assertDeclarativeExcept(['/conferences'], [
-			['/conferences/book', 'BookConferenceSlotsView'],
-			['/conferences/schedule-board', 'ConferenceScheduleBoard'],
-		])
+	test('parent-conferences: BookConferenceSlotsView is one of exactly two custom pages, and it renders', async ({
+		loggedInPage: page,
+	}) => {
+		assertDeclarativeExcept(
+			['/conferences'],
+			[
+				['/conferences/book', 'BookConferenceSlotsView'],
+				['/conferences/schedule-board', 'ConferenceScheduleBoard'],
+			],
+		)
 		const base = await resolveAppBase(page)
 
 		await page.goto(`${base}/conferences/book`)
-		await expect(page.locator('.book-conference-slots')).toBeVisible({ timeout: 20_000 })
+		await expect(page.locator('.book-conference-slots')).toBeVisible({
+			timeout: 20_000,
+		})
 	})
 
 	// @e2e openspec/specs/parent-conferences/spec.md#booking-and-coordinator-resolution-use-the-two-named-custom-views-only
-	test('parent-conferences: ConferenceScheduleBoard renders and no PHP CRUD controller answers', async ({ loggedInPage: page }) => {
-		assertDeclarativeExcept(['/conferences'], [
-			['/conferences/book', 'BookConferenceSlotsView'],
-			['/conferences/schedule-board', 'ConferenceScheduleBoard'],
-		])
+	test('parent-conferences: ConferenceScheduleBoard renders and no PHP CRUD controller answers', async ({
+		loggedInPage: page,
+	}) => {
+		assertDeclarativeExcept(
+			['/conferences'],
+			[
+				['/conferences/book', 'BookConferenceSlotsView'],
+				['/conferences/schedule-board', 'ConferenceScheduleBoard'],
+			],
+		)
 		const base = await resolveAppBase(page)
 
 		await page.goto(`${base}/conferences/schedule-board`)
-		await expect(page.locator('.conference-schedule-board')).toBeVisible({ timeout: 20_000 })
+		await expect(page.locator('.conference-schedule-board')).toBeVisible({
+			timeout: 20_000,
+		})
 
 		await assertRouteAnswers(page)
-		await assertNoCrudController(page, ['conference-round', 'conference-slot', 'conference-signup', 'conference-report'])
+		await assertNoCrudController(page, [
+			'conference-round',
+			'conference-slot',
+			'conference-signup',
+			'conference-report',
+		])
 	})
 
 	// @e2e openspec/specs/timetabling/spec.md#render-the-timetabling-surface-declaratively-with-named-views
-	test('timetabling: TimetableConflictQueue is the only custom page', async ({ loggedInPage: page }) => {
-		assertDeclarativeExcept(['/timetable', '/rooms', '/exam-accommodations'], [
-			['/timetable-conflict-queue', 'TimetableConflictQueue'],
-		])
+	test('timetabling: TimetableConflictQueue is the only custom page', async ({
+		loggedInPage: page,
+	}) => {
+		assertDeclarativeExcept(
+			['/timetable', '/rooms', '/exam-accommodations'],
+			[['/timetable-conflict-queue', 'TimetableConflictQueue']],
+		)
 		const base = await resolveAppBase(page)
 
 		await page.goto(`${base}/timetable-conflict-queue`)
-		await expect(page.locator('.timetable-conflict-queue')).toBeVisible({ timeout: 20_000 })
-		await expect(page.locator('.timetable-conflict-queue__title')).toHaveText(/Timetable conflicts/i)
+		await expect(page.locator('.timetable-conflict-queue')).toBeVisible({
+			timeout: 20_000,
+		})
+		await expect(page.locator('.timetable-conflict-queue__title')).toHaveText(
+			/Timetable conflicts/i,
+		)
 
 		await assertRouteAnswers(page)
-		await assertNoCrudController(page, ['room', 'timetable-conflict', 'exam-accommodation'])
+		await assertNoCrudController(page, [
+			'room',
+			'timetable-conflict',
+			'exam-accommodation',
+		])
 	})
 
 	// @e2e openspec/specs/exam-board/spec.md#pages-are-manifest-declared-with-one-shared-dossier-view-exception
-	test('exam-board: ExamCaseDossierView is the only custom page, shared by both case types', async ({ loggedInPage: page }) => {
-		assertDeclarativeExcept(['/exam-board'], [
-			['/exam-board/exemptions/:id', 'ExamCaseDossierView'],
-			['/exam-board/fraud-cases/:id', 'ExamCaseDossierView'],
-		])
+	test('exam-board: ExamCaseDossierView is the only custom page, shared by both case types', async ({
+		loggedInPage: page,
+	}) => {
+		assertDeclarativeExcept(
+			['/exam-board'],
+			[
+				['/exam-board/exemptions/:id', 'ExamCaseDossierView'],
+				['/exam-board/fraud-cases/:id', 'ExamCaseDossierView'],
+			],
+		)
 		const base = await resolveAppBase(page)
 
 		await page.goto(`${base}/exam-board/exemptions`)
@@ -273,24 +324,36 @@ test.describe('declarative frontends with named custom views', () => {
 	})
 
 	// @e2e openspec/specs/pupil-dossier/spec.md#pages-are-manifest-declared-with-one-shared-timeline-view-exception
-	test('pupil-dossier: PupilDossierTimelineView is the only custom page', async ({ loggedInPage: page }) => {
-		assertDeclarativeExcept(['/pupil-dossier'], [
-			['/pupil-dossier/timeline', 'PupilDossierTimelineView'],
-		])
+	test('pupil-dossier: PupilDossierTimelineView is the only custom page', async ({
+		loggedInPage: page,
+	}) => {
+		assertDeclarativeExcept(
+			['/pupil-dossier'],
+			[['/pupil-dossier/timeline', 'PupilDossierTimelineView']],
+		)
 		const base = await resolveAppBase(page)
 
 		await page.goto(`${base}/pupil-dossier/timeline`)
-		await expect(page.locator('.pupil-dossier-timeline')).toBeVisible({ timeout: 20_000 })
+		await expect(page.locator('.pupil-dossier-timeline')).toBeVisible({
+			timeout: 20_000,
+		})
 
 		await assertRouteAnswers(page)
-		await assertNoCrudController(page, ['dossier-note', 'behaviour-incident', 'wellbeing-check-in'])
+		await assertNoCrudController(page, [
+			'dossier-note',
+			'behaviour-incident',
+			'wellbeing-check-in',
+		])
 	})
 
 	// @e2e openspec/specs/report-card/spec.md#pages-and-custom-views-are-manifest-declared
-	test('report-card: RapportvergaderingReviewView is the only custom page', async ({ loggedInPage: page }) => {
-		assertDeclarativeExcept(['/report-cards', '/report-periods'], [
-			['/report-periods/:id/review', 'RapportvergaderingReviewView'],
-		])
+	test('report-card: RapportvergaderingReviewView is the only custom page', async ({
+		loggedInPage: page,
+	}) => {
+		assertDeclarativeExcept(
+			['/report-cards', '/report-periods'],
+			[['/report-periods/:id/review', 'RapportvergaderingReviewView']],
+		)
 		const base = await resolveAppBase(page)
 
 		await page.goto(`${base}/report-periods`)
@@ -301,16 +364,25 @@ test.describe('declarative frontends with named custom views', () => {
 	})
 
 	// @e2e openspec/specs/bpv/spec.md#pages-are-manifest-declared-with-one-signing-exception
-	test('bpv: the signing view is the only custom page', async ({ loggedInPage: page }) => {
-		assertDeclarativeExcept(['/bpv'], [
-			['/bpv/praktijkovereenkomsten/:pokId/sign', 'CnSignatureCapture'],
-		])
+	test('bpv: the signing view is the only custom page', async ({
+		loggedInPage: page,
+	}) => {
+		assertDeclarativeExcept(
+			['/bpv'],
+			[['/bpv/praktijkovereenkomsten/:pokId/sign', 'CnSignatureCapture']],
+		)
 		const base = await resolveAppBase(page)
 
 		await page.goto(`${base}/bpv/placements`)
 		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		await assertRouteAnswers(page)
-		await assertNoCrudController(page, ['bpv-placement', 'praktijkopleider', 'praktijkovereenkomst', 'werkproces-assessment', 'bpv-visit-report'])
+		await assertNoCrudController(page, [
+			'bpv-placement',
+			'praktijkopleider',
+			'praktijkovereenkomst',
+			'werkproces-assessment',
+			'bpv-visit-report',
+		])
 	})
 })

@@ -25,7 +25,12 @@
 				{{ t('scholiq', 'Import course package') }}
 			</h2>
 			<p class="course-package-import__intro">
-				{{ t('scholiq', 'Upload an IMS Common Cartridge 1.3 (.imscc/.zip) or Moodle backup (.mbz) package. Every resource in the package is reported — imported, degraded, or dropped — nothing is silently lost.') }}
+				{{
+					t(
+						'scholiq',
+						'Upload an IMS Common Cartridge 1.3 (.imscc/.zip) or Moodle backup (.mbz) package. Every resource in the package is reported — imported, degraded, or dropped — nothing is silently lost.',
+					)
+				}}
 			</p>
 		</header>
 
@@ -41,7 +46,7 @@
 				type="file"
 				accept=".imscc,.zip,.mbz"
 				:disabled="uploading"
-				@change="onFileSelected">
+				@change="onFileSelected" />
 
 			<p v-if="selectedFileName" class="course-package-import__selected">
 				{{ t('scholiq', 'Selected: {name}', { name: selectedFileName }) }}
@@ -52,7 +57,11 @@
 				:disabled="uploading || !selectedFile"
 				@click="uploadPackage">
 				<span v-if="uploading" class="icon-loading" aria-hidden="true" />
-				{{ uploading ? t('scholiq', 'Importing…') : t('scholiq', 'Import package') }}
+				{{
+					uploading
+						? t('scholiq', 'Importing…')
+						: t('scholiq', 'Import package')
+				}}
 			</button>
 
 			<p v-if="uploadError" role="alert" class="course-package-import__error">
@@ -73,9 +82,27 @@
 					{{ report.errorMessage }}
 				</p>
 				<ul v-else class="course-package-import__counts">
-					<li>{{ t('scholiq', '{n} imported', { n: report.resourcesImported }) }}</li>
-					<li>{{ t('scholiq', '{n} degraded', { n: report.resourcesDegraded }) }}</li>
-					<li>{{ t('scholiq', '{n} dropped', { n: report.resourcesDropped }) }}</li>
+					<li>
+						{{
+							t('scholiq', '{n} imported', {
+								n: report.resourcesImported,
+							})
+						}}
+					</li>
+					<li>
+						{{
+							t('scholiq', '{n} degraded', {
+								n: report.resourcesDegraded,
+							})
+						}}
+					</li>
+					<li>
+						{{
+							t('scholiq', '{n} dropped', {
+								n: report.resourcesDropped,
+							})
+						}}
+					</li>
 				</ul>
 			</div>
 
@@ -84,7 +111,10 @@
 				<label class="course-package-import__label" for="outcome-filter">
 					{{ t('scholiq', 'Filter by outcome') }}
 				</label>
-				<select id="outcome-filter" v-model="outcomeFilter" class="course-package-import__select">
+				<select
+					id="outcome-filter"
+					v-model="outcomeFilter"
+					class="course-package-import__select">
 					<option value="all">
 						{{ t('scholiq', 'All resources') }}
 					</option>
@@ -116,7 +146,8 @@
 						<td>{{ entry.title }}</td>
 						<td>{{ entry.resourceType }}</td>
 						<td>
-							<span :class="`course-package-import__badge course-package-import__badge--${entry.outcome}`">
+							<span
+								:class="`course-package-import__badge course-package-import__badge--${entry.outcome}`">
 								{{ entry.outcome }}
 							</span>
 						</td>
@@ -164,8 +195,14 @@ export default {
 		lifecycleLabel() {
 			if (!this.report) return ''
 			const labels = {
-				succeeded: this.t('scholiq', 'Import succeeded — every resource was imported.'),
-				partial: this.t('scholiq', 'Import completed with some resources degraded or dropped.'),
+				succeeded: this.t(
+					'scholiq',
+					'Import succeeded — every resource was imported.',
+				),
+				partial: this.t(
+					'scholiq',
+					'Import completed with some resources degraded or dropped.',
+				),
 				failed: this.t('scholiq', 'Import failed.'),
 				running: this.t('scholiq', 'Import in progress…'),
 			}
@@ -215,7 +252,9 @@ export default {
 			formData.append('file', this.selectedFile)
 
 			try {
-				const url = generateUrl('/apps/scholiq/api/course-management/course-package-import')
+				const url = generateUrl(
+					'/apps/scholiq/api/course-management/course-package-import',
+				)
 				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -232,7 +271,10 @@ export default {
 
 				this.report = json
 			} catch (err) {
-				this.uploadError = this.t('scholiq', 'Failed to import the package. Please try again.')
+				this.uploadError = this.t(
+					'scholiq',
+					'Failed to import the package. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CoursePackageImportView] uploadPackage error', err)
 			} finally {
@@ -263,7 +305,8 @@ export default {
 .course-package-import {
 	max-width: 960px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .course-package-import__heading {

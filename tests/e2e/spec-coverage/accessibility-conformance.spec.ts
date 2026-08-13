@@ -77,9 +77,10 @@ function assertNoFatalErrors(errors: string[]): void {
 }
 
 test.describe('accessibility-conformance — the toegankelijkheidsverklaring statement page', () => {
-
 	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
-	test('Accessibility statement page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('Accessibility statement page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(STATEMENT_URL)
@@ -97,7 +98,9 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 	})
 
 	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
-	test('a published statement shows channel identity, status, evaluation method/date, standard applied, feedback contact, and escalation route', async ({ loggedInPage: page }) => {
+	test('a published statement shows channel identity, status, evaluation method/date, standard applied, feedback contact, and escalation route', async ({
+		loggedInPage: page,
+	}) => {
 		await page.goto(STATEMENT_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
@@ -106,7 +109,10 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 		// Soft: only meaningful once a published AccessibilityStatement is
 		// seeded — the empty state (no statement published yet) is also a
 		// valid render of this page and is proven not-a-fatal-error above.
-		if (/Accessibility statement/i.test(bodyText) && !/No accessibility statement published yet/i.test(bodyText)) {
+		if (
+			/Accessibility statement/i.test(bodyText)
+			&& !/No accessibility statement published yet/i.test(bodyText)
+		) {
 			await expect(page.getByText(/Channel/i).first()).toBeVisible()
 			await expect(page.getByText(/Conformance status/i).first()).toBeVisible()
 			await expect(page.getByText(/Evaluation method/i).first()).toBeVisible()
@@ -118,19 +124,26 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 	})
 
 	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
-	test('the "Report an accessibility problem" entry point is always present, regardless of whether a statement is published', async ({ loggedInPage: page }) => {
+	test('the "Report an accessibility problem" entry point is always present, regardless of whether a statement is published', async ({
+		loggedInPage: page,
+	}) => {
 		await page.goto(STATEMENT_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
 
-		await expect(page.getByRole('button', { name: /Report an accessibility problem/i }).first()).toBeVisible()
+		await expect(
+			page
+				.getByRole('button', { name: /Report an accessibility problem/i })
+				.first(),
+		).toBeVisible()
 	})
 })
 
 test.describe('accessibility-conformance — the known-limitations register', () => {
-
 	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
-	test('Accessibility limitations index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('Accessibility limitations index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(LIMITATIONS_INDEX_URL)
@@ -144,7 +157,9 @@ test.describe('accessibility-conformance — the known-limitations register', ()
 	})
 
 	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
-	test('Accessibility limitation detail route resolves the registered component and renders a real record', async ({ loggedInPage: page }) => {
+	test('Accessibility limitation detail route resolves the registered component and renders a real record', async ({
+		loggedInPage: page,
+	}) => {
 		// ⚠️ A REAL row, not `00000000-0000-0000-0000-000000000000`.
 		//
 		// The all-zeros id used to be "enough to prove the route resolves",
@@ -176,7 +191,10 @@ test.describe('accessibility-conformance — the known-limitations register', ()
 			workaround: 'Reorder lessons from the lesson detail page instead.',
 			lifecycle: 'open',
 		})
-		expect(limitationId, 'an AccessibilityLimitation fixture must exist to drive its detail page').toBeTruthy()
+		expect(
+			limitationId,
+			'an AccessibilityLimitation fixture must exist to drive its detail page',
+		).toBeTruthy()
 
 		const errors = collectFatalErrors(page)
 
@@ -187,17 +205,22 @@ test.describe('accessibility-conformance — the known-limitations register', ()
 
 		// The registered component resolved AND hydrated: its declared title
 		// plus a field value that can only have come from the fetched record.
-		await expect(page.getByRole('heading', { name: /Accessibility limitation/i }).first()).toBeVisible({ timeout: 20_000 })
-		await expect(page.getByText('Course authoring — lesson reorder').first()).toBeVisible({ timeout: 20_000 })
+		await expect(
+			page.getByRole('heading', { name: /Accessibility limitation/i }).first(),
+		).toBeVisible({ timeout: 20_000 })
+		await expect(
+			page.getByText('Course authoring — lesson reorder').first(),
+		).toBeVisible({ timeout: 20_000 })
 
 		assertNoFatalErrors(errors)
 	})
 })
 
 test.describe('accessibility-conformance — reporting a barrier (AccessibilityFeedback)', () => {
-
 	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
-	test('the feedback triage index renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('the feedback triage index renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(FEEDBACK_INDEX_URL)
@@ -211,7 +234,9 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 	})
 
 	// @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-any-authenticated-user-must-be-able-to-report-an-accessibility-barrier
-	test('the "Report an accessibility problem" entry point opens the generic AccessibilityFeedback create form', async ({ loggedInPage: page }) => {
+	test('the "Report an accessibility problem" entry point opens the generic AccessibilityFeedback create form', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(STATEMENT_URL)
@@ -219,8 +244,13 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 		// see ADR-074 rule 4 / hydra gate 58.
 		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
 
-		await page.getByRole('button', { name: /Report an accessibility problem/i }).first().click()
-		await page.waitForURL(/\/accessibility\/feedback\/new/, { timeout: 10_000 }).catch(() => {})
+		await page
+			.getByRole('button', { name: /Report an accessibility problem/i })
+			.first()
+			.click()
+		await page
+			.waitForURL(/\/accessibility\/feedback\/new/, { timeout: 10_000 })
+			.catch(() => {})
 
 		expect(page.url()).toContain('/accessibility/feedback/new')
 
@@ -249,7 +279,9 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 	// NC notification surface. That gap is real and is reported alongside this
 	// change rather than buried: the tag is on the strength of the create flow,
 	// not the fan-out.
-	test('a user fills and submits the AccessibilityFeedback create form and it lands as a submitted record', async ({ loggedInPage: page }) => {
+	test('a user fills and submits the AccessibilityFeedback create form and it lands as a submitted record', async ({
+		loggedInPage: page,
+	}) => {
 		await page.goto(FEEDBACK_CREATE_URL)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` —
 		// see ADR-074 rule 4 / hydra gate 58.
@@ -268,7 +300,10 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 		// was not provisioned" — it can only mean the create form is broken,
 		// which is exactly what this test exists to catch.
 		const affectedSurfaceField = page.getByLabel(/Affected Surface/i).first()
-		await expect(affectedSurfaceField, 'the AccessibilityFeedback create form must mount its fields — ci-seed.sh has already verified the register is provisioned').toBeVisible({ timeout: 15_000 })
+		await expect(
+			affectedSurfaceField,
+			'the AccessibilityFeedback create form must mount its fields — ci-seed.sh has already verified the register is provisioned',
+		).toBeVisible({ timeout: 15_000 })
 		// The bare block is what is left of the old `if`. Kept so this change
 		// reads as "the guard became an assertion" and not as a re-indent of
 		// eighty lines; delete it in any commit that touches the body anyway.
@@ -281,7 +316,10 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 			// nothing and burns the full 60s test timeout, while the
 			// unanchored `/Affected Surface/i` one line above matched fine —
 			// which is why only this one field looked "missing".
-			await page.getByLabel(/^Description\s*\*?$/i).first().fill('The reorder control has no keyboard-operable equivalent.')
+			await page
+				.getByLabel(/^Description\s*\*?$/i)
+				.first()
+				.fill('The reorder control has no keyboard-operable equivalent.')
 
 			// ⚠️ Severity is REQUIRED and is selected with the KEYBOARD, not by
 			// clicking the option row. That is not a stylistic preference —
@@ -311,15 +349,23 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 			// interaction anyway: type to filter, Enter to take the highlighted
 			// option.
 			const severityField = page.getByLabel(/Severity/i).first()
-			await expect(severityField, 'Severity is a required field of AccessibilityFeedback and must be present on the create form').toBeVisible({ timeout: 10_000 })
+			await expect(
+				severityField,
+				'Severity is a required field of AccessibilityFeedback and must be present on the create form',
+			).toBeVisible({ timeout: 10_000 })
 			await severityField.click()
 			// `keyboard.type` rather than `fill`: vue-select marks its search
 			// input readonly when the select is not searchable, and `fill`
 			// throws on a readonly input while typing into the focused control
 			// works either way.
 			await page.keyboard.type('serious')
-			const seriousOption = page.getByRole('option', { name: /serious/i }).first()
-			await expect(seriousOption, 'typing "serious" must leave the serious option offered').toBeVisible({ timeout: 10_000 })
+			const seriousOption = page
+				.getByRole('option', { name: /serious/i })
+				.first()
+			await expect(
+				seriousOption,
+				'typing "serious" must leave the serious option offered',
+			).toBeVisible({ timeout: 10_000 })
 			await page.keyboard.press('Enter')
 			// The listbox closing is the proof the Enter was consumed as a
 			// SELECTION rather than ignored. If it were ignored the options
@@ -327,10 +373,15 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 			// 30889902343 captured. The assertion is only meaningful because
 			// the option was asserted VISIBLE one line above: a `toBeHidden`
 			// on an element that never rendered would pass for free.
-			await expect(seriousOption, 'choosing a severity must close the listbox').toBeHidden({ timeout: 10_000 })
+			await expect(
+				seriousOption,
+				'choosing a severity must close the listbox',
+			).toBeHidden({ timeout: 10_000 })
 
 			const reporterField = page.getByLabel(/Reporter User Id/i).first()
-			if (await reporterField.isVisible({ timeout: 2_000 }).catch(() => false)) {
+			if (
+				await reporterField.isVisible({ timeout: 2_000 }).catch(() => false)
+			) {
 				await reporterField.fill('admin')
 			}
 
@@ -353,22 +404,41 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 			// The Create button leaving the disabled state is itself the proof
 			// that every required field is now satisfied — assert it rather
 			// than clicking into the void.
-			const submitButton = page.getByRole('button', { name: /^(Save|Create|Submit)$/i }).first()
-			await expect(submitButton, 'the Create button must become enabled once every required field is filled').toBeEnabled({ timeout: 10_000 })
+			const submitButton = page
+				.getByRole('button', { name: /^(Save|Create|Submit)$/i })
+				.first()
+			await expect(
+				submitButton,
+				'the Create button must become enabled once every required field is filled',
+			).toBeEnabled({ timeout: 10_000 })
 			await submitButton.click()
 			// Give the create a bounded window to navigate off /new. NOT
 			// `networkidle` — see ADR-074 rule 4 / hydra gate 58. Either
 			// outcome (navigation or a toast) is accepted just below, so a
 			// timeout here is not itself a failure.
-			await page.waitForURL((u) => !u.pathname.includes('/accessibility/feedback/new'), { timeout: 10_000 }).catch(() => {})
+			await page
+				.waitForURL(
+					(u) => !u.pathname.includes('/accessibility/feedback/new'),
+					{ timeout: 10_000 },
+				)
+				.catch(() => {})
 
 			// A successful create either navigates off /new (to the new
 			// record's detail route) or shows a success toast — both are
 			// acceptable evidence the record was created in `submitted`
 			// state (AccessibilityFeedback's initial lifecycle value).
-			const stillOnCreateRoute = page.url().includes('/accessibility/feedback/new')
-			const successToast = await page.getByText(/created|saved|submitted/i).first().isVisible({ timeout: 5_000 }).catch(() => false)
-			expect(!stillOnCreateRoute || successToast, 'submitting the AccessibilityFeedback create form should either navigate off /new or show a success confirmation').toBeTruthy()
+			const stillOnCreateRoute = page
+				.url()
+				.includes('/accessibility/feedback/new')
+			const successToast = await page
+				.getByText(/created|saved|submitted/i)
+				.first()
+				.isVisible({ timeout: 5_000 })
+				.catch(() => false)
+			expect(
+				!stillOnCreateRoute || successToast,
+				'submitting the AccessibilityFeedback create form should either navigate off /new or show a success confirmation',
+			).toBeTruthy()
 		}
 	})
 })
