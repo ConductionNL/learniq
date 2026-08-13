@@ -51,13 +51,21 @@
 		</div>
 
 		<!-- Submitted confirmation -->
-		<div v-else-if="submitted"
+		<div
+			v-else-if="submitted"
 			class="self-assessment-view__confirmation"
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
 			<h2>{{ t('scholiq', 'Self-assessment submitted') }}</h2>
-			<p>{{ t('scholiq', 'Score: {score} / {max}', { score: computedScore, max: assignment.maxPoints || '?' }) }}</p>
+			<p>
+				{{
+					t('scholiq', 'Score: {score} / {max}', {
+						score: computedScore,
+						max: assignment.maxPoints || '?',
+					})
+				}}
+			</p>
 		</div>
 
 		<!-- Marking form -->
@@ -65,12 +73,20 @@
 			<header class="self-assessment-view__header">
 				<h2>{{ t('scholiq', 'Self-assessment') }}</h2>
 				<p class="self-assessment-view__meta">
-					{{ t('scholiq', 'Assignment: {title}', { title: assignment.title || '' }) }}
+					{{
+						t('scholiq', 'Assignment: {title}', {
+							title: assignment.title || '',
+						})
+					}}
 				</p>
 			</header>
 
-			<section v-if="rubric && rubric.criteria && rubric.criteria.length > 0" class="self-assessment-view__rubric">
-				<h3>{{ t('scholiq', 'Rubric: {name}', { name: rubric.name || '' }) }}</h3>
+			<section
+				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
+				class="self-assessment-view__rubric">
+				<h3>
+					{{ t('scholiq', 'Rubric: {name}', { name: rubric.name || '' }) }}
+				</h3>
 
 				<div
 					v-for="criterion in rubric.criteria"
@@ -79,7 +95,11 @@
 					<h4 class="self-assessment-view__criterion-label">
 						{{ criterion.label }}
 						<span class="self-assessment-view__criterion-weight">
-							{{ t('scholiq', '(weight: {w})', { w: criterion.weight }) }}
+							{{
+								t('scholiq', '(weight: {w})', {
+									w: criterion.weight,
+								})
+							}}
 						</span>
 					</h4>
 					<div class="self-assessment-view__levels">
@@ -91,24 +111,38 @@
 								type="radio"
 								:name="criterion.criterionId"
 								:value="level.levelId"
-								:checked="getSelectedLevel(criterion.criterionId) === level.levelId"
+								:checked="
+									getSelectedLevel(criterion.criterionId)
+									=== level.levelId
+								"
 								:disabled="saving"
-								@change="selectLevel(criterion, level)">
-							<span class="self-assessment-view__level-label">{{ level.label }}</span>
+								@change="selectLevel(criterion, level)" />
+							<span class="self-assessment-view__level-label">{{
+								level.label
+							}}</span>
 							<span class="self-assessment-view__level-points">
-								{{ t('scholiq', '{pts} pts', { pts: level.points }) }}
+								{{
+									t('scholiq', '{pts} pts', { pts: level.points })
+								}}
 							</span>
 						</label>
 					</div>
 				</div>
 
 				<div class="self-assessment-view__score-total">
-					<strong>{{ t('scholiq', 'Score: {score} / {max}', { score: computedScore, max: assignment.maxPoints || '?' }) }}</strong>
+					<strong>{{
+						t('scholiq', 'Score: {score} / {max}', {
+							score: computedScore,
+							max: assignment.maxPoints || '?',
+						})
+					}}</strong>
 				</div>
 			</section>
 
 			<section class="self-assessment-view__comments">
-				<h3 id="self-assessment-comments-label">{{ t('scholiq', 'Your reflection') }}</h3>
+				<h3 id="self-assessment-comments-label">
+					{{ t('scholiq', 'Your reflection') }}
+				</h3>
 				<textarea
 					id="self-assessment-comments"
 					v-model="comments"
@@ -128,7 +162,10 @@
 					{{ t('scholiq', 'Submit self-assessment') }}
 				</button>
 			</div>
-			<p v-if="saveError" role="alert" class="self-assessment-view__save-error">
+			<p
+				v-if="saveError"
+				role="alert"
+				class="self-assessment-view__save-error">
 				{{ saveError }}
 			</p>
 		</template>
@@ -205,10 +242,16 @@ export default {
 		 * @return {boolean}
 		 */
 		canSubmit() {
-			if (!this.rubric || !this.rubric.criteria || this.rubric.criteria.length === 0) {
+			if (
+				!this.rubric
+				|| !this.rubric.criteria
+				|| this.rubric.criteria.length === 0
+			) {
 				return true
 			}
-			return this.rubric.criteria.every((c) => this.selectedLevels[c.criterionId] != null)
+			return this.rubric.criteria.every(
+				(c) => this.selectedLevels[c.criterionId] != null,
+			)
 		},
 
 		/**
@@ -255,7 +298,9 @@ export default {
 
 			try {
 				await this.loadSubmission(submissionId)
-				await this.loadAssignment(this.submission.assignmentId ?? this.assignmentId)
+				await this.loadAssignment(
+					this.submission.assignmentId ?? this.assignmentId,
+				)
 
 				if (this.assignment.rubricId) {
 					await this.loadRubric(this.assignment.rubricId)
@@ -274,7 +319,10 @@ export default {
 					this.comments = this.selfAssessment.comments ?? ''
 				}
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load self-assessment. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to load self-assessment. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[SelfAssessmentView] loadData error', err)
 			} finally {
@@ -289,7 +337,9 @@ export default {
 		 * @return {Promise<void>}
 		 */
 		async loadSubmission(submissionId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Submission/${submissionId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/Submission/${submissionId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -307,7 +357,9 @@ export default {
 		 * @return {Promise<void>}
 		 */
 		async loadAssignment(assignmentId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Assignment/${assignmentId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/Assignment/${assignmentId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -325,7 +377,9 @@ export default {
 		 * @return {Promise<void>}
 		 */
 		async loadRubric(rubricId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Rubric/${rubricId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/Rubric/${rubricId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -356,7 +410,8 @@ export default {
 				return
 			}
 			const json = await resp.json()
-			const results = json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
+			const results =
+				json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
 			this.selfAssessment = results.length > 0 ? results[0] : null
 		},
 
@@ -380,7 +435,10 @@ export default {
 		selectLevel(criterion, level) {
 			this.selectedLevels = {
 				...this.selectedLevels,
-				[criterion.criterionId]: { levelId: level.levelId, points: level.points },
+				[criterion.criterionId]: {
+					levelId: level.levelId,
+					points: level.points,
+				},
 			}
 		},
 
@@ -429,8 +487,12 @@ export default {
 
 				const isUpdate = this.selfAssessment != null
 				const saveUrl = isUpdate
-					? generateUrl(`/apps/openregister/api/objects/scholiq/self-assessment/${this.selfAssessment.id}`)
-					: generateUrl('/apps/openregister/api/objects/scholiq/self-assessment')
+					? generateUrl(
+							`/apps/openregister/api/objects/scholiq/self-assessment/${this.selfAssessment.id}`,
+						)
+					: generateUrl(
+							'/apps/openregister/api/objects/scholiq/self-assessment',
+						)
 
 				const saveResp = await fetch(saveUrl, {
 					method: isUpdate ? 'PUT' : 'POST',
@@ -439,7 +501,11 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify(isUpdate ? { ...payload, id: this.selfAssessment.id } : payload),
+					body: JSON.stringify(
+						isUpdate
+							? { ...payload, id: this.selfAssessment.id }
+							: payload,
+					),
 				})
 				if (!saveResp.ok) {
 					throw new Error(`SelfAssessment save failed: ${saveResp.status}`)
@@ -471,7 +537,10 @@ export default {
 
 				this.submitted = true
 			} catch (err) {
-				this.saveError = this.t('scholiq', 'Failed to save self-assessment. Please try again.')
+				this.saveError = this.t(
+					'scholiq',
+					'Failed to save self-assessment. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[SelfAssessmentView] saveAndSubmit error', err)
 			} finally {
@@ -486,7 +555,8 @@ export default {
 .self-assessment-view {
 	max-width: 860px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .self-assessment-view__loading,

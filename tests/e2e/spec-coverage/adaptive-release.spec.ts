@@ -37,7 +37,8 @@ import { test, expect } from '../fixtures'
 // `/index.php/apps/openregister/...` works. The failure surfaces as a selector
 // or empty-result assertion, never as a visible 404. 29 of this suite's 34 spec
 // files already used the `/index.php/` form.
-const LESSON_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/Lesson?limit=200'
+const LESSON_LIST_API =
+	'/index.php/apps/openregister/api/objects/scholiq/Lesson?limit=200'
 
 /**
  * Fetch every Lesson and return the first one matching the given predicate,
@@ -46,7 +47,10 @@ const LESSON_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/Lesson
  * @param page    The Playwright page (used for its authenticated request context).
  * @param matches Predicate a candidate Lesson row must satisfy.
  */
-async function findLesson(page: import('@playwright/test').Page, matches: (_lesson: any) => boolean) {
+async function findLesson(
+	page: import('@playwright/test').Page,
+	matches: (_lesson: any) => boolean,
+) {
 	const resp = await page.request.get(LESSON_LIST_API, {
 		headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 	})
@@ -77,21 +81,35 @@ function fatalOnly(errors: string[]): string[] {
 	)
 }
 
-async function openLessonPlayer(page: import('@playwright/test').Page, courseId: string, lessonId: string) {
-	await page.goto(`/index.php/apps/scholiq/#/courses/${courseId}/lessons/${lessonId}/play`)
+async function openLessonPlayer(
+	page: import('@playwright/test').Page,
+	courseId: string,
+	lessonId: string,
+) {
+	await page.goto(
+		`/index.php/apps/scholiq/#/courses/${courseId}/lessons/${lessonId}/play`,
+	)
 	await page.waitForSelector('body', { timeout: 15_000 })
 	await page.waitForLoadState('domcontentloaded')
 }
 
 test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate locked state', () => {
-
 	// @e2e openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
-	test('lesson-locked-until-prerequisite-lesson-completed', async ({ loggedInPage: page }) => {
+	test('lesson-locked-until-prerequisite-lesson-completed', async ({
+		loggedInPage: page,
+	}) => {
 		const lesson = await findLesson(
 			page,
-			(l) => Array.isArray(l.releaseConditions) && l.releaseConditions.some((c: any) => c.kind === 'lesson-completed'),
+			(l) =>
+				Array.isArray(l.releaseConditions)
+				&& l.releaseConditions.some(
+					(c: any) => c.kind === 'lesson-completed',
+				),
 		)
-		test.skip(!lesson, 'No published Lesson with a lesson-completed releaseConditions entry seeded in this environment.')
+		test.skip(
+			!lesson,
+			'No published Lesson with a lesson-completed releaseConditions entry seeded in this environment.',
+		)
 
 		const errors = collectFatalErrors(page)
 		const lessonId = lesson.id ?? lesson.uuid
@@ -105,11 +123,15 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 		expect(bodyText).toContain('not available')
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 
 	// @e2e openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-unlocks-once-its-prerequisite-lesson-is-completed
-	test('lesson-unlocks-once-prerequisite-lesson-completed', async ({ loggedInPage: page }) => {
+	test('lesson-unlocks-once-prerequisite-lesson-completed', async ({
+		loggedInPage: page,
+	}) => {
 		// The completion signal is a verified XapiStatement (verified_actor_id
 		// + a completed/passed verb), not a self-reported LessonCompletion —
 		// per spec, only real xAPI completions satisfy a lesson-completed
@@ -121,11 +143,16 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 		// the same code path a satisfied condition takes.
 		const lesson = await findLesson(
 			page,
-			(l) => l.contentType === 'text' && l.lifecycle === 'published'
+			(l) =>
+				l.contentType === 'text'
+				&& l.lifecycle === 'published'
 				&& (l.releaseConditions == null || l.releaseConditions.length === 0)
 				&& l.availableAfterDays == null,
 		)
-		test.skip(!lesson, 'No published, ungated contentType=text Lesson seeded in this environment.')
+		test.skip(
+			!lesson,
+			'No published, ungated contentType=text Lesson seeded in this environment.',
+		)
 
 		const errors = collectFatalErrors(page)
 		const lessonId = lesson.id ?? lesson.uuid
@@ -139,16 +166,24 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 		await expect(lockedHeading).toHaveCount(0)
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 
 	// @e2e openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
-	test('lesson-locked-until-drip-delay-elapses', async ({ loggedInPage: page }) => {
+	test('lesson-locked-until-drip-delay-elapses', async ({
+		loggedInPage: page,
+	}) => {
 		const lesson = await findLesson(
 			page,
-			(l) => typeof l.availableAfterDays === 'number' && l.availableAfterDays > 0,
+			(l) =>
+				typeof l.availableAfterDays === 'number' && l.availableAfterDays > 0,
 		)
-		test.skip(!lesson, 'No Lesson with availableAfterDays > 0 seeded in this environment.')
+		test.skip(
+			!lesson,
+			'No Lesson with availableAfterDays > 0 seeded in this environment.',
+		)
 
 		const errors = collectFatalErrors(page)
 		const lessonId = lesson.id ?? lesson.uuid
@@ -164,6 +199,8 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 		expect(bodyText.trim().length).toBeGreaterThan(0)
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

@@ -27,7 +27,12 @@
 				{{ t('scholiq', 'BSA risk dashboard') }}
 			</h2>
 			<p class="bsa-risk-dashboard__subtitle">
-				{{ t('scholiq', 'Learners currently flagged at risk of a negative bindend studieadvies (BSA), against their trajectory\'s norm and interim-check window.') }}
+				{{
+					t(
+						'scholiq',
+						"Learners currently flagged at risk of a negative bindend studieadvies (BSA), against their trajectory's norm and interim-check window.",
+					)
+				}}
 			</p>
 		</header>
 
@@ -44,7 +49,10 @@
 		</div>
 
 		<!-- Empty -->
-		<div v-else-if="openFlags.length === 0" class="bsa-risk-dashboard__empty" role="status">
+		<div
+			v-else-if="openFlags.length === 0"
+			class="bsa-risk-dashboard__empty"
+			role="status">
 			<span class="icon-checkmark" aria-hidden="true" />
 			<p>{{ t('scholiq', 'No learners currently flagged at risk.') }}</p>
 		</div>
@@ -63,10 +71,23 @@
 						{{ flag.academicYear }}
 					</span>
 					<span class="bsa-risk-dashboard__progress">
-						{{ t('scholiq', '{earned} EC earned / {required} EC required at check', { earned: formatEcts(flag.ectsEarned), required: formatEcts(flag.ectsRequiredAtCheck) }) }}
+						{{
+							t(
+								'scholiq',
+								'{earned} EC earned / {required} EC required at check',
+								{
+									earned: formatEcts(flag.ectsEarned),
+									required: formatEcts(flag.ectsRequiredAtCheck),
+								},
+							)
+						}}
 					</span>
 					<span class="bsa-risk-dashboard__flagged-at">
-						{{ t('scholiq', 'Flagged {when}', { when: formatDate(flag.flaggedAt) }) }}
+						{{
+							t('scholiq', 'Flagged {when}', {
+								when: formatDate(flag.flaggedAt),
+							})
+						}}
 					</span>
 				</div>
 
@@ -127,15 +148,24 @@ export default {
 			this.error = null
 
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/bsa-progress-flag?limit=100')
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/bsa-progress-flag?limit=100',
+				)
 				const resp = await fetch(url, {
-					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+					},
 				})
-				if (!resp.ok) throw new Error(`BsaProgressFlag fetch failed: ${resp.status}`)
+				if (!resp.ok)
+					throw new Error(`BsaProgressFlag fetch failed: ${resp.status}`)
 				const json = await resp.json()
 				this.flags = json.results ?? json.objects ?? json ?? []
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load at-risk learners. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to load at-risk learners. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[BsaRiskDashboard] loadFlags error', err)
 			} finally {
@@ -198,7 +228,8 @@ export default {
 .bsa-risk-dashboard {
 	max-width: 900px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .bsa-risk-dashboard__header {
@@ -236,7 +267,8 @@ export default {
 	justify-content: space-between;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
 	margin-bottom: var(--default-grid-baseline, 8px);
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 	border: 1px solid var(--color-border);
 	border-left: 4px solid var(--color-warning);
 	border-radius: var(--border-radius, 4px);

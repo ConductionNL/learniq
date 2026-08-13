@@ -22,9 +22,10 @@ import { test, expect } from '../fixtures'
 const RISK_DASHBOARD_URL = '/index.php/apps/scholiq/#/study-progress/risk-dashboard'
 
 test.describe('bsa-study-progress-guard — BSA risk dashboard', () => {
-
 	// @e2e openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
-	test('BSA risk dashboard renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('BSA risk dashboard renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -51,6 +52,8 @@ test.describe('bsa-study-progress-guard — BSA risk dashboard', () => {
 				&& !e.includes('Failed to fetch')
 				&& !e.includes('ERR_CONNECTION_REFUSED'),
 		)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

@@ -51,27 +51,48 @@
 
 		<template v-else-if="portfolio">
 			<header class="portfolio-builder__header">
-				<h2>{{ t('scholiq', 'Build portfolio: {title}', { title: portfolio.title || '' }) }}</h2>
+				<h2>
+					{{
+						t('scholiq', 'Build portfolio: {title}', {
+							title: portfolio.title || '',
+						})
+					}}
+				</h2>
 				<p class="portfolio-builder__meta">
-					{{ t('scholiq', 'Kind: {kind}', { kind: portfolio.kind || '' }) }}
+					{{
+						t('scholiq', 'Kind: {kind}', { kind: portfolio.kind || '' })
+					}}
 					<span class="portfolio-builder__lifecycle">
-						{{ t('scholiq', 'Status: {status}', { status: portfolio.lifecycle || '' }) }}
+						{{
+							t('scholiq', 'Status: {status}', {
+								status: portfolio.lifecycle || '',
+							})
+						}}
 					</span>
 				</p>
 			</header>
 
 			<!-- Required-section coverage, when a template governs this portfolio -->
-			<section v-if="template && sections.length > 0" class="portfolio-builder__sections">
+			<section
+				v-if="template && sections.length > 0"
+				class="portfolio-builder__sections">
 				<h3>{{ t('scholiq', 'Required sections') }}</h3>
 				<ul class="portfolio-builder__section-list">
 					<li
 						v-for="section in sections"
 						:key="section.sectionId"
 						class="portfolio-builder__section-item"
-						:class="{ 'portfolio-builder__section-item--covered': isSectionCovered(section.sectionId) }">
+						:class="{
+							'portfolio-builder__section-item--covered':
+								isSectionCovered(section.sectionId),
+						}">
 						<span
 							class="portfolio-builder__section-icon"
-							:class="isSectionCovered(section.sectionId) ? 'icon-checkmark' : 'icon-error'"
+							:class="
+								isSectionCovered(section.sectionId)
+									? 'icon-checkmark'
+									: 'icon-error'
+							"
 							aria-hidden="true" />
 						<span>{{ section.label }}</span>
 					</li>
@@ -82,11 +103,24 @@
 			<section class="portfolio-builder__entries">
 				<h3>{{ t('scholiq', 'Evidence entries') }}</h3>
 				<ul v-if="entries.length > 0" class="portfolio-builder__entry-list">
-					<li v-for="entry in entries" :key="entry.id" class="portfolio-builder__entry-item">
-						<span class="portfolio-builder__entry-kind">{{ evidenceKindLabel(entry.evidenceKind) }}</span>
-						<span class="portfolio-builder__entry-title">{{ entry.title }}</span>
-						<span v-if="entry.sectionId" class="portfolio-builder__entry-section">
-							{{ t('scholiq', 'Section: {s}', { s: sectionLabel(entry.sectionId) }) }}
+					<li
+						v-for="entry in entries"
+						:key="entry.id"
+						class="portfolio-builder__entry-item">
+						<span class="portfolio-builder__entry-kind">{{
+							evidenceKindLabel(entry.evidenceKind)
+						}}</span>
+						<span class="portfolio-builder__entry-title">{{
+							entry.title
+						}}</span>
+						<span
+							v-if="entry.sectionId"
+							class="portfolio-builder__entry-section">
+							{{
+								t('scholiq', 'Section: {s}', {
+									s: sectionLabel(entry.sectionId),
+								})
+							}}
 						</span>
 					</li>
 				</ul>
@@ -124,8 +158,12 @@
 					</option>
 				</select>
 
-				<div v-if="newEntry.evidenceKind !== 'reflection'" class="portfolio-builder__picker">
-					<label for="pb-evidence-ref" class="portfolio-builder__field-label">
+				<div
+					v-if="newEntry.evidenceKind !== 'reflection'"
+					class="portfolio-builder__picker">
+					<label
+						for="pb-evidence-ref"
+						class="portfolio-builder__field-label">
 						{{ t('scholiq', 'Select existing object') }}
 					</label>
 					<select
@@ -136,12 +174,22 @@
 						<option value="">
 							{{ t('scholiq', '— choose —') }}
 						</option>
-						<option v-for="opt in pickerOptions" :key="opt.id" :value="opt.id">
+						<option
+							v-for="opt in pickerOptions"
+							:key="opt.id"
+							:value="opt.id">
 							{{ opt.label }}
 						</option>
 					</select>
-					<p v-if="pickerOptions.length === 0" class="portfolio-builder__picker-empty">
-						{{ t('scholiq', 'No eligible objects found for this evidence kind.') }}
+					<p
+						v-if="pickerOptions.length === 0"
+						class="portfolio-builder__picker-empty">
+						{{
+							t(
+								'scholiq',
+								'No eligible objects found for this evidence kind.',
+							)
+						}}
 					</p>
 				</div>
 
@@ -153,26 +201,38 @@
 						id="pb-title"
 						v-model="newEntry.title"
 						type="text"
-						class="portfolio-builder__input">
+						class="portfolio-builder__input" />
 				</div>
 
 				<div v-if="sections.length > 0" class="portfolio-builder__field">
 					<label for="pb-section" class="portfolio-builder__field-label">
 						{{ t('scholiq', 'Section') }}
 					</label>
-					<select id="pb-section" v-model="newEntry.sectionId" class="portfolio-builder__select">
+					<select
+						id="pb-section"
+						v-model="newEntry.sectionId"
+						class="portfolio-builder__select">
 						<option value="">
 							{{ t('scholiq', '— none —') }}
 						</option>
-						<option v-for="section in sections" :key="section.sectionId" :value="section.sectionId">
+						<option
+							v-for="section in sections"
+							:key="section.sectionId"
+							:value="section.sectionId">
 							{{ section.label }}
 						</option>
 					</select>
 				</div>
 
-				<div v-if="newEntry.evidenceKind === 'reflection' || newEntry.reflectionText"
+				<div
+					v-if="
+						newEntry.evidenceKind === 'reflection'
+						|| newEntry.reflectionText
+					"
 					class="portfolio-builder__field">
-					<label for="pb-reflection" class="portfolio-builder__field-label">
+					<label
+						for="pb-reflection"
+						class="portfolio-builder__field-label">
 						{{ t('scholiq', 'Reflection text') }}
 					</label>
 					<textarea
@@ -186,10 +246,16 @@
 					class="button-vue button-vue--secondary portfolio-builder__add-btn"
 					:disabled="addingEntry || !canAddEntry"
 					@click="addEntry">
-					<span v-if="addingEntry" class="icon-loading" aria-hidden="true" />
+					<span
+						v-if="addingEntry"
+						class="icon-loading"
+						aria-hidden="true" />
 					{{ t('scholiq', 'Add evidence entry') }}
 				</button>
-				<p v-if="addEntryError" role="alert" class="portfolio-builder__add-error">
+				<p
+					v-if="addEntryError"
+					role="alert"
+					class="portfolio-builder__add-error">
 					{{ addEntryError }}
 				</p>
 			</section>
@@ -200,14 +266,23 @@
 					class="button-vue button-vue--primary portfolio-builder__submit-btn"
 					:disabled="submitting"
 					@click="submitPortfolio">
-					<span v-if="submitting" class="icon-loading" aria-hidden="true" />
+					<span
+						v-if="submitting"
+						class="icon-loading"
+						aria-hidden="true" />
 					{{ t('scholiq', 'Submit portfolio') }}
 				</button>
 			</div>
-			<p v-if="submitError" role="alert" class="portfolio-builder__submit-error">
+			<p
+				v-if="submitError"
+				role="alert"
+				class="portfolio-builder__submit-error">
 				{{ submitError }}
 			</p>
-			<p v-if="submitted" class="portfolio-builder__submit-confirmation" role="status">
+			<p
+				v-if="submitted"
+				class="portfolio-builder__submit-confirmation"
+				role="status">
 				{{ t('scholiq', 'Portfolio submitted.') }}
 			</p>
 		</template>
@@ -275,9 +350,14 @@ export default {
 		 */
 		canAddEntry() {
 			if (this.newEntry.evidenceKind === 'reflection') {
-				return this.newEntry.title.trim() !== '' && this.newEntry.reflectionText.trim() !== ''
+				return (
+					this.newEntry.title.trim() !== ''
+					&& this.newEntry.reflectionText.trim() !== ''
+				)
 			}
-			return this.newEntry.title.trim() !== '' && this.newEntry.referenceId !== ''
+			return (
+				this.newEntry.title.trim() !== '' && this.newEntry.referenceId !== ''
+			)
 		},
 
 		/**
@@ -290,8 +370,10 @@ export default {
 		 * @return {boolean}
 		 */
 		canSubmit() {
-			return this.portfolio?.kind === 'course-bound'
+			return (
+				this.portfolio?.kind === 'course-bound'
 				&& ['draft', 'active'].includes(this.portfolio?.lifecycle)
+			)
 		},
 	},
 
@@ -329,13 +411,19 @@ export default {
 				this.portfolio = await this.fetchObject('Portfolio', portfolioId)
 
 				if (this.portfolio.templateId) {
-					this.template = await this.fetchObject('PortfolioTemplate', this.portfolio.templateId)
+					this.template = await this.fetchObject(
+						'PortfolioTemplate',
+						this.portfolio.templateId,
+					)
 				}
 
 				await this.loadEntries(portfolioId)
 				await this.loadPickerOptions()
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load portfolio. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to load portfolio. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[PortfolioBuilder] loadData error', err)
 			} finally {
@@ -351,7 +439,9 @@ export default {
 		 * @return {Promise<object>}
 		 */
 		async fetchObject(schema, objId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}/${objId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/${schema}/${objId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -370,7 +460,9 @@ export default {
 		 * @return {Promise<Array<object>>}
 		 */
 		async fetchList(schema, query) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}?${query}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/${schema}?${query}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -388,7 +480,10 @@ export default {
 		 * @return {Promise<void>}
 		 */
 		async loadEntries(portfolioId) {
-			this.entries = await this.fetchList('PortfolioEntry', `filters[portfolioId]=${portfolioId}&limit=100`)
+			this.entries = await this.fetchList(
+				'PortfolioEntry',
+				`filters[portfolioId]=${portfolioId}&limit=100`,
+			)
 		},
 
 		/**
@@ -409,25 +504,39 @@ export default {
 
 			try {
 				if (kind === 'submission') {
-					const rows = await this.fetchList('Submission', `filters[learnerIds]=${uid}&limit=100`)
+					const rows = await this.fetchList(
+						'Submission',
+						`filters[learnerIds]=${uid}&limit=100`,
+					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
-						label: r.feedbackText ? `${r.assignmentId} — ${r.feedbackText}` : (r.assignmentId ?? r.id),
+						label: r.feedbackText
+							? `${r.assignmentId} — ${r.feedbackText}`
+							: (r.assignmentId ?? r.id),
 					}))
 				} else if (kind === 'werkproces-assessment') {
-					const rows = await this.fetchList('WerkprocesAssessment', `filters[learnerId]=${uid}&limit=100`)
+					const rows = await this.fetchList(
+						'WerkprocesAssessment',
+						`filters[learnerId]=${uid}&limit=100`,
+					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
 						label: r.werkprocesLabel ?? r.werkprocesCode ?? r.id,
 					}))
 				} else if (kind === 'external-training-record') {
-					const rows = await this.fetchList('ExternalTrainingRecord', `filters[learnerId]=${uid}&limit=100`)
+					const rows = await this.fetchList(
+						'ExternalTrainingRecord',
+						`filters[learnerId]=${uid}&limit=100`,
+					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
 						label: r.title ?? r.providerName ?? r.id,
 					}))
 				} else if (kind === 'credential') {
-					const rows = await this.fetchList('Credential', `filters[learnerId]=${uid}&limit=100`)
+					const rows = await this.fetchList(
+						'Credential',
+						`filters[learnerId]=${uid}&limit=100`,
+					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
 						label: r.title ?? r.id,
@@ -471,7 +580,10 @@ export default {
 		 * @return {string}
 		 */
 		sectionLabel(sectionId) {
-			return this.sections.find((s) => s.sectionId === sectionId)?.label ?? sectionId
+			return (
+				this.sections.find((s) => s.sectionId === sectionId)?.label
+				?? sectionId
+			)
 		},
 
 		/**
@@ -485,7 +597,10 @@ export default {
 				file: this.t('scholiq', 'File'),
 				submission: this.t('scholiq', 'Submission'),
 				'werkproces-assessment': this.t('scholiq', 'Werkproces assessment'),
-				'external-training-record': this.t('scholiq', 'External training record'),
+				'external-training-record': this.t(
+					'scholiq',
+					'External training record',
+				),
 				credential: this.t('scholiq', 'Credential'),
 				reflection: this.t('scholiq', 'Reflection'),
 			}
@@ -529,7 +644,9 @@ export default {
 			}
 
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/portfolio-entry')
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/portfolio-entry',
+				)
 				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -553,7 +670,10 @@ export default {
 				}
 				await this.loadPickerOptions()
 			} catch (err) {
-				this.addEntryError = this.t('scholiq', 'Failed to add evidence entry. Please try again.')
+				this.addEntryError = this.t(
+					'scholiq',
+					'Failed to add evidence entry. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[PortfolioBuilder] addEntry error', err)
 			} finally {
@@ -573,7 +693,9 @@ export default {
 			this.submitError = null
 
 			try {
-				const url = generateUrl(`/apps/openregister/api/objects/scholiq/Portfolio/${this.id}/transition/submit`)
+				const url = generateUrl(
+					`/apps/openregister/api/objects/scholiq/Portfolio/${this.id}/transition/submit`,
+				)
 				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -591,12 +713,17 @@ export default {
 					return
 				}
 				if (!resp.ok) {
-					throw new Error(`Portfolio submit transition failed: ${resp.status}`)
+					throw new Error(
+						`Portfolio submit transition failed: ${resp.status}`,
+					)
 				}
 				this.portfolio = await this.fetchObject('Portfolio', this.id)
 				this.submitted = true
 			} catch (err) {
-				this.submitError = this.t('scholiq', 'Failed to submit portfolio. Please try again.')
+				this.submitError = this.t(
+					'scholiq',
+					'Failed to submit portfolio. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[PortfolioBuilder] submitPortfolio error', err)
 			} finally {
@@ -611,7 +738,8 @@ export default {
 .portfolio-builder {
 	max-width: 860px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .portfolio-builder__loading,

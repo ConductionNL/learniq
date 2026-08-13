@@ -40,7 +40,6 @@ function fatalErrors(errors: string[]): string[] {
 }
 
 test.describe('engagement-gamification — points/level widget and leaderboard', () => {
-
 	// @e2e openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 	// @e2e engagement::a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 	//
@@ -53,7 +52,9 @@ test.describe('engagement-gamification — points/level widget and leaderboard',
 	// THEN ("their points/level KPI widget renders") asks for. The widget's
 	// rendered totalPoints/levelId VALUES are not asserted — that half is
 	// reported as a remaining gap rather than claimed here.
-	test('student dashboard renders the points/level KPI widget without a fatal error', async ({ loggedInPage: page }) => {
+	test('student dashboard renders the points/level KPI widget without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -71,11 +72,16 @@ test.describe('engagement-gamification — points/level widget and leaderboard',
 		expect(bodyText.trim().length).toBeGreaterThan(0)
 		expect(bodyText).toContain('My points')
 
-		expect(fatalErrors(errors), `unexpected fatal errors: ${fatalErrors(errors).join(' | ')}`).toHaveLength(0)
+		expect(
+			fatalErrors(errors),
+			`unexpected fatal errors: ${fatalErrors(errors).join(' | ')}`,
+		).toHaveLength(0)
 	})
 
 	// @e2e openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
-	test('LeaderboardView renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('LeaderboardView renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -93,11 +99,16 @@ test.describe('engagement-gamification — points/level widget and leaderboard',
 		expect(bodyText.trim().length).toBeGreaterThan(0)
 		expect(bodyText).toContain('Leaderboard')
 
-		expect(fatalErrors(errors), `unexpected fatal errors: ${fatalErrors(errors).join(' | ')}`).toHaveLength(0)
+		expect(
+			fatalErrors(errors),
+			`unexpected fatal errors: ${fatalErrors(errors).join(' | ')}`,
+		).toHaveLength(0)
 	})
 
 	// @e2e openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
-	test('LeaderboardView surfaces the opt-out toggle when an active leaderboard exists', async ({ loggedInPage: page }) => {
+	test('LeaderboardView surfaces the opt-out toggle when an active leaderboard exists', async ({
+		loggedInPage: page,
+	}) => {
 		await page.goto(LEADERBOARD_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
@@ -106,7 +117,9 @@ test.describe('engagement-gamification — points/level widget and leaderboard',
 		// exists for the current tenant (seed-data dependent). Its absence
 		// (empty-state tenant) is a valid, non-fatal outcome — the assertion
 		// only checks that IF it renders, it is a single labelled switch.
-		const toggle = page.getByRole('switch', { name: /hide me from this leaderboard/i })
+		const toggle = page.getByRole('switch', {
+			name: /hide me from this leaderboard/i,
+		})
 		const toggleCount = await toggle.count().catch(() => 0)
 		expect(toggleCount).toBeLessThanOrEqual(1)
 	})

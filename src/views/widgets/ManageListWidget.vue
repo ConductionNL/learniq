@@ -28,7 +28,8 @@
 		:empty-text="t('scholiq', 'No items found')"
 		:row-click-route="rowClickRoute">
 		<template #footer>
-			<a class="cn-data-table__view-all"
+			<a
+				class="cn-data-table__view-all"
 				role="button"
 				tabindex="0"
 				@click.prevent="navigate"
@@ -144,9 +145,12 @@ export default {
 				key,
 				// Name column stays regular weight (matches the reference design);
 				// only the trailing status/value column is muted + right-aligned.
-				cellClass: i === 0
-					? ''
-					: (i === cols.length - 1 ? 'cn-cell--muted cn-cell--end' : 'cn-cell--muted'),
+				cellClass:
+					i === 0
+						? ''
+						: i === cols.length - 1
+							? 'cn-cell--muted cn-cell--end'
+							: 'cn-cell--muted',
 			}))
 		},
 	},
@@ -165,12 +169,18 @@ export default {
 		async fetchItems() {
 			this.loading = true
 			try {
-				const params = new URLSearchParams({ _limit: String(this.limit), ...this.filter })
+				const params = new URLSearchParams({
+					_limit: String(this.limit),
+					...this.filter,
+				})
 				if (this.extend.length) {
 					params.set('_extend', this.extend.join(','))
 				}
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/' + this.schema + '?' + params.toString(),
+					'/apps/openregister/api/objects/scholiq/'
+						+ this.schema
+						+ '?'
+						+ params.toString(),
 				)
 				const response = await axios.get(url)
 				const data = response.data ?? {}

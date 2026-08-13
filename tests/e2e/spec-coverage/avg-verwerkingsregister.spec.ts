@@ -23,37 +23,56 @@ import { test, expect } from '../fixtures'
 const SETTINGS_URL = '/index.php/apps/scholiq/settings'
 
 test.describe('avg-verwerkingsregister — AVG Art. 30 compliance section', () => {
-
 	// @e2e openspec/specs/avg-verwerkingsregister/spec.md#privacy-officer-browses-scholiqs-register-slice
-	test('compliance section surfaces the register slice scoped to scholiq', async ({ loggedInPage: page }) => {
+	test('compliance section surfaces the register slice scoped to scholiq', async ({
+		loggedInPage: page,
+	}) => {
 		await page.goto(SETTINGS_URL)
 		await page.waitForLoadState('domcontentloaded')
 		await expect(page.locator('body')).toBeVisible()
 		await expect(page).not.toHaveURL(/\/login/)
 
-		const bodyText = await page.locator('body').innerText().catch(() => '')
+		const bodyText = await page
+			.locator('body')
+			.innerText()
+			.catch(() => '')
 		// When Vue is mounted as admin, the AVG Art. 30 section + its actions render.
 		if (/Processing Activity Register|Art\. 30/i.test(bodyText)) {
 			await expect(
-				page.getByText(/Open processing log in OpenRegister|Per-subject .* extract/i).first(),
+				page
+					.getByText(
+						/Open processing log in OpenRegister|Per-subject .* extract/i,
+					)
+					.first(),
 			).toBeVisible()
 			// The declared activities are listed (seeded as drafts, surfaced here).
-			await expect(page.getByText(/Learner administration/i).first()).toBeVisible()
+			await expect(
+				page.getByText(/Learner administration/i).first(),
+			).toBeVisible()
 		}
 	})
 
 	// @e2e openspec/specs/avg-verwerkingsregister/spec.md#fresh-install-seeds-the-register-as-drafts
-	test('controller identity & accountability deep-link is offered, not blocked', async ({ loggedInPage: page }) => {
+	test('controller identity & accountability deep-link is offered, not blocked', async ({
+		loggedInPage: page,
+	}) => {
 		await page.goto(SETTINGS_URL)
 		await page.waitForLoadState('domcontentloaded')
 		await expect(page.locator('body')).toBeVisible()
 
-		const bodyText = await page.locator('body').innerText().catch(() => '')
+		const bodyText = await page
+			.locator('body')
+			.innerText()
+			.catch(() => '')
 		if (/Processing Activity Register|Art\. 30/i.test(bodyText)) {
 			// The controller-identity / accountability deep-link is shown; the
 			// section still renders its actions (does not block on unset identity).
 			await expect(
-				page.getByText(/controller identity .* accountability in OpenRegister/i).first(),
+				page
+					.getByText(
+						/controller identity .* accountability in OpenRegister/i,
+					)
+					.first(),
 			).toBeVisible()
 		}
 	})

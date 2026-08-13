@@ -30,11 +30,15 @@
 import { test, expect } from '../fixtures'
 
 const DOSSIER_NOTES_INDEX_URL = '/index.php/apps/scholiq/#/pupil-dossier/notes'
-const BEHAVIOUR_INCIDENTS_INDEX_URL = '/index.php/apps/scholiq/#/pupil-dossier/incidents'
-const WELLBEING_CHECKINS_INDEX_URL = '/index.php/apps/scholiq/#/pupil-dossier/check-ins'
-const BEHAVIOUR_INCIDENT_DETAIL_URL = '/index.php/apps/scholiq/#/pupil-dossier/incidents/00000000-0000-0000-0000-000000000000'
+const BEHAVIOUR_INCIDENTS_INDEX_URL =
+	'/index.php/apps/scholiq/#/pupil-dossier/incidents'
+const WELLBEING_CHECKINS_INDEX_URL =
+	'/index.php/apps/scholiq/#/pupil-dossier/check-ins'
+const BEHAVIOUR_INCIDENT_DETAIL_URL =
+	'/index.php/apps/scholiq/#/pupil-dossier/incidents/00000000-0000-0000-0000-000000000000'
 const TIMELINE_URL = '/index.php/apps/scholiq/#/pupil-dossier/timeline'
-const TIMELINE_WITH_LEARNER_URL = '/index.php/apps/scholiq/#/pupil-dossier/timeline?learnerId=00000000-0000-0000-0000-000000000000'
+const TIMELINE_WITH_LEARNER_URL =
+	'/index.php/apps/scholiq/#/pupil-dossier/timeline?learnerId=00000000-0000-0000-0000-000000000000'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise
@@ -65,10 +69,11 @@ function assertNoFatalErrors(errors: string[]): void {
 }
 
 test.describe('pupil-dossier — declarative index pages', () => {
-
 	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-a-mentor-records-a-dossier-note
 	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
-	test('Dossier notes index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('Dossier notes index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(DOSSIER_NOTES_INDEX_URL)
@@ -83,7 +88,9 @@ test.describe('pupil-dossier — declarative index pages', () => {
 
 	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-an-incident-escalates-into-a-supportrequest-by-reference
 	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
-	test('Behaviour incidents index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('Behaviour incidents index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(BEHAVIOUR_INCIDENTS_INDEX_URL)
@@ -98,7 +105,9 @@ test.describe('pupil-dossier — declarative index pages', () => {
 
 	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-a-learner-submits-a-wellbeing-check-in
 	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
-	test('Wellbeing check-ins index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('Wellbeing check-ins index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(WELLBEING_CHECKINS_INDEX_URL)
@@ -112,7 +121,9 @@ test.describe('pupil-dossier — declarative index pages', () => {
 	})
 
 	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-an-incident-escalates-into-a-supportrequest-by-reference
-	test('Behaviour incident detail route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
+	test('Behaviour incident detail route resolves the registered component, not a blank/404 shell', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		// A non-existent id is enough to prove the ROUTE resolves the declarative
@@ -135,9 +146,10 @@ test.describe('pupil-dossier — declarative index pages', () => {
 })
 
 test.describe('pupil-dossier — PupilDossierTimelineView resolves (registry.js wiring)', () => {
-
 	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-pages-are-manifest-declared-with-one-shared-timeline-view-exception
-	test('PupilDossierTimelineView route renders its empty-state learner picker with no learnerId query param', async ({ loggedInPage: page }) => {
+	test('PupilDossierTimelineView route renders its empty-state learner picker with no learnerId query param', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(TIMELINE_URL)
@@ -151,7 +163,9 @@ test.describe('pupil-dossier — PupilDossierTimelineView resolves (registry.js 
 	})
 
 	// @e2e openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
-	test('PupilDossierTimelineView route resolves the registered component for a given learnerId, not a blank/404 shell', async ({ loggedInPage: page }) => {
+	test('PupilDossierTimelineView route resolves the registered component for a given learnerId, not a blank/404 shell', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		// A non-existent learnerId is enough to prove the ROUTE resolves the

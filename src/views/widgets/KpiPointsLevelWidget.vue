@@ -23,7 +23,9 @@
 			variant="primary"
 			horizontal />
 		<p v-if="!loading" class="kpi-points-level__detail">
-			<span v-if="levelName" class="kpi-points-level__level">{{ levelName }}</span>
+			<span v-if="levelName" class="kpi-points-level__level">{{
+				levelName
+			}}</span>
 			<span v-if="streakDays > 0" class="kpi-points-level__streak">
 				{{ t('scholiq', '{days}-day streak', { days: streakDays }) }}
 			</span>
@@ -83,7 +85,8 @@ export default {
 				const uid = getCurrentUser()?.uid ?? ''
 				const params = new URLSearchParams({ learnerId: uid, _limit: '1' })
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/learner-engagement?' + params.toString(),
+					'/apps/openregister/api/objects/scholiq/learner-engagement?'
+						+ params.toString(),
 				)
 				const response = await axios.get(url)
 				const data = response.data ?? {}
@@ -114,7 +117,10 @@ export default {
 		 */
 		async fetchLevelName(levelId) {
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/engagement-level/' + levelId)
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/engagement-level/'
+						+ levelId,
+				)
 				const response = await axios.get(url)
 				this.levelName = response.data?.name ?? null
 			} catch {

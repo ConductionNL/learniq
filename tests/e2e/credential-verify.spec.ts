@@ -26,13 +26,13 @@ test.describe('CredentialVerify page', () => {
 			if (msg.type() === 'error') {
 				const text = msg.text()
 				if (
-					!text.includes('favicon') &&
-					!text.includes('font') &&
-					!text.includes('Failed to load resource') &&
-					!text.includes('net::ERR_ABORTED') &&
-					!text.includes('Failed to fetch') &&
-					!text.includes('[FATAL] photos') &&
-					!text.includes('Pipelinq')
+					!text.includes('favicon')
+					&& !text.includes('font')
+					&& !text.includes('Failed to load resource')
+					&& !text.includes('net::ERR_ABORTED')
+					&& !text.includes('Failed to fetch')
+					&& !text.includes('[FATAL] photos')
+					&& !text.includes('Pipelinq')
 				) {
 					errors.push(text)
 				}
@@ -64,10 +64,10 @@ test.describe('CredentialVerify page', () => {
 		// We verify the SPA is alive; a real browser always shows the correct component.
 		const pageContent = await page.content().catch(() => '')
 		const scholiqSpaRendered =
-			pageContent.includes('scholiq') ||
-			pageContent.includes('Dashboard') ||
-			pageContent.includes('Courses') ||
-			pageContent.includes('credential')
+			pageContent.includes('scholiq')
+			|| pageContent.includes('Dashboard')
+			|| pageContent.includes('Courses')
+			|| pageContent.includes('credential')
 
 		expect(
 			scholiqSpaRendered,
@@ -78,10 +78,13 @@ test.describe('CredentialVerify page', () => {
 	test('verify page shows loading state or content after navigation', async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto('/index.php/apps/scholiq/credentials/test-loading-id/verify', {
-			waitUntil: 'domcontentloaded',
-			timeout: 30_000,
-		})
+		await page.goto(
+			'/index.php/apps/scholiq/credentials/test-loading-id/verify',
+			{
+				waitUntil: 'domcontentloaded',
+				timeout: 30_000,
+			},
+		)
 
 		// Either loading or any rendered state is valid
 		const bodyText = await page.innerText('body').catch(() => '')

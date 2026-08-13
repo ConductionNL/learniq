@@ -3,7 +3,12 @@
 	<div class="scholiq-admin__section" data-testid="admin-action-auth-section">
 		<h3>{{ t('scholiq', 'Action authorization') }}</h3>
 		<p class="scholiq-admin__hint">
-			{{ t('scholiq', 'Decide which Nextcloud groups may invoke each Scholiq action (ADR-023). Admins always pass. Every action defaults to admin-only — tick a group to broaden it.') }}
+			{{
+				t(
+					'scholiq',
+					'Decide which Nextcloud groups may invoke each Scholiq action (ADR-023). Admins always pass. Every action defaults to admin-only — tick a group to broaden it.',
+				)
+			}}
 		</p>
 
 		<div v-if="error" class="scholiq-admin__action-error" role="alert">
@@ -42,7 +47,13 @@
 							<NcCheckboxRadioSwitch
 								:checked="isChecked(action, group)"
 								:disabled="group === 'admin'"
-								:aria-label="t('scholiq', 'Allow group {group} to perform {action}', { group, action })"
+								:aria-label="
+									t(
+										'scholiq',
+										'Allow group {group} to perform {action}',
+										{ group, action },
+									)
+								"
 								@update:checked="toggle(action, group, $event)" />
 						</td>
 					</tr>
@@ -56,7 +67,11 @@
 				data-testid="admin-action-matrix-save"
 				:disabled="loading || saving"
 				@click="save">
-				{{ saving ? t('scholiq', 'Saving…') : t('scholiq', 'Save action matrix') }}
+				{{
+					saving
+						? t('scholiq', 'Saving…')
+						: t('scholiq', 'Save action matrix')
+				}}
 			</NcButton>
 		</div>
 	</div>
@@ -101,7 +116,7 @@ export default {
 		// `admin` is always shown first as a disabled, always-on column.
 		/** @spec openspec/architecture/adr-023-action-authorization.md */
 		displayGroups() {
-			const rest = this.groups.filter(g => g !== 'admin')
+			const rest = this.groups.filter((g) => g !== 'admin')
 			return ['admin', ...rest]
 		},
 	},
@@ -117,17 +132,23 @@ export default {
 			this.loading = true
 			this.error = ''
 			try {
-				const response = await fetch(generateUrl('/apps/scholiq/api/admin/action-matrix'), {
-					headers: { 'Content-Type': 'application/json' },
-				})
+				const response = await fetch(
+					generateUrl('/apps/scholiq/api/admin/action-matrix'),
+					{
+						headers: { 'Content-Type': 'application/json' },
+					},
+				)
 				const data = await response.json()
 				this.actions = Array.isArray(data.actions) ? data.actions : []
 				this.groups = Array.isArray(data.groups) ? data.groups : []
 				// Clone the matrix into a plain editable map keyed by action.
 				const next = {}
-				const source = data.matrix && typeof data.matrix === 'object' ? data.matrix : {}
+				const source =
+					data.matrix && typeof data.matrix === 'object' ? data.matrix : {}
 				for (const action of this.actions) {
-					const allowed = Array.isArray(source[action]) ? source[action] : []
+					const allowed = Array.isArray(source[action])
+						? source[action]
+						: []
 					next[action] = [...allowed]
 				}
 				this.matrix = next
@@ -155,7 +176,9 @@ export default {
 			if (group === 'admin') {
 				return
 			}
-			const allowed = Array.isArray(this.matrix[action]) ? [...this.matrix[action]] : []
+			const allowed = Array.isArray(this.matrix[action])
+				? [...this.matrix[action]]
+				: []
 			const index = allowed.indexOf(group)
 			if (checked === true && index === -1) {
 				allowed.push(group)
@@ -173,16 +196,24 @@ export default {
 				// stored posture stays admin-inclusive and human-readable.
 				const payload = {}
 				for (const action of this.actions) {
-					const extra = (this.matrix[action] || []).filter(g => g !== 'admin')
+					const extra = (this.matrix[action] || []).filter(
+						(g) => g !== 'admin',
+					)
 					payload[action] = ['admin', ...extra]
 				}
-				const response = await fetch(generateUrl('/apps/scholiq/api/admin/action-matrix'), {
-					method: 'PUT',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ matrix: payload }),
-				})
+				const response = await fetch(
+					generateUrl('/apps/scholiq/api/admin/action-matrix'),
+					{
+						method: 'PUT',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ matrix: payload }),
+					},
+				)
 				const data = await response.json()
-				const saved = data && data.matrix && typeof data.matrix === 'object' ? data.matrix : {}
+				const saved =
+					data && data.matrix && typeof data.matrix === 'object'
+						? data.matrix
+						: {}
 				const next = {}
 				for (const action of this.actions) {
 					const allowed = Array.isArray(saved[action]) ? saved[action] : []

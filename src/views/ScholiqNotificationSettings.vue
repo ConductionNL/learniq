@@ -25,7 +25,12 @@
 	<div class="scholiq-notif-settings">
 		<NcSettingsSection
 			:name="t('scholiq', 'Notifications')"
-			:description="t('scholiq', 'Choose which Scholiq notifications you want to receive. These preferences apply to your account only.')">
+			:description="
+				t(
+					'scholiq',
+					'Choose which Scholiq notifications you want to receive. These preferences apply to your account only.',
+				)
+			">
 			<div v-if="loading" class="scholiq-notif-settings__loading">
 				<NcLoadingIcon :size="32" />
 			</div>
@@ -33,7 +38,12 @@
 			<NcEmptyContent
 				v-else-if="items.length === 0"
 				:name="t('scholiq', 'No notifications available')"
-				:description="t('scholiq', 'Scholiq has no notification types to configure for your account yet.')">
+				:description="
+					t(
+						'scholiq',
+						'Scholiq has no notification types to configure for your account yet.',
+					)
+				">
 				<template #icon>
 					<NcLoadingIcon v-if="false" />
 				</template>
@@ -48,7 +58,7 @@
 						type="switch"
 						:checked="item.enabled"
 						:disabled="item.saving"
-						@update:checked="value => toggle(item, value)">
+						@update:checked="(value) => toggle(item, value)">
 						{{ labelFor(item) }}
 					</NcCheckboxRadioSwitch>
 				</li>
@@ -62,33 +72,58 @@
 		<NcSettingsSection
 			v-if="!loading"
 			:name="t('scholiq', 'Quiet hours')"
-			:description="t('scholiq', 'Defer Scholiq notifications during a daily quiet-hours window. Reminders with a deadline still arrive early enough to land before the deadline passes.')">
+			:description="
+				t(
+					'scholiq',
+					'Defer Scholiq notifications during a daily quiet-hours window. Reminders with a deadline still arrive early enough to land before the deadline passes.',
+				)
+			">
 			<NcCheckboxRadioSwitch
 				type="switch"
 				:checked="quietHours.enabled"
 				:disabled="quietHoursSaving"
-				@update:checked="value => saveQuietHours({ ...quietHours, enabled: value })">
+				@update:checked="
+					(value) => saveQuietHours({ ...quietHours, enabled: value })
+				">
 				{{ t('scholiq', 'Enable quiet hours') }}
 			</NcCheckboxRadioSwitch>
 
-			<div v-if="quietHours.enabled" class="scholiq-notif-settings__quiet-hours-times">
+			<div
+				v-if="quietHours.enabled"
+				class="scholiq-notif-settings__quiet-hours-times">
 				<div class="scholiq-notif-settings__quiet-hours-field">
-					<label for="scholiq-quiet-hours-start">{{ t('scholiq', 'Start') }}</label>
+					<label for="scholiq-quiet-hours-start">{{
+						t('scholiq', 'Start')
+					}}</label>
 					<input
 						id="scholiq-quiet-hours-start"
 						type="time"
 						:value="quietHours.start"
 						:disabled="quietHoursSaving"
-						@change="event => saveQuietHours({ ...quietHours, start: event.target.value })">
+						@change="
+							(event) =>
+								saveQuietHours({
+									...quietHours,
+									start: event.target.value,
+								})
+						" />
 				</div>
 				<div class="scholiq-notif-settings__quiet-hours-field">
-					<label for="scholiq-quiet-hours-end">{{ t('scholiq', 'End') }}</label>
+					<label for="scholiq-quiet-hours-end">{{
+						t('scholiq', 'End')
+					}}</label>
 					<input
 						id="scholiq-quiet-hours-end"
 						type="time"
 						:value="quietHours.end"
 						:disabled="quietHoursSaving"
-						@change="event => saveQuietHours({ ...quietHours, end: event.target.value })">
+						@change="
+							(event) =>
+								saveQuietHours({
+									...quietHours,
+									end: event.target.value,
+								})
+						" />
 				</div>
 			</div>
 
@@ -103,7 +138,12 @@
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { getLanguage } from '@nextcloud/l10n'
-import { NcCheckboxRadioSwitch, NcEmptyContent, NcLoadingIcon, NcSettingsSection } from '@nextcloud/vue'
+import {
+	NcCheckboxRadioSwitch,
+	NcEmptyContent,
+	NcLoadingIcon,
+	NcSettingsSection,
+} from '@nextcloud/vue'
 import bundledManifest from '../manifest.json'
 
 /**
@@ -124,8 +164,10 @@ function normSchema(name) {
 // the user can access) down to Scholiq's own notifications.
 const SCHOLIQ_SCHEMAS = new Set([
 	...bundledManifest.pages
-		.filter(page => page?.config?.register === 'scholiq' && page?.config?.schema)
-		.map(page => normSchema(page.config.schema)),
+		.filter(
+			(page) => page?.config?.register === 'scholiq' && page?.config?.schema,
+		)
+		.map((page) => normSchema(page.config.schema)),
 	// Notification-only schemas (no index page).
 	normSchema('GradeNotification'),
 ])
@@ -175,14 +217,18 @@ export default {
 			this.loading = true
 			this.errorMessage = ''
 			try {
-				const url = generateUrl('/apps/openregister/api/notification-preferences')
+				const url = generateUrl(
+					'/apps/openregister/api/notification-preferences',
+				)
 				const response = await axios.get(url)
 				const data = response.data ?? {}
 				const results = data.results ?? (Array.isArray(data) ? data : [])
 				// Scope to Scholiq's own notifications — the endpoint returns
 				// every notification across all registers the user can access.
-				const scholiqResults = results.filter(row => SCHOLIQ_SCHEMAS.has(normSchema(row.schema)))
-				this.items = scholiqResults.map(row => ({
+				const scholiqResults = results.filter((row) =>
+					SCHOLIQ_SCHEMAS.has(normSchema(row.schema)),
+				)
+				this.items = scholiqResults.map((row) => ({
 					schema: row.schema,
 					notification: row.notification,
 					enabled: row.enabled !== false,
@@ -198,9 +244,15 @@ export default {
 					}
 				}
 			} catch (error) {
-				this.errorMessage = this.t('scholiq', 'Could not load notification preferences.')
+				this.errorMessage = this.t(
+					'scholiq',
+					'Could not load notification preferences.',
+				)
 				// eslint-disable-next-line no-console
-				console.error('[ScholiqNotificationSettings] fetchPreferences failed:', error)
+				console.error(
+					'[ScholiqNotificationSettings] fetchPreferences failed:',
+					error,
+				)
 			} finally {
 				this.loading = false
 			}
@@ -219,7 +271,9 @@ export default {
 			item.saving = true
 			this.errorMessage = ''
 			try {
-				const url = generateUrl('/apps/openregister/api/notification-preferences')
+				const url = generateUrl(
+					'/apps/openregister/api/notification-preferences',
+				)
 				await axios.put(url, {
 					schema: item.schema,
 					notification: item.notification,
@@ -227,7 +281,10 @@ export default {
 				})
 			} catch (error) {
 				item.enabled = previous
-				this.errorMessage = this.t('scholiq', 'Could not save notification preference.')
+				this.errorMessage = this.t(
+					'scholiq',
+					'Could not save notification preference.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[ScholiqNotificationSettings] toggle failed:', error)
 			} finally {
@@ -245,7 +302,12 @@ export default {
 		labelFor(item) {
 			if (item.subject) {
 				const lang = (getLanguage() || 'en').slice(0, 2)
-				return item.subject[lang] || item.subject.en || item.subject.nl || item.notification
+				return (
+					item.subject[lang]
+					|| item.subject.en
+					|| item.subject.nl
+					|| item.notification
+				)
 			}
 			return item.schema + ' · ' + item.notification
 		},
@@ -270,7 +332,9 @@ export default {
 			this.quietHoursSaving = true
 			this.quietHoursHint = ''
 			try {
-				const url = generateUrl('/apps/openregister/api/notification-preferences')
+				const url = generateUrl(
+					'/apps/openregister/api/notification-preferences',
+				)
 				await axios.put(url, { quietHours: next })
 			} catch (error) {
 				this.quietHoursHint = this.t(
@@ -278,7 +342,10 @@ export default {
 					'Quiet hours are not yet enforced by your Nextcloud instance. Your preference is kept here and will take effect once support is enabled.',
 				)
 				// eslint-disable-next-line no-console
-				console.warn('[ScholiqNotificationSettings] saveQuietHours: delivery-window endpoint not yet available:', error)
+				console.warn(
+					'[ScholiqNotificationSettings] saveQuietHours: delivery-window endpoint not yet available:',
+					error,
+				)
 			} finally {
 				this.quietHoursSaving = false
 			}

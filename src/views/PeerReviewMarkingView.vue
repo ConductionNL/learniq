@@ -39,7 +39,10 @@
 <template>
 	<div class="peer-review-marking-view">
 		<!-- Loading -->
-		<div v-if="loading" class="peer-review-marking-view__loading" aria-live="polite">
+		<div
+			v-if="loading"
+			class="peer-review-marking-view__loading"
+			aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
 			<span>{{ t('scholiq', 'Loading peer review...') }}</span>
 		</div>
@@ -51,13 +54,21 @@
 		</div>
 
 		<!-- Submitted confirmation -->
-		<div v-else-if="submitted"
+		<div
+			v-else-if="submitted"
 			class="peer-review-marking-view__confirmation"
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
 			<h2>{{ t('scholiq', 'Peer review submitted') }}</h2>
-			<p>{{ t('scholiq', 'Score: {score} / {max}', { score: computedScore, max: assignment.maxPoints || '?' }) }}</p>
+			<p>
+				{{
+					t('scholiq', 'Score: {score} / {max}', {
+						score: computedScore,
+						max: assignment.maxPoints || '?',
+					})
+				}}
+			</p>
 		</div>
 
 		<!-- Marking form -->
@@ -65,23 +76,43 @@
 			<header class="peer-review-marking-view__header">
 				<h2>{{ t('scholiq', 'Complete peer review') }}</h2>
 				<p class="peer-review-marking-view__meta">
-					{{ t('scholiq', 'Assignment: {title}', { title: assignment.title || '' }) }}
+					{{
+						t('scholiq', 'Assignment: {title}', {
+							title: assignment.title || '',
+						})
+					}}
 				</p>
 				<!--
 					Anonymity Enforcement: the reviewed learner's identity is never
 					rendered when peerReviewAnonymity is double-blind (UI convention).
 				-->
-				<p v-if="!isDoubleBlind && submissionLearnerIds.length > 0"
+				<p
+					v-if="!isDoubleBlind && submissionLearnerIds.length > 0"
 					class="peer-review-marking-view__learners">
-					{{ t('scholiq', 'Reviewing work by: {ids}', { ids: submissionLearnerIds.join(', ') }) }}
+					{{
+						t('scholiq', 'Reviewing work by: {ids}', {
+							ids: submissionLearnerIds.join(', '),
+						})
+					}}
 				</p>
-				<p v-else-if="isDoubleBlind" class="peer-review-marking-view__anonymity-note">
-					{{ t('scholiq', 'Double-blind review — the author\'s identity is withheld.') }}
+				<p
+					v-else-if="isDoubleBlind"
+					class="peer-review-marking-view__anonymity-note">
+					{{
+						t(
+							'scholiq',
+							"Double-blind review — the author's identity is withheld.",
+						)
+					}}
 				</p>
 			</header>
 
-			<section v-if="rubric && rubric.criteria && rubric.criteria.length > 0" class="peer-review-marking-view__rubric">
-				<h3>{{ t('scholiq', 'Rubric: {name}', { name: rubric.name || '' }) }}</h3>
+			<section
+				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
+				class="peer-review-marking-view__rubric">
+				<h3>
+					{{ t('scholiq', 'Rubric: {name}', { name: rubric.name || '' }) }}
+				</h3>
 
 				<div
 					v-for="criterion in rubric.criteria"
@@ -90,7 +121,11 @@
 					<h4 class="peer-review-marking-view__criterion-label">
 						{{ criterion.label }}
 						<span class="peer-review-marking-view__criterion-weight">
-							{{ t('scholiq', '(weight: {w})', { w: criterion.weight }) }}
+							{{
+								t('scholiq', '(weight: {w})', {
+									w: criterion.weight,
+								})
+							}}
 						</span>
 					</h4>
 					<div class="peer-review-marking-view__levels">
@@ -102,24 +137,38 @@
 								type="radio"
 								:name="criterion.criterionId"
 								:value="level.levelId"
-								:checked="getSelectedLevel(criterion.criterionId) === level.levelId"
+								:checked="
+									getSelectedLevel(criterion.criterionId)
+									=== level.levelId
+								"
 								:disabled="saving"
-								@change="selectLevel(criterion, level)">
-							<span class="peer-review-marking-view__level-label">{{ level.label }}</span>
+								@change="selectLevel(criterion, level)" />
+							<span class="peer-review-marking-view__level-label">{{
+								level.label
+							}}</span>
 							<span class="peer-review-marking-view__level-points">
-								{{ t('scholiq', '{pts} pts', { pts: level.points }) }}
+								{{
+									t('scholiq', '{pts} pts', { pts: level.points })
+								}}
 							</span>
 						</label>
 					</div>
 				</div>
 
 				<div class="peer-review-marking-view__score-total">
-					<strong>{{ t('scholiq', 'Score: {score} / {max}', { score: computedScore, max: assignment.maxPoints || '?' }) }}</strong>
+					<strong>{{
+						t('scholiq', 'Score: {score} / {max}', {
+							score: computedScore,
+							max: assignment.maxPoints || '?',
+						})
+					}}</strong>
 				</div>
 			</section>
 
 			<section class="peer-review-marking-view__comments">
-				<h3 id="peer-review-comments-label">{{ t('scholiq', 'Comments for the author') }}</h3>
+				<h3 id="peer-review-comments-label">
+					{{ t('scholiq', 'Comments for the author') }}
+				</h3>
 				<textarea
 					id="peer-review-comments"
 					v-model="comments"
@@ -139,7 +188,10 @@
 					{{ t('scholiq', 'Submit peer review') }}
 				</button>
 			</div>
-			<p v-if="saveError" role="alert" class="peer-review-marking-view__save-error">
+			<p
+				v-if="saveError"
+				role="alert"
+				class="peer-review-marking-view__save-error">
 				{{ saveError }}
 			</p>
 		</template>
@@ -224,10 +276,16 @@ export default {
 		 * @return {boolean}
 		 */
 		canSubmit() {
-			if (!this.rubric || !this.rubric.criteria || this.rubric.criteria.length === 0) {
+			if (
+				!this.rubric
+				|| !this.rubric.criteria
+				|| this.rubric.criteria.length === 0
+			) {
 				return true
 			}
-			return this.rubric.criteria.every((c) => this.selectedLevels[c.criterionId] != null)
+			return this.rubric.criteria.every(
+				(c) => this.selectedLevels[c.criterionId] != null,
+			)
 		},
 	},
 
@@ -262,7 +320,9 @@ export default {
 
 			try {
 				await this.loadPeerReview(peerReviewId)
-				await this.loadAssignment(this.peerReview.assignmentId ?? this.assignmentId)
+				await this.loadAssignment(
+					this.peerReview.assignmentId ?? this.assignmentId,
+				)
 
 				if (this.assignment.rubricId) {
 					await this.loadRubric(this.assignment.rubricId)
@@ -281,7 +341,10 @@ export default {
 				}
 				this.comments = this.peerReview.comments ?? ''
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load peer review. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to load peer review. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[PeerReviewMarkingView] loadData error', err)
 			} finally {
@@ -316,7 +379,9 @@ export default {
 		 * @return {Promise<void>}
 		 */
 		async loadAssignment(assignmentId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Assignment/${assignmentId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/Assignment/${assignmentId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -334,7 +399,9 @@ export default {
 		 * @return {Promise<void>}
 		 */
 		async loadRubric(rubricId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Rubric/${rubricId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/Rubric/${rubricId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -354,7 +421,9 @@ export default {
 		 * @return {Promise<void>}
 		 */
 		async loadSubmissionLearnerIds(submissionId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Submission/${submissionId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/Submission/${submissionId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -386,7 +455,10 @@ export default {
 		selectLevel(criterion, level) {
 			this.selectedLevels = {
 				...this.selectedLevels,
-				[criterion.criterionId]: { levelId: level.levelId, points: level.points },
+				[criterion.criterionId]: {
+					levelId: level.levelId,
+					points: level.points,
+				},
 			}
 		},
 
@@ -458,7 +530,10 @@ export default {
 
 				this.submitted = true
 			} catch (err) {
-				this.saveError = this.t('scholiq', 'Failed to save peer review. Please try again.')
+				this.saveError = this.t(
+					'scholiq',
+					'Failed to save peer review. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[PeerReviewMarkingView] saveAndSubmit error', err)
 			} finally {
@@ -473,7 +548,8 @@ export default {
 .peer-review-marking-view {
 	max-width: 860px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .peer-review-marking-view__loading,

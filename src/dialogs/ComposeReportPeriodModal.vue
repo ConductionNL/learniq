@@ -20,9 +20,14 @@
  @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 -->
 <template>
-	<NcDialog :open="true"
+	<NcDialog
+		:open="true"
 		:name="dialogTitle"
-		@update:open="v => { if (!v) $emit('close') }">
+		@update:open="
+			(v) => {
+				if (!v) $emit('close')
+			}
+		">
 		<div class="compose-report-period">
 			<NcLoadingIcon v-if="loading" :size="32" />
 
@@ -39,10 +44,20 @@
 				</dl>
 
 				<NcNoteCard v-if="!isLocked" type="warning">
-					{{ t('scholiq', 'This report period is not yet locked — composition is blocked until the lock date has passed. A mentor/admin can still compose manually once locked.') }}
+					{{
+						t(
+							'scholiq',
+							'This report period is not yet locked — composition is blocked until the lock date has passed. A mentor/admin can still compose manually once locked.',
+						)
+					}}
 				</NcNoteCard>
 				<NcNoteCard v-else type="success">
-					{{ t('scholiq', 'This report period is locked. Composing will create one draft report card per learner in scope.') }}
+					{{
+						t(
+							'scholiq',
+							'This report period is locked. Composing will create one draft report card per learner in scope.',
+						)
+					}}
 				</NcNoteCard>
 
 				<NcNoteCard v-if="error" type="error">
@@ -59,10 +74,15 @@
 			<NcButton @click="$emit('close')">
 				{{ t('scholiq', 'Cancel') }}
 			</NcButton>
-			<NcButton variant="primary"
+			<NcButton
+				variant="primary"
 				:disabled="!period || !isLocked || composing"
 				@click="compose">
-				{{ composing ? t('scholiq', 'Composing…') : t('scholiq', 'Compose report cards') }}
+				{{
+					composing
+						? t('scholiq', 'Composing…')
+						: t('scholiq', 'Compose report cards')
+				}}
 			</NcButton>
 		</template>
 	</NcDialog>
@@ -119,7 +139,9 @@ export default {
 		 */
 		dialogTitle() {
 			if (!this.period) return t('scholiq', 'Compose report period')
-			return t('scholiq', 'Compose "{name}"', { name: this.period.name || this.period.periodCode || '' })
+			return t('scholiq', 'Compose "{name}"', {
+				name: this.period.name || this.period.periodCode || '',
+			})
 		},
 	},
 
@@ -175,7 +197,10 @@ export default {
 				this.$emit('close')
 			} catch (e) {
 				console.error('[ComposeReportPeriodModal] compose failed', e)
-				this.error = t('scholiq', 'Could not compose report cards. Please try again.')
+				this.error = t(
+					'scholiq',
+					'Could not compose report cards. Please try again.',
+				)
 			} finally {
 				this.composing = false
 			}

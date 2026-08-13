@@ -54,7 +54,13 @@
 			</p>
 
 			<header class="lesson-composer__header">
-				<h2>{{ t('scholiq', 'Compose lesson: {name}', { name: lesson.name || '' }) }}</h2>
+				<h2>
+					{{
+						t('scholiq', 'Compose lesson: {name}', {
+							name: lesson.name || '',
+						})
+					}}
+				</h2>
 				<div class="lesson-composer__header-actions">
 					<button class="button-vue" @click="goBack">
 						{{ t('scholiq', 'Back to builder') }}
@@ -66,13 +72,25 @@
 						class="button-vue button-vue--primary"
 						:disabled="saving"
 						@click="save">
-						<span v-if="saving" class="icon-loading" aria-hidden="true" />
+						<span
+							v-if="saving"
+							class="icon-loading"
+							aria-hidden="true" />
 						{{ t('scholiq', 'Save lesson') }}
 					</button>
 				</div>
 			</header>
-			<p v-if="lesson.contentType !== 'text'" class="lesson-composer__notice" role="status">
-				{{ t('scholiq', "This lesson's contentType is '{type}', not 'text' — blocks only render in LessonPlayer once contentType is set to 'text'.", { type: lesson.contentType }) }}
+			<p
+				v-if="lesson.contentType !== 'text'"
+				class="lesson-composer__notice"
+				role="status">
+				{{
+					t(
+						'scholiq',
+						"This lesson's contentType is '{type}', not 'text' — blocks only render in LessonPlayer once contentType is set to 'text'.",
+						{ type: lesson.contentType },
+					)
+				}}
 			</p>
 			<p v-if="saveError" role="alert" class="lesson-composer__inline-error">
 				{{ saveError }}
@@ -92,13 +110,21 @@
 					:key="block.blockId"
 					class="lesson-composer__block">
 					<div class="lesson-composer__block-row">
-						<span class="lesson-composer__handle icon-menu" aria-hidden="true" />
-						<span class="lesson-composer__block-type">{{ blockTypeLabel(block.type) }}</span>
+						<span
+							class="lesson-composer__handle icon-menu"
+							aria-hidden="true" />
+						<span class="lesson-composer__block-type">{{
+							blockTypeLabel(block.type)
+						}}</span>
 						<button
 							type="button"
 							class="lesson-composer__icon-btn"
 							:disabled="idx === 0"
-							:aria-label="t('scholiq', 'Move {type} block up', { type: blockTypeLabel(block.type) })"
+							:aria-label="
+								t('scholiq', 'Move {type} block up', {
+									type: blockTypeLabel(block.type),
+								})
+							"
 							@click="moveBlockUp(idx)">
 							<ChevronUp :size="18" />
 						</button>
@@ -106,21 +132,31 @@
 							type="button"
 							class="lesson-composer__icon-btn"
 							:disabled="idx === blocks.length - 1"
-							:aria-label="t('scholiq', 'Move {type} block down', { type: blockTypeLabel(block.type) })"
+							:aria-label="
+								t('scholiq', 'Move {type} block down', {
+									type: blockTypeLabel(block.type),
+								})
+							"
 							@click="moveBlockDown(idx)">
 							<ChevronDown :size="18" />
 						</button>
 						<button
 							type="button"
 							class="lesson-composer__icon-btn"
-							:aria-label="t('scholiq', 'Remove {type} block', { type: blockTypeLabel(block.type) })"
+							:aria-label="
+								t('scholiq', 'Remove {type} block', {
+									type: blockTypeLabel(block.type),
+								})
+							"
 							@click="removeBlock(idx)">
 							<DeleteOutline :size="18" />
 						</button>
 					</div>
 
 					<!-- richText -->
-					<div v-if="block.type === 'richText'" class="lesson-composer__block-body">
+					<div
+						v-if="block.type === 'richText'"
+						class="lesson-composer__block-body">
 						<CnMarkdownEditor
 							:value="block.text || ''"
 							:aria-label="t('scholiq', 'Rich text content')"
@@ -129,7 +165,9 @@
 					</div>
 
 					<!-- media -->
-					<div v-else-if="block.type === 'media'" class="lesson-composer__block-body">
+					<div
+						v-else-if="block.type === 'media'"
+						class="lesson-composer__block-body">
 						<NcSelect
 							v-model="block.materialId"
 							:options="materialOptions"
@@ -141,13 +179,18 @@
 							class="button-vue"
 							:disabled="pickingFile"
 							@click="pickAndCreateMaterial(block)">
-							<span v-if="pickingFile" class="icon-loading" aria-hidden="true" />
+							<span
+								v-if="pickingFile"
+								class="icon-loading"
+								aria-hidden="true" />
 							{{ t('scholiq', 'Upload a new file…') }}
 						</button>
 					</div>
 
 					<!-- quiz -->
-					<div v-else-if="block.type === 'quiz'" class="lesson-composer__block-body">
+					<div
+						v-else-if="block.type === 'quiz'"
+						class="lesson-composer__block-body">
 						<NcSelect
 							v-model="block.assessmentId"
 							:options="assessmentOptions"
@@ -157,7 +200,9 @@
 					</div>
 
 					<!-- assignment -->
-					<div v-else-if="block.type === 'assignment'" class="lesson-composer__block-body">
+					<div
+						v-else-if="block.type === 'assignment'"
+						class="lesson-composer__block-body">
 						<NcSelect
 							v-model="block.assignmentId"
 							:options="assignmentOptions"
@@ -167,13 +212,17 @@
 					</div>
 
 					<!-- ltiTool -->
-					<div v-else-if="block.type === 'ltiTool'" class="lesson-composer__block-body">
+					<div
+						v-else-if="block.type === 'ltiTool'"
+						class="lesson-composer__block-body">
 						<NcSelect
 							v-model="block.ltiToolPlacementId"
 							:options="ltiToolPlacementOptions"
 							:reduce="(opt) => opt.id"
 							:input-label="t('scholiq', 'LTI tool placement')"
-							:aria-label-combobox="t('scholiq', 'LTI tool placement')" />
+							:aria-label-combobox="
+								t('scholiq', 'LTI tool placement')
+							" />
 					</div>
 				</li>
 			</draggable>
@@ -182,12 +231,20 @@
 				<label class="lesson-composer__field-label" for="lc-add-block-type">
 					{{ t('scholiq', 'Block type') }}
 				</label>
-				<select id="lc-add-block-type" v-model="addBlockType" class="lesson-composer__select">
+				<select
+					id="lc-add-block-type"
+					v-model="addBlockType"
+					class="lesson-composer__select">
 					<option value="richText">
 						{{ t('scholiq', 'Rich text') }}
 					</option>
 					<option value="media">
-						{{ t('scholiq', 'Media (image / video / file / SCORM-cmi5 reference)') }}
+						{{
+							t(
+								'scholiq',
+								'Media (image / video / file / SCORM-cmi5 reference)',
+							)
+						}}
 					</option>
 					<option value="quiz">
 						{{ t('scholiq', 'Quiz') }}
@@ -199,7 +256,10 @@
 						{{ t('scholiq', 'External tool (LTI)') }}
 					</option>
 				</select>
-				<button type="button" class="button-vue button-vue--secondary" @click="addBlock">
+				<button
+					type="button"
+					class="button-vue button-vue--secondary"
+					@click="addBlock">
 					<PlusIcon :size="16" />
 					{{ t('scholiq', 'Add block') }}
 				</button>
@@ -229,7 +289,8 @@ function inferMaterialKind(mime) {
 	if (!mime) return 'other'
 	if (mime.startsWith('video/')) return 'video'
 	if (mime === 'application/pdf' || mime.startsWith('text/')) return 'reading'
-	if (mime === 'application/zip' || mime === 'application/x-zip-compressed') return 'scorm'
+	if (mime === 'application/zip' || mime === 'application/x-zip-compressed')
+		return 'scorm'
 	if (mime.startsWith('image/') || mime.includes('presentation')) return 'slides'
 	return 'document'
 }
@@ -295,7 +356,10 @@ export default {
 			return this.assignments.map((a) => ({ id: a.id, label: a.title }))
 		},
 		ltiToolPlacementOptions() {
-			return this.ltiToolPlacements.map((p) => ({ id: p.id, label: p.title || p.name || p.id }))
+			return this.ltiToolPlacements.map((p) => ({
+				id: p.id,
+				label: p.title || p.name || p.id,
+			}))
 		},
 	},
 
@@ -318,20 +382,38 @@ export default {
 			this.error = ''
 			try {
 				this.lesson = await this.fetchObject('Lesson', this.lessonId)
-				this.blocks = (this.lesson.blocks || []).slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+				this.blocks = (this.lesson.blocks || [])
+					.slice()
+					.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
-				const [materials, assessments, assignments, ltiToolPlacements] = await Promise.all([
-					this.fetchList('Material', `filters[lessonId]=${this.lessonId}&limit=200`),
-					this.fetchList('Assessment', `filters[courseId]=${this.courseId}&limit=200`),
-					this.fetchList('Assignment', `filters[courseId]=${this.courseId}&limit=200`),
-					this.fetchList('LtiToolPlacement', `filters[courseId]=${this.courseId}&limit=200`),
-				])
+				const [materials, assessments, assignments, ltiToolPlacements] =
+					await Promise.all([
+						this.fetchList(
+							'Material',
+							`filters[lessonId]=${this.lessonId}&limit=200`,
+						),
+						this.fetchList(
+							'Assessment',
+							`filters[courseId]=${this.courseId}&limit=200`,
+						),
+						this.fetchList(
+							'Assignment',
+							`filters[courseId]=${this.courseId}&limit=200`,
+						),
+						this.fetchList(
+							'LtiToolPlacement',
+							`filters[courseId]=${this.courseId}&limit=200`,
+						),
+					])
 				this.materials = materials
 				this.assessments = assessments
 				this.assignments = assignments
 				this.ltiToolPlacements = ltiToolPlacements
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load the lesson. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to load the lesson. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[LessonComposer] load error', err)
 			} finally {
@@ -342,14 +424,24 @@ export default {
 		/** @return {void} */
 		goBack() {
 			if (this.$router) {
-				this.$router.push({ name: 'CourseBuilder', params: { courseId: this.courseId } }).catch(() => {})
+				this.$router
+					.push({
+						name: 'CourseBuilder',
+						params: { courseId: this.courseId },
+					})
+					.catch(() => {})
 			}
 		},
 
 		/** @return {void} */
 		openPlayer() {
 			if (this.$router) {
-				this.$router.push({ name: 'LessonPlayer', params: { courseId: this.courseId, lessonId: this.lessonId } }).catch(() => {})
+				this.$router
+					.push({
+						name: 'LessonPlayer',
+						params: { courseId: this.courseId, lessonId: this.lessonId },
+					})
+					.catch(() => {})
 			}
 		},
 
@@ -361,8 +453,12 @@ export default {
 		 * @return {Promise<object>}
 		 */
 		async fetchObject(schema, objId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}/${objId}`)
-			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/${schema}/${objId}`,
+			)
+			const resp = await fetch(url, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) throw new Error(`${schema} fetch failed: ${resp.status}`)
 			const json = await resp.json()
 			return json.object ?? json ?? {}
@@ -376,8 +472,12 @@ export default {
 		 * @return {Promise<Array<object>>}
 		 */
 		async fetchList(schema, query) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}?${query}`)
-			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/${schema}?${query}`,
+			)
+			const resp = await fetch(url, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) return []
 			const json = await resp.json()
 			return json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
@@ -391,10 +491,16 @@ export default {
 		 * @return {Promise<object>} The created object.
 		 */
 		async createObject(schema, body) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/${schema}`,
+			)
 			const resp = await fetch(url, {
 				method: 'POST',
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json', 'Content-Type': 'application/json' },
+				headers: {
+					'OCS-APIREQUEST': 'true',
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
 				body: JSON.stringify(body),
 			})
 			if (!resp.ok) throw new Error(`${schema} create failed: ${resp.status}`)
@@ -409,7 +515,10 @@ export default {
 		 * @return {string}
 		 */
 		generateBlockId() {
-			if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+			if (
+				typeof crypto !== 'undefined'
+				&& typeof crypto.randomUUID === 'function'
+			) {
 				return crypto.randomUUID()
 			}
 			return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
@@ -487,7 +596,9 @@ export default {
 		 * @return {void}
 		 */
 		renumberBlocks() {
-			this.blocks.forEach((b, idx) => { b.order = idx + 1 })
+			this.blocks.forEach((b, idx) => {
+				b.order = idx + 1
+			})
 		},
 
 		/**
@@ -499,14 +610,23 @@ export default {
 		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
 		 */
 		reorderBlock(fromIndex, toIndex) {
-			if (fromIndex === toIndex || toIndex < 0 || toIndex >= this.blocks.length) return
+			if (
+				fromIndex === toIndex
+				|| toIndex < 0
+				|| toIndex >= this.blocks.length
+			)
+				return
 			const [moved] = this.blocks.splice(fromIndex, 1)
 			this.blocks.splice(toIndex, 0, moved)
 			this.renumberBlocks()
 			this.liveMessage = this.t(
 				'scholiq',
 				'{type} block moved to position {pos} of {total}',
-				{ type: this.blockTypeLabel(moved.type), pos: toIndex + 1, total: this.blocks.length },
+				{
+					type: this.blockTypeLabel(moved.type),
+					pos: toIndex + 1,
+					total: this.blocks.length,
+				},
 			)
 		},
 
@@ -545,7 +665,9 @@ export default {
 		async pickAndCreateMaterial(block) {
 			this.pickingFile = true
 			try {
-				const picker = getFilePickerBuilder(this.t('scholiq', 'Choose a file for this block'))
+				const picker = getFilePickerBuilder(
+					this.t('scholiq', 'Choose a file for this block'),
+				)
 					.setMultiSelect(false)
 					.build()
 				const nodes = await picker.pickNodes()
@@ -563,8 +685,16 @@ export default {
 				block.materialId = created.id
 			} catch (err) {
 				// FilePickerClosed on cancel — not an error the user needs to see.
-				if (err && err.constructor && err.constructor.name === 'FilePickerClosed') return
-				this.error = this.t('scholiq', 'Failed to attach the picked file. Please try again.')
+				if (
+					err
+					&& err.constructor
+					&& err.constructor.name === 'FilePickerClosed'
+				)
+					return
+				this.error = this.t(
+					'scholiq',
+					'Failed to attach the picked file. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[LessonComposer] pickAndCreateMaterial error', err)
 			} finally {
@@ -586,10 +716,16 @@ export default {
 			this.renumberBlocks()
 
 			try {
-				const url = generateUrl(`/apps/openregister/api/objects/scholiq/Lesson/${this.lessonId}`)
+				const url = generateUrl(
+					`/apps/openregister/api/objects/scholiq/Lesson/${this.lessonId}`,
+				)
 				const resp = await fetch(url, {
 					method: 'PUT',
-					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json', 'Content-Type': 'application/json' },
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+						'Content-Type': 'application/json',
+					},
 					body: JSON.stringify({ blocks: this.blocks }),
 				})
 				if (!resp.ok) {
@@ -598,7 +734,10 @@ export default {
 				this.lesson.blocks = this.blocks
 				this.saveDone = true
 			} catch (err) {
-				this.saveError = this.t('scholiq', 'Failed to save the lesson. Please try again.')
+				this.saveError = this.t(
+					'scholiq',
+					'Failed to save the lesson. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[LessonComposer] save error', err)
 			} finally {
@@ -613,7 +752,8 @@ export default {
 .lesson-composer {
 	max-width: 860px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .lesson-composer__loading,

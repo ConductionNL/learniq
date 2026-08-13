@@ -92,9 +92,10 @@ let appBase: string | null = null
 async function resolveAppBase(page: Page): Promise<string> {
 	if (appBase) return appBase
 	await page.goto(ENTRY_URL)
-	const base = await page.evaluate(
-		() => (window as unknown as { OC: { generateUrl: (_p: string) => string } })
-			.OC.generateUrl('/apps/scholiq'),
+	const base = await page.evaluate(() =>
+		(
+			window as unknown as { OC: { generateUrl: (_p: string) => string } }
+		).OC.generateUrl('/apps/scholiq'),
 	)
 	expect(base, 'OC.generateUrl did not resolve the scholiq app base').toBeTruthy()
 	appBase = base.replace(/\/+$/, '')
@@ -108,7 +109,9 @@ async function resolveAppBase(page: Page): Promise<string> {
  * @return The declared component name, or null when no entry declares that route.
  */
 function manifestComponentFor(route: string): string | null {
-	const pages = (manifest as { pages?: Array<{ route?: string, component?: string }> }).pages ?? []
+	const pages =
+		(manifest as { pages?: Array<{ route?: string; component?: string }> }).pages
+		?? []
 	const entry = pages.find((p) => p.route === route)
 	return entry?.component ?? null
 }
@@ -177,13 +180,14 @@ async function goTo(page: Page, path: string): Promise<void> {
 }
 
 authed.describe('gate-26 — every page component renders its own screen', () => {
-
 	authed('Compliance dashboard', async ({ loggedInPage: page }) => {
 		expect(manifestComponentFor('/compliance')).toBe('ScholiqCompliance')
 		const errors = collectFatalErrors(page)
 		await goTo(page, '/compliance')
 		// The header action is rendered by this view only.
-		await expect(page.getByRole('button', { name: /View in LaunchPad/i })).toBeVisible({ timeout: 20_000 })
+		await expect(
+			page.getByRole('button', { name: /View in LaunchPad/i }),
+		).toBeVisible({ timeout: 20_000 })
 		await expect(page.getByText(/Compliance/).first()).toBeVisible()
 		assertNoFatalErrors(errors)
 	})
@@ -193,110 +197,176 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 		const errors = collectFatalErrors(page)
 		await goTo(page, '/learner')
 		// The single widget this view mounts.
-		await expect(page.getByText(/My mandatory training/i).first()).toBeVisible({ timeout: 20_000 })
+		await expect(page.getByText(/My mandatory training/i).first()).toBeVisible({
+			timeout: 20_000,
+		})
 		assertNoFatalErrors(errors)
 	})
 
 	authed('AI processing disclosure', async ({ loggedInPage: page }) => {
-		expect(manifestComponentFor('/ai-processing-disclosure')).toBe('ScholiqAiProcessingDisclosure')
+		expect(manifestComponentFor('/ai-processing-disclosure')).toBe(
+			'ScholiqAiProcessingDisclosure',
+		)
 		const errors = collectFatalErrors(page)
-		await openPage(page, '/ai-processing-disclosure', '.ai-processing-disclosure')
+		await openPage(
+			page,
+			'/ai-processing-disclosure',
+			'.ai-processing-disclosure',
+		)
 		await expect(
-			page.getByText(/A school-verifiable record of where this school's AI-assisted processing runs/i),
+			page.getByText(
+				/A school-verifiable record of where this school's AI-assisted processing runs/i,
+			),
 		).toBeVisible({ timeout: 20_000 })
 		assertNoFatalErrors(errors)
 	})
 
 	authed('Course package import', async ({ loggedInPage: page }) => {
-		expect(manifestComponentFor('/course-packages/import')).toBe('CoursePackageImportView')
+		expect(manifestComponentFor('/course-packages/import')).toBe(
+			'CoursePackageImportView',
+		)
 		const errors = collectFatalErrors(page)
 		await openPage(page, '/course-packages/import', '.course-package-import')
-		await expect(page.locator('.course-package-import__heading')).toHaveText(/Import course package/i)
-		await expect(
-			page.getByText(/IMS Common Cartridge 1\.3/i),
-		).toBeVisible()
+		await expect(page.locator('.course-package-import__heading')).toHaveText(
+			/Import course package/i,
+		)
+		await expect(page.getByText(/IMS Common Cartridge 1\.3/i)).toBeVisible()
 		assertNoFatalErrors(errors)
 	})
 
 	authed('Timetable conflict queue', async ({ loggedInPage: page }) => {
-		expect(manifestComponentFor('/timetable-conflict-queue')).toBe('TimetableConflictQueue')
+		expect(manifestComponentFor('/timetable-conflict-queue')).toBe(
+			'TimetableConflictQueue',
+		)
 		const errors = collectFatalErrors(page)
-		await openPage(page, '/timetable-conflict-queue', '.timetable-conflict-queue')
-		await expect(page.locator('.timetable-conflict-queue__title')).toHaveText(/Timetable conflicts/i)
-		await expect(page.locator('.timetable-conflict-queue__subtitle')).toContainText(/Nothing here is auto-resolved/i)
+		await openPage(
+			page,
+			'/timetable-conflict-queue',
+			'.timetable-conflict-queue',
+		)
+		await expect(page.locator('.timetable-conflict-queue__title')).toHaveText(
+			/Timetable conflicts/i,
+		)
+		await expect(
+			page.locator('.timetable-conflict-queue__subtitle'),
+		).toContainText(/Nothing here is auto-resolved/i)
 		assertNoFatalErrors(errors)
 	})
 
 	authed('Book a parent-teacher conversation', async ({ loggedInPage: page }) => {
-		expect(manifestComponentFor('/conferences/book')).toBe('BookConferenceSlotsView')
+		expect(manifestComponentFor('/conferences/book')).toBe(
+			'BookConferenceSlotsView',
+		)
 		const errors = collectFatalErrors(page)
 		await openPage(page, '/conferences/book', '.book-conference-slots')
 		await expect(
-			page.getByRole('heading', { name: /Book a parent-teacher conversation/i }),
+			page.getByRole('heading', {
+				name: /Book a parent-teacher conversation/i,
+			}),
 		).toBeVisible()
 		assertNoFatalErrors(errors)
 	})
 
 	authed('Conference schedule board', async ({ loggedInPage: page }) => {
-		expect(manifestComponentFor('/conferences/schedule-board')).toBe('ConferenceScheduleBoard')
+		expect(manifestComponentFor('/conferences/schedule-board')).toBe(
+			'ConferenceScheduleBoard',
+		)
 		const errors = collectFatalErrors(page)
-		await openPage(page, '/conferences/schedule-board', '.conference-schedule-board')
+		await openPage(
+			page,
+			'/conferences/schedule-board',
+			'.conference-schedule-board',
+		)
 		await expect(
 			page.getByRole('heading', { name: /Conference schedule board/i }),
 		).toBeVisible()
-		await expect(page.locator('.conference-schedule-board__toolbar')).toBeVisible()
+		await expect(
+			page.locator('.conference-schedule-board__toolbar'),
+		).toBeVisible()
 		assertNoFatalErrors(errors)
 	})
 
-	authed('Regulation detail, resolved by business slug', async ({ loggedInPage: page }) => {
-		expect(manifestComponentFor('/compliance/regulations/:slug')).toBe('RegulationDetailPage')
-		const errors = collectFatalErrors(page)
-		// `AVG` is seeded by tests/e2e/seed-example-data.mjs. Resolving a REAL
-		// slug is what distinguishes "the route mounted the component" from
-		// "the component resolved this record" — the not-found branch renders a
-		// different subtree entirely.
-		await openPage(page, '/compliance/regulations/AVG', '.regulation-detail')
-		await expect(page.getByText(/Regulation not found/i)).toHaveCount(0)
-		assertNoFatalErrors(errors)
-	})
+	authed(
+		'Regulation detail, resolved by business slug',
+		async ({ loggedInPage: page }) => {
+			expect(manifestComponentFor('/compliance/regulations/:slug')).toBe(
+				'RegulationDetailPage',
+			)
+			const errors = collectFatalErrors(page)
+			// `AVG` is seeded by tests/e2e/seed-example-data.mjs. Resolving a REAL
+			// slug is what distinguishes "the route mounted the component" from
+			// "the component resolved this record" — the not-found branch renders a
+			// different subtree entirely.
+			await openPage(page, '/compliance/regulations/AVG', '.regulation-detail')
+			await expect(page.getByText(/Regulation not found/i)).toHaveCount(0)
+			assertNoFatalErrors(errors)
+		},
+	)
 
 	authed('Item author', async ({ loggedInPage: page }) => {
-		expect(manifestComponentFor('/assessments/items/:id/author')).toBe('ItemAuthorView')
+		expect(manifestComponentFor('/assessments/items/:id/author')).toBe(
+			'ItemAuthorView',
+		)
 		const errors = collectFatalErrors(page)
 		const itemId = await ensureItem(page)
 		await openPage(page, `/assessments/items/${itemId}/author`, '.item-author')
 		await expect(page.locator('.item-author__heading')).toHaveText(/Edit item/i)
-		await expect(page.locator('label[for="item-title"]')).toHaveText(/Item title/i)
+		await expect(page.locator('label[for="item-title"]')).toHaveText(
+			/Item title/i,
+		)
 		assertNoFatalErrors(errors)
 	})
 
 	authed('Item analysis', async ({ loggedInPage: page }) => {
-		expect(manifestComponentFor('/assessments/items/:itemId/analysis')).toBe('ItemAnalysisView')
+		expect(manifestComponentFor('/assessments/items/:itemId/analysis')).toBe(
+			'ItemAnalysisView',
+		)
 		const errors = collectFatalErrors(page)
 		const itemId = await ensureItem(page)
-		await openPage(page, `/assessments/items/${itemId}/analysis`, '.item-analysis')
-		await expect(page.locator('.item-analysis__sub-heading').first())
-			.toHaveText(/Statistics per assessment/i)
+		await openPage(
+			page,
+			`/assessments/items/${itemId}/analysis`,
+			'.item-analysis',
+		)
+		await expect(page.locator('.item-analysis__sub-heading').first()).toHaveText(
+			/Statistics per assessment/i,
+		)
 		assertNoFatalErrors(errors)
 	})
 
 	authed('Grade impact', async ({ loggedInPage: page }) => {
-		expect(manifestComponentFor('/grades/entries/:id/impact')).toBe('GradeImpactDetail')
+		expect(manifestComponentFor('/grades/entries/:id/impact')).toBe(
+			'GradeImpactDetail',
+		)
 		const errors = collectFatalErrors(page)
 		const entryId = await ensureGradeEntry(page)
 		await openPage(page, `/grades/entries/${entryId}/impact`, '.grade-impact')
-		await expect(page.locator('.grade-impact__header h2')).toHaveText(/Grade impact/i)
-		await expect(page.getByRole('heading', { name: /This grade/i })).toBeVisible()
+		await expect(page.locator('.grade-impact__header h2')).toHaveText(
+			/Grade impact/i,
+		)
+		await expect(
+			page.getByRole('heading', { name: /This grade/i }),
+		).toBeVisible()
 		assertNoFatalErrors(errors)
 	})
 
 	authed('Exam-board case dossier', async ({ loggedInPage: page }) => {
-		expect(manifestComponentFor('/exam-board/exemptions/:id')).toBe('ExamCaseDossierView')
-		expect(manifestComponentFor('/exam-board/fraud-cases/:id')).toBe('ExamCaseDossierView')
+		expect(manifestComponentFor('/exam-board/exemptions/:id')).toBe(
+			'ExamCaseDossierView',
+		)
+		expect(manifestComponentFor('/exam-board/fraud-cases/:id')).toBe(
+			'ExamCaseDossierView',
+		)
 		const errors = collectFatalErrors(page)
 		const caseId = await ensureExemptionCase(page)
-		await openPage(page, `/exam-board/exemptions/${caseId}`, '.exam-case-dossier')
-		await expect(page.locator('.exam-case-dossier__header h2')).toHaveText(/Exemption request/i)
+		await openPage(
+			page,
+			`/exam-board/exemptions/${caseId}`,
+			'.exam-case-dossier',
+		)
+		await expect(page.locator('.exam-case-dossier__header h2')).toHaveText(
+			/Exemption request/i,
+		)
 		await expect(page.getByText(/Case not found/i)).toHaveCount(0)
 		assertNoFatalErrors(errors)
 	})
@@ -320,7 +390,10 @@ async function ensureItem(page: Page): Promise<string> {
 		interactionType: 'choice',
 		stem: 'Which of these is a fixture?',
 	})
-	expect(id, 'could not create an `item` fixture — the schema may not have imported').toBeTruthy()
+	expect(
+		id,
+		'could not create an `item` fixture — the schema may not have imported',
+	).toBeTruthy()
 	return id as string
 }
 
@@ -339,7 +412,10 @@ async function ensureGradeEntry(page: Page): Promise<string> {
 		value: '7.5',
 		period: '2026-P1',
 	})
-	expect(id, 'could not create a `grade-entry` fixture — the schema may not have imported').toBeTruthy()
+	expect(
+		id,
+		'could not create a `grade-entry` fixture — the schema may not have imported',
+	).toBeTruthy()
 	return id as string
 }
 
@@ -365,6 +441,9 @@ async function ensureExemptionCase(page: Page): Promise<string> {
 		groundsDescription: 'Gate-26 fixture exemption request.',
 		submittedAt: new Date().toISOString(),
 	})
-	expect(id, 'could not create an `exemption-case` fixture — the schema may not have imported').toBeTruthy()
+	expect(
+		id,
+		'could not create an `exemption-case` fixture — the schema may not have imported',
+	).toBeTruthy()
 	return id as string
 }

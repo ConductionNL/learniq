@@ -27,12 +27,20 @@
 
 <template>
 	<div class="ai-processing-disclosure">
-		<NcLoadingIcon v-if="loading" :size="44" class="ai-processing-disclosure__loading" />
+		<NcLoadingIcon
+			v-if="loading"
+			:size="44"
+			class="ai-processing-disclosure__loading" />
 
 		<template v-else>
 			<h2>{{ t('scholiq', 'AI processing disclosure') }}</h2>
 			<p class="ai-processing-disclosure__intro">
-				{{ t('scholiq', 'A school-verifiable record of where this school\'s AI-assisted processing runs, for your DPO.') }}
+				{{
+					t(
+						'scholiq',
+						"A school-verifiable record of where this school's AI-assisted processing runs, for your DPO.",
+					)
+				}}
 			</p>
 
 			<!-- Sovereignty policy tier — editable. -->
@@ -46,20 +54,34 @@
 					:input-label="t('scholiq', 'Locality policy tier')"
 					:aria-label-combobox="t('scholiq', 'Locality policy tier')" />
 
-				<label class="ai-processing-disclosure__field-label" for="ai-disclosure-rationale">
+				<label
+					class="ai-processing-disclosure__field-label"
+					for="ai-disclosure-rationale">
 					{{ t('scholiq', 'Rationale (optional)') }}
 				</label>
-				<textarea id="ai-disclosure-rationale"
+				<textarea
+					id="ai-disclosure-rationale"
 					v-model="policyForm.rationale"
 					class="ai-processing-disclosure__rationale"
-					:placeholder="t('scholiq', 'Why this tier was chosen, for the DPO record.')" />
+					:placeholder="
+						t('scholiq', 'Why this tier was chosen, for the DPO record.')
+					" />
 
 				<NcButton variant="primary" :disabled="saving" @click="savePolicy">
-					{{ saving ? t('scholiq', 'Saving…') : t('scholiq', 'Save policy') }}
+					{{
+						saving
+							? t('scholiq', 'Saving…')
+							: t('scholiq', 'Save policy')
+					}}
 				</NcButton>
 
 				<p v-if="policy.setAt" class="ai-processing-disclosure__meta">
-					{{ t('scholiq', 'Last set by {setBy} on {setAt}', { setBy: policy.setBy || t('scholiq', 'unknown'), setAt: policy.setAt }) }}
+					{{
+						t('scholiq', 'Last set by {setBy} on {setAt}', {
+							setBy: policy.setBy || t('scholiq', 'unknown'),
+							setAt: policy.setAt,
+						})
+					}}
 				</p>
 			</section>
 
@@ -68,11 +90,20 @@
 				<h3>{{ t('scholiq', 'AI features') }}</h3>
 
 				<NcNoteCard v-if="!hermiqInstalled" type="warning">
-					{{ t('scholiq', 'Install and enable the Hermiq app to see the EU AI Act high-risk AI-feature register here.') }}
+					{{
+						t(
+							'scholiq',
+							'Install and enable the Hermiq app to see the EU AI Act high-risk AI-feature register here.',
+						)
+					}}
 				</NcNoteCard>
 
-				<p v-else-if="features.length === 0" class="ai-processing-disclosure__no-features">
-					{{ t('scholiq', 'No AI features are registered in Hermiq yet.') }}
+				<p
+					v-else-if="features.length === 0"
+					class="ai-processing-disclosure__no-features">
+					{{
+						t('scholiq', 'No AI features are registered in Hermiq yet.')
+					}}
 				</p>
 
 				<table v-else class="ai-processing-disclosure__table">
@@ -88,9 +119,17 @@
 						<tr v-for="feature in features" :key="feature.slug">
 							<td>{{ feature.name || feature.slug }}</td>
 							<td>{{ feature.lifecycle }}</td>
-							<td>{{ (feature.aiProcessingActivity && feature.aiProcessingActivity.doelbinding) || '—' }}</td>
 							<td>
-								<span class="ai-processing-disclosure__badge" :class="badgeClass(feature)">
+								{{
+									(feature.aiProcessingActivity
+										&& feature.aiProcessingActivity.doelbinding)
+									|| '—'
+								}}
+							</td>
+							<td>
+								<span
+									class="ai-processing-disclosure__badge"
+									:class="badgeClass(feature)">
 									{{ badgeLabel(feature) }}
 								</span>
 								<p class="ai-processing-disclosure__evidence">
@@ -136,7 +175,13 @@ export default {
 			saving: false,
 			hermiqInstalled: false,
 			features: [],
-			policy: { id: null, policy: 'eu-hosted-allowed', rationale: null, setBy: null, setAt: null },
+			policy: {
+				id: null,
+				policy: 'eu-hosted-allowed',
+				rationale: null,
+				setBy: null,
+				setAt: null,
+			},
 			policyForm: { policy: 'eu-hosted-allowed', rationale: '' },
 		}
 	},
@@ -149,9 +194,18 @@ export default {
 		 */
 		policyOptions() {
 			return [
-				{ value: 'on-premises-only', label: this.t('scholiq', 'On-premises only') },
-				{ value: 'eu-hosted-allowed', label: this.t('scholiq', 'EU-hosted allowed') },
-				{ value: 'third-country-allowed', label: this.t('scholiq', 'Third-country allowed') },
+				{
+					value: 'on-premises-only',
+					label: this.t('scholiq', 'On-premises only'),
+				},
+				{
+					value: 'eu-hosted-allowed',
+					label: this.t('scholiq', 'EU-hosted allowed'),
+				},
+				{
+					value: 'third-country-allowed',
+					label: this.t('scholiq', 'Third-country allowed'),
+				},
 			]
 		},
 	},
@@ -176,15 +230,22 @@ export default {
 				store.registerObjectType(POLICY_TYPE, POLICY_SCHEMA, REGISTER)
 			}
 
-			const results = typeof store.fetchCollection === 'function'
-				? await store.fetchCollection(POLICY_TYPE, { _limit: 1 }).catch(() => [])
-				: []
+			const results =
+				typeof store.fetchCollection === 'function'
+					? await store
+							.fetchCollection(POLICY_TYPE, { _limit: 1 })
+							.catch(() => [])
+					: []
 
-			const existing = Array.isArray(results) && results.length > 0 ? results[0] : null
+			const existing =
+				Array.isArray(results) && results.length > 0 ? results[0] : null
 
 			if (existing) {
 				this.policy = {
-					id: existing.id ?? (existing['@self'] && existing['@self'].id) ?? null,
+					id:
+						existing.id
+						?? (existing['@self'] && existing['@self'].id)
+						?? null,
 					policy: existing.policy || 'eu-hosted-allowed',
 					rationale: existing.rationale || null,
 					setBy: existing.setBy || null,
@@ -192,7 +253,10 @@ export default {
 				}
 			}
 
-			this.policyForm = { policy: this.policy.policy, rationale: this.policy.rationale || '' }
+			this.policyForm = {
+				policy: this.policy.policy,
+				rationale: this.policy.rationale || '',
+			}
 		},
 
 		/**
@@ -206,7 +270,10 @@ export default {
 			try {
 				const url = generateUrl('/apps/scholiq/api/ai-processing-disclosure')
 				const resp = await fetch(url, {
-					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+					},
 				})
 				if (!resp.ok) {
 					throw new Error(`disclosure fetch failed: ${resp.status}`)
@@ -218,7 +285,10 @@ export default {
 				this.hermiqInstalled = false
 				this.features = []
 				// eslint-disable-next-line no-console
-				console.error('[ScholiqAiProcessingDisclosure] loadDisclosure error', err)
+				console.error(
+					'[ScholiqAiProcessingDisclosure] loadDisclosure error',
+					err,
+				)
 			}
 		},
 
@@ -245,9 +315,10 @@ export default {
 					payload.id = this.policy.id
 				}
 
-				const saved = typeof store.saveObject === 'function'
-					? await store.saveObject(POLICY_TYPE, payload)
-					: null
+				const saved =
+					typeof store.saveObject === 'function'
+						? await store.saveObject(POLICY_TYPE, payload)
+						: null
 
 				if (saved) {
 					this.policy = {
@@ -264,7 +335,10 @@ export default {
 				await this.loadDisclosure()
 			} catch (err) {
 				// eslint-disable-next-line no-console
-				console.error('[ScholiqAiProcessingDisclosure] savePolicy error', err)
+				console.error(
+					'[ScholiqAiProcessingDisclosure] savePolicy error',
+					err,
+				)
 			} finally {
 				this.saving = false
 			}
@@ -328,7 +402,8 @@ export default {
 	&__field-label {
 		display: block;
 		font-weight: bold;
-		margin: calc(var(--default-grid-baseline, 4px) * 3) 0 calc(var(--default-grid-baseline, 4px) * 1);
+		margin: calc(var(--default-grid-baseline, 4px) * 3) 0
+			calc(var(--default-grid-baseline, 4px) * 1);
 	}
 
 	&__rationale {
@@ -351,7 +426,8 @@ export default {
 		width: 100%;
 		border-collapse: collapse;
 
-		th, td {
+		th,
+		td {
 			text-align: left;
 			padding: calc(var(--default-grid-baseline, 4px) * 2);
 			border-bottom: 1px solid var(--color-border);

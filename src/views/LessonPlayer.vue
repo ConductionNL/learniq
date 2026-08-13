@@ -70,7 +70,10 @@
 			</header>
 
 			<section v-if="isLtiLesson" class="lesson-player__lti">
-				<div v-if="ltiLaunching" class="lesson-player__loading" aria-live="polite">
+				<div
+					v-if="ltiLaunching"
+					class="lesson-player__loading"
+					aria-live="polite">
 					<span class="icon-loading" aria-hidden="true" />
 					<span>{{ t('scholiq', 'Starting external tool…') }}</span>
 				</div>
@@ -89,7 +92,9 @@
 					</template>
 				</NcEmptyContent>
 
-				<div v-else-if="ltiLaunch && ltiLaunch.launchMode === 'deep-linking'" class="lesson-player__lti-frame-wrap">
+				<div
+					v-else-if="ltiLaunch && ltiLaunch.launchMode === 'deep-linking'"
+					class="lesson-player__lti-frame-wrap">
 					<iframe
 						:name="ltiFrameName"
 						class="lesson-player__lti-frame"
@@ -99,7 +104,9 @@
 				<NcEmptyContent
 					v-else-if="ltiLaunch"
 					:name="t('scholiq', 'External tool opened in a new tab')"
-					:description="t('scholiq', 'If nothing opened, use the button below.')">
+					:description="
+						t('scholiq', 'If nothing opened, use the button below.')
+					">
 					<template #icon>
 						<ApplicationOutline />
 					</template>
@@ -123,20 +130,28 @@
 						v-html="renderBlockMarkdown(block.text)" />
 
 					<!-- media -->
-					<div v-else-if="block.type === 'media'" class="lesson-player__block-media">
+					<div
+						v-else-if="block.type === 'media'"
+						class="lesson-player__block-media">
 						<template v-if="materialFor(block)">
 							<p class="lesson-player__block-media-kind">
 								{{ materialKindLabel(materialFor(block).kind) }}
 							</p>
 							<video
-								v-if="materialFor(block).kind === 'video' && materialFor(block).url"
+								v-if="
+									materialFor(block).kind === 'video'
+									&& materialFor(block).url
+								"
 								class="lesson-player__block-video"
 								controls
 								:src="materialFor(block).url">
 								{{ materialFor(block).title }}
 							</video>
 							<a
-								v-else-if="materialFor(block).kind === 'link' && materialFor(block).url"
+								v-else-if="
+									materialFor(block).kind === 'link'
+									&& materialFor(block).url
+								"
 								:href="materialFor(block).url"
 								target="_blank"
 								rel="noopener noreferrer">
@@ -152,37 +167,72 @@
 					</div>
 
 					<!-- quiz -->
-					<div v-else-if="block.type === 'quiz'" class="lesson-player__block-quiz">
-						<p>{{ assessmentFor(block) ? assessmentFor(block).title : t('scholiq', 'Quiz') }}</p>
+					<div
+						v-else-if="block.type === 'quiz'"
+						class="lesson-player__block-quiz">
+						<p>
+							{{
+								assessmentFor(block)
+									? assessmentFor(block).title
+									: t('scholiq', 'Quiz')
+							}}
+						</p>
 						<NcButton variant="primary" @click="startQuiz(block)">
 							{{ t('scholiq', 'Start quiz') }}
 						</NcButton>
 					</div>
 
 					<!-- assignment -->
-					<div v-else-if="block.type === 'assignment'" class="lesson-player__block-assignment">
-						<p>{{ assignmentFor(block) ? assignmentFor(block).title : t('scholiq', 'Assignment') }}</p>
+					<div
+						v-else-if="block.type === 'assignment'"
+						class="lesson-player__block-assignment">
+						<p>
+							{{
+								assignmentFor(block)
+									? assignmentFor(block).title
+									: t('scholiq', 'Assignment')
+							}}
+						</p>
 						<NcButton variant="secondary" @click="openAssignment(block)">
 							{{ t('scholiq', 'View assignment') }}
 						</NcButton>
 					</div>
 
 					<!-- ltiTool -->
-					<div v-else-if="block.type === 'ltiTool'" class="lesson-player__block-lti">
-						<div v-if="blockLtiState[block.blockId] && blockLtiState[block.blockId].launching" aria-live="polite">
+					<div
+						v-else-if="block.type === 'ltiTool'"
+						class="lesson-player__block-lti">
+						<div
+							v-if="
+								blockLtiState[block.blockId]
+								&& blockLtiState[block.blockId].launching
+							"
+							aria-live="polite">
 							<span class="icon-loading" aria-hidden="true" />
-							<span>{{ t('scholiq', 'Starting external tool…') }}</span>
+							<span>{{
+								t('scholiq', 'Starting external tool…')
+							}}</span>
 						</div>
-						<p v-else-if="blockLtiState[block.blockId] && blockLtiState[block.blockId].error" role="alert">
+						<p
+							v-else-if="
+								blockLtiState[block.blockId]
+								&& blockLtiState[block.blockId].error
+							"
+							role="alert">
 							{{ blockLtiState[block.blockId].error }}
 						</p>
-						<NcButton v-else variant="secondary" @click="launchLtiForBlock(block)">
+						<NcButton
+							v-else
+							variant="secondary"
+							@click="launchLtiForBlock(block)">
 							{{ t('scholiq', 'Open external tool') }}
 						</NcButton>
 					</div>
 				</div>
 
-				<p v-if="sortedBlocks.length === 0" class="lesson-player__block-empty">
+				<p
+					v-if="sortedBlocks.length === 0"
+					class="lesson-player__block-empty">
 					{{ t('scholiq', 'This lesson has no content blocks yet.') }}
 				</p>
 			</section>
@@ -190,7 +240,12 @@
 			<section v-else class="lesson-player__placeholder">
 				<NcEmptyContent
 					:name="t('scholiq', 'Lesson content not available')"
-					:description="t('scholiq', 'This lesson does not yet have playable content. Author-tooling is delivered by the ItemAuthor view.')">
+					:description="
+						t(
+							'scholiq',
+							'This lesson does not yet have playable content. Author-tooling is delivered by the ItemAuthor view.',
+						)
+					">
 					<template #icon>
 						<BookOpenPageVariantOutline />
 					</template>
@@ -203,9 +258,16 @@
 					variant="primary"
 					:disabled="manualCompletion.completed || manualCompletion.saving"
 					@click="markLessonComplete">
-					{{ manualCompletion.completed ? t('scholiq', 'Completed') : t('scholiq', 'Mark lesson complete') }}
+					{{
+						manualCompletion.completed
+							? t('scholiq', 'Completed')
+							: t('scholiq', 'Mark lesson complete')
+					}}
 				</NcButton>
-				<p v-if="manualCompletion.error" class="lesson-player__manual-complete-error" role="alert">
+				<p
+					v-if="manualCompletion.error"
+					class="lesson-player__manual-complete-error"
+					role="alert">
 					{{ manualCompletion.error }}
 				</p>
 				<NcButton variant="secondary" @click="goBack">
@@ -327,7 +389,9 @@ export default {
 		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
 		 */
 		sortedBlocks() {
-			return (this.lesson?.blocks ?? []).slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+			return (this.lesson?.blocks ?? [])
+				.slice()
+				.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 		},
 
 		/**
@@ -390,11 +454,31 @@ export default {
 	async mounted() {
 		try {
 			const [courseRes, lessonRes] = await Promise.all([
-				fetch(generateUrl('/apps/openregister/api/objects/scholiq/Course/' + this.courseId)),
-				fetch(generateUrl('/apps/openregister/api/objects/scholiq/Lesson/' + this.lessonId)),
+				fetch(
+					generateUrl(
+						'/apps/openregister/api/objects/scholiq/Course/'
+							+ this.courseId,
+					),
+				),
+				fetch(
+					generateUrl(
+						'/apps/openregister/api/objects/scholiq/Lesson/'
+							+ this.lessonId,
+					),
+				),
 			])
-			if (!courseRes.ok) throw new Error(this.t('scholiq', 'Failed to load course (HTTP {status})', { status: courseRes.status }))
-			if (!lessonRes.ok) throw new Error(this.t('scholiq', 'Failed to load lesson (HTTP {status})', { status: lessonRes.status }))
+			if (!courseRes.ok)
+				throw new Error(
+					this.t('scholiq', 'Failed to load course (HTTP {status})', {
+						status: courseRes.status,
+					}),
+				)
+			if (!lessonRes.ok)
+				throw new Error(
+					this.t('scholiq', 'Failed to load lesson (HTTP {status})', {
+						status: lessonRes.status,
+					}),
+				)
 			this.course = await courseRes.json()
 			this.lesson = await lessonRes.json()
 		} catch (e) {
@@ -445,7 +529,9 @@ export default {
 		 */
 		goBack() {
 			if (this.$router) {
-				this.$router.push({ name: 'CourseDetail', params: { id: this.courseId } }).catch(() => {})
+				this.$router
+					.push({ name: 'CourseDetail', params: { id: this.courseId } })
+					.catch(() => {})
 			}
 		},
 
@@ -466,16 +552,26 @@ export default {
 			const assessmentIds = new Set()
 			const assignmentIds = new Set()
 			for (const block of this.sortedBlocks) {
-				if (block.type === 'media' && block.materialId) materialIds.add(block.materialId)
-				if (block.type === 'quiz' && block.assessmentId) assessmentIds.add(block.assessmentId)
-				if (block.type === 'assignment' && block.assignmentId) assignmentIds.add(block.assignmentId)
+				if (block.type === 'media' && block.materialId)
+					materialIds.add(block.materialId)
+				if (block.type === 'quiz' && block.assessmentId)
+					assessmentIds.add(block.assessmentId)
+				if (block.type === 'assignment' && block.assignmentId)
+					assignmentIds.add(block.assignmentId)
 			}
 
 			const fetchInto = async (schema, id, target) => {
 				try {
 					const resp = await fetch(
-						generateUrl(`/apps/openregister/api/objects/scholiq/${schema}/${id}`),
-						{ headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } },
+						generateUrl(
+							`/apps/openregister/api/objects/scholiq/${schema}/${id}`,
+						),
+						{
+							headers: {
+								'OCS-APIREQUEST': 'true',
+								Accept: 'application/json',
+							},
+						},
 					)
 					if (!resp.ok) return
 					const json = await resp.json()
@@ -486,9 +582,15 @@ export default {
 			}
 
 			await Promise.all([
-				...[...materialIds].map((id) => fetchInto('Material', id, this.materialsById)),
-				...[...assessmentIds].map((id) => fetchInto('Assessment', id, this.assessmentsById)),
-				...[...assignmentIds].map((id) => fetchInto('Assignment', id, this.assignmentsById)),
+				...[...materialIds].map((id) =>
+					fetchInto('Material', id, this.materialsById),
+				),
+				...[...assessmentIds].map((id) =>
+					fetchInto('Assessment', id, this.assessmentsById),
+				),
+				...[...assignmentIds].map((id) =>
+					fetchInto('Assignment', id, this.assignmentsById),
+				),
 			])
 		},
 
@@ -569,7 +671,12 @@ export default {
 		 */
 		startQuiz(block) {
 			if (this.$router && block.assessmentId) {
-				this.$router.push({ name: 'TakeAssessmentView', params: { assessmentId: block.assessmentId } }).catch(() => {})
+				this.$router
+					.push({
+						name: 'TakeAssessmentView',
+						params: { assessmentId: block.assessmentId },
+					})
+					.catch(() => {})
 			}
 		},
 
@@ -583,7 +690,12 @@ export default {
 		 */
 		openAssignment(block) {
 			if (this.$router && block.assignmentId) {
-				this.$router.push({ name: 'AssignmentDetail', params: { id: block.assignmentId } }).catch(() => {})
+				this.$router
+					.push({
+						name: 'AssignmentDetail',
+						params: { id: block.assignmentId },
+					})
+					.catch(() => {})
 			}
 		},
 
@@ -605,7 +717,10 @@ export default {
 			if (!placementId) {
 				this.blockLtiState[block.blockId] = {
 					launching: false,
-					error: this.t('scholiq', 'This block has no LTI tool placement configured.'),
+					error: this.t(
+						'scholiq',
+						'This block has no LTI tool placement configured.',
+					),
 				}
 				return
 			}
@@ -614,21 +729,43 @@ export default {
 
 			try {
 				const res = await fetch(
-					generateUrl('/apps/scholiq/api/lti-placements/' + placementId + '/launch'),
-					{ method: 'POST', headers: { requesttoken: window.OC?.requestToken ?? '' } },
+					generateUrl(
+						'/apps/scholiq/api/lti-placements/'
+							+ placementId
+							+ '/launch',
+					),
+					{
+						method: 'POST',
+						headers: { requesttoken: window.OC?.requestToken ?? '' },
+					},
 				)
 				const body = await res.json().catch(() => ({}))
 				if (!res.ok) {
-					throw new Error(body?.error || this.t('scholiq', 'Failed to start the tool (HTTP {status})', { status: res.status }))
+					throw new Error(
+						body?.error
+							|| this.t(
+								'scholiq',
+								'Failed to start the tool (HTTP {status})',
+								{ status: res.status },
+							),
+					)
 				}
 				if (!body?.formActionUrl || !body?.idToken) {
-					throw new Error(this.t('scholiq', 'OpenConnector returned an unexpected launch response.'))
+					throw new Error(
+						this.t(
+							'scholiq',
+							'OpenConnector returned an unexpected launch response.',
+						),
+					)
 				}
 
 				this.blockLtiState[block.blockId] = { launching: false, error: '' }
 				this.submitLtiLaunchForm(body)
 			} catch (e) {
-				this.blockLtiState[block.blockId] = { launching: false, error: e?.message ?? String(e) }
+				this.blockLtiState[block.blockId] = {
+					launching: false,
+					error: e?.message ?? String(e),
+				}
 			}
 		},
 
@@ -649,16 +786,23 @@ export default {
 				const learnerId = currentUser?.uid ?? ''
 				if (!learnerId) return
 
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/lesson-completion?limit=100')
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/lesson-completion?limit=100',
+				)
 				const resp = await fetch(url, {
-					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+					},
 				})
 				if (!resp.ok) return
 
 				const json = await resp.json()
 				const results = json.results ?? json.objects ?? json ?? []
 				const existing = results.find(
-					(row) => row.learnerId === learnerId && row.lessonId === this.lessonId,
+					(row) =>
+						row.learnerId === learnerId
+						&& row.lessonId === this.lessonId,
 				)
 
 				this.manualCompletion.completed = !!existing
@@ -683,9 +827,14 @@ export default {
 		 */
 		async checkReleaseStatus() {
 			try {
-				const url = generateUrl('/apps/scholiq/api/lessons/' + this.lessonId + '/release-status')
+				const url = generateUrl(
+					'/apps/scholiq/api/lessons/' + this.lessonId + '/release-status',
+				)
 				const resp = await fetch(url, {
-					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+					},
 				})
 				if (!resp.ok) return
 
@@ -710,7 +859,8 @@ export default {
 		 * @spec openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#scenario-learner-marks-a-text-lesson-complete
 		 */
 		async markLessonComplete() {
-			if (this.manualCompletion.completed || this.manualCompletion.saving) return
+			if (this.manualCompletion.completed || this.manualCompletion.saving)
+				return
 
 			this.manualCompletion.saving = true
 			this.manualCompletion.error = ''
@@ -719,7 +869,9 @@ export default {
 				const currentUser = getCurrentUser()
 				const learnerId = currentUser?.uid ?? ''
 
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/lesson-completion')
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/lesson-completion',
+				)
 				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -733,12 +885,19 @@ export default {
 						courseId: this.courseId,
 						source: 'manual',
 						completedAt: new Date().toISOString(),
-						tenant_id: this.lesson?.tenant_id ?? this.course?.tenant_id ?? '',
+						tenant_id:
+							this.lesson?.tenant_id ?? this.course?.tenant_id ?? '',
 					}),
 				})
 
 				if (!resp.ok) {
-					throw new Error(this.t('scholiq', 'Failed to mark lesson complete (HTTP {status})', { status: resp.status }))
+					throw new Error(
+						this.t(
+							'scholiq',
+							'Failed to mark lesson complete (HTTP {status})',
+							{ status: resp.status },
+						),
+					)
 				}
 
 				this.manualCompletion.completed = true
@@ -762,7 +921,10 @@ export default {
 		async launchLti() {
 			const placementId = this.lesson?.contentRef
 			if (!placementId) {
-				this.ltiError = this.t('scholiq', 'This lesson has no LTI tool placement configured.')
+				this.ltiError = this.t(
+					'scholiq',
+					'This lesson has no LTI tool placement configured.',
+				)
 				return
 			}
 
@@ -772,15 +934,34 @@ export default {
 
 			try {
 				const res = await fetch(
-					generateUrl('/apps/scholiq/api/lti-placements/' + placementId + '/launch'),
-					{ method: 'POST', headers: { requesttoken: window.OC?.requestToken ?? '' } },
+					generateUrl(
+						'/apps/scholiq/api/lti-placements/'
+							+ placementId
+							+ '/launch',
+					),
+					{
+						method: 'POST',
+						headers: { requesttoken: window.OC?.requestToken ?? '' },
+					},
 				)
 				const body = await res.json().catch(() => ({}))
 				if (!res.ok) {
-					throw new Error(body?.error || this.t('scholiq', 'Failed to start the tool (HTTP {status})', { status: res.status }))
+					throw new Error(
+						body?.error
+							|| this.t(
+								'scholiq',
+								'Failed to start the tool (HTTP {status})',
+								{ status: res.status },
+							),
+					)
 				}
 				if (!body?.formActionUrl || !body?.idToken) {
-					throw new Error(this.t('scholiq', 'OpenConnector returned an unexpected launch response.'))
+					throw new Error(
+						this.t(
+							'scholiq',
+							'OpenConnector returned an unexpected launch response.',
+						),
+					)
 				}
 
 				this.ltiLaunch = body
@@ -807,7 +988,8 @@ export default {
 			const form = document.createElement('form')
 			form.method = 'POST'
 			form.action = launch.formActionUrl
-			form.target = launch.launchMode === 'deep-linking' ? this.ltiFrameName : '_blank'
+			form.target =
+				launch.launchMode === 'deep-linking' ? this.ltiFrameName : '_blank'
 			form.style.display = 'none'
 
 			const input = document.createElement('input')

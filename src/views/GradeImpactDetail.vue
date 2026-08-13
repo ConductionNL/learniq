@@ -42,8 +42,19 @@
 			<header class="grade-impact__header">
 				<h2>{{ t('scholiq', 'Grade impact') }}</h2>
 				<p class="grade-impact__meta">
-					{{ t('scholiq', 'Component: {id}', { id: entry.componentId || '' }) }}
-					<span v-if="entry.period"> — {{ t('scholiq', 'Period: {period}', { period: entry.period }) }}</span>
+					{{
+						t('scholiq', 'Component: {id}', {
+							id: entry.componentId || '',
+						})
+					}}
+					<span v-if="entry.period">
+						—
+						{{
+							t('scholiq', 'Period: {period}', {
+								period: entry.period,
+							})
+						}}</span
+					>
 				</p>
 				<span
 					class="grade-impact__lifecycle-badge"
@@ -51,7 +62,11 @@
 					{{ isScheduled ? t('scholiq', 'scheduled') : entry.lifecycle }}
 				</span>
 				<p v-if="isScheduled" class="grade-impact__meta">
-					{{ t('scholiq', 'Visible to the learner from {date}', { date: formatDate(entry.visibleFrom) }) }}
+					{{
+						t('scholiq', 'Visible to the learner from {date}', {
+							date: formatDate(entry.visibleFrom),
+						})
+					}}
 				</p>
 			</header>
 
@@ -67,7 +82,13 @@
 					</div>
 					<div class="grade-impact__dl-row">
 						<dt>{{ t('scholiq', 'Effective weight') }}</dt>
-						<dd>{{ entry.weight !== null && entry.weight !== undefined ? entry.weight : planComponentWeight }}</dd>
+						<dd>
+							{{
+								entry.weight !== null && entry.weight !== undefined
+									? entry.weight
+									: planComponentWeight
+							}}
+						</dd>
 					</div>
 					<div class="grade-impact__dl-row">
 						<dt>{{ t('scholiq', 'Points contributed') }}</dt>
@@ -90,7 +111,13 @@
 
 			<!-- Period average block -->
 			<section v-if="periodEntries.length > 0" class="grade-impact__section">
-				<h3>{{ t('scholiq', 'Period {period} average', { period: entry.period || '' }) }}</h3>
+				<h3>
+					{{
+						t('scholiq', 'Period {period} average', {
+							period: entry.period || '',
+						})
+					}}
+				</h3>
 				<dl class="grade-impact__dl">
 					<div class="grade-impact__dl-row">
 						<dt>{{ t('scholiq', 'Published grades in period') }}</dt>
@@ -120,13 +147,25 @@
 						<dd>
 							<span
 								v-if="finalGrade.passed !== null"
-								:class="finalGrade.passed ? 'grade-impact__pass' : 'grade-impact__fail'">
-								{{ finalGrade.passed ? t('scholiq', 'Passed') : t('scholiq', 'Not passed') }}
+								:class="
+									finalGrade.passed
+										? 'grade-impact__pass'
+										: 'grade-impact__fail'
+								">
+								{{
+									finalGrade.passed
+										? t('scholiq', 'Passed')
+										: t('scholiq', 'Not passed')
+								}}
 							</span>
-							<span v-else class="grade-impact__pending">{{ t('scholiq', 'Pending') }}</span>
+							<span v-else class="grade-impact__pending">{{
+								t('scholiq', 'Pending')
+							}}</span>
 						</dd>
 					</div>
-					<div v-if="finalGrade.lastRecomputedAt" class="grade-impact__dl-row">
+					<div
+						v-if="finalGrade.lastRecomputedAt"
+						class="grade-impact__dl-row">
 						<dt>{{ t('scholiq', 'Last recomputed') }}</dt>
 						<dd>{{ formatDate(finalGrade.lastRecomputedAt) }}</dd>
 					</div>
@@ -177,12 +216,19 @@ export default {
 		 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-gradeentry-schema-carries-a-scheduled-visibility-window
 		 */
 		isScheduled() {
-			if (!this.entry || this.entry.lifecycle !== 'published' || !this.entry.visibleFrom) {
+			if (
+				!this.entry
+				|| this.entry.lifecycle !== 'published'
+				|| !this.entry.visibleFrom
+			) {
 				return false
 			}
 
 			const visibleFrom = new Date(this.entry.visibleFrom)
-			return !Number.isNaN(visibleFrom.getTime()) && visibleFrom.getTime() > Date.now()
+			return (
+				!Number.isNaN(visibleFrom.getTime())
+				&& visibleFrom.getTime() > Date.now()
+			)
 		},
 
 		/**
@@ -238,7 +284,11 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		pointsContributed() {
-			if (!this.entry || this.entry.value === null || this.entry.value === undefined) {
+			if (
+				!this.entry
+				|| this.entry.value === null
+				|| this.entry.value === undefined
+			) {
 				return null
 			}
 
@@ -259,12 +309,17 @@ export default {
 			let weightedSum = 0
 			let totalWeight = 0
 			for (const e of this.periodEntries) {
-				const w = e.weight !== null && e.weight !== undefined ? Number(e.weight) : 1
+				const w =
+					e.weight !== null && e.weight !== undefined
+						? Number(e.weight)
+						: 1
 				weightedSum += Number(e.value) * w
 				totalWeight += w
 			}
 
-			return totalWeight > 0 ? Math.round((weightedSum / totalWeight) * 100) / 100 : null
+			return totalWeight > 0
+				? Math.round((weightedSum / totalWeight) * 100) / 100
+				: null
 		},
 	},
 
@@ -308,7 +363,10 @@ export default {
 					])
 				}
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load grade impact. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to load grade impact. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[GradeImpactDetail] loadData error', err)
 			} finally {
@@ -324,8 +382,12 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		async loadEntry(entryId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/grade-entry/${entryId}`)
-			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/grade-entry/${entryId}`,
+			)
+			const resp = await fetch(url, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) {
 				throw new Error(`GradeEntry fetch failed: ${resp.status}`)
 			}
@@ -346,8 +408,12 @@ export default {
 				return
 			}
 
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/curriculum-plan/${planId}`)
-			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/curriculum-plan/${planId}`,
+			)
+			const resp = await fetch(url, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) {
 				return
 			}
@@ -375,7 +441,9 @@ export default {
 			const url = generateUrl(
 				`/apps/openregister/api/objects/scholiq/grade-entry?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&period=${encodeURIComponent(period)}&lifecycle=published&limit=100`,
 			)
-			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const resp = await fetch(url, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) {
 				return
 			}
@@ -403,7 +471,9 @@ export default {
 			const url = generateUrl(
 				`/apps/openregister/api/objects/scholiq/final-grade?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&limit=1`,
 			)
-			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const resp = await fetch(url, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) {
 				return
 			}
@@ -454,7 +524,8 @@ export default {
 .grade-impact {
 	max-width: 640px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .grade-impact__loading,

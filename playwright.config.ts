@@ -35,7 +35,10 @@ export default defineConfig({
 	 */
 	globalTimeout: 38 * 60_000,
 	/* Reporter */
-	reporter: [['list'], ['html', { open: 'never', outputFolder: 'test-results/playwright-report' }]],
+	reporter: [
+		['list'],
+		['html', { open: 'never', outputFolder: 'test-results/playwright-report' }],
+	],
 	/* Shared settings */
 	use: {
 		baseURL: baseUrl(),
@@ -88,15 +91,17 @@ export default defineConfig({
 		// Gate it on an env var so the documented behaviour is the real behaviour:
 		//   SCHOLIQ_DOCS_CAPTURE=1 npx playwright test --project docs-capture
 		...(process.env.SCHOLIQ_DOCS_CAPTURE
-			? [{
-				name: 'docs-capture',
-				testMatch: /docs-screenshots\.spec\.ts$/,
-				use: {
-					...devices['Desktop Chrome'],
-					viewport: { width: 1280, height: 800 },
-				},
-				timeout: 90_000,
-			}]
+			? [
+					{
+						name: 'docs-capture',
+						testMatch: /docs-screenshots\.spec\.ts$/,
+						use: {
+							...devices['Desktop Chrome'],
+							viewport: { width: 1280, height: 800 },
+						},
+						timeout: 90_000,
+					},
+				]
 			: []),
 	],
 	/* Output folder */

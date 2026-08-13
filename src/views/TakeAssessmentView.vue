@@ -26,9 +26,7 @@
 <template>
 	<div class="take-assessment">
 		<!-- Loading -->
-		<div v-if="loading"
-			class="take-assessment__loading"
-			aria-live="polite">
+		<div v-if="loading" class="take-assessment__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
 			<span>{{ t('scholiq', 'Loading assessment...') }}</span>
 		</div>
@@ -40,53 +38,109 @@
 		</div>
 
 		<!-- Confirmation -->
-		<div v-else-if="submitted"
+		<div
+			v-else-if="submitted"
 			class="take-assessment__confirmation"
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
 			<h2>{{ t('scholiq', 'Assessment submitted!') }}</h2>
-			<p>{{ t('scholiq', 'Your responses have been recorded. Auto-scored items are marked immediately. Essay items will be reviewed by your teacher.') }}</p>
+			<p>
+				{{
+					t(
+						'scholiq',
+						'Your responses have been recorded. Auto-scored items are marked immediately. Essay items will be reviewed by your teacher.',
+					)
+				}}
+			</p>
 		</div>
 
 		<!-- Proctoring notice (when proctored but no adapter installed) -->
-		<div v-else-if="showProctoringNotice" class="take-assessment__proctoring-notice" role="status">
+		<div
+			v-else-if="showProctoringNotice"
+			class="take-assessment__proctoring-notice"
+			role="status">
 			<span class="icon-warning" aria-hidden="true" />
 			<h3>{{ t('scholiq', 'Proctoring configured') }}</h3>
-			<p>{{ t('scholiq', 'This assessment is configured with proctoring (provider: {provider}). No proctoring adapter is installed — the assessment will proceed without live proctoring. Contact your administrator.', { provider: assessment.proctoring.provider }) }}</p>
-			<button class="button-vue button-vue--primary" @click="dismissProctoringNotice">
+			<p>
+				{{
+					t(
+						'scholiq',
+						'This assessment is configured with proctoring (provider: {provider}). No proctoring adapter is installed — the assessment will proceed without live proctoring. Contact your administrator.',
+						{ provider: assessment.proctoring.provider },
+					)
+				}}
+			</p>
+			<button
+				class="button-vue button-vue--primary"
+				@click="dismissProctoringNotice">
 				{{ t('scholiq', 'Continue without proctoring') }}
 			</button>
 		</div>
 
 		<!-- Native test-mode pre-start instructions (design §3.2) -->
-		<div v-else-if="showTestModeIntro" class="take-assessment__test-mode-intro" role="status">
+		<div
+			v-else-if="showTestModeIntro"
+			class="take-assessment__test-mode-intro"
+			role="status">
 			<span class="icon-info" aria-hidden="true" />
 			<h3>{{ t('scholiq', 'Secure test mode') }}</h3>
 			<ul class="take-assessment__test-mode-intro-list">
 				<li v-if="assessment.proctoring.lockdownBrowser">
-					{{ t('scholiq', 'Fullscreen is required while this test is open.') }}
+					{{
+						t(
+							'scholiq',
+							'Fullscreen is required while this test is open.',
+						)
+					}}
 				</li>
 				<li>
-					{{ t('scholiq', 'Switching tabs, minimising the window, or losing focus is logged and reviewed by your teacher — nothing is acted on automatically.') }}
+					{{
+						t(
+							'scholiq',
+							'Switching tabs, minimising the window, or losing focus is logged and reviewed by your teacher — nothing is acted on automatically.',
+						)
+					}}
 				</li>
 				<li>
-					{{ t('scholiq', 'No camera, microphone, or screen content outside this page is captured.') }}
+					{{
+						t(
+							'scholiq',
+							'No camera, microphone, or screen content outside this page is captured.',
+						)
+					}}
 				</li>
 				<li>
-					{{ t('scholiq', 'This test can only be open in one browser tab or window at a time.') }}
+					{{
+						t(
+							'scholiq',
+							'This test can only be open in one browser tab or window at a time.',
+						)
+					}}
 				</li>
 			</ul>
-			<button class="button-vue button-vue--primary" @click="startNativeTestMode">
+			<button
+				class="button-vue button-vue--primary"
+				@click="startNativeTestMode">
 				{{ t('scholiq', 'Start') }}
 			</button>
 		</div>
 
 		<!-- Blocked: the same attempt is already open in another tab (design §3.3) -->
-		<div v-else-if="showTabLockBlocked" class="take-assessment__tab-lock-blocked" role="alert">
+		<div
+			v-else-if="showTabLockBlocked"
+			class="take-assessment__tab-lock-blocked"
+			role="alert">
 			<span class="icon-error" aria-hidden="true" />
 			<h3>{{ t('scholiq', 'Already open in another tab') }}</h3>
-			<p>{{ t('scholiq', 'This assessment is already open in another browser tab or window. Close this tab and continue there.') }}</p>
+			<p>
+				{{
+					t(
+						'scholiq',
+						'This assessment is already open in another browser tab or window. Close this tab and continue there.',
+					)
+				}}
+			</p>
 		</div>
 
 		<!-- Assessment header + item view -->
@@ -96,27 +150,49 @@
 					{{ assessment.title }}
 				</h2>
 				<div class="take-assessment__meta">
-					<span v-if="assessment.timeLimitMinutes" class="take-assessment__timer" :class="{ 'take-assessment__timer--warning': timeWarning }">
-						{{ t('scholiq', 'Time remaining: {time}', { time: formattedTimeRemaining }) }}
+					<span
+						v-if="assessment.timeLimitMinutes"
+						class="take-assessment__timer"
+						:class="{ 'take-assessment__timer--warning': timeWarning }">
+						{{
+							t('scholiq', 'Time remaining: {time}', {
+								time: formattedTimeRemaining,
+							})
+						}}
 					</span>
 					<span class="take-assessment__progress">
-						{{ t('scholiq', 'Item {current} of {total}', { current: currentItemIndex + 1, total: items.length }) }}
+						{{
+							t('scholiq', 'Item {current} of {total}', {
+								current: currentItemIndex + 1,
+								total: items.length,
+							})
+						}}
 					</span>
 				</div>
 			</header>
 
 			<!-- Item display -->
-			<section v-if="currentItem" class="take-assessment__item" aria-live="polite">
+			<section
+				v-if="currentItem"
+				class="take-assessment__item"
+				aria-live="polite">
 				<h3 class="take-assessment__item-title">
 					{{ currentItem.title }}
 				</h3>
 
 				<!-- Choice interaction -->
-				<div v-if="currentItem.interactionType === 'choice'" class="take-assessment__choice">
-					<p class="take-assessment__qti-body" v-html="extractPrompt(currentItem.qtiBody)" />
+				<div
+					v-if="currentItem.interactionType === 'choice'"
+					class="take-assessment__choice">
+					<p
+						class="take-assessment__qti-body"
+						v-html="extractPrompt(currentItem.qtiBody)" />
 					<ul class="take-assessment__options" role="radiogroup">
 						<li
-							v-for="option in extractChoices(currentItem.qtiBody, currentItemOptionOrder)"
+							v-for="option in extractChoices(
+								currentItem.qtiBody,
+								currentItemOptionOrder,
+							)"
 							:key="option.id"
 							class="take-assessment__option">
 							<label>
@@ -125,7 +201,7 @@
 									:name="'item-' + currentItem.uuid"
 									:value="option.id"
 									:checked="currentResponse === option.id"
-									@change="setResponse(option.id)">
+									@change="setResponse(option.id)" />
 								{{ option.label }}
 							</label>
 						</li>
@@ -133,8 +209,13 @@
 				</div>
 
 				<!-- Extended text (essay) interaction -->
-				<div v-else-if="currentItem.interactionType === 'extendedText'" class="take-assessment__essay">
-					<p id="take-assessment-essay-prompt" class="take-assessment__qti-body" v-html="extractPrompt(currentItem.qtiBody)" />
+				<div
+					v-else-if="currentItem.interactionType === 'extendedText'"
+					class="take-assessment__essay">
+					<p
+						id="take-assessment-essay-prompt"
+						class="take-assessment__qti-body"
+						v-html="extractPrompt(currentItem.qtiBody)" />
 					<textarea
 						id="take-assessment-essay-input"
 						class="take-assessment__essay-input"
@@ -144,15 +225,26 @@
 						:value="currentResponse || ''"
 						@input="setResponse($event.target.value)" />
 					<p class="take-assessment__essay-note">
-						{{ t('scholiq', 'This item will be marked by your teacher.') }}
+						{{
+							t('scholiq', 'This item will be marked by your teacher.')
+						}}
 					</p>
 				</div>
 
 				<!-- Other interaction types — no in-browser editor yet -->
 				<div v-else class="take-assessment__other-interaction">
-					<p id="take-assessment-other-prompt" class="take-assessment__qti-body" v-html="extractPrompt(currentItem.qtiBody)" />
+					<p
+						id="take-assessment-other-prompt"
+						class="take-assessment__qti-body"
+						v-html="extractPrompt(currentItem.qtiBody)" />
 					<p class="take-assessment__interaction-note">
-						{{ t('scholiq', 'Interaction type "{type}" — please provide your response:', { type: currentItem.interactionType }) }}
+						{{
+							t(
+								'scholiq',
+								'Interaction type "{type}" — please provide your response:',
+								{ type: currentItem.interactionType },
+							)
+						}}
 					</p>
 					<textarea
 						id="take-assessment-other-input"
@@ -184,7 +276,10 @@
 					class="button-vue button-vue--primary"
 					:disabled="submitting"
 					@click="submitAssessment">
-					<span v-if="submitting" class="icon-loading" aria-hidden="true" />
+					<span
+						v-if="submitting"
+						class="icon-loading"
+						aria-hidden="true" />
 					{{ t('scholiq', 'Submit assessment') }}
 				</button>
 			</nav>
@@ -351,8 +446,12 @@ export default {
 		// sendBeacon (POST-only, which matches the transition endpoint's method)
 		// where supported. If it doesn't land, the session is simply left `active`
 		// with no `end` transition recorded — itself informative to a reviewer.
-		if (!this.submitted && this.proctoringSession?.uuid
-			&& typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+		if (
+			!this.submitted
+			&& this.proctoringSession?.uuid
+			&& typeof navigator !== 'undefined'
+			&& typeof navigator.sendBeacon === 'function'
+		) {
 			const url = generateUrl(
 				`/apps/openregister/api/objects/scholiq/proctoring-session/${this.proctoringSession.uuid}/transition/end`,
 			)
@@ -387,7 +486,9 @@ export default {
 						// The external provider wins (design.md §3.1) — no schema-level
 						// mutual-exclusion precedent exists in this register.
 						// eslint-disable-next-line no-console
-						console.warn('[TakeAssessmentView] Assessment.proctoring has both "provider" and "nativeTestMode" set; the external provider path wins.')
+						console.warn(
+							'[TakeAssessmentView] Assessment.proctoring has both "provider" and "nativeTestMode" set; the external provider path wins.',
+						)
 					}
 					this.showProctoringNotice = true
 					return
@@ -407,7 +508,10 @@ export default {
 				await this.loadItems()
 				this.startTimer()
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load assessment. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to load assessment. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[TakeAssessmentView] init error', err)
 			} finally {
@@ -423,7 +527,9 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		async loadAssessment(id) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Assessment/${id}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/Assessment/${id}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -456,9 +562,14 @@ export default {
 			// Fetch each item individually (OR REST supports single object fetch).
 			const fetched = await Promise.all(
 				itemIds.map(async (itemId) => {
-					const url = generateUrl(`/apps/openregister/api/objects/scholiq/Item/${itemId}`)
+					const url = generateUrl(
+						`/apps/openregister/api/objects/scholiq/Item/${itemId}`,
+					)
 					const resp = await fetch(url, {
-						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+						headers: {
+							'OCS-APIREQUEST': 'true',
+							Accept: 'application/json',
+						},
 					})
 					if (!resp.ok) return null
 					const json = await resp.json()
@@ -480,7 +591,9 @@ export default {
 			const currentUser = getCurrentUser()
 			const learnerId = currentUser?.uid ?? 'anonymous'
 
-			const url = generateUrl('/apps/openregister/api/objects/scholiq/assessment-result')
+			const url = generateUrl(
+				'/apps/openregister/api/objects/scholiq/assessment-result',
+			)
 			const resp = await fetch(url, {
 				method: 'POST',
 				headers: {
@@ -519,7 +632,9 @@ export default {
 		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
 		 */
 		async fetchResult(resultId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/assessment-result/${resultId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/assessment-result/${resultId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -544,16 +659,23 @@ export default {
 			const currentUser = getCurrentUser()
 			const learnerId = currentUser?.uid ?? 'anonymous'
 
-			const url = generateUrl('/apps/openregister/api/objects/scholiq/assessment-result?limit=100')
+			const url = generateUrl(
+				'/apps/openregister/api/objects/scholiq/assessment-result?limit=100',
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
 			if (!resp.ok) return null
 			const json = await resp.json()
 			const results = json.results ?? json.objects ?? json ?? []
-			return results.find((r) => r.assessmentId === assessmentId
-				&& r.learnerId === learnerId
-				&& r.lifecycle === 'in-progress') ?? null
+			return (
+				results.find(
+					(r) =>
+						r.assessmentId === assessmentId
+						&& r.learnerId === learnerId
+						&& r.lifecycle === 'in-progress',
+				) ?? null
+			)
 		},
 
 		/**
@@ -585,7 +707,10 @@ export default {
 		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
 		 */
 		generateId() {
-			if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+			if (
+				typeof crypto !== 'undefined'
+				&& typeof crypto.randomUUID === 'function'
+			) {
 				return crypto.randomUUID()
 			}
 			return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
@@ -640,7 +765,10 @@ export default {
 				await this.loadItems()
 				this.startTimer()
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to start assessment. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to start assessment. Please try again.',
+				)
 			} finally {
 				this.loading = false
 			}
@@ -674,7 +802,10 @@ export default {
 				await this.loadItems()
 				this.startTimer()
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to start assessment. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to start assessment. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[TakeAssessmentView] startNativeTestMode error', err)
 			} finally {
@@ -702,7 +833,10 @@ export default {
 			}
 
 			const now = Date.now()
-			const isLive = !!existing && existing.tabId !== this.tabId && (now - (existing.updatedAt ?? 0)) < 15000
+			const isLive =
+				!!existing
+				&& existing.tabId !== this.tabId
+				&& now - (existing.updatedAt ?? 0) < 15000
 			if (isLive) {
 				return true
 			}
@@ -723,7 +857,10 @@ export default {
 		 */
 		writeTabLock(key) {
 			try {
-				window.localStorage.setItem(key, JSON.stringify({ tabId: this.tabId, updatedAt: Date.now() }))
+				window.localStorage.setItem(
+					key,
+					JSON.stringify({ tabId: this.tabId, updatedAt: Date.now() }),
+				)
 			} catch {
 				// best-effort only
 			}
@@ -761,21 +898,31 @@ export default {
 		 */
 		async flagConcurrentSessionForBlockedTab(resultId) {
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/proctoring-session?limit=100')
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/proctoring-session?limit=100',
+				)
 				const resp = await fetch(url, {
-					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+					},
 				})
 				if (!resp.ok) return
 				const json = await resp.json()
 				const sessions = json.results ?? json.objects ?? json ?? []
-				const session = sessions.find((s) => s.assessmentResultId === resultId)
+				const session = sessions.find(
+					(s) => s.assessmentResultId === resultId,
+				)
 				if (!session) return
 
 				this.proctoringSession = session
 				await this.appendFlag('concurrent-session-detected', 'high')
 			} catch (err) {
 				// eslint-disable-next-line no-console
-				console.error('[TakeAssessmentView] flagConcurrentSessionForBlockedTab error', err)
+				console.error(
+					'[TakeAssessmentView] flagConcurrentSessionForBlockedTab error',
+					err,
+				)
 			}
 		},
 
@@ -790,7 +937,9 @@ export default {
 			const currentUser = getCurrentUser()
 			const learnerId = currentUser?.uid ?? 'anonymous'
 
-			const url = generateUrl('/apps/openregister/api/objects/scholiq/proctoring-session')
+			const url = generateUrl(
+				'/apps/openregister/api/objects/scholiq/proctoring-session',
+			)
 			const resp = await fetch(url, {
 				method: 'POST',
 				headers: {
@@ -825,7 +974,9 @@ export default {
 				body: JSON.stringify({}),
 			})
 			if (!transitionResp.ok) {
-				throw new Error(`ProctoringSession activate transition failed: ${transitionResp.status}`)
+				throw new Error(
+					`ProctoringSession activate transition failed: ${transitionResp.status}`,
+				)
 			}
 		},
 
@@ -859,7 +1010,10 @@ export default {
 						this.appendFlag('fullscreen-exit', 'medium')
 					}
 				}
-				document.addEventListener('fullscreenchange', handlers.fullscreenchange)
+				document.addEventListener(
+					'fullscreenchange',
+					handlers.fullscreenchange,
+				)
 
 				if (document.documentElement.requestFullscreen) {
 					document.documentElement.requestFullscreen().catch(() => {
@@ -898,11 +1052,21 @@ export default {
 		 */
 		detachNativeHardening() {
 			const handlers = this.nativeHandlers ?? {}
-			if (handlers.visibilitychange) document.removeEventListener('visibilitychange', handlers.visibilitychange)
+			if (handlers.visibilitychange)
+				document.removeEventListener(
+					'visibilitychange',
+					handlers.visibilitychange,
+				)
 			if (handlers.blur) window.removeEventListener('blur', handlers.blur)
-			if (handlers.fullscreenchange) document.removeEventListener('fullscreenchange', handlers.fullscreenchange)
-			if (handlers.popstate) window.removeEventListener('popstate', handlers.popstate)
-			if (handlers.beforeunload) window.removeEventListener('beforeunload', handlers.beforeunload)
+			if (handlers.fullscreenchange)
+				document.removeEventListener(
+					'fullscreenchange',
+					handlers.fullscreenchange,
+				)
+			if (handlers.popstate)
+				window.removeEventListener('popstate', handlers.popstate)
+			if (handlers.beforeunload)
+				window.removeEventListener('beforeunload', handlers.beforeunload)
 			this.nativeHandlers = {}
 		},
 
@@ -951,7 +1115,10 @@ export default {
 				if (!resp.ok) {
 					throw new Error(`Flag append failed: ${resp.status}`)
 				}
-				this.proctoringSession = { ...this.proctoringSession, flags: updatedFlags }
+				this.proctoringSession = {
+					...this.proctoringSession,
+					flags: updatedFlags,
+				}
 			} catch (err) {
 				// eslint-disable-next-line no-console
 				console.error('[TakeAssessmentView] appendFlag error', err)
@@ -993,11 +1160,16 @@ export default {
 						body: JSON.stringify({}),
 					})
 					if (!resp.ok) {
-						throw new Error(`ProctoringSession end transition failed: ${resp.status}`)
+						throw new Error(
+							`ProctoringSession end transition failed: ${resp.status}`,
+						)
 					}
 				} catch (err) {
 					// eslint-disable-next-line no-console
-					console.error('[TakeAssessmentView] teardownNativeTestMode error', err)
+					console.error(
+						'[TakeAssessmentView] teardownNativeTestMode error',
+						err,
+					)
 				}
 			}
 		},
@@ -1094,7 +1266,9 @@ export default {
 					body: JSON.stringify({}),
 				})
 				if (!transitionResp.ok) {
-					throw new Error(`Submit transition failed: ${transitionResp.status}`)
+					throw new Error(
+						`Submit transition failed: ${transitionResp.status}`,
+					)
 				}
 
 				this.submitted = true
@@ -1103,7 +1277,10 @@ export default {
 					await this.teardownNativeTestMode()
 				}
 			} catch (err) {
-				this.submitError = this.t('scholiq', 'Failed to submit assessment. Please try again.')
+				this.submitError = this.t(
+					'scholiq',
+					'Failed to submit assessment. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[TakeAssessmentView] submitAssessment error', err)
 			} finally {
@@ -1122,7 +1299,11 @@ export default {
 		extractPrompt(qtiBody) {
 			if (!qtiBody) return ''
 			// Strip XML tags for minimal display — a proper QTI renderer would be richer.
-			return qtiBody.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 500)
+			return qtiBody
+				.replace(/<[^>]+>/g, ' ')
+				.replace(/\s+/g, ' ')
+				.trim()
+				.slice(0, 500)
 		},
 
 		/**
@@ -1146,13 +1327,19 @@ export default {
 			const choices = []
 			for (const sc of simpleChoices) {
 				choices.push({
-					id: sc.getAttribute('identifier') ?? sc.textContent?.trim() ?? '',
+					id:
+						sc.getAttribute('identifier')
+						?? sc.textContent?.trim()
+						?? '',
 					label: sc.textContent?.trim() ?? '',
 				})
 			}
 
 			if (choices.length === 0) {
-				return [{ id: 'a', label: 'Option A' }, { id: 'b', label: 'Option B' }]
+				return [
+					{ id: 'a', label: 'Option A' },
+					{ id: 'b', label: 'Option B' },
+				]
 			}
 
 			if (!optionOrder || optionOrder.length === 0) {
@@ -1161,7 +1348,9 @@ export default {
 
 			const byId = new Map(choices.map((choice) => [choice.id, choice]))
 			const ordered = optionOrder.map((id) => byId.get(id)).filter(Boolean)
-			const remaining = choices.filter((choice) => !optionOrder.includes(choice.id))
+			const remaining = choices.filter(
+				(choice) => !optionOrder.includes(choice.id),
+			)
 			return ordered.length > 0 ? [...ordered, ...remaining] : choices
 		},
 	},
@@ -1172,7 +1361,8 @@ export default {
 .take-assessment {
 	max-width: 800px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .take-assessment__loading,

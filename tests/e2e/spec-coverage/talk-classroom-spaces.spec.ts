@@ -34,9 +34,12 @@ import { test, expect } from '../fixtures'
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
-const COHORT_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/Cohort?limit=200'
-const SESSION_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/Session?limit=200'
-const ENROLMENT_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/Enrolment?limit=200'
+const COHORT_LIST_API =
+	'/index.php/apps/openregister/api/objects/scholiq/Cohort?limit=200'
+const SESSION_LIST_API =
+	'/index.php/apps/openregister/api/objects/scholiq/Session?limit=200'
+const ENROLMENT_LIST_API =
+	'/index.php/apps/openregister/api/objects/scholiq/Enrolment?limit=200'
 
 /**
  * Fetch every row for a schema's index endpoint and return the first one
@@ -46,7 +49,11 @@ const ENROLMENT_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/Enr
  * @param url     The OpenRegister object-list API URL.
  * @param matches Predicate a candidate row must satisfy.
  */
-async function findRow(page: import('@playwright/test').Page, url: string, matches: (_row: any) => boolean) {
+async function findRow(
+	page: import('@playwright/test').Page,
+	url: string,
+	matches: (_row: any) => boolean,
+) {
 	const resp = await page.request.get(url, {
 		headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 	})
@@ -84,9 +91,10 @@ async function openRoute(page: import('@playwright/test').Page, route: string) {
 }
 
 test.describe('talk-classroom-spaces — Cohort class-space widget', () => {
-
 	// @e2e openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-coordinator-links-a-talk-conversation-to-a-cohort-as-its-persistent-class-space
-	test('cohort detail renders the "Class space" talk widget', async ({ loggedInPage: page }) => {
+	test('cohort detail renders the "Class space" talk widget', async ({
+		loggedInPage: page,
+	}) => {
 		const cohort = await findRow(page, COHORT_LIST_API, () => true)
 		test.skip(!cohort, 'No Cohort seeded in this environment.')
 
@@ -101,15 +109,18 @@ test.describe('talk-classroom-spaces — Cohort class-space widget', () => {
 		await expect(page.getByText('Class space')).toBeVisible({ timeout: 10_000 })
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })
 
 test.describe('talk-classroom-spaces — Session join-call widget', () => {
-
 	// @e2e openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-teacher-links-a-sessions-call-to-the-parent-cohorts-existing-conversation
 	// @e2e openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-a-session-without-a-linked-conversation-shows-no-dead-action
-	test('session detail renders the "Join call" talk widget', async ({ loggedInPage: page }) => {
+	test('session detail renders the "Join call" talk widget', async ({
+		loggedInPage: page,
+	}) => {
 		const session = await findRow(page, SESSION_LIST_API, () => true)
 		test.skip(!session, 'No Session seeded in this environment.')
 
@@ -120,16 +131,34 @@ test.describe('talk-classroom-spaces — Session join-call widget', () => {
 		await expect(page.getByText('Join call')).toBeVisible({ timeout: 10_000 })
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 
 	// @e2e openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-an-enrolled-learner-sees-and-can-use-the-join-call-action-on-a-session
-	test('a session tied to a cohort with active enrolments still renders the join-call widget', async ({ loggedInPage: page }) => {
-		const activeEnrolment = await findRow(page, ENROLMENT_LIST_API, (e) => e.lifecycle === 'active' && !!e.cohortId)
-		test.skip(!activeEnrolment, 'No active Enrolment with a cohortId seeded in this environment.')
+	test('a session tied to a cohort with active enrolments still renders the join-call widget', async ({
+		loggedInPage: page,
+	}) => {
+		const activeEnrolment = await findRow(
+			page,
+			ENROLMENT_LIST_API,
+			(e) => e.lifecycle === 'active' && !!e.cohortId,
+		)
+		test.skip(
+			!activeEnrolment,
+			'No active Enrolment with a cohortId seeded in this environment.',
+		)
 
-		const session = await findRow(page, SESSION_LIST_API, (s) => s.cohortId === activeEnrolment.cohortId)
-		test.skip(!session, "No Session belonging to that learner's Cohort seeded in this environment.")
+		const session = await findRow(
+			page,
+			SESSION_LIST_API,
+			(s) => s.cohortId === activeEnrolment.cohortId,
+		)
+		test.skip(
+			!session,
+			"No Session belonging to that learner's Cohort seeded in this environment.",
+		)
 
 		const errors = collectFatalErrors(page)
 		const sessionId = session.id ?? session.uuid
@@ -143,6 +172,8 @@ test.describe('talk-classroom-spaces — Session join-call widget', () => {
 		await expect(page.getByText('Join call')).toBeVisible({ timeout: 10_000 })
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

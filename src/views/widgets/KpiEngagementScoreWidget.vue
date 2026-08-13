@@ -12,7 +12,9 @@
  component.
 -->
 <template>
-	<div class="kpi-engagement-score" :class="link ? 'kpi-engagement-score--linkable' : ''">
+	<div
+		class="kpi-engagement-score"
+		:class="link ? 'kpi-engagement-score--linkable' : ''">
 		<CnStatsBlock
 			:title="t('scholiq', 'Avg. engagement score')"
 			:count="displayValue"
@@ -84,14 +86,20 @@ export default {
 		async fetchAverage() {
 			this.loading = true
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/engagement-score?_limit=200')
+				const url = generateUrl(
+					'/apps/openregister/api/objects/scholiq/engagement-score?_limit=200',
+				)
 				const response = await axios.get(url)
 				const data = response.data ?? {}
 				const rows = data.results ?? (Array.isArray(data) ? data : [])
 				const scored = rows.filter((r) => typeof r.score === 'number')
-				this.average = scored.length === 0
-					? null
-					: Math.round(scored.reduce((sum, r) => sum + r.score, 0) / scored.length)
+				this.average =
+					scored.length === 0
+						? null
+						: Math.round(
+								scored.reduce((sum, r) => sum + r.score, 0)
+									/ scored.length,
+							)
 			} catch {
 				this.average = null
 			} finally {

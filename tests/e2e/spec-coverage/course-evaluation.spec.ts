@@ -27,7 +27,8 @@ import { test, expect } from '../fixtures'
 // `#/…` URL resolves to a location no route matches and renders an empty app body.
 // See accessibility-conformance.spec.ts for the measurement.
 const QUALITY_REPORT_URL = '/index.php/apps/scholiq/course-evaluation/quality-report'
-const IMPROVEMENT_ACTIONS_URL = '/index.php/apps/scholiq/course-evaluation/improvement-actions'
+const IMPROVEMENT_ACTIONS_URL =
+	'/index.php/apps/scholiq/course-evaluation/improvement-actions'
 
 function collectFatalErrors(errors: string[]): string[] {
 	return errors.filter(
@@ -42,9 +43,10 @@ function collectFatalErrors(errors: string[]): string[] {
 }
 
 test.describe('course-evaluation — quality report and improvement actions', () => {
-
 	// @e2e openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
-	test('course quality report page renders the course picker without a fatal error', async ({ loggedInPage: page }) => {
+	test('course quality report page renders the course picker without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -67,11 +69,15 @@ test.describe('course-evaluation — quality report and improvement actions', ()
 		expect(bodyText).toContain('Course quality report')
 
 		const fatal = collectFatalErrors(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 
 	// @e2e openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-reviewer-records-an-improvement-action-against-a-campaigns-results
-	test('improvement actions index page renders the declarative manifest list without a fatal error', async ({ loggedInPage: page }) => {
+	test('improvement actions index page renders the declarative manifest list without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -87,6 +93,8 @@ test.describe('course-evaluation — quality report and improvement actions', ()
 		expect(bodyText.trim().length).toBeGreaterThan(0)
 
 		const fatal = collectFatalErrors(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

@@ -30,7 +30,12 @@
 				{{ t('scholiq', 'Skills gap dashboard') }}
 			</h2>
 			<p class="skills-gap-dashboard__subtitle">
-				{{ t('scholiq', 'Competencies required by your programme(s) and role, compared against what you have attained.') }}
+				{{
+					t(
+						'scholiq',
+						'Competencies required by your programme(s) and role, compared against what you have attained.',
+					)
+				}}
 			</p>
 		</header>
 
@@ -49,7 +54,10 @@
 		<template v-else>
 			<section class="skills-gap-dashboard__section">
 				<h3>{{ t('scholiq', 'Required by programme') }}</h3>
-				<div v-if="programmeGaps.length === 0" class="skills-gap-dashboard__empty" role="status">
+				<div
+					v-if="programmeGaps.length === 0"
+					class="skills-gap-dashboard__empty"
+					role="status">
 					<span class="icon-checkmark" aria-hidden="true" />
 					<p>{{ t('scholiq', 'No programme-required gaps.') }}</p>
 				</div>
@@ -58,8 +66,12 @@
 						v-for="item in programmeGaps"
 						:key="'programme-' + item.id"
 						class="skills-gap-dashboard__item">
-						<span class="skills-gap-dashboard__item-code">{{ item.code }}</span>
-						<span class="skills-gap-dashboard__item-title">{{ item.title }}</span>
+						<span class="skills-gap-dashboard__item-code">{{
+							item.code
+						}}</span>
+						<span class="skills-gap-dashboard__item-title">{{
+							item.title
+						}}</span>
 						<span class="skills-gap-dashboard__item-status">
 							{{ t('scholiq', 'Gap') }}
 						</span>
@@ -69,7 +81,10 @@
 
 			<section class="skills-gap-dashboard__section">
 				<h3>{{ t('scholiq', 'Required by role') }}</h3>
-				<div v-if="roleGaps.length === 0" class="skills-gap-dashboard__empty" role="status">
+				<div
+					v-if="roleGaps.length === 0"
+					class="skills-gap-dashboard__empty"
+					role="status">
 					<span class="icon-checkmark" aria-hidden="true" />
 					<p>{{ t('scholiq', 'No role-required gaps.') }}</p>
 				</div>
@@ -78,8 +93,12 @@
 						v-for="item in roleGaps"
 						:key="'role-' + item.id"
 						class="skills-gap-dashboard__item">
-						<span class="skills-gap-dashboard__item-code">{{ item.code }}</span>
-						<span class="skills-gap-dashboard__item-title">{{ item.title }}</span>
+						<span class="skills-gap-dashboard__item-code">{{
+							item.code
+						}}</span>
+						<span class="skills-gap-dashboard__item-title">{{
+							item.title
+						}}</span>
 						<span class="skills-gap-dashboard__item-status">
 							{{ t('scholiq', 'Gap') }}
 						</span>
@@ -89,7 +108,10 @@
 
 			<section class="skills-gap-dashboard__section">
 				<h3>{{ t('scholiq', 'Attained') }}</h3>
-				<div v-if="attainedList.length === 0" class="skills-gap-dashboard__empty" role="status">
+				<div
+					v-if="attainedList.length === 0"
+					class="skills-gap-dashboard__empty"
+					role="status">
 					<p>{{ t('scholiq', 'No attained competencies yet.') }}</p>
 				</div>
 				<ul v-else class="skills-gap-dashboard__list">
@@ -97,8 +119,12 @@
 						v-for="item in attainedList"
 						:key="'attained-' + item.id"
 						class="skills-gap-dashboard__item skills-gap-dashboard__item--attained">
-						<span class="skills-gap-dashboard__item-code">{{ item.code }}</span>
-						<span class="skills-gap-dashboard__item-title">{{ item.title }}</span>
+						<span class="skills-gap-dashboard__item-code">{{
+							item.code
+						}}</span>
+						<span class="skills-gap-dashboard__item-title">{{
+							item.title
+						}}</span>
 						<span class="skills-gap-dashboard__item-status">
 							{{ item.proficiencyLevelId }}
 						</span>
@@ -142,7 +168,11 @@ export default {
 		attainedCompetencyIds() {
 			return new Set(
 				this.attainments
-					.filter((a) => a.proficiencyLevelId !== null && a.proficiencyLevelId !== undefined)
+					.filter(
+						(a) =>
+							a.proficiencyLevelId !== null
+							&& a.proficiencyLevelId !== undefined,
+					)
 					.map((a) => a.competencyId),
 			)
 		},
@@ -154,7 +184,9 @@ export default {
 		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-learner-sees-an-unmet-programme-required-competency-as-a-gap
 		 */
 		programmeGaps() {
-			return this.requiredProgrammeCompetencies.filter((c) => !this.attainedCompetencyIds.has(c.id))
+			return this.requiredProgrammeCompetencies.filter(
+				(c) => !this.attainedCompetencyIds.has(c.id),
+			)
 		},
 
 		/**
@@ -165,7 +197,9 @@ export default {
 		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-role-required-competency-surfaces-even-without-a-programme-link
 		 */
 		roleGaps() {
-			return this.requiredRoleCompetencies.filter((c) => !this.attainedCompetencyIds.has(c.id))
+			return this.requiredRoleCompetencies.filter(
+				(c) => !this.attainedCompetencyIds.has(c.id),
+			)
 		},
 
 		/**
@@ -175,10 +209,15 @@ export default {
 		 */
 		attainedList() {
 			return this.attainments
-				.filter((a) => a.proficiencyLevelId !== null && a.proficiencyLevelId !== undefined)
+				.filter(
+					(a) =>
+						a.proficiencyLevelId !== null
+						&& a.proficiencyLevelId !== undefined,
+				)
 				.map((a) => ({
 					id: a.competencyId,
-					code: this.competencyIndex[a.competencyId]?.code ?? a.competencyId,
+					code:
+						this.competencyIndex[a.competencyId]?.code ?? a.competencyId,
 					title: this.competencyIndex[a.competencyId]?.title ?? '',
 					proficiencyLevelId: a.proficiencyLevelId,
 				}))
@@ -204,23 +243,31 @@ export default {
 			this.error = null
 
 			try {
-				const targetLearnerId = this.$route?.query?.learnerId || getCurrentUser()?.uid
+				const targetLearnerId =
+					this.$route?.query?.learnerId || getCurrentUser()?.uid
 				if (!targetLearnerId) {
 					throw new Error('No learner id available')
 				}
 
 				this.learnerId = targetLearnerId
 
-				const [profile, attainments, enrolments, competencies] = await Promise.all([
-					this.fetchLearnerProfile(targetLearnerId),
-					// The slug declared in lib/Settings/scholiq_register.json, verbatim.
-					// The resolver lowercases both sides, so casing is irrelevant — the
-					// hyphen is the structural difference that made the PascalCase key
-					// 404. ⚠️ Look the slug up rather than kebab-casing by rule.
-					this.fetchCollection('competency-attainment', { learnerId: targetLearnerId, limit: 200 }),
-					this.fetchCollection('Enrolment', { learnerId: targetLearnerId, limit: 200 }),
-					this.fetchCollection('Competency', { limit: 500 }),
-				])
+				const [profile, attainments, enrolments, competencies] =
+					await Promise.all([
+						this.fetchLearnerProfile(targetLearnerId),
+						// The slug declared in lib/Settings/scholiq_register.json, verbatim.
+						// The resolver lowercases both sides, so casing is irrelevant — the
+						// hyphen is the structural difference that made the PascalCase key
+						// 404. ⚠️ Look the slug up rather than kebab-casing by rule.
+						this.fetchCollection('competency-attainment', {
+							learnerId: targetLearnerId,
+							limit: 200,
+						}),
+						this.fetchCollection('Enrolment', {
+							learnerId: targetLearnerId,
+							limit: 200,
+						}),
+						this.fetchCollection('Competency', { limit: 500 }),
+					])
 
 				this.attainments = attainments
 				this.roles = profile?.roles ?? []
@@ -228,21 +275,40 @@ export default {
 					competencies.map((c) => [c.id ?? c.uuid, c]),
 				)
 
-				const courseIds = [...new Set(enrolments.map((e) => e.courseId).filter(Boolean))]
-				const courses = await Promise.all(courseIds.map((id) => this.fetchObject('Course', id)))
-				const programmeIds = [
-					...new Set(courses.flatMap((c) => c?.programmeIds ?? []).filter(Boolean)),
+				const courseIds = [
+					...new Set(enrolments.map((e) => e.courseId).filter(Boolean)),
 				]
-				const programmes = await Promise.all(programmeIds.map((id) => this.fetchObject('Programme', id)))
-
-				const requiredProgrammeIds = new Set(
-					programmes.flatMap((p) => p?.requiredCompetencyIds ?? []).filter(Boolean),
+				const courses = await Promise.all(
+					courseIds.map((id) => this.fetchObject('Course', id)),
+				)
+				const programmeIds = [
+					...new Set(
+						courses
+							.flatMap((c) => c?.programmeIds ?? [])
+							.filter(Boolean),
+					),
+				]
+				const programmes = await Promise.all(
+					programmeIds.map((id) => this.fetchObject('Programme', id)),
 				)
 
-				this.requiredProgrammeCompetencies = competencies.filter((c) => requiredProgrammeIds.has(c.id ?? c.uuid))
-				this.requiredRoleCompetencies = competencies.filter((c) => (c.requiredForRoles ?? []).some((r) => this.roles.includes(r)))
+				const requiredProgrammeIds = new Set(
+					programmes
+						.flatMap((p) => p?.requiredCompetencyIds ?? [])
+						.filter(Boolean),
+				)
+
+				this.requiredProgrammeCompetencies = competencies.filter((c) =>
+					requiredProgrammeIds.has(c.id ?? c.uuid),
+				)
+				this.requiredRoleCompetencies = competencies.filter((c) =>
+					(c.requiredForRoles ?? []).some((r) => this.roles.includes(r)),
+				)
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load the skills gap dashboard. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to load the skills gap dashboard. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[SkillsGapDashboard] loadSkillsGap error', err)
 			} finally {
@@ -258,7 +324,10 @@ export default {
 		 */
 		async fetchLearnerProfile(ncUserId) {
 			// Declared slug, verbatim (see above).
-			const results = await this.fetchCollection('learner-profile', { ncUserId, limit: 1 })
+			const results = await this.fetchCollection('learner-profile', {
+				ncUserId,
+				limit: 1,
+			})
 			return results[0] ?? null
 		},
 
@@ -271,9 +340,13 @@ export default {
 		 */
 		async fetchCollection(schema, params) {
 			const query = new URLSearchParams(
-				Object.fromEntries(Object.entries(params).map(([k, v]) => [k, String(v)])),
+				Object.fromEntries(
+					Object.entries(params).map(([k, v]) => [k, String(v)]),
+				),
 			).toString()
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}?${query}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/${schema}?${query}`,
+			)
 			const resp = await axios.get(url)
 			const body = resp.data
 			return body.results ?? body.objects ?? body ?? []
@@ -289,12 +362,17 @@ export default {
 		async fetchObject(schema, id) {
 			if (!id) return null
 			try {
-				const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}/${id}`)
+				const url = generateUrl(
+					`/apps/openregister/api/objects/scholiq/${schema}/${id}`,
+				)
 				const resp = await axios.get(url)
 				return resp.data
 			} catch (err) {
 				// eslint-disable-next-line no-console
-				console.error(`[SkillsGapDashboard] fetchObject(${schema}, ${id}) error`, err)
+				console.error(
+					`[SkillsGapDashboard] fetchObject(${schema}, ${id}) error`,
+					err,
+				)
 				return null
 			}
 		},
@@ -306,7 +384,8 @@ export default {
 .skills-gap-dashboard {
 	max-width: 900px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .skills-gap-dashboard__header {
@@ -347,7 +426,8 @@ export default {
 	align-items: center;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
 	margin-bottom: var(--default-grid-baseline, 8px);
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 	border: 1px solid var(--color-border);
 	border-left: 4px solid var(--color-warning);
 	border-radius: var(--border-radius, 4px);

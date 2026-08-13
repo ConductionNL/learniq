@@ -27,25 +27,43 @@
 				class="my-training-widget__item">
 				<div class="my-training-widget__item-info">
 					<span class="my-training-widget__item-name">
-						{{ enrolment.courseTitle || enrolment.courseId || t('scholiq', 'Course') }}
+						{{
+							enrolment.courseTitle
+							|| enrolment.courseId
+							|| t('scholiq', 'Course')
+						}}
 					</span>
-					<span v-if="enrolment.dueDate" class="my-training-widget__item-due">
-						{{ t('scholiq', 'Due') }}: {{ formatDate(enrolment.dueDate) }}
+					<span
+						v-if="enrolment.dueDate"
+						class="my-training-widget__item-due">
+						{{ t('scholiq', 'Due') }}:
+						{{ formatDate(enrolment.dueDate) }}
 					</span>
 					<div
-						v-if="enrolment.progressPercent !== null && enrolment.progressPercent !== undefined"
+						v-if="
+							enrolment.progressPercent !== null
+							&& enrolment.progressPercent !== undefined
+						"
 						class="my-training-widget__progress"
 						role="progressbar"
 						:aria-valuenow="enrolment.progressPercent"
 						aria-valuemin="0"
 						aria-valuemax="100"
-						:aria-label="t('scholiq', 'Progress: {percent}%', { percent: enrolment.progressPercent })">
+						:aria-label="
+							t('scholiq', 'Progress: {percent}%', {
+								percent: enrolment.progressPercent,
+							})
+						">
 						<div class="my-training-widget__progress-track">
 							<div
 								class="my-training-widget__progress-fill"
-								:style="{ width: enrolment.progressPercent + '%' }" />
+								:style="{
+									width: enrolment.progressPercent + '%',
+								}" />
 						</div>
-						<span class="my-training-widget__progress-label">{{ enrolment.progressPercent }}%</span>
+						<span class="my-training-widget__progress-label"
+							>{{ enrolment.progressPercent }}%</span
+						>
 					</div>
 				</div>
 				<router-link
@@ -99,7 +117,8 @@ export default {
 					_order: 'dueDate',
 				})
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/Enrolment?' + params.toString(),
+					'/apps/openregister/api/objects/scholiq/Enrolment?'
+						+ params.toString(),
 				)
 				const response = await axios.get(url)
 				const data = response.data ?? {}

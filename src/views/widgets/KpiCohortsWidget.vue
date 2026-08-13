@@ -7,10 +7,7 @@
  @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
 -->
 <template>
-	<KpiCard
-		schema="Cohort"
-		:label="t('scholiq', 'Cohorts')"
-		link="/cohorts" />
+	<KpiCard schema="Cohort" :label="t('scholiq', 'Cohorts')" link="/cohorts" />
 </template>
 
 <script>

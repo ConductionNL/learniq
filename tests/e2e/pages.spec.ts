@@ -44,21 +44,23 @@ const ROUTES: { name: string; path: string }[] = [
 
 test.describe('Scholiq page routes', () => {
 	for (const { name, path } of ROUTES) {
-		test(`${name} (${path}) loads without fatal error`, async ({ loggedInPage: page }) => {
+		test(`${name} (${path}) loads without fatal error`, async ({
+			loggedInPage: page,
+		}) => {
 			const fatalErrors: string[] = []
 			page.on('console', (msg) => {
 				if (msg.type() === 'error') {
 					const text = msg.text()
 					// Exclude known non-fatal errors (network, fonts, missing icons)
 					if (
-						!text.includes('favicon') &&
-						!text.includes('font') &&
-						!text.includes('Failed to load resource') &&
-						!text.includes('net::ERR_ABORTED') &&
-						!text.includes('ERR_CONNECTION_REFUSED') &&
-						!text.includes('Failed to fetch') &&
-						!text.includes('[FATAL] photos') &&
-						!text.includes('Pipelinq')
+						!text.includes('favicon')
+						&& !text.includes('font')
+						&& !text.includes('Failed to load resource')
+						&& !text.includes('net::ERR_ABORTED')
+						&& !text.includes('ERR_CONNECTION_REFUSED')
+						&& !text.includes('Failed to fetch')
+						&& !text.includes('[FATAL] photos')
+						&& !text.includes('Pipelinq')
 					) {
 						fatalErrors.push(text)
 					}

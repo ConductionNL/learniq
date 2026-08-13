@@ -20,9 +20,16 @@
 		<!-- Section 1: OpenRegister default register -->
 		<NcSettingsSection
 			:name="t('scholiq', 'OpenRegister')"
-			:description="t('scholiq', 'Configure the default register used by Scholiq for data storage.')">
+			:description="
+				t(
+					'scholiq',
+					'Configure the default register used by Scholiq for data storage.',
+				)
+			">
 			<div class="scholiq-settings__field">
-				<label for="scholiq-default-register">{{ t('scholiq', 'Default register') }}</label>
+				<label for="scholiq-default-register">{{
+					t('scholiq', 'Default register')
+				}}</label>
 				<NcSelect
 					id="scholiq-default-register"
 					v-model="defaultRegister"
@@ -38,7 +45,12 @@
 		<!-- Section 2: AI features — governance delegated to Hermiq (ADR-005). -->
 		<NcSettingsSection
 			:name="t('scholiq', 'AI Features')"
-			:description="t('scholiq', 'EU AI Act high-risk AI-feature governance (the feature register and DPO acknowledgement) is centralised in the Hermiq app, the fleet-wide home for AI-feature governance. Scholiq\'s AI features are declared and acknowledged there.')">
+			:description="
+				t(
+					'scholiq',
+					'EU AI Act high-risk AI-feature governance (the feature register and DPO acknowledgement) is centralised in the Hermiq app, the fleet-wide home for AI-feature governance. Scholiq\'s AI features are declared and acknowledged there.',
+				)
+			">
 			<div v-if="hermiqInstalled" class="scholiq-settings__field">
 				<NcButton variant="secondary" @click="openHermiqAiFeatures">
 					<template #icon>
@@ -48,14 +60,24 @@
 				</NcButton>
 			</div>
 			<NcNoteCard v-else type="warning">
-				{{ t('scholiq', 'Install and enable the Hermiq app to manage this app\'s EU AI Act high-risk AI features in the central governance register.') }}
+				{{
+					t(
+						'scholiq',
+						"Install and enable the Hermiq app to manage this app's EU AI Act high-risk AI features in the central governance register.",
+					)
+				}}
 			</NcNoteCard>
 		</NcSettingsSection>
 
 		<!-- Section 3: Credential signing key -->
 		<NcSettingsSection
 			:name="t('scholiq', 'Credential Signing')"
-			:description="t('scholiq', 'RS256 key pair used to sign verifiable credentials. Stored encrypted in Nextcloud\'s keystore.')">
+			:description="
+				t(
+					'scholiq',
+					'RS256 key pair used to sign verifiable credentials. Stored encrypted in Nextcloud\'s keystore.',
+				)
+			">
 			<div class="scholiq-settings__field">
 				<NcButton
 					:disabled="signingKeyLoading"
@@ -76,23 +98,45 @@
 		<NcSettingsSection
 			v-if="isAdmin"
 			:name="t('scholiq', 'Processing Activity Register (AVG Art. 30)')"
-			:description="t('scholiq', 'Scholiq\'s personal-data processing activities are recorded in OpenRegister\'s platform processing-activity register. The Art. 30 register, per-access logging, exports, and access control are provided by OpenRegister; Scholiq contributes its activity catalogue and surfaces it here. Access is restricted to administrators and the privacy officer (FG); non-privileged users are denied by OpenRegister.')">
+			:description="
+				t(
+					'scholiq',
+					'Scholiq\'s personal-data processing activities are recorded in OpenRegister\'s platform processing-activity register. The Art. 30 register, per-access logging, exports, and access control are provided by OpenRegister; Scholiq contributes its activity catalogue and surfaces it here. Access is restricted to administrators and the privacy officer (FG); non-privileged users are denied by OpenRegister.',
+				)
+			">
 			<div v-if="!openRegisterInstalled" class="scholiq-settings__field">
 				<NcNoteCard type="warning">
-					{{ t('scholiq', 'OpenRegister is not installed. The processing-activity register and Art. 30 export are provided by OpenRegister and are unavailable until it is installed.') }}
+					{{
+						t(
+							'scholiq',
+							'OpenRegister is not installed. The processing-activity register and Art. 30 export are provided by OpenRegister and are unavailable until it is installed.',
+						)
+					}}
 				</NcNoteCard>
 			</div>
 			<template v-else>
 				<!-- Controller-identity record state + accountability prompt (OR-PA-1) -->
 				<div class="scholiq-settings__field">
 					<NcNoteCard type="info">
-						{{ t('scholiq', 'The verwerkingsverantwoordelijke (controller) identity for the Art. 30 register is maintained centrally in OpenRegister. The school is the controller; configure it once in OpenRegister so it appears on every export and accountability report.') }}
+						{{
+							t(
+								'scholiq',
+								'The verwerkingsverantwoordelijke (controller) identity for the Art. 30 register is maintained centrally in OpenRegister. The school is the controller; configure it once in OpenRegister so it appears on every export and accountability report.',
+							)
+						}}
 					</NcNoteCard>
-					<NcButton variant="secondary" @click="openProcessingAccountability">
+					<NcButton
+						variant="secondary"
+						@click="openProcessingAccountability">
 						<template #icon>
 							<OpenInNew :size="20" />
 						</template>
-						{{ t('scholiq', 'View controller identity & accountability in OpenRegister') }}
+						{{
+							t(
+								'scholiq',
+								'View controller identity & accountability in OpenRegister',
+							)
+						}}
 					</NcButton>
 				</div>
 
@@ -102,13 +146,26 @@
 						{{ t('scholiq', 'Scholiq processing activities') }}
 					</div>
 					<div class="scholiq-settings__message">
-						{{ t('scholiq', 'Scholiq declares ten processing activities. They are seeded into OpenRegister as drafts when the Scholiq register configuration is imported; the privacy officer reviews, amends, and activates them in OpenRegister to make Scholiq processing attributable in the Art. 30 register.') }}
+						{{
+							t(
+								'scholiq',
+								'Scholiq declares ten processing activities. They are seeded into OpenRegister as drafts when the Scholiq register configuration is imported; the privacy officer reviews, amends, and activates them in OpenRegister to make Scholiq processing attributable in the Art. 30 register.',
+							)
+						}}
 					</div>
 					<ul class="scholiq-settings__activities">
-						<li v-for="activity in processingActivities" :key="activity.code">
+						<li
+							v-for="activity in processingActivities"
+							:key="activity.code">
 							<strong>{{ activity.name }}</strong>
-							<span class="scholiq-settings__activity-meta">{{ activity.purpose }}</span>
-							<span class="scholiq-settings__activity-meta">{{ t('scholiq', 'Legal basis: {basis}', { basis: activity.basis }) }}</span>
+							<span class="scholiq-settings__activity-meta">{{
+								activity.purpose
+							}}</span>
+							<span class="scholiq-settings__activity-meta">{{
+								t('scholiq', 'Legal basis: {basis}', {
+									basis: activity.basis,
+								})
+							}}</span>
 						</li>
 					</ul>
 				</div>
@@ -119,7 +176,12 @@
 						{{ t('scholiq', 'Processing log & Art. 30 export') }}
 					</div>
 					<div class="scholiq-settings__message">
-						{{ t('scholiq', 'The per-access processing log and the per-subject (betrokkene) inzage extract are produced by OpenRegister, scoped to Scholiq\'s register, and never contain literal personal data beyond what the data subject is entitled to.') }}
+						{{
+							t(
+								'scholiq',
+								"The per-access processing log and the per-subject (betrokkene) inzage extract are produced by OpenRegister, scoped to Scholiq's register, and never contain literal personal data beyond what the data subject is entitled to.",
+							)
+						}}
 					</div>
 					<div class="scholiq-settings__activity-actions">
 						<NcButton variant="primary" @click="openProcessingLog">
@@ -136,7 +198,12 @@
 						</NcButton>
 					</div>
 					<div class="scholiq-settings__message">
-						<em>{{ t('scholiq', 'Note: the per-access read log and per-subject extract are available now. The aggregate Art. 30 register export to JSON/CSV/PDF is a forthcoming OpenRegister capability; until it lands, the compliance audit pack includes the read-log query result as verwerkingsregister.csv.') }}</em>
+						<em>{{
+							t(
+								'scholiq',
+								'Note: the per-access read log and per-subject extract are available now. The aggregate Art. 30 register export to JSON/CSV/PDF is a forthcoming OpenRegister capability; until it lands, the compliance audit pack includes the read-log query result as verwerkingsregister.csv.',
+							)
+						}}</em>
 					</div>
 				</div>
 			</template>
@@ -147,7 +214,13 @@
 <script>
 import { generateUrl } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
-import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect, NcSettingsSection } from '@nextcloud/vue'
+import {
+	NcButton,
+	NcLoadingIcon,
+	NcNoteCard,
+	NcSelect,
+	NcSettingsSection,
+} from '@nextcloud/vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 import AccountSearchOutline from 'vue-material-design-icons/AccountSearchOutline.vue'
@@ -215,62 +288,104 @@ export default {
 			return [
 				{
 					code: 'scholiq-learner-administration',
-					name: t('scholiq', 'Learner administration (leerlingadministratie)'),
-					purpose: t('scholiq', 'Maintain the learner record (incl. encrypted BSN, ECK iD, SchoolID) to deliver education and meet statutory reporting.'),
+					name: t(
+						'scholiq',
+						'Learner administration (leerlingadministratie)',
+					),
+					purpose: t(
+						'scholiq',
+						'Maintain the learner record (incl. encrypted BSN, ECK iD, SchoolID) to deliver education and meet statutory reporting.',
+					),
 					basis: t('scholiq', 'public-task'),
 				},
 				{
 					code: 'scholiq-attendance-leerplicht',
 					name: t('scholiq', 'Attendance and leerplicht reporting'),
-					purpose: t('scholiq', 'Register attendance and report verzuim to the leerplichtambtenaar / DUO.'),
+					purpose: t(
+						'scholiq',
+						'Register attendance and report verzuim to the leerplichtambtenaar / DUO.',
+					),
 					basis: t('scholiq', 'legal-obligation'),
 				},
 				{
 					code: 'scholiq-grading-assessment',
 					name: t('scholiq', 'Grading and assessment'),
-					purpose: t('scholiq', 'Administer assessments and record grades and final marks.'),
+					purpose: t(
+						'scholiq',
+						'Administer assessments and record grades and final marks.',
+					),
 					basis: t('scholiq', 'public-task'),
 				},
 				{
 					code: 'scholiq-attestations',
-					name: t('scholiq', 'Compliance training and signed attestations'),
-					purpose: t('scholiq', 'Record completed mandatory training and capture signed attestations (incl. actor IP) as legal evidence.'),
+					name: t(
+						'scholiq',
+						'Compliance training and signed attestations',
+					),
+					purpose: t(
+						'scholiq',
+						'Record completed mandatory training and capture signed attestations (incl. actor IP) as legal evidence.',
+					),
 					basis: t('scholiq', 'legal-obligation'),
 				},
 				{
 					code: 'scholiq-credentialing',
 					name: t('scholiq', 'Credentialing and certification'),
-					purpose: t('scholiq', 'Issue, verify, and revoke verifiable credentials (EDCI / Open Badges 3.0).'),
+					purpose: t(
+						'scholiq',
+						'Issue, verify, and revoke verifiable credentials (EDCI / Open Badges 3.0).',
+					),
 					basis: t('scholiq', 'contract'),
 				},
 				{
 					code: 'scholiq-data-exchange',
 					name: t('scholiq', 'Data exchange with external parties'),
-					purpose: t('scholiq', 'Exchange learner and result data with DUO/BRON-ROD, OSO, municipality, and HR systems.'),
+					purpose: t(
+						'scholiq',
+						'Exchange learner and result data with DUO/BRON-ROD, OSO, municipality, and HR systems.',
+					),
 					basis: t('scholiq', 'legal-obligation'),
 				},
 				{
 					code: 'scholiq-ai-features',
 					name: t('scholiq', 'AI-assisted learning features'),
-					purpose: t('scholiq', 'Operate adaptive learning paths and record EU AI Act high-risk decision traces.'),
+					purpose: t(
+						'scholiq',
+						'Operate adaptive learning paths and record EU AI Act high-risk decision traces.',
+					),
 					basis: t('scholiq', 'consent'),
 				},
 				{
 					code: 'scholiq-pupil-dossier-notes',
-					name: t('scholiq', 'Pupil dossier notes (leerlingdossier notities)'),
-					purpose: t('scholiq', 'Record routine staff observations, conversations, and concerns about a learner as part of the school\'s ongoing pastoral/mentoring duty of care.'),
+					name: t(
+						'scholiq',
+						'Pupil dossier notes (leerlingdossier notities)',
+					),
+					purpose: t(
+						'scholiq',
+						"Record routine staff observations, conversations, and concerns about a learner as part of the school's ongoing pastoral/mentoring duty of care.",
+					),
 					basis: t('scholiq', 'public-task'),
 				},
 				{
 					code: 'scholiq-behaviour-incidents',
 					name: t('scholiq', 'Behaviour incidents (gedragsincidenten)'),
-					purpose: t('scholiq', 'Record behaviour incidents involving a learner, their follow-up handling, and an optional escalation into a formal support request.'),
+					purpose: t(
+						'scholiq',
+						'Record behaviour incidents involving a learner, their follow-up handling, and an optional escalation into a formal support request.',
+					),
 					basis: t('scholiq', 'public-task'),
 				},
 				{
 					code: 'scholiq-wellbeing-checkins',
-					name: t('scholiq', 'Wellbeing check-ins (welbevinden check-ins)'),
-					purpose: t('scholiq', 'Record a learner\'s own periodic self-reported mood/wellbeing signal, visible to their mentor.'),
+					name: t(
+						'scholiq',
+						'Wellbeing check-ins (welbevinden check-ins)',
+					),
+					purpose: t(
+						'scholiq',
+						"Record a learner's own periodic self-reported mood/wellbeing signal, visible to their mentor.",
+					),
 					basis: t('scholiq', 'public-task'),
 				},
 			]
@@ -284,10 +399,7 @@ export default {
 	 * @spec openspec/changes/archive/retrofit-2026-05-25-app-shell-settings/tasks.md#tasks
 	 */
 	async created() {
-		await Promise.all([
-			this.fetchRegisters(),
-			this.fetchSettingsStatus(),
-		])
+		await Promise.all([this.fetchRegisters(), this.fetchSettingsStatus()])
 	},
 
 	methods: {
@@ -300,9 +412,12 @@ export default {
 		async fetchRegisters() {
 			this.registersLoading = true
 			try {
-				const response = await fetch(generateUrl('/apps/openregister/api/registers'), {
-					headers: { requesttoken: getRequestToken() },
-				})
+				const response = await fetch(
+					generateUrl('/apps/openregister/api/registers'),
+					{
+						headers: { requesttoken: getRequestToken() },
+					},
+				)
 				if (response.ok) {
 					const data = await response.json()
 					this.registerOptions = data.results || data
@@ -326,9 +441,12 @@ export default {
 		 */
 		async fetchSettingsStatus() {
 			try {
-				const response = await fetch(generateUrl('/apps/scholiq/api/settings'), {
-					headers: { requesttoken: getRequestToken() },
-				})
+				const response = await fetch(
+					generateUrl('/apps/scholiq/api/settings'),
+					{
+						headers: { requesttoken: getRequestToken() },
+					},
+				)
 				if (response.ok) {
 					const data = await response.json()
 					// The settings API reports admin status and whether
@@ -357,7 +475,10 @@ export default {
 						'Content-Type': 'application/json',
 						requesttoken: getRequestToken(),
 					},
-					body: JSON.stringify({ default_register: this.defaultRegister.slug || this.defaultRegister }),
+					body: JSON.stringify({
+						default_register:
+							this.defaultRegister.slug || this.defaultRegister,
+					}),
 				})
 			} catch (error) {
 				// eslint-disable-next-line no-console
@@ -375,19 +496,31 @@ export default {
 			this.signingKeyLoading = true
 			this.signingKeyMessage = ''
 			try {
-				const response = await fetch(generateUrl('/apps/scholiq/api/settings/load'), {
-					method: 'POST',
-					headers: { requesttoken: getRequestToken() },
-				})
+				const response = await fetch(
+					generateUrl('/apps/scholiq/api/settings/load'),
+					{
+						method: 'POST',
+						headers: { requesttoken: getRequestToken() },
+					},
+				)
 				if (response.ok) {
-					this.signingKeyMessage = this.t('scholiq', 'Signing key rotated successfully.')
+					this.signingKeyMessage = this.t(
+						'scholiq',
+						'Signing key rotated successfully.',
+					)
 				} else {
-					this.signingKeyMessage = this.t('scholiq', 'Failed to rotate signing key.')
+					this.signingKeyMessage = this.t(
+						'scholiq',
+						'Failed to rotate signing key.',
+					)
 				}
 			} catch (error) {
 				// eslint-disable-next-line no-console
 				console.error('[ScholiqSettings] rotateSigningKey failed:', error)
-				this.signingKeyMessage = this.t('scholiq', 'An error occurred while rotating the signing key.')
+				this.signingKeyMessage = this.t(
+					'scholiq',
+					'An error occurred while rotating the signing key.',
+				)
 			} finally {
 				this.signingKeyLoading = false
 			}
@@ -415,7 +548,10 @@ export default {
 		 * @spec openspec/specs/avg-verwerkingsregister/spec.md
 		 */
 		openProcessingAccountability() {
-			window.open(generateUrl('/apps/openregister/api/avg/verantwoording'), '_blank')
+			window.open(
+				generateUrl('/apps/openregister/api/avg/verantwoording'),
+				'_blank',
+			)
 		},
 
 		/**
@@ -427,7 +563,12 @@ export default {
 		 * @spec openspec/specs/avg-verwerkingsregister/spec.md
 		 */
 		openProcessingLog() {
-			window.open(generateUrl('/apps/openregister/api/avg/verwerkingen?register=scholiq'), '_blank')
+			window.open(
+				generateUrl(
+					'/apps/openregister/api/avg/verwerkingen?register=scholiq',
+				),
+				'_blank',
+			)
 		},
 
 		/**
@@ -438,7 +579,12 @@ export default {
 		 * @spec openspec/specs/avg-verwerkingsregister/spec.md
 		 */
 		openSubjectExtract() {
-			window.open(generateUrl('/apps/openregister/api/avg/verwerkingen/betrokkene?register=scholiq'), '_blank')
+			window.open(
+				generateUrl(
+					'/apps/openregister/api/avg/verwerkingen/betrokkene?register=scholiq',
+				),
+				'_blank',
+			)
 		},
 	},
 }

@@ -43,7 +43,12 @@
 				{{ t('scholiq', 'Pupil dossier timeline') }}
 			</h2>
 			<p class="pupil-dossier-timeline__subtitle">
-				{{ t('scholiq', 'Notes, incidents, wellbeing check-ins, and the formal care chain for one learner, merged chronologically.') }}
+				{{
+					t(
+						'scholiq',
+						'Notes, incidents, wellbeing check-ins, and the formal care chain for one learner, merged chronologically.',
+					)
+				}}
 			</p>
 		</header>
 
@@ -58,7 +63,7 @@
 					v-model="learnerIdInput"
 					type="text"
 					:placeholder="t('scholiq', 'Nextcloud user ID of the learner')"
-					@keyup.enter="openLearner">
+					@keyup.enter="openLearner" />
 				<button
 					type="button"
 					class="button-vue button-vue--vue-primary"
@@ -68,27 +73,48 @@
 				</button>
 			</div>
 			<p class="pupil-dossier-timeline__picker-hint">
-				{{ t('scholiq', 'Usually opened from a learner\'s profile page ("Dossier timeline" tile) — this picker is a fallback for direct navigation.') }}
+				{{
+					t(
+						'scholiq',
+						'Usually opened from a learner\'s profile page ("Dossier timeline" tile) — this picker is a fallback for direct navigation.',
+					)
+				}}
 			</p>
 		</div>
 
 		<template v-else>
 			<!-- Loading -->
-			<div v-if="loading" class="pupil-dossier-timeline__loading" aria-live="polite">
+			<div
+				v-if="loading"
+				class="pupil-dossier-timeline__loading"
+				aria-live="polite">
 				<span class="icon-loading" aria-hidden="true" />
 				<span>{{ t('scholiq', 'Loading dossier timeline...') }}</span>
 			</div>
 
 			<!-- Error -->
-			<div v-else-if="error" class="pupil-dossier-timeline__error" role="alert">
+			<div
+				v-else-if="error"
+				class="pupil-dossier-timeline__error"
+				role="alert">
 				<span class="icon-error" aria-hidden="true" />
 				<p>{{ error }}</p>
 			</div>
 
 			<!-- Empty -->
-			<div v-else-if="entries.length === 0" class="pupil-dossier-timeline__empty" role="status">
+			<div
+				v-else-if="entries.length === 0"
+				class="pupil-dossier-timeline__empty"
+				role="status">
 				<span class="icon-checkmark" aria-hidden="true" />
-				<p>{{ t('scholiq', 'This learner has no dossier notes, incidents, check-ins, or care-chain records yet.') }}</p>
+				<p>
+					{{
+						t(
+							'scholiq',
+							'This learner has no dossier notes, incidents, check-ins, or care-chain records yet.',
+						)
+					}}
+				</p>
 			</div>
 
 			<!-- Timeline -->
@@ -99,8 +125,12 @@
 					class="pupil-dossier-timeline__entry"
 					:class="'pupil-dossier-timeline__entry--' + entry.kind">
 					<div class="pupil-dossier-timeline__entry-meta">
-						<span class="pupil-dossier-timeline__entry-kind">{{ entry.kindLabel }}</span>
-						<span class="pupil-dossier-timeline__entry-date">{{ formatDate(entry.date) }}</span>
+						<span class="pupil-dossier-timeline__entry-kind">{{
+							entry.kindLabel
+						}}</span>
+						<span class="pupil-dossier-timeline__entry-date">{{
+							formatDate(entry.date)
+						}}</span>
 					</div>
 					<div class="pupil-dossier-timeline__entry-body">
 						<router-link
@@ -109,8 +139,12 @@
 							class="pupil-dossier-timeline__entry-title">
 							{{ entry.title }}
 						</router-link>
-						<span v-else class="pupil-dossier-timeline__entry-title">{{ entry.title }}</span>
-						<p v-if="entry.summary" class="pupil-dossier-timeline__entry-summary">
+						<span v-else class="pupil-dossier-timeline__entry-title">{{
+							entry.title
+						}}</span>
+						<p
+							v-if="entry.summary"
+							class="pupil-dossier-timeline__entry-summary">
 							{{ entry.summary }}
 						</p>
 					</div>
@@ -149,7 +183,10 @@ export default {
 		 * @return {string}
 		 */
 		learnerId() {
-			return (this.$route && this.$route.query && this.$route.query.learnerId) || ''
+			return (
+				(this.$route && this.$route.query && this.$route.query.learnerId)
+				|| ''
+			)
 		},
 
 		/**
@@ -194,7 +231,12 @@ export default {
 		openLearner() {
 			const id = this.learnerIdInput.trim()
 			if (!id) return
-			this.$router.replace({ name: 'PupilDossierTimelineView', query: { learnerId: id } }).catch(() => {})
+			this.$router
+				.replace({
+					name: 'PupilDossierTimelineView',
+					query: { learnerId: id },
+				})
+				.catch(() => {})
 		},
 
 		/**
@@ -206,7 +248,9 @@ export default {
 		 * @return {Promise<Array<object>>}
 		 */
 		async fetchSchema(schema, query) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}?${query}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/scholiq/${schema}?${query}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -230,13 +274,14 @@ export default {
 			const learnerQuery = `learnerId=${encodeURIComponent(this.learnerId)}&limit=200`
 
 			try {
-				const [notes, incidents, checkIns, plans, requests] = await Promise.all([
-					this.fetchSchema('DossierNote', learnerQuery),
-					this.fetchSchema('BehaviourIncident', learnerQuery),
-					this.fetchSchema('WellbeingCheckIn', learnerQuery),
-					this.fetchSchema('LearningPlan', learnerQuery),
-					this.fetchSchema('SupportRequest', learnerQuery),
-				])
+				const [notes, incidents, checkIns, plans, requests] =
+					await Promise.all([
+						this.fetchSchema('DossierNote', learnerQuery),
+						this.fetchSchema('BehaviourIncident', learnerQuery),
+						this.fetchSchema('WellbeingCheckIn', learnerQuery),
+						this.fetchSchema('LearningPlan', learnerQuery),
+						this.fetchSchema('SupportRequest', learnerQuery),
+					])
 				this.notes = notes
 				this.incidents = incidents
 				this.checkIns = checkIns
@@ -245,13 +290,21 @@ export default {
 
 				const requestIds = new Set(requests.map((r) => r.id ?? r.uuid))
 				if (requestIds.size > 0) {
-					const allDeliberations = await this.fetchSchema('DeliberationRecord', 'limit=500')
-					this.deliberations = allDeliberations.filter((d) => requestIds.has(d.supportRequestId))
+					const allDeliberations = await this.fetchSchema(
+						'DeliberationRecord',
+						'limit=500',
+					)
+					this.deliberations = allDeliberations.filter((d) =>
+						requestIds.has(d.supportRequestId),
+					)
 				} else {
 					this.deliberations = []
 				}
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load the dossier timeline. Please try again.')
+				this.error = this.t(
+					'scholiq',
+					'Failed to load the dossier timeline. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[PupilDossierTimelineView] loadAll error', err)
 			} finally {
@@ -285,7 +338,9 @@ export default {
 				kindLabel: this.t('scholiq', 'Behaviour incident'),
 				id: o.id ?? o.uuid,
 				date: o.occurredAt,
-				title: this.t('scholiq', 'Incident ({severity})', { severity: o.severity }),
+				title: this.t('scholiq', 'Incident ({severity})', {
+					severity: o.severity,
+				}),
 				summary: o.what,
 				route: 'BehaviourIncidentDetail',
 			}
@@ -381,7 +436,8 @@ export default {
 .pupil-dossier-timeline {
 	max-width: 900px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .pupil-dossier-timeline__header {

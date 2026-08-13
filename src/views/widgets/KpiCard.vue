@@ -105,12 +105,18 @@ export default {
 			try {
 				const params = new URLSearchParams({ _limit: '1', ...this.filter })
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/' + this.schema + '?' + params.toString(),
+					'/apps/openregister/api/objects/scholiq/'
+						+ this.schema
+						+ '?'
+						+ params.toString(),
 				)
 				const response = await axios.get(url)
 				const data = response.data ?? {}
 				// OR paginated envelope uses `total`, `count`, or object array length
-				this.count = data.total ?? data.count ?? (Array.isArray(data.results) ? data.results.length : 0)
+				this.count =
+					data.total
+					?? data.count
+					?? (Array.isArray(data.results) ? data.results.length : 0)
 			} catch {
 				this.count = 0
 			} finally {

@@ -41,7 +41,12 @@ type SampledPage = { id: string; route: string }
 // Every `type: "index"` page with a static route — the bulk of the manifest,
 // uniform CnIndexPage shape, cheap to sample exhaustively.
 const indexPages: SampledPage[] = (manifest as any).pages
-	.filter((p: any) => p.type === 'index' && typeof p.route === 'string' && !p.route.includes(':'))
+	.filter(
+		(p: any) =>
+			p.type === 'index'
+			&& typeof p.route === 'string'
+			&& !p.route.includes(':'),
+	)
 	.map((p: any) => ({ id: p.id, route: p.route }))
 
 // A fixed, named sample of `type: "custom"` pages spanning the manifest's
@@ -71,21 +76,34 @@ test.describe(`Scholiq axe-core accessibility scan (WCAG 2.1 A/AA, ${sample.leng
 		// (BLOCKING_IMPACTS + the `toHaveLength(0)` below). Plant a serious
 		// violation on any sampled page and this test goes red — which is what
 		// makes the tag a measurement rather than a claim.
-		test(`${p.id} — ${APP_BASE}${p.route} has no serious/critical WCAG 2.1 A/AA violations`, async ({ loggedInPage: page }) => {
-			await page.goto(`${APP_BASE}${p.route === '/' ? '/' : p.route}`, { waitUntil: 'domcontentloaded', timeout: 20_000 })
+		test(`${p.id} — ${APP_BASE}${p.route} has no serious/critical WCAG 2.1 A/AA violations`, async ({
+			loggedInPage: page,
+		}) => {
+			await page.goto(`${APP_BASE}${p.route === '/' ? '/' : p.route}`, {
+				waitUntil: 'domcontentloaded',
+				timeout: 20_000,
+			})
 			await page.waitForLoadState('domcontentloaded')
 
 			const results = await new AxeBuilder({ page })
 				.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
 				.analyze()
 
-			const blocking = results.violations.filter((v) => BLOCKING_IMPACTS.has(v.impact ?? ''))
+			const blocking = results.violations.filter((v) =>
+				BLOCKING_IMPACTS.has(v.impact ?? ''),
+			)
 
 			if (blocking.length > 0) {
 				const detail = blocking
-					.map((v) => `${v.id} (${v.impact}): ${v.help} — ${v.nodes.length} node(s)`)
+					.map(
+						(v) =>
+							`${v.id} (${v.impact}): ${v.help} — ${v.nodes.length} node(s)`,
+					)
 					.join('\n')
-				expect(blocking, `${p.id}: serious/critical WCAG 2.1 A/AA violation(s):\n${detail}`).toHaveLength(0)
+				expect(
+					blocking,
+					`${p.id}: serious/critical WCAG 2.1 A/AA violation(s):\n${detail}`,
+				).toHaveLength(0)
 			}
 		})
 	}
