@@ -3029,7 +3029,7 @@
                         "description": "ISO 8601 timestamp the studiekeuzeadvies was given.",
                         "title": "Studiekeuzeadvies Given At"
                     },
-                    "schooladviesLevel": {
+                    "schoolAdviceLevel": {
                         "type": "string",
                         "nullable": true,
                         "enum": [
@@ -3043,7 +3043,7 @@
                         "description": "VO branch: the primary school's preliminary schooladvies, on the shared low→high ordinal AdmissionsDecisionGuard compares against doorstroomtoetsLevel.",
                         "title": "Schooladvies Level"
                     },
-                    "doorstroomtoetsLevel": {
+                    "progressionTestLevel": {
                         "type": "string",
                         "nullable": true,
                         "enum": [
@@ -3057,7 +3057,7 @@
                         "description": "VO branch: the doorstroomtoets result, on the same shared ordinal as schooladviesLevel.",
                         "title": "Doorstroomtoets Level"
                     },
-                    "schooladviesAdjustedLevel": {
+                    "schoolAdviceAdjustedLevel": {
                         "type": "string",
                         "nullable": true,
                         "enum": [
@@ -13621,7 +13621,7 @@
                         "description": "Threshold value. E.g. 16 for the leerplicht rule.",
                         "title": "Threshold Limit"
                     },
-                    "lesuurMinutes": {
+                    "lessonHourMinutes": {
                         "type": "integer",
                         "default": 60,
                         "description": "Minutes per lesuur, used when metric is unexcused-lesuren. Default 60.",
@@ -16579,7 +16579,7 @@
                         "givenName",
                         "familyName",
                         "email",
-                        "leerbedrijfName",
+                        "trainingCompanyName",
                         "tenant_id"
                     ],
                     "properties": {
@@ -16607,13 +16607,13 @@
                             "description": "Contact phone number of the praktijkopleider.",
                             "title": "Phone Number"
                         },
-                        "leerbedrijfName": {
+                        "trainingCompanyName": {
                             "type": "string",
                             "description": "Trade name of the leerbedrijf (workplace/employer) this praktijkopleider represents.",
                             "example": "Bakkerij De Vries",
                             "title": "Leerbedrijf Name"
                         },
-                        "leerbedrijfKvkNumber": {
+                        "trainingCompanyKvkNumber": {
                             "type": "string",
                             "nullable": true,
                             "description": "KVK (Chamber of Commerce) number of the leerbedrijf this praktijkopleider represents. Default reference value; the operative SBB-verification KVK number is recorded on BpvPlacement.leerbedrijfKvkNumber.",
@@ -16651,10 +16651,10 @@
                         "learnerId",
                         "learnerRef",
                         "curriculumPlanId",
-                        "praktijkopleiderId",
+                        "practicalTrainerId",
                         "schoolCoachId",
-                        "leerbedrijfName",
-                        "leerbedrijfKvkNumber",
+                        "trainingCompanyName",
+                        "trainingCompanyKvkNumber",
                         "periodFrom",
                         "periodTo",
                         "tenant_id"
@@ -16687,7 +16687,7 @@
                             "description": "UUID of the governing CurriculumPlan (the opleidingsplan-mbo profile) this placement's werkproces assessments are graded against.",
                             "title": "Curriculum Plan ID"
                         },
-                        "praktijkopleiderId": {
+                        "practicalTrainerId": {
                             "type": "string",
                             "format": "uuid",
                             "$ref": "Praktijkopleider",
@@ -16699,13 +16699,13 @@
                             "description": "Nextcloud user ID of the internal BPV-coordinator / docent-begeleider for this placement.",
                             "title": "School Coach ID"
                         },
-                        "leerbedrijfName": {
+                        "trainingCompanyName": {
                             "type": "string",
                             "description": "Trade name of the leerbedrijf hosting this placement.",
                             "example": "Bakkerij De Vries",
                             "title": "Leerbedrijf Name"
                         },
-                        "leerbedrijfKvkNumber": {
+                        "trainingCompanyKvkNumber": {
                             "type": "string",
                             "description": "KVK number of the leerbedrijf hosting this placement — the identifier checked against the SBB erkend-leerbedrijf register via leerbedrijfVerification.",
                             "example": "12345678",
@@ -16723,7 +16723,7 @@
                             "description": "End date of the BPV placement period.",
                             "title": "Period To"
                         },
-                        "leerbedrijfVerification": {
+                        "trainingCompanyVerification": {
                             "type": "object",
                             "description": "SBB erkend-leerbedrijf verification result, resolved via the pluggable ProvidesLeerbedrijfVerification provider. Written back by BpvLeerbedrijfVerificationHandler on the checkLeerbedrijf transition. An unconfigured provider leaves this object at its default (status: unverified) and the placement simply cannot confirm.",
                             "title": "Leerbedrijf Verification",
@@ -17117,11 +17117,11 @@
                         "curriculumPlanId",
                         "componentId",
                         "kwalificatiedossierCode",
-                        "kerntaakCode",
+                        "coreTaskCode",
                         "werkprocesCode",
                         "werkprocesLabel",
                         "assessorId",
-                        "beoordeling",
+                        "assessment",
                         "tenant_id"
                     ],
                     "properties": {
@@ -17149,7 +17149,7 @@
                             "description": "SBB kwalificatiedossier code.",
                             "title": "Kwalificatiedossier Code"
                         },
-                        "kerntaakCode": {
+                        "coreTaskCode": {
                             "type": "string",
                             "description": "SBB kerntaak code within the kwalificatiedossier.",
                             "title": "Kerntaak Code"
@@ -17186,7 +17186,7 @@
                             "description": "Date the assessment was performed.",
                             "title": "Assessed At"
                         },
-                        "beoordeling": {
+                        "assessment": {
                             "type": "string",
                             "enum": [
                                 "nog-niet-competent",
@@ -17195,7 +17195,7 @@
                             "description": "Workplace assessment outcome for this werkproces.",
                             "title": "Beoordeling"
                         },
-                        "toelichting": {
+                        "notes": {
                             "type": "string",
                             "nullable": true,
                             "description": "Narrative explanation supporting the beoordeling.",
@@ -18692,7 +18692,7 @@
                         "description": "Nextcloud user ID of the teacher recipient. Set when sharedWithKind=teacher.",
                         "title": "Shared With Teacher ID"
                     },
-                    "sharedWithPraktijkopleiderId": {
+                    "sharedWithPracticalTrainerId": {
                         "type": "string",
                         "nullable": true,
                         "format": "uuid",

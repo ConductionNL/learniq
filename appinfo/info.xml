@@ -123,6 +123,13 @@ Vrij en open source onder de EUPL-1.2-licentie.
             <step>OCA\Scholiq\Repair\InitializeSettings</step>
             <!-- ADR-023: seed the action-authorization matrix (default admin-only). -->
             <step>OCA\Scholiq\Repair\InitializeActions</step>
+            <!--
+                Must run AFTER the register sync that adds the English columns.
+                Covers every renamed property together: a register-scoped step
+                that moved some owners and not others would leave the rest
+                silently reading null.
+            -->
+            <step>OCA\Scholiq\Repair\RenameDutchColumns</step>
         </post-migration>
         <install>
             <step>OCA\Scholiq\Repair\InitializeSettings</step>

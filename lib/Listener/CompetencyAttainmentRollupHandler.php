@@ -329,8 +329,8 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 
 		$tenantId = $placement['tenant_id'] ?? ($assessment['tenant_id'] ?? '');
 
-		$beoordeling = $assessment['beoordeling'] ?? '';
-		$levelId = $this->levelResolver->resolveLevelByLabel(competencyId: $competencyId, beoordeling: $beoordeling);
+		$beoordeling = $assessment['assessment'] ?? '';
+		$levelId = $this->levelResolver->resolveLevelByLabel(competencyId: $competencyId, assessment: $beoordeling);
 
 		$assessmentId = $assessment['id'] ?? ($assessment['uuid'] ?? '');
 		$this->attainment->upsertAttainment(

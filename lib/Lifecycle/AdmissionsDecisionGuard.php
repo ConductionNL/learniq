@@ -267,8 +267,8 @@ class AdmissionsDecisionGuard {
 	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
 	 */
 	private function schooladviesAdjustmentSatisfied(array $object): bool {
-		$schooladvies = $object['schooladviesLevel'] ?? null;
-		$doorstroom = $object['doorstroomtoetsLevel'] ?? null;
+		$schooladvies = $object['schoolAdviceLevel'] ?? null;
+		$doorstroom = $object['progressionTestLevel'] ?? null;
 
 		if ($this->doorstroomOutranks(schooladvies: $schooladvies, doorstroom: $doorstroom) === false) {
 			// Nothing recorded to compare, an unrecognised ordinal value, or a
@@ -276,7 +276,7 @@ class AdmissionsDecisionGuard {
 			return true;
 		}
 
-		$adjusted = $object['schooladviesAdjustedLevel'] ?? null;
+		$adjusted = $object['schoolAdviceAdjustedLevel'] ?? null;
 		if ($adjusted === $doorstroom) {
 			return true;
 		}

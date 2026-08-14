@@ -129,7 +129,7 @@ class PortalContributionProvider {
 		}
 
 		if ($audience === 'praktijkopleider') {
-			return $this->praktijkopleiderContribution();
+			return $this->practicalTrainerContribution();
 		}
 
 		if ($audience === 'external-assessor') {
@@ -620,7 +620,7 @@ class PortalContributionProvider {
 	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-praktijkopleider-portal-actions-never-trust-client-supplied-identity
 	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
 	 */
-	private function praktijkopleiderContribution(): array {
+	private function practicalTrainerContribution(): array {
 		return [
 			'label' => 'Scholiq',
 			'collections' => [
@@ -628,16 +628,16 @@ class PortalContributionProvider {
 					'id' => 'poBpvPlacements',
 					'register' => self::REGISTER,
 					'schema' => 'bpv-placement',
-					'scopeField' => 'praktijkopleiderId',
-					'scopeClaim' => 'praktijkopleiderId',
+					'scopeField' => 'practicalTrainerId',
+					'scopeClaim' => 'practicalTrainerId',
 					'label' => 'My BPV placements',
 					'listable' => true,
 					'minTrust' => 'low',
 					'fields' => [
-						'praktijkopleiderId',
+						'practicalTrainerId',
 						'learnerRef',
 						'curriculumPlanId',
-						'leerbedrijfName',
+						'trainingCompanyName',
 						'periodFrom',
 						'periodTo',
 						'lifecycle',
@@ -647,8 +647,8 @@ class PortalContributionProvider {
 					'id' => 'poSharedPortfolios',
 					'register' => self::REGISTER,
 					'schema' => 'portfolio-share',
-					'scopeField' => 'sharedWithPraktijkopleiderId',
-					'scopeClaim' => 'praktijkopleiderId',
+					'scopeField' => 'sharedWithPracticalTrainerId',
+					'scopeClaim' => 'practicalTrainerId',
 					'label' => 'Portfolios shared with me',
 					'listable' => true,
 					'minTrust' => 'low',
@@ -672,18 +672,18 @@ class PortalContributionProvider {
 					'register' => self::REGISTER,
 					'schema' => 'werkproces-assessment',
 					'scopeField' => 'assessorId',
-					'scopeClaim' => 'praktijkopleiderId',
+					'scopeClaim' => 'practicalTrainerId',
 					'minTrust' => 'substantial',
 					'fields' => [
 						'bpvPlacementId',
 						'curriculumPlanId',
 						'componentId',
 						'kwalificatiedossierCode',
-						'kerntaakCode',
+						'coreTaskCode',
 						'werkprocesCode',
 						'werkprocesLabel',
-						'beoordeling',
-						'toelichting',
+						'assessment',
+						'notes',
 					],
 				],
 				[
@@ -693,7 +693,7 @@ class PortalContributionProvider {
 					'register' => self::REGISTER,
 					'schema' => 'pok-signature',
 					'scopeField' => 'signerId',
-					'scopeClaim' => 'praktijkopleiderId',
+					'scopeClaim' => 'practicalTrainerId',
 					'minTrust' => 'substantial',
 					'fields' => [
 						'subjectId',

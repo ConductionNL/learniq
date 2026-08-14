@@ -188,7 +188,7 @@ class PortfolioShareGrantHandler implements IEventListener {
 		}
 
 		if ($kind === 'praktijkopleider') {
-			return $share['sharedWithPraktijkopleiderId'] ?? null;
+			return $share['sharedWithPracticalTrainerId'] ?? null;
 		}
 
 		if ($kind === 'external-assessor') {

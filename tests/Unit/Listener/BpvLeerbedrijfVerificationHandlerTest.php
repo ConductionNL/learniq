@@ -127,14 +127,14 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 		$handler = $this->makeHandler($container);
 		$placement = [
 			'id' => 'placement-1',
-			'leerbedrijfKvkNumber' => '12345678',
-			'leerbedrijfVerification' => ['provider' => 'FakeSbbAdapter', 'status' => 'unverified'],
+			'trainingCompanyKvkNumber' => '12345678',
+			'trainingCompanyVerification' => ['provider' => 'FakeSbbAdapter', 'status' => 'unverified'],
 		];
 
 		$handler->handle($this->makeEvent($placement));
 
 		$this->assertCount(1, $this->savedObjects);
-		$saved = $this->savedObjects[0]['object']['leerbedrijfVerification'];
+		$saved = $this->savedObjects[0]['object']['trainingCompanyVerification'];
 		$this->assertSame('verified', $saved['status']);
 		$this->assertSame('SBB-999', $saved['erkenningNumber']);
 		$this->assertSame('2027-01-01T00:00:00+00:00', $saved['expiresAt']);
@@ -156,8 +156,8 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 		$handler = $this->makeHandler($container);
 		$placement = [
 			'id' => 'placement-1',
-			'leerbedrijfKvkNumber' => '12345678',
-			'leerbedrijfVerification' => ['provider' => null, 'status' => 'unverified'],
+			'trainingCompanyKvkNumber' => '12345678',
+			'trainingCompanyVerification' => ['provider' => null, 'status' => 'unverified'],
 		];
 
 		$handler->handle($this->makeEvent($placement));
@@ -181,8 +181,8 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 		$handler = $this->makeHandler($container);
 		$placement = [
 			'id' => 'placement-1',
-			'leerbedrijfKvkNumber' => '12345678',
-			'leerbedrijfVerification' => ['provider' => 'MissingClass', 'status' => 'unverified'],
+			'trainingCompanyKvkNumber' => '12345678',
+			'trainingCompanyVerification' => ['provider' => 'MissingClass', 'status' => 'unverified'],
 		];
 
 		$handler->handle($this->makeEvent($placement));
@@ -204,8 +204,8 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 		$handler = $this->makeHandler($container);
 		$placement = [
 			'id' => 'placement-1',
-			'leerbedrijfKvkNumber' => '12345678',
-			'leerbedrijfVerification' => ['provider' => 'NotAnAdapter', 'status' => 'unverified'],
+			'trainingCompanyKvkNumber' => '12345678',
+			'trainingCompanyVerification' => ['provider' => 'NotAnAdapter', 'status' => 'unverified'],
 		];
 
 		$handler->handle($this->makeEvent($placement));
@@ -234,14 +234,14 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 		$handler = $this->makeHandler($container);
 		$placement = [
 			'id' => 'placement-1',
-			'leerbedrijfKvkNumber' => '12345678',
-			'leerbedrijfVerification' => ['provider' => 'FakeSbbAdapter', 'status' => 'unverified'],
+			'trainingCompanyKvkNumber' => '12345678',
+			'trainingCompanyVerification' => ['provider' => 'FakeSbbAdapter', 'status' => 'unverified'],
 		];
 
 		$handler->handle($this->makeEvent($placement));
 
 		$this->assertCount(1, $this->savedObjects);
-		$this->assertSame('rejected', $this->savedObjects[0]['object']['leerbedrijfVerification']['status']);
+		$this->assertSame('rejected', $this->savedObjects[0]['object']['trainingCompanyVerification']['status']);
 		// No lifecycle field write attempted — the saved object carries no 'lifecycle' change
 		// beyond what was already on the placement (none was present here).
 		$this->assertArrayNotHasKey('lifecycle', $this->savedObjects[0]['object']);

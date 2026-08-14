@@ -136,7 +136,7 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 		$bpvPlacement = $assessment['bpvPlacementId'] ?? '';
 		$curriculumId = $assessment['curriculumPlanId'] ?? '';
 		$componentId = $assessment['componentId'] ?? '';
-		$beoordeling = $assessment['beoordeling'] ?? '';
+		$beoordeling = $assessment['assessment'] ?? '';
 
 		if ($bpvPlacement === '' || $curriculumId === '' || $componentId === '') {
 			$this->logger->warning(

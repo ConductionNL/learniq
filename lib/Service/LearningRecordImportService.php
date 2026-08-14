@@ -297,7 +297,7 @@ class LearningRecordImportService {
 		return match ($schema) {
 			'credential' => 'Credential (' . ($row['kind'] ?? 'unknown') . ')',
 			'portfolio', 'portfolio-entry', 'external-training-record' => (string)($row['title'] ?? $schema),
-			'bpv-placement' => (string)($row['leerbedrijfName'] ?? 'BPV placement'),
+			'bpv-placement' => (string)($row['trainingCompanyName'] ?? 'BPV placement'),
 			'werkproces-assessment' => (string)($row['werkprocesLabel'] ?? 'Werkproces assessment'),
 			'lesson-completion' => 'Lesson completions — course ' . ($row['courseId'] ?? 'unknown'),
 			default => $schema,

@@ -112,7 +112,7 @@ class LearningRecordAggregationServiceTest extends TestCase {
 			'portfolio' => [['id' => 'p1', 'learnerRef' => self::LEARNER_REF, 'title' => 'My portfolio']],
 			'portfolio-entry' => [['id' => 'pe1', 'portfolioId' => 'p1', 'title' => 'Entry 1']],
 			'external-training-record' => [['id' => 'et1', 'learnerRef' => self::LEARNER_REF, 'lifecycle' => 'verified', 'title' => 'NIS2 training']],
-			'bpv-placement' => [['id' => 'bpv1', 'learnerRef' => self::LEARNER_REF, 'leerbedrijfName' => 'Bakkerij De Vries']],
+			'bpv-placement' => [['id' => 'bpv1', 'learnerRef' => self::LEARNER_REF, 'trainingCompanyName' => 'Bakkerij De Vries']],
 			'werkproces-assessment' => [['id' => 'wpa1', 'bpvPlacementId' => 'bpv1', 'werkprocesLabel' => 'Bakken']],
 			'lesson-completion' => [['id' => 'lc1', 'learnerRef' => self::LEARNER_REF, 'courseId' => 'course-1']],
 			'report-card' => [['id' => 'rc1', 'learnerRef' => self::LEARNER_REF, 'lifecycle' => 'published-to-parents']],

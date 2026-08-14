@@ -187,8 +187,8 @@ class CourseAuthoringRegisterTest extends TestCase {
 					return false;
 				}
 			}
-			$conditionMet = ($payload['contentType'] ?? null) === $ifConst;
-			if (! $conditionMet) {
+			$conditionWith = ($payload['contentType'] ?? null) === $ifConst;
+			if (! $conditionWith) {
 				foreach ($elseReq as $field) {
 					if (! array_key_exists($field, $payload)) {
 						return false;

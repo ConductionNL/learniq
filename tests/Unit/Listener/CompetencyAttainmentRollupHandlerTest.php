@@ -388,7 +388,7 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 			'id' => 'wpa-1',
 			'bpvPlacementId' => 'placement-1',
 			'competencyId' => 'comp-3',
-			'beoordeling' => 'competent',
+			'assessment' => 'competent',
 		];
 
 		$handler->handle($this->makeTransitionEvent('werkproces-assessment', 'confirmed', $assessment));
@@ -427,7 +427,7 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 			'id' => 'wpa-2',
 			'bpvPlacementId' => 'placement-1',
 			'competencyId' => 'comp-3',
-			'beoordeling' => 'nog-niet-competent',
+			'assessment' => 'nog-niet-competent',
 		];
 
 		$handler->handle($this->makeTransitionEvent('werkproces-assessment', 'confirmed', $assessment));
@@ -545,7 +545,7 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 			'id' => 'wpa-3',
 			'bpvPlacementId' => 'placement-1',
 			'competencyId' => null,
-			'beoordeling' => 'competent',
+			'assessment' => 'competent',
 		];
 
 		$handler->handle($this->makeTransitionEvent('werkproces-assessment', 'confirmed', $assessment));
