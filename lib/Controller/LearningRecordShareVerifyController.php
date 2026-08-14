@@ -72,6 +72,14 @@ use Psr\Log\LoggerInterface;
  * or signature-invalid. On success returns only the bundle content.
  *
  * @spec openspec/changes/portable-learning-record/tasks.md#task-3-2
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) One over the threshold since
+ * IThrottler + LoggerInterface were injected to stop this endpoint being an
+ * enumeration oracle over who has shared which learning records (ADR-082).
+ * Every dependency is a distinct capability the handler needs — object read,
+ * export signature verification, file access, brute-force accounting, logging.
+ * Folding them behind a facade to satisfy the count would hide which of those
+ * is the security boundary, and dropping the throttler would reopen the leak.
  */
 class LearningRecordShareVerifyController extends Controller {
 
