@@ -40,8 +40,12 @@ use OCA\Scholiq\Service\KeyManagementService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
+use OCP\AppFramework\Http\Attribute\AnonRateLimit;
+use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
+use OCP\Security\Bruteforce\IThrottler;
+use Psr\Log\LoggerInterface;
 
 /**
  * Public credential verification endpoint.
@@ -51,6 +55,37 @@ use OCP\IRequest;
  * Validates the JWS proof to confirm cryptographic integrity (C1 fix).
  */
 class CredentialVerifyController extends Controller {
+
+	/**
+	 * Brute-force throttler action for failed credential verifications.
+	 *
+	 * @var string
+	 */
+	private const THROTTLE_ACTION = 'scholiq_credential_verify';
+
+	/**
+	 * Record a failed verification with the brute-force throttler.
+	 *
+	 * The half that COUNTS. `#[BruteForceProtection]` on verify() is the half
+	 * that ENFORCES -- BruteForceMiddleware only applies a delay when the
+	 * attribute is present, so a registration without it feeds a counter that
+	 * nothing reads. See ADR-082.
+	 *
+	 * @return void
+	 */
+	private function registerFailedVerification(): void {
+		try {
+			$this->throttler->registerAttempt(
+				action: self::THROTTLE_ACTION,
+				ip: $this->request->getRemoteAddress()
+			);
+		} catch (\Throwable $throttlerFailure) {
+			$this->logger->warning(
+				'CredentialVerifyController: registerAttempt failed: ' . $throttlerFailure->getMessage()
+			);
+		}
+	}//end registerFailedVerification()
+
 	/**
 	 * Constructor.
 	 *
@@ -64,6 +99,8 @@ class CredentialVerifyController extends Controller {
 		IRequest $request,
 		private readonly ObjectService $objectService,
 		private readonly KeyManagementService $keyManagementService,
+		private readonly IThrottler $throttler,
+		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -86,6 +123,8 @@ class CredentialVerifyController extends Controller {
 	 */
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[AnonRateLimit(limit: 60, period: 60)]
+	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function verify(string $id): JSONResponse {
 		$credentialObj = $this->objectService->find(
 			id: $id,
@@ -94,6 +133,11 @@ class CredentialVerifyController extends Controller {
 		);
 
 		if ($credentialObj === null) {
+			// A UUID that resolves to nothing is a guess. This endpoint is
+			// public by design -- anyone holding a credential may verify it --
+			// but that also makes it an enumeration oracle over who holds which
+			// credential, which is exactly the privacy leak worth throttling.
+			$this->registerFailedVerification();
 			return new JSONResponse(['valid' => false, 'error' => 'not_found'], 404);
 		}
 
