@@ -30,6 +30,8 @@ use OCA\Scholiq\Controller\CredentialVerifyController;
 use OCA\Scholiq\Service\KeyManagementService;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
+use OCP\Security\Bruteforce\IThrottler;
+use Psr\Log\LoggerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -99,6 +101,8 @@ class CredentialVerifyControllerTest extends TestCase {
 			request: $this->createMock(IRequest::class),
 			objectService: $this->objectService,
 			keyManagementService: $this->keyManagementService,
+			throttler: $this->createMock(IThrottler::class),
+			logger: $this->createMock(LoggerInterface::class),
 		);
 	}//end setUp()
 

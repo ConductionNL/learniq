@@ -56,10 +56,14 @@ use OCA\Scholiq\Service\LearningRecordExportSigningService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
+use OCP\AppFramework\Http\Attribute\AnonRateLimit;
+use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\IRequest;
+use OCP\Security\Bruteforce\IThrottler;
+use Psr\Log\LoggerInterface;
 
 /**
  * Public verification endpoint for a LearningRecordShare's shared bundle.
@@ -68,8 +72,45 @@ use OCP\IRequest;
  * or signature-invalid. On success returns only the bundle content.
  *
  * @spec openspec/changes/portable-learning-record/tasks.md#task-3-2
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) One over the threshold since
+ * IThrottler + LoggerInterface were injected to stop this endpoint being an
+ * enumeration oracle over who has shared which learning records (ADR-082).
+ * Every dependency is a distinct capability the handler needs — object read,
+ * export signature verification, file access, brute-force accounting, logging.
+ * Folding them behind a facade to satisfy the count would hide which of those
+ * is the security boundary, and dropping the throttler would reopen the leak.
  */
 class LearningRecordShareVerifyController extends Controller {
+
+	/**
+	 * Brute-force throttler action for failed share verifications.
+	 *
+	 * @var string
+	 */
+	private const THROTTLE_ACTION = 'scholiq_learning_record_share_verify';
+
+	/**
+	 * Record a failed verification with the brute-force throttler.
+	 *
+	 * The half that COUNTS; `#[BruteForceProtection]` on verify() is the half
+	 * that ENFORCES. Either alone is inert -- see ADR-082.
+	 *
+	 * @return void
+	 */
+	private function registerFailedVerification(): void {
+		try {
+			$this->throttler->registerAttempt(
+				action: self::THROTTLE_ACTION,
+				ip: $this->request->getRemoteAddress()
+			);
+		} catch (\Throwable $throttlerFailure) {
+			$this->logger->warning(
+				'LearningRecordShareVerifyController: registerAttempt failed: ' . $throttlerFailure->getMessage()
+			);
+		}
+	}//end registerFailedVerification()
+
 
 	private const SCHOLIQ_REGISTER = 'scholiq';
 	private const SHARE_SCHEMA = 'learning-record-share';
@@ -90,6 +131,8 @@ class LearningRecordShareVerifyController extends Controller {
 		private readonly ObjectService $objectService,
 		private readonly LearningRecordExportSigningService $signingService,
 		private readonly IRootFolder $rootFolder,
+		private readonly IThrottler $throttler,
+		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -109,9 +152,14 @@ class LearningRecordShareVerifyController extends Controller {
 	 */
 	#[NoCSRFRequired]
 	#[PublicPage]
+	#[AnonRateLimit(limit: 60, period: 60)]
+	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function verify(string $id): JSONResponse {
 		$share = $this->fetchObject(id: $id, schema: self::SHARE_SCHEMA);
 		if ($share === null) {
+			// A share UUID that resolves to nothing is a guess. Enumerating
+			// these would leak which learners have shared which records.
+			$this->registerFailedVerification();
 			return new JSONResponse(['valid' => false, 'reason' => 'not_found'], 404);
 		}
 

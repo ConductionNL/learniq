@@ -38,6 +38,8 @@ use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\IRequest;
+use OCP\Security\Bruteforce\IThrottler;
+use Psr\Log\LoggerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -128,6 +130,8 @@ class LearningRecordShareVerifyControllerTest extends TestCase {
 			objectService: $this->objectService,
 			signingService: $this->signingService,
 			rootFolder: $rootFolder,
+			throttler: $this->createMock(IThrottler::class),
+			logger: $this->createMock(LoggerInterface::class),
 		);
 	}//end setUp()
 
@@ -280,6 +284,8 @@ class LearningRecordShareVerifyControllerTest extends TestCase {
 			objectService: $throwingObjectService,
 			signingService: $this->signingService,
 			rootFolder: $this->createMock(IRootFolder::class),
+			throttler: $this->createMock(IThrottler::class),
+			logger: $this->createMock(LoggerInterface::class),
 		);
 
 		$response = $controller->verify('any-id');
