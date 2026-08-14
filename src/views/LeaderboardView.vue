@@ -67,14 +67,14 @@
 					:options="leaderboardOptions"
 					:reduce="(o) => o.cohortId"
 					label="name"
-					:input-label="t('scholiq', 'Leaderboard')"
+					:inputLabel="t('scholiq', 'Leaderboard')"
 					:aria-label-combobox="t('scholiq', 'Leaderboard')"
 					@update:modelValue="loadRankings" />
 			</div>
 
 			<NcCheckboxRadioSwitch
 				type="switch"
-				:checked="optedOut"
+				:modelValue="optedOut"
 				:disabled="optOutSaving"
 				class="leaderboard-view__opt-out"
 				@update:checked="toggleOptOut">

@@ -21,12 +21,12 @@
 		:rows="rows"
 		:columns="cnColumns"
 		:loading="loading"
-		hide-header
+		hideHeader
 		borderless
-		fill-height
-		row-key="id"
-		:empty-text="t('scholiq', 'No items found')"
-		:row-click-route="rowClickRoute">
+		fillHeight
+		rowKey="id"
+		:emptyText="t('scholiq', 'No items found')"
+		:rowClickRoute="rowClickRoute">
 		<template #footer>
 			<a
 				class="cn-data-table__view-all"
@@ -42,9 +42,9 @@
 </template>
 
 <script>
+import { CnDataTable } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { CnDataTable } from '@conduction/nextcloud-vue'
 
 export default {
 	name: 'ManageListWidget',
@@ -59,41 +59,52 @@ export default {
 			type: String,
 			required: true,
 		},
+
 		/** Human-readable schema label for the "+ New" button */
 		schemaLabel: {
 			type: String,
 			default: '',
 		},
+
 		/** Fields to display per item; first field is used as the item title */
 		columns: {
 			type: Array,
 			default: () => ['name', 'lifecycle'],
 		},
+
 		/** Router path for the index/new page */
 		indexRoute: {
 			type: String,
 			required: true,
 		},
+
 		/** Maximum number of items to show */
 		limit: {
 			type: Number,
 			default: 5,
 		},
+
 		/** Additional OR filter params */
 		filter: {
 			type: Object,
 			default: () => ({}),
 		},
-		/** OR relation fields to resolve server-side (passed as `_extend`), e.g.
-		 *  ['learnerId', 'courseId'] so a resolver can read the related object. */
+
+		/**
+		 * OR relation fields to resolve server-side (passed as `_extend`), e.g.
+		 *  ['learnerId', 'courseId'] so a resolver can read the related object.
+		 */
 		extend: {
 			type: Array,
 			default: () => [],
 		},
-		/** Optional (item) => string used to compute the first column's display
+
+		/**
+		 * Optional (item) => string used to compute the first column's display
 		 *  label, for schemas without a plain `name` field (e.g. a learner-profile
 		 *  shown as "givenName familyName", an enrolment as "learner → course").
-		 *  Falls back to the raw field value when not provided. */
+		 *  Falls back to the raw field value when not provided.
+		 */
 		nameResolver: {
 			type: Function,
 			default: null,

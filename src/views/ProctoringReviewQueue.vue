@@ -177,8 +177,8 @@
 </template>
 
 <script>
-import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'ProctoringReviewQueue',
@@ -199,6 +199,7 @@ export default {
 	computed: {
 		/**
 		 * Sessions that have at least one pending flag.
+		 *
 		 * @return {object[]}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */

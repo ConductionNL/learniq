@@ -130,7 +130,7 @@
 					v-model="instantiateForm.templateId"
 					:options="templateOptions"
 					:reduce="(opt) => opt.id"
-					:input-label="t('scholiq', 'Template')"
+					:inputLabel="t('scholiq', 'Template')"
 					:aria-label-combobox="t('scholiq', 'Template')" />
 				<label class="course-builder__field-label" for="cb-new-course-name">
 					{{ t('scholiq', 'New course name') }}
@@ -168,7 +168,7 @@
 			<section class="course-builder__modules">
 				<h3>{{ t('scholiq', 'Modules') }}</h3>
 
-				<draggable
+				<Draggable
 					v-model="modules"
 					tag="ul"
 					class="course-builder__module-list"
@@ -222,7 +222,7 @@
 							</button>
 						</div>
 
-						<draggable
+						<Draggable
 							v-model="module.lessons"
 							tag="ul"
 							class="course-builder__lesson-list"
@@ -289,7 +289,7 @@
 									<DeleteOutline :size="16" />
 								</button>
 							</li>
-						</draggable>
+						</Draggable>
 
 						<div class="course-builder__add-row">
 							<input
@@ -314,7 +314,7 @@
 							</button>
 						</div>
 					</li>
-				</draggable>
+				</Draggable>
 
 				<div class="course-builder__add-row">
 					<input
@@ -341,8 +341,8 @@
 import { generateUrl } from '@nextcloud/router'
 import { NcSelect } from '@nextcloud/vue'
 import draggable from 'vuedraggable'
-import ChevronUp from 'vue-material-design-icons/ChevronUp.vue'
 import ChevronDown from 'vue-material-design-icons/ChevronDown.vue'
+import ChevronUp from 'vue-material-design-icons/ChevronUp.vue'
 import DeleteOutline from 'vue-material-design-icons/DeleteOutline.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import { compareByOrder } from '../utils/courseOrder.js'
@@ -352,7 +352,7 @@ export default {
 
 	components: {
 		NcSelect,
-		draggable,
+		Draggable: draggable,
 		ChevronUp,
 		ChevronDown,
 		DeleteOutline,

@@ -34,36 +34,36 @@
 			<template #widget-manage-learners>
 				<ManageListWidget
 					schema="learner-profile"
-					:schema-label="t('scholiq', 'learner')"
+					:schemaLabel="t('scholiq', 'learner')"
 					:columns="['name']"
-					:name-resolver="learnerName"
-					index-route="/learner-profiles"
+					:nameResolver="learnerName"
+					indexRoute="/learner-profiles"
 					:limit="6" />
 			</template>
 			<template #widget-manage-enrolments>
 				<ManageListWidget
 					schema="Enrolment"
-					:schema-label="t('scholiq', 'enrolment')"
+					:schemaLabel="t('scholiq', 'enrolment')"
 					:columns="['name']"
 					:extend="['learnerId', 'courseId']"
-					:name-resolver="enrolmentName"
-					index-route="/enrolments"
+					:nameResolver="enrolmentName"
+					indexRoute="/enrolments"
 					:limit="6" />
 			</template>
 			<template #widget-manage-attendance>
 				<ManageListWidget
 					schema="attendance-record"
-					:schema-label="t('scholiq', 'attendance record')"
+					:schemaLabel="t('scholiq', 'attendance record')"
 					:columns="['name', 'lifecycle']"
-					index-route="/attendance/records"
+					indexRoute="/attendance/records"
 					:limit="6" />
 			</template>
 			<template #widget-manage-credentials>
 				<ManageListWidget
 					schema="Credential"
-					:schema-label="t('scholiq', 'credential')"
+					:schemaLabel="t('scholiq', 'credential')"
 					:columns="['name', 'lifecycle']"
-					index-route="/credentials"
+					indexRoute="/credentials"
 					:limit="6" />
 			</template>
 		</CnDashboardPage>
@@ -72,9 +72,9 @@
 
 <script>
 import { CnDashboardPage } from '@conduction/nextcloud-vue'
-import KpiLearnersWidget from './widgets/KpiLearnersWidget.vue'
 import KpiActiveEnrolmentsWidget from './widgets/KpiActiveEnrolmentsWidget.vue'
 import KpiCohortsWidget from './widgets/KpiCohortsWidget.vue'
+import KpiLearnersWidget from './widgets/KpiLearnersWidget.vue'
 import KpiOpenFlagsWidget from './widgets/KpiOpenFlagsWidget.vue'
 import ManageListWidget from './widgets/ManageListWidget.vue'
 

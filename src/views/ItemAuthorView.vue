@@ -181,7 +181,7 @@
 						class="item-author__choice-item">
 						<input
 							type="radio"
-							:name="'correct-choice'"
+							name="correct-choice"
 							:checked="form.correctChoiceIdx === idx"
 							:aria-label="t('scholiq', 'Mark as correct answer')"
 							@change="form.correctChoiceIdx = idx" />
@@ -285,6 +285,7 @@ export default {
 					{ id: 'C', label: '' },
 					{ id: 'D', label: '' },
 				],
+
 				correctChoiceIdx: 0,
 			},
 		}

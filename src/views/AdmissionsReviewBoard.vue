@@ -261,6 +261,7 @@ export default {
 					'scholiq',
 					'VO schooladvies/doorstroomtoets',
 				),
+
 				generic: this.t('scholiq', 'Generic'),
 			}
 			return labels[round.kind] || round.kind || ''

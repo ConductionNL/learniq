@@ -197,10 +197,12 @@ export default {
 					'scholiq',
 					'Verified — the signing tenant is recognised by this school.',
 				),
+
 				unverifiable: this.t(
 					'scholiq',
 					'Unverifiable — a well-formed bundle from a system this school does not recognise. This is expected, not an error.',
 				),
+
 				invalid: this.t(
 					'scholiq',
 					'Signature invalid — this bundle may have been tampered with.',

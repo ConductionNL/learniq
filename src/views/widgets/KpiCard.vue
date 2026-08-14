@@ -21,9 +21,9 @@
 </template>
 
 <script>
+import { CnStatsBlock } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { CnStatsBlock } from '@conduction/nextcloud-vue'
 
 export default {
 	name: 'KpiCard',
@@ -38,26 +38,31 @@ export default {
 			type: String,
 			required: true,
 		},
+
 		/** Human-readable label */
 		label: {
 			type: String,
 			required: true,
 		},
+
 		/** MDI icon component (optional) */
 		icon: {
 			type: [Object, Function],
 			default: null,
 		},
+
 		/** Router-link target path (optional) */
 		link: {
 			type: String,
 			default: null,
 		},
+
 		/** Additional query filters, e.g. { lifecycle: 'active' } */
 		filter: {
 			type: Object,
 			default: () => ({}),
 		},
+
 		/** CnStatsBlock colour variant */
 		variant: {
 			type: String,

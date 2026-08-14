@@ -2,10 +2,10 @@
 <template>
 	<div class="scholiq-admin">
 		<CnVersionInfoCard
-			:app-name="'Scholiq'"
-			:app-version="appVersion"
-			:is-up-to-date="true"
-			:show-update-button="true"
+			appName="Scholiq"
+			:appVersion="appVersion"
+			:isUpToDate="true"
+			:showUpdateButton="true"
 			:title="t('scholiq', 'Version Information')"
 			:description="
 				t('scholiq', 'Information about the current Scholiq installation')
@@ -30,11 +30,11 @@
 </template>
 
 <script>
-import { loadState } from '@nextcloud/initial-state'
 import { CnVersionInfoCard } from '@conduction/nextcloud-vue'
+import { loadState } from '@nextcloud/initial-state'
+import ActionAuthMatrix from '../../components/admin/ActionAuthMatrix.vue'
 import ScholiqSettings from '../ScholiqSettings.vue'
 import DataExchangeSettingsSection from './DataExchangeSettingsSection.vue'
-import ActionAuthMatrix from '../../components/admin/ActionAuthMatrix.vue'
 import { initializeStores } from '../../store/store.js'
 
 export default {
@@ -45,12 +45,14 @@ export default {
 		DataExchangeSettingsSection,
 		ActionAuthMatrix,
 	},
+
 	data() {
 		return {
 			storesReady: false,
 			appVersion: loadState('scholiq', 'version', 'Unknown'),
 		}
 	},
+
 	/**
 	 * Initialise the Pinia stores at boot before rendering settings.
 	 *

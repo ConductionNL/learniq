@@ -26,9 +26,9 @@
 </template>
 
 <script>
+import { CnStatsBlock } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { CnStatsBlock } from '@conduction/nextcloud-vue'
 
 export default {
 	name: 'KpiEngagementScoreWidget',

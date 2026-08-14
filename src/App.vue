@@ -36,8 +36,8 @@
 	<CnAppRoot
 		:manifest="manifest"
 		:registry="registry"
-		:page-types="pageTypes"
-		app-id="scholiq"
+		:pageTypes="pageTypes"
+		appId="scholiq"
 		:translate="translateForApp">
 		<template #user-settings>
 			<ScholiqNotificationSettings />
@@ -46,8 +46,8 @@
 </template>
 
 <script>
-import { translate as ncT } from '@nextcloud/l10n'
 import { CnAppRoot } from '@conduction/nextcloud-vue'
+import { translate as ncT } from '@nextcloud/l10n'
 import ScholiqNotificationSettings from './views/ScholiqNotificationSettings.vue'
 
 export default {
@@ -68,6 +68,7 @@ export default {
 			type: Object,
 			required: true,
 		},
+
 		/**
 		 * V2 kind-tagged registry (ADR-036) — each entry is
 		 * `{ kind: "page", component: ... }`. CnPageRenderer resolves
@@ -79,6 +80,7 @@ export default {
 			type: Object,
 			default: () => ({}),
 		},
+
 		/**
 		 * Page-type registry — `{ index, detail, dashboard, settings, ... }`.
 		 */

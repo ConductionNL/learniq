@@ -64,7 +64,7 @@
 				<NcSelect
 					id="substitution-reason-kind"
 					v-model="changeReasonKind"
-					:input-label="t('scholiq', 'Reason')"
+					:inputLabel="t('scholiq', 'Reason')"
 					:options="reasonOptions"
 					:reduce="(opt) => opt.value"
 					:clearable="false" />
@@ -220,6 +220,7 @@ export default {
 			const body = {
 				lifecycle:
 					this.mode === 'cancel' ? 'cancelled' : this.session.lifecycle,
+
 				changeReasonKind: this.changeReasonKind,
 				changeReason: this.changeReason || null,
 			}

@@ -218,7 +218,7 @@
 
 		<ComposeReportPeriodModal
 			v-if="showComposeModal"
-			:report-period-id="id"
+			:reportPeriodId="id"
 			@close="showComposeModal = false"
 			@composed="onComposed" />
 	</div>

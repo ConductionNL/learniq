@@ -336,8 +336,8 @@
 </template>
 
 <script>
-import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'ExamCaseDossierView',
@@ -348,11 +348,13 @@ export default {
 			type: String,
 			required: true,
 		},
+
 		/** `config.register` forwarded by CnPageRenderer. */
 		register: {
 			type: String,
 			default: 'scholiq',
 		},
+
 		/** `config.schema` forwarded by CnPageRenderer — "exemption-case" | "fraud-case". */
 		schema: {
 			type: String,

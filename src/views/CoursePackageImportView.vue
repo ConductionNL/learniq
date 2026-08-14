@@ -199,10 +199,12 @@ export default {
 					'scholiq',
 					'Import succeeded — every resource was imported.',
 				),
+
 				partial: this.t(
 					'scholiq',
 					'Import completed with some resources degraded or dropped.',
 				),
+
 				failed: this.t('scholiq', 'Import failed.'),
 				running: this.t('scholiq', 'Import in progress…'),
 			}

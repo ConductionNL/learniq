@@ -212,6 +212,7 @@ export default {
 			type: String,
 			required: true,
 		},
+
 		/**
 		 * PeerReview UUID injected by vue-router from :id param.
 		 */

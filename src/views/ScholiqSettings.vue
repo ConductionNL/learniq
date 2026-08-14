@@ -212,8 +212,8 @@
 </template>
 
 <script>
-import { generateUrl } from '@nextcloud/router'
 import { getRequestToken } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
 import {
 	NcButton,
 	NcLoadingIcon,
@@ -221,9 +221,9 @@ import {
 	NcSelect,
 	NcSettingsSection,
 } from '@nextcloud/vue'
-import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
-import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
 import AccountSearchOutline from 'vue-material-design-icons/AccountSearchOutline.vue'
+import FileExportOutline from 'vue-material-design-icons/FileExportOutline.vue'
+import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 
 export default {
 	name: 'ScholiqSettings',
@@ -292,10 +292,12 @@ export default {
 						'scholiq',
 						'Learner administration (leerlingadministratie)',
 					),
+
 					purpose: t(
 						'scholiq',
 						'Maintain the learner record (incl. encrypted BSN, ECK iD, SchoolID) to deliver education and meet statutory reporting.',
 					),
+
 					basis: t('scholiq', 'public-task'),
 				},
 				{
@@ -305,6 +307,7 @@ export default {
 						'scholiq',
 						'Register attendance and report verzuim to the leerplichtambtenaar / DUO.',
 					),
+
 					basis: t('scholiq', 'legal-obligation'),
 				},
 				{
@@ -314,6 +317,7 @@ export default {
 						'scholiq',
 						'Administer assessments and record grades and final marks.',
 					),
+
 					basis: t('scholiq', 'public-task'),
 				},
 				{
@@ -322,10 +326,12 @@ export default {
 						'scholiq',
 						'Compliance training and signed attestations',
 					),
+
 					purpose: t(
 						'scholiq',
 						'Record completed mandatory training and capture signed attestations (incl. actor IP) as legal evidence.',
 					),
+
 					basis: t('scholiq', 'legal-obligation'),
 				},
 				{
@@ -335,6 +341,7 @@ export default {
 						'scholiq',
 						'Issue, verify, and revoke verifiable credentials (EDCI / Open Badges 3.0).',
 					),
+
 					basis: t('scholiq', 'contract'),
 				},
 				{
@@ -344,6 +351,7 @@ export default {
 						'scholiq',
 						'Exchange learner and result data with DUO/BRON-ROD, OSO, municipality, and HR systems.',
 					),
+
 					basis: t('scholiq', 'legal-obligation'),
 				},
 				{
@@ -353,6 +361,7 @@ export default {
 						'scholiq',
 						'Operate adaptive learning paths and record EU AI Act high-risk decision traces.',
 					),
+
 					basis: t('scholiq', 'consent'),
 				},
 				{
@@ -361,10 +370,12 @@ export default {
 						'scholiq',
 						'Pupil dossier notes (leerlingdossier notities)',
 					),
+
 					purpose: t(
 						'scholiq',
 						"Record routine staff observations, conversations, and concerns about a learner as part of the school's ongoing pastoral/mentoring duty of care.",
 					),
+
 					basis: t('scholiq', 'public-task'),
 				},
 				{
@@ -374,6 +385,7 @@ export default {
 						'scholiq',
 						'Record behaviour incidents involving a learner, their follow-up handling, and an optional escalation into a formal support request.',
 					),
+
 					basis: t('scholiq', 'public-task'),
 				},
 				{
@@ -382,10 +394,12 @@ export default {
 						'scholiq',
 						'Wellbeing check-ins (welbevinden check-ins)',
 					),
+
 					purpose: t(
 						'scholiq',
 						"Record a learner's own periodic self-reported mood/wellbeing signal, visible to their mentor.",
 					),
+
 					basis: t('scholiq', 'public-task'),
 				},
 			]

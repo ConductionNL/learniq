@@ -355,6 +355,7 @@ export default {
 			type: String,
 			required: true,
 		},
+
 		/**
 		 * Submission UUID injected by vue-router from :id param.
 		 */

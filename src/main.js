@@ -1,40 +1,38 @@
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (C) 2026 Conduction B.V.
 
-import { createApp, h } from 'vue'
-import { createRouter, createWebHistory } from 'vue-router'
 import {
-	translate as t,
-	translatePlural as n,
-	loadTranslations,
-} from '@nextcloud/l10n'
-import { generateUrl } from '@nextcloud/router'
-import { loadState } from '@nextcloud/initial-state'
-import {
+	buildManifest,
 	CnPageRenderer,
 	defaultPageTypes,
+	registerBuiltinDashboardWidgets,
 	registerIcons,
 	registerTranslations,
-	buildManifest,
-	registerBuiltinDashboardWidgets,
 } from '@conduction/nextcloud-vue'
-import pinia from './pinia.js'
+import { loadState } from '@nextcloud/initial-state'
+import {
+	loadTranslations,
+	translatePlural as n,
+	translate as t,
+} from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
+import { createApp, h } from 'vue'
+import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
+import appIcons from './icons.js'
 import bundledManifest from './manifest.json'
 import menuLayout from './menu-layout.json'
+import pinia from './pinia.js'
 import registry from './registry.js'
-import appIcons from './icons.js'
 
 // Library CSS — must be explicit import (webpack tree-shakes side-effect imports from aliased packages)
 import '@conduction/nextcloud-vue/css/index.css'
-
 // gridstack is a REQUIRED peer of @conduction/nextcloud-vue that no consumer
 // declares; it used to resolve by accident from a hoisted node_modules outside
 // the repo. Its stylesheet is the silent half: v12 sizes items with
 // `width: var(--gs-column-width)`, so without the CSS every dashboard item
 // renders 0 px wide with no console error at all.
 import 'gridstack/dist/gridstack.min.css'
-
 // Global (unscoped) app styles
 import './assets/app.css'
 
@@ -76,6 +74,9 @@ try {
 // JS/CSS allowlist through Apache — /custom_apps/<app>/l10n/<locale>.json
 // 404s in those environments. Wrapping mount in the callback means silent
 // boot failure. Strings fall back to their English source on miss.
+/**
+ *
+ */
 function tryLoadTranslations() {
 	try {
 		const result = loadTranslations('scholiq', () => {})

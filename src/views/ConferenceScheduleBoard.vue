@@ -34,7 +34,7 @@
 				:reduce="(o) => o.id"
 				label="label"
 				:loading="loadingRounds"
-				:input-label="t('scholiq', 'Conference round')"
+				:inputLabel="t('scholiq', 'Conference round')"
 				:aria-label-combobox="t('scholiq', 'Conference round')"
 				@update:modelValue="loadWaitlisted" />
 
@@ -97,7 +97,7 @@
 								:options="teacherOptions(signup)"
 								:reduce="(o) => o.id"
 								label="label"
-								:input-label="t('scholiq', 'Teacher')"
+								:inputLabel="t('scholiq', 'Teacher')"
 								:aria-label-combobox="t('scholiq', 'Teacher')" />
 							<input
 								v-model="manualForm[signup.id].startsAt"
@@ -174,6 +174,7 @@ export default {
 				label: r.name || r.id || r.uuid,
 			}))
 		},
+
 		/**
 		 * The currently selected ConferenceRound object, or null.
 		 *

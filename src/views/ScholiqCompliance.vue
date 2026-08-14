@@ -33,9 +33,9 @@
 <script>
 import { CnDashboardPage } from '@conduction/nextcloud-vue'
 import { NcButton } from '@nextcloud/vue'
-import KpiRegulationsWidget from './widgets/KpiRegulationsWidget.vue'
 import KpiAttestationsWidget from './widgets/KpiAttestationsWidget.vue'
 import KpiExternalTrainingWidget from './widgets/KpiExternalTrainingWidget.vue'
+import KpiRegulationsWidget from './widgets/KpiRegulationsWidget.vue'
 
 export default {
 	name: 'ScholiqCompliance',
@@ -63,6 +63,7 @@ export default {
 					type: 'custom',
 				},
 			],
+
 			layout: [
 				{
 					id: 1,

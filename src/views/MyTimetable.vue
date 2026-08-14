@@ -189,8 +189,8 @@
 
 <script>
 import { NcButton, NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
-import { fetchMyTimetable } from '../api/timetable.js'
 import SubstitutionModal from '../dialogs/SubstitutionModal.vue'
+import { fetchMyTimetable } from '../api/timetable.js'
 
 /**
  * Compute the Monday (00:00, local) of the week containing `date`.
@@ -215,6 +215,7 @@ export default {
 		NcLoadingIcon,
 		SubstitutionModal,
 	},
+
 	data() {
 		return {
 			loading: true,
@@ -230,6 +231,7 @@ export default {
 			managingSession: null,
 		}
 	},
+
 	computed: {
 		/**
 		 * Exclusive end of the current week (next Monday 00:00).
@@ -242,6 +244,7 @@ export default {
 			end.setDate(end.getDate() + 7)
 			return end
 		},
+
 		/**
 		 * The seven day-buckets of the current week, each with its sessions.
 		 *
@@ -278,6 +281,7 @@ export default {
 			}
 			return out
 		},
+
 		/**
 		 * Days rendered given the today/week toggle.
 		 *
@@ -291,6 +295,7 @@ export default {
 			}
 			return this.days
 		},
+
 		/**
 		 * Human-readable label for the viewed range.
 		 *
@@ -307,6 +312,7 @@ export default {
 				+ last.toLocaleDateString(undefined, opts)
 			)
 		},
+
 		/**
 		 * Empty-state description — distinguishes "no cohorts" from "no sessions this week".
 		 *
@@ -322,6 +328,7 @@ export default {
 					)
 		},
 	},
+
 	watch: {
 		/**
 		 * Reload the timetable whenever the viewed week changes.
@@ -334,9 +341,11 @@ export default {
 			this.load()
 		},
 	},
+
 	mounted() {
 		this.load()
 	},
+
 	methods: {
 		t,
 		/**
@@ -366,6 +375,7 @@ export default {
 				this.loading = false
 			}
 		},
+
 		/**
 		 * Move the viewed week by `delta` weeks.
 		 *
@@ -379,6 +389,7 @@ export default {
 			next.setDate(next.getDate() + delta * 7)
 			this.weekStart = next
 		},
+
 		/**
 		 * Switch the today/week toggle.
 		 *
@@ -394,6 +405,7 @@ export default {
 				this.weekStart = mondayOf(new Date())
 			}
 		},
+
 		/**
 		 * Deep-link to the session detail page.
 		 *
@@ -412,6 +424,7 @@ export default {
 					.catch(() => {})
 			}
 		},
+
 		/**
 		 * Format a session's time range for display.
 		 *
@@ -428,6 +441,7 @@ export default {
 			}
 			return start
 		},
+
 		/**
 		 * Format an ISO timestamp as a local `HH:MM` time.
 		 *
@@ -449,6 +463,7 @@ export default {
 				minute: '2-digit',
 			})
 		},
+
 		/**
 		 * Accessible label for a session block.
 		 *
@@ -467,6 +482,7 @@ export default {
 			}
 			return parts.filter(Boolean).join(', ')
 		},
+
 		/**
 		 * Human-readable lifecycle/substitution status label for a session.
 		 *
@@ -486,6 +502,7 @@ export default {
 			}
 			return session.lifecycle || ''
 		},
+
 		/**
 		 * Open SubstitutionModal for a session (cancel / assign substitute).
 		 *
@@ -497,6 +514,7 @@ export default {
 		manage(session) {
 			this.managingSession = session
 		},
+
 		/**
 		 * Reload the timetable after a substitution/cancellation change.
 		 *

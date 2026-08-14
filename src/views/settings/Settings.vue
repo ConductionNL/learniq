@@ -25,8 +25,8 @@
 </template>
 
 <script>
-import { NcButton } from '@nextcloud/vue'
 import { CnSettingsSection } from '@conduction/nextcloud-vue'
+import { NcButton } from '@nextcloud/vue'
 import { useSettingsStore } from '../../store/modules/settings.js'
 
 export default {
@@ -35,15 +35,18 @@ export default {
 		NcButton,
 		CnSettingsSection,
 	},
+
 	data() {
 		return {
 			form: {
 				register: '',
 			},
+
 			saving: false,
 			successMessage: '',
 		}
 	},
+
 	/**
 	 * Seed the form from the current settings store state.
 	 *
@@ -54,6 +57,7 @@ export default {
 		const settingsStore = useSettingsStore()
 		this.form.register = settingsStore.settings?.register || ''
 	},
+
 	methods: {
 		/**
 		 * Persist the form through the settings store and show a success message.
