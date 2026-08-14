@@ -25,49 +25,49 @@
 			<template #widget-manage-courses>
 				<ManageListWidget
 					schema="Course"
-					:schema-label="t('scholiq', 'course')"
+					:schemaLabel="t('scholiq', 'course')"
 					:columns="['name', 'lifecycle', 'lessonCount']"
-					index-route="/courses"
+					indexRoute="/courses"
 					:limit="6" />
 			</template>
 			<template #widget-manage-curriculum>
 				<ManageListWidget
 					schema="Programme"
-					:schema-label="t('scholiq', 'programme')"
+					:schemaLabel="t('scholiq', 'programme')"
 					:columns="['name', 'lifecycle']"
-					index-route="/curriculum/programmes"
+					indexRoute="/curriculum/programmes"
 					:limit="6" />
 			</template>
 			<template #widget-manage-assignments>
 				<ManageListWidget
 					schema="Assignment"
-					:schema-label="t('scholiq', 'assignment')"
+					:schemaLabel="t('scholiq', 'assignment')"
 					:columns="['name', 'dueDate', 'lifecycle']"
-					index-route="/assignments"
+					indexRoute="/assignments"
 					:limit="6" />
 			</template>
 			<template #widget-manage-assessments>
 				<ManageListWidget
 					schema="Assessment"
-					:schema-label="t('scholiq', 'assessment')"
+					:schemaLabel="t('scholiq', 'assessment')"
 					:columns="['name', 'lifecycle']"
-					index-route="/assessments"
+					indexRoute="/assessments"
 					:limit="6" />
 			</template>
 			<template #widget-manage-learning-plans>
 				<ManageListWidget
 					schema="learning-plan"
-					:schema-label="t('scholiq', 'learning plan')"
+					:schemaLabel="t('scholiq', 'learning plan')"
 					:columns="['name', 'lifecycle']"
-					index-route="/learning-plans"
+					indexRoute="/learning-plans"
 					:limit="6" />
 			</template>
 			<template #widget-manage-grades>
 				<ManageListWidget
 					schema="grade-entry"
-					:schema-label="t('scholiq', 'grade')"
+					:schemaLabel="t('scholiq', 'grade')"
 					:columns="['name', 'lifecycle']"
-					index-route="/grades/entries"
+					indexRoute="/grades/entries"
 					:limit="6" />
 			</template>
 		</CnDashboardPage>

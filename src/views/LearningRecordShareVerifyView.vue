@@ -112,15 +112,18 @@ export default {
 					'scholiq',
 					'This share has been revoked by the learner.',
 				),
+
 				expired: this.t('scholiq', 'This share has expired.'),
 				export_not_found: this.t(
 					'scholiq',
 					'The underlying record could not be found.',
 				),
+
 				bundle_unreadable: this.t(
 					'scholiq',
 					'The underlying record could not be read.',
 				),
+
 				signature_invalid: this.t(
 					'scholiq',
 					"This record's signature could not be verified — it may have been altered.",

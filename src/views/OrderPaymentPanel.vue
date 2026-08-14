@@ -87,7 +87,7 @@
 					:reduce="(o) => o.value"
 					label="label"
 					:clearable="false"
-					:input-label="t('scholiq', 'Payment provider')"
+					:inputLabel="t('scholiq', 'Payment provider')"
 					:aria-label-combobox="t('scholiq', 'Payment provider')" />
 
 				<NcButton variant="primary" :disabled="paying" @click="payNow">
@@ -150,12 +150,14 @@ import CheckCircleOutline from 'vue-material-design-icons/CheckCircleOutline.vue
 
 /**
  * Order lifecycle states from which payment may be initiated.
+ *
  * @type {string[]}
  */
 const PAYABLE_STATES = ['open', 'partially-paid']
 
 /**
  * Order lifecycle states considered "already settled" (nothing left to pay).
+ *
  * @type {string[]}
  */
 const SETTLED_STATES = ['paid', 'refunded']
@@ -190,6 +192,7 @@ export default {
 				{ value: 'mollie', label: this.t('scholiq', 'Mollie') },
 				{ value: 'stripe', label: this.t('scholiq', 'Stripe') },
 			],
+
 			paying: false,
 			payError: '',
 			checkoutReference: '',
@@ -200,9 +203,11 @@ export default {
 		canPay() {
 			return !!this.order && PAYABLE_STATES.includes(this.order.lifecycle)
 		},
+
 		isSettled() {
 			return !!this.order && SETTLED_STATES.includes(this.order.lifecycle)
 		},
+
 		statusLabel() {
 			if (!this.order) {
 				return ''
@@ -220,6 +225,7 @@ export default {
 	methods: {
 		/**
 		 * Load the Order and its OrderLines.
+		 *
 		 * @return {Promise<void>}
 		 */
 		async loadOrder() {
@@ -267,6 +273,7 @@ export default {
 
 		/**
 		 * Format a numeric amount using the order's currency.
+		 *
 		 * @param {number} amount The amount to format.
 		 * @return {string} The formatted amount.
 		 */
@@ -282,6 +289,7 @@ export default {
 		 * Initiate payment via PaymentTransactionController::initiate() and
 		 * render the returned checkout reference opaquely — no PSP-specific
 		 * field is parsed (design.md's "forward the response as-is" rule).
+		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-a-payer-opens-the-payment-panel-and-initiates-payment
 		 */

@@ -291,8 +291,8 @@
 </template>
 
 <script>
-import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'TakeAssessmentView',
@@ -319,6 +319,7 @@ export default {
 			 * Full AssessmentResult object (re-fetched after create — never
 			 * trusted from the POST response body, since AssessmentDrawResolver
 			 * populates drawnItemRefs as a follow-up write).
+			 *
 			 * @type {object|null}
 			 */
 			result: null,
@@ -351,6 +352,7 @@ export default {
 	computed: {
 		/**
 		 * Current item object.
+		 *
 		 * @return {object|null}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
@@ -360,6 +362,7 @@ export default {
 
 		/**
 		 * Current response for the active item.
+		 *
 		 * @return {unknown}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
@@ -373,6 +376,7 @@ export default {
 		 * Server-resolved answer-option order for the current item, from
 		 * AssessmentResult.drawnItemRefs[].optionOrder (null when shuffle is
 		 * disabled or the item has no discrete choice identifiers).
+		 *
 		 * @return {string[]|null}
 		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
 		 */
@@ -386,6 +390,7 @@ export default {
 
 		/**
 		 * Formatted time remaining string (MM:SS).
+		 *
 		 * @return {string}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
@@ -398,6 +403,7 @@ export default {
 
 		/**
 		 * True when fewer than 5 minutes remain.
+		 *
 		 * @return {boolean}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */

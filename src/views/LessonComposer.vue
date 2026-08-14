@@ -99,7 +99,7 @@
 				{{ t('scholiq', 'Lesson saved.') }}
 			</p>
 
-			<draggable
+			<Draggable
 				v-model="blocks"
 				tag="ul"
 				class="lesson-composer__block-list"
@@ -172,7 +172,7 @@
 							v-model="block.materialId"
 							:options="materialOptions"
 							:reduce="(opt) => opt.id"
-							:input-label="t('scholiq', 'Material')"
+							:inputLabel="t('scholiq', 'Material')"
 							:aria-label-combobox="t('scholiq', 'Material')" />
 						<button
 							type="button"
@@ -195,7 +195,7 @@
 							v-model="block.assessmentId"
 							:options="assessmentOptions"
 							:reduce="(opt) => opt.id"
-							:input-label="t('scholiq', 'Assessment')"
+							:inputLabel="t('scholiq', 'Assessment')"
 							:aria-label-combobox="t('scholiq', 'Assessment')" />
 					</div>
 
@@ -207,7 +207,7 @@
 							v-model="block.assignmentId"
 							:options="assignmentOptions"
 							:reduce="(opt) => opt.id"
-							:input-label="t('scholiq', 'Assignment')"
+							:inputLabel="t('scholiq', 'Assignment')"
 							:aria-label-combobox="t('scholiq', 'Assignment')" />
 					</div>
 
@@ -219,13 +219,13 @@
 							v-model="block.ltiToolPlacementId"
 							:options="ltiToolPlacementOptions"
 							:reduce="(opt) => opt.id"
-							:input-label="t('scholiq', 'LTI tool placement')"
+							:inputLabel="t('scholiq', 'LTI tool placement')"
 							:aria-label-combobox="
 								t('scholiq', 'LTI tool placement')
 							" />
 					</div>
 				</li>
-			</draggable>
+			</Draggable>
 
 			<section class="lesson-composer__add-block">
 				<label class="lesson-composer__field-label" for="lc-add-block-type">
@@ -269,13 +269,13 @@
 </template>
 
 <script>
-import { generateUrl } from '@nextcloud/router'
-import { NcSelect } from '@nextcloud/vue'
 import { CnMarkdownEditor } from '@conduction/nextcloud-vue'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
+import { generateUrl } from '@nextcloud/router'
+import { NcSelect } from '@nextcloud/vue'
 import draggable from 'vuedraggable'
-import ChevronUp from 'vue-material-design-icons/ChevronUp.vue'
 import ChevronDown from 'vue-material-design-icons/ChevronDown.vue'
+import ChevronUp from 'vue-material-design-icons/ChevronUp.vue'
 import DeleteOutline from 'vue-material-design-icons/DeleteOutline.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 
@@ -301,7 +301,7 @@ export default {
 	components: {
 		NcSelect,
 		CnMarkdownEditor,
-		draggable,
+		Draggable: draggable,
 		ChevronUp,
 		ChevronDown,
 		DeleteOutline,
@@ -314,6 +314,7 @@ export default {
 			type: String,
 			required: true,
 		},
+
 		/** Lesson UUID injected by vue-router from the :lessonId route param. */
 		lessonId: {
 			type: String,
@@ -349,12 +350,15 @@ export default {
 		materialOptions() {
 			return this.materials.map((m) => ({ id: m.id, label: m.title }))
 		},
+
 		assessmentOptions() {
 			return this.assessments.map((a) => ({ id: a.id, label: a.title }))
 		},
+
 		assignmentOptions() {
 			return this.assignments.map((a) => ({ id: a.id, label: a.title }))
 		},
+
 		ltiToolPlacementOptions() {
 			return this.ltiToolPlacements.map((p) => ({
 				id: p.id,

@@ -1,6 +1,6 @@
+import { getRequestToken } from '@nextcloud/auth'
 // SPDX-License-Identifier: EUPL-1.2
 import { defineStore } from 'pinia'
-import { getRequestToken } from '@nextcloud/auth'
 
 /**
  * Generic OpenRegister object store.
@@ -20,6 +20,8 @@ export const useObjectStore = defineStore('object', {
 		 * Configure the OpenRegister object + schema base URLs.
 		 *
 		 * @param {object} opts Config { baseUrl, schemaBaseUrl }
+		 * @param opts.baseUrl
+		 * @param opts.schemaBaseUrl
 		 * @return {void}
 		 * @spec openspec/changes/retrofit-2026-05-25-app-shell-settings/tasks.md#task-4
 		 */

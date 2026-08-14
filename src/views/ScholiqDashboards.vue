@@ -54,33 +54,33 @@
 			<template #widget-teacher-courses>
 				<ManageListWidget
 					schema="Course"
-					:schema-label="t('scholiq', 'course')"
+					:schemaLabel="t('scholiq', 'course')"
 					:columns="['name', 'lifecycle', 'lessonCount']"
-					index-route="/courses"
+					indexRoute="/courses"
 					:limit="6" />
 			</template>
 			<template #widget-teacher-assignments>
 				<ManageListWidget
 					schema="Assignment"
-					:schema-label="t('scholiq', 'assignment')"
+					:schemaLabel="t('scholiq', 'assignment')"
 					:columns="['name', 'dueDate', 'lifecycle']"
-					index-route="/assignments"
+					indexRoute="/assignments"
 					:limit="6" />
 			</template>
 			<template #widget-teacher-sessions>
 				<ManageListWidget
 					schema="Session"
-					:schema-label="t('scholiq', 'session')"
+					:schemaLabel="t('scholiq', 'session')"
 					:columns="['name', 'startsAt', 'lifecycle']"
-					index-route="/sessions"
+					indexRoute="/sessions"
 					:limit="6" />
 			</template>
 			<template #widget-teacher-cohorts>
 				<ManageListWidget
 					schema="Cohort"
-					:schema-label="t('scholiq', 'cohort')"
+					:schemaLabel="t('scholiq', 'cohort')"
 					:columns="['name', 'learnerCount', 'programmeId']"
-					index-route="/cohorts"
+					indexRoute="/cohorts"
 					:limit="6" />
 			</template>
 			<template #widget-kpi-engagement-score>
@@ -102,38 +102,26 @@
 </template>
 
 <script>
-import { loadState } from '@nextcloud/initial-state'
 import { CnDashboardPage } from '@conduction/nextcloud-vue'
-import KpiCoursesWidget from './widgets/KpiCoursesWidget.vue'
-import KpiCohortsWidget from './widgets/KpiCohortsWidget.vue'
-import KpiLearnersWidget from './widgets/KpiLearnersWidget.vue'
+import { loadState } from '@nextcloud/initial-state'
 import KpiActiveEnrolmentsWidget from './widgets/KpiActiveEnrolmentsWidget.vue'
-import KpiOpenFlagsWidget from './widgets/KpiOpenFlagsWidget.vue'
-import KpiEngagementScoreWidget from './widgets/KpiEngagementScoreWidget.vue'
+import KpiCohortsWidget from './widgets/KpiCohortsWidget.vue'
+import KpiCoursesWidget from './widgets/KpiCoursesWidget.vue'
 import KpiEngagementRiskFlagsWidget from './widgets/KpiEngagementRiskFlagsWidget.vue'
-import ManageCoursesWidget from './widgets/ManageCoursesWidget.vue'
-import ManageCohortsWidget from './widgets/ManageCohortsWidget.vue'
-import ManageProgrammesWidget from './widgets/ManageProgrammesWidget.vue'
-import ManageListWidget from './widgets/ManageListWidget.vue'
-import MyMandatoryTrainingWidget from './widgets/MyMandatoryTrainingWidget.vue'
+import KpiEngagementScoreWidget from './widgets/KpiEngagementScoreWidget.vue'
+import KpiLearnersWidget from './widgets/KpiLearnersWidget.vue'
+import KpiOpenFlagsWidget from './widgets/KpiOpenFlagsWidget.vue'
 import KpiPointsLevelWidget from './widgets/KpiPointsLevelWidget.vue'
+import ManageCohortsWidget from './widgets/ManageCohortsWidget.vue'
+import ManageCoursesWidget from './widgets/ManageCoursesWidget.vue'
+import ManageListWidget from './widgets/ManageListWidget.vue'
+import ManageProgrammesWidget from './widgets/ManageProgrammesWidget.vue'
+import MyMandatoryTrainingWidget from './widgets/MyMandatoryTrainingWidget.vue'
 
 const VALID_ROLES = ['admin', 'teacher', 'student']
 
 export default {
 	name: 'ScholiqDashboards',
-
-	props: {
-		/**
-		 * Which dashboard view to render: 'admin' | 'teacher' | 'student'.
-		 * Supplied by the thin per-role route wrapper (DashboardAdmin/Teacher/
-		 * Student). Falls back to the user's resolved default view when empty.
-		 */
-		role: {
-			type: String,
-			default: '',
-		},
-	},
 
 	components: {
 		CnDashboardPage,
@@ -150,6 +138,18 @@ export default {
 		ManageListWidget,
 		MyMandatoryTrainingWidget,
 		KpiPointsLevelWidget,
+	},
+
+	props: {
+		/**
+		 * Which dashboard view to render: 'admin' | 'teacher' | 'student'.
+		 * Supplied by the thin per-role route wrapper (DashboardAdmin/Teacher/
+		 * Student). Falls back to the user's resolved default view when empty.
+		 */
+		role: {
+			type: String,
+			default: '',
+		},
 	},
 
 	computed: {
@@ -265,6 +265,7 @@ export default {
 						type: 'custom',
 					},
 				],
+
 				layout: [
 					{
 						id: 1,
@@ -381,6 +382,7 @@ export default {
 						type: 'custom',
 					},
 				],
+
 				layout: [
 					{
 						id: 1,
@@ -462,6 +464,7 @@ export default {
 						type: 'custom',
 					},
 				],
+
 				layout: [
 					{
 						id: 1,

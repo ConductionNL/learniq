@@ -179,8 +179,8 @@
 </template>
 
 <script>
-import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'ItemAnalysisView',
@@ -194,6 +194,7 @@ export default {
 			type: String,
 			default: null,
 		},
+
 		/**
 		 * Assessment UUID from the ?assessmentId query param. Null skips the
 		 * reliability section.
@@ -222,6 +223,7 @@ export default {
 		 * Client-side proxy for "may view staff-only item statistics" — see
 		 * file-header note. The server-side x-property-rbac block is the
 		 * actual security boundary.
+		 *
 		 * @return {boolean}
 		 */
 		isStaff() {
@@ -236,6 +238,7 @@ export default {
 				this.load()
 			},
 		},
+
 		assessmentId: {
 			handler() {
 				this.load()

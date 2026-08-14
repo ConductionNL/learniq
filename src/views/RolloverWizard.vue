@@ -64,7 +64,7 @@
 						<NcSelect
 							v-model="m.action"
 							:options="actionOptions"
-							:input-label="t('scholiq', 'Action')"
+							:inputLabel="t('scholiq', 'Action')"
 							:aria-label-combobox="t('scholiq', 'Action')" />
 					</td>
 					<td>

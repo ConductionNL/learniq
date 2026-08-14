@@ -67,9 +67,9 @@
 			:widgets="widgets"
 			:layout="layout"
 			:sidebar="sidebar"
-			:lifecycle-actions="lifecycleActions"
-			:object-type="schema"
-			:object-id="objectId"
+			:lifecycleActions="lifecycleActions"
+			:objectType="schema"
+			:objectId="objectId"
 			:register="register"
 			:schema="schema" />
 	</div>
@@ -92,22 +92,38 @@ export default {
 		NcLoadingIcon,
 	},
 
+	provide() {
+		return {
+			cnDetailObjectContext: this.detailObjectContext,
+		}
+	},
+
+	// CnPageRenderer forwards every `config.*` key (register, schema, title, …)
+	// as an individual prop — this component only declares the ones it
+	// actually consumes (widgets/layout/sidebar/lifecycleActions) and takes
+	// register/schema as fixed constants, so the rest must not fall through
+	// onto the root <div> as raw DOM attributes.
+	inheritAttrs: false,
+
 	props: {
 		/** `config.widgets` forwarded by CnPageRenderer (grid widget defs). */
 		widgets: {
 			type: Array,
 			default: () => [],
 		},
+
 		/** `config.layout` forwarded by CnPageRenderer (12-col grid layout). */
 		layout: {
 			type: Array,
 			default: () => [],
 		},
+
 		/** `config.sidebar` forwarded by CnPageRenderer (tabs incl. audit trail). */
 		sidebar: {
 			type: [Boolean, Object],
 			default: () => ({ enabled: false }),
 		},
+
 		/** `config.lifecycleActions` forwarded by CnPageRenderer. */
 		lifecycleActions: {
 			type: Object,
@@ -144,19 +160,6 @@ export default {
 			liveUnwatch: null,
 		}
 	},
-
-	provide() {
-		return {
-			cnDetailObjectContext: this.detailObjectContext,
-		}
-	},
-
-	// CnPageRenderer forwards every `config.*` key (register, schema, title, …)
-	// as an individual prop — this component only declares the ones it
-	// actually consumes (widgets/layout/sidebar/lifecycleActions) and takes
-	// register/schema as fixed constants, so the rest must not fall through
-	// onto the root <div> as raw DOM attributes.
-	inheritAttrs: false,
 
 	watch: {
 		'$route.params.slug': {
@@ -369,6 +372,7 @@ export default {
 					|| (typeof store.getSchema === 'function'
 						&& store.getSchema(OBJECT_TYPE))
 					|| null,
+
 				objectType: OBJECT_TYPE,
 				objectId: this.objectId,
 				register: REGISTER,

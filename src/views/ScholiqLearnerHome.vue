@@ -39,6 +39,7 @@ export default {
 					type: 'custom',
 				},
 			],
+
 			layout: [
 				{
 					id: 1,

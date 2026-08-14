@@ -51,7 +51,7 @@
 					:options="policyOptions"
 					:reduce="(opt) => opt.value"
 					:clearable="false"
-					:input-label="t('scholiq', 'Locality policy tier')"
+					:inputLabel="t('scholiq', 'Locality policy tier')"
 					:aria-label-combobox="t('scholiq', 'Locality policy tier')" />
 
 				<label
@@ -146,9 +146,9 @@
 
 <script>
 import { useObjectStore } from '@conduction/nextcloud-vue'
-import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
-import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
+import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
 
 const REGISTER = 'scholiq'
 // The slug this schema declares in lib/Settings/scholiq_register.json, verbatim.
@@ -182,6 +182,7 @@ export default {
 				setBy: null,
 				setAt: null,
 			},
+
 			policyForm: { policy: 'eu-hosted-allowed', rationale: '' },
 		}
 	},
@@ -246,6 +247,7 @@ export default {
 						existing.id
 						?? (existing['@self'] && existing['@self'].id)
 						?? null,
+
 					policy: existing.policy || 'eu-hosted-allowed',
 					rationale: existing.rationale || null,
 					setBy: existing.setBy || null,

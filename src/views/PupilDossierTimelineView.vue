@@ -341,6 +341,7 @@ export default {
 				title: this.t('scholiq', 'Incident ({severity})', {
 					severity: o.severity,
 				}),
+
 				summary: o.what,
 				route: 'BehaviourIncidentDetail',
 			}

@@ -45,8 +45,8 @@
 <script>
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcSettingsSection } from '@nextcloud/vue'
-import SwapHorizontal from 'vue-material-design-icons/SwapHorizontal.vue'
 import MapIcon from 'vue-material-design-icons/Map.vue'
+import SwapHorizontal from 'vue-material-design-icons/SwapHorizontal.vue'
 
 export default {
 	name: 'DataExchangeSettingsSection',

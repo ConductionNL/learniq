@@ -173,8 +173,8 @@
 </template>
 
 <script>
-import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'SelfAssessmentView',
@@ -187,6 +187,7 @@ export default {
 			type: String,
 			required: true,
 		},
+
 		/**
 		 * Submission UUID injected by vue-router from :id param.
 		 */

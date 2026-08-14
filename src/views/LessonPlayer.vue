@@ -279,12 +279,12 @@
 </template>
 
 <script>
+import { cnRenderMarkdown } from '@conduction/nextcloud-vue'
+import { getCurrentUser } from '@nextcloud/auth'
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (C) 2026 Conduction B.V.
 import { generateUrl } from '@nextcloud/router'
-import { getCurrentUser } from '@nextcloud/auth'
-import { NcEmptyContent, NcButton } from '@nextcloud/vue'
-import { cnRenderMarkdown } from '@conduction/nextcloud-vue'
+import { NcButton, NcEmptyContent } from '@nextcloud/vue'
 import AlertCircleOutline from 'vue-material-design-icons/AlertCircleOutline.vue'
 import ApplicationOutline from 'vue-material-design-icons/ApplicationOutline.vue'
 import BookOpenPageVariantOutline from 'vue-material-design-icons/BookOpenPageVariantOutline.vue'
@@ -317,6 +317,7 @@ export default {
 			type: String,
 			required: true,
 		},
+
 		/** Lesson UUID injected by CnAppRoot from the route :lessonId param. */
 		lessonId: {
 			type: String,
@@ -343,6 +344,7 @@ export default {
 				saving: false,
 				error: '',
 			},
+
 			// adaptive-release-and-prerequisites: per-learner release-gate
 			// decision from LessonReleaseController::status(). `available`
 			// defaults true so a fetch failure never fails CLOSED and hides
@@ -354,6 +356,7 @@ export default {
 				reason: '',
 				availableAt: null,
 			},
+
 			// course-authoring-ux: referenced-object caches for block
 			// rendering (contentType === 'text'), keyed by UUID.
 			materialsById: {},

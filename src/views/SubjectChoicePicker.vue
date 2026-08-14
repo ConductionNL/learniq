@@ -49,7 +49,7 @@
 					:options="planOptions"
 					:reduce="(o) => o.id"
 					label="label"
-					:input-label="t('scholiq', 'Curriculum plan')"
+					:inputLabel="t('scholiq', 'Curriculum plan')"
 					:aria-label-combobox="t('scholiq', 'Curriculum plan')"
 					@update:modelValue="onPlanChange" />
 			</div>
@@ -65,7 +65,7 @@
 					:reduce="(o) => o.id"
 					label="label"
 					:loading="loadingLearners"
-					:input-label="t('scholiq', 'Learner')"
+					:inputLabel="t('scholiq', 'Learner')"
 					:aria-label-combobox="t('scholiq', 'Learner')" />
 			</div>
 
@@ -87,7 +87,7 @@
 					:reduce="(o) => o.id"
 					label="label"
 					multiple
-					:input-label="t('scholiq', 'Electives')"
+					:inputLabel="t('scholiq', 'Electives')"
 					:aria-label-combobox="t('scholiq', 'Electives')" />
 			</div>
 
@@ -150,9 +150,9 @@
 </template>
 
 <script>
+import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { getCurrentUser } from '@nextcloud/auth'
 import {
 	NcButton,
 	NcEmptyContent,
@@ -209,6 +209,7 @@ export default {
 					label: p.name || p.id || p.uuid,
 				}))
 		},
+
 		/**
 		 * The currently selected CurriculumPlan object, or null.
 		 *
@@ -220,6 +221,7 @@ export default {
 				|| null
 			)
 		},
+
 		/**
 		 * The selected plan's declared electiveRules, or an empty object when unset.
 		 *
@@ -228,6 +230,7 @@ export default {
 		electiveRules() {
 			return (this.selectedPlan && this.selectedPlan.electiveRules) || {}
 		},
+
 		/**
 		 * Elective options scoped to the selected plan's electiveCourseIds.
 		 *
@@ -240,6 +243,7 @@ export default {
 				return { id, label: (course && course.name) || id }
 			})
 		},
+
 		/**
 		 * Learner options: the caller's linked children plus themselves (18+ self-choice).
 		 *
@@ -251,6 +255,7 @@ export default {
 				label: l.displayName || l.ncUserId,
 			}))
 		},
+
 		/**
 		 * Live rule/capacity feedback against the current selection -- advisory
 		 * only, the authoritative check is SubjectChoiceValidator server-side.
@@ -315,6 +320,7 @@ export default {
 
 			return messages
 		},
+
 		/**
 		 * Whether the form has enough input to submit.
 		 *
@@ -459,6 +465,7 @@ export default {
 					guardianConsentBy: this.guardianConsentGiven
 						? getCurrentUser()?.uid || null
 						: null,
+
 					tenant_id: this.selectedPlan
 						? this.selectedPlan.tenant_id
 						: undefined,

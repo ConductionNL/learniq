@@ -47,7 +47,7 @@
 					:options="roundOptions"
 					:reduce="(o) => o.id"
 					label="label"
-					:input-label="t('scholiq', 'Conference round')"
+					:inputLabel="t('scholiq', 'Conference round')"
 					:aria-label-combobox="t('scholiq', 'Conference round')"
 					@update:modelValue="onRoundChange" />
 			</div>
@@ -63,7 +63,7 @@
 					:reduce="(o) => o.id"
 					label="label"
 					:loading="loadingLearners"
-					:input-label="t('scholiq', 'Learner')"
+					:inputLabel="t('scholiq', 'Learner')"
 					:aria-label-combobox="t('scholiq', 'Learner')" />
 			</div>
 
@@ -78,7 +78,7 @@
 					:reduce="(o) => o.id"
 					label="label"
 					multiple
-					:input-label="t('scholiq', 'Requested teachers')"
+					:inputLabel="t('scholiq', 'Requested teachers')"
 					:aria-label-combobox="t('scholiq', 'Requested teachers')" />
 			</div>
 
@@ -115,9 +115,9 @@
 </template>
 
 <script>
+import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { getCurrentUser } from '@nextcloud/auth'
 import {
 	NcButton,
 	NcEmptyContent,
@@ -166,6 +166,7 @@ export default {
 				label: r.name || r.id || r.uuid,
 			}))
 		},
+
 		/**
 		 * The currently selected ConferenceRound object, or null.
 		 *
@@ -177,6 +178,7 @@ export default {
 				|| null
 			)
 		},
+
 		/**
 		 * Teacher options scoped to the selected round's teacherIds.
 		 *
@@ -189,6 +191,7 @@ export default {
 				label: id,
 			}))
 		},
+
 		/**
 		 * Learner options: the caller's linked children plus themselves (18+ self-signup).
 		 *
@@ -200,6 +203,7 @@ export default {
 				label: l.displayName || l.ncUserId,
 			}))
 		},
+
 		/**
 		 * Whether the form has enough input to submit.
 		 *

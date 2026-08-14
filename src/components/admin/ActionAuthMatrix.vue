@@ -45,7 +45,7 @@
 							:key="`${action}-${group}`"
 							class="scholiq-admin__matrix-cell">
 							<NcCheckboxRadioSwitch
-								:checked="isChecked(action, group)"
+								:modelValue="isChecked(action, group)"
 								:disabled="group === 'admin'"
 								:aria-label="
 									t(
@@ -160,7 +160,11 @@ export default {
 			}
 		},
 
-		/** @spec openspec/architecture/adr-023-action-authorization.md */
+		/**
+		 * @param action
+		 * @param group
+		 * @spec openspec/architecture/adr-023-action-authorization.md
+		 */
 		isChecked(action, group) {
 			// Admins always pass regardless of the stored list.
 			if (group === 'admin') {
@@ -170,7 +174,12 @@ export default {
 			return allowed.includes(group)
 		},
 
-		/** @spec openspec/architecture/adr-023-action-authorization.md */
+		/**
+		 * @param action
+		 * @param group
+		 * @param checked
+		 * @spec openspec/architecture/adr-023-action-authorization.md
+		 */
 		toggle(action, group, checked) {
 			// The admin column is fixed and never persisted as a toggle.
 			if (group === 'admin') {

@@ -46,7 +46,7 @@
 					:options="courseOptions"
 					:reduce="(o) => o.id"
 					label="label"
-					:input-label="t('scholiq', 'Course')"
+					:inputLabel="t('scholiq', 'Course')"
 					:aria-label-combobox="t('scholiq', 'Course')"
 					@update:modelValue="onCourseChange" />
 			</div>
@@ -61,7 +61,7 @@
 					:options="teacherOptions"
 					:reduce="(o) => o.id"
 					label="label"
-					:input-label="t('scholiq', 'Teacher')"
+					:inputLabel="t('scholiq', 'Teacher')"
 					:aria-label-combobox="t('scholiq', 'Teacher')"
 					@update:modelValue="onTeacherChange" />
 			</div>

@@ -290,8 +290,8 @@
 </template>
 
 <script>
-import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'PortfolioBuilder',
@@ -323,6 +323,7 @@ export default {
 				sectionId: '',
 				reflectionText: '',
 			},
+
 			loading: false,
 			error: null,
 			addingEntry: false,
@@ -601,6 +602,7 @@ export default {
 					'scholiq',
 					'External training record',
 				),
+
 				credential: this.t('scholiq', 'Credential'),
 				reflection: this.t('scholiq', 'Reflection'),
 			}

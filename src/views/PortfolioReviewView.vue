@@ -381,6 +381,7 @@ export default {
 					'scholiq',
 					'External training record',
 				),
+
 				credential: this.t('scholiq', 'Credential'),
 				reflection: this.t('scholiq', 'Reflection'),
 			}

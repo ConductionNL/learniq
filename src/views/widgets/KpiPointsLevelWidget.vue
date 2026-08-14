@@ -34,10 +34,10 @@
 </template>
 
 <script>
+import { CnStatsBlock } from '@conduction/nextcloud-vue'
+import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { getCurrentUser } from '@nextcloud/auth'
-import { CnStatsBlock } from '@conduction/nextcloud-vue'
 
 export default {
 	name: 'KpiPointsLevelWidget',

@@ -56,7 +56,7 @@
 					class="scholiq-notif-settings__item">
 					<NcCheckboxRadioSwitch
 						type="switch"
-						:checked="item.enabled"
+						:modelValue="item.enabled"
 						:disabled="item.saving"
 						@update:checked="(value) => toggle(item, value)">
 						{{ labelFor(item) }}
@@ -80,7 +80,7 @@
 			">
 			<NcCheckboxRadioSwitch
 				type="switch"
-				:checked="quietHours.enabled"
+				:modelValue="quietHours.enabled"
 				:disabled="quietHoursSaving"
 				@update:checked="
 					(value) => saveQuietHours({ ...quietHours, enabled: value })
@@ -136,8 +136,8 @@
 
 <script>
 import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
 import { getLanguage } from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
 import {
 	NcCheckboxRadioSwitch,
 	NcEmptyContent,
