@@ -66,6 +66,7 @@ use OCA\Scholiq\AppInfo\Application;
 use OCA\Scholiq\Service\PaymentInitiationClient;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
@@ -271,6 +272,11 @@ class PaymentTransactionController extends Controller {
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
+	// Payment provider callback: machine caller, own signature, retries on its
+	// own schedule. Generous ceiling — dropping a payment notification is a
+	// worse failure than absorbing a burst, and it lands on the provider's
+	// side where we would not see it.
+	#[AnonRateLimit(limit: 300, period: 60)]
 	public function callback(): JSONResponse {
 		if ($this->isAuthenticCallback() === false) {
 			return new JSONResponse(data: ['error' => 'Not authorized'], statusCode: Http::STATUS_UNAUTHORIZED);
