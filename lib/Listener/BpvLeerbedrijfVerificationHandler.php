@@ -138,13 +138,13 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 			return;
 		}
 
-		$verification = $placement['leerbedrijfVerification'] ?? [];
+		$verification = $placement['trainingCompanyVerification'] ?? [];
 		if (is_array($verification) === false) {
 			$verification = [];
 		}
 
 		$providerClass = $verification['provider'] ?? null;
-		$kvkNumber = $placement['leerbedrijfKvkNumber'] ?? '';
+		$kvkNumber = $placement['trainingCompanyKvkNumber'] ?? '';
 
 		$provider = $this->resolveProvider(providerClass: $providerClass);
 
@@ -190,7 +190,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 		$this->objectService->saveObject(
 			register: self::SCHOLIQ_REGISTER,
 			schema: self::PLACEMENT_SCHEMA,
-			object: array_merge($placement, ['leerbedrijfVerification' => $updatedVerification])
+			object: array_merge($placement, ['trainingCompanyVerification' => $updatedVerification])
 		);
 
 		$this->logger->info(

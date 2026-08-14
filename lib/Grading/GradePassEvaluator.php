@@ -86,7 +86,7 @@ class GradePassEvaluator {
 			return true;
 		}
 
-		return $this->everyComponentRuleMet(entries: $entries, passRules: $passRules);
+		return $this->everyComponentRuleWith(entries: $entries, passRules: $passRules);
 	}//end evaluatePassed()
 
 	/**
@@ -104,7 +104,7 @@ class GradePassEvaluator {
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
 	 */
-	private function everyComponentRuleMet(array $entries, array $passRules): bool {
+	private function everyComponentRuleWith(array $entries, array $passRules): bool {
 		$bestMap = $this->indexBestByComponent(entries: $entries);
 
 		foreach ($passRules as $rule) {

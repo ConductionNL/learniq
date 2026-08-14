@@ -284,12 +284,12 @@ class ProcessingActivityCatalogueTest extends TestCase {
 			$hits = [];
 		}
 
-		$verwerkingHits = glob($controllerDir . '/*Verwerking*Controller.php');
-		if ($verwerkingHits === false) {
-			$verwerkingHits = [];
+		$processingHits = glob($controllerDir . '/*Verwerking*Controller.php');
+		if ($processingHits === false) {
+			$processingHits = [];
 		}
 
-		$hits = array_merge($hits, $verwerkingHits);
+		$hits = array_merge($hits, $processingHits);
 		$this->assertSame([], $hits, 'Scholiq MUST NOT ship a processing-activity / verwerkingsregister controller');
 
 		// No schema named ProcessingActivity is defined in scholiq's register —

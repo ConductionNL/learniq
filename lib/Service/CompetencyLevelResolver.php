@@ -137,14 +137,14 @@ class CompetencyLevelResolver {
 	 * already uses when mapping beoordeling onto GradeEntry.value.
 	 *
 	 * @param string $competencyId UUID of the Competency (used to resolve its framework).
-	 * @param string $beoordeling The werkproces assessment outcome.
+	 * @param string $assessment The werkproces assessment outcome.
 	 *
 	 * @return string|null The resolved levelId, or null when unresolvable.
 	 *
 	 * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
 	 */
-	public function resolveLevelByLabel(string $competencyId, string $beoordeling): ?string {
-		if (in_array($beoordeling, self::BEOORDELING_VALUES, true) === false) {
+	public function resolveLevelByLabel(string $competencyId, string $assessment): ?string {
+		if (in_array($assessment, self::BEOORDELING_VALUES, true) === false) {
 			return null;
 		}
 
@@ -156,7 +156,7 @@ class CompetencyLevelResolver {
 		$extremes = $this->extremeLevelsByOrder(levels: $levels);
 
 		$target = $extremes['lowest'];
-		if ($beoordeling === 'competent') {
+		if ($assessment === 'competent') {
 			$target = $extremes['highest'];
 		}
 

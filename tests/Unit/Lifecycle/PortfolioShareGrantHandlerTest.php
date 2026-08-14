@@ -202,7 +202,7 @@ class PortfolioShareGrantHandlerTest extends TestCase {
 			'object' => [
 				'id' => 'share-2',
 				'sharedWithKind' => 'praktijkopleider',
-				'sharedWithPraktijkopleiderId' => 'po-1',
+				'sharedWithPracticalTrainerId' => 'po-1',
 				'sharedBy' => 'po-1',
 			],
 		];

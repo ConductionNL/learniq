@@ -50,7 +50,7 @@ class BpvConfirmationGuardTest extends TestCase {
 		$context = [
 			'object' => [
 				'id' => 'placement-1',
-				'leerbedrijfVerification' => ['status' => 'verified', 'erkenningNumber' => 'SBB-123'],
+				'trainingCompanyVerification' => ['status' => 'verified', 'erkenningNumber' => 'SBB-123'],
 			],
 		];
 
@@ -68,7 +68,7 @@ class BpvConfirmationGuardTest extends TestCase {
 			$context = [
 				'object' => [
 					'id' => 'placement-1',
-					'leerbedrijfVerification' => ['status' => $status],
+					'trainingCompanyVerification' => ['status' => $status],
 				],
 			];
 
@@ -95,7 +95,7 @@ class BpvConfirmationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNonArrayVerificationBlockFailsClosed(): void {
-		$context = ['object' => ['id' => 'placement-1', 'leerbedrijfVerification' => 'verified']];
+		$context = ['object' => ['id' => 'placement-1', 'trainingCompanyVerification' => 'verified']];
 
 		$this->assertFalse($this->makeGuard()->check($context));
 

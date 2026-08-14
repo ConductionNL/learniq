@@ -10640,7 +10640,7 @@
 									"label": "Werkproces"
 								},
 								{
-									"key": "beoordeling",
+									"key": "assessment",
 									"label": "Beoordeling"
 								},
 								{
@@ -10800,7 +10800,7 @@
 							"register": "scholiq",
 							"schema": "bpv-placement",
 							"filter": {
-								"praktijkopleiderId": "@objectId"
+								"practicalTrainerId": "@objectId"
 							},
 							"sort": {
 								"field": "periodFrom",
@@ -10809,7 +10809,7 @@
 							"limit": 25,
 							"columns": [
 								{
-									"key": "leerbedrijfName",
+									"key": "trainingCompanyName",
 									"label": "Leerbedrijf"
 								},
 								{
@@ -10828,7 +10828,7 @@
 							"rowRoute": "BpvPlacementDetail",
 							"viewAllRoute": "BpvPlacements",
 							"viewAllQuery": {
-								"praktijkopleiderId": "@objectId"
+								"practicalTrainerId": "@objectId"
 							},
 							"emptyText": "No BPV placements found.",
 							"allowCreate": false

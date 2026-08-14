@@ -93,7 +93,7 @@ class BpvConfirmationGuard {
 	public function check(array &$transitionContext): bool {
 		$placement = $transitionContext['object'] ?? [];
 		$placementId = $placement['id'] ?? ($placement['uuid'] ?? '');
-		$verification = $placement['leerbedrijfVerification'] ?? null;
+		$verification = $placement['trainingCompanyVerification'] ?? null;
 
 		if (is_array($verification) === false) {
 			$this->logger->info(

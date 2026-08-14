@@ -125,7 +125,7 @@
 				</h3>
 				<ul class="my-learning-record__list">
 					<li v-for="b in record.bpvPlacements" :key="b.id">
-						{{ b.leerbedrijfName }} — {{ b.lifecycle }}
+						{{ b.trainingCompanyName }} — {{ b.lifecycle }}
 					</li>
 				</ul>
 			</section>

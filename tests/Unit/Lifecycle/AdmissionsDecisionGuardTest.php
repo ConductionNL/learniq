@@ -283,9 +283,9 @@ class AdmissionsDecisionGuardTest extends TestCase {
 		$context = [
 			'object' => $this->application(
 				[
-					'schooladviesLevel' => 'vmbo-gt',
-					'doorstroomtoetsLevel' => 'havo',
-					'schooladviesAdjustedLevel' => 'vmbo-gt',
+					'schoolAdviceLevel' => 'vmbo-gt',
+					'progressionTestLevel' => 'havo',
+					'schoolAdviceAdjustedLevel' => 'vmbo-gt',
 					'adjustmentMotivation' => '',
 				]
 			),
@@ -309,9 +309,9 @@ class AdmissionsDecisionGuardTest extends TestCase {
 		$context = [
 			'object' => $this->application(
 				[
-					'schooladviesLevel' => 'pro',
-					'doorstroomtoetsLevel' => 'vmbo-bb',
-					'schooladviesAdjustedLevel' => 'pro',
+					'schoolAdviceLevel' => 'pro',
+					'progressionTestLevel' => 'vmbo-bb',
+					'schoolAdviceAdjustedLevel' => 'pro',
 					'adjustmentMotivation' => '',
 				]
 			),
@@ -333,9 +333,9 @@ class AdmissionsDecisionGuardTest extends TestCase {
 		$context = [
 			'object' => $this->application(
 				[
-					'schooladviesLevel' => 'vmbo-gt',
-					'doorstroomtoetsLevel' => 'havo',
-					'schooladviesAdjustedLevel' => 'havo',
+					'schoolAdviceLevel' => 'vmbo-gt',
+					'progressionTestLevel' => 'havo',
+					'schoolAdviceAdjustedLevel' => 'havo',
 					'adjustmentMotivation' => '',
 				]
 			),
@@ -357,9 +357,9 @@ class AdmissionsDecisionGuardTest extends TestCase {
 		$context = [
 			'object' => $this->application(
 				[
-					'schooladviesLevel' => 'vmbo-gt',
-					'doorstroomtoetsLevel' => 'havo',
-					'schooladviesAdjustedLevel' => 'vmbo-gt',
+					'schoolAdviceLevel' => 'vmbo-gt',
+					'progressionTestLevel' => 'havo',
+					'schoolAdviceAdjustedLevel' => 'vmbo-gt',
 					'adjustmentMotivation' => 'Not in the pupil\'s best interest given documented circumstances.',
 				]
 			),
@@ -486,8 +486,8 @@ class AdmissionsDecisionGuardTest extends TestCase {
 		$context = [
 			'object' => $this->application(
 				[
-					'schooladviesLevel' => 'vmbo-gt',
-					'doorstroomtoetsLevel' => 'vwo',
+					'schoolAdviceLevel' => 'vmbo-gt',
+					'progressionTestLevel' => 'vwo',
 					'decisionReason' => '',
 				]
 			),
