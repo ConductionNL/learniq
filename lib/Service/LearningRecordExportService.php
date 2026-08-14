@@ -427,7 +427,7 @@ class LearningRecordExportService {
 			'final-grade' => 'Final grade',
 			'competency-attainment' => 'Competency attainment',
 			'portfolio', 'portfolio-entry', 'external-training-record' => (string)($row['title'] ?? $schema),
-			'bpv-placement' => (string)($row['leerbedrijfName'] ?? 'BPV placement'),
+			'bpv-placement' => (string)($row['trainingCompanyName'] ?? 'BPV placement'),
 			'werkproces-assessment' => (string)($row['werkprocesLabel'] ?? 'Werkproces assessment'),
 			'enrolment' => 'Course enrolment',
 			'report-card' => 'Report card',

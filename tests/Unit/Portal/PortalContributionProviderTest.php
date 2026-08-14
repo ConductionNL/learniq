@@ -415,12 +415,12 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('scholiq', $collection['register']);
 		$this->assertSame('bpv-placement', $collection['schema']);
 		// Direct match — not a reverse `via` join like `parent`.
-		$this->assertSame('praktijkopleiderId', $collection['scopeField']);
-		$this->assertSame('praktijkopleiderId', $collection['scopeClaim']);
+		$this->assertSame('practicalTrainerId', $collection['scopeField']);
+		$this->assertSame('practicalTrainerId', $collection['scopeClaim']);
 		$this->assertArrayNotHasKey('via', $collection);
 		$this->assertSame('low', $collection['minTrust']);
 
-		foreach (['schoolCoachId', 'leerbedrijfVerification', 'leerbedrijfVerification.raw'] as $forbidden) {
+		foreach (['schoolCoachId', 'trainingCompanyVerification', 'leerbedrijfVerification.raw'] as $forbidden) {
 			$this->assertNotContains($forbidden, $collection['fields']);
 		}
 
@@ -444,8 +444,8 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('poSharedPortfolios', $collection['id']);
 		$this->assertSame('scholiq', $collection['register']);
 		$this->assertSame('portfolio-share', $collection['schema']);
-		$this->assertSame('sharedWithPraktijkopleiderId', $collection['scopeField']);
-		$this->assertSame('praktijkopleiderId', $collection['scopeClaim']);
+		$this->assertSame('sharedWithPracticalTrainerId', $collection['scopeField']);
+		$this->assertSame('practicalTrainerId', $collection['scopeClaim']);
 		$this->assertArrayNotHasKey('via', $collection);
 		// A revoked share must resolve no rows.
 		$this->assertSame(['lifecycle' => 'active'], $collection['filter']);
@@ -509,7 +509,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('create', $assessment['type']);
 		$this->assertSame('werkproces-assessment', $assessment['schema']);
 		$this->assertSame('assessorId', $assessment['scopeField']);
-		$this->assertSame('praktijkopleiderId', $assessment['scopeClaim']);
+		$this->assertSame('practicalTrainerId', $assessment['scopeClaim']);
 		$this->assertSame('substantial', $assessment['minTrust']);
 		$this->assertSame(
 			[
@@ -517,11 +517,11 @@ class PortalContributionProviderTest extends TestCase {
 				'curriculumPlanId',
 				'componentId',
 				'kwalificatiedossierCode',
-				'kerntaakCode',
+				'coreTaskCode',
 				'werkprocesCode',
 				'werkprocesLabel',
-				'beoordeling',
-				'toelichting',
+				'assessment',
+				'notes',
 			],
 			$assessment['fields']
 		);
@@ -530,7 +530,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('create', $signature['type']);
 		$this->assertSame('pok-signature', $signature['schema']);
 		$this->assertSame('signerId', $signature['scopeField']);
-		$this->assertSame('praktijkopleiderId', $signature['scopeClaim']);
+		$this->assertSame('practicalTrainerId', $signature['scopeClaim']);
 		$this->assertSame('substantial', $signature['minTrust']);
 		$this->assertSame(
 			['subjectId', 'subjectVersion', 'assuranceLevel', 'method', 'evidenceRef'],
@@ -579,12 +579,12 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertContains('guardianRefs', $propsBySlug['learner-profile'] ?? []);
 
 		// The bpv-praktijkovereenkomst refs the praktijkopleider audience depends on.
-		$this->assertContains('praktijkopleiderId', $propsBySlug['bpv-placement'] ?? []);
+		$this->assertContains('practicalTrainerId', $propsBySlug['bpv-placement'] ?? []);
 		$this->assertContains('assessorId', $propsBySlug['werkproces-assessment'] ?? []);
 		$this->assertContains('signerId', $propsBySlug['pok-signature'] ?? []);
 
 		// The eportfolio refs the poSharedPortfolios/eaSharedPortfolios collections depend on.
-		$this->assertContains('sharedWithPraktijkopleiderId', $propsBySlug['portfolio-share'] ?? []);
+		$this->assertContains('sharedWithPracticalTrainerId', $propsBySlug['portfolio-share'] ?? []);
 		$this->assertContains('sharedWithExternalAssessorId', $propsBySlug['portfolio-share'] ?? []);
 		$this->assertContains('portfolioId', $propsBySlug['portfolio-share'] ?? []);
 		$this->assertContains('entryIds', $propsBySlug['portfolio-share'] ?? []);

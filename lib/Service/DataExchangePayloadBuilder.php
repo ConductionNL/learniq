@@ -151,7 +151,7 @@ class DataExchangePayloadBuilder {
 			// own targetField — this stamp must always equal the source object's id.
 			$record['_scholiqRecordId'] = ($object['id'] ?? ($object['uuid'] ?? ''));
 
-			$payload[] = $this->composeDossier(record: $record, source: $object, target: $target);
+			$payload[] = $this->composeFile(record: $record, source: $object, target: $target);
 		}
 
 		return $payload;
@@ -180,7 +180,7 @@ class DataExchangePayloadBuilder {
 
 			unset($object['bsnEncrypted'], $object['bsnHash'], $object['email']);
 
-			$payload[] = $this->composeDossier(record: $object, source: $object, target: $target);
+			$payload[] = $this->composeFile(record: $object, source: $object, target: $target);
 		}
 
 		return $payload;
@@ -238,10 +238,10 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
 	 */
-	private function composeDossier(array $record, array $source, string $target): array {
+	private function composeFile(array $record, array $source, string $target): array {
 		return match ($target) {
-			self::LEERPLICHT_TARGET => $this->composeLeerplichtDossier(record: $record, flag: $source),
-			self::SWV_TARGET => $this->composeSwvDossier(record: $record, supportRequest: $source),
+			self::LEERPLICHT_TARGET => $this->composeLeerplichtFile(record: $record, flag: $source),
+			self::SWV_TARGET => $this->composeSwvFile(record: $record, supportRequest: $source),
 			default => $record,
 		};
 
@@ -272,7 +272,7 @@ class DataExchangePayloadBuilder {
 	 *
 	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-3.1
 	 */
-	private function composeLeerplichtDossier(array $record, array $flag): array {
+	private function composeLeerplichtFile(array $record, array $flag): array {
 		$breachingRecordIds = $flag['breachingRecordIds'] ?? [];
 		if (is_array($breachingRecordIds) === false) {
 			$breachingRecordIds = [];
@@ -326,7 +326,7 @@ class DataExchangePayloadBuilder {
 	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
 	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/specs/learning-plan/spec.md#requirement-minimal-disclosure-to-the-swv-via-a-field-whitelisting-datamappingprofile
 	 */
-	private function composeSwvDossier(array $record, array $supportRequest): array {
+	private function composeSwvFile(array $record, array $supportRequest): array {
 		$learnerId = (string)($supportRequest['learnerId'] ?? '');
 		$tenantId = (string)($supportRequest['tenant_id'] ?? '');
 

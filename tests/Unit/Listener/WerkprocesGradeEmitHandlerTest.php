@@ -140,7 +140,7 @@ class WerkprocesGradeEmitHandlerTest extends TestCase {
 			'bpvPlacementId' => 'placement-1',
 			'curriculumPlanId' => 'plan-1',
 			'componentId' => 'component-bpv',
-			'beoordeling' => 'competent',
+			'assessment' => 'competent',
 		];
 
 		$handler->handle($this->makeEvent($assessment));
@@ -176,7 +176,7 @@ class WerkprocesGradeEmitHandlerTest extends TestCase {
 			'bpvPlacementId' => 'placement-1',
 			'curriculumPlanId' => 'plan-1',
 			'componentId' => 'component-bpv',
-			'beoordeling' => 'nog-niet-competent',
+			'assessment' => 'nog-niet-competent',
 		];
 
 		$handler->handle($this->makeEvent($assessment));
@@ -212,7 +212,7 @@ class WerkprocesGradeEmitHandlerTest extends TestCase {
 			'bpvPlacementId' => 'placement-1',
 			'curriculumPlanId' => 'plan-1',
 			'componentId' => 'component-bpv',
-			'beoordeling' => 'competent',
+			'assessment' => 'competent',
 		];
 
 		$handler->handle($this->makeEvent($assessment));
@@ -237,7 +237,7 @@ class WerkprocesGradeEmitHandlerTest extends TestCase {
 			'bpvPlacementId' => 'placement-missing',
 			'curriculumPlanId' => 'plan-1',
 			'componentId' => 'component-bpv',
-			'beoordeling' => 'competent',
+			'assessment' => 'competent',
 		];
 
 		$handler->handle($this->makeEvent($assessment));
