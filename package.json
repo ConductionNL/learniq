@@ -58,10 +58,7 @@
     "vuedraggable": "^4.1.0"
   },
   "overrides": {
-    "libxmljs2": "^0.37.0",
-    "@conduction/nextcloud-vue": {
-      "eslint": "$eslint"
-    }
+    "libxmljs2": "^0.37.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
