@@ -71,13 +71,18 @@ function resolvePackageEntry(id, subpath = '.') {
 	return path.resolve(path.dirname(pkgPath), node)
 }
 
-// Use local source when available (monorepo dev), otherwise fall back to npm package.
-// Set USE_LOCAL_LIB=false to force the npm package even when the sibling checkout exists.
+// Use the sibling ../nextcloud-vue source only when explicitly opted in;
+// otherwise the resolved npm package.
 //
-// ⚠️ USE_LOCAL_LIB is opt-OUT, and the shared `apps-extra/nextcloud-vue` checkout
-// sits on the Vue 2 (`beta.*`) line. Without the guard below, a build from that
-// checkout silently compiles Vue 2 library sources into this Vue 3 app — it
-// builds clean and fails only at runtime.
+// The comment that stood here described USE_LOCAL_LIB as opt-OUT and the
+// sibling as "the Vue 2 (`beta.*`) line". Both statements have since become
+// false — the flag is opt-in (below), and the sibling declares
+// peerDependencies.vue ^3.5.0 with source using defineComponent / createApp /
+// <script setup>, i.e. it IS a Vue 3 library. What actually breaks a build
+// against it is a stale vue-demi shim inside the SIBLING's own node_modules
+// (its postinstall picks v2/v2.7/v3 and does not re-run on `npm install`),
+// which yields `export 'default' (imported as 'Vue') was not found in 'vue'`
+// — a Vue-2-shaped failure from a Vue 3 library.
 const localLib = path.resolve(__dirname, '../nextcloud-vue/src')
 // USE_LOCAL_LIB is opt-IN (ADR-090): building against a developer's working
 // checkout is the wrong default for a build that can ship.
