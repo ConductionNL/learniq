@@ -79,7 +79,9 @@ function resolvePackageEntry(id, subpath = '.') {
 // checkout silently compiles Vue 2 library sources into this Vue 3 app — it
 // builds clean and fails only at runtime.
 const localLib = path.resolve(__dirname, '../nextcloud-vue/src')
-const useLocalLib = process.env.USE_LOCAL_LIB !== 'false' && fs.existsSync(localLib)
+// USE_LOCAL_LIB is opt-IN (ADR-090): building against a developer's working
+// checkout is the wrong default for a build that can ship.
+const useLocalLib = process.env.USE_LOCAL_LIB === 'true' && fs.existsSync(localLib)
 
 if (useLocalLib) {
 	const libPkgPath = path.resolve(__dirname, '../nextcloud-vue/package.json')
@@ -101,6 +103,42 @@ if (useLocalLib) {
 				+ `${libPkg.version}). That build would compile Vue ${libVueMajor} library `
 				+ 'sources into a Vue 3 app and fail only at runtime. '
 				+ 'Set USE_LOCAL_LIB=false, or move the sibling checkout onto the vue3 line.',
+		)
+	}
+
+	// The Vue-major test above is necessary but NOT sufficient. The sibling
+	// checkout declares `vue: ^3.5.0` — it IS a Vue 3 library — so the majors
+	// match and this check passes even when the sibling is a version this app
+	// never asked for (2.0.5 today, against a declared 2.2.0-vue3.16).
+	//
+	// That skew still breaks the build, because building from the sibling's
+	// SOURCE also resolves packages out of the SIBLING's node_modules, where a
+	// stale vue-demi shim (postinstall picks v2/v2.7/v3, and does not re-run on
+	// `npm install`) produces
+	//   export 'default' (imported as 'Vue') was not found in 'vue'
+	// — a Vue-2-shaped failure from a Vue 3 library.
+	//
+	// So also require the sibling to satisfy this app's declared range, and fail
+	// CLOSED when the check cannot run.
+	let satisfied = false
+	try {
+		// eslint-disable-next-line n/no-extraneous-require
+		const semver = require('semver')
+		const required =
+			require('./package.json').dependencies['@conduction/nextcloud-vue']
+		satisfied = semver.satisfies(libPkg.version, required, {
+			includePrerelease: true,
+		})
+	} catch (e) {
+		satisfied = false
+	}
+
+	if (!satisfied) {
+		throw new Error(
+			`USE_LOCAL_LIB is on but ../nextcloud-vue@${libPkg.version} does not `
+				+ "satisfy this app's declared @conduction/nextcloud-vue range. "
+				+ 'Set USE_LOCAL_LIB=false to build against the npm dist, or check out '
+				+ 'a sibling matching the declared range.',
 		)
 	}
 }
