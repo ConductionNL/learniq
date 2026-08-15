@@ -276,6 +276,42 @@ class ObjectEntity extends Entity implements JsonSerializable {
 	}//end getter()
 
 	/**
+	 * The object's uuid.
+	 *
+	 * Mirrors the real OpenRegister entity, which declares this CONCRETELY as
+	 * of 83e8798a (2026-08-15). Leaving it to `Entity::__call` magic here made
+	 * `method_exists()` false standalone and true in CI — the exact stub drift
+	 * OpenRegisterContractTest exists to catch.
+	 *
+	 * @return string|null
+	 */
+	public function getUuid(): ?string {
+		return $this->uuid;
+	}//end getUuid()
+
+	/**
+	 * The register this object belongs to.
+	 *
+	 * Concrete to mirror the real entity — see getUuid().
+	 *
+	 * @return string|null
+	 */
+	public function getRegister(): ?string {
+		return $this->register;
+	}//end getRegister()
+
+	/**
+	 * The schema this object conforms to.
+	 *
+	 * Concrete to mirror the real entity — see getUuid().
+	 *
+	 * @return string|null
+	 */
+	public function getSchema(): ?string {
+		return $this->schema;
+	}//end getSchema()
+
+	/**
 	 * Get the object data with the uuid injected as `id`.
 	 *
 	 * @return array<string,mixed>

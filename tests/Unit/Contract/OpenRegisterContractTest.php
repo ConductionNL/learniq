@@ -69,7 +69,10 @@ final class OpenRegisterContractTest extends TestCase {
 	public function testObjectServiceFindSignatureIsUnchanged(): void {
 		$this->assertParameterNames(
 			new ReflectionMethod(ObjectService::class, 'find'),
-			['id', '_extend', 'files', 'register', 'schema', '_rbac', '_multitenancy', '_render']
+			// `_audit` was appended by openregister c9d96966 (2026-08-13), which
+			// lets a read opt out of writing its audit row. It is APPENDED, so
+			// no existing positional closure shifted.
+			['id', '_extend', 'files', 'register', 'schema', '_rbac', '_multitenancy', '_render', '_audit']
 		);
 
 		$this->assertReturnTypeIs(
@@ -124,26 +127,32 @@ final class OpenRegisterContractTest extends TestCase {
 	}//end testObjectServiceSaveObjectSignatureIsUnchanged()
 
 	/**
-	 * ObjectEntity's accessors are `__call` magic and cannot be mocked.
+	 * ObjectEntity's accessors are now CONCRETE and may be mocked.
 	 *
-	 * `createMock(ObjectEntity::class)->method('getRegister')` throws
-	 * `MethodCannotBeConfiguredException` against the real class. If this ever
-	 * starts failing because the methods became concrete, the test-suite-wide
-	 * ban on mocking them can be lifted — until then, tests must build real
-	 * instances via OrEntityFactory.
+	 * This test used to assert the opposite, and said so explicitly: "if this
+	 * ever starts failing because the methods became concrete, the
+	 * test-suite-wide ban on mocking them can be lifted". OpenRegister
+	 * 83e8798a (2026-08-15) published `lib/Contract/ObjectEntityInterface.php`
+	 * and declared these accessors concretely, so that condition is now met
+	 * and the ban IS lifted.
+	 *
+	 * The guard is kept, pointing the other way: a REGRESSION back to `__call`
+	 * magic would silently make `method_exists()` false again, which is the
+	 * bug that produced '' from ListenerSchemaResolver::schemaSlug() and made
+	 * every listener return early.
 	 *
 	 * @return void
 	 */
-	public function testObjectEntityAccessorsAreMagicAndMustNotBeMocked(): void {
+	public function testObjectEntityAccessorsAreConcreteAndMockable(): void {
 		$reflection = new ReflectionClass(ObjectEntity::class);
 
 		foreach (['getRegister', 'getSchema', 'getUuid'] as $accessor) {
-			$this->assertFalse(
+			$this->assertTrue(
 				$reflection->hasMethod($accessor),
 				sprintf(
-					'ObjectEntity::%s() must stay a __call magic accessor. A concrete declaration here means '
-					. 'tests/Stubs has drifted from the real OpenRegister entity, which makes every mock in this '
-					. 'suite green standalone and red in CI.',
+					'ObjectEntity::%s() must stay a CONCRETE declaration, as published by '
+					. 'OpenRegister\'s ObjectEntityInterface. Reverting it to a __call magic accessor makes '
+					. 'method_exists() false again and silently breaks every guard that probes it.',
 					$accessor
 				)
 			);
@@ -154,7 +163,7 @@ final class OpenRegisterContractTest extends TestCase {
 			'ObjectEntity must be instantiable so tests can build real entities instead of mocking magic getters.'
 		);
 
-	}//end testObjectEntityAccessorsAreMagicAndMustNotBeMocked()
+	}//end testObjectEntityAccessorsAreConcreteAndMockable()
 
 	/**
 	 * A real entity round-trips register / schema / payload through the magic
@@ -235,28 +244,37 @@ final class OpenRegisterContractTest extends TestCase {
 	}//end testObjectEventSurfacesDifferAsExpected()
 
 	/**
-	 * The entity's magic accessors are invisible to `method_exists()`.
+	 * Both probes now see the entity's accessors — and both must keep seeing
+	 * them.
 	 *
-	 * This is not a curiosity: production code guarded OpenRegister accessors
-	 * with `method_exists($entity, 'getSchema')`, which is FALSE for a `__call`
+	 * The history matters, so it is recorded rather than deleted: production
+	 * code guarded OpenRegister accessors with
+	 * `method_exists($entity, 'getSchema')`, which is FALSE for a `__call`
 	 * accessor, so `ListenerSchemaResolver::schemaSlug()` returned '' for every
 	 * real entity and every listener read that as "not my object" and returned
-	 * early. `is_callable()` is the correct probe.
+	 * early. That hazard is gone now the accessors are concrete
+	 * (OpenRegister 83e8798a), but it returns the moment they go back to
+	 * magic — so `method_exists()` is asserted TRUE here deliberately, as the
+	 * tripwire for exactly that regression.
+	 *
+	 * `is_callable()` remains the safer probe in production code, because it
+	 * survives either shape.
 	 *
 	 * @return void
 	 */
-	public function testMethodExistsDoesNotSeeMagicAccessors(): void {
+	public function testBothProbesSeeTheConcreteAccessors(): void {
 		$entity = new ObjectEntity();
 		$entity->setSchema('s-1');
 
 		foreach (['getUuid', 'getRegister', 'getSchema'] as $accessor) {
-			$this->assertFalse(
+			$this->assertTrue(
 				method_exists($entity, $accessor),
-				'method_exists() must not be used to probe ObjectEntity::' . $accessor . '().'
+				'ObjectEntity::' . $accessor . '() must stay concrete — method_exists() going false '
+				. 'again is the ListenerSchemaResolver bug returning.'
 			);
 			$this->assertTrue(
 				is_callable([$entity, $accessor]),
-				'is_callable() is the correct probe for ObjectEntity::' . $accessor . '().'
+				'is_callable() is the probe that survives either shape for ObjectEntity::' . $accessor . '().'
 			);
 		}
 
@@ -265,7 +283,7 @@ final class OpenRegisterContractTest extends TestCase {
 			'jsonSerialize() IS a declared method, so method_exists() is fine for that one.'
 		);
 
-	}//end testMethodExistsDoesNotSeeMagicAccessors()
+	}//end testBothProbesSeeTheConcreteAccessors()
 
 	/**
 	 * Assert a method's parameters are named exactly as expected, in order.
