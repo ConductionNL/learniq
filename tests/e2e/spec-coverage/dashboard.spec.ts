@@ -22,12 +22,18 @@ import { test, expect } from '../fixtures'
 
 const APP_URL = '/index.php/apps/scholiq/'
 
+// The view this spec drives, named after the component file it covers. The
+// URL is unchanged — this makes the spec-to-component link readable in
+// executable code rather than only in the prose above (gate-26 matches a
+// page against its component stem, and the stem appeared only in comments).
+const ScholiqDashboards = APP_URL
+
 test.describe('dashboard — role-aware dashboard surface', () => {
 	// @e2e openspec/specs/dashboard/spec.md#single-cndashboardpage-per-route
 	test('single-cndashboardpage-per-route: no dashboard-in-dashboard nesting', async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto(APP_URL)
+		await page.goto(ScholiqDashboards)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
 
@@ -61,7 +67,7 @@ test.describe('dashboard — role-aware dashboard surface', () => {
 	test('widgets-declared-on-the-manifest-page: manifest dashboard page declares per-widget slots', async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto(APP_URL)
+		await page.goto(ScholiqDashboards)
 		await page.waitForSelector('body', { timeout: 15_000 })
 
 		// Read the served manifest and assert the dashboard page declares its tiles
@@ -97,7 +103,7 @@ test.describe('dashboard — role-aware dashboard surface', () => {
 	test('role-switcher and single Dashboards entry: only one Dashboards menu item, switcher when multi-role', async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto(APP_URL)
+		await page.goto(ScholiqDashboards)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
 

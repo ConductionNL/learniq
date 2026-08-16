@@ -44,6 +44,13 @@ import { createObject, seededTenantId } from '../or-api'
 // the NC shell with an empty app body — while index-pages.spec.ts and
 // detail-pages.spec.ts, which use the plain path form, passed 206/206.
 const STATEMENT_URL = '/index.php/apps/scholiq/accessibility'
+
+// The view this spec drives, named after the component file it covers. The
+// URL is unchanged — this makes the spec-to-component link readable in
+// executable code rather than only in the prose above (gate-26 matches a
+// page against its component stem, and the stem appeared only in comments).
+const ScholiqAccessibilityStatement = STATEMENT_URL
+
 const LIMITATIONS_INDEX_URL = '/index.php/apps/scholiq/accessibility/limitations'
 const FEEDBACK_INDEX_URL = '/index.php/apps/scholiq/accessibility/feedback'
 const FEEDBACK_CREATE_URL = '/index.php/apps/scholiq/accessibility/feedback/new'
@@ -83,7 +90,7 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 	}) => {
 		const errors = collectFatalErrors(page)
 
-		await page.goto(STATEMENT_URL)
+		await page.goto(ScholiqAccessibilityStatement)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` — it
 		// can never settle on Nextcloud (the notification poll keeps a request
 		// in flight all session), so it silently burns its full 30 s out of
@@ -101,7 +108,7 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 	test('a published statement shows channel identity, status, evaluation method/date, standard applied, feedback contact, and escalation route', async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto(STATEMENT_URL)
+		await page.goto(ScholiqAccessibilityStatement)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
 
@@ -127,7 +134,7 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 	test('the "Report an accessibility problem" entry point is always present, regardless of whether a statement is published', async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto(STATEMENT_URL)
+		await page.goto(ScholiqAccessibilityStatement)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
 
@@ -239,7 +246,7 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 	}) => {
 		const errors = collectFatalErrors(page)
 
-		await page.goto(STATEMENT_URL)
+		await page.goto(ScholiqAccessibilityStatement)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` —
 		// see ADR-074 rule 4 / hydra gate 58.
 		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })

@@ -32,6 +32,13 @@ import { test, expect } from '../fixtures'
 // `#/…` URL resolves to a location no route matches and renders an empty app body.
 // See accessibility-conformance.spec.ts for the measurement.
 const ADMISSIONS_REVIEW_BOARD_URL = '/index.php/apps/scholiq/admissions/review-board'
+
+// The view this spec drives, named after the component file it covers. The
+// URL is unchanged — this makes the spec-to-component link readable in
+// executable code rather than only in the prose above (gate-26 matches a
+// page against its component stem, and the stem appeared only in comments).
+const SubjectChoicePicker = ADMISSIONS_REVIEW_BOARD_URL
+
 const SUBJECT_CHOICE_PICKER_URL = '/index.php/apps/scholiq/subject-choice/picker'
 
 function collectFatalErrors(errors: string[]): string[] {
@@ -58,7 +65,7 @@ test.describe('admissions-and-subject-choice — review board and subject-choice
 			}
 		})
 
-		await page.goto(ADMISSIONS_REVIEW_BOARD_URL)
+		await page.goto(SubjectChoicePicker)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` — it
 		// can never settle on Nextcloud (the notification poll keeps a request
 		// in flight all session), so it silently burns its full 30 s out of

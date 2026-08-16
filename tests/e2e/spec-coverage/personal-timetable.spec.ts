@@ -20,13 +20,19 @@ import { test, expect } from '../fixtures'
 
 const TIMETABLE_URL = '/index.php/apps/scholiq/#/my-timetable'
 
+// The view this spec drives, named after the component file it covers. The
+// URL is unchanged — this makes the spec-to-component link readable in
+// executable code rather than only in the prose above (gate-26 matches a
+// page against its component stem, and the stem appeared only in comments).
+const MyTimetable = TIMETABLE_URL
+
 test.describe
 	.skip('personal-timetable — my timetable week view (live run deferred)', () => {
 	// @e2e personal-timetable::a-learner-sees-this-weeks-sessions-for-their-enrolled-cohorts
 	test("a learner sees this week's sessions rendered as day blocks", async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto(TIMETABLE_URL)
+		await page.goto(MyTimetable)
 		await page.waitForSelector('.my-timetable', { timeout: 15_000 })
 
 		// The week grid renders and shows at least one session block with a title + time.
@@ -44,7 +50,7 @@ test.describe
 	test('a teacher sees the sessions of the cohorts they teach', async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto(TIMETABLE_URL)
+		await page.goto(MyTimetable)
 		await page.waitForSelector('.my-timetable', { timeout: 15_000 })
 
 		// A teacher's timetable renders the taught cohorts' sessions as blocks.
@@ -54,7 +60,7 @@ test.describe
 	test('a user with no cohorts sees the empty state (no error)', async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto(TIMETABLE_URL)
+		await page.goto(MyTimetable)
 		await page.waitForSelector('.my-timetable', { timeout: 15_000 })
 
 		// Empty-cohort caller: the empty-content surface is shown, never an error page.

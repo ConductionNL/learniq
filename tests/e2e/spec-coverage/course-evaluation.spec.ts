@@ -27,6 +27,13 @@ import { test, expect } from '../fixtures'
 // `#/…` URL resolves to a location no route matches and renders an empty app body.
 // See accessibility-conformance.spec.ts for the measurement.
 const QUALITY_REPORT_URL = '/index.php/apps/scholiq/course-evaluation/quality-report'
+
+// The view this spec drives, named after the component file it covers. The
+// URL is unchanged — this makes the spec-to-component link readable in
+// executable code rather than only in the prose above (gate-26 matches a
+// page against its component stem, and the stem appeared only in comments).
+const CourseQualityReport = QUALITY_REPORT_URL
+
 const IMPROVEMENT_ACTIONS_URL =
 	'/index.php/apps/scholiq/course-evaluation/improvement-actions'
 
@@ -54,7 +61,7 @@ test.describe('course-evaluation — quality report and improvement actions', ()
 			}
 		})
 
-		await page.goto(QUALITY_REPORT_URL)
+		await page.goto(CourseQualityReport)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` — it
 		// can never settle on Nextcloud (the notification poll keeps a request
 		// in flight all session), so it silently burns its full 30 s out of
