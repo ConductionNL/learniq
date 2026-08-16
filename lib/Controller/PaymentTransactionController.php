@@ -202,34 +202,23 @@ class PaymentTransactionController extends Controller {
 			);
 		}
 
-		$now = new DateTimeImmutable();
-
-		$saved = $this->objectService->saveObject(
-			object: [
-				'orderId' => $orderId,
-				'pspProvider' => $pspProvider,
-				'amount' => $remaining,
-				'currency' => (string)($order['currency'] ?? 'EUR'),
-				'initiatedBy' => $user->getUID(),
-				'initiatedAt' => $now->format(DATE_ATOM),
-			],
-			register: self::SCHOLIQ_REGISTER,
-			schema: self::PAYMENT_TRANSACTION_SCHEMA
+		$transactionId = $this->createPendingTransaction(
+			orderId: $orderId,
+			pspProvider: $pspProvider,
+			amount: $remaining,
+			currency: (string)($order['currency'] ?? 'EUR'),
+			initiatedBy: $user->getUID()
 		);
 
-		$savedData = $saved->jsonSerialize();
-
-		$transactionId = $savedData['id'] ?? ($savedData['uuid'] ?? null);
-
 		if ($transactionId === null) {
-			$this->logger->error('[PaymentTransactionController] PaymentTransaction creation returned no id — cannot proceed.');
+			// The helper has already logged which of the two failure shapes
+			// it hit; both mean "no PaymentTransaction exists", so both get
+			// the same envelope.
 			return new JSONResponse(
 				data: ['error' => 'Failed to create PaymentTransaction'],
 				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
 			);
 		}
-
-		$transactionId = (string)$transactionId;
 
 		$launchResponse = $this->initiationClient->initiate(
 			paymentTransactionId: $transactionId,
@@ -257,6 +246,81 @@ class PaymentTransactionController extends Controller {
 	}//end initiate()
 
 	/**
+	 * Create the `pending` PaymentTransaction row for one initiation attempt.
+	 *
+	 * Extracted from initiate() so the two ways this step can fail live
+	 * together, and so initiate() stays inside phpmd's complexity and length
+	 * budgets.
+	 *
+	 * WHY THE SAVE IS GUARDED. `ObjectService::saveObject()` documents
+	 * `@throws Exception If there is an error during save`, and resolving the
+	 * `scholiq` register / `paymentTransaction` schema slug raises
+	 * DoesNotExistException on an install that never received them. Uncaught,
+	 * that answered the payer with a framework HTTP 500 carrying a stack
+	 * trace, and left no PaymentTransaction row — from the outside
+	 * indistinguishable from a PSP that simply never responded.
+	 *
+	 * WHY EVERY FAILURE IS A 500 AND NOT A 4xx. Every field written here is
+	 * computed SERVER-SIDE: the Order is already resolved, `$pspProvider` is
+	 * checked against PSP_PROVIDERS by the caller, and `$amount` is derived
+	 * from the Order's own totals. No caller-supplied value reaches schema
+	 * validation, so any failure at this point is a fault on our side.
+	 *
+	 * @param string $orderId UUID of the Order being paid.
+	 * @param string $pspProvider Validated PSP routing key.
+	 * @param float $amount Server-computed amount still owed.
+	 * @param string $currency ISO currency code taken from the Order.
+	 * @param string $initiatedBy UID of the acting user.
+	 *
+	 * @return string|null The new PaymentTransaction id, or null when the row
+	 *                     could not be created (already logged).
+	 *
+	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-initiating-payment-delegates-to-openconnector-and-returns-an-opaque-checkout-reference
+	 */
+	private function createPendingTransaction(
+		string $orderId,
+		string $pspProvider,
+		float $amount,
+		string $currency,
+		string $initiatedBy,
+	): ?string {
+		$now = new DateTimeImmutable();
+
+		try {
+			$saved = $this->objectService->saveObject(
+				object: [
+					'orderId' => $orderId,
+					'pspProvider' => $pspProvider,
+					'amount' => $amount,
+					'currency' => $currency,
+					'initiatedBy' => $initiatedBy,
+					'initiatedAt' => $now->format(DATE_ATOM),
+				],
+				register: self::SCHOLIQ_REGISTER,
+				schema: self::PAYMENT_TRANSACTION_SCHEMA
+			);
+		} catch (\Throwable $saveFailure) {
+			$this->logger->error(
+				'[PaymentTransactionController] PaymentTransaction creation failed for order '
+				. $orderId . ': ' . $saveFailure->getMessage(),
+				['exception' => $saveFailure]
+			);
+			return null;
+		}//end try
+
+		$savedData = $saved->jsonSerialize();
+
+		$transactionId = $savedData['id'] ?? ($savedData['uuid'] ?? null);
+
+		if ($transactionId === null) {
+			$this->logger->error('[PaymentTransactionController] PaymentTransaction creation returned no id — cannot proceed.');
+			return null;
+		}
+
+		return (string)$transactionId;
+	}//end createPendingTransaction()
+
+	/**
 	 * Receive a status update from OpenConnector's PSP adapter.
 	 *
 	 * Authenticates the caller via the dedicated
@@ -265,6 +329,13 @@ class PaymentTransactionController extends Controller {
 	 * transition. Does not persist pspPaymentId/completedAt — see this
 	 * class's own docblock "KNOWN GAP" note.
 	 *
+	 * RATE LIMIT, and why it is generous: this is a payment provider's
+	 * callback — a machine caller with its own signature, retrying on its own
+	 * schedule. Dropping a payment notification is a worse failure than
+	 * absorbing a burst, and the drop lands on the provider's side where we
+	 * would never see it. Hence 300/60 rather than the usual anonymous
+	 * ceiling.
+	 *
 	 * @return JSONResponse Empty success body, or an error.
 	 *
 	 * @spec openspec/changes/school-payments/tasks.md#task-3.5
@@ -272,10 +343,6 @@ class PaymentTransactionController extends Controller {
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
-	// Payment provider callback: machine caller, own signature, retries on its
-	// own schedule. Generous ceiling — dropping a payment notification is a
-	// worse failure than absorbing a burst, and it lands on the provider's
-	// side where we would not see it.
 	#[AnonRateLimit(limit: 300, period: 60)]
 	public function callback(): JSONResponse {
 		if ($this->isAuthenticCallback() === false) {
