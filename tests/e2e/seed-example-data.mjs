@@ -98,14 +98,24 @@ function loadRegister() {
 	return JSON.parse(readFileSync(join(REPO_ROOT, 'lib', 'Settings', 'scholiq_register.json'), 'utf8'))
 }
 
+// ⚠️ `_limit`, NOT `limit`. OpenRegister's list endpoints treat a bare `limit`
+// as a PROPERTY FILTER and ignore it as a page size — measured on this endpoint,
+// `?limit=3` returns all 142 rows while `?_limit=3` returns 3. The old
+// `?limit=500` therefore only ever worked because the endpoint happens to
+// default to "everything"; the day it grows a default page size, this read would
+// silently truncate and the seeder would re-POST schemas that already exist.
+// ci-seed.sh already uses `_limit` for the same reads.
+async function fetchSchemaRows() {
+	const r = await api('GET', '/index.php/apps/openregister/api/schemas?_limit=1000')
+	return r.json?.results ?? r.json?.data ?? (Array.isArray(r.json) ? r.json : [])
+}
+
 async function existingSchemaSlugs() {
-	const r = await api('GET', '/index.php/apps/openregister/api/schemas?limit=500')
-	const items = r.json?.results ?? r.json?.data ?? (Array.isArray(r.json) ? r.json : [])
-	return new Set(items.map((s) => s.slug).filter(Boolean))
+	return new Set((await fetchSchemaRows()).map((s) => s.slug).filter(Boolean))
 }
 
 async function ensureRegisterRow() {
-	const r = await api('GET', '/index.php/apps/openregister/api/registers?limit=500')
+	const r = await api('GET', '/index.php/apps/openregister/api/registers?_limit=500')
 	const items = r.json?.results ?? r.json?.data ?? (Array.isArray(r.json) ? r.json : [])
 	const found = items.find((x) => x.slug === REGISTER_SLUG)
 	if (found) { log(`register "${REGISTER_SLUG}" exists (id ${found.id})`); return found }
@@ -116,6 +126,47 @@ async function ensureRegisterRow() {
 	warn(`could not create register row (status ${c.status})`); return null
 }
 
+// Read the register's own schema list and link anything missing, with ONE PATCH.
+//
+// The repair is additive and it refuses to act on a read it could not parse:
+// PATCH replaces the list wholesale, so basing the new list on an unreadable
+// read would DELETE every existing linkage. An unreadable result is not "nothing
+// is linked" — it is "I could not tell", and it must not take the write branch.
+async function ensureRegisterLinkage(registerRow, wanted) {
+	const registerId = registerRow?.id ?? null
+	if (registerId === null) {
+		warn('linkage: no register id — cannot verify which schemas the register carries')
+		return
+	}
+	const reg = await api('GET', `/index.php/apps/openregister/api/registers/${registerId}`)
+	const linked = reg.ok === true ? (reg.json?.schemas ?? null) : null
+	if (Array.isArray(linked) === false) {
+		warn(`linkage: could not read register ${registerId} (status ${reg.status}) — NOT patching. `
+			+ 'An unreadable list must never become the base of a replace.')
+		return
+	}
+
+	const rows = await fetchSchemaRows()
+	const idBySlug = new Map(rows.filter((s) => s.slug).map((s) => [s.slug, s.id]))
+	const linkedIds = new Set(linked.map(String))
+	const missing = []
+	for (const slug of wanted.keys()) {
+		const id = idBySlug.get(slug)
+		if (id !== undefined && linkedIds.has(String(id)) === false) missing.push(id)
+	}
+	log(`linkage: register "${REGISTER_SLUG}" carries ${linked.length} schema(s); `
+		+ `${wanted.size - missing.length}/${wanted.size} scholiq schemas linked`)
+	if (missing.length === 0) return
+
+	const merged = [...linked, ...missing]
+	const p = await api('PATCH', `/index.php/apps/openregister/api/registers/${registerId}`, { schemas: merged })
+	if (p.ok) {
+		log(`linkage: linked ${missing.length} previously unlinked schema(s) — register now carries ${merged.length}`)
+		return
+	}
+	warn(`linkage: could not link ${missing.length} schema(s) (status ${p.status}): ${(p.text || '').slice(0, 200)}`)
+}
+
 async function importRegister() {
 	const register = loadRegister()
 	const registerJson = JSON.stringify(register)
@@ -123,7 +174,6 @@ async function importRegister() {
 	log(`register declares ${schemaNames.length} schemas`)
 
 	// Try the configurations import endpoints (these vary by OR build).
-	let imported = 0
 	const beforeImport = await existingSchemaSlugs()
 	// (a) create a Configuration entity, then import into it
 	const cfg = await api('POST', '/index.php/apps/openregister/api/configurations', {
@@ -141,45 +191,86 @@ async function importRegister() {
 	}
 
 	// (c) for any scholiq schema still missing, POST it individually.
-	await ensureRegisterRow()
+	const registerRow = await ensureRegisterRow()
+
+	// ── `?register=` is what makes an individually-created schema REACHABLE ───
+	// OpenRegister keeps the register↔schema linkage in
+	// `openregister_registers.schemas`. Since openregister#2526 that list is the
+	// BOUNDARY every register-scoped slug read is checked against: a
+	// `POST /api/objects/scholiq/<slug>` answers `Schema not found: '<slug>'`
+	// when the register does not carry the slug — even though the schema row
+	// exists and `GET /api/schemas` lists it happily. openregister#2535 then made
+	// `POST /api/schemas?register=<id|uuid|slug>` maintain that list, and this is
+	// the call site that has to pass it.
+	//
+	// Measured WITHOUT the parameter (CI run 31957570239, reproduced locally
+	// against openregister development incl. #2535): 118/118 schemas present,
+	// register carries 0, and all 33 object creates below fail with 404 while
+	// this function still logs a cheerful "118/118 scholiq schemas now present".
+	//
+	// A register value that does not resolve is a 400 from OpenRegister BEFORE
+	// the schema is written, so a wrong value fails loudly instead of silently
+	// producing unreachable schemas.
+	const registerRef = registerRow?.id ?? registerRow?.uuid ?? registerRow?.slug ?? null
+	if (registerRef === null) {
+		warn('!! no register row could be resolved — schemas created below would be UNREACHABLE by slug '
+			+ '(the register\'s schema list is the boundary for every /api/objects/<register>/<slug> read).')
+	}
+	const registerQuery = registerRef === null ? '' : `?register=${encodeURIComponent(registerRef)}`
+
 	const after = await existingSchemaSlugs()
-	imported = [...after].filter((s) => !beforeImport.has(s)).length
+	// This count used to be computed and then thrown away. It is the one number
+	// that says how far the BULK import got before it stopped, and its absence is
+	// why an import that aborted on the 5th schema — leaving 4 orphan, unlinked
+	// rows behind — looked exactly like an import that did nothing at all.
+	const imported = [...after].filter((s) => !beforeImport.has(s)).length
+	log(`bulk import produced ${imported} new schema row(s) before the per-schema fallback`)
 	const wanted = new Map(Object.entries(register.components.schemas).map(([name, s]) => [s.slug, { name, s }]))
 	let createdIndividually = 0
 	for (const [slug, { name, s }] of wanted) {
 		if (after.has(slug)) continue
 		// Build a minimal schema body OR doesn't choke on (slug/title/required/properties + x-openregister-*).
 		const body = { ...s }
-		const r = await api('POST', '/index.php/apps/openregister/api/schemas', body)
+		const r = await api('POST', `/index.php/apps/openregister/api/schemas${registerQuery}`, body)
 		if (r.ok) { createdIndividually++; log(`  + created schema "${slug}" individually`); continue }
 
-		// ── Retry without the top-level `allOf` ──────────────────────────────
-		// Measured on CI (run 30796644591): exactly the three schemas that carry
-		// a TOP-LEVEL `allOf` — lesson, grade-entry, portfolio-entry — failed
-		// with HTTP 500, and all 115 without one succeeded. 3 of 3 vs 0 of 115.
-		// The register's own bulk import fails on the same input with
-		//   SchemaMapper::loadSchema(): Argument #1 ($identifier) must be of
-		//   type string|int, array given
-		// i.e. OpenRegister hands a composed sub-schema ARRAY to a resolver that
-		// expects one identifier. That is an OpenRegister defect, not a scholiq
-		// one, and it cannot be fixed from this repo.
+		// ── Diagnose a top-level `allOf` carrying OBJECTS ────────────────────
+		// OpenRegister's `allOf` is a NARROWER dialect than JSON Schema's: an
+		// array of PARENT SCHEMA REFERENCES (id, uuid or slug). See its
+		// docs/Features/schemas.md (`"allOf": ["42"]`, `"allOf": ["person"]`) and
+		// Schema::setAllOf() — "Array of schema IDs, UUIDs, or slugs".
+		// SchemaMapper::extractAllOfDelta() passes each entry straight to
+		// loadSchema(string|int $identifier), so an OBJECT entry raises a
+		// TypeError. It is a TypeError, not an Exception, so that method's own
+		// `catch (Exception)` does not catch it: a single POST 500s, and the
+		// whole configuration import returns {"success":false} and stops, which
+		// is what left `course` and `credential` present-but-unlinked below.
 		//
-		// `allOf` here only carries if/then/else CONDITIONAL VALIDATION (e.g.
-		// "contentRef is required unless contentType is text"). Dropping it
-		// keeps every property, every type and the base `required` list, so the
-		// index/detail pages under test render identically — the seeded fixture
-		// is simply validated less strictly than production. Retrying is what
-		// makes the difference between an index page that exists and one that
-		// 404s for a reason that has nothing to do with the code under test.
+		// This register carried three such blocks (lesson, grade-entry,
+		// portfolio-entry) until they were removed. They were never enforced
+		// anyway: Schema::getSchemaObject(), the only thing handed to the Opis
+		// validator, emits title/description/version/type/required/$schema/$id/
+		// properties and nothing else — no allOf, no if/then/else ever reaches a
+		// validator in any OpenRegister build.
 		//
-		// The retry is deliberately narrow: it only fires after a real failure,
-		// only drops `allOf`, and says so loudly.
-		if (s.allOf !== undefined) {
+		// Removing the three blocks from the register is the real fix, and it was
+		// measured to work (settings/load goes {"success":false} → true and the
+		// bulk import links all 118 by itself). It is NOT done here because it
+		// also lands on two unit tests that assert the construct and on three
+		// integration tests that only pass today by SKIPPING on the missing
+		// register — its own slot. Until then the retry stands, and it now says
+		// exactly what it is working around.
+		if (Array.isArray(s.allOf) && s.allOf.some((e) => e !== null && typeof e === 'object')) {
+			warn(`  !! schema "${slug}" has a top-level allOf containing OBJECTS. OpenRegister's allOf takes parent-schema `
+				+ `REFERENCES (id/uuid/slug) only; an object entry raises a TypeError in SchemaMapper::extractAllOfDelta() `
+				+ `and aborts the WHOLE register import. OpenRegister evaluates no if/then/else at all, so the rule this `
+				+ `expresses is not enforced by the register in any build.`)
 			const { allOf, ...withoutAllOf } = s
-			const r2 = await api('POST', '/index.php/apps/openregister/api/schemas', withoutAllOf)
+			const r2 = await api('POST', `/index.php/apps/openregister/api/schemas${registerQuery}`, withoutAllOf)
 			if (r2.ok) {
 				createdIndividually++
-				warn(`  ~ created schema "${slug}" WITHOUT its top-level allOf (OpenRegister 500s on composed schemas; conditional validation dropped for this fixture)`)
+				warn(`  ~ created schema "${slug}" WITHOUT its top-level allOf. Nothing is lost at runtime — see above — but `
+					+ `the register's own bulk import still cannot complete while the block is there.`)
 				continue
 			}
 			warn(`  ! could not create schema "${slug}" (status ${r.status}; retry without allOf also failed with ${r2.status}: ${(r2.text || '').slice(0, 200)})`)
@@ -187,6 +278,16 @@ async function importRegister() {
 		}
 		warn(`  ! could not create schema "${slug}" (status ${r.status}): ${(r.text || '').slice(0, 200)}`)
 	}
+
+	// ── Verify the register actually CARRIES the schemas ─────────────────────
+	// "the schema row exists" and "the register lists it" are different
+	// questions, and only the second governs /api/objects/<register>/<slug>.
+	// The `if (after.has(slug)) continue` skip above asks the first one, so any
+	// schema left behind UNLINKED by an aborted bulk import is skipped here and
+	// never gets a `?register=` create. Measured: an import that aborted on the
+	// 5th schema left `course` and `credential` — 2 of the 6 slugs ci-seed.sh
+	// gates on — present-but-unlinked, three times over.
+	await ensureRegisterLinkage(registerRow, wanted)
 	const finalSet = await existingSchemaSlugs()
 	const present = [...wanted.keys()].filter((slug) => finalSet.has(slug))
 	const missing = [...wanted.keys()].filter((slug) => !finalSet.has(slug))
