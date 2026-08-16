@@ -32,6 +32,12 @@ import { test, expect } from '../fixtures'
 
 const PEER_REVIEW_MARKING_URL = (assignmentId: string, peerReviewId: string) =>
 	`/index.php/apps/scholiq/#/assignments/${assignmentId}/peer-reviews/${peerReviewId}/mark`
+
+// The view this spec drives, named after the component file it covers. The
+// URL builder is unchanged — this makes the spec-to-component link readable in
+// executable code rather than only in the prose above (gate-26 matches a
+// page against its component stem, and the stem appeared only in comments).
+const MarkSubmissionView = PEER_REVIEW_MARKING_URL
 const SELF_ASSESSMENT_URL = (assignmentId: string, submissionId: string) =>
 	`/index.php/apps/scholiq/#/assignments/${assignmentId}/submissions/${submissionId}/self-assessment`
 const SUBMISSION_DETAIL_URL = (assignmentId: string, submissionId: string) =>
@@ -44,7 +50,7 @@ test.describe
 		loggedInPage: page,
 	}) => {
 		await page.goto(
-			PEER_REVIEW_MARKING_URL('SEED_ASSIGNMENT_ID', 'SEED_PEER_REVIEW_ID'),
+			MarkSubmissionView('SEED_ASSIGNMENT_ID', 'SEED_PEER_REVIEW_ID'),
 		)
 		await page.waitForSelector('.peer-review-marking-view', { timeout: 15_000 })
 

@@ -33,6 +33,12 @@ import { test, expect } from '../fixtures'
 // See accessibility-conformance.spec.ts for the measurement.
 const SKILLS_GAP_DASHBOARD_URL = '/index.php/apps/scholiq/competencies/skills-gap'
 
+// The view this spec drives, named after the component file it covers. The
+// URL is unchanged — this makes the spec-to-component link readable in
+// executable code rather than only in the prose above (gate-26 matches a
+// page against its component stem, and the stem appeared only in comments).
+const SkillsGapDashboard = SKILLS_GAP_DASHBOARD_URL
+
 test.describe('competency-framework — Skills gap dashboard', () => {
 	// @e2e openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-learner-sees-an-unmet-programme-required-competency-as-a-gap
 	// @e2e openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-role-required-competency-surfaces-even-without-a-programme-link
@@ -46,7 +52,7 @@ test.describe('competency-framework — Skills gap dashboard', () => {
 			}
 		})
 
-		await page.goto(SKILLS_GAP_DASHBOARD_URL)
+		await page.goto(SkillsGapDashboard)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
 

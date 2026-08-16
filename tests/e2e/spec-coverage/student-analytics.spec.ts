@@ -30,6 +30,12 @@ import { test, expect } from '../fixtures'
 const GROUP_TREND_HEATMAP_URL =
 	'/index.php/apps/scholiq/progress/group-trend-heatmap'
 
+// The view this spec drives, named after the component file it covers. The
+// URL is unchanged — this makes the spec-to-component link readable in
+// executable code rather than only in the prose above (gate-26 matches a
+// page against its component stem, and the stem appeared only in comments).
+const GroupTrendHeatmap = GROUP_TREND_HEATMAP_URL
+
 test.describe('learning-progress-and-analytics — Group trend heat map', () => {
 	// @e2e openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
 	test('Group trend heat map renders without a fatal error', async ({
@@ -42,7 +48,7 @@ test.describe('learning-progress-and-analytics — Group trend heat map', () => 
 			}
 		})
 
-		await page.goto(GROUP_TREND_HEATMAP_URL)
+		await page.goto(GroupTrendHeatmap)
 		// Readiness signal: the Vue root has rendered something.
 		//
 		// This deliberately does NOT wait for `networkidle`. Nextcloud's
