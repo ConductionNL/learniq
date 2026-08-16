@@ -199,11 +199,21 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 	 * @return array<string,mixed> The object as a plain array, empty when absent.
 	 */
 	private function fetchObject(string $uuid, string $schema): array {
-		$entity = $this->objectService->find(
-			id: $uuid,
-			register: 'scholiq',
-			schema: $schema,
-		);
+		// MEASURED against a live NC 34 + openregister: despite the `?ObjectEntity`
+		// return type, ObjectService::find() THROWS DoesNotExistException on a
+		// miss ("Object with identifier '…' not found in any magic table") rather
+		// than returning null. A bare `=== null` check is therefore dead code —
+		// find() needs its own try/catch.
+		try {
+			$entity = $this->objectService->find(
+				id: $uuid,
+				register: 'scholiq',
+				schema: $schema,
+			);
+		} catch (\OCP\AppFramework\Db\DoesNotExistException) {
+			return [];
+		}
+
 		if ($entity === null) {
 			return [];
 		}
