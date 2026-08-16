@@ -28,8 +28,10 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Controller\CredentialVerifyController;
 use OCA\Scholiq\Service\KeyManagementService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
+use RuntimeException;
 use OCP\Security\Bruteforce\IThrottler;
 use Psr\Log\LoggerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -65,6 +67,14 @@ class CredentialVerifyControllerTest extends TestCase {
 	private KeyManagementService&MockObject $keyManagementService;
 
 	/**
+	 * Brute-force throttler mock — held so the tests can assert WHICH
+	 * failure shapes register an attempt and which deliberately do not.
+	 *
+	 * @var IThrottler&MockObject
+	 */
+	private IThrottler&MockObject $throttler;
+
+	/**
 	 * RSA test private key PEM.
 	 *
 	 * @var string
@@ -96,12 +106,13 @@ class CredentialVerifyControllerTest extends TestCase {
 
 		$this->objectService = $this->createMock(ObjectService::class);
 		$this->keyManagementService = $this->createMock(KeyManagementService::class);
+		$this->throttler = $this->createMock(IThrottler::class);
 
 		$this->controller = new CredentialVerifyController(
 			request: $this->createMock(IRequest::class),
 			objectService: $this->objectService,
 			keyManagementService: $this->keyManagementService,
-			throttler: $this->createMock(IThrottler::class),
+			throttler: $this->throttler,
 			logger: $this->createMock(LoggerInterface::class),
 		);
 	}//end setUp()
@@ -270,6 +281,61 @@ class CredentialVerifyControllerTest extends TestCase {
 		self::assertFalse($response->getData()['valid']);
 		self::assertSame('not_found', $response->getData()['error']);
 	}//end testVerifyReturns404ForUnknownCredential()
+
+	/**
+	 * ABSENCE ALSO ARRIVES AS AN EXCEPTION, NOT ONLY AS NULL.
+	 *
+	 * `ObjectService::find()` documents `@throws Exception If the object is
+	 * not found`, and resolving the `scholiq` register / `credential` schema
+	 * slug raises DoesNotExistException on an install that never got them.
+	 * Before this was caught, that path answered an anonymous caller with a
+	 * framework HTTP 500 and a stack trace AND skipped the throttle
+	 * registration — so the enumeration oracle this endpoint throttles was
+	 * open on exactly those requests.
+	 *
+	 * @return void
+	 */
+	public function testVerifyTranslatesDoesNotExistExceptionTo404AndThrottles(): void {
+		$this->objectService
+			->method('find')
+			->willThrowException(new DoesNotExistException('no such credential'));
+
+		$this->throttler
+			->expects(self::once())
+			->method('registerAttempt');
+
+		$response = $this->controller->verify('does-not-exist');
+
+		self::assertSame(404, $response->getStatus());
+		self::assertFalse($response->getData()['valid']);
+		self::assertSame('not_found', $response->getData()['error']);
+	}//end testVerifyTranslatesDoesNotExistExceptionTo404AndThrottles()
+
+	/**
+	 * A SERVER FAULT IS NOT AN ATTACKER'S GUESS.
+	 *
+	 * An unexpected failure in the lookup answers 500 with a generic
+	 * envelope — never a stack trace — and deliberately does NOT register a
+	 * throttle attempt: counting our own outage against the caller's IP
+	 * would let a broken OpenRegister lock out every legitimate verifier.
+	 *
+	 * @return void
+	 */
+	public function testVerifyTranslatesUnexpectedFailureTo500WithoutThrottling(): void {
+		$this->objectService
+			->method('find')
+			->willThrowException(new RuntimeException('database is on fire'));
+
+		$this->throttler
+			->expects(self::never())
+			->method('registerAttempt');
+
+		$response = $this->controller->verify('cred-uuid-500');
+
+		self::assertSame(500, $response->getStatus());
+		self::assertFalse($response->getData()['valid']);
+		self::assertSame('verification_unavailable', $response->getData()['error']);
+	}//end testVerifyTranslatesUnexpectedFailureTo500WithoutThrottling()
 
 	/**
 	 * C1: a credential with a tampered JWS returns valid:false + signature_invalid.

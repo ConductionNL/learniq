@@ -459,4 +459,44 @@ class PaymentTransactionControllerTest extends TestCase {
 		self::assertSame('Order not found', ((array)$result->getData())['error'] ?? null);
 
 	}//end testInitiateReturnsNotFoundWhenTheOrderLookupThrows()
+
+	/**
+	 * A FAILING PaymentTransaction WRITE MUST NOT REACH THE PAYER AS A
+	 * FRAMEWORK 500.
+	 *
+	 * `ObjectService::saveObject()` documents `@throws Exception If there is
+	 * an error during save`, and resolving the register/schema slug raises
+	 * DoesNotExistException on an install that never received them. Uncaught,
+	 * the payer got a stack trace and no PaymentTransaction row — from the
+	 * outside indistinguishable from a PSP that never answered.
+	 *
+	 * Asserts the body as well as the status, because `initiate()` has a
+	 * second 500 exit (the save succeeded but returned no id) and a
+	 * status-only assertion could not tell the two apart. It also asserts
+	 * that NO transition is attempted: there is no transaction to move.
+	 *
+	 * @return void
+	 */
+	public function testInitiateReturns500WhenTheTransactionWriteThrows(): void {
+		$this->signInAs('payer-1');
+
+		$this->objectService->method('find')->willReturn(
+			OrEntityFactory::make(
+				['id' => 'order-1', 'lifecycle' => 'open', 'totalAmount' => 50.00, 'currency' => 'EUR'],
+				'order'
+			)
+		);
+		$this->objectService->method('findAll')->willReturn([]);
+		$this->objectService->method('saveObject')->willThrowException(
+			new \RuntimeException('append-only violation')
+		);
+
+		$this->transitionEngine->expects($this->never())->method('transition');
+
+		$result = $this->controller()->initiate(orderId: 'order-1', pspProvider: 'mollie');
+
+		self::assertSame(Http::STATUS_INTERNAL_SERVER_ERROR, $result->getStatus());
+		self::assertSame('Failed to create PaymentTransaction', ((array)$result->getData())['error'] ?? null);
+
+	}//end testInitiateReturns500WhenTheTransactionWriteThrows()
 }//end class

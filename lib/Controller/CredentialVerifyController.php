@@ -38,6 +38,8 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\AppInfo\Application;
 use OCA\Scholiq\Service\KeyManagementService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -92,6 +94,8 @@ class CredentialVerifyController extends Controller {
 	 * @param IRequest $request The HTTP request.
 	 * @param ObjectService $objectService OR object-read service.
 	 * @param KeyManagementService $keyManagementService Key resolution service for JWS verify.
+	 * @param IThrottler $throttler Brute-force throttler counting failed verifications.
+	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
@@ -126,11 +130,41 @@ class CredentialVerifyController extends Controller {
 	#[AnonRateLimit(limit: 60, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function verify(string $id): JSONResponse {
-		$credentialObj = $this->objectService->find(
-			id: $id,
-			register: 'scholiq',
-			schema: 'credential'
-		);
+		// ABSENCE REACHES THIS METHOD IN TWO SHAPES, NOT ONE. `find()`
+		// documents `@throws Exception If the object is not found`, and
+		// resolving the `scholiq` register / `credential` schema slug goes
+		// through RegisterMapper::find() / SchemaMapper::find(), which raise
+		// DoesNotExistException when the register is not installed. Only the
+		// `null` shape was handled, so on the throwing path this
+		// #[PublicPage] endpoint answered an anonymous caller with a
+		// framework HTTP 500 and a stack trace -- AND skipped
+		// registerFailedVerification(), leaving the enumeration oracle this
+		// method throttles wide open on exactly the requests that reached it.
+		try {
+			$credentialObj = $this->objectService->find(
+				id: $id,
+				register: 'scholiq',
+				schema: 'credential'
+			);
+		} catch (DoesNotExistException | MultipleObjectsReturnedException $notFound) {
+			// Same meaning as `null` below, so the same answer: a guess, and
+			// it is counted.
+			$this->registerFailedVerification();
+			return new JSONResponse(['valid' => false, 'error' => 'not_found'], 404);
+		} catch (\Throwable $lookupFailure) {
+			// A SERVER FAULT IS NOT AN ATTACKER'S GUESS, so this arm does NOT
+			// register a throttle attempt -- doing so would let a broken
+			// OpenRegister lock out every legitimate verifier. The cause is
+			// logged; the caller gets a generic envelope, never a trace.
+			$this->logger->error(
+				'CredentialVerifyController: credential lookup failed: ' . $lookupFailure->getMessage(),
+				['exception' => $lookupFailure]
+			);
+			return new JSONResponse(
+				['valid' => false, 'error' => 'verification_unavailable'],
+				500
+			);
+		}//end try
 
 		if ($credentialObj === null) {
 			// A UUID that resolves to nothing is a guess. This endpoint is
