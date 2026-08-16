@@ -69,7 +69,7 @@ final class OpenRegisterContractTest extends TestCase {
 	public function testObjectServiceFindSignatureIsUnchanged(): void {
 		$this->assertParameterNames(
 			new ReflectionMethod(ObjectService::class, 'find'),
-			['id', '_extend', 'files', 'register', 'schema', '_rbac', '_multitenancy', '_render']
+			['id', '_extend', 'files', 'register', 'schema', '_rbac', '_multitenancy', '_render', '_audit']
 		);
 
 		$this->assertReturnTypeIs(
@@ -124,37 +124,46 @@ final class OpenRegisterContractTest extends TestCase {
 	}//end testObjectServiceSaveObjectSignatureIsUnchanged()
 
 	/**
-	 * ObjectEntity's accessors are `__call` magic and cannot be mocked.
+	 * ObjectEntity's register / schema / uuid accessors are concrete.
 	 *
-	 * `createMock(ObjectEntity::class)->method('getRegister')` throws
-	 * `MethodCannotBeConfiguredException` against the real class. If this ever
-	 * starts failing because the methods became concrete, the test-suite-wide
-	 * ban on mocking them can be lifted — until then, tests must build real
-	 * instances via OrEntityFactory.
+	 * They were `__call` magic until OpenRegister promoted them to real
+	 * declarations; this tripwire caught that promotion rather than letting it
+	 * arrive as an unexplained mock failure. The direction it guards is now
+	 * reversed: the risk is no longer a surprise declaration but a stub that
+	 * falls BACK to magic while the real app stays concrete. That split is the
+	 * expensive one, because tests/Stubs wins standalone and the real entity
+	 * wins in CI — NC's autoloader registers the app ahead of these shims — so
+	 * the same mock is legal locally and illegal in the pipeline.
 	 *
 	 * @return void
 	 */
-	public function testObjectEntityAccessorsAreMagicAndMustNotBeMocked(): void {
+	public function testObjectEntityAccessorsAreConcreteInStubAndRealEntity(): void {
 		$reflection = new ReflectionClass(ObjectEntity::class);
 
 		foreach (['getRegister', 'getSchema', 'getUuid'] as $accessor) {
-			$this->assertFalse(
+			$this->assertTrue(
 				$reflection->hasMethod($accessor),
 				sprintf(
-					'ObjectEntity::%s() must stay a __call magic accessor. A concrete declaration here means '
-					. 'tests/Stubs has drifted from the real OpenRegister entity, which makes every mock in this '
-					. 'suite green standalone and red in CI.',
+					'ObjectEntity::%s() must be a concrete declaration, matching the real OpenRegister entity. '
+					. 'A __call accessor here means tests/Stubs has drifted, which makes mocks that pass '
+					. 'standalone fail in CI.',
 					$accessor
 				)
+			);
+
+			$this->assertSame(
+				'?string',
+				(string)$reflection->getMethod($accessor)->getReturnType(),
+				sprintf('ObjectEntity::%s() must keep the real entity\'s ?string return type.', $accessor)
 			);
 		}
 
 		$this->assertTrue(
 			$reflection->isInstantiable(),
-			'ObjectEntity must be instantiable so tests can build real entities instead of mocking magic getters.'
+			'ObjectEntity must be instantiable so tests can build real entities instead of mocking accessors.'
 		);
 
-	}//end testObjectEntityAccessorsAreMagicAndMustNotBeMocked()
+	}//end testObjectEntityAccessorsAreConcreteInStubAndRealEntity()
 
 	/**
 	 * A real entity round-trips register / schema / payload through the magic
@@ -247,23 +256,44 @@ final class OpenRegisterContractTest extends TestCase {
 	 */
 	public function testMethodExistsDoesNotSeeMagicAccessors(): void {
 		$entity = new ObjectEntity();
-		$entity->setSchema('s-1');
+		$entity->setSlug('slug-1');
+		$entity->setVersion('1.0.0');
+		$entity->setName('Quiz A');
 
-		foreach (['getUuid', 'getRegister', 'getSchema'] as $accessor) {
+		// These are still __call magic upstream, so method_exists() is blind to
+		// them. getUuid/getRegister/getSchema used to be in this list and are
+		// now concrete — which is exactly why probing by method_exists() is
+		// unsafe as a rule: the answer changes underneath the caller when
+		// OpenRegister promotes an accessor, and the failure mode is a silent
+		// early return, not an error.
+		$magic = [
+			'getSlug' => 'slug-1',
+			'getVersion' => '1.0.0',
+			'getName' => 'Quiz A',
+		];
+
+		foreach ($magic as $accessor => $expected) {
 			$this->assertFalse(
 				method_exists($entity, $accessor),
 				'method_exists() must not be used to probe ObjectEntity::' . $accessor . '().'
 			);
-			$this->assertTrue(
-				is_callable([$entity, $accessor]),
-				'is_callable() is the correct probe for ObjectEntity::' . $accessor . '().'
+
+			// is_callable() answers true for ANY name once __call exists, so on
+			// its own it proves nothing. The load-bearing check is that the
+			// accessor actually round-trips the value it was set with.
+			$this->assertSame(
+				$expected,
+				$entity->$accessor(),
+				'ObjectEntity::' . $accessor . '() must round-trip through __call.'
 			);
 		}
 
-		$this->assertTrue(
-			method_exists($entity, 'jsonSerialize'),
-			'jsonSerialize() IS a declared method, so method_exists() is fine for that one.'
-		);
+		foreach (['getUuid', 'getRegister', 'getSchema', 'jsonSerialize'] as $declared) {
+			$this->assertTrue(
+				method_exists($entity, $declared),
+				'ObjectEntity::' . $declared . '() IS declared, so method_exists() is fine for that one.'
+			);
+		}
 
 	}//end testMethodExistsDoesNotSeeMagicAccessors()
 

@@ -276,6 +276,41 @@ class ObjectEntity extends Entity implements JsonSerializable {
 	}//end getter()
 
 	/**
+	 * The object's UUID.
+	 *
+	 * Declared concretely, mirroring the real OpenRegister entity. These three
+	 * accessors used to be `__call` magic on both sides; upstream promoted them
+	 * to real declarations, and this stub has to follow. If it does not, the
+	 * suite resolves a magic accessor standalone and a concrete one in CI —
+	 * where NC's autoloader registers the real app ahead of these shims — so a
+	 * mock that is legal here is illegal there, and the split shows up as a
+	 * green local run against a red pipeline.
+	 *
+	 * @return string|null
+	 */
+	public function getUuid(): ?string {
+		return $this->uuid;
+	}//end getUuid()
+
+	/**
+	 * The register this object belongs to.
+	 *
+	 * @return string|null
+	 */
+	public function getRegister(): ?string {
+		return $this->register;
+	}//end getRegister()
+
+	/**
+	 * The schema this object conforms to.
+	 *
+	 * @return string|null
+	 */
+	public function getSchema(): ?string {
+		return $this->schema;
+	}//end getSchema()
+
+	/**
 	 * Get the object data with the uuid injected as `id`.
 	 *
 	 * @return array<string,mixed>
