@@ -20,10 +20,11 @@
  *
  * @group integration
  *
- * NOTE: This test needs a live OpenRegister installation. It is decorated with
- * @group integration so standard CI PHPUnit runs (which only load unit suites)
- * skip it. To include it in a run, pass --group integration or target the
- * Integration Tests suite in phpunit.xml. Mirrors
+ * NOTE: This test needs a live OpenRegister installation AND an authenticated
+ * principal. `@group integration` does NOT keep it out of a default CI run:
+ * phpunit.xml declares both testsuites and the Code Quality workflow invokes
+ * `vendor/bin/phpunit` with no suite or group filter. The class therefore
+ * guards its own preconditions in setUp(). Mirrors
  * XapiCompletionHandlerIntegrationTest.php's shape.
  *
  * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-publishing-an-assessment-requires-a-resolvable-item-source
@@ -75,6 +76,19 @@ class AssessmentPublishGuardRandomDrawIntegrationTest extends TestCase {
 			$this->markTestSkipped('openregister app is not installed — integration tests require OR.');
 		}
 
+		// Seeding writes objects through OR's ObjectService. Since
+		// openregister#1955 OR fail-closes anonymous writes, so with no user
+		// session PermissionHandler::checkPermission() throws
+		// NotAuthorizedException before the fixture is created. A PHPUnit CLI
+		// process has no user session — a missing precondition, not a failure.
+		if (\OC::$server->get(\OCP\IUserSession::class)->getUser() === null) {
+			$this->markTestSkipped(
+				'No authenticated user session — OpenRegister fail-closes anonymous object writes '
+				. '(openregister#1955), so this integration test cannot seed its fixtures. '
+				. 'Run it from a context that has logged a user in.'
+			);
+		}
+
 		try {
 			$this->objectService = \OC::$server->get(ObjectService::class);
 			$this->transitionEngine = \OC::$server->get(TransitionEngine::class);
@@ -117,11 +131,20 @@ class AssessmentPublishGuardRandomDrawIntegrationTest extends TestCase {
 			$obj = $this->objectService->saveObject(register: 'scholiq', schema: $schema, object: $data);
 		} catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
 			$this->markTestSkipped('Scholiq register/schema not seeded: ' . $e->getMessage());
+		} catch (\OCA\OpenRegister\Exception\NotAuthorizedException $e) {
+			// Belt and braces behind the setUp() session check — see the sibling
+			// XapiCompletionHandlerIntegrationTest for the full rationale.
+			$this->markTestSkipped('OpenRegister denied the fixture write: ' . $e->getMessage());
 		}
 
-		$this->createdUuids[] = ['schema' => $schema, 'uuid' => $obj['uuid']];
+		// saveObject() returns an ObjectEntity, which is JsonSerializable but
+		// NOT ArrayAccess, and its serialisation exposes the UUID as `id`.
+		$this->createdUuids[] = ['schema' => $schema, 'uuid' => $obj->getUuid()];
 
-		return $obj;
+		$serialised = (array)$obj->jsonSerialize();
+		$serialised['uuid'] = $obj->getUuid();
+
+		return $serialised;
 	}//end createObject()
 
 	/**

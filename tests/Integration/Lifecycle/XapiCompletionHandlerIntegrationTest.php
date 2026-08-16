@@ -20,10 +20,13 @@
  *
  * @group integration
  *
- * NOTE: This test needs a live OpenRegister installation. It is decorated with
- * @group integration so standard CI PHPUnit runs (which only load unit suites)
- * skip it. To include it in a run, pass --group integration or target the
- * Integration Tests suite in phpunit.xml.
+ * NOTE: This test needs a live OpenRegister installation AND an authenticated
+ * principal. `@group integration` does NOT keep it out of a default CI run:
+ * phpunit.xml declares both the "Unit Tests" and the "Integration Tests"
+ * testsuite and the Code Quality workflow invokes `vendor/bin/phpunit` with no
+ * suite or group filter, so every test in this directory runs on every push.
+ * The class therefore guards its own preconditions in setUp() — see the
+ * user-session check there.
  */
 
 declare(strict_types=1);
@@ -73,6 +76,22 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 		// Skip if openregister app is not installed.
 		if (class_exists(ObjectService::class) === false) {
 			$this->markTestSkipped('openregister app is not installed — integration tests require OR.');
+		}
+
+		// Every test in this class writes objects through OR's ObjectService.
+		// Since openregister#1955 OR fail-closes anonymous writes: with no user
+		// session `PermissionHandler::checkPermission()` throws
+		// NotAuthorizedException ("User 'Anonymous' does not have permission to
+		// 'create' objects in schema 'Course'") before the schema is even
+		// touched. A PHPUnit CLI process has no user session, so the seeding
+		// step below cannot run at all — this is a missing precondition, not a
+		// product defect, and it must read as SKIPPED rather than as an error.
+		if (\OC::$server->get(\OCP\IUserSession::class)->getUser() === null) {
+			$this->markTestSkipped(
+				'No authenticated user session — OpenRegister fail-closes anonymous object writes '
+				. '(openregister#1955), so this integration test cannot seed its fixtures. '
+				. 'Run it from a context that has logged a user in.'
+			);
 		}
 
 		try {
@@ -138,16 +157,59 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 			// this environment (CI installs the app but doesn't seed the
 			// register); these integration tests need a live, seeded OR.
 			$this->markTestSkipped('Scholiq register/schema not seeded: ' . $e->getMessage());
+		} catch (\OCA\OpenRegister\Exception\NotAuthorizedException $e) {
+			// Belt and braces behind the setUp() session check: a session may
+			// exist yet still lack `create` on this schema (openregister#1955
+			// fail-closed writes, or a schema authorization block that does not
+			// grant this principal). Either way the fixture cannot be seeded,
+			// which is a missing precondition rather than a failing assertion.
+			$this->markTestSkipped('OpenRegister denied the fixture write: ' . $e->getMessage());
 		}
 
+		// saveObject() returns an ObjectEntity, not an array — it implements
+		// JsonSerializable but NOT ArrayAccess, so `$obj['uuid']` fatals with
+		// "Cannot use object of type ObjectEntity as array".
 		$this->createdUuids[] = [
 			'register' => 'scholiq',
 			'schema' => $schema,
-			'uuid' => $obj['uuid'],
+			'uuid' => $obj->getUuid(),
 		];
 
-		return $obj;
+		// jsonSerialize() exposes the UUID as `id`, so stamp `uuid` explicitly
+		// rather than letting every call site read a null.
+		$serialised = (array)$obj->jsonSerialize();
+		$serialised['uuid'] = $obj->getUuid();
+
+		return $serialised;
 	}//end createObject()
+
+	/**
+	 * Read an object back from OR by UUID.
+	 *
+	 * ObjectService has no `get()` method — reads go through `find()`, whose
+	 * identifier parameter is named `id` (not `uuid`) and which returns an
+	 * ObjectEntity or null rather than an array. The register/schema scope the
+	 * old `get()` calls carried is preserved here as named arguments: find()
+	 * would otherwise resolve cross-table, and OR's own BUG-OBJ-13 note warns
+	 * that leaving that context implicit is how the wrong magic table gets hit.
+	 *
+	 * @param string $uuid The object UUID.
+	 * @param string $schema The schema the object belongs to.
+	 *
+	 * @return array<string,mixed> The object as a plain array, empty when absent.
+	 */
+	private function fetchObject(string $uuid, string $schema): array {
+		$entity = $this->objectService->find(
+			id: $uuid,
+			register: 'scholiq',
+			schema: $schema,
+		);
+		if ($entity === null) {
+			return [];
+		}
+
+		return (array)$entity->jsonSerialize();
+	}//end fetchObject()
 
 	/**
 	 * Build a minimal xAPI "completed" event carrying $payload.
@@ -255,11 +317,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 
 		// ── Assertions ─────────────────────────────────────────────────
 		// The Enrolment should now be in `completed` state.
-		$updated = $this->objectService->get(
-			register: 'scholiq',
-			schema: 'Enrolment',
-			uuid: $enrolmentId,
-		);
+		$updated = $this->fetchObject($enrolmentId, 'Enrolment');
 
 		$this->assertSame(
 			'completed',
@@ -325,7 +383,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 
 		$this->handler->handle($event);
 
-		$still = $this->objectService->get(register: 'scholiq', schema: 'Enrolment', uuid: $enrolment['uuid']);
+		$still = $this->fetchObject($enrolment['uuid'], 'Enrolment');
 		$this->assertSame('active', $still['lifecycle'] ?? null, 'Enrolment should remain active after non-mandatory lesson completion.');
 
 	}//end testNonMandatoryLessonCompletionIsIgnored()
@@ -364,7 +422,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 
 		$this->handler->handle($event);
 
-		$still = $this->objectService->get(register: 'scholiq', schema: 'Enrolment', uuid: $enrolment['uuid']);
+		$still = $this->fetchObject($enrolment['uuid'], 'Enrolment');
 		$this->assertSame('active', $still['lifecycle'] ?? null, 'Enrolment should remain active for non-completion verbs.');
 
 	}//end testUnknownVerbIsIgnored()
