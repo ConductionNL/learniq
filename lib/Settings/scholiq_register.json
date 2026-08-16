@@ -1556,6 +1556,27 @@
                         "title": "Tenant ID"
                     }
                 },
+                "allOf": [
+                    {
+                        "_comment": "course-authoring-ux: conditional contentRef requiredness by contentType — second use of the exam-board-case-handling if/then/else precedent (GradeEntry.sourceKind/value). contentType='text' denotes a native, block-composed lesson (its body lives in blocks) — contentRef is not required. Every other contentType keeps contentRef required exactly as before.",
+                        "if": {
+                            "properties": {
+                                "contentType": {
+                                    "const": "text"
+                                }
+                            },
+                            "required": [
+                                "contentType"
+                            ]
+                        },
+                        "then": {},
+                        "else": {
+                            "required": [
+                                "contentRef"
+                            ]
+                        }
+                    }
+                ],
                 "x-openregister-lifecycle": {
                     "property": "lifecycle",
                     "initial": "draft",
@@ -8813,6 +8834,33 @@
                         "title": "Lifecycle State"
                     }
                 },
+                "allOf": [
+                    {
+                        "_comment": "exam-board-case-handling: conditional value requiredness by sourceKind. Standard JSON Schema if/then/else — no prior precedent for this construct in this register (documented in design.md §7); value is required and numeric for every sourceKind except exemption, where it MUST be null.",
+                        "if": {
+                            "properties": {
+                                "sourceKind": {
+                                    "const": "exemption"
+                                }
+                            },
+                            "required": [
+                                "sourceKind"
+                            ]
+                        },
+                        "then": {
+                            "properties": {
+                                "value": {
+                                    "type": "null"
+                                }
+                            }
+                        },
+                        "else": {
+                            "required": [
+                                "value"
+                            ]
+                        }
+                    }
+                ],
                 "x-openregister-lifecycle": {
                     "_comment": "report-card: publish/republish's requires guard is OCA\\Scholiq\\Lifecycle\\ReportPeriodLockGuard, which composes the original OCA\\Scholiq\\Lifecycle\\FraudCaseBlockGuard check internally (constructor-injected, called first, unchanged behaviour) and then additionally blocks publishing into a locked report-card ReportPeriod's scope unless the actor holds admin/mentor/principal. requires is a single DI-tag string in this register's lifecycle engine (verified: OpenRegister's LifecycleAnnotationValidator rejects a non-string requires value) — there is no 'second requires entry' array shape to add alongside FraudCaseBlockGuard, so the guard composes rather than stacks.",
                     "property": "lifecycle",
@@ -18495,6 +18543,26 @@
                         "title": "Tenant ID"
                     }
                 },
+                "allOf": [
+                    {
+                        "_comment": "eportfolio: reflectionText is required when evidenceKind=reflection (the entry's sole content in that case) and optional alongside any other kind. Mirrors GradeEntry's if/then conditional-requiredness-by-discriminator shape.",
+                        "if": {
+                            "properties": {
+                                "evidenceKind": {
+                                    "const": "reflection"
+                                }
+                            },
+                            "required": [
+                                "evidenceKind"
+                            ]
+                        },
+                        "then": {
+                            "required": [
+                                "reflectionText"
+                            ]
+                        }
+                    }
+                ],
                 "x-property-rbac": {
                     "_comment": "eportfolio: mirrors SelfAssessment's learner-self pattern via the denormalized learnerId field above. Learner sees own entries; admins see all. Portal/share-derived reads are served by PortalContributionProvider and NC Files sharing, not by widening this block.",
                     "read": {

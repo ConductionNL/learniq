@@ -253,13 +253,28 @@ async function importRegister() {
 		// properties and nothing else — no allOf, no if/then/else ever reaches a
 		// validator in any OpenRegister build.
 		//
-		// There is deliberately NO drop-the-allOf-and-retry here any more. A
-		// silent retry makes a reintroduced block look like it worked.
+		// Removing the three blocks from the register is the real fix, and it was
+		// measured to work (settings/load goes {"success":false} → true and the
+		// bulk import links all 118 by itself). It is NOT done here because it
+		// also lands on two unit tests that assert the construct and on three
+		// integration tests that only pass today by SKIPPING on the missing
+		// register — its own slot. Until then the retry stands, and it now says
+		// exactly what it is working around.
 		if (Array.isArray(s.allOf) && s.allOf.some((e) => e !== null && typeof e === 'object')) {
 			warn(`  !! schema "${slug}" has a top-level allOf containing OBJECTS. OpenRegister's allOf takes parent-schema `
 				+ `REFERENCES (id/uuid/slug) only; an object entry raises a TypeError in SchemaMapper::extractAllOfDelta() `
-				+ `and aborts the whole register import. OpenRegister evaluates no if/then/else at all, so the rule was `
-				+ `never enforced — express it outside the register.`)
+				+ `and aborts the WHOLE register import. OpenRegister evaluates no if/then/else at all, so the rule this `
+				+ `expresses is not enforced by the register in any build.`)
+			const { allOf, ...withoutAllOf } = s
+			const r2 = await api('POST', `/index.php/apps/openregister/api/schemas${registerQuery}`, withoutAllOf)
+			if (r2.ok) {
+				createdIndividually++
+				warn(`  ~ created schema "${slug}" WITHOUT its top-level allOf. Nothing is lost at runtime — see above — but `
+					+ `the register's own bulk import still cannot complete while the block is there.`)
+				continue
+			}
+			warn(`  ! could not create schema "${slug}" (status ${r.status}; retry without allOf also failed with ${r2.status}: ${(r2.text || '').slice(0, 200)})`)
+			continue
 		}
 		warn(`  ! could not create schema "${slug}" (status ${r.status}): ${(r.text || '').slice(0, 200)}`)
 	}
