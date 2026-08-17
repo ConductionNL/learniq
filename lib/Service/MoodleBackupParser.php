@@ -56,9 +56,10 @@ class MoodleBackupParser {
 	 * @param string $dir Absolute path to the extracted Moodle backup directory.
 	 *
 	 * @return array{sectionNodes: array<int, array<string, mixed>>, activities: array<int, array<string, mixed>>}
-	 *                                                                                                             `sectionNodes`: one row per section, in manifest order, each `{identifier, title, order}`.
-	 *                                                                                                             `activities`: one row per activity/module, each
-	 *                                                                                                             `{identifier, sectionIdentifier, moduleType, classification, title, directory, order}`.
+	 *         `sectionNodes`: one row per section, in manifest order, each
+	 *         `{identifier, title, order}`.
+	 *         `activities`: one row per activity/module, each
+	 *         `{identifier, sectionIdentifier, moduleType, classification, title, directory, order}`.
 	 *
 	 * @throws \RuntimeException When `moodle_backup.xml` is missing or not parseable XML.
 	 *

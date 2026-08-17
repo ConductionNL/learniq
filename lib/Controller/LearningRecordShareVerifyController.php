@@ -123,6 +123,9 @@ class LearningRecordShareVerifyController extends Controller {
 	 * @param ObjectService $objectService OR object read/update service.
 	 * @param LearningRecordExportSigningService $signingService JWS verification.
 	 * @param IRootFolder $rootFolder NC root folder for reading the bundle file.
+	 * @param IThrottler $throttler NC brute-force throttler; counts failed
+	 *                              verification attempts (ADR-082).
+	 * @param LoggerInterface $logger Logger for throttler registration failures.
 	 *
 	 * @return void
 	 */

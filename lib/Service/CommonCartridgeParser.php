@@ -55,10 +55,11 @@ class CommonCartridgeParser {
 	 * @param string $dir Absolute path to the extracted CC package directory.
 	 *
 	 * @return array{organizationNodes: array<int, array<string, mixed>>, resources: array<int, array<string, mixed>>}
-	 *                                                                                                                 `organizationNodes`: one row per organization folder/item, in manifest order, each
-	 *                                                                                                                 `{identifier, title, order, parentIdentifier, isFolder, resourceIdentifier}`.
-	 *                                                                                                                 `resources`: one row per `<resource>`, each
-	 *                                                                                                                 `{identifier, type, classification, href, title}`.
+	 *         `organizationNodes`: one row per organization folder/item, in
+	 *         manifest order, each
+	 *         `{identifier, title, order, parentIdentifier, isFolder, resourceIdentifier}`.
+	 *         `resources`: one row per `<resource>`, each
+	 *         `{identifier, type, classification, href, title}`.
 	 *
 	 * @throws \RuntimeException When `imsmanifest.xml` is missing or not parseable XML.
 	 *
