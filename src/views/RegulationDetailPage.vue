@@ -92,6 +92,9 @@ export default {
 		NcLoadingIcon,
 	},
 
+	/**
+	 * @spec openspec/specs/realtime-updates/spec.md
+	 */
 	provide() {
 		return {
 			cnDetailObjectContext: this.detailObjectContext,
@@ -164,6 +167,9 @@ export default {
 	watch: {
 		'$route.params.slug': {
 			immediate: true,
+			/**
+			 * @spec openspec/specs/realtime-updates/spec.md
+			 */
 			handler() {
 				this.resolve()
 			},
