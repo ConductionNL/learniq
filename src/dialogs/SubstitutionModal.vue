@@ -147,6 +147,7 @@ export default {
 		 * Dialog title.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
 		 */
 		dialogTitle() {
 			return t('scholiq', 'Manage "{title}"', {
@@ -178,6 +179,7 @@ export default {
 		 * Submit button label for the current mode.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
 		 */
 		submitLabel() {
 			return this.mode === 'cancel'
@@ -189,6 +191,7 @@ export default {
 		 * Whether the form has the minimum required fields for the current mode.
 		 *
 		 * @return {boolean}
+		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
 		 */
 		canSubmit() {
 			if (!this.changeReasonKind) return false
