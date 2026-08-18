@@ -95,6 +95,7 @@ export default {
 		 * The dashboard page title.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-people-domain-dashboard
 		 */
 		pageTitle() {
 			return this.t('scholiq', 'People')
@@ -154,6 +155,7 @@ export default {
 		 * The CnDashboardPage `layout` declaration (12-column grid).
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-people-domain-dashboard
 		 */
 		layout() {
 			return [
