@@ -3,7 +3,7 @@
 /**
  * Learniq RenameRegisterSlug Repair Step
  *
- * rename-to-learniq boundary 3 (register-slug migration): renames the app's
+ * The rename-to-learniq boundary 3 (register-slug migration): renames the app's
  * single OpenRegister register row from slug `scholiq` to slug `learniq`.
  *
  * WHY THIS IS SAFE. Verified directly against a live database, not inferred:

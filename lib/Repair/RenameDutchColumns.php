@@ -70,7 +70,7 @@ class RenameDutchColumns implements IRepairStep {
 	/**
 	 * Slug prefix of the registers in scope.
 	 *
-	 * rename-to-learniq: intentionally NOT renamed to 'learniq'. This step
+	 * For rename-to-learniq: intentionally NOT renamed to 'learniq'. This step
 	 * runs in <post-migration> BEFORE RenameRegisterSlug (info.xml lists it
 	 * first), so at the moment it executes the register's slug in the
 	 * database is still literally 'scholiq' — RenameRegisterSlug has not run
