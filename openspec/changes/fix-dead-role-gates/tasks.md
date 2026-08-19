@@ -14,8 +14,8 @@
   - GIVEN a user in no privileged group and not an NC admin WHEN `resolvePrimaryRole()` runs THEN it still returns `learner` (unconditional fallback — NOT gated on the `learners` group; design.md Decision 3)
   - GIVEN `resolveViews()`'s `in_array($role, ['manager', 'instructor'], true)` check WHEN this task is complete THEN it reads `in_array($role, ['administration-manager', 'team-lead', 'coordinator', 'instructor'], true)`, and `guardian` is not added to either `in_array()` check (falls through to the base `student` tier only)
   - GIVEN the class docblock's `scholiq-{role}` convention description WHEN this task is complete THEN it is updated to describe the unprefixed group-id map and the canonical vocabulary table
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 2: Update PHPUnit coverage for the canonical role vocabulary
 - **spec_ref**: `openspec/changes/fix-dead-role-gates/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit`
@@ -27,8 +27,8 @@
   - GIVEN a new test double member of the `coordinators` group WHEN `resolvePrimaryRole()` runs THEN it asserts `'coordinator'`
   - GIVEN a new test double member of the `guardians` group WHEN `resolvePrimaryRole()` runs THEN it asserts `'guardian'`
   - GIVEN a test double user in no privileged group and not an NC admin WHEN `resolvePrimaryRole()` runs THEN it asserts `'learner'` (the refusal/negative case — proves the resolver does not grant a role nobody is entitled to, and that `learner` needs no group membership)
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 3: Grant administrators a door to Compliance and Book Conference Slots
 - **spec_ref**: `openspec/changes/fix-dead-role-gates/specs/dashboard/spec.md#requirement-administrators-must-retain-access-to-every-role-gated-menu-item`
@@ -36,8 +36,8 @@
 - **acceptance_criteria**:
   - GIVEN the `Compliance` menu item's `visibleIf.user.primaryRole.in` is `["compliance-officer", "hr"]` WHEN this task is complete THEN it is `["compliance-officer", "hr", "admin"]`
   - GIVEN `BookConferenceSlotsMenu`'s pre-fix gate is `["parent", "learner"]` WHEN this task is complete THEN it is `["guardian", "learner", "admin"]` (`parent`→`guardian` per Task 4's vocabulary correction, `admin` added here)
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 4: Correct every manifest role literal onto the canonical vocabulary
 - **spec_ref**: `openspec/changes/fix-dead-role-gates/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit`
@@ -50,8 +50,8 @@
   - GIVEN the four Payments gates (`FeeItemsMenu`, `OrderLinesMenu`, `PaymentTransactionsMenu`, `EntitlementsMenu`) each name `["admin", "finance"]` WHEN this task is complete THEN each names `["admin"]` only (ADR-081 — ​note the rationale in the PR description since the single-value list otherwise reads as an oversight)
   - GIVEN `EngagementRiskThresholdsMenu`, `PointRulesMenu`, `EngagementLevelsMenu`, `LeaderboardsMenu`, `PointAwardsMenu`, `TimetableConflictQueueMenu` each already name `["admin", "coordinator"]` WHEN this task is complete THEN they are unchanged (the literal was always correct; only the resolver could not produce it before Task 1)
   - GIVEN `AccessibilityLimitationsMenu`, `AiProcessingDisclosureMenu`, `AccessibilityFeedbacksMenu`, `Rollover`, `ExternalTraining` already name only canonical, already-producible values WHEN this task is complete THEN they are unchanged
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 5: Live-verify every gate on the shared dev instance, with a named verifier and an exact observable
 - **spec_ref**: `openspec/changes/fix-dead-role-gates/specs/dashboard/spec.md#requirement-administrators-must-retain-access-to-every-role-gated-menu-item`

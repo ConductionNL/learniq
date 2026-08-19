@@ -74,13 +74,15 @@ class DashboardRoleServiceTest extends TestCase {
 	}//end testAdminGroupResolvesToAdmin()
 
 	/**
-	 * An instructor (group-backed) resolves to the teacher view by default and
-	 * can also see the student view.
+	 * An instructor (group-backed, `instructors` group) resolves to the
+	 * teacher view by default and can also see the student view. The group id
+	 * moved from `scholiq-instructor` to the unprefixed `instructors`; the
+	 * role string itself is unchanged.
 	 *
 	 * @return void
 	 */
 	public function testInstructorResolvesToTeacher(): void {
-		$service = $this->serviceWith(isAdmin: false, groups: ['scholiq-instructor' => true]);
+		$service = $this->serviceWith(isAdmin: false, groups: ['instructors' => true]);
 		$user = $this->user();
 
 		$this->assertSame('instructor', $service->resolvePrimaryRole(user: $user));
@@ -89,7 +91,70 @@ class DashboardRoleServiceTest extends TestCase {
 	}//end testInstructorResolvesToTeacher()
 
 	/**
-	 * A user with no Scholiq group is a learner and only sees the student view.
+	 * A member of `administration-managers` resolves to `administration-manager`
+	 * (renamed from `manager`) and gets the teacher-tier view.
+	 *
+	 * @return void
+	 */
+	public function testAdministrationManagerResolvesToTeacher(): void {
+		$service = $this->serviceWith(isAdmin: false, groups: ['administration-managers' => true]);
+		$user = $this->user();
+
+		$this->assertSame('administration-manager', $service->resolvePrimaryRole(user: $user));
+		$this->assertSame('teacher', $service->resolveDefaultView(user: $user));
+		$this->assertSame(['teacher', 'student'], $service->resolveViews(user: $user));
+	}//end testAdministrationManagerResolvesToTeacher()
+
+	/**
+	 * A member of `team-leads` resolves to the new `team-lead` role and gets
+	 * the teacher-tier view.
+	 *
+	 * @return void
+	 */
+	public function testTeamLeadResolvesToTeacher(): void {
+		$service = $this->serviceWith(isAdmin: false, groups: ['team-leads' => true]);
+		$user = $this->user();
+
+		$this->assertSame('team-lead', $service->resolvePrimaryRole(user: $user));
+		$this->assertSame('teacher', $service->resolveDefaultView(user: $user));
+		$this->assertSame(['teacher', 'student'], $service->resolveViews(user: $user));
+	}//end testTeamLeadResolvesToTeacher()
+
+	/**
+	 * A member of `coordinators` resolves to the new `coordinator` role and
+	 * gets the teacher-tier view.
+	 *
+	 * @return void
+	 */
+	public function testCoordinatorResolvesToTeacher(): void {
+		$service = $this->serviceWith(isAdmin: false, groups: ['coordinators' => true]);
+		$user = $this->user();
+
+		$this->assertSame('coordinator', $service->resolvePrimaryRole(user: $user));
+		$this->assertSame('teacher', $service->resolveDefaultView(user: $user));
+		$this->assertSame(['teacher', 'student'], $service->resolveViews(user: $user));
+	}//end testCoordinatorResolvesToTeacher()
+
+	/**
+	 * A member of `guardians` resolves to the new `guardian` role and, unlike
+	 * the other group-backed roles, falls through to the base student-tier
+	 * view only — a guardian is not staff.
+	 *
+	 * @return void
+	 */
+	public function testGuardianResolvesToStudentOnly(): void {
+		$service = $this->serviceWith(isAdmin: false, groups: ['guardians' => true]);
+		$user = $this->user();
+
+		$this->assertSame('guardian', $service->resolvePrimaryRole(user: $user));
+		$this->assertSame('student', $service->resolveDefaultView(user: $user));
+		$this->assertSame(['student'], $service->resolveViews(user: $user));
+	}//end testGuardianResolvesToStudentOnly()
+
+	/**
+	 * A user with no privileged group is a learner and only sees the student
+	 * view — the refusal/negative case: proves the resolver does not grant a
+	 * role nobody is entitled to, and that `learner` needs no group membership.
 	 *
 	 * @return void
 	 */
@@ -110,7 +175,7 @@ class DashboardRoleServiceTest extends TestCase {
 	public function testHighestPriorityGroupWins(): void {
 		$service = $this->serviceWith(
 			isAdmin: false,
-			groups: ['scholiq-instructor' => true, 'scholiq-hr' => true]
+			groups: ['instructors' => true, 'hr' => true]
 		);
 		$user = $this->user();
 
