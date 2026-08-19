@@ -192,6 +192,32 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 		assertNoFatalErrors(errors)
 	})
 
+	authed('Role-resolved dashboard (app root)', async ({ loggedInPage: page }) => {
+		// The landing surface. It resolves to the caller's own view from the
+		// `dashboardRole` initial state rather than taking a role prop, so the
+		// assertion is that the root route mounts THIS component at all —
+		// gate-26 flagged it as an uncovered page component after the rename.
+		expect(manifestComponentFor('/')).toBe('LearniqDashboards')
+		const errors = collectFatalErrors(page)
+		await goTo(page, '/')
+		await expect(
+			page.locator('#app-navigation-vue').first(),
+		).toBeVisible({ timeout: 20_000 })
+		assertNoFatalErrors(errors)
+	})
+
+	authed('Accessibility statement', async ({ loggedInPage: page }) => {
+		expect(manifestComponentFor('/accessibility')).toBe(
+			'LearniqAccessibilityStatement',
+		)
+		const errors = collectFatalErrors(page)
+		await goTo(page, '/accessibility')
+		await expect(page.locator('.app-content').first()).toBeVisible({
+			timeout: 20_000,
+		})
+		assertNoFatalErrors(errors)
+	})
+
 	authed('Learner home dashboard', async ({ loggedInPage: page }) => {
 		expect(manifestComponentFor('/learner')).toBe('LearniqLearnerHome')
 		const errors = collectFatalErrors(page)
