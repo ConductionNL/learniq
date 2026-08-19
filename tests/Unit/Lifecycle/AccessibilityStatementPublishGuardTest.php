@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq AccessibilityStatementPublishGuard unit tests.
+ * Learniq AccessibilityStatementPublishGuard unit tests.
  *
  * Coverage for accessibility-conformance-statement tasks.md#2.1/#2.2: an
  * AccessibilityStatement may not publish without recorded evaluation

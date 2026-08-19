@@ -97,7 +97,7 @@ async function resolveAppBase(page: Page): Promise<string> {
 			window as unknown as { OC: { generateUrl: (_p: string) => string } }
 		).OC.generateUrl('/apps/learniq'),
 	)
-	expect(base, 'OC.generateUrl did not resolve the scholiq app base').toBeTruthy()
+	expect(base, 'OC.generateUrl did not resolve the learniq app base').toBeTruthy()
 	appBase = base.replace(/\/+$/, '')
 	return appBase
 }

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq CoursePublishGuard unit tests.
+ * Learniq CoursePublishGuard unit tests.
  *
  * Regression coverage for delegate-ooapi-to-opencatalogi tasks.md#task-4.1: the
  * OOAPI publication-contract spec sync does not alter Course's existing

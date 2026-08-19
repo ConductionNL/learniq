@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq FraudCaseDecisionGuard unit tests.
+ * Learniq FraudCaseDecisionGuard unit tests.
  *
  * Covers the verdict+rationale precondition, the additional capped-sanction
  * precondition when verdict=fraud-proven, and the decidedAt/appealDeadline

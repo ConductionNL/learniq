@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq CoursePackageExportService unit tests.
+ * Learniq CoursePackageExportService unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Service
@@ -116,7 +116,7 @@ class CoursePackageExportServiceTest extends TestCase {
 	public function testExportCommonCartridgeContainsManifestAndResolvedFiles(): void {
 		$zipBytes = $this->service()->exportCommonCartridge('course-1', 'teacher1');
 
-		$tmpFile = tempnam(sys_get_temp_dir(), 'scholiq_course_export_test_');
+		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_course_export_test_');
 		file_put_contents($tmpFile, $zipBytes);
 
 		$zip = new ZipArchive();

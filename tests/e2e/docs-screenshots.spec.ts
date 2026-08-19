@@ -1,10 +1,10 @@
 /*
- * SPDX-FileCopyrightText: 2026 Scholiq Contributors
+ * SPDX-FileCopyrightText: 2026 Learniq Contributors
  * SPDX-License-Identifier: EUPL-1.2
  *
- * Documentation screenshot capture suite — scholiq.
+ * Documentation screenshot capture suite — learniq.
  *
- * This spec is *not* a regression test — it drives the Scholiq UI
+ * This spec is *not* a regression test — it drives the Learniq UI
  * through every flow documented under `docs/tutorials/{user,admin}/*.md`
  * and writes a fresh PNG into `docs/static/screenshots/tutorials/<track>/`
  * for each step the markdown references.
@@ -23,9 +23,9 @@
  * Nextcloud login → storage state) and `use.storageState`, so the
  * `page` fixture here arrives already signed in.
  *
- * Data dependency: Scholiq stores courses / enrolments / grades /
+ * Data dependency: Learniq stores courses / enrolments / grades /
  * attendance / credentials in OpenRegister. On an instance with no
- * Scholiq data the list views still render (empty state) and the
+ * Learniq data the list views still render (empty state) and the
  * *Add Item* dialog still opens, so the structural screenshots below
  * capture cleanly. Flow-detail screenshots (a populated cohort, a
  * graded submission, an issued certificate) need real objects; until
@@ -104,7 +104,7 @@ async function dismissOverlays(page: Page): Promise<void> {
 	}
 }
 
-/** Navigate to a Scholiq (or absolute) route and settle. */
+/** Navigate to a Learniq (or absolute) route and settle. */
 async function go(page: Page, route: string): Promise<void> {
 	const url =
 		route.startsWith('/apps/') || route.startsWith('/settings/')
@@ -337,7 +337,7 @@ test.describe('docs: admin track', () => {
 	})
 
 	test('AN admin-settings', async ({ page }) => {
-		// docs/tutorials/admin/03-admin-settings.md — Scholiq's settings
+		// docs/tutorials/admin/03-admin-settings.md — Learniq's settings
 		// live in-app at /apps/learniq/settings (the three-section page:
 		// OpenRegister, AI Features, Credential Signing).
 		await go(page, '/settings')

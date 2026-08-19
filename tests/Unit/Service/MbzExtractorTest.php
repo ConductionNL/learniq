@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq MbzExtractor unit tests.
+ * Learniq MbzExtractor unit tests.
  *
  * Covers the fixture-package extraction happy path and the two security
  * guards ported from `QtiImportService::extractZip()` (fixes for #207):
@@ -46,7 +46,7 @@ class MbzExtractorTest extends TestCase {
 	 * @return void
 	 */
 	public function testExtractValidMbzArchive(): void {
-		$tmpDir = sys_get_temp_dir() . '/scholiq_test_mbz_' . bin2hex(random_bytes(6));
+		$tmpDir = sys_get_temp_dir() . '/learniq_test_mbz_' . bin2hex(random_bytes(6));
 
 		(new MbzExtractor())->extract(self::FIXTURE, $tmpDir);
 
@@ -71,7 +71,7 @@ class MbzExtractorTest extends TestCase {
 	 * @return void
 	 */
 	public function testExtractNeverWritesOutsideTargetDirectoryForATraversalEntry(): void {
-		$tmpDir = sys_get_temp_dir() . '/scholiq_test_mbz_slip_' . bin2hex(random_bytes(6));
+		$tmpDir = sys_get_temp_dir() . '/learniq_test_mbz_slip_' . bin2hex(random_bytes(6));
 
 		try {
 			(new MbzExtractor())->extract(self::TRAVERSAL_FIXTURE, $tmpDir);
@@ -91,7 +91,7 @@ class MbzExtractorTest extends TestCase {
 	 */
 	public function testExtractRejectsOversizedEntry(): void {
 		$oversizedTarGz = $this->buildOversizedTarGz();
-		$tmpDir = sys_get_temp_dir() . '/scholiq_test_mbz_oversize_' . bin2hex(random_bytes(6));
+		$tmpDir = sys_get_temp_dir() . '/learniq_test_mbz_oversize_' . bin2hex(random_bytes(6));
 
 		$this->expectException(RuntimeException::class);
 
@@ -116,7 +116,7 @@ class MbzExtractorTest extends TestCase {
 		// any content, per the pre-flight pass in `extract()`).
 		ini_set('memory_limit', '512M');
 
-		$workDir = sys_get_temp_dir() . '/scholiq_test_mbz_oversize_build_' . bin2hex(random_bytes(6));
+		$workDir = sys_get_temp_dir() . '/learniq_test_mbz_oversize_build_' . bin2hex(random_bytes(6));
 		mkdir($workDir, 0700, true);
 
 		// Sparse file: ftruncate reserves the size without writing real bytes,

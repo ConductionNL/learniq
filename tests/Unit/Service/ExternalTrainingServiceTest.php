@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ExternalTrainingService unit tests.
+ * Learniq ExternalTrainingService unit tests.
  *
  * Covers the compliance coverage predicate across all three evidence classes
  * (signed Attestation, valid Credential, verified unexpired external record),

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq CoursePackageImportService unit tests.
+ * Learniq CoursePackageImportService unit tests.
  *
  * Integration-style: exercises the real `QtiImportService`, `MbzExtractor`,
  * `CommonCartridgeParser`, `MoodleBackupParser`, and `MoodleQuizQuestionMapper`
@@ -166,7 +166,7 @@ class CoursePackageImportServiceTest extends TestCase {
 		self::assertSame(6, $report['resourcesTotal']);
 		self::assertSame(4, $report['resourcesImported'], 'I1 (webcontent), I2 (folder), I3 (qti item), I5 (weblink) all import cleanly.');
 		self::assertSame(1, $report['resourcesDegraded'], 'I4 (basiclti) degrades — no live OpenConnector deployment.');
-		self::assertSame(1, $report['resourcesDropped'], 'I6 (discussion) has no scholiq schema representation.');
+		self::assertSame(1, $report['resourcesDropped'], 'I6 (discussion) has no learniq schema representation.');
 		self::assertSame('partial', $report['lifecycle']);
 		self::assertNotNull($report['courseId']);
 
@@ -215,7 +215,7 @@ class CoursePackageImportServiceTest extends TestCase {
 		self::assertSame('imported', $byResourceId['5']['outcome']);
 		self::assertSame('imported', $byResourceId['8']['outcome']);
 
-		// forum has no scholiq schema representation.
+		// forum has no learniq schema representation.
 		self::assertSame('dropped', $byResourceId['7']['outcome']);
 
 		// assign degrades (Moodle-specific grading workflow not carried).

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq SovereigntyPolicyService unit tests.
+ * Learniq SovereigntyPolicyService unit tests.
  *
  * Coverage for the sovereign-ai-guarantee compliance rule: `unverified` never
  * satisfies `on-premises-only` or `eu-hosted-allowed`; it only ever passes

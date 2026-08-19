@@ -46,7 +46,7 @@ test.describe('engagement-gamification — points/level widget and leaderboard',
 	// The discriminating assertion is `toContain('My points')`. That string is
 	// the KpiPointsLevelWidget's own title (src/views/widgets/
 	// KpiPointsLevelWidget.vue:20, declared as a dashboard widget slot in
-	// ScholiqDashboards.vue:290) — it is NOT a manifest menu label, so it
+	// LearniqDashboards.vue:290) — it is NOT a manifest menu label, so it
 	// cannot be satisfied by the app nav alone. Drop the widget from the
 	// student dashboard and this test goes red, which is what the scenario's
 	// THEN ("their points/level KPI widget renders") asks for. The widget's

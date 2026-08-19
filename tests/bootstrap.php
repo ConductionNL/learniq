@@ -52,13 +52,13 @@ require_once __DIR__ . '/bootstrap-nc-guard.php';
 
 // Bootstrap Nextcloud if not already done.
 if (!defined('OC_CONSOLE')) {
-	$scholiqNcRoot = __DIR__ . '/../../..';
-	if (scholiq_nc_base_is_safe_to_load($scholiqNcRoot) === true) {
-		require_once $scholiqNcRoot . '/lib/base.php';
-	} elseif (is_file($scholiqNcRoot . '/lib/base.php') === true) {
+	$learniqNcRoot = __DIR__ . '/../../..';
+	if (learniq_nc_base_is_safe_to_load($learniqNcRoot) === true) {
+		require_once $learniqNcRoot . '/lib/base.php';
+	} elseif (is_file($learniqNcRoot . '/lib/base.php') === true) {
 		fwrite(
 			STDERR,
-			'[scholiq/tests/bootstrap] Nextcloud root found at ' . $scholiqNcRoot
+			'[learniq/tests/bootstrap] Nextcloud root found at ' . $learniqNcRoot
 			. " but it is not usable (not installed, or config/ not writable).\n"
 			. "  Skipping the NC bootstrap and running on Composer autoload + tests/Stubs/ only.\n"
 			. "  Loading base.php anyway would exit() and silently truncate this suite to zero tests.\n"

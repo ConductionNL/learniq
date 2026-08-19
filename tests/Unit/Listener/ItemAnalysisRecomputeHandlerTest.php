@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ItemAnalysisRecomputeHandler unit tests.
+ * Learniq ItemAnalysisRecomputeHandler unit tests.
  *
  * Covers: the handler fires on AssessmentResult -> graded, upserts (not
  * duplicates) ItemStatistics/AssessmentReliability rows, creates a

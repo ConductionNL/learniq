@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: EUPL-1.2
 # Copyright (C) 2026 Conduction B.V.
 #
-# Provision Scholiq's OpenRegister register + schemas + example dataset on a
+# Provision Learniq's OpenRegister register + schemas + example dataset on a
 # freshly installed Nextcloud, for the shared `E2E Tests (Playwright)` CI job.
 #
 # Wired up as the workflow's `playwright-seed-command`. That step runs AFTER
@@ -79,7 +79,7 @@ USER_PASS="${ADMIN_PASSWORD:-${NC_ADMIN_PASS:-admin}}"
 echo "[ci-seed] target:   ${BASE}"
 echo "[ci-seed] app root: ${APP_ROOT}"
 
-# ── 1. Force-import the Scholiq configuration ────────────────────────────────
+# ── 1. Force-import the Learniq configuration ────────────────────────────────
 # `settings#load` (POST /api/settings/load) calls
 # `SettingsService::loadConfiguration(force: true)` — the forced path that
 # defeats the version guard described above. It is
@@ -104,7 +104,7 @@ echo "[ci-seed] import HTTP ${IMPORT_CODE}"
 head -c 2000 "$IMPORT_BODY"; echo
 
 if [ "$IMPORT_CODE" != "200" ]; then
-	echo "::error::Scholiq configuration import failed (HTTP ${IMPORT_CODE}). The e2e suite cannot render any index page without the register."
+	echo "::error::Learniq configuration import failed (HTTP ${IMPORT_CODE}). The e2e suite cannot render any index page without the register."
 	exit 1
 fi
 
@@ -130,7 +130,7 @@ print(str(body.get('message', ''))[:400])
 " "$IMPORT_BODY" 2>/dev/null | head -1 || true)"
 
 if [ "$IMPORT_OK" != "true" ]; then
-	echo "::warning::The Scholiq settings/load import returned HTTP 200 but did NOT report success. Falling back to the per-schema repair path below; the register/schema verification remains the gate."
+	echo "::warning::The Learniq settings/load import returned HTTP 200 but did NOT report success. Falling back to the per-schema repair path below; the register/schema verification remains the gate."
 fi
 
 # ── 2. Seed the example dataset (and repair a partial import) ────────────────
@@ -153,8 +153,8 @@ set -e
 case "$SEED_RC" in
 	0) SEED_STATUS="full" ;;
 	2) SEED_STATUS="partial"
-	   echo "::warning::Scholiq example-data seed reported a PARTIAL register import (openregister#1487). Index-page row-count assertions will be skipped." ;;
-	*) echo "::error::Scholiq example-data seed failed (exit ${SEED_RC}) — Nextcloud unreachable at ${BASE}."
+	   echo "::warning::Learniq example-data seed reported a PARTIAL register import (openregister#1487). Index-page row-count assertions will be skipped." ;;
+	*) echo "::error::Learniq example-data seed failed (exit ${SEED_RC}) — Nextcloud unreachable at ${BASE}."
 	   exit 1 ;;
 esac
 echo "[ci-seed] seed status: ${SEED_STATUS}"
@@ -189,7 +189,7 @@ missing = [s for s in required if s not in slugs]
 print(f'[ci-seed] {kind}: {len(slugs)} present')
 if missing:
     print(f'[ci-seed] {kind} present: {sorted(s for s in slugs if s)}')
-    print(f'::error::Scholiq {kind} missing after import: {missing}')
+    print(f'::error::Learniq {kind} missing after import: {missing}')
     sys.exit(1)
 print(f'[ci-seed] {kind} OK ({len(required)} required slugs present)')
 PY
@@ -205,7 +205,7 @@ curl -sS -u "${USER_NAME}:${USER_PASS}" -H 'OCS-APIRequest: true' \
 	"${BASE}/index.php/apps/openregister/api/schemas?_limit=1000" -o "$SCH_BODY"
 verify "$SCH_BODY" schemas
 
-echo "[ci-seed] Scholiq register + core schemas provisioned."
+echo "[ci-seed] Learniq register + core schemas provisioned."
 
 # ── 3b. Floor gate on the seeded dataset ─────────────────────────────────────
 # index-pages.spec.ts derives its "this index page must show ≥1 row" set from
@@ -327,14 +327,14 @@ if [ "${GITHUB_ACTIONS:-}" = "true" ] || [ "${CI:-}" = "true" ]; then
 	case "$BUNDLE_TYPE" in
 		*javascript*) ;;
 		*)
-			echo "::error::The Scholiq frontend bundle did not serve as JavaScript (got: ${BUNDLE_INFO:-<not found>})."
+			echo "::error::The Learniq frontend bundle did not serve as JavaScript (got: ${BUNDLE_INFO:-<not found>})."
 			echo "::error::The SPA cannot mount, so every UI spec would fail on a selector timeout with a misleading cause."
 			echo "::error::Check the 'Build app frontend' step — a missing bundle returns HTTP 200 text/html, not 404."
 			exit 1
 			;;
 	esac
 	if [ "${BUNDLE_BYTES:-0}" -lt "$BUNDLE_MIN_BYTES" ]; then
-		echo "::error::The Scholiq frontend bundle served as JavaScript but is only ${BUNDLE_BYTES:-0} bytes (floor ${BUNDLE_MIN_BYTES})."
+		echo "::error::The Learniq frontend bundle served as JavaScript but is only ${BUNDLE_BYTES:-0} bytes (floor ${BUNDLE_MIN_BYTES})."
 		echo "::error::A truncated bundle keeps the JavaScript content type and the HTTP 200, so the type check above cannot see it."
 		echo "::error::The SPA would mount nothing and every UI spec would fail on a selector timeout with a misleading cause."
 		exit 1

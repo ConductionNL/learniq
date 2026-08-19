@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq AssignmentPublishGuard unit tests.
+ * Learniq AssignmentPublishGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

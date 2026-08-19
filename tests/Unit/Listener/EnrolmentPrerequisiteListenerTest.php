@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq EnrolmentPrerequisiteListener unit tests.
+ * Learniq EnrolmentPrerequisiteListener unit tests.
  *
  * Covers the enrolment prerequisite gate matrix: an unmet prerequisite blocks
  * enrolment naming the failing course; a met prerequisite (a completed

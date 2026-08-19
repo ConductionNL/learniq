@@ -1,8 +1,8 @@
 {
 	"info": {
 		"_postman_id": "learniq-collection",
-		"name": "Scholiq Integration Tests",
-		"description": "Integration test collection for the learniq Nextcloud app. One folder per capability spec (14 folders) covering the 19 critical-priority user stories captured in `intelligence-db.user_stories` (app_id=learniq, priority=critical). All requests are TDD stubs — they assert the contract the implementation must satisfy. They will fail until the corresponding endpoints land. Folder order follows the Scholiq wedge plan: Phase 1 (course-management, enrolment, certification, compliance-audit), then dashboard + shell, then assessment surfaces, then NL-gatekeeper integrations and identity federation.",
+		"name": "Learniq Integration Tests",
+		"description": "Integration test collection for the learniq Nextcloud app. One folder per capability spec (14 folders) covering the 19 critical-priority user stories captured in `intelligence-db.user_stories` (app_id=learniq, priority=critical). All requests are TDD stubs — they assert the contract the implementation must satisfy. They will fail until the corresponding endpoints land. Folder order follows the Learniq wedge plan: Phase 1 (course-management, enrolment, certification, compliance-audit), then dashboard + shell, then assessment surfaces, then NL-gatekeeper integrations and identity federation.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"auth": {
@@ -2457,7 +2457,7 @@
 							}
 						],
 						"url": "{{baseUrl}}/index.php/apps/learniq/api/identity/surfconext/attribute-map",
-						"description": "Returns the eduPersonAffiliation → Scholiq role map. See openspec/specs/identity-federation/spec.md."
+						"description": "Returns the eduPersonAffiliation → Learniq role map. See openspec/specs/identity-federation/spec.md."
 					},
 					"event": [
 						{

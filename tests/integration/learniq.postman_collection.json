@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "learniq-collection",
-		"name": "Scholiq Integration Tests",
+		"name": "Learniq Integration Tests",
 		"description": "Active Newman collection — runs in CI on every push to `development`. Each folder creates its own prerequisite schemas/objects via OR's REST API and cleans up after itself (see: openregister#1487 — app-bootstrap is broken so we cannot rely on pre-seeded data). Lifecycle transitions use PATCH on the lifecycle field (the /transition sub-resource is not yet exposed in this OR version). Variables: baseUrl, adminUser, adminPass.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},

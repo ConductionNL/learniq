@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq AssessmentPublishGuard unit tests.
+ * Learniq AssessmentPublishGuard unit tests.
  *
  * Coverage for the Assessment `publish` transition guard: resolvable item
  * source (assessment-item-pools-and-analysis), the Hermiq DPO-enablement gate

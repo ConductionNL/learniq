@@ -7,7 +7,7 @@
 // KEYS. Standard JSON.parse() silently keeps the last duplicate, which is how a
 // bad merge of a register/manifest file can silently drop a schema or page (git
 // merges JSON line-by-line and will happily produce a document with two
-// `"Enrolment"` keys — see the scholiq Wave-2 incident). This guard fails CI on
+// `"Enrolment"` keys — see the learniq Wave-2 incident). This guard fails CI on
 // any such corruption before it reaches development.
 //
 // Usage:   node tests/validate-json-strict.js

@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-if (function_exists('scholiq_nc_base_is_safe_to_load') === false) {
+if (function_exists('learniq_nc_base_is_safe_to_load') === false) {
 	/**
 	 * Decide whether it is SAFE to load Nextcloud's lib/base.php.
 	 *
@@ -36,7 +36,7 @@ if (function_exists('scholiq_nc_base_is_safe_to_load') === false) {
 	 *
 	 * @return bool True when base.php can be loaded without risking exit().
 	 */
-	function scholiq_nc_base_is_safe_to_load(string $ncRoot): bool {
+	function learniq_nc_base_is_safe_to_load(string $ncRoot): bool {
 		if (is_file($ncRoot . '/lib/base.php') === false) {
 			return false;
 		}
@@ -62,5 +62,5 @@ if (function_exists('scholiq_nc_base_is_safe_to_load') === false) {
 		}
 
 		return true;
-	}//end scholiq_nc_base_is_safe_to_load()
+	}//end learniq_nc_base_is_safe_to_load()
 }//end if

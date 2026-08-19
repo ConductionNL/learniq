@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ReportCardPublishHandler unit tests.
+ * Learniq ReportCardPublishHandler unit tests.
  *
  * Covers the parent fan-out on `publishToParents`: one
  * ReportCardParentNotification per LearnerProfile.parentIds entry, each

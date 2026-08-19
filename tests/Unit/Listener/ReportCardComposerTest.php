@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ReportCardComposer unit tests.
+ * Learniq ReportCardComposer unit tests.
  *
  * Covers subject-row population from FinalGrade.breakdown.periods[periodCode]
  * plus contributing published GradeEntry ids, the "no matching period

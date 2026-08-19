@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq GradeFormulaEvaluator unit tests.
+ * Learniq GradeFormulaEvaluator unit tests.
  *
  * Covers the exam-board-case-handling extension: a `sourceKind: exemption`
  * GradeEntry must not corrupt a `weighted-average` roll-up (the pre-existing

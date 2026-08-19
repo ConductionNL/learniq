@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq CompetencyAttainmentRollupHandler unit tests.
+ * Learniq CompetencyAttainmentRollupHandler unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

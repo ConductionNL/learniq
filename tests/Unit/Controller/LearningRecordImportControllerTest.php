@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq LearningRecordImportController unit tests.
+ * Learniq LearningRecordImportController unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Controller

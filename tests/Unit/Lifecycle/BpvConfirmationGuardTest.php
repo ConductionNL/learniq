@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq BpvConfirmationGuard unit tests.
+ * Learniq BpvConfirmationGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

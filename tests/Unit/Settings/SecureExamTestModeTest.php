@@ -199,7 +199,7 @@ class SecureExamTestModeTest extends TestCase {
 	}//end testFlagKindRemainsFreeTextNotEnum()
 
 	/**
-	 * Scholiq ships NO new controller, service, or route for
+	 * Learniq ships NO new controller, service, or route for
 	 * ProctoringSession/native-test-mode ingestion — session/flag
 	 * persistence goes entirely through OpenRegister's existing generic
 	 * object API (ADR-022), exactly like the pre-existing
@@ -213,13 +213,13 @@ class SecureExamTestModeTest extends TestCase {
 		$this->assertDirectoryExists($controllerDir);
 		$hits = glob($controllerDir . '/*Proctoring*Controller.php') ?: [];
 		$hits = array_merge($hits, (glob($controllerDir . '/*TestMode*Controller.php') ?: []));
-		$this->assertSame([], $hits, 'Scholiq MUST NOT ship a Proctoring/TestMode controller — session/flag writes go through the generic OR object API (ADR-022)');
+		$this->assertSame([], $hits, 'Learniq MUST NOT ship a Proctoring/TestMode controller — session/flag writes go through the generic OR object API (ADR-022)');
 
 		$serviceDir = __DIR__ . '/../../../lib/Service';
 		if (is_dir($serviceDir)) {
 			$serviceHits = glob($serviceDir . '/*Proctoring*.php') ?: [];
 			$serviceHits = array_merge($serviceHits, (glob($serviceDir . '/*TestMode*.php') ?: []));
-			$this->assertSame([], $serviceHits, 'Scholiq MUST NOT ship a Proctoring/TestMode service class');
+			$this->assertSame([], $serviceHits, 'Learniq MUST NOT ship a Proctoring/TestMode service class');
 		}
 
 		$routesPath = __DIR__ . '/../../../appinfo/routes.php';
@@ -235,7 +235,7 @@ class SecureExamTestModeTest extends TestCase {
 			$this->assertStringNotContainsString(
 				'testmode',
 				$name,
-				"Scholiq MUST NOT register a native-test-mode route ($name) — persistence is the generic OR object API's"
+				"Learniq MUST NOT register a native-test-mode route ($name) — persistence is the generic OR object API's"
 			);
 		}
 

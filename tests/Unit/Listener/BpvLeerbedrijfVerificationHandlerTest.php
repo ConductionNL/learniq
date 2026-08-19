@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq BpvLeerbedrijfVerificationHandler unit tests.
+ * Learniq BpvLeerbedrijfVerificationHandler unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

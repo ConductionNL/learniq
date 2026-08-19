@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq PaymentTransactionController unit tests.
+ * Learniq PaymentTransactionController unit tests.
  *
  * Covers initiate() against a mocked OpenConnector response (success +
  * 502-on-failure, mirroring LtiToolPlacementControllerTest's pattern) and
@@ -183,7 +183,7 @@ class PaymentTransactionControllerTest extends TestCase {
 		);
 
 		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
-			static fn (string $path): string => 'https://scholiq.example' . $path
+			static fn (string $path): string => 'https://learniq.example' . $path
 		);
 		$this->appConfig->method('getValueString')->willReturn('outbound-token');
 
@@ -225,7 +225,7 @@ class PaymentTransactionControllerTest extends TestCase {
 		);
 
 		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
-			static fn (string $path): string => 'https://scholiq.example' . $path
+			static fn (string $path): string => 'https://learniq.example' . $path
 		);
 		$this->appConfig->method('getValueString')->willReturn('outbound-token');
 

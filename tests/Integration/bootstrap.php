@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Bootstrap for Scholiq integration tests.
+ * Bootstrap for Learniq integration tests.
  *
  * Mirrors tests/bootstrap.php but loads the full Nextcloud stack so that
  * \OC::$server, ObjectService, and TransitionEngine are available.

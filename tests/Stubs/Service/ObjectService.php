@@ -37,7 +37,7 @@ use OCA\OpenRegister\Db\Schema;
 use OCP\IUser;
 
 /**
- * Mirror of OpenRegister's ObjectService for standalone Scholiq unit tests.
+ * Mirror of OpenRegister's ObjectService for standalone Learniq unit tests.
  */
 abstract class ObjectService {
 

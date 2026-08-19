@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq SessionConflictListener unit tests.
+ * Learniq SessionConflictListener unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

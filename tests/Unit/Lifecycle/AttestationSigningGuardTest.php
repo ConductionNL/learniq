@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq AttestationSigningGuard unit tests.
+ * Learniq AttestationSigningGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

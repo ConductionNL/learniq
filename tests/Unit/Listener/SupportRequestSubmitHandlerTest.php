@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq SupportRequestSubmitHandler unit tests.
+ * Learniq SupportRequestSubmitHandler unit tests.
  *
  * Covers the `zorgvraag-swv-tlv-chain` change: submitting a SupportRequest
  * auto-queues a DataExchangeJob (target: swv, scope.schema: support-request),

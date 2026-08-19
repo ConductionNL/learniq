@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq course-package round-trip smoke test.
+ * Learniq course-package round-trip smoke test.
  *
  * Exports a seeded course as scholiq-native JSON via CoursePackageExportService,
  * re-imports it via CoursePackageImportService, and diffs the resulting object
@@ -144,7 +144,7 @@ class CoursePackageRoundTripTest extends TestCase {
 		$importRootFolder = $this->createMock(IRootFolder::class);
 		$importRootFolder->method('getUserFolder')->willReturn($importFolder);
 
-		$tmpJsonFile = tempnam(sys_get_temp_dir(), 'scholiq_roundtrip_');
+		$tmpJsonFile = tempnam(sys_get_temp_dir(), 'learniq_roundtrip_');
 		file_put_contents($tmpJsonFile, $json);
 
 		$importLogger = new NullLogger();

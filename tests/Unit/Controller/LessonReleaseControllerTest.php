@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq LessonReleaseController unit tests.
+ * Learniq LessonReleaseController unit tests.
  *
  * Covers: an enrolled learner gets a real evaluator decision; a
  * non-enrolled, non-staff caller gets 403; a staff (admin/teacher-view)
@@ -90,7 +90,7 @@ class LessonReleaseControllerTest extends TestCase {
 	}//end seed()
 
 	/**
-	 * Sign the caller in as the given uid with the given Scholiq views.
+	 * Sign the caller in as the given uid with the given Learniq views.
 	 *
 	 * @param string $uid NC user id.
 	 * @param string[] $views DashboardRoleService::resolveViews() result.

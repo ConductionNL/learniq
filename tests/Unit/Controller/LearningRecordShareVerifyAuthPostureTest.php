@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq LearningRecordShareVerifyController auth-posture tests.
+ * Learniq LearningRecordShareVerifyController auth-posture tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Controller

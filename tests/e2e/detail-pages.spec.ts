@@ -37,7 +37,7 @@ function isSeeded(): boolean {
 	try {
 		return Object.keys(JSON.parse(fs.readFileSync(file, 'utf8'))).length > 0
 	} catch {
-		return process.env.SCHOLIQ_E2E_SEEDED === '1'
+		return process.env.LEARNIQ_E2E_SEEDED === '1'
 	}
 }
 
@@ -54,7 +54,7 @@ const detailPages: DetailPage[] = (manifest as any).pages
 	.filter((p: any) => p.type === 'detail' && typeof p.route === 'string')
 	.map((p: any) => ({ id: p.id, route: p.route, resolved: resolveRoute(p.route) }))
 
-test.describe(`Scholiq detail pages (${detailPages.length})`, () => {
+test.describe(`Learniq detail pages (${detailPages.length})`, () => {
 	for (const p of detailPages) {
 		test(`${p.id} — ${APP_BASE}${p.resolved}`, async ({
 			loggedInPage: page,
@@ -68,15 +68,15 @@ test.describe(`Scholiq detail pages (${detailPages.length})`, () => {
 			})
 			await page.waitForLoadState('domcontentloaded')
 
-			// (hard) The Scholiq SPA was served for this detail route — not blank, not
+			// (hard) The Learniq SPA was served for this detail route — not blank, not
 			// an NC error page. (The detail renderer 404s on the missing object and —
-			// until openregister#1487 imports the scholiq schemas — throws a JS error and
+			// until openregister#1487 imports the learniq schemas — throws a JS error and
 			// renders an empty content section; the deeper "no JS error" check below is
 			// gated on the register being imported.)
 			expect(
 				await page.title(),
-				`${p.id}: should be the Scholiq app page`,
-			).toContain('Scholiq')
+				`${p.id}: should be the Learniq app page`,
+			).toContain('Learniq')
 			const bodyText = (await page.innerText('body')).trim()
 			expect(
 				bodyText.length,

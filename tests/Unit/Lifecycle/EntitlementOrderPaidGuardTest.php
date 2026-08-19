@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq EntitlementOrderPaidGuard unit tests.
+ * Learniq EntitlementOrderPaidGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

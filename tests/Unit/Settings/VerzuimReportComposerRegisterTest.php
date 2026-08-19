@@ -6,10 +6,10 @@
  * IMPORTANT SCOPE NOTE: `x-openregister-calculations` and
  * `x-openregister-aggregations` are evaluated by OpenRegister core at
  * runtime, which does not live in this repository (only test stubs for its
- * PHP service classes do — see composer.json's `autoload-dev`). Scholiq
+ * PHP service classes do — see composer.json's `autoload-dev`). Learniq
  * cannot unit-test the numeric OUTPUT of a declared calculation/aggregation
  * (no existing test in this suite does — see e.g. Course.isPublished,
- * Regulation.ragStatus, which carry zero runtime-value tests). What Scholiq
+ * Regulation.ragStatus, which carry zero runtime-value tests). What Learniq
  * CAN and MUST verify is that the declared SHAPE is correct: the right
  * fields exist, reference the right source schema/metric, and the
  * two-step calc chain (aggregation -> calc -> calc) is wired the way

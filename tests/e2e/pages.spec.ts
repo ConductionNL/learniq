@@ -42,7 +42,7 @@ const ROUTES: { name: string; path: string }[] = [
 	{ name: 'DataMappingProfiles', path: '#/data-exchange/mapping-profiles' },
 ]
 
-test.describe('Scholiq page routes', () => {
+test.describe('Learniq page routes', () => {
 	for (const { name, path } of ROUTES) {
 		test(`${name} (${path}) loads without fatal error`, async ({
 			loggedInPage: page,

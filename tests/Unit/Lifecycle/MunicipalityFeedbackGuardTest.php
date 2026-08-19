@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq MunicipalityFeedbackGuard unit tests.
+ * Learniq MunicipalityFeedbackGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

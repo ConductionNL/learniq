@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq GradeVisibilityResolver unit tests.
+ * Learniq GradeVisibilityResolver unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Grading

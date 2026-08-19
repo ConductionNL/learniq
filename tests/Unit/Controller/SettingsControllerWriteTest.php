@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * The canonical AppHost dialect routes `PUT /api/settings` to
  * `settings#update` and keeps `POST /api/settings` (`settings#create`) as a
- * legacy alias. Scholiq ships its own SettingsController, so no generic is
+ * legacy alias. Learniq ships its own SettingsController, so no generic is
  * aliased in to cover either verb.
  *
  * These tests assert the ITEM — that the write actually reaches
@@ -123,7 +123,7 @@ class SettingsControllerWriteTest extends TestCase {
 	/**
 	 * POST /api/settings is the legacy alias and must write identically.
 	 *
-	 * Both of Scholiq's own frontend writers still POST here, so the alias
+	 * Both of Learniq's own frontend writers still POST here, so the alias
 	 * staying a real write — not an empty success — is load-bearing.
 	 *
 	 * @return void

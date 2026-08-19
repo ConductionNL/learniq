@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq AssessmentDrawResolver unit tests.
+ * Learniq AssessmentDrawResolver unit tests.
  *
  * Covers: fixed draw count from a filtered pool, subjectTags/difficulty
  * filtering, variant-group exclusivity, Fisher-Yates item-order shuffle, the

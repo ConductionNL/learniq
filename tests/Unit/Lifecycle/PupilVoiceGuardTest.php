@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq PupilVoiceGuard unit tests.
+ * Learniq PupilVoiceGuard unit tests.
  *
  * Covers the `zorgvraag-swv-tlv-chain` change: the DeliberationRecord
  * `scheduled → recorded` transition MUST be blocked unless the pupil's own

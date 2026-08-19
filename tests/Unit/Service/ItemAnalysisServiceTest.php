@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ItemAnalysisService unit tests.
+ * Learniq ItemAnalysisService unit tests.
  *
  * p-value, corrected item-total correlation, and Cronbach's alpha against
  * hand-computed reference fixtures (exact fractions chosen so the reference

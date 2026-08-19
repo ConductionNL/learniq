@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
 /**
- * Scholiq does not use `AppHost\Routes::standard()`; it hand-declares its route
+ * Learniq does not use `AppHost\Routes::standard()`; it hand-declares its route
  * table. That makes the table the single source of truth for which controller
  * methods must exist, and it fails in two distinct ways:
  *
@@ -41,7 +41,7 @@ use ReflectionClass;
  *
  * `OCA\OpenRegister\AppHost\Bootstrap::aliasControllerUnlessLeafDefinesIt()`
  * only substitutes a generic controller when the leaf app does NOT ship a
- * class of that name. Scholiq ships `lib/Controller/SettingsController.php`,
+ * class of that name. Learniq ships `lib/Controller/SettingsController.php`,
  * so the generic is never constructed for `settings#*` and the leaf owes every
  * method routed there. (The absence of `PreferencesController` /
  * `HealthController` / `MetricsController` on disk is correct and must not be
@@ -78,7 +78,7 @@ class CanonicalRouteMethodContractTest extends TestCase {
 	 * The canonical AppHost dialect (ADR-066) makes PUT the settings write and
 	 * POST the retained legacy alias. Without this entry the verb is a 405 and
 	 * any caller speaking the canonical dialect — including the AppHost
-	 * contract collection — cannot write Scholiq's settings at all.
+	 * contract collection — cannot write Learniq's settings at all.
 	 *
 	 * @return void
 	 */
@@ -110,9 +110,9 @@ class CanonicalRouteMethodContractTest extends TestCase {
 	/**
 	 * The legacy POST alias must survive alongside the canonical PUT.
 	 *
-	 * Both of Scholiq's own frontend writers still POST to `/api/settings`
+	 * Both of Learniq's own frontend writers still POST to `/api/settings`
 	 * (`src/store/modules/settings.js::saveSettings()` and
-	 * `src/views/ScholiqSettings.vue::saveDefaultRegister()`), so this change
+	 * `src/views/LearniqSettings.vue::saveDefaultRegister()`), so this change
 	 * is a strict addition — removing the alias would break them.
 	 *
 	 * @return void
@@ -134,7 +134,7 @@ class CanonicalRouteMethodContractTest extends TestCase {
 	}//end testLegacyPostApiSettingsAliasIsStillDeclared()
 
 	/**
-	 * Every route entry pointing at a controller Scholiq ships itself must
+	 * Every route entry pointing at a controller Learniq ships itself must
 	 * name a method that exists and is public.
 	 *
 	 * Derived from the live route array rather than a hardcoded list, so a
@@ -202,8 +202,8 @@ class CanonicalRouteMethodContractTest extends TestCase {
 		$this->assertSame(
 			[],
 			$missing,
-			"Route entries name method(s) that do not exist on Scholiq's own controllers. "
-			. 'Scholiq ships these classes, so no AppHost generic is aliased in to cover them — '
+			"Route entries name method(s) that do not exist on Learniq's own controllers. "
+			. 'Learniq ships these classes, so no AppHost generic is aliased in to cover them — '
 			. "each of these is a 500 at runtime, not a 404:\n  - " . implode("\n  - ", $missing)
 		);
 
@@ -268,7 +268,7 @@ class CanonicalRouteMethodContractTest extends TestCase {
 				[\OCA\Learniq\Settings\AdminSettings::class],
 				array_values($attributes[0]->getArguments()),
 				sprintf(
-					"SettingsController::%s() must bind Scholiq's own AdminSettings panel",
+					"SettingsController::%s() must bind Learniq's own AdminSettings panel",
 					$method
 				)
 			);

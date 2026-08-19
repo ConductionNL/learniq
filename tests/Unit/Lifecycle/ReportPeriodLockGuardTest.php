@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ReportPeriodLockGuard unit tests.
+ * Learniq ReportPeriodLockGuard unit tests.
  *
  * Covers the composition with FraudCaseBlockGuard (a fraud-blocked GradeEntry
  * MUST stay blocked regardless of ReportPeriod lock state — the fraud-appeal

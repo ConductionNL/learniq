@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq PointAwardTriggerHandler unit tests.
+ * Learniq PointAwardTriggerHandler unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

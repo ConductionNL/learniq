@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ExemptionGrantHandler unit tests.
+ * Learniq ExemptionGrantHandler unit tests.
  *
  * Covers: ExemptionCase → granted creates a GradeEntry (sourceKind: exemption,
  * value: null, exemptionCaseId set), drives it through the *existing* publish

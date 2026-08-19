@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq FraudCaseInvalidationGuard unit tests.
+ * Learniq FraudCaseInvalidationGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

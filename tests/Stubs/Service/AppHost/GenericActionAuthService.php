@@ -30,9 +30,9 @@ namespace OCA\OpenRegister\AppHost\Service;
 use OCP\IUser;
 
 /**
- * Minimal GenericActionAuthService stub for Scholiq unit tests / static analysis.
+ * Minimal GenericActionAuthService stub for Learniq unit tests / static analysis.
  *
- * Concrete (not abstract) methods, mirroring the real class's shape: Scholiq's
+ * Concrete (not abstract) methods, mirroring the real class's shape: Learniq's
  * own `ActionAuthService` (lib/Service/ActionAuthService.php) is a one-line
  * subclass with no method bodies of its own — it relies entirely on the
  * parent's concrete implementations at runtime. Declaring these `abstract`

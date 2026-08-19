@@ -1,7 +1,7 @@
 import { test, expect } from './fixtures'
 
 /**
- * Shell smoke tests — verify the Scholiq SPA shell loads correctly.
+ * Shell smoke tests — verify the Learniq SPA shell loads correctly.
  *
  * These tests navigate to /index.php/apps/learniq/ and check that:
  *   1. The CnAppRoot shell renders (no blank page / fatal error).
@@ -9,7 +9,7 @@ import { test, expect } from './fixtures'
  *
  * @e2e apphost-adoption::spa-shell-and-deep-links-still-render
  */
-test.describe('Scholiq shell', () => {
+test.describe('Learniq shell', () => {
 	test('SPA loads without fatal JS error', async ({ loggedInPage: page }) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
@@ -28,7 +28,7 @@ test.describe('Scholiq shell', () => {
 		expect(bodyText.trim().length).toBeGreaterThan(0)
 
 		// Filter out known non-fatal errors: network issues for fonts/icons, and
-		// errors from other NC apps (Photos, Pipelinq, etc.) that are unrelated to Scholiq.
+		// errors from other NC apps (Photos, Pipelinq, etc.) that are unrelated to Learniq.
 		const fatalErrors = errors.filter(
 			(e) =>
 				!e.includes('favicon')

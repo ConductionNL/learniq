@@ -63,7 +63,7 @@ async function ensureLoggedIn(page: Page): Promise<void> {
 	}
 }
 
-type ScholiqFixtures = {
+type LearniqFixtures = {
 	loggedInPage: Page
 }
 
@@ -78,7 +78,7 @@ type ScholiqFixtures = {
  *   import { test } from '../fixtures'
  *   test('my test', async ({ loggedInPage }) => { ... })
  */
-export const test = base.extend<ScholiqFixtures>({
+export const test = base.extend<LearniqFixtures>({
 	loggedInPage: async ({ page }, use) => {
 		await ensureLoggedIn(page)
 		await use(page)

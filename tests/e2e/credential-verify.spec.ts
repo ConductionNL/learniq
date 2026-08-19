@@ -40,7 +40,7 @@ test.describe('CredentialVerify page', () => {
 		})
 
 		// Navigate to the verify route with a test UUID.
-		// The Scholiq SPA uses vue-router in HISTORY mode — no `#`.
+		// The Learniq SPA uses vue-router in HISTORY mode — no `#`.
 		await page.goto('/index.php/apps/learniq/credentials/test-id/verify', {
 			waitUntil: 'domcontentloaded',
 			timeout: 30_000,
@@ -59,19 +59,19 @@ test.describe('CredentialVerify page', () => {
 			`CredentialVerify should have no fatal JS errors: ${fatalErrors.join('; ')}`,
 		).toHaveLength(0)
 
-		// The Scholiq SPA should have rendered — either the CredentialVerify component
+		// The Learniq SPA should have rendered — either the CredentialVerify component
 		// or the Dashboard fallback (hash-route timing gap under test conditions).
 		// We verify the SPA is alive; a real browser always shows the correct component.
 		const pageContent = await page.content().catch(() => '')
-		const scholiqSpaRendered =
+		const learniqSpaRendered =
 			pageContent.includes('learniq')
 			|| pageContent.includes('Dashboard')
 			|| pageContent.includes('Courses')
 			|| pageContent.includes('credential')
 
 		expect(
-			scholiqSpaRendered,
-			'Scholiq SPA should have rendered (nav or credential content visible)',
+			learniqSpaRendered,
+			'Learniq SPA should have rendered (nav or credential content visible)',
 		).toBe(true)
 	})
 

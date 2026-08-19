@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq CohortTalkMembershipHandler unit tests.
+ * Learniq CohortTalkMembershipHandler unit tests.
  *
  * Covers the `talk-classroom-spaces` Enrolment activate/withdraw -> Cohort
  * Talk conversation participant sync bridge: a learner is added when their

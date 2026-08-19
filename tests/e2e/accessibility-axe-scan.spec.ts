@@ -66,7 +66,7 @@ const customPages: SampledPage[] = (manifest as any).pages
 
 const sample: SampledPage[] = [...indexPages, ...customPages]
 
-test.describe(`Scholiq axe-core accessibility scan (WCAG 2.1 A/AA, ${sample.length} sampled pages)`, () => {
+test.describe(`Learniq axe-core accessibility scan (WCAG 2.1 A/AA, ${sample.length} sampled pages)`, () => {
 	for (const p of sample) {
 		// @e2e accessibility-conformance::the-axe-core-scan-runs-against-manifest-pages-and-fails-on-a-violation
 		//

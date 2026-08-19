@@ -29,17 +29,17 @@ import { apiUrl } from '../base-url'
 //     an index.php — so `/apps/learniq/...` is a hard 404. 29 of this suite's
 //     34 spec files already used the `/index.php/` form.
 //  2. This is the NEXTCLOUD ADMIN settings panel, not an in-app route. Every
-//     assertion below ("Scholiq Settings", the OpenRegister section, the register
+//     assertion below ("Learniq Settings", the OpenRegister section, the register
 //     combobox, "Credential Signing") targets src/views/settings/AdminRoot.vue,
-//     which `src/settings.js` mounts into `#scholiq-settings` on the NC admin
+//     which `src/settings.js` mounts into `#learniq-settings` on the NC admin
 //     page. The old `/apps/learniq/Settings` was neither: `/Settings` is not a
 //     declared route (the manifest's in-app settings page is `/settings`, and
 //     vue-router is case-sensitive), and the in-app `/settings` page is a
 //     different surface — navigating there on CI run 30798535945 rendered a
-//     generic "Settings" heading and a disabled Save button, with no "Scholiq
+//     generic "Settings" heading and a disabled Save button, with no "Learniq
 //     Settings" heading anywhere.
 //
-//     The section id is `scholiq`: OpenRegister's AppHost `Bootstrap::register`
+//     The section id is `learniq`: OpenRegister's AppHost `Bootstrap::register`
 //     defaults `sectionId` to the app id, and lib/AppInfo/Application.php passes
 //     only `namespace`, `sectionName` and `mcpProvider` — no `sectionId` override.
 const SETTINGS_URL = '/index.php/settings/admin/learniq'
@@ -103,7 +103,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		await page.goto(SETTINGS_URL)
 		await page.waitForLoadState('domcontentloaded')
 		await expect(
-			page.locator('h2, h1').filter({ hasText: /Scholiq Settings/i }),
+			page.locator('h2, h1').filter({ hasText: /Learniq Settings/i }),
 		).toBeVisible()
 	})
 
@@ -115,7 +115,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		await page.waitForLoadState('domcontentloaded')
 
 		// The settings page must be visible
-		await expect(page.locator('text=Scholiq Settings')).toBeVisible({
+		await expect(page.locator('text=Learniq Settings')).toBeVisible({
 			timeout: 15_000,
 		})
 
@@ -133,10 +133,10 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 			page.locator('h2').filter({ hasText: /AI Features/i }),
 		).toBeVisible()
 
-		// This used to assert a `<th>Feature</th>`, i.e. that Scholiq rendered its
+		// This used to assert a `<th>Feature</th>`, i.e. that Learniq rendered its
 		// OWN AI-feature register table. That surface no longer exists: under
 		// ADR-005 the EU AI Act high-risk feature register and the DPO
-		// acknowledgement are centralised in Hermiq, and ScholiqSettings.vue now
+		// acknowledgement are centralised in Hermiq, and LearniqSettings.vue now
 		// renders the section as a delegation — see the "Section 2: AI features —
 		// governance delegated to Hermiq (ADR-005)" NcSettingsSection. There is no
 		// <th> anywhere in the settings views, so the old assertion could only ever
@@ -161,7 +161,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 	}) => {
 		await page.goto(SETTINGS_URL)
 		await page.waitForLoadState('domcontentloaded')
-		await expect(page.locator('text=Scholiq Settings')).toBeVisible({
+		await expect(page.locator('text=Learniq Settings')).toBeVisible({
 			timeout: 15_000,
 		})
 
@@ -180,16 +180,16 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		await combobox.click()
 
 		// Look for an option with 'learniq' in the dropdown
-		const scholiqOption = page
+		const learniqOption = page
 			.locator('[role="option"]')
-			.filter({ hasText: /scholiq/i })
+			.filter({ hasText: /learniq/i })
 			.first()
-		const optionVisible = await scholiqOption
+		const optionVisible = await learniqOption
 			.isVisible({ timeout: 5_000 })
 			.catch(() => false)
 
 		if (optionVisible) {
-			await scholiqOption.click()
+			await learniqOption.click()
 			// The POST should have fired after the selection
 			const req = await settingsPostPromise
 			if (req) {
@@ -299,7 +299,7 @@ test.describe('nextcloud-app — per-user notification preferences', () => {
 			() => (window as any).OC?.requestToken ?? '',
 		)
 
-		// Writing an override goes to OpenRegister's PUT endpoint (no scholiq-local store).
+		// Writing an override goes to OpenRegister's PUT endpoint (no learniq-local store).
 		// Assert the endpoint accepts the override-write contract the panel uses.
 		const resp = await page.request.put(apiUrl(PREFS_API), {
 			headers: {

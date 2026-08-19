@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq EngagementSignalHandler unit tests.
+ * Learniq EngagementSignalHandler unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

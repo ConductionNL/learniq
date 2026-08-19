@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq RejectionMappingHandler unit tests.
+ * Learniq RejectionMappingHandler unit tests.
  *
  * Covers the `duo-afkeurmelding-correction` change: mapping a finished
  * DataExchangeJob's result.validationReport onto ExchangeRejection rows

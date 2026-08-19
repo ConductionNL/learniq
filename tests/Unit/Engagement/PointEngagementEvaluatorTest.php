@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq PointEngagementEvaluator unit tests.
+ * Learniq PointEngagementEvaluator unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Engagement

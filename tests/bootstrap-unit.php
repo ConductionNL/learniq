@@ -35,7 +35,7 @@ $loader->register(true);
 // NC runtime, so skipping it is always safe.
 require_once __DIR__ . '/bootstrap-nc-guard.php';
 
-if (scholiq_nc_base_is_safe_to_load(__DIR__ . '/../../..') === true) {
+if (learniq_nc_base_is_safe_to_load(__DIR__ . '/../../..') === true) {
 	include_once __DIR__ . '/../../../lib/base.php';
 }
 
