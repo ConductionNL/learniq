@@ -144,6 +144,7 @@ export default {
 		 * wrong for e.g. a 0-100 scale).
 		 *
 		 * @return {{min: number, max: number}}
+		 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
 		 */
 		valueRange() {
 			const values = []
@@ -281,6 +282,7 @@ export default {
 		 *
 		 * @param {number} value Average value.
 		 * @return {string}
+		 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
 		 */
 		formatAverage(value) {
 			return Number(value).toFixed(1)
@@ -291,6 +293,7 @@ export default {
 		 *
 		 * @param {number|undefined} value Cell average, or undefined for an empty cell.
 		 * @return {string}
+		 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
 		 */
 		cellClass(value) {
 			if (value === undefined) return ''

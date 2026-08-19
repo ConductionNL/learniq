@@ -344,6 +344,7 @@ export default {
 		 * Teacher management layout.
 		 *
 		 * @return {{widgets: Array<object>, layout: Array<object>}}
+		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
 		 */
 		teacherConfig() {
 			return {

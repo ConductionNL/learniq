@@ -120,7 +120,14 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 	 * @spec openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-activating-an-enrolment-adds-the-learner-to-the-cohorts-linked-conversation
 	 */
 	public function testActivateAddsParticipant(): void {
-		$room = new TalkRoom();
+		// ⚠️ A MOCK, not `new TalkRoom()`. The room is only ever an identity
+		// token here — handed to a mocked manager, matched by a mocked
+		// participant service, never called. But `new TalkRoom()` binds the test
+		// to whether Talk is INSTALLED: with the stub it constructs, with the
+		// real `OCA\Talk\Room` it needs 33 arguments and the test errors. That
+		// is why this passed CI (no Talk) and failed on a dev instance (Talk
+		// present) — a test nobody can run locally is a test nobody runs.
+		$room = $this->createMock(TalkRoom::class);
 
 		$manager = $this->createMock(TalkManager::class);
 		$manager->method('getRoomByToken')->with('room-token-1')->willReturn($room);
@@ -155,7 +162,9 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 	 * @spec openspec/changes/talk-classroom-spaces/specs/school-structure/spec.md#scenario-withdrawing-an-enrolment-removes-the-learner-from-the-cohorts-linked-conversation
 	 */
 	public function testWithdrawRemovesParticipant(): void {
-		$room = new TalkRoom();
+		// A mock for the same reason as above: identity only, and it must not
+		// depend on whether Talk is installed.
+		$room = $this->createMock(TalkRoom::class);
 		$user = $this->createMock(IUser::class);
 
 		$manager = $this->createMock(TalkManager::class);
