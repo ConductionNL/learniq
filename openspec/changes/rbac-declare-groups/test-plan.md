@@ -26,7 +26,7 @@
 - **persona**: n/a (direct API auth verification)
 - **preconditions**: A test user exists who is not a member of `instructors`, `compliance-officers`, `hr`, or `team-leads`, and is not the author/owner of any `DossierNote` object. `instructors`/`compliance-officers` have at least one member so the positive-admission case (TC-4) has a control.
 - **steps**: Authenticate as the test user. `GET` a `DossierNote` object via the OpenRegister objects API.
-- **expected result**: HTTP 403. This is the behaviour reversal this change exists to produce — before this change, the same request against the same object returned 200 (verified against the pre-change `PermissionHandler` default-open branch in design.md's Context section).
+- **expected result**: HTTP 404 (read denials are masked — see the note in spec.md REQ-002). This is the behaviour reversal this change exists to produce — before this change, the same request against the same object returned 200 (verified against the pre-change `PermissionHandler` default-open branch in design.md's Context section).
 - **test command**: `/test-security`
 
 ### TC-4: A member of the assigned profile is admitted on the same Tier-1 schema
@@ -35,7 +35,7 @@
 - **persona**: n/a (direct API auth verification)
 - **preconditions**: A test user is a member of `instructors` (Profile A group for `DossierNote`).
 - **steps**: Authenticate as the test user. `GET` the same `DossierNote` object used in TC-3.
-- **expected result**: HTTP 200 — proves TC-3's 403 is the profile's group check working, not a broken schema or an unrelated 403 (e.g. a missing route).
+- **expected result**: HTTP 200 — proves TC-3's 404 is the profile's group check working, not a missing object or a broken route. This positive control is what makes a masked 404 readable as a refusal at all: without it, "404" and "there is nothing there" are indistinguishable.
 - **test command**: `/test-security`
 
 ### TC-5: Tier-3 write differs by profile — Profile 3a excludes instructors, Profile 3b includes them
@@ -62,7 +62,7 @@
 - **persona**: n/a (direct API auth verification)
 - **preconditions**: A SINGLE test user is a member of `learners` only. A `Course` object exists (Tier 3, catalogue). A `GradeEntry` object exists (Tier 2, learner-attributed) that a DIFFERENT learner owns (`objectOwner` = the instructor who created it, not the test user — see design.md Residual Exposure for why the owner bypass does not apply here).
 - **steps**: Authenticate as the test user (same session throughout). `GET` the `Course` object. Then, still as the same user, `GET` the `GradeEntry` object, and separately `POST` a new `GradeEntry` object.
-- **expected result**: `Course` read is HTTP 200 (catalogue: wide read, `learners` included — REQ-003). `GradeEntry` read AND create are both HTTP 403 (learner-attributed: no group grant for `learners` — REQ-001). Both outcomes on the SAME actor in the SAME test — a test that only proved the refusal half (the pre-C5 version of this test plan) would still pass if the catalogue were also broken, which is exactly the bug C5 caught; this pairing is what makes that impossible.
+- **expected result**: `Course` read is HTTP 200 (catalogue: wide read, `learners` included — REQ-003). `GradeEntry` read is HTTP 404 (masked) AND create is HTTP 403 (learner-attributed: no group grant for `learners` — REQ-001). Both outcomes on the SAME actor in the SAME test — a test that only proved the refusal half (the pre-C5 version of this test plan) would still pass if the catalogue were also broken, which is exactly the bug C5 caught; this pairing is what makes that impossible.
 - **test command**: `/test-security`
 
 ### TC-8: No `x-openregister-authorization` or `x-property-rbac`-shaped decoy key remains where a real block now governs

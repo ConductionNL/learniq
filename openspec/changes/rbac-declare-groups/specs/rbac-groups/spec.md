@@ -46,7 +46,7 @@ No profile lists `delete` — by REQ-001's fail-closed rule, delete is admin-onl
 - **GIVEN** schema `DossierNote` (Profile A) declares `authorization.read: ["instructors","compliance-officers"]`
 - **AND** an authenticated user who is in neither `instructors` nor `compliance-officers`, and is not the note's `authorId`
 - **WHEN** that user sends `GET` for a `DossierNote` object
-- **THEN** the read is refused with 403
+- **THEN** the read is refused with **404** — 404, not 403 — OpenRegister's `ObjectsController` deliberately remaps a read denial to Not Found so the denial reveals nothing about whether the object exists ("Mirror show(): 404, not 403/500, so denial reveals nothing"). Writes still surface as a true 403. Verified live 2026-08-19.
 - **AND** this is the behaviour that did NOT hold before this change: with no `authorization` block, `PermissionHandler::hasGroupPermission()`'s "Default-OPEN behaviour preserved" branch would have returned `true` for this same read, for this same user, unconditionally — `enforce_default_closed` would not have changed this outcome even if enabled, because `read` is never in `DEFAULT_CLOSED_WRITE_ACTIONS`
 
 #### Scenario: A member of the assigned profile is admitted
@@ -79,7 +79,7 @@ Profile 3b exists because the object-owner bypass does not make Tier-2's staff-o
 - **AND** schema `GradeEntry` (Tier 2, no schema-level block) exists with an object owned by a DIFFERENT learner
 - **WHEN** that user `GET`s a `Course` object, and separately `GET`s the `GradeEntry` object
 - **THEN** the `Course` read succeeds (catalogue: wide read, learners included)
-- **AND** the `GradeEntry` read is refused with 403 (learner-attributed: no group grant for `learners`, per REQ-001)
+- **AND** the `GradeEntry` read is refused with **404** and its create with **403** (learner-attributed: no group grant for `learners`, per REQ-001). 404, not 403 — OpenRegister's `ObjectsController` deliberately remaps a read denial to Not Found so the denial reveals nothing about whether the object exists ("Mirror show(): 404, not 403/500, so denial reveals nothing"). Writes still surface as a true 403. Verified live 2026-08-19.
 - **AND** this is the corrected rule this change actually implements: not "learners read nothing," but "learners read the catalogue, never another learner's record"
 
 #### Scenario: Write is staff-only in both profiles, but which staff differs
