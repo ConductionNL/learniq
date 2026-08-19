@@ -3,7 +3,7 @@
 /**
  * Learniq MigrateAppConfigKeys Repair Step
  *
- * rename-to-learniq boundary 4 (IAppConfig key migration): copies every
+ * Rename-to-learniq boundary 4 (IAppConfig key migration): copies every
  * stored `IAppConfig` value from the old `scholiq` app-config namespace to
  * the new `learniq` namespace. Nextcloud's `IAppConfig` is namespaced by app
  * id at the storage layer (`oc_appconfig.appid`), so this is not a key

@@ -68,19 +68,23 @@ use Psr\Log\LoggerInterface;
  */
 class RenameDutchColumns implements IRepairStep {
 	/**
-	 * Slug prefix of the registers in scope.
+	 * Slug prefixes of the registers in scope — BOTH, deliberately.
 	 *
-	 * rename-to-learniq: intentionally NOT renamed to 'learniq'. This step
-	 * runs in <post-migration> BEFORE RenameRegisterSlug (info.xml lists it
-	 * first), so at the moment it executes the register's slug in the
-	 * database is still literally 'scholiq' — RenameRegisterSlug has not run
-	 * yet in the same upgrade pass. Matching 'learniq' here would find zero
-	 * registers and silently no-op this step's own migration on any install
-	 * that had not already completed it before this rename shipped.
+	 * An earlier version matched only `scholiq`, justified by a docblock
+	 * claiming this step runs in `<post-migration>` BEFORE RenameRegisterSlug
+	 * "because info.xml lists it first". That was false: `appinfo/info.xml`
+	 * lists RenameRegisterSlug FIRST and RenameDutchColumns LAST. So by the
+	 * time this step ran, the slug in the database was already `learniq`, the
+	 * `LIKE 'scholiq%'` lookup matched zero registers, and the step silently
+	 * no-opped on every upgrade — reporting success while migrating nothing.
 	 *
-	 * @var string
+	 * Matching both prefixes removes the dependency on step order entirely,
+	 * which is the property that should never have been relied on: an
+	 * ordering assumption stated in a comment is not enforced by anything.
+	 *
+	 * @var string[]
 	 */
-	private const REGISTER_SLUG_PREFIX = 'scholiq';
+	private const REGISTER_SLUG_PREFIXES = ['scholiq', 'learniq'];
 
 	/**
 	 * Old snake_case column name => new snake_case column name.
@@ -268,10 +272,18 @@ class RenameDutchColumns implements IRepairStep {
 	 */
 	private function registerIds(): array {
 		try {
-			return $this->db->executeQuery(
-				'SELECT id FROM `*PREFIX*openregister_registers` WHERE slug LIKE ?',
-				[self::REGISTER_SLUG_PREFIX . '%']
-			)->fetchAll(\PDO::FETCH_COLUMN);
+			$ids = [];
+			foreach (self::REGISTER_SLUG_PREFIXES as $prefix) {
+				$rows = $this->db->executeQuery(
+					'SELECT id FROM `*PREFIX*openregister_registers` WHERE slug LIKE ?',
+					[$prefix . '%']
+				)->fetchAll(\PDO::FETCH_COLUMN);
+				foreach ($rows as $id) {
+					$ids[(int)$id] = (int)$id;
+				}
+			}
+
+			return array_values($ids);
 		} catch (Exception $e) {
 			$this->logger->warning(
 				'RenameDutchColumns: could not resolve the registers; skipping.',

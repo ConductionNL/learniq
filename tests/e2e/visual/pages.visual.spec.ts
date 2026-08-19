@@ -237,9 +237,9 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 		expect(manifestComponentFor('/')).toBe('LearniqDashboards')
 		const errors = collectFatalErrors(page)
 		await goTo(page, '/')
-		await expect(
-			page.locator('#app-navigation-vue').first(),
-		).toBeVisible({ timeout: 20_000 })
+		await expect(page.locator('#app-navigation-vue').first()).toBeVisible({
+			timeout: 20_000,
+		})
 		assertNoFatalErrors(errors)
 	})
 
