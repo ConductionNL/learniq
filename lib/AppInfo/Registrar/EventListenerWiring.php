@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Scholiq Event Listener Wiring
+ * Learniq Event Listener Wiring
  *
- * The composition root for Scholiq's event-listener registrations. It owns
+ * The composition root for Learniq's event-listener registrations. It owns
  * nothing itself: it names the domain-scoped registrars and the phase each one
  * belongs to, so `Application` depends on this one seam instead of on every
  * listener class in the app, and each registrar stays small enough to read in
@@ -65,7 +65,7 @@ class EventListenerWiring {
 	 * Subscribe every boot()-phase filtered object listener.
 	 *
 	 * @param IEventDispatcher $dispatcher The live event dispatcher.
-	 * @param string $appId The Scholiq app id (log context only).
+	 * @param string $appId The Learniq app id (log context only).
 	 *
 	 * @return void
 	 *

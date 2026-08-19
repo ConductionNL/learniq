@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq RolloverService unit tests.
+ * Learniq RolloverService unit tests.
  *
  * Covers the default-mapping proposal (leerjaar increment + unparseable block),
  * the side-effect-free preview (counts, blocked state, preview-matches-mappings),

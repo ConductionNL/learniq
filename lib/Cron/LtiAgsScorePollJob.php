@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Scholiq LTI AGS Score Poll Job
+ * Learniq LTI AGS Score Poll Job
  *
  * Background job that pulls pending `nl.conduction.lti.ags.score.received`
  * CloudEvent messages from OpenConnector's `events-cloudevents` pull surface
- * for the scholiq-owned `event_subscription`, and creates a concept
+ * for the learniq-owned `event_subscription`, and creates a concept
  * `GradeEntry` per score — mirroring the exact shape
  * `GradeRollupHandler::handleAssessmentResultGraded()` already produces for
  * `sourceKind=assessment-result`. See design.md D2 (pull, not push) and D4
@@ -17,7 +17,7 @@
  * audit/query need of its own, so a config scalar is the simplest correct
  * choice — the same reasoning `DataExchangeRunHandler::OPENCONNECTOR_TOKEN_KEY`
  * already applies to its own single-writer config value.
- *   - `lti_ags_subscription_id` — the scholiq-owned `event_subscription`
+ *   - `lti_ags_subscription_id` — the learniq-owned `event_subscription`
  *     UUID on OpenConnector (task 5.1 admin bootstrap). Empty = not yet
  *     bootstrapped; the job no-ops (not an error).
  *   - `lti_ags_pull_cursor` — the last-seen `event_message` UUID, advanced
@@ -91,13 +91,13 @@ class LtiAgsScorePollJob extends TimedJob {
 	 */
 	private const DEFAULT_INTERVAL = 300;
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const PLACEMENT_SCHEMA = 'lti-tool-placement';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 	private const GRADE_SCALE_SCHEMA = 'grade-scale';
 
 	/**
-	 * App-config key for the scholiq-owned `event_subscription` UUID.
+	 * App-config key for the learniq-owned `event_subscription` UUID.
 	 *
 	 * @var string
 	 */
@@ -280,7 +280,7 @@ class LtiAgsScorePollJob extends TimedJob {
 		];
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::GRADE_ENTRY_SCHEMA,
 			object: $gradeEntry
 		);
@@ -384,7 +384,7 @@ class LtiAgsScorePollJob extends TimedJob {
 	private function resolvePlacementByDeployment(string $deploymentUuid): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::PLACEMENT_SCHEMA,
 				'filters' => ['openconnectorDeploymentId' => $deploymentUuid],
 				'limit' => 1,
@@ -411,7 +411,7 @@ class LtiAgsScorePollJob extends TimedJob {
 	private function gradeEntryAlreadyExists(string $placementId, string $resultId): bool {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::GRADE_ENTRY_SCHEMA,
 				'filters' => [
 					'ltiToolPlacementId' => $placementId,
@@ -444,7 +444,7 @@ class LtiAgsScorePollJob extends TimedJob {
 			return $scoreGiven;
 		}
 
-		$scale = $this->objectService->find(id: $gradeScaleId, register: self::SCHOLIQ_REGISTER, schema: self::GRADE_SCALE_SCHEMA);
+		$scale = $this->objectService->find(id: $gradeScaleId, register: self::LEARNIQ_REGISTER, schema: self::GRADE_SCALE_SCHEMA);
 		if ($scale === null) {
 			return $scoreGiven;
 		}

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Audit Pack Builder
+ * Learniq Audit Pack Builder
  *
  * Assembles the ADR-008 §6 compliance audit-pack ZIP: queries OR's audit trail,
  * verifies the HMAC chain over exactly the exported ID range, renders every
@@ -419,7 +419,7 @@ class AuditPackBuilder {
 			'signature_status' => $signatureStatus,
 			'export_timestamp' => $exportTimestamp,
 			'key_fingerprint' => $keyFingerprint,
-			'generator' => 'scholiq/AuditPackExportController@0.1.0',
+			'generator' => 'learniq/AuditPackExportController@0.1.0',
 		];
 
 		return (string)json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -445,7 +445,7 @@ class AuditPackBuilder {
 		$brokenAt = $verification['brokenAt'] ?? null;
 
 		$lines = [];
-		$lines[] = '=== Scholiq Compliance Audit Pack — Signature Verification Report ===';
+		$lines[] = '=== Learniq Compliance Audit Pack — Signature Verification Report ===';
 		$lines[] = '';
 		$lines[] = 'Status          : ' . $status;
 		$lines[] = 'Entries verified: ' . $entriesVerified;

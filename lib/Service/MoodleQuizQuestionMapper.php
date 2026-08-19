@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Moodle Quiz Question Mapper
+ * Learniq Moodle Quiz Question Mapper
  *
  * Maps a Moodle quiz activity's question-bank XML to the same `Item` data
  * shape `QtiImportService::importSingleItem()` builds, for the four most
@@ -44,7 +44,7 @@ use DOMDocument;
 use DOMElement;
 
 /**
- * Maps Moodle quiz question-bank XML entries to scholiq `Item` data or a
+ * Maps Moodle quiz question-bank XML entries to learniq `Item` data or a
  * `dropped` descriptor.
  */
 class MoodleQuizQuestionMapper {
@@ -160,7 +160,7 @@ class MoodleQuizQuestionMapper {
 	}//end mapOne()
 
 	/**
-	 * Derive the scholiq `interactionType` + `correctResponse` for a supported Moodle question type.
+	 * Derive the learniq `interactionType` + `correctResponse` for a supported Moodle question type.
 	 *
 	 * @param string $type Moodle question `type` attribute.
 	 * @param \DOMElement $questionEl The `<question>` element (for `<single>`).
@@ -210,7 +210,7 @@ class MoodleQuizQuestionMapper {
 	 *
 	 * @param string $title Question title.
 	 * @param string $questionText Question stem text.
-	 * @param string $interactionType Scholiq interactionType slug.
+	 * @param string $interactionType Learniq interactionType slug.
 	 * @param array<int, array{fraction: float, text: string}> $answers Parsed answers, for `choice` rendering.
 	 *
 	 * @return string A QTI-3.0-namespaced XML string wrapping the Moodle question content.

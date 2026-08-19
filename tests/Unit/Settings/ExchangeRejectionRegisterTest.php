@@ -6,9 +6,9 @@
  * IMPORTANT SCOPE NOTE: `x-openregister-calculations` is evaluated by
  * OpenRegister core at runtime, which does not live in this repository (only
  * test stubs for its PHP service classes do — see composer.json's
- * `autoload-dev`). Scholiq cannot unit-test the numeric OUTPUT of a declared
+ * `autoload-dev`). Learniq cannot unit-test the numeric OUTPUT of a declared
  * calculation (no existing test in this suite does — see
- * VerzuimReportComposerRegisterTest). What Scholiq CAN and MUST verify is
+ * VerzuimReportComposerRegisterTest). What Learniq CAN and MUST verify is
  * that the declared SHAPE is correct — mirrors that established pattern.
  *
  * @category Tests
@@ -52,7 +52,7 @@ class ExchangeRejectionRegisterTest extends TestCase {
 	 */
 	protected function setUp(): void {
 		parent::setUp();
-		$path = __DIR__ . '/../../../lib/Settings/scholiq_register.json';
+		$path = __DIR__ . '/../../../lib/Settings/learniq_register.json';
 		$this->config = json_decode((string)file_get_contents($path), true);
 
 	}//end setUp()

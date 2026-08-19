@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Payment Transaction Controller
+ * Learniq Payment Transaction Controller
  *
  * Two thin, opaque delegation endpoints for the payments capability:
  *
@@ -13,13 +13,13 @@
  *   IURLGenerator::getAbsoluteURL() + IAppConfig bearer-token shape
  *   LtiToolPlacementController::callOpenConnectorLaunch() and
  *   DataExchangeRunHandler::callOpenConnector() already establish, under
- *   the existing scholiq.openconnector_api_token config key — a fourth
+ *   the existing learniq.openconnector_api_token config key — a fourth
  *   instance of this established pattern, not a new one
  *   (WalletOfferDelegationService explicitly reuses the same shape too).
- * - callback(): inbound. The FIRST OpenConnector-to-scholiq call in this
- *   codebase (every existing callOpenConnector* call is scholiq-initiated).
+ * - callback(): inbound. The FIRST OpenConnector-to-learniq call in this
+ *   codebase (every existing callOpenConnector* call is learniq-initiated).
  *   Authenticates the caller via a SEPARATE, narrowly-scoped
- *   scholiq.openconnector_callback_token — never the outbound token reused in
+ *   learniq.openconnector_callback_token — never the outbound token reused in
  *   reverse (design.md's explicit requirement) — then drives the matching
  *   PaymentTransaction's lifecycle transition. The concrete inbound-auth
  *   mechanism is provisional: OpenConnector's actual mollie-stripe adapter
@@ -254,7 +254,7 @@ class PaymentTransactionController extends Controller {
 	 *
 	 * WHY THE SAVE IS GUARDED. `ObjectService::saveObject()` documents
 	 * `@throws Exception If there is an error during save`, and resolving the
-	 * `scholiq` register / `paymentTransaction` schema slug raises
+	 * `learniq` register / `paymentTransaction` schema slug raises
 	 * DoesNotExistException on an install that never received them. Uncaught,
 	 * that answered the payer with a framework HTTP 500 carrying a stack
 	 * trace, and left no PaymentTransaction row — from the outside
@@ -324,7 +324,7 @@ class PaymentTransactionController extends Controller {
 	 * Receive a status update from OpenConnector's PSP adapter.
 	 *
 	 * Authenticates the caller via the dedicated
-	 * scholiq.openconnector_callback_token (never the outbound token reused
+	 * learniq.openconnector_callback_token (never the outbound token reused
 	 * in reverse), then drives the matching PaymentTransaction's lifecycle
 	 * transition. Does not persist pspPaymentId/completedAt — see this
 	 * class's own docblock "KNOWN GAP" note.
@@ -399,7 +399,7 @@ class PaymentTransactionController extends Controller {
 	 * callback shared secret.
 	 *
 	 * @return bool True when the Authorization header matches the configured
-	 *              scholiq.openconnector_callback_token.
+	 *              learniq.openconnector_callback_token.
 	 */
 	private function isAuthenticCallback(): bool {
 		$expectedToken = $this->appConfig->getValueString(
@@ -411,7 +411,7 @@ class PaymentTransactionController extends Controller {
 		if ($expectedToken === '') {
 			$this->logger->warning(
 				'[PaymentTransactionController] No callback token configured'
-				. ' (scholiq.openconnector_callback_token) — refusing every callback until one is set.'
+				. ' (learniq.openconnector_callback_token) — refusing every callback until one is set.'
 			);
 			return false;
 		}

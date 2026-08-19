@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Scheduling Listener Registrar
+ * Learniq Scheduling Listener Registrar
  *
  * One of the domain-scoped registrars `Application::register()` delegates its
  * event-listener wiring to, so no single class has to name every listener in
@@ -149,7 +149,7 @@ class SchedulingListenerRegistrar {
 	/**
 	 * Register the openconnector wallet-claim listener.
 	 *
-	 * Scholiq delegates EUDI-wallet offer creation/revocation to
+	 * Learniq delegates EUDI-wallet offer creation/revocation to
 	 * openconnector's `eudi-wallet-credential-issuance` REST adapter
 	 * ({@see \OCA\Learniq\Service\WalletOfferDelegationService}). This
 	 * listener would consume the terminal "wallet holder claimed the offer"
@@ -158,7 +158,7 @@ class SchedulingListenerRegistrar {
 	 * openconnector's merged adapter defines no such event — the
 	 * `class_exists` guard below evaluates false today and this
 	 * registration is a no-op. Kept `class_exists`-guarded by FQN string
-	 * (not `::class`) so scholiq carries no hard compile-time dependency on
+	 * (not `::class`) so learniq carries no hard compile-time dependency on
 	 * the optional openconnector app, mirroring
 	 * `procest\AppInfo\Application::registerDecisionListeners()`.
 	 *

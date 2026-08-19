@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Boot Listener Registrar
+ * Learniq Boot Listener Registrar
  *
  * The boot-phase half of the app's listener wiring, delegated to from
  * `Application::boot()`. Every listener here declares the register/schema pair
@@ -59,7 +59,7 @@ class BootListenerRegistrar {
 	 * Subscribe every boot-phase filtered object listener.
 	 *
 	 * @param IEventDispatcher $dispatcher The live event dispatcher.
-	 * @param string $appId The Scholiq app id (log context only).
+	 * @param string $appId The Learniq app id (log context only).
 	 *
 	 * @return void
 	 *
@@ -68,8 +68,8 @@ class BootListenerRegistrar {
 	public function register(IEventDispatcher $dispatcher, string $appId): void {
 		// ADR-031 legitimate exception: xAPI completion → Enrolment lifecycle transition.
 		// Listens for OR's ObjectCreatedEvent (fires when any OR object is saved); the
-		// handler filters to XapiStatement schema objects in the scholiq register.
-		// All other Enrolment behaviour is declarative in scholiq_register.json.
+		// handler filters to XapiStatement schema objects in the learniq register.
+		// All other Enrolment behaviour is declarative in learniq_register.json.
 		//
 		// The register/schema pair the handler's own guard tests is declared up
 		// front so an unrelated object write never constructs it.
@@ -86,7 +86,7 @@ class BootListenerRegistrar {
 		// WerkprocesAssessment creation -> server-side competencyId resolution
 		// bridge. Only the ObjectCreatedEvent half of
 		// CompetencyAttainmentRollupHandler is narrowed: handleObjectCreated()
-		// guards on register `scholiq` + schema `werkproces-assessment`. Its
+		// guards on register `learniq` + schema `werkproces-assessment`. Its
 		// ObjectTransitionedEvent half stays a plain registration in register().
 		$this->registerFilteredObjectListener(
 			dispatcher: $dispatcher,
@@ -138,7 +138,7 @@ class BootListenerRegistrar {
 	 * listener is filtered by its own declared register/schema pair.
 	 *
 	 * @param IEventDispatcher $dispatcher The event dispatcher resolved by boot().
-	 * @param string $appId The Scholiq app id (log context only).
+	 * @param string $appId The Learniq app id (log context only).
 	 *
 	 * @return void
 	 *
@@ -197,7 +197,7 @@ class BootListenerRegistrar {
 		// create/update -> TimetableConflictDetector pairwise overlap scan
 		// dispatcher. Registered against BOTH ObjectCreatedEvent and
 		// ObjectUpdatedEvent (the latter is a real OpenRegister event class
-		// with no prior scholiq listener precedent, needed here since a
+		// with no prior learniq listener precedent, needed here since a
 		// Session's roomId/startsAt/endsAt can be edited via the generic OR
 		// object-update endpoint without any lifecycle transition). The
 		// actual scan algorithm lives in TimetableConflictDetector, not here
@@ -231,12 +231,12 @@ class BootListenerRegistrar {
 	 * listener wired through here already re-derives the same answer inside its
 	 * own `handle()` (`getRegister()`/`getSchema()` guard); declaring it at
 	 * registration time moves that decision ahead of construction instead of
-	 * after it. When OpenRegister is absent — scholiq carries no hard dependency
+	 * after it. When OpenRegister is absent — learniq carries no hard dependency
 	 * on it — this degrades to the plain global registration it replaced, which
 	 * is exactly the behaviour every listener had before.
 	 *
 	 * @param IEventDispatcher $dispatcher The live event dispatcher.
-	 * @param string $appId The Scholiq app id (log context only).
+	 * @param string $appId The Learniq app id (log context only).
 	 * @param string $event OpenRegister event class name.
 	 * @param string $listener Listener class name.
 	 * @param array<int,string> $registers Register slugs the listener reacts to.

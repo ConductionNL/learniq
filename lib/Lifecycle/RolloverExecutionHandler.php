@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Scholiq Rollover Execution Handler
+ * Learniq Rollover Execution Handler
  *
  * Listens for the RolloverPlan `previewed → executing` (and `failed → executing`
  * retry) transition and runs the chunked, idempotent rollover via RolloverService,
  * then drives the plan to `completed` or `failed`.
  *
- * Per the fleet jobs-never-ran bug, scholiq does NOT register a background job
+ * Per the fleet jobs-never-ran bug, learniq does NOT register a background job
  * via `IRegistrationContext::registerJob`; async work in this app is event-driven
  * off OpenRegister's `ObjectTransitionedEvent` (the same mechanism every other
- * Scholiq bridge uses). OR's lifecycle engine fires this event when an admin
+ * Learniq bridge uses). OR's lifecycle engine fires this event when an admin
  * transitions the plan to `executing`; execution is idempotent and resumable so a
  * `failed` plan can be retried without duplicating already-created cohorts or
  * carried-over enrolments.

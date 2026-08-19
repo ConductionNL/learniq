@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Report Period Lock Guard
+ * Learniq Report Period Lock Guard
  *
  * Lifecycle guard for the GradeEntry schema's `publish` and `republish`
  * transitions (grading spec, report-card-composer delta). Blocks ordinary
@@ -39,7 +39,7 @@
  * before a state transition and cannot be expressed as a schema
  * declaration." Referenced from the GradeEntry schema's
  * x-openregister-lifecycle.transitions.publish/republish.requires in
- * scholiq_register.json.
+ * learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle

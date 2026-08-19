@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq QTI Package Extractor
+ * Learniq QTI Package Extractor
  *
  * Stateless helper: owns the hardened ZIP extraction path for QTI 2.x / 3.0
  * and IMS Common Cartridge packages — the zip-slip and decompression-bomb

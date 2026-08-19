@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Scholiq Settings Service
+ * Learniq Settings Service
  *
- * Service for managing Scholiq application configuration and settings.
+ * Service for managing Learniq application configuration and settings.
  *
  * @category Service
  * @package  OCA\Learniq\Service
@@ -32,7 +32,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
- * Service for managing Scholiq application configuration and settings.
+ * Service for managing Learniq application configuration and settings.
  */
 class SettingsService {
 
@@ -126,7 +126,7 @@ class SettingsService {
 	}//end updateSettings()
 
 	/**
-	 * Load configuration from scholiq_register.json via OpenRegister.
+	 * Load configuration from learniq_register.json via OpenRegister.
 	 *
 	 * Version-gated: OpenRegister skips the import when the content-addressed
 	 * version is already installed. Use reloadConfiguration() to re-import
@@ -141,7 +141,7 @@ class SettingsService {
 	}//end loadConfiguration()
 
 	/**
-	 * Re-import the configuration from scholiq_register.json unconditionally.
+	 * Re-import the configuration from learniq_register.json unconditionally.
 	 *
 	 * Bypasses OpenRegister's version fast-skip so an operator-triggered
 	 * re-import always rewrites the register and schema definitions.
@@ -165,7 +165,7 @@ class SettingsService {
 	 */
 	private function importRegisterConfiguration(bool $force): array {
 		if ($this->isOpenRegisterAvailable() === false) {
-			$this->logger->warning('Scholiq: OpenRegister not available, skipping register initialization');
+			$this->logger->warning('Learniq: OpenRegister not available, skipping register initialization');
 			return [
 				'success' => false,
 				'message' => 'OpenRegister is not installed or enabled.',
@@ -173,18 +173,18 @@ class SettingsService {
 		}
 
 		try {
-			$configPath = __DIR__ . '/../Settings/scholiq_register.json';
+			$configPath = __DIR__ . '/../Settings/learniq_register.json';
 			if (file_exists($configPath) === false) {
-				$this->logger->error('Scholiq: scholiq_register.json not found at ' . $configPath);
+				$this->logger->error('Learniq: learniq_register.json not found at ' . $configPath);
 				return [
 					'success' => false,
-					'message' => 'Configuration file scholiq_register.json not found.',
+					'message' => 'Configuration file learniq_register.json not found.',
 				];
 			}
 
 			$configContent = file_get_contents($configPath);
 			if ($configContent === false) {
-				$this->logger->error('Scholiq: failed to read scholiq_register.json');
+				$this->logger->error('Learniq: failed to read learniq_register.json');
 				return [
 					'success' => false,
 					'message' => 'Failed to read configuration file.',
@@ -193,7 +193,7 @@ class SettingsService {
 
 			$configData = json_decode($configContent, true);
 			if (json_last_error() !== JSON_ERROR_NONE) {
-				$this->logger->error('Scholiq: failed to parse scholiq_register.json: ' . json_last_error_msg());
+				$this->logger->error('Learniq: failed to parse learniq_register.json: ' . json_last_error_msg());
 				return [
 					'success' => false,
 					'message' => 'Failed to parse configuration file: ' . json_last_error_msg(),
@@ -218,7 +218,7 @@ class SettingsService {
 			$result = $configurationService->importFromApp(appId: Application::APP_ID, data: $configData, version: $configVersion, force: $force);
 
 			if (empty($result) === false) {
-				$this->logger->info('Scholiq: register configuration imported successfully');
+				$this->logger->info('Learniq: register configuration imported successfully');
 				return [
 					'success' => true,
 					'message' => 'Configuration imported successfully.',
@@ -232,7 +232,7 @@ class SettingsService {
 			];
 		} catch (\Throwable $e) {
 			$this->logger->error(
-				'Scholiq: configuration import failed',
+				'Learniq: configuration import failed',
 				['exception' => $e->getMessage()]
 			);
 			return [

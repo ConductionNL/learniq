@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq QTI Manifest Scanner
+ * Learniq QTI Manifest Scanner
  *
  * Stateless helper: reads an already-extracted QTI 2.x / 3.0 or IMS Common
  * Cartridge package's `imsmanifest.xml` to decide which interchange format it

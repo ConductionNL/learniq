@@ -184,7 +184,7 @@ class CredentialVerifyControllerTest extends TestCase {
 		$payload = [
 			'@context' => ['https://www.w3.org/2018/credentials/v1'],
 			'type' => ['VerifiableCredential'],
-			'credentialSubject' => ['id' => 'urn:scholiq:learner:learner-42'],
+			'credentialSubject' => ['id' => 'urn:learniq:learner:learner-42'],
 		];
 		$jws = $this->buildValidJws(payloadToSign: $payload, kid: $kid);
 
@@ -286,7 +286,7 @@ class CredentialVerifyControllerTest extends TestCase {
 	 * ABSENCE ALSO ARRIVES AS AN EXCEPTION, NOT ONLY AS NULL.
 	 *
 	 * `ObjectService::find()` documents `@throws Exception If the object is
-	 * not found`, and resolving the `scholiq` register / `credential` schema
+	 * not found`, and resolving the `learniq` register / `credential` schema
 	 * slug raises DoesNotExistException on an install that never got them.
 	 * Before this was caught, that path answered an anonymous caller with a
 	 * framework HTTP 500 and a stack trace AND skipped the throttle

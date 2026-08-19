@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Wallet Revocation Propagation Service
+ * Learniq Wallet Revocation Propagation Service
  *
  * Lifecycle guard for the Credential schema's `revoke` transition. When a
  * credential with an outstanding wallet offer is revoked, propagates the
@@ -16,7 +16,7 @@
  * openconnector's real, routed REST endpoint
  * (`POST /api/eudi/credential-offers/{id}/revoke`,
  * `EudiWalletController::revoke()`), reusing the same
- * `scholiq.openconnector_api_token` bearer-credential convention as
+ * `learniq.openconnector_api_token` bearer-credential convention as
  * {@see WalletOfferDelegationService} (same AUTH GAP applies: the endpoint
  * expects a consumer JWT, not a generic static token).
  *
@@ -24,7 +24,7 @@
  * before a state transition and cannot be expressed as a schema declaration."
  * Referenced from the Credential schema's
  * x-openregister-lifecycle.transitions.revoke.requires in
- * scholiq_register.json. Built to the `check(array &$transitionContext): bool`
+ * learniq_register.json. Built to the `check(array &$transitionContext): bool`
  * contract `CredentialSigningService` establishes.
  *
  * FAIL-SOFT BY DESIGN (per spec): revoking a credential is the compliance
@@ -196,7 +196,7 @@ class WalletRevocationPropagationService {
 		if ($apiToken === '') {
 			$this->logger->warning(
 				'[WalletRevocationPropagationService] No OpenConnector API token configured ('
-				. 'scholiq.openconnector_api_token); the revocation call will fail with 401.'
+				. 'learniq.openconnector_api_token); the revocation call will fail with 401.'
 			);
 			return false;
 		}

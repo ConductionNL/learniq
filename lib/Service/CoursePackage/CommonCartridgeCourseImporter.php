@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Common Cartridge Course Importer
+ * Learniq Common Cartridge Course Importer
  *
  * Extracts an IMS Common Cartridge 1.3 archive, walks its manifest
  * organization tree into Course/Lesson structure, routes every resource via
@@ -43,8 +43,8 @@ class CommonCartridgeCourseImporter {
 	 *
 	 * @param QtiImportService $qtiImportService QTI/CC assessment-item import (shared extraction + item parsing).
 	 * @param CommonCartridgeParser $ccParser Common Cartridge manifest parser.
-	 * @param CommonCartridgeResourceRouter $resourceRouter Per-resource routing to scholiq targets.
-	 * @param CoursePackageObjectWriter $objectWriter Creates the scholiq objects the package materialises.
+	 * @param CommonCartridgeResourceRouter $resourceRouter Per-resource routing to learniq targets.
+	 * @param CoursePackageObjectWriter $objectWriter Creates the learniq objects the package materialises.
 	 * @param CoursePackageImportReporter $reporter Builds the report entry rows.
 	 *
 	 * @return void

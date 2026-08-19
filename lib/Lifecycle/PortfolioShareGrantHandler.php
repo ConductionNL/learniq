@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Scholiq Portfolio Share Grant Handler
+ * Learniq Portfolio Share Grant Handler
  *
  * Dual-role class for the PortfolioShare schema's `grant` transition
  * (draft → active):
  *
  * 1. Lifecycle guard (`check()`, referenced from the `grant` transition's
- *    `requires:` in scholiq_register.json): blocks the transition when
+ *    `requires:` in learniq_register.json): blocks the transition when
  *    `sharedBy` equals the resolved recipient identity for the share's
  *    `sharedWithKind` — a recipient must never be able to grant themselves
  *    access. `x-property-rbac`/`x-openregister-authorization` cannot express

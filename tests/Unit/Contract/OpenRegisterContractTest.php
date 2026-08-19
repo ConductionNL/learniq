@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Guards the OpenRegister API contract that Scholiq's unit suite mocks against.
+ * Guards the OpenRegister API contract that Learniq's unit suite mocks against.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Contract
@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec exclude Test-infrastructure guard; asserts a third-party API contract, not a Scholiq requirement.
+ * @spec exclude Test-infrastructure guard; asserts a third-party API contract, not a Learniq requirement.
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use ReflectionUnionType;
  *
  *   - standalone: the mirror in tests/Stubs/, via the PSR-4 mapping registered
  *     in tests/bootstrap.php;
- *   - in CI: the real app, because the PHPUnit job checks scholiq out into a
+ *   - in CI: the real app, because the PHPUnit job checks learniq out into a
  *     Nextcloud server tree alongside openregister@development, enables it, and
  *     Nextcloud's autoloader wins.
  *
@@ -58,7 +58,7 @@ use ReflectionUnionType;
 final class OpenRegisterContractTest extends TestCase {
 
 	/**
-	 * The parameter list Scholiq's mocks assume for ObjectService::find().
+	 * The parameter list Learniq's mocks assume for ObjectService::find().
 	 *
 	 * Positional order matters: `willReturnCallback()` invokes the test closure
 	 * with the mock's positional arguments, so a closure written for the wrong
@@ -83,7 +83,7 @@ final class OpenRegisterContractTest extends TestCase {
 	}//end testObjectServiceFindSignatureIsUnchanged()
 
 	/**
-	 * The parameter list Scholiq's mocks assume for ObjectService::findAll().
+	 * The parameter list Learniq's mocks assume for ObjectService::findAll().
 	 *
 	 * @return void
 	 */
@@ -98,9 +98,9 @@ final class OpenRegisterContractTest extends TestCase {
 	}//end testObjectServiceFindAllSignatureIsUnchanged()
 
 	/**
-	 * The parameter list Scholiq's mocks assume for ObjectService::saveObject().
+	 * The parameter list Learniq's mocks assume for ObjectService::saveObject().
 	 *
-	 * `$object` is the FIRST parameter. Scholiq production code used to call
+	 * `$object` is the FIRST parameter. Learniq production code used to call
 	 * `saveObject($register, $schema, $data)` positionally in two places, which
 	 * would have fatalled against the real service; the named-argument form
 	 * (`object:`, `register:`, `schema:`) is the only safe call shape.
@@ -113,7 +113,7 @@ final class OpenRegisterContractTest extends TestCase {
 		$this->assertSame(
 			'object',
 			$parameters[0]->getName(),
-			'OpenRegister saveObject() takes the payload FIRST. Scholiq must call it with named arguments.'
+			'OpenRegister saveObject() takes the payload FIRST. Learniq must call it with named arguments.'
 		);
 
 		$this->assertSame(

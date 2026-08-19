@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq AiProcessingDisclosureController unit tests.
+ * Learniq AiProcessingDisclosureController unit tests.
  *
  * Coverage for sovereign-ai-guarantee tasks.md#3.2: the disclosure endpoint
  * composes Hermiq's agentaifeature register, the scholiq-ai-features AVG

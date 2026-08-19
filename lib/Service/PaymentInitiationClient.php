@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Scholiq Payment Initiation Client
+ * Learniq Payment Initiation Client
  *
  * Outbound transport collaborator for `PaymentTransactionController`: performs
  * the authenticated call against OpenConnector's PSP launch-initiation endpoint
  * and hands the response back verbatim.
  *
- * Per the payments spec, scholiq implements NO PSP wire protocol: this client
+ * Per the payments spec, learniq implements NO PSP wire protocol: this client
  * forwards an opaque request and returns the opaque response without inspecting
  * a single PSP-specific claim. Keeping it out of the controller leaves the
  * controller with only the HTTP-boundary concerns (auth, validation, lifecycle).
@@ -40,7 +40,7 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Calls OpenConnector's PSP launch-initiation endpoint on scholiq's behalf.
+ * Calls OpenConnector's PSP launch-initiation endpoint on learniq's behalf.
  *
  * @psalm-api
  *
@@ -60,7 +60,7 @@ class PaymentInitiationClient {
 	 *
 	 * Assumed request body: {orderId, amount, currency, pspProvider,
 	 * callbackReference} where callbackReference is the PaymentTransaction's
-	 * own scholiq-side id, echoed back on the callback() call.
+	 * own learniq-side id, echoed back on the callback() call.
 	 * Assumed response body: {checkoutUrl: string, pspPaymentId?: string}.
 	 *
 	 * @var string
@@ -136,7 +136,7 @@ class PaymentInitiationClient {
 		if ($apiToken === '') {
 			$this->logger->warning(
 				'[PaymentInitiationClient] No OpenConnector API token configured ('
-				. 'scholiq.openconnector_api_token); the initiate call may fail with 401/403.'
+				. 'learniq.openconnector_api_token); the initiate call may fail with 401/403.'
 			);
 		}
 

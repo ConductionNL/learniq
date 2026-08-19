@@ -93,7 +93,7 @@ class DataExchangeRunHandler implements IEventListener {
 
 	/**
 	 * App-config key for the OpenConnector internal API token.
-	 * Admins must set `scholiq.openconnector_api_token` to a valid app-password
+	 * Admins must set `learniq.openconnector_api_token` to a valid app-password
 	 * or API token for the internal source-run call to succeed. Fixes #189.
 	 */
 	private const OPENCONNECTOR_TOKEN_KEY = 'openconnector_api_token';

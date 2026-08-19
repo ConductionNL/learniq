@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Moodle Backup Manifest Parser
+ * Learniq Moodle Backup Manifest Parser
  *
  * Walks an extracted Moodle backup (`.mbz`)'s `moodle_backup.xml`: the
  * section structure and the flat activity (module) list, classifying each
@@ -44,7 +44,7 @@ use RuntimeException;
 class MoodleBackupParser {
 
 	/**
-	 * Moodle module names this importer materialises as scholiq objects (not `other`/dropped).
+	 * Moodle module names this importer materialises as learniq objects (not `other`/dropped).
 	 * `quiz` and `assign` are handled specially by the orchestrator (question mapping / Assignment
 	 * creation respectively); `resource`/`page`/`url` become Material.
 	 */

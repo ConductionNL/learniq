@@ -75,7 +75,7 @@ class WalletOfferDelegationServiceTest extends TestCase {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 
 		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
-			static fn (string $path): string => 'https://scholiq.example' . $path
+			static fn (string $path): string => 'https://learniq.example' . $path
 		);
 	}//end setUp()
 
@@ -136,7 +136,7 @@ class WalletOfferDelegationServiceTest extends TestCase {
 				'kind' => 'diploma',
 				'learnerId' => 'learner-1',
 				'edciPayload' => null,
-				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:scholiq:learner:learner-1']],
+				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-1']],
 				'walletOfferStatus' => null,
 				'walletOfferError' => 'previous failure',
 			],
@@ -187,7 +187,7 @@ class WalletOfferDelegationServiceTest extends TestCase {
 				'id' => 'credential-2',
 				'kind' => 'badge',
 				'learnerId' => 'learner-2',
-				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:scholiq:learner:learner-2']],
+				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-2']],
 			],
 			'transition' => 'offerToWallet',
 			'from' => 'issued',
@@ -241,7 +241,7 @@ class WalletOfferDelegationServiceTest extends TestCase {
 				'id' => 'credential-4',
 				'kind' => 'diploma',
 				'learnerId' => 'learner-4',
-				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:scholiq:learner:learner-4']],
+				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-4']],
 			],
 			'transition' => 'offerToWallet',
 			'from' => 'issued',
@@ -276,7 +276,7 @@ class WalletOfferDelegationServiceTest extends TestCase {
 				'kind' => 'diploma',
 				'learnerId' => 'learner-5',
 				'walletOfferStatus' => null,
-				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:scholiq:learner:learner-5']],
+				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-5']],
 			],
 			'transition' => 'offerToWallet',
 			'from' => 'issued',
@@ -310,7 +310,7 @@ class WalletOfferDelegationServiceTest extends TestCase {
 				'id' => 'credential-6',
 				'kind' => 'diploma',
 				'learnerId' => 'learner-6',
-				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:scholiq:learner:learner-6']],
+				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-6']],
 			],
 			'transition' => 'offerToWallet',
 			'from' => 'issued',

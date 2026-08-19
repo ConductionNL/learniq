@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq OpenRegister autoload prelude
+ * Learniq OpenRegister autoload prelude
  *
  * Puts OpenRegister's PSR-4 prefix on the autoloader so this app can reference
  * `OCA\OpenRegister\AppHost\…` from its own `Application::register()`.

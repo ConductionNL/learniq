@@ -34,11 +34,11 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
- * Scholiq MCP Tool Provider.
+ * Learniq MCP Tool Provider.
  *
  * Implements IMcpToolProvider (from openregister PR #1466,
  * change ai-chat-companion-orchestrator) exposing 2 read-only course tools to
- * the AI Chat Companion. Scholiq handles student data, which is privacy
+ * the AI Chat Companion. Learniq handles student data, which is privacy
  * sensitive — so the MVP deliberately ships ONLY the two least sensitive tools
  * (the course catalogue and a course's module structure). Tools that touch
  * learner records, enrolments, attestations or credentials are deferred to a
@@ -60,21 +60,21 @@ use Psr\Log\LoggerInterface;
 class LearniqToolProvider implements IMcpToolProvider {
 
 	/**
-	 * The Scholiq OpenRegister register slug.
+	 * The Learniq OpenRegister register slug.
 	 *
 	 * @var string
 	 */
 	private const REGISTER_SLUG = 'learniq';
 
 	/**
-	 * The Course schema slug/name in the Scholiq register.
+	 * The Course schema slug/name in the Learniq register.
 	 *
 	 * @var string
 	 */
 	private const SCHEMA_COURSE = 'course';
 
 	/**
-	 * The Lesson (module) schema slug/name in the Scholiq register.
+	 * The Lesson (module) schema slug/name in the Learniq register.
 	 *
 	 * @var string
 	 */
@@ -97,9 +97,9 @@ class LearniqToolProvider implements IMcpToolProvider {
 	 */
 	private const TOOL_DESCRIPTORS = [
 		[
-			'id' => 'scholiq.listCourses',
+			'id' => 'learniq.listCourses',
 			'name' => 'List courses',
-			'description' => 'List Scholiq courses visible to you. Catalogue only, no learner data. Optional status: draft/published/archived.',
+			'description' => 'List Learniq courses visible to you. Catalogue only, no learner data. Optional status: draft/published/archived.',
 			'inputSchema' => [
 				'type' => 'object',
 				'properties' => [
@@ -118,9 +118,9 @@ class LearniqToolProvider implements IMcpToolProvider {
 			],
 		],
 		[
-			'id' => 'scholiq.getCourseDetails',
+			'id' => 'learniq.getCourseDetails',
 			'name' => 'Get course details',
-			'description' => 'Get one Scholiq course by id, uuid or slug with its module list. Course and module metadata only, no learner data.',
+			'description' => 'Get one Learniq course by id, uuid or slug with its module list. Course and module metadata only, no learner data.',
 			'inputSchema' => [
 				'type' => 'object',
 				'properties' => [
@@ -184,7 +184,7 @@ class LearniqToolProvider implements IMcpToolProvider {
 	 * Argument validation runs BEFORE authorisation, which runs BEFORE business
 	 * logic. Unknown tool ids return a structured error; no exception is thrown.
 	 *
-	 * @param string $toolId The tool id (e.g. "scholiq.listCourses").
+	 * @param string $toolId The tool id (e.g. "learniq.listCourses").
 	 * @param array<string, mixed> $arguments Tool arguments from the LLM call.
 	 *
 	 * @return array<string, mixed>
@@ -193,8 +193,8 @@ class LearniqToolProvider implements IMcpToolProvider {
 	 */
 	public function invokeTool(string $toolId, array $arguments): array {
 		return match ($toolId) {
-			'scholiq.listCourses' => $this->handleListCourses(args: $arguments),
-			'scholiq.getCourseDetails' => $this->handleGetCourseDetails(args: $arguments),
+			'learniq.listCourses' => $this->handleListCourses(args: $arguments),
+			'learniq.getCourseDetails' => $this->handleGetCourseDetails(args: $arguments),
 			default => [
 				'isError' => true,
 				'error' => 'unknown_tool',
@@ -210,7 +210,7 @@ class LearniqToolProvider implements IMcpToolProvider {
 	// =========================================================================
 
 	/**
-	 * Handle scholiq.listCourses.
+	 * Handle learniq.listCourses.
 	 *
 	 * Returns the course catalogue (capped at LIST_CAP), optionally filtered by
 	 * lifecycle status. No learner data is included.
@@ -245,7 +245,7 @@ class LearniqToolProvider implements IMcpToolProvider {
 			$rawCourses = $this->objectService->findAll($config);
 		} catch (\Throwable $e) {
 			$this->logger->error(
-				'Scholiq MCP: listCourses failed',
+				'Learniq MCP: listCourses failed',
 				['exception' => $e->getMessage()]
 			);
 			return [
@@ -342,7 +342,7 @@ class LearniqToolProvider implements IMcpToolProvider {
 	}//end callerIsAdmin()
 
 	/**
-	 * Validate scholiq.listCourses arguments.
+	 * Validate learniq.listCourses arguments.
 	 *
 	 * @param array<string, mixed> $args Tool arguments.
 	 *
@@ -393,7 +393,7 @@ class LearniqToolProvider implements IMcpToolProvider {
 	}//end validateListCoursesArgs()
 
 	/**
-	 * Handle scholiq.getCourseDetails.
+	 * Handle learniq.getCourseDetails.
 	 *
 	 * Fetches one course by id/uuid/slug with its ordered module (Lesson)
 	 * structure. Returns only course metadata + module metadata — never
@@ -430,7 +430,7 @@ class LearniqToolProvider implements IMcpToolProvider {
 			$course = $this->findCourse(courseRef: $courseRef);
 		} catch (\Throwable $e) {
 			$this->logger->error(
-				'Scholiq MCP: getCourseDetails lookup failed',
+				'Learniq MCP: getCourseDetails lookup failed',
 				['courseRef' => $courseRef, 'exception' => $e->getMessage()]
 			);
 			return [
@@ -500,7 +500,7 @@ class LearniqToolProvider implements IMcpToolProvider {
 			);
 		} catch (\Throwable $e) {
 			$this->logger->error(
-				'Scholiq MCP: getCourseDetails module lookup failed',
+				'Learniq MCP: getCourseDetails module lookup failed',
 				['courseUuid' => $courseUuid, 'exception' => $e->getMessage()]
 			);
 			return [];
@@ -527,7 +527,7 @@ class LearniqToolProvider implements IMcpToolProvider {
 	// =========================================================================
 
 	/**
-	 * Authorise read access to the Scholiq course catalogue.
+	 * Authorise read access to the Learniq course catalogue.
 	 *
 	 * Auth design (OWASP A01:2021 / ADR-005):
 	 * - Requires an authenticated Nextcloud user. There is no anonymous access

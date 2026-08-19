@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Learning Plan Signature Guard
+ * Learniq Learning Plan Signature Guard
  *
  * Lifecycle guard for the LearningPlan schema's `draft → active` transition.
  * Blocks activation unless every role declared in the template's
@@ -54,7 +54,7 @@ use Psr\Log\LoggerInterface;
 class LearningPlanSignatureGuard {
 
 	/**
-	 * Scholiq register slug.
+	 * Learniq register slug.
 	 */
 	private const SCHOLIQ_REGISTER = 'learniq';
 

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Case Listener Registrar
+ * Learniq Case Listener Registrar
  *
  * One of the domain-scoped registrars `Application::register()` delegates its
  * event-listener wiring to, so no single class has to name every listener in
@@ -78,7 +78,7 @@ class CaseListenerRegistrar {
 		// When a DataExchangeJob transitions to `running`, the handler loads the
 		// DataMappingProfile, queries source objects, applies field transforms
 		// (bsn-to-pseudonym using eckId, date-iso8601, cohort-to-brin), and delegates
-		// to OpenConnector via REST API. No wire protocols are implemented in Scholiq;
+		// to OpenConnector via REST API. No wire protocols are implemented in Learniq;
 		// all Edukoppeling/StUF/OSO-XML/Digikoppeling/SAML logic lives in OpenConnector.
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
@@ -115,7 +115,7 @@ class CaseListenerRegistrar {
 		// — see its own handle()). Pulls a generated timetable from
 		// OpenConnector and idempotently upserts Session objects by
 		// externalRef, then triggers TimetableConflictDetector's batch scan.
-		// No Zermelo/Untis/Xedule wire protocol is implemented in Scholiq.
+		// No Zermelo/Untis/Xedule wire protocol is implemented in Learniq.
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: TimetableImportHandler::class
@@ -148,7 +148,7 @@ class CaseListenerRegistrar {
 		// (→ sbb-verification-pending) → resolve the configured
 		// ProvidesLeerbedrijfVerification adapter (if any) and write the SBB
 		// erkend-leerbedrijf verification result back onto the placement.
-		// No provider configured is a no-op — Scholiq ships no bundled SBB adapter.
+		// No provider configured is a no-op — Learniq ships no bundled SBB adapter.
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: BpvLeerbedrijfVerificationHandler::class

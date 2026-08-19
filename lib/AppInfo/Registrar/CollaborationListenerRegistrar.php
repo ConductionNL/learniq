@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Collaboration Listener Registrar
+ * Learniq Collaboration Listener Registrar
  *
  * One of the domain-scoped registrars `Application::register()` delegates its
  * event-listener wiring to, so no single class has to name every listener in
@@ -147,7 +147,7 @@ class CollaborationListenerRegistrar {
 		// ADR-031 legitimate exception (eportfolio): PortfolioShare `grant` transition
 		// (draft -> active) -> native NC Files read-only share creation for
 		// sharedWithKind=teacher, via OCP\Share\IManager. The same class is ALSO
-		// referenced as the transition's `requires:` guard in scholiq_register.json
+		// referenced as the transition's `requires:` guard in learniq_register.json
 		// (self-grant block) — this registration only wires its IEventListener half;
 		// praktijkopleider/external-assessor visibility is served declaratively by
 		// PortalContributionProvider, not by this listener.

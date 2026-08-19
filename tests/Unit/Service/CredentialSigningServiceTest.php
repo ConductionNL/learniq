@@ -112,7 +112,7 @@ class CredentialSigningServiceTest extends TestCase {
 		$urlGenerator
 			->method('linkToRouteAbsolute')
 			->willReturnCallback(function (string $routeName, array $params): string {
-				return 'https://example.test/apps/scholiq/api/credentials/' . $params['id'] . '/verify';
+				return 'https://example.test/apps/learniq/api/credentials/' . $params['id'] . '/verify';
 			});
 
 		return new CredentialSigningService($appConfig, $crypto, $urlGenerator);
@@ -397,10 +397,10 @@ class CredentialSigningServiceTest extends TestCase {
 			->expects($this->once())
 			->method('linkToRouteAbsolute')
 			->with(
-				'scholiq.credentialVerify.verify',
+				'learniq.credentialVerify.verify',
 				$this->arrayHasKey('id')
 			)
-			->willReturn('https://example.test/apps/scholiq/api/credentials/cred-123/verify');
+			->willReturn('https://example.test/apps/learniq/api/credentials/cred-123/verify');
 
 		$service = new CredentialSigningService($appConfig, $crypto, $urlGenerator);
 

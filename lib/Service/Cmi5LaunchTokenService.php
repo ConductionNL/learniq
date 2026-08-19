@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq cmi5 Launch Token Service
+ * Learniq cmi5 Launch Token Service
  *
  * Mints RS256 JWT launch tokens for cmi5 AU (Assignable Unit) launches.
  * This is a legitimate PHP service per ADR-031 §"What apps SHOULD still write
@@ -9,7 +9,7 @@
  * schema-declarative abstractions.
  *
  * The full JWT signing implementation (openssl_sign with the RS256 private
- * key stored in OCP\Security\ICrypto under key 'scholiq.cmi5.launch.private')
+ * key stored in OCP\Security\ICrypto under key 'learniq.cmi5.launch.private')
  * ships in the course-management change. This stub satisfies the DI
  * registration requirement for the v0.1 wedge and is unit-testable with
  * a mock ICrypto.
@@ -71,7 +71,7 @@ class Cmi5LaunchTokenService {
 	 *
 	 * @phpstan-ignore classConstant.unused
 	 */
-	public const PRIVATE_KEY_NAME = 'scholiq.cmi5.launch.private';
+	public const PRIVATE_KEY_NAME = 'learniq.cmi5.launch.private';
 
 	/**
 	 * Constructor.

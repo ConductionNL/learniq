@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Grading Listener Registrar
+ * Learniq Grading Listener Registrar
  *
  * One of the domain-scoped registrars `Application::register()` delegates its
  * event-listener wiring to, so no single class has to name every listener in

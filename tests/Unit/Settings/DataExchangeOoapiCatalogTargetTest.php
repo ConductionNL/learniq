@@ -52,7 +52,7 @@ class DataExchangeOoapiCatalogTargetTest extends TestCase {
 	 */
 	protected function setUp(): void {
 		parent::setUp();
-		$path = __DIR__ . '/../../../lib/Settings/scholiq_register.json';
+		$path = __DIR__ . '/../../../lib/Settings/learniq_register.json';
 		$this->config = json_decode((string)file_get_contents($path), true);
 
 	}//end setUp()

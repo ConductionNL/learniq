@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Plagiarism Check Interface
+ * Learniq Plagiarism Check Interface
  *
  * Pluggable interface for plagiarism-detection providers (Turnitin, Ouriginal,
  * Compilatio, etc.). The Assignment schema declares a `plagiarismProvider` string
@@ -55,7 +55,7 @@ interface ProvidesPlagiarismCheck {
 	 * API and return a provider-specific submission token/ID that can be used to
 	 * poll for or receive webhook results later.
 	 *
-	 * @param string $submissionId UUID of the Scholiq Submission object.
+	 * @param string $submissionId UUID of the Learniq Submission object.
 	 * @param string $assignmentId UUID of the parent Assignment object.
 	 * @param string[] $attachmentRefs OpenRegister file attachment references.
 	 *

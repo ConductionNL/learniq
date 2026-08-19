@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Timetable Import Handler
+ * Learniq Timetable Import Handler
  *
  * IEventListener for DataExchangeJob lifecycle -> `running` (the same OR
  * ObjectTransitionedEvent DataExchangeRunHandler consumes), filtered to
@@ -439,7 +439,7 @@ class TimetableImportHandler implements IEventListener {
 		if ($apiToken === '') {
 			$this->logger->warning(
 				'[TimetableImportHandler] No OpenConnector API token configured '
-				. '(scholiq.openconnector_api_token); the call may fail with 401/403.'
+				. '(learniq.openconnector_api_token); the call may fail with 401/403.'
 			);
 		}
 

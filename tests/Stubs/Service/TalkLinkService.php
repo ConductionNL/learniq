@@ -15,12 +15,12 @@ declare(strict_types=1);
 namespace OCA\OpenRegister\Service;
 
 /**
- * Minimal TalkLinkService stub for Scholiq unit tests (CohortTalkMembershipHandler).
+ * Minimal TalkLinkService stub for Learniq unit tests (CohortTalkMembershipHandler).
  *
  * Declares only the two methods CohortTalkMembershipHandler consumes:
  * `isTalkAvailable()` and `getLinkedRooms()`. The real class exposes a much
  * larger Tier-2 REST surface (linkRoom, createAndLinkRoom, unlinkRoom,
- * getAvailableRoomsForUser) that scholiq does not call directly — it is
+ * getAvailableRoomsForUser) that learniq does not call directly — it is
  * reached only via OpenRegister's own `TalkLinksController` from the
  * frontend `integration`/`talk` manifest widgets.
  */

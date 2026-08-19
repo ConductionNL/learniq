@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Wallet Offer Delegation Service
+ * Learniq Wallet Offer Delegation Service
  *
  * Lifecycle guard for the Credential schema's `offerToWallet` transition.
  * Pushes an issued Credential to the EUDI wallet by delegating to
@@ -15,25 +15,25 @@
  * That mechanism does not exist and was never built: openconnector's merged
  * companion change (`openconnector-dev/openspec/changes/
  * eudi-wallet-credential-issuance/proposal.md`, "Consumer leaf" note) is
- * explicit that scholiq is "the caller of `POST /api/eudi/credential-offers`"
+ * explicit that learniq is "the caller of `POST /api/eudi/credential-offers`"
  * — a REST endpoint on `OCA\OpenConnector\Controller\EudiWalletController`,
  * registered in `appinfo/routes.php` (`eudiWallet#createOffer`), not an
  * event contract. A repo-wide grep of openconnector-dev for
  * `OCA\OpenConnector\Event\Wallet*` returns zero hits. This class therefore
- * follows the REST-delegation pattern scholiq already established for
+ * follows the REST-delegation pattern learniq already established for
  * OpenConnector calls (`LtiToolPlacementController::callOpenConnectorLaunch()`,
  * `DataExchangeRunHandler::callOpenConnector()`) — same `IClientService` +
  * `IURLGenerator` + `IAppConfig` bearer-token shape and the same
- * `scholiq.openconnector_api_token` config key — rather than the
+ * `learniq.openconnector_api_token` config key — rather than the
  * unimplementable event contract.
  *
  * AUTH GAP (flag to a human): `EudiWalletController::authenticateConsumer()`
  * requires an `Authorization: Bearer <jwt>` that resolves to a registered
  * openconnector `consumer` via `authorization-jwt` REQ-001 — a signed JWT,
- * not an opaque static token. Scholiq mints no JWTs (stays wallet-wire-
+ * not an opaque static token. Learniq mints no JWTs (stays wallet-wire-
  * protocol-free per the task scope) and has no consumer-registration flow
  * against openconnector. This class reuses the existing
- * `scholiq.openconnector_api_token` config value verbatim as the bearer
+ * `learniq.openconnector_api_token` config value verbatim as the bearer
  * value, matching the established DataExchangeRunHandler/
  * LtiToolPlacementController convention of "an admin pastes in a
  * pre-provisioned credential" — but for THIS endpoint the pasted value must
@@ -45,7 +45,7 @@
  * before a state transition and cannot be expressed as a schema declaration."
  * Referenced from the Credential schema's
  * x-openregister-lifecycle.transitions.offerToWallet.requires in
- * scholiq_register.json. Built to the `check(array &$transitionContext): bool`
+ * learniq_register.json. Built to the `check(array &$transitionContext): bool`
  * contract `CredentialSigningService` establishes (see that class's docblock)
  * and every other Lifecycle guard in this app uses.
  *
@@ -190,7 +190,7 @@ class WalletOfferDelegationService {
 	 * `jwt_vc_json` (verbatim pass-through per
 	 * `EudiCredentialOfferService::issueCredential()` — never `dc+sd-jwt`,
 	 * which triggers openconnector to mint a *fresh* credential instead of
-	 * carrying the one scholiq already signed).
+	 * carrying the one learniq already signed).
 	 *
 	 * @param array<string,mixed> $credential The Credential data array.
 	 *
@@ -281,7 +281,7 @@ class WalletOfferDelegationService {
 		if ($apiToken === '') {
 			$this->logger->warning(
 				'[WalletOfferDelegationService] No OpenConnector API token configured ('
-				. 'scholiq.openconnector_api_token); the wallet offer call will fail with 401.'
+				. 'learniq.openconnector_api_token); the wallet offer call will fail with 401.'
 			);
 			return null;
 		}

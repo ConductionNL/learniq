@@ -96,7 +96,7 @@ class LtiAgsPullClient {
 	/**
 	 * Pull pending AGS messages from OpenConnector for a subscription.
 	 *
-	 * @param string $subscriptionId The scholiq-owned event_subscription UUID.
+	 * @param string $subscriptionId The learniq-owned event_subscription UUID.
 	 * @param string $cursor The last-seen event_message cursor ('' for a first sweep).
 	 *
 	 * @return array{messages: array<int,mixed>, cursor: string|null}|null The pull result, or null on failure.
@@ -174,7 +174,7 @@ class LtiAgsPullClient {
 
 		$this->logger->warning(
 			'[LtiAgsPullClient] OpenConnector API user/token not fully configured '
-			. '(scholiq.openconnector_api_user / scholiq.openconnector_api_token); '
+			. '(learniq.openconnector_api_user / learniq.openconnector_api_token); '
 			. 'the pull call may fail with 401/403.'
 		);
 

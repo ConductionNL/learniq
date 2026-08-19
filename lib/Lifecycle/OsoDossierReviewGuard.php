@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq OSO Dossier Review Guard
+ * Learniq OSO Dossier Review Guard
  *
  * Lifecycle guard for the DataExchangeJob schema's `approveDossier`
  * transition (`pending-parent-review → running`). Verifies that the actor

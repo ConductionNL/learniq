@@ -365,3 +365,70 @@ tests/
   least reversible steps in the whole change, and every other boundary is fully revertible until they
   execute — sequencing them last means every code/data risk is retired before the irreversible step,
   not after.
+
+## Format identifiers (residue-closing pass, 2026-08-19)
+
+The bulk rename left a set of `scholiq`-prefixed string literals that are not prose — they are matched
+by code, by another app, or by data already on disk. Default posture for every one of them: **keep the
+literal string**, because renaming it is a compatibility break or a data migration, not a text edit.
+Each is recorded here so a future reader does not "helpfully" rename what looks like a leftover.
+
+- **`scholiq-json`** (`LearniqJsonCourseImporter::SOURCE_FORMAT`) and **`scholiq-learning-record`**
+  (`LearningRecordImportController`'s `sourceFormat` param/allow-list, `LearningRecordImport
+  .properties.sourceFormat.enum` in the register). Both are course/record **package format
+  identifiers** written into exported files and read back by the corresponding importer. An importer
+  that no longer recognises the string it exported yesterday is a self-inflicted broken round-trip.
+  **Decision: keep both, unchanged.** If a `learniq-json`/`learniq-learning-record` alias is ever
+  wanted, it must be *added* as a second accepted value on every read path, never substituted for the
+  old one, so an export written before this pass still imports after it.
+- **`scholiqField`** — an actual OpenRegister **schema property name** on `DataMappingProfile
+  .fieldMappings[]` (`lib/Settings/learniq_register.json`), read/written as an array key throughout
+  `TimetableRecordMapper`, `DataExchangePayloadBuilder`, and every seeded BRON/ROD, OSO, leerplicht,
+  HR and timetable-import mapping profile. Renaming a schema property is a **data migration**
+  (existing `DataMappingProfile` objects already carry this key in their stored `fieldMappings`
+  arrays) exactly like the Dutch-column rename `RenameDutchColumns` exists to handle — it is not a
+  string-literal edit. **Decision: keep `scholiqField` unchanged**, including its `title` of
+  "Scholiq Field" — that label documents the literal key, so keeping them in sync (both say
+  `scholiq`) is clearer than a label that no longer matches the field it names. Renaming this
+  property is out of scope for this pass; if it is ever wanted, it needs its own migration step
+  mirroring `RenameDutchColumns`'s rename-or-backfill shape, not a text substitution.
+- **`_scholiqRecordId`** (`DataExchangePayloadBuilder`) — the correlation key stamped onto every
+  outbound record sent to OpenConnector and echoed back on a validation-rejection so
+  `RejectionMappingHandler` can resolve it to its source object. This is a **wire-payload key**
+  consumed on both sides of an already-running integration. **Decision: keep unchanged**, same
+  reasoning as `scholiqField`.
+- **`scholiqNative`** — the array key inside the `LearningRecordExport`/`LearningRecordImport` bundle
+  JSON (`LearningRecordExportService`, `LearningRecordImportService`) carrying the lossless,
+  app-native half of a portable learning record, alongside the ELM/Europass section. This bundle is
+  designed to be exported, stored, shared with a third party, and re-imported later — exactly the
+  external-artifact case this section exists for. **Decision: keep unchanged.**
+- **AVG Art. 30 processing-activity identifiers** — every schema's `x-openregister-processing.code`,
+  `.backend`, and `.attribution.default` in `learniq_register.json` (e.g. `scholiq-credentialing`,
+  `scholiq.credentialing`, `scholiq-ai-features`, `scholiq-pupil-dossier-notes`, …), plus the matching
+  hard-coded `code:` values in `src/views/LearniqSettings.vue` and the literal assertions in
+  `AiProcessingDisclosureController.php` and `tests/Unit/Settings/ProcessingActivityCatalogueTest
+  .php`. These are **compliance activity codes**: `logReads: true` + `attribution.default` means
+  OpenRegister has already been writing real per-object read-log rows tagged with the old code on
+  any install that activated these processing activities. Renaming the code orphans that audit trail
+  — a later verwerkingsregister export would show reads attributed to a code the catalogue no longer
+  declares. This is exactly the "check before editing" the task called out for
+  `Credential.x-openregister-processing.code/backend`, generalised: it is true of all eleven
+  processing-activity schemas, not only `Credential`. **Decision: keep every `code`/`backend`/
+  `attribution.default` value unchanged**, in `learniq_register.json`, the Vue settings page, and the
+  PHP/test call sites that match them literally. Only the *prose* around them (schema `description`
+  fields, `info.description`, register `title`/`description`, the operational role description) was
+  renamed — never the codes themselves.
+- **`RenameDutchColumns::REGISTER_SLUG_PREFIX = 'scholiq'`** is intentionally unchanged (per the
+  original task list) — **but its own reasoning does not hold against the actual `info.xml`
+  `<post-migration>` order.** The class's docblock claims it "runs BEFORE RenameRegisterSlug (info.xml
+  lists it first)"; `appinfo/info.xml` in fact lists `RenameRegisterSlug` **first** and
+  `RenameDutchColumns` **last** (after `MigrateAppConfigKeys`/`InitializeSettings`/`InitializeActions`)
+  — and must, because it needs the English columns `InitializeSettings`'s register sync adds, which in
+  turn must run after `RenameRegisterSlug` per the ordering note already in `info.xml`. That means by
+  the time `RenameDutchColumns` executes, the register's slug has **already** been renamed to
+  `learniq`, so `WHERE slug LIKE 'scholiq%'` matches zero rows and the whole step silently no-ops —
+  logging "no scholiq shard tables on this install; nothing to do" even when shard tables exist. This
+  was reported rather than silently rewritten, per the task's explicit instruction on this file; it is
+  **not fixed by this pass** and needs its own decision (most likely: change the constant to
+  `'learniq'` to match the slug as it actually stands at execution time, with a migration-log
+  spot-check on an install that already carries pre-rename Dutch-column data before shipping the fix).

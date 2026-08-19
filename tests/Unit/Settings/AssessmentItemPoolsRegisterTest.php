@@ -48,12 +48,12 @@ class AssessmentItemPoolsRegisterTest extends TestCase {
 	 * @return void
 	 */
 	protected function setUp(): void {
-		$path = __DIR__ . '/../../../lib/Settings/scholiq_register.json';
+		$path = __DIR__ . '/../../../lib/Settings/learniq_register.json';
 		$raw = file_get_contents($path);
-		$this->assertNotFalse($raw, 'scholiq_register.json must be readable');
+		$this->assertNotFalse($raw, 'learniq_register.json must be readable');
 
 		$decoded = json_decode($raw, true);
-		$this->assertIsArray($decoded, 'scholiq_register.json must be valid JSON');
+		$this->assertIsArray($decoded, 'learniq_register.json must be valid JSON');
 		$this->config = $decoded;
 
 	}//end setUp()

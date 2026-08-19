@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq LTI Tool Placement Controller
+ * Learniq LTI Tool Placement Controller
  *
  * Delegates an LTI 1.3 launch to OpenConnector's `lti-13-platform` adapter.
- * Scholiq implements NO LTI protocol code (OIDC, JWT signing/verification,
+ * Learniq implements NO LTI protocol code (OIDC, JWT signing/verification,
  * JWKS) — this controller resolves the `LtiToolPlacement` the caller wants to
  * launch, forwards its `openconnectorDeploymentId` to OpenConnector, and
  * returns the opaque launch response (auto-submitting form / URL) unmodified.
@@ -12,7 +12,7 @@
  *
  * The outbound call reuses the exact `IClientService` + `IURLGenerator` +
  * `IAppConfig` bearer-token shape `DataExchangeRunHandler::callOpenConnector()`
- * already established, and the same `scholiq.openconnector_api_token` config
+ * already established, and the same `learniq.openconnector_api_token` config
  * key — see {@see self::OPENCONNECTOR_LAUNCH_PATH} for the documented
  * assumption about the target endpoint's shape.
  *
@@ -61,11 +61,11 @@ use Throwable;
 class LtiToolPlacementController extends Controller {
 
 	/**
-	 * OpenRegister register slug that owns the Scholiq schemas.
+	 * OpenRegister register slug that owns the Learniq schemas.
 	 *
 	 * @var string
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * OpenRegister schema slug for LtiToolPlacement.
@@ -90,10 +90,10 @@ class LtiToolPlacementController extends Controller {
 	 * REQ-LTI-006 requirement text describes this as "an internal service
 	 * method a consuming app calls" — it never committed to a REST surface.
 	 *
-	 * Scholiq's design.md nonetheless commits to the REST-only cross-app
+	 * Learniq's design.md nonetheless commits to the REST-only cross-app
 	 * pattern `DataExchangeRunHandler` already established, since no direct
 	 * PHP cross-app service injection exists anywhere in this codebase (REST
-	 * is the sanctioned scholiq→openconnector boundary; scholiq's
+	 * is the sanctioned learniq→openconnector boundary; learniq's
 	 * `composer.json`/autoloading has no dependency on OpenConnector's PHP
 	 * namespace). This constant therefore names the path a thin
 	 * OpenConnector-side REST wrapper around `initiatePlatformLaunch()`
@@ -202,9 +202,9 @@ class LtiToolPlacementController extends Controller {
 			);
 		}
 
-		// D5: forward the response as-is — Scholiq MUST NOT parse any LTI
+		// D5: forward the response as-is — Learniq MUST NOT parse any LTI
 		// claim from it (id_token, formActionUrl target). `launchMode` is
-		// NOT an LTI claim: it is Scholiq's own placement configuration,
+		// NOT an LTI claim: it is Learniq's own placement configuration,
 		// added here purely so the frontend can decide new-tab vs in-page
 		// frame without a second round trip to read the LtiToolPlacement
 		// object directly (a learner may not have OR read access to it).
@@ -228,7 +228,7 @@ class LtiToolPlacementController extends Controller {
 		try {
 			$object = $this->objectService->find(
 				id: $placementId,
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::PLACEMENT_SCHEMA
 			);
 		} catch (DoesNotExistException $e) {
@@ -275,7 +275,7 @@ class LtiToolPlacementController extends Controller {
 		if ($apiToken === '') {
 			$this->logger->warning(
 				'[LtiToolPlacementController] No OpenConnector API token configured ('
-				. 'scholiq.openconnector_api_token); the launch call may fail with 401/403.'
+				. 'learniq.openconnector_api_token); the launch call may fail with 401/403.'
 			);
 		}
 

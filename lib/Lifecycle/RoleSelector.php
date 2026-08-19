@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Scholiq Role Selector
+ * Learniq Role Selector
  *
  * Single-method calculation helper that resolves a LearnerProfile's highest-
- * priority Scholiq role. Called by OpenRegister's calculation engine to
+ * priority Learniq role. Called by OpenRegister's calculation engine to
  * materialise the `primaryRole` calculated field declared on the LearnerProfile
- * schema in lib/Settings/scholiq_register.json.
+ * schema in lib/Settings/learniq_register.json.
  *
  * This is a legitimate ADR-031 §"Domain rule engines that operate above schema
  * metadata" exception: the selector picks WHICH manifest dashboard page applies;
@@ -38,7 +38,7 @@ use OCP\IUser;
 use Psr\Log\LoggerInterface;
 
 /**
- * Resolves the highest-priority Scholiq role for a LearnerProfile.
+ * Resolves the highest-priority Learniq role for a LearnerProfile.
  *
  * Priority order (highest first):
  *   compliance-officer(5) > hr(4) > admin(3) > manager(3) > instructor(2) > learner(1)
@@ -81,7 +81,7 @@ class RoleSelector {
 	 *
 	 * @param array<string,mixed> $calculationContext Context provided by OR's calculation engine.
 	 *
-	 * @return string Highest-priority Scholiq role, defaults to 'learner'.
+	 * @return string Highest-priority Learniq role, defaults to 'learner'.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-18
 	 */

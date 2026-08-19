@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Rollover Service
+ * Learniq Rollover Service
  *
  * Plans and previews the annual jaarovergang (school-year rollover): a
  * default-mapping proposal (leerjaar increment) and a side-effect-free preview

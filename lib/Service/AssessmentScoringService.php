@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Assessment Scoring Service
+ * Learniq Assessment Scoring Service
  *
  * Public API for triggering auto-scoring on an AssessmentResult. This service
  * wraps the AssessmentScoringHandler logic for programmatic use (e.g. CLI tools,
@@ -47,7 +47,7 @@ use RuntimeException;
 class AssessmentScoringService {
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
 	private const SCHOLIQ_REGISTER = 'learniq';
 

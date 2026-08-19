@@ -101,7 +101,7 @@ class LearniqToolProviderTest extends TestCase {
 	}//end setUp()
 
 	/**
-	 * getAppId() returns the scholiq slug.
+	 * getAppId() returns the learniq slug.
 	 *
 	 * @return void
 	 */
@@ -121,7 +121,7 @@ class LearniqToolProviderTest extends TestCase {
 		$this->assertCount(2, $tools);
 
 		$ids = array_column($tools, 'id');
-		$this->assertSame(['scholiq.listCourses', 'scholiq.getCourseDetails'], $ids);
+		$this->assertSame(['learniq.listCourses', 'learniq.getCourseDetails'], $ids);
 
 		foreach ($tools as $tool) {
 			$this->assertArrayHasKey('id', $tool);
@@ -130,7 +130,7 @@ class LearniqToolProviderTest extends TestCase {
 			$this->assertArrayHasKey('inputSchema', $tool);
 
 			$this->assertIsString($tool['id']);
-			$this->assertStringStartsWith('scholiq.', $tool['id']);
+			$this->assertStringStartsWith('learniq.', $tool['id']);
 			$this->assertIsString($tool['name']);
 			$this->assertNotSame('', $tool['name']);
 			$this->assertIsString($tool['description']);
@@ -154,7 +154,7 @@ class LearniqToolProviderTest extends TestCase {
 	public function testGetCourseDetailsRequiresId(): void {
 		$tools = $this->provider->getTools();
 		$byId = array_column($tools, null, 'id');
-		$schema = $byId['scholiq.getCourseDetails']['inputSchema'];
+		$schema = $byId['learniq.getCourseDetails']['inputSchema'];
 
 		$this->assertSame(['id'], $schema['required']);
 
@@ -167,7 +167,7 @@ class LearniqToolProviderTest extends TestCase {
 	 * @return void
 	 */
 	public function testInvokeUnknownToolReturnsErrorArray(): void {
-		$result = $this->provider->invokeTool('scholiq.bogus', []);
+		$result = $this->provider->invokeTool('learniq.bogus', []);
 
 		$this->assertIsArray($result);
 		$this->assertTrue($result['isError'] ?? false);
@@ -184,7 +184,7 @@ class LearniqToolProviderTest extends TestCase {
 	public function testListCoursesRejectsInvalidLimit(): void {
 		$this->objectService->expects($this->never())->method('findAll');
 
-		$result = $this->provider->invokeTool('scholiq.listCourses', ['limit' => 999]);
+		$result = $this->provider->invokeTool('learniq.listCourses', ['limit' => 999]);
 
 		$this->assertTrue($result['isError'] ?? false);
 		$this->assertSame('invalid_arguments', $result['error'] ?? null);
@@ -200,7 +200,7 @@ class LearniqToolProviderTest extends TestCase {
 		$this->userSession->method('getUser')->willReturn(null);
 		$this->objectService->expects($this->never())->method('findAll');
 
-		$result = $this->provider->invokeTool('scholiq.listCourses', []);
+		$result = $this->provider->invokeTool('learniq.listCourses', []);
 
 		$this->assertTrue($result['isError'] ?? false);
 		$this->assertSame('forbidden', $result['error'] ?? null);
@@ -213,7 +213,7 @@ class LearniqToolProviderTest extends TestCase {
 	 * @return void
 	 */
 	public function testGetCourseDetailsRejectsMissingId(): void {
-		$result = $this->provider->invokeTool('scholiq.getCourseDetails', []);
+		$result = $this->provider->invokeTool('learniq.getCourseDetails', []);
 
 		$this->assertTrue($result['isError'] ?? false);
 		$this->assertSame('invalid_arguments', $result['error'] ?? null);
@@ -259,7 +259,7 @@ class LearniqToolProviderTest extends TestCase {
 			}
 		);
 
-		$result = $this->provider->invokeTool('scholiq.getCourseDetails', ['id' => 'nis2-awareness-2026']);
+		$result = $this->provider->invokeTool('learniq.getCourseDetails', ['id' => 'nis2-awareness-2026']);
 
 		$this->assertTrue($result['success'] ?? false);
 		$this->assertSame($courseUuid, $result['course']['uuid']);

@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Scholiq Verwerkingsregister CSV Builder
+ * Learniq Verwerkingsregister CSV Builder
  *
  * Builds the AVG Art. 30 verwerkingsregister artefact for the compliance audit
  * pack by calling OpenRegister's per-access processing-log endpoint
  * (`/api/avg/verwerkingen`, OR-PA-7/8) and rendering the platform output as CSV.
  *
- * Per ADR-022 scholiq ships NO export engine of its own: this class applies no
+ * Per ADR-022 learniq ships NO export engine of its own: this class applies no
  * Art. 30 column semantics, it is a flat passthrough of whatever OpenRegister
  * returns. When OpenRegister lacks the capability entirely (route missing,
  * endpoint unreachable, unexpected body) the artefact carries a loud
@@ -64,7 +64,7 @@ class VerwerkingsregisterCsvBuilder {
 	}//end __construct()
 
 	/**
-	 * Fetch the AVG Art. 30 verwerkingsregister for scholiq's slice from
+	 * Fetch the AVG Art. 30 verwerkingsregister for learniq's slice from
 	 * OpenRegister and return it as CSV for inclusion in the audit pack.
 	 *
 	 * @param string $dateFrom ISO-8601 lower bound forwarded to the platform.
@@ -90,7 +90,7 @@ class VerwerkingsregisterCsvBuilder {
 			. '?register=learniq&from=' . rawurlencode($dateFrom) . '&to=' . rawurlencode($dateTo);
 
 		// Forward the caller's session so OpenRegister applies its own RBAC
-		// (OR-PA-8). Scholiq performs no access decision of its own here.
+		// (OR-PA-8). Learniq performs no access decision of its own here.
 		$cookieHeader = (string)$this->request->getHeader('Cookie');
 
 		try {

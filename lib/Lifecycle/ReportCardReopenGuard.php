@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Report Card Reopen Guard
+ * Learniq Report Card Reopen Guard
  *
  * Lifecycle guard for the ReportCard schema's `reopen` transition
  * (finalised -> rapportvergadering-review). Restricted to admin/mentor/
@@ -13,7 +13,7 @@
  * declaration." Mirrors {@see ExternalTrainingVerificationGuard}'s
  * role-group-check shape. Referenced from the ReportCard schema's
  * x-openregister-lifecycle.transitions.reopen.requires in
- * scholiq_register.json.
+ * learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle

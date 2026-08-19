@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Report Card Finalise Guard
+ * Learniq Report Card Finalise Guard
  *
  * Lifecycle guard for the ReportCard schema's `finalise` transition
  * (rapportvergadering-review -> finalised). Blocks finalisation until the
@@ -13,7 +13,7 @@
  * before a state transition and cannot be expressed as a schema
  * declaration." Referenced from the ReportCard schema's
  * x-openregister-lifecycle.transitions.finalise.requires in
- * scholiq_register.json.
+ * learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle
