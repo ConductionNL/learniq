@@ -8,7 +8,7 @@
  * generic object API the same way `TakeAssessmentView.vue` and
  * `ProctoringReviewQueue.vue` already do — there is NO new controller, NO new
  * service class, NO new route. The "backend" surface of this change is
- * entirely the `lib/Settings/scholiq_register.json` delta:
+ * entirely the `lib/Settings/learniq_register.json` delta:
  *   - `Assessment.proctoring` gains `nativeTestMode` / `navigationLock`;
  *   - `lockdownBrowser` / `recordWebcam` descriptions gain native-mode
  *     clauses;
@@ -60,12 +60,12 @@ class SecureExamTestModeTest extends TestCase {
 	 * @return void
 	 */
 	protected function setUp(): void {
-		$path = __DIR__ . '/../../../lib/Settings/scholiq_register.json';
+		$path = __DIR__ . '/../../../lib/Settings/learniq_register.json';
 		$raw = file_get_contents($path);
-		$this->assertNotFalse($raw, 'scholiq_register.json must be readable');
+		$this->assertNotFalse($raw, 'learniq_register.json must be readable');
 
 		$decoded = json_decode($raw, true);
-		$this->assertIsArray($decoded, 'scholiq_register.json must be valid JSON');
+		$this->assertIsArray($decoded, 'learniq_register.json must be valid JSON');
 		$this->config = $decoded;
 
 	}//end setUp()
@@ -121,13 +121,18 @@ class SecureExamTestModeTest extends TestCase {
 	}//end testLockdownBrowserAndRecordWebcamDescriptionsGainNativeModeClauses()
 
 	/**
-	 * `ProctoringSession` gains an explicit `x-openregister-authorization`
-	 * block scoping `create` to `["user"]` — this is the first change to
-	 * ever decide this schema's write posture (design.md §4.2), mirroring
-	 * the `XapiStatement` precedent for the annotation shape (though with a
-	 * deliberately different value: a learner's own browser, or an external
-	 * provider adapter, must be able to create a session — admin-only would
-	 * make native test mode unusable).
+	 * `ProctoringSession` declares an explicit write posture.
+	 *
+	 * rename/rbac-declare-groups: this assertion used to read
+	 * `x-openregister-authorization`. That key is not read by ANY code path in
+	 * OpenRegister — `RbacGroupCollector` and `PermissionHandler` both key on
+	 * `authorization`. So the schema declared a write posture that was never
+	 * enforced, and this test was green while asserting a fiction. Sixty such
+	 * declarations existed across the register.
+	 *
+	 * It now asserts the key OpenRegister actually reads, with the canonical
+	 * unprefixed group ids (OpenRegister's rbac-scopes: group ids are
+	 * "free-form and SHALL NOT be prefixed or namespaced").
 	 *
 	 * @return void
 	 */
@@ -135,9 +140,19 @@ class SecureExamTestModeTest extends TestCase {
 		$schema = $this->config['components']['schemas']['ProctoringSession'] ?? null;
 		$this->assertIsArray($schema, 'ProctoringSession schema MUST exist');
 
-		$auth = $schema['x-openregister-authorization'] ?? null;
-		$this->assertIsArray($auth, 'ProctoringSession MUST declare x-openregister-authorization');
-		$this->assertSame(['user'], $auth['create'] ?? null, 'ProctoringSession.create MUST be scoped to ["user"], not left undecided or admin-only');
+		$this->assertArrayNotHasKey(
+			'x-openregister-authorization',
+			$schema,
+			'The decoy key MUST be gone — OpenRegister never reads it, so declaring it is worse than declaring nothing.'
+		);
+
+		$auth = $schema['authorization'] ?? null;
+		$this->assertIsArray($auth, 'ProctoringSession MUST declare an `authorization` block');
+		$this->assertSame(
+			['instructors', 'compliance-officers'],
+			$auth['create'] ?? null,
+			'ProctoringSession.create is staff-scoped: a proctoring session is evidence about a learner, not a learner-authored record.'
+		);
 
 	}//end testProctoringSessionDeclaresExplicitCreateAuthorization()
 

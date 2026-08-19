@@ -111,7 +111,7 @@ class LearningRecordImportServiceTest extends TestCase {
 	public function testRecognisedOwnFormatBundleParsesVerifiedWhenKeyMatches(): void {
 		$bundle = [
 			'bundleType' => 'scholiq-learning-record',
-			'issuerDid' => 'did:web:scholiq:tenant-1:fingerprint',
+			'issuerDid' => 'did:web:learniq:tenant-1:fingerprint',
 			'elm' => [['kind' => 'diploma']],
 			'scholiqNative' => [
 				'credentials' => [['id' => 'cred-1', 'kind' => 'diploma']],
@@ -121,7 +121,7 @@ class LearningRecordImportServiceTest extends TestCase {
 		];
 
 		$service = $this->makeService(rawContent: (string)json_encode($bundle));
-		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:scholiq:tenant-1:fingerprint');
+		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:fingerprint');
 		$this->signingService->method('verify')->willReturn(true);
 
 		$context = $this->baseContext();
@@ -149,14 +149,14 @@ class LearningRecordImportServiceTest extends TestCase {
 	public function testRecognisedOwnFormatBundleParsesUnverifiableForForeignIssuer(): void {
 		$bundle = [
 			'bundleType' => 'scholiq-learning-record',
-			'issuerDid' => 'did:web:scholiq:some-other-tenant:xyz',
+			'issuerDid' => 'did:web:learniq:some-other-tenant:xyz',
 			'elm' => [],
 			'scholiqNative' => ['credentials' => []],
 			'proof' => ['jws' => 'header..signature'],
 		];
 
 		$service = $this->makeService(rawContent: (string)json_encode($bundle));
-		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:scholiq:tenant-1:fingerprint');
+		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:fingerprint');
 		$this->signingService->expects($this->never())->method('verify');
 
 		$context = $this->baseContext();
@@ -174,14 +174,14 @@ class LearningRecordImportServiceTest extends TestCase {
 	public function testTamperedOwnFormatBundleParsesInvalid(): void {
 		$bundle = [
 			'bundleType' => 'scholiq-learning-record',
-			'issuerDid' => 'did:web:scholiq:tenant-1:fingerprint',
+			'issuerDid' => 'did:web:learniq:tenant-1:fingerprint',
 			'elm' => [],
 			'scholiqNative' => ['credentials' => []],
 			'proof' => ['jws' => 'header..tampered-signature'],
 		];
 
 		$service = $this->makeService(rawContent: (string)json_encode($bundle));
-		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:scholiq:tenant-1:fingerprint');
+		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:fingerprint');
 		$this->signingService->method('verify')->willReturn(false);
 
 		$context = $this->baseContext();

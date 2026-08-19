@@ -158,7 +158,7 @@ class CredentialSigningServiceTest extends TestCase {
 			courseId: null,
 			issuedAt: '2026-01-01T00:00:00+00:00',
 			expiresAt: null,
-			issuerDid: 'did:web:scholiq:tenant-1:aabbcc',
+			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
 			issuedBy: 'Test School',
 			verificationUrl: 'https://example.test/api/credentials/cred-001/verify',
 		);
@@ -190,7 +190,7 @@ class CredentialSigningServiceTest extends TestCase {
 			courseId: null,
 			issuedAt: '2026-01-01T00:00:00+00:00',
 			expiresAt: null,
-			issuerDid: 'did:web:scholiq:tenant-1:aabbcc',
+			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
 			issuedBy: 'Test School',
 			verificationUrl: 'https://example.test/api/credentials/cred-001/verify',
 		);
@@ -225,7 +225,7 @@ class CredentialSigningServiceTest extends TestCase {
 			courseId: null,
 			issuedAt: '2026-01-01T00:00:00+00:00',
 			expiresAt: null,
-			issuerDid: 'did:web:scholiq:tenant-1:aabbcc',
+			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
 			issuedBy: 'Test School',
 			verificationUrl: 'https://example.test/api/credentials/cred-001/verify',
 		);
@@ -268,7 +268,7 @@ class CredentialSigningServiceTest extends TestCase {
 			courseId: 'course-77',
 			issuedAt: '2026-06-01T00:00:00+00:00',
 			expiresAt: '2027-06-01T00:00:00+00:00',
-			issuerDid: 'did:web:scholiq:tenant-1:aabbcc',
+			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
 			issuedBy: 'Round-Trip School',
 			verificationUrl: 'https://example.test/api/credentials/cred-rtrip/verify',
 		);

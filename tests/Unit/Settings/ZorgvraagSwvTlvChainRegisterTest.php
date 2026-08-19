@@ -59,7 +59,7 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 	 */
 	protected function setUp(): void {
 		parent::setUp();
-		$path = __DIR__ . '/../../../lib/Settings/scholiq_register.json';
+		$path = __DIR__ . '/../../../lib/Settings/learniq_register.json';
 		$this->config = json_decode((string)file_get_contents($path), true);
 
 	}//end setUp()
@@ -87,7 +87,23 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 		self::assertSame('LearningPlan', $learningPlanId['$ref']);
 		self::assertNull($learningPlanId['default']);
 
-		self::assertSame(['admin', 'principal'], $schema['x-openregister-authorization']['create']);
+		// rbac-declare-groups: the old assertion read `x-openregister-authorization`
+		// and named `principal`. Neither survives: OpenRegister reads
+		// `authorization`, never the `x-` variant, and `principal` was retired
+		// from the role vocabulary as school-specific when the app was reframed
+		// from Scholiq to Learniq. SupportRequest carries no schema-level block
+		// and is governed by the register cascade (Tier 2), so the assertion is
+		// that the decoy is gone and the cascade is what applies.
+		self::assertArrayNotHasKey(
+			'x-openregister-authorization',
+			$schema,
+			'The decoy key MUST be gone — OpenRegister never read it.'
+		);
+		self::assertArrayNotHasKey(
+			'authorization',
+			$schema,
+			'SupportRequest is Tier 2: it inherits the register cascade rather than declaring its own block.'
+		);
 
 	}//end testSupportRequestLifecycleAndAuthorizationShape()
 

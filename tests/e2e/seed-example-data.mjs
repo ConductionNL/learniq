@@ -3,7 +3,7 @@
 // Copyright (C) 2026 Conduction B.V.
 //
 // seed-example-data.mjs — best-effort import of the scholiq OpenRegister register
-// (lib/Settings/scholiq_register.json) into a running Nextcloud + OpenRegister,
+// (lib/Settings/learniq_register.json) into a running Nextcloud + OpenRegister,
 // then create a small coherent example dataset so the index pages + dashboard KPI
 // widgets have content. Idempotent: re-running skips objects that already exist.
 //

@@ -4,11 +4,11 @@
  * Schema slug regression test — asserts no PascalCase schema-name strings survive in lib/.
  *
  * C3 fix regression guard: every cross-schema OR lookup must use the real kebab/lowercase
- * slug from scholiq_register.json. This test greps lib/ source files and fails if any of
+ * slug from learniq_register.json. This test greps lib/ source files and fails if any of
  * the forbidden PascalCase variants are found in a string literal context.
  *
  * The only intentional carve-out is 'AiFeature' (slug is genuinely PascalCase per schema
- * line 502 of scholiq_register.json) — that variant is explicitly excluded from the
+ * line 502 of learniq_register.json) — that variant is explicitly excluded from the
  * forbidden list.
  *
  * @category Test
@@ -41,7 +41,7 @@ class SchemaSlugRegressionTest extends TestCase {
 	 * Each entry maps the forbidden PascalCase form to the correct kebab/lowercase slug.
 	 *
 	 * 'AiFeature' is intentionally excluded — its schema slug is genuinely PascalCase
-	 * (scholiq_register.json line 502: "slug": "AiFeature").
+	 * (learniq_register.json line 502: "slug": "AiFeature").
 	 *
 	 * @var array<string,string>
 	 */

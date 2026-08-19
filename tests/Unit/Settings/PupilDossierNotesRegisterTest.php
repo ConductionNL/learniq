@@ -54,12 +54,12 @@ class PupilDossierNotesRegisterTest extends TestCase {
 	 * @return void
 	 */
 	protected function setUp(): void {
-		$path = __DIR__ . '/../../../lib/Settings/scholiq_register.json';
+		$path = __DIR__ . '/../../../lib/Settings/learniq_register.json';
 		$raw = file_get_contents($path);
-		$this->assertNotFalse($raw, 'scholiq_register.json must be readable');
+		$this->assertNotFalse($raw, 'learniq_register.json must be readable');
 
 		$decoded = json_decode($raw, true);
-		$this->assertIsArray($decoded, 'scholiq_register.json must be valid JSON');
+		$this->assertIsArray($decoded, 'learniq_register.json must be valid JSON');
 		$this->config = $decoded;
 
 	}//end setUp()
@@ -121,13 +121,19 @@ class PupilDossierNotesRegisterTest extends TestCase {
 		$schema = $this->config['components']['schemas']['DossierNote'] ?? null;
 		$this->assertIsArray($schema, 'DossierNote schema MUST exist');
 
-		$createRoles = $schema['x-openregister-authorization']['create'] ?? [];
+		// rbac-declare-groups: `x-openregister-authorization` is read by NO code
+		// path in OpenRegister, so this assertion used to prove nothing while
+		// staying green. It now reads `authorization`, the key PermissionHandler
+		// and RbacGroupCollector actually consult, with unprefixed group ids.
+		$this->assertArrayNotHasKey('x-openregister-authorization', $schema, 'The decoy key MUST be gone.');
+
+		$createRoles = $schema['authorization']['create'] ?? [];
 		$this->assertEqualsCanonicalizing(
-			['admin', 'mentor', 'coordinator'],
+			['instructors', 'compliance-officers'],
 			$createRoles,
-			'DossierNote creation MUST be restricted to admin/mentor/coordinator'
+			'DossierNote creation MUST be staff-only'
 		);
-		$this->assertNotContains('learner', $createRoles, 'A learner MUST NOT be able to author a DossierNote');
+		$this->assertNotContains('learners', $createRoles, 'A learner MUST NOT be able to author a DossierNote');
 
 		$anyOf = $schema['x-property-rbac']['read']['anyOf'] ?? [];
 		$rbacRoles = array_filter(array_column($anyOf, 'role'));
@@ -216,13 +222,16 @@ class PupilDossierNotesRegisterTest extends TestCase {
 		$schema = $this->config['components']['schemas']['BehaviourIncident'] ?? null;
 		$this->assertIsArray($schema, 'BehaviourIncident schema MUST exist');
 
-		$createRoles = $schema['x-openregister-authorization']['create'] ?? [];
+		// See the DossierNote sibling: the old key was never read by OpenRegister.
+		$this->assertArrayNotHasKey('x-openregister-authorization', $schema, 'The decoy key MUST be gone.');
+
+		$createRoles = $schema['authorization']['create'] ?? [];
 		$this->assertEqualsCanonicalizing(
-			['admin', 'mentor', 'coordinator'],
+			['instructors', 'compliance-officers'],
 			$createRoles,
-			'BehaviourIncident creation MUST be restricted to admin/mentor/coordinator'
+			'BehaviourIncident creation MUST be staff-only'
 		);
-		$this->assertNotContains('learner', $createRoles, 'A learner MUST NOT be able to author a BehaviourIncident');
+		$this->assertNotContains('learners', $createRoles, 'A learner MUST NOT be able to author a BehaviourIncident');
 
 		$anyOf = $schema['x-property-rbac']['read']['anyOf'] ?? [];
 		$rbacRoles = array_filter(array_column($anyOf, 'role'));

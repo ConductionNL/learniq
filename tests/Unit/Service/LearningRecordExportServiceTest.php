@@ -175,7 +175,7 @@ class LearningRecordExportServiceTest extends TestCase {
 			)
 		);
 
-		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:scholiq:tenant-1:abc');
+		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:abc');
 		$this->signingService->method('sign')->willReturn('header..signature');
 
 		$context = $this->baseContext();
@@ -206,7 +206,7 @@ class LearningRecordExportServiceTest extends TestCase {
 			)
 		);
 
-		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:scholiq:tenant-1:abc');
+		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:abc');
 		$this->signingService->method('sign')->willReturn('header..signature');
 
 		$context = $this->baseContext();
@@ -234,7 +234,7 @@ class LearningRecordExportServiceTest extends TestCase {
 			)
 		);
 
-		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:scholiq:tenant-1:abc');
+		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:abc');
 		$this->signingService->method('sign')->willReturn('header..signature');
 
 		$context = $this->baseContext(['periodFrom' => '2026-01-01', 'periodTo' => '2026-12-31']);
@@ -274,7 +274,7 @@ class LearningRecordExportServiceTest extends TestCase {
 			)
 		);
 
-		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:scholiq:tenant-1:abc');
+		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:abc');
 		$this->signingService->method('sign')->willReturn('header..signature');
 
 		$context = $this->baseContext();

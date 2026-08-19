@@ -11,7 +11,7 @@
  * contract (amendment A1), so no mocks and no container are involved.
  *
  * A register-drift pin (testManifestMatchesRegisterSchemas) loads the shipped
- * `scholiq_register.json` and asserts every schema slug, scope field,
+ * `learniq_register.json` and asserts every schema slug, scope field,
  * whitelisted field AND parent `via` scope field the manifest references
  * actually exists — so a rename in the register (or a missing `portal-identity`
  * ref) fails this test instead of silently breaking the portal at runtime. The
@@ -548,7 +548,7 @@ class PortalContributionProviderTest extends TestCase {
 	/**
 	 * Register-drift pin: every schema slug, scope field, whitelisted field and
 	 * `via` scope-field the manifest references MUST exist in the shipped
-	 * scholiq_register.json — proving the `portal-identity` refs are present and
+	 * learniq_register.json — proving the `portal-identity` refs are present and
 	 * that no register rename silently broke the portal. Covers the parent
 	 * reverse-join collections too (their via `scopeField` is `guardianRefs` on
 	 * `learner-profile`; `targetField` is the OR object-identity token `id`, not
@@ -557,7 +557,7 @@ class PortalContributionProviderTest extends TestCase {
 	 * @return void
 	 */
 	public function testManifestMatchesRegisterSchemas(): void {
-		$registerPath = __DIR__ . '/../../../lib/Settings/scholiq_register.json';
+		$registerPath = __DIR__ . '/../../../lib/Settings/learniq_register.json';
 		$this->assertFileExists($registerPath);
 
 		$register = json_decode((string)file_get_contents($registerPath), true);

@@ -226,6 +226,6 @@ class LearningRecordExportSigningServiceTest extends TestCase {
 		$did = $service->resolveIssuerDid(tenantId: 'tenant-5');
 
 		self::assertNotNull($did);
-		self::assertStringStartsWith('did:web:scholiq:tenant-5:', $did);
+		self::assertStringStartsWith('did:web:learniq:tenant-5:', $did);
 	}//end testResolveIssuerDidReturnsDidWebForConfiguredTenant()
 }//end class

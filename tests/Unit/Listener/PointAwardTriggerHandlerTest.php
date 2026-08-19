@@ -370,7 +370,7 @@ class PointAwardTriggerHandlerTest extends TestCase {
 	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-no-pointrule-kind-exists-for-peer-review
 	 */
 	public function testNoPeerReviewKindExistsInRegister(): void {
-		$registerPath = dirname(__DIR__, 3) . '/lib/Settings/scholiq_register.json';
+		$registerPath = dirname(__DIR__, 3) . '/lib/Settings/learniq_register.json';
 		$register = json_decode((string)file_get_contents($registerPath), true);
 
 		$enum = $register['components']['schemas']['PointRule']['properties']['kind']['enum'] ?? [];
