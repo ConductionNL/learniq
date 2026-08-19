@@ -366,7 +366,7 @@ class CredentialSigningServiceTest extends TestCase {
 
 	/**
 	 * check() must generate the verification URL via the corrected route name
-	 * `scholiq.credentialVerify.verify` (not the old `scholiq.credential.verify`).
+	 * `learniq.credentialVerify.verify` (not the old `learniq.credential.verify`).
 	 *
 	 * @return void
 	 */

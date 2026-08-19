@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Learning Record Import Intake Service
+ * Learniq Learning Record Import Intake Service
  *
  * Owns everything `LearningRecordImportController::upload()` does once the
  * multipart request itself has been validated: tenant resolution, writing the
@@ -54,7 +54,7 @@ use Psr\Log\LoggerInterface;
  */
 class LearningRecordImportIntakeService {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const SCHEMA = 'learning-record-import';
 
 	/**
@@ -191,7 +191,7 @@ class LearningRecordImportIntakeService {
 		$uploadedAt = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 
 		$created = $this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::SCHEMA,
 			object: [
 				'applicationId' => $applicationId,
@@ -219,7 +219,7 @@ class LearningRecordImportIntakeService {
 			);
 		}
 
-		$final = $this->objectService->find(id: $createdId, register: self::SCHOLIQ_REGISTER, schema: self::SCHEMA);
+		$final = $this->objectService->find(id: $createdId, register: self::LEARNIQ_REGISTER, schema: self::SCHEMA);
 
 		return $this->toArray(row: $final);
 	}//end createImport()

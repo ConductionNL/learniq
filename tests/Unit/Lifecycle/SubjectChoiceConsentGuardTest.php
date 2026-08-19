@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq SubjectChoiceConsentGuard unit tests.
+ * Learniq SubjectChoiceConsentGuard unit tests.
  *
  * Mirrors ConferenceSignupGuardianGuardTest — the guard's body is
  * copy-identical to ConferenceSignupGuardianGuard, reapplied to a new schema.

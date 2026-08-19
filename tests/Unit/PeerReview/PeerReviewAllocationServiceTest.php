@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq PeerReviewAllocationService unit tests.
+ * Learniq PeerReviewAllocationService unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\PeerReview

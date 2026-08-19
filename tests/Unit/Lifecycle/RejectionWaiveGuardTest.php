@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq RejectionWaiveGuard unit tests.
+ * Learniq RejectionWaiveGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq LessonReleaseEvaluator unit tests.
+ * Learniq LessonReleaseEvaluator unit tests.
  *
  * Covers: no conditions/no delay -> available; unmet/met lesson-completed;
  * unmet/met assessment-min-score (score summation, autoScore vs manualScore

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Municipality Feedback Guard
+ * Learniq Municipality Feedback Guard
  *
  * Lifecycle guard for the DataExchangeJob schema's `recordMunicipalityFeedback`
  * transition — a self-loop (`succeeded` → `succeeded`) used solely to attach a

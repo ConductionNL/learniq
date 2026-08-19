@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Rejection Mapping Handler
+ * Learniq Rejection Mapping Handler
  *
  * IEventListener for DataExchangeJob lifecycle → succeeded | partial | failed
  * (the OR ObjectTransitionedEvent with schema=data-exchange-job, to IN
@@ -33,7 +33,7 @@
  *
  * This is the ADR-031 "external-system bridge" exception, mirroring
  * DataExchangeRunHandler's single-responsibility shape: orchestrate mapping
- * a job's rejected records onto Scholiq's own object graph. No protocol code
+ * a job's rejected records onto Learniq's own object graph. No protocol code
  * lives here.
  *
  * @category Listener
@@ -74,7 +74,7 @@ use Psr\Log\LoggerInterface;
  */
 class RejectionMappingHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const JOB_SCHEMA = 'data-exchange-job';
 	private const REJECTION_SCHEMA = 'exchange-rejection';
 	private const ERROR_CODE_SCHEMA = 'exchange-error-code';
@@ -116,7 +116,7 @@ class RejectionMappingHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -290,7 +290,7 @@ class RejectionMappingHandler implements IEventListener {
 		];
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::REJECTION_SCHEMA,
 			object: $rejection
 		);
@@ -357,7 +357,7 @@ class RejectionMappingHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ERROR_CODE_SCHEMA,
 				'filters' => $filters,
 				'limit' => 100,
@@ -442,7 +442,7 @@ class RejectionMappingHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::REJECTION_SCHEMA,
 				'filters' => $filters,
 				'limit' => ExchangeRejectionContract::MAX_REJECTIONS_PER_JOB,

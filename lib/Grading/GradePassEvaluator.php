@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Grade Pass Evaluator
+ * Learniq Grade Pass Evaluator
  *
  * Stateless verdict half of the grading calculation, extracted from
  * `GradeFormulaEvaluator` so each class carries one cohesive responsibility:

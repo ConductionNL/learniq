@@ -20,10 +20,10 @@
 		:description="
 			t(
 				'learniq',
-				'Manage the aanleveringen and imports scholiq exchanges with DUO/BRON, OSO, the municipality, and ELO systems. Jobs and field-mapping profiles are administered here.',
+				'Manage the aanleveringen and imports learniq exchanges with DUO/BRON, OSO, the municipality, and ELO systems. Jobs and field-mapping profiles are administered here.',
 			)
 		">
-		<div class="scholiq-dataexchange-settings__actions">
+		<div class="learniq-dataexchange-settings__actions">
 			<NcButton variant="secondary" @click="open('/data-exchange/jobs')">
 				<template #icon>
 					<SwapHorizontal :size="20" />
@@ -76,7 +76,7 @@ export default {
 </script>
 
 <style scoped>
-.scholiq-dataexchange-settings__actions {
+.learniq-dataexchange-settings__actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;

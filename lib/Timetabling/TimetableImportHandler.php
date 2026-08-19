@@ -11,7 +11,7 @@
  * Algorithm (design.md "Data Model" / timetabling spec):
  * 1. Load the DataMappingProfile referenced by mappingProfileId. Unlike the
  *    export-direction handlers, this profile's fieldMappings are read in
- *    REVERSE: `scholiqField` still names the Scholiq-side (Session) field
+ *    REVERSE: `scholiqField` still names the Learniq-side (Session) field
  *    and `targetField` still names the external-side field (per the
  *    schema's own direction-agnostic property descriptions), but for
  *    `direction: import` this handler resolves each inbound record's
@@ -76,7 +76,7 @@ use Psr\Log\LoggerInterface;
  */
 class TimetableImportHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const JOB_SCHEMA = 'data-exchange-job';
 	private const MAPPING_PROFILE_SCHEMA = 'data-mapping-profile';
 	private const SESSION_SCHEMA = 'session';
@@ -134,7 +134,7 @@ class TimetableImportHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER || $event->getSchema() !== self::JOB_SCHEMA) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER || $event->getSchema() !== self::JOB_SCHEMA) {
 			return;
 		}
 
@@ -352,7 +352,7 @@ class TimetableImportHandler implements IEventListener {
 
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::SESSION_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,
@@ -377,7 +377,7 @@ class TimetableImportHandler implements IEventListener {
 		}
 
 		$saved = $this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::SESSION_SCHEMA,
 			object: $data
 		);
@@ -395,7 +395,7 @@ class TimetableImportHandler implements IEventListener {
 	private function loadMappingProfile(string $profileId): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::MAPPING_PROFILE_SCHEMA,
 				'filters' => ['id' => $profileId],
 				'limit' => 1,
@@ -499,7 +499,7 @@ class TimetableImportHandler implements IEventListener {
 	private function saveJobFields(string $jobId, array $fields): void {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::JOB_SCHEMA,
 				'filters' => ['id' => $jobId],
 				'limit' => 1,
@@ -519,7 +519,7 @@ class TimetableImportHandler implements IEventListener {
 		$updated = array_merge($current, $fields);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::JOB_SCHEMA,
 			object: $updated
 		);

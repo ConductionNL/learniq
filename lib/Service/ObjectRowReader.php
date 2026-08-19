@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq Object Row Reader
+ * Learniq Object Row Reader
  *
  * The one-line read helper the competency roll-up collaborators share: fetch a
- * single Scholiq-register object by its own id and hand it back as a plain
+ * single Learniq-register object by its own id and hand it back as a plain
  * array, normalising the ObjectEntity-or-array shape `ObjectService::findAll()`
  * can return. Extracted so `CompetencyAttainmentRollupHandler`,
  * `CompetencyAttainmentWriter` and `CompetencyLevelResolver` share one
@@ -37,11 +37,11 @@ namespace OCA\Learniq\Service;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
- * Reads a single Scholiq-register object by id, normalised to a plain array.
+ * Reads a single Learniq-register object by id, normalised to a plain array.
  */
 class ObjectRowReader {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.
@@ -72,7 +72,7 @@ class ObjectRowReader {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => $schema,
 				'filters' => ['id' => $id],
 				'limit' => 1,

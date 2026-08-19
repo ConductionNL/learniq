@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq QTI Import Controller
+ * Learniq QTI Import Controller
  *
  * Thin HTTP endpoint for uploading and importing a QTI 2.x / 3.0 or Common Cartridge
  * ZIP package into a specified ItemBank. All heavy lifting is delegated to

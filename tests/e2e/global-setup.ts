@@ -35,7 +35,7 @@ const SEED_MARKER = path.join(APP_ROOT, '.e2e-state', 'ci-seeded')
  * a coherent example dataset). Best-effort: a failing seed (NC unreachable in CI, or
  * the OR register-import gap openregister#1487) does NOT abort the run — it just means
  * the index-page specs skip their row-count soft-assertions. Sets
- * process.env.SCHOLIQ_E2E_SEEDED='1' on success.
+ * process.env.LEARNIQ_E2E_SEEDED='1' on success.
  */
 function runSeed(): void {
 	// ci-seed.sh already ran the same seed, in the step whose job it is, and
@@ -44,7 +44,7 @@ function runSeed(): void {
 	if (fs.existsSync(SEED_MARKER)) {
 		const status = fs.readFileSync(SEED_MARKER, 'utf8').trim()
 		if (status === 'full') {
-			process.env.SCHOLIQ_E2E_SEEDED = '1'
+			process.env.LEARNIQ_E2E_SEEDED = '1'
 			console.log(
 				'[global-setup] seed already done by ci-seed.sh (full) — skipping',
 			)
@@ -70,7 +70,7 @@ function runSeed(): void {
 			timeout: 120_000,
 		})
 		process.stdout.write(out)
-		process.env.SCHOLIQ_E2E_SEEDED = '1'
+		process.env.LEARNIQ_E2E_SEEDED = '1'
 		console.log('[global-setup] example data seeded')
 	} catch (err: any) {
 		console.warn(

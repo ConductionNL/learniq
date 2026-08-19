@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Payment Transaction Status Handler
+ * Learniq Payment Transaction Status Handler
  *
  * Listens for OpenRegister's ObjectTransitionedEvent and, when a
  * PaymentTransaction transitions:
@@ -59,7 +59,7 @@ use Psr\Log\LoggerInterface;
  */
 class PaymentTransactionStatusHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const PAYMENT_TRANSACTION_SCHEMA = 'payment-transaction';
 	private const ORDER_SCHEMA = 'order';
 	private const ORDER_LINE_SCHEMA = 'order-line';
@@ -104,7 +104,7 @@ class PaymentTransactionStatusHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -226,7 +226,7 @@ class PaymentTransactionStatusHandler implements IEventListener {
 	private function sumSucceededTransactions(string $orderId): float {
 		$transactions = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::PAYMENT_TRANSACTION_SCHEMA,
 				'filters' => [
 					'orderId' => $orderId,
@@ -258,7 +258,7 @@ class PaymentTransactionStatusHandler implements IEventListener {
 	private function revokeActiveEntitlementsForOrder(string $orderId): void {
 		$orderLines = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ORDER_LINE_SCHEMA,
 				'filters' => ['orderId' => $orderId],
 			]
@@ -276,7 +276,7 @@ class PaymentTransactionStatusHandler implements IEventListener {
 
 			$entitlements = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::ENTITLEMENT_SCHEMA,
 					'filters' => [
 						'orderLineId' => $orderLineId,
@@ -313,7 +313,7 @@ class PaymentTransactionStatusHandler implements IEventListener {
 	private function fetchObject(string $id, string $schema): ?array {
 		$obj = $this->objectService->find(
 			id: $id,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: $schema
 		);
 

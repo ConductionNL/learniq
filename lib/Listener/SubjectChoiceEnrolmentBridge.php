@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq Subject Choice Enrolment Bridge
+ * Learniq Subject Choice Enrolment Bridge
  *
  * IEventListener for SubjectChoice lifecycle `approved -> locked` (the OR
- * ObjectTransitionedEvent with register=scholiq, schema=subject-choice,
+ * ObjectTransitionedEvent with register=learniq, schema=subject-choice,
  * to=locked). Creates an Enrolment (source: "subject-choice") for each
  * course in selectedElectiveCourseIds that the learner is not already
  * enrolled in — idempotent against a repeated lock.
@@ -49,7 +49,7 @@ use Psr\Log\LoggerInterface;
  */
 class SubjectChoiceEnrolmentBridge implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const SUBJECT_CHOICE_SCHEMA = 'subject-choice';
 	private const ENROLMENT_SCHEMA = 'enrolment';
 
@@ -81,7 +81,7 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -124,7 +124,7 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 			}
 
 			$this->objectService->saveObject(
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::ENROLMENT_SCHEMA,
 				object: [
 					'learnerId' => $learnerId,
@@ -159,7 +159,7 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ENROLMENT_SCHEMA,
 				'filters' => $filters,
 				'limit' => 2000,

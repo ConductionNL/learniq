@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Lesson Release Controller
+ * Learniq Lesson Release Controller
  *
  * Computes, per request, whether a Lesson or Assessment is available to the
  * calling learner right now — a genuine per-(item, learner) gate decision
@@ -52,13 +52,13 @@ use Throwable;
  */
 class LessonReleaseController extends Controller {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const LESSON_SCHEMA = 'lesson';
 	private const ASSESSMENT_SCHEMA = 'assessment';
 	private const ENROLMENT_SCHEMA = 'enrolment';
 
 	/**
-	 * Scholiq roles (DashboardRoleService::resolveViews) that may view a
+	 * Learniq roles (DashboardRoleService::resolveViews) that may view a
 	 * Lesson/Assessment's release status without holding a personal
 	 * Enrolment — staff previewing content, not the module's rank-and-file
 	 * learner path.
@@ -74,7 +74,7 @@ class LessonReleaseController extends Controller {
 	 * @param IUserSession $userSession NC user session.
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LessonReleaseEvaluator $releaseEvaluator Stateless release-gate evaluator.
-	 * @param DashboardRoleService $dashboardRoleService Resolves the caller's Scholiq role/views.
+	 * @param DashboardRoleService $dashboardRoleService Resolves the caller's Learniq role/views.
 	 */
 	public function __construct(
 		IRequest $request,
@@ -188,7 +188,7 @@ class LessonReleaseController extends Controller {
 	}//end resolveStatus()
 
 	/**
-	 * Whether the caller holds a Scholiq staff (admin/teacher-equivalent)
+	 * Whether the caller holds a Learniq staff (admin/teacher-equivalent)
 	 * view, per DashboardRoleService::resolveViews().
 	 *
 	 * @param IUser $user The authenticated caller.
@@ -212,7 +212,7 @@ class LessonReleaseController extends Controller {
 	private function resolveEnrolment(string $learnerId, string $courseId): array {
 		$enrolments = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ENROLMENT_SCHEMA,
 				'filters' => [
 					'learnerId' => $learnerId,
@@ -243,7 +243,7 @@ class LessonReleaseController extends Controller {
 		// below was dead code and an unknown id escaped as a 500 instead of the
 		// 404 this resolver's nullable contract promises the caller.
 		try {
-			$object = $this->objectService->find(id: $id, register: self::SCHOLIQ_REGISTER, schema: $schema);
+			$object = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
 		} catch (DoesNotExistException $e) {
 			return null;
 		}

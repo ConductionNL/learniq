@@ -138,7 +138,7 @@ class LtiAgsScorePollJobTest extends TestCase {
 		);
 
 		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
-			static fn (string $path): string => 'https://scholiq.example' . $path
+			static fn (string $path): string => 'https://learniq.example' . $path
 		);
 
 		$this->objectService->method('findAll')->willReturnCallback(

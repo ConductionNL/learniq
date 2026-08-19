@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Grade Evidence Rollup
+ * Learniq Grade Evidence Rollup
  *
  * The published-GradeEntry half of competency roll-up, extracted from
  * `CompetencyAttainmentRollupHandler` so each class carries one cohesive

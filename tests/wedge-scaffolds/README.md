@@ -43,7 +43,7 @@ This pattern gives Hydra builders a concrete API target before code lands, witho
 ## Convention reminders
 
 - All requests use basic auth (`{{adminUser}}` / `{{adminPass}}`) — overridable per Newman environment.
-- All requests target `{{baseUrl}}/index.php/apps/scholiq/api/…`.
+- All requests target `{{baseUrl}}/index.php/apps/learniq/api/…`.
 - `OCS-APIRequest: true` header is required on every request (Nextcloud convention).
 - Each request's `description` cites the user-story slug + the openspec/specs/ path so Hydra builders can trace evidence.
 - Each request's `event.test` script asserts a 200/201/204 status + expected top-level response shape — these are the contracts the implementation must satisfy.

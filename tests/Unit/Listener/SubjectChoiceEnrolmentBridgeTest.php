@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq SubjectChoiceEnrolmentBridge unit tests.
+ * Learniq SubjectChoiceEnrolmentBridge unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

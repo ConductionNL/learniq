@@ -14,7 +14,7 @@
  * verified by PHPUnit (AccessibilityStatementPublishGuardTest) — those
  * scenarios carry `@e2e exclude` in the spec.
  *
- * This file proves the DECLARATIVE pages (ScholiqAccessibilityStatement.vue,
+ * This file proves the DECLARATIVE pages (LearniqAccessibilityStatement.vue,
  * the AccessibilityLimitation index, and the AccessibilityFeedbackCreate
  * no-id create-mode route) resolve and render without a fatal error, and —
  * where the register/seed state allows — that the mandatory-field labels,
@@ -49,7 +49,7 @@ const STATEMENT_URL = '/index.php/apps/learniq/accessibility'
 // URL is unchanged — this makes the spec-to-component link readable in
 // executable code rather than only in the prose above (gate-26 matches a
 // page against its component stem, and the stem appeared only in comments).
-const ScholiqAccessibilityStatement = STATEMENT_URL
+const LearniqAccessibilityStatement = STATEMENT_URL
 
 const LIMITATIONS_INDEX_URL = '/index.php/apps/learniq/accessibility/limitations'
 const FEEDBACK_INDEX_URL = '/index.php/apps/learniq/accessibility/feedback'
@@ -90,7 +90,7 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 	}) => {
 		const errors = collectFatalErrors(page)
 
-		await page.goto(ScholiqAccessibilityStatement)
+		await page.goto(LearniqAccessibilityStatement)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` — it
 		// can never settle on Nextcloud (the notification poll keeps a request
 		// in flight all session), so it silently burns its full 30 s out of
@@ -108,7 +108,7 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 	test('a published statement shows channel identity, status, evaluation method/date, standard applied, feedback contact, and escalation route', async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto(ScholiqAccessibilityStatement)
+		await page.goto(LearniqAccessibilityStatement)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
 
@@ -134,7 +134,7 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 	test('the "Report an accessibility problem" entry point is always present, regardless of whether a statement is published', async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto(ScholiqAccessibilityStatement)
+		await page.goto(LearniqAccessibilityStatement)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
 
@@ -246,7 +246,7 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 	}) => {
 		const errors = collectFatalErrors(page)
 
-		await page.goto(ScholiqAccessibilityStatement)
+		await page.goto(LearniqAccessibilityStatement)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` —
 		// see ADR-074 rule 4 / hydra gate 58.
 		await expect(page.locator('#learniq-app')).not.toBeEmpty({ timeout: 20_000 })

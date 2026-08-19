@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq DataExchangeRunGuard unit tests — leerplicht regression coverage.
+ * Learniq DataExchangeRunGuard unit tests — leerplicht regression coverage.
  *
  * Regression test per verzuim-report-composer tasks.md#task-3.2: confirms the
  * `leerplicht` target reaches `running` via the `run` transition (queued →

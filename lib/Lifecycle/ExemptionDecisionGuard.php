@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Exemption Decision Guard
+ * Learniq Exemption Decision Guard
  *
  * Lifecycle guard for the ExemptionCase schema's `grant`/`reject` transitions
  * (`in-assessment → granted|rejected`). Blocks either transition unless the

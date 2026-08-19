@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Fraud Case Decision Guard
+ * Learniq Fraud Case Decision Guard
  *
  * Lifecycle guard for the FraudCase schema's `decide` transition
  * (`heard → decided`). Blocks the transition unless `verdict` and

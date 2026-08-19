@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq LessonProgressHandler unit tests.
+ * Learniq LessonProgressHandler unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener
@@ -237,7 +237,7 @@ class LessonProgressHandlerTest extends TestCase {
 				'order' => 3,
 				'mandatoryTraining' => false,
 				'lifecycle' => 'published',
-				'xapiObjectId' => 'https://scholiq.test/lessons/lesson-3',
+				'xapiObjectId' => 'https://learniq.test/lessons/lesson-3',
 				'tenant_id' => 'tenant-a',
 			]
 		);
@@ -247,7 +247,7 @@ class LessonProgressHandlerTest extends TestCase {
 		$event = $this->makeXapiEvent(
 			[
 				'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
-				'object' => ['id' => 'https://scholiq.test/lessons/lesson-3'],
+				'object' => ['id' => 'https://learniq.test/lessons/lesson-3'],
 				'verified_actor_id' => 'learner-1',
 				'tenant_id' => 'tenant-a',
 			]
@@ -282,7 +282,7 @@ class LessonProgressHandlerTest extends TestCase {
 				'id' => 'lesson-3',
 				'courseId' => 'course-1',
 				'lifecycle' => 'published',
-				'xapiObjectId' => 'https://scholiq.test/lessons/lesson-3',
+				'xapiObjectId' => 'https://learniq.test/lessons/lesson-3',
 				'tenant_id' => 'tenant-a',
 			]
 		);
@@ -303,7 +303,7 @@ class LessonProgressHandlerTest extends TestCase {
 		$event = $this->makeXapiEvent(
 			[
 				'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/passed'],
-				'object' => ['id' => 'https://scholiq.test/lessons/lesson-3'],
+				'object' => ['id' => 'https://learniq.test/lessons/lesson-3'],
 				'verified_actor_id' => 'learner-1',
 				'tenant_id' => 'tenant-a',
 			]
@@ -333,7 +333,7 @@ class LessonProgressHandlerTest extends TestCase {
 		$event = $this->makeXapiEvent(
 			[
 				'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
-				'object' => ['id' => 'https://scholiq.test/lessons/does-not-exist'],
+				'object' => ['id' => 'https://learniq.test/lessons/does-not-exist'],
 				'verified_actor_id' => 'learner-1',
 				'tenant_id' => 'tenant-a',
 			]
@@ -358,7 +358,7 @@ class LessonProgressHandlerTest extends TestCase {
 				'id' => 'lesson-3',
 				'courseId' => 'course-1',
 				'lifecycle' => 'published',
-				'xapiObjectId' => 'https://scholiq.test/lessons/lesson-3',
+				'xapiObjectId' => 'https://learniq.test/lessons/lesson-3',
 			]
 		);
 
@@ -367,7 +367,7 @@ class LessonProgressHandlerTest extends TestCase {
 		$event = $this->makeXapiEvent(
 			[
 				'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/launched'],
-				'object' => ['id' => 'https://scholiq.test/lessons/lesson-3'],
+				'object' => ['id' => 'https://learniq.test/lessons/lesson-3'],
 				'verified_actor_id' => 'learner-1',
 				'tenant_id' => 'tenant-a',
 			]
@@ -393,7 +393,7 @@ class LessonProgressHandlerTest extends TestCase {
 				'id' => 'lesson-3',
 				'courseId' => 'course-1',
 				'lifecycle' => 'published',
-				'xapiObjectId' => 'https://scholiq.test/lessons/lesson-3',
+				'xapiObjectId' => 'https://learniq.test/lessons/lesson-3',
 			]
 		);
 
@@ -402,7 +402,7 @@ class LessonProgressHandlerTest extends TestCase {
 		$event = $this->makeXapiEvent(
 			[
 				'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
-				'object' => ['id' => 'https://scholiq.test/lessons/lesson-3'],
+				'object' => ['id' => 'https://learniq.test/lessons/lesson-3'],
 				'actor' => ['account' => ['name' => 'attacker-controlled']],
 				'tenant_id' => 'tenant-a',
 			]

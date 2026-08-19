@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Session Change Guard
+ * Learniq Session Change Guard
  *
  * Lifecycle guard for the Session schema's `cancel`, `substitute-teacher`,
  * and `substitute-teacher-in-progress` transitions (timetabling-and-
@@ -21,7 +21,7 @@
  * before a state transition and cannot be expressed as a schema
  * declaration." Referenced from Session.x-openregister-lifecycle.
  * transitions.{cancel,substitute-teacher,substitute-teacher-in-progress}.
- * requires in scholiq_register.json.
+ * requires in learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle
@@ -55,7 +55,7 @@ use Psr\Log\LoggerInterface;
  */
 class SessionChangeGuard {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const COHORT_SCHEMA = 'cohort';
 
 	/**
@@ -238,7 +238,7 @@ class SessionChangeGuard {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::COHORT_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,

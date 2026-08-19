@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Learning Record Export Service
+ * Learniq Learning Record Export Service
  *
  * OR lifecycle guard for `LearningRecordExport`'s `generate` transition.
  * Reads `LearningRecordAggregationService::compose()`'s live composition,
@@ -21,7 +21,7 @@
  *
  * Legitimate PHP per ADR-031 "Lifecycle guard" — referenced from
  * `LearningRecordExport`'s `x-openregister-lifecycle.transitions.generate
- * .requires` in scholiq_register.json.
+ * .requires` in learniq_register.json.
  *
  * @category Service
  * @package  OCA\Learniq\Service
@@ -56,7 +56,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class LearningRecordExportService {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Schemas whose per-item timestamp is unambiguous enough to apply
@@ -180,7 +180,7 @@ class LearningRecordExportService {
 
 		// The stored/downloadable artifact is fully self-contained: the
 		// signed payload PLUS its own proof, so a third party can verify it
-		// without calling Scholiq. Mirrors Credential.openbadges3Payload
+		// without calling Learniq. Mirrors Credential.openbadges3Payload
 		// embedding its own `proof` block after signing (CredentialSigningService
 		// ::check()) — the signing input itself never includes `proof`.
 		$signedBundle = $bundle;
@@ -493,7 +493,7 @@ class LearningRecordExportService {
 		foreach (self::EXCLUDED_SCHEMA_DATE_FIELD as $schema => $dateField) {
 			$rows = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => $schema,
 					'filters' => ['learnerId' => $learnerId],
 				]

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Cohort Membership Guard
+ * Learniq Cohort Membership Guard
  *
  * Lifecycle guard for the Cohort schema's `activate` transition. Enforces that a
  * Cohort has at least one learner assigned before it can be activated. Also verifies
@@ -10,7 +10,7 @@
  * Legitimate PHP per ADR-031: "Lifecycle guard — business rule that must run before
  * a state transition and cannot be expressed as a schema declaration."
  * Referenced from the Cohort schema's x-openregister-lifecycle.transitions.activate.requires
- * in scholiq_register.json.
+ * in learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle

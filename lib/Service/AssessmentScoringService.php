@@ -49,7 +49,7 @@ class AssessmentScoringService {
 	/**
 	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.
@@ -103,7 +103,7 @@ class AssessmentScoringService {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'assessment-result',
 				'filters' => ['uuid' => $assessmentResultId],
 				'limit' => 1,
@@ -135,7 +135,7 @@ class AssessmentScoringService {
 		// #194/#223: use named args so saveObject picks the correct register/schema
 		// from the stored state rather than relying on positional stale-state fallback.
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: 'assessment-result',
 			object: $transitionContext['object']
 		);

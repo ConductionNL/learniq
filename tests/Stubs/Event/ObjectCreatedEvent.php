@@ -29,7 +29,7 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCP\EventDispatcher\Event;
 
 /**
- * Mirror of OpenRegister's ObjectCreatedEvent for standalone Scholiq unit tests.
+ * Mirror of OpenRegister's ObjectCreatedEvent for standalone Learniq unit tests.
  */
 abstract class ObjectCreatedEvent extends Event {
 

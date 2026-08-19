@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Entitlement Order Paid Guard
+ * Learniq Entitlement Order Paid Guard
  *
  * Lifecycle guard for the Entitlement schema's `grant` transition (pending ->
  * active). Resolves the Entitlement's orderLineId -> OrderLine -> orderId ->
@@ -54,7 +54,7 @@ use Psr\Log\LoggerInterface;
  */
 class EntitlementOrderPaidGuard {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ORDER_LINE_SCHEMA = 'order-line';
 	private const ORDER_SCHEMA = 'order';
 	private const PAID_STATE = 'paid';
@@ -149,7 +149,7 @@ class EntitlementOrderPaidGuard {
 	private function fetchObject(string $id, string $schema): ?array {
 		$obj = $this->objectService->find(
 			id: $id,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: $schema
 		);
 

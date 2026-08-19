@@ -3,9 +3,9 @@
  *
  * Gate-19 e2e coverage — avg-verwerkingsregister compliance section (UI only).
  *
- * Scholiq is a thin consumer of OpenRegister's processing-activity register.
+ * Learniq is a thin consumer of OpenRegister's processing-activity register.
  * The aggregation, export, per-access logging, and access gating are
- * OpenRegister's (OR-PA-7/OR-PA-8); these tests assert only the Scholiq admin
+ * OpenRegister's (OR-PA-7/OR-PA-8); these tests assert only the Learniq admin
  * settings surface that surfaces the register slice and deep-links to it.
  *
  *   @e2e openspec/specs/avg-verwerkingsregister/spec.md#privacy-officer-browses-scholiqs-register-slice

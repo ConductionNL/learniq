@@ -7,7 +7,7 @@ import manifest from '../../src/manifest.json'
  * Visits EVERY `type: "index"` page declared in src/manifest.json and asserts:
  *   1. The CnAppRoot shell renders (the app nav + a main content area are present).
  *   2. No *uncaught* JS exception fires (a `pageerror`). OR-API fetch 404s /
- *      "No items" empty states are fine — the scholiq register may not be
+ *      "No items" empty states are fine — the learniq register may not be
  *      imported into OpenRegister yet (openregister#1487); a hard render crash
  *      is not.
  *   3. The page heading reflects the page (its `title`, or the schema name).
@@ -67,7 +67,7 @@ const SEEDED_COUNTS = loadSeededCounts()
 // file is the reliable signal: globalSetup mutates process.env in the RUNNER
 // process, and Playwright workers are separate processes.
 const SEEDED =
-	Object.keys(SEEDED_COUNTS).length > 0 || process.env.SCHOLIQ_E2E_SEEDED === '1'
+	Object.keys(SEEDED_COUNTS).length > 0 || process.env.LEARNIQ_E2E_SEEDED === '1'
 
 type IndexPage = { id: string; route: string; title: string; schema?: string }
 
@@ -107,7 +107,7 @@ function attachErrorCollector(page: import('@playwright/test').Page): string[] {
 	return errs
 }
 
-test.describe(`Scholiq index pages (${indexPages.length})`, () => {
+test.describe(`Learniq index pages (${indexPages.length})`, () => {
 	for (const p of indexPages) {
 		test(`${p.id} — ${APP_BASE}${p.route}`, async ({ loggedInPage: page }) => {
 			const errors = attachErrorCollector(page)
@@ -119,18 +119,18 @@ test.describe(`Scholiq index pages (${indexPages.length})`, () => {
 			// Give the SPA + the index page's data fetch a moment to settle.
 			await page.waitForLoadState('domcontentloaded')
 
-			// (hard) The Scholiq SPA shell was served for this route — the page title
+			// (hard) The Learniq SPA shell was served for this route — the page title
 			// says so, the body isn't blank, and it's not an NC 404/500 error page.
 			// This is the only assertion that holds across the board today: 32 of the
 			// 35 schemas can't be imported into OpenRegister yet (openregister#1487), so
 			// most index pages 404 on their data fetch and (until that's fixed) throw a
 			// JS error and render an empty body section — the deeper "no JS error" /
 			// "≥1 row" checks below are kept but only applied once the register is
-			// imported (process.env.SCHOLIQ_E2E_SEEDED, set by the globalSetup seed).
+			// imported (process.env.LEARNIQ_E2E_SEEDED, set by the globalSetup seed).
 			expect(
 				await page.title(),
-				`${p.id}: should be the Scholiq app page`,
-			).toContain('Scholiq')
+				`${p.id}: should be the Learniq app page`,
+			).toContain('Learniq')
 			const bodyText = (await page.innerText('body')).trim()
 			expect(
 				bodyText.length,
@@ -140,7 +140,7 @@ test.describe(`Scholiq index pages (${indexPages.length})`, () => {
 				/^(404 Not Found|Internal Server Error)$/i,
 			)
 
-			// Deeper checks — only meaningful once OR has the scholiq register.
+			// Deeper checks — only meaningful once OR has the learniq register.
 			if (SEEDED) {
 				expect
 					.soft(

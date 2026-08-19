@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ExternalTrainingController not-found path unit tests.
+ * Learniq ExternalTrainingController not-found path unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Controller

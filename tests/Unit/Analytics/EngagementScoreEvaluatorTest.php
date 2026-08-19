@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq EngagementScoreEvaluator unit tests.
+ * Learniq EngagementScoreEvaluator unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Analytics

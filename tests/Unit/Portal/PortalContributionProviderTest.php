@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Unit tests for the Scholiq PortalContributionProvider.
+ * Unit tests for the Learniq PortalContributionProvider.
  *
  * Pins the ADR-046 contribution contract v2: the dual v2/v1 audience
  * declaration, the fail-closed null for unserved audiences, and the exact
@@ -177,7 +177,7 @@ class PortalContributionProviderTest extends TestCase {
 		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
 
 		$this->assertIsArray($manifest);
-		$this->assertSame('Scholiq', $manifest['label']);
+		$this->assertSame('Learniq', $manifest['label']);
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
@@ -277,7 +277,7 @@ class PortalContributionProviderTest extends TestCase {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
 
 		$this->assertIsArray($manifest);
-		$this->assertSame('Scholiq', $manifest['label']);
+		$this->assertSame('Learniq', $manifest['label']);
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
@@ -404,7 +404,7 @@ class PortalContributionProviderTest extends TestCase {
 		$manifest = $this->provider->getContribution(self::PRAKTIJKOPLEIDER_SUBJECT);
 
 		$this->assertIsArray($manifest);
-		$this->assertSame('Scholiq', $manifest['label']);
+		$this->assertSame('Learniq', $manifest['label']);
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
@@ -467,7 +467,7 @@ class PortalContributionProviderTest extends TestCase {
 		$manifest = $this->provider->getContribution(self::EXTERNAL_ASSESSOR_SUBJECT);
 
 		$this->assertIsArray($manifest);
-		$this->assertSame('Scholiq', $manifest['label']);
+		$this->assertSame('Learniq', $manifest['label']);
 		$this->assertSame([], $manifest['notifications']);
 		// Read-only — zero create-actions.
 		$this->assertSame([], $manifest['actions']);

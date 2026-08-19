@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ExternalTrainingVerificationGuard unit tests.
+ * Learniq ExternalTrainingVerificationGuard unit tests.
  *
  * Covers the three verification preconditions: verifier-group membership, an
  * evidence attachment being present, and the no-self-verification rule; plus

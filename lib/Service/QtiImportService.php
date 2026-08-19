@@ -119,7 +119,7 @@ class QtiImportService {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
 	 */
 	public function import(string $packagePath, string $itemBankId, string $tenantId = ''): array {
-		$tmpDir = sys_get_temp_dir() . '/scholiq_qti_' . bin2hex(random_bytes(8));
+		$tmpDir = sys_get_temp_dir() . '/learniq_qti_' . bin2hex(random_bytes(8));
 		mkdir($tmpDir, 0700, true);
 
 		try {

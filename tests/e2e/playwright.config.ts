@@ -20,7 +20,7 @@
  * makes the workflow's FIRST lookup hit this file, so the project list CI runs
  * is decided here rather than inherited from the root config's local-dev
  * project list. The root config is untouched and stays the entry point for
- * local runs and for `SCHOLIQ_DOCS_CAPTURE=1 … --project docs-capture`.
+ * local runs and for `LEARNIQ_DOCS_CAPTURE=1 … --project docs-capture`.
  *
  * REPORT + OUTPUT PATHS
  * ---------------------

@@ -5,7 +5,7 @@
  *
  * ADR-031 legitimate PHP exception: single-method lifecycle guard that bridges
  * an OR ObjectCreatedEvent (for XapiStatement objects) to an Enrolment lifecycle
- * transition. All other Enrolment behaviour is declared in lib/Settings/scholiq_register.json
+ * transition. All other Enrolment behaviour is declared in lib/Settings/learniq_register.json
  * via x-openregister-lifecycle / x-openregister-notifications / x-openregister-calculations.
  *
  * @category Lifecycle
@@ -52,14 +52,14 @@ use Psr\Log\LoggerInterface;
 class XapiCompletionHandler implements IEventListener {
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * OR schema slug for xAPI statement objects.
 	 *
-	 * C5 fix: use the real kebab-case slug from scholiq_register.json.
+	 * C5 fix: use the real kebab-case slug from learniq_register.json.
 	 */
 	private const XAPI_SCHEMA = 'xapi-statement';
 
@@ -92,7 +92,7 @@ class XapiCompletionHandler implements IEventListener {
 	/**
 	 * Handle an incoming ObjectCreatedEvent.
 	 *
-	 * Only acts on XapiStatement objects in the scholiq register.
+	 * Only acts on XapiStatement objects in the learniq register.
 	 * Fires the `complete` transition on the learner's active Enrolment when:
 	 *   1. verb.id is `completed` or `passed`
 	 *   2. The related Lesson has mandatoryTraining=true
@@ -113,8 +113,8 @@ class XapiCompletionHandler implements IEventListener {
 
 		$objectEntity = $event->getObject();
 
-		// Filter to XapiStatement objects in the scholiq register only.
-		if ($this->isScholiqXapiStatement(entity: $objectEntity) === false) {
+		// Filter to XapiStatement objects in the learniq register only.
+		if ($this->isLearniqXapiStatement(entity: $objectEntity) === false) {
 			return;
 		}
 
@@ -162,7 +162,7 @@ class XapiCompletionHandler implements IEventListener {
 	}//end handle()
 
 	/**
-	 * Whether the created object is an XapiStatement in the scholiq register.
+	 * Whether the created object is an XapiStatement in the learniq register.
 	 *
 	 * @param mixed $entity The created ObjectEntity.
 	 *
@@ -170,13 +170,13 @@ class XapiCompletionHandler implements IEventListener {
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-19
 	 */
-	private function isScholiqXapiStatement(mixed $entity): bool {
-		if ($this->schemaResolver->registerSlug(entity: $entity) !== self::SCHOLIQ_REGISTER) {
+	private function isLearniqXapiStatement(mixed $entity): bool {
+		if ($this->schemaResolver->registerSlug(entity: $entity) !== self::LEARNIQ_REGISTER) {
 			return false;
 		}
 
 		return ($this->schemaResolver->schemaSlug(entity: $entity) === self::XAPI_SCHEMA);
-	}//end isScholiqXapiStatement()
+	}//end isLearniqXapiStatement()
 
 	/**
 	 * Resolve the learner identity this statement may act on.
@@ -247,7 +247,7 @@ class XapiCompletionHandler implements IEventListener {
 
 		$lessons = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'lesson',
 				'filters' => $this->tenantScoped(filters: ['xapiObjectId' => $lessonId], tenantId: $tenantId),
 				'limit' => 1,
@@ -292,7 +292,7 @@ class XapiCompletionHandler implements IEventListener {
 	private function isFinalPublishedLesson(array $lesson, mixed $courseId, string $tenantId): bool {
 		$publishedLessons = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'lesson',
 				'filters' => $this->tenantScoped(
 					filters: [
@@ -346,7 +346,7 @@ class XapiCompletionHandler implements IEventListener {
 	private function resolveActiveEnrolmentId(mixed $learnerId, mixed $courseId, string $tenantId): ?string {
 		$enrolments = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'enrolment',
 				'filters' => $this->tenantScoped(
 					filters: [

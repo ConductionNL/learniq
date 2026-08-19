@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq FeeItem Voluntary Entitlement Guard
+ * Learniq FeeItem Voluntary Entitlement Guard
  *
  * Lifecycle guard for the Entitlement schema's `grant` transition (pending ->
  * active). This is the STRUCTURAL enforcement of the Wet vrijwillige
@@ -18,7 +18,7 @@
  * mechanism, not merely discouraged by convention.
  *
  * NAMED IN THE SCHEMA: this class — not {@see EntitlementOrderPaidGuard} — is
- * the value of Entitlement.grant.requires in scholiq_register.json.
+ * the value of Entitlement.grant.requires in learniq_register.json.
  * OpenRegister's lifecycle engine accepts exactly one `requires` string per
  * transition (verified precedent: ReportPeriodLockGuard's own docblock/
  * changelog entry — LifecycleAnnotationValidator rejects a non-string
@@ -67,7 +67,7 @@ use Psr\Log\LoggerInterface;
  */
 class FeeItemVoluntaryEntitlementGuard {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const FEE_ITEM_SCHEMA = 'fee-item';
 
 	/**
@@ -146,7 +146,7 @@ class FeeItemVoluntaryEntitlementGuard {
 	private function fetchFeeItem(string $feeItemId): ?array {
 		$obj = $this->objectService->find(
 			id: $feeItemId,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::FEE_ITEM_SCHEMA
 		);
 

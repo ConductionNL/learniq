@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Cohort Talk Membership Handler
+ * Learniq Cohort Talk Membership Handler
  *
  * Listens for OpenRegister's ObjectTransitionedEvent and keeps a Cohort's
  * linked Nextcloud Talk conversation(s) participant list in sync with its
@@ -72,7 +72,7 @@ use Throwable;
  */
 class CohortTalkMembershipHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ENROLMENT_SCHEMA = 'enrolment';
 	private const ACTION_ACTIVATE = 'activate';
 	private const ACTION_WITHDRAW = 'withdraw';
@@ -88,7 +88,7 @@ class CohortTalkMembershipHandler implements IEventListener {
 	 *
 	 * @param TalkLinkService $talkLinkService OpenRegister's Talk-linking abstraction
 	 *                                         (cross-app, same injection pattern
-	 *                                         scholiq already uses for
+	 *                                         learniq already uses for
 	 *                                         `ObjectService` elsewhere).
 	 * @param ContainerInterface $container DI container used to late-bind Talk's
 	 *                                      `Manager`/`ParticipantService`
@@ -128,7 +128,7 @@ class CohortTalkMembershipHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER
 			|| $event->getSchema() !== self::ENROLMENT_SCHEMA
 		) {
 			return;

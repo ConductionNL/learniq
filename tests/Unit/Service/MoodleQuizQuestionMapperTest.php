@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq MoodleQuizQuestionMapper unit tests.
+ * Learniq MoodleQuizQuestionMapper unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Service
@@ -40,7 +40,7 @@ class MoodleQuizQuestionMapperTest extends TestCase {
 	 * @return void
 	 */
 	public static function setUpBeforeClass(): void {
-		$mbzExtractPath = sys_get_temp_dir() . '/scholiq_test_quizmap_' . bin2hex(random_bytes(6));
+		$mbzExtractPath = sys_get_temp_dir() . '/learniq_test_quizmap_' . bin2hex(random_bytes(6));
 		(new \OCA\Learniq\Service\MbzExtractor())->extract(
 			__DIR__ . '/../../fixtures/course-packages/minimal-moodle.mbz',
 			$mbzExtractPath

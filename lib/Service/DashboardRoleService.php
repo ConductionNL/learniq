@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Scholiq Dashboard Role Service
+ * Learniq Dashboard Role Service
  *
- * Resolves the current user's Scholiq role and the set of role-aware dashboard
+ * Resolves the current user's Learniq role and the set of role-aware dashboard
  * views they may see, from Nextcloud group membership (the security-backed
  * signal) plus the admin-group short-circuit. Provided to the frontend as
  * initial state so the manifest shell can populate `runtime.user.primaryRole`
@@ -35,13 +35,13 @@ use OCP\IGroupManager;
 use OCP\IUser;
 
 /**
- * Resolves Scholiq roles and dashboard views from Nextcloud group membership.
+ * Resolves Learniq roles and dashboard views from Nextcloud group membership.
  *
  * @spec openspec/changes/fix-dead-role-gates/specs/dashboard/spec.md#requirement-every-manifest-role-visibility-literal-must-resolve-to-a-value-the-role-resolver-can-emit
  */
 class DashboardRoleService {
 	/**
-	 * Scholiq roles that MUST be backed by a Nextcloud group, mapped to the
+	 * Learniq roles that MUST be backed by a Nextcloud group, mapped to the
 	 * unprefixed group id `rbac-declare-groups` provisions, highest priority
 	 * first. `instructor` keeps its pre-fix name (only its backing group id
 	 * moved, from `scholiq-instructor` to `instructors`); `manager` was
@@ -73,7 +73,7 @@ class DashboardRoleService {
 	}//end __construct()
 
 	/**
-	 * Resolve the user's primary Scholiq role.
+	 * Resolve the user's primary Learniq role.
 	 *
 	 * An admin-group member always resolves to `admin`. Otherwise the
 	 * highest-priority group in {@see GROUP_BACKED_ROLES} the user belongs to

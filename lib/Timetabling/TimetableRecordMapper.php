@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Timetable Record Mapper
+ * Learniq Timetable Record Mapper
  *
  * The record-shaping half of a `timetable-import` DataExchangeJob, split out
  * of {@see \OCA\Learniq\Timetabling\TimetableImportHandler} so that the
@@ -10,7 +10,7 @@
  * translation of one inbound external record into a Session-shaped array.
  *
  * A DataMappingProfile's fieldMappings are read in REVERSE for
- * `direction: import`: `scholiqField` names the Scholiq-side (Session) field
+ * `direction: import`: `scholiqField` names the Learniq-side (Session) field
  * and `targetField` names the external-side field, so each inbound record's
  * `targetField` value is resolved into the matching `scholiqField`. With no
  * usable profile the mapper falls back to a best-effort passthrough over the

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ReportCardVisibilityGuard unit tests.
+ * Learniq ReportCardVisibilityGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

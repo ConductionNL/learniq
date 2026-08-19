@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Course Quality Score Evaluator
+ * Learniq Course Quality Score Evaluator
  *
  * Stateless calculation engine that computes averageOverallScore and
  * responseRate for a (courseId, teacherId, academicYear, period) scope from
@@ -11,7 +11,7 @@
  * ADR-031 legitimate exception: "Calculation engine above schema metadata."
  * Averaging (mean of overallScore, ignoring null) and a division
  * (responseCount / invitationCount) are beyond this register's proven
- * declarative aggregation metrics — a full-file grep of scholiq_register.json
+ * declarative aggregation metrics — a full-file grep of learniq_register.json
  * for `"metric":` shows only `count`/`count_distinct` in use anywhere in
  * this register. Mirrors GradeFormulaEvaluator's shape: evaluate → return;
  * no state, no audit writes.
@@ -47,7 +47,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class CourseQualityScoreEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const COURSE_EVALUATION_RESPONSE_SCHEMA = 'course-evaluation-response';
 	private const EVALUATION_INVITATION_SCHEMA = 'evaluation-invitation';
 
@@ -133,7 +133,7 @@ class CourseQualityScoreEvaluator {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::COURSE_EVALUATION_RESPONSE_SCHEMA,
 				'filters' => $filters,
 			]
@@ -163,7 +163,7 @@ class CourseQualityScoreEvaluator {
 	private function fetchInvitations(string $courseId, string $academicYear, string $period): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::EVALUATION_INVITATION_SCHEMA,
 				'filters' => [
 					'courseId' => $courseId,

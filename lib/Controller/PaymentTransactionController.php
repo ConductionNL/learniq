@@ -84,7 +84,7 @@ use Throwable;
  */
 class PaymentTransactionController extends Controller {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ORDER_SCHEMA = 'order';
 	private const PAYMENT_TRANSACTION_SCHEMA = 'payment-transaction';
 
@@ -239,7 +239,7 @@ class PaymentTransactionController extends Controller {
 		$this->transitionEngine->transition($transactionId, 'initiate');
 
 		// Forward the response as-is (LtiToolPlacementController's D5 rule) —
-		// Scholiq MUST NOT parse any PSP-specific claim from it.
+		// Learniq MUST NOT parse any PSP-specific claim from it.
 		$launchResponse['paymentTransactionId'] = $transactionId;
 
 		return new JSONResponse(data: $launchResponse);
@@ -296,7 +296,7 @@ class PaymentTransactionController extends Controller {
 					'initiatedBy' => $initiatedBy,
 					'initiatedAt' => $now->format(DATE_ATOM),
 				],
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::PAYMENT_TRANSACTION_SCHEMA
 			);
 		} catch (\Throwable $saveFailure) {
@@ -368,7 +368,7 @@ class PaymentTransactionController extends Controller {
 
 		$transaction = $this->objectService->find(
 			id: $paymentTransactionId,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::PAYMENT_TRANSACTION_SCHEMA
 		);
 
@@ -449,7 +449,7 @@ class PaymentTransactionController extends Controller {
 		try {
 			$object = $this->objectService->find(
 				id: $orderId,
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::ORDER_SCHEMA
 			);
 		} catch (Throwable $e) {
@@ -478,7 +478,7 @@ class PaymentTransactionController extends Controller {
 	private function sumSucceededTransactions(string $orderId): float {
 		$transactions = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::PAYMENT_TRANSACTION_SCHEMA,
 				'filters' => [
 					'orderId' => $orderId,

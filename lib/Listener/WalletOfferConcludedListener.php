@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Wallet Offer Concluded Listener
+ * Learniq Wallet Offer Concluded Listener
  *
  * Consumes an inbound `\OCA\OpenConnector\Event\WalletOfferConcludedEvent`
  * reporting that an EUDI wallet holder claimed an outstanding credential
@@ -25,7 +25,7 @@
  * side, {@see \OCA\Learniq\Service\WalletClaimSyncService}, has real,
  * independently-correct logic) so wiring is ready the moment openconnector
  * ships a real claim-notification mechanism — that mechanism is a companion
- * openconnector-side gap this change cannot close (scholiq stays
+ * openconnector-side gap this change cannot close (learniq stays
  * wallet-wire-protocol-free).
  *
  * @category Listener
@@ -61,7 +61,7 @@ use Throwable;
  * @implements IEventListener<Event>
  */
 class WalletOfferConcludedListener implements IEventListener {
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const CREDENTIAL_SCHEMA = 'credential';
 	private const CLAIM_ACTION = 'recordWalletClaim';
 
@@ -153,7 +153,7 @@ class WalletOfferConcludedListener implements IEventListener {
 	private function resolveCredentialByAttestationRef(string $attestationRef): ?array {
 		$matches = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::CREDENTIAL_SCHEMA,
 				'filters' => ['walletAttestationRef' => $attestationRef],
 				'limit' => 1,

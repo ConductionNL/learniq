@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Competency Attainment Writer
+ * Learniq Competency Attainment Writer
  *
  * The persistence half of competency roll-up, extracted from
  * `CompetencyAttainmentRollupHandler` so each class carries one cohesive
@@ -47,7 +47,7 @@ use Psr\Log\LoggerInterface;
  */
 class CompetencyAttainmentWriter {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const COMPETENCY_SCHEMA = 'competency';
 	private const ATTAINMENT_SCHEMA = 'competency-attainment';
 
@@ -134,7 +134,7 @@ class CompetencyAttainmentWriter {
 		$data['lastRecomputedAt'] = (new DateTimeImmutable())->format(\DATE_ATOM);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::ATTAINMENT_SCHEMA,
 			object: $data
 		);
@@ -295,7 +295,7 @@ class CompetencyAttainmentWriter {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ATTAINMENT_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,

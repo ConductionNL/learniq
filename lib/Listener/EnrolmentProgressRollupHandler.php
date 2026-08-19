@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Enrolment Progress Rollup Handler
+ * Learniq Enrolment Progress Rollup Handler
  *
  * Listens for OR's ObjectCreatedEvent on LessonCompletion objects and
  * recomputes the matching Enrolment's progressPercent via
@@ -47,7 +47,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class EnrolmentProgressRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
 	private const ENROLMENT_SCHEMA = 'enrolment';
 
@@ -83,7 +83,7 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 
 		$objectEntity = $event->getObject();
 
-		if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
+		if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::LEARNIQ_REGISTER
 			|| $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::LESSON_COMPLETION_SCHEMA
 		) {
 			return;
@@ -110,7 +110,7 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 		$result = $this->evaluator->evaluate(learnerId: $learnerId, courseId: $courseId);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::ENROLMENT_SCHEMA,
 			object: array_merge($enrolment, ['progressPercent' => $result['progressPercent']])
 		);
@@ -128,7 +128,7 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 	private function findActiveEnrolment(string $learnerId, string $courseId): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ENROLMENT_SCHEMA,
 				'filters' => [
 					'learnerId' => $learnerId,

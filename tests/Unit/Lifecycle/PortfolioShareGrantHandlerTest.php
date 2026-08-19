@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq PortfolioShareGrantHandler unit tests.
+ * Learniq PortfolioShareGrantHandler unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

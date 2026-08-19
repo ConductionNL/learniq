@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Scholiq Moodle Activity Router
+ * Learniq Moodle Activity Router
  *
- * Routes one Moodle backup activity/module to its scholiq target (Material /
+ * Routes one Moodle backup activity/module to its Learniq target (Material /
  * Item / Assignment / dropped), appending exactly one report entry per source
  * module — or, for a `quiz` module, one entry per mapped question. Nothing is
  * ever silently dropped (the structural anti-Canvas promise, see the
@@ -36,7 +36,7 @@ use OCA\Learniq\Service\MoodleQuizQuestionMapper;
 use Psr\Log\LoggerInterface;
 
 /**
- * Maps a single Moodle activity onto scholiq objects + report entries.
+ * Maps a single Moodle activity onto Learniq objects + report entries.
  */
 class MoodleActivityRouter {
 
@@ -51,7 +51,7 @@ class MoodleActivityRouter {
 	 * Constructor.
 	 *
 	 * @param MoodleQuizQuestionMapper $quizMapper Moodle quiz question-bank mapper.
-	 * @param CoursePackageObjectWriter $objectWriter Creates the scholiq objects an activity materialises.
+	 * @param CoursePackageObjectWriter $objectWriter Creates the Learniq objects an activity materialises.
 	 * @param CoursePackageFileWriter $fileWriter Resolves package-relative file bytes into nc:files.
 	 * @param CoursePackageImportReporter $reporter Builds the report entry rows.
 	 * @param PackageXmlValueReader $xmlReader Reads `url.xml` side-car module descriptors.
@@ -70,7 +70,7 @@ class MoodleActivityRouter {
 	}//end __construct()
 
 	/**
-	 * Route one Moodle activity/module to its scholiq target.
+	 * Route one Moodle activity/module to its Learniq target.
 	 *
 	 * @param array<string, mixed> $activity One `MoodleBackupParser` activity row.
 	 * @param string $dir Extracted backup directory (for question-bank resolution).
@@ -130,7 +130,7 @@ class MoodleActivityRouter {
 	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function buildActivityEntry(array $activity, string $dir, string $courseId, string $importedBy, string $tenantId): array {
-		$unsupportedReason = "No scholiq schema represents Moodle's {$activity['moduleType']} module — migrate manually.";
+		$unsupportedReason = "No Learniq schema represents Moodle's {$activity['moduleType']} module — migrate manually.";
 
 		return match ($activity['classification']) {
 			'resource', 'page' => $this->importResourceActivity(

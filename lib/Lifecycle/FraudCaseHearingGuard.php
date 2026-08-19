@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Fraud Case Hearing Guard
+ * Learniq Fraud Case Hearing Guard
  *
  * Lifecycle guard for the FraudCase schema's `scheduleHearing` transition
  * (`reported → hearing-scheduled`). Blocks the transition unless a

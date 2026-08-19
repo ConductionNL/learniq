@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq DataExchangeRunHandler unit tests — verzuimloket + SWV dossier composers.
+ * Learniq DataExchangeRunHandler unit tests — verzuimloket + SWV dossier composers.
  *
  * Covers the `verzuim-report-composer` change: for target=leerplicht, the
  * payload composed by buildPayload()/composeLeerplichtDossier() includes the

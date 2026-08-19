@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq EnrolmentProgressRollupHandler unit tests.
+ * Learniq EnrolmentProgressRollupHandler unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

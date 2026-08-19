@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq PokActivationGuard unit tests.
+ * Learniq PokActivationGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

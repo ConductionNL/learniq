@@ -72,7 +72,7 @@ async function resolveAppBase(page: Page): Promise<string> {
 			window as unknown as { OC: { generateUrl: (_p: string) => string } }
 		).OC.generateUrl('/apps/learniq'),
 	)
-	expect(base, 'OC.generateUrl did not resolve the scholiq app base').toBeTruthy()
+	expect(base, 'OC.generateUrl did not resolve the learniq app base').toBeTruthy()
 	appBase = base.replace(/\/+$/, '')
 	return appBase
 }
@@ -152,7 +152,7 @@ async function assertRouteAnswers(page: Page): Promise<void> {
 }
 
 /**
- * Assert scholiq exposes no PHP CRUD endpoint for a schema.
+ * Assert learniq exposes no PHP CRUD endpoint for a schema.
  *
  * ⚠️ **A 404 IS NOT THE SIGNAL HERE, AND ASSERTING ONE WOULD BE WRONG.**
  * `appinfo/routes.php` declares a `catchAll` that serves the SPA shell for
@@ -200,7 +200,7 @@ async function assertNoCrudController(page: Page, slugs: string[]): Promise<void
 		}),
 	)
 	for (const line of results) {
-		expect(line, 'a scholiq CRUD controller answers for this schema').toMatch(
+		expect(line, 'a learniq CRUD controller answers for this schema').toMatch(
 			/text\/html/,
 		)
 	}

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Accessibility Statement Publish Guard
+ * Learniq Accessibility Statement Publish Guard
  *
  * Lifecycle guard for the AccessibilityStatement schema's `draft -> published`
  * transition. Structurally enforces the "no unverifiable conformance claim"
@@ -22,7 +22,7 @@
  *
  * Mirrors AttestationSigningGuard/CoursePublishGuard's `requires` pattern.
  * Referenced from AccessibilityStatement.x-openregister-lifecycle.transitions.
- * publish.requires in scholiq_register.json.
+ * publish.requires in learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle
@@ -53,9 +53,9 @@ use Psr\Log\LoggerInterface;
 class AccessibilityStatementPublishGuard {
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * OR schema slug for the AccessibilityLimitation register.
@@ -216,7 +216,7 @@ class AccessibilityStatementPublishGuard {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LIMITATION_SCHEMA,
 				'filters' => $filters,
 			]

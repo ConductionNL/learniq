@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Learning Record Import Service
+ * Learniq Learning Record Import Service
  *
  * OR lifecycle guard for `LearningRecordImport`'s `parse` transition.
  * Reads the raw uploaded bundle bytes from nc:files (via `sourceRef`, set by
@@ -58,7 +58,7 @@ class LearningRecordImportService {
 	 * collection reports on — mirrors
 	 * `LearningRecordAggregationService::compose()`'s own collection keys.
 	 */
-	private const SCHOLIQ_NATIVE_COLLECTION_SCHEMA = [
+	private const LEARNIQ_NATIVE_COLLECTION_SCHEMA = [
 		'enrolments' => 'enrolment',
 		'finalGrades' => 'final-grade',
 		'competencyAttainments' => 'competency-attainment',
@@ -160,7 +160,7 @@ class LearningRecordImportService {
 
 		$scholiqNative = $decoded['scholiqNative'] ?? [];
 		if (is_array($scholiqNative) === true) {
-			foreach (self::SCHOLIQ_NATIVE_COLLECTION_SCHEMA as $collectionKey => $schema) {
+			foreach (self::LEARNIQ_NATIVE_COLLECTION_SCHEMA as $collectionKey => $schema) {
 				$rows = $scholiqNative[$collectionKey] ?? [];
 				if (is_array($rows) === false) {
 					continue;
@@ -271,7 +271,7 @@ class LearningRecordImportService {
 
 		if ($ownIssuerDid === null || $bundleIssuerDid !== $ownIssuerDid) {
 			// A different (or unresolvable) issuer — the expected case for a
-			// genuinely foreign system or a different, unconnected Scholiq
+			// genuinely foreign system or a different, unconnected Learniq
 			// tenant. Not an error.
 			return 'unverifiable';
 		}

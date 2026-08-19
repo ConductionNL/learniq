@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Personal Timetable Controller
+ * Learniq Personal Timetable Controller
  *
  * Read-only personal timetable: returns the signed-in caller's own scheduled
  * `Session` objects for a time window. The caller's sessions are resolved by
@@ -65,11 +65,11 @@ use Psr\Log\LoggerInterface;
  */
 class TimetableController extends Controller {
 	/**
-	 * OpenRegister register slug that owns the Scholiq schemas.
+	 * OpenRegister register slug that owns the Learniq schemas.
 	 *
 	 * @var string
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.
@@ -169,7 +169,7 @@ class TimetableController extends Controller {
 		// RBAC-scoped cohort set rather than via an equality filter.
 		$cohorts = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'cohort',
 			]
 		);
@@ -190,7 +190,7 @@ class TimetableController extends Controller {
 		// Cohorts reached through the caller's own enrolments.
 		$enrolments = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'enrolment',
 				'filters' => ['learnerId' => $uid],
 			]
@@ -231,7 +231,7 @@ class TimetableController extends Controller {
 		foreach ($cohortIds as $cohortId) {
 			$results = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => 'session',
 					'filters' => ['cohortId' => $cohortId],
 					'sort' => ['startsAt' => 'ASC'],
@@ -267,7 +267,7 @@ class TimetableController extends Controller {
 		foreach (array_keys($roomIds) as $roomId) {
 			$results = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => 'room',
 					'filters' => ['id' => $roomId],
 					'limit' => 1,

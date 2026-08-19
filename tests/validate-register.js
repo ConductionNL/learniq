@@ -4,13 +4,13 @@
 //
 // validate-register.js — structural validation of the OpenRegister register
 // seed (lib/Settings/*_register.json). Catches the classes of bug seen in
-// scholiq Wave 2 *before* they reach development:
+// learniq Wave 2 *before* they reach development:
 //   - a schema lost its x-openregister-* declarations / half its properties
 //     (clobbered by a bad merge) — flagged via a too-thin-schema heuristic
 //   - appendOnly nested in x-openregister instead of at the schema root
 //     (silently dropped by OpenRegister) — also flagged here
 //   - a lifecycle transition `requires:` referencing a PHP class that doesn't
-//     exist as a file under lib/ (scholiq's missing CoursePublishGuard)
+//     exist as a file under lib/ (learniq's missing CoursePublishGuard)
 //   - lifecycle transition `to`/`from` states that aren't declared anywhere
 //   - duplicate slugs across schemas
 //

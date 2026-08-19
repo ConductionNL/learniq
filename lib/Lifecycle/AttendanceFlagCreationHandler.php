@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Attendance Flag Creation Handler
+ * Learniq Attendance Flag Creation Handler
  *
  * Listens for OpenRegister's ObjectTransitionedEvent for the special
  * `threshold-crossed` marker event when an AttendanceThreshold's
@@ -57,7 +57,7 @@ use Psr\Log\LoggerInterface;
  */
 class AttendanceFlagCreationHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ATTENDANCE_THRESHOLD_SCHEMA = 'attendance-threshold';
 	private const ATTENDANCE_FLAG_SCHEMA = 'attendance-flag';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
@@ -97,7 +97,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -208,7 +208,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 		];
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::ATTENDANCE_FLAG_SCHEMA,
 			object: $flag
 		);
@@ -241,7 +241,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	private function flagAlreadyExists(mixed $learnerId, mixed $thresholdId, mixed $windowStart): bool {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ATTENDANCE_FLAG_SCHEMA,
 				'filters' => [
 					'learnerId' => $learnerId,
@@ -308,7 +308,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 		];
 
 		$saved = $this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::DATA_EXCHANGE_JOB_SCHEMA,
 			object: $job
 		);
@@ -340,7 +340,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	private function resolveMentorId(string $learnerId): ?string {
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LEARNER_PROFILE_SCHEMA,
 				'filters' => ['ncUserId' => $learnerId],
 				'limit' => 1,

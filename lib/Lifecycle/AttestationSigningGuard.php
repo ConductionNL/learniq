@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Attestation Signing Guard
+ * Learniq Attestation Signing Guard
  *
  * Lifecycle guard for the Attestation schema's `drafted → signed` transition.
  * Called by OpenRegister's lifecycle engine when a learner submits an attestation.

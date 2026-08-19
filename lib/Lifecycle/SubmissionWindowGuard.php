@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Submission Window Guard
+ * Learniq Submission Window Guard
  *
  * Lifecycle guard for the Submission schema's `submit` transition. Enforces the
  * Assignment's submission window: after dueAt, submission is blocked (HTTP 422) unless
@@ -12,7 +12,7 @@
  * a state transition and cannot be expressed as a schema declaration." Requires a
  * cross-schema query (Submission → Assignment) and datetime comparison.
  * Referenced from the Submission schema's x-openregister-lifecycle.transitions.submit.requires
- * in scholiq_register.json.
+ * in learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle
@@ -51,9 +51,9 @@ use Psr\Log\LoggerInterface;
 class SubmissionWindowGuard {
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.
@@ -110,7 +110,7 @@ class SubmissionWindowGuard {
 
 		$assignments = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'assignment',
 				'filters' => $assignmentFilters,
 				'limit' => 1,

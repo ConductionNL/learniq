@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ExamAccommodationApprovalGuard unit tests.
+ * Learniq ExamAccommodationApprovalGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

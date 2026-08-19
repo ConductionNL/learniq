@@ -35,7 +35,7 @@
 			{
 				"name": "learniq_courses_total",
 				"type": "gauge",
-				"help": "Number of Course objects in the Scholiq register.",
+				"help": "Number of Course objects in the Learniq register.",
 				"source": {
 					"kind": "objectCount",
 					"register": "learniq",
@@ -45,7 +45,7 @@
 			{
 				"name": "learniq_enrolments_total",
 				"type": "gauge",
-				"help": "Number of Enrolment objects in the Scholiq register.",
+				"help": "Number of Enrolment objects in the Learniq register.",
 				"source": {
 					"kind": "objectCount",
 					"register": "learniq",
@@ -55,7 +55,7 @@
 			{
 				"name": "learniq_learner_profiles_total",
 				"type": "gauge",
-				"help": "Number of LearnerProfile objects in the Scholiq register.",
+				"help": "Number of LearnerProfile objects in the Learniq register.",
 				"source": {
 					"kind": "objectCount",
 					"register": "learniq",
@@ -8426,7 +8426,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "tlv-application",
-				"_note": "A TlvApplication is the toelaatbaarheidsverklaring (TLV) application tracing to a SupportRequest. Scholiq RECORDS the samenwerkingsverband's decision — it never adjudicates it (design.md Decisions 'TLV decision recorded, never adjudicated'); there is no approval/rejection logic in this app. validUntil drives a declared tlvExpiringSoon calculation (no PHP TimedJob). Body leads with the application data (8-wide) and a Related panel resolving the SupportRequest and its linked deliberation records. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"_note": "A TlvApplication is the toelaatbaarheidsverklaring (TLV) application tracing to a SupportRequest. Learniq RECORDS the samenwerkingsverband's decision — it never adjudicates it (design.md Decisions 'TLV decision recorded, never adjudicated'); there is no approval/rejection logic in this app. validUntil drives a declared tlvExpiringSoon calculation (no PHP TimedJob). Body leads with the application data (8-wide) and a Related panel resolving the SupportRequest and its linked deliberation records. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
@@ -9687,7 +9687,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "exchange-rejection",
-				"_note": "An Exchange Rejection is a single afkeurmelding — DUO's (or any target's) refusal of one exported record, resolved back to its Scholiq source object via sourceKind + a typed $ref id field — the correction-loop worklist entry. Body leads with the rejection data (error code/message, age) (8-wide) and a Related panel that auto-resolves the originating DataExchangeJob AND whichever sourceKind $ref field is set (learnerProfileId/enrolmentId/finalGradeId/attendanceFlagId/supportRequestId) into a deep link to the offending object's own editable detail page — the whole point of this page (design.md 'sourceKind enum + per-kind typed $ref'). lifecycleActions renders Mark corrected/Resubmit/Waive from the declared lifecycle. NO comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"_note": "An Exchange Rejection is a single afkeurmelding — DUO's (or any target's) refusal of one exported record, resolved back to its Learniq source object via sourceKind + a typed $ref id field — the correction-loop worklist entry. Body leads with the rejection data (error code/message, age) (8-wide) and a Related panel that auto-resolves the originating DataExchangeJob AND whichever sourceKind $ref field is set (learnerProfileId/enrolmentId/finalGradeId/attendanceFlagId/supportRequestId) into a deep link to the offending object's own editable detail page — the whole point of this page (design.md 'sourceKind enum + per-kind typed $ref'). lifecycleActions renders Mark corrected/Resubmit/Waive from the declared lifecycle. NO comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
 					"field": "status"
 				},
@@ -11220,7 +11220,7 @@
 			"type": "custom",
 			"title": "Sign praktijkovereenkomst",
 			"component": "CnSignatureCapture",
-			"_note": "Mounts CnSignatureCapture from @conduction/nextcloud-vue for the student/school signing legs of POK signing inside Scholiq's own UI (mirrors SignPlanModal). The praktijkopleider's signature is captured through the portaliq portal (signPraktijkovereenkomst action), not this page."
+			"_note": "Mounts CnSignatureCapture from @conduction/nextcloud-vue for the student/school signing legs of POK signing inside Learniq's own UI (mirrors SignPlanModal). The praktijkopleider's signature is captured through the portaliq portal (signPraktijkovereenkomst action), not this page."
 		},
 		{
 			"id": "ConferenceRounds",

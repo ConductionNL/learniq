@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Engagement Score Evaluator
+ * Learniq Engagement Score Evaluator
  *
  * Stateless calculation engine computing a learner's per-Course engagement
  * signals from their XapiStatement activity: timeOnTaskMinutes (sum of every
@@ -62,7 +62,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class EngagementScoreEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const XAPI_SCHEMA = 'xapi-statement';
 	private const LESSON_SCHEMA = 'lesson';
 
@@ -150,7 +150,7 @@ class EngagementScoreEvaluator {
 	private function fetchStatements(string $learnerId, string $courseId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::XAPI_SCHEMA,
 				'filters' => [
 					'verified_actor_id' => $learnerId,
@@ -208,7 +208,7 @@ class EngagementScoreEvaluator {
 	private function sumPublishedLessonDuration(string $courseId): float {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LESSON_SCHEMA,
 				'filters' => [
 					'courseId' => $courseId,

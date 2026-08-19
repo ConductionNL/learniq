@@ -4,7 +4,7 @@
  * Test stub for OCA\OpenRegister\Db\Schema.
  *
  * Only exists so the mirrored `ObjectService` signatures can name the same
- * union types the real class names. Scholiq never passes a Schema instance —
+ * union types the real class names. Learniq never passes a Schema instance —
  * it always passes the schema slug as a string — so no surface is mirrored
  * beyond the class existing.
  *
@@ -23,7 +23,7 @@ use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
 /**
- * Mirror of OpenRegister's Schema entity for standalone Scholiq unit tests.
+ * Mirror of OpenRegister's Schema entity for standalone Learniq unit tests.
  */
 class Schema extends Entity implements JsonSerializable {
 

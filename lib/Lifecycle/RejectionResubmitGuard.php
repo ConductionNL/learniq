@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Rejection Resubmit Guard
+ * Learniq Rejection Resubmit Guard
  *
  * Lifecycle guard for the ExchangeRejection schema's `resubmit` transition
  * (`corrected` → `resubmitted`). Mirrors MunicipalityFeedbackGuard's
@@ -57,7 +57,7 @@ use Psr\Log\LoggerInterface;
  */
 class RejectionResubmitGuard {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const JOB_SCHEMA = 'data-exchange-job';
 
 	/**
@@ -230,7 +230,7 @@ class RejectionResubmitGuard {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::JOB_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,
@@ -286,7 +286,7 @@ class RejectionResubmitGuard {
 		];
 
 		$saved = $this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::JOB_SCHEMA,
 			object: $newJob
 		);

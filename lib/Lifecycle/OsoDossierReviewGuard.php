@@ -51,7 +51,7 @@ use Psr\Log\LoggerInterface;
  */
 class OsoDossierReviewGuard {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 
 	/**
@@ -120,7 +120,7 @@ class OsoDossierReviewGuard {
 
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LEARNER_PROFILE_SCHEMA,
 				'filters' => $profileFilters,
 				'limit' => 1,

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ReportCardReopenGuard unit tests.
+ * Learniq ReportCardReopenGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

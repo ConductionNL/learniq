@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Leaderboard Controller
+ * Learniq Leaderboard Controller
  *
  * One read endpoint: `getRankings`. This exists because the RBAC gap
  * documented in design.md ("no cross-object 'cohort-mate' RBAC primitive" --
@@ -75,7 +75,7 @@ use OCP\IUserSession;
  */
 class LeaderboardController extends Controller {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const COHORT_SCHEMA = 'cohort';
 	private const LEADERBOARD_SCHEMA = 'leaderboard';
 	private const LEARNER_ENGAGEMENT_SCHEMA = 'learner-engagement';
@@ -198,7 +198,7 @@ class LeaderboardController extends Controller {
 	private function hasActiveLeaderboard(string $cohortId): bool {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LEADERBOARD_SCHEMA,
 				'filters' => [
 					'cohortId' => $cohortId,
@@ -221,7 +221,7 @@ class LeaderboardController extends Controller {
 	private function fetchLeaderboardTopN(string $cohortId): ?int {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LEADERBOARD_SCHEMA,
 				'filters' => [
 					'cohortId' => $cohortId,
@@ -258,7 +258,7 @@ class LeaderboardController extends Controller {
 	private function fetchLevelNames(string $tenantId): array {
 		$levels = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ENGAGEMENT_LEVEL_SCHEMA,
 				'filters' => ['tenant_id' => $tenantId],
 			]
@@ -296,7 +296,7 @@ class LeaderboardController extends Controller {
 	private function buildRankings(array $learnerIds, string $tenantId, array $levelNames): array {
 		$engagementRows = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LEARNER_ENGAGEMENT_SCHEMA,
 				'filters' => ['tenant_id' => $tenantId],
 			]
@@ -392,7 +392,7 @@ class LeaderboardController extends Controller {
 		try {
 			$obj = $this->objectService->find(
 				id: $id,
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: $schema
 			);
 		} catch (DoesNotExistException $e) {

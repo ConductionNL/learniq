@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Course Evaluation Response Submitted Handler
+ * Learniq Course Evaluation Response Submitted Handler
  *
  * Listens for OpenRegister's ObjectTransitionedEvent, filtered to the
  * CourseEvaluationResponse schema's `submit` transition. Re-resolves the
@@ -57,7 +57,7 @@ use Psr\Log\LoggerInterface;
  */
 class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const COURSE_EVALUATION_RESPONSE_SCHEMA = 'course-evaluation-response';
 	private const EVALUATION_INVITATION_SCHEMA = 'evaluation-invitation';
 
@@ -141,7 +141,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 		// Only hasResponded/respondedAt change — no field referencing the
 		// response's identity or content is ever added.
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::EVALUATION_INVITATION_SCHEMA,
 			object: array_merge(
 				$invitation,
@@ -164,7 +164,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
 	 */
 	private function isResponseSubmission(ObjectTransitionedEvent $event): bool {
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return false;
 		}
 
@@ -197,7 +197,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 
 		$invitations = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::EVALUATION_INVITATION_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,

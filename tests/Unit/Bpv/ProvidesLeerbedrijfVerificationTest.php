@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ProvidesLeerbedrijfVerification interface contract tests.
+ * Learniq ProvidesLeerbedrijfVerification interface contract tests.
  *
  * Pins the pluggable-provider seam's shape (mirroring ProvidesProctoring /
  * ProvidesPlagiarismCheck): a single `verify(string): array` method, no
@@ -38,7 +38,7 @@ use PHPUnit\Framework\TestCase;
 class ProvidesLeerbedrijfVerificationTest extends TestCase {
 
 	/**
-	 * It is a plain interface (no parent, no default methods) — Scholiq ships the seam only.
+	 * It is a plain interface (no parent, no default methods) — Learniq ships the seam only.
 	 *
 	 * @return void
 	 */
@@ -102,7 +102,7 @@ class ProvidesLeerbedrijfVerificationTest extends TestCase {
 
 	/**
 	 * No concrete provider ships with the app — grepping lib/Bpv for `implements
-	 * ProvidesLeerbedrijfVerification` outside the interface file itself finds nothing. Scholiq
+	 * ProvidesLeerbedrijfVerification` outside the interface file itself finds nothing. Learniq
 	 * ships the seam, not an adapter (proposal.md / design.md).
 	 *
 	 * @return void

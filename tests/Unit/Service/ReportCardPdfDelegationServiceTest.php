@@ -75,7 +75,7 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 
 		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
-			static fn (string $path): string => 'https://scholiq.example' . $path
+			static fn (string $path): string => 'https://learniq.example' . $path
 		);
 
 	}//end setUp()

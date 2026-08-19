@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Session Overlap Evaluator
+ * Learniq Session Overlap Evaluator
  *
  * The pure decision half of the conflict scan, split out of
  * {@see \OCA\Learniq\Timetabling\TimetableConflictDetector} so the detector

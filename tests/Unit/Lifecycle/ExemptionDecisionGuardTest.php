@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ExemptionDecisionGuard unit tests.
+ * Learniq ExemptionDecisionGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

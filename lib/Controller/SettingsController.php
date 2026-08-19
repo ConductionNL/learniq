@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Scholiq Settings Controller
+ * Learniq Settings Controller
  *
- * Controller for managing Scholiq application settings.
+ * Controller for managing Learniq application settings.
  *
  * @category Controller
  * @package  OCA\Learniq\Controller
@@ -30,11 +30,11 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 
 /**
- * Controller for managing Scholiq application settings.
+ * Controller for managing Learniq application settings.
  *
  * Bespoke by design, NOT the AppHost generic:
  * `AppHost\Bootstrap::aliasControllerUnlessLeafDefinesIt()` skips the DI alias
- * whenever the leaf app ships a controller of that name, and Scholiq ships
+ * whenever the leaf app ships a controller of that name, and Learniq ships
  * this one — so every method the route table points at `settings#*` has to
  * exist here. It publishes the canonical ADR-066 surface:
  * `index` (read) / `update` (canonical PUT write) / `create` (legacy POST
@@ -78,7 +78,7 @@ class SettingsController extends Controller {
 	 * This mirrors {@see \OCA\OpenRegister\AppHost\Controller\GenericSettingsControllerBase::update()},
 	 * which the canonical AppHost route table
 	 * ({@see \OCA\OpenRegister\AppHost\Routes}) reaches on
-	 * `PUT /api/settings` (`settings#update`). Because Scholiq ships this
+	 * `PUT /api/settings` (`settings#update`). Because Learniq ships this
 	 * controller itself, `AppHost\Bootstrap::aliasControllerUnlessLeafDefinesIt()`
 	 * skips the generic alias entirely, so the method has to exist here — the
 	 * generic will not fill the gap.
@@ -86,10 +86,10 @@ class SettingsController extends Controller {
 	 * Writes exactly what `create()` has always written: every key of
 	 * `SettingsService::CONFIG_KEYS` present in the request parameters is
 	 * persisted to `IAppConfig`, and the refreshed settings map is returned
-	 * under Scholiq's `{success, config}` envelope. The envelope is kept
+	 * under Learniq's `{success, config}` envelope. The envelope is kept
 	 * rather than the generic's flat payload so the two existing POST callers
 	 * (`src/store/modules/settings.js::saveSettings()` and
-	 * `src/views/ScholiqSettings.vue::saveDefaultRegister()`) keep the exact
+	 * `src/views/LearniqSettings.vue::saveDefaultRegister()`) keep the exact
 	 * response shape they parse today.
 	 *
 	 * @return JSONResponse The `{success, config}` envelope carrying the refreshed settings map.
@@ -113,7 +113,7 @@ class SettingsController extends Controller {
 	 * Legacy alias for {@see update()} — `POST /api/settings`.
 	 *
 	 * The canonical AppHost route table still ships `settings#create` for the
-	 * pre-ADR-066 `index/create/load` dialect, and both of Scholiq's own
+	 * pre-ADR-066 `index/create/load` dialect, and both of Learniq's own
 	 * frontend writers still POST here, so it stays reachable (ADR-029) and
 	 * behaviourally identical to `update()`.
 	 *
@@ -132,7 +132,7 @@ class SettingsController extends Controller {
 	}//end create()
 
 	/**
-	 * Re-import the configuration from scholiq_register.json.
+	 * Re-import the configuration from learniq_register.json.
 	 *
 	 * Forces a fresh import regardless of version, auto-configuring
 	 * all schema and register IDs from the import result.

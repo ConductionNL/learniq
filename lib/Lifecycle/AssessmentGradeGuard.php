@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Assessment Grade Guard
+ * Learniq Assessment Grade Guard
  *
  * Lifecycle guard for the AssessmentResult schema's `grade` transition. Enforces that
  * every item that requires manual scoring has a non-null manualScore in the result's
@@ -15,7 +15,7 @@
  * cross-schema query (AssessmentResult → Assessment → Item) to determine which
  * items need manual scoring.
  * Referenced from the AssessmentResult schema's x-openregister-lifecycle.transitions.grade.requires
- * in scholiq_register.json.
+ * in learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle
@@ -51,9 +51,9 @@ use Psr\Log\LoggerInterface;
 class AssessmentGradeGuard {
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.
@@ -100,7 +100,7 @@ class AssessmentGradeGuard {
 
 		$assessments = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'assessment',
 				// H1: scope Assessment lookup to the same tenant.
 				'filters' => $this->tenantScoped(filters: ['uuid' => $assessmentId], tenantId: $tenantId),
@@ -222,7 +222,7 @@ class AssessmentGradeGuard {
 	private function fetchItemsByUuid(array $itemIds, string $tenantId): array {
 		$fetchedItems = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'item',
 				// H1: scope the Item lookup to the same tenant.
 				'filters' => $this->tenantScoped(filters: ['uuid' => $itemIds], tenantId: $tenantId),

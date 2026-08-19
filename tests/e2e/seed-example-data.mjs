@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (C) 2026 Conduction B.V.
 //
-// seed-example-data.mjs — best-effort import of the scholiq OpenRegister register
+// seed-example-data.mjs — best-effort import of the learniq OpenRegister register
 // (lib/Settings/learniq_register.json) into a running Nextcloud + OpenRegister,
 // then create a small coherent example dataset so the index pages + dashboard KPI
 // widgets have content. Idempotent: re-running skips objects that already exist.
@@ -120,7 +120,7 @@ async function ensureRegisterRow() {
 	const found = items.find((x) => x.slug === REGISTER_SLUG)
 	if (found) { log(`register "${REGISTER_SLUG}" exists (id ${found.id})`); return found }
 	const c = await api('POST', '/index.php/apps/openregister/api/registers', {
-		slug: REGISTER_SLUG, title: 'Scholiq', description: 'Scholiq LVS/LMS register', version: '0.1.0',
+		slug: REGISTER_SLUG, title: 'Learniq', description: 'Learniq LVS/LMS register', version: '0.1.0',
 	})
 	if (c.ok) { log(`created register "${REGISTER_SLUG}" (id ${c.json?.id})`); return c.json }
 	warn(`could not create register row (status ${c.status})`); return null
@@ -155,7 +155,7 @@ async function ensureRegisterLinkage(registerRow, wanted) {
 		if (id !== undefined && linkedIds.has(String(id)) === false) missing.push(id)
 	}
 	log(`linkage: register "${REGISTER_SLUG}" carries ${linked.length} schema(s); `
-		+ `${wanted.size - missing.length}/${wanted.size} scholiq schemas linked`)
+		+ `${wanted.size - missing.length}/${wanted.size} learniq schemas linked`)
 	if (missing.length === 0) return
 
 	const merged = [...linked, ...missing]
@@ -190,14 +190,14 @@ async function importRegister() {
 		log(`  imported schemas: ${imp2.json.imported.schemas.map((s) => s.slug).join(', ') || '(none)'}`)
 	}
 
-	// (c) for any scholiq schema still missing, POST it individually.
+	// (c) for any learniq schema still missing, POST it individually.
 	const registerRow = await ensureRegisterRow()
 
 	// ── `?register=` is what makes an individually-created schema REACHABLE ───
 	// OpenRegister keeps the register↔schema linkage in
 	// `openregister_registers.schemas`. Since openregister#2526 that list is the
 	// BOUNDARY every register-scoped slug read is checked against: a
-	// `POST /api/objects/scholiq/<slug>` answers `Schema not found: '<slug>'`
+	// `POST /api/objects/learniq/<slug>` answers `Schema not found: '<slug>'`
 	// when the register does not carry the slug — even though the schema row
 	// exists and `GET /api/schemas` lists it happily. openregister#2535 then made
 	// `POST /api/schemas?register=<id|uuid|slug>` maintain that list, and this is
@@ -206,7 +206,7 @@ async function importRegister() {
 	// Measured WITHOUT the parameter (CI run 31957570239, reproduced locally
 	// against openregister development incl. #2535): 118/118 schemas present,
 	// register carries 0, and all 33 object creates below fail with 404 while
-	// this function still logs a cheerful "118/118 scholiq schemas now present".
+	// this function still logs a cheerful "118/118 learniq schemas now present".
 	//
 	// A register value that does not resolve is a 400 from OpenRegister BEFORE
 	// the schema is written, so a wrong value fails loudly instead of silently
@@ -291,7 +291,7 @@ async function importRegister() {
 	const finalSet = await existingSchemaSlugs()
 	const present = [...wanted.keys()].filter((slug) => finalSet.has(slug))
 	const missing = [...wanted.keys()].filter((slug) => !finalSet.has(slug))
-	log(`register import: ${present.length}/${wanted.size} scholiq schemas now present` +
+	log(`register import: ${present.length}/${wanted.size} learniq schemas now present` +
 		(createdIndividually ? ` (${createdIndividually} created individually)` : ''))
 	if (missing.length) warn(`still missing: ${missing.join(', ')}`)
 	return { presentSlugs: new Set(present), missingSlugs: new Set(missing) }
@@ -435,7 +435,7 @@ async function seedObjects(presentSlugs) {
 		})
 	}
 	for (let n = 1; n <= 2; n++) await seed('enrolment', { field: 'learnerId', value: `demo-learner-${n}` }, { learnerId: `demo-learner-${n}`, courseId: id(courseCompliance) ?? id(courseRoot) ?? 'demo-course', mandatory: n === 1, dueDate: '2026-12-01', source: 'bulk', tenant_id: TENANT, ...(id(cohort) ? { cohortId: id(cohort) } : {}) })
-	// xAPI, DataExchange. (AiFeature governance is delegated to Hermiq — scholiq seeds no AiFeature objects.)
+	// xAPI, DataExchange. (AiFeature governance is delegated to Hermiq — learniq seeds no AiFeature objects.)
 	// `stored` (XapiStatement), `direction`/`sourceSchema` (DataMappingProfile)
 	// and `requestedAt` (DataExchangeJob) are required and were all missing.
 	await seed('xapi-statement', { field: 'verb', value: 'completed' }, { actor: { account: { name: 'demo-learner-1' } }, verb: { id: 'http://adlnet.gov/expapi/verbs/completed' }, object: { id: 'demo://lesson/5' }, stored: '2026-09-30T10:00:01Z', version: '1.0.3', timestamp: '2026-09-30T10:00:00Z', tenant_id: TENANT })
@@ -505,7 +505,7 @@ async function main() {
 	if (!(await pingNc())) process.exit(1)
 	const { presentSlugs } = await importRegister()
 	if (presentSlugs.size === 0) {
-		warn('no scholiq schemas present in OR after import — index pages will be empty. (openregister#1487)')
+		warn('no learniq schemas present in OR after import — index pages will be empty. (openregister#1487)')
 		process.exit(2) // partial — e2e specs run smoke checks only
 	}
 	const counts = await seedObjects(presentSlugs)

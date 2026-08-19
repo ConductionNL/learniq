@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Course Package Object Writer
+ * Learniq Course Package Object Writer
  *
  * Owns every OpenRegister write a course-package import performs — Course,
  * Lesson, Material, LtiToolPlacement, ItemBank and the remaining
@@ -33,11 +33,11 @@ namespace OCA\Learniq\Service\CoursePackage;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
- * Creates the scholiq objects a course-package import materialises.
+ * Creates the Learniq objects a course-package import materialises.
  */
 class CoursePackageObjectWriter {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.
@@ -185,7 +185,7 @@ class CoursePackageObjectWriter {
 	}//end createItemBank()
 
 	/**
-	 * Create an arbitrary scholiq object in the `scholiq` register and return its UUID.
+	 * Create an arbitrary Learniq object in the `learniq` register and return its UUID.
 	 *
 	 * @param string $schema Target schema slug.
 	 * @param array<string, mixed> $object Object payload.
@@ -196,7 +196,7 @@ class CoursePackageObjectWriter {
 	 */
 	public function create(string $schema, array $object): ?string {
 		$saved = $this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: $schema,
 			object: $object
 		);

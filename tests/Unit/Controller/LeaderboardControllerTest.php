@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq LeaderboardController unit tests.
+ * Learniq LeaderboardController unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Controller

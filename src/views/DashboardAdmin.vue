@@ -2,9 +2,11 @@
 <!-- Copyright (C) 2026 Conduction B.V. -->
 
 <!-- Administration dashboard route wrapper — renders the shared
-     LearniqDashboards in its admin view. Nav visibility is gated on the
-     `scholiq-admin` group (runtime `user.canAdminDashboard`); admins see all
-     three dashboards. Replaces the old single role-switcher dashboard.
+     LearniqDashboards in its admin view. Nav visibility is gated on
+     `dashboardRoles` including 'admin' (runtime `user.canAdminDashboard`,
+     resolved server-side by DashboardRoleService from NC's admin group);
+     admins see all three dashboards. Replaces the old single role-switcher
+     dashboard.
      @visual exclude Thin pass-through wrapper (renders LearniqDashboards role="admin"); the visual surface is LearniqDashboards, which carries the baseline. -->
 <template>
 	<LearniqDashboards role="admin" />

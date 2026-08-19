@@ -7,7 +7,7 @@
  * and psalm.xml `<stubs>`, and NEVER loaded at runtime. The file name does not
  * match any class name, so PSR-4 autoloading can never reach it.
  *
- * Scholiq ships three one-line engine-backed subclasses — Repair\InitializeActions,
+ * Learniq ships three one-line engine-backed subclasses — Repair\InitializeActions,
  * Sections\SettingsSection and Settings\AdminSettings — that extend the classes
  * below. The real implementations live in the openregister sibling app
  * (openregister/lib/AppHost/), which is absent from the CI analysis path.

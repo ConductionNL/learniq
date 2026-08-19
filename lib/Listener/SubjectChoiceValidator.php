@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq Subject Choice Validator
+ * Learniq Subject Choice Validator
  *
  * IEventListener for SubjectChoice lifecycle -> submitted (the OR
- * ObjectTransitionedEvent with register=scholiq, schema=subject-choice,
+ * ObjectTransitionedEvent with register=learniq, schema=subject-choice,
  * to=submitted). Checks selectedElectiveCourseIds against the referenced
  * CurriculumPlan.electiveRules (minElectives/maxElectives,
  * mandatoryCombinations, mutuallyExclusive) and against the current
@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  */
 class SubjectChoiceValidator implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const SUBJECT_CHOICE_SCHEMA = 'subject-choice';
 	private const CURRICULUM_PLAN_SCHEMA = 'curriculum-plan';
 
@@ -101,7 +101,7 @@ class SubjectChoiceValidator implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -168,7 +168,7 @@ class SubjectChoiceValidator implements IEventListener {
 		}
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::SUBJECT_CHOICE_SCHEMA,
 			object: $updated
 		);
@@ -342,7 +342,7 @@ class SubjectChoiceValidator implements IEventListener {
 
 			$rows = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::SUBJECT_CHOICE_SCHEMA,
 					'filters' => $filters,
 					'limit' => 5000,
@@ -376,7 +376,7 @@ class SubjectChoiceValidator implements IEventListener {
 	private function fetchPlan(string $curriculumPlanId): ?array {
 		$plan = $this->objectService->find(
 			id: $curriculumPlanId,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::CURRICULUM_PLAN_SCHEMA
 		);
 

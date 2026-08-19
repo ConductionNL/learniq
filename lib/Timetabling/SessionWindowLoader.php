@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Session Window Loader
+ * Learniq Session Window Loader
  *
  * The OpenRegister read side of the conflict scan, split out of
  * {@see \OCA\Learniq\Timetabling\TimetableConflictDetector} so the detector
@@ -47,7 +47,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class SessionWindowLoader {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
 	private const COHORT_SCHEMA = 'cohort';
 	private const ROOM_SCHEMA = 'room';
@@ -139,7 +139,7 @@ class SessionWindowLoader {
 
 			$results = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::SESSION_SCHEMA,
 					'filters' => $filters,
 					'limit' => 2000,
@@ -177,7 +177,7 @@ class SessionWindowLoader {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::TIMETABLE_CONFLICT_SCHEMA,
 				'filters' => $filters,
 				'limit' => 5000,
@@ -219,7 +219,7 @@ class SessionWindowLoader {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ASSESSMENT_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,
@@ -264,7 +264,7 @@ class SessionWindowLoader {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::COHORT_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,
@@ -308,7 +308,7 @@ class SessionWindowLoader {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ROOM_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,

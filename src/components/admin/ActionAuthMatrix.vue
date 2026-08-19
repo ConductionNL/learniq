@@ -1,26 +1,26 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <template>
-	<div class="scholiq-admin__section" data-testid="admin-action-auth-section">
+	<div class="learniq-admin__section" data-testid="admin-action-auth-section">
 		<h3>{{ t('learniq', 'Action authorization') }}</h3>
-		<p class="scholiq-admin__hint">
+		<p class="learniq-admin__hint">
 			{{
 				t(
 					'learniq',
-					'Decide which Nextcloud groups may invoke each Scholiq action (ADR-023). Admins always pass. Every action defaults to admin-only — tick a group to broaden it.',
+					'Decide which Nextcloud groups may invoke each Learniq action (ADR-023). Admins always pass. Every action defaults to admin-only — tick a group to broaden it.',
 				)
 			}}
 		</p>
 
-		<div v-if="error" class="scholiq-admin__action-error" role="alert">
+		<div v-if="error" class="learniq-admin__action-error" role="alert">
 			{{ error }}
 		</div>
 
-		<p v-if="loading" class="scholiq-admin__hint">
+		<p v-if="loading" class="learniq-admin__hint">
 			{{ t('learniq', 'Loading action matrix…') }}
 		</p>
 
-		<div v-else class="scholiq-admin__matrix-wrapper">
-			<table class="scholiq-admin__matrix">
+		<div v-else class="learniq-admin__matrix-wrapper">
+			<table class="learniq-admin__matrix">
 				<thead>
 					<tr>
 						<th scope="col">
@@ -30,20 +30,20 @@
 							v-for="group in displayGroups"
 							:key="group"
 							scope="col"
-							class="scholiq-admin__matrix-group">
+							class="learniq-admin__matrix-group">
 							{{ group }}
 						</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr v-for="action in actions" :key="action">
-						<th scope="row" class="scholiq-admin__matrix-action">
+						<th scope="row" class="learniq-admin__matrix-action">
 							{{ action }}
 						</th>
 						<td
 							v-for="group in displayGroups"
 							:key="`${action}-${group}`"
-							class="scholiq-admin__matrix-cell">
+							class="learniq-admin__matrix-cell">
 							<NcCheckboxRadioSwitch
 								:modelValue="isChecked(action, group)"
 								:disabled="group === 'admin'"
@@ -61,7 +61,7 @@
 			</table>
 		</div>
 
-		<div class="scholiq-admin__matrix-actions">
+		<div class="learniq-admin__matrix-actions">
 			<NcButton
 				variant="primary"
 				data-testid="admin-action-matrix-save"
@@ -242,12 +242,12 @@ export default {
 </script>
 
 <style scoped>
-.scholiq-admin__hint {
+.learniq-admin__hint {
 	color: var(--color-text-maxcontrast);
 	margin-bottom: 16px;
 }
 
-.scholiq-admin__action-error {
+.learniq-admin__action-error {
 	background: var(--color-error);
 	color: var(--color-primary-element-text);
 	padding: 8px 12px;
@@ -255,39 +255,39 @@ export default {
 	margin-bottom: 16px;
 }
 
-.scholiq-admin__matrix-wrapper {
+.learniq-admin__matrix-wrapper {
 	overflow-x: auto;
 	margin-bottom: 16px;
 }
 
-.scholiq-admin__matrix {
+.learniq-admin__matrix {
 	border-collapse: collapse;
 	width: 100%;
 }
 
-.scholiq-admin__matrix th,
-.scholiq-admin__matrix td {
+.learniq-admin__matrix th,
+.learniq-admin__matrix td {
 	border: 1px solid var(--color-border);
 	padding: 6px 10px;
 	text-align: left;
 }
 
-.scholiq-admin__matrix-group {
+.learniq-admin__matrix-group {
 	text-align: center;
 	white-space: nowrap;
 }
 
-.scholiq-admin__matrix-action {
+.learniq-admin__matrix-action {
 	font-family: var(--font-face-monospace, monospace);
 	font-size: 0.85em;
 	white-space: nowrap;
 }
 
-.scholiq-admin__matrix-cell {
+.learniq-admin__matrix-cell {
 	text-align: center;
 }
 
-.scholiq-admin__matrix-actions {
+.learniq-admin__matrix-actions {
 	display: flex;
 	justify-content: flex-end;
 }

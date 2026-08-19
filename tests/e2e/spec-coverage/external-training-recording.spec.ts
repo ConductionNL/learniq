@@ -39,7 +39,7 @@ test.describe('external-training-recording — records index page', () => {
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
 
-		// No Scholiq-originated fatal JS error (filter unrelated app/resource noise).
+		// No Learniq-originated fatal JS error (filter unrelated app/resource noise).
 		const fatal = errors.filter(
 			(e) =>
 				!e.includes('favicon')

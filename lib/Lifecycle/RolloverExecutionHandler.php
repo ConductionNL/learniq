@@ -57,7 +57,7 @@ class RolloverExecutionHandler implements IEventListener {
 	/**
 	 * OpenRegister register slug.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * RolloverPlan schema slug.
@@ -94,7 +94,7 @@ class RolloverExecutionHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER
 			|| $event->getSchema() !== self::SCHEMA
 			|| $event->getTo() !== 'executing'
 		) {
@@ -117,7 +117,7 @@ class RolloverExecutionHandler implements IEventListener {
 			$plan['perMappingProgress'] = $progress;
 			$plan['lifecycle'] = 'completed';
 			$plan['executedAt'] = date('c');
-			$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::SCHEMA, object: $plan);
+			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA, object: $plan);
 
 			$this->logger->info('[RolloverExecutionHandler] Rollover plan {p} completed.', ['p' => $planId]);
 		} catch (Throwable $e) {
@@ -138,6 +138,6 @@ class RolloverExecutionHandler implements IEventListener {
 	private function failPlan(array $plan, string $reason): void {
 		$plan['lifecycle'] = 'failed';
 		$plan['failureReason'] = $reason;
-		$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::SCHEMA, object: $plan);
+		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA, object: $plan);
 	}//end failPlan()
 }//end class

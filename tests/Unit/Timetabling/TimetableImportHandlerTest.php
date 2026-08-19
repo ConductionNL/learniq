@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq TimetableImportHandler unit tests.
+ * Learniq TimetableImportHandler unit tests.
  *
  * Mirrors DataExchangeRunHandlerTest's established convention of exercising
  * the private mapping/upsert methods via reflection rather than standing up

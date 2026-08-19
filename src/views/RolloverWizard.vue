@@ -13,7 +13,7 @@
 
  Storage/lifecycle/audit/notifications are OpenRegister's; this view only edits
  the plan's mappings and drives proposal/preview/execute through the
- Scholiq rollover API + OR object API.
+ Learniq rollover API + OR object API.
 
  @spec openspec/specs/school-year-rollover/spec.md#requirement-preview-must-be-side-effect-free-and-produce-a-complete-dry-run-report
 -->

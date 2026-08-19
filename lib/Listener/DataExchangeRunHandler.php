@@ -1,20 +1,20 @@
 <?php
 
 /**
- * Scholiq Data Exchange Run Handler
+ * Learniq Data Exchange Run Handler
  *
  * IEventListener for DataExchangeJob lifecycle → `running`
  * (the OR ObjectTransitionedEvent with schema=data-exchange-job, to=running).
  *
  * Algorithm:
  * 1. Load the DataMappingProfile referenced by mappingProfileId (if set).
- * 2. Query the Scholiq source objects per scope via ObjectService::findAll.
+ * 2. Query the Learniq source objects per scope via ObjectService::findAll.
  * 3. Build the payload — applying the fieldMappings, stripping PII and running
  *    the per-target dossier composers — via DataExchangePayloadBuilder, which
  *    in turn applies the named field transforms via DataExchangeTransformer.
  * 4. Delegate to OpenConnector via REST API (POST /apps/openconnector/api/sources/run).
  *    If OpenConnector is not available, the job moves to `failed` with a clear
- *    errorMessage. Scholiq implements NO Edukoppeling/StUF/OSO-XML/Digikoppeling
+ *    errorMessage. Learniq implements NO Edukoppeling/StUF/OSO-XML/Digikoppeling
  *    wire protocols — all of that lives in OpenConnector.
  * 5. Record connectorRunId + result (counts, validation report, artefactRef).
  * 6. Transition the job to succeeded / partial / failed via lifecycle transitions.
@@ -68,7 +68,7 @@ use RuntimeException;
  */
 class DataExchangeRunHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const JOB_SCHEMA = 'data-exchange-job';
 	private const MAPPING_PROFILE_SCHEMA = 'data-mapping-profile';
 
@@ -136,7 +136,7 @@ class DataExchangeRunHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -149,9 +149,9 @@ class DataExchangeRunHandler implements IEventListener {
 		}
 
 		// Timetabling-and-substitution: target: timetable-import is a PULL
-		// (external -> Scholiq Session upserts), a fundamentally different
+		// (external -> Learniq Session upserts), a fundamentally different
 		// shape than every other target this handler's runJob() implements
-		// (Scholiq objects -> external PUSH). OCA\Learniq\Timetabling\
+		// (Learniq objects -> external PUSH). OCA\Learniq\Timetabling\
 		// TimetableImportHandler owns that target exclusively, registered
 		// against this SAME event in lib/AppInfo/Application.php — bail here
 		// so the two handlers never race to transition the same job.
@@ -206,7 +206,7 @@ class DataExchangeRunHandler implements IEventListener {
 			$profile = $this->loadMappingProfile(profileId: $mappingProfileId);
 		}
 
-		// 2. Query Scholiq source objects per scope (tenant-scoped — fixes #186).
+		// 2. Query Learniq source objects per scope (tenant-scoped — fixes #186).
 		// M5: querySourceObjects throws RuntimeException when count >= QUERY_LIMIT.
 		// 3. Build payload by applying fieldMappings.
 		// #206: bsn-to-pseudonym throws \RuntimeException when eckId is absent — catch
@@ -423,7 +423,7 @@ class DataExchangeRunHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::SUPPORT_REQUEST_SCHEMA,
 				'filters' => $idFilters,
 				'limit' => 1,
@@ -461,7 +461,7 @@ class DataExchangeRunHandler implements IEventListener {
 	private function loadMappingProfile(string $profileId): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::MAPPING_PROFILE_SCHEMA,
 				'filters' => ['id' => $profileId],
 				'limit' => 1,
@@ -480,7 +480,7 @@ class DataExchangeRunHandler implements IEventListener {
 	}//end loadMappingProfile()
 
 	/**
-	 * Query Scholiq source objects per the job scope.
+	 * Query Learniq source objects per the job scope.
 	 *
 	 * @param array<string,mixed> $scope The job scope (schema, filters, cohortId, period).
 	 * @param string $tenantId Tenant ID to enforce as a mandatory filter. Fixes #186.
@@ -510,7 +510,7 @@ class DataExchangeRunHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => $schema,
 				'filters' => $filters,
 				// #188: raised from 10 000 to 100 000; full pagination is a follow-up.
@@ -549,7 +549,7 @@ class DataExchangeRunHandler implements IEventListener {
 	 *     recordsRejected, validationReport, artefactRef }
 	 *
 	 * If the endpoint is unreachable or returns an error, returns null.
-	 * Scholiq implements NO wire protocols — all Edukoppeling/StUF/OSO-XML/
+	 * Learniq implements NO wire protocols — all Edukoppeling/StUF/OSO-XML/
 	 * Digikoppeling/SAML logic lives in OpenConnector.
 	 *
 	 * @param string $target Named OpenConnector connection (e.g. 'bron-rod').
@@ -580,7 +580,7 @@ class DataExchangeRunHandler implements IEventListener {
 			$this->logger->warning(
 				'[DataExchangeRunHandler] No OpenConnector API token configured ('
 				. 'learniq.openconnector_api_token); the call may fail with 401/403. '
-				. 'Set the token via the Scholiq admin settings.'
+				. 'Set the token via the Learniq admin settings.'
 			);
 		}
 
@@ -630,7 +630,7 @@ class DataExchangeRunHandler implements IEventListener {
 	private function saveJobFields(string $jobId, array $fields): void {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::JOB_SCHEMA,
 				'filters' => ['id' => $jobId],
 				'limit' => 1,
@@ -650,7 +650,7 @@ class DataExchangeRunHandler implements IEventListener {
 		$updated = array_merge($current, $fields);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::JOB_SCHEMA,
 			object: $updated
 		);

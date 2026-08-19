@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Scholiq Course Package Export Service
+ * Learniq Course Package Export Service
  *
  * Exports a `Course` (and its `Lesson`/`Material`/`Assessment`/`Rubric`/
  * `LtiToolPlacement` descendants) as (a) an IMS Common Cartridge 1.3 package
  * for interoperability with other LMS platforms and (b) a scholiq-native
- * JSON tree for lossless round-trip back into Scholiq.
+ * JSON tree for lossless round-trip back into Learniq.
  *
  * `Material.fileRef` bytes are resolved through Nextcloud's file API (the
  * same "app does not store file bytes, OR does" contract `Material`'s own
@@ -58,7 +58,7 @@ use ZipArchive;
  */
 class CoursePackageExportService {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.
@@ -193,7 +193,7 @@ class CoursePackageExportService {
 	 * @spec openspec/changes/course-package-import-export/design.md#data-model
 	 */
 	private function gatherCourseTree(string $courseId, string $exportingUser): array {
-		$course = $this->objectService->find(id: $courseId, register: self::SCHOLIQ_REGISTER, schema: 'course');
+		$course = $this->objectService->find(id: $courseId, register: self::LEARNIQ_REGISTER, schema: 'course');
 		if ($course === null) {
 			throw new RuntimeException("Course '{$courseId}' not found.");
 		}
@@ -273,7 +273,7 @@ class CoursePackageExportService {
 				continue;
 			}
 
-			$rubric = $this->objectService->find(id: $rubricId, register: self::SCHOLIQ_REGISTER, schema: 'rubric');
+			$rubric = $this->objectService->find(id: $rubricId, register: self::LEARNIQ_REGISTER, schema: 'rubric');
 			if ($rubric !== null) {
 				$rubrics[] = $this->toArray(object: $rubric);
 			}
@@ -300,7 +300,7 @@ class CoursePackageExportService {
 					continue;
 				}
 
-				$item = $this->objectService->find(id: $itemId, register: self::SCHOLIQ_REGISTER, schema: 'item');
+				$item = $this->objectService->find(id: $itemId, register: self::LEARNIQ_REGISTER, schema: 'item');
 				if ($item === null) {
 					continue;
 				}
@@ -395,7 +395,7 @@ class CoursePackageExportService {
 	private function findAllArrays(string $schema, array $filters): array {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => $schema,
 				'filters' => $filters,
 			]

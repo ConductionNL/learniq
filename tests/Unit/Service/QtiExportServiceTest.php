@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq QtiExportService unit tests.
+ * Learniq QtiExportService unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Service
@@ -73,7 +73,7 @@ class QtiExportServiceTest extends TestCase {
 
 		$zipBytes = (new QtiExportService($objectService))->export('bank-1');
 
-		$tmpFile = tempnam(sys_get_temp_dir(), 'scholiq_qti_export_test_');
+		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_qti_export_test_');
 		file_put_contents($tmpFile, $zipBytes);
 
 		$zip = new ZipArchive();

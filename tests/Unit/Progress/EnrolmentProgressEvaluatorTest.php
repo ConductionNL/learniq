@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq EnrolmentProgressEvaluator unit tests.
+ * Learniq EnrolmentProgressEvaluator unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Progress

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq PaymentTransactionStatusHandler unit tests.
+ * Learniq PaymentTransactionStatusHandler unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Learning Record Aggregation Service
+ * Learniq Learning Record Aggregation Service
  *
  * Composes a learner's portable-learning-record trajectory LIVE, on read,
  * scoped by `learnerRef` — no materialized "LearningRecord" rollup schema is
@@ -69,7 +69,7 @@ class LearningRecordAggregationService {
 
 	/**
 	 * ReportCard's real x-openregister-lifecycle enum value for "visible in
-	 * the parent portal" — verified at HEAD (scholiq_register.json's
+	 * the parent portal" — verified at HEAD (learniq_register.json's
 	 * ReportCard.lifecycle enum). NOT the literal string "published" the
 	 * design/spec prose uses as shorthand.
 	 */
@@ -142,7 +142,7 @@ class LearningRecordAggregationService {
 		// Credential has no learnerRef field of its own — its existing
 		// `learnerId` property is already typed as a LearnerProfile UUID
 		// ($ref: LearnerProfile), a pre-existing naming quirk verified at
-		// HEAD (scholiq_register.json:223 region). Filter by that field.
+		// HEAD (learniq_register.json:223 region). Filter by that field.
 		$credentials = $this->findAll(schema: self::SCHEMA_CREDENTIAL, filters: ['learnerId' => $learnerRef]);
 
 		$portfolios = $this->findAllByLearnerRef(schema: self::SCHEMA_PORTFOLIO, learnerRef: $learnerRef);

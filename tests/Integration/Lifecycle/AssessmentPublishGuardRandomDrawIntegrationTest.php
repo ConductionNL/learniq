@@ -3,7 +3,7 @@
 /**
  * Integration test for AssessmentPublishGuard's random-draw item-source check.
  *
- * Requires a live OpenRegister database (installed Nextcloud + scholiq + openregister).
+ * Requires a live OpenRegister database (installed Nextcloud + learniq + openregister).
  * Run with:
  *   ./vendor/bin/phpunit --testsuite "Integration Tests"
  *
@@ -130,7 +130,7 @@ class AssessmentPublishGuardRandomDrawIntegrationTest extends TestCase {
 		try {
 			$obj = $this->objectService->saveObject(register: 'learniq', schema: $schema, object: $data);
 		} catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
-			$this->markTestSkipped('Scholiq register/schema not seeded: ' . $e->getMessage());
+			$this->markTestSkipped('Learniq register/schema not seeded: ' . $e->getMessage());
 		} catch (\OCA\OpenRegister\Exception\NotAuthorizedException $e) {
 			// Belt and braces behind the setUp() session check — see the sibling
 			// XapiCompletionHandlerIntegrationTest for the full rationale.

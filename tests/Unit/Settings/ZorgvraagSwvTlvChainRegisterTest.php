@@ -6,9 +6,9 @@
  * IMPORTANT SCOPE NOTE: `x-openregister-calculations` are evaluated by
  * OpenRegister core at runtime, which does not live in this repository (only
  * test stubs for its PHP service classes do — see composer.json's
- * `autoload-dev`). Scholiq cannot unit-test the numeric OUTPUT of a declared
+ * `autoload-dev`). Learniq cannot unit-test the numeric OUTPUT of a declared
  * calculation (no existing test in this suite does — see e.g.
- * VerzuimReportComposerRegisterTest, Course.isPublished). What Scholiq CAN
+ * VerzuimReportComposerRegisterTest, Course.isPublished). What Learniq CAN
  * and MUST verify is that the declared SHAPE is correct: the right fields
  * exist, the expression references the right props/thresholds, and the
  * lifecycle/RBAC/notification declarations are wired the way design.md
@@ -125,7 +125,7 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 
 	/**
 	 * TlvApplication.decide records the SWV's externally-issued decision with
-	 * no `requires` guard — the SWV is the sole deciding authority, Scholiq
+	 * no `requires` guard — the SWV is the sole deciding authority, Learniq
 	 * implements no adjudication logic (design.md "TLV decision recorded,
 	 * never adjudicated").
 	 *

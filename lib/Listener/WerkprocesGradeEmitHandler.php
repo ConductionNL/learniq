@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq Werkproces Grade Emit Handler
+ * Learniq Werkproces Grade Emit Handler
  *
  * IEventListener for WerkprocesAssessment lifecycle → `confirmed` (the OR
- * ObjectTransitionedEvent with register=scholiq, schema=werkproces-assessment,
+ * ObjectTransitionedEvent with register=learniq, schema=werkproces-assessment,
  * to=confirmed). Bridges a confirmed workplace assessment into the `grading`
  * spec's pipeline by emitting (create case) or updating (existing-entry case)
  * exactly one GradeEntry for the assessment's curriculumPlanId/componentId —
@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  */
 class WerkprocesGradeEmitHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'werkproces-assessment';
 	private const PLACEMENT_SCHEMA = 'bpv-placement';
 	private const CURRICULUM_SCHEMA = 'curriculum-plan';
@@ -106,7 +106,7 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -203,7 +203,7 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 		);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::GRADE_ENTRY_SCHEMA,
 			object: $data
 		);
@@ -243,7 +243,7 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => $schema,
 				'filters' => ['id' => $id],
 				'limit' => 1,
@@ -290,7 +290,7 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::GRADE_ENTRY_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,

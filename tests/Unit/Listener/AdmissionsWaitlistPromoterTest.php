@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq AdmissionsWaitlistPromoter unit tests.
+ * Learniq AdmissionsWaitlistPromoter unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

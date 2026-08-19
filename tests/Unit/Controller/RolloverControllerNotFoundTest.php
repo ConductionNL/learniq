@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq RolloverController not-found path unit tests.
+ * Learniq RolloverController not-found path unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Controller

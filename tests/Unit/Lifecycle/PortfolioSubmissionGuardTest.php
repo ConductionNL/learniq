@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq PortfolioSubmissionGuard unit tests.
+ * Learniq PortfolioSubmissionGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

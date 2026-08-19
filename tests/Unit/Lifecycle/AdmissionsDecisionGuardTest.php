@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq AdmissionsDecisionGuard unit tests.
+ * Learniq AdmissionsDecisionGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

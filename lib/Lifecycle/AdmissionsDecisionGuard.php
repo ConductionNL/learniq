@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Admissions Decision Guard
+ * Learniq Admissions Decision Guard
  *
  * Lifecycle guard for the Application schema's completeIntake transition
  * (intake-scheduled -> intake-completed) and its three decision transitions
@@ -67,7 +67,7 @@ use Psr\Log\LoggerInterface;
  */
 class AdmissionsDecisionGuard {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ADMISSIONS_ROUND_SCHEMA = 'admissions-round';
 	private const APPLICATION_SCHEMA = 'application';
 
@@ -357,7 +357,7 @@ class AdmissionsDecisionGuard {
 			$count += count(
 				$this->objectService->findAll(
 					[
-						'register' => self::SCHOLIQ_REGISTER,
+						'register' => self::LEARNIQ_REGISTER,
 						'schema' => self::APPLICATION_SCHEMA,
 						'filters' => $filters,
 						'limit' => 5000,
@@ -379,7 +379,7 @@ class AdmissionsDecisionGuard {
 	private function fetchRound(string $roundId): ?array {
 		$round = $this->objectService->find(
 			id: $roundId,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::ADMISSIONS_ROUND_SCHEMA
 		);
 

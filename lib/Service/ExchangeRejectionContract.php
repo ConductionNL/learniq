@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Exchange Rejection Contract
+ * Learniq Exchange Rejection Contract
  *
  * The shared, schema-level contract for `ExchangeRejection` rows, held in one
  * place so the first-pass mapper (`RejectionMappingHandler`) and the

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Credential Verify Controller
+ * Learniq Credential Verify Controller
  *
  * Public (unauthenticated) endpoint for Open Badges 3.0 credential verification.
  * External auditors and employers call GET /api/credentials/{id}/verify to
@@ -132,7 +132,7 @@ class CredentialVerifyController extends Controller {
 	public function verify(string $id): JSONResponse {
 		// ABSENCE REACHES THIS METHOD IN TWO SHAPES, NOT ONE. `find()`
 		// documents `@throws Exception If the object is not found`, and
-		// resolving the `scholiq` register / `credential` schema slug goes
+		// resolving the `learniq` register / `credential` schema slug goes
 		// through RegisterMapper::find() / SchemaMapper::find(), which raise
 		// DoesNotExistException when the register is not installed. Only the
 		// `null` shape was handled, so on the throwing path this

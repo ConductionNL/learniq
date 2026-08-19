@@ -7,7 +7,7 @@
  Lets a user control which Learniq notifications they receive. Reads and writes
  OpenRegister's override-only notification-preferences endpoint
  (GET/PUT /apps/openregister/api/notification-preferences); OpenRegister's
- dispatcher honors each override (preference-off gate). No scholiq-local
+ dispatcher honors each override (preference-off gate). No learniq-local
  preference store — ADR-022 (apps consume OR abstractions).
 
  Also surfaces a quiet-hours / delivery-window control, consuming whatever
@@ -16,13 +16,13 @@
  Until that engine change ships, the GET response simply omits `quietHours`
  and the control degrades gracefully to its default (off) state; a PUT is
  still attempted so the value is captured the moment the endpoint starts
- honouring it — scholiq performs no local quiet-hours suppression itself.
+ honouring it — learniq performs no local quiet-hours suppression itself.
 
  @spec openspec/changes/fix-dashboards-settings-notifications/specs/nextcloud-app/spec.md#requirement-per-user-notification-preferences-in-the-user-settings-dialog
  @spec openspec/changes/grade-visibility-scheduling/specs/scholiq-notifications/spec.md#requirement-notification-delivery-must-honor-the-per-user-override-preference
 -->
 <template>
-	<div class="scholiq-notif-settings">
+	<div class="learniq-notif-settings">
 		<NcSettingsSection
 			:name="t('learniq', 'Notifications')"
 			:description="
@@ -31,7 +31,7 @@
 					'Choose which Learniq notifications you want to receive. These preferences apply to your account only.',
 				)
 			">
-			<div v-if="loading" class="scholiq-notif-settings__loading">
+			<div v-if="loading" class="learniq-notif-settings__loading">
 				<NcLoadingIcon :size="32" />
 			</div>
 
@@ -49,11 +49,11 @@
 				</template>
 			</NcEmptyContent>
 
-			<ul v-else class="scholiq-notif-settings__list">
+			<ul v-else class="learniq-notif-settings__list">
 				<li
 					v-for="item in items"
 					:key="item.schema + '/' + item.notification"
-					class="scholiq-notif-settings__item">
+					class="learniq-notif-settings__item">
 					<NcCheckboxRadioSwitch
 						type="switch"
 						:modelValue="item.enabled"
@@ -64,7 +64,7 @@
 				</li>
 			</ul>
 
-			<p v-if="errorMessage" class="scholiq-notif-settings__error">
+			<p v-if="errorMessage" class="learniq-notif-settings__error">
 				{{ errorMessage }}
 			</p>
 		</NcSettingsSection>
@@ -90,13 +90,13 @@
 
 			<div
 				v-if="quietHours.enabled"
-				class="scholiq-notif-settings__quiet-hours-times">
-				<div class="scholiq-notif-settings__quiet-hours-field">
-					<label for="scholiq-quiet-hours-start">{{
+				class="learniq-notif-settings__quiet-hours-times">
+				<div class="learniq-notif-settings__quiet-hours-field">
+					<label for="learniq-quiet-hours-start">{{
 						t('learniq', 'Start')
 					}}</label>
 					<input
-						id="scholiq-quiet-hours-start"
+						id="learniq-quiet-hours-start"
 						type="time"
 						:value="quietHours.start"
 						:disabled="quietHoursSaving"
@@ -108,12 +108,12 @@
 								})
 						" />
 				</div>
-				<div class="scholiq-notif-settings__quiet-hours-field">
-					<label for="scholiq-quiet-hours-end">{{
+				<div class="learniq-notif-settings__quiet-hours-field">
+					<label for="learniq-quiet-hours-end">{{
 						t('learniq', 'End')
 					}}</label>
 					<input
-						id="scholiq-quiet-hours-end"
+						id="learniq-quiet-hours-end"
 						type="time"
 						:value="quietHours.end"
 						:disabled="quietHoursSaving"
@@ -127,7 +127,7 @@
 				</div>
 			</div>
 
-			<p v-if="quietHoursHint" class="scholiq-notif-settings__hint">
+			<p v-if="quietHoursHint" class="learniq-notif-settings__hint">
 				{{ quietHoursHint }}
 			</p>
 		</NcSettingsSection>
@@ -162,7 +162,7 @@ function normSchema(name) {
 // notification-only schemas that have no index page. Used to scope the
 // notification-preferences list (which OpenRegister returns across every register
 // the user can access) down to Learniq's own notifications.
-const SCHOLIQ_SCHEMAS = new Set([
+const LEARNIQ_SCHEMAS = new Set([
 	...bundledManifest.pages
 		.filter(
 			(page) => page?.config?.register === 'learniq' && page?.config?.schema,
@@ -225,10 +225,10 @@ export default {
 				const results = data.results ?? (Array.isArray(data) ? data : [])
 				// Scope to Learniq's own notifications — the endpoint returns
 				// every notification across all registers the user can access.
-				const scholiqResults = results.filter((row) =>
-					SCHOLIQ_SCHEMAS.has(normSchema(row.schema)),
+				const learniqResults = results.filter((row) =>
+					LEARNIQ_SCHEMAS.has(normSchema(row.schema)),
 				)
-				this.items = scholiqResults.map((row) => ({
+				this.items = learniqResults.map((row) => ({
 					schema: row.schema,
 					notification: row.notification,
 					enabled: row.enabled !== false,
@@ -315,7 +315,7 @@ export default {
 
 		/**
 		 * Persist the quiet-hours / delivery-window preference through OpenRegister's
-		 * preference API — no scholiq-local persistence (ADR-022).
+		 * preference API — no learniq-local persistence (ADR-022).
 		 *
 		 * The cross-repo OR `notification-delivery-windows` dispatcher preference
 		 * surface has not shipped yet, so today's endpoint only accepts a
@@ -356,40 +356,40 @@ export default {
 </script>
 
 <style scoped>
-.scholiq-notif-settings__loading {
+.learniq-notif-settings__loading {
 	display: flex;
 	justify-content: center;
 	padding: 24px;
 }
 
-.scholiq-notif-settings__list {
+.learniq-notif-settings__list {
 	list-style: none;
 	margin: 0;
 	padding: 0;
 }
 
-.scholiq-notif-settings__item {
+.learniq-notif-settings__item {
 	padding: 6px 0;
 }
 
-.scholiq-notif-settings__error {
+.learniq-notif-settings__error {
 	margin-top: 8px;
 	color: var(--color-error);
 }
 
-.scholiq-notif-settings__quiet-hours-times {
+.learniq-notif-settings__quiet-hours-times {
 	display: flex;
 	gap: 16px;
 	margin-top: 8px;
 }
 
-.scholiq-notif-settings__quiet-hours-field {
+.learniq-notif-settings__quiet-hours-field {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
 }
 
-.scholiq-notif-settings__hint {
+.learniq-notif-settings__hint {
 	margin-top: 8px;
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;

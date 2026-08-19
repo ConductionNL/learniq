@@ -10,7 +10,7 @@
  *   @e2e openspec/specs/dashboard/spec.md#single-cndashboardpage-per-route
  *   @e2e openspec/specs/dashboard/spec.md#widgets-declared-on-the-manifest-page
  *
- * The role-aware dashboard is a single ScholiqDashboards component (one
+ * The role-aware dashboard is a single LearniqDashboards component (one
  * CnDashboardPage) reached from a single "Dashboards" menu entry; it selects the
  * view from the user's server-resolved primaryRole and exposes an in-component
  * switcher to multi-role users. These tests assert the no-nesting invariant and
@@ -26,14 +26,14 @@ const APP_URL = '/index.php/apps/learniq/'
 // URL is unchanged — this makes the spec-to-component link readable in
 // executable code rather than only in the prose above (gate-26 matches a
 // page against its component stem, and the stem appeared only in comments).
-const ScholiqDashboards = APP_URL
+const LearniqDashboards = APP_URL
 
 test.describe('dashboard — role-aware dashboard surface', () => {
 	// @e2e openspec/specs/dashboard/spec.md#single-cndashboardpage-per-route
 	test('single-cndashboardpage-per-route: no dashboard-in-dashboard nesting', async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto(ScholiqDashboards)
+		await page.goto(LearniqDashboards)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
 
@@ -67,14 +67,14 @@ test.describe('dashboard — role-aware dashboard surface', () => {
 	test('widgets-declared-on-the-manifest-page: manifest dashboard page declares per-widget slots', async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto(ScholiqDashboards)
+		await page.goto(LearniqDashboards)
 		await page.waitForSelector('body', { timeout: 15_000 })
 
 		// Read the served manifest and assert the dashboard page declares its tiles
 		// directly (config.widgets + per-widget slots), not a single wrapper widget.
 		const manifest = await page
 			.evaluate(async () => {
-				const res = await fetch('/apps/learniq/js/scholiq-main.js').catch(
+				const res = await fetch('/apps/learniq/js/learniq-main.js').catch(
 					() => null,
 				)
 				return res ? true : false
@@ -103,7 +103,7 @@ test.describe('dashboard — role-aware dashboard surface', () => {
 	test('role-switcher and single Dashboards entry: only one Dashboards menu item, switcher when multi-role', async ({
 		loggedInPage: page,
 	}) => {
-		await page.goto(ScholiqDashboards)
+		await page.goto(LearniqDashboards)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
 
@@ -116,9 +116,9 @@ test.describe('dashboard — role-aware dashboard surface', () => {
 		// and the captured DOM shows exactly what they were:
 		//   link "Go to Dashboard" -> /index.php          (NC logo link)
 		//   link "Dashboard"       -> /index.php/apps/dashboard/  (NC Dashboard app)
-		//   the Scholiq "Dashboards" entry
+		//   the Learniq "Dashboards" entry
 		// Only the third belongs to this app. The test was measuring Nextcloud's chrome
-		// and would have reported 2 even with the Scholiq nav entirely absent.
+		// and would have reported 2 even with the Learniq nav entirely absent.
 		// ⚠️ Match the entry's accessible name EXACTLY, not a /Dashboard/i substring.
 		//
 		// The substring form over-matched and could never hold: src/manifest.json

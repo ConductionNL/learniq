@@ -75,7 +75,7 @@ use Psr\Log\LoggerInterface;
  */
 class PortfolioShareGrantHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const SHARE_SCHEMA = 'portfolio-share';
 	private const PORTFOLIO_SCHEMA = 'portfolio';
 	private const ENTRY_SCHEMA = 'portfolio-entry';
@@ -146,7 +146,7 @@ class PortfolioShareGrantHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -239,7 +239,7 @@ class PortfolioShareGrantHandler implements IEventListener {
 
 		$entries = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ENTRY_SCHEMA,
 				'filters' => ['portfolioId' => $portfolioId],
 			]
@@ -396,7 +396,7 @@ class PortfolioShareGrantHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => $schema,
 				'filters' => ['id' => $id],
 				'limit' => 1,

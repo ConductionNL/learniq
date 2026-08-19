@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Scholiq CSV Cell Sanitizer
+ * Learniq CSV Cell Sanitizer
  *
- * Single-purpose collaborator shared by every CSV artefact scholiq emits, so
+ * Single-purpose collaborator shared by every CSV artefact Learniq emits, so
  * formula-injection neutralisation is applied identically everywhere instead of
  * being re-implemented per builder.
  *

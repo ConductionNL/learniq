@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Course Quality Score Rollup Handler
+ * Learniq Course Quality Score Rollup Handler
  *
  * Listens for OpenRegister's ObjectTransitionedEvent, filtered to the
  * CourseEvaluationResponse schema's `submit` transition. Find-or-creates the
@@ -48,7 +48,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class CourseQualityScoreRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const COURSE_EVALUATION_RESPONSE_SCHEMA = 'course-evaluation-response';
 	private const COURSE_QUALITY_SCORE_SCHEMA = 'course-quality-score';
 
@@ -80,7 +80,7 @@ class CourseQualityScoreRollupHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER
 			|| $event->getSchema() !== self::COURSE_EVALUATION_RESPONSE_SCHEMA
 			|| $event->getTo() !== 'submitted'
 		) {
@@ -135,7 +135,7 @@ class CourseQualityScoreRollupHandler implements IEventListener {
 		);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::COURSE_QUALITY_SCORE_SCHEMA,
 			object: $data
 		);
@@ -174,7 +174,7 @@ class CourseQualityScoreRollupHandler implements IEventListener {
 
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::COURSE_QUALITY_SCORE_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,

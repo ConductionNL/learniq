@@ -21,7 +21,7 @@
  * nextcloud-vue's CnTalkTab/CnTalkCard/CnTalkRoomPicker/CnTalkRoomCreate —
  * this app adds zero Talk client code. This suite therefore does not
  * fabricate a full "create-and-link a room" flow (that would be testing the
- * shared library, not scholiq); it asserts the one thing scholiq's own
+ * shared library, not learniq); it asserts the one thing learniq's own
  * change is responsible for: the `integration`/`talk` widget is wired onto
  * CohortDetail ("Class space") and SessionDetail ("Join call") and renders
  * without a fatal error, mirroring adaptive-release.spec.ts /

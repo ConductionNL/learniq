@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq SessionChangeNoticeHandler unit tests.
+ * Learniq SessionChangeNoticeHandler unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

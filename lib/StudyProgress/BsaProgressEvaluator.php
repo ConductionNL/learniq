@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq BSA Progress Evaluator
+ * Learniq BSA Progress Evaluator
  *
  * Stateless calculation engine that sums a learner's cumulative ECTS credits
  * earned within a Programme's scope: resolves each of the learner's
@@ -50,7 +50,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class BsaProgressEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const FINAL_GRADE_SCHEMA = 'final-grade';
 	private const COURSE_SCHEMA = 'course';
 
@@ -123,7 +123,7 @@ class BsaProgressEvaluator {
 	private function fetchCourseCredits(string $programmeId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::COURSE_SCHEMA,
 				'filters' => ['programmeIds' => $programmeId],
 			]
@@ -163,7 +163,7 @@ class BsaProgressEvaluator {
 	private function fetchPassedFinalGrades(string $learnerId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::FINAL_GRADE_SCHEMA,
 				'filters' => [
 					'learnerId' => $learnerId,

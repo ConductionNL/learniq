@@ -1,14 +1,14 @@
 <?php
 
 /**
- * Scholiq Excuse Approval Handler
+ * Learniq Excuse Approval Handler
  *
  * Listens for OpenRegister's ObjectTransitionedEvent and flips matching
  * AttendanceRecords from `absent-unexcused` to `absent-excused` when an
  * ExcuseRequest transitions to `approved`.
  *
  * Algorithm:
- * 1. Filter to register=scholiq, schema=excuse-request, to=approved.
+ * 1. Filter to register=learniq, schema=excuse-request, to=approved.
  * 2. Read learnerId, dateFrom, dateTo, and request id from the event object.
  * 3. Fetch all AttendanceRecords for the learner with status=absent-unexcused.
  * 4. Filter in PHP to those with markedAt within [dateFrom, dateTo].
@@ -52,7 +52,7 @@ use Psr\Log\LoggerInterface;
  */
 class ExcuseApprovalHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const EXCUSE_REQUEST_SCHEMA = 'excuse-request';
 	private const ATTENDANCE_RECORD_SCHEMA = 'attendance-record';
 
@@ -84,7 +84,7 @@ class ExcuseApprovalHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -134,7 +134,7 @@ class ExcuseApprovalHandler implements IEventListener {
 		// Fetch all absent-unexcused records for this learner.
 		$records = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ATTENDANCE_RECORD_SCHEMA,
 				'filters' => [
 					'learnerId' => $learnerId,
@@ -246,7 +246,7 @@ class ExcuseApprovalHandler implements IEventListener {
 			}
 
 			$this->objectService->saveObject(
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::ATTENDANCE_RECORD_SCHEMA,
 				object: array_merge(
 					$record,

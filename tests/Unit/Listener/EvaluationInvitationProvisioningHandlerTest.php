@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq EvaluationInvitationProvisioningHandler unit tests.
+ * Learniq EvaluationInvitationProvisioningHandler unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

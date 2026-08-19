@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Scholiq Report Card Publish Handler
+ * Learniq Report Card Publish Handler
  *
- * IEventListener for ObjectTransitionedEvent (register=scholiq,
+ * IEventListener for ObjectTransitionedEvent (register=learniq,
  * schema=report-card, to=published-to-parents). Resolves the learner's
  * `LearnerProfile.parentIds[]` and creates one `ReportCardParentNotification`
  * per parent, stamping `visibleFrom = now()` and
@@ -56,7 +56,7 @@ use Psr\Log\LoggerInterface;
  */
 class ReportCardPublishHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const REPORT_CARD_SCHEMA = 'report-card';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 	private const REPORT_CARD_PARENT_NOTIFICATION_SCHEMA = 'report-card-parent-notification';
@@ -91,7 +91,7 @@ class ReportCardPublishHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -124,7 +124,7 @@ class ReportCardPublishHandler implements IEventListener {
 
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LEARNER_PROFILE_SCHEMA,
 				'filters' => ['learnerId' => $learnerId],
 				'limit' => 1,
@@ -154,7 +154,7 @@ class ReportCardPublishHandler implements IEventListener {
 			}
 
 			$this->objectService->saveObject(
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::REPORT_CARD_PARENT_NOTIFICATION_SCHEMA,
 				object: [
 					'event' => 'reportCardPublished',

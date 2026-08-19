@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq QtiImportService unit tests.
+ * Learniq QtiImportService unit tests.
  *
  * Regression coverage for the `import()`/`importFromDirectory()` split
  * (course-package-import-export task 2.1): `import()` must keep behaving
@@ -88,7 +88,7 @@ class QtiImportServiceTest extends TestCase {
 	 * @return void
 	 */
 	public function testImportFromDirectoryCreatesItemsFromAnAlreadyExtractedDirectory(): void {
-		$tmpDir = sys_get_temp_dir() . '/scholiq_test_qti_' . bin2hex(random_bytes(6));
+		$tmpDir = sys_get_temp_dir() . '/learniq_test_qti_' . bin2hex(random_bytes(6));
 		mkdir($tmpDir, 0700, true);
 
 		$zip = new ZipArchive();
@@ -133,7 +133,7 @@ class QtiImportServiceTest extends TestCase {
 	 */
 	public function testExtractZipIsPubliclyCallable(): void {
 		$svc = $this->service();
-		$tmpDir = sys_get_temp_dir() . '/scholiq_test_qti_extract_' . bin2hex(random_bytes(6));
+		$tmpDir = sys_get_temp_dir() . '/learniq_test_qti_extract_' . bin2hex(random_bytes(6));
 
 		$svc->extractZip(self::FIXTURE, $tmpDir);
 

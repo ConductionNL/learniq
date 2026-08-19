@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Enrolment Prerequisite Listener
+ * Learniq Enrolment Prerequisite Listener
  *
  * Closes the "prerequisite hole": openspec/specs/enrolment/spec.md has required
  * "Validate prerequisites before persistence" since 2026-05-11, but no code ever
@@ -75,7 +75,7 @@ use Throwable;
  */
 class EnrolmentPrerequisiteListener implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ENROLMENT_SCHEMA = 'enrolment';
 	private const COURSE_SCHEMA = 'course';
 	private const COMPLETED_STATE = 'completed';
@@ -145,7 +145,7 @@ class EnrolmentPrerequisiteListener implements IEventListener {
 	 */
 	private function evaluate(ObjectCreatingEvent $event): void {
 		$entity = $event->getObject();
-		if ($this->schemaResolver->registerSlug(entity: $entity) !== self::SCHOLIQ_REGISTER
+		if ($this->schemaResolver->registerSlug(entity: $entity) !== self::LEARNIQ_REGISTER
 			|| $this->schemaResolver->schemaSlug(entity: $entity) !== self::ENROLMENT_SCHEMA
 		) {
 			return;
@@ -229,7 +229,7 @@ class EnrolmentPrerequisiteListener implements IEventListener {
 
 		$completed = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ENROLMENT_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,
@@ -273,7 +273,7 @@ class EnrolmentPrerequisiteListener implements IEventListener {
 	}//end rejectForUnmetPrerequisite()
 
 	/**
-	 * Resolve a scholiq-register object by id, returning it as a plain array.
+	 * Resolve a learniq-register object by id, returning it as a plain array.
 	 *
 	 * @param string $id UUID of the object.
 	 * @param string $schema Schema slug.
@@ -281,7 +281,7 @@ class EnrolmentPrerequisiteListener implements IEventListener {
 	 * @return array<string, mixed>|null
 	 */
 	private function resolveObject(string $id, string $schema): ?array {
-		$object = $this->objectService->find(id: $id, register: self::SCHOLIQ_REGISTER, schema: $schema);
+		$object = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
 		if ($object === null) {
 			return null;
 		}

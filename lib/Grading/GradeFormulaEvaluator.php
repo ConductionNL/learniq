@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Grade Formula Evaluator
+ * Learniq Grade Formula Evaluator
  *
  * Stateless calculation engine that applies a CurriculumPlan's declared formula
  * over a learner's published GradeEntries to produce a final grade value, a
@@ -45,7 +45,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class GradeFormulaEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 	private const CURRICULUM_PLAN_SCHEMA = 'curriculum-plan';
 	private const GRADE_SCALE_SCHEMA = 'grade-scale';
@@ -137,7 +137,7 @@ class GradeFormulaEvaluator {
 	private function fetchPlan(string $curriculumPlanId): ?array {
 		$obj = $this->objectService->find(
 			id: $curriculumPlanId,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::CURRICULUM_PLAN_SCHEMA
 		);
 
@@ -161,7 +161,7 @@ class GradeFormulaEvaluator {
 	private function fetchPublishedEntries(string $curriculumPlanId, string $learnerId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::GRADE_ENTRY_SCHEMA,
 				'filters' => [
 					'learnerId' => $learnerId,
@@ -204,7 +204,7 @@ class GradeFormulaEvaluator {
 
 		$obj = $this->objectService->find(
 			id: $gradeScaleId,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::GRADE_SCALE_SCHEMA
 		);
 

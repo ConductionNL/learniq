@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Course Package File Writer
+ * Learniq Course Package File Writer
  *
  * The nc:files plumbing every course-package importer shares: resolving a
  * package-relative file (or a base64 payload) into the importing tenant's

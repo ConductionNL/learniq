@@ -18,7 +18,7 @@
  @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
 -->
 <template>
-	<div class="scholiq-dashboards">
+	<div class="learniq-dashboards">
 		<CnDashboardPage
 			:key="activeRole"
 			:title="pageTitle"
@@ -512,19 +512,19 @@ export default {
 </script>
 
 <style scoped>
-.scholiq-dashboards__rolebar {
+.learniq-dashboards__rolebar {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	padding: 8px 12px 0;
 }
 
-.scholiq-dashboards__rolebar-label {
+.learniq-dashboards__rolebar-label {
 	font-size: 13px;
 	color: var(--color-text-maxcontrast);
 }
 
-.scholiq-dashboards__roleselect {
+.learniq-dashboards__roleselect {
 	min-width: 200px;
 }
 </style>

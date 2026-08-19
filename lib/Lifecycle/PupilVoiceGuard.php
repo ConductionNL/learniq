@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Pupil Voice Guard
+ * Learniq Pupil Voice Guard
  *
  * Lifecycle guard for the DeliberationRecord schema's `scheduled → recorded`
  * transition (the `record` action). Enforces the 2025 Wet versterking positie

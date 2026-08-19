@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq Application Conversion Handler
+ * Learniq Application Conversion Handler
  *
  * IEventListener for Application lifecycle -> placed (the OR
- * ObjectTransitionedEvent with register=scholiq, schema=application,
+ * ObjectTransitionedEvent with register=learniq, schema=application,
  * to=placed). Creates a LearnerProfile (guardianRefs stamped from
  * Application.guardianRef when set), bulk-creates one Enrolment
  * (source: "admission") per course in the chosen Programme.courseIds, stamps
@@ -65,7 +65,7 @@ use Psr\Log\LoggerInterface;
  */
 class ApplicationConversionHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const APPLICATION_SCHEMA = 'application';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 	private const ENROLMENT_SCHEMA = 'enrolment';
@@ -101,7 +101,7 @@ class ApplicationConversionHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -142,7 +142,7 @@ class ApplicationConversionHandler implements IEventListener {
 		$enrolmentIds = $this->createEnrolments(programmeId: $programmeId, ncUserId: $ncUserId, tenantId: $tenantId);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::APPLICATION_SCHEMA,
 			object: array_merge(
 				$application,
@@ -181,7 +181,7 @@ class ApplicationConversionHandler implements IEventListener {
 		}
 
 		$saved = $this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::LEARNER_PROFILE_SCHEMA,
 			object: [
 				'ncUserId' => $ncUserId,
@@ -214,7 +214,7 @@ class ApplicationConversionHandler implements IEventListener {
 		$enrolmentIds = [];
 		foreach ($courseIds as $courseId) {
 			$saved = $this->objectService->saveObject(
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::ENROLMENT_SCHEMA,
 				object: [
 					'learnerId' => $ncUserId,
@@ -247,7 +247,7 @@ class ApplicationConversionHandler implements IEventListener {
 
 		$programme = $this->objectService->find(
 			id: $programmeId,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::PROGRAMME_SCHEMA
 		);
 

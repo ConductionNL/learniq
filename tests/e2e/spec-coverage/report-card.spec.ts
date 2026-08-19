@@ -23,7 +23,7 @@
  * ReportCardVisibilityGuardTest, ReportCardComposerTest,
  * ReportCardPublishHandlerTest, ReportCardPdfDelegationServiceTest,
  * ReportCardComposerRegisterTest, PortalContributionProviderTest) and carry
- * `@e2e exclude` on their respective scenarios in the spec — no scholiq DOM
+ * `@e2e exclude` on their respective scenarios in the spec — no learniq DOM
  * surface exists for a lifecycle-guard/composer-internals scenario.
  *
  * Mirroring adaptive-release.spec.ts / progress-tracking.spec.ts's own

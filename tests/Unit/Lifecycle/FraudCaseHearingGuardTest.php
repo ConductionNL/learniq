@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq FraudCaseHearingGuard unit tests.
+ * Learniq FraudCaseHearingGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

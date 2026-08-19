@@ -86,7 +86,7 @@ use Psr\Log\LoggerInterface;
  */
 class ReportPeriodLockGuard {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const REPORT_PERIOD_SCHEMA = 'report-period';
 
 	/**
@@ -207,7 +207,7 @@ class ReportPeriodLockGuard {
 
 		$candidates = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::REPORT_PERIOD_SCHEMA,
 				'filters' => $filters,
 				'limit' => 500,

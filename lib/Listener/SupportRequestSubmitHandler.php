@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Support Request Submit Handler
+ * Learniq Support Request Submit Handler
  *
  * IEventListener for SupportRequest lifecycle → `submitted`
  * (the OR ObjectTransitionedEvent with schema=support-request, to=submitted).
@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  */
 class SupportRequestSubmitHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const SUPPORT_REQUEST_SCHEMA = 'support-request';
 	private const JOB_SCHEMA = 'data-exchange-job';
 	private const MAPPING_PROFILE_SCHEMA = 'data-mapping-profile';
@@ -99,7 +99,7 @@ class SupportRequestSubmitHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -226,7 +226,7 @@ class SupportRequestSubmitHandler implements IEventListener {
 	 */
 	private function persistSwvJob(array $job, string $supportRequestId): ?string {
 		$saved = $this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::JOB_SCHEMA,
 			object: $job
 		);
@@ -309,7 +309,7 @@ class SupportRequestSubmitHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::MAPPING_PROFILE_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,
@@ -348,7 +348,7 @@ class SupportRequestSubmitHandler implements IEventListener {
 	private function saveSupportRequestFields(string $supportRequestId, array $fields): void {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::SUPPORT_REQUEST_SCHEMA,
 				'filters' => ['id' => $supportRequestId],
 				'limit' => 1,
@@ -371,7 +371,7 @@ class SupportRequestSubmitHandler implements IEventListener {
 		$updated = array_merge($current, $fields);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::SUPPORT_REQUEST_SCHEMA,
 			object: $updated
 		);

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ConferenceScheduleGenerator unit tests.
+ * Learniq ConferenceScheduleGenerator unit tests.
  *
  * Covers the conflict-freeness property (no two ConferenceSlots for the same
  * teacher overlap, no two ConferenceSlots for the same signup/parent

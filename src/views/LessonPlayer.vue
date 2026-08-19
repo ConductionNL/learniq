@@ -335,7 +335,7 @@ export default {
 			ltiLaunching: false,
 			ltiError: '',
 			ltiLaunch: null,
-			ltiFrameName: 'scholiq-lti-launch-frame',
+			ltiFrameName: 'learniq-lti-launch-frame',
 			// learning-progress-and-analytics: manual (source: manual)
 			// LessonCompletion self-report state for non-xAPI content types.
 			manualCompletion: {
@@ -913,7 +913,7 @@ export default {
 
 		/**
 		 * Delegate the LTI launch to the backend, which delegates to the
-		 * OpenConnector lti-13-platform adapter (opaque proxy — Scholiq
+		 * OpenConnector lti-13-platform adapter (opaque proxy — Learniq
 		 * never inspects the id_token). `lesson.contentRef` names the
 		 * LtiToolPlacement UUID; the backend resolves it.
 		 *
@@ -980,7 +980,7 @@ export default {
 		 * Auto-submit an opaque LTI launch response as a real POST — an
 		 * id_token cannot be delivered via a GET navigation. New tab for
 		 * launchMode='resource-link', the in-page frame for 'deep-linking'.
-		 * Scholiq never reads or validates `idToken` — it is forwarded
+		 * Learniq never reads or validates `idToken` — it is forwarded
 		 * exactly as OpenConnector returned it (design.md D5).
 		 *
 		 * @param {object} launch The opaque {formActionUrl, idToken, launchMode} response.

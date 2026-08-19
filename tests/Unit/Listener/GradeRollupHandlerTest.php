@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq GradeRollupHandler unit tests — scheduled visibility window.
+ * Learniq GradeRollupHandler unit tests — scheduled visibility window.
  *
  * Covers the `grade-visibility-scheduling` wiring: GradeVisibilityResolver is
  * invoked once per publish, the resolved `visibleFrom` is persisted onto the

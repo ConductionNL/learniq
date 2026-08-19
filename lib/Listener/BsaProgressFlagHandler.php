@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq BSA Progress Flag Handler
+ * Learniq BSA Progress Flag Handler
  *
  * Listens for OpenRegister's ObjectTransitionedEvent on the same GradeEntry
  * `-> published` transition GradeRollupHandler already reacts to (a learner's
@@ -61,7 +61,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class BsaProgressFlagHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 	private const COURSE_SCHEMA = 'course';
 	private const BSA_TRAJECTORY_SCHEMA = 'bsa-trajectory';
@@ -105,7 +105,7 @@ class BsaProgressFlagHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -145,7 +145,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	private function resolveProgrammeIds(string $courseId): array {
 		$course = $this->objectService->find(
 			id: $courseId,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::COURSE_SCHEMA
 		);
 
@@ -178,7 +178,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	private function checkProgramme(string $programmeId, string $learnerId, string $tenantId): void {
 		$trajectories = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::BSA_TRAJECTORY_SCHEMA,
 				'filters' => [
 					'programmeId' => $programmeId,
@@ -246,7 +246,7 @@ class BsaProgressFlagHandler implements IEventListener {
 		}
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::BSA_PROGRESS_FLAG_SCHEMA,
 			object: [
 				'learnerId' => $learnerId,
@@ -306,7 +306,7 @@ class BsaProgressFlagHandler implements IEventListener {
 		foreach (self::OPEN_FLAG_STATES as $state) {
 			$existing = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::BSA_PROGRESS_FLAG_SCHEMA,
 					'filters' => [
 						'learnerId' => $learnerId,

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Engagement Signal Handler
+ * Learniq Engagement Signal Handler
  *
  * Listens for OR's ObjectCreatedEvent on XapiStatement objects — the SAME
  * event LessonProgressHandler independently reacts to — recomputes the
@@ -76,7 +76,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class EngagementSignalHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const XAPI_SCHEMA = 'xapi-statement';
 	private const ENGAGEMENT_SCORE_SCHEMA = 'engagement-score';
 	private const ENGAGEMENT_RISK_THRESHOLD_SCHEMA = 'engagement-risk-threshold';
@@ -125,7 +125,7 @@ class EngagementSignalHandler implements IEventListener {
 
 		$objectEntity = $event->getObject();
 
-		if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
+		if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::LEARNIQ_REGISTER
 			|| $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::XAPI_SCHEMA
 		) {
 			return;
@@ -189,7 +189,7 @@ class EngagementSignalHandler implements IEventListener {
 		);
 
 		$saved = $this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::ENGAGEMENT_SCORE_SCHEMA,
 			object: $data
 		);
@@ -208,7 +208,7 @@ class EngagementSignalHandler implements IEventListener {
 	private function findExistingEngagementScore(string $learnerId, string $courseId): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ENGAGEMENT_SCORE_SCHEMA,
 				'filters' => [
 					'learnerId' => $learnerId,
@@ -249,7 +249,7 @@ class EngagementSignalHandler implements IEventListener {
 	): void {
 		$thresholds = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ENGAGEMENT_RISK_THRESHOLD_SCHEMA,
 				'filters' => [
 					'lifecycle' => 'active',
@@ -329,7 +329,7 @@ class EngagementSignalHandler implements IEventListener {
 		$engagementScoreId = $engagementScore['id'] ?? ($engagementScore['uuid'] ?? null);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::ENGAGEMENT_RISK_FLAG_SCHEMA,
 			object: [
 				'learnerId' => $learnerId,
@@ -429,7 +429,7 @@ class EngagementSignalHandler implements IEventListener {
 	private function learnerInCohort(string $learnerId, string $cohortId): bool {
 		$cohort = $this->objectService->find(
 			id: $cohortId,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::COHORT_SCHEMA
 		);
 
@@ -460,7 +460,7 @@ class EngagementSignalHandler implements IEventListener {
 		foreach (self::OPEN_FLAG_STATES as $state) {
 			$existing = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::ENGAGEMENT_RISK_FLAG_SCHEMA,
 					'filters' => [
 						'learnerId' => $learnerId,

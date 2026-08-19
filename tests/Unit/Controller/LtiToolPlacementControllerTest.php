@@ -8,7 +8,7 @@
  * OpenConnector response unmodified (task 2.4); OpenConnector
  * unreachable/non-2xx returns a clear error response, not a silent empty
  * body (task 2.5); and the bearer-token header reuses the same
- * scholiq.openconnector_api_token config key DataExchangeRunHandler already
+ * learniq.openconnector_api_token config key DataExchangeRunHandler already
  * uses.
  *
  * @category Tests
@@ -163,7 +163,7 @@ class LtiToolPlacementControllerTest extends TestCase {
 		);
 
 		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
-			static fn (string $path): string => 'https://scholiq.example' . $path
+			static fn (string $path): string => 'https://learniq.example' . $path
 		);
 
 		$this->appConfig->method('getValueString')->willReturn('token-abc');
@@ -227,7 +227,7 @@ class LtiToolPlacementControllerTest extends TestCase {
 		);
 
 		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
-			static fn (string $path): string => 'https://scholiq.example' . $path
+			static fn (string $path): string => 'https://learniq.example' . $path
 		);
 		$this->appConfig->method('getValueString')->willReturn('token-abc');
 

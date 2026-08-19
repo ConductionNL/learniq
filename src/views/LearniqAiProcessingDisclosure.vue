@@ -151,7 +151,7 @@ import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
 
 const REGISTER = 'learniq'
-// The slug this schema declares in lib/Settings/scholiq_register.json, verbatim.
+// The slug this schema declares in lib/Settings/learniq_register.json, verbatim.
 // The resolver lowercases both sides, so casing is irrelevant — but a structural
 // difference (here the hyphen) is not: 'SovereigntyPolicy' lowercases to
 // 'sovereigntypolicy', which is not the declared 'sovereignty-policy'.

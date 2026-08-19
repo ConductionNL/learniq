@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq TimetableConflictDetector unit tests.
+ * Learniq TimetableConflictDetector unit tests.
  *
  * Covers every declared TimetableConflict `kind` (teacher/room/cohort/
  * learner-double-booking, room-capacity-exceeded, exam-clash), the

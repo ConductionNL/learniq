@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Exam Accommodation Approval Guard
+ * Learniq Exam Accommodation Approval Guard
  *
  * Lifecycle guard for the ExamAccommodation schema's `approve` transition
  * (`requested → approved`). Restricted to admin/compliance-officer/mentor —
@@ -11,7 +11,7 @@
  * spec's "Frontend is declarative with named custom views" requirement text:
  * this is a 5th PHP class. No `x-openregister-authorization` key expresses a
  * per-transition role gate in this register — verified: every existing
- * `x-openregister-authorization` block in `scholiq_register.json` uses only
+ * `x-openregister-authorization` block in `learniq_register.json` uses only
  * `create`/`update`/`read`/`delete` keys, never a transition action name — so
  * a small PHP lifecycle guard is the only ADR-031-legitimate seam, mirroring
  * `MunicipalityFeedbackGuard`'s identical "no declarative field/transition-

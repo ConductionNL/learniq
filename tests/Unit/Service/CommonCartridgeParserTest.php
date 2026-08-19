@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq CommonCartridgeParser unit tests.
+ * Learniq CommonCartridgeParser unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Service
@@ -43,7 +43,7 @@ class CommonCartridgeParserTest extends TestCase {
 	 * @return void
 	 */
 	protected function setUp(): void {
-		$this->tmpDir = sys_get_temp_dir() . '/scholiq_test_cc_' . bin2hex(random_bytes(6));
+		$this->tmpDir = sys_get_temp_dir() . '/learniq_test_cc_' . bin2hex(random_bytes(6));
 		$zip = new ZipArchive();
 		$zip->open(self::FIXTURE);
 		$zip->extractTo($this->tmpDir);
@@ -134,7 +134,7 @@ class CommonCartridgeParserTest extends TestCase {
 	 * @return void
 	 */
 	public function testMissingManifestThrows(): void {
-		$emptyDir = sys_get_temp_dir() . '/scholiq_test_cc_empty_' . bin2hex(random_bytes(6));
+		$emptyDir = sys_get_temp_dir() . '/learniq_test_cc_empty_' . bin2hex(random_bytes(6));
 		mkdir($emptyDir, 0700, true);
 
 		$this->expectException(RuntimeException::class);

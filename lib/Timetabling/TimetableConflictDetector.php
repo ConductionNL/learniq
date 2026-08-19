@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Timetable Conflict Detector
+ * Learniq Timetable Conflict Detector
  *
  * Detection, not optimisation (design.md "Conflict-detection algorithm").
  * Given a set of Session ids that just changed (created/updated, or
@@ -72,7 +72,7 @@ use Psr\Log\LoggerInterface;
  */
 class TimetableConflictDetector {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const TIMETABLE_CONFLICT_SCHEMA = 'timetable-conflict';
 
 	/**
@@ -162,7 +162,7 @@ class TimetableConflictDetector {
 
 		foreach ($toCreate as $conflict) {
 			$this->objectService->saveObject(
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::TIMETABLE_CONFLICT_SCHEMA,
 				object: $conflict
 			);

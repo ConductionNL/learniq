@@ -43,7 +43,7 @@ use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 
 /**
- * Mirror of OpenRegister's ObjectEntity for standalone Scholiq unit tests.
+ * Mirror of OpenRegister's ObjectEntity for standalone Learniq unit tests.
  *
  * The `@method` block below is copied verbatim from the real entity. It is what
  * makes the magic accessors visible to static analysis — without it PHPStan

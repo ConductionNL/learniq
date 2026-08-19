@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq BsaProgressFlagHandler unit tests.
+ * Learniq BsaProgressFlagHandler unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

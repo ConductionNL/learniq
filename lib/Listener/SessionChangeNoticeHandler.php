@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Scholiq Session Change Notice Handler
+ * Learniq Session Change Notice Handler
  *
  * IEventListener for Session lifecycle -> `cancel` / `substitute-teacher` /
  * `substitute-teacher-in-progress` (the OR ObjectTransitionedEvent with
- * register=scholiq, schema=session, action in that set). Materialises
+ * register=learniq, schema=session, action in that set). Materialises
  * `affectedLearnerIds` / `affectedParentIds` / `changedAt` onto the Session so
  * the verified `x-openregister-notifications` dialect's `kind:field`
  * recipients can resolve them without a runtime join — mirrors
@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  */
 class SessionChangeNoticeHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
 	private const COHORT_SCHEMA = 'cohort';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
@@ -102,7 +102,7 @@ class SessionChangeNoticeHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER || $event->getSchema() !== self::SESSION_SCHEMA) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER || $event->getSchema() !== self::SESSION_SCHEMA) {
 			return;
 		}
 
@@ -141,7 +141,7 @@ class SessionChangeNoticeHandler implements IEventListener {
 		$session['changedAt'] = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::SESSION_SCHEMA,
 			object: $session
 		);
@@ -173,7 +173,7 @@ class SessionChangeNoticeHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::COHORT_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,
@@ -216,7 +216,7 @@ class SessionChangeNoticeHandler implements IEventListener {
 
 			$results = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::LEARNER_PROFILE_SCHEMA,
 					'filters' => $filters,
 					'limit' => 1,

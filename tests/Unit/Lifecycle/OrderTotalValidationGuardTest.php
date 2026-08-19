@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq OrderTotalValidationGuard unit tests.
+ * Learniq OrderTotalValidationGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Fraud Case Decision Handler
+ * Learniq Fraud Case Decision Handler
  *
  * Listens for OpenRegister's ObjectTransitionedEvent and, when a FraudCase
  * transitions to `decided` with `verdict: fraud-proven`, drives its linked,
@@ -55,7 +55,7 @@ use Psr\Log\LoggerInterface;
  */
 class FraudCaseDecisionHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const FRAUD_CASE_SCHEMA = 'fraud-case';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 
@@ -89,7 +89,7 @@ class FraudCaseDecisionHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -175,7 +175,7 @@ class FraudCaseDecisionHandler implements IEventListener {
 	private function fetchGradeEntry(string $gradeEntryId): ?array {
 		$obj = $this->objectService->find(
 			id: $gradeEntryId,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::GRADE_ENTRY_SCHEMA
 		);
 

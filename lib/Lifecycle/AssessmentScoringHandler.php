@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Assessment Scoring Handler
+ * Learniq Assessment Scoring Handler
  *
  * Lifecycle guard/handler for the AssessmentResult schema's `submit` transition.
  * On submit, auto-scores each response by comparing it against the parent Item's
@@ -16,7 +16,7 @@
  * autoScore values from persisting (wave-12 WF3).
  *
  * Referenced from the AssessmentResult schema's
- * x-openregister-lifecycle.transitions.submit.requires in scholiq_register.json.
+ * x-openregister-lifecycle.transitions.submit.requires in learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle
@@ -56,9 +56,9 @@ use Psr\Log\LoggerInterface;
 class AssessmentScoringHandler {
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Interaction types that can be auto-scored.
@@ -112,7 +112,7 @@ class AssessmentScoringHandler {
 		// Fetch the parent Assessment for itemRefs and their point overrides.
 		$assessments = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'assessment',
 				// H1: scope Assessment lookup to the same tenant.
 				'filters' => $this->tenantScoped(filters: ['uuid' => $assessmentId], tenantId: $tenantId),
@@ -222,7 +222,7 @@ class AssessmentScoringHandler {
 	private function autoScoreFor(string $itemId, array $response, string $tenantId, array $pointsByItemId): ?float {
 		$items = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'item',
 				// H1: scope Item lookup to the same tenant.
 				'filters' => $this->tenantScoped(filters: ['uuid' => $itemId], tenantId: $tenantId),

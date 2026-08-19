@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq MoodleBackupParser unit tests.
+ * Learniq MoodleBackupParser unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Service
@@ -43,7 +43,7 @@ class MoodleBackupParserTest extends TestCase {
 	 * @return void
 	 */
 	protected function setUp(): void {
-		$this->tmpDir = sys_get_temp_dir() . '/scholiq_test_moodle_' . bin2hex(random_bytes(6));
+		$this->tmpDir = sys_get_temp_dir() . '/learniq_test_moodle_' . bin2hex(random_bytes(6));
 		(new MbzExtractor())->extract(self::FIXTURE, $this->tmpDir);
 	}//end setUp()
 
@@ -99,7 +99,7 @@ class MoodleBackupParserTest extends TestCase {
 	 * @return void
 	 */
 	public function testMissingManifestThrows(): void {
-		$emptyDir = sys_get_temp_dir() . '/scholiq_test_moodle_empty_' . bin2hex(random_bytes(6));
+		$emptyDir = sys_get_temp_dir() . '/learniq_test_moodle_empty_' . bin2hex(random_bytes(6));
 		mkdir($emptyDir, 0700, true);
 
 		$this->expectException(RuntimeException::class);

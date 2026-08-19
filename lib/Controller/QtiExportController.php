@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq QTI Export Controller
+ * Learniq QTI Export Controller
  *
  * Thin HTTP endpoint that streams an ItemBank's QTI 3.0 export package.
  * All heavy lifting is delegated to QtiExportService — this controller is

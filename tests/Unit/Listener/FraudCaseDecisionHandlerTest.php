@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq FraudCaseDecisionHandler unit tests.
+ * Learniq FraudCaseDecisionHandler unit tests.
  *
  * Covers: FraudCase → decided with verdict=fraud-proven drives a still-concept
  * contestedGradeEntryId through invalidate; a published/revised/invalidated

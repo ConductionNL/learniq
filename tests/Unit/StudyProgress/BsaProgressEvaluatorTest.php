@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq BsaProgressEvaluator unit tests.
+ * Learniq BsaProgressEvaluator unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\StudyProgress

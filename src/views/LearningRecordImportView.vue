@@ -27,7 +27,7 @@
 				{{
 					t(
 						'learniq',
-						"Upload the applicant's exported Scholiq learning record, or a bare ELM/Europass credential set. Every record found in the bundle is reported — nothing is silently lost. This is evidence for your own decision, not an automatic write.",
+						"Upload the applicant's exported Learniq learning record, or a bare ELM/Europass credential set. Every record found in the bundle is reported — nothing is silently lost. This is evidence for your own decision, not an automatic write.",
 					)
 				}}
 			</p>
@@ -43,7 +43,7 @@
 				v-model="sourceFormat"
 				class="learning-record-import__select">
 				<option value="scholiq-learning-record">
-					{{ t('learniq', 'Scholiq learning record export') }}
+					{{ t('learniq', 'Learniq learning record export') }}
 				</option>
 				<option value="elm-europass">
 					{{ t('learniq', 'Bare ELM / Europass credential set') }}

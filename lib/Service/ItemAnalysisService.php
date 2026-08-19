@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Item Analysis Service
+ * Learniq Item Analysis Service
  *
  * Stateless classical-test-theory (CTT) calculation engine: p-value, corrected
  * item-total (item-rest) Pearson correlation, Kelley 27%-split distractor
@@ -80,14 +80,14 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class ItemAnalysisService {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'assessment';
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
 	private const ITEM_SCHEMA = 'item';
 
 	/**
 	 * Schema defaults, used when Assessment.itemAnalysisConfig is unset —
-	 * MUST match lib/Settings/scholiq_register.json's `default` values on
+	 * MUST match lib/Settings/learniq_register.json's `default` values on
 	 * Assessment.itemAnalysisConfig's properties (design.md "Minimum-N thresholds").
 	 */
 	private const DEFAULT_MIN_SAMPLE_SIZE = 20;
@@ -717,7 +717,7 @@ class ItemAnalysisService {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ASSESSMENT_RESULT_SCHEMA,
 				'filters' => $filters,
 			]
@@ -753,7 +753,7 @@ class ItemAnalysisService {
 
 		$matches = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => $schema,
 				'filters' => $filters,
 				'limit' => 1,

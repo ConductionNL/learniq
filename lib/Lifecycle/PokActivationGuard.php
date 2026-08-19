@@ -61,7 +61,7 @@ class PokActivationGuard {
 	/**
 	 * Learniq register slug.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * PokSignature schema slug.
@@ -156,7 +156,7 @@ class PokActivationGuard {
 
 		$raw = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::POK_SIGNATURE_SCHEMA,
 				'filters' => $filters,
 				'limit' => 200,

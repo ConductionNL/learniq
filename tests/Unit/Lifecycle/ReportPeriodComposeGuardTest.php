@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ReportPeriodComposeGuard unit tests.
+ * Learniq ReportPeriodComposeGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

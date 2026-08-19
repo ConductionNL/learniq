@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ApplicationConversionHandler unit tests.
+ * Learniq ApplicationConversionHandler unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq Portfolio Grade Emit Handler
+ * Learniq Portfolio Grade Emit Handler
  *
  * IEventListener for Portfolio lifecycle → `graded` (the OR
- * ObjectTransitionedEvent with register=scholiq, schema=portfolio,
+ * ObjectTransitionedEvent with register=learniq, schema=portfolio,
  * to=graded). Bridges a graded course-bound portfolio into the `grading`
  * spec's pipeline by emitting exactly one `concept` GradeEntry
  * (sourceKind: portfolio) from the teacher-entered Portfolio.gradeValue, then
@@ -60,7 +60,7 @@ use Psr\Log\LoggerInterface;
  */
 class PortfolioGradeEmitHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const PORTFOLIO_SCHEMA = 'portfolio';
 	private const CURRICULUM_SCHEMA = 'curriculum-plan';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
@@ -93,7 +93,7 @@ class PortfolioGradeEmitHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -165,7 +165,7 @@ class PortfolioGradeEmitHandler implements IEventListener {
 		];
 
 		$saved = $this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::GRADE_ENTRY_SCHEMA,
 			object: $gradeEntry
 		);
@@ -180,7 +180,7 @@ class PortfolioGradeEmitHandler implements IEventListener {
 
 		// Back-link the GradeEntry to the Portfolio.
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::PORTFOLIO_SCHEMA,
 			object: array_merge($portfolio, ['gradeEntryId' => $gradeEntryId])
 		);
@@ -215,7 +215,7 @@ class PortfolioGradeEmitHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => $schema,
 				'filters' => ['id' => $id],
 				'limit' => 1,

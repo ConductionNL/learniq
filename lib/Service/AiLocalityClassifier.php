@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq AI Locality Classifier
+ * Learniq AI Locality Classifier
  *
  * Derives a {locality, verified, evidence} verdict for an AI-assisted feature's
  * processing destination from real, code-enforced configuration — never from a
@@ -21,7 +21,7 @@
  * inject-only/self-hosted `generic-*` credential, or Hermiq being
  * absent/unconfigured — classifies `unverified`. This class MUST NOT emit
  * `verified: true` for `on-premises` or `eu-hosted`: no code path available to
- * Scholiq or Hermiq currently proves either positively true (design.md
+ * Learniq or Hermiq currently proves either positively true (design.md
  * Decision 1 — prove violations, never prove compliance, and say so).
  *
  * Legitimate PHP per ADR-031: derives a classification from cross-app

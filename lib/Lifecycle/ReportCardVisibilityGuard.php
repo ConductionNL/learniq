@@ -65,7 +65,7 @@ use Psr\Log\LoggerInterface;
  */
 class ReportCardVisibilityGuard {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 
 	/**
@@ -205,7 +205,7 @@ class ReportCardVisibilityGuard {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::GRADE_ENTRY_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq PortfolioGradeEmitHandler unit tests.
+ * Learniq PortfolioGradeEmitHandler unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

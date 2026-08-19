@@ -27,7 +27,7 @@ namespace OCA\OpenRegister\Service\Lifecycle;
 use OCA\OpenRegister\Db\ObjectEntity;
 
 /**
- * Mirror of OpenRegister's TransitionEngine for standalone Scholiq unit tests.
+ * Mirror of OpenRegister's TransitionEngine for standalone Learniq unit tests.
  */
 abstract class TransitionEngine {
 

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq PeerFeedbackAggregator unit tests.
+ * Learniq PeerFeedbackAggregator unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Listener

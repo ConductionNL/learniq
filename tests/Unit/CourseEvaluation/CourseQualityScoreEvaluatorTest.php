@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq CourseQualityScoreEvaluator unit tests.
+ * Learniq CourseQualityScoreEvaluator unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\CourseEvaluation

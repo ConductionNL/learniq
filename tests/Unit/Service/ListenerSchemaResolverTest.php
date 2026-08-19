@@ -12,7 +12,7 @@
  *
  * The id/slug pairs below are the real values on the development instance
  * (`oc_openregister_registers` / `oc_openregister_schemas`): register
- * scholiq=9, xapi-statement=1280, enrolment=1309, session=1286, and the two
+ * learniq=9, xapi-statement=1280, enrolment=1309, session=1286, and the two
  * colliding `automation` schemas 71 / 5103.
  *
  * @category Test

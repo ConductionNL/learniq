@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Conference Signup Guardian Guard
+ * Learniq Conference Signup Guardian Guard
  *
  * Lifecycle guard for the ConferenceSignup schema's `submit` transition
  * (`draft → submitted`). Enforces that the caller is authorised to submit a
@@ -18,7 +18,7 @@
  * "is the object internally consistent".
  *
  * Referenced from ConferenceSignup's
- * x-openregister-lifecycle.transitions.submit.requires in scholiq_register.json.
+ * x-openregister-lifecycle.transitions.submit.requires in learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle
@@ -54,9 +54,9 @@ use Psr\Log\LoggerInterface;
 class ConferenceSignupGuardianGuard {
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * OR schema slug for LearnerProfile.
@@ -160,7 +160,7 @@ class ConferenceSignupGuardianGuard {
 
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LEARNER_PROFILE_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,

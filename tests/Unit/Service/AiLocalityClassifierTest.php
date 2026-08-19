@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq AiLocalityClassifier unit tests.
+ * Learniq AiLocalityClassifier unit tests.
  *
  * Coverage for the sovereign-ai-guarantee evidence chain: verified
  * `third-country` for the three catalogued, host-locked, broker-mediated SaaS

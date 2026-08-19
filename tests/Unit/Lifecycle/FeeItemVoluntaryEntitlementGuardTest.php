@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq FeeItemVoluntaryEntitlementGuard unit tests.
+ * Learniq FeeItemVoluntaryEntitlementGuard unit tests.
  *
  * Covers the structural Wet vrijwillige ouderbijdrage guarantee: a voluntary
  * FeeItem's Entitlement must never be able to reach `active`, regardless of

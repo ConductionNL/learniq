@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Page Controller
+ * Learniq Page Controller
  *
  * Renders the SPA shell and serves the bundled app manifest (ADR-024 §4).
  *
@@ -67,7 +67,7 @@ class PageController extends Controller {
 	/**
 	 * Render the main SPA page.
 	 *
-	 * Provides the resolved Scholiq role context as initial state so the
+	 * Provides the resolved Learniq role context as initial state so the
 	 * manifest shell can populate `runtime.user.primaryRole` (menu visibleIf)
 	 * and the role-aware Dashboards component can pick its default view and
 	 * switcher set without a second round-trip.

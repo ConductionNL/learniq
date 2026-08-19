@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Grade Visibility Resolver
+ * Learniq Grade Visibility Resolver
  *
  * Stateless service that resolves the `visibleFrom` datetime for a `GradeEntry`
  * at the moment it publishes — the earliest moment its (and its fanned-out

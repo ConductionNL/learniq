@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Key Admin Controller
+ * Learniq Key Admin Controller
  *
  * Admin-only endpoints for managing the per-tenant RSA keypair used for
  * Open Badges 3.0 credential signing. Wraps KeyManagementService.
@@ -54,7 +54,7 @@ use OCP\IUserSession;
 class KeyAdminController extends Controller {
 	/**
 	 * App-config key for the last key-generation timestamp per tenant.
-	 * Format: scholiq.keygen.last_at.<tenantId>
+	 * Format: learniq.keygen.last_at.<tenantId>
 	 */
 	private const KEYGEN_LAST_AT_PREFIX = 'keygen.last_at.';
 

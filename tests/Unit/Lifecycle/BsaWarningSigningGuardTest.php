@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq BsaWarningSigningGuard unit tests.
+ * Learniq BsaWarningSigningGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

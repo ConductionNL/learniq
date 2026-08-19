@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq OrderTotalEvaluator unit tests.
+ * Learniq OrderTotalEvaluator unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Payments

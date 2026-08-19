@@ -47,7 +47,7 @@ class RolloverService {
 	/**
 	 * OpenRegister register slug.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Terminal enrolment lifecycle states that are NOT carried over.
@@ -266,7 +266,7 @@ class RolloverService {
 			return [];
 		}
 
-		$obj = $this->objectService->find(id: $cohortId, register: self::SCHOLIQ_REGISTER, schema: 'cohort');
+		$obj = $this->objectService->find(id: $cohortId, register: self::LEARNIQ_REGISTER, schema: 'cohort');
 		if ($obj === null) {
 			return [];
 		}
@@ -316,7 +316,7 @@ class RolloverService {
 
 			$enrolments = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => 'enrolment',
 					'filters' => ['learnerId' => $learnerId],
 				]

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq SessionChangeGuard unit tests.
+ * Learniq SessionChangeGuard unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle

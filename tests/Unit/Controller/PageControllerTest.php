@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq PageController unit tests.
+ * Learniq PageController unit tests.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Controller

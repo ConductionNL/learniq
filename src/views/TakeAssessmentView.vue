@@ -829,7 +829,7 @@ export default {
 		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
 		 */
 		acquireTabLock(resultId) {
-			const key = `scholiq-native-test-mode-lock-${resultId}`
+			const key = `learniq-native-test-mode-lock-${resultId}`
 			let existing = null
 			try {
 				const raw = window.localStorage.getItem(key)
