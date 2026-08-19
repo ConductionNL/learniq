@@ -9,8 +9,8 @@
   - GIVEN the `scholiq` register WHEN `configuration.roles` is read THEN it contains exactly one role, `read-write` (`actions: ["read","create","update"]`) — no `read-only` role
   - GIVEN the register's `authorization` block WHEN it is read THEN `roles.read-write` lists `instructors`, `hr`, `compliance-officers`, `team-leads`, no `delete` key is present, and `learners` is named nowhere in the block (C1 — no blanket learner grant)
   - GIVEN the completed scope map WHEN read in isolation THEN it lists all eight canonical ids (`instructors`, `hr`, `compliance-officers`, `team-leads`, `learners`, `coordinators`, `guardians`, `administration-managers`) with descriptions, and neither `admin` nor `public`
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 2: Tier-1 authorization blocks — Profiles A and D (10 schemas)
 - **spec_ref**: `openspec/changes/rbac-declare-groups/specs/rbac-groups/spec.md#requirement-req-002-21-named-tier-1-schemas-declare-narrow-individually-assigned-authorization`
@@ -19,8 +19,8 @@
   - GIVEN each of the 9 Profile-A schemas WHEN its `authorization` block is read THEN `read`/`create`/`update` each list exactly `instructors`, `compliance-officers`
   - GIVEN `LearnerProfile` (Profile D) WHEN its `authorization` block is read THEN `read` lists `instructors`, `hr`, `compliance-officers` and `create`/`update` list `hr`, `compliance-officers`
   - GIVEN `DossierNote`, `BehaviourIncident`, `ProctoringSession` WHEN the file is inspected THEN none carries an `x-openregister-authorization` key
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 3: Tier-1 authorization blocks — Profiles B and C (11 schemas)
 - **spec_ref**: `openspec/changes/rbac-declare-groups/specs/rbac-groups/spec.md#requirement-req-002-21-named-tier-1-schemas-declare-narrow-individually-assigned-authorization`
@@ -29,8 +29,8 @@
   - GIVEN each of the 8 Profile-B schemas WHEN its `authorization` block is read THEN `read`/`create`/`update` each list exactly `compliance-officers`, `team-leads`
   - GIVEN each of the 3 Profile-C schemas WHEN its `authorization` block is read THEN `read`/`create`/`update` each list exactly `hr`, `compliance-officers`
   - GIVEN `TlvApplication`, `BsaDecision`, `BsaWarning`, `PeerReview` WHEN the file is inspected THEN none carries an `x-openregister-authorization` key
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 4: Tier-3 catalogue authorization blocks — Profile 3a shared-config (13 schemas) and Profile 3b course-content (8 schemas, new per C5)
 - **spec_ref**: `openspec/changes/rbac-declare-groups/specs/rbac-groups/spec.md#requirement-req-003-21-named-tier-3-catalogue-schemas-declare-wide-read-staff-only-write-across-two-profiles`
@@ -39,8 +39,8 @@
   - GIVEN each of the 13 Profile-3a schemas WHEN its `authorization` block is read THEN `read` lists exactly `authenticated` and `create`/`update` each list exactly `compliance-officers`, `team-leads` (`instructors`/`hr` deliberately excluded)
   - GIVEN each of the 8 Profile-3b schemas WHEN its `authorization` block is read THEN `read` lists exactly `authenticated` and `create`/`update` each list exactly `instructors`, `hr`, `compliance-officers`, `team-leads` (`instructors` deliberately INCLUDED — they author this content; C5's fix)
   - GIVEN `ReportPeriod`, `Room` WHEN the file is inspected THEN neither carries an `x-openregister-authorization` key
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 5: Remove the remaining decoy `x-openregister-authorization` keys (11 Tier-2 schemas)
 - **spec_ref**: `openspec/changes/rbac-declare-groups/specs/rbac-groups/spec.md#requirement-req-006-the-x-openregister-authorization-decoy-key-is-removed-from-every-schema-that-carries-it`
@@ -48,8 +48,8 @@
 - **acceptance_criteria**:
   - GIVEN the 11 named schemas WHEN the file is inspected THEN none carries `x-openregister-authorization` or a bare `authorization` key
   - GIVEN a grep for `x-openregister-authorization` across the whole file WHEN run after Tasks 2–5 THEN it returns zero matches
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 6: Verify import provisions all eight groups PLUS the `authenticated` side effect (observable state change)
 - **spec_ref**: `openspec/changes/rbac-declare-groups/specs/rbac-groups/spec.md#requirement-req-005-declaring-the-authorization-blocks-and-scope-map-provisions-all-eight-groups-as-real-nextcloud-groups`
