@@ -193,6 +193,7 @@ export default {
 		 * tile).
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		subgroupId() {
 			return (
@@ -226,6 +227,9 @@ export default {
 	watch: {
 		subgroupId: {
 			immediate: true,
+			/**
+			 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+			 */
 			handler() {
 				if (this.subgroupId) this.loadAll()
 			},
@@ -239,6 +243,7 @@ export default {
 		 * navigation without a pre-selected subgroup).
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		openSubgroup() {
 			const id = this.subgroupIdInput.trim()
@@ -257,6 +262,7 @@ export default {
 		 * @param {string} schema OpenRegister schema title (e.g. "GroupPlanSubgroup").
 		 * @param {string} id Object UUID.
 		 * @return {Promise<object|null>}
+		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		async fetchObject(schema, id) {
 			const url = generateUrl(
@@ -276,6 +282,7 @@ export default {
 		 * @param {string} query Query string, WITHOUT the leading "?" (already
 		 *   `encodeURIComponent`-escaped by the caller).
 		 * @return {Promise<Array<object>>}
+		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		async fetchSchema(schema, query) {
 			const url = generateUrl(

@@ -136,6 +136,7 @@ export default {
 		 * Dialog title.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 		 */
 		dialogTitle() {
 			if (!this.period) return t('scholiq', 'Compose report period')
@@ -156,6 +157,7 @@ export default {
 		 * Load the ReportPeriod being composed.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 		 */
 		async loadPeriod() {
 			this.loading = true

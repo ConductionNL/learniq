@@ -88,6 +88,9 @@
 									<template v-if="subjectRow(card, plan.id)">
 										<div class="rapportvergadering-review__cell">
 											<strong>{{
+												/**
+												 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+												 */
 												formatAverage(
 													subjectRow(card, plan.id)
 														.periodAverage,
@@ -116,6 +119,9 @@
 												:disabled="!isEditable(card)"
 												rows="2"
 												@change="
+													/**
+													 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+													 */
 													onTeacherCommentChange(
 														card,
 														plan.id,
@@ -143,6 +149,9 @@
 										:disabled="!isEditable(card)"
 										rows="2"
 										@change="
+											/**
+											 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+											 */
 											onMentorCommentChange(
 												card,
 												$event.target.value,
@@ -269,6 +278,7 @@ export default {
 		 * One column per in-scope CurriculumPlan, in ReportPeriod.curriculumPlanIds order.
 		 *
 		 * @return {Array<{id: string, label: string}>}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		subjectColumns() {
 			if (!this.period) return []
@@ -294,6 +304,7 @@ export default {
 		 * CurriculumPlan labels and ReportCards.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadPeriod() {
 			this.loadingPeriod = true
@@ -320,6 +331,7 @@ export default {
 		 * Resolve display labels for the period's in-scope CurriculumPlans.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadCurriculumPlans() {
 			const planIds = (this.period && this.period.curriculumPlanIds) || []
@@ -349,6 +361,7 @@ export default {
 		 * Load every ReportCard composed for this ReportPeriod.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadCards() {
 			this.loadingCards = true
@@ -375,6 +388,7 @@ export default {
 		 * Called when ComposeReportPeriodModal successfully triggers `compose`.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async onComposed() {
 			await this.loadPeriod()
@@ -413,6 +427,7 @@ export default {
 		 *
 		 * @param {object} card A ReportCard.
 		 * @return {string}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		cardId(card) {
 			return card.id || card.uuid || ''
@@ -462,6 +477,7 @@ export default {
 		 *
 		 * @param {object} card The ReportCard to save.
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async saveCard(card) {
 			const id = this.cardId(card)

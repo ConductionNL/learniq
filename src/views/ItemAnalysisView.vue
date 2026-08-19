@@ -234,6 +234,9 @@ export default {
 	watch: {
 		itemId: {
 			immediate: true,
+			/**
+			 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+			 */
 			handler() {
 				this.load()
 			},
@@ -286,6 +289,7 @@ export default {
 		 * Fetch the Item's title for the page heading.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 		 */
 		async loadItemTitle() {
 			const url = generateUrl(
@@ -351,6 +355,7 @@ export default {
 		 *
 		 * @param {number|null} value Value to format
 		 * @return {string}
+		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 		 */
 		formatNumber(value) {
 			if (value === null || value === undefined) return '—'
