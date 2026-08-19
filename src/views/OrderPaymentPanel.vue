@@ -200,6 +200,9 @@ export default {
 	},
 
 	computed: {
+		/**
+		 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-a-payer-opens-the-payment-panel-and-initiates-payment
+		 */
 		canPay() {
 			return !!this.order && PAYABLE_STATES.includes(this.order.lifecycle)
 		},
@@ -227,6 +230,7 @@ export default {
 		 * Load the Order and its OrderLines.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-a-payer-opens-the-payment-panel-and-initiates-payment
 		 */
 		async loadOrder() {
 			this.loading = true
@@ -276,6 +280,7 @@ export default {
 		 *
 		 * @param {number} amount The amount to format.
 		 * @return {string} The formatted amount.
+		 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-a-payer-opens-the-payment-panel-and-initiates-payment
 		 */
 		formatAmount(amount) {
 			const currency = this.order?.currency ?? 'EUR'

@@ -397,6 +397,7 @@ export default {
 		 * NcSelect options for the CourseTemplate picker.
 		 *
 		 * @return {Array<{id: string, label: string}>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		templateOptions() {
 			return this.templates.map((tpl) => ({ id: tpl.id, label: tpl.name }))
@@ -450,6 +451,9 @@ export default {
 		},
 
 		/** @return {void} */
+		/**
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
+		 */
 		goBack() {
 			if (this.$router) {
 				this.$router
@@ -463,6 +467,7 @@ export default {
 		 *
 		 * @param {object} lesson The Lesson row.
 		 * @return {void}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		openComposer(lesson) {
 			if (this.$router) {
@@ -480,6 +485,7 @@ export default {
 		 *
 		 * @param {object} lesson The Lesson row.
 		 * @return {void}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		openPlayer(lesson) {
 			if (this.$router) {
@@ -498,6 +504,7 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {string} objId Object UUID.
 		 * @return {Promise<object>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async fetchObject(schema, objId) {
 			const url = generateUrl(
@@ -517,6 +524,7 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {string} query Pre-built query string.
 		 * @return {Promise<Array<object>>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async fetchList(schema, query) {
 			const url = generateUrl(
@@ -536,6 +544,7 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {object} body Payload.
 		 * @return {Promise<object>} The created object.
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async createObject(schema, body) {
 			const url = generateUrl(
@@ -563,6 +572,7 @@ export default {
 		 * @param {string} objId Object UUID.
 		 * @param {object} patch Partial payload.
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async updateObject(schema, objId, patch) {
 			const url = generateUrl(
@@ -586,6 +596,7 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {string} objId Object UUID.
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async deleteObject(schema, objId) {
 			const url = generateUrl(
@@ -638,6 +649,7 @@ export default {
 		 * @param {string} schema 'Course' or 'Lesson'.
 		 * @param {string} noun Human-readable noun for the announcement ('Module' or 'Lesson').
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async reorder(list, fromIndex, toIndex, schema, noun) {
 			if (fromIndex === toIndex || toIndex < 0 || toIndex >= list.length)
@@ -653,6 +665,9 @@ export default {
 		},
 
 		/** @param {number} idx Module index. @return {Promise<void>} */
+		/**
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
+		 */
 		moveModuleUp(idx) {
 			return this.reorder(
 				this.modules,
@@ -664,6 +679,9 @@ export default {
 		},
 
 		/** @param {number} idx Module index. @return {Promise<void>} */
+		/**
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
+		 */
 		moveModuleDown(idx) {
 			return this.reorder(
 				this.modules,
@@ -678,6 +696,7 @@ export default {
 		 * @param {object} module Parent module.
 		 * @param {number} idx Lesson index within module.lessons.
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		moveLessonUp(module, idx) {
 			return this.reorder(
@@ -693,6 +712,7 @@ export default {
 		 * @param {object} module Parent module.
 		 * @param {number} idx Lesson index within module.lessons.
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		moveLessonDown(module, idx) {
 			return this.reorder(
@@ -709,6 +729,7 @@ export default {
 		 * already reordered by `v-model`; just persist + announce.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async onModulesDragEnd() {
 			await this.persistOrder(this.modules, 'Course')
@@ -720,6 +741,7 @@ export default {
 		 *
 		 * @param {object} module The module whose lessons were reordered.
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async onLessonsDragEnd(module) {
 			await this.persistOrder(module.lessons, 'Lesson')
@@ -914,6 +936,7 @@ export default {
 		 * Load available CourseTemplates when the instantiate panel opens.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async onOpenInstantiate() {
 			this.showInstantiate = !this.showInstantiate

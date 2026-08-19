@@ -93,6 +93,7 @@ export default {
 		 * The dashboard page title.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 		 */
 		pageTitle() {
 			return this.t('scholiq', 'Learning')
@@ -147,6 +148,7 @@ export default {
 		 * The CnDashboardPage `layout` declaration (12-column grid).
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 		 */
 		layout() {
 			return [

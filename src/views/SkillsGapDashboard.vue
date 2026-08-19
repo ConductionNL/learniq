@@ -321,6 +321,7 @@ export default {
 		 *
 		 * @param {string} ncUserId Nextcloud user id.
 		 * @return {Promise<object|null>}
+		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 		 */
 		async fetchLearnerProfile(ncUserId) {
 			// Declared slug, verbatim (see above).
@@ -337,6 +338,7 @@ export default {
 		 * @param {string} schema Schema name/slug as used in the OR object API path.
 		 * @param {object} params Query filter params.
 		 * @return {Promise<object[]>}
+		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 		 */
 		async fetchCollection(schema, params) {
 			const query = new URLSearchParams(
@@ -358,6 +360,7 @@ export default {
 		 * @param {string} schema Schema name/slug.
 		 * @param {string} id     Object UUID.
 		 * @return {Promise<object|null>}
+		 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-skills-gap-view-compares-required-competencies-by-programme-and-by-role-against-attained-ones
 		 */
 		async fetchObject(schema, id) {
 			if (!id) return null
