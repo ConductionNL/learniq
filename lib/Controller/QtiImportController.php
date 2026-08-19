@@ -13,7 +13,7 @@
  * exception. This controller provides the Nextcloud HTTP surface only.
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -30,11 +30,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\Service\ActionAuthService;
-use OCA\Scholiq\Service\QtiImportService;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\QtiImportService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;

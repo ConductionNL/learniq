@@ -6,7 +6,7 @@
  * Repair step that initializes Scholiq register and schemas on install/upgrade.
  *
  * @category Repair
- * @package  OCA\Scholiq\Repair
+ * @package  OCA\Learniq\Repair
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -21,9 +21,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Repair;
+namespace OCA\Learniq\Repair;
 
-use OCA\Scholiq\Service\SettingsService;
+use OCA\Learniq\Service\SettingsService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
 use Psr\Log\LoggerInterface;

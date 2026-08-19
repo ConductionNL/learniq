@@ -10,7 +10,7 @@
  * Legitimate PHP per ADR-031 §"Calculation engine — business rule above schema metadata."
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -27,11 +27,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use InvalidArgumentException;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Lifecycle\AssessmentScoringHandler;
+use OCA\Learniq\Lifecycle\AssessmentScoringHandler;
 use OCP\IGroupManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;

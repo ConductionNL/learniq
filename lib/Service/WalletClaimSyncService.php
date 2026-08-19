@@ -5,7 +5,7 @@
  *
  * Lifecycle guard for the Credential schema's `recordWalletClaim` transition.
  * System-triggered only (never a user-facing action) — invoked by
- * {@see \OCA\Scholiq\Listener\WalletOfferConcludedListener} when openconnector
+ * {@see \OCA\Learniq\Listener\WalletOfferConcludedListener} when openconnector
  * reports the wallet holder claimed an outstanding offer. Writes the claim
  * timestamp onto the Credential.
  *
@@ -25,7 +25,7 @@
  * contract `CredentialSigningService` establishes.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -42,7 +42,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 /**
  * Guards the Credential `recordWalletClaim` transition.

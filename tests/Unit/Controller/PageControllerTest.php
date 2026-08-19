@@ -4,7 +4,7 @@
  * Scholiq PageController unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Controller
+ * @package  OCA\Learniq\Tests\Unit\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,10 +21,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Controller;
+namespace OCA\Learniq\Tests\Unit\Controller;
 
-use OCA\Scholiq\Controller\PageController;
-use OCA\Scholiq\Service\DashboardRoleService;
+use OCA\Learniq\Controller\PageController;
+use OCA\Learniq\Service\DashboardRoleService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;

@@ -4,7 +4,7 @@
  * Unit tests for DashboardRoleService.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -17,15 +17,15 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Scholiq\Service\DashboardRoleService;
+use OCA\Learniq\Service\DashboardRoleService;
 use OCP\IGroupManager;
 use OCP\IUser;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \OCA\Scholiq\Service\DashboardRoleService
+ * @covers \OCA\Learniq\Service\DashboardRoleService
  */
 class DashboardRoleServiceTest extends TestCase {
 	/**

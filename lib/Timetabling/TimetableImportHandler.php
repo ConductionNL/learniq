@@ -29,14 +29,14 @@
  *    overwritten — the lookup filter always requires a non-empty
  *    externalRef.
  * 5. Once the job reaches `succeeded`/`partial`, triggers
- *    {@see \OCA\Scholiq\Timetabling\TimetableConflictDetector}'s batch scan
+ *    {@see \OCA\Learniq\Timetabling\TimetableConflictDetector}'s batch scan
  *    over every upserted Session.
  *
  * ADR-031 legitimate exception: external-system bridge — the same shape as
  * `data-exchange`'s existing job-execution handler (DataExchangeRunHandler).
  *
  * @category Service
- * @package  OCA\Scholiq\Timetabling
+ * @package  OCA\Learniq\Timetabling
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -54,7 +54,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Timetabling;
+namespace OCA\Learniq\Timetabling;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;

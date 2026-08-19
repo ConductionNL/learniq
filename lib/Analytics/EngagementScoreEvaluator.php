@@ -33,7 +33,7 @@
  *   - EngagementSignalHandler (via ObjectCreatedEvent<XapiStatement>)
  *
  * @category Analytics
- * @package  OCA\Scholiq\Analytics
+ * @package  OCA\Learniq\Analytics
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -50,7 +50,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Analytics;
+namespace OCA\Learniq\Analytics;
 
 use DateInterval;
 use DateTimeImmutable;

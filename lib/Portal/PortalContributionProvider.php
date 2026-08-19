@@ -23,7 +23,7 @@
  * flows are untouched.
  *
  * @category Portal
- * @package  OCA\Scholiq\Portal
+ * @package  OCA\Learniq\Portal
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -41,7 +41,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Portal;
+namespace OCA\Learniq\Portal;
 
 /**
  * Declares what an external portal subject may see and do in Scholiq.

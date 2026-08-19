@@ -9,7 +9,7 @@
  * is not exercised by any existing test in this suite either).
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Timetabling
+ * @package  OCA\Learniq\Tests\Unit\Timetabling
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -26,16 +26,16 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Timetabling;
+namespace OCA\Learniq\Tests\Unit\Timetabling;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
-use OCA\Scholiq\Timetabling\TimetableConflictDetector;
-use OCA\Scholiq\Timetabling\TimetableImportHandler;
-use OCA\Scholiq\Timetabling\TimetableRecordMapper;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Timetabling\TimetableConflictDetector;
+use OCA\Learniq\Timetabling\TimetableImportHandler;
+use OCA\Learniq\Timetabling\TimetableRecordMapper;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;

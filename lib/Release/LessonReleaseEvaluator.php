@@ -25,7 +25,7 @@
  *   - LessonReleaseController::status() / assessmentStatus()
  *
  * @category Release
- * @package  OCA\Scholiq\Release
+ * @package  OCA\Learniq\Release
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -45,7 +45,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Release;
+namespace OCA\Learniq\Release;
 
 use DateInterval;
 use DateTimeImmutable;

@@ -10,7 +10,7 @@
  * In CI environments without a running Nextcloud the test is skipped automatically.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Integration\Lifecycle
+ * @package  OCA\Learniq\Tests\Integration\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -31,10 +31,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Integration\Lifecycle;
+namespace OCA\Learniq\Tests\Integration\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Lifecycle\XapiCompletionHandler;
+use OCA\Learniq\Lifecycle\XapiCompletionHandler;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -47,7 +47,7 @@ use Psr\Log\NullLogger;
  * that the matching Enrolment is transitioned to `completed`.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Integration\Lifecycle
+ * @package  OCA\Learniq\Tests\Integration\Lifecycle
  */
 class XapiCompletionHandlerIntegrationTest extends TestCase {
 
@@ -103,7 +103,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 			// The listener guards on register/schema SLUGS while OpenRegister
 			// stamps numeric ids onto the entity; the real resolver from the
 			// container is what turns one into the other in production.
-			$schemaResolver = \OC::$server->get(\OCA\Scholiq\Service\ListenerSchemaResolver::class);
+			$schemaResolver = \OC::$server->get(\OCA\Learniq\Service\ListenerSchemaResolver::class);
 
 			$this->handler = new XapiCompletionHandler(
 				$this->objectService,

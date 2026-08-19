@@ -4,7 +4,7 @@
  * Scholiq Timetable Record Mapper
  *
  * The record-shaping half of a `timetable-import` DataExchangeJob, split out
- * of {@see \OCA\Scholiq\Timetabling\TimetableImportHandler} so that the
+ * of {@see \OCA\Learniq\Timetabling\TimetableImportHandler} so that the
  * handler owns only the job lifecycle (OpenConnector call, upsert, state
  * transition) while this collaborator owns the pure, side-effect-free
  * translation of one inbound external record into a Session-shaped array.
@@ -21,7 +21,7 @@
  * testable in isolation.
  *
  * @category Service
- * @package  OCA\Scholiq\Timetabling
+ * @package  OCA\Learniq\Timetabling
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -38,7 +38,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Timetabling;
+namespace OCA\Learniq\Timetabling;
 
 /**
  * Maps one inbound external timetable record onto a Session-shaped array and

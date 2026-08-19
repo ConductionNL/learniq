@@ -12,7 +12,7 @@
  * IDelegatedSettings form (section `scholiq`, priority 10).
  *
  * @category Settings
- * @package  OCA\Scholiq\Settings
+ * @package  OCA\Learniq\Settings
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2024 Conduction B.V.
@@ -27,7 +27,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Settings;
+namespace OCA\Learniq\Settings;
 
 use OCA\OpenRegister\AppHost\Settings\GenericAdminSettings;
 

@@ -10,7 +10,7 @@
  * In CI environments without a running Nextcloud the test is skipped automatically.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Integration\Lifecycle
+ * @package  OCA\Learniq\Tests\Integration\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -32,7 +32,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Integration\Lifecycle;
+namespace OCA\Learniq\Tests\Integration\Lifecycle;
 
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -47,7 +47,7 @@ use PHPUnit\Framework\TestCase;
  * enough matching published Items exist.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Integration\Lifecycle
+ * @package  OCA\Learniq\Tests\Integration\Lifecycle
  */
 class AssessmentPublishGuardRandomDrawIntegrationTest extends TestCase {
 

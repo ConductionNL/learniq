@@ -4,7 +4,7 @@
  * Scholiq CompetencyAttainmentRollupHandler unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -22,19 +22,19 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Listener\CompetencyAttainmentRollupHandler;
-use OCA\Scholiq\Service\CompetencyAttainmentWriter;
-use OCA\Scholiq\Service\CompetencyLevelResolver;
-use OCA\Scholiq\Service\GradeEvidenceRollup;
-use OCA\Scholiq\Service\ListenerSchemaResolver;
-use OCA\Scholiq\Service\ObjectRowReader;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Listener\CompetencyAttainmentRollupHandler;
+use OCA\Learniq\Service\CompetencyAttainmentWriter;
+use OCA\Learniq\Service\CompetencyLevelResolver;
+use OCA\Learniq\Service\GradeEvidenceRollup;
+use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\ObjectRowReader;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;

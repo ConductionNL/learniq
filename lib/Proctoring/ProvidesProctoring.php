@@ -19,7 +19,7 @@
  *   AI-feature governance to Hermiq (ai-feature-delegate-to-hermiq).
  *
  * @category Proctoring
- * @package  OCA\Scholiq\Proctoring
+ * @package  OCA\Learniq\Proctoring
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -36,7 +36,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Proctoring;
+namespace OCA\Learniq\Proctoring;
 
 /**
  * Pluggable proctoring provider interface.

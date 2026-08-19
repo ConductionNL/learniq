@@ -12,7 +12,7 @@
  * isAvailable) combined correctly with the new per-learner gates.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Release
+ * @package  OCA\Learniq\Tests\Unit\Release
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -32,12 +32,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Release;
+namespace OCA\Learniq\Tests\Unit\Release;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Release\LessonReleaseEvaluator;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Release\LessonReleaseEvaluator;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 
 /**

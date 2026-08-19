@@ -10,7 +10,7 @@
  * hoorrecht, insight 1145).
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Lifecycle
+ * @package  OCA\Learniq\Tests\Unit\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -28,9 +28,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Lifecycle;
+namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
-use OCA\Scholiq\Lifecycle\PupilVoiceGuard;
+use OCA\Learniq\Lifecycle\PupilVoiceGuard;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 

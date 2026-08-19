@@ -13,7 +13,7 @@
  * write no declarative schema expression covers.
  *
  * @category AppInfo
- * @package  OCA\Scholiq\AppInfo\Registrar
+ * @package  OCA\Learniq\AppInfo\Registrar
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -30,18 +30,18 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\AppInfo\Registrar;
+namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
-use OCA\Scholiq\Listener\AdmissionsWaitlistPromoter;
-use OCA\Scholiq\Listener\ApplicationConversionHandler;
-use OCA\Scholiq\Listener\EnrolmentPrerequisiteListener;
-use OCA\Scholiq\Listener\PaymentTransactionStatusHandler;
-use OCA\Scholiq\Listener\SessionChangeNoticeHandler;
-use OCA\Scholiq\Listener\SubjectChoiceEnrolmentBridge;
-use OCA\Scholiq\Listener\SubjectChoiceValidator;
-use OCA\Scholiq\Listener\WalletOfferConcludedListener;
+use OCA\Learniq\Listener\AdmissionsWaitlistPromoter;
+use OCA\Learniq\Listener\ApplicationConversionHandler;
+use OCA\Learniq\Listener\EnrolmentPrerequisiteListener;
+use OCA\Learniq\Listener\PaymentTransactionStatusHandler;
+use OCA\Learniq\Listener\SessionChangeNoticeHandler;
+use OCA\Learniq\Listener\SubjectChoiceEnrolmentBridge;
+use OCA\Learniq\Listener\SubjectChoiceValidator;
+use OCA\Learniq\Listener\WalletOfferConcludedListener;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 /**
@@ -151,10 +151,10 @@ class SchedulingListenerRegistrar {
 	 *
 	 * Scholiq delegates EUDI-wallet offer creation/revocation to
 	 * openconnector's `eudi-wallet-credential-issuance` REST adapter
-	 * ({@see \OCA\Scholiq\Service\WalletOfferDelegationService}). This
+	 * ({@see \OCA\Learniq\Service\WalletOfferDelegationService}). This
 	 * listener would consume the terminal "wallet holder claimed the offer"
 	 * signal, but as documented on
-	 * {@see \OCA\Scholiq\Listener\WalletOfferConcludedListener}'s docblock,
+	 * {@see \OCA\Learniq\Listener\WalletOfferConcludedListener}'s docblock,
 	 * openconnector's merged adapter defines no such event — the
 	 * `class_exists` guard below evaluates false today and this
 	 * registration is a no-op. Kept `class_exists`-guarded by FQN string

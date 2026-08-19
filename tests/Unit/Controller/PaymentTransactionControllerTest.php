@@ -9,7 +9,7 @@
  * callback-token authentication.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Controller
+ * @package  OCA\Learniq\Tests\Unit\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -27,13 +27,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Controller;
+namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Controller\PaymentTransactionController;
-use OCA\Scholiq\Service\PaymentInitiationClient;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Controller\PaymentTransactionController;
+use OCA\Learniq\Service\PaymentInitiationClient;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Http;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;

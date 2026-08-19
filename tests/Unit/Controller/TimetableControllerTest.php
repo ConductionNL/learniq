@@ -9,7 +9,7 @@
  * contract, no cross-cohort leakage, and the read-only invariant (no writes).
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Controller
+ * @package  OCA\Learniq\Tests\Unit\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -24,11 +24,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Controller;
+namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Controller\TimetableController;
-use OCA\Scholiq\Service\TimetableProjector;
+use OCA\Learniq\Controller\TimetableController;
+use OCA\Learniq\Service\TimetableProjector;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;

@@ -4,7 +4,7 @@
  * Guards scholiq's XML parsing against Nextcloud's XXE hardening.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Contract
+ * @package  OCA\Learniq\Tests\Unit\Contract
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,11 +21,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Contract;
+namespace OCA\Learniq\Tests\Unit\Contract;
 
 use DOMDocument;
-use OCA\Scholiq\Service\CommonCartridgeParser;
-use OCA\Scholiq\Service\MoodleBackupParser;
+use OCA\Learniq\Service\CommonCartridgeParser;
+use OCA\Learniq\Service\MoodleBackupParser;
 use PHPUnit\Framework\TestCase;
 
 /**

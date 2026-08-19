@@ -9,7 +9,7 @@
  * catalogue to an LLM — without ever leaking enrolled-learner PII.
  *
  * @category Mcp
- * @package  OCA\Scholiq\Mcp
+ * @package  OCA\Learniq\Mcp
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -25,7 +25,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Mcp;
+namespace OCA\Learniq\Mcp;
 
 use OCA\OpenRegister\Mcp\IMcpToolProvider;
 use OCA\OpenRegister\Service\ObjectService;

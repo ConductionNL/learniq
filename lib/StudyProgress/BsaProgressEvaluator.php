@@ -24,7 +24,7 @@
  *   - BsaProgressFlagHandler (via ObjectTransitionedEvent on GradeEntry.published)
  *
  * @category StudyProgress
- * @package  OCA\Scholiq\StudyProgress
+ * @package  OCA\Learniq\StudyProgress
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -41,7 +41,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\StudyProgress;
+namespace OCA\Learniq\StudyProgress;
 
 use OCA\OpenRegister\Service\ObjectService;
 

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests for {@see \OCA\Scholiq\Service\ListenerSchemaResolver}.
+ * Tests for {@see \OCA\Learniq\Service\ListenerSchemaResolver}.
  *
  * These are POSITIVE controls for the id-vs-slug listener defect: each one
  * asserts the resolver actually PRODUCES the register/schema slugs a listener
@@ -16,7 +16,7 @@
  * colliding `automation` schemas 71 / 5103.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -29,10 +29,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Scholiq\Service\ListenerSchemaResolver;
-use OCA\Scholiq\Service\ListenerSlugContract;
+use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\ListenerSlugContract;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;

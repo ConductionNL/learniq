@@ -4,7 +4,7 @@
  * Tests for the route table's controller-method contract.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Unit\AppInfo
+ * @package  OCA\Learniq\Tests\Unit\AppInfo
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -20,7 +20,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\AppInfo;
+namespace OCA\Learniq\Tests\Unit\AppInfo;
 
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -220,7 +220,7 @@ class CanonicalRouteMethodContractTest extends TestCase {
 	 * @return void
 	 */
 	public function testBespokeSettingsControllerImplementsTheFullCanonicalSurface(): void {
-		$reflection = new ReflectionClass(\OCA\Scholiq\Controller\SettingsController::class);
+		$reflection = new ReflectionClass(\OCA\Learniq\Controller\SettingsController::class);
 
 		foreach (['index', 'update', 'create', 'load'] as $method) {
 			$this->assertTrue(
@@ -247,7 +247,7 @@ class CanonicalRouteMethodContractTest extends TestCase {
 	 * @return void
 	 */
 	public function testBothSettingsWriteVerbsCarryTheAdminAttributeIndependently(): void {
-		$reflection = new ReflectionClass(\OCA\Scholiq\Controller\SettingsController::class);
+		$reflection = new ReflectionClass(\OCA\Learniq\Controller\SettingsController::class);
 		$checked = 0;
 
 		foreach (['update', 'create', 'load', 'index'] as $method) {
@@ -265,7 +265,7 @@ class CanonicalRouteMethodContractTest extends TestCase {
 			);
 
 			$this->assertSame(
-				[\OCA\Scholiq\Settings\AdminSettings::class],
+				[\OCA\Learniq\Settings\AdminSettings::class],
 				array_values($attributes[0]->getArguments()),
 				sprintf(
 					"SettingsController::%s() must bind Scholiq's own AdminSettings panel",

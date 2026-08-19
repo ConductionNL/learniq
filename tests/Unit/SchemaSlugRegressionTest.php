@@ -12,7 +12,7 @@
  * forbidden list.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Unit
+ * @package  OCA\Learniq\Tests\Unit
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -27,7 +27,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit;
+namespace OCA\Learniq\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 

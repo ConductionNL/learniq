@@ -18,7 +18,7 @@
  * (design.md "Routing: scholiq, not openconnector").
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -35,13 +35,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
-use OCA\Scholiq\Service\CoursePackage\CommonCartridgeCourseImporter;
-use OCA\Scholiq\Service\CoursePackage\CoursePackageFileWriter;
-use OCA\Scholiq\Service\CoursePackage\CoursePackageImportReporter;
-use OCA\Scholiq\Service\CoursePackage\MoodleCourseImporter;
-use OCA\Scholiq\Service\CoursePackage\ScholiqJsonCourseImporter;
+use OCA\Learniq\Service\CoursePackage\CommonCartridgeCourseImporter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
+use OCA\Learniq\Service\CoursePackage\MoodleCourseImporter;
+use OCA\Learniq\Service\CoursePackage\ScholiqJsonCourseImporter;
 use Psr\Log\LoggerInterface;
 
 /**

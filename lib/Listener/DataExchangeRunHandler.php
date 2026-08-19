@@ -23,7 +23,7 @@
  * — orchestrate the OpenConnector call. No protocol code lives here.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -41,12 +41,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\DataExchangePayloadBuilder;
+use OCA\Learniq\Service\DataExchangePayloadBuilder;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Http\Client\IClientService;
@@ -151,7 +151,7 @@ class DataExchangeRunHandler implements IEventListener {
 		// Timetabling-and-substitution: target: timetable-import is a PULL
 		// (external -> Scholiq Session upserts), a fundamentally different
 		// shape than every other target this handler's runJob() implements
-		// (Scholiq objects -> external PUSH). OCA\Scholiq\Timetabling\
+		// (Scholiq objects -> external PUSH). OCA\Learniq\Timetabling\
 		// TimetableImportHandler owns that target exclusively, registered
 		// against this SAME event in lib/AppInfo/Application.php — bail here
 		// so the two handlers never race to transition the same job.

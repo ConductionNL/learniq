@@ -4,7 +4,7 @@
  * Scholiq PointEngagementEvaluator unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Engagement
+ * @package  OCA\Learniq\Tests\Unit\Engagement
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,12 +21,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Engagement;
+namespace OCA\Learniq\Tests\Unit\Engagement;
 
 use DateTime;
 use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Engagement\PointEngagementEvaluator;
+use OCA\Learniq\Engagement\PointEngagementEvaluator;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 

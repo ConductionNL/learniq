@@ -20,7 +20,7 @@
  * recorded in `docudeskRenderError`, and MUST NOT block any ReportCard
  * lifecycle transition — this guard therefore always returns `true`,
  * catching every `Throwable` and mirroring
- * {@see \OCA\Scholiq\Service\WalletRevocationPropagationService}'s
+ * {@see \OCA\Learniq\Service\WalletRevocationPropagationService}'s
  * fail-soft shape (a render failure is a convenience-feature-degraded
  * state, not a compliance blocker).
  *
@@ -36,7 +36,7 @@
  * in scholiq_register.json.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -54,7 +54,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;

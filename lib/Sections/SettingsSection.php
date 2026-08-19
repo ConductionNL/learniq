@@ -10,7 +10,7 @@
  * app-dark.svg, priority 75).
  *
  * @category Sections
- * @package  OCA\Scholiq\Sections
+ * @package  OCA\Learniq\Sections
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2024 Conduction B.V.
@@ -25,7 +25,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Sections;
+namespace OCA\Learniq\Sections;
 
 use OCA\OpenRegister\AppHost\Settings\GenericSettingsSection;
 

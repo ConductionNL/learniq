@@ -8,7 +8,7 @@
  *   - GitHub #175: base64url header, kid in JWS header, DataIntegrityProof proof type.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -23,9 +23,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Scholiq\Service\CredentialSigningService;
+use OCA\Learniq\Service\CredentialSigningService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
 use OCP\Security\ICrypto;

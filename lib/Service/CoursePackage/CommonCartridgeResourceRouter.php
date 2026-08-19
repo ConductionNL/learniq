@@ -12,7 +12,7 @@
  * from an external interchange format cannot be expressed declaratively.
  *
  * @category Service
- * @package  OCA\Scholiq\Service\CoursePackage
+ * @package  OCA\Learniq\Service\CoursePackage
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -29,7 +29,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service\CoursePackage;
+namespace OCA\Learniq\Service\CoursePackage;
 
 use Psr\Log\LoggerInterface;
 

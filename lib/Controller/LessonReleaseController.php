@@ -6,10 +6,10 @@
  * Computes, per request, whether a Lesson or Assessment is available to the
  * calling learner right now — a genuine per-(item, learner) gate decision
  * (adaptive release / drip scheduling), not a pass-through CRUD read.
- * Delegates all evaluation logic to {@see \OCA\Scholiq\Release\LessonReleaseEvaluator}.
+ * Delegates all evaluation logic to {@see \OCA\Learniq\Release\LessonReleaseEvaluator}.
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -27,12 +27,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\Release\LessonReleaseEvaluator;
-use OCA\Scholiq\Service\DashboardRoleService;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Release\LessonReleaseEvaluator;
+use OCA\Learniq\Service\DashboardRoleService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;

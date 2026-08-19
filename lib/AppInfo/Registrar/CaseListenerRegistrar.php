@@ -14,7 +14,7 @@
  * write no declarative schema expression covers.
  *
  * @category AppInfo
- * @package  OCA\Scholiq\AppInfo\Registrar
+ * @package  OCA\Learniq\AppInfo\Registrar
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -31,18 +31,18 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\AppInfo\Registrar;
+namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
-use OCA\Scholiq\Lifecycle\RolloverExecutionHandler;
-use OCA\Scholiq\Listener\BpvLeerbedrijfVerificationHandler;
-use OCA\Scholiq\Listener\BsaProgressFlagHandler;
-use OCA\Scholiq\Listener\CompetencyAttainmentRollupHandler;
-use OCA\Scholiq\Listener\DataExchangeRunHandler;
-use OCA\Scholiq\Listener\FraudCaseDecisionHandler;
-use OCA\Scholiq\Listener\RejectionMappingHandler;
-use OCA\Scholiq\Listener\SupportRequestSubmitHandler;
-use OCA\Scholiq\Timetabling\TimetableImportHandler;
+use OCA\Learniq\Lifecycle\RolloverExecutionHandler;
+use OCA\Learniq\Listener\BpvLeerbedrijfVerificationHandler;
+use OCA\Learniq\Listener\BsaProgressFlagHandler;
+use OCA\Learniq\Listener\CompetencyAttainmentRollupHandler;
+use OCA\Learniq\Listener\DataExchangeRunHandler;
+use OCA\Learniq\Listener\FraudCaseDecisionHandler;
+use OCA\Learniq\Listener\RejectionMappingHandler;
+use OCA\Learniq\Listener\SupportRequestSubmitHandler;
+use OCA\Learniq\Timetabling\TimetableImportHandler;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 /**

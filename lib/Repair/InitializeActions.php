@@ -11,7 +11,7 @@
  * admin-customised matrix on upgrade.
  *
  * @category Repair
- * @package  OCA\Scholiq\Repair
+ * @package  OCA\Learniq\Repair
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2024 Conduction B.V.
@@ -28,7 +28,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Repair;
+namespace OCA\Learniq\Repair;
 
 use OCA\OpenRegister\AppHost\Repair\GenericInitializeActions;
 

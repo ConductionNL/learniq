@@ -25,7 +25,7 @@
  *   - GradeRollupHandler::handleGradeEntryPublished (via ObjectTransitionedEvent)
  *
  * @category Grading
- * @package  OCA\Scholiq\Grading
+ * @package  OCA\Learniq\Grading
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -42,7 +42,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Grading;
+namespace OCA\Learniq\Grading;
 
 use DateInterval;
 use DateTimeImmutable;

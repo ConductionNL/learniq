@@ -7,7 +7,7 @@
  * \OC::$server, ObjectService, and TransitionEngine are available.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Integration
+ * @package  OCA\Learniq\Tests\Integration
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.

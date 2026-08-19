@@ -16,7 +16,7 @@
  * design doc's own precedent for a second entry (`certification`'s
  * `Credential.revoke` transition) does not exist as an array shape at HEAD:
  * `Credential.revoke.requires` is a single string
- * (`OCA\Scholiq\Service\WalletRevocationPropagationService`), and
+ * (`OCA\Learniq\Service\WalletRevocationPropagationService`), and
  * OpenRegister's own `LifecycleAnnotationValidator::validate()` explicitly
  * rejects a non-string `requires` value (`is_string($spec['requires']) ===
  * false || $spec['requires'] === ''` => `lifecycle-requires-malformed`);
@@ -42,7 +42,7 @@
  * scholiq_register.json.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -62,7 +62,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;

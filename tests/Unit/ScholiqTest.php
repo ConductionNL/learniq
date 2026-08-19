@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit;
+namespace OCA\Learniq\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 

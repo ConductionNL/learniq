@@ -20,12 +20,12 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Support
+ * @package  OCA\Learniq\Tests\Support
  */
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Support;
+namespace OCA\Learniq\Tests\Support;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 

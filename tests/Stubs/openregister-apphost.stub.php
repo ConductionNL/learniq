@@ -22,7 +22,7 @@
  * lib/AppHost/Repair/GenericInitializeActions.php.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Stubs
+ * @package  OCA\Learniq\Tests\Stubs
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.

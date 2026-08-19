@@ -11,7 +11,7 @@
  * when the real interface is absent. It is NOT scanned by PHPCS.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Stubs\Mcp
+ * @package  OCA\Learniq\Tests\Stubs\Mcp
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.

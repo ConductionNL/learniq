@@ -41,7 +41,7 @@
  * to a group authorized for the `event.pull` action on OpenConnector.
  *
  * @category Cron
- * @package  OCA\Scholiq\Cron
+ * @package  OCA\Learniq\Cron
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -60,12 +60,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Cron;
+namespace OCA\Learniq\Cron;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\Service\LtiAgsPullClient;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\LtiAgsPullClient;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;

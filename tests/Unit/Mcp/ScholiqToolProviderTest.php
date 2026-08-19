@@ -8,7 +8,7 @@
  * anonymous callers before any data read.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Unit\Mcp
+ * @package  OCA\Learniq\Tests\Unit\Mcp
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,11 +21,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Mcp;
+namespace OCA\Learniq\Tests\Unit\Mcp;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Mcp\CourseToolPresenter;
-use OCA\Scholiq\Mcp\ScholiqToolProvider;
+use OCA\Learniq\Mcp\CourseToolPresenter;
+use OCA\Learniq\Mcp\ScholiqToolProvider;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserSession;

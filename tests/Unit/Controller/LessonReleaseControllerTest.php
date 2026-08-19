@@ -11,7 +11,7 @@
  * `{available, reason, availableAt}`.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Controller
+ * @package  OCA\Learniq\Tests\Unit\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -29,13 +29,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Controller;
+namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Controller\LessonReleaseController;
-use OCA\Scholiq\Release\LessonReleaseEvaluator;
-use OCA\Scholiq\Service\DashboardRoleService;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Controller\LessonReleaseController;
+use OCA\Learniq\Release\LessonReleaseEvaluator;
+use OCA\Learniq\Service\DashboardRoleService;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
 use OCP\IUser;

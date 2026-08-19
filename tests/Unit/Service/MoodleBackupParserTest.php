@@ -4,7 +4,7 @@
  * Scholiq MoodleBackupParser unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,10 +21,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Scholiq\Service\MbzExtractor;
-use OCA\Scholiq\Service\MoodleBackupParser;
+use OCA\Learniq\Service\MbzExtractor;
+use OCA\Learniq\Service\MoodleBackupParser;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 

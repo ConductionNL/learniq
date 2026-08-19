@@ -12,7 +12,7 @@
  * Analogous to the proctoring-provider interface in the `assessment` spec.
  *
  * @category Plagiarism
- * @package  OCA\Scholiq\Plagiarism
+ * @package  OCA\Learniq\Plagiarism
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -29,7 +29,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Plagiarism;
+namespace OCA\Learniq\Plagiarism;
 
 /**
  * Contract for pluggable plagiarism-detection providers.

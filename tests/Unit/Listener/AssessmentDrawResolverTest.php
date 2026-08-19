@@ -10,7 +10,7 @@
  * always overwritten by the server-side resolution.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -25,16 +25,16 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Listener\AssessmentDrawResolver;
-use OCA\Scholiq\Service\ItemPoolFilter;
-use OCA\Scholiq\Service\ListenerSchemaResolver;
-use OCA\Scholiq\Service\QtiChoiceOrderResolver;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Listener\AssessmentDrawResolver;
+use OCA\Learniq\Service\ItemPoolFilter;
+use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\QtiChoiceOrderResolver;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;

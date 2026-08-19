@@ -9,7 +9,7 @@
  * sovereign-ai-guarantee locality-policy gate composed on top of it.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Lifecycle
+ * @package  OCA\Learniq\Tests\Unit\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -27,13 +27,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Lifecycle;
+namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Lifecycle\AssessmentPublishGuard;
-use OCA\Scholiq\Service\AiLocalityClassifier;
-use OCA\Scholiq\Service\ItemPoolFilter;
-use OCA\Scholiq\Service\SovereigntyPolicyService;
+use OCA\Learniq\Lifecycle\AssessmentPublishGuard;
+use OCA\Learniq\Service\AiLocalityClassifier;
+use OCA\Learniq\Service\ItemPoolFilter;
+use OCA\Learniq\Service\SovereigntyPolicyService;
 use OCP\App\IAppManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;

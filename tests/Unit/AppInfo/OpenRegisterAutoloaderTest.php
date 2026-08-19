@@ -7,7 +7,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Unit\AppInfo
+ * @package  OCA\Learniq\Tests\Unit\AppInfo
  *
  * @author    Conduction Development Team <dev@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -18,9 +18,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\AppInfo;
+namespace OCA\Learniq\Tests\Unit\AppInfo;
 
-use OCA\Scholiq\AppInfo\OpenRegisterAutoloader;
+use OCA\Learniq\AppInfo\OpenRegisterAutoloader;
 use PHPUnit\Framework\TestCase;
 
 /**

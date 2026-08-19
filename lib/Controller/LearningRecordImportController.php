@@ -15,7 +15,7 @@
  * `CoursePackageImportController`'s own docblock already gives.
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -32,11 +32,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\Service\ActionAuthService;
-use OCA\Scholiq\Service\LearningRecordImportIntakeService;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\LearningRecordImportIntakeService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;

@@ -13,7 +13,7 @@
  * write no declarative schema expression covers.
  *
  * @category AppInfo
- * @package  OCA\Scholiq\AppInfo\Registrar
+ * @package  OCA\Learniq\AppInfo\Registrar
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -30,19 +30,19 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\AppInfo\Registrar;
+namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
-use OCA\Scholiq\Lifecycle\PortfolioShareGrantHandler;
-use OCA\Scholiq\Listener\CohortTalkMembershipHandler;
-use OCA\Scholiq\Listener\ConferenceScheduleGenerator;
-use OCA\Scholiq\Listener\CourseEvaluationResponseSubmittedHandler;
-use OCA\Scholiq\Listener\CourseQualityScoreRollupHandler;
-use OCA\Scholiq\Listener\EvaluationInvitationProvisioningHandler;
-use OCA\Scholiq\Listener\PeerFeedbackAggregator;
-use OCA\Scholiq\Listener\PointAwardTriggerHandler;
-use OCA\Scholiq\Listener\ReportCardComposer;
-use OCA\Scholiq\Listener\ReportCardPublishHandler;
+use OCA\Learniq\Lifecycle\PortfolioShareGrantHandler;
+use OCA\Learniq\Listener\CohortTalkMembershipHandler;
+use OCA\Learniq\Listener\ConferenceScheduleGenerator;
+use OCA\Learniq\Listener\CourseEvaluationResponseSubmittedHandler;
+use OCA\Learniq\Listener\CourseQualityScoreRollupHandler;
+use OCA\Learniq\Listener\EvaluationInvitationProvisioningHandler;
+use OCA\Learniq\Listener\PeerFeedbackAggregator;
+use OCA\Learniq\Listener\PointAwardTriggerHandler;
+use OCA\Learniq\Listener\ReportCardComposer;
+use OCA\Learniq\Listener\ReportCardPublishHandler;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 /**

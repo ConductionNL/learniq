@@ -4,7 +4,7 @@
  * Scholiq EnrolmentProgressEvaluator unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Progress
+ * @package  OCA\Learniq\Tests\Unit\Progress
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,10 +21,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Progress;
+namespace OCA\Learniq\Tests\Unit\Progress;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Progress\EnrolmentProgressEvaluator;
+use OCA\Learniq\Progress\EnrolmentProgressEvaluator;
 use PHPUnit\Framework\TestCase;
 
 /**

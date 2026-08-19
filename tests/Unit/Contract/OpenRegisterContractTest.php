@@ -4,7 +4,7 @@
  * Guards the OpenRegister API contract that Scholiq's unit suite mocks against.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Contract
+ * @package  OCA\Learniq\Tests\Unit\Contract
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,7 +21,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Contract;
+namespace OCA\Learniq\Tests\Unit\Contract;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;

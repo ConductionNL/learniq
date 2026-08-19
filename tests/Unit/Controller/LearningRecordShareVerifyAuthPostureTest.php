@@ -4,7 +4,7 @@
  * Scholiq LearningRecordShareVerifyController auth-posture tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Controller
+ * @package  OCA\Learniq\Tests\Unit\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,9 +21,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Controller;
+namespace OCA\Learniq\Tests\Unit\Controller;
 
-use OCA\Scholiq\Controller\LearningRecordShareVerifyController;
+use OCA\Learniq\Controller\LearningRecordShareVerifyController;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;

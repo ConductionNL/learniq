@@ -20,16 +20,16 @@
  * `issueCredential()` (the points where a claim actually happens). The
  * `class_exists` guard below will therefore always evaluate false against
  * the real, merged openconnector code as of this writing, and
- * {@see \OCA\Scholiq\AppInfo\Application}'s registration of this listener is
+ * {@see \OCA\Learniq\AppInfo\Application}'s registration of this listener is
  * consequently a no-op. This class is kept per tasks.md (the guard/service
- * side, {@see \OCA\Scholiq\Service\WalletClaimSyncService}, has real,
+ * side, {@see \OCA\Learniq\Service\WalletClaimSyncService}, has real,
  * independently-correct logic) so wiring is ready the moment openconnector
  * ships a real claim-notification mechanism — that mechanism is a companion
  * openconnector-side gap this change cannot close (scholiq stays
  * wallet-wire-protocol-free).
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -46,7 +46,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;

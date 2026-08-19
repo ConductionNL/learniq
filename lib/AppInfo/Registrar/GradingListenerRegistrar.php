@@ -13,7 +13,7 @@
  * write no declarative schema expression covers.
  *
  * @category AppInfo
- * @package  OCA\Scholiq\AppInfo\Registrar
+ * @package  OCA\Learniq\AppInfo\Registrar
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -30,18 +30,18 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\AppInfo\Registrar;
+namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
-use OCA\Scholiq\Lifecycle\AttendanceFlagCreationHandler;
-use OCA\Scholiq\Lifecycle\ExcuseApprovalHandler;
-use OCA\Scholiq\Listener\CredentialIssuanceHandler;
-use OCA\Scholiq\Listener\ExemptionGrantHandler;
-use OCA\Scholiq\Listener\GradeRollupHandler;
-use OCA\Scholiq\Listener\ItemAnalysisRecomputeHandler;
-use OCA\Scholiq\Listener\LearningPlanEvaluationHandler;
-use OCA\Scholiq\Listener\PortfolioGradeEmitHandler;
-use OCA\Scholiq\Listener\WerkprocesGradeEmitHandler;
+use OCA\Learniq\Lifecycle\AttendanceFlagCreationHandler;
+use OCA\Learniq\Lifecycle\ExcuseApprovalHandler;
+use OCA\Learniq\Listener\CredentialIssuanceHandler;
+use OCA\Learniq\Listener\ExemptionGrantHandler;
+use OCA\Learniq\Listener\GradeRollupHandler;
+use OCA\Learniq\Listener\ItemAnalysisRecomputeHandler;
+use OCA\Learniq\Listener\LearningPlanEvaluationHandler;
+use OCA\Learniq\Listener\PortfolioGradeEmitHandler;
+use OCA\Learniq\Listener\WerkprocesGradeEmitHandler;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 /**

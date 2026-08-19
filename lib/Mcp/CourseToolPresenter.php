@@ -16,7 +16,7 @@
  * so the "no learner PII leaves Scholiq" guarantee is reviewable in one place.
  *
  * @category Mcp
- * @package  OCA\Scholiq\Mcp
+ * @package  OCA\Learniq\Mcp
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -32,7 +32,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Mcp;
+namespace OCA\Learniq\Mcp;
 
 /**
  * Normalises OpenRegister course/lesson objects into privacy-safe MCP payloads.

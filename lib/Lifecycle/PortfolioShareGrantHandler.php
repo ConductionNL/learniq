@@ -16,7 +16,7 @@
  *    never a second property), so it is a PHP guard per ADR-031.
  * 2. IEventListener (`handle()`, registered against
  *    OCA\OpenRegister\Event\ObjectTransitionedEvent in
- *    OCA\Scholiq\AppInfo\Application, mirroring
+ *    OCA\Learniq\AppInfo\Application, mirroring
  *    WerkprocesGradeEmitHandler's event-listener shape): on
  *    PortfolioShare.active with `sharedWithKind: teacher`, resolves the NC
  *    file paths behind the shared portfolio's (or selected entries')
@@ -35,7 +35,7 @@
  * expressed as schema declarations.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -52,7 +52,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;

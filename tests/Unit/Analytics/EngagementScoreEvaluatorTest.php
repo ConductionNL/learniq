@@ -4,7 +4,7 @@
  * Scholiq EngagementScoreEvaluator unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Analytics
+ * @package  OCA\Learniq\Tests\Unit\Analytics
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,10 +21,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Analytics;
+namespace OCA\Learniq\Tests\Unit\Analytics;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Analytics\EngagementScoreEvaluator;
+use OCA\Learniq\Analytics\EngagementScoreEvaluator;
 use PHPUnit\Framework\TestCase;
 
 /**

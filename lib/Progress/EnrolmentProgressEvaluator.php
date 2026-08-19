@@ -18,7 +18,7 @@
  *   - EnrolmentProgressRollupHandler (via ObjectCreatedEvent<LessonCompletion>)
  *
  * @category Progress
- * @package  OCA\Scholiq\Progress
+ * @package  OCA\Learniq\Progress
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -35,7 +35,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Progress;
+namespace OCA\Learniq\Progress;
 
 use OCA\OpenRegister\Service\ObjectService;
 

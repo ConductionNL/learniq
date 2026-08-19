@@ -20,7 +20,7 @@
  * write no declarative schema expression covers.
  *
  * @category AppInfo
- * @package  OCA\Scholiq\AppInfo\Registrar
+ * @package  OCA\Learniq\AppInfo\Registrar
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -37,18 +37,18 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\AppInfo\Registrar;
+namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
-use OCA\Scholiq\Lifecycle\XapiCompletionHandler;
-use OCA\Scholiq\Listener\AssessmentDrawResolver;
-use OCA\Scholiq\Listener\CompetencyAttainmentRollupHandler;
-use OCA\Scholiq\Listener\EngagementSignalHandler;
-use OCA\Scholiq\Listener\EnrolmentProgressRollupHandler;
-use OCA\Scholiq\Listener\LearnerEngagementRollupHandler;
-use OCA\Scholiq\Listener\LessonProgressHandler;
-use OCA\Scholiq\Listener\SessionConflictListener;
+use OCA\Learniq\Lifecycle\XapiCompletionHandler;
+use OCA\Learniq\Listener\AssessmentDrawResolver;
+use OCA\Learniq\Listener\CompetencyAttainmentRollupHandler;
+use OCA\Learniq\Listener\EngagementSignalHandler;
+use OCA\Learniq\Listener\EnrolmentProgressRollupHandler;
+use OCA\Learniq\Listener\LearnerEngagementRollupHandler;
+use OCA\Learniq\Listener\LessonProgressHandler;
+use OCA\Learniq\Listener\SessionConflictListener;
 use OCP\EventDispatcher\IEventDispatcher;
 
 /**

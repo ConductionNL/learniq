@@ -13,7 +13,7 @@
  * let the generic aliases overwrite these.
  *
  * @category AppInfo
- * @package  OCA\Scholiq\AppInfo\Registrar
+ * @package  OCA\Learniq\AppInfo\Registrar
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -28,12 +28,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\AppInfo\Registrar;
+namespace OCA\Learniq\AppInfo\Registrar;
 
-use OCA\Scholiq\Controller\SettingsController;
-use OCA\Scholiq\Repair\InitializeSettings;
-use OCA\Scholiq\Service\ActionAuthService;
-use OCA\Scholiq\Service\SettingsService;
+use OCA\Learniq\Controller\SettingsController;
+use OCA\Learniq\Repair\InitializeSettings;
+use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\SettingsService;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use Psr\Container\ContainerInterface;
 
@@ -87,7 +87,7 @@ class ServiceOverrideRegistrar {
 		// the local stub (extends GenericActionAuthService). Bootstrap registered
 		// the generic class under this name, but five domain controllers
 		// (KeyAdmin/ActionMatrix/AuditPackExport/QtiImport/ExternalTraining/
-		// Rollover) type-hint `OCA\Scholiq\Service\ActionAuthService`, so the DI
+		// Rollover) type-hint `OCA\Learniq\Service\ActionAuthService`, so the DI
 		// container must return an instance that IS that subtype.
 		$context->registerService(
 			ActionAuthService::class,

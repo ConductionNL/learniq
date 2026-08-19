@@ -19,7 +19,7 @@
  * reverse / scope-value `via` join (`match: 'scopeField'`).
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Unit\Portal
+ * @package  OCA\Learniq\Tests\Unit\Portal
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -34,9 +34,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Portal;
+namespace OCA\Learniq\Tests\Unit\Portal;
 
-use OCA\Scholiq\Portal\PortalContributionProvider;
+use OCA\Learniq\Portal\PortalContributionProvider;
 use PHPUnit\Framework\TestCase;
 
 /**

@@ -6,7 +6,7 @@
  * Main application class for the Scholiq Nextcloud app.
  *
  * @category AppInfo
- * @package  OCA\Scholiq\AppInfo
+ * @package  OCA\Learniq\AppInfo
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -21,12 +21,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\AppInfo;
+namespace OCA\Learniq\AppInfo;
 
 use OCA\OpenRegister\AppHost\Bootstrap;
-use OCA\Scholiq\AppInfo\Registrar\EventListenerWiring;
-use OCA\Scholiq\AppInfo\Registrar\ServiceOverrideRegistrar;
-use OCA\Scholiq\Mcp\ScholiqToolProvider;
+use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\AppInfo\Registrar\ServiceOverrideRegistrar;
+use OCA\Learniq\Mcp\ScholiqToolProvider;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -50,7 +50,7 @@ use OCP\EventDispatcher\IEventDispatcher;
  * Vue component) — no OCP\Settings\ISettings PHP class needed (per ADR-024).
  *
  * The listener wiring itself lives in domain-scoped registrars under
- * {@see \OCA\Scholiq\AppInfo\Registrar}, reached through
+ * {@see \OCA\Learniq\AppInfo\Registrar}, reached through
  * {@see EventListenerWiring}. This class therefore names the bootstrap seams,
  * not the ~40 listener classes behind them.
  */
@@ -119,7 +119,7 @@ class Application extends App implements IBootstrap {
 			$context,
 			self::APP_ID,
 			[
-				'namespace' => 'OCA\\Scholiq',
+				'namespace' => 'OCA\\Learniq',
 				'sectionName' => 'Scholiq',
 				'mcpProvider' => ScholiqToolProvider::class,
 			]
@@ -142,7 +142,7 @@ class Application extends App implements IBootstrap {
 	 * Every object-event listener that declares a register/schema interest is
 	 * subscribed here rather than in register(): OpenRegister's
 	 * `ObjectEventSubscription` is only guaranteed autoloadable once every app's
-	 * register() has run. See {@see \OCA\Scholiq\AppInfo\Registrar\BootListenerRegistrar}.
+	 * register() has run. See {@see \OCA\Learniq\AppInfo\Registrar\BootListenerRegistrar}.
 	 *
 	 * @param IBootContext $context The boot context
 	 *

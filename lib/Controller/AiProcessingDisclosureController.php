@@ -16,7 +16,7 @@
  *
  * Legitimate PHP per ADR-031: composes two cross-app registers plus derived
  * classification into one payload — not a single declarative OR query.
- * Identical justification {@see \OCA\Scholiq\Lifecycle\AssessmentPublishGuard}'s
+ * Identical justification {@see \OCA\Learniq\Lifecycle\AssessmentPublishGuard}'s
  * own docblock already gives for its Hermiq read: "Requires a cross-schema
  * query ... and conditional logic."
  *
@@ -26,7 +26,7 @@
  * frontend-orchestration precedent (no bespoke write controller, per ADR-022).
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -43,12 +43,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\Service\AiLocalityClassifier;
-use OCA\Scholiq\Service\SovereigntyPolicyService;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\AiLocalityClassifier;
+use OCA\Learniq\Service\SovereigntyPolicyService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;

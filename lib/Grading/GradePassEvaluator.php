@@ -18,7 +18,7 @@
  *   - GradeFormulaEvaluator (constructor injection)
  *
  * @category Grading
- * @package  OCA\Scholiq\Grading
+ * @package  OCA\Learniq\Grading
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -35,7 +35,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Grading;
+namespace OCA\Learniq\Grading;
 
 /**
  * Decides the pass/fail verdict for an already-aggregated final grade value.

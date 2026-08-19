@@ -11,7 +11,7 @@
  * schema (a stronger guarantee than a mock-and-assert-zero-calls test).
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -28,10 +28,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Scholiq\Service\LearningRecordExportSigningService;
-use OCA\Scholiq\Service\LearningRecordImportService;
+use OCA\Learniq\Service\LearningRecordExportSigningService;
+use OCA\Learniq\Service\LearningRecordImportService;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;

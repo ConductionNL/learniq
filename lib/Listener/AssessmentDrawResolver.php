@@ -37,7 +37,7 @@
  * persisted, `drawnItemRefs` itself is the ground truth.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -54,13 +54,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\ItemPoolFilter;
-use OCA\Scholiq\Service\ListenerSchemaResolver;
-use OCA\Scholiq\Service\QtiChoiceOrderResolver;
+use OCA\Learniq\Service\ItemPoolFilter;
+use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\QtiChoiceOrderResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
