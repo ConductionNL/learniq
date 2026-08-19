@@ -125,7 +125,7 @@ import { useObjectStore } from '@conduction/nextcloud-vue'
 import { NcButton, NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
 
 const REGISTER = 'learniq'
-// Address a schema by the SLUG it declares in lib/Settings/scholiq_register.json,
+// Address a schema by the SLUG it declares in lib/Settings/learniq_register.json,
 // read verbatim — never by its PascalCase schema key.
 //
 // The resolver (OpenRegister SchemaMapper::findBySlugInIds) lowercases BOTH
@@ -135,7 +135,7 @@ const REGISTER = 'learniq'
 // 'accessibility-statement' — the hyphen is the difference. setSchema() then
 // rethrows DoesNotExistException and the request 404s.
 //
-// ⚠️ Do NOT generalise this into "kebab-case the schema name". scholiq is the
+// ⚠️ Do NOT generalise this into "kebab-case the schema name". learniq is the
 // fleet outlier in declaring hyphenated slugs for most (not all) of its
 // schemas — AiFeature, for one, declares its slug as literally 'AiFeature' —
 // and other apps declare camelCase or PascalCase slugs. Kebab-casing those

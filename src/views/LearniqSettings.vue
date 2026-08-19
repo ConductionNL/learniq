@@ -12,8 +12,8 @@
    3. Credential signing key widget (calls CredentialSigningController — ADR-031)
 -->
 <template>
-	<div class="scholiq-settings">
-		<h2 v-if="!inDialog" class="scholiq-settings__title">
+	<div class="learniq-settings">
+		<h2 v-if="!inDialog" class="learniq-settings__title">
 			{{ t('learniq', 'Learniq Settings') }}
 		</h2>
 
@@ -26,12 +26,12 @@
 					'Configure the default register used by Learniq for data storage.',
 				)
 			">
-			<div class="scholiq-settings__field">
-				<label for="scholiq-default-register">{{
+			<div class="learniq-settings__field">
+				<label for="learniq-default-register">{{
 					t('learniq', 'Default register')
 				}}</label>
 				<NcSelect
-					id="scholiq-default-register"
+					id="learniq-default-register"
 					v-model="defaultRegister"
 					:options="registerOptions"
 					:loading="registersLoading"
@@ -51,7 +51,7 @@
 					'EU AI Act high-risk AI-feature governance (the feature register and DPO acknowledgement) is centralised in the Hermiq app, the fleet-wide home for AI-feature governance. Learniq\'s AI features are declared and acknowledged there.',
 				)
 			">
-			<div v-if="hermiqInstalled" class="scholiq-settings__field">
+			<div v-if="hermiqInstalled" class="learniq-settings__field">
 				<NcButton variant="secondary" @click="openHermiqAiFeatures">
 					<template #icon>
 						<OpenInNew :size="20" />
@@ -78,7 +78,7 @@
 					'RS256 key pair used to sign verifiable credentials. Stored encrypted in Nextcloud\'s keystore.',
 				)
 			">
-			<div class="scholiq-settings__field">
+			<div class="learniq-settings__field">
 				<NcButton
 					:disabled="signingKeyLoading"
 					variant="secondary"
@@ -88,7 +88,7 @@
 					</template>
 					{{ t('learniq', 'Rotate signing key') }}
 				</NcButton>
-				<p v-if="signingKeyMessage" class="scholiq-settings__message">
+				<p v-if="signingKeyMessage" class="learniq-settings__message">
 					{{ signingKeyMessage }}
 				</p>
 			</div>
@@ -104,7 +104,7 @@
 					'Learniq\'s personal-data processing activities are recorded in OpenRegister\'s platform processing-activity register. The Art. 30 register, per-access logging, exports, and access control are provided by OpenRegister; Learniq contributes its activity catalogue and surfaces it here. Access is restricted to administrators and the privacy officer (FG); non-privileged users are denied by OpenRegister.',
 				)
 			">
-			<div v-if="!openRegisterInstalled" class="scholiq-settings__field">
+			<div v-if="!openRegisterInstalled" class="learniq-settings__field">
 				<NcNoteCard type="warning">
 					{{
 						t(
@@ -116,7 +116,7 @@
 			</div>
 			<template v-else>
 				<!-- Controller-identity record state + accountability prompt (OR-PA-1) -->
-				<div class="scholiq-settings__field">
+				<div class="learniq-settings__field">
 					<NcNoteCard type="info">
 						{{
 							t(
@@ -141,11 +141,11 @@
 				</div>
 
 				<!-- Activity catalogue (the ten Learniq categories) -->
-				<div class="scholiq-settings__field">
-					<div class="scholiq-settings__catalogue-label">
+				<div class="learniq-settings__field">
+					<div class="learniq-settings__catalogue-label">
 						{{ t('learniq', 'Learniq processing activities') }}
 					</div>
-					<div class="scholiq-settings__message">
+					<div class="learniq-settings__message">
 						{{
 							t(
 								'learniq',
@@ -153,15 +153,15 @@
 							)
 						}}
 					</div>
-					<ul class="scholiq-settings__activities">
+					<ul class="learniq-settings__activities">
 						<li
 							v-for="activity in processingActivities"
 							:key="activity.code">
 							<strong>{{ activity.name }}</strong>
-							<span class="scholiq-settings__activity-meta">{{
+							<span class="learniq-settings__activity-meta">{{
 								activity.purpose
 							}}</span>
-							<span class="scholiq-settings__activity-meta">{{
+							<span class="learniq-settings__activity-meta">{{
 								t('learniq', 'Legal basis: {basis}', {
 									basis: activity.basis,
 								})
@@ -171,11 +171,11 @@
 				</div>
 
 				<!-- Per-access log + per-subject extract (delegates to OpenRegister, OR-PA-7/8) -->
-				<div class="scholiq-settings__field">
-					<div class="scholiq-settings__catalogue-label">
+				<div class="learniq-settings__field">
+					<div class="learniq-settings__catalogue-label">
 						{{ t('learniq', 'Processing log & Art. 30 export') }}
 					</div>
-					<div class="scholiq-settings__message">
+					<div class="learniq-settings__message">
 						{{
 							t(
 								'learniq',
@@ -183,7 +183,7 @@
 							)
 						}}
 					</div>
-					<div class="scholiq-settings__activity-actions">
+					<div class="learniq-settings__activity-actions">
 						<NcButton variant="primary" @click="openProcessingLog">
 							<template #icon>
 								<FileExportOutline :size="20" />
@@ -197,7 +197,7 @@
 							{{ t('learniq', 'Per-subject (betrokkene) extract') }}
 						</NcButton>
 					</div>
-					<div class="scholiq-settings__message">
+					<div class="learniq-settings__message">
 						<em>{{
 							t(
 								'learniq',
@@ -278,7 +278,7 @@ export default {
 		/**
 		 * The ten Learniq processing activities surfaced in the AVG Art. 30
 		 * compliance section. Mirrors the x-openregister-processing catalogue
-		 * annotations in lib/Settings/scholiq_register.json (authoring source of
+		 * annotations in lib/Settings/learniq_register.json (authoring source of
 		 * truth); the register itself is owned and rendered by OpenRegister.
 		 *
 		 * @return {Array<{code: string, name: string, purpose: string, basis: string}>} Catalogue rows.
@@ -605,48 +605,48 @@ export default {
 </script>
 
 <style scoped>
-.scholiq-settings {
+.learniq-settings {
 	padding: 20px;
 	max-width: 900px;
 }
 
-.scholiq-settings__title {
+.learniq-settings__title {
 	font-size: 1.5em;
 	font-weight: bold;
 	margin-bottom: 24px;
 }
 
-.scholiq-settings__field {
+.learniq-settings__field {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
 	max-width: 400px;
 }
 
-.scholiq-settings__loading {
+.learniq-settings__loading {
 	display: flex;
 	justify-content: center;
 	padding: 24px;
 }
 
-.scholiq-settings__table {
+.learniq-settings__table {
 	width: 100%;
 	border-collapse: collapse;
 }
 
-.scholiq-settings__table th,
-.scholiq-settings__table td {
+.learniq-settings__table th,
+.learniq-settings__table td {
 	text-align: left;
 	padding: 8px 12px;
 	border-bottom: 1px solid var(--color-border);
 }
 
-.scholiq-settings__empty {
+.learniq-settings__empty {
 	color: var(--color-text-maxcontrast);
 	font-style: italic;
 }
 
-.scholiq-settings__badge {
+.learniq-settings__badge {
 	display: inline-block;
 	padding: 2px 8px;
 	border-radius: 12px;
@@ -654,33 +654,33 @@ export default {
 	font-weight: 500;
 }
 
-.scholiq-settings__badge--enabled {
+.learniq-settings__badge--enabled {
 	background: var(--color-success);
 	color: #fff;
 }
 
-.scholiq-settings__badge--disabled {
+.learniq-settings__badge--disabled {
 	background: var(--color-border-dark);
 	color: var(--color-text-light);
 }
 
-.scholiq-settings__message {
+.learniq-settings__message {
 	margin-top: 8px;
 	color: var(--color-text-maxcontrast);
 }
 
-.scholiq-settings__catalogue-label {
+.learniq-settings__catalogue-label {
 	font-weight: 600;
 	margin-top: 8px;
 }
 
-.scholiq-settings__activities {
+.learniq-settings__activities {
 	list-style: none;
 	margin: 8px 0 0;
 	padding: 0;
 }
 
-.scholiq-settings__activities li {
+.learniq-settings__activities li {
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
@@ -688,12 +688,12 @@ export default {
 	border-bottom: 1px solid var(--color-border);
 }
 
-.scholiq-settings__activity-meta {
+.learniq-settings__activity-meta {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
 }
 
-.scholiq-settings__activity-actions {
+.learniq-settings__activity-actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;

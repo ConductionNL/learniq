@@ -17,7 +17,7 @@
  @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 -->
 <template>
-	<div class="scholiq-domain-dashboard">
+	<div class="learniq-domain-dashboard">
 		<CnDashboardPage :title="pageTitle" :widgets="widgets" :layout="layout">
 			<template #widget-kpi-courses>
 				<KpiCoursesWidget />

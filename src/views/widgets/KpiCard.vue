@@ -3,7 +3,7 @@
 
 <!--
  KpiCard widget — a single KPI stat tile.
- Fetches the count of objects from OpenRegister (scholiq register) via the
+ Fetches the count of objects from OpenRegister (learniq register) via the
  REST objects endpoint with _limit=1 to read the `total` field. Shows a
  CnStatsBlock (big number + label); NcLoadingIcon while fetching; "0" on failure.
 -->

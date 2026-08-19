@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <template>
-	<div class="scholiq-admin">
+	<div class="learniq-admin">
 		<CnVersionInfoCard
 			appName="Learniq"
 			:appVersion="appVersion"
@@ -67,7 +67,7 @@ export default {
 </script>
 
 <style scoped>
-.scholiq-admin {
+.learniq-admin {
 	max-width: 900px;
 }
 </style>

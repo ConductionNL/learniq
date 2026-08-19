@@ -18,7 +18,7 @@ export const useSettingsStore = defineStore('settings', {
 
 	actions: {
 		/**
-		 * Fetch the Scholiq settings (incl. openregisters + isAdmin metadata) from the Settings API.
+		 * Fetch the Learniq settings (incl. openregisters + isAdmin metadata) from the Settings API.
 		 *
 		 * @return {Promise<object|null>}
 		 * @spec openspec/changes/retrofit-2026-05-25-app-shell-settings/tasks.md#task-1

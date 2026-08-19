@@ -7,7 +7,7 @@
   appears in, and AssessmentReliability (Cronbach's alpha) for one Assessment
   when reached via the assessmentId query param. This is a custom view
   because the register has no declarative chart/statistics-panel primitive
-  (`grep '"type": "chart"' lib/Settings/scholiq_register.json` — zero hits);
+  (`grep '"type": "chart"' lib/Settings/learniq_register.json` — zero hits);
   the ItemRevisionFlag review queue itself stays a plain manifest list+detail
   page (mirrors AttendanceFlag/BsaProgressFlag/EngagementRiskFlag).
 

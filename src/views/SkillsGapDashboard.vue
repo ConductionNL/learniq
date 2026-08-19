@@ -254,7 +254,7 @@ export default {
 				const [profile, attainments, enrolments, competencies] =
 					await Promise.all([
 						this.fetchLearnerProfile(targetLearnerId),
-						// The slug declared in lib/Settings/scholiq_register.json, verbatim.
+						// The slug declared in lib/Settings/learniq_register.json, verbatim.
 						// The resolver lowercases both sides, so casing is irrelevant — the
 						// hyphen is the structural difference that made the PascalCase key
 						// 404. ⚠️ Look the slug up rather than kebab-casing by rule.
@@ -333,7 +333,7 @@ export default {
 		},
 
 		/**
-		 * Fetch a filtered collection of OpenRegister objects for the scholiq register.
+		 * Fetch a filtered collection of OpenRegister objects for the learniq register.
 		 *
 		 * @param {string} schema Schema name/slug as used in the OR object API path.
 		 * @param {object} params Query filter params.

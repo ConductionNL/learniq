@@ -29,7 +29,7 @@
 				{{
 					t(
 						'learniq',
-						'Everything you have earned, everywhere in Scholiq — composed live, read-only. Nothing here can be edited or deleted from this page.',
+						'Everything you have earned, everywhere in Learniq — composed live, read-only. Nothing here can be edited or deleted from this page.',
 					)
 				}}
 			</p>

@@ -1,5 +1,5 @@
 /**
- * Scholiq personal-timetable API.
+ * Learniq personal-timetable API.
  *
  * Stateless functions over @nextcloud/axios + generateUrl (no Pinia store,
  * per ADR-004 store-pattern): the personal timetable is a read surface, so a
