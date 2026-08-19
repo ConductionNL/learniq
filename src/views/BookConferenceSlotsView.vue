@@ -183,6 +183,7 @@ export default {
 		 * Teacher options scoped to the selected round's teacherIds.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		teacherOptions() {
 			if (!this.selectedRound) return []
@@ -196,6 +197,7 @@ export default {
 		 * Learner options: the caller's linked children plus themselves (18+ self-signup).
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		learnerOptions() {
 			return this.learners.map((l) => ({
@@ -305,6 +307,7 @@ export default {
 		 * Reset the teacher/learner selection when the round changes.
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		onRoundChange() {
 			this.selectedTeacherIds = []

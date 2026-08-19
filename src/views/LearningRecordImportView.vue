@@ -180,6 +180,7 @@ export default {
 		 * The Application UUID this import is evidence for, from the route.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		applicationId() {
 			return this.$route?.params?.applicationId ?? ''
@@ -218,6 +219,7 @@ export default {
 		 * CSS modifier matching the verification severity.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		verificationSeverity() {
 			const map = {
@@ -232,6 +234,7 @@ export default {
 		 * Report entries filtered by the selected outcome.
 		 *
 		 * @return {Array<object>} Filtered entries.
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		filteredEntries() {
 			const entries = this.report?.entries ?? []
@@ -246,6 +249,7 @@ export default {
 		 *
 		 * @param {Event} event The change event.
 		 * @return {void}
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		onFileSelected(event) {
 			const file = event.target.files?.[0] ?? null
@@ -305,6 +309,7 @@ export default {
 		 * Reset the view to upload another bundle.
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		reset() {
 			this.report = null
