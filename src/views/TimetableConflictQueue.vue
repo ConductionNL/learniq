@@ -66,6 +66,9 @@
 				:class="'timetable-conflict-queue__item--' + conflict.severity">
 				<div class="timetable-conflict-queue__info">
 					<span class="timetable-conflict-queue__kind">{{
+						/**
+						 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+						 */
 						kindLabel(conflict.kind)
 					}}</span>
 					<span class="timetable-conflict-queue__severity">{{
@@ -79,6 +82,9 @@
 						}}
 					</span>
 					<span class="timetable-conflict-queue__detected">{{
+						/**
+						 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
+						 */
 						formatDate(conflict.detectedAt)
 					}}</span>
 				</div>
@@ -140,6 +146,7 @@ export default {
 		 * Open + acknowledged conflicts, ordered newest-first.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 		 */
 		visibleConflicts() {
 			return this.conflicts
@@ -166,6 +173,7 @@ export default {
 		 * Fetch every TimetableConflict object.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-detected-conflicts-are-queued-for-coordinator-review
 		 */
 		async load() {
 			this.loading = true

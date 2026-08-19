@@ -61,6 +61,7 @@ export default {
 		 * the rounded total.
 		 *
 		 * @return {string|number}
+		 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 		 */
 		displayPoints() {
 			return this.totalPoints === null ? '—' : Math.round(this.totalPoints)
@@ -114,6 +115,7 @@ export default {
 		 *
 		 * @param {string} levelId UUID of the EngagementLevel.
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 		 */
 		async fetchLevelName(levelId) {
 			try {

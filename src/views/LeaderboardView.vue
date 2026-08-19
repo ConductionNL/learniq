@@ -165,6 +165,9 @@ export default {
 		}
 	},
 
+	/**
+	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
+	 */
 	created() {
 		this.loadLeaderboards()
 		this.loadOptOutState()
@@ -247,6 +250,7 @@ export default {
 		 * Load the caller's own standing leaderboard opt-out preference.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
 		 */
 		async loadOptOutState() {
 			try {
