@@ -67,7 +67,7 @@ export function baseUrl(): string {
 /**
  * Build an absolute URL against the instance under test.
  *
- * @param {string} pathname Absolute path, e.g. `/apps/scholiq/api/settings`.
+ * @param {string} pathname Absolute path, e.g. `/apps/learniq/api/settings`.
  * @return {string} Fully-qualified URL on the instance under test.
  */
 export function apiUrl(pathname: string): string {

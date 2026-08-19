@@ -20,7 +20,7 @@
  */
 import { test, expect } from '../fixtures'
 
-const APP_URL = '/index.php/apps/scholiq/'
+const APP_URL = '/index.php/apps/learniq/'
 
 // The view this spec drives, named after the component file it covers. The
 // URL is unchanged — this makes the spec-to-component link readable in
@@ -74,7 +74,7 @@ test.describe('dashboard — role-aware dashboard surface', () => {
 		// directly (config.widgets + per-widget slots), not a single wrapper widget.
 		const manifest = await page
 			.evaluate(async () => {
-				const res = await fetch('/apps/scholiq/js/scholiq-main.js').catch(
+				const res = await fetch('/apps/learniq/js/scholiq-main.js').catch(
 					() => null,
 				)
 				return res ? true : false

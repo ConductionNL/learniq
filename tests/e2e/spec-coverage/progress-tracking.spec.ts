@@ -29,7 +29,7 @@ import { test, expect } from '../fixtures'
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
 const LESSON_LIST_API =
-	'/index.php/apps/openregister/api/objects/scholiq/Lesson?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/Lesson?limit=200'
 
 /**
  * Fetch every Lesson and return the first one matching the given predicate,
@@ -83,7 +83,7 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 
 		const lessonId = lesson.id ?? lesson.uuid
 		await page.goto(
-			`/index.php/apps/scholiq/#/courses/${courseId}/lessons/${lessonId}/play`,
+			`/index.php/apps/learniq/#/courses/${courseId}/lessons/${lessonId}/play`,
 		)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
@@ -140,7 +140,7 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 
 		const lessonId = lesson.id ?? lesson.uuid
 		await page.goto(
-			`/index.php/apps/scholiq/#/courses/${courseId}/lessons/${lessonId}/play`,
+			`/index.php/apps/learniq/#/courses/${courseId}/lessons/${lessonId}/play`,
 		)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')

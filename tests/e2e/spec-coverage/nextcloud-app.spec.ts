@@ -25,14 +25,14 @@ import { apiUrl } from '../base-url'
 //  1. The `/index.php/` prefix is load-bearing on CI. The shared workflow serves
 //     Nextcloud with a bare `php -S` and no router script, so pretty URLs are
 //     not rewritten: the built-in server only falls back to index.php for paths
-//     that do NOT exist on disk, and `server/apps/scholiq/` DOES exist without
-//     an index.php — so `/apps/scholiq/...` is a hard 404. 29 of this suite's
+//     that do NOT exist on disk, and `server/apps/learniq/` DOES exist without
+//     an index.php — so `/apps/learniq/...` is a hard 404. 29 of this suite's
 //     34 spec files already used the `/index.php/` form.
 //  2. This is the NEXTCLOUD ADMIN settings panel, not an in-app route. Every
 //     assertion below ("Scholiq Settings", the OpenRegister section, the register
 //     combobox, "Credential Signing") targets src/views/settings/AdminRoot.vue,
 //     which `src/settings.js` mounts into `#scholiq-settings` on the NC admin
-//     page. The old `/apps/scholiq/Settings` was neither: `/Settings` is not a
+//     page. The old `/apps/learniq/Settings` was neither: `/Settings` is not a
 //     declared route (the manifest's in-app settings page is `/settings`, and
 //     vue-router is case-sensitive), and the in-app `/settings` page is a
 //     different surface — navigating there on CI run 30798535945 rendered a
@@ -42,9 +42,9 @@ import { apiUrl } from '../base-url'
 //     The section id is `scholiq`: OpenRegister's AppHost `Bootstrap::register`
 //     defaults `sectionId` to the app id, and lib/AppInfo/Application.php passes
 //     only `namespace`, `sectionName` and `mcpProvider` — no `sectionId` override.
-const SETTINGS_URL = '/index.php/settings/admin/scholiq'
-const API_SETTINGS = '/index.php/apps/scholiq/api/settings'
-const APP_URL = '/index.php/apps/scholiq/'
+const SETTINGS_URL = '/index.php/settings/admin/learniq'
+const API_SETTINGS = '/index.php/apps/learniq/api/settings'
+const APP_URL = '/index.php/apps/learniq/'
 const PREFS_API = '/index.php/apps/openregister/api/notification-preferences'
 
 test.describe('nextcloud-app — Settings API and admin settings UI', () => {
@@ -86,7 +86,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 				requesttoken: requestToken,
 				'OCS-APIREQUEST': 'true',
 			},
-			data: JSON.stringify({ register: 'scholiq' }),
+			data: JSON.stringify({ register: 'learniq' }),
 		})
 		expect(resp.status()).toBe(200)
 		const body = await resp.json()
@@ -94,7 +94,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		// The response may wrap settings under a 'config' key or return them flat
 		const settings = body.config ?? body
 		// The response must echo the updated register value
-		expect(settings).toHaveProperty('register', 'scholiq')
+		expect(settings).toHaveProperty('register', 'learniq')
 		// Must contain the metadata keys
 		expect(settings).toHaveProperty('openregisters')
 		expect(settings).toHaveProperty('isAdmin')
@@ -174,12 +174,12 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 			)
 			.catch(() => null)
 
-		// Open the combobox dropdown and select 'scholiq' register
+		// Open the combobox dropdown and select 'learniq' register
 		const combobox = page.locator('[role="combobox"]').first()
 		await expect(combobox).toBeVisible({ timeout: 10_000 })
 		await combobox.click()
 
-		// Look for an option with 'scholiq' in the dropdown
+		// Look for an option with 'learniq' in the dropdown
 		const scholiqOption = page
 			.locator('[role="option"]')
 			.filter({ hasText: /scholiq/i })

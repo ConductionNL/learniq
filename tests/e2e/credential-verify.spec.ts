@@ -12,8 +12,8 @@ import { test, expect } from './fixtures'
  * that in some test runs the Dashboard may appear instead of the CredentialVerify
  * view" — was wrong on both counts, and it was rationalising a bug rather than
  * describing one. There is no hash route: src/main.js builds the router with
- * `createWebHistory(generateUrl('/apps/scholiq'))`. Navigating to
- * `/index.php/apps/scholiq/#/credentials/…/verify` therefore resolved to a
+ * `createWebHistory(generateUrl('/apps/learniq'))`. Navigating to
+ * `/index.php/apps/learniq/#/credentials/…/verify` therefore resolved to a
  * location matching no route at all, so the app body rendered EMPTY — every run,
  * not "some runs", and not a timing gap. The URLs below use the plain path form.
  */
@@ -41,7 +41,7 @@ test.describe('CredentialVerify page', () => {
 
 		// Navigate to the verify route with a test UUID.
 		// The Scholiq SPA uses vue-router in HISTORY mode — no `#`.
-		await page.goto('/index.php/apps/scholiq/credentials/test-id/verify', {
+		await page.goto('/index.php/apps/learniq/credentials/test-id/verify', {
 			waitUntil: 'domcontentloaded',
 			timeout: 30_000,
 		})
@@ -64,7 +64,7 @@ test.describe('CredentialVerify page', () => {
 		// We verify the SPA is alive; a real browser always shows the correct component.
 		const pageContent = await page.content().catch(() => '')
 		const scholiqSpaRendered =
-			pageContent.includes('scholiq')
+			pageContent.includes('learniq')
 			|| pageContent.includes('Dashboard')
 			|| pageContent.includes('Courses')
 			|| pageContent.includes('credential')
@@ -79,7 +79,7 @@ test.describe('CredentialVerify page', () => {
 		loggedInPage: page,
 	}) => {
 		await page.goto(
-			'/index.php/apps/scholiq/credentials/test-loading-id/verify',
+			'/index.php/apps/learniq/credentials/test-loading-id/verify',
 			{
 				waitUntil: 'domcontentloaded',
 				timeout: 30_000,

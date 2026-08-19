@@ -3,7 +3,7 @@ import { test, expect } from './fixtures'
 /**
  * Shell smoke tests — verify the Scholiq SPA shell loads correctly.
  *
- * These tests navigate to /index.php/apps/scholiq/ and check that:
+ * These tests navigate to /index.php/apps/learniq/ and check that:
  *   1. The CnAppRoot shell renders (no blank page / fatal error).
  *   2. The navigation contains the expected top-level menu items.
  *
@@ -18,7 +18,7 @@ test.describe('Scholiq shell', () => {
 			}
 		})
 
-		await page.goto('/index.php/apps/scholiq/')
+		await page.goto('/index.php/apps/learniq/')
 
 		// Wait for the app root to be present
 		await page.waitForSelector('body', { timeout: 15_000 })
@@ -47,7 +47,7 @@ test.describe('Scholiq shell', () => {
 	})
 
 	test('nav contains expected menu items', async ({ loggedInPage: page }) => {
-		await page.goto('/index.php/apps/scholiq/')
+		await page.goto('/index.php/apps/learniq/')
 
 		// Wait for the document to be parsed. NOT `networkidle`: Nextcloud's
 		// notification poll keeps a request in flight for the whole session, so
@@ -71,7 +71,7 @@ test.describe('Scholiq shell', () => {
 		// manifest gates it on
 		//     visibleIf: { "user.primaryRole": { in: ["compliance-officer", "hr"] } }
 		// and the CI session resolves `primaryRole` to the default `learner`
-		// (src/main.js: loadState('scholiq', 'primaryRole', 'learner')). Asserting it
+		// (src/main.js: loadState('learniq', 'primaryRole', 'learner')). Asserting it
 		// unconditionally contradicted the manifest's own declared visibility rule and
 		// failed on CI run 30798535945.
 		//
@@ -80,7 +80,7 @@ test.describe('Scholiq shell', () => {
 		// check than the one it replaces — it proves `visibleIf` is enforced, which the
 		// old assertion could not have detected being broken.
 		const primaryRole = await page.evaluate(() => {
-			const el = document.querySelector('#initial-state-scholiq-primaryRole')
+			const el = document.querySelector('#initial-state-learniq-primaryRole')
 			try {
 				return el ? JSON.parse(atob(el.textContent ?? '')) : null
 			} catch {

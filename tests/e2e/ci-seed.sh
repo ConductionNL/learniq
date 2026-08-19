@@ -10,12 +10,12 @@
 # `php -S` is up and with cwd set to the Nextcloud server root, so this is
 # invoked as:
 #
-#     playwright-seed-command: 'bash apps/scholiq/tests/e2e/ci-seed.sh'
+#     playwright-seed-command: 'bash apps/learniq/tests/e2e/ci-seed.sh'
 #
 # WHY THIS IS NEEDED
 # ------------------
-# `occ app:enable scholiq` runs a post-migration repair step that is supposed
-# to import `lib/Settings/scholiq_register.json` into OpenRegister. Three
+# `occ app:enable learniq` runs a post-migration repair step that is supposed
+# to import `lib/Settings/learniq_register.json` into OpenRegister. Three
 # things make that unreliable as the sole fresh-install path, and ALL THREE
 # fail silently:
 #
@@ -86,7 +86,7 @@ echo "[ci-seed] app root: ${APP_ROOT}"
 # `#[AuthorizedAdminSetting(AdminSettings::class)]`, so it needs a real admin
 # identity; basic auth supplies one, and NC's CSRF check passes because a
 # cookie-less request carries no session to forge against.
-IMPORT_URL="${BASE}/index.php/apps/scholiq/api/settings/load"
+IMPORT_URL="${BASE}/index.php/apps/learniq/api/settings/load"
 echo "[ci-seed] POST ${IMPORT_URL}"
 
 IMPORT_BODY="$(mktemp)"
@@ -172,7 +172,7 @@ required = {
     # openregister#1487 can drop long-tail schemas, and a gate that fails on
     # those would be failing for a defect in a different repo. These six are
     # the ones whose absence means the import did not happen at all.
-    'registers': ['scholiq'],
+    'registers': ['learniq'],
     'schemas': ['course', 'lesson', 'cohort', 'learner-profile', 'enrolment', 'credential'],
 }[kind]
 with open(path) as fh:
@@ -260,8 +260,8 @@ echo "[ci-seed] wrote ${APP_ROOT}/.e2e-state/ci-seeded (${SEED_STATUS})"
 # Failures are ignored on purpose: this is a warm-up, not a gate. The real
 # checks are above and below.
 for path in \
-	"/index.php/apps/scholiq/" \
-	"/index.php/apps/scholiq/api/settings" \
+	"/index.php/apps/learniq/" \
+	"/index.php/apps/learniq/api/settings" \
 	"/index.php/apps/openregister/api/registers?_limit=1" \
 	"/index.php/apps/openregister/api/schemas?_limit=1"
 do
@@ -275,8 +275,8 @@ done
 # assert it is actually JavaScript.
 #
 # Do NOT hardcode the URL. Nextcloud serves an app's assets from whichever apps
-# directory it was installed into — `/apps/scholiq/js/...` on the CI runner,
-# `/custom_apps/scholiq/js/...` in the docker dev images — and asking for the
+# directory it was installed into — `/apps/learniq/js/...` on the CI runner,
+# `/custom_apps/learniq/js/...` in the docker dev images — and asking for the
 # wrong one does not 404. It returns **HTTP 200 with `text/html`**: the NC error
 # page, served through index.php. A status-code check therefore reports success
 # while fetching a 40 KB HTML page instead of a multi-MB bundle.
@@ -285,13 +285,13 @@ done
 # response content type.
 APP_HTML="$(mktemp)"
 curl -sS -u "${USER_NAME}:${USER_PASS}" -H 'OCS-APIRequest: true' \
-	"${BASE}/index.php/apps/scholiq/" -o "$APP_HTML" || true
+	"${BASE}/index.php/apps/learniq/" -o "$APP_HTML" || true
 
 # `|| true` is load-bearing: grep exits 1 when it matches nothing, and under
 # `set -euo pipefail` that aborts the script right here — so the case the gate
 # below exists to explain (no bundle) would die with a bare non-zero exit and
 # none of the diagnosis. Let it fall through to the gate instead.
-BUNDLE_SRC="$(grep -oE 'src="[^"]*scholiq-main[^"]*"' "$APP_HTML" \
+BUNDLE_SRC="$(grep -oE 'src="[^"]*learniq-main[^"]*"' "$APP_HTML" \
 	| head -1 | sed 's/^src="//; s/"$//' || true)"
 
 if [ -n "$BUNDLE_SRC" ]; then
@@ -300,7 +300,7 @@ if [ -n "$BUNDLE_SRC" ]; then
 		-u "${USER_NAME}:${USER_PASS}" "${BASE}${BUNDLE_SRC}" || echo '000 - 0')"
 	echo "[ci-seed] warm bundle ${BUNDLE_SRC} -> ${BUNDLE_INFO}"
 else
-	echo "[ci-seed] could not locate the scholiq-main bundle src in the rendered app page."
+	echo "[ci-seed] could not locate the learniq-main bundle src in the rendered app page."
 	BUNDLE_INFO=""
 fi
 

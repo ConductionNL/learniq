@@ -33,9 +33,9 @@ import { createObject, seededTenantId } from '../or-api'
 
 // ⚠️ NO `#` — the router is HISTORY mode, not hash mode.
 //
-// src/main.js builds the router with `createWebHistory(generateUrl('/apps/scholiq'))`.
+// src/main.js builds the router with `createWebHistory(generateUrl('/apps/learniq'))`.
 // vue-router's history mode strips the base from `location.pathname` and then
-// APPENDS the untouched hash, so `/index.php/apps/scholiq/#/accessibility`
+// APPENDS the untouched hash, so `/index.php/apps/learniq/#/accessibility`
 // resolves to the location `/#/accessibility` — which matches no declared route.
 // `<router-view>` renders nothing and the page shows only the Nextcloud chrome.
 //
@@ -43,7 +43,7 @@ import { createObject, seededTenantId } from '../or-api'
 // `Received string: "Keyboard navigation help / Skip to app navigation / …"` —
 // the NC shell with an empty app body — while index-pages.spec.ts and
 // detail-pages.spec.ts, which use the plain path form, passed 206/206.
-const STATEMENT_URL = '/index.php/apps/scholiq/accessibility'
+const STATEMENT_URL = '/index.php/apps/learniq/accessibility'
 
 // The view this spec drives, named after the component file it covers. The
 // URL is unchanged — this makes the spec-to-component link readable in
@@ -51,9 +51,9 @@ const STATEMENT_URL = '/index.php/apps/scholiq/accessibility'
 // page against its component stem, and the stem appeared only in comments).
 const ScholiqAccessibilityStatement = STATEMENT_URL
 
-const LIMITATIONS_INDEX_URL = '/index.php/apps/scholiq/accessibility/limitations'
-const FEEDBACK_INDEX_URL = '/index.php/apps/scholiq/accessibility/feedback'
-const FEEDBACK_CREATE_URL = '/index.php/apps/scholiq/accessibility/feedback/new'
+const LIMITATIONS_INDEX_URL = '/index.php/apps/learniq/accessibility/limitations'
+const FEEDBACK_INDEX_URL = '/index.php/apps/learniq/accessibility/feedback'
+const FEEDBACK_CREATE_URL = '/index.php/apps/learniq/accessibility/feedback/new'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise
@@ -96,7 +96,7 @@ test.describe('accessibility-conformance — the toegankelijkheidsverklaring sta
 		// in flight all session), so it silently burns its full 30 s out of
 		// this test's 60 s budget and surfaces as a bare timeout that looks
 		// like an app outage. ADR-074 rule 4 / hydra gate 58.
-		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
+		await expect(page.locator('#learniq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -208,7 +208,7 @@ test.describe('accessibility-conformance — the known-limitations register', ()
 		await page.goto(`${LIMITATIONS_INDEX_URL}/${limitationId}`)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` —
 		// see ADR-074 rule 4 / hydra gate 58.
-		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
+		await expect(page.locator('#learniq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		// The registered component resolved AND hydrated: its declared title
 		// plus a field value that can only have come from the fetched record.
@@ -249,7 +249,7 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 		await page.goto(ScholiqAccessibilityStatement)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` —
 		// see ADR-074 rule 4 / hydra gate 58.
-		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
+		await expect(page.locator('#learniq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		await page
 			.getByRole('button', { name: /Report an accessibility problem/i })
@@ -292,7 +292,7 @@ test.describe('accessibility-conformance — reporting a barrier (AccessibilityF
 		await page.goto(FEEDBACK_CREATE_URL)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` —
 		// see ADR-074 rule 4 / hydra gate 58.
-		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
+		await expect(page.locator('#learniq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		// ⚠️ HARD, not soft. This used to be
 		// `if (await affectedSurfaceField.isVisible().catch(() => false)) { … }`

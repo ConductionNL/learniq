@@ -19,8 +19,8 @@
  */
 import type { Page } from '@playwright/test'
 
-/** The scholiq register slug, as imported by `ci-seed.sh` / `seed-example-data.mjs`. */
-export const REGISTER_SLUG = 'scholiq'
+/** The learniq register slug, as imported by `ci-seed.sh` / `seed-example-data.mjs`. */
+export const REGISTER_SLUG = 'learniq'
 
 /**
  * The tenant UUID `seed-example-data.mjs` stamps on every row it creates, used

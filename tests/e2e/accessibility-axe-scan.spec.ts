@@ -29,7 +29,7 @@ import manifest from '../../src/manifest.json'
  * @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-automated-accessibility-scans-must-be-wired-into-the-playwright-suite-as-citable-evidence
  */
 
-const APP_BASE = '/index.php/apps/scholiq'
+const APP_BASE = '/index.php/apps/learniq'
 
 // `serious`/`critical` fail the run; `minor`/`moderate` are recorded but not
 // blocking, matching the spec's own "fails on a serious or critical

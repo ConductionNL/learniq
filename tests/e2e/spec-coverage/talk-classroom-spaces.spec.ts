@@ -35,11 +35,11 @@ import { test, expect } from '../fixtures'
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
 const COHORT_LIST_API =
-	'/index.php/apps/openregister/api/objects/scholiq/Cohort?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/Cohort?limit=200'
 const SESSION_LIST_API =
-	'/index.php/apps/openregister/api/objects/scholiq/Session?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/Session?limit=200'
 const ENROLMENT_LIST_API =
-	'/index.php/apps/openregister/api/objects/scholiq/Enrolment?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/Enrolment?limit=200'
 
 /**
  * Fetch every row for a schema's index endpoint and return the first one
@@ -85,7 +85,7 @@ function fatalOnly(errors: string[]): string[] {
 }
 
 async function openRoute(page: import('@playwright/test').Page, route: string) {
-	await page.goto(`/index.php/apps/scholiq/#${route}`)
+	await page.goto(`/index.php/apps/learniq/#${route}`)
 	await page.waitForSelector('body', { timeout: 15_000 })
 	await page.waitForLoadState('domcontentloaded')
 }

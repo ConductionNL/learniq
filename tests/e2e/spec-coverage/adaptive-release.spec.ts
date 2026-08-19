@@ -38,7 +38,7 @@ import { test, expect } from '../fixtures'
 // or empty-result assertion, never as a visible 404. 29 of this suite's 34 spec
 // files already used the `/index.php/` form.
 const LESSON_LIST_API =
-	'/index.php/apps/openregister/api/objects/scholiq/Lesson?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/Lesson?limit=200'
 
 /**
  * Fetch every Lesson and return the first one matching the given predicate,
@@ -87,7 +87,7 @@ async function openLessonPlayer(
 	lessonId: string,
 ) {
 	await page.goto(
-		`/index.php/apps/scholiq/#/courses/${courseId}/lessons/${lessonId}/play`,
+		`/index.php/apps/learniq/#/courses/${courseId}/lessons/${lessonId}/play`,
 	)
 	await page.waitForSelector('body', { timeout: 15_000 })
 	await page.waitForLoadState('domcontentloaded')

@@ -35,7 +35,7 @@ import { test, expect } from '../fixtures'
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
 const COURSE_LIST_API =
-	'/index.php/apps/openregister/api/objects/scholiq/Course?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/Course?limit=200'
 
 /**
  * Fetch every Course and return the first top-level one (no parentCourseId),
@@ -78,7 +78,7 @@ async function openCourseBuilder(
 	page: import('@playwright/test').Page,
 	courseId: string,
 ) {
-	await page.goto(`/index.php/apps/scholiq/#/courses/${courseId}/builder`)
+	await page.goto(`/index.php/apps/learniq/#/courses/${courseId}/builder`)
 	await page.waitForSelector('body', { timeout: 15_000 })
 	await page.waitForLoadState('domcontentloaded')
 }

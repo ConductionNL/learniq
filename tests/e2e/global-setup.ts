@@ -31,7 +31,7 @@ const AUTH_FILE = path.join(APP_ROOT, 'test-results', '.auth', 'admin.json')
 const SEED_MARKER = path.join(APP_ROOT, '.e2e-state', 'ci-seeded')
 
 /**
- * Run the example-data seed (imports the scholiq register into OpenRegister + creates
+ * Run the example-data seed (imports the learniq register into OpenRegister + creates
  * a coherent example dataset). Best-effort: a failing seed (NC unreachable in CI, or
  * the OR register-import gap openregister#1487) does NOT abort the run — it just means
  * the index-page specs skip their row-count soft-assertions. Sets

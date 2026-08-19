@@ -24,8 +24,8 @@ import { test, expect } from '../fixtures'
 // ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
 // `#/…` URL resolves to a location no route matches and renders an empty app body.
 // See accessibility-conformance.spec.ts for the measurement.
-const STUDENT_DASHBOARD_URL = '/index.php/apps/scholiq/dashboards/my-learning'
-const LEADERBOARD_URL = '/index.php/apps/scholiq/engagement/leaderboard'
+const STUDENT_DASHBOARD_URL = '/index.php/apps/learniq/dashboards/my-learning'
+const LEADERBOARD_URL = '/index.php/apps/learniq/engagement/leaderboard'
 
 function fatalErrors(errors: string[]): string[] {
 	return errors.filter(

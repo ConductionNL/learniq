@@ -64,12 +64,12 @@ type Page = import('@playwright/test').Page
  * ⚠️ THE APP BASE IS RESOLVED AT RUNTIME, NOT HARDCODED.
  *
  * `src/main.js` builds the router with
- * `createWebHistory(generateUrl('/apps/scholiq'))`, and `generateUrl` emits the
+ * `createWebHistory(generateUrl('/apps/learniq'))`, and `generateUrl` emits the
  * `/index.php` prefix ONLY when the instance does not serve pretty urls. CI runs
  * a bare `php -S`, which has no rewrite, so there the base IS
- * `/index.php/apps/scholiq` — the form hardcoded throughout the rest of this
- * suite. On an Apache instance with mod_rewrite the base is `/apps/scholiq`, and
- * a `/index.php/apps/scholiq/compliance` url then has a pathname the router
+ * `/index.php/apps/learniq` — the form hardcoded throughout the rest of this
+ * suite. On an Apache instance with mod_rewrite the base is `/apps/learniq`, and
+ * a `/index.php/apps/learniq/compliance` url then has a pathname the router
  * cannot strip its base from: no route matches, the router falls back to the
  * default route, and the browser shows the ADMIN DASHBOARD.
  *
@@ -80,7 +80,7 @@ type Page = import('@playwright/test').Page
  *
  * Asking the page for its own base makes the spec correct on both.
  */
-const ENTRY_URL = '/index.php/apps/scholiq/'
+const ENTRY_URL = '/index.php/apps/learniq/'
 let appBase: string | null = null
 
 /**
@@ -95,7 +95,7 @@ async function resolveAppBase(page: Page): Promise<string> {
 	const base = await page.evaluate(() =>
 		(
 			window as unknown as { OC: { generateUrl: (_p: string) => string } }
-		).OC.generateUrl('/apps/scholiq'),
+		).OC.generateUrl('/apps/learniq'),
 	)
 	expect(base, 'OC.generateUrl did not resolve the scholiq app base').toBeTruthy()
 	appBase = base.replace(/\/+$/, '')
@@ -153,7 +153,7 @@ function assertNoFatalErrors(errors: string[]): void {
  * Navigate to an app route and wait for the component root to appear.
  *
  * ⚠️ NO `#`. `src/main.js` builds the router with
- * `createWebHistory(generateUrl('/apps/scholiq'))`, so a `#/x` url resolves to
+ * `createWebHistory(generateUrl('/apps/learniq'))`, so a `#/x` url resolves to
  * a location no route matches and renders the Nextcloud chrome with an empty
  * app body.
  *
