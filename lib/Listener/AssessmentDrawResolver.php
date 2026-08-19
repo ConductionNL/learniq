@@ -110,6 +110,16 @@ class AssessmentDrawResolver implements IEventListener {
 	 *
 	 * @return void
 	 *
+	 * @listener-placement inline correctness — this writes the AssessmentResult's
+	 * `drawnItemRefs`, which IS the set of items the learner is about to be
+	 * served, and the class contract is that it is "written once; never
+	 * recomputed by any later process". Deferring it to a background job would
+	 * hand the learner an attempt whose drawnItemRefs is still the default `[]`
+	 * for however long the queue takes — i.e. an assessment with no questions,
+	 * or the fail-closed empty state — because `TakeAssessmentView.vue` POSTs the
+	 * AssessmentResult and reads it straight back. The work is also bounded: one
+	 * ItemBank read plus a Fisher-Yates permutation over drawCount items.
+	 *
 	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
 	 */
 	public function handle(Event $event): void {
