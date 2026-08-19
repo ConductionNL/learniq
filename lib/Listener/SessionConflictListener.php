@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq Session Conflict Listener
+ * Learniq Session Conflict Listener
  *
  * IEventListener for Session create/update (OR's `ObjectCreatedEvent` and
- * `ObjectUpdatedEvent`, filtered to register=scholiq, schema=session).
+ * `ObjectUpdatedEvent`, filtered to register=learniq, schema=session).
  * Delegates the actual pairwise overlap scan to
  * {@see \OCA\Learniq\Timetabling\TimetableConflictDetector} — this class'
  * only responsibility is filtering the incoming OR event to the right
@@ -12,7 +12,7 @@
  * timetabling spec's "Detection MUST run as an OR-event-driven scan (on
  * Session create/update...)" requirement.
  *
- * ObjectUpdatedEvent has no prior scholiq listener precedent (verified: every
+ * ObjectUpdatedEvent has no prior learniq listener precedent (verified: every
  * other event-driven listener in this app's lib/AppInfo/Application.php
  * registers against `ObjectCreatedEvent`, `ObjectCreatingEvent`, or
  * `ObjectTransitionedEvent` only) — it is, however, a real, already-shipped
@@ -61,7 +61,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class SessionConflictListener implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
 
 	/**
@@ -101,7 +101,7 @@ class SessionConflictListener implements IEventListener {
 			return;
 		}
 
-		if ($this->schemaResolver->registerSlug(entity: $object) !== self::SCHOLIQ_REGISTER
+		if ($this->schemaResolver->registerSlug(entity: $object) !== self::LEARNIQ_REGISTER
 			|| $this->schemaResolver->schemaSlug(entity: $object) !== self::SESSION_SCHEMA
 		) {
 			return;

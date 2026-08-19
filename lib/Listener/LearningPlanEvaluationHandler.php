@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Learning Plan Evaluation Handler
+ * Learniq Learning Plan Evaluation Handler
  *
  * IEventListener for OpenRegister's ObjectTransitionedEvent. When a
  * LearningPlanEvaluation transitions to `recorded`, this handler:
@@ -53,7 +53,7 @@ use Psr\Log\LoggerInterface;
  */
 class LearningPlanEvaluationHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const EVALUATION_SCHEMA = 'learning-plan-evaluation';
 	private const LEARNING_PLAN_SCHEMA = 'learning-plan';
 
@@ -97,7 +97,7 @@ class LearningPlanEvaluationHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -136,7 +136,7 @@ class LearningPlanEvaluationHandler implements IEventListener {
 		// Fetch the parent LearningPlan.
 		$plans = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LEARNING_PLAN_SCHEMA,
 				'filters' => ['uuid' => $planId],
 				'limit' => 1,
@@ -181,7 +181,7 @@ class LearningPlanEvaluationHandler implements IEventListener {
 		$plan['goals'] = $goals;
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::LEARNING_PLAN_SCHEMA,
 			object: $plan
 		);

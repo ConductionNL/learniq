@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Scholiq Common Cartridge Resource Router
+ * Learniq Common Cartridge Resource Router
  *
- * Routes one IMS Common Cartridge resource to its scholiq target (Material /
+ * Routes one IMS Common Cartridge resource to its Learniq target (Material /
  * QTI item / LTI placement / dropped), appending exactly one report entry per
  * source resource — nothing is ever silently dropped (the structural
  * anti-Canvas promise, see the proposal's "Why").
@@ -34,13 +34,13 @@ namespace OCA\Learniq\Service\CoursePackage;
 use Psr\Log\LoggerInterface;
 
 /**
- * Maps a single Common Cartridge resource onto scholiq objects + a report entry.
+ * Maps a single Common Cartridge resource onto Learniq objects + a report entry.
  */
 class CommonCartridgeResourceRouter {
 	/**
 	 * Constructor.
 	 *
-	 * @param CoursePackageObjectWriter $objectWriter Creates the scholiq objects a resource materialises.
+	 * @param CoursePackageObjectWriter $objectWriter Creates the Learniq objects a resource materialises.
 	 * @param CoursePackageFileWriter $fileWriter Resolves package-relative file bytes into nc:files.
 	 * @param CoursePackageImportReporter $reporter Builds the report entry rows.
 	 * @param PackageXmlValueReader $xmlReader Reads weblink side-car XML descriptors.
@@ -174,7 +174,7 @@ class CommonCartridgeResourceRouter {
 		if ($classification === 'discussion') {
 			return $this->droppedEntry(
 				resource: $resource,
-				reason: 'No scholiq schema represents discussion/forum content — migrate manually.'
+				reason: 'No Learniq schema represents discussion/forum content — migrate manually.'
 			);
 		}
 

@@ -60,7 +60,7 @@ class PortfolioSubmissionGuard {
 	/**
 	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * OR schema slug for PortfolioTemplate.
@@ -196,7 +196,7 @@ class PortfolioSubmissionGuard {
 	private function coveredSectionIds(string $portfolioId): array {
 		$entries = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ENTRY_SCHEMA,
 				'filters' => ['portfolioId' => $portfolioId],
 			]
@@ -235,7 +235,7 @@ class PortfolioSubmissionGuard {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => $schema,
 				'filters' => ['id' => $id],
 				'limit' => 1,

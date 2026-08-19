@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Rejection Waive Guard
+ * Learniq Rejection Waive Guard
  *
  * Lifecycle guard for the ExchangeRejection schema's `waive` transition
  * (`open|corrected` → `waived`). Mirrors PupilVoiceGuard's mandatory-reason

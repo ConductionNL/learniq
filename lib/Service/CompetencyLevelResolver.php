@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Competency Level Resolver
+ * Learniq Competency Level Resolver
  *
  * The proficiency-level half of competency roll-up, extracted from
  * `CompetencyAttainmentRollupHandler` so each class carries one cohesive

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Lesson Release Evaluator
+ * Learniq Lesson Release Evaluator
  *
  * Stateless service resolving, per (item, learner) pair, whether a Lesson or
  * Assessment is available to a specific learner right now — the "adaptive
@@ -60,7 +60,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class LessonReleaseEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Schema slug this evaluator recognises as "Assessment" — used to decide
@@ -312,7 +312,7 @@ class LessonReleaseEvaluator {
 
 		$statements = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::XAPI_SCHEMA,
 				'filters' => $filters,
 			]
@@ -370,7 +370,7 @@ class LessonReleaseEvaluator {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ASSESSMENT_RESULT_SCHEMA,
 				'filters' => $filters,
 			]
@@ -438,7 +438,7 @@ class LessonReleaseEvaluator {
 	 * @return string|null
 	 */
 	private function resolveName(string $id, string $schema): ?string {
-		$object = $this->objectService->find(id: $id, register: self::SCHOLIQ_REGISTER, schema: $schema);
+		$object = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
 		if ($object === null) {
 			return null;
 		}

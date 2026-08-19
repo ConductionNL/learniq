@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Data Exchange Run Guard
+ * Learniq Data Exchange Run Guard
  *
  * Lifecycle guard for the DataExchangeJob schema's `queued → running`
  * transition (the `run` action). Enforces the OSO-format-dossier

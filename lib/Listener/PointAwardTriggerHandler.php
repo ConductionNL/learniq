@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Point Award Trigger Handler
+ * Learniq Point Award Trigger Handler
  *
  * Listens for OpenRegister's ObjectTransitionedEvent on exactly three real,
  * already-firing transitions and creates an idempotency-keyed PointAward for
@@ -80,7 +80,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class PointAwardTriggerHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ENROLMENT_SCHEMA = 'enrolment';
 	private const SUBMISSION_SCHEMA = 'submission';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
@@ -117,7 +117,7 @@ class PointAwardTriggerHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -290,7 +290,7 @@ class PointAwardTriggerHandler implements IEventListener {
 			}
 
 			$this->objectService->saveObject(
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::POINT_AWARD_SCHEMA,
 				object: [
 					'learnerId' => $learnerId,
@@ -317,7 +317,7 @@ class PointAwardTriggerHandler implements IEventListener {
 	private function fetchActiveRules(string $kind, string $tenantId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::POINT_RULE_SCHEMA,
 				'filters' => [
 					'kind' => $kind,
@@ -382,7 +382,7 @@ class PointAwardTriggerHandler implements IEventListener {
 	private function hasExistingAward(string $learnerId, string $pointRuleId, string $sourceObjectId): bool {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::POINT_AWARD_SCHEMA,
 				'filters' => [
 					'learnerId' => $learnerId,

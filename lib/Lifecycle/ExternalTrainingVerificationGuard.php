@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq External Training Verification Guard
+ * Learniq External Training Verification Guard
  *
  * Lifecycle guard for the ExternalTrainingRecord schema's
  * `submitted → verified` transition. Called by OpenRegister's lifecycle

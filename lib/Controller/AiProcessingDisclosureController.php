@@ -84,7 +84,7 @@ class AiProcessingDisclosureController extends Controller {
 	/**
 	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * OR schema slug for the SovereigntyPolicy singleton.
@@ -226,7 +226,7 @@ class AiProcessingDisclosureController extends Controller {
 		try {
 			$existing = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::SOVEREIGNTY_POLICY_SCHEMA,
 					'limit' => 1,
 				]

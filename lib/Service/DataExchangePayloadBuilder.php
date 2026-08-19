@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Scholiq Data Exchange Payload Builder
+ * Learniq Data Exchange Payload Builder
  *
- * Turns the Scholiq source objects a `DataExchangeJob`'s scope selected into
+ * Turns the Learniq source objects a `DataExchangeJob`'s scope selected into
  * the payload OpenConnector receives: applies the `DataMappingProfile`'s
  * fieldMappings (via `DataExchangeTransformer`), strips PII, stamps the
  * correlation identifier, and runs the per-target dossier composers
@@ -47,7 +47,7 @@ use RuntimeException;
  * @spec openspec/changes/verzuim-report-composer/tasks.md#task-3.1
  */
 class DataExchangePayloadBuilder {
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Target that composes the verzuimloket dossier (attendance-flag +
@@ -174,7 +174,7 @@ class DataExchangePayloadBuilder {
 			// Correlation stamp (duo-afkeurmelding-correction): every record carries
 			// the source object's own id BEFORE composition, so a rejection returned
 			// in a later job's result.validationReport can be resolved back to the
-			// Scholiq object that produced it. Stamped first so the leerplicht/swv
+			// Learniq object that produced it. Stamped first so the leerplicht/swv
 			// composers never strip it (they only add keys, never unset()).
 			$object['_scholiqRecordId'] = ($object['id'] ?? ($object['uuid'] ?? ''));
 
@@ -367,7 +367,7 @@ class DataExchangePayloadBuilder {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LEARNER_PROFILE_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,
@@ -415,7 +415,7 @@ class DataExchangePayloadBuilder {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LEARNING_PLAN_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,
@@ -465,7 +465,7 @@ class DataExchangePayloadBuilder {
 
 			$results = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::ATTENDANCE_RECORD_SCHEMA,
 					'filters' => $filters,
 					'limit' => 1,

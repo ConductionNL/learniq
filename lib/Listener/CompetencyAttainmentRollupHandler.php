@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Competency Attainment Rollup Handler
+ * Learniq Competency Attainment Rollup Handler
  *
  * IEventListener registered against BOTH OR's ObjectCreatedEvent and
  * ObjectTransitionedEvent (Application.php registers this one class for both
@@ -83,7 +83,7 @@ use Psr\Log\LoggerInterface;
  */
 class CompetencyAttainmentRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 	private const WERKPROCES_SCHEMA = 'werkproces-assessment';
 	private const BPV_PLACEMENT_SCHEMA = 'bpv-placement';
@@ -101,7 +101,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ObjectRowReader $reader Reads a single Scholiq object by id.
+	 * @param ObjectRowReader $reader Reads a single Learniq object by id.
 	 * @param CompetencyAttainmentWriter $attainment Upserts CompetencyAttainment rows and appends evidence.
 	 * @param CompetencyLevelResolver $levelResolver Resolves a proficiencyLevelId from a beoordeling label.
 	 * @param GradeEvidenceRollup $gradeEvidence Rolls a published GradeEntry into the competencies it evidences.
@@ -152,7 +152,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 	private function handleObjectCreated(ObjectCreatedEvent $event): void {
 		$entity = $event->getObject();
 
-		if ($this->schemaResolver->registerSlug(entity: $entity) !== self::SCHOLIQ_REGISTER
+		if ($this->schemaResolver->registerSlug(entity: $entity) !== self::LEARNIQ_REGISTER
 			|| $this->schemaResolver->schemaSlug(entity: $entity) !== self::WERKPROCES_SCHEMA
 		) {
 			return;
@@ -172,7 +172,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 	 * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
 	 */
 	private function handleObjectTransitioned(ObjectTransitionedEvent $event): void {
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -231,7 +231,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 		}
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::WERKPROCES_SCHEMA,
 			object: array_merge($data, ['competencyId' => $competencyId])
 		);
@@ -262,7 +262,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 
 		$frameworks = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::FRAMEWORK_SCHEMA,
 				'filters' => $frameworkFilters,
 			]
@@ -282,7 +282,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 
 			$competencies = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::COMPETENCY_SCHEMA,
 					'filters' => $competencyFilters,
 					'limit' => 1,

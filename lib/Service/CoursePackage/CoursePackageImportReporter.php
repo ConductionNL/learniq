@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Course Package Import Reporter
+ * Learniq Course Package Import Reporter
  *
  * Builds the per-resource report rows every course-package importer emits and
  * persists the resulting `CoursePackageImportReport`. Extracted out of
@@ -39,7 +39,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class CoursePackageImportReporter {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const REPORT_SCHEMA = 'course-package-import-report';
 
 	/**
@@ -72,7 +72,7 @@ class CoursePackageImportReporter {
 	 * @param string $resourceType Source resource/module type string.
 	 * @param string $title Resource title.
 	 * @param string $outcome `imported`|`degraded`|`dropped` (or the internal `pending-qti` marker, resolved before persisting).
-	 * @param string|null $targetType Created scholiq schema name, when applicable.
+	 * @param string|null $targetType Created Learniq schema name, when applicable.
 	 * @param string|null $targetId Created object UUID, when applicable.
 	 * @param string|null $reason Human-readable reason, required for non-`imported` outcomes.
 	 *
@@ -162,7 +162,7 @@ class CoursePackageImportReporter {
 		}
 
 		$saved = $this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::REPORT_SCHEMA,
 			object: [
 				'sourceFormat' => $sourceFormat,

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Rubric Scores Completion Guard
+ * Learniq Rubric Scores Completion Guard
  *
  * Shared lifecycle guard for PeerReview's `submit` (assigned -> submitted) and
  * SelfAssessment's `submit` (draft -> submitted) transitions. Blocks the transition
@@ -55,7 +55,7 @@ use Psr\Log\LoggerInterface;
  */
 class RubricScoresCompletionGuard {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
 	private const RUBRIC_SCHEMA = 'rubric';
 	private const SUBMISSION_SCHEMA = 'submission';
@@ -243,7 +243,7 @@ class RubricScoresCompletionGuard {
 	private function fetchObject(string $id, string $schema): ?array {
 		$obj = $this->objectService->find(
 			id: $id,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: $schema
 		);
 

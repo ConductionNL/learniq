@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq External Training Service
+ * Learniq External Training Service
  *
  * Business logic for externally-completed training records: the compliance
  * coverage predicate (which now counts verified external records), bulk
@@ -46,9 +46,9 @@ use Psr\Log\LoggerInterface;
  */
 class ExternalTrainingService {
 	/**
-	 * OpenRegister register slug Scholiq objects live in.
+	 * OpenRegister register slug Learniq objects live in.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Schema slug of the external-training record.
@@ -213,7 +213,7 @@ class ExternalTrainingService {
 			// Do NOT set lifecycle — OR defaults it to 'submitted' and fires the
 			// 'created' notification rule.
 			$this->objectService->saveObject(
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::SCHEMA,
 				object: $record
 			);
@@ -262,7 +262,7 @@ class ExternalTrainingService {
 	private function hasSignedAttestation(string $learnerId, string $regulationSlug): bool {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'attestation',
 				'filters' => [
 					'learnerId' => $learnerId,
@@ -288,7 +288,7 @@ class ExternalTrainingService {
 	private function hasValidCredential(string $learnerId, string $regulationSlug, DateTimeInterface $now): bool {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'credential',
 				'filters' => [
 					'learnerId' => $learnerId,
@@ -326,7 +326,7 @@ class ExternalTrainingService {
 	private function hasVerifiedExternalRecord(string $learnerId, string $regulationSlug, DateTimeInterface $now): bool {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::SCHEMA,
 				'filters' => [
 					'learnerId' => $learnerId,

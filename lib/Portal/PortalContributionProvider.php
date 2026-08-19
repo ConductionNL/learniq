@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Scholiq Portal Contribution Provider
+ * Learniq Portal Contribution Provider
  *
- * Scholiq's contribution to the shared Portaliq external portal (hydra ADR-046
+ * Learniq's contribution to the shared Portaliq external portal (hydra ADR-046
  * + contribution contract v2, 2026-07-06 amendment). Portaliq — the ONE shared
  * portal for people WITHOUT Nextcloud accounts — discovers this class by
  * convention FQCN (`OCA\{Namespace}\Portal\PortalContributionProvider`) and
  * duck-types it via method_exists(), never instanceof. This class is therefore
  * deliberately PLAIN: no portaliq imports, no `implements` clause, no info.xml
  * dependency, no constructor dependencies. Without portaliq installed it is
- * inert and Scholiq behaves exactly as before (amendment A1).
+ * inert and Learniq behaves exactly as before (amendment A1).
  *
  * It declares — for the `student` (the learner) and `parent` (a guardian)
  * audiences — the OpenRegister collections a portal subject may read, the
@@ -19,7 +19,7 @@
  * (`learnerRef` = a LearnerProfile object UUID; `guardianRef` = a guardian
  * domain UUID) added by the `portal-identity` change — never a Nextcloud user
  * id, because an external subject has no Nextcloud account by premise
- * (amendment A4). Scholiq's internal `learnerId` / `parentIds` / `submittedBy`
+ * (amendment A4). Learniq's internal `learnerId` / `parentIds` / `submittedBy`
  * flows are untouched.
  *
  * @category Portal
@@ -44,7 +44,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Portal;
 
 /**
- * Declares what an external portal subject may see and do in Scholiq.
+ * Declares what an external portal subject may see and do in Learniq.
  *
  * The contribution is a declarative manifest (pure data — no I/O, no
  * callbacks). All subject identity (subjectRef, audience, organisation, trust)
@@ -76,7 +76,7 @@ class PortalContributionProvider {
 	/**
 	 * The audiences this provider contributes to (contract v2, preferred).
 	 *
-	 * The registry probes for this method first. Scholiq serves the learner
+	 * The registry probes for this method first. Learniq serves the learner
 	 * (`student`) and their guardian (`parent`).
 	 *
 	 * @return array<int, string> The audience identifiers.
@@ -108,7 +108,7 @@ class PortalContributionProvider {
 	 *
 	 * The subject array is server-derived by portaliq (subjectRef UUID,
 	 * audience, organisation, trust level low|substantial|high). Returns null
-	 * for any audience Scholiq does not serve (fail-closed; the registry
+	 * for any audience Learniq does not serve (fail-closed; the registry
 	 * already filters by audience, but a provider must not rely on that).
 	 *
 	 * @param array<string, mixed> $subject The resolved portal subject.
@@ -136,7 +136,7 @@ class PortalContributionProvider {
 			return $this->externalAssessorContribution();
 		}
 
-		// Any audience Scholiq does not serve → null (fail-closed; ADR-005).
+		// Any audience Learniq does not serve → null (fail-closed; ADR-005).
 		return null;
 	}//end getContribution()
 
@@ -158,7 +158,7 @@ class PortalContributionProvider {
 	 */
 	private function studentContribution(): array {
 		return [
-			'label' => 'Scholiq',
+			'label' => 'Learniq',
 			'collections' => array_merge(
 				$this->studentResultCollections(),
 				$this->studentActivityCollections()
@@ -428,7 +428,7 @@ class PortalContributionProvider {
 		];
 
 		return [
-			'label' => 'Scholiq',
+			'label' => 'Learniq',
 			'collections' => array_merge(
 				$this->parentResultCollections(childJoin: $childJoin),
 				$this->parentWelfareCollections(childJoin: $childJoin)
@@ -622,7 +622,7 @@ class PortalContributionProvider {
 	 */
 	private function practicalTrainerContribution(): array {
 		return [
-			'label' => 'Scholiq',
+			'label' => 'Learniq',
 			'collections' => [
 				[
 					'id' => 'poBpvPlacements',
@@ -729,7 +729,7 @@ class PortalContributionProvider {
 	 */
 	private function externalAssessorContribution(): array {
 		return [
-			'label' => 'Scholiq',
+			'label' => 'Learniq',
 			'collections' => [
 				[
 					'id' => 'eaSharedPortfolios',

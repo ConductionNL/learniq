@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Course Package XML Value Reader
+ * Learniq Course Package XML Value Reader
  *
  * Reads a single value out of one of the small side-car XML files a course
  * package carries next to its manifest — a Common Cartridge `imswl` weblink

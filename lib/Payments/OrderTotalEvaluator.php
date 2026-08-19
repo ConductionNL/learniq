@@ -1,14 +1,14 @@
 <?php
 
 /**
- * Scholiq Order Total Evaluator
+ * Learniq Order Total Evaluator
  *
  * Stateless calculation engine that sums an Order's OrderLine.lineTotal rows.
  *
  * ADR-031 legitimate exception: "Calculation engine above schema metadata."
  * Summing OrderLine.lineTotal for a given orderId is a cross-schema
  * aggregation the pure JSON-logic engine cannot express — a full-file grep of
- * lib/Settings/scholiq_register.json confirms only count/count_distinct are
+ * lib/Settings/learniq_register.json confirms only count/count_distinct are
  * used as x-openregister-aggregations metrics anywhere in this register, no
  * sum metric has a working precedent (documented in the register's own
  * info.description and on LearnerEngagement/CourseQualityScore). Same
@@ -48,7 +48,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class OrderTotalEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ORDER_LINE_SCHEMA = 'order-line';
 
 	/**
@@ -82,7 +82,7 @@ class OrderTotalEvaluator {
 
 		$lines = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ORDER_LINE_SCHEMA,
 				'filters' => ['orderId' => $orderId],
 			]

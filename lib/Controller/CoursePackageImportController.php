@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Course Package Import Controller
+ * Learniq Course Package Import Controller
  *
  * Thin HTTP endpoint for uploading and importing an IMS Common Cartridge 1.3
  * or Moodle backup (`.mbz`) course package. All heavy lifting is delegated

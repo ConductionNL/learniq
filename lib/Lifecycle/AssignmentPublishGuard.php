@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Assignment Publish Guard
+ * Learniq Assignment Publish Guard
  *
  * Lifecycle guard for the Assignment schema's `publish` transition. Enforces that an
  * Assignment has a courseId or a sessionId (or both) before it may be published, and
@@ -12,7 +12,7 @@
  * Legitimate PHP per ADR-031: "Lifecycle guard — business rule that must run before
  * a state transition and cannot be expressed as a schema declaration."
  * Referenced from the Assignment schema's x-openregister-lifecycle.transitions.publish.requires
- * in scholiq_register.json.
+ * in learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle

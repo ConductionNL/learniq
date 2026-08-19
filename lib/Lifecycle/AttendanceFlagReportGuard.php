@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Attendance Flag Report Guard
+ * Learniq Attendance Flag Report Guard
  *
  * Lifecycle guard for the AttendanceFlag schema's `in-handling → reported`
  * transition. Verifies that the DataExchangeJob associated with this flag
@@ -50,7 +50,7 @@ use Psr\Log\LoggerInterface;
  */
 class AttendanceFlagReportGuard {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const DATA_EXCHANGE_JOB_SCHEMA = 'data-exchange-job';
 
 	/**
@@ -101,7 +101,7 @@ class AttendanceFlagReportGuard {
 		// Fetch the DataExchangeJob to check its lifecycle state.
 		$jobs = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::DATA_EXCHANGE_JOB_SCHEMA,
 				'filters' => ['id' => (string)$dataExchangeJobId],
 				'limit' => 1,

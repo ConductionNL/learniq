@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Fraud Case Invalidation Guard
+ * Learniq Fraud Case Invalidation Guard
  *
  * Lifecycle guard for the GradeEntry schema's `invalidate` transition
  * (`concept → invalidated`). Allows the transition only when the GradeEntry's
@@ -49,7 +49,7 @@ use Psr\Log\LoggerInterface;
  */
 class FraudCaseInvalidationGuard {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const FRAUD_CASE_SCHEMA = 'fraud-case';
 
 	/**
@@ -125,7 +125,7 @@ class FraudCaseInvalidationGuard {
 	private function fetchFraudCase(string $fraudCaseId): ?array {
 		$obj = $this->objectService->find(
 			id: $fraudCaseId,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::FRAUD_CASE_SCHEMA
 		);
 

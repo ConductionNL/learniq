@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Scholiq Admin Settings (AppHost stub)
+ * Learniq Admin Settings (AppHost stub)
  *
  * One-line subclass of the OpenRegister AppHost {@see GenericAdminSettings}
- * (ADR-040). The class name must physically exist in Scholiq's namespace
- * because info.xml `<settings><admin>` loads it by class name AND Scholiq's
+ * (ADR-040). The class name must physically exist in Learniq's namespace
+ * because info.xml `<settings><admin>` loads it by class name AND Learniq's
  * domain controllers (KeyAdminController, ActionMatrixController,
  * AuditPackExportController, SettingsController) reference it in
  * `#[AuthorizedAdminSetting(AdminSettings::class)]`. The generic provides the
- * IDelegatedSettings form (section `scholiq`, priority 10).
+ * IDelegatedSettings form (section `learniq`, priority 10).
  *
  * @category Settings
  * @package  OCA\Learniq\Settings
@@ -32,7 +32,7 @@ namespace OCA\Learniq\Settings;
 use OCA\OpenRegister\AppHost\Settings\GenericAdminSettings;
 
 /**
- * AppHost stub for Scholiq's admin settings panel.
+ * AppHost stub for Learniq's admin settings panel.
  */
 class AdminSettings extends GenericAdminSettings {
 }//end class

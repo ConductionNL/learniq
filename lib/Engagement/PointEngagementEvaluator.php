@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Point Engagement Evaluator
+ * Learniq Point Engagement Evaluator
  *
  * Stateless calculation engine that sums a learner's PointAward.points,
  * resolves the highest EngagementLevel the learner has reached, and computes
@@ -9,7 +9,7 @@
  * calendar dates.
  *
  * ADR-031 legitimate exception: "Calculation engine above schema metadata."
- * A grep of every "metric": value across lib/Settings/scholiq_register.json
+ * A grep of every "metric": value across lib/Settings/learniq_register.json
  * returns only count and count_distinct -- never sum, anywhere in this
  * register. FinalGrade.value (GradeFormulaEvaluator) and BsaTrajectory's
  * ectsEarned (BsaProgressEvaluator) both hit this exact limitation and both
@@ -63,7 +63,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
  */
 class PointEngagementEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const POINT_AWARD_SCHEMA = 'point-award';
 	private const ENGAGEMENT_LEVEL_SCHEMA = 'engagement-level';
 
@@ -151,7 +151,7 @@ class PointEngagementEvaluator {
 	private function fetchAwards(string $learnerId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::POINT_AWARD_SCHEMA,
 				'filters' => ['learnerId' => $learnerId],
 			]
@@ -181,7 +181,7 @@ class PointEngagementEvaluator {
 	private function resolveLevelId(float $totalPoints, string $tenantId): ?string {
 		$levels = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ENGAGEMENT_LEVEL_SCHEMA,
 				'filters' => ['tenant_id' => $tenantId],
 			]

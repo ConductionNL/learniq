@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq BSA Warning Signing Guard
+ * Learniq BSA Warning Signing Guard
  *
  * Lifecycle guard for the BsaWarning schema's `drafted -> issued` transition.
  * Called by OpenRegister's lifecycle engine when a study-advisor issues a

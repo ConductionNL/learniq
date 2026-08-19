@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq Learning Record Export Signing Service
+ * Learniq Learning Record Export Signing Service
  *
  * Canonicalises (RFC 8785 JCS) and signs a LearningRecordExport bundle with
- * the tenant's existing RS256 keypair — the SAME `scholiq.credential.signing
+ * the tenant's existing RS256 keypair — the SAME `learniq.credential.signing
  * .{private,public}.{tenantId}` IAppConfig keys `KeyManagementService`
  * generates and `CredentialSigningService` already signs Credentials with.
  * No new key material, no new crypto primitive: the canonicalisation +

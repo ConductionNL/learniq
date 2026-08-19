@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Course Evaluation Eligibility Guard
+ * Learniq Course Evaluation Eligibility Guard
  *
  * Lifecycle guard for the CourseEvaluationResponse schema's `submit` transition
  * (`draft → submitted`). Enforces that the caller holds an eligible, not-yet-
@@ -21,7 +21,7 @@
  * targeted reminders — the crux mechanism").
  *
  * Referenced from CourseEvaluationResponse's
- * x-openregister-lifecycle.transitions.submit.requires in scholiq_register.json.
+ * x-openregister-lifecycle.transitions.submit.requires in learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle
@@ -59,9 +59,9 @@ use Psr\Log\LoggerInterface;
 class CourseEvaluationEligibilityGuard {
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * OR schema slug for EvaluationInvitation.
@@ -139,7 +139,7 @@ class CourseEvaluationEligibilityGuard {
 
 		$invitations = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::EVALUATION_INVITATION_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,

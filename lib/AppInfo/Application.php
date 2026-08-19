@@ -99,11 +99,14 @@ class Application extends App implements IBootstrap {
 		// list, and Coordinator::registerApps() walks THAT sorted list calling
 		// OC_App::registerAutoloading($appId) and then $app->register() for one
 		// app at a time — so every app registers BEFORE the PSR-4 prefix of every
-		// alphabetically-LATER app exists. `scholiq` sorts after `openregister`,
-		// so OCA\OpenRegister\ happens to be autoloadable here today; that is the
-		// alphabet, not a design property. The Bootstrap::register() call below is
-		// UNGUARDED, so the moment the ordering stops holding the resulting \Error
-		// aborts this ENTIRE register() — Coordinator catches it, logs an
+		// alphabetically-LATER app exists. This app's former id, `scholiq`, sorted
+		// after `openregister`, so OCA\OpenRegister\ happened to be autoloadable
+		// here without help — an accident of the alphabet, not a design property.
+		// The 2026 rename to `learniq` is exactly the scenario that accident could
+		// not survive: `learniq` sorts BEFORE `openregister`, so without the call
+		// below OCA\OpenRegister\ would NOT yet be autoloadable here. The
+		// Bootstrap::register() call below is UNGUARDED, so the resulting \Error
+		// would abort this ENTIRE register() — Coordinator catches it, logs an
 		// 'emergency' and continues, leaving Learniq enabled and serving with the
 		// two registrars below silently never wired.
 		//

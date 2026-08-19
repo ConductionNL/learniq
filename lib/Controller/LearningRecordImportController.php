@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Learning Record Import Controller
+ * Learniq Learning Record Import Controller
  *
  * Thin HTTP endpoint for uploading another institution's exported learning
  * record (or a bare ELM/Europass credential set) as evidence during

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Item Analysis Recompute Handler
+ * Learniq Item Analysis Recompute Handler
  *
  * ADR-031 legitimate exception: event-to-object-write bridge that cannot be
  * expressed as a schema declaration — mirrors GradeRollupHandler's role for
@@ -67,7 +67,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class ItemAnalysisRecomputeHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'assessment';
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
 	private const ITEM_STATISTICS_SCHEMA = 'item-statistics';
@@ -112,7 +112,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -211,7 +211,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	private function upsertItemStatistics(string $itemId, string $assessmentId, string $tenantId, array $statistics): ?string {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ITEM_STATISTICS_SCHEMA,
 				'filters' => ['itemId' => $itemId, 'assessmentId' => $assessmentId],
 				'limit' => 1,
@@ -224,7 +224,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 		}
 
 		$saved = $this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::ITEM_STATISTICS_SCHEMA,
 			object: array_merge(
 				$existingData,
@@ -259,7 +259,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	private function upsertAssessmentReliability(string $assessmentId, string $tenantId, array $reliability): void {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ASSESSMENT_RELIABILITY_SCHEMA,
 				'filters' => ['assessmentId' => $assessmentId],
 				'limit' => 1,
@@ -272,7 +272,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 		}
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::ASSESSMENT_RELIABILITY_SCHEMA,
 			object: array_merge(
 				$existingData,
@@ -387,7 +387,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 		}
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::ITEM_REVISION_FLAG_SCHEMA,
 			object: [
 				'itemId' => $itemId,
@@ -415,7 +415,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 		foreach (self::OPEN_FLAG_STATES as $state) {
 			$existing = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::ITEM_REVISION_FLAG_SCHEMA,
 					'filters' => ['itemId' => $itemId, 'reason' => $reason, 'lifecycle' => $state],
 					'limit' => 1,
@@ -446,7 +446,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ASSESSMENT_RESULT_SCHEMA,
 				'filters' => $filters,
 			]
@@ -476,7 +476,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		$matches = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => $schema,
 				'filters' => $filters,
 				'limit' => 1,

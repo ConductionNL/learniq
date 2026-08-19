@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Course Package Export Controller
+ * Learniq Course Package Export Controller
  *
  * Thin HTTP endpoint that streams a Course export (Common Cartridge 1.3 or
  * scholiq-native JSON). Mirrors `AuditPackExportController`'s in-memory-ZIP

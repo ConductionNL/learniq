@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Rejection Resubmission Resolver
+ * Learniq Rejection Resubmission Resolver
  *
  * The resubmission-outcome half of ExchangeRejection mapping, extracted from
  * `RejectionMappingHandler` so each class carries one cohesive responsibility:
@@ -49,7 +49,7 @@ use Psr\Log\LoggerInterface;
  */
 class RejectionResubmissionResolver {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const REJECTION_SCHEMA = 'exchange-rejection';
 
 	/**
@@ -86,7 +86,7 @@ class RejectionResubmissionResolver {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::REJECTION_SCHEMA,
 				'filters' => $filters,
 				'limit' => ExchangeRejectionContract::MAX_REJECTIONS_PER_JOB,
@@ -256,7 +256,7 @@ class RejectionResubmissionResolver {
 	private function saveRejectionFields(string $rejectionId, array $fields): void {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::REJECTION_SCHEMA,
 				'filters' => ['id' => $rejectionId],
 				'limit' => 1,
@@ -279,7 +279,7 @@ class RejectionResubmissionResolver {
 		$updated = array_merge($current, $fields);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::REJECTION_SCHEMA,
 			object: $updated
 		);

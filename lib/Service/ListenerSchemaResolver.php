@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Resolves an OpenRegister object's schema **slug** for scholiq's listeners.
+ * Resolves an OpenRegister object's schema **slug** for Learniq's listeners.
  *
  * OpenRegister's {@see \OCA\OpenRegister\Db\MagicMapper} stamps the numeric
  * **ids** of the register and schema onto every {@see
@@ -10,7 +10,7 @@
  *     $result->setSchema((string) $schema->getId());
  *     $result->setRegister((string) $register->getId());
  *
- * Scholiq's listeners, however, compare that value against a schema **slug**
+ * Learniq's listeners, however, compare that value against a schema **slug**
  * literal (`'xapi-statement'`, `'enrolment'`, `'session'`, ...). An id can never
  * equal a slug, so every one of those guards returned early on every event: the
  * handler bodies had never run once. There was no exception and no log line —
@@ -28,10 +28,10 @@
  * 1. **Register-scoped.** Matching on schema alone is not safe: this instance
  *    carries two distinct schemas both slugged `automation` (ids 71 and 5103),
  *    so a schema-only match fires on another app's objects. Callers therefore
- *    get `''` for anything outside scholiq's own register.
+ *    get `''` for anything outside Learniq's own register.
  * 2. **Container-resolved.** OpenRegister is a soft dependency; the mappers are
  *    pulled from the DI container at call time and every failure degrades to
- *    `''`, so scholiq still boots and runs with OpenRegister absent.
+ *    `''`, so Learniq still boots and runs with OpenRegister absent.
  * 3. **Gated.** Waking these listeners is a behaviour change, not a bug fix —
  *    see {@see ListenerSlugContract}. While the contract is disabled this
  *    returns the raw entity value (the id), which reproduces today's dead
@@ -64,13 +64,13 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Turns an OpenRegister entity's schema id into its slug, scoped to scholiq's
+ * Turns an OpenRegister entity's schema id into its slug, scoped to Learniq's
  * own register.
  */
 class ListenerSchemaResolver {
 
 	/**
-	 * The OpenRegister register slug owning scholiq's schemas.
+	 * The OpenRegister register slug owning Learniq's schemas.
 	 *
 	 * @var string
 	 */
@@ -94,7 +94,7 @@ class ListenerSchemaResolver {
 	 * Constructor.
 	 *
 	 * @param ContainerInterface $container DI container — OpenRegister mappers are resolved
-	 *                                      lazily so scholiq boots without OpenRegister.
+	 *                                      lazily so Learniq boots without OpenRegister.
 	 * @param ListenerSlugContract $contract Default-off gate for the corrected matching.
 	 * @param LoggerInterface $logger Logger for fail-soft diagnostics.
 	 *
@@ -110,7 +110,7 @@ class ListenerSchemaResolver {
 	/**
 	 * Resolve the schema slug of an OpenRegister object entity.
 	 *
-	 * Returns `''` when the object does not belong to scholiq's register, when
+	 * Returns `''` when the object does not belong to Learniq's register, when
 	 * the schema cannot be resolved, or when OpenRegister is unavailable — every
 	 * caller treats `''` as "not my object" and returns early, so an
 	 * unresolvable entity is never mistaken for a match.
@@ -120,7 +120,7 @@ class ListenerSchemaResolver {
 	 *
 	 * @param object|null $entity The OpenRegister ObjectEntity from the event.
 	 *
-	 * @return string The schema slug, or '' when this is not a scholiq object.
+	 * @return string The schema slug, or '' when this is not a Learniq object.
 	 */
 	public function schemaSlug(?object $entity): string {
 		// `is_callable()`, NOT `method_exists()`. OpenRegister's ObjectEntity
@@ -129,7 +129,7 @@ class ListenerSchemaResolver {
 		// FALSE for them on a real entity — measured, not assumed. This guard
 		// therefore used to reject every genuine ObjectEntity and return '',
 		// which every caller reads as "not my object" and returns early: all of
-		// scholiq's OpenRegister listeners silently did nothing in production.
+		// Learniq's OpenRegister listeners silently did nothing in production.
 		// The unit suite did not catch it because the old tests/Stubs entity
 		// declared those accessors concretely, so method_exists() was true
 		// there and only there.
@@ -186,7 +186,7 @@ class ListenerSchemaResolver {
 	}//end registerSlug()
 
 	/**
-	 * Whether the entity belongs to scholiq's own OpenRegister register.
+	 * Whether the entity belongs to Learniq's own OpenRegister register.
 	 *
 	 * This is the guard that keeps a schema-only literal (for example the two
 	 * distinct schemas both slugged `automation`) from firing on another app's
@@ -194,7 +194,7 @@ class ListenerSchemaResolver {
 	 *
 	 * @param object|null $entity The OpenRegister ObjectEntity from the event.
 	 *
-	 * @return bool True when the entity sits in scholiq's register.
+	 * @return bool True when the entity sits in Learniq's register.
 	 */
 	public function isOwnRegister(?object $entity): bool {
 		// `is_callable()`, not `method_exists()` — see schemaSlug().
@@ -244,7 +244,7 @@ class ListenerSchemaResolver {
 			}
 		} catch (Throwable $e) {
 			$this->logger->debug(
-				'Scholiq: could not resolve an OpenRegister slug for a listener guard',
+				'Learniq: could not resolve an OpenRegister slug for a listener guard',
 				[
 					'service' => $service,
 					'id' => $id,

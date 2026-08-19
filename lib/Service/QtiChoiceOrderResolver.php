@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq QTI Choice Order Resolver
+ * Learniq QTI Choice Order Resolver
  *
  * Stateless helper: parses a choice-type Item's QTI 3.0 `qtiBody` for its
  * `choiceInteraction`'s `simpleChoice` identifiers and, when asked, returns

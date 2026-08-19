@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Scholiq Credential Signing Service
+ * Learniq Credential Signing Service
  *
  * Builds an Open Badges 3.0 JSON-LD assertion and signs it with the tenant's
  * RS256 keypair. Legitimate PHP per ADR-031: "Cryptographic operations that
  * must run before a state transition" — referenced from the Credential schema's
- * x-openregister-lifecycle.transitions.issue.requires in scholiq_register.json.
+ * x-openregister-lifecycle.transitions.issue.requires in learniq_register.json.
  *
  * OpenRegister's lifecycle engine resolves this class via DI and calls check()
  * before executing the `issue` transition. check() assembles + signs the OB3
@@ -309,7 +309,7 @@ class CredentialSigningService {
 	 *
 	 * @param string $learnerId Raw learner identifier from the Credential record.
 	 *
-	 * @return string `urn:scholiq:learner:{uuid-or-pseudonym}`.
+	 * @return string `urn:learniq:learner:{uuid-or-pseudonym}`.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
 	 */
@@ -357,7 +357,7 @@ class CredentialSigningService {
 	 *
 	 * @param string $learnerId Raw learner identifier from the Credential record.
 	 *
-	 * @return string `urn:scholiq:learner:{uuid-or-pseudonym}`.
+	 * @return string `urn:learniq:learner:{uuid-or-pseudonym}`.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
 	 */

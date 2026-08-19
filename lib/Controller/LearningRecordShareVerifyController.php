@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Learning Record Share Verify Controller
+ * Learniq Learning Record Share Verify Controller
  *
  * Public (unauthenticated) endpoint for verifying a `LearningRecordShare`'s
  * shared bundle. External employers, receiving-school admissions offices,
@@ -112,7 +112,7 @@ class LearningRecordShareVerifyController extends Controller {
 	}//end registerFailedVerification()
 
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const SHARE_SCHEMA = 'learning-record-share';
 	private const EXPORT_SCHEMA = 'learning-record-export';
 
@@ -251,7 +251,7 @@ class LearningRecordShareVerifyController extends Controller {
 
 		try {
 			$this->objectService->saveObject(
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::SHARE_SCHEMA,
 				object: $updated
 			);
@@ -281,7 +281,7 @@ class LearningRecordShareVerifyController extends Controller {
 		// fail closed on, so it must return null and let the caller emit the denied JSON —
 		// matching the `catch (\Throwable)` already used by the other methods on this class.
 		try {
-			$obj = $this->objectService->find(id: $id, register: self::SCHOLIQ_REGISTER, schema: $schema);
+			$obj = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
 		} catch (\Throwable) {
 			return null;
 		}

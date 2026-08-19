@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Learning Record Bundle Writer
+ * Learniq Learning Record Bundle Writer
  *
  * Owns the nc:files side of a learner's signed learning-record export: JSON
  * encoding, the `Scholiq/{tenant}/learning-record-exports` destination

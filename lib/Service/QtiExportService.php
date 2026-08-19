@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq QTI Export Service
+ * Learniq QTI Export Service
  *
  * Exports an `ItemBank` and its `Item`s as a QTI 3.0 package (a ZIP
  * containing `imsmanifest.xml` + one `assessmentItem` XML per Item),
@@ -48,7 +48,7 @@ use ZipArchive;
  */
 class QtiExportService {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.
@@ -74,7 +74,7 @@ class QtiExportService {
 	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#scenario-exporting-an-itembank-produces-a-valid-qti-30-package
 	 */
 	public function export(string $itemBankId): string {
-		$bank = $this->objectService->find(id: $itemBankId, register: self::SCHOLIQ_REGISTER, schema: 'item-bank');
+		$bank = $this->objectService->find(id: $itemBankId, register: self::LEARNIQ_REGISTER, schema: 'item-bank');
 		if ($bank === null) {
 			throw new RuntimeException("ItemBank '{$itemBankId}' not found.");
 		}
@@ -88,7 +88,7 @@ class QtiExportService {
 				continue;
 			}
 
-			$item = $this->objectService->find(id: $itemId, register: self::SCHOLIQ_REGISTER, schema: 'item');
+			$item = $this->objectService->find(id: $itemId, register: self::LEARNIQ_REGISTER, schema: 'item');
 			if ($item === null) {
 				continue;
 			}

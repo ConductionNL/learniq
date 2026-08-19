@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Order Total Validation Guard
+ * Learniq Order Total Validation Guard
  *
  * Lifecycle guard for the Order schema's `finalize` transition (draft ->
  * open). Order.totalAmount is written by the frontend line-editor and MUST

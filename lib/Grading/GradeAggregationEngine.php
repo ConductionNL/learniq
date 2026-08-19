@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Grade Aggregation Engine
+ * Learniq Grade Aggregation Engine
  *
  * Stateless aggregation half of the grading calculation, extracted from
  * `GradeFormulaEvaluator` so each class carries one cohesive responsibility:

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Data Exchange Transformer
+ * Learniq Data Exchange Transformer
  *
  * Applies a `DataMappingProfile.fieldMappings` entry's named `transform` to a
  * single field value:
@@ -48,7 +48,7 @@ use RuntimeException;
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
  */
 class DataExchangeTransformer {
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const COHORT_SCHEMA = 'cohort';
 
 	/**
@@ -88,7 +88,7 @@ class DataExchangeTransformer {
 	/**
 	 * Resolve the ECK iD pseudonym that stands in for a learner's BSN.
 	 *
-	 * BSN MUST NEVER leave Scholiq. #206: when `eckId` is absent this aborts the
+	 * BSN MUST NEVER leave Learniq. #206: when `eckId` is absent this aborts the
 	 * whole job (fail-closed) rather than shipping a null pseudonym, because a
 	 * null value in the payload might make the receiving system fall back to an
 	 * unencrypted BSN field.
@@ -154,7 +154,7 @@ class DataExchangeTransformer {
 
 		$cohorts = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::COHORT_SCHEMA,
 				'filters' => ['id' => (string)$value],
 				'limit' => 1,

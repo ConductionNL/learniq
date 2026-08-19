@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq External Training Controller
+ * Learniq External Training Controller
  *
  * User-invokable actions for externally-completed training records:
  *   - bulkRecord: record one classroom session for many learners at once

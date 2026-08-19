@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Peer Review Controller
+ * Learniq Peer Review Controller
  *
  * One action: `allocate`. Delegates to `PeerReviewAllocationService`, the
  * genuine batch-matching business logic OpenRegister's generic object API
@@ -53,7 +53,7 @@ use OCP\IUserSession;
  */
 class PeerReviewController extends Controller {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
 	private const SESSION_SCHEMA = 'session';
 	private const COHORT_SCHEMA = 'cohort';
@@ -193,7 +193,7 @@ class PeerReviewController extends Controller {
 		try {
 			$obj = $this->objectService->find(
 				id: $id,
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: $schema
 			);
 		} catch (DoesNotExistException $e) {

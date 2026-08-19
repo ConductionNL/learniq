@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Evaluation Invitation Provisioning Handler
+ * Learniq Evaluation Invitation Provisioning Handler
  *
  * Listens for OpenRegister's ObjectTransitionedEvent, filtered to the
  * EvaluationCampaign schema's `open` transition. Resolves every learner in
@@ -50,7 +50,7 @@ use Psr\Log\LoggerInterface;
  */
 class EvaluationInvitationProvisioningHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const EVALUATION_CAMPAIGN_SCHEMA = 'evaluation-campaign';
 	private const EVALUATION_INVITATION_SCHEMA = 'evaluation-invitation';
 	private const COHORT_SCHEMA = 'cohort';
@@ -127,7 +127,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-persist-course-evaluation-domain-objects-in-openregister
 	 */
 	private function isCampaignOpening(ObjectTransitionedEvent $event): bool {
-		return $event->getRegister() === self::SCHOLIQ_REGISTER
+		return $event->getRegister() === self::LEARNIQ_REGISTER
 			&& $event->getSchema() === self::EVALUATION_CAMPAIGN_SCHEMA
 			&& $event->getTo() === 'open';
 
@@ -200,7 +200,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 			$provisioned[$learnerId] = true;
 
 			$this->objectService->saveObject(
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::EVALUATION_INVITATION_SCHEMA,
 				object: [
 					'campaignId' => $stamp['campaignId'],
@@ -256,7 +256,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 
 			$cohort = $this->objectService->find(
 				id: $cohortId,
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::COHORT_SCHEMA
 			);
 
@@ -287,7 +287,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 
 			$matches = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::COHORT_SCHEMA,
 					'filters' => ['courseId' => $courseId],
 				]
@@ -324,7 +324,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	private function fetchExistingInvitedLearnerIds(string $campaignId): array {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::EVALUATION_INVITATION_SCHEMA,
 				'filters' => ['campaignId' => $campaignId],
 			]

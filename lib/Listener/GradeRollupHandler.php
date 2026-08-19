@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Grade Rollup Handler
+ * Learniq Grade Rollup Handler
  *
  * Listens for OpenRegister's ObjectTransitionedEvent and handles two bridges:
  *
@@ -61,7 +61,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class GradeRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 	private const FINAL_GRADE_SCHEMA = 'final-grade';
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
@@ -100,7 +100,7 @@ class GradeRollupHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -192,7 +192,7 @@ class GradeRollupHandler implements IEventListener {
 		$visibleFrom = $resolved->format(\DATE_ATOM);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::GRADE_ENTRY_SCHEMA,
 			object: array_merge($entry, ['visibleFrom' => $visibleFrom])
 		);
@@ -212,7 +212,7 @@ class GradeRollupHandler implements IEventListener {
 	private function fetchGradeVisibilityPolicy(string $curriculumPlanId): ?array {
 		$plan = $this->objectService->find(
 			id: $curriculumPlanId,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::CURRICULUM_PLAN_SCHEMA
 		);
 
@@ -256,7 +256,7 @@ class GradeRollupHandler implements IEventListener {
 		// Find existing FinalGrade for this pair.
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::FINAL_GRADE_SCHEMA,
 				'filters' => [
 					'learnerId' => $learnerId,
@@ -292,7 +292,7 @@ class GradeRollupHandler implements IEventListener {
 		);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::FINAL_GRADE_SCHEMA,
 			object: $data
 		);
@@ -320,7 +320,7 @@ class GradeRollupHandler implements IEventListener {
 	private function fanOutParentNotifications(string $learnerId, array $gradeEntry, string $visibleFrom): void {
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LEARNER_PROFILE_SCHEMA,
 				'filters' => ['learnerId' => $learnerId],
 				'limit' => 1,
@@ -364,7 +364,7 @@ class GradeRollupHandler implements IEventListener {
 			// The record has no id (fresh insert) and only the fields needed for the
 			// notification — it is NOT the GradeEntry object itself. Fixes #183.
 			$this->objectService->saveObject(
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: 'grade-notification',
 				object: [
 					'event' => 'gradePublished',
@@ -436,7 +436,7 @@ class GradeRollupHandler implements IEventListener {
 		];
 
 		$saved = $this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::GRADE_ENTRY_SCHEMA,
 			object: $gradeEntry
 		);
@@ -451,7 +451,7 @@ class GradeRollupHandler implements IEventListener {
 
 		// Back-link the GradeEntry to the AssessmentResult.
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::ASSESSMENT_RESULT_SCHEMA,
 			object: array_merge($result, ['gradeEntryId' => $gradeEntryId])
 		);

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Audit Pack Export Controller
+ * Learniq Audit Pack Export Controller
  *
  * Streams the ADR-008 §6 compliance audit-pack ZIP on demand.
  *

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Item Pool Filter
+ * Learniq Item Pool Filter
  *
  * Stateless helper: filters a candidate Item list by an
  * `Assessment.itemPoolConfig`'s `subjectTags`/`difficulty` filters and

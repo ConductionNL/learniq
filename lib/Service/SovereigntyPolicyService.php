@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Sovereignty Policy Service
+ * Learniq Sovereignty Policy Service
  *
  * Reads the school-wide `SovereigntyPolicy` singleton and implements the
  * compliance rule that makes "cannot verify" a structurally distinct outcome
@@ -50,9 +50,9 @@ use Throwable;
 class SovereigntyPolicyService {
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * OR schema slug for the SovereigntyPolicy singleton.
@@ -110,7 +110,7 @@ class SovereigntyPolicyService {
 		try {
 			$existing = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::SOVEREIGNTY_POLICY_SCHEMA,
 					'limit' => 1,
 				]

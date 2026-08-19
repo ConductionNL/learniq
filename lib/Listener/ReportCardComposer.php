@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Scholiq Report Card Composer
+ * Learniq Report Card Composer
  *
- * IEventListener for two ObjectTransitionedEvents (register=scholiq):
+ * IEventListener for two ObjectTransitionedEvents (register=learniq):
  *  - schema=report-period, action=compose (open -> composed): composes one
  *    `draft` ReportCard per learner in `cohortIds[] -> Cohort.learnerIds`.
  *  - schema=report-card, action=recompose (draft -> draft self-loop):
@@ -69,7 +69,7 @@ use Psr\Log\LoggerInterface;
  */
 class ReportCardComposer implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const REPORT_PERIOD_SCHEMA = 'report-period';
 	private const REPORT_CARD_SCHEMA = 'report-card';
 	private const COHORT_SCHEMA = 'cohort';
@@ -110,7 +110,7 @@ class ReportCardComposer implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -192,7 +192,7 @@ class ReportCardComposer implements IEventListener {
 				'lifecycle' => 'draft',
 			];
 
-			$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $reportCard);
+			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $reportCard);
 			$createdCount++;
 		}//end foreach
 
@@ -227,7 +227,7 @@ class ReportCardComposer implements IEventListener {
 			return;
 		}
 
-		$period = $this->objectService->find(id: $reportPeriodId, register: self::SCHOLIQ_REGISTER, schema: self::REPORT_PERIOD_SCHEMA);
+		$period = $this->objectService->find(id: $reportPeriodId, register: self::LEARNIQ_REGISTER, schema: self::REPORT_PERIOD_SCHEMA);
 		if ($period === null) {
 			$this->logger->warning(
 				'[ReportCardComposer] ReportCard {id} recompose: governing ReportPeriod {period} not found.',
@@ -260,7 +260,7 @@ class ReportCardComposer implements IEventListener {
 		$updated['attendanceSummary'] = $attendanceSummary;
 		$updated['composedAt'] = $this->now();
 
-		$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $updated);
+		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $updated);
 
 		$this->logger->info('[ReportCardComposer] ReportCard {id} recomposed.', ['id' => $cardId]);
 
@@ -281,7 +281,7 @@ class ReportCardComposer implements IEventListener {
 		$qualifying = [];
 
 		foreach ($curriculumPlanIds as $curriculumPlanId) {
-			$plan = $this->objectService->find(id: $curriculumPlanId, register: self::SCHOLIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA);
+			$plan = $this->objectService->find(id: $curriculumPlanId, register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA);
 			if ($plan === null) {
 				continue;
 			}
@@ -320,7 +320,7 @@ class ReportCardComposer implements IEventListener {
 		$learnerCohortMap = [];
 
 		foreach ($cohortIds as $cohortId) {
-			$cohort = $this->objectService->find(id: $cohortId, register: self::SCHOLIQ_REGISTER, schema: self::COHORT_SCHEMA);
+			$cohort = $this->objectService->find(id: $cohortId, register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA);
 			if ($cohort === null) {
 				continue;
 			}
@@ -356,7 +356,7 @@ class ReportCardComposer implements IEventListener {
 		foreach ($curriculumPlanIds as $curriculumPlanId) {
 			$finalGrades = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::FINAL_GRADE_SCHEMA,
 					'filters' => [
 						'learnerId' => $learnerId,
@@ -385,7 +385,7 @@ class ReportCardComposer implements IEventListener {
 
 			$sourceGradeEntries = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::GRADE_ENTRY_SCHEMA,
 					'filters' => [
 						'learnerId' => $learnerId,
@@ -436,7 +436,7 @@ class ReportCardComposer implements IEventListener {
 	private function resolveLearnerRef(string $learnerId): ?string {
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LEARNER_PROFILE_SCHEMA,
 				'filters' => ['learnerId' => $learnerId],
 				'limit' => 1,

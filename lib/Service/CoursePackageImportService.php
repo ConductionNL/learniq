@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Course Package Import Service
+ * Learniq Course Package Import Service
  *
  * Orchestrates course-package import: it sniffs the uploaded archive's format,
  * hands extraction/parsing and materialisation to the matching format importer
@@ -90,7 +90,7 @@ class CoursePackageImportService {
 	 */
 	public function import(string $packagePath, string $sourceFilename, string $importedBy, string $tenantId = ''): array {
 		$importedAt = $this->reporter->now();
-		$tmpDir = sys_get_temp_dir() . '/scholiq_coursepkg_' . bin2hex(random_bytes(8));
+		$tmpDir = sys_get_temp_dir() . '/learniq_coursepkg_' . bin2hex(random_bytes(8));
 
 		try {
 			$format = $this->detectFormat(packagePath: $packagePath, sourceFilename: $sourceFilename);

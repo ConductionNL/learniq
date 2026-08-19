@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Assessment Draw Resolver
+ * Learniq Assessment Draw Resolver
  *
  * ADR-031 legitimate exception: server-side randomness/shuffle resolution
  * cannot be client-supplied — the exact trust boundary AssessmentScoringHandler
@@ -78,7 +78,7 @@ use Psr\Log\LoggerInterface;
  */
 class AssessmentDrawResolver implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
 	private const ASSESSMENT_SCHEMA = 'assessment';
 	private const ITEM_SCHEMA = 'item';
@@ -129,7 +129,7 @@ class AssessmentDrawResolver implements IEventListener {
 
 		$objectEntity = $event->getObject();
 
-		if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
+		if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::LEARNIQ_REGISTER
 			|| $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::ASSESSMENT_RESULT_SCHEMA
 		) {
 			return;
@@ -171,7 +171,7 @@ class AssessmentDrawResolver implements IEventListener {
 		);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::ASSESSMENT_RESULT_SCHEMA,
 			object: array_merge($result, ['drawnItemRefs' => $drawnItemRefs])
 		);
@@ -304,7 +304,7 @@ class AssessmentDrawResolver implements IEventListener {
 
 		$items = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ITEM_SCHEMA,
 				'filters' => $filters,
 			]
@@ -370,7 +370,7 @@ class AssessmentDrawResolver implements IEventListener {
 
 		$matches = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => $schema,
 				'filters' => $filters,
 				'limit' => 1,

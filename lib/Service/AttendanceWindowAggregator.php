@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Attendance Window Aggregator
+ * Learniq Attendance Window Aggregator
  *
  * The attendance half of report-card composition, extracted from
  * `ReportCardComposer` so each class carries one cohesive responsibility: this
@@ -49,7 +49,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class AttendanceWindowAggregator {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
 	private const ATTENDANCE_RECORD_SCHEMA = 'attendance-record';
 
@@ -86,7 +86,7 @@ class AttendanceWindowAggregator {
 		foreach ($cohortIds as $cohortId) {
 			$rows = $this->objectService->findAll(
 				[
-					'register' => self::SCHOLIQ_REGISTER,
+					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::SESSION_SCHEMA,
 					'filters' => ['cohortId' => $cohortId],
 					'limit' => 5000,
@@ -181,7 +181,7 @@ class AttendanceWindowAggregator {
 
 		$records = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ATTENDANCE_RECORD_SCHEMA,
 				'filters' => ['learnerId' => $learnerId],
 				'limit' => 5000,

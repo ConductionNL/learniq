@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Fraud Case Block Guard
+ * Learniq Fraud Case Block Guard
  *
  * Lifecycle guard for the GradeEntry schema's `publish` and `republish`
  * transitions. When a GradeEntry carries a `fraudCaseId`, blocks publication
@@ -53,7 +53,7 @@ use Psr\Log\LoggerInterface;
  */
 class FraudCaseBlockGuard {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const FRAUD_CASE_SCHEMA = 'fraud-case';
 
 	/**
@@ -144,7 +144,7 @@ class FraudCaseBlockGuard {
 	private function fetchFraudCase(string $fraudCaseId): ?array {
 		$obj = $this->objectService->find(
 			id: $fraudCaseId,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::FRAUD_CASE_SCHEMA
 		);
 

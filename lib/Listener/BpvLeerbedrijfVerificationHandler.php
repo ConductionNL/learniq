@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq BPV Leerbedrijf Verification Handler
+ * Learniq BPV Leerbedrijf Verification Handler
  *
  * IEventListener for BpvPlacement lifecycle → `sbb-verification-pending`
- * (the OR ObjectTransitionedEvent with register=scholiq, schema=bpv-placement,
+ * (the OR ObjectTransitionedEvent with register=learniq, schema=bpv-placement,
  * to=sbb-verification-pending — the coordinator-triggered `checkLeerbedrijf`
  * self-transition action).
  *
@@ -14,7 +14,7 @@
  *    No provider configured (null/empty, class missing, or the resolved
  *    service does not implement ProvidesLeerbedrijfVerification) → no-op.
  *    The placement simply stays in `sbb-verification-pending`; no exception
- *    is thrown (Scholiq works standalone without an SBB adapter — the SBB
+ *    is thrown (Learniq works standalone without an SBB adapter — the SBB
  *    OpenConnector adapter itself is explicit cross-repo follow-up work).
  * 2. Call verify() with the placement's leerbedrijfKvkNumber.
  * 3. Write the result (`status`, `erkenningNumber`, `verifiedAt`, `expiresAt`,
@@ -69,7 +69,7 @@ use Psr\Log\LoggerInterface;
  */
 class BpvLeerbedrijfVerificationHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const PLACEMENT_SCHEMA = 'bpv-placement';
 	private const TARGET_STATE = 'sbb-verification-pending';
 
@@ -104,7 +104,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -152,7 +152,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 			$this->logger->info(
 				'[BpvLeerbedrijfVerificationHandler] No leerbedrijfVerification.provider configured for '
 				. 'BpvPlacement {id} — leaving verification unresolved; the placement cannot confirm until '
-				. 'a provider is configured. Scholiq ships no bundled SBB adapter by design.',
+				. 'a provider is configured. Learniq ships no bundled SBB adapter by design.',
 				['id' => $placementId]
 			);
 			return;
@@ -188,7 +188,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 		);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::PLACEMENT_SCHEMA,
 			object: array_merge($placement, ['trainingCompanyVerification' => $updatedVerification])
 		);

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Peer Feedback Aggregator
+ * Learniq Peer Feedback Aggregator
  *
  * Listens for OpenRegister's ObjectTransitionedEvent, filtered to PeerReview
  * objects transitioning to `released`. Recomputes the linked Submission's
@@ -61,7 +61,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class PeerFeedbackAggregator implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const PEER_REVIEW_SCHEMA = 'peer-review';
 	private const PEER_FEEDBACK_SUMMARY_SCHEMA = 'peer-feedback-summary';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
@@ -96,7 +96,7 @@ class PeerFeedbackAggregator implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -175,7 +175,7 @@ class PeerFeedbackAggregator implements IEventListener {
 		);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::PEER_FEEDBACK_SUMMARY_SCHEMA,
 			object: $data
 		);
@@ -214,7 +214,7 @@ class PeerFeedbackAggregator implements IEventListener {
 	private function fetchReleasedReviews(string $submissionId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::PEER_REVIEW_SCHEMA,
 				'filters' => [
 					'submissionId' => $submissionId,
@@ -241,7 +241,7 @@ class PeerFeedbackAggregator implements IEventListener {
 	private function fetchExistingSummary(string $submissionId): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::PEER_FEEDBACK_SUMMARY_SCHEMA,
 				'filters' => ['submissionId' => $submissionId],
 				'limit' => 1,
@@ -287,7 +287,7 @@ class PeerFeedbackAggregator implements IEventListener {
 	private function fetchObject(string $id, string $schema): ?array {
 		$obj = $this->objectService->find(
 			id: $id,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: $schema
 		);
 

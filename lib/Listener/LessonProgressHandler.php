@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Lesson Progress Handler
+ * Learniq Lesson Progress Handler
  *
  * Listens for OR's ObjectCreatedEvent on XapiStatement objects — the SAME
  * event XapiCompletionHandler already consumes — and, for every resolvable
@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  */
 class LessonProgressHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const XAPI_SCHEMA = 'xapi-statement';
 	private const LESSON_SCHEMA = 'lesson';
 	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
@@ -118,8 +118,8 @@ class LessonProgressHandler implements IEventListener {
 
 		$objectEntity = $event->getObject();
 
-		// Filter to XapiStatement objects in the scholiq register only.
-		if ($this->isScholiqXapiStatement(entity: $objectEntity) === false) {
+		// Filter to XapiStatement objects in the learniq register only.
+		if ($this->isLearniqXapiStatement(entity: $objectEntity) === false) {
 			return;
 		}
 
@@ -171,7 +171,7 @@ class LessonProgressHandler implements IEventListener {
 	}//end handle()
 
 	/**
-	 * Whether the created object is an XapiStatement in the scholiq register.
+	 * Whether the created object is an XapiStatement in the learniq register.
 	 *
 	 * @param mixed $entity The created ObjectEntity.
 	 *
@@ -179,13 +179,13 @@ class LessonProgressHandler implements IEventListener {
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-19
 	 */
-	private function isScholiqXapiStatement(mixed $entity): bool {
-		if ($this->schemaResolver->registerSlug(entity: $entity) !== self::SCHOLIQ_REGISTER) {
+	private function isLearniqXapiStatement(mixed $entity): bool {
+		if ($this->schemaResolver->registerSlug(entity: $entity) !== self::LEARNIQ_REGISTER) {
 			return false;
 		}
 
 		return ($this->schemaResolver->schemaSlug(entity: $entity) === self::XAPI_SCHEMA);
-	}//end isScholiqXapiStatement()
+	}//end isLearniqXapiStatement()
 
 	/**
 	 * Resolve the learner identity this statement may act on.
@@ -235,7 +235,7 @@ class LessonProgressHandler implements IEventListener {
 
 		$lessons = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LESSON_SCHEMA,
 				'filters' => $lessonFilters,
 				'limit' => 1,
@@ -275,7 +275,7 @@ class LessonProgressHandler implements IEventListener {
 
 		$enrolments = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::ENROLMENT_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,
@@ -329,7 +329,7 @@ class LessonProgressHandler implements IEventListener {
 
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LESSON_COMPLETION_SCHEMA,
 				'filters' => $existingFilters,
 				'limit' => 1,
@@ -362,7 +362,7 @@ class LessonProgressHandler implements IEventListener {
 		);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::LESSON_COMPLETION_SCHEMA,
 			object: $data
 		);

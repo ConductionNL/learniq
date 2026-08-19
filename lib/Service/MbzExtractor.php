@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Moodle Backup (.mbz) Extractor
+ * Learniq Moodle Backup (.mbz) Extractor
  *
  * Extracts a Moodle backup archive (`.mbz` — a gzipped tar, NOT a ZIP) to a
  * target directory. Moodle's own `.mbz` format cannot be opened by
@@ -81,7 +81,7 @@ class MbzExtractor {
 		// PharData needs a recognised extension to auto-detect gzip compression;
 		// work on a private copy outside $targetDir so our scratch files never
 		// pollute the extracted package the parser will walk.
-		$workDir = sys_get_temp_dir() . '/scholiq_mbz_work_' . bin2hex(random_bytes(8));
+		$workDir = sys_get_temp_dir() . '/learniq_mbz_work_' . bin2hex(random_bytes(8));
 		mkdir(directory: $workDir, permissions: 0700, recursive: true);
 		$tarGzPath = $workDir . '/package.tar.gz';
 

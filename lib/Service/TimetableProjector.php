@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Timetable Projector
+ * Learniq Timetable Projector
  *
  * The window/projection half of the personal timetable, split out of
  * {@see \OCA\Learniq\Controller\TimetableController} so the controller owns

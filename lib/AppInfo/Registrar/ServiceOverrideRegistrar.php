@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Scholiq Service Override Registrar
+ * Learniq Service Override Registrar
  *
  * The ADR-040 "override cookbook" half of `Application::register()`: after the
  * OpenRegister AppHost `Bootstrap` has aliased the generic settings controller,
  * settings service, action-auth service and install repair step, this registrar
- * re-points each of them at Scholiq's bespoke implementation so the bespoke one
+ * re-points each of them at Learniq's bespoke implementation so the bespoke one
  * wins.
  *
  * It runs AFTER Bootstrap for exactly that reason; registering it earlier would
@@ -38,21 +38,21 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use Psr\Container\ContainerInterface;
 
 /**
- * Re-points the AppHost's generic settings/auth/repair aliases at Scholiq's own classes.
+ * Re-points the AppHost's generic settings/auth/repair aliases at Learniq's own classes.
  */
 class ServiceOverrideRegistrar {
 	/**
 	 * Register every bespoke override.
 	 *
 	 * @param IRegistrationContext $context Nextcloud registration context.
-	 * @param string $appId The Scholiq app id.
+	 * @param string $appId The Learniq app id.
 	 *
 	 * @return void
 	 */
 	public function register(IRegistrationContext $context, string $appId): void {
 		// Override cookbook (ADR-040): re-point the settings controller + service
-		// at Scholiq's bespoke implementations AFTER Bootstrap, so they win over
-		// the generic aliases. Scholiq keeps the bespoke SettingsService because
+		// at Learniq's bespoke implementations AFTER Bootstrap, so they win over
+		// the generic aliases. Learniq keeps the bespoke SettingsService because
 		// its register-import path passes the full payload to OpenRegister's
 		// ConfigurationService::importFromApp(appId, data, version, force); the
 		// generic AppHostSettingsService::loadConfiguration() invokes the 2-arg
@@ -83,7 +83,7 @@ class ServiceOverrideRegistrar {
 			}
 		);
 
-		// Bind Scholiq's ActionAuthService class name to a concrete instance of
+		// Bind Learniq's ActionAuthService class name to a concrete instance of
 		// the local stub (extends GenericActionAuthService). Bootstrap registered
 		// the generic class under this name, but five domain controllers
 		// (KeyAdmin/ActionMatrix/AuditPackExport/QtiImport/ExternalTraining/
@@ -100,7 +100,7 @@ class ServiceOverrideRegistrar {
 			}
 		);
 
-		// Re-point the InitializeSettings repair step at Scholiq's bespoke step
+		// Re-point the InitializeSettings repair step at Learniq's bespoke step
 		// (injects the bespoke SettingsService above). Bootstrap aliased this
 		// class name at GenericInitializeSettings, which drives the generic
 		// settings service's incompatible importFromApp call (see note above).

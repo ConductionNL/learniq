@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Native JSON Course Importer
+ * Learniq Native JSON Course Importer
  *
  * Reads and re-imports a scholiq-native JSON export
  * (`CoursePackageExportService::exportScholiqJson()`'s own output) — the
@@ -46,7 +46,7 @@ class LearniqJsonCourseImporter {
 	/**
 	 * Constructor.
 	 *
-	 * @param CoursePackageObjectWriter $objectWriter Creates the scholiq objects the export materialises.
+	 * @param CoursePackageObjectWriter $objectWriter Creates the learniq objects the export materialises.
 	 * @param CoursePackageFileWriter $fileWriter Writes `contentBase64` Material bytes into nc:files.
 	 * @param CoursePackageImportReporter $reporter Builds and persists the import report.
 	 *

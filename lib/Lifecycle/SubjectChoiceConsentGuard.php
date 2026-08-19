@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Subject Choice Consent Guard
+ * Learniq Subject Choice Consent Guard
  *
  * Lifecycle guard for the SubjectChoice schema's `submit` transition
  * (`draft → submitted`). Enforces that the caller is authorised to submit a
@@ -24,7 +24,7 @@
  *
  * Referenced from SubjectChoice's
  * x-openregister-lifecycle.transitions.submit.requires in
- * scholiq_register.json.
+ * learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle
@@ -62,9 +62,9 @@ use Psr\Log\LoggerInterface;
 class SubjectChoiceConsentGuard {
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * OR schema slug for LearnerProfile.
@@ -168,7 +168,7 @@ class SubjectChoiceConsentGuard {
 
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LEARNER_PROFILE_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,

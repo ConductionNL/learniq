@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq BPV Confirmation Guard
+ * Learniq BPV Confirmation Guard
  *
  * Lifecycle guard for the BpvPlacement schema's `confirm` transition
  * (sbb-verification-pending → confirmed). Blocks confirmation unless the
@@ -20,7 +20,7 @@
  * ADR-031 legitimate exception: "Lifecycle guard — business rule that must
  * run before a state transition and cannot be expressed as a schema
  * declaration." Referenced from BpvPlacement's x-openregister-lifecycle
- * `confirm` transition's `requires` in scholiq_register.json.
+ * `confirm` transition's `requires` in learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle

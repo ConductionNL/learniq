@@ -48,7 +48,7 @@ class ProgrammePublishGuard {
 	/**
 	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.
@@ -102,7 +102,7 @@ class ProgrammePublishGuard {
 
 		$plans = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'curriculum-plan',
 				'filters' => $planFilters,
 				'limit' => 1,

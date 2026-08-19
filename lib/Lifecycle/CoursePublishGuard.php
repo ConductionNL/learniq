@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Course Publish Guard
+ * Learniq Course Publish Guard
  *
  * Lifecycle guard for the Course schema's `publish` transition. Enforces that a
  * Course has at least one published Lesson before it may be published itself.
@@ -9,7 +9,7 @@
  * Legitimate PHP per ADR-031: "Lifecycle guard — business rule that must run
  * before a state transition and cannot be expressed as a schema declaration."
  * Referenced from the Course schema's x-openregister-lifecycle.transitions.publish.requires
- * in scholiq_register.json.
+ * in learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle
@@ -43,9 +43,9 @@ use Psr\Log\LoggerInterface;
 class CoursePublishGuard {
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.
@@ -96,7 +96,7 @@ class CoursePublishGuard {
 
 		$publishedLessons = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'lesson',
 				'filters' => $lessonFilters,
 				'limit' => 1,

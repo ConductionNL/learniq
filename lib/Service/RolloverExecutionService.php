@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Rollover Execution Service
+ * Learniq Rollover Execution Service
  *
  * The write half of the annual jaarovergang (school-year rollover). Where
  * `RolloverService` proposes mappings and computes the side-effect-free dry-run
@@ -56,7 +56,7 @@ class RolloverExecutionService {
 	/**
 	 * OpenRegister register slug.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Terminal enrolment lifecycle states that are NOT carried over.
@@ -229,7 +229,7 @@ class RolloverExecutionService {
 	): array {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'cohort',
 				'filters' => [
 					'name' => $toCohortName,
@@ -244,7 +244,7 @@ class RolloverExecutionService {
 			$found = $this->rolloverService->toArray(row: $existing[0]);
 			// Idempotent re-run: ensure members are present without duplicating.
 			$found['learnerIds'] = array_values(array_unique(array_merge((array)($found['learnerIds'] ?? []), $learnerIds)));
-			$saved = $this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: 'cohort', object: $found);
+			$saved = $this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'cohort', object: $found);
 			return $this->rolloverService->toArray(row: $saved);
 		}
 
@@ -263,7 +263,7 @@ class RolloverExecutionService {
 			$cohort['courseId'] = $courseId;
 		}
 
-		$saved = $this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: 'cohort', object: $cohort);
+		$saved = $this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'cohort', object: $cohort);
 		return $this->rolloverService->toArray(row: $saved);
 	}//end createOrFindToCohort()
 
@@ -280,7 +280,7 @@ class RolloverExecutionService {
 		}
 
 		$cohort['lifecycle'] = 'archived';
-		$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: 'cohort', object: $cohort);
+		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'cohort', object: $cohort);
 	}//end archiveCohort()
 
 	/**
@@ -302,7 +302,7 @@ class RolloverExecutionService {
 
 		$enrolments = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'enrolment',
 				'filters' => ['learnerId' => $learnerId],
 			]
@@ -326,7 +326,7 @@ class RolloverExecutionService {
 			}
 
 			$enrolment['cohortId'] = $toCohortId;
-			$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: 'enrolment', object: $enrolment);
+			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'enrolment', object: $enrolment);
 		}//end foreach
 	}//end carryEnrolments()
 
@@ -385,6 +385,6 @@ class RolloverExecutionService {
 			'tenant_id' => $tenantId,
 		];
 
-		$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: 'data-exchange-job', object: $job);
+		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'data-exchange-job', object: $job);
 	}//end queueOutflow()
 }//end class

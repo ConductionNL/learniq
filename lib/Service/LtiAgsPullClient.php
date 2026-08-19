@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq LTI AGS Pull Client
+ * Learniq LTI AGS Pull Client
  *
  * Transport collaborator for `LtiAgsScorePollJob`: performs the authenticated
  * HTTP call against OpenConnector's `events-cloudevents` pull surface and

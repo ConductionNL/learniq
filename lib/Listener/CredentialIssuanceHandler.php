@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Credential Issuance Handler
+ * Learniq Credential Issuance Handler
  *
  * Listens for OpenRegister's ObjectTransitionedEvent on the Enrolment schema.
  * When the transition is `active → completed` and the associated Course has a
@@ -14,7 +14,7 @@
  * that cannot be expressed as a schema declaration." Single responsibility:
  * translate the Enrolment transition event into a Credential save. All subsequent
  * state management (expiry detection, notifications, lifecycle transitions) is
- * declared in the Credential schema in scholiq_register.json.
+ * declared in the Credential schema in learniq_register.json.
  *
  * @category Listener
  * @package  OCA\Learniq\Listener
@@ -49,7 +49,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class CredentialIssuanceHandler implements IEventListener {
 	private const ENROLMENT_SCHEMA = 'enrolment';
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const COMPLETED_STATE = 'completed';
 
 	/**
@@ -68,7 +68,7 @@ class CredentialIssuanceHandler implements IEventListener {
 	 * Handle an ObjectTransitionedEvent.
 	 *
 	 * Only acts on Enrolment objects transitioning to `completed` within the
-	 * scholiq register. When the related Course has `certificateTemplate` set,
+	 * learniq register. When the related Course has `certificateTemplate` set,
 	 * creates a Credential via OR — the `issue` lifecycle guard
 	 * (CredentialSigningService) fires automatically via OR's declared requires[].
 	 *
@@ -83,7 +83,7 @@ class CredentialIssuanceHandler implements IEventListener {
 			return;
 		}
 
-		// Only handle Enrolment transitions within the scholiq register.
+		// Only handle Enrolment transitions within the learniq register.
 		if ($this->isEnrolmentCompletion(event: $event) === false) {
 			return;
 		}
@@ -101,7 +101,7 @@ class CredentialIssuanceHandler implements IEventListener {
 		// Read the Course to check for certificateTemplate.
 		$courseObj = $this->objectService->find(
 			id: $courseId,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: 'course'
 		);
 
@@ -131,7 +131,7 @@ class CredentialIssuanceHandler implements IEventListener {
 		// (CredentialSigningService::check()) before persisting the object.
 		// Writing any lifecycle value directly bypasses the signing guard.
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: 'credential',
 			object: [
 				'learnerId' => $learnerId,
@@ -149,7 +149,7 @@ class CredentialIssuanceHandler implements IEventListener {
 	}//end handle()
 
 	/**
-	 * Whether this transition is a scholiq Enrolment entering `completed`.
+	 * Whether this transition is a learniq Enrolment entering `completed`.
 	 *
 	 * @param ObjectTransitionedEvent $event The transition event.
 	 *
@@ -158,7 +158,7 @@ class CredentialIssuanceHandler implements IEventListener {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-11
 	 */
 	private function isEnrolmentCompletion(ObjectTransitionedEvent $event): bool {
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return false;
 		}
 
@@ -189,7 +189,7 @@ class CredentialIssuanceHandler implements IEventListener {
 
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'credential',
 				'filters' => [
 					'enrolmentId' => $enrolmentId,

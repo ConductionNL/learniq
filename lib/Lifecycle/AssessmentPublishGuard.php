@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Assessment Publish Guard
+ * Learniq Assessment Publish Guard
  *
  * Lifecycle guard for the Assessment schema's `publish` transition. Enforces that:
  * 1. The assessment has a resolvable item source: either itemRefs is non-empty
@@ -14,7 +14,7 @@
  *    with slug `assessment-ai-proctor-review` is registered and DPO-enabled in
  *    the central Hermiq governance register (EU AI Act, ADR-005 DPO gate).
  *
- * Governance delegation (ai-feature-delegate-to-hermiq): Scholiq no longer owns
+ * Governance delegation (ai-feature-delegate-to-hermiq): Learniq no longer owns
  * an AiFeature governance register — the EU AI Act high-risk inventory, its
  * DPO-acknowledgement lifecycle, and enablement live in the Hermiq app's
  * `agentaifeature` register. This guard therefore delegates its DPO-gate lookup
@@ -42,7 +42,7 @@
  * a state transition and cannot be expressed as a schema declaration." Requires a
  * cross-schema query (Assessment → Hermiq agentaifeature, and cross-app locality
  * classification) and conditional logic. Referenced from the Assessment schema's
- * x-openregister-lifecycle.transitions.publish.requires in scholiq_register.json.
+ * x-openregister-lifecycle.transitions.publish.requires in learniq_register.json.
  *
  * @category Lifecycle
  * @package  OCA\Learniq\Lifecycle

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Moodle Course Importer
+ * Learniq Moodle Course Importer
  *
  * Extracts a Moodle backup (`.mbz`, gzipped tar), parses its manifest and
  * materialises the section/activity structure, routing every module via
@@ -42,8 +42,8 @@ class MoodleCourseImporter {
 	 *
 	 * @param MbzExtractor $mbzExtractor Moodle `.mbz` (gzipped tar) extractor.
 	 * @param MoodleBackupParser $moodleParser Moodle backup manifest parser.
-	 * @param MoodleActivityRouter $activityRouter Per-activity routing to scholiq targets.
-	 * @param CoursePackageObjectWriter $objectWriter Creates the scholiq objects the backup materialises.
+	 * @param MoodleActivityRouter $activityRouter Per-activity routing to Learniq targets.
+	 * @param CoursePackageObjectWriter $objectWriter Creates the Learniq objects the backup materialises.
 	 * @param CoursePackageImportReporter $reporter Builds the report entry rows.
 	 *
 	 * @return void

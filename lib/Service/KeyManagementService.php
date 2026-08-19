@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Key Management Service
+ * Learniq Key Management Service
  *
  * Generates and stores RSA-2048 keypairs for per-tenant credential signing.
  * Legitimate PHP per ADR-031: "Cryptographic operations" exception. The private

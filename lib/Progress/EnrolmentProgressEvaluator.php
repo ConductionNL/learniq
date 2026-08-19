@@ -44,7 +44,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class EnrolmentProgressEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const LESSON_SCHEMA = 'lesson';
 	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
 
@@ -107,7 +107,7 @@ class EnrolmentProgressEvaluator {
 	private function countCompletedLessons(string $learnerId, string $courseId): int {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LESSON_COMPLETION_SCHEMA,
 				'filters' => [
 					'learnerId' => $learnerId,
@@ -129,7 +129,7 @@ class EnrolmentProgressEvaluator {
 	private function countPublishedLessons(string $courseId): int {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LESSON_SCHEMA,
 				'filters' => [
 					'courseId' => $courseId,

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Learner Engagement Rollup Handler
+ * Learniq Learner Engagement Rollup Handler
  *
  * Listens for OpenRegister's ObjectCreatedEvent on PointAward objects,
  * finds-or-creates the learner's LearnerEngagement row, and recomputes it via
@@ -60,7 +60,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class LearnerEngagementRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const POINT_AWARD_SCHEMA = 'point-award';
 	private const POINT_RULE_SCHEMA = 'point-rule';
 	private const LEARNER_ENGAGEMENT_SCHEMA = 'learner-engagement';
@@ -100,7 +100,7 @@ class LearnerEngagementRollupHandler implements IEventListener {
 
 		$objectEntity = $event->getObject();
 
-		if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
+		if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::LEARNIQ_REGISTER
 			|| $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::POINT_AWARD_SCHEMA
 		) {
 			return;
@@ -135,7 +135,7 @@ class LearnerEngagementRollupHandler implements IEventListener {
 		);
 
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::LEARNER_ENGAGEMENT_SCHEMA,
 			object: $data
 		);
@@ -166,7 +166,7 @@ class LearnerEngagementRollupHandler implements IEventListener {
 	private function findExistingEngagement(string $learnerId, string $tenantId): ?array {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LEARNER_ENGAGEMENT_SCHEMA,
 				'filters' => [
 					'learnerId' => $learnerId,
@@ -208,7 +208,7 @@ class LearnerEngagementRollupHandler implements IEventListener {
 
 		$rules = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::POINT_RULE_SCHEMA,
 				'filters' => [
 					'kind' => self::STREAK_MILESTONE_KIND,
@@ -239,7 +239,7 @@ class LearnerEngagementRollupHandler implements IEventListener {
 			}
 
 			$this->objectService->saveObject(
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::POINT_AWARD_SCHEMA,
 				object: [
 					'learnerId' => $learnerId,

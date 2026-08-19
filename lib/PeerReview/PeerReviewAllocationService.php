@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Peer Review Allocation Service
+ * Learniq Peer Review Allocation Service
  *
  * Batch-matching engine that allocates `PeerReview` rows for an Assignment's
  * Submissions. Draws its reviewer pool from the Assignment's own submitters
@@ -54,7 +54,7 @@ use Psr\Log\LoggerInterface;
  */
 class PeerReviewAllocationService {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
 	private const SUBMISSION_SCHEMA = 'submission';
 	private const PEER_REVIEW_SCHEMA = 'peer-review';
@@ -232,7 +232,7 @@ class PeerReviewAllocationService {
 			$assignedCount++;
 
 			$this->objectService->saveObject(
-				register: self::SCHOLIQ_REGISTER,
+				register: self::LEARNIQ_REGISTER,
 				schema: self::PEER_REVIEW_SCHEMA,
 				object: [
 					'assignmentId' => $assignmentId,
@@ -310,7 +310,7 @@ class PeerReviewAllocationService {
 	private function fetchOrderedSubmissions(string $assignmentId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::SUBMISSION_SCHEMA,
 				'filters' => ['assignmentId' => $assignmentId],
 			]
@@ -399,7 +399,7 @@ class PeerReviewAllocationService {
 	private function fetchExistingReviews(string $assignmentId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::PEER_REVIEW_SCHEMA,
 				'filters' => ['assignmentId' => $assignmentId],
 			]
@@ -448,7 +448,7 @@ class PeerReviewAllocationService {
 	private function fetchObject(string $id, string $schema): ?array {
 		$obj = $this->objectService->find(
 			id: $id,
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: $schema
 		);
 

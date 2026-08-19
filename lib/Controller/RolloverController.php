@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Rollover Controller
+ * Learniq Rollover Controller
  *
  * Endpoints for the school-year rollover wizard: propose a default mapping,
  * compute a side-effect-free preview (storing the dryRunReport and advancing the

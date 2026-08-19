@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Exemption Grant Handler
+ * Learniq Exemption Grant Handler
  *
  * Listens for OpenRegister's ObjectTransitionedEvent and, when an
  * ExemptionCase transitions to `granted`, creates a GradeEntry
@@ -53,7 +53,7 @@ use Psr\Log\LoggerInterface;
  */
 class ExemptionGrantHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const EXEMPTION_CASE_SCHEMA = 'exemption-case';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 
@@ -87,7 +87,7 @@ class ExemptionGrantHandler implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -142,7 +142,7 @@ class ExemptionGrantHandler implements IEventListener {
 		];
 
 		$saved = $this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::GRADE_ENTRY_SCHEMA,
 			object: $gradeEntry
 		);
@@ -166,7 +166,7 @@ class ExemptionGrantHandler implements IEventListener {
 
 		// Back-link the case to the GradeEntry it produced.
 		$this->objectService->saveObject(
-			register: self::SCHOLIQ_REGISTER,
+			register: self::LEARNIQ_REGISTER,
 			schema: self::EXEMPTION_CASE_SCHEMA,
 			object: array_merge($case, ['resultingGradeEntryId' => $gradeEntryId])
 		);

@@ -36,15 +36,15 @@ namespace OCA\Learniq\AppInfo;
  * one app at a time. So every app's `register()` runs BEFORE the PSR-4 prefix
  * of every alphabetically-LATER app exists.
  *
- * `scholiq` sorts AFTER `openregister`, so today the prefix happens to be on
- * the autoloader by the time this app registers. That is an accident of the
- * alphabet, not a design property, and Scholiq depends on it far more sharply
- * than the apps that sort earlier: its `Bootstrap::register()` call is
- * UNGUARDED, so the moment the ordering stops holding — an app id change, a
- * multi-`apps_paths` install, this composition root moving into a package that
- * sorts earlier — the resulting `\Error` aborts the WHOLE of
+ * This app's former id, `scholiq`, sorted AFTER `openregister`, so the prefix
+ * happened to be on the autoloader by the time this app registered — an
+ * accident of the alphabet, not a design property. The 2026 rename to
+ * `learniq` is exactly the scenario that accident could not survive: `learniq`
+ * sorts BEFORE `openregister`, so without this class the PSR-4 prefix would
+ * NOT yet be on the autoloader when this app registers. `Bootstrap::register()`
+ * is called UNGUARDED, so the resulting `\Error` would abort the WHOLE of
  * `Application::register()`. `Coordinator::registerApps()` catches it, logs an
- * `emergency` and continues, so Scholiq would stay enabled and keep serving
+ * `emergency` and continues, so Learniq would stay enabled and keep serving
  * with every registration below that line silently missing.
  *
  * Registering the prefix ourselves removes the dependency on ordering

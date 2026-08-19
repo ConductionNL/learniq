@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Common Cartridge Manifest Parser
+ * Learniq Common Cartridge Manifest Parser
  *
  * Walks an extracted IMS Common Cartridge 1.3 `imsmanifest.xml`: the
  * organization tree (folders + leaf items, order preserved) and the flat

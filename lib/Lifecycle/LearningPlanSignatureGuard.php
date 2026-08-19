@@ -56,7 +56,7 @@ class LearningPlanSignatureGuard {
 	/**
 	 * Learniq register slug.
 	 */
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * Minimum assurance level for most roles.
@@ -205,7 +205,7 @@ class LearningPlanSignatureGuard {
 
 		$templates = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'learning-plan-template',
 				'filters' => $templateFilters,
 				'limit' => 1,
@@ -244,7 +244,7 @@ class LearningPlanSignatureGuard {
 
 		$raw = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'signature',
 				'filters' => $sigFilters,
 				'limit' => 200,
@@ -294,7 +294,7 @@ class LearningPlanSignatureGuard {
 
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'learner-profile',
 				'filters' => $profileFilters,
 				'limit' => 1,

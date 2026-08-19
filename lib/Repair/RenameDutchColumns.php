@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq RenameDutchColumns Repair Step
+ * Learniq RenameDutchColumns Repair Step
  *
  * Moves stored data from the Dutch columns to the English ones the shillinq
  * register now declares. Covers every vocabulary cluster migrated so far, not

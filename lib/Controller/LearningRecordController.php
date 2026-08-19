@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Learning Record Controller
+ * Learniq Learning Record Controller
  *
  * One read endpoint: `me`. Exists because
  * `LearningRecordAggregationService::compose()` composes across nine

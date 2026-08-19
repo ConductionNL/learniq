@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq BSA Decision Guard
+ * Learniq BSA Decision Guard
  *
  * Lifecycle guard for the BsaDecision schema's `drafted -> decided` transition.
  * Called by OpenRegister's lifecycle engine when a study-advisor / exam-board
@@ -51,7 +51,7 @@ use Psr\Log\LoggerInterface;
  */
 class BsaDecisionGuard {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const BSA_WARNING_SCHEMA = 'bsa-warning';
 
 	/**
@@ -190,7 +190,7 @@ class BsaDecisionGuard {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::BSA_WARNING_SCHEMA,
 				'filters' => $filters,
 				'limit' => 1,

@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq Admissions Waitlist Promoter
+ * Learniq Admissions Waitlist Promoter
  *
  * IEventListener for Application lifecycle -> withdrawn/rejected FROM placed
- * (the OR ObjectTransitionedEvent with register=scholiq, schema=application).
+ * (the OR ObjectTransitionedEvent with register=learniq, schema=application).
  * A freed seat promotes the single oldest-submittedAt waitlisted Application
  * for the same admissionsRoundId to placed, re-running its normal `promote`
  * transition so AdmissionsDecisionGuard's capacity branch still applies —
@@ -60,7 +60,7 @@ use Psr\Log\LoggerInterface;
  */
 class AdmissionsWaitlistPromoter implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const APPLICATION_SCHEMA = 'application';
 
 	/**
@@ -100,7 +100,7 @@ class AdmissionsWaitlistPromoter implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -148,7 +148,7 @@ class AdmissionsWaitlistPromoter implements IEventListener {
 
 		$waitlisted = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::APPLICATION_SCHEMA,
 				'filters' => $filters,
 				'limit' => 2000,

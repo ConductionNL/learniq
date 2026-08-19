@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq External Training CSV Builder
+ * Learniq External Training CSV Builder
  *
  * Builds the separately-labelled external-training evidence artefact for the
  * compliance audit pack: training a learner completed OUTSIDE the LMS

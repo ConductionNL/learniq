@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq Conference Schedule Generator
+ * Learniq Conference Schedule Generator
  *
  * IEventListener for ConferenceRound lifecycle → `scheduled` (the OR
- * ObjectTransitionedEvent with register=scholiq, schema=conference-round,
+ * ObjectTransitionedEvent with register=learniq, schema=conference-round,
  * to=scheduled — fired by both the `generate` transition, booking-closed →
  * scheduled, and the idempotent `regenerate` self-transition, scheduled →
  * scheduled). Runs the greedy, submission-order, earliest-fit conflict-free
@@ -75,7 +75,7 @@ use Psr\Log\LoggerInterface;
  */
 class ConferenceScheduleGenerator implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'learniq';
+	private const LEARNIQ_REGISTER = 'learniq';
 	private const CONFERENCE_ROUND_SCHEMA = 'conference-round';
 	private const TEACHER_AVAILABILITY_SCHEMA = 'teacher-availability';
 	private const CONFERENCE_SIGNUP_SCHEMA = 'conference-signup';
@@ -118,7 +118,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 			return;
 		}
 
-		if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
 			return;
 		}
 
@@ -158,7 +158,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 
 		$existingSlots = $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::CONFERENCE_SLOT_SCHEMA,
 				'filters' => ['conferenceRoundId' => $roundId],
 				'limit' => 5000,
@@ -210,11 +210,11 @@ class ConferenceScheduleGenerator implements IEventListener {
 		);
 
 		foreach ($outcome['newSlots'] as $slot) {
-			$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $slot);
+			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $slot);
 		}
 
 		foreach ($outcome['signupSaves'] as $signup) {
-			$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::CONFERENCE_SIGNUP_SCHEMA, object: $signup);
+			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SIGNUP_SCHEMA, object: $signup);
 		}
 
 		$this->logger->info(
@@ -270,7 +270,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 			if ($signupId !== '' && isset($cancelledSignupIds[$signupId]) === true) {
 				$freedSlot = $slot;
 				$freedSlot['lifecycle'] = 'cancelled';
-				$this->objectService->saveObject(register: self::SCHOLIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $freedSlot);
+				$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $freedSlot);
 				continue;
 			}
 
@@ -615,7 +615,7 @@ class ConferenceScheduleGenerator implements IEventListener {
 	private function fetchByRoundAndLifecycle(string $schema, string $roundId, string $lifecycle): array {
 		return $this->objectService->findAll(
 			[
-				'register' => self::SCHOLIQ_REGISTER,
+				'register' => self::LEARNIQ_REGISTER,
 				'schema' => $schema,
 				'filters' => [
 					'conferenceRoundId' => $roundId,
