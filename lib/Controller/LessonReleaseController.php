@@ -52,7 +52,7 @@ use Throwable;
  */
 class LessonReleaseController extends Controller {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const LESSON_SCHEMA = 'lesson';
 	private const ASSESSMENT_SCHEMA = 'assessment';
 	private const ENROLMENT_SCHEMA = 'enrolment';

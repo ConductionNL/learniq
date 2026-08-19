@@ -75,7 +75,7 @@ use Psr\Log\LoggerInterface;
  */
 class PortfolioShareGrantHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SHARE_SCHEMA = 'portfolio-share';
 	private const PORTFOLIO_SCHEMA = 'portfolio';
 	private const ENTRY_SCHEMA = 'portfolio-entry';

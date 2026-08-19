@@ -128,7 +128,7 @@ class AssessmentPublishGuardRandomDrawIntegrationTest extends TestCase {
 	 */
 	private function createObject(string $schema, array $data): array {
 		try {
-			$obj = $this->objectService->saveObject(register: 'scholiq', schema: $schema, object: $data);
+			$obj = $this->objectService->saveObject(register: 'learniq', schema: $schema, object: $data);
 		} catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
 			$this->markTestSkipped('Scholiq register/schema not seeded: ' . $e->getMessage());
 		} catch (\OCA\OpenRegister\Exception\NotAuthorizedException $e) {

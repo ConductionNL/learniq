@@ -22,13 +22,13 @@
   a GradeEntry" requirement).
 
   Talks only to OpenRegister's REST API:
-    - GET  /api/objects/scholiq/Submission/:id
-    - GET  /api/objects/scholiq/Assignment/:id
-    - GET  /api/objects/scholiq/Rubric/:id
-    - GET  /api/objects/scholiq/peer-feedback-summary?filters[submissionId]=:id (read-only context)
-    - GET  /api/objects/scholiq/self-assessment?filters[submissionId]=:id (read-only context)
-    - PUT  /api/objects/scholiq/Submission/:id
-    - POST /api/objects/scholiq/Submission/:id/transition/return
+    - GET  /api/objects/learniq/Submission/:id
+    - GET  /api/objects/learniq/Assignment/:id
+    - GET  /api/objects/learniq/Rubric/:id
+    - GET  /api/objects/learniq/peer-feedback-summary?filters[submissionId]=:id (read-only context)
+    - GET  /api/objects/learniq/self-assessment?filters[submissionId]=:id (read-only context)
+    - PUT  /api/objects/learniq/Submission/:id
+    - POST /api/objects/learniq/Submission/:id/transition/return
 
   Uses Options API + direct fetch calls (no custom Pinia store modules).
 
@@ -45,7 +45,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="mark-submission-view__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading submission...') }}</span>
+			<span>{{ t('learniq', 'Loading submission...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -61,10 +61,10 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('scholiq', 'Submission returned to learner') }}</h2>
+			<h2>{{ t('learniq', 'Submission returned to learner') }}</h2>
 			<p>
 				{{
-					t('scholiq', 'Grade: {grade} / {max}', {
+					t('learniq', 'Grade: {grade} / {max}', {
 						grade: savedGrade,
 						max: assignment.maxPoints || '?',
 					})
@@ -76,10 +76,10 @@
 		<template v-else-if="submission">
 			<!-- Header -->
 			<header class="mark-submission-view__header">
-				<h2>{{ t('scholiq', 'Mark submission') }}</h2>
+				<h2>{{ t('learniq', 'Mark submission') }}</h2>
 				<p class="mark-submission-view__meta">
 					{{
-						t('scholiq', 'Assignment: {title}', {
+						t('learniq', 'Assignment: {title}', {
 							title: assignment.title || '',
 						})
 					}}
@@ -87,7 +87,7 @@
 						v-if="submission.lifecycle === 'late'"
 						class="mark-submission-view__late-badge">
 						{{
-							t('scholiq', 'Late — {penalty}% penalty', {
+							t('learniq', 'Late — {penalty}% penalty', {
 								penalty: assignment.latePenaltyPercent || 0,
 							})
 						}}
@@ -95,7 +95,7 @@
 				</p>
 				<p class="mark-submission-view__learners">
 					{{
-						t('scholiq', 'Learner(s): {ids}', {
+						t('learniq', 'Learner(s): {ids}', {
 							ids: (submission.learnerIds || []).join(', '),
 						})
 					}}
@@ -104,7 +104,7 @@
 
 			<!-- Attachments -->
 			<section class="mark-submission-view__attachments">
-				<h3>{{ t('scholiq', 'Submitted files') }}</h3>
+				<h3>{{ t('learniq', 'Submitted files') }}</h3>
 				<ul
 					v-if="(submission.attachmentRefs || []).length > 0"
 					class="mark-submission-view__file-list">
@@ -117,7 +117,7 @@
 					</li>
 				</ul>
 				<p v-else class="mark-submission-view__no-files">
-					{{ t('scholiq', 'No files attached.') }}
+					{{ t('learniq', 'No files attached.') }}
 				</p>
 			</section>
 
@@ -126,7 +126,7 @@
 				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
 				class="mark-submission-view__rubric">
 				<h3>
-					{{ t('scholiq', 'Rubric: {name}', { name: rubric.name || '' }) }}
+					{{ t('learniq', 'Rubric: {name}', { name: rubric.name || '' }) }}
 				</h3>
 
 				<div
@@ -137,7 +137,7 @@
 						{{ criterion.label }}
 						<span class="mark-submission-view__criterion-weight">
 							{{
-								t('scholiq', '(weight: {w})', {
+								t('learniq', '(weight: {w})', {
 									w: criterion.weight,
 								})
 							}}
@@ -163,7 +163,7 @@
 							}}</span>
 							<span class="mark-submission-view__level-points">
 								{{
-									t('scholiq', '{pts} pts', { pts: level.points })
+									t('learniq', '{pts} pts', { pts: level.points })
 								}}
 							</span>
 						</label>
@@ -173,7 +173,7 @@
 				<!-- Running total -->
 				<div class="mark-submission-view__score-total">
 					<strong>{{
-						t('scholiq', 'Score: {score} / {max}', {
+						t('learniq', 'Score: {score} / {max}', {
 							score: computedScore,
 							max: assignment.maxPoints || '?',
 						})
@@ -183,7 +183,7 @@
 						class="mark-submission-view__effective-grade">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'Effective grade after late penalty: {grade}',
 								{ grade: effectiveGrade },
 							)
@@ -194,10 +194,10 @@
 
 			<!-- No rubric — manual score entry -->
 			<section v-else class="mark-submission-view__manual-score">
-				<h3>{{ t('scholiq', 'Manual score') }}</h3>
+				<h3>{{ t('learniq', 'Manual score') }}</h3>
 				<label for="manual-grade" class="mark-submission-view__score-label">
 					{{
-						t('scholiq', 'Proposed grade (0 – {max})', {
+						t('learniq', 'Proposed grade (0 – {max})', {
 							max: assignment.maxPoints || '?',
 						})
 					}}
@@ -215,14 +215,14 @@
 			<!-- Feedback text -->
 			<section class="mark-submission-view__feedback">
 				<h3 id="mark-submission-feedback-label">
-					{{ t('scholiq', 'Teacher feedback') }}
+					{{ t('learniq', 'Teacher feedback') }}
 				</h3>
 				<textarea
 					id="mark-submission-feedback"
 					v-model="feedbackText"
 					class="mark-submission-view__feedback-input"
 					aria-labelledby="mark-submission-feedback-label"
-					:placeholder="t('scholiq', 'Write feedback for the learner...')"
+					:placeholder="t('learniq', 'Write feedback for the learner...')"
 					:disabled="saving"
 					rows="5" />
 			</section>
@@ -235,7 +235,7 @@
 				v-if="peerFeedbackSummary || selfAssessment"
 				class="mark-submission-view__peer-context"
 				aria-label="Peer and self-assessment context">
-				<h3>{{ t('scholiq', 'Peer & self-assessment context') }}</h3>
+				<h3>{{ t('learniq', 'Peer & self-assessment context') }}</h3>
 
 				<div
 					v-if="peerFeedbackSummary"
@@ -243,14 +243,14 @@
 					<p class="mark-submission-view__peer-summary-line">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'{count} peer review(s), average score {avg}',
 								{
 									count: peerFeedbackSummary.reviewCount || 0,
 									avg:
 										peerFeedbackSummary.averageScore != null
 											? peerFeedbackSummary.averageScore
-											: t('scholiq', 'n/a'),
+											: t('learniq', 'n/a'),
 								},
 							)
 						}}
@@ -268,7 +268,7 @@
 								{{
 									item.reviewerId
 										? item.reviewerId
-										: t('scholiq', 'Anonymous reviewer')
+										: t('learniq', 'Anonymous reviewer')
 								}}
 							</span>
 							<span
@@ -285,11 +285,11 @@
 					class="mark-submission-view__self-summary">
 					<p class="mark-submission-view__self-summary-line">
 						{{
-							t('scholiq', 'Learner self-assessment score: {score}', {
+							t('learniq', 'Learner self-assessment score: {score}', {
 								score:
 									selfAssessment.totalScore != null
 										? selfAssessment.totalScore
-										: t('scholiq', 'n/a'),
+										: t('learniq', 'n/a'),
 							})
 						}}
 					</p>
@@ -310,7 +310,7 @@
 					class="mark-submission-view__blended-suggestion">
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'Suggested blended score ({weight}% peer weight): {value}',
 							{
 								weight: assignment.peerReviewWeightPercent,
@@ -328,7 +328,7 @@
 					:disabled="saving"
 					@click="saveAndReturn">
 					<span v-if="saving" class="icon-loading" aria-hidden="true" />
-					{{ t('scholiq', 'Save & return to learner') }}
+					{{ t('learniq', 'Save & return to learner') }}
 				</button>
 			</div>
 			<p
@@ -512,7 +512,7 @@ export default {
 				}
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load submission. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -531,7 +531,7 @@ export default {
 		 */
 		async loadSubmission(submissionId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/Submission/${submissionId}`,
+				`/apps/openregister/api/objects/learniq/Submission/${submissionId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -552,7 +552,7 @@ export default {
 		 */
 		async loadAssignment(id) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/Assignment/${id}`,
+				`/apps/openregister/api/objects/learniq/Assignment/${id}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -573,7 +573,7 @@ export default {
 		 */
 		async loadRubric(rubricId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/Rubric/${rubricId}`,
+				`/apps/openregister/api/objects/learniq/Rubric/${rubricId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -598,7 +598,7 @@ export default {
 		 */
 		async loadPeerFeedbackSummary(submissionId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/peer-feedback-summary?filters[submissionId]=${submissionId}&limit=1`,
+				`/apps/openregister/api/objects/learniq/peer-feedback-summary?filters[submissionId]=${submissionId}&limit=1`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -623,7 +623,7 @@ export default {
 		 */
 		async loadSelfAssessment(submissionId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/self-assessment?filters[submissionId]=${submissionId}&limit=1`,
+				`/apps/openregister/api/objects/learniq/self-assessment?filters[submissionId]=${submissionId}&limit=1`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -703,7 +703,7 @@ export default {
 			try {
 				// 1. Persist marking data to the Submission
 				const updateUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/Submission/${this.id}`,
+					`/apps/openregister/api/objects/learniq/Submission/${this.id}`,
 				)
 				const updateResp = await fetch(updateUrl, {
 					method: 'PUT',
@@ -729,7 +729,7 @@ export default {
 				const planId = this.assignment.curriculumPlanId ?? null
 				if (proposedGrade !== null && componentId && planId) {
 					const gradeEntryUrl = generateUrl(
-						'/apps/openregister/api/objects/scholiq/grade-entry',
+						'/apps/openregister/api/objects/learniq/grade-entry',
 					)
 					const gradeEntryResp = await fetch(gradeEntryUrl, {
 						method: 'POST',
@@ -759,7 +759,7 @@ export default {
 						if (gradeEntryId) {
 							// Back-link the GradeEntry to the Submission.
 							const linkUrl = generateUrl(
-								`/apps/openregister/api/objects/scholiq/Submission/${this.id}`,
+								`/apps/openregister/api/objects/learniq/Submission/${this.id}`,
 							)
 							await fetch(linkUrl, {
 								method: 'PUT',
@@ -777,7 +777,7 @@ export default {
 
 				// 3. Dispatch `return` lifecycle transition
 				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/Submission/${this.id}/transition/return`,
+					`/apps/openregister/api/objects/learniq/Submission/${this.id}/transition/return`,
 				)
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',
@@ -796,7 +796,7 @@ export default {
 				this.returned = true
 			} catch (err) {
 				this.saveError = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to save marking. Please try again.',
 				)
 				// eslint-disable-next-line no-console

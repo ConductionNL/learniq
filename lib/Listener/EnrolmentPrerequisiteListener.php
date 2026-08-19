@@ -75,7 +75,7 @@ use Throwable;
  */
 class EnrolmentPrerequisiteListener implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ENROLMENT_SCHEMA = 'enrolment';
 	private const COURSE_SCHEMA = 'course';
 	private const COMPLETED_STATE = 'completed';

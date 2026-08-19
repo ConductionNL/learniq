@@ -53,7 +53,7 @@ use Psr\Log\LoggerInterface;
  */
 class ExemptionGrantHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const EXEMPTION_CASE_SCHEMA = 'exemption-case';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 

@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  */
 class WerkprocesGradeEmitHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'werkproces-assessment';
 	private const PLACEMENT_SCHEMA = 'bpv-placement';
 	private const CURRICULUM_SCHEMA = 'curriculum-plan';

@@ -72,7 +72,7 @@ use Throwable;
  */
 class CohortTalkMembershipHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ENROLMENT_SCHEMA = 'enrolment';
 	private const ACTION_ACTIVATE = 'activate';
 	private const ACTION_WITHDRAW = 'withdraw';

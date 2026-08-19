@@ -76,7 +76,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class EngagementSignalHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const XAPI_SCHEMA = 'xapi-statement';
 	private const ENGAGEMENT_SCORE_SCHEMA = 'engagement-score';
 	private const ENGAGEMENT_RISK_THRESHOLD_SCHEMA = 'engagement-risk-threshold';

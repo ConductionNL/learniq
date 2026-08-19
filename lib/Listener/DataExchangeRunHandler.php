@@ -68,7 +68,7 @@ use RuntimeException;
  */
 class DataExchangeRunHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const JOB_SCHEMA = 'data-exchange-job';
 	private const MAPPING_PROFILE_SCHEMA = 'data-mapping-profile';
 
@@ -566,7 +566,7 @@ class DataExchangeRunHandler implements IEventListener {
 		// #189: attach the configured API token so the OpenConnector endpoint
 		// does not need to be @PublicPage (and is therefore not unauthenticated).
 		$apiToken = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::OPENCONNECTOR_TOKEN_KEY,
 			default: ''
 		);
@@ -579,7 +579,7 @@ class DataExchangeRunHandler implements IEventListener {
 		if ($apiToken === '') {
 			$this->logger->warning(
 				'[DataExchangeRunHandler] No OpenConnector API token configured ('
-				. 'scholiq.openconnector_api_token); the call may fail with 401/403. '
+				. 'learniq.openconnector_api_token); the call may fail with 401/403. '
 				. 'Set the token via the Scholiq admin settings.'
 			);
 		}

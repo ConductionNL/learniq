@@ -2,11 +2,11 @@
 <!-- Copyright (C) 2026 Conduction B.V. -->
 
 <!--
- ScholiqAccessibilityStatement — the toegankelijkheidsverklaring disclosure
+ LearniqAccessibilityStatement — the toegankelijkheidsverklaring disclosure
  surface (accessibility-conformance-statement).
 
  A purpose-built read surface over cross-schema data (mirrors
- ScholiqCompliance.vue's role), NOT a generic detail page: it resolves the
+ LearniqCompliance.vue's role), NOT a generic detail page: it resolves the
  current `published` AccessibilityStatement itself (there is no `:id` route
  param — this is a singleton disclosure page reachable by every authenticated
  user, no visibleIf role gate, per design.md Decision 3) and its linked
@@ -30,10 +30,10 @@
 
 		<NcEmptyContent
 			v-else-if="!statement"
-			:name="t('scholiq', 'No accessibility statement published yet')"
+			:name="t('learniq', 'No accessibility statement published yet')"
 			:description="
 				t(
-					'scholiq',
+					'learniq',
 					'The compliance officer has not published a toegankelijkheidsverklaring for this environment yet.',
 				)
 			">
@@ -42,63 +42,63 @@
 			</template>
 			<template #action>
 				<NcButton variant="primary" @click="openFeedbackForm">
-					{{ t('scholiq', 'Report an accessibility problem') }}
+					{{ t('learniq', 'Report an accessibility problem') }}
 				</NcButton>
 			</template>
 		</NcEmptyContent>
 
 		<template v-else>
 			<div class="accessibility-statement__header">
-				<h2>{{ t('scholiq', 'Accessibility statement') }}</h2>
+				<h2>{{ t('learniq', 'Accessibility statement') }}</h2>
 				<NcButton variant="primary" @click="openFeedbackForm">
-					{{ t('scholiq', 'Report an accessibility problem') }}
+					{{ t('learniq', 'Report an accessibility problem') }}
 				</NcButton>
 			</div>
 
 			<dl class="accessibility-statement__fields">
-				<dt>{{ t('scholiq', 'Channel') }}</dt>
+				<dt>{{ t('learniq', 'Channel') }}</dt>
 				<dd>{{ statement.channelTitle }}</dd>
 
-				<dt>{{ t('scholiq', 'Conformance status') }}</dt>
+				<dt>{{ t('learniq', 'Conformance status') }}</dt>
 				<dd>{{ statusLabel }}</dd>
 
-				<dt>{{ t('scholiq', 'Evaluation method') }}</dt>
+				<dt>{{ t('learniq', 'Evaluation method') }}</dt>
 				<dd>{{ statement.evaluationMethod }}</dd>
 
-				<dt>{{ t('scholiq', 'Evaluation date') }}</dt>
+				<dt>{{ t('learniq', 'Evaluation date') }}</dt>
 				<dd>{{ statement.evaluationDate }}</dd>
 
-				<dt>{{ t('scholiq', 'Standard applied') }}</dt>
+				<dt>{{ t('learniq', 'Standard applied') }}</dt>
 				<dd>{{ statement.standardApplied }}</dd>
 
-				<dt>{{ t('scholiq', 'Feedback contact') }}</dt>
+				<dt>{{ t('learniq', 'Feedback contact') }}</dt>
 				<dd>{{ statement.feedbackContact }}</dd>
 
-				<dt>{{ t('scholiq', 'Escalation route') }}</dt>
+				<dt>{{ t('learniq', 'Escalation route') }}</dt>
 				<dd>{{ statement.escalationRoute }}</dd>
 
 				<dt v-if="statement.lastReviewedAt">
-					{{ t('scholiq', 'Last reviewed') }}
+					{{ t('learniq', 'Last reviewed') }}
 				</dt>
 				<dd v-if="statement.lastReviewedAt">
 					{{ statement.lastReviewedAt }}
 				</dd>
 			</dl>
 
-			<h3>{{ t('scholiq', 'Known limitations') }}</h3>
+			<h3>{{ t('learniq', 'Known limitations') }}</h3>
 			<p
 				v-if="limitations.length === 0"
 				class="accessibility-statement__no-limitations">
-				{{ t('scholiq', 'No known limitations are currently logged.') }}
+				{{ t('learniq', 'No known limitations are currently logged.') }}
 			</p>
 			<table v-else class="accessibility-statement__limitations">
 				<thead>
 					<tr>
-						<th scope="col">{{ t('scholiq', 'WCAG criterion') }}</th>
-						<th scope="col">{{ t('scholiq', 'Severity') }}</th>
-						<th scope="col">{{ t('scholiq', 'Affected surface') }}</th>
-						<th scope="col">{{ t('scholiq', 'Status') }}</th>
-						<th scope="col">{{ t('scholiq', 'Planned fix date') }}</th>
+						<th scope="col">{{ t('learniq', 'WCAG criterion') }}</th>
+						<th scope="col">{{ t('learniq', 'Severity') }}</th>
+						<th scope="col">{{ t('learniq', 'Affected surface') }}</th>
+						<th scope="col">{{ t('learniq', 'Status') }}</th>
+						<th scope="col">{{ t('learniq', 'Planned fix date') }}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -110,7 +110,7 @@
 						<td>
 							{{
 								limitation.plannedFixDate
-								|| t('scholiq', 'Not yet determined')
+								|| t('learniq', 'Not yet determined')
 							}}
 						</td>
 					</tr>
@@ -124,7 +124,7 @@
 import { useObjectStore } from '@conduction/nextcloud-vue'
 import { NcButton, NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
 
-const REGISTER = 'scholiq'
+const REGISTER = 'learniq'
 // Address a schema by the SLUG it declares in lib/Settings/scholiq_register.json,
 // read verbatim — never by its PascalCase schema key.
 //
@@ -152,7 +152,7 @@ const STATUS_LABELS = {
 }
 
 export default {
-	name: 'ScholiqAccessibilityStatement',
+	name: 'LearniqAccessibilityStatement',
 
 	components: {
 		NcButton,
@@ -180,7 +180,7 @@ export default {
 				return ''
 			}
 			return this.t(
-				'scholiq',
+				'learniq',
 				STATUS_LABELS[this.statement.status] ?? this.statement.status,
 			)
 		},

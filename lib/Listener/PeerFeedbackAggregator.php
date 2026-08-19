@@ -61,7 +61,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class PeerFeedbackAggregator implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const PEER_REVIEW_SCHEMA = 'peer-review';
 	private const PEER_FEEDBACK_SUMMARY_SCHEMA = 'peer-feedback-summary';
 	private const ASSIGNMENT_SCHEMA = 'assignment';

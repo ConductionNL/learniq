@@ -47,7 +47,7 @@ class RolloverService {
 	/**
 	 * OpenRegister register slug.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Terminal enrolment lifecycle states that are NOT carried over.

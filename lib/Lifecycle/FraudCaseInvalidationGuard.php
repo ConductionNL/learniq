@@ -49,7 +49,7 @@ use Psr\Log\LoggerInterface;
  */
 class FraudCaseInvalidationGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const FRAUD_CASE_SCHEMA = 'fraud-case';
 
 	/**

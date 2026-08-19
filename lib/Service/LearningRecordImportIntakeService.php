@@ -54,7 +54,7 @@ use Psr\Log\LoggerInterface;
  */
 class LearningRecordImportIntakeService {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SCHEMA = 'learning-record-import';
 
 	/**
@@ -92,7 +92,7 @@ class LearningRecordImportIntakeService {
 	public function resolveTenantId(IUser $user): string {
 		$userTenantId = $this->config->getUserValue(
 			userId: $user->getUID(),
-			appName: 'scholiq',
+			appName: 'learniq',
 			key: 'tenant_id',
 			default: ''
 		);

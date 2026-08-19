@@ -5,7 +5,7 @@
 <template>
 	<ManageListWidget
 		schema="Cohort"
-		:schemaLabel="t('scholiq', 'cohort')"
+		:schemaLabel="t('learniq', 'cohort')"
 		:columns="['name', 'learnerCount']"
 		indexRoute="/cohorts"
 		:limit="6" />

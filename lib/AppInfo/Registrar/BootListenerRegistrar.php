@@ -78,7 +78,7 @@ class BootListenerRegistrar {
 			appId: $appId,
 			event: ObjectCreatedEvent::class,
 			listener: XapiCompletionHandler::class,
-			registers: ['scholiq'],
+			registers: ['learniq'],
 			schemas: ['xapi-statement']
 		);
 
@@ -93,7 +93,7 @@ class BootListenerRegistrar {
 			appId: $appId,
 			event: ObjectCreatedEvent::class,
 			listener: CompetencyAttainmentRollupHandler::class,
-			registers: ['scholiq'],
+			registers: ['learniq'],
 			schemas: ['werkproces-assessment']
 		);
 
@@ -108,7 +108,7 @@ class BootListenerRegistrar {
 			appId: $appId,
 			event: ObjectCreatedEvent::class,
 			listener: LessonProgressHandler::class,
-			registers: ['scholiq'],
+			registers: ['learniq'],
 			schemas: ['xapi-statement']
 		);
 
@@ -121,7 +121,7 @@ class BootListenerRegistrar {
 			appId: $appId,
 			event: ObjectCreatedEvent::class,
 			listener: EnrolmentProgressRollupHandler::class,
-			registers: ['scholiq'],
+			registers: ['learniq'],
 			schemas: ['lesson-completion']
 		);
 
@@ -157,7 +157,7 @@ class BootListenerRegistrar {
 			appId: $appId,
 			event: ObjectCreatedEvent::class,
 			listener: EngagementSignalHandler::class,
-			registers: ['scholiq'],
+			registers: ['learniq'],
 			schemas: ['xapi-statement']
 		);
 
@@ -174,7 +174,7 @@ class BootListenerRegistrar {
 			appId: $appId,
 			event: ObjectCreatedEvent::class,
 			listener: AssessmentDrawResolver::class,
-			registers: ['scholiq'],
+			registers: ['learniq'],
 			schemas: ['assessment-result']
 		);
 
@@ -189,7 +189,7 @@ class BootListenerRegistrar {
 			appId: $appId,
 			event: ObjectCreatedEvent::class,
 			listener: LearnerEngagementRollupHandler::class,
-			registers: ['scholiq'],
+			registers: ['learniq'],
 			schemas: ['point-award']
 		);
 
@@ -208,7 +208,7 @@ class BootListenerRegistrar {
 			appId: $appId,
 			event: ObjectCreatedEvent::class,
 			listener: SessionConflictListener::class,
-			registers: ['scholiq'],
+			registers: ['learniq'],
 			schemas: ['session']
 		);
 		$this->registerFilteredObjectListener(
@@ -216,7 +216,7 @@ class BootListenerRegistrar {
 			appId: $appId,
 			event: ObjectUpdatedEvent::class,
 			listener: SessionConflictListener::class,
-			registers: ['scholiq'],
+			registers: ['learniq'],
 			schemas: ['session']
 		);
 

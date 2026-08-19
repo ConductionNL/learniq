@@ -147,7 +147,7 @@ class KeyAdminController extends Controller {
 
 			// Record the timestamp for throttle enforcement on the next rotation.
 			$this->appConfig->setValueString(
-				app: 'scholiq',
+				app: 'learniq',
 				key: self::KEYGEN_LAST_AT_PREFIX . $tenantId,
 				value: (string)time()
 			);
@@ -208,7 +208,7 @@ class KeyAdminController extends Controller {
 
 		$tenantId = $this->config->getUserValue(
 			userId: $user->getUID(),
-			appName: 'scholiq',
+			appName: 'learniq',
 			key: 'tenant_id',
 			default: ''
 		);
@@ -229,7 +229,7 @@ class KeyAdminController extends Controller {
 	 */
 	private function checkRotationThrottle(string $tenantId): ?string {
 		$lastAtStr = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::KEYGEN_LAST_AT_PREFIX . $tenantId,
 			default: ''
 		);

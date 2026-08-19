@@ -221,11 +221,11 @@ class VerzuimReportComposerRegisterTest extends TestCase {
 		$recordFeedback = $transitions['recordMunicipalityFeedback'];
 		self::assertSame('succeeded', $recordFeedback['from']);
 		self::assertSame('succeeded', $recordFeedback['to']);
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\MunicipalityFeedbackGuard', $recordFeedback['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\MunicipalityFeedbackGuard', $recordFeedback['requires']);
 
 		// Existing chain untouched.
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\DataExchangeRunGuard', $transitions['run']['requires']);
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\OsoDossierReviewGuard', $transitions['approveDossier']['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\DataExchangeRunGuard', $transitions['run']['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\OsoDossierReviewGuard', $transitions['approveDossier']['requires']);
 		self::assertArrayNotHasKey('requires', $transitions['succeed']);
 
 	}//end testRecordMunicipalityFeedbackTransitionShape()

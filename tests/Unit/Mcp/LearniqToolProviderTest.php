@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Unit tests for ScholiqToolProvider.
+ * Unit tests for LearniqToolProvider.
  *
  * Covers: getAppId, the tool catalogue shape, invokeTool dispatch (incl. the
  * unknown-tool error envelope — must not throw), and the auth gate that rejects
@@ -25,7 +25,7 @@ namespace OCA\Learniq\Tests\Unit\Mcp;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Mcp\CourseToolPresenter;
-use OCA\Learniq\Mcp\ScholiqToolProvider;
+use OCA\Learniq\Mcp\LearniqToolProvider;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -34,20 +34,20 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
- * Unit test suite for ScholiqToolProvider.
+ * Unit test suite for LearniqToolProvider.
  *
  * Every test runs in isolation with mocked services. The stub at
  * tests/Stubs/Mcp/IMcpToolProvider.php satisfies the interface declaration
  * when the openregister runtime (PR #1466) is absent.
  */
-class ScholiqToolProviderTest extends TestCase {
+class LearniqToolProviderTest extends TestCase {
 
 	/**
 	 * Provider under test.
 	 *
-	 * @var ScholiqToolProvider
+	 * @var LearniqToolProvider
 	 */
-	private ScholiqToolProvider $provider;
+	private LearniqToolProvider $provider;
 
 	/**
 	 * Mock OpenRegister ObjectService.
@@ -90,7 +90,7 @@ class ScholiqToolProviderTest extends TestCase {
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 
-		$this->provider = new ScholiqToolProvider(
+		$this->provider = new LearniqToolProvider(
 			$this->objectService,
 			$this->userSession,
 			$this->groupManager,
@@ -105,10 +105,10 @@ class ScholiqToolProviderTest extends TestCase {
 	 *
 	 * @return void
 	 */
-	public function testGetAppIdReturnsScholiq(): void {
-		$this->assertSame('scholiq', $this->provider->getAppId());
+	public function testGetAppIdReturnsLearniq(): void {
+		$this->assertSame('learniq', $this->provider->getAppId());
 
-	}//end testGetAppIdReturnsScholiq()
+	}//end testGetAppIdReturnsLearniq()
 
 	/**
 	 * getTools() returns exactly the two MVP descriptors with valid shape.

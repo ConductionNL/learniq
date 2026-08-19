@@ -52,7 +52,7 @@ class PaymentTransactionStatusHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($entity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('payment-transaction');
 		$event->method('getTo')->willReturn($to);
 
@@ -185,7 +185,7 @@ class PaymentTransactionStatusHandlerTest extends TestCase {
 		$entity = $this->createMock(ObjectEntity::class);
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($entity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('order');
 		$event->method('getTo')->willReturn('paid');
 

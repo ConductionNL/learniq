@@ -97,7 +97,7 @@ class RolloverController extends Controller {
 
 		$cohorts = $this->objectService->findAll(
 			[
-				'register' => 'scholiq',
+				'register' => 'learniq',
 				'schema' => 'cohort',
 				'filters' => ['academicYear' => $fromAcademicYear],
 			]
@@ -147,7 +147,7 @@ class RolloverController extends Controller {
 		// it does not return null — so without this catch the 404 below was dead
 		// code and an unknown planId escaped as a 500 with a stack trace.
 		try {
-			$planObj = $this->objectService->find(id: $planId, register: 'scholiq', schema: 'rollover-plan');
+			$planObj = $this->objectService->find(id: $planId, register: 'learniq', schema: 'rollover-plan');
 		} catch (DoesNotExistException $e) {
 			return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
 		}
@@ -167,7 +167,7 @@ class RolloverController extends Controller {
 			$plan['lifecycle'] = 'previewed';
 		}
 
-		$this->objectService->saveObject(register: 'scholiq', schema: 'rollover-plan', object: $plan);
+		$this->objectService->saveObject(register: 'learniq', schema: 'rollover-plan', object: $plan);
 
 		return new JSONResponse(data: ['report' => $report, 'blocked' => ($report['blocked'] ?? false)]);
 	}//end preview()

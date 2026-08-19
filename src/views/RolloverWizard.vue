@@ -19,18 +19,18 @@
 -->
 <template>
 	<div class="rollover-wizard">
-		<h2>{{ t('scholiq', 'School-year rollover') }}</h2>
+		<h2>{{ t('learniq', 'School-year rollover') }}</h2>
 
 		<div class="rollover-wizard__years">
 			<label for="rollover-from">{{
-				t('scholiq', 'From academic year')
+				t('learniq', 'From academic year')
 			}}</label>
 			<input
 				id="rollover-from"
 				v-model="fromAcademicYear"
 				type="text"
 				placeholder="2025/2026" />
-			<label for="rollover-to">{{ t('scholiq', 'To academic year') }}</label>
+			<label for="rollover-to">{{ t('learniq', 'To academic year') }}</label>
 			<input
 				id="rollover-to"
 				v-model="toAcademicYear"
@@ -40,7 +40,7 @@
 				variant="secondary"
 				:disabled="!fromAcademicYear"
 				@click="propose">
-				{{ t('scholiq', 'Propose mapping') }}
+				{{ t('learniq', 'Propose mapping') }}
 			</NcButton>
 		</div>
 
@@ -49,9 +49,9 @@
 		<table v-else-if="mappings.length > 0" class="rollover-wizard__table">
 			<thead>
 				<tr>
-					<th scope="col">{{ t('scholiq', 'From cohort') }}</th>
-					<th scope="col">{{ t('scholiq', 'Action') }}</th>
-					<th scope="col">{{ t('scholiq', 'To cohort') }}</th>
+					<th scope="col">{{ t('learniq', 'From cohort') }}</th>
+					<th scope="col">{{ t('learniq', 'Action') }}</th>
+					<th scope="col">{{ t('learniq', 'To cohort') }}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -64,19 +64,19 @@
 						<NcSelect
 							v-model="m.action"
 							:options="actionOptions"
-							:inputLabel="t('scholiq', 'Action')"
-							:aria-label-combobox="t('scholiq', 'Action')" />
+							:inputLabel="t('learniq', 'Action')"
+							:aria-label-combobox="t('learniq', 'Action')" />
 					</td>
 					<td>
 						<input
 							v-model="m.toCohortName"
 							type="text"
 							:aria-label="
-								t('scholiq', 'New cohort name for {from}', {
+								t('learniq', 'New cohort name for {from}', {
 									from: m.fromCohortId,
 								})
 							"
-							:placeholder="t('scholiq', 'New cohort name')" />
+							:placeholder="t('learniq', 'New cohort name')" />
 					</td>
 				</tr>
 			</tbody>
@@ -84,41 +84,41 @@
 
 		<NcEmptyContent
 			v-else
-			:name="t('scholiq', 'No cohorts to roll over')"
+			:name="t('learniq', 'No cohorts to roll over')"
 			:description="
-				t('scholiq', 'Enter a from-year and propose a mapping to begin.')
+				t('learniq', 'Enter a from-year and propose a mapping to begin.')
 			" />
 
 		<div v-if="mappings.length > 0" class="rollover-wizard__actions">
 			<NcButton variant="secondary" @click="preview">
-				{{ t('scholiq', 'Preview') }}
+				{{ t('learniq', 'Preview') }}
 			</NcButton>
 			<NcButton variant="primary" :disabled="!canExecute" @click="execute">
-				{{ t('scholiq', 'Execute rollover') }}
+				{{ t('learniq', 'Execute rollover') }}
 			</NcButton>
 		</div>
 
 		<div v-if="report" class="rollover-wizard__report">
-			<h3>{{ t('scholiq', 'Dry-run report') }}</h3>
+			<h3>{{ t('learniq', 'Dry-run report') }}</h3>
 			<p v-if="report.blocked" class="rollover-wizard__report--blocked">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'Preview blocked: resolve every cohort action before executing.',
 					)
 				}}
 			</p>
 			<ul>
-				<li>{{ t('scholiq', 'Promote') }}: {{ report.counts.promote }}</li>
-				<li>{{ t('scholiq', 'Retain') }}: {{ report.counts.retain }}</li>
-				<li>{{ t('scholiq', 'Graduate') }}: {{ report.counts.graduate }}</li>
-				<li>{{ t('scholiq', 'Outflow') }}: {{ report.counts.outflow }}</li>
+				<li>{{ t('learniq', 'Promote') }}: {{ report.counts.promote }}</li>
+				<li>{{ t('learniq', 'Retain') }}: {{ report.counts.retain }}</li>
+				<li>{{ t('learniq', 'Graduate') }}: {{ report.counts.graduate }}</li>
+				<li>{{ t('learniq', 'Outflow') }}: {{ report.counts.outflow }}</li>
 				<li>
-					{{ t('scholiq', 'Enrolments to carry over') }}:
+					{{ t('learniq', 'Enrolments to carry over') }}:
 					{{ report.enrolmentsToCarry }}
 				</li>
 				<li>
-					{{ t('scholiq', 'Cohorts to create') }}:
+					{{ t('learniq', 'Cohorts to create') }}:
 					{{ report.cohortsToCreate.length }}
 				</li>
 			</ul>
@@ -180,7 +180,7 @@ export default {
 			this.loading = true
 			try {
 				const url = generateUrl(
-					'/apps/scholiq/api/rollover/propose?fromAcademicYear={year}',
+					'/apps/learniq/api/rollover/propose?fromAcademicYear={year}',
 					{ year: this.fromAcademicYear },
 				)
 				const response = await axios.get(url)
@@ -208,7 +208,7 @@ export default {
 					return
 				}
 				const url = generateUrl(
-					'/apps/scholiq/api/rollover/{planId}/preview',
+					'/apps/learniq/api/rollover/{planId}/preview',
 					{ planId: this.planId },
 				)
 				const response = await axios.post(url, {})
@@ -237,7 +237,7 @@ export default {
 				// OR lifecycle transition draft→… is driven by writing the lifecycle
 				// field through OR's object API; the RolloverExecutionHandler reacts.
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/rollover-plan/{id}',
+					'/apps/openregister/api/objects/learniq/rollover-plan/{id}',
 					{ id: this.planId },
 				)
 				await axios.put(url, { lifecycle: 'executing' })
@@ -263,14 +263,14 @@ export default {
 				}
 				if (this.planId !== '') {
 					const url = generateUrl(
-						'/apps/openregister/api/objects/scholiq/rollover-plan/{id}',
+						'/apps/openregister/api/objects/learniq/rollover-plan/{id}',
 						{ id: this.planId },
 					)
 					const r = await axios.put(url, body)
 					return (r.data && (r.data.id || r.data.uuid)) || this.planId
 				}
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/rollover-plan',
+					'/apps/openregister/api/objects/learniq/rollover-plan',
 				)
 				const r = await axios.post(url, body)
 				return (r.data && (r.data.id || r.data.uuid)) || ''

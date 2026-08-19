@@ -1,16 +1,16 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <template>
 	<CnSettingsSection
-		:name="t('scholiq', 'Configuration')"
-		:description="t('scholiq', 'Configure the app settings')">
+		:name="t('learniq', 'Configuration')"
+		:description="t('learniq', 'Configure the app settings')">
 		<form @submit.prevent="save">
 			<div class="form-group">
-				<label for="register">{{ t('scholiq', 'Register') }}</label>
+				<label for="register">{{ t('learniq', 'Register') }}</label>
 				<input
 					id="register"
 					v-model="form.register"
 					type="text"
-					:placeholder="t('scholiq', 'OpenRegister register ID')" />
+					:placeholder="t('learniq', 'OpenRegister register ID')" />
 			</div>
 
 			<div v-if="successMessage" class="success-message">
@@ -18,7 +18,7 @@
 			</div>
 
 			<NcButton variant="primary" type="submit" :disabled="saving">
-				{{ saving ? t('scholiq', 'Saving...') : t('scholiq', 'Save') }}
+				{{ saving ? t('learniq', 'Saving...') : t('learniq', 'Save') }}
 			</NcButton>
 		</form>
 	</CnSettingsSection>
@@ -71,7 +71,7 @@ export default {
 			const settingsStore = useSettingsStore()
 			const result = await settingsStore.saveSettings(this.form)
 			if (result) {
-				this.successMessage = t('scholiq', 'Settings saved successfully')
+				this.successMessage = t('learniq', 'Settings saved successfully')
 			}
 			this.saving = false
 		},

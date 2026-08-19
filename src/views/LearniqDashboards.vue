@@ -2,7 +2,7 @@
 <!-- Copyright (C) 2026 Conduction B.V. -->
 
 <!--
- ScholiqDashboards — the single role-aware dashboard (ADR-009 §6).
+ LearniqDashboards — the single role-aware dashboard (ADR-009 §6).
 
  One component, one CnDashboardPage, that re-renders for the active role:
    - admin   → KPI overview + manage lists
@@ -12,7 +12,7 @@
  The default view comes from the user's resolved role (initial state
  `dashboardRole`); users who can access more than one view (initial state
  `dashboardRoles`) get an in-page switcher. Replaces the old
- ScholiqDashboard.vue wrapper that nested a second CnDashboardPage inside a
+ LearniqDashboard.vue wrapper that nested a second CnDashboardPage inside a
  dashboard widget (the dashboard-in-dashboard antipattern).
 
  @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
@@ -54,7 +54,7 @@
 			<template #widget-teacher-courses>
 				<ManageListWidget
 					schema="Course"
-					:schemaLabel="t('scholiq', 'course')"
+					:schemaLabel="t('learniq', 'course')"
 					:columns="['name', 'lifecycle', 'lessonCount']"
 					indexRoute="/courses"
 					:limit="6" />
@@ -62,7 +62,7 @@
 			<template #widget-teacher-assignments>
 				<ManageListWidget
 					schema="Assignment"
-					:schemaLabel="t('scholiq', 'assignment')"
+					:schemaLabel="t('learniq', 'assignment')"
 					:columns="['name', 'dueDate', 'lifecycle']"
 					indexRoute="/assignments"
 					:limit="6" />
@@ -70,7 +70,7 @@
 			<template #widget-teacher-sessions>
 				<ManageListWidget
 					schema="Session"
-					:schemaLabel="t('scholiq', 'session')"
+					:schemaLabel="t('learniq', 'session')"
 					:columns="['name', 'startsAt', 'lifecycle']"
 					indexRoute="/sessions"
 					:limit="6" />
@@ -78,7 +78,7 @@
 			<template #widget-teacher-cohorts>
 				<ManageListWidget
 					schema="Cohort"
-					:schemaLabel="t('scholiq', 'cohort')"
+					:schemaLabel="t('learniq', 'cohort')"
 					:columns="['name', 'learnerCount', 'programmeId']"
 					indexRoute="/cohorts"
 					:limit="6" />
@@ -121,7 +121,7 @@ import MyMandatoryTrainingWidget from './widgets/MyMandatoryTrainingWidget.vue'
 const VALID_ROLES = ['admin', 'teacher', 'student']
 
 export default {
-	name: 'ScholiqDashboards',
+	name: 'LearniqDashboards',
 
 	components: {
 		CnDashboardPage,
@@ -164,7 +164,7 @@ export default {
 			if (VALID_ROLES.includes(this.role)) {
 				return this.role
 			}
-			const dflt = loadState('scholiq', 'dashboardRole', 'student')
+			const dflt = loadState('learniq', 'dashboardRole', 'student')
 			return VALID_ROLES.includes(dflt) ? dflt : 'student'
 		},
 
@@ -178,7 +178,7 @@ export default {
 			return (
 				this.roleLabel(this.activeRole)
 				+ ' · '
-				+ this.t('scholiq', 'Dashboard')
+				+ this.t('learniq', 'Dashboard')
 			)
 		},
 
@@ -226,42 +226,42 @@ export default {
 				widgets: [
 					{
 						id: 'kpi-courses',
-						title: this.t('scholiq', 'Courses'),
+						title: this.t('learniq', 'Courses'),
 						type: 'custom',
 					},
 					{
 						id: 'kpi-cohorts',
-						title: this.t('scholiq', 'Cohorts'),
+						title: this.t('learniq', 'Cohorts'),
 						type: 'custom',
 					},
 					{
 						id: 'kpi-learners',
-						title: this.t('scholiq', 'Learners'),
+						title: this.t('learniq', 'Learners'),
 						type: 'custom',
 					},
 					{
 						id: 'kpi-active-enrolments',
-						title: this.t('scholiq', 'Active enrolments'),
+						title: this.t('learniq', 'Active enrolments'),
 						type: 'custom',
 					},
 					{
 						id: 'kpi-open-flags',
-						title: this.t('scholiq', 'Open attendance flags'),
+						title: this.t('learniq', 'Open attendance flags'),
 						type: 'custom',
 					},
 					{
 						id: 'manage-courses',
-						title: this.t('scholiq', 'Courses'),
+						title: this.t('learniq', 'Courses'),
 						type: 'custom',
 					},
 					{
 						id: 'manage-cohorts',
-						title: this.t('scholiq', 'Cohorts'),
+						title: this.t('learniq', 'Cohorts'),
 						type: 'custom',
 					},
 					{
 						id: 'manage-programmes',
-						title: this.t('scholiq', 'Programmes'),
+						title: this.t('learniq', 'Programmes'),
 						type: 'custom',
 					},
 				],
@@ -354,32 +354,32 @@ export default {
 					// EngagementRiskFlag counts — no new chart component.
 					{
 						id: 'kpi-engagement-score',
-						title: this.t('scholiq', 'Avg. engagement score'),
+						title: this.t('learniq', 'Avg. engagement score'),
 						type: 'custom',
 					},
 					{
 						id: 'kpi-engagement-flags',
-						title: this.t('scholiq', 'Open engagement flags'),
+						title: this.t('learniq', 'Open engagement flags'),
 						type: 'custom',
 					},
 					{
 						id: 'teacher-courses',
-						title: this.t('scholiq', 'My courses'),
+						title: this.t('learniq', 'My courses'),
 						type: 'custom',
 					},
 					{
 						id: 'teacher-assignments',
-						title: this.t('scholiq', 'Assignments to grade'),
+						title: this.t('learniq', 'Assignments to grade'),
 						type: 'custom',
 					},
 					{
 						id: 'teacher-sessions',
-						title: this.t('scholiq', 'Sessions to mark'),
+						title: this.t('learniq', 'Sessions to mark'),
 						type: 'custom',
 					},
 					{
 						id: 'teacher-cohorts',
-						title: this.t('scholiq', 'My cohorts'),
+						title: this.t('learniq', 'My cohorts'),
 						type: 'custom',
 					},
 				],
@@ -454,14 +454,14 @@ export default {
 				widgets: [
 					{
 						id: 'my-mandatory-training',
-						title: this.t('scholiq', 'My mandatory training'),
+						title: this.t('learniq', 'My mandatory training'),
 						type: 'custom',
 					},
 					// engagement-gamification: the learner's own points/level/streak KPI —
 					// always visible regardless of any Leaderboard/opt-out state.
 					{
 						id: 'kpi-points-level',
-						title: this.t('scholiq', 'My points'),
+						title: this.t('learniq', 'My points'),
 						type: 'custom',
 					},
 				],
@@ -498,12 +498,12 @@ export default {
 		 */
 		roleLabel(role) {
 			if (role === 'admin') {
-				return this.t('scholiq', 'Administrator')
+				return this.t('learniq', 'Administrator')
 			}
 			if (role === 'teacher') {
-				return this.t('scholiq', 'Teacher')
+				return this.t('learniq', 'Teacher')
 			}
-			return this.t('scholiq', 'Student')
+			return this.t('learniq', 'Student')
 		},
 	},
 }

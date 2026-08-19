@@ -119,7 +119,7 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('session');
 		$event->method('getAction')->willReturn($action);
 
@@ -198,7 +198,7 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 		$this->wire([], []);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('cohort');
 		$event->method('getAction')->willReturn('activate');
 		$event->expects(self::never())->method('getObject');

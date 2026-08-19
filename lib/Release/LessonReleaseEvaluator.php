@@ -60,7 +60,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class LessonReleaseEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Schema slug this evaluator recognises as "Assessment" — used to decide

@@ -67,7 +67,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class ItemAnalysisRecomputeHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'assessment';
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
 	private const ITEM_STATISTICS_SCHEMA = 'item-statistics';

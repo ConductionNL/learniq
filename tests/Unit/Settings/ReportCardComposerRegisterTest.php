@@ -122,7 +122,7 @@ class ReportCardComposerRegisterTest extends TestCase {
 		self::assertSame(['compose', 'archive'], array_keys($transitions));
 		self::assertSame('open', $transitions['compose']['from']);
 		self::assertSame('composed', $transitions['compose']['to']);
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\ReportPeriodComposeGuard', $transitions['compose']['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\ReportPeriodComposeGuard', $transitions['compose']['requires']);
 
 	}//end testReportPeriodLockDatePassedIsScheduledNotificationOnly()
 
@@ -141,22 +141,22 @@ class ReportCardComposerRegisterTest extends TestCase {
 		self::assertSame(['draft', 'rapportvergadering-review'], [$transitions['pullIntoReview']['from'], $transitions['pullIntoReview']['to']]);
 		self::assertArrayNotHasKey('requires', $transitions['pullIntoReview']);
 
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\ReportCardFinaliseGuard', $transitions['finalise']['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\ReportCardFinaliseGuard', $transitions['finalise']['requires']);
 		self::assertSame(['rapportvergadering-review', 'finalised'], [$transitions['finalise']['from'], $transitions['finalise']['to']]);
 
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\ReportCardReopenGuard', $transitions['reopen']['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\ReportCardReopenGuard', $transitions['reopen']['requires']);
 		self::assertSame(['finalised', 'rapportvergadering-review'], [$transitions['reopen']['from'], $transitions['reopen']['to']]);
 
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\ReportCardVisibilityGuard', $transitions['publishToParents']['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\ReportCardVisibilityGuard', $transitions['publishToParents']['requires']);
 		self::assertSame(['finalised', 'published-to-parents'], [$transitions['publishToParents']['from'], $transitions['publishToParents']['to']]);
 		self::assertSame(['reportCardPublished'], $transitions['publishToParents']['notifications']);
 
 		self::assertSame(['draft', 'draft'], [$transitions['recompose']['from'], $transitions['recompose']['to']]);
 
-		self::assertSame('OCA\\Scholiq\\Service\\ReportCardPdfDelegationService', $transitions['renderToPdf']['requires']);
+		self::assertSame('OCA\\Learniq\\Service\\ReportCardPdfDelegationService', $transitions['renderToPdf']['requires']);
 		self::assertSame(['finalised', 'finalised'], [$transitions['renderToPdf']['from'], $transitions['renderToPdf']['to']]);
 
-		self::assertSame('OCA\\Scholiq\\Service\\ReportCardPdfDelegationService', $transitions['rerenderToPdf']['requires']);
+		self::assertSame('OCA\\Learniq\\Service\\ReportCardPdfDelegationService', $transitions['rerenderToPdf']['requires']);
 		self::assertSame(
 			['published-to-parents', 'published-to-parents'],
 			[$transitions['rerenderToPdf']['from'], $transitions['rerenderToPdf']['to']]
@@ -199,8 +199,8 @@ class ReportCardComposerRegisterTest extends TestCase {
 		$gradeEntry = $this->config['components']['schemas']['GradeEntry'];
 		$transitions = $gradeEntry['x-openregister-lifecycle']['transitions'];
 
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\ReportPeriodLockGuard', $transitions['publish']['requires']);
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\ReportPeriodLockGuard', $transitions['republish']['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\ReportPeriodLockGuard', $transitions['publish']['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\ReportPeriodLockGuard', $transitions['republish']['requires']);
 
 		// `requires` is a plain string on both — confirms the single-guard
 		// composition shape (not an unsupported array of guards).

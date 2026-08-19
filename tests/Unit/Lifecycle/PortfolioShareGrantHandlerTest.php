@@ -139,7 +139,7 @@ class PortfolioShareGrantHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('portfolio-share');
 		$event->method('getTo')->willReturn('active');
 		$event->method('getFrom')->willReturn('draft');
@@ -352,7 +352,7 @@ class PortfolioShareGrantHandlerTest extends TestCase {
 		$objectEntity = $this->createMock(ObjectEntity::class);
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('portfolio');
 		$event->method('getTo')->willReturn('active');
 

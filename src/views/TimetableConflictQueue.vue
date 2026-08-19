@@ -23,12 +23,12 @@
 	<div class="timetable-conflict-queue">
 		<header class="timetable-conflict-queue__header">
 			<h2 class="timetable-conflict-queue__title">
-				{{ t('scholiq', 'Timetable conflicts') }}
+				{{ t('learniq', 'Timetable conflicts') }}
 			</h2>
 			<p class="timetable-conflict-queue__subtitle">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'Detected double-bookings and capacity overruns. Nothing here is auto-resolved — review each conflict and act on the affected Sessions directly.',
 					)
 				}}
@@ -40,7 +40,7 @@
 			class="timetable-conflict-queue__loading"
 			aria-live="polite">
 			<NcLoadingIcon :size="32" />
-			<span>{{ t('scholiq', 'Loading conflicts…') }}</span>
+			<span>{{ t('learniq', 'Loading conflicts…') }}</span>
 		</div>
 
 		<NcNoteCard v-else-if="error" type="error">
@@ -49,9 +49,9 @@
 
 		<NcEmptyContent
 			v-else-if="visibleConflicts.length === 0"
-			:name="t('scholiq', 'No open conflicts')"
+			:name="t('learniq', 'No open conflicts')"
 			:description="
-				t('scholiq', 'The timetable has no unresolved conflicts right now.')
+				t('learniq', 'The timetable has no unresolved conflicts right now.')
 			">
 			<template #icon>
 				<span class="icon-checkmark" />
@@ -76,7 +76,7 @@
 					}}</span>
 					<span class="timetable-conflict-queue__sessions">
 						{{
-							t('scholiq', 'Sessions: {ids}', {
+							t('learniq', 'Sessions: {ids}', {
 								ids: (conflict.sessionIds || []).join(', '),
 							})
 						}}
@@ -94,14 +94,14 @@
 						<NcButton
 							:disabled="savingId === conflict.id"
 							@click="transition(conflict, 'acknowledged')">
-							{{ t('scholiq', 'Acknowledge') }}
+							{{ t('learniq', 'Acknowledge') }}
 						</NcButton>
 					</template>
 					<NcButton
 						variant="primary"
 						:disabled="savingId === conflict.id"
 						@click="transition(conflict, 'resolved')">
-						{{ t('scholiq', 'Resolve') }}
+						{{ t('learniq', 'Resolve') }}
 					</NcButton>
 				</div>
 
@@ -181,7 +181,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/timetable-conflict?limit=200',
+					'/apps/openregister/api/objects/learniq/timetable-conflict?limit=200',
 				)
 				const resp = await fetch(url, {
 					headers: {
@@ -195,7 +195,7 @@ export default {
 				this.conflicts = json.results ?? json.objects ?? json ?? []
 			} catch (err) {
 				this.error = t(
-					'scholiq',
+					'learniq',
 					'Failed to load timetable conflicts. Please try again.',
 				)
 				console.error('[TimetableConflictQueue] load error', err)
@@ -212,12 +212,12 @@ export default {
 		 */
 		kindLabel(kind) {
 			const labels = {
-				'teacher-double-booking': t('scholiq', 'Teacher double-booked'),
-				'room-double-booking': t('scholiq', 'Room double-booked'),
-				'cohort-double-booking': t('scholiq', 'Cohort scheduled twice'),
-				'learner-double-booking': t('scholiq', 'Learner double-booked'),
-				'room-capacity-exceeded': t('scholiq', 'Room capacity exceeded'),
-				'exam-clash': t('scholiq', 'Exam clash'),
+				'teacher-double-booking': t('learniq', 'Teacher double-booked'),
+				'room-double-booking': t('learniq', 'Room double-booked'),
+				'cohort-double-booking': t('learniq', 'Cohort scheduled twice'),
+				'learner-double-booking': t('learniq', 'Learner double-booked'),
+				'room-capacity-exceeded': t('learniq', 'Room capacity exceeded'),
+				'exam-clash': t('learniq', 'Exam clash'),
 			}
 			return labels[kind] ?? kind
 		},
@@ -237,7 +237,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/timetable-conflict/{id}',
+					'/apps/openregister/api/objects/learniq/timetable-conflict/{id}',
 					{ id: conflict.id },
 				)
 				await axios.put(url, { lifecycle })
@@ -251,7 +251,7 @@ export default {
 				this.itemError = {
 					...this.itemError,
 					[conflict.id]: t(
-						'scholiq',
+						'learniq',
 						'Failed to update this conflict. Please try again.',
 					),
 				}

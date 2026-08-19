@@ -23,14 +23,14 @@
 -->
 <template>
 	<div class="rapportvergadering-review">
-		<h2>{{ t('scholiq', 'Rapportvergadering review') }}</h2>
+		<h2>{{ t('learniq', 'Rapportvergadering review') }}</h2>
 
 		<NcLoadingIcon v-if="loadingPeriod" :size="32" />
 
 		<template v-else-if="period">
 			<p class="rapportvergadering-review__meta">
 				{{ period.name }} — {{ period.academicYear }} ({{
-					t('scholiq', 'period {code}', { code: period.periodCode })
+					t('learniq', 'period {code}', { code: period.periodCode })
 				}})
 			</p>
 
@@ -40,13 +40,13 @@
 				<NcNoteCard type="info">
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'Report cards have not been composed yet for this period.',
 						)
 					}}
 				</NcNoteCard>
 				<NcButton variant="primary" @click="showComposeModal = true">
-					{{ t('scholiq', 'Compose report cards…') }}
+					{{ t('learniq', 'Compose report cards…') }}
 				</NcButton>
 			</div>
 
@@ -55,10 +55,10 @@
 
 				<NcEmptyContent
 					v-else-if="cards.length === 0"
-					:name="t('scholiq', 'No report cards')"
+					:name="t('learniq', 'No report cards')"
 					:description="
 						t(
-							'scholiq',
+							'learniq',
 							'This period is composed but no report cards were generated.',
 						)
 					" />
@@ -67,7 +67,7 @@
 					<table class="rapportvergadering-review__table">
 						<thead>
 							<tr>
-								<th scope="col">{{ t('scholiq', 'Learner') }}</th>
+								<th scope="col">{{ t('learniq', 'Learner') }}</th>
 								<th
 									v-for="plan in subjectColumns"
 									:key="plan.id"
@@ -75,10 +75,10 @@
 									{{ plan.label }}
 								</th>
 								<th scope="col">
-									{{ t('scholiq', 'Mentor comment') }}
+									{{ t('learniq', 'Mentor comment') }}
 								</th>
-								<th scope="col">{{ t('scholiq', 'Status') }}</th>
-								<th scope="col">{{ t('scholiq', 'Actions') }}</th>
+								<th scope="col">{{ t('learniq', 'Status') }}</th>
+								<th scope="col">{{ t('learniq', 'Actions') }}</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -102,7 +102,7 @@
 													=== false
 												"
 												class="rapportvergadering-review__fail">
-												{{ t('scholiq', 'fail') }}
+												{{ t('learniq', 'fail') }}
 											</span>
 											<textarea
 												:value="
@@ -111,7 +111,7 @@
 												"
 												:aria-label="
 													t(
-														'scholiq',
+														'learniq',
 														'Teacher comment for {subject}',
 														{ subject: plan.label },
 													)
@@ -141,7 +141,7 @@
 										:value="card.mentorComment"
 										:aria-label="
 											t(
-												'scholiq',
+												'learniq',
 												'Mentor comment for {learner}',
 												{ learner: card.learnerId },
 											)
@@ -171,7 +171,7 @@
 													'rapportvergadering-review',
 												)
 											">
-											{{ t('scholiq', 'Pull into review') }}
+											{{ t('learniq', 'Pull into review') }}
 										</NcButton>
 										<NcButton
 											v-if="
@@ -181,7 +181,7 @@
 											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
 											@click="transition(card, 'finalised')">
-											{{ t('scholiq', 'Finalise') }}
+											{{ t('learniq', 'Finalise') }}
 										</NcButton>
 										<NcButton
 											v-if="card.lifecycle === 'finalised'"
@@ -193,7 +193,7 @@
 													'rapportvergadering-review',
 												)
 											">
-											{{ t('scholiq', 'Reopen') }}
+											{{ t('learniq', 'Reopen') }}
 										</NcButton>
 										<NcButton
 											v-if="card.lifecycle === 'finalised'"
@@ -205,7 +205,7 @@
 													'published-to-parents',
 												)
 											">
-											{{ t('scholiq', 'Publish to parents') }}
+											{{ t('learniq', 'Publish to parents') }}
 										</NcButton>
 									</div>
 									<NcNoteCard
@@ -222,7 +222,7 @@
 		</template>
 
 		<NcNoteCard v-else type="error">
-			{{ t('scholiq', 'Could not load this report period.') }}
+			{{ t('learniq', 'Could not load this report period.') }}
 		</NcNoteCard>
 
 		<ComposeReportPeriodModal
@@ -310,7 +310,7 @@ export default {
 			this.loadingPeriod = true
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/report-period/{id}',
+					'/apps/openregister/api/objects/learniq/report-period/{id}',
 					{ id: this.id },
 				)
 				const response = await axios.get(url)
@@ -340,7 +340,7 @@ export default {
 				planIds.map(async (planId) => {
 					try {
 						const url = generateUrl(
-							'/apps/openregister/api/objects/scholiq/curriculum-plan/{id}',
+							'/apps/openregister/api/objects/learniq/curriculum-plan/{id}',
 							{ id: planId },
 						)
 						const response = await axios.get(url)
@@ -367,7 +367,7 @@ export default {
 			this.loadingCards = true
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/report-card?reportPeriodId={periodId}&limit=500',
+					'/apps/openregister/api/objects/learniq/report-card?reportPeriodId={periodId}&limit=500',
 					{ periodId: this.id },
 				)
 				const response = await axios.get(url)
@@ -484,14 +484,14 @@ export default {
 			if (!id) return
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/report-card/{id}',
+					'/apps/openregister/api/objects/learniq/report-card/{id}',
 					{ id },
 				)
 				await axios.put(url, card)
 			} catch (e) {
 				console.error('[RapportvergaderingReviewView] saveCard failed', e)
 				this.cardErrors[id] = t(
-					'scholiq',
+					'learniq',
 					'Could not save changes. Please try again.',
 				)
 			}
@@ -515,7 +515,7 @@ export default {
 			this.cardErrors[id] = ''
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/report-card/{id}',
+					'/apps/openregister/api/objects/learniq/report-card/{id}',
 					{ id },
 				)
 				await axios.put(url, { lifecycle: toLifecycle })
@@ -523,7 +523,7 @@ export default {
 			} catch (e) {
 				console.error('[RapportvergaderingReviewView] transition failed', e)
 				this.cardErrors[id] = t(
-					'scholiq',
+					'learniq',
 					'This action was blocked. Please check the requirements and try again.',
 				)
 			} finally {

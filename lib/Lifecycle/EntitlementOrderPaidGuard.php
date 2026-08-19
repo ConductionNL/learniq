@@ -54,7 +54,7 @@ use Psr\Log\LoggerInterface;
  */
 class EntitlementOrderPaidGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ORDER_LINE_SCHEMA = 'order-line';
 	private const ORDER_SCHEMA = 'order';
 	private const PAID_STATE = 'paid';

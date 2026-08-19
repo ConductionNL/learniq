@@ -56,7 +56,7 @@ class ConferenceSignupGuardianGuard {
 	/**
 	 * OR register slug for Scholiq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * OR schema slug for LearnerProfile.

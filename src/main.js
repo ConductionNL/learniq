@@ -67,7 +67,7 @@ try {
 } catch (e) {
 	// Non-fatal — lib translations fall back to English source.
 	// eslint-disable-next-line no-console
-	console.warn('[scholiq] registerTranslations failed; falling back to English', e)
+	console.warn('[learniq] registerTranslations failed; falling back to English', e)
 }
 
 // Fire-and-forget translation load. Some Nextcloud installs only allow the
@@ -79,7 +79,7 @@ try {
  */
 function tryLoadTranslations() {
 	try {
-		const result = loadTranslations('scholiq', () => {})
+		const result = loadTranslations('learniq', () => {})
 		if (result && typeof result.then === 'function') {
 			result.then(
 				() => {},
@@ -128,12 +128,12 @@ function routesFromManifest(manifest) {
 // 'student'). Exposed as per-role booleans so each dashboard menu item's
 // `visibleIf` can gate on a scalar `eq: true` (the predicate grammar has no
 // array-contains operator).
-const dashboardRoles = loadState('scholiq', 'dashboardRoles', ['student']) || []
+const dashboardRoles = loadState('learniq', 'dashboardRoles', ['student']) || []
 bundledManifest.runtime = {
 	...(bundledManifest.runtime || {}),
 	user: {
 		...(bundledManifest.runtime?.user || {}),
-		primaryRole: loadState('scholiq', 'primaryRole', 'learner'),
+		primaryRole: loadState('learniq', 'primaryRole', 'learner'),
 		canAdminDashboard: dashboardRoles.includes('admin'),
 		canTeachDashboard: dashboardRoles.includes('teacher'),
 		canLearnDashboard: dashboardRoles.includes('student'),
@@ -157,7 +157,7 @@ const fragments = fragmentCtx
 const mergedManifest = buildManifest(bundledManifest, fragments, menuLayout)
 
 const router = createRouter({
-	history: createWebHistory(generateUrl('/apps/scholiq')),
+	history: createWebHistory(generateUrl('/apps/learniq')),
 	routes: routesFromManifest(mergedManifest),
 })
 
@@ -187,7 +187,7 @@ app.use(router)
 // one app instance, so this must be applied to `app`, not to an import.
 app.mixin({ methods: { t, n } })
 
-// ⚠️ Mount host: `#scholiq-app`, NOT `#content`.
+// ⚠️ Mount host: `#learniq-app`, NOT `#content`.
 //
 // Vue 2's `$mount(sel)` REPLACED the matched element; Vue 3's `mount(sel)`
 // renders INSIDE it. templates/index.php used to declare its own
@@ -197,4 +197,4 @@ app.mixin({ methods: { t, n } })
 // render inside core's wrapper and inherit its layout. Renaming the host
 // element is the fix — reasoning about which of two identically-ided divs
 // `mount()` picks is not.
-app.mount('#scholiq-app')
+app.mount('#learniq-app')

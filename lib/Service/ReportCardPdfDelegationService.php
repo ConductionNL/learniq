@@ -188,7 +188,7 @@ class ReportCardPdfDelegationService {
 		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . self::DOCUDESK_RENDER_PATH);
 
 		$apiToken = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::DOCUDESK_TOKEN_KEY,
 			default: ''
 		);

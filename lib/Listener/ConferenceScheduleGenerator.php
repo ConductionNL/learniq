@@ -75,7 +75,7 @@ use Psr\Log\LoggerInterface;
  */
 class ConferenceScheduleGenerator implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const CONFERENCE_ROUND_SCHEMA = 'conference-round';
 	private const TEACHER_AVAILABILITY_SCHEMA = 'teacher-availability';
 	private const CONFERENCE_SIGNUP_SCHEMA = 'conference-signup';

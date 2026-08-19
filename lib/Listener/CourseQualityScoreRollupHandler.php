@@ -48,7 +48,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class CourseQualityScoreRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const COURSE_EVALUATION_RESPONSE_SCHEMA = 'course-evaluation-response';
 	private const COURSE_QUALITY_SCORE_SCHEMA = 'course-quality-score';
 

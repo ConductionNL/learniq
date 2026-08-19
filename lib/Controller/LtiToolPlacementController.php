@@ -65,7 +65,7 @@ class LtiToolPlacementController extends Controller {
 	 *
 	 * @var string
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * OpenRegister schema slug for LtiToolPlacement.

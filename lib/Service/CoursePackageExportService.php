@@ -58,7 +58,7 @@ use ZipArchive;
  */
 class CoursePackageExportService {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.
@@ -435,7 +435,7 @@ class CoursePackageExportService {
 	 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
 	 */
 	private function buildZip(array $files): string {
-		$tmpFile = tempnam(sys_get_temp_dir(), 'scholiq_course_export_');
+		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_course_export_');
 		if ($tmpFile === false) {
 			return '';
 		}

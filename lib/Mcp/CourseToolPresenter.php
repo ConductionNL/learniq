@@ -4,11 +4,11 @@
  * Scholiq MCP Course Tool Presenter
  *
  * Response-shaping half of the Scholiq MCP surface, extracted from
- * `ScholiqToolProvider` so each class carries one cohesive responsibility: this
+ * `LearniqToolProvider` so each class carries one cohesive responsibility: this
  * one owns *how a course or module is rendered to the LLM* (normalising an
  * OpenRegister object to a plain array, extracting its UUID, allow-listing the
  * privacy-safe fields and building the citation sources plus their deep links),
- * while `ScholiqToolProvider` keeps the tool catalogue, argument validation,
+ * while `LearniqToolProvider` keeps the tool catalogue, argument validation,
  * authorisation and the reads.
  *
  * The allow-lists live here and nowhere else: every field an LLM can ever see

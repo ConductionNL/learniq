@@ -26,7 +26,7 @@ namespace OCA\Learniq\AppInfo;
 use OCA\OpenRegister\AppHost\Bootstrap;
 use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
 use OCA\Learniq\AppInfo\Registrar\ServiceOverrideRegistrar;
-use OCA\Learniq\Mcp\ScholiqToolProvider;
+use OCA\Learniq\Mcp\LearniqToolProvider;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -55,7 +55,7 @@ use OCP\EventDispatcher\IEventDispatcher;
  * not the ~40 listener classes behind them.
  */
 class Application extends App implements IBootstrap {
-	public const APP_ID = 'scholiq';
+	public const APP_ID = 'learniq';
 
 	/**
 	 * Constructor for the Application class.
@@ -121,7 +121,7 @@ class Application extends App implements IBootstrap {
 			[
 				'namespace' => 'OCA\\Learniq',
 				'sectionName' => 'Scholiq',
-				'mcpProvider' => ScholiqToolProvider::class,
+				'mcpProvider' => LearniqToolProvider::class,
 			]
 		);
 

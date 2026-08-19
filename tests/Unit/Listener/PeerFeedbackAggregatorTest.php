@@ -126,7 +126,7 @@ class PeerFeedbackAggregatorTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('peer-review');
 		$event->method('getTo')->willReturn('released');
 		$event->method('getFrom')->willReturn('submitted');
@@ -228,7 +228,7 @@ class PeerFeedbackAggregatorTest extends TestCase {
 		$aggregator = $this->makeAggregator(['id' => 'assignment-1', 'peerReviewAnonymity' => 'open'], []);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('peer-review');
 		$event->method('getTo')->willReturn('submitted');
 

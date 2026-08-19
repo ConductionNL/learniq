@@ -67,7 +67,7 @@ use Psr\Log\LoggerInterface;
  */
 class AdmissionsDecisionGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ADMISSIONS_ROUND_SCHEMA = 'admissions-round';
 	private const APPLICATION_SCHEMA = 'application';
 

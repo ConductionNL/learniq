@@ -24,11 +24,11 @@
 <template>
 	<div class="course-quality-report">
 		<header class="course-quality-report__header">
-			<h2>{{ t('scholiq', 'Course quality report') }}</h2>
+			<h2>{{ t('learniq', 'Course quality report') }}</h2>
 			<p class="course-quality-report__subtitle">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'Vakevaluatie results over time, per course and teacher.',
 					)
 				}}
@@ -39,21 +39,21 @@
 
 		<template v-else>
 			<div class="course-quality-report__field">
-				<label for="cqr-course">{{ t('scholiq', 'Course') }}</label>
+				<label for="cqr-course">{{ t('learniq', 'Course') }}</label>
 				<NcSelect
 					id="cqr-course"
 					v-model="selectedCourseId"
 					:options="courseOptions"
 					:reduce="(o) => o.id"
 					label="label"
-					:inputLabel="t('scholiq', 'Course')"
-					:aria-label-combobox="t('scholiq', 'Course')"
+					:inputLabel="t('learniq', 'Course')"
+					:aria-label-combobox="t('learniq', 'Course')"
 					@update:modelValue="onCourseChange" />
 			</div>
 
 			<div v-if="selectedCourseId" class="course-quality-report__field">
 				<label for="cqr-teacher">{{
-					t('scholiq', 'Teacher (optional)')
+					t('learniq', 'Teacher (optional)')
 				}}</label>
 				<NcSelect
 					id="cqr-teacher"
@@ -61,8 +61,8 @@
 					:options="teacherOptions"
 					:reduce="(o) => o.id"
 					label="label"
-					:inputLabel="t('scholiq', 'Teacher')"
-					:aria-label-combobox="t('scholiq', 'Teacher')"
+					:inputLabel="t('learniq', 'Teacher')"
+					:aria-label-combobox="t('learniq', 'Teacher')"
 					@update:modelValue="onTeacherChange" />
 			</div>
 
@@ -71,34 +71,34 @@
 			<template v-else-if="selectedCourseId">
 				<NcEmptyContent
 					v-if="trendRows.length === 0"
-					:name="t('scholiq', 'No evaluation results yet')"
+					:name="t('learniq', 'No evaluation results yet')"
 					:description="
 						t(
-							'scholiq',
+							'learniq',
 							'No CourseQualityScore rows exist yet for this course/teacher — results appear once responses are submitted.',
 						)
 					" />
 
 				<template v-else>
 					<section class="course-quality-report__section">
-						<h3>{{ t('scholiq', 'Score trend') }}</h3>
+						<h3>{{ t('learniq', 'Score trend') }}</h3>
 						<table class="course-quality-report__table">
 							<thead>
 								<tr>
 									<th scope="col">
-										{{ t('scholiq', 'Period') }}
+										{{ t('learniq', 'Period') }}
 									</th>
 									<th scope="col">
-										{{ t('scholiq', 'Average score') }}
+										{{ t('learniq', 'Average score') }}
 									</th>
 									<th scope="col">
-										{{ t('scholiq', 'Responses') }}
+										{{ t('learniq', 'Responses') }}
 									</th>
 									<th scope="col">
-										{{ t('scholiq', 'Invitations') }}
+										{{ t('learniq', 'Invitations') }}
 									</th>
 									<th scope="col">
-										{{ t('scholiq', 'Response rate') }}
+										{{ t('learniq', 'Response rate') }}
 									</th>
 								</tr>
 							</thead>
@@ -119,7 +119,7 @@
 					</section>
 
 					<section class="course-quality-report__section">
-						<h3>{{ t('scholiq', 'Free-text answers') }}</h3>
+						<h3>{{ t('learniq', 'Free-text answers') }}</h3>
 						<ul
 							v-if="freeTextAnswers.length > 0"
 							class="course-quality-report__answers">
@@ -130,12 +130,12 @@
 							</li>
 						</ul>
 						<p v-else class="course-quality-report__empty-text">
-							{{ t('scholiq', 'No free-text answers submitted yet.') }}
+							{{ t('learniq', 'No free-text answers submitted yet.') }}
 						</p>
 					</section>
 
 					<NcButton variant="secondary" @click="draftImprovementAction">
-						{{ t('scholiq', 'Draft improvement action') }}
+						{{ t('learniq', 'Draft improvement action') }}
 					</NcButton>
 				</template>
 			</template>
@@ -197,7 +197,7 @@ export default {
 				this.scores.map((s) => s.teacherId).filter((id) => !!id),
 			)
 			const options = [
-				{ id: '', label: this.t('scholiq', 'All teachers (course-level)') },
+				{ id: '', label: this.t('learniq', 'All teachers (course-level)') },
 			]
 			for (const id of ids) {
 				options.push({ id, label: id })
@@ -289,7 +289,7 @@ export default {
 				const [coursesResp, campaignsResp] = await Promise.all([
 					fetch(
 						generateUrl(
-							'/apps/openregister/api/objects/scholiq/Course?limit=500',
+							'/apps/openregister/api/objects/learniq/Course?limit=500',
 						),
 						{
 							headers: {
@@ -300,7 +300,7 @@ export default {
 					),
 					fetch(
 						generateUrl(
-							'/apps/openregister/api/objects/scholiq/evaluation-campaign?limit=200',
+							'/apps/openregister/api/objects/learniq/evaluation-campaign?limit=200',
 						),
 						{
 							headers: {
@@ -374,7 +374,7 @@ export default {
 				const [scoresResp, responsesResp] = await Promise.all([
 					fetch(
 						generateUrl(
-							`/apps/openregister/api/objects/scholiq/course-quality-score?courseId=${courseId}&limit=100`,
+							`/apps/openregister/api/objects/learniq/course-quality-score?courseId=${courseId}&limit=100`,
 						),
 						{
 							headers: {
@@ -385,7 +385,7 @@ export default {
 					),
 					fetch(
 						generateUrl(
-							`/apps/openregister/api/objects/scholiq/course-evaluation-response?courseId=${courseId}&limit=200`,
+							`/apps/openregister/api/objects/learniq/course-evaluation-response?courseId=${courseId}&limit=200`,
 						),
 						{
 							headers: {

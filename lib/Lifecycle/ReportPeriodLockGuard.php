@@ -86,7 +86,7 @@ use Psr\Log\LoggerInterface;
  */
 class ReportPeriodLockGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const REPORT_PERIOD_SCHEMA = 'report-period';
 
 	/**

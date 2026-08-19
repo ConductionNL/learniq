@@ -37,7 +37,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class CoursePackageObjectWriter {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.

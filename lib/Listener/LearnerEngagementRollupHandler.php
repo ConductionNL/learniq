@@ -60,7 +60,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class LearnerEngagementRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const POINT_AWARD_SCHEMA = 'point-award';
 	private const POINT_RULE_SCHEMA = 'point-rule';
 	private const LEARNER_ENGAGEMENT_SCHEMA = 'learner-engagement';

@@ -39,7 +39,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class CoursePackageImportReporter {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const REPORT_SCHEMA = 'course-package-import-report';
 
 	/**

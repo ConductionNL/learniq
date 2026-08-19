@@ -61,7 +61,7 @@ class PokActivationGuard {
 	/**
 	 * Scholiq register slug.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * PokSignature schema slug.

@@ -76,7 +76,7 @@ use Psr\Log\LoggerInterface;
  */
 class TimetableImportHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const JOB_SCHEMA = 'data-exchange-job';
 	private const MAPPING_PROFILE_SCHEMA = 'data-mapping-profile';
 	private const SESSION_SCHEMA = 'session';
@@ -426,7 +426,7 @@ class TimetableImportHandler implements IEventListener {
 		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . $path);
 
 		$apiToken = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::OPENCONNECTOR_TOKEN_KEY,
 			default: ''
 		);

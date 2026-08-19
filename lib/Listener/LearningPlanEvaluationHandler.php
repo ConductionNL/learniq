@@ -53,7 +53,7 @@ use Psr\Log\LoggerInterface;
  */
 class LearningPlanEvaluationHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const EVALUATION_SCHEMA = 'learning-plan-evaluation';
 	private const LEARNING_PLAN_SCHEMA = 'learning-plan';
 

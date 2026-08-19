@@ -50,7 +50,7 @@ use Psr\Log\LoggerInterface;
  */
 class AttendanceFlagReportGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const DATA_EXCHANGE_JOB_SCHEMA = 'data-exchange-job';
 
 	/**

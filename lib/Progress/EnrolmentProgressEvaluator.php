@@ -44,7 +44,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class EnrolmentProgressEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const LESSON_SCHEMA = 'lesson';
 	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
 

@@ -49,12 +49,12 @@ class CredentialSigningService {
 	/**
 	 * App config key prefix for encrypted tenant private keys.
 	 */
-	private const PRIVATE_KEY_PREFIX = 'scholiq.credential.signing.private.';
+	private const PRIVATE_KEY_PREFIX = 'learniq.credential.signing.private.';
 
 	/**
 	 * App config key prefix for public keys (plain).
 	 */
-	private const PUBLIC_KEY_PREFIX = 'scholiq.credential.signing.public.';
+	private const PUBLIC_KEY_PREFIX = 'learniq.credential.signing.public.';
 
 	/**
 	 * Constructor.
@@ -111,7 +111,7 @@ class CredentialSigningService {
 		}
 
 		$verificationUrl = $this->urlGenerator->linkToRouteAbsolute(
-			'scholiq.credentialVerify.verify',
+			'learniq.credentialVerify.verify',
 			['id' => $credentialId]
 		);
 
@@ -132,7 +132,7 @@ class CredentialSigningService {
 		}
 
 		$publicKey = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::PUBLIC_KEY_PREFIX . $tenantId,
 			default: ''
 		);
@@ -201,9 +201,9 @@ class CredentialSigningService {
 			'issuanceDate' => $issuedAt,
 		];
 
-		$achievementId = 'urn:scholiq:manual:' . $credentialId;
+		$achievementId = 'urn:learniq:manual:' . $credentialId;
 		if ($courseId !== null) {
-			$achievementId = 'urn:scholiq:course:' . $courseId;
+			$achievementId = 'urn:learniq:course:' . $courseId;
 		}
 
 		// #190: credentialSubject.id must never embed a BSN, email, or NC UID.
@@ -246,7 +246,7 @@ class CredentialSigningService {
 	 */
 	public function signPayload(array $payload, string $tenantId): ?string {
 		$encryptedPrivateKey = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::PRIVATE_KEY_PREFIX . $tenantId,
 			default: ''
 		);
@@ -263,7 +263,7 @@ class CredentialSigningService {
 
 		// Derive kid from the public-key fingerprint stored at key-generation time.
 		$publicKeyPem = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::PUBLIC_KEY_PREFIX . $tenantId,
 			default: ''
 		);
@@ -365,12 +365,12 @@ class CredentialSigningService {
 		// UUID v4 regex — only format guaranteed to be opaque / non-PII.
 		$uuidPattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i';
 		if (preg_match($uuidPattern, $learnerId) === 1) {
-			return 'urn:scholiq:learner:' . $learnerId;
+			return 'urn:learniq:learner:' . $learnerId;
 		}
 
 		// Non-UUID: pseudonymise with a stable one-way hash to avoid embedding PII.
-		$pseudonym = 'pseudo-' . hash('sha256', 'scholiq-learner:' . $learnerId);
-		return 'urn:scholiq:learner:' . $pseudonym;
+		$pseudonym = 'pseudo-' . hash('sha256', 'learniq-learner:' . $learnerId);
+		return 'urn:learniq:learner:' . $pseudonym;
 	}//end buildSubjectId()
 
 	/**
@@ -387,7 +387,7 @@ class CredentialSigningService {
 	 */
 	private function resolveIssuerDid(string $tenantId): ?string {
 		$publicKey = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::PUBLIC_KEY_PREFIX . $tenantId,
 			default: ''
 		);
@@ -400,6 +400,6 @@ class CredentialSigningService {
 		// Use 32-char fingerprint (128-bit) to match KeyManagementService.
 		$fingerprint = substr(hash('sha256', $publicKey), 0, 32);
 
-		return 'did:web:scholiq:' . $tenantId . ':' . $fingerprint;
+		return 'did:web:learniq:' . $tenantId . ':' . $fingerprint;
 	}//end resolveIssuerDid()
 }//end class

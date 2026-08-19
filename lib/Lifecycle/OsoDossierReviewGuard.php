@@ -51,7 +51,7 @@ use Psr\Log\LoggerInterface;
  */
 class OsoDossierReviewGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 
 	/**

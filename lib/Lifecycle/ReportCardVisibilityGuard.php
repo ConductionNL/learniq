@@ -65,7 +65,7 @@ use Psr\Log\LoggerInterface;
  */
 class ReportCardVisibilityGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 
 	/**

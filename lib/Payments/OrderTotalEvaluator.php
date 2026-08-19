@@ -48,7 +48,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class OrderTotalEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ORDER_LINE_SCHEMA = 'order-line';
 
 	/**

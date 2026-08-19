@@ -23,12 +23,12 @@
 	<div class="my-learning-record">
 		<header class="my-learning-record__header">
 			<h2 class="my-learning-record__heading">
-				{{ t('scholiq', 'My learning record') }}
+				{{ t('learniq', 'My learning record') }}
 			</h2>
 			<p class="my-learning-record__intro">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'Everything you have earned, everywhere in Scholiq — composed live, read-only. Nothing here can be edited or deleted from this page.',
 					)
 				}}
@@ -36,7 +36,7 @@
 		</header>
 
 		<p v-if="loading" class="my-learning-record__loading">
-			{{ t('scholiq', 'Loading your record…') }}
+			{{ t('learniq', 'Loading your record…') }}
 		</p>
 		<p v-else-if="loadError" role="alert" class="my-learning-record__error">
 			{{ loadError }}
@@ -46,7 +46,7 @@
 			<!-- Composed, read-only sections -->
 			<section class="my-learning-record__section">
 				<h3>
-					{{ t('scholiq', 'Credentials') }} ({{
+					{{ t('learniq', 'Credentials') }} ({{
 						record.credentials.length
 					}})
 				</h3>
@@ -57,14 +57,14 @@
 					<li
 						v-if="record.credentials.length === 0"
 						class="my-learning-record__empty">
-						{{ t('scholiq', 'None yet.') }}
+						{{ t('learniq', 'None yet.') }}
 					</li>
 				</ul>
 			</section>
 
 			<section class="my-learning-record__section">
 				<h3>
-					{{ t('scholiq', 'Final grades') }} ({{
+					{{ t('learniq', 'Final grades') }} ({{
 						record.finalGrades.length
 					}})
 				</h3>
@@ -73,8 +73,8 @@
 						{{ g.value ?? '—' }} —
 						{{
 							g.passed === true
-								? t('scholiq', 'passed')
-								: t('scholiq', 'not yet passed')
+								? t('learniq', 'passed')
+								: t('learniq', 'not yet passed')
 						}}
 					</li>
 				</ul>
@@ -82,20 +82,20 @@
 
 			<section class="my-learning-record__section">
 				<h3>
-					{{ t('scholiq', 'Competency attainments') }} ({{
+					{{ t('learniq', 'Competency attainments') }} ({{
 						record.competencyAttainments.length
 					}})
 				</h3>
 				<ul class="my-learning-record__list">
 					<li v-for="ca in record.competencyAttainments" :key="ca.id">
-						{{ ca.proficiencyLevelId ?? t('scholiq', 'in progress') }}
+						{{ ca.proficiencyLevelId ?? t('learniq', 'in progress') }}
 					</li>
 				</ul>
 			</section>
 
 			<section class="my-learning-record__section">
 				<h3>
-					{{ t('scholiq', 'Portfolios') }} ({{ record.portfolios.length }})
+					{{ t('learniq', 'Portfolios') }} ({{ record.portfolios.length }})
 				</h3>
 				<ul class="my-learning-record__list">
 					<li v-for="p in record.portfolios" :key="p.id">
@@ -106,7 +106,7 @@
 
 			<section class="my-learning-record__section">
 				<h3>
-					{{ t('scholiq', 'Verified external training') }} ({{
+					{{ t('learniq', 'Verified external training') }} ({{
 						record.externalTrainingRecords.length
 					}})
 				</h3>
@@ -119,7 +119,7 @@
 
 			<section class="my-learning-record__section">
 				<h3>
-					{{ t('scholiq', 'Work-placement (BPV)') }} ({{
+					{{ t('learniq', 'Work-placement (BPV)') }} ({{
 						record.bpvPlacements.length
 					}})
 				</h3>
@@ -132,15 +132,15 @@
 
 			<section class="my-learning-record__section">
 				<h3>
-					{{ t('scholiq', 'Lesson completion') }} ({{
+					{{ t('learniq', 'Lesson completion') }} ({{
 						record.lessonCompletions.length
 					}}
-					{{ t('scholiq', 'courses') }})
+					{{ t('learniq', 'courses') }})
 				</h3>
 				<ul class="my-learning-record__list">
 					<li v-for="(l, idx) in record.lessonCompletions" :key="idx">
 						{{ l.courseId }} — {{ l.completedCount }}
-						{{ t('scholiq', 'lessons') }}
+						{{ t('learniq', 'lessons') }}
 						<span v-if="l.percentage !== null">
 							({{ l.percentage }}%)</span
 						>
@@ -150,7 +150,7 @@
 
 			<section class="my-learning-record__section">
 				<h3>
-					{{ t('scholiq', 'Report cards') }} ({{
+					{{ t('learniq', 'Report cards') }} ({{
 						record.reportCards.length
 					}})
 				</h3>
@@ -158,11 +158,11 @@
 
 			<!-- Export -->
 			<section class="my-learning-record__section my-learning-record__export">
-				<h3>{{ t('scholiq', 'Export my record') }}</h3>
+				<h3>{{ t('learniq', 'Export my record') }}</h3>
 				<p class="my-learning-record__hint">
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'Generates a signed, self-contained bundle you can carry to another school or an employer, with an honest report of exactly what is included.',
 						)
 					}}
@@ -170,11 +170,11 @@
 
 				<div class="my-learning-record__period">
 					<label for="period-from">{{
-						t('scholiq', 'From (optional)')
+						t('learniq', 'From (optional)')
 					}}</label>
 					<input id="period-from" v-model="periodFrom" type="date" />
 					<label for="period-to">{{
-						t('scholiq', 'To (optional)')
+						t('learniq', 'To (optional)')
 					}}</label>
 					<input id="period-to" v-model="periodTo" type="date" />
 				</div>
@@ -189,8 +189,8 @@
 						aria-hidden="true" />
 					{{
 						generating
-							? t('scholiq', 'Generating…')
-							: t('scholiq', 'Generate export')
+							? t('learniq', 'Generating…')
+							: t('learniq', 'Generate export')
 					}}
 				</button>
 
@@ -204,7 +204,7 @@
 						class="my-learning-record__success">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'Export generated. The signed bundle is stored at {ref} in your Files.',
 								{ ref: latestExport.bundleRef },
 							)
@@ -225,9 +225,9 @@
 						class="my-learning-record__table">
 						<thead>
 							<tr>
-								<th scope="col">{{ t('scholiq', 'Source') }}</th>
-								<th scope="col">{{ t('scholiq', 'Outcome') }}</th>
-								<th scope="col">{{ t('scholiq', 'Reason') }}</th>
+								<th scope="col">{{ t('learniq', 'Source') }}</th>
+								<th scope="col">{{ t('learniq', 'Outcome') }}</th>
+								<th scope="col">{{ t('learniq', 'Reason') }}</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -252,11 +252,11 @@
 			<section
 				v-if="latestExport && latestExport.lifecycle === 'generated'"
 				class="my-learning-record__section my-learning-record__share">
-				<h3>{{ t('scholiq', 'Share my export') }}</h3>
+				<h3>{{ t('learniq', 'Share my export') }}</h3>
 				<p class="my-learning-record__hint">
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'Grant a named recipient — an employer, a receiving school — time-boxed access to the most recently generated export.',
 						)
 					}}
@@ -264,7 +264,7 @@
 
 				<div class="my-learning-record__share-form">
 					<label for="recipient-name">{{
-						t('scholiq', 'Recipient name')
+						t('learniq', 'Recipient name')
 					}}</label>
 					<input
 						id="recipient-name"
@@ -272,7 +272,7 @@
 						type="text" />
 
 					<label for="recipient-email">{{
-						t('scholiq', 'Recipient email (optional)')
+						t('learniq', 'Recipient email (optional)')
 					}}</label>
 					<!-- autocomplete="off", not "email": this collects a THIRD PARTY's address
 					     (an employer, a receiving school), never the signed-in user's own, so
@@ -283,7 +283,7 @@
 						type="email"
 						autocomplete="off" />
 
-					<label for="expires-at">{{ t('scholiq', 'Expires on') }}</label>
+					<label for="expires-at">{{ t('learniq', 'Expires on') }}</label>
 					<input
 						id="expires-at"
 						v-model="newShare.expiresAt"
@@ -297,7 +297,7 @@
 							|| !newShare.expiresAt
 						"
 						@click="createShare">
-						{{ t('scholiq', 'Create share') }}
+						{{ t('learniq', 'Create share') }}
 					</button>
 
 					<p
@@ -306,7 +306,7 @@
 						class="my-learning-record__error">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'An expiry date is required before a share can be created.',
 							)
 						}}
@@ -322,13 +322,13 @@
 				<table v-if="shares.length" class="my-learning-record__table">
 					<thead>
 						<tr>
-							<th scope="col">{{ t('scholiq', 'Recipient') }}</th>
-							<th scope="col">{{ t('scholiq', 'Expires') }}</th>
-							<th scope="col">{{ t('scholiq', 'Status') }}</th>
+							<th scope="col">{{ t('learniq', 'Recipient') }}</th>
+							<th scope="col">{{ t('learniq', 'Expires') }}</th>
+							<th scope="col">{{ t('learniq', 'Status') }}</th>
 							<th scope="col">
-								{{ t('scholiq', 'Verification link') }}
+								{{ t('learniq', 'Verification link') }}
 							</th>
-							<th scope="col">{{ t('scholiq', 'Action') }}</th>
+							<th scope="col">{{ t('learniq', 'Action') }}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -341,7 +341,7 @@
 									:href="verifyUrl(share.id)"
 									target="_blank"
 									rel="noopener"
-									>{{ t('scholiq', 'Open') }}</a
+									>{{ t('learniq', 'Open') }}</a
 								>
 							</td>
 							<td>
@@ -349,7 +349,7 @@
 									v-if="share.lifecycle === 'active'"
 									class="button-vue"
 									@click="revokeShare(share.id)">
-									{{ t('scholiq', 'Revoke') }}
+									{{ t('learniq', 'Revoke') }}
 								</button>
 							</td>
 						</tr>
@@ -405,7 +405,7 @@ export default {
 			this.loadError = null
 
 			try {
-				const url = generateUrl('/apps/scholiq/api/learning-records/me')
+				const url = generateUrl('/apps/learniq/api/learning-records/me')
 				const resp = await fetch(url, {
 					headers: {
 						'OCS-APIREQUEST': 'true',
@@ -423,7 +423,7 @@ export default {
 				// accurate message instead of throwing.
 				if (resp.status === 404) {
 					this.loadError = this.t(
-						'scholiq',
+						'learniq',
 						'You do not have a learning record yet. A learning record is created once you are enrolled as a learner.',
 					)
 					return
@@ -436,7 +436,7 @@ export default {
 				this.record = await resp.json()
 			} catch (err) {
 				this.loadError = this.t(
-					'scholiq',
+					'learniq',
 					'Could not load your learning record. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -464,7 +464,7 @@ export default {
 
 			try {
 				const createUrl = generateUrl(
-					'/apps/openregister/api/objects/scholiq/learning-record-export',
+					'/apps/openregister/api/objects/learniq/learning-record-export',
 				)
 				const createResp = await fetch(createUrl, {
 					method: 'POST',
@@ -494,7 +494,7 @@ export default {
 				const exportId = created.id ?? created.uuid
 
 				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/learning-record-export/${exportId}/transition/generate`,
+					`/apps/openregister/api/objects/learniq/learning-record-export/${exportId}/transition/generate`,
 				)
 				await fetch(transitionUrl, {
 					method: 'POST',
@@ -507,7 +507,7 @@ export default {
 				})
 
 				const finalUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/learning-record-export/${exportId}`,
+					`/apps/openregister/api/objects/learniq/learning-record-export/${exportId}`,
 				)
 				const finalResp = await fetch(finalUrl, {
 					headers: {
@@ -521,7 +521,7 @@ export default {
 				this.shares = []
 			} catch (err) {
 				this.exportError = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to generate the export. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -555,7 +555,7 @@ export default {
 
 			try {
 				const createUrl = generateUrl(
-					'/apps/openregister/api/objects/scholiq/learning-record-share',
+					'/apps/openregister/api/objects/learniq/learning-record-share',
 				)
 				const createResp = await fetch(createUrl, {
 					method: 'POST',
@@ -587,7 +587,7 @@ export default {
 				const shareId = created.id ?? created.uuid
 
 				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/learning-record-share/${shareId}/transition/grant`,
+					`/apps/openregister/api/objects/learniq/learning-record-share/${shareId}/transition/grant`,
 				)
 				await fetch(transitionUrl, {
 					method: 'POST',
@@ -608,7 +608,7 @@ export default {
 				this.shareTouched = false
 			} catch (err) {
 				this.shareError = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to create the share. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -628,7 +628,7 @@ export default {
 		async revokeShare(shareId) {
 			try {
 				const url = generateUrl(
-					`/apps/openregister/api/objects/scholiq/learning-record-share/${shareId}/transition/revoke`,
+					`/apps/openregister/api/objects/learniq/learning-record-share/${shareId}/transition/revoke`,
 				)
 				await fetch(url, {
 					method: 'POST',
@@ -657,7 +657,7 @@ export default {
 
 			const exportId = this.latestExport.id ?? this.latestExport.uuid
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/learning-record-share?filters[learningRecordExportId]=${exportId}&limit=100`,
+				`/apps/openregister/api/objects/learniq/learning-record-share?filters[learningRecordExportId]=${exportId}&limit=100`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -680,7 +680,7 @@ export default {
 		 */
 		verifyUrl(shareId) {
 			return generateUrl(
-				`/apps/scholiq/learning-record-shares/${shareId}/verify`,
+				`/apps/learniq/learning-record-shares/${shareId}/verify`,
 			)
 		},
 	},

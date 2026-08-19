@@ -69,7 +69,7 @@ use Psr\Log\LoggerInterface;
  */
 class ReportCardComposer implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const REPORT_PERIOD_SCHEMA = 'report-period';
 	private const REPORT_CARD_SCHEMA = 'report-card';
 	private const COHORT_SCHEMA = 'cohort';

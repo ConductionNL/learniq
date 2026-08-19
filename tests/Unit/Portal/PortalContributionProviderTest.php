@@ -196,7 +196,7 @@ class PortalContributionProviderTest extends TestCase {
 		);
 
 		foreach ($collections as $collection) {
-			$this->assertSame('scholiq', $collection['register']);
+			$this->assertSame('learniq', $collection['register']);
 			$this->assertSame('learnerRef', $collection['scopeClaim']);
 			$this->assertNotEmpty($collection['fields']);
 			// Submission is scoped by the learnerRefs ARRAY (membership); every
@@ -288,7 +288,7 @@ class PortalContributionProviderTest extends TestCase {
 		);
 
 		foreach ($collections as $collection) {
-			$this->assertSame('scholiq', $collection['register']);
+			$this->assertSame('learniq', $collection['register']);
 			// Parent scope key is the guardian claim; the outer record scope
 			// field is the child's learnerRef (matched by the reverse via).
 			$this->assertSame('guardianRef', $collection['scopeClaim']);
@@ -355,7 +355,7 @@ class PortalContributionProviderTest extends TestCase {
 				"via keys must be exactly the reader's contract for '{$collection['id']}'"
 			);
 
-			$this->assertSame('scholiq', $via['register']);
+			$this->assertSame('learniq', $via['register']);
 			$this->assertSame('learner-profile', $via['schema']);
 			// The join row's field matched against the guardian scope value.
 			$this->assertSame('guardianRefs', $via['scopeField']);
@@ -412,7 +412,7 @@ class PortalContributionProviderTest extends TestCase {
 		$collection = $collections[0];
 
 		$this->assertSame('poBpvPlacements', $collection['id']);
-		$this->assertSame('scholiq', $collection['register']);
+		$this->assertSame('learniq', $collection['register']);
 		$this->assertSame('bpv-placement', $collection['schema']);
 		// Direct match — not a reverse `via` join like `parent`.
 		$this->assertSame('practicalTrainerId', $collection['scopeField']);
@@ -442,7 +442,7 @@ class PortalContributionProviderTest extends TestCase {
 		$collection = $manifest['collections'][1];
 
 		$this->assertSame('poSharedPortfolios', $collection['id']);
-		$this->assertSame('scholiq', $collection['register']);
+		$this->assertSame('learniq', $collection['register']);
 		$this->assertSame('portfolio-share', $collection['schema']);
 		$this->assertSame('sharedWithPracticalTrainerId', $collection['scopeField']);
 		$this->assertSame('practicalTrainerId', $collection['scopeClaim']);
@@ -477,7 +477,7 @@ class PortalContributionProviderTest extends TestCase {
 		$collection = $collections[0];
 
 		$this->assertSame('eaSharedPortfolios', $collection['id']);
-		$this->assertSame('scholiq', $collection['register']);
+		$this->assertSame('learniq', $collection['register']);
 		$this->assertSame('portfolio-share', $collection['schema']);
 		$this->assertSame('sharedWithExternalAssessorId', $collection['scopeField']);
 		$this->assertSame('externalAssessorId', $collection['scopeClaim']);

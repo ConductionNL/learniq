@@ -60,7 +60,7 @@ use Psr\Log\LoggerInterface;
  */
 class AdmissionsWaitlistPromoter implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const APPLICATION_SCHEMA = 'application';
 
 	/**

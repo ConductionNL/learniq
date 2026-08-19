@@ -128,7 +128,7 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('conference-round');
 		$event->method('getTo')->willReturn('scheduled');
 		$event->method('getFrom')->willReturn($from);
@@ -399,7 +399,7 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('conference-round');
 		$event->method('getTo')->willReturn('booking-closed');
 		$event->method('getFrom')->willReturn('booking-open');

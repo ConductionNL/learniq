@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  */
 class SessionChangeNoticeHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
 	private const COHORT_SCHEMA = 'cohort';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';

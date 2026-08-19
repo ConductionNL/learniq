@@ -80,7 +80,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class PointAwardTriggerHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ENROLMENT_SCHEMA = 'enrolment';
 	private const SUBMISSION_SCHEMA = 'submission';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';

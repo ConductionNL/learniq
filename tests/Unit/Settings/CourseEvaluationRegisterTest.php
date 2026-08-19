@@ -146,7 +146,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 		$this->assertSame('draft', $submit['from'] ?? null);
 		$this->assertSame('submitted', $submit['to'] ?? null);
 		$this->assertSame(
-			'OCA\\Scholiq\\Lifecycle\\CourseEvaluationEligibilityGuard',
+			'OCA\\Learniq\\Lifecycle\\CourseEvaluationEligibilityGuard',
 			$submit['requires'] ?? null,
 			'submit MUST require CourseEvaluationEligibilityGuard'
 		);
@@ -249,7 +249,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 
 		$trigger = $schema['x-openregister-triggers']['invitationProvisioning'] ?? null;
 		$this->assertSame(
-			'OCA\\Scholiq\\Listener\\EvaluationInvitationProvisioningHandler',
+			'OCA\\Learniq\\Listener\\EvaluationInvitationProvisioningHandler',
 			$trigger['handler'] ?? null
 		);
 
@@ -280,7 +280,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 		// recompute fires on the response's submit, not on this row itself.
 		$sourceTrigger = $this->config['components']['schemas']['CourseEvaluationResponse']['x-openregister-triggers']['qualityScoreRollup'] ?? null;
 		$this->assertSame(
-			'OCA\\Scholiq\\Listener\\CourseQualityScoreRollupHandler',
+			'OCA\\Learniq\\Listener\\CourseQualityScoreRollupHandler',
 			$sourceTrigger['handler'] ?? null
 		);
 

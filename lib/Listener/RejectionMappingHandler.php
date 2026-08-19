@@ -74,7 +74,7 @@ use Psr\Log\LoggerInterface;
  */
 class RejectionMappingHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const JOB_SCHEMA = 'data-exchange-job';
 	private const REJECTION_SCHEMA = 'exchange-rejection';
 	private const ERROR_CODE_SCHEMA = 'exchange-error-code';

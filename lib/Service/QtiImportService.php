@@ -315,7 +315,7 @@ class QtiImportService {
 		// slug as the payload — a guaranteed TypeError against the real
 		// service. Named arguments are the only safe call shape here.
 		$saved = $this->objectService->saveObject(
-			register: 'scholiq',
+			register: 'learniq',
 			schema: 'item',
 			object: $itemData
 		);

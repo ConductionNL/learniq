@@ -33,20 +33,20 @@
 
 			<template v-else-if="period">
 				<dl class="compose-report-period__summary">
-					<dt>{{ t('scholiq', 'Academic year') }}</dt>
+					<dt>{{ t('learniq', 'Academic year') }}</dt>
 					<dd>{{ period.academicYear || '—' }}</dd>
-					<dt>{{ t('scholiq', 'Period code') }}</dt>
+					<dt>{{ t('learniq', 'Period code') }}</dt>
 					<dd>{{ period.periodCode || '—' }}</dd>
-					<dt>{{ t('scholiq', 'Subjects in scope') }}</dt>
+					<dt>{{ t('learniq', 'Subjects in scope') }}</dt>
 					<dd>{{ (period.curriculumPlanIds || []).length }}</dd>
-					<dt>{{ t('scholiq', 'Cohorts in scope') }}</dt>
+					<dt>{{ t('learniq', 'Cohorts in scope') }}</dt>
 					<dd>{{ (period.cohortIds || []).length }}</dd>
 				</dl>
 
 				<NcNoteCard v-if="!isLocked" type="warning">
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'This report period is not yet locked — composition is blocked until the lock date has passed. A mentor/admin can still compose manually once locked.',
 						)
 					}}
@@ -54,7 +54,7 @@
 				<NcNoteCard v-else type="success">
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'This report period is locked. Composing will create one draft report card per learner in scope.',
 						)
 					}}
@@ -66,13 +66,13 @@
 			</template>
 
 			<NcNoteCard v-else type="error">
-				{{ t('scholiq', 'Could not load this report period.') }}
+				{{ t('learniq', 'Could not load this report period.') }}
 			</NcNoteCard>
 		</div>
 
 		<template #actions>
 			<NcButton @click="$emit('close')">
-				{{ t('scholiq', 'Cancel') }}
+				{{ t('learniq', 'Cancel') }}
 			</NcButton>
 			<NcButton
 				variant="primary"
@@ -80,8 +80,8 @@
 				@click="compose">
 				{{
 					composing
-						? t('scholiq', 'Composing…')
-						: t('scholiq', 'Compose report cards')
+						? t('learniq', 'Composing…')
+						: t('learniq', 'Compose report cards')
 				}}
 			</NcButton>
 		</template>
@@ -139,8 +139,8 @@ export default {
 		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 		 */
 		dialogTitle() {
-			if (!this.period) return t('scholiq', 'Compose report period')
-			return t('scholiq', 'Compose "{name}"', {
+			if (!this.period) return t('learniq', 'Compose report period')
+			return t('learniq', 'Compose "{name}"', {
 				name: this.period.name || this.period.periodCode || '',
 			})
 		},
@@ -164,7 +164,7 @@ export default {
 			this.error = ''
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/report-period/{id}',
+					'/apps/openregister/api/objects/learniq/report-period/{id}',
 					{ id: this.reportPeriodId },
 				)
 				const response = await axios.get(url)
@@ -191,7 +191,7 @@ export default {
 			this.error = ''
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/report-period/{id}',
+					'/apps/openregister/api/objects/learniq/report-period/{id}',
 					{ id: this.reportPeriodId },
 				)
 				await axios.put(url, { lifecycle: 'composed' })
@@ -200,7 +200,7 @@ export default {
 			} catch (e) {
 				console.error('[ComposeReportPeriodModal] compose failed', e)
 				this.error = t(
-					'scholiq',
+					'learniq',
 					'Could not compose report cards. Please try again.',
 				)
 			} finally {

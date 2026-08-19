@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  */
 class SubjectChoiceValidator implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SUBJECT_CHOICE_SCHEMA = 'subject-choice';
 	private const CURRICULUM_PLAN_SCHEMA = 'curriculum-plan';
 

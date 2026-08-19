@@ -28,12 +28,12 @@
 	<div class="group-trend-heatmap">
 		<header class="group-trend-heatmap__header">
 			<h2 class="group-trend-heatmap__title">
-				{{ t('scholiq', 'Group trend heat map') }}
+				{{ t('learniq', 'Group trend heat map') }}
 			</h2>
 			<p class="group-trend-heatmap__subtitle">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'Average published grade per cohort and grading period, sourced from existing grade data.',
 					)
 				}}
@@ -43,7 +43,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="group-trend-heatmap__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading grade trends...') }}</span>
+			<span>{{ t('learniq', 'Loading grade trends...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -61,7 +61,7 @@
 			<p>
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'No published grade entries found yet — the heat map will fill in as cohorts are graded.',
 					)
 				}}
@@ -74,10 +74,10 @@
 				<thead>
 					<tr>
 						<th scope="col">
-							{{ t('scholiq', 'Cohort') }}
+							{{ t('learniq', 'Cohort') }}
 						</th>
 						<th v-for="period in periods" :key="period" scope="col">
-							{{ t('scholiq', 'Period {period}', { period }) }}
+							{{ t('learniq', 'Period {period}', { period }) }}
 						</th>
 					</tr>
 				</thead>
@@ -227,7 +227,7 @@ export default {
 				const [cohortsResp, entriesResp] = await Promise.all([
 					fetch(
 						generateUrl(
-							'/apps/openregister/api/objects/scholiq/Cohort?limit=200',
+							'/apps/openregister/api/objects/learniq/Cohort?limit=200',
 						),
 						{
 							headers: {
@@ -238,7 +238,7 @@ export default {
 					),
 					fetch(
 						generateUrl(
-							'/apps/openregister/api/objects/scholiq/grade-entry?limit=500&lifecycle=published',
+							'/apps/openregister/api/objects/learniq/grade-entry?limit=500&lifecycle=published',
 						),
 						{
 							headers: {
@@ -267,7 +267,7 @@ export default {
 				).filter((e) => e.lifecycle === 'published' && !!e.cohortId)
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load grade trend data. Please try again.',
 				)
 				// eslint-disable-next-line no-console

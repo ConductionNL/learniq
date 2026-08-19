@@ -110,7 +110,7 @@ class RejectionResubmitGuardTest extends TestCase {
 					// is a non-nullable ObjectEntity. The in-band failure the
 					// guard actually has to survive is a saved entity that
 					// carries no usable id.
-					return OrEntityFactory::make($object, 'data-exchange-job', 'scholiq', null);
+					return OrEntityFactory::make($object, 'data-exchange-job', 'learniq', null);
 				}
 
 				return OrEntityFactory::make(array_merge($object, ['id' => $newJobId]), 'data-exchange-job');

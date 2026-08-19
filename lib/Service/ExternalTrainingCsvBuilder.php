@@ -84,7 +84,7 @@ class ExternalTrainingCsvBuilder {
 	): string {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => 'scholiq',
+				'register' => 'learniq',
 				'schema' => 'external-training-record',
 				'filters' => [
 					'regulationSlug' => $regulationSlug,

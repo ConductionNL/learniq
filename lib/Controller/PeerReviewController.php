@@ -53,7 +53,7 @@ use OCP\IUserSession;
  */
 class PeerReviewController extends Controller {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
 	private const SESSION_SCHEMA = 'session';
 	private const COHORT_SCHEMA = 'cohort';

@@ -57,7 +57,7 @@ use Psr\Log\LoggerInterface;
  */
 class AttendanceFlagCreationHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ATTENDANCE_THRESHOLD_SCHEMA = 'attendance-threshold';
 	private const ATTENDANCE_FLAG_SCHEMA = 'attendance-flag';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';

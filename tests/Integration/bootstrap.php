@@ -33,5 +33,5 @@ if (file_exists(__DIR__ . '/../../../../../../tests/autoload.php')) {
 }
 
 \OC_App::loadApps();
-\OC_App::loadApp('scholiq');
+\OC_App::loadApp('learniq');
 OC_Hook::clear();

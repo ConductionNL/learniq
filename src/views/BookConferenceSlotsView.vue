@@ -24,37 +24,37 @@
 -->
 <template>
 	<div class="book-conference-slots">
-		<h2>{{ t('scholiq', 'Book a parent-teacher conversation') }}</h2>
+		<h2>{{ t('learniq', 'Book a parent-teacher conversation') }}</h2>
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 
 		<NcEmptyContent
 			v-else-if="rounds.length === 0"
-			:name="t('scholiq', 'No conference rounds open for booking')"
+			:name="t('learniq', 'No conference rounds open for booking')"
 			:description="
 				t(
-					'scholiq',
+					'learniq',
 					'Check back once your school opens booking for the next oudergesprekken round.',
 				)
 			" />
 
 		<template v-else>
 			<div class="book-conference-slots__field">
-				<label for="bcs-round">{{ t('scholiq', 'Conference round') }}</label>
+				<label for="bcs-round">{{ t('learniq', 'Conference round') }}</label>
 				<NcSelect
 					id="bcs-round"
 					v-model="selectedRoundId"
 					:options="roundOptions"
 					:reduce="(o) => o.id"
 					label="label"
-					:inputLabel="t('scholiq', 'Conference round')"
-					:aria-label-combobox="t('scholiq', 'Conference round')"
+					:inputLabel="t('learniq', 'Conference round')"
+					:aria-label-combobox="t('learniq', 'Conference round')"
 					@update:modelValue="onRoundChange" />
 			</div>
 
 			<div v-if="selectedRound" class="book-conference-slots__field">
 				<label for="bcs-learner">{{
-					t('scholiq', 'For which child (or yourself)')
+					t('learniq', 'For which child (or yourself)')
 				}}</label>
 				<NcSelect
 					id="bcs-learner"
@@ -63,13 +63,13 @@
 					:reduce="(o) => o.id"
 					label="label"
 					:loading="loadingLearners"
-					:inputLabel="t('scholiq', 'Learner')"
-					:aria-label-combobox="t('scholiq', 'Learner')" />
+					:inputLabel="t('learniq', 'Learner')"
+					:aria-label-combobox="t('learniq', 'Learner')" />
 			</div>
 
 			<div v-if="selectedRound" class="book-conference-slots__field">
 				<label for="bcs-teachers">{{
-					t('scholiq', 'Requested teachers (in order of preference)')
+					t('learniq', 'Requested teachers (in order of preference)')
 				}}</label>
 				<NcSelect
 					id="bcs-teachers"
@@ -78,12 +78,12 @@
 					:reduce="(o) => o.id"
 					label="label"
 					multiple
-					:inputLabel="t('scholiq', 'Requested teachers')"
-					:aria-label-combobox="t('scholiq', 'Requested teachers')" />
+					:inputLabel="t('learniq', 'Requested teachers')"
+					:aria-label-combobox="t('learniq', 'Requested teachers')" />
 			</div>
 
 			<div v-if="selectedRound" class="book-conference-slots__field">
-				<label for="bcs-notes">{{ t('scholiq', 'Notes (optional)') }}</label>
+				<label for="bcs-notes">{{ t('learniq', 'Notes (optional)') }}</label>
 				<textarea id="bcs-notes" v-model="notes" rows="3" />
 			</div>
 
@@ -94,7 +94,7 @@
 			<NcNoteCard v-if="submitSuccess" type="success">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'Your request has been submitted. You will be notified once the schedule is generated.',
 					)
 				}}
@@ -106,8 +106,8 @@
 				@click="submitSignup">
 				{{
 					submitting
-						? t('scholiq', 'Submitting…')
-						: t('scholiq', 'Submit request')
+						? t('learniq', 'Submitting…')
+						: t('learniq', 'Submit request')
 				}}
 			</NcButton>
 		</template>
@@ -238,7 +238,7 @@ export default {
 			this.loading = true
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/conference-round?lifecycle=booking-open&limit=100',
+					'/apps/openregister/api/objects/learniq/conference-round?lifecycle=booking-open&limit=100',
 				)
 				const response = await axios.get(url)
 				this.rounds =
@@ -273,13 +273,13 @@ export default {
 				const [childrenResp, selfResp] = await Promise.all([
 					axios.get(
 						generateUrl(
-							'/apps/openregister/api/objects/scholiq/learner-profile?parentIds={uid}&limit=50',
+							'/apps/openregister/api/objects/learniq/learner-profile?parentIds={uid}&limit=50',
 							{ uid },
 						),
 					),
 					axios.get(
 						generateUrl(
-							'/apps/openregister/api/objects/scholiq/learner-profile?ncUserId={uid}&limit=1',
+							'/apps/openregister/api/objects/learniq/learner-profile?ncUserId={uid}&limit=1',
 							{ uid },
 						),
 					),
@@ -341,7 +341,7 @@ export default {
 				}
 
 				const createUrl = generateUrl(
-					'/apps/openregister/api/objects/scholiq/conference-signup',
+					'/apps/openregister/api/objects/learniq/conference-signup',
 				)
 				const created = await axios.post(createUrl, body)
 				const signupId =
@@ -352,7 +352,7 @@ export default {
 				}
 
 				const transitionUrl = generateUrl(
-					'/apps/openregister/api/objects/scholiq/conference-signup/{id}',
+					'/apps/openregister/api/objects/learniq/conference-signup/{id}',
 					{ id: signupId },
 				)
 				await axios.put(transitionUrl, { lifecycle: 'submitted' })
@@ -363,7 +363,7 @@ export default {
 			} catch (e) {
 				console.error('[BookConferenceSlotsView] submitSignup failed', e)
 				this.submitError = t(
-					'scholiq',
+					'learniq',
 					'We could not submit your request. You may not be a linked guardian for this child, or the round may no longer be open for booking.',
 				)
 			} finally {

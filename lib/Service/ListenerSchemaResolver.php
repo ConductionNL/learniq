@@ -74,7 +74,7 @@ class ListenerSchemaResolver {
 	 *
 	 * @var string
 	 */
-	public const REGISTER_SLUG = 'scholiq';
+	public const REGISTER_SLUG = 'learniq';
 
 	/**
 	 * FQCN of OpenRegister's schema mapper.

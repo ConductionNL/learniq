@@ -59,7 +59,7 @@ use Psr\Log\LoggerInterface;
  */
 class PaymentTransactionStatusHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const PAYMENT_TRANSACTION_SCHEMA = 'payment-transaction';
 	private const ORDER_SCHEMA = 'order';
 	private const ORDER_LINE_SCHEMA = 'order-line';

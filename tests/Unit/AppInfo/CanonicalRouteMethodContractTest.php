@@ -165,7 +165,7 @@ class CanonicalRouteMethodContractTest extends TestCase {
 				continue;
 			}
 
-			$class = 'OCA\\Scholiq\\Controller\\' . ucfirst($prefix) . 'Controller';
+			$class = 'OCA\\Learniq\\Controller\\' . ucfirst($prefix) . 'Controller';
 
 			$this->assertTrue(
 				class_exists($class),

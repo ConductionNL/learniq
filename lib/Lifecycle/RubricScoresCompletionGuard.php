@@ -55,7 +55,7 @@ use Psr\Log\LoggerInterface;
  */
 class RubricScoresCompletionGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
 	private const RUBRIC_SCHEMA = 'rubric';
 	private const SUBMISSION_SCHEMA = 'submission';

@@ -55,7 +55,7 @@ use Psr\Log\LoggerInterface;
  */
 class FraudCaseDecisionHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const FRAUD_CASE_SCHEMA = 'fraud-case';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 

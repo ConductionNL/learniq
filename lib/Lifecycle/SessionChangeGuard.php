@@ -55,7 +55,7 @@ use Psr\Log\LoggerInterface;
  */
 class SessionChangeGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const COHORT_SCHEMA = 'cohort';
 
 	/**

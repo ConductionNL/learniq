@@ -49,7 +49,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class AttendanceWindowAggregator {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
 	private const ATTENDANCE_RECORD_SCHEMA = 'attendance-record';
 

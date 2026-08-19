@@ -47,7 +47,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class EnrolmentProgressRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
 	private const ENROLMENT_SCHEMA = 'enrolment';
 

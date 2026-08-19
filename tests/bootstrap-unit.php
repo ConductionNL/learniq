@@ -48,7 +48,7 @@ if (is_dir($serverTestsLib)) {
 }
 
 // IMcpToolProvider stub — loaded when the openregister runtime (PR #1466) is absent.
-// This lets ScholiqToolProvider unit tests run in standalone CI environments.
+// This lets LearniqToolProvider unit tests run in standalone CI environments.
 if (interface_exists(\OCA\OpenRegister\Mcp\IMcpToolProvider::class) === false) {
 	include_once __DIR__ . '/Stubs/Mcp/IMcpToolProvider.php';
 }

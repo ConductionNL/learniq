@@ -50,7 +50,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class BsaProgressEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const FINAL_GRADE_SCHEMA = 'final-grade';
 	private const COURSE_SCHEMA = 'course';
 

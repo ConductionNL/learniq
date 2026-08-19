@@ -1,10 +1,10 @@
 /**
- * Scholiq v2 component registry (ADR-036).
+ * Learniq v2 component registry (ADR-036).
  *
  * Kind-tagged map passed as the `registry` prop to CnAppRoot. CnPageRenderer
  * resolves each manifest page's `component` string against entries whose
  * `kind === "page"` (with precedence over the deprecated `customComponents`
- * prop, which Scholiq no longer ships).
+ * prop, which Learniq no longer ships).
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -113,17 +113,17 @@ import RolloverWizard from './views/RolloverWizard.vue'
 // accessibility-conformance-statement: the toegankelijkheidsverklaring
 // disclosure surface — a purpose-built read surface over the published
 // AccessibilityStatement plus its linked AccessibilityLimitation rows
-// (mirrors ScholiqCompliance's role), reachable by every authenticated user.
-import ScholiqAccessibilityStatement from './views/ScholiqAccessibilityStatement.vue'
+// (mirrors LearniqCompliance's role), reachable by every authenticated user.
+import LearniqAccessibilityStatement from './views/LearniqAccessibilityStatement.vue'
 // sovereign-ai-guarantee: the AI-processing disclosure surface a school hands
-// to its DPO — mirrors ScholiqAccessibilityStatement's singleton, no-:id-route
+// to its DPO — mirrors LearniqAccessibilityStatement's singleton, no-:id-route
 // shape. Composes AiProcessingDisclosureController's server-side read with an
 // inline SovereigntyPolicy editor (writes via OpenRegister's generic
 // object-create/update endpoint, no bespoke write controller, per ADR-022).
-import ScholiqAiProcessingDisclosure from './views/ScholiqAiProcessingDisclosure.vue'
-import ScholiqCompliance from './views/ScholiqCompliance.vue'
-import ScholiqDashboards from './views/ScholiqDashboards.vue'
-import ScholiqLearnerHome from './views/ScholiqLearnerHome.vue'
+import LearniqAiProcessingDisclosure from './views/LearniqAiProcessingDisclosure.vue'
+import LearniqCompliance from './views/LearniqCompliance.vue'
+import LearniqDashboards from './views/LearniqDashboards.vue'
+import LearniqLearnerHome from './views/LearniqLearnerHome.vue'
 import SelfAssessmentView from './views/SelfAssessmentView.vue'
 import SkillsGapDashboard from './views/SkillsGapDashboard.vue'
 import SubjectChoicePicker from './views/SubjectChoicePicker.vue'
@@ -201,11 +201,11 @@ export default {
 	RapportvergaderingReviewView: page(RapportvergaderingReviewView),
 	RegulationDetailPage: page(RegulationDetailPage),
 	RolloverWizard: page(RolloverWizard),
-	ScholiqAccessibilityStatement: page(ScholiqAccessibilityStatement),
-	ScholiqAiProcessingDisclosure: page(ScholiqAiProcessingDisclosure),
-	ScholiqCompliance: page(ScholiqCompliance),
-	ScholiqDashboards: page(ScholiqDashboards),
-	ScholiqLearnerHome: page(ScholiqLearnerHome),
+	LearniqAccessibilityStatement: page(LearniqAccessibilityStatement),
+	LearniqAiProcessingDisclosure: page(LearniqAiProcessingDisclosure),
+	LearniqCompliance: page(LearniqCompliance),
+	LearniqDashboards: page(LearniqDashboards),
+	LearniqLearnerHome: page(LearniqLearnerHome),
 	SelfAssessmentView: page(SelfAssessmentView),
 	SkillsGapDashboard: page(SkillsGapDashboard),
 	SubjectChoicePicker: page(SubjectChoicePicker),

@@ -47,7 +47,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class SessionWindowLoader {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
 	private const COHORT_SCHEMA = 'cohort';
 	private const ROOM_SCHEMA = 'room';

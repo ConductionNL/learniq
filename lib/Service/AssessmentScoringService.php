@@ -49,7 +49,7 @@ class AssessmentScoringService {
 	/**
 	 * OR register slug for Scholiq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.

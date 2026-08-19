@@ -47,7 +47,7 @@ use Psr\Log\LoggerInterface;
  */
 class CompetencyAttainmentWriter {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const COMPETENCY_SCHEMA = 'competency';
 	private const ATTAINMENT_SCHEMA = 'competency-attainment';
 

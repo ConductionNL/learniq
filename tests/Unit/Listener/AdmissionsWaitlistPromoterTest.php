@@ -100,7 +100,7 @@ class AdmissionsWaitlistPromoterTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('application');
 		$event->method('getFrom')->willReturn('placed');
 		$event->method('getTo')->willReturn($to);
@@ -178,7 +178,7 @@ class AdmissionsWaitlistPromoterTest extends TestCase {
 		$handler = $this->makeHandler(waitlisted: [['id' => 'app-a', 'submittedAt' => '2026-01-01T09:00:00+01:00']]);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('application');
 		$event->method('getFrom')->willReturn('intake-completed');
 		$event->method('getTo')->willReturn('rejected');
@@ -198,7 +198,7 @@ class AdmissionsWaitlistPromoterTest extends TestCase {
 		$handler = $this->makeHandler(waitlisted: [['id' => 'app-a', 'submittedAt' => '2026-01-01T09:00:00+01:00']]);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('application');
 		$event->method('getFrom')->willReturn('placed');
 		$event->method('getTo')->willReturn('converted');
@@ -218,7 +218,7 @@ class AdmissionsWaitlistPromoterTest extends TestCase {
 		$handler = $this->makeHandler(waitlisted: [['id' => 'app-a', 'submittedAt' => '2026-01-01T09:00:00+01:00']]);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('subject-choice');
 		$event->method('getFrom')->willReturn('placed');
 		$event->method('getTo')->willReturn('withdrawn');

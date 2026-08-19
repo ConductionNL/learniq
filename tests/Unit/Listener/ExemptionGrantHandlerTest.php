@@ -125,7 +125,7 @@ class ExemptionGrantHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('exemption-case');
 		$event->method('getTo')->willReturn('granted');
 		$event->method('getFrom')->willReturn('in-assessment');
@@ -231,7 +231,7 @@ class ExemptionGrantHandlerTest extends TestCase {
 		$handler = $this->makeHandler(savedGradeEntry: ['id' => 'entry-4']);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('fraud-case');
 		$event->method('getTo')->willReturn('granted');
 
@@ -251,7 +251,7 @@ class ExemptionGrantHandlerTest extends TestCase {
 		$handler = $this->makeHandler(savedGradeEntry: ['id' => 'entry-5']);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('exemption-case');
 		$event->method('getTo')->willReturn('rejected');
 

@@ -87,7 +87,7 @@ class VerwerkingsregisterCsvBuilder {
 		}
 
 		$absoluteUrl = $this->urlGenerator->getAbsoluteURL($url)
-			. '?register=scholiq&from=' . rawurlencode($dateFrom) . '&to=' . rawurlencode($dateTo);
+			. '?register=learniq&from=' . rawurlencode($dateFrom) . '&to=' . rawurlencode($dateTo);
 
 		// Forward the caller's session so OpenRegister applies its own RBAC
 		// (OR-PA-8). Scholiq performs no access decision of its own here.

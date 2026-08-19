@@ -154,7 +154,7 @@ class ExternalTrainingController extends Controller {
 		try {
 			$recordObj = $this->objectService->find(
 				id: $recordId,
-				register: 'scholiq',
+				register: 'learniq',
 				schema: 'external-training-record'
 			);
 		} catch (DoesNotExistException $e) {
@@ -184,7 +184,7 @@ class ExternalTrainingController extends Controller {
 		// Do NOT set lifecycle — OR fires the `issue` transition (and its signing
 		// guard) from the initial state, mirroring CredentialIssuanceHandler.
 		$saved = $this->objectService->saveObject(
-			register: 'scholiq',
+			register: 'learniq',
 			schema: 'credential',
 			object: $payload
 		);
@@ -196,7 +196,7 @@ class ExternalTrainingController extends Controller {
 		if ($credentialId !== '') {
 			$record['credentialId'] = $credentialId;
 			$this->objectService->saveObject(
-				register: 'scholiq',
+				register: 'learniq',
 				schema: 'external-training-record',
 				object: $record
 			);

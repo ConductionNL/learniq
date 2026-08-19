@@ -25,7 +25,7 @@
 		borderless
 		fillHeight
 		rowKey="id"
-		:emptyText="t('scholiq', 'No items found')"
+		:emptyText="t('learniq', 'No items found')"
 		:rowClickRoute="rowClickRoute">
 		<template #footer>
 			<a
@@ -35,7 +35,7 @@
 				@click.prevent="navigate"
 				@keydown.enter.prevent="navigate"
 				@keydown.space.prevent="navigate">
-				+ {{ t('scholiq', 'New') }} {{ schemaLabel }}
+				+ {{ t('learniq', 'New') }} {{ schemaLabel }}
 			</a>
 		</template>
 	</CnDataTable>
@@ -188,7 +188,7 @@ export default {
 					params.set('_extend', this.extend.join(','))
 				}
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/'
+					'/apps/openregister/api/objects/learniq/'
 						+ this.schema
 						+ '?'
 						+ params.toString(),

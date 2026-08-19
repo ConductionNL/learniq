@@ -48,7 +48,7 @@ use RuntimeException;
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
  */
 class DataExchangeTransformer {
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const COHORT_SCHEMA = 'cohort';
 
 	/**

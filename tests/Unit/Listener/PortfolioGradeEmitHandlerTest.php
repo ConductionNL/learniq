@@ -111,7 +111,7 @@ class PortfolioGradeEmitHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('portfolio');
 		$event->method('getTo')->willReturn('graded');
 		$event->method('getFrom')->willReturn('submitted');
@@ -227,7 +227,7 @@ class PortfolioGradeEmitHandlerTest extends TestCase {
 		$objectEntity = $this->createMock(ObjectEntity::class);
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('werkproces-assessment');
 		$event->method('getTo')->willReturn('graded');
 

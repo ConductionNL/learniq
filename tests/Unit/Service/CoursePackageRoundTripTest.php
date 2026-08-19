@@ -38,7 +38,7 @@ use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
 use OCA\Learniq\Service\CoursePackage\MoodleActivityRouter;
 use OCA\Learniq\Service\CoursePackage\MoodleCourseImporter;
 use OCA\Learniq\Service\CoursePackage\PackageXmlValueReader;
-use OCA\Learniq\Service\CoursePackage\ScholiqJsonCourseImporter;
+use OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter;
 use OCA\Learniq\Service\CoursePackageExportService;
 use OCA\Learniq\Service\CoursePackageImportService;
 use OCA\Learniq\Service\MbzExtractor;
@@ -175,7 +175,7 @@ class CoursePackageRoundTripTest extends TestCase {
 				$objectWriter,
 				$reporter,
 			),
-			new ScholiqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
+			new LearniqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
 			$fileWriter,
 			$reporter,
 			$importLogger,

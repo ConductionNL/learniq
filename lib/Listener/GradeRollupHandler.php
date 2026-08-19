@@ -61,7 +61,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class GradeRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 	private const FINAL_GRADE_SCHEMA = 'final-grade';
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';

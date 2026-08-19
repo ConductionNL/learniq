@@ -120,7 +120,7 @@ class QtiImportController extends Controller {
 		$tenantId = $this->config->getSystemValue('instanceid', '');
 		$userTenantId = $this->config->getUserValue(
 			userId: $user->getUID(),
-			appName: 'scholiq',
+			appName: 'learniq',
 			key: 'tenant_id',
 			default: ''
 		);

@@ -139,7 +139,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('application');
 		$event->method('getTo')->willReturn('placed');
 		$event->method('getFrom')->willReturn('intake-completed');
@@ -258,7 +258,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 		$handler = $this->makeHandler(programme: null);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('subject-choice');
 		$event->method('getTo')->willReturn('placed');
 
@@ -278,7 +278,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 		$handler = $this->makeHandler(programme: null);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('application');
 		$event->method('getTo')->willReturn('rejected');
 

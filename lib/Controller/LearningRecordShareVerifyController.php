@@ -88,7 +88,7 @@ class LearningRecordShareVerifyController extends Controller {
 	 *
 	 * @var string
 	 */
-	private const THROTTLE_ACTION = 'scholiq_learning_record_share_verify';
+	private const THROTTLE_ACTION = 'learniq_learning_record_share_verify';
 
 	/**
 	 * Record a failed verification with the brute-force throttler.
@@ -112,7 +112,7 @@ class LearningRecordShareVerifyController extends Controller {
 	}//end registerFailedVerification()
 
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SHARE_SCHEMA = 'learning-record-share';
 	private const EXPORT_SCHEMA = 'learning-record-export';
 

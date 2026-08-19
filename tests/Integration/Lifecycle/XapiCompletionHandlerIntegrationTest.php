@@ -148,7 +148,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 	private function createObject(string $schema, array $data): array {
 		try {
 			$obj = $this->objectService->saveObject(
-				register: 'scholiq',
+				register: 'learniq',
 				schema: $schema,
 				object: $data,
 			);
@@ -170,7 +170,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 		// JsonSerializable but NOT ArrayAccess, so `$obj['uuid']` fatals with
 		// "Cannot use object of type ObjectEntity as array".
 		$this->createdUuids[] = [
-			'register' => 'scholiq',
+			'register' => 'learniq',
 			'schema' => $schema,
 			'uuid' => $obj->getUuid(),
 		];
@@ -207,7 +207,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 		try {
 			$entity = $this->objectService->find(
 				id: $uuid,
-				register: 'scholiq',
+				register: 'learniq',
 				schema: $schema,
 			);
 		} catch (\OCP\AppFramework\Db\DoesNotExistException) {

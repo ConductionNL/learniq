@@ -147,7 +147,7 @@ class LtiToolPlacementControllerTest extends TestCase {
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$this->objectService->method('find')->willReturnCallback(
 			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
-				if ($register === 'scholiq' && $schema === 'lti-tool-placement' && $id === 'placement-1') {
+				if ($register === 'learniq' && $schema === 'lti-tool-placement' && $id === 'placement-1') {
 					return OrEntityFactory::make(
 						[
 							'id' => 'placement-1',

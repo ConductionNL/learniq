@@ -78,7 +78,7 @@ use Psr\Log\LoggerInterface;
  */
 class AssessmentDrawResolver implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
 	private const ASSESSMENT_SCHEMA = 'assessment';
 	private const ITEM_SCHEMA = 'item';

@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Scholiq MCP Tool Provider
+ * Learniq MCP Tool Provider
  *
- * Per-app implementation of OCA\OpenRegister\Mcp\IMcpToolProvider for Scholiq
+ * Per-app implementation of OCA\OpenRegister\Mcp\IMcpToolProvider for Learniq
  * (LVS + LMS). Exposes a small, privacy-conscious set of read-only MCP tools so
- * the AI Chat Companion (hydra ADR-034 + ADR-035) can surface Scholiq's course
+ * the AI Chat Companion (hydra ADR-034 + ADR-035) can surface Learniq's course
  * catalogue to an LLM — without ever leaking enrolled-learner PII.
  *
  * @category Mcp
@@ -57,14 +57,14 @@ use Psr\Log\LoggerInterface;
  *   structure; it never returns Enrolment, Attestation, Credential or learner
  *   objects, so no per-learner PII can leak through this provider.
  */
-class ScholiqToolProvider implements IMcpToolProvider {
+class LearniqToolProvider implements IMcpToolProvider {
 
 	/**
 	 * The Scholiq OpenRegister register slug.
 	 *
 	 * @var string
 	 */
-	private const REGISTER_SLUG = 'scholiq';
+	private const REGISTER_SLUG = 'learniq';
 
 	/**
 	 * The Course schema slug/name in the Scholiq register.
@@ -136,7 +136,7 @@ class ScholiqToolProvider implements IMcpToolProvider {
 	];
 
 	/**
-	 * Constructor for ScholiqToolProvider.
+	 * Constructor for LearniqToolProvider.
 	 *
 	 * @param ObjectService $objectService The OpenRegister object service (reads).
 	 * @param IUserSession $userSession The current user session.
@@ -156,12 +156,12 @@ class ScholiqToolProvider implements IMcpToolProvider {
 	/**
 	 * Returns the app ID that namespaces every tool id.
 	 *
-	 * @return string "scholiq"
+	 * @return string "learniq"
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-ai-companion-tools/tasks.md#task-1
 	 */
 	public function getAppId(): string {
-		return 'scholiq';
+		return 'learniq';
 	}//end getAppId()
 
 	/**

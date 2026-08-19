@@ -1,21 +1,41 @@
 {
 	"info": {
-		"_postman_id": "scholiq-collection",
+		"_postman_id": "learniq-collection",
 		"name": "Scholiq Integration Tests",
-		"description": "Integration test collection for the scholiq Nextcloud app. One folder per capability spec (14 folders) covering the 19 critical-priority user stories captured in `intelligence-db.user_stories` (app_id=scholiq, priority=critical). All requests are TDD stubs — they assert the contract the implementation must satisfy. They will fail until the corresponding endpoints land. Folder order follows the Scholiq wedge plan: Phase 1 (course-management, enrolment, certification, compliance-audit), then dashboard + shell, then assessment surfaces, then NL-gatekeeper integrations and identity federation.",
+		"description": "Integration test collection for the learniq Nextcloud app. One folder per capability spec (14 folders) covering the 19 critical-priority user stories captured in `intelligence-db.user_stories` (app_id=learniq, priority=critical). All requests are TDD stubs — they assert the contract the implementation must satisfy. They will fail until the corresponding endpoints land. Folder order follows the Scholiq wedge plan: Phase 1 (course-management, enrolment, certification, compliance-audit), then dashboard + shell, then assessment surfaces, then NL-gatekeeper integrations and identity federation.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"auth": {
 		"type": "basic",
 		"basic": [
-			{ "key": "username", "value": "{{adminUser}}", "type": "string" },
-			{ "key": "password", "value": "{{adminPass}}", "type": "string" }
+			{
+				"key": "username",
+				"value": "{{adminUser}}",
+				"type": "string"
+			},
+			{
+				"key": "password",
+				"value": "{{adminPass}}",
+				"type": "string"
+			}
 		]
 	},
 	"variable": [
-		{ "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
-		{ "key": "adminUser", "value": "admin", "type": "string" },
-		{ "key": "adminPass", "value": "admin", "type": "string" }
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "adminUser",
+			"value": "admin",
+			"type": "string"
+		},
+		{
+			"key": "adminPass",
+			"value": "admin",
+			"type": "string"
+		}
 	],
 	"item": [
 		{
@@ -26,7 +46,10 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
 						],
 						"url": "{{baseUrl}}/status.php",
 						"description": "Verify Nextcloud is running."
@@ -59,11 +82,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/courses",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/courses",
 						"description": "CRUD primitive for course-management. Returns the course catalog used by enrolment + assessment surfaces. See openspec/specs/course-management/spec.md."
 					},
 					"event": [
@@ -88,12 +120,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/courses",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/courses",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"title\": \"Algorithms and Data Structures\",\n  \"code\": \"CS2024-ALG\",\n  \"ects\": 6,\n  \"language\": \"nl\",\n  \"level\": \"hbo-bachelor\",\n  \"academicYear\": \"2026-2027\",\n  \"status\": \"draft\"\n}"
@@ -123,12 +167,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/courses/CS2024-ALG/clone",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/courses/CS2024-ALG/clone",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"targetAcademicYear\": \"2027-2028\"\n}"
@@ -158,10 +214,16 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/ooapi/v5/courses",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/ooapi/v5/courses",
 						"description": "Story: catalog-publish-ooapi (ho-course-catalog-management/higher-education) — see openspec/specs/course-management/spec.md."
 					},
 					"event": [
@@ -193,11 +255,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/enrolments",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/enrolments",
 						"description": "CRUD primitive for enrolment. See openspec/specs/enrolment/spec.md."
 					},
 					"event": [
@@ -222,12 +293,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/enrolments/studielink/pull",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/enrolments/studielink/pull",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"institutionId\": \"BRIN-00XX\",\n  \"sinceTimestamp\": \"2026-05-01T00:00:00Z\"\n}"
@@ -257,12 +340,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/enrolments/bulk",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/enrolments/bulk",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"courseId\": \"CS2024-ALG\",\n  \"learnerIds\": [\"learner-001\", \"learner-002\", \"learner-003\"],\n  \"deadline\": \"2026-08-31T23:59:59Z\"\n}"
@@ -292,15 +387,27 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/enrolments/identify/digid",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/enrolments/identify/digid",
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"enrolmentId\": \"enrol-001\",\n  \"returnUrl\": \"/index.php/apps/scholiq/#/enrolments/enrol-001\"\n}"
+							"raw": "{\n  \"enrolmentId\": \"enrol-001\",\n  \"returnUrl\": \"/index.php/apps/learniq/#/enrolments/enrol-001\"\n}"
 						},
 						"description": "Story: enrolment-digid-identification (ho-enrolment-via-studielink/higher-education) — see openspec/specs/enrolment/spec.md."
 					},
@@ -332,11 +439,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/certificates",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/certificates",
 						"description": "CRUD primitive for certification. See openspec/specs/certification/spec.md."
 					},
 					"event": [
@@ -361,12 +477,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/certificates",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/certificates",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"learnerId\": \"learner-001\",\n  \"courseId\": \"COMPLIANCE-AVG-2026\",\n  \"templateId\": \"avg-refresher\",\n  \"expiresAt\": \"2027-05-11T00:00:00Z\"\n}"
@@ -396,11 +524,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/certificates/expiries?within=90d",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/certificates/expiries?within=90d",
 						"description": "Story: cert-expiry-detection (certification-renewal/compliance-training) — see openspec/specs/certification/spec.md."
 					},
 					"event": [
@@ -425,9 +562,12 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/certificates/cert-001/verify",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/certificates/cert-001/verify",
 						"description": "Public verification endpoint (no auth) for a portable transcript/edubadge. See openspec/specs/certification/spec.md."
 					},
 					"event": [
@@ -459,11 +599,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/compliance/regulations",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/compliance/regulations",
 						"description": "List configured regulations (AVG, BIO, NIS2, integriteit). See openspec/specs/compliance-audit/spec.md."
 					},
 					"event": [
@@ -488,11 +637,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/compliance/coverage",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/compliance/coverage",
 						"description": "Story: audit-coverage-dashboard (annual-compliance-audit/compliance-training) — see openspec/specs/compliance-audit/spec.md."
 					},
 					"event": [
@@ -518,12 +676,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/compliance/campaigns",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/compliance/campaigns",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"regulation\": \"AVG\",\n  \"audience\": \"all-active-employees\",\n  \"deadline\": \"2026-12-31T23:59:59Z\",\n  \"reminderOffsets\": [\"T-30d\", \"T-7d\", \"T-1d\"]\n}"
@@ -553,12 +723,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/compliance/attestations",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/compliance/attestations",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"learnerId\": \"learner-001\",\n  \"regulationCode\": \"AVG-2026\",\n  \"score\": 92,\n  \"completedAt\": \"2026-05-11T12:34:56Z\",\n  \"attested\": true\n}"
@@ -589,12 +771,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/compliance/audit-pack/export",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/compliance/audit-pack/export",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"regulation\": \"AVG\",\n  \"from\": \"2026-01-01\",\n  \"to\": \"2026-03-31\"\n}"
@@ -624,11 +818,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/compliance/evidence-log?from=2026-01-01&to=2026-03-31",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/compliance/evidence-log?from=2026-01-01&to=2026-03-31",
 						"description": "Story: audit-evidence-immutable-log (annual-compliance-audit/compliance-training) — see openspec/specs/compliance-audit/spec.md."
 					},
 					"event": [
@@ -654,11 +857,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/compliance/board-training?regulation=NIS2",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/compliance/board-training?regulation=NIS2",
 						"description": "Story: audit-board-training-evidence (annual-compliance-audit/compliance-training) — see openspec/specs/compliance-audit/spec.md."
 					},
 					"event": [
@@ -690,11 +902,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/dashboard/me",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/dashboard/me",
 						"description": "Returns the role-aware dashboard layout for the authenticated user. See openspec/specs/dashboard/spec.md."
 					},
 					"event": [
@@ -720,11 +941,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/dashboard/manager/team-progress",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/dashboard/manager/team-progress",
 						"description": "Manager dashboard — assigned/in-progress/completed/overdue per direct report. See openspec/specs/dashboard/spec.md."
 					},
 					"event": [
@@ -749,11 +979,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/dashboard/inspector/cito-overview?leerjaar=8",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/dashboard/inspector/cito-overview?leerjaar=8",
 						"description": "Inspectie-ready Cito overview per leerjaar. See openspec/specs/dashboard/spec.md."
 					},
 					"event": [
@@ -785,11 +1024,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/app/info",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/app/info",
 						"description": "Returns app id, version, declared dependencies. See openspec/specs/nextcloud-app/spec.md."
 					},
 					"event": [
@@ -801,7 +1049,7 @@
 									"pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
 									"pm.test('Declares OpenRegister dependency', function () {",
 									"    const json = pm.response.json();",
-									"    pm.expect(json).to.have.property('id', 'scholiq');",
+									"    pm.expect(json).to.have.property('id', 'learniq');",
 									"    pm.expect(json).to.have.property('dependencies');",
 									"});"
 								]
@@ -815,11 +1063,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/app/dependency-check",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/app/dependency-check",
 						"description": "Hard runtime dependency check — returns whether OpenRegister is present and enabled. See openspec/specs/nextcloud-app/spec.md."
 					},
 					"event": [
@@ -844,11 +1101,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/settings/admin",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/settings/admin",
 						"description": "Tenant-level admin settings (IdP, OpenConnector adapters, AI flags). See openspec/specs/nextcloud-app/spec.md."
 					},
 					"event": [
@@ -875,11 +1141,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/settings/user",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/settings/user",
 						"description": "Personal settings (notification mode, default dashboard). See openspec/specs/nextcloud-app/spec.md."
 					},
 					"event": [
@@ -911,12 +1186,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/assessment/item-banks/import",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/assessment/item-banks/import",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"format\": \"qti-3.0\",\n  \"sourceUrl\": \"nextcloud://files/admin/banks/maths-2026.zip\"\n}"
@@ -946,12 +1233,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/assessment/exams",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/assessment/exams",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"itemBankId\": \"bank-maths-2026\",\n  \"slot\": \"2026-06-15T09:00:00Z\",\n  \"durationMinutes\": 120,\n  \"roomId\": \"room-A1\"\n}"
@@ -981,11 +1280,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/assessment/exams/conflicts",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/assessment/exams/conflicts",
 						"description": "Story: exam-conflict-detection (exam-scheduling/assessment-examination) — see openspec/specs/assessment-engine/spec.md."
 					},
 					"event": [
@@ -1010,12 +1318,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/assessment/exams/exam-001/sessions",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/assessment/exams/exam-001/sessions",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"learnerId\": \"learner-001\",\n  \"consentRecorded\": true,\n  \"accommodations\": [\"extra-time-1.25x\"]\n}"
@@ -1051,12 +1371,24 @@
 					"request": {
 						"method": "PUT",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/proctoring/exams/exam-001/config",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/proctoring/exams/exam-001/config",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"level\": \"ai-assisted-live\",\n  \"provider\": \"in-house\",\n  \"signals\": [\"camera\", \"mic\", \"screen\"],\n  \"retentionDays\": 30\n}"
@@ -1086,11 +1418,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/proctoring/events?status=flagged",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/proctoring/events?status=flagged",
 						"description": "Review queue of integrity events with 30s clip + rule. See openspec/specs/proctoring/spec.md."
 					},
 					"event": [
@@ -1115,12 +1456,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/proctoring/events/event-001/refer",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/proctoring/events/event-001/refer",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"reason\": \"Suspicious second face detected\"\n}"
@@ -1155,11 +1508,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/grading/pta/course-001",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/grading/pta/course-001",
 						"description": "Return the PTA (columns + weegfactor) for a course. See openspec/specs/grading-pta/spec.md."
 					},
 					"event": [
@@ -1184,12 +1546,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/grading/grades",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/grading/grades",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"courseId\": \"course-001\",\n  \"pupilId\": \"pupil-001\",\n  \"kolomId\": \"se-1\",\n  \"value\": 7.4,\n  \"weegfactor\": 3,\n  \"state\": \"concept\"\n}"
@@ -1219,12 +1593,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/grading/grades/publish",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/grading/grades/publish",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"courseId\": \"course-001\",\n  \"kolomId\": \"se-1\"\n}"
@@ -1260,11 +1646,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/opp/templates",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/opp/templates",
 						"description": "Return samenwerkingsverband templates. See openspec/specs/opp-cycle/spec.md."
 					},
 					"event": [
@@ -1289,12 +1684,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/opp",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/opp",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"pupilId\": \"pupil-001\",\n  \"templateId\": \"swv-amsterdam-po-2026\",\n  \"startedAt\": \"2026-05-11\"\n}"
@@ -1324,12 +1731,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/opp/opp-001/signature-request",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/opp/opp-001/signature-request",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"parentEmail\": \"parent@example.nl\"\n}"
@@ -1358,11 +1777,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/opp/evaluations/upcoming",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/opp/evaluations/upcoming",
 						"description": "Return OPPs with upcoming evaluation dates. See openspec/specs/opp-cycle/spec.md."
 					},
 					"event": [
@@ -1393,12 +1821,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/bron-rod/batches",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/bron-rod/batches",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"runMode\": \"on-demand\"\n}"
@@ -1427,11 +1867,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/bron-rod/errors",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/bron-rod/errors",
 						"description": "Story: admin-rod-error-inline-fix (admin-bron-rod-uitwisseling-duo/student-administration) — list errors with translated text + fix link. See openspec/specs/bron-rod-exchange/spec.md."
 					},
 					"event": [
@@ -1456,12 +1905,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/bron-rod/errors/error-001/fix",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/bron-rod/errors/error-001/fix",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"correctedField\": \"geboortedatum\",\n  \"newValue\": \"2012-09-04\"\n}"
@@ -1491,11 +1952,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/bron-rod/audit?from=2026-01-01&to=2026-03-31",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/bron-rod/audit?from=2026-01-01&to=2026-03-31",
 						"description": "Inspectie audit log of every mutatie. See openspec/specs/bron-rod-exchange/spec.md."
 					},
 					"event": [
@@ -1526,12 +1996,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/oso/dossiers",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/oso/dossiers",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"pupilId\": \"pupil-001\",\n  \"toBrin\": \"BRIN-12AB\"\n}"
@@ -1561,11 +2043,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/oso/dossiers/dossier-001/review",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/oso/dossiers/dossier-001/review",
 						"description": "Parent review screen — fields that will be sent + 14-day objection window. See openspec/specs/oso-transfer/spec.md."
 					},
 					"event": [
@@ -1591,12 +2082,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/oso/dossiers/dossier-001/transfer",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/oso/dossiers/dossier-001/transfer",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"confirm\": true\n}"
@@ -1632,12 +2135,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/absence/reports",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/absence/reports",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"pupilPseudonym\": \"PSEUDO-001\",\n  \"reason\": \"ziek\",\n  \"from\": \"2026-05-11\",\n  \"to\": \"2026-05-12\",\n  \"digidAssertion\": \"opaque-token\"\n}"
@@ -1667,11 +2182,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/absence/leerplicht-counter/pupil-001",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/absence/leerplicht-counter/pupil-001",
 						"description": "Story: vo-absentie-leerplicht-counter (vo-ziek-en-absentiemelding-ouders/secondary-education) — rolling 4-week ongeoorloofd counter with warning bands. See openspec/specs/absence-leerplicht/spec.md."
 					},
 					"event": [
@@ -1697,12 +2221,24 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/absence/leerplicht-report",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/absence/leerplicht-report",
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"pupilId\": \"pupil-001\",\n  \"municipality\": \"0363\",\n  \"confirm\": true\n}"
@@ -1731,11 +2267,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/absence/mentor/class-001",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/absence/mentor/class-001",
 						"description": "Mentor dashboard — 30-day sparkline per pupil. See openspec/specs/absence-leerplicht/spec.md."
 					},
 					"event": [
@@ -1766,11 +2311,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/identity/idps",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/identity/idps",
 						"description": "Tenant IdP chain: SURFconext, Studielink, DigiD, eHerkenning, user-saml. See openspec/specs/identity-federation/spec.md."
 					},
 					"event": [
@@ -1795,15 +2349,27 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/identity/pseudonyms",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/identity/pseudonyms",
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"sectorIdentifier\": \"bsn-via-openconnector\",\n  \"audience\": \"scholiq-internal\"\n}"
+							"raw": "{\n  \"sectorIdentifier\": \"bsn-via-openconnector\",\n  \"audience\": \"learniq-internal\"\n}"
 						},
 						"description": "SchoolID + ECK iD pseudonymisation — BSN must never leave OpenConnector boundary. See openspec/specs/identity-federation/spec.md."
 					},
@@ -1831,15 +2397,27 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/identity/eherkenning/sso",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/identity/eherkenning/sso",
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"targetService\": \"duo-zakelijk\",\n  \"returnUrl\": \"/index.php/apps/scholiq/#/admin\"\n}"
+							"raw": "{\n  \"targetService\": \"duo-zakelijk\",\n  \"returnUrl\": \"/index.php/apps/learniq/#/admin\"\n}"
 						},
 						"description": "eHerkenning EH3 SSO entry for DUO Zakelijk. See openspec/specs/identity-federation/spec.md."
 					},
@@ -1865,11 +2443,20 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" },
-							{ "key": "Authorization", "value": "Basic YWRtaW46YWRtaW4=" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWRtaW46YWRtaW4="
+							}
 						],
-						"url": "{{baseUrl}}/index.php/apps/scholiq/api/identity/surfconext/attribute-map",
+						"url": "{{baseUrl}}/index.php/apps/learniq/api/identity/surfconext/attribute-map",
 						"description": "Returns the eduPersonAffiliation → Scholiq role map. See openspec/specs/identity-federation/spec.md."
 					},
 					"event": [

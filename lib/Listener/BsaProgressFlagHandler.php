@@ -61,7 +61,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class BsaProgressFlagHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 	private const COURSE_SCHEMA = 'course';
 	private const BSA_TRAJECTORY_SCHEMA = 'bsa-trajectory';

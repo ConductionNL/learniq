@@ -114,7 +114,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('subject-choice');
 		$event->method('getTo')->willReturn('submitted');
 		$event->method('getFrom')->willReturn('draft');
@@ -316,7 +316,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 		$handler = $this->makeHandler(plan: null);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('application');
 		$event->method('getTo')->willReturn('submitted');
 
@@ -335,7 +335,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 		$handler = $this->makeHandler(plan: null);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('subject-choice');
 		$event->method('getTo')->willReturn('locked');
 

@@ -99,7 +99,7 @@ class FraudCaseDecisionHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('fraud-case');
 		$event->method('getTo')->willReturn('decided');
 		$event->method('getFrom')->willReturn('heard');
@@ -217,7 +217,7 @@ class FraudCaseDecisionHandlerTest extends TestCase {
 		$handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('exemption-case');
 		$event->method('getTo')->willReturn('decided');
 
@@ -236,7 +236,7 @@ class FraudCaseDecisionHandlerTest extends TestCase {
 		$handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('fraud-case');
 		$event->method('getTo')->willReturn('dismissed');
 

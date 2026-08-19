@@ -204,7 +204,7 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('assessment-result');
 		$event->method('getTo')->willReturn('graded');
 
@@ -434,7 +434,7 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('assessment-result');
 		$event->method('getTo')->willReturn('submitted');
 

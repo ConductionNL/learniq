@@ -24,12 +24,12 @@
 	<div class="bsa-risk-dashboard">
 		<header class="bsa-risk-dashboard__header">
 			<h2 class="bsa-risk-dashboard__title">
-				{{ t('scholiq', 'BSA risk dashboard') }}
+				{{ t('learniq', 'BSA risk dashboard') }}
 			</h2>
 			<p class="bsa-risk-dashboard__subtitle">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						"Learners currently flagged at risk of a negative bindend studieadvies (BSA), against their trajectory's norm and interim-check window.",
 					)
 				}}
@@ -39,7 +39,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="bsa-risk-dashboard__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading at-risk learners...') }}</span>
+			<span>{{ t('learniq', 'Loading at-risk learners...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -54,7 +54,7 @@
 			class="bsa-risk-dashboard__empty"
 			role="status">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<p>{{ t('scholiq', 'No learners currently flagged at risk.') }}</p>
+			<p>{{ t('learniq', 'No learners currently flagged at risk.') }}</p>
 		</div>
 
 		<!-- Flag list -->
@@ -65,7 +65,7 @@
 				class="bsa-risk-dashboard__flag">
 				<div class="bsa-risk-dashboard__flag-info">
 					<span class="bsa-risk-dashboard__learner">
-						{{ t('scholiq', 'Learner: {id}', { id: flag.learnerId }) }}
+						{{ t('learniq', 'Learner: {id}', { id: flag.learnerId }) }}
 					</span>
 					<span class="bsa-risk-dashboard__academic-year">
 						{{ flag.academicYear }}
@@ -73,7 +73,7 @@
 					<span class="bsa-risk-dashboard__progress">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'{earned} EC earned / {required} EC required at check',
 								{
 									earned: formatEcts(flag.ectsEarned),
@@ -84,7 +84,7 @@
 					</span>
 					<span class="bsa-risk-dashboard__flagged-at">
 						{{
-							t('scholiq', 'Flagged {when}', {
+							t('learniq', 'Flagged {when}', {
 								when: formatDate(flag.flaggedAt),
 							})
 						}}
@@ -95,7 +95,7 @@
 					<a
 						class="button-vue button-vue--vue-primary"
 						:href="draftWarningHref(flag)">
-						{{ t('scholiq', 'Draft warning') }}
+						{{ t('learniq', 'Draft warning') }}
 					</a>
 				</div>
 			</li>
@@ -149,7 +149,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/bsa-progress-flag?limit=100',
+					'/apps/openregister/api/objects/learniq/bsa-progress-flag?limit=100',
 				)
 				const resp = await fetch(url, {
 					headers: {
@@ -163,7 +163,7 @@ export default {
 				this.flags = json.results ?? json.objects ?? json ?? []
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load at-risk learners. Please try again.',
 				)
 				// eslint-disable-next-line no-console

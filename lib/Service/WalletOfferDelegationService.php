@@ -273,7 +273,7 @@ class WalletOfferDelegationService {
 		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . self::OPENCONNECTOR_CREATE_OFFER_PATH);
 
 		$apiToken = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::OPENCONNECTOR_TOKEN_KEY,
 			default: ''
 		);

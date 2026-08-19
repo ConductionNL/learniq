@@ -49,7 +49,7 @@ use Psr\Log\LoggerInterface;
  */
 class RejectionResubmissionResolver {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const REJECTION_SCHEMA = 'exchange-rejection';
 
 	/**

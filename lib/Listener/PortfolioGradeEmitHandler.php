@@ -60,7 +60,7 @@ use Psr\Log\LoggerInterface;
  */
 class PortfolioGradeEmitHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const PORTFOLIO_SCHEMA = 'portfolio';
 	private const CURRICULUM_SCHEMA = 'curriculum-plan';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';

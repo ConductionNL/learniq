@@ -14,15 +14,15 @@
   rather than a generic error.
 
   Talks only to OpenRegister's REST API:
-    - GET  /api/objects/scholiq/Portfolio/:id
-    - GET  /api/objects/scholiq/portfolio-template/:id           (when templateId set)
-    - GET  /api/objects/scholiq/portfolio-entry?filters[portfolioId]=:id
-    - GET  /api/objects/scholiq/Submission?filters[learnerIds]=:learnerId
-    - GET  /api/objects/scholiq/werkproces-assessment?filters[...]
-    - GET  /api/objects/scholiq/external-training-record?filters[learnerId]=:learnerId
-    - GET  /api/objects/scholiq/Credential?filters[learnerId]=:learnerId
-    - POST /api/objects/scholiq/portfolio-entry
-    - POST /api/objects/scholiq/Portfolio/:id/transition/submit
+    - GET  /api/objects/learniq/Portfolio/:id
+    - GET  /api/objects/learniq/portfolio-template/:id           (when templateId set)
+    - GET  /api/objects/learniq/portfolio-entry?filters[portfolioId]=:id
+    - GET  /api/objects/learniq/Submission?filters[learnerIds]=:learnerId
+    - GET  /api/objects/learniq/werkproces-assessment?filters[...]
+    - GET  /api/objects/learniq/external-training-record?filters[learnerId]=:learnerId
+    - GET  /api/objects/learniq/Credential?filters[learnerId]=:learnerId
+    - POST /api/objects/learniq/portfolio-entry
+    - POST /api/objects/learniq/Portfolio/:id/transition/submit
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView.vue's existing shape.
@@ -40,7 +40,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="portfolio-builder__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading portfolio...') }}</span>
+			<span>{{ t('learniq', 'Loading portfolio...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -53,18 +53,18 @@
 			<header class="portfolio-builder__header">
 				<h2>
 					{{
-						t('scholiq', 'Build portfolio: {title}', {
+						t('learniq', 'Build portfolio: {title}', {
 							title: portfolio.title || '',
 						})
 					}}
 				</h2>
 				<p class="portfolio-builder__meta">
 					{{
-						t('scholiq', 'Kind: {kind}', { kind: portfolio.kind || '' })
+						t('learniq', 'Kind: {kind}', { kind: portfolio.kind || '' })
 					}}
 					<span class="portfolio-builder__lifecycle">
 						{{
-							t('scholiq', 'Status: {status}', {
+							t('learniq', 'Status: {status}', {
 								status: portfolio.lifecycle || '',
 							})
 						}}
@@ -76,7 +76,7 @@
 			<section
 				v-if="template && sections.length > 0"
 				class="portfolio-builder__sections">
-				<h3>{{ t('scholiq', 'Required sections') }}</h3>
+				<h3>{{ t('learniq', 'Required sections') }}</h3>
 				<ul class="portfolio-builder__section-list">
 					<li
 						v-for="section in sections"
@@ -101,7 +101,7 @@
 
 			<!-- Existing entries -->
 			<section class="portfolio-builder__entries">
-				<h3>{{ t('scholiq', 'Evidence entries') }}</h3>
+				<h3>{{ t('learniq', 'Evidence entries') }}</h3>
 				<ul v-if="entries.length > 0" class="portfolio-builder__entry-list">
 					<li
 						v-for="entry in entries"
@@ -120,7 +120,7 @@
 							v-if="entry.sectionId"
 							class="portfolio-builder__entry-section">
 							{{
-								t('scholiq', 'Section: {s}', {
+								t('learniq', 'Section: {s}', {
 									s: sectionLabel(entry.sectionId),
 								})
 							}}
@@ -128,16 +128,16 @@
 					</li>
 				</ul>
 				<p v-else class="portfolio-builder__no-entries">
-					{{ t('scholiq', 'No evidence added yet.') }}
+					{{ t('learniq', 'No evidence added yet.') }}
 				</p>
 			</section>
 
 			<!-- Add-entry form: evidence-kind picker, never a free-text UUID field -->
 			<section class="portfolio-builder__add-entry">
-				<h3>{{ t('scholiq', 'Add evidence') }}</h3>
+				<h3>{{ t('learniq', 'Add evidence') }}</h3>
 
 				<label for="pb-evidence-kind" class="portfolio-builder__field-label">
-					{{ t('scholiq', 'Evidence kind') }}
+					{{ t('learniq', 'Evidence kind') }}
 				</label>
 				<select
 					id="pb-evidence-kind"
@@ -145,19 +145,19 @@
 					class="portfolio-builder__select"
 					@change="onEvidenceKindChange">
 					<option value="submission">
-						{{ t('scholiq', 'Existing submission') }}
+						{{ t('learniq', 'Existing submission') }}
 					</option>
 					<option value="werkproces-assessment">
-						{{ t('scholiq', 'Werkproces assessment') }}
+						{{ t('learniq', 'Werkproces assessment') }}
 					</option>
 					<option value="external-training-record">
-						{{ t('scholiq', 'External training record') }}
+						{{ t('learniq', 'External training record') }}
 					</option>
 					<option value="credential">
-						{{ t('scholiq', 'Credential') }}
+						{{ t('learniq', 'Credential') }}
 					</option>
 					<option value="reflection">
-						{{ t('scholiq', 'Reflection') }}
+						{{ t('learniq', 'Reflection') }}
 					</option>
 				</select>
 
@@ -167,7 +167,7 @@
 					<label
 						for="pb-evidence-ref"
 						class="portfolio-builder__field-label">
-						{{ t('scholiq', 'Select existing object') }}
+						{{ t('learniq', 'Select existing object') }}
 					</label>
 					<select
 						id="pb-evidence-ref"
@@ -175,7 +175,7 @@
 						class="portfolio-builder__select"
 						:disabled="pickerOptions.length === 0">
 						<option value="">
-							{{ t('scholiq', '— choose —') }}
+							{{ t('learniq', '— choose —') }}
 						</option>
 						<option
 							v-for="opt in pickerOptions"
@@ -189,7 +189,7 @@
 						class="portfolio-builder__picker-empty">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'No eligible objects found for this evidence kind.',
 							)
 						}}
@@ -198,7 +198,7 @@
 
 				<div class="portfolio-builder__field">
 					<label for="pb-title" class="portfolio-builder__field-label">
-						{{ t('scholiq', 'Title') }}
+						{{ t('learniq', 'Title') }}
 					</label>
 					<input
 						id="pb-title"
@@ -209,14 +209,14 @@
 
 				<div v-if="sections.length > 0" class="portfolio-builder__field">
 					<label for="pb-section" class="portfolio-builder__field-label">
-						{{ t('scholiq', 'Section') }}
+						{{ t('learniq', 'Section') }}
 					</label>
 					<select
 						id="pb-section"
 						v-model="newEntry.sectionId"
 						class="portfolio-builder__select">
 						<option value="">
-							{{ t('scholiq', '— none —') }}
+							{{ t('learniq', '— none —') }}
 						</option>
 						<option
 							v-for="section in sections"
@@ -236,7 +236,7 @@
 					<label
 						for="pb-reflection"
 						class="portfolio-builder__field-label">
-						{{ t('scholiq', 'Reflection text') }}
+						{{ t('learniq', 'Reflection text') }}
 					</label>
 					<textarea
 						id="pb-reflection"
@@ -253,7 +253,7 @@
 						v-if="addingEntry"
 						class="icon-loading"
 						aria-hidden="true" />
-					{{ t('scholiq', 'Add evidence entry') }}
+					{{ t('learniq', 'Add evidence entry') }}
 				</button>
 				<p
 					v-if="addEntryError"
@@ -273,7 +273,7 @@
 						v-if="submitting"
 						class="icon-loading"
 						aria-hidden="true" />
-					{{ t('scholiq', 'Submit portfolio') }}
+					{{ t('learniq', 'Submit portfolio') }}
 				</button>
 			</div>
 			<p
@@ -286,7 +286,7 @@
 				v-if="submitted"
 				class="portfolio-builder__submit-confirmation"
 				role="status">
-				{{ t('scholiq', 'Portfolio submitted.') }}
+				{{ t('learniq', 'Portfolio submitted.') }}
 			</p>
 		</template>
 	</div>
@@ -430,7 +430,7 @@ export default {
 				await this.loadPickerOptions()
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load portfolio. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -450,7 +450,7 @@ export default {
 		 */
 		async fetchObject(schema, objId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/${schema}/${objId}`,
+				`/apps/openregister/api/objects/learniq/${schema}/${objId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -472,7 +472,7 @@ export default {
 		 */
 		async fetchList(schema, query) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/${schema}?${query}`,
+				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -609,16 +609,16 @@ export default {
 		 */
 		evidenceKindLabel(kind) {
 			const labels = {
-				file: this.t('scholiq', 'File'),
-				submission: this.t('scholiq', 'Submission'),
-				'werkproces-assessment': this.t('scholiq', 'Werkproces assessment'),
+				file: this.t('learniq', 'File'),
+				submission: this.t('learniq', 'Submission'),
+				'werkproces-assessment': this.t('learniq', 'Werkproces assessment'),
 				'external-training-record': this.t(
-					'scholiq',
+					'learniq',
 					'External training record',
 				),
 
-				credential: this.t('scholiq', 'Credential'),
-				reflection: this.t('scholiq', 'Reflection'),
+				credential: this.t('learniq', 'Credential'),
+				reflection: this.t('learniq', 'Reflection'),
 			}
 			return labels[kind] ?? kind
 		},
@@ -662,7 +662,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/portfolio-entry',
+					'/apps/openregister/api/objects/learniq/portfolio-entry',
 				)
 				const resp = await fetch(url, {
 					method: 'POST',
@@ -688,7 +688,7 @@ export default {
 				await this.loadPickerOptions()
 			} catch (err) {
 				this.addEntryError = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to add evidence entry. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -712,7 +712,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					`/apps/openregister/api/objects/scholiq/Portfolio/${this.id}/transition/submit`,
+					`/apps/openregister/api/objects/learniq/Portfolio/${this.id}/transition/submit`,
 				)
 				const resp = await fetch(url, {
 					method: 'POST',
@@ -725,7 +725,7 @@ export default {
 				})
 				if (resp.status === 422) {
 					this.submitError = this.t(
-						'scholiq',
+						'learniq',
 						'Submission refused: every required section needs at least one evidence entry.',
 					)
 					return
@@ -739,7 +739,7 @@ export default {
 				this.submitted = true
 			} catch (err) {
 				this.submitError = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to submit portfolio. Please try again.',
 				)
 				// eslint-disable-next-line no-console

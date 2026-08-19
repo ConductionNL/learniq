@@ -51,7 +51,7 @@ use Psr\Log\LoggerInterface;
  */
 class BsaDecisionGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const BSA_WARNING_SCHEMA = 'bsa-warning';
 
 	/**

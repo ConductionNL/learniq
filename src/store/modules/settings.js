@@ -27,7 +27,7 @@ export const useSettingsStore = defineStore('settings', {
 			this.loading = true
 			try {
 				const response = await fetch(
-					generateUrl('/apps/scholiq/api/settings'),
+					generateUrl('/apps/learniq/api/settings'),
 					{
 						headers: { requesttoken: getRequestToken() },
 					},
@@ -58,7 +58,7 @@ export const useSettingsStore = defineStore('settings', {
 			this.loading = true
 			try {
 				const response = await fetch(
-					generateUrl('/apps/scholiq/api/settings'),
+					generateUrl('/apps/learniq/api/settings'),
 					{
 						method: 'POST',
 						headers: {

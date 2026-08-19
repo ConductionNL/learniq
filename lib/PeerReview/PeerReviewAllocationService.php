@@ -54,7 +54,7 @@ use Psr\Log\LoggerInterface;
  */
 class PeerReviewAllocationService {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
 	private const SUBMISSION_SCHEMA = 'submission';
 	private const PEER_REVIEW_SCHEMA = 'peer-review';

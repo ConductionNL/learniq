@@ -83,7 +83,7 @@ use Psr\Log\LoggerInterface;
  */
 class CompetencyAttainmentRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 	private const WERKPROCES_SCHEMA = 'werkproces-assessment';
 	private const BPV_PLACEMENT_SCHEMA = 'bpv-placement';

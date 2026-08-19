@@ -21,12 +21,12 @@
 	<div class="proctoring-review-queue">
 		<header class="proctoring-review-queue__header">
 			<h2 class="proctoring-review-queue__title">
-				{{ t('scholiq', 'Proctoring flag review queue') }}
+				{{ t('learniq', 'Proctoring flag review queue') }}
 			</h2>
 			<p class="proctoring-review-queue__subtitle">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'Review flagged proctoring events. Decisions are recorded for compliance; no result is altered automatically (EU AI Act Art. 14).',
 					)
 				}}
@@ -39,7 +39,7 @@
 			class="proctoring-review-queue__loading"
 			aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading sessions...') }}</span>
+			<span>{{ t('learniq', 'Loading sessions...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -54,7 +54,7 @@
 			class="proctoring-review-queue__empty"
 			role="status">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<p>{{ t('scholiq', 'No sessions with pending flags.') }}</p>
+			<p>{{ t('learniq', 'No sessions with pending flags.') }}</p>
 		</div>
 
 		<!-- Session list -->
@@ -66,21 +66,21 @@
 				<header class="proctoring-review-queue__session-header">
 					<h3>
 						{{
-							t('scholiq', 'Session {id}', {
+							t('learniq', 'Session {id}', {
 								id: shortId(session.uuid),
 							})
 						}}
 					</h3>
 					<span class="proctoring-review-queue__meta">
 						{{
-							t('scholiq', 'Learner: {id}', { id: session.learnerId })
+							t('learniq', 'Learner: {id}', { id: session.learnerId })
 						}}
 						&mdash;
-						{{ t('scholiq', 'Provider: {p}', { p: session.provider }) }}
+						{{ t('learniq', 'Provider: {p}', { p: session.provider }) }}
 					</span>
 					<span class="proctoring-review-queue__pending-count">
 						{{
-							t('scholiq', '{n} pending flag(s)', {
+							t('learniq', '{n} pending flag(s)', {
 								n: pendingCount(session),
 							})
 						}}
@@ -118,7 +118,7 @@
 										v-if="savingFlagId === flag.flagId"
 										class="icon-loading"
 										aria-hidden="true" />
-									{{ t('scholiq', 'Allow') }}
+									{{ t('learniq', 'Allow') }}
 								</button>
 								<button
 									class="button-vue button-vue--error"
@@ -126,7 +126,7 @@
 									@click="
 										recordDecision(session, flag, 'annulled')
 									">
-									{{ t('scholiq', 'Annul') }}
+									{{ t('learniq', 'Annul') }}
 								</button>
 							</template>
 							<template v-else>
@@ -138,13 +138,13 @@
 									">
 									{{
 										flag.reviewDecision === 'allowed'
-											? t('scholiq', 'Allowed')
-											: t('scholiq', 'Annulled')
+											? t('learniq', 'Allowed')
+											: t('learniq', 'Annulled')
 									}}
 								</span>
 								<span class="proctoring-review-queue__flag-reviewer">
 									{{
-										t('scholiq', 'by {who} at {when}', {
+										t('learniq', 'by {who} at {when}', {
 											who: flag.reviewedBy,
 											when: formatDate(flag.reviewedAt),
 										})
@@ -166,7 +166,7 @@
 				<p class="proctoring-review-queue__oversight-note">
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'Annulling a flag does not automatically invalidate the result. Use the AssessmentResult view to take further action.',
 						)
 					}}
@@ -225,7 +225,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/proctoring-session?limit=100',
+					'/apps/openregister/api/objects/learniq/proctoring-session?limit=100',
 				)
 				const resp = await fetch(url, {
 					headers: {
@@ -239,7 +239,7 @@ export default {
 				this.sessions = json.results ?? json.objects ?? json ?? []
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load proctoring sessions. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -274,12 +274,12 @@ export default {
 		 */
 		flagKindLabel(kind) {
 			const labels = {
-				'fullscreen-exit': this.t('scholiq', 'Fullscreen exit'),
-				'tab-hidden': this.t('scholiq', 'Tab switched or window minimised'),
-				'window-blur': this.t('scholiq', 'Window lost focus'),
-				'blocked-navigation': this.t('scholiq', 'Back-navigation attempt'),
+				'fullscreen-exit': this.t('learniq', 'Fullscreen exit'),
+				'tab-hidden': this.t('learniq', 'Tab switched or window minimised'),
+				'window-blur': this.t('learniq', 'Window lost focus'),
+				'blocked-navigation': this.t('learniq', 'Back-navigation attempt'),
 				'concurrent-session-detected': this.t(
-					'scholiq',
+					'learniq',
 					'Opened in a second tab or window',
 				),
 			}
@@ -316,7 +316,7 @@ export default {
 				})
 
 				const url = generateUrl(
-					`/apps/openregister/api/objects/scholiq/proctoring-session/${session.uuid}`,
+					`/apps/openregister/api/objects/learniq/proctoring-session/${session.uuid}`,
 				)
 				const resp = await fetch(url, {
 					method: 'PUT',
@@ -346,7 +346,7 @@ export default {
 				this.sessionError = {
 					...this.sessionError,
 					[session.uuid]: this.t(
-						'scholiq',
+						'learniq',
 						'Failed to save review decision. Please try again.',
 					),
 				}

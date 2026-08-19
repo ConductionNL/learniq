@@ -42,29 +42,29 @@
 			<div
 				class="substitution-modal__mode"
 				role="group"
-				:aria-label="t('scholiq', 'Action')">
+				:aria-label="t('learniq', 'Action')">
 				<NcButton
 					:variant="mode === 'cancel' ? 'primary' : 'secondary'"
 					:disabled="saving"
 					@click="mode = 'cancel'">
-					{{ t('scholiq', 'Cancel session') }}
+					{{ t('learniq', 'Cancel session') }}
 				</NcButton>
 				<NcButton
 					:variant="mode === 'substitute' ? 'primary' : 'secondary'"
 					:disabled="saving"
 					@click="mode = 'substitute'">
-					{{ t('scholiq', 'Assign substitute teacher') }}
+					{{ t('learniq', 'Assign substitute teacher') }}
 				</NcButton>
 			</div>
 
 			<div class="substitution-modal__field">
 				<label for="substitution-reason-kind">{{
-					t('scholiq', 'Reason')
+					t('learniq', 'Reason')
 				}}</label>
 				<NcSelect
 					id="substitution-reason-kind"
 					v-model="changeReasonKind"
-					:inputLabel="t('scholiq', 'Reason')"
+					:inputLabel="t('learniq', 'Reason')"
 					:options="reasonOptions"
 					:reduce="(opt) => opt.value"
 					:clearable="false" />
@@ -72,7 +72,7 @@
 
 			<div v-if="mode === 'substitute'" class="substitution-modal__field">
 				<label for="substitution-teacher-id">{{
-					t('scholiq', 'Substitute teacher (Nextcloud user ID)')
+					t('learniq', 'Substitute teacher (Nextcloud user ID)')
 				}}</label>
 				<input
 					id="substitution-teacher-id"
@@ -83,7 +83,7 @@
 
 			<div class="substitution-modal__field">
 				<label for="substitution-note">{{
-					t('scholiq', 'Note (optional)')
+					t('learniq', 'Note (optional)')
 				}}</label>
 				<textarea
 					id="substitution-note"
@@ -95,13 +95,13 @@
 
 		<template #actions>
 			<NcButton @click="$emit('close')">
-				{{ t('scholiq', 'Close') }}
+				{{ t('learniq', 'Close') }}
 			</NcButton>
 			<NcButton
 				variant="primary"
 				:disabled="!canSubmit || saving"
 				@click="submit">
-				{{ saving ? t('scholiq', 'Saving…') : submitLabel }}
+				{{ saving ? t('learniq', 'Saving…') : submitLabel }}
 			</NcButton>
 		</template>
 	</NcDialog>
@@ -150,8 +150,8 @@ export default {
 		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
 		 */
 		dialogTitle() {
-			return t('scholiq', 'Manage "{title}"', {
-				title: this.session.title || t('scholiq', 'Untitled session'),
+			return t('learniq', 'Manage "{title}"', {
+				title: this.session.title || t('learniq', 'Untitled session'),
 			})
 		},
 
@@ -162,16 +162,16 @@ export default {
 		 */
 		reasonOptions() {
 			return [
-				{ value: 'teacher-absence', label: t('scholiq', 'Teacher absence') },
+				{ value: 'teacher-absence', label: t('learniq', 'Teacher absence') },
 				{
 					value: 'room-unavailable',
-					label: t('scholiq', 'Room unavailable'),
+					label: t('learniq', 'Room unavailable'),
 				},
 				{
 					value: 'timetable-change',
-					label: t('scholiq', 'Timetable change'),
+					label: t('learniq', 'Timetable change'),
 				},
-				{ value: 'other', label: t('scholiq', 'Other') },
+				{ value: 'other', label: t('learniq', 'Other') },
 			]
 		},
 
@@ -183,8 +183,8 @@ export default {
 		 */
 		submitLabel() {
 			return this.mode === 'cancel'
-				? t('scholiq', 'Cancel session')
-				: t('scholiq', 'Assign substitute')
+				? t('learniq', 'Cancel session')
+				: t('learniq', 'Assign substitute')
 		},
 
 		/**
@@ -233,7 +233,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/session/{id}',
+					'/apps/openregister/api/objects/learniq/session/{id}',
 					{ id: this.session.id },
 				)
 				await axios.put(url, body)
@@ -242,7 +242,7 @@ export default {
 			} catch (e) {
 				console.error('[SubstitutionModal] submit failed', e)
 				this.error = t(
-					'scholiq',
+					'learniq',
 					'Could not save this change. Please check the reason and try again.',
 				)
 			} finally {

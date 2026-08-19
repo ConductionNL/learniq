@@ -168,7 +168,7 @@ class RejectionMappingHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('data-exchange-job');
 		$event->method('getTo')->willReturn($to);
 
@@ -498,7 +498,7 @@ class RejectionMappingHandlerTest extends TestCase {
 		$handler = $this->makeHandler();
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('support-request');
 		$event->method('getTo')->willReturn('succeeded');
 

@@ -43,7 +43,7 @@ export async function fetchMyTimetable(from, to) {
 		params.to = to
 	}
 
-	const url = generateUrl('/apps/scholiq/api/timetable/mine')
+	const url = generateUrl('/apps/learniq/api/timetable/mine')
 	const response = await axios.get(url, { params })
 
 	const data = response.data || {}

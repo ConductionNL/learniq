@@ -71,7 +71,7 @@ class PortalContributionProvider {
 	 *
 	 * @var string
 	 */
-	private const REGISTER = 'scholiq';
+	private const REGISTER = 'learniq';
 
 	/**
 	 * The audiences this provider contributes to (contract v2, preferred).

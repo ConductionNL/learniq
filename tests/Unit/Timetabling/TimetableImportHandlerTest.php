@@ -292,7 +292,7 @@ class TimetableImportHandlerTest extends TestCase {
 	 */
 	public function testHandleIgnoresNonRunningTransition(): void {
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('data-exchange-job');
 		$event->method('getTo')->willReturn('queued');
 		$event->expects(self::never())->method('getObject');
@@ -313,7 +313,7 @@ class TimetableImportHandlerTest extends TestCase {
 		$objectEntity->method('jsonSerialize')->willReturn(['id' => 'job-1', 'target' => 'bron-rod']);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('data-exchange-job');
 		$event->method('getTo')->willReturn('running');
 		$event->method('getObject')->willReturn($objectEntity);

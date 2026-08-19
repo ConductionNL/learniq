@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  */
 class LessonProgressHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const XAPI_SCHEMA = 'xapi-statement';
 	private const LESSON_SCHEMA = 'lesson';
 	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';

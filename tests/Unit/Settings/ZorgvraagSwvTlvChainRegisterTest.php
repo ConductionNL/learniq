@@ -209,7 +209,7 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 		$recordTransition = $schema['x-openregister-lifecycle']['transitions']['record'];
 		self::assertSame('scheduled', $recordTransition['from']);
 		self::assertSame('recorded', $recordTransition['to']);
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\PupilVoiceGuard', $recordTransition['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\PupilVoiceGuard', $recordTransition['requires']);
 
 	}//end testDeliberationRecordAppendOnlyAndRequiredOneOfShape()
 

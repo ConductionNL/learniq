@@ -47,7 +47,7 @@ use RuntimeException;
  * @spec openspec/changes/verzuim-report-composer/tasks.md#task-3.1
  */
 class DataExchangePayloadBuilder {
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Target that composes the verzuimloket dossier (attendance-flag +

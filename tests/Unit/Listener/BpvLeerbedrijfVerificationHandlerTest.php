@@ -95,7 +95,7 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('bpv-placement');
 		$event->method('getTo')->willReturn('sbb-verification-pending');
 		$event->method('getFrom')->willReturn('proposed');
@@ -261,7 +261,7 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 		$objectEntity = $this->createMock(ObjectEntity::class);
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('praktijkovereenkomst');
 		$event->method('getTo')->willReturn('sbb-verification-pending');
 

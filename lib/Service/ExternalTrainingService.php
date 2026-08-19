@@ -48,7 +48,7 @@ class ExternalTrainingService {
 	/**
 	 * OpenRegister register slug Scholiq objects live in.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Schema slug of the external-training record.

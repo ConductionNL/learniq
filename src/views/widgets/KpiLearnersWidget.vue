@@ -5,7 +5,7 @@
 <template>
 	<KpiCard
 		schema="learner-profile"
-		:label="t('scholiq', 'Learners')"
+		:label="t('learniq', 'Learners')"
 		link="/learner-profiles"
 		variant="success" />
 </template>

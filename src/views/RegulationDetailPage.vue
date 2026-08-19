@@ -49,10 +49,10 @@
 
 		<NcEmptyContent
 			v-else-if="notFound"
-			:name="t('scholiq', 'Regulation not found')"
+			:name="t('learniq', 'Regulation not found')"
 			:description="
 				t(
-					'scholiq',
+					'learniq',
 					'No regulation matches this link. It may have been removed or the link is out of date.',
 				)
 			">
@@ -63,7 +63,7 @@
 
 		<CnDetailPage
 			v-else
-			:title="t('scholiq', 'Regulation')"
+			:title="t('learniq', 'Regulation')"
 			:widgets="widgets"
 			:layout="layout"
 			:sidebar="sidebar"
@@ -79,7 +79,7 @@
 import { CnDetailPage, useObjectStore } from '@conduction/nextcloud-vue'
 import { NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
 
-const REGISTER = 'scholiq'
+const REGISTER = 'learniq'
 const SCHEMA = 'Regulation'
 const OBJECT_TYPE = `${REGISTER}-${SCHEMA}`
 

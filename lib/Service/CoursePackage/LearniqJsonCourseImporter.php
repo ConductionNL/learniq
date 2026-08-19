@@ -39,7 +39,7 @@ namespace OCA\Learniq\Service\CoursePackage;
 /**
  * Re-imports a scholiq-native JSON course export.
  */
-class ScholiqJsonCourseImporter {
+class LearniqJsonCourseImporter {
 
 	private const SOURCE_FORMAT = 'scholiq-json';
 

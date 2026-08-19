@@ -56,7 +56,7 @@ use Psr\Log\LoggerInterface;
  */
 class ReportCardPublishHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const REPORT_CARD_SCHEMA = 'report-card';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 	private const REPORT_CARD_PARENT_NOTIFICATION_SCHEMA = 'report-card-parent-notification';

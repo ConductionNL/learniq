@@ -63,7 +63,7 @@ class CredentialVerifyController extends Controller {
 	 *
 	 * @var string
 	 */
-	private const THROTTLE_ACTION = 'scholiq_credential_verify';
+	private const THROTTLE_ACTION = 'learniq_credential_verify';
 
 	/**
 	 * Record a failed verification with the brute-force throttler.
@@ -143,7 +143,7 @@ class CredentialVerifyController extends Controller {
 		try {
 			$credentialObj = $this->objectService->find(
 				id: $id,
-				register: 'scholiq',
+				register: 'learniq',
 				schema: 'credential'
 			);
 		} catch (DoesNotExistException | MultipleObjectsReturnedException $notFound) {

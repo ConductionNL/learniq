@@ -65,7 +65,7 @@ use Psr\Log\LoggerInterface;
  */
 class ApplicationConversionHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const APPLICATION_SCHEMA = 'application';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 	private const ENROLMENT_SCHEMA = 'enrolment';

@@ -45,12 +45,12 @@
 	<div class="gp-subgroup-learner-context">
 		<header class="gp-subgroup-learner-context__header">
 			<h2 class="gp-subgroup-learner-context__title">
-				{{ t('scholiq', 'Subgroup learner context') }}
+				{{ t('learniq', 'Subgroup learner context') }}
 			</h2>
 			<p class="gp-subgroup-learner-context__subtitle">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'For each learner in this subgroup, whether they already have an active LearningPlan (OPP) — resolved live, not stored on the subgroup.',
 					)
 				}}
@@ -63,27 +63,27 @@
 			class="gp-subgroup-learner-context__picker"
 			role="form">
 			<label for="gp-subgroup-learner-context-subgroup-id">
-				{{ t('scholiq', 'Subgroup ID') }}
+				{{ t('learniq', 'Subgroup ID') }}
 			</label>
 			<div class="gp-subgroup-learner-context__picker-row">
 				<input
 					id="gp-subgroup-learner-context-subgroup-id"
 					v-model="subgroupIdInput"
 					type="text"
-					:placeholder="t('scholiq', 'UUID of the GroupPlanSubgroup')"
+					:placeholder="t('learniq', 'UUID of the GroupPlanSubgroup')"
 					@keyup.enter="openSubgroup" />
 				<button
 					type="button"
 					class="button-vue button-vue--vue-primary"
 					:disabled="!subgroupIdInput"
 					@click="openSubgroup">
-					{{ t('scholiq', 'Open learner context') }}
+					{{ t('learniq', 'Open learner context') }}
 				</button>
 			</div>
 			<p class="gp-subgroup-learner-context__picker-hint">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'Usually opened from a subgroup\'s detail page ("Learner context" tile) — this picker is a fallback for direct navigation.',
 					)
 				}}
@@ -97,7 +97,7 @@
 				class="gp-subgroup-learner-context__loading"
 				aria-live="polite">
 				<span class="icon-loading" aria-hidden="true" />
-				<span>{{ t('scholiq', 'Loading learner context...') }}</span>
+				<span>{{ t('learniq', 'Loading learner context...') }}</span>
 			</div>
 
 			<!-- Error -->
@@ -115,14 +115,14 @@
 				class="gp-subgroup-learner-context__empty"
 				role="status">
 				<span class="icon-error" aria-hidden="true" />
-				<p>{{ t('scholiq', 'This subgroup could not be found.') }}</p>
+				<p>{{ t('learniq', 'This subgroup could not be found.') }}</p>
 			</div>
 			<div
 				v-else-if="members.length === 0"
 				class="gp-subgroup-learner-context__empty"
 				role="status">
 				<span class="icon-checkmark" aria-hidden="true" />
-				<p>{{ t('scholiq', 'This subgroup has no learners yet.') }}</p>
+				<p>{{ t('learniq', 'This subgroup has no learners yet.') }}</p>
 			</div>
 
 			<!-- Learner list -->
@@ -150,7 +150,7 @@
 							}"
 							class="gp-subgroup-learner-context__member-plan gp-subgroup-learner-context__member-plan--active">
 							{{
-								t('scholiq', 'Active learning plan: {kind}', {
+								t('learniq', 'Active learning plan: {kind}', {
 									kind: member.learningPlan.kind,
 								})
 							}}
@@ -158,7 +158,7 @@
 						<span
 							v-else
 							class="gp-subgroup-learner-context__member-plan gp-subgroup-learner-context__member-plan--none">
-							{{ t('scholiq', 'No active learning plan') }}
+							{{ t('learniq', 'No active learning plan') }}
 						</span>
 					</li>
 				</ul>
@@ -266,7 +266,7 @@ export default {
 		 */
 		async fetchObject(schema, id) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/${schema}/${id}`,
+				`/apps/openregister/api/objects/learniq/${schema}/${id}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -286,7 +286,7 @@ export default {
 		 */
 		async fetchSchema(schema, query) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/${schema}?${query}`,
+				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -325,7 +325,7 @@ export default {
 				}
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load the subgroup learner context. Please try again.',
 				)
 				// eslint-disable-next-line no-console

@@ -49,7 +49,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class CredentialIssuanceHandler implements IEventListener {
 	private const ENROLMENT_SCHEMA = 'enrolment';
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const COMPLETED_STATE = 'completed';
 
 	/**

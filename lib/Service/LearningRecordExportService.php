@@ -56,7 +56,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class LearningRecordExportService {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Schemas whose per-item timestamp is unambiguous enough to apply

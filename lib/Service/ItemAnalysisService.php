@@ -80,7 +80,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class ItemAnalysisService {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'assessment';
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
 	private const ITEM_SCHEMA = 'item';

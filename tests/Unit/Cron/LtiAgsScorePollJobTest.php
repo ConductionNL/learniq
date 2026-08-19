@@ -261,7 +261,7 @@ class LtiAgsScorePollJobTest extends TestCase {
 
 		self::assertCount(1, $this->savedObjects);
 		$saved = $this->savedObjects[0];
-		self::assertSame('scholiq', $saved['register']);
+		self::assertSame('learniq', $saved['register']);
 		self::assertSame('grade-entry', $saved['schema']);
 		self::assertSame('lti-ags', $saved['object']['sourceKind']);
 		self::assertSame('component-1', $saved['object']['componentId']);

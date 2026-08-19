@@ -311,7 +311,7 @@ class AssessmentPublishGuard {
 	private function countDistinctVariantGroups(array $poolConfig, string $itemBankId): int {
 		$items = $this->objectService->findAll(
 			[
-				'register' => 'scholiq',
+				'register' => 'learniq',
 				'schema' => self::ITEM_SCHEMA,
 				'filters' => ['itemBankId' => $itemBankId, 'lifecycle' => 'published'],
 			]

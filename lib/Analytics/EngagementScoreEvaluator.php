@@ -62,7 +62,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class EngagementScoreEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const XAPI_SCHEMA = 'xapi-statement';
 	private const LESSON_SCHEMA = 'lesson';
 

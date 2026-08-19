@@ -67,7 +67,7 @@ use Psr\Log\LoggerInterface;
  */
 class FeeItemVoluntaryEntitlementGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const FEE_ITEM_SCHEMA = 'fee-item';
 
 	/**

@@ -122,7 +122,7 @@ class ExchangeRejectionRegisterTest extends TestCase {
 
 		self::assertSame('corrected', $transitions['resubmit']['from']);
 		self::assertSame('resubmitted', $transitions['resubmit']['to']);
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\RejectionResubmitGuard', $transitions['resubmit']['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\RejectionResubmitGuard', $transitions['resubmit']['requires']);
 
 		self::assertSame('resubmitted', $transitions['accept']['from']);
 		self::assertSame('accepted', $transitions['accept']['to']);
@@ -134,7 +134,7 @@ class ExchangeRejectionRegisterTest extends TestCase {
 
 		self::assertSame(['open', 'corrected'], $transitions['waive']['from']);
 		self::assertSame('waived', $transitions['waive']['to']);
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\RejectionWaiveGuard', $transitions['waive']['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\RejectionWaiveGuard', $transitions['waive']['requires']);
 
 	}//end testLifecycleTransitionShape()
 

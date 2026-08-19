@@ -61,7 +61,7 @@ use Throwable;
  * @implements IEventListener<Event>
  */
 class WalletOfferConcludedListener implements IEventListener {
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const CREDENTIAL_SCHEMA = 'credential';
 	private const CLAIM_ACTION = 'recordWalletClaim';
 

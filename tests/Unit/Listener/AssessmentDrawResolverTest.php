@@ -87,7 +87,7 @@ class AssessmentDrawResolverTest extends TestCase {
 	 * @return void
 	 */
 	private function stubResolver(string $schemaSlug): void {
-		$this->schemaResolver->method('registerSlug')->willReturn('scholiq');
+		$this->schemaResolver->method('registerSlug')->willReturn('learniq');
 		$this->schemaResolver->method('schemaSlug')->willReturn($schemaSlug);
 
 	}//end stubResolver()

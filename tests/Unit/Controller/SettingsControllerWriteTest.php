@@ -129,9 +129,9 @@ class SettingsControllerWriteTest extends TestCase {
 	 * @return void
 	 */
 	public function testCreateDelegatesToUpdateAndStillWrites(): void {
-		$submitted = ['default_register' => 'scholiq'];
+		$submitted = ['default_register' => 'learniq'];
 		$stored = [
-			'default_register' => 'scholiq',
+			'default_register' => 'learniq',
 			'openregisters' => true,
 			'isAdmin' => true,
 		];

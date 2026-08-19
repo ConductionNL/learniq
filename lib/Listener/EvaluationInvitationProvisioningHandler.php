@@ -50,7 +50,7 @@ use Psr\Log\LoggerInterface;
  */
 class EvaluationInvitationProvisioningHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const EVALUATION_CAMPAIGN_SCHEMA = 'evaluation-campaign';
 	private const EVALUATION_INVITATION_SCHEMA = 'evaluation-invitation';
 	private const COHORT_SCHEMA = 'cohort';

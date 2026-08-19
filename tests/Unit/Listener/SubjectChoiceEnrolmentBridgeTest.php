@@ -103,7 +103,7 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('subject-choice');
 		$event->method('getFrom')->willReturn('approved');
 		$event->method('getTo')->willReturn('locked');
@@ -208,7 +208,7 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 		$handler = $this->makeHandler();
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('subject-choice');
 		$event->method('getFrom')->willReturn('validated');
 		$event->method('getTo')->willReturn('locked');
@@ -228,7 +228,7 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 		$handler = $this->makeHandler();
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('application');
 		$event->method('getFrom')->willReturn('approved');
 		$event->method('getTo')->willReturn('locked');

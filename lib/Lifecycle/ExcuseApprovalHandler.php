@@ -52,7 +52,7 @@ use Psr\Log\LoggerInterface;
  */
 class ExcuseApprovalHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const EXCUSE_REQUEST_SCHEMA = 'excuse-request';
 	private const ATTENDANCE_RECORD_SCHEMA = 'attendance-record';
 

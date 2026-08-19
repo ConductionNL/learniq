@@ -9,7 +9,7 @@
 <template>
 	<KpiCard
 		schema="Course"
-		:label="t('scholiq', 'Courses')"
+		:label="t('learniq', 'Courses')"
 		link="/courses"
 		variant="primary" />
 </template>

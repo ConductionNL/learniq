@@ -137,7 +137,7 @@ jobs:
       # scholiq's info.xml declares <app>openregister</app>/<app>openconnector</app>
       # and Application.php registers listeners for OR lifecycle events; OR's
       # `development` carries ObjectCreatedEvent/ObjectTransitionedEvent + the
-      # IMcpToolProvider interface the ScholiqToolProvider tests need.
+      # IMcpToolProvider interface the LearniqToolProvider tests need.
       #
       # openconnector is deliberately NOT installed here. It is a SOFT
       # dependency in src/manifest.json: scholiq proxies to it only for the LTI

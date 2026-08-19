@@ -91,7 +91,7 @@ class LtiAgsScorePollJob extends TimedJob {
 	 */
 	private const DEFAULT_INTERVAL = 300;
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const PLACEMENT_SCHEMA = 'lti-tool-placement';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 	private const GRADE_SCALE_SCHEMA = 'grade-scale';

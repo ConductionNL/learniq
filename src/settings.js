@@ -19,13 +19,13 @@ app.mixin({ methods: { t, n } })
 // ⚠️ Mount is deliberately NOT inside the loadTranslations callback.
 //
 // It used to be. Some Nextcloud installs only allow the JS/CSS allowlist
-// through Apache, so `/custom_apps/scholiq/l10n/<locale>.json` 404s — the
+// through Apache, so `/custom_apps/learniq/l10n/<locale>.json` 404s — the
 // callback then never fires and the whole admin panel renders BLANK with no
 // error surfaced anywhere. Translations are a progressive enhancement: mount
 // first and let strings fall back to their English source on a miss.
 // (src/main.js already booted this way; this entry point did not.)
 try {
-	const result = loadTranslations('scholiq', () => {})
+	const result = loadTranslations('learniq', () => {})
 	if (result && typeof result.then === 'function') {
 		result.then(
 			() => {},
@@ -36,4 +36,4 @@ try {
 	// no-op — English source strings are the fallback.
 }
 
-app.mount('#scholiq-settings')
+app.mount('#learniq-settings')

@@ -2,7 +2,7 @@
 <!-- Copyright (C) 2026 Conduction B.V. -->
 
 <!--
- ScholiqCompliance — compliance dashboard page.
+ LearniqCompliance — compliance dashboard page.
  Renders KPI tiles for regulations and signed attestations, plus a
  "View in LaunchPad" header action.
 
@@ -10,12 +10,12 @@
 -->
 <template>
 	<CnDashboardPage
-		:title="t('scholiq', 'Compliance')"
+		:title="t('learniq', 'Compliance')"
 		:widgets="widgets"
 		:layout="layout">
 		<template #header-actions>
 			<NcButton variant="secondary" @click="viewInLaunchPad">
-				{{ t('scholiq', 'View in LaunchPad') }}
+				{{ t('learniq', 'View in LaunchPad') }}
 			</NcButton>
 		</template>
 		<template #widget-kpi-regulations>
@@ -38,7 +38,7 @@ import KpiExternalTrainingWidget from './widgets/KpiExternalTrainingWidget.vue'
 import KpiRegulationsWidget from './widgets/KpiRegulationsWidget.vue'
 
 export default {
-	name: 'ScholiqCompliance',
+	name: 'LearniqCompliance',
 
 	components: {
 		CnDashboardPage,

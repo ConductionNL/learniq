@@ -52,7 +52,7 @@ final class OrEntityFactory {
 	public static function make(
 		array $data,
 		string $schema = '',
-		string $register = 'scholiq',
+		string $register = 'learniq',
 		?string $uuid = null,
 	): ObjectEntity {
 		$entity = new ObjectEntity();
@@ -82,7 +82,7 @@ final class OrEntityFactory {
 	 *
 	 * @return array<int,ObjectEntity>
 	 */
-	public static function makeMany(array $rows, string $schema = '', string $register = 'scholiq'): array {
+	public static function makeMany(array $rows, string $schema = '', string $register = 'learniq'): array {
 		return array_map(
 			static fn (array $row): ObjectEntity => self::make($row, $schema, $register),
 			$rows

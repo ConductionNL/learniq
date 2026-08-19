@@ -75,7 +75,7 @@ use OCP\IUserSession;
  */
 class LeaderboardController extends Controller {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const COHORT_SCHEMA = 'cohort';
 	private const LEADERBOARD_SCHEMA = 'leaderboard';
 	private const LEARNER_ENGAGEMENT_SCHEMA = 'learner-engagement';

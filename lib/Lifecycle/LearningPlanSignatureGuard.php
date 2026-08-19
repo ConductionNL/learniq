@@ -56,7 +56,7 @@ class LearningPlanSignatureGuard {
 	/**
 	 * Scholiq register slug.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Minimum assurance level for most roles.

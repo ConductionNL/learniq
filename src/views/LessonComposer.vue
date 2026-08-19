@@ -13,12 +13,12 @@
   CourseBuilder.vue.
 
   Talks only to OpenRegister's REST API:
-    - GET /api/objects/scholiq/Lesson/:lessonId
-    - GET /api/objects/scholiq/Course/:courseId
-    - GET /api/objects/scholiq/Material|Assessment|Assignment|LtiToolPlacement
+    - GET /api/objects/learniq/Lesson/:lessonId
+    - GET /api/objects/learniq/Course/:courseId
+    - GET /api/objects/learniq/Material|Assessment|Assignment|LtiToolPlacement
       (scoped pickers)
-    - POST /api/objects/scholiq/Material (new media block upload)
-    - PUT  /api/objects/scholiq/Lesson/:lessonId (persists the full blocks array)
+    - POST /api/objects/learniq/Material (new media block upload)
+    - PUT  /api/objects/learniq/Lesson/:lessonId (persists the full blocks array)
 
   No new PHP controller — every write is a call against OpenRegister's
   existing object-create/update endpoints (ADR-022). A media block never
@@ -40,7 +40,7 @@
 	<div class="lesson-composer">
 		<div v-if="loading" class="lesson-composer__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading lesson…') }}</span>
+			<span>{{ t('learniq', 'Loading lesson…') }}</span>
 		</div>
 
 		<div v-else-if="error" class="lesson-composer__error" role="alert">
@@ -56,17 +56,17 @@
 			<header class="lesson-composer__header">
 				<h2>
 					{{
-						t('scholiq', 'Compose lesson: {name}', {
+						t('learniq', 'Compose lesson: {name}', {
 							name: lesson.name || '',
 						})
 					}}
 				</h2>
 				<div class="lesson-composer__header-actions">
 					<button class="button-vue" @click="goBack">
-						{{ t('scholiq', 'Back to builder') }}
+						{{ t('learniq', 'Back to builder') }}
 					</button>
 					<button class="button-vue" @click="openPlayer">
-						{{ t('scholiq', 'Preview') }}
+						{{ t('learniq', 'Preview') }}
 					</button>
 					<button
 						class="button-vue button-vue--primary"
@@ -76,7 +76,7 @@
 							v-if="saving"
 							class="icon-loading"
 							aria-hidden="true" />
-						{{ t('scholiq', 'Save lesson') }}
+						{{ t('learniq', 'Save lesson') }}
 					</button>
 				</div>
 			</header>
@@ -86,7 +86,7 @@
 				role="status">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						"This lesson's contentType is '{type}', not 'text' — blocks only render in LessonPlayer once contentType is set to 'text'.",
 						{ type: lesson.contentType },
 					)
@@ -96,7 +96,7 @@
 				{{ saveError }}
 			</p>
 			<p v-if="saveDone" role="status" class="lesson-composer__inline-success">
-				{{ t('scholiq', 'Lesson saved.') }}
+				{{ t('learniq', 'Lesson saved.') }}
 			</p>
 
 			<Draggable
@@ -124,7 +124,7 @@
 							class="lesson-composer__icon-btn"
 							:disabled="idx === 0"
 							:aria-label="
-								t('scholiq', 'Move {type} block up', {
+								t('learniq', 'Move {type} block up', {
 									type: blockTypeLabel(block.type),
 								})
 							"
@@ -136,7 +136,7 @@
 							class="lesson-composer__icon-btn"
 							:disabled="idx === blocks.length - 1"
 							:aria-label="
-								t('scholiq', 'Move {type} block down', {
+								t('learniq', 'Move {type} block down', {
 									type: blockTypeLabel(block.type),
 								})
 							"
@@ -147,7 +147,7 @@
 							type="button"
 							class="lesson-composer__icon-btn"
 							:aria-label="
-								t('scholiq', 'Remove {type} block', {
+								t('learniq', 'Remove {type} block', {
 									type: blockTypeLabel(block.type),
 								})
 							"
@@ -162,7 +162,7 @@
 						class="lesson-composer__block-body">
 						<CnMarkdownEditor
 							:value="block.text || ''"
-							:aria-label="t('scholiq', 'Rich text content')"
+							:aria-label="t('learniq', 'Rich text content')"
 							:rows="6"
 							@input="(v) => onBlockFieldInput(block, 'text', v)" />
 					</div>
@@ -175,8 +175,8 @@
 							v-model="block.materialId"
 							:options="materialOptions"
 							:reduce="(opt) => opt.id"
-							:inputLabel="t('scholiq', 'Material')"
-							:aria-label-combobox="t('scholiq', 'Material')" />
+							:inputLabel="t('learniq', 'Material')"
+							:aria-label-combobox="t('learniq', 'Material')" />
 						<button
 							type="button"
 							class="button-vue"
@@ -186,7 +186,7 @@
 								v-if="pickingFile"
 								class="icon-loading"
 								aria-hidden="true" />
-							{{ t('scholiq', 'Upload a new file…') }}
+							{{ t('learniq', 'Upload a new file…') }}
 						</button>
 					</div>
 
@@ -198,8 +198,8 @@
 							v-model="block.assessmentId"
 							:options="assessmentOptions"
 							:reduce="(opt) => opt.id"
-							:inputLabel="t('scholiq', 'Assessment')"
-							:aria-label-combobox="t('scholiq', 'Assessment')" />
+							:inputLabel="t('learniq', 'Assessment')"
+							:aria-label-combobox="t('learniq', 'Assessment')" />
 					</div>
 
 					<!-- assignment -->
@@ -210,8 +210,8 @@
 							v-model="block.assignmentId"
 							:options="assignmentOptions"
 							:reduce="(opt) => opt.id"
-							:inputLabel="t('scholiq', 'Assignment')"
-							:aria-label-combobox="t('scholiq', 'Assignment')" />
+							:inputLabel="t('learniq', 'Assignment')"
+							:aria-label-combobox="t('learniq', 'Assignment')" />
 					</div>
 
 					<!-- ltiTool -->
@@ -222,9 +222,9 @@
 							v-model="block.ltiToolPlacementId"
 							:options="ltiToolPlacementOptions"
 							:reduce="(opt) => opt.id"
-							:inputLabel="t('scholiq', 'LTI tool placement')"
+							:inputLabel="t('learniq', 'LTI tool placement')"
 							:aria-label-combobox="
-								t('scholiq', 'LTI tool placement')
+								t('learniq', 'LTI tool placement')
 							" />
 					</div>
 				</li>
@@ -232,31 +232,31 @@
 
 			<section class="lesson-composer__add-block">
 				<label class="lesson-composer__field-label" for="lc-add-block-type">
-					{{ t('scholiq', 'Block type') }}
+					{{ t('learniq', 'Block type') }}
 				</label>
 				<select
 					id="lc-add-block-type"
 					v-model="addBlockType"
 					class="lesson-composer__select">
 					<option value="richText">
-						{{ t('scholiq', 'Rich text') }}
+						{{ t('learniq', 'Rich text') }}
 					</option>
 					<option value="media">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'Media (image / video / file / SCORM-cmi5 reference)',
 							)
 						}}
 					</option>
 					<option value="quiz">
-						{{ t('scholiq', 'Quiz') }}
+						{{ t('learniq', 'Quiz') }}
 					</option>
 					<option value="assignment">
-						{{ t('scholiq', 'Assignment') }}
+						{{ t('learniq', 'Assignment') }}
 					</option>
 					<option value="ltiTool">
-						{{ t('scholiq', 'External tool (LTI)') }}
+						{{ t('learniq', 'External tool (LTI)') }}
 					</option>
 				</select>
 				<button
@@ -264,7 +264,7 @@
 					class="button-vue button-vue--secondary"
 					@click="addBlock">
 					<PlusIcon :size="16" />
-					{{ t('scholiq', 'Add block') }}
+					{{ t('learniq', 'Add block') }}
 				</button>
 			</section>
 		</template>
@@ -424,7 +424,7 @@ export default {
 				this.ltiToolPlacements = ltiToolPlacements
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load the lesson. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -471,7 +471,7 @@ export default {
 		 */
 		async fetchObject(schema, objId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/${schema}/${objId}`,
+				`/apps/openregister/api/objects/learniq/${schema}/${objId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -491,7 +491,7 @@ export default {
 		 */
 		async fetchList(schema, query) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/${schema}?${query}`,
+				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -511,7 +511,7 @@ export default {
 		 */
 		async createObject(schema, body) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/${schema}`,
+				`/apps/openregister/api/objects/learniq/${schema}`,
 			)
 			const resp = await fetch(url, {
 				method: 'POST',
@@ -552,11 +552,11 @@ export default {
 		 */
 		blockTypeLabel(type) {
 			const labels = {
-				richText: this.t('scholiq', 'Rich text'),
-				media: this.t('scholiq', 'Media'),
-				quiz: this.t('scholiq', 'Quiz'),
-				assignment: this.t('scholiq', 'Assignment'),
-				ltiTool: this.t('scholiq', 'External tool'),
+				richText: this.t('learniq', 'Rich text'),
+				media: this.t('learniq', 'Media'),
+				quiz: this.t('learniq', 'Quiz'),
+				assignment: this.t('learniq', 'Assignment'),
+				ltiTool: this.t('learniq', 'External tool'),
 			}
 			return labels[type] ?? type
 		},
@@ -642,7 +642,7 @@ export default {
 			this.blocks.splice(toIndex, 0, moved)
 			this.renumberBlocks()
 			this.liveMessage = this.t(
-				'scholiq',
+				'learniq',
 				'{type} block moved to position {pos} of {total}',
 				{
 					type: this.blockTypeLabel(moved.type),
@@ -676,7 +676,7 @@ export default {
 		 */
 		onBlocksDragEnd() {
 			this.renumberBlocks()
-			this.liveMessage = this.t('scholiq', 'Block order updated.')
+			this.liveMessage = this.t('learniq', 'Block order updated.')
 		},
 
 		/**
@@ -694,7 +694,7 @@ export default {
 			this.pickingFile = true
 			try {
 				const picker = getFilePickerBuilder(
-					this.t('scholiq', 'Choose a file for this block'),
+					this.t('learniq', 'Choose a file for this block'),
 				)
 					.setMultiSelect(false)
 					.build()
@@ -720,7 +720,7 @@ export default {
 				)
 					return
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to attach the picked file. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -745,7 +745,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					`/apps/openregister/api/objects/scholiq/Lesson/${this.lessonId}`,
+					`/apps/openregister/api/objects/learniq/Lesson/${this.lessonId}`,
 				)
 				const resp = await fetch(url, {
 					method: 'PUT',
@@ -763,7 +763,7 @@ export default {
 				this.saveDone = true
 			} catch (err) {
 				this.saveError = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to save the lesson. Please try again.',
 				)
 				// eslint-disable-next-line no-console

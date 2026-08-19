@@ -69,7 +69,7 @@ use Psr\Log\LoggerInterface;
  */
 class BpvLeerbedrijfVerificationHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const PLACEMENT_SCHEMA = 'bpv-placement';
 	private const TARGET_STATE = 'sbb-verification-pending';
 

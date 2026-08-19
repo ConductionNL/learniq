@@ -80,13 +80,13 @@ if (!defined('OC_CONSOLE')) {
 	// tests/Stubs/ shims only, so guard these NC-only calls.
 	if (class_exists('\OC_App')) {
 		\OC_App::loadApps();
-		\OC_App::loadApp('scholiq');
+		\OC_App::loadApp('learniq');
 		\OC_Hook::clear();
 	}
 }
 
 // IMcpToolProvider stub — loaded when the openregister runtime (PR #1466) is absent.
-// This lets ScholiqToolProvider unit tests run in standalone CI environments.
+// This lets LearniqToolProvider unit tests run in standalone CI environments.
 if (interface_exists(\OCA\OpenRegister\Mcp\IMcpToolProvider::class) === false) {
 	require_once __DIR__ . '/Stubs/Mcp/IMcpToolProvider.php';
 }

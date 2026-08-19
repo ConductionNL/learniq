@@ -84,7 +84,7 @@ use Throwable;
  */
 class PaymentTransactionController extends Controller {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ORDER_SCHEMA = 'order';
 	private const PAYMENT_TRANSACTION_SCHEMA = 'payment-transaction';
 

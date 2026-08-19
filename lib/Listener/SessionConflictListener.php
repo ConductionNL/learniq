@@ -61,7 +61,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class SessionConflictListener implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
 
 	/**

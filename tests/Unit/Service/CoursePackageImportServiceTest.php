@@ -39,7 +39,7 @@ use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
 use OCA\Learniq\Service\CoursePackage\MoodleActivityRouter;
 use OCA\Learniq\Service\CoursePackage\MoodleCourseImporter;
 use OCA\Learniq\Service\CoursePackage\PackageXmlValueReader;
-use OCA\Learniq\Service\CoursePackage\ScholiqJsonCourseImporter;
+use OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter;
 use OCA\Learniq\Service\CoursePackageImportService;
 use OCA\Learniq\Service\MbzExtractor;
 use OCA\Learniq\Service\MoodleBackupParser;
@@ -142,7 +142,7 @@ class CoursePackageImportServiceTest extends TestCase {
 		return new CoursePackageImportService(
 			$ccImporter,
 			$moodleImporter,
-			new ScholiqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
+			new LearniqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
 			$fileWriter,
 			$reporter,
 			$logger,

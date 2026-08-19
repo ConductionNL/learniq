@@ -57,7 +57,7 @@ class RolloverExecutionHandler implements IEventListener {
 	/**
 	 * OpenRegister register slug.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * RolloverPlan schema slug.

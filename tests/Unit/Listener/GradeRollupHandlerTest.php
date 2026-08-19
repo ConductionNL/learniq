@@ -148,7 +148,7 @@ class GradeRollupHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('grade-entry');
 		$event->method('getTo')->willReturn('published');
 		$event->method('getFrom')->willReturn('concept');

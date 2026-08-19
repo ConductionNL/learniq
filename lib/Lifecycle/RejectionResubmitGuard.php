@@ -57,7 +57,7 @@ use Psr\Log\LoggerInterface;
  */
 class RejectionResubmitGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const JOB_SCHEMA = 'data-exchange-job';
 
 	/**

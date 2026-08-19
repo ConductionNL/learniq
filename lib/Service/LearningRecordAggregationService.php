@@ -52,7 +52,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class LearningRecordAggregationService {
 
-	private const REGISTER = 'scholiq';
+	private const REGISTER = 'learniq';
 
 	private const SCHEMA_LEARNER_PROFILE = 'learner-profile';
 	private const SCHEMA_ENROLMENT = 'enrolment';

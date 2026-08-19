@@ -25,12 +25,12 @@
 	<div class="leaderboard-view">
 		<header class="leaderboard-view__header">
 			<h2 class="leaderboard-view__title">
-				{{ t('scholiq', 'Leaderboard') }}
+				{{ t('learniq', 'Leaderboard') }}
 			</h2>
 			<p class="leaderboard-view__subtitle">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'Ranked points for cohorts that have opted in to a leaderboard. Your own points and level are always visible to you regardless of this setting.',
 					)
 				}}
@@ -48,10 +48,10 @@
 		<!-- No cohort currently has an active, opted-in leaderboard -->
 		<NcEmptyContent
 			v-else-if="leaderboardOptions.length === 0"
-			:name="t('scholiq', 'No active leaderboards')"
+			:name="t('learniq', 'No active leaderboards')"
 			:description="
 				t(
-					'scholiq',
+					'learniq',
 					'A coordinator has not opted any cohort into a leaderboard yet.',
 				)
 			" />
@@ -59,7 +59,7 @@
 		<template v-else>
 			<div class="leaderboard-view__field">
 				<label for="leaderboard-cohort-select">{{
-					t('scholiq', 'Leaderboard')
+					t('learniq', 'Leaderboard')
 				}}</label>
 				<NcSelect
 					id="leaderboard-cohort-select"
@@ -67,8 +67,8 @@
 					:options="leaderboardOptions"
 					:reduce="(o) => o.cohortId"
 					label="name"
-					:inputLabel="t('scholiq', 'Leaderboard')"
-					:aria-label-combobox="t('scholiq', 'Leaderboard')"
+					:inputLabel="t('learniq', 'Leaderboard')"
+					:aria-label-combobox="t('learniq', 'Leaderboard')"
 					@update:modelValue="loadRankings" />
 			</div>
 
@@ -78,7 +78,7 @@
 				:disabled="optOutSaving"
 				class="leaderboard-view__opt-out"
 				@update:checked="toggleOptOut">
-				{{ t('scholiq', 'Hide me from this leaderboard') }}
+				{{ t('learniq', 'Hide me from this leaderboard') }}
 			</NcCheckboxRadioSwitch>
 
 			<div
@@ -97,10 +97,10 @@
 
 			<NcEmptyContent
 				v-else-if="rankings.length === 0"
-				:name="t('scholiq', 'No ranked learners')"
+				:name="t('learniq', 'No ranked learners')"
 				:description="
 					t(
-						'scholiq',
+						'learniq',
 						'Every member of this cohort has opted out, or nobody has earned points yet.',
 					)
 				" />
@@ -188,7 +188,7 @@ export default {
 					_limit: '100',
 				})
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/Leaderboard?'
+					'/apps/openregister/api/objects/learniq/Leaderboard?'
 						+ params.toString(),
 				)
 				const response = await axios.get(url)
@@ -227,7 +227,7 @@ export default {
 			this.loadingRankings = true
 			this.rankingsError = null
 			try {
-				const url = generateUrl('/apps/scholiq/api/leaderboard/{cohortId}', {
+				const url = generateUrl('/apps/learniq/api/leaderboard/{cohortId}', {
 					cohortId: this.selectedCohortId,
 				})
 				const response = await axios.get(url)
@@ -236,9 +236,9 @@ export default {
 				this.rankings = []
 				this.rankingsError =
 					err?.response?.status === 403
-						? this.t('scholiq', 'You are not a member of this cohort.')
+						? this.t('learniq', 'You are not a member of this cohort.')
 						: this.t(
-								'scholiq',
+								'learniq',
 								'Failed to load the leaderboard. Please try again.',
 							)
 			} finally {
@@ -254,7 +254,7 @@ export default {
 		 */
 		async loadOptOutState() {
 			try {
-				const url = generateUrl('/apps/scholiq/api/preferences/{key}', {
+				const url = generateUrl('/apps/learniq/api/preferences/{key}', {
 					key: OPT_OUT_PREFERENCE_KEY,
 				})
 				const response = await axios.get(url)
@@ -275,7 +275,7 @@ export default {
 		async toggleOptOut(value) {
 			this.optOutSaving = true
 			try {
-				const url = generateUrl('/apps/scholiq/api/preferences/{key}', {
+				const url = generateUrl('/apps/learniq/api/preferences/{key}', {
 					key: OPT_OUT_PREFERENCE_KEY,
 				})
 				await axios.put(url, { value: value ? 'true' : '' })

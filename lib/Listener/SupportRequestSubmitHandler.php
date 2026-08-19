@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  */
 class SupportRequestSubmitHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SUPPORT_REQUEST_SCHEMA = 'support-request';
 	private const JOB_SCHEMA = 'data-exchange-job';
 	private const MAPPING_PROFILE_SCHEMA = 'data-mapping-profile';

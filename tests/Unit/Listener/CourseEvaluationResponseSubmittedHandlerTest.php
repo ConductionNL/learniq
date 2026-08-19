@@ -116,7 +116,7 @@ class CourseEvaluationResponseSubmittedHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('course-evaluation-response');
 		$event->method('getTo')->willReturn('submitted');
 		$event->method('getFrom')->willReturn('draft');
@@ -217,7 +217,7 @@ class CourseEvaluationResponseSubmittedHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('course-evaluation-response');
 		$event->method('getTo')->willReturn('draft');
 

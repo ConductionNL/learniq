@@ -147,7 +147,7 @@ class AuditPackBuilder {
 	private function resolveTenantId(IUser $user): string {
 		$userTenantId = $this->config->getUserValue(
 			userId: $user->getUID(),
-			appName: 'scholiq',
+			appName: 'learniq',
 			key: 'tenant_id',
 			default: ''
 		);
@@ -477,7 +477,7 @@ class AuditPackBuilder {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
 	 */
 	private function buildZip(array $files): string {
-		$tmpFile = tempnam(sys_get_temp_dir(), 'scholiq_audit_');
+		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_audit_');
 		if ($tmpFile === false) {
 			return '';
 		}

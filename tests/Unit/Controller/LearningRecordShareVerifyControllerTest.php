@@ -107,7 +107,7 @@ class LearningRecordShareVerifyControllerTest extends TestCase {
 					return null;
 				}
 
-				return OrEntityFactory::make($data, (string)$schema, 'scholiq', (string)$id);
+				return OrEntityFactory::make($data, (string)$schema, 'learniq', (string)$id);
 			}
 		);
 

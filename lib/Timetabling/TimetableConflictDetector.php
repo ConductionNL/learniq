@@ -72,7 +72,7 @@ use Psr\Log\LoggerInterface;
  */
 class TimetableConflictDetector {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const TIMETABLE_CONFLICT_SCHEMA = 'timetable-conflict';
 
 	/**

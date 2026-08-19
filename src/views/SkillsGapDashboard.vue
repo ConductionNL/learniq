@@ -27,12 +27,12 @@
 	<div class="skills-gap-dashboard">
 		<header class="skills-gap-dashboard__header">
 			<h2 class="skills-gap-dashboard__title">
-				{{ t('scholiq', 'Skills gap dashboard') }}
+				{{ t('learniq', 'Skills gap dashboard') }}
 			</h2>
 			<p class="skills-gap-dashboard__subtitle">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'Competencies required by your programme(s) and role, compared against what you have attained.',
 					)
 				}}
@@ -42,7 +42,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="skills-gap-dashboard__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading skills gap...') }}</span>
+			<span>{{ t('learniq', 'Loading skills gap...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -53,13 +53,13 @@
 
 		<template v-else>
 			<section class="skills-gap-dashboard__section">
-				<h3>{{ t('scholiq', 'Required by programme') }}</h3>
+				<h3>{{ t('learniq', 'Required by programme') }}</h3>
 				<div
 					v-if="programmeGaps.length === 0"
 					class="skills-gap-dashboard__empty"
 					role="status">
 					<span class="icon-checkmark" aria-hidden="true" />
-					<p>{{ t('scholiq', 'No programme-required gaps.') }}</p>
+					<p>{{ t('learniq', 'No programme-required gaps.') }}</p>
 				</div>
 				<ul v-else class="skills-gap-dashboard__list">
 					<li
@@ -73,20 +73,20 @@
 							item.title
 						}}</span>
 						<span class="skills-gap-dashboard__item-status">
-							{{ t('scholiq', 'Gap') }}
+							{{ t('learniq', 'Gap') }}
 						</span>
 					</li>
 				</ul>
 			</section>
 
 			<section class="skills-gap-dashboard__section">
-				<h3>{{ t('scholiq', 'Required by role') }}</h3>
+				<h3>{{ t('learniq', 'Required by role') }}</h3>
 				<div
 					v-if="roleGaps.length === 0"
 					class="skills-gap-dashboard__empty"
 					role="status">
 					<span class="icon-checkmark" aria-hidden="true" />
-					<p>{{ t('scholiq', 'No role-required gaps.') }}</p>
+					<p>{{ t('learniq', 'No role-required gaps.') }}</p>
 				</div>
 				<ul v-else class="skills-gap-dashboard__list">
 					<li
@@ -100,19 +100,19 @@
 							item.title
 						}}</span>
 						<span class="skills-gap-dashboard__item-status">
-							{{ t('scholiq', 'Gap') }}
+							{{ t('learniq', 'Gap') }}
 						</span>
 					</li>
 				</ul>
 			</section>
 
 			<section class="skills-gap-dashboard__section">
-				<h3>{{ t('scholiq', 'Attained') }}</h3>
+				<h3>{{ t('learniq', 'Attained') }}</h3>
 				<div
 					v-if="attainedList.length === 0"
 					class="skills-gap-dashboard__empty"
 					role="status">
-					<p>{{ t('scholiq', 'No attained competencies yet.') }}</p>
+					<p>{{ t('learniq', 'No attained competencies yet.') }}</p>
 				</div>
 				<ul v-else class="skills-gap-dashboard__list">
 					<li
@@ -306,7 +306,7 @@ export default {
 				)
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load the skills gap dashboard. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -347,7 +347,7 @@ export default {
 				),
 			).toString()
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/${schema}?${query}`,
+				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
 			)
 			const resp = await axios.get(url)
 			const body = resp.data
@@ -366,7 +366,7 @@ export default {
 			if (!id) return null
 			try {
 				const url = generateUrl(
-					`/apps/openregister/api/objects/scholiq/${schema}/${id}`,
+					`/apps/openregister/api/objects/learniq/${schema}/${id}`,
 				)
 				const resp = await axios.get(url)
 				return resp.data

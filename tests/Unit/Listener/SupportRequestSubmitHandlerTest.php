@@ -157,7 +157,7 @@ class SupportRequestSubmitHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('support-request');
 		$event->method('getTo')->willReturn('submitted');
 		$event->method('getFrom')->willReturn('draft');
@@ -266,7 +266,7 @@ class SupportRequestSubmitHandlerTest extends TestCase {
 		$handler = $this->makeHandler(savedJobId: 'job-4');
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('learning-plan');
 		$event->method('getTo')->willReturn('submitted');
 
@@ -286,7 +286,7 @@ class SupportRequestSubmitHandlerTest extends TestCase {
 		$handler = $this->makeHandler(savedJobId: 'job-5');
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('support-request');
 		$event->method('getTo')->willReturn('closed');
 
