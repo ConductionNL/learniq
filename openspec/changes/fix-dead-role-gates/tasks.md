@@ -72,8 +72,8 @@
   - GIVEN an `IGroupManager::isInGroup($uid, '<literal>')` call site whose literal group id resolves against neither the app's OAS scope map nor its `authorization` blocks WHEN gate 30 runs THEN it reports a `group-declared` FAIL finding naming the call site and the group id
   - GIVEN an app with no discoverable `primaryRole`-shaped resolver (most apps) WHEN gate 30 runs THEN the `role-resolvable` check WARNs and does not fail, matching the gate's existing WARN-on-unknowable posture
   - GIVEN a dynamically-constructed `isInGroup()` argument (e.g. string concatenation) WHEN gate 30 runs THEN the `group-declared` check WARNs rather than FAILs, since it cannot statically resolve the literal
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 7: Add gate-30 fixtures and self-tests for both new checks
 - **spec_ref**: `openspec/changes/fix-dead-role-gates/specs/dashboard/spec.md#requirement-a-ci-gate-must-reject-a-manifest-role-literal-the-resolver-cannot-emit-and-a-group-name-no-declaration-provisions`
@@ -81,8 +81,8 @@
 - **acceptance_criteria**:
   - GIVEN the `good/` fixture (a resolver + manifest pair whose every literal and group resolve cleanly) WHEN `test_check_manifest_crossref.js` runs THEN both new checks report zero findings and the gate exits 0
   - GIVEN the `broken/` fixture gains one seeded defect per new check class (one unresolvable `visibleIf` literal, one undeclared `isInGroup()` group) WHEN the test runs THEN both defects are reported and the gate exits non-zero
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 8: Document the two new checks and sync role-vocabulary references
 - **spec_ref**: `openspec/changes/fix-dead-role-gates/design.md#ci-gate-extension-hydra-gate-30`
@@ -90,8 +90,8 @@
 - **acceptance_criteria**:
   - GIVEN the gate-30 skill's Check section currently lists 4 check classes WHEN this task is complete THEN it lists 6, with `role-resolvable` and `group-declared` documented alongside their fail/warn conditions and fix recipes, matching the pattern of the existing 4
   - GIVEN any Scholiq docs page names the `scholiq-{role}` group convention or the retired school-only role words (`teacher`, `principal`, `mentor`, `parent`) as identifiers WHEN this task is complete THEN it is updated to the canonical vocabulary, or a note is added that the docs page is out of date if updating it is out of scope for this change
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ## Quality checklist
 
