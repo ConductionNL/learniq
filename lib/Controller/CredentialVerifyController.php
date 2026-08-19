@@ -15,7 +15,7 @@
  * credential record (CR-2: removed unauthenticated write path).
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -32,11 +32,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\Service\KeyManagementService;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\KeyManagementService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
@@ -63,7 +63,7 @@ class CredentialVerifyController extends Controller {
 	 *
 	 * @var string
 	 */
-	private const THROTTLE_ACTION = 'scholiq_credential_verify';
+	private const THROTTLE_ACTION = 'learniq_credential_verify';
 
 	/**
 	 * Record a failed verification with the brute-force throttler.
@@ -143,7 +143,7 @@ class CredentialVerifyController extends Controller {
 		try {
 			$credentialObj = $this->objectService->find(
 				id: $id,
-				register: 'scholiq',
+				register: 'learniq',
 				schema: 'credential'
 			);
 		} catch (DoesNotExistException | MultipleObjectsReturnedException $notFound) {

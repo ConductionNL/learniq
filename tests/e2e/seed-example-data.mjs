@@ -3,7 +3,7 @@
 // Copyright (C) 2026 Conduction B.V.
 //
 // seed-example-data.mjs — best-effort import of the scholiq OpenRegister register
-// (lib/Settings/scholiq_register.json) into a running Nextcloud + OpenRegister,
+// (lib/Settings/learniq_register.json) into a running Nextcloud + OpenRegister,
 // then create a small coherent example dataset so the index pages + dashboard KPI
 // widgets have content. Idempotent: re-running skips objects that already exist.
 //
@@ -53,7 +53,7 @@ const USER = process.env.OR_USER ?? 'admin'
 const PASS = process.env.OR_PASS ?? 'admin'
 const AUTH = 'Basic ' + Buffer.from(`${USER}:${PASS}`).toString('base64')
 
-const REGISTER_SLUG = 'scholiq'
+const REGISTER_SLUG = 'learniq'
 
 function log(...a) { console.log('[seed]', ...a) }
 function warn(...a) { console.warn('[seed]', ...a) }
@@ -95,7 +95,7 @@ async function pingNc() {
 
 // ── 2. Import the register ───────────────────────────────────────────────────
 function loadRegister() {
-	return JSON.parse(readFileSync(join(REPO_ROOT, 'lib', 'Settings', 'scholiq_register.json'), 'utf8'))
+	return JSON.parse(readFileSync(join(REPO_ROOT, 'lib', 'Settings', 'learniq_register.json'), 'utf8'))
 }
 
 // ⚠️ `_limit`, NOT `limit`. OpenRegister's list endpoints treat a bare `limit`
@@ -177,7 +177,7 @@ async function importRegister() {
 	const beforeImport = await existingSchemaSlugs()
 	// (a) create a Configuration entity, then import into it
 	const cfg = await api('POST', '/index.php/apps/openregister/api/configurations', {
-		title: 'scholiq-seed', type: REGISTER_SLUG,
+		title: 'learniq-seed', type: REGISTER_SLUG,
 	})
 	if (cfg.ok && cfg.json?.id) {
 		const imp = await api('POST', `/index.php/apps/openregister/api/configurations/${cfg.json.id}/import`, { json: registerJson })

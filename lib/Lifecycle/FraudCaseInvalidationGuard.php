@@ -15,7 +15,7 @@
  * a cross-schema read guard, the mirror image of `FraudCaseBlockGuard`.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -32,7 +32,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -49,7 +49,7 @@ use Psr\Log\LoggerInterface;
  */
 class FraudCaseInvalidationGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const FRAUD_CASE_SCHEMA = 'fraud-case';
 
 	/**

@@ -8,7 +8,7 @@
  * the verifier stamping on success.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Lifecycle
+ * @package  OCA\Learniq\Tests\Unit\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -23,9 +23,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Lifecycle;
+namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
-use OCA\Scholiq\Lifecycle\ExternalTrainingVerificationGuard;
+use OCA\Learniq\Lifecycle\ExternalTrainingVerificationGuard;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;

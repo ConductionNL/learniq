@@ -6,13 +6,13 @@
  * IMPORTANT SCOPE NOTE: `x-openregister-calculations` is evaluated by
  * OpenRegister core at runtime, which does not live in this repository (only
  * test stubs for its PHP service classes do — see composer.json's
- * `autoload-dev`). Scholiq cannot unit-test the numeric OUTPUT of a declared
+ * `autoload-dev`). Learniq cannot unit-test the numeric OUTPUT of a declared
  * calculation (no existing test in this suite does — see
- * VerzuimReportComposerRegisterTest). What Scholiq CAN and MUST verify is
+ * VerzuimReportComposerRegisterTest). What Learniq CAN and MUST verify is
  * that the declared SHAPE is correct — mirrors that established pattern.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Settings
+ * @package  OCA\Learniq\Tests\Unit\Settings
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -27,7 +27,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Settings;
+namespace OCA\Learniq\Tests\Unit\Settings;
 
 use PHPUnit\Framework\TestCase;
 
@@ -52,7 +52,7 @@ class ExchangeRejectionRegisterTest extends TestCase {
 	 */
 	protected function setUp(): void {
 		parent::setUp();
-		$path = __DIR__ . '/../../../lib/Settings/scholiq_register.json';
+		$path = __DIR__ . '/../../../lib/Settings/learniq_register.json';
 		$this->config = json_decode((string)file_get_contents($path), true);
 
 	}//end setUp()
@@ -122,7 +122,7 @@ class ExchangeRejectionRegisterTest extends TestCase {
 
 		self::assertSame('corrected', $transitions['resubmit']['from']);
 		self::assertSame('resubmitted', $transitions['resubmit']['to']);
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\RejectionResubmitGuard', $transitions['resubmit']['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\RejectionResubmitGuard', $transitions['resubmit']['requires']);
 
 		self::assertSame('resubmitted', $transitions['accept']['from']);
 		self::assertSame('accepted', $transitions['accept']['to']);
@@ -134,7 +134,7 @@ class ExchangeRejectionRegisterTest extends TestCase {
 
 		self::assertSame(['open', 'corrected'], $transitions['waive']['from']);
 		self::assertSame('waived', $transitions['waive']['to']);
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\RejectionWaiveGuard', $transitions['waive']['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\RejectionWaiveGuard', $transitions['waive']['requires']);
 
 	}//end testLifecycleTransitionShape()
 

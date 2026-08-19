@@ -4,7 +4,7 @@
  * Scholiq BsaProgressEvaluator unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\StudyProgress
+ * @package  OCA\Learniq\Tests\Unit\StudyProgress
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,10 +21,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\StudyProgress;
+namespace OCA\Learniq\Tests\Unit\StudyProgress;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\StudyProgress\BsaProgressEvaluator;
+use OCA\Learniq\StudyProgress\BsaProgressEvaluator;
 use PHPUnit\Framework\TestCase;
 
 /**

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Enrolment Progress Evaluator
+ * Learniq Enrolment Progress Evaluator
  *
  * Stateless calculation engine computing an Enrolment's progressPercent from
  * its declared completedLessonCount/totalPublishedLessonCount aggregate-refs.
@@ -9,7 +9,7 @@
  * ADR-031 legitimate exception: "Calculation engine above schema metadata."
  * No division operator exists in this register's JSON-logic calculation DSL
  * (verified by a full scan of every x-openregister-calculations expression
- * in lib/Settings/scholiq_register.json — see proposal.md) — a small PHP
+ * in lib/Settings/learniq_register.json — see proposal.md) — a small PHP
  * class is genuinely needed, the same shape of gap FinalGrade.value /
  * GradeFormulaEvaluator already solved. Single responsibility: evaluate ->
  * return; no state, no audit writes.
@@ -18,7 +18,7 @@
  *   - EnrolmentProgressRollupHandler (via ObjectCreatedEvent<LessonCompletion>)
  *
  * @category Progress
- * @package  OCA\Scholiq\Progress
+ * @package  OCA\Learniq\Progress
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -35,7 +35,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Progress;
+namespace OCA\Learniq\Progress;
 
 use OCA\OpenRegister\Service\ObjectService;
 
@@ -44,7 +44,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class EnrolmentProgressEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const LESSON_SCHEMA = 'lesson';
 	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
 

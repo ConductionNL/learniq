@@ -3,14 +3,14 @@
 /**
  * Integration test for XapiCompletionHandler.
  *
- * Requires a live OpenRegister database (installed Nextcloud + scholiq + openregister).
+ * Requires a live OpenRegister database (installed Nextcloud + learniq + openregister).
  * Run with:
  *   ./vendor/bin/phpunit --testsuite "Integration Tests"
  *
  * In CI environments without a running Nextcloud the test is skipped automatically.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Integration\Lifecycle
+ * @package  OCA\Learniq\Tests\Integration\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -31,10 +31,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Integration\Lifecycle;
+namespace OCA\Learniq\Tests\Integration\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Lifecycle\XapiCompletionHandler;
+use OCA\Learniq\Lifecycle\XapiCompletionHandler;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -42,12 +42,12 @@ use Psr\Log\NullLogger;
 /**
  * Integration test for XapiCompletionHandler.
  *
- * Seeds a minimal scholiq register (Course, Lesson, Enrolment) into the live
+ * Seeds a minimal learniq register (Course, Lesson, Enrolment) into the live
  * OpenRegister database, fires an xAPI "completed" statement event, and asserts
  * that the matching Enrolment is transitioned to `completed`.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Integration\Lifecycle
+ * @package  OCA\Learniq\Tests\Integration\Lifecycle
  */
 class XapiCompletionHandlerIntegrationTest extends TestCase {
 
@@ -103,7 +103,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 			// The listener guards on register/schema SLUGS while OpenRegister
 			// stamps numeric ids onto the entity; the real resolver from the
 			// container is what turns one into the other in production.
-			$schemaResolver = \OC::$server->get(\OCA\Scholiq\Service\ListenerSchemaResolver::class);
+			$schemaResolver = \OC::$server->get(\OCA\Learniq\Service\ListenerSchemaResolver::class);
 
 			$this->handler = new XapiCompletionHandler(
 				$this->objectService,
@@ -148,15 +148,15 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 	private function createObject(string $schema, array $data): array {
 		try {
 			$obj = $this->objectService->saveObject(
-				register: 'scholiq',
+				register: 'learniq',
 				schema: $schema,
 				object: $data,
 			);
 		} catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
-			// The Scholiq OpenRegister register/schemas aren't provisioned in
+			// The Learniq OpenRegister register/schemas aren't provisioned in
 			// this environment (CI installs the app but doesn't seed the
 			// register); these integration tests need a live, seeded OR.
-			$this->markTestSkipped('Scholiq register/schema not seeded: ' . $e->getMessage());
+			$this->markTestSkipped('Learniq register/schema not seeded: ' . $e->getMessage());
 		} catch (\OCA\OpenRegister\Exception\NotAuthorizedException $e) {
 			// Belt and braces behind the setUp() session check: a session may
 			// exist yet still lack `create` on this schema (openregister#1955
@@ -170,7 +170,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 		// JsonSerializable but NOT ArrayAccess, so `$obj['uuid']` fatals with
 		// "Cannot use object of type ObjectEntity as array".
 		$this->createdUuids[] = [
-			'register' => 'scholiq',
+			'register' => 'learniq',
 			'schema' => $schema,
 			'uuid' => $obj->getUuid(),
 		];
@@ -207,7 +207,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 		try {
 			$entity = $this->objectService->find(
 				id: $uuid,
-				register: 'scholiq',
+				register: 'learniq',
 				schema: $schema,
 			);
 		} catch (\OCP\AppFramework\Db\DoesNotExistException) {
@@ -274,8 +274,8 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 
 		$courseId = $course['uuid'];
 
-		$xapiObjectId1 = 'https://scholiq.test/lessons/' . uniqid();
-		$xapiObjectId2 = 'https://scholiq.test/lessons/' . uniqid();
+		$xapiObjectId1 = 'https://learniq.test/lessons/' . uniqid();
+		$xapiObjectId2 = 'https://learniq.test/lessons/' . uniqid();
 
 		// 2. Lesson 1 — published, not mandatory.
 		$this->createObject(
@@ -368,7 +368,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 		$course = $this->createObject('Course', ['title' => 'Course ' . uniqid(), 'lifecycle' => 'published']);
 		$courseId = $course['uuid'];
 
-		$xapiObjectId = 'https://scholiq.test/lessons/' . uniqid();
+		$xapiObjectId = 'https://learniq.test/lessons/' . uniqid();
 		$this->createObject(
 			'Lesson',
 			[
@@ -407,7 +407,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 		$course = $this->createObject('Course', ['title' => 'Course ' . uniqid(), 'lifecycle' => 'published']);
 		$courseId = $course['uuid'];
 
-		$xapiObjectId = 'https://scholiq.test/lessons/' . uniqid();
+		$xapiObjectId = 'https://learniq.test/lessons/' . uniqid();
 		$this->createObject(
 			'Lesson',
 			[

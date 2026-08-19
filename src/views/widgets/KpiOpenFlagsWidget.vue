@@ -5,7 +5,7 @@
 <template>
 	<KpiCard
 		schema="attendance-flag"
-		:label="t('scholiq', 'Open attendance flags')"
+		:label="t('learniq', 'Open attendance flags')"
 		:filter="{ lifecycle: 'open' }"
 		link="/attendance/flags"
 		variant="warning" />

@@ -4,7 +4,7 @@
  * Unit tests for SettingsController.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Unit\Controller
+ * @package  OCA\Learniq\Tests\Unit\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -17,10 +17,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Controller;
+namespace OCA\Learniq\Tests\Unit\Controller;
 
-use OCA\Scholiq\Controller\SettingsController;
-use OCA\Scholiq\Service\SettingsService;
+use OCA\Learniq\Controller\SettingsController;
+use OCA\Learniq\Service\SettingsService;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use PHPUnit\Framework\MockObject\MockObject;

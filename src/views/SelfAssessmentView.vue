@@ -19,12 +19,12 @@
   MarkSubmissionView.
 
   Talks only to OpenRegister's REST API:
-    - GET  /api/objects/scholiq/Submission/:id
-    - GET  /api/objects/scholiq/Assignment/:id
-    - GET  /api/objects/scholiq/Rubric/:id
-    - GET  /api/objects/scholiq/self-assessment?submissionId=:id&learnerId=:uid
-    - POST/PUT /api/objects/scholiq/self-assessment
-    - POST /api/objects/scholiq/self-assessment/:id/transition/submit
+    - GET  /api/objects/learniq/Submission/:id
+    - GET  /api/objects/learniq/Assignment/:id
+    - GET  /api/objects/learniq/Rubric/:id
+    - GET  /api/objects/learniq/self-assessment?submissionId=:id&learnerId=:uid
+    - POST/PUT /api/objects/learniq/self-assessment
+    - POST /api/objects/learniq/self-assessment/:id/transition/submit
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView / PeerReviewMarkingView.
@@ -41,7 +41,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="self-assessment-view__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading self-assessment...') }}</span>
+			<span>{{ t('learniq', 'Loading self-assessment...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -57,10 +57,10 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('scholiq', 'Self-assessment submitted') }}</h2>
+			<h2>{{ t('learniq', 'Self-assessment submitted') }}</h2>
 			<p>
 				{{
-					t('scholiq', 'Score: {score} / {max}', {
+					t('learniq', 'Score: {score} / {max}', {
 						score: computedScore,
 						max: assignment.maxPoints || '?',
 					})
@@ -71,10 +71,10 @@
 		<!-- Marking form -->
 		<template v-else-if="submission">
 			<header class="self-assessment-view__header">
-				<h2>{{ t('scholiq', 'Self-assessment') }}</h2>
+				<h2>{{ t('learniq', 'Self-assessment') }}</h2>
 				<p class="self-assessment-view__meta">
 					{{
-						t('scholiq', 'Assignment: {title}', {
+						t('learniq', 'Assignment: {title}', {
 							title: assignment.title || '',
 						})
 					}}
@@ -85,7 +85,7 @@
 				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
 				class="self-assessment-view__rubric">
 				<h3>
-					{{ t('scholiq', 'Rubric: {name}', { name: rubric.name || '' }) }}
+					{{ t('learniq', 'Rubric: {name}', { name: rubric.name || '' }) }}
 				</h3>
 
 				<div
@@ -96,7 +96,7 @@
 						{{ criterion.label }}
 						<span class="self-assessment-view__criterion-weight">
 							{{
-								t('scholiq', '(weight: {w})', {
+								t('learniq', '(weight: {w})', {
 									w: criterion.weight,
 								})
 							}}
@@ -122,7 +122,7 @@
 							}}</span>
 							<span class="self-assessment-view__level-points">
 								{{
-									t('scholiq', '{pts} pts', { pts: level.points })
+									t('learniq', '{pts} pts', { pts: level.points })
 								}}
 							</span>
 						</label>
@@ -131,7 +131,7 @@
 
 				<div class="self-assessment-view__score-total">
 					<strong>{{
-						t('scholiq', 'Score: {score} / {max}', {
+						t('learniq', 'Score: {score} / {max}', {
 							score: computedScore,
 							max: assignment.maxPoints || '?',
 						})
@@ -141,14 +141,14 @@
 
 			<section class="self-assessment-view__comments">
 				<h3 id="self-assessment-comments-label">
-					{{ t('scholiq', 'Your reflection') }}
+					{{ t('learniq', 'Your reflection') }}
 				</h3>
 				<textarea
 					id="self-assessment-comments"
 					v-model="comments"
 					class="self-assessment-view__comments-input"
 					aria-labelledby="self-assessment-comments-label"
-					:placeholder="t('scholiq', 'Reflect on your own work...')"
+					:placeholder="t('learniq', 'Reflect on your own work...')"
 					:disabled="saving"
 					rows="5" />
 			</section>
@@ -159,7 +159,7 @@
 					:disabled="saving || !canSubmit"
 					@click="saveAndSubmit">
 					<span v-if="saving" class="icon-loading" aria-hidden="true" />
-					{{ t('scholiq', 'Submit self-assessment') }}
+					{{ t('learniq', 'Submit self-assessment') }}
 				</button>
 			</div>
 			<p
@@ -326,7 +326,7 @@ export default {
 				}
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load self-assessment. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -345,7 +345,7 @@ export default {
 		 */
 		async loadSubmission(submissionId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/Submission/${submissionId}`,
+				`/apps/openregister/api/objects/learniq/Submission/${submissionId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -366,7 +366,7 @@ export default {
 		 */
 		async loadAssignment(assignmentId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/Assignment/${assignmentId}`,
+				`/apps/openregister/api/objects/learniq/Assignment/${assignmentId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -387,7 +387,7 @@ export default {
 		 */
 		async loadRubric(rubricId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/Rubric/${rubricId}`,
+				`/apps/openregister/api/objects/learniq/Rubric/${rubricId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -411,7 +411,7 @@ export default {
 		async loadExistingSelfAssessment(submissionId) {
 			const uid = getCurrentUser()?.uid ?? ''
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/self-assessment?filters[submissionId]=${submissionId}&filters[learnerId]=${uid}&limit=1`,
+				`/apps/openregister/api/objects/learniq/self-assessment?filters[submissionId]=${submissionId}&filters[learnerId]=${uid}&limit=1`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -501,10 +501,10 @@ export default {
 				const isUpdate = this.selfAssessment != null
 				const saveUrl = isUpdate
 					? generateUrl(
-							`/apps/openregister/api/objects/scholiq/self-assessment/${this.selfAssessment.id}`,
+							`/apps/openregister/api/objects/learniq/self-assessment/${this.selfAssessment.id}`,
 						)
 					: generateUrl(
-							'/apps/openregister/api/objects/scholiq/self-assessment',
+							'/apps/openregister/api/objects/learniq/self-assessment',
 						)
 
 				const saveResp = await fetch(saveUrl, {
@@ -533,7 +533,7 @@ export default {
 				}
 
 				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/self-assessment/${selfAssessmentId}/transition/submit`,
+					`/apps/openregister/api/objects/learniq/self-assessment/${selfAssessmentId}/transition/submit`,
 				)
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',
@@ -551,7 +551,7 @@ export default {
 				this.submitted = true
 			} catch (err) {
 				this.saveError = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to save self-assessment. Please try again.',
 				)
 				// eslint-disable-next-line no-console

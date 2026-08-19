@@ -110,7 +110,7 @@ export default {
 			try {
 				const params = new URLSearchParams({ _limit: '1', ...this.filter })
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/'
+					'/apps/openregister/api/objects/learniq/'
 						+ this.schema
 						+ '?'
 						+ params.toString(),

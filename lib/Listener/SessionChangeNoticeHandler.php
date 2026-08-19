@@ -24,7 +24,7 @@
  *    NEVER touches `lifecycle`, `roomId`, `startsAt`, or `endsAt`.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -41,7 +41,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  */
 class SessionChangeNoticeHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
 	private const COHORT_SCHEMA = 'cohort';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';

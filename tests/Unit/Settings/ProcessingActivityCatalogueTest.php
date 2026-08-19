@@ -2,7 +2,7 @@
 
 /**
  * Unit tests for the AVG Art. 30 processing-activity catalogue annotations
- * added to `scholiq_register.json` by the `avg-verwerkingsregister` change.
+ * added to `learniq_register.json` by the `avg-verwerkingsregister` change.
  *
  * Scholiq is a THIN CONSUMER of OpenRegister's platform processing-activity
  * register (OR-PA-1..9): it declares its ten processing activities (seven
@@ -26,7 +26,7 @@
  *     processing activities (the export is OR-PA-7's).
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Settings
+ * @package  OCA\Learniq\Tests\Unit\Settings
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -41,7 +41,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Settings;
+namespace OCA\Learniq\Tests\Unit\Settings;
 
 use PHPUnit\Framework\TestCase;
 
@@ -82,12 +82,12 @@ class ProcessingActivityCatalogueTest extends TestCase {
 	 * @return void
 	 */
 	protected function setUp(): void {
-		$path = __DIR__ . '/../../../lib/Settings/scholiq_register.json';
+		$path = __DIR__ . '/../../../lib/Settings/learniq_register.json';
 		$raw = file_get_contents($path);
-		$this->assertNotFalse($raw, 'scholiq_register.json must be readable');
+		$this->assertNotFalse($raw, 'learniq_register.json must be readable');
 
 		$decoded = json_decode($raw, true);
-		$this->assertIsArray($decoded, 'scholiq_register.json must be valid JSON');
+		$this->assertIsArray($decoded, 'learniq_register.json must be valid JSON');
 		$this->config = $decoded;
 
 	}//end setUp()

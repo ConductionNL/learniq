@@ -4,7 +4,7 @@
  * Scholiq CourseQualityScoreRollupHandler unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,14 +21,14 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\CourseEvaluation\CourseQualityScoreEvaluator;
-use OCA\Scholiq\Listener\CourseQualityScoreRollupHandler;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\CourseEvaluation\CourseQualityScoreEvaluator;
+use OCA\Learniq\Listener\CourseQualityScoreRollupHandler;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -112,7 +112,7 @@ class CourseQualityScoreRollupHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('course-evaluation-response');
 		$event->method('getTo')->willReturn('submitted');
 		$event->method('getFrom')->willReturn('draft');

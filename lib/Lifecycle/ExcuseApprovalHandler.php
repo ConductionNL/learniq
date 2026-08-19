@@ -19,7 +19,7 @@
  * metadata declarations.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -36,7 +36,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -52,7 +52,7 @@ use Psr\Log\LoggerInterface;
  */
 class ExcuseApprovalHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const EXCUSE_REQUEST_SCHEMA = 'excuse-request';
 	private const ATTENDANCE_RECORD_SCHEMA = 'attendance-record';
 

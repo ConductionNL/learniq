@@ -9,7 +9,7 @@
  * a Session field.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Timetabling
+ * @package  OCA\Learniq\Tests\Unit\Timetabling
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -26,13 +26,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Timetabling;
+namespace OCA\Learniq\Tests\Unit\Timetabling;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
-use OCA\Scholiq\Timetabling\SessionOverlapEvaluator;
-use OCA\Scholiq\Timetabling\SessionWindowLoader;
-use OCA\Scholiq\Timetabling\TimetableConflictDetector;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Timetabling\SessionOverlapEvaluator;
+use OCA\Learniq\Timetabling\SessionWindowLoader;
+use OCA\Learniq\Timetabling\TimetableConflictDetector;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;

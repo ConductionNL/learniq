@@ -2,9 +2,9 @@
 <!-- Copyright (C) 2026 Conduction B.V. -->
 
 <!--
- ScholiqNotificationSettings — the per-user "User settings" dialog content.
+ LearniqNotificationSettings — the per-user "User settings" dialog content.
 
- Lets a user control which Scholiq notifications they receive. Reads and writes
+ Lets a user control which Learniq notifications they receive. Reads and writes
  OpenRegister's override-only notification-preferences endpoint
  (GET/PUT /apps/openregister/api/notification-preferences); OpenRegister's
  dispatcher honors each override (preference-off gate). No scholiq-local
@@ -24,11 +24,11 @@
 <template>
 	<div class="scholiq-notif-settings">
 		<NcSettingsSection
-			:name="t('scholiq', 'Notifications')"
+			:name="t('learniq', 'Notifications')"
 			:description="
 				t(
-					'scholiq',
-					'Choose which Scholiq notifications you want to receive. These preferences apply to your account only.',
+					'learniq',
+					'Choose which Learniq notifications you want to receive. These preferences apply to your account only.',
 				)
 			">
 			<div v-if="loading" class="scholiq-notif-settings__loading">
@@ -37,11 +37,11 @@
 
 			<NcEmptyContent
 				v-else-if="items.length === 0"
-				:name="t('scholiq', 'No notifications available')"
+				:name="t('learniq', 'No notifications available')"
 				:description="
 					t(
-						'scholiq',
-						'Scholiq has no notification types to configure for your account yet.',
+						'learniq',
+						'Learniq has no notification types to configure for your account yet.',
 					)
 				">
 				<template #icon>
@@ -71,11 +71,11 @@
 
 		<NcSettingsSection
 			v-if="!loading"
-			:name="t('scholiq', 'Quiet hours')"
+			:name="t('learniq', 'Quiet hours')"
 			:description="
 				t(
-					'scholiq',
-					'Defer Scholiq notifications during a daily quiet-hours window. Reminders with a deadline still arrive early enough to land before the deadline passes.',
+					'learniq',
+					'Defer Learniq notifications during a daily quiet-hours window. Reminders with a deadline still arrive early enough to land before the deadline passes.',
 				)
 			">
 			<NcCheckboxRadioSwitch
@@ -85,7 +85,7 @@
 				@update:checked="
 					(value) => saveQuietHours({ ...quietHours, enabled: value })
 				">
-				{{ t('scholiq', 'Enable quiet hours') }}
+				{{ t('learniq', 'Enable quiet hours') }}
 			</NcCheckboxRadioSwitch>
 
 			<div
@@ -93,7 +93,7 @@
 				class="scholiq-notif-settings__quiet-hours-times">
 				<div class="scholiq-notif-settings__quiet-hours-field">
 					<label for="scholiq-quiet-hours-start">{{
-						t('scholiq', 'Start')
+						t('learniq', 'Start')
 					}}</label>
 					<input
 						id="scholiq-quiet-hours-start"
@@ -110,7 +110,7 @@
 				</div>
 				<div class="scholiq-notif-settings__quiet-hours-field">
 					<label for="scholiq-quiet-hours-end">{{
-						t('scholiq', 'End')
+						t('learniq', 'End')
 					}}</label>
 					<input
 						id="scholiq-quiet-hours-end"
@@ -158,14 +158,14 @@ function normSchema(name) {
 	return String(name).toLowerCase().replace(/-/g, '')
 }
 
-// Scholiq's own schemas, derived from the bundled manifest's pages plus the
+// Learniq's own schemas, derived from the bundled manifest's pages plus the
 // notification-only schemas that have no index page. Used to scope the
 // notification-preferences list (which OpenRegister returns across every register
-// the user can access) down to Scholiq's own notifications.
+// the user can access) down to Learniq's own notifications.
 const SCHOLIQ_SCHEMAS = new Set([
 	...bundledManifest.pages
 		.filter(
-			(page) => page?.config?.register === 'scholiq' && page?.config?.schema,
+			(page) => page?.config?.register === 'learniq' && page?.config?.schema,
 		)
 		.map((page) => normSchema(page.config.schema)),
 	// Notification-only schemas (no index page).
@@ -173,7 +173,7 @@ const SCHOLIQ_SCHEMAS = new Set([
 ])
 
 export default {
-	name: 'ScholiqNotificationSettings',
+	name: 'LearniqNotificationSettings',
 
 	components: {
 		NcCheckboxRadioSwitch,
@@ -223,7 +223,7 @@ export default {
 				const response = await axios.get(url)
 				const data = response.data ?? {}
 				const results = data.results ?? (Array.isArray(data) ? data : [])
-				// Scope to Scholiq's own notifications — the endpoint returns
+				// Scope to Learniq's own notifications — the endpoint returns
 				// every notification across all registers the user can access.
 				const scholiqResults = results.filter((row) =>
 					SCHOLIQ_SCHEMAS.has(normSchema(row.schema)),
@@ -245,12 +245,12 @@ export default {
 				}
 			} catch (error) {
 				this.errorMessage = this.t(
-					'scholiq',
+					'learniq',
 					'Could not load notification preferences.',
 				)
 				// eslint-disable-next-line no-console
 				console.error(
-					'[ScholiqNotificationSettings] fetchPreferences failed:',
+					'[LearniqNotificationSettings] fetchPreferences failed:',
 					error,
 				)
 			} finally {
@@ -264,6 +264,7 @@ export default {
 		 * @param {object} item The preference row being changed.
 		 * @param {boolean} value The new enabled state.
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/fix-dashboards-settings-notifications/specs/nextcloud-app/spec.md#requirement-per-user-notification-preferences-in-the-user-settings-dialog
 		 */
 		async toggle(item, value) {
 			const previous = item.enabled
@@ -282,11 +283,11 @@ export default {
 			} catch (error) {
 				item.enabled = previous
 				this.errorMessage = this.t(
-					'scholiq',
+					'learniq',
 					'Could not save notification preference.',
 				)
 				// eslint-disable-next-line no-console
-				console.error('[ScholiqNotificationSettings] toggle failed:', error)
+				console.error('[LearniqNotificationSettings] toggle failed:', error)
 			} finally {
 				item.saving = false
 			}
@@ -338,12 +339,12 @@ export default {
 				await axios.put(url, { quietHours: next })
 			} catch (error) {
 				this.quietHoursHint = this.t(
-					'scholiq',
+					'learniq',
 					'Quiet hours are not yet enforced by your Nextcloud instance. Your preference is kept here and will take effect once support is enabled.',
 				)
 				// eslint-disable-next-line no-console
 				console.warn(
-					'[ScholiqNotificationSettings] saveQuietHours: delivery-window endpoint not yet available:',
+					'[LearniqNotificationSettings] saveQuietHours: delivery-window endpoint not yet available:',
 					error,
 				)
 			} finally {

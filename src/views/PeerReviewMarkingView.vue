@@ -19,12 +19,12 @@
   as ExamCaseDossierView's own documented limit).
 
   Talks only to OpenRegister's REST API:
-    - GET  /api/objects/scholiq/peer-review/:id
-    - GET  /api/objects/scholiq/Assignment/:id
-    - GET  /api/objects/scholiq/Rubric/:id
-    - GET  /api/objects/scholiq/Submission/:id (only when anonymity is not double-blind)
-    - PUT  /api/objects/scholiq/peer-review/:id
-    - POST /api/objects/scholiq/peer-review/:id/transition/submit
+    - GET  /api/objects/learniq/peer-review/:id
+    - GET  /api/objects/learniq/Assignment/:id
+    - GET  /api/objects/learniq/Rubric/:id
+    - GET  /api/objects/learniq/Submission/:id (only when anonymity is not double-blind)
+    - PUT  /api/objects/learniq/peer-review/:id
+    - POST /api/objects/learniq/peer-review/:id/transition/submit
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView.
@@ -44,7 +44,7 @@
 			class="peer-review-marking-view__loading"
 			aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading peer review...') }}</span>
+			<span>{{ t('learniq', 'Loading peer review...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -60,10 +60,10 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('scholiq', 'Peer review submitted') }}</h2>
+			<h2>{{ t('learniq', 'Peer review submitted') }}</h2>
 			<p>
 				{{
-					t('scholiq', 'Score: {score} / {max}', {
+					t('learniq', 'Score: {score} / {max}', {
 						score: computedScore,
 						max: assignment.maxPoints || '?',
 					})
@@ -74,10 +74,10 @@
 		<!-- Marking form -->
 		<template v-else-if="peerReview">
 			<header class="peer-review-marking-view__header">
-				<h2>{{ t('scholiq', 'Complete peer review') }}</h2>
+				<h2>{{ t('learniq', 'Complete peer review') }}</h2>
 				<p class="peer-review-marking-view__meta">
 					{{
-						t('scholiq', 'Assignment: {title}', {
+						t('learniq', 'Assignment: {title}', {
 							title: assignment.title || '',
 						})
 					}}
@@ -90,7 +90,7 @@
 					v-if="!isDoubleBlind && submissionLearnerIds.length > 0"
 					class="peer-review-marking-view__learners">
 					{{
-						t('scholiq', 'Reviewing work by: {ids}', {
+						t('learniq', 'Reviewing work by: {ids}', {
 							ids: submissionLearnerIds.join(', '),
 						})
 					}}
@@ -100,7 +100,7 @@
 					class="peer-review-marking-view__anonymity-note">
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							"Double-blind review — the author's identity is withheld.",
 						)
 					}}
@@ -111,7 +111,7 @@
 				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
 				class="peer-review-marking-view__rubric">
 				<h3>
-					{{ t('scholiq', 'Rubric: {name}', { name: rubric.name || '' }) }}
+					{{ t('learniq', 'Rubric: {name}', { name: rubric.name || '' }) }}
 				</h3>
 
 				<div
@@ -122,7 +122,7 @@
 						{{ criterion.label }}
 						<span class="peer-review-marking-view__criterion-weight">
 							{{
-								t('scholiq', '(weight: {w})', {
+								t('learniq', '(weight: {w})', {
 									w: criterion.weight,
 								})
 							}}
@@ -148,7 +148,7 @@
 							}}</span>
 							<span class="peer-review-marking-view__level-points">
 								{{
-									t('scholiq', '{pts} pts', { pts: level.points })
+									t('learniq', '{pts} pts', { pts: level.points })
 								}}
 							</span>
 						</label>
@@ -157,7 +157,7 @@
 
 				<div class="peer-review-marking-view__score-total">
 					<strong>{{
-						t('scholiq', 'Score: {score} / {max}', {
+						t('learniq', 'Score: {score} / {max}', {
 							score: computedScore,
 							max: assignment.maxPoints || '?',
 						})
@@ -167,14 +167,14 @@
 
 			<section class="peer-review-marking-view__comments">
 				<h3 id="peer-review-comments-label">
-					{{ t('scholiq', 'Comments for the author') }}
+					{{ t('learniq', 'Comments for the author') }}
 				</h3>
 				<textarea
 					id="peer-review-comments"
 					v-model="comments"
 					class="peer-review-marking-view__comments-input"
 					aria-labelledby="peer-review-comments-label"
-					:placeholder="t('scholiq', 'Write feedback for the author...')"
+					:placeholder="t('learniq', 'Write feedback for the author...')"
 					:disabled="saving"
 					rows="5" />
 			</section>
@@ -185,7 +185,7 @@
 					:disabled="saving || !canSubmit"
 					@click="saveAndSubmit">
 					<span v-if="saving" class="icon-loading" aria-hidden="true" />
-					{{ t('scholiq', 'Submit peer review') }}
+					{{ t('learniq', 'Submit peer review') }}
 				</button>
 			</div>
 			<p
@@ -347,7 +347,7 @@ export default {
 				this.comments = this.peerReview.comments ?? ''
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load peer review. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -366,7 +366,7 @@ export default {
 		 */
 		async loadPeerReview(peerReviewId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/peer-review/${peerReviewId}`,
+				`/apps/openregister/api/objects/learniq/peer-review/${peerReviewId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -387,7 +387,7 @@ export default {
 		 */
 		async loadAssignment(assignmentId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/Assignment/${assignmentId}`,
+				`/apps/openregister/api/objects/learniq/Assignment/${assignmentId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -408,7 +408,7 @@ export default {
 		 */
 		async loadRubric(rubricId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/Rubric/${rubricId}`,
+				`/apps/openregister/api/objects/learniq/Rubric/${rubricId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -431,7 +431,7 @@ export default {
 		 */
 		async loadSubmissionLearnerIds(submissionId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/Submission/${submissionId}`,
+				`/apps/openregister/api/objects/learniq/Submission/${submissionId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -505,7 +505,7 @@ export default {
 
 			try {
 				const updateUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/peer-review/${this.id}`,
+					`/apps/openregister/api/objects/learniq/peer-review/${this.id}`,
 				)
 				const updateResp = await fetch(updateUrl, {
 					method: 'PUT',
@@ -525,7 +525,7 @@ export default {
 				}
 
 				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/peer-review/${this.id}/transition/submit`,
+					`/apps/openregister/api/objects/learniq/peer-review/${this.id}/transition/submit`,
 				)
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',
@@ -543,7 +543,7 @@ export default {
 				this.submitted = true
 			} catch (err) {
 				this.saveError = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to save peer review. Please try again.',
 				)
 				// eslint-disable-next-line no-console

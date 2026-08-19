@@ -9,7 +9,7 @@
  * CredentialVerifyController's existing coverage shape.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -26,9 +26,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Scholiq\Service\LearningRecordExportSigningService;
+use OCA\Learniq\Service\LearningRecordExportSigningService;
 use OCP\IAppConfig;
 use OCP\Security\ICrypto;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -226,6 +226,6 @@ class LearningRecordExportSigningServiceTest extends TestCase {
 		$did = $service->resolveIssuerDid(tenantId: 'tenant-5');
 
 		self::assertNotNull($did);
-		self::assertStringStartsWith('did:web:scholiq:tenant-5:', $did);
+		self::assertStringStartsWith('did:web:learniq:tenant-5:', $did);
 	}//end testResolveIssuerDidReturnsDidWebForConfiguredTenant()
 }//end class

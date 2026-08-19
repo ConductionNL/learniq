@@ -4,7 +4,7 @@
  * SettingsController write-path unit tests.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Unit\Controller
+ * @package  OCA\Learniq\Tests\Unit\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -20,10 +20,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Controller;
+namespace OCA\Learniq\Tests\Unit\Controller;
 
-use OCA\Scholiq\Controller\SettingsController;
-use OCA\Scholiq\Service\SettingsService;
+use OCA\Learniq\Controller\SettingsController;
+use OCA\Learniq\Service\SettingsService;
 use OCP\IRequest;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -40,7 +40,7 @@ use PHPUnit\Framework\TestCase;
  * only checked for a JSONResponse, or only for `success === true`, would pass
  * against a controller that silently wrote nothing.
  *
- * @covers \OCA\Scholiq\Controller\SettingsController
+ * @covers \OCA\Learniq\Controller\SettingsController
  */
 class SettingsControllerWriteTest extends TestCase {
 
@@ -129,9 +129,9 @@ class SettingsControllerWriteTest extends TestCase {
 	 * @return void
 	 */
 	public function testCreateDelegatesToUpdateAndStillWrites(): void {
-		$submitted = ['default_register' => 'scholiq'];
+		$submitted = ['default_register' => 'learniq'];
 		$stored = [
-			'default_register' => 'scholiq',
+			'default_register' => 'learniq',
 			'openregisters' => true,
 			'isAdmin' => true,
 		];

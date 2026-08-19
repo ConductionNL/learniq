@@ -14,10 +14,10 @@
   authoring surface (LessonComposer.vue) and a real rendering path.
 
   Talks only to OpenRegister's REST API:
-    - GET /api/objects/scholiq/Course/:courseId
-    - GET /api/objects/scholiq/Lesson/:lessonId
-    - GET /api/objects/scholiq/Material|Assessment|Assignment/:id (block references)
-    - POST /api/objects/scholiq/LessonProgress (record xAPI statements)
+    - GET /api/objects/learniq/Course/:courseId
+    - GET /api/objects/learniq/Lesson/:lessonId
+    - GET /api/objects/learniq/Material|Assessment|Assignment/:id (block references)
+    - POST /api/objects/learniq/LessonProgress (record xAPI statements)
 
   Uses Options API + direct fetch calls (no custom Pinia store modules).
 
@@ -31,12 +31,12 @@
 	<div class="lesson-player">
 		<div v-if="loading" class="lesson-player__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading lesson…') }}</span>
+			<span>{{ t('learniq', 'Loading lesson…') }}</span>
 		</div>
 
 		<div v-else-if="error" class="lesson-player__error" role="alert">
 			<NcEmptyContent
-				:name="t('scholiq', 'Lesson not found')"
+				:name="t('learniq', 'Lesson not found')"
 				:description="error">
 				<template #icon>
 					<AlertCircleOutline />
@@ -46,14 +46,14 @@
 
 		<div v-else-if="isLocked" class="lesson-player__locked" role="alert">
 			<NcEmptyContent
-				:name="t('scholiq', 'This lesson is not available yet')"
+				:name="t('learniq', 'This lesson is not available yet')"
 				:description="lockedDescription">
 				<template #icon>
 					<LockOutline />
 				</template>
 				<template #action>
 					<NcButton variant="secondary" @click="goBack">
-						{{ t('scholiq', 'Back to course') }}
+						{{ t('learniq', 'Back to course') }}
 					</NcButton>
 				</template>
 			</NcEmptyContent>
@@ -75,19 +75,19 @@
 					class="lesson-player__loading"
 					aria-live="polite">
 					<span class="icon-loading" aria-hidden="true" />
-					<span>{{ t('scholiq', 'Starting external tool…') }}</span>
+					<span>{{ t('learniq', 'Starting external tool…') }}</span>
 				</div>
 
 				<NcEmptyContent
 					v-else-if="ltiError"
-					:name="t('scholiq', 'Could not start the external tool')"
+					:name="t('learniq', 'Could not start the external tool')"
 					:description="ltiError">
 					<template #icon>
 						<AlertCircleOutline />
 					</template>
 					<template #action>
 						<NcButton variant="secondary" @click="launchLti">
-							{{ t('scholiq', 'Try again') }}
+							{{ t('learniq', 'Try again') }}
 						</NcButton>
 					</template>
 				</NcEmptyContent>
@@ -98,21 +98,21 @@
 					<iframe
 						:name="ltiFrameName"
 						class="lesson-player__lti-frame"
-						:title="t('scholiq', 'External LTI tool')" />
+						:title="t('learniq', 'External LTI tool')" />
 				</div>
 
 				<NcEmptyContent
 					v-else-if="ltiLaunch"
-					:name="t('scholiq', 'External tool opened in a new tab')"
+					:name="t('learniq', 'External tool opened in a new tab')"
 					:description="
-						t('scholiq', 'If nothing opened, use the button below.')
+						t('learniq', 'If nothing opened, use the button below.')
 					">
 					<template #icon>
 						<ApplicationOutline />
 					</template>
 					<template #action>
 						<NcButton variant="secondary" @click="launchLti">
-							{{ t('scholiq', 'Open tool again') }}
+							{{ t('learniq', 'Open tool again') }}
 						</NcButton>
 					</template>
 				</NcEmptyContent>
@@ -162,7 +162,7 @@
 							</p>
 						</template>
 						<p v-else class="lesson-player__block-media-missing">
-							{{ t('scholiq', 'Referenced material is unavailable.') }}
+							{{ t('learniq', 'Referenced material is unavailable.') }}
 						</p>
 					</div>
 
@@ -174,11 +174,11 @@
 							{{
 								assessmentFor(block)
 									? assessmentFor(block).title
-									: t('scholiq', 'Quiz')
+									: t('learniq', 'Quiz')
 							}}
 						</p>
 						<NcButton variant="primary" @click="startQuiz(block)">
-							{{ t('scholiq', 'Start quiz') }}
+							{{ t('learniq', 'Start quiz') }}
 						</NcButton>
 					</div>
 
@@ -190,11 +190,11 @@
 							{{
 								assignmentFor(block)
 									? assignmentFor(block).title
-									: t('scholiq', 'Assignment')
+									: t('learniq', 'Assignment')
 							}}
 						</p>
 						<NcButton variant="secondary" @click="openAssignment(block)">
-							{{ t('scholiq', 'View assignment') }}
+							{{ t('learniq', 'View assignment') }}
 						</NcButton>
 					</div>
 
@@ -210,7 +210,7 @@
 							aria-live="polite">
 							<span class="icon-loading" aria-hidden="true" />
 							<span>{{
-								t('scholiq', 'Starting external tool…')
+								t('learniq', 'Starting external tool…')
 							}}</span>
 						</div>
 						<p
@@ -225,7 +225,7 @@
 							v-else
 							variant="secondary"
 							@click="launchLtiForBlock(block)">
-							{{ t('scholiq', 'Open external tool') }}
+							{{ t('learniq', 'Open external tool') }}
 						</NcButton>
 					</div>
 				</div>
@@ -233,16 +233,16 @@
 				<p
 					v-if="sortedBlocks.length === 0"
 					class="lesson-player__block-empty">
-					{{ t('scholiq', 'This lesson has no content blocks yet.') }}
+					{{ t('learniq', 'This lesson has no content blocks yet.') }}
 				</p>
 			</section>
 
 			<section v-else class="lesson-player__placeholder">
 				<NcEmptyContent
-					:name="t('scholiq', 'Lesson content not available')"
+					:name="t('learniq', 'Lesson content not available')"
 					:description="
 						t(
-							'scholiq',
+							'learniq',
 							'This lesson does not yet have playable content. Author-tooling is delivered by the ItemAuthor view.',
 						)
 					">
@@ -260,8 +260,8 @@
 					@click="markLessonComplete">
 					{{
 						manualCompletion.completed
-							? t('scholiq', 'Completed')
-							: t('scholiq', 'Mark lesson complete')
+							? t('learniq', 'Completed')
+							: t('learniq', 'Mark lesson complete')
 					}}
 				</NcButton>
 				<p
@@ -271,7 +271,7 @@
 					{{ manualCompletion.error }}
 				</p>
 				<NcButton variant="secondary" @click="goBack">
-					{{ t('scholiq', 'Back to course') }}
+					{{ t('learniq', 'Back to course') }}
 				</NcButton>
 			</footer>
 		</article>
@@ -444,7 +444,7 @@ export default {
 			if (this.releaseStatus.reason) {
 				return this.releaseStatus.reason
 			}
-			return this.t('scholiq', 'This lesson is not yet available to you.')
+			return this.t('learniq', 'This lesson is not yet available to you.')
 		},
 	},
 
@@ -459,26 +459,26 @@ export default {
 			const [courseRes, lessonRes] = await Promise.all([
 				fetch(
 					generateUrl(
-						'/apps/openregister/api/objects/scholiq/Course/'
+						'/apps/openregister/api/objects/learniq/Course/'
 							+ this.courseId,
 					),
 				),
 				fetch(
 					generateUrl(
-						'/apps/openregister/api/objects/scholiq/Lesson/'
+						'/apps/openregister/api/objects/learniq/Lesson/'
 							+ this.lessonId,
 					),
 				),
 			])
 			if (!courseRes.ok)
 				throw new Error(
-					this.t('scholiq', 'Failed to load course (HTTP {status})', {
+					this.t('learniq', 'Failed to load course (HTTP {status})', {
 						status: courseRes.status,
 					}),
 				)
 			if (!lessonRes.ok)
 				throw new Error(
-					this.t('scholiq', 'Failed to load lesson (HTTP {status})', {
+					this.t('learniq', 'Failed to load lesson (HTTP {status})', {
 						status: lessonRes.status,
 					}),
 				)
@@ -567,7 +567,7 @@ export default {
 				try {
 					const resp = await fetch(
 						generateUrl(
-							`/apps/openregister/api/objects/scholiq/${schema}/${id}`,
+							`/apps/openregister/api/objects/learniq/${schema}/${id}`,
 						),
 						{
 							headers: {
@@ -651,15 +651,15 @@ export default {
 		 */
 		materialKindLabel(kind) {
 			const labels = {
-				slides: this.t('scholiq', 'Slides'),
-				reading: this.t('scholiq', 'Reading'),
-				video: this.t('scholiq', 'Video'),
-				scorm: this.t('scholiq', 'SCORM package'),
-				cmi5: this.t('scholiq', 'cmi5 package'),
-				lti: this.t('scholiq', 'External tool'),
-				link: this.t('scholiq', 'Link'),
-				document: this.t('scholiq', 'Document'),
-				other: this.t('scholiq', 'File'),
+				slides: this.t('learniq', 'Slides'),
+				reading: this.t('learniq', 'Reading'),
+				video: this.t('learniq', 'Video'),
+				scorm: this.t('learniq', 'SCORM package'),
+				cmi5: this.t('learniq', 'cmi5 package'),
+				lti: this.t('learniq', 'External tool'),
+				link: this.t('learniq', 'Link'),
+				document: this.t('learniq', 'Document'),
+				other: this.t('learniq', 'File'),
 			}
 			return labels[kind] ?? kind
 		},
@@ -721,7 +721,7 @@ export default {
 				this.blockLtiState[block.blockId] = {
 					launching: false,
 					error: this.t(
-						'scholiq',
+						'learniq',
 						'This block has no LTI tool placement configured.',
 					),
 				}
@@ -733,7 +733,7 @@ export default {
 			try {
 				const res = await fetch(
 					generateUrl(
-						'/apps/scholiq/api/lti-placements/'
+						'/apps/learniq/api/lti-placements/'
 							+ placementId
 							+ '/launch',
 					),
@@ -747,7 +747,7 @@ export default {
 					throw new Error(
 						body?.error
 							|| this.t(
-								'scholiq',
+								'learniq',
 								'Failed to start the tool (HTTP {status})',
 								{ status: res.status },
 							),
@@ -756,7 +756,7 @@ export default {
 				if (!body?.formActionUrl || !body?.idToken) {
 					throw new Error(
 						this.t(
-							'scholiq',
+							'learniq',
 							'OpenConnector returned an unexpected launch response.',
 						),
 					)
@@ -790,7 +790,7 @@ export default {
 				if (!learnerId) return
 
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/lesson-completion?limit=100',
+					'/apps/openregister/api/objects/learniq/lesson-completion?limit=100',
 				)
 				const resp = await fetch(url, {
 					headers: {
@@ -831,7 +831,7 @@ export default {
 		async checkReleaseStatus() {
 			try {
 				const url = generateUrl(
-					'/apps/scholiq/api/lessons/' + this.lessonId + '/release-status',
+					'/apps/learniq/api/lessons/' + this.lessonId + '/release-status',
 				)
 				const resp = await fetch(url, {
 					headers: {
@@ -873,7 +873,7 @@ export default {
 				const learnerId = currentUser?.uid ?? ''
 
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/lesson-completion',
+					'/apps/openregister/api/objects/learniq/lesson-completion',
 				)
 				const resp = await fetch(url, {
 					method: 'POST',
@@ -896,7 +896,7 @@ export default {
 				if (!resp.ok) {
 					throw new Error(
 						this.t(
-							'scholiq',
+							'learniq',
 							'Failed to mark lesson complete (HTTP {status})',
 							{ status: resp.status },
 						),
@@ -925,7 +925,7 @@ export default {
 			const placementId = this.lesson?.contentRef
 			if (!placementId) {
 				this.ltiError = this.t(
-					'scholiq',
+					'learniq',
 					'This lesson has no LTI tool placement configured.',
 				)
 				return
@@ -938,7 +938,7 @@ export default {
 			try {
 				const res = await fetch(
 					generateUrl(
-						'/apps/scholiq/api/lti-placements/'
+						'/apps/learniq/api/lti-placements/'
 							+ placementId
 							+ '/launch',
 					),
@@ -952,7 +952,7 @@ export default {
 					throw new Error(
 						body?.error
 							|| this.t(
-								'scholiq',
+								'learniq',
 								'Failed to start the tool (HTTP {status})',
 								{ status: res.status },
 							),
@@ -961,7 +961,7 @@ export default {
 				if (!body?.formActionUrl || !body?.idToken) {
 					throw new Error(
 						this.t(
-							'scholiq',
+							'learniq',
 							'OpenConnector returned an unexpected launch response.',
 						),
 					)

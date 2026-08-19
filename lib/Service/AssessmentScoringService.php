@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Assessment Scoring Service
+ * Learniq Assessment Scoring Service
  *
  * Public API for triggering auto-scoring on an AssessmentResult. This service
  * wraps the AssessmentScoringHandler logic for programmatic use (e.g. CLI tools,
@@ -10,7 +10,7 @@
  * Legitimate PHP per ADR-031 §"Calculation engine — business rule above schema metadata."
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -27,11 +27,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use InvalidArgumentException;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Lifecycle\AssessmentScoringHandler;
+use OCA\Learniq\Lifecycle\AssessmentScoringHandler;
 use OCP\IGroupManager;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -47,9 +47,9 @@ use RuntimeException;
 class AssessmentScoringService {
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.

@@ -14,7 +14,7 @@ webpackConfig.stats = {
 	modules: false,
 }
 
-const appId = 'scholiq'
+const appId = 'learniq'
 webpackConfig.entry = {
 	main: {
 		import: path.join(__dirname, 'src', 'main.js'),
@@ -224,8 +224,8 @@ webpackConfig.plugins = [
 ]
 
 // ⚠️ `@nextcloud/webpack-vue-config` hardcodes `publicPath: '/apps/<app>/js/'`.
-// Scholiq is installed under `custom_apps/`, which Nextcloud serves from
-// `/custom_apps/scholiq/js/`. The wrong path does NOT 404 — Nextcloud answers
+// Learniq is installed under `custom_apps/`, which Nextcloud serves from
+// `/custom_apps/learniq/js/`. The wrong path does NOT 404 — Nextcloud answers
 // 200 with `text/html`, so a lazy chunk fails with a MIME refusal and
 // `ChunkLoadError` rather than a missing-file error, and only on the routes that
 // actually pull that chunk. The Vue 3 dependency set splits @nextcloud/dialogs,

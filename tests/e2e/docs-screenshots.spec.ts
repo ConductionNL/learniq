@@ -50,7 +50,7 @@ const SHOT_ROOT = path.resolve(
 	'screenshots',
 	'tutorials',
 )
-const APP = '/apps/scholiq'
+const APP = '/apps/learniq'
 
 /**
  * Save a viewport screenshot under
@@ -187,7 +187,7 @@ test.describe('docs: user track', () => {
 		await shoot(page, 'user', '01-first-launch-03.png')
 		await go(page, '/courses')
 		await shoot(page, 'user', '01-first-launch-04.png')
-		expect(page.url()).toContain('/apps/scholiq')
+		expect(page.url()).toContain('/apps/learniq')
 	})
 
 	test('UN create-course', async ({ page }) => {
@@ -338,7 +338,7 @@ test.describe('docs: admin track', () => {
 
 	test('AN admin-settings', async ({ page }) => {
 		// docs/tutorials/admin/03-admin-settings.md — Scholiq's settings
-		// live in-app at /apps/scholiq/settings (the three-section page:
+		// live in-app at /apps/learniq/settings (the three-section page:
 		// OpenRegister, AI Features, Credential Signing).
 		await go(page, '/settings')
 		await shoot(page, 'admin', '03-admin-settings-01.png')
@@ -363,6 +363,6 @@ test.describe('docs: admin track', () => {
 		}
 		await shoot(page, 'admin', '03-admin-settings-04.png')
 		await shoot(page, 'admin', '03-admin-settings-05.png')
-		expect(page.url()).toContain('/apps/scholiq/settings')
+		expect(page.url()).toContain('/apps/learniq/settings')
 	})
 })

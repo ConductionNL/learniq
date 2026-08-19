@@ -20,7 +20,7 @@
  * already occupy.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -37,7 +37,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use OCP\IAppConfig;
 use OCP\Security\ICrypto;
@@ -55,14 +55,14 @@ class LearningRecordExportSigningService {
 	 * `KeyManagementService::PRIVATE_KEY_PREFIX`/`CredentialSigningService
 	 * ::PRIVATE_KEY_PREFIX`.
 	 */
-	private const PRIVATE_KEY_PREFIX = 'scholiq.credential.signing.private.';
+	private const PRIVATE_KEY_PREFIX = 'learniq.credential.signing.private.';
 
 	/**
 	 * App config key prefix for public keys (plain) — identical to
 	 * `KeyManagementService::PUBLIC_KEY_PREFIX`/`CredentialSigningService
 	 * ::PUBLIC_KEY_PREFIX`.
 	 */
-	private const PUBLIC_KEY_PREFIX = 'scholiq.credential.signing.public.';
+	private const PUBLIC_KEY_PREFIX = 'learniq.credential.signing.public.';
 
 	/**
 	 * Constructor.
@@ -91,7 +91,7 @@ class LearningRecordExportSigningService {
 	 */
 	public function resolveIssuerDid(string $tenantId): ?string {
 		$publicKey = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::PUBLIC_KEY_PREFIX . $tenantId,
 			default: ''
 		);
@@ -102,7 +102,7 @@ class LearningRecordExportSigningService {
 
 		$fingerprint = substr(hash('sha256', $publicKey), 0, 32);
 
-		return 'did:web:scholiq:' . $tenantId . ':' . $fingerprint;
+		return 'did:web:learniq:' . $tenantId . ':' . $fingerprint;
 	}//end resolveIssuerDid()
 
 	/**
@@ -120,7 +120,7 @@ class LearningRecordExportSigningService {
 	 */
 	public function sign(array $bundle, string $tenantId): ?string {
 		$encryptedPrivateKey = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::PRIVATE_KEY_PREFIX . $tenantId,
 			default: ''
 		);
@@ -136,7 +136,7 @@ class LearningRecordExportSigningService {
 		}
 
 		$publicKeyPem = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::PUBLIC_KEY_PREFIX . $tenantId,
 			default: ''
 		);
@@ -190,7 +190,7 @@ class LearningRecordExportSigningService {
 		}
 
 		$publicKeyPem = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::PUBLIC_KEY_PREFIX . $tenantId,
 			default: ''
 		);

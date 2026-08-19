@@ -6,7 +6,7 @@
 <template>
 	<KpiCard
 		schema="engagement-risk-flag"
-		:label="t('scholiq', 'Open engagement flags')"
+		:label="t('learniq', 'Open engagement flags')"
 		:filter="{ lifecycle: 'open' }"
 		link="/progress/engagement-flags"
 		variant="warning" />

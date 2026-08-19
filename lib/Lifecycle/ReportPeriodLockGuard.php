@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Report Period Lock Guard
+ * Learniq Report Period Lock Guard
  *
  * Lifecycle guard for the GradeEntry schema's `publish` and `republish`
  * transitions (grading spec, report-card-composer delta). Blocks ordinary
@@ -16,7 +16,7 @@
  * design doc's own precedent for a second entry (`certification`'s
  * `Credential.revoke` transition) does not exist as an array shape at HEAD:
  * `Credential.revoke.requires` is a single string
- * (`OCA\Scholiq\Service\WalletRevocationPropagationService`), and
+ * (`OCA\Learniq\Service\WalletRevocationPropagationService`), and
  * OpenRegister's own `LifecycleAnnotationValidator::validate()` explicitly
  * rejects a non-string `requires` value (`is_string($spec['requires']) ===
  * false || $spec['requires'] === ''` => `lifecycle-requires-malformed`);
@@ -39,10 +39,10 @@
  * before a state transition and cannot be expressed as a schema
  * declaration." Referenced from the GradeEntry schema's
  * x-openregister-lifecycle.transitions.publish/republish.requires in
- * scholiq_register.json.
+ * learniq_register.json.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -62,7 +62,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;
@@ -86,7 +86,7 @@ use Psr\Log\LoggerInterface;
  */
 class ReportPeriodLockGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const REPORT_PERIOD_SCHEMA = 'report-period';
 
 	/**

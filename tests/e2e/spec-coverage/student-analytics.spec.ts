@@ -28,7 +28,7 @@ import { test, expect } from '../fixtures'
 // `#/…` URL resolves to a location no route matches and renders an empty app body.
 // See accessibility-conformance.spec.ts for the measurement.
 const GROUP_TREND_HEATMAP_URL =
-	'/index.php/apps/scholiq/progress/group-trend-heatmap'
+	'/index.php/apps/learniq/progress/group-trend-heatmap'
 
 // The view this spec drives, named after the component file it covers. The
 // URL is unchanged — this makes the spec-to-component link readable in
@@ -60,7 +60,7 @@ test.describe('learning-progress-and-analytics — Group trend heat map', () => 
 		// exceeded" reported against whatever call happened to be in flight,
 		// which is indistinguishable from the app being down.
 		// ADR-074 rule 4 / hydra gate 58 (e2e-networkidle).
-		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
+		await expect(page.locator('#learniq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		// The page heading or its loading/empty/error state must be present
 		// (page resolved the custom GroupTrendHeatmap component, not a

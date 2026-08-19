@@ -1,14 +1,14 @@
 <?php
 
 /**
- * Unit tests for ScholiqToolProvider.
+ * Unit tests for LearniqToolProvider.
  *
  * Covers: getAppId, the tool catalogue shape, invokeTool dispatch (incl. the
  * unknown-tool error envelope — must not throw), and the auth gate that rejects
  * anonymous callers before any data read.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Unit\Mcp
+ * @package  OCA\Learniq\Tests\Unit\Mcp
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,11 +21,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Mcp;
+namespace OCA\Learniq\Tests\Unit\Mcp;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Mcp\CourseToolPresenter;
-use OCA\Scholiq\Mcp\ScholiqToolProvider;
+use OCA\Learniq\Mcp\CourseToolPresenter;
+use OCA\Learniq\Mcp\LearniqToolProvider;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -34,20 +34,20 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
- * Unit test suite for ScholiqToolProvider.
+ * Unit test suite for LearniqToolProvider.
  *
  * Every test runs in isolation with mocked services. The stub at
  * tests/Stubs/Mcp/IMcpToolProvider.php satisfies the interface declaration
  * when the openregister runtime (PR #1466) is absent.
  */
-class ScholiqToolProviderTest extends TestCase {
+class LearniqToolProviderTest extends TestCase {
 
 	/**
 	 * Provider under test.
 	 *
-	 * @var ScholiqToolProvider
+	 * @var LearniqToolProvider
 	 */
-	private ScholiqToolProvider $provider;
+	private LearniqToolProvider $provider;
 
 	/**
 	 * Mock OpenRegister ObjectService.
@@ -90,7 +90,7 @@ class ScholiqToolProviderTest extends TestCase {
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 
-		$this->provider = new ScholiqToolProvider(
+		$this->provider = new LearniqToolProvider(
 			$this->objectService,
 			$this->userSession,
 			$this->groupManager,
@@ -101,14 +101,14 @@ class ScholiqToolProviderTest extends TestCase {
 	}//end setUp()
 
 	/**
-	 * getAppId() returns the scholiq slug.
+	 * getAppId() returns the learniq slug.
 	 *
 	 * @return void
 	 */
-	public function testGetAppIdReturnsScholiq(): void {
-		$this->assertSame('scholiq', $this->provider->getAppId());
+	public function testGetAppIdReturnsLearniq(): void {
+		$this->assertSame('learniq', $this->provider->getAppId());
 
-	}//end testGetAppIdReturnsScholiq()
+	}//end testGetAppIdReturnsLearniq()
 
 	/**
 	 * getTools() returns exactly the two MVP descriptors with valid shape.
@@ -121,7 +121,7 @@ class ScholiqToolProviderTest extends TestCase {
 		$this->assertCount(2, $tools);
 
 		$ids = array_column($tools, 'id');
-		$this->assertSame(['scholiq.listCourses', 'scholiq.getCourseDetails'], $ids);
+		$this->assertSame(['learniq.listCourses', 'learniq.getCourseDetails'], $ids);
 
 		foreach ($tools as $tool) {
 			$this->assertArrayHasKey('id', $tool);
@@ -130,7 +130,7 @@ class ScholiqToolProviderTest extends TestCase {
 			$this->assertArrayHasKey('inputSchema', $tool);
 
 			$this->assertIsString($tool['id']);
-			$this->assertStringStartsWith('scholiq.', $tool['id']);
+			$this->assertStringStartsWith('learniq.', $tool['id']);
 			$this->assertIsString($tool['name']);
 			$this->assertNotSame('', $tool['name']);
 			$this->assertIsString($tool['description']);
@@ -154,7 +154,7 @@ class ScholiqToolProviderTest extends TestCase {
 	public function testGetCourseDetailsRequiresId(): void {
 		$tools = $this->provider->getTools();
 		$byId = array_column($tools, null, 'id');
-		$schema = $byId['scholiq.getCourseDetails']['inputSchema'];
+		$schema = $byId['learniq.getCourseDetails']['inputSchema'];
 
 		$this->assertSame(['id'], $schema['required']);
 
@@ -167,7 +167,7 @@ class ScholiqToolProviderTest extends TestCase {
 	 * @return void
 	 */
 	public function testInvokeUnknownToolReturnsErrorArray(): void {
-		$result = $this->provider->invokeTool('scholiq.bogus', []);
+		$result = $this->provider->invokeTool('learniq.bogus', []);
 
 		$this->assertIsArray($result);
 		$this->assertTrue($result['isError'] ?? false);
@@ -184,7 +184,7 @@ class ScholiqToolProviderTest extends TestCase {
 	public function testListCoursesRejectsInvalidLimit(): void {
 		$this->objectService->expects($this->never())->method('findAll');
 
-		$result = $this->provider->invokeTool('scholiq.listCourses', ['limit' => 999]);
+		$result = $this->provider->invokeTool('learniq.listCourses', ['limit' => 999]);
 
 		$this->assertTrue($result['isError'] ?? false);
 		$this->assertSame('invalid_arguments', $result['error'] ?? null);
@@ -200,7 +200,7 @@ class ScholiqToolProviderTest extends TestCase {
 		$this->userSession->method('getUser')->willReturn(null);
 		$this->objectService->expects($this->never())->method('findAll');
 
-		$result = $this->provider->invokeTool('scholiq.listCourses', []);
+		$result = $this->provider->invokeTool('learniq.listCourses', []);
 
 		$this->assertTrue($result['isError'] ?? false);
 		$this->assertSame('forbidden', $result['error'] ?? null);
@@ -213,7 +213,7 @@ class ScholiqToolProviderTest extends TestCase {
 	 * @return void
 	 */
 	public function testGetCourseDetailsRejectsMissingId(): void {
-		$result = $this->provider->invokeTool('scholiq.getCourseDetails', []);
+		$result = $this->provider->invokeTool('learniq.getCourseDetails', []);
 
 		$this->assertTrue($result['isError'] ?? false);
 		$this->assertSame('invalid_arguments', $result['error'] ?? null);
@@ -259,7 +259,7 @@ class ScholiqToolProviderTest extends TestCase {
 			}
 		);
 
-		$result = $this->provider->invokeTool('scholiq.getCourseDetails', ['id' => 'nis2-awareness-2026']);
+		$result = $this->provider->invokeTool('learniq.getCourseDetails', ['id' => 'nis2-awareness-2026']);
 
 		$this->assertTrue($result['success'] ?? false);
 		$this->assertSame($courseUuid, $result['course']['uuid']);

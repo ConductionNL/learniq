@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq POK Activation Guard
+ * Learniq POK Activation Guard
  *
  * Lifecycle guard for the Praktijkovereenkomst schema's `activate` transition
  * (pending-signatures → active). Blocks activation unless a PokSignature
@@ -22,10 +22,10 @@
  * ADR-031 legitimate exception: multi-schema guard logic (Praktijkovereenkomst
  * → PokSignature) cannot be expressed as a schema metadata declaration.
  * Referenced from Praktijkovereenkomst's x-openregister-lifecycle `activate`
- * transition's `requires` in scholiq_register.json.
+ * transition's `requires` in learniq_register.json.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -42,7 +42,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -59,9 +59,9 @@ use Psr\Log\LoggerInterface;
 class PokActivationGuard {
 
 	/**
-	 * Scholiq register slug.
+	 * Learniq register slug.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * PokSignature schema slug.

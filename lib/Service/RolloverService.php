@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Rollover Service
+ * Learniq Rollover Service
  *
  * Plans and previews the annual jaarovergang (school-year rollover): a
  * default-mapping proposal (leerjaar increment) and a side-effect-free preview
@@ -17,7 +17,7 @@
  * declarative engine cannot express (the ADR-031 legitimate exception).
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -34,7 +34,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 
@@ -47,7 +47,7 @@ class RolloverService {
 	/**
 	 * OpenRegister register slug.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Terminal enrolment lifecycle states that are NOT carried over.

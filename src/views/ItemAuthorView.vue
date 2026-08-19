@@ -29,7 +29,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="item-author__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading item...') }}</span>
+			<span>{{ t('learniq', 'Loading item...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -45,54 +45,54 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<p>{{ t('scholiq', 'Item saved successfully.') }}</p>
+			<p>{{ t('learniq', 'Item saved successfully.') }}</p>
 		</div>
 
 		<template v-else>
 			<header class="item-author__header">
 				<h2 class="item-author__heading">
-					{{ id ? t('scholiq', 'Edit item') : t('scholiq', 'New item') }}
+					{{ id ? t('learniq', 'Edit item') : t('learniq', 'New item') }}
 				</h2>
 				<router-link
 					v-if="id"
 					class="item-author__analysis-link"
 					:to="`/assessments/items/${id}/analysis`">
-					{{ t('scholiq', 'View item statistics') }}
+					{{ t('learniq', 'View item statistics') }}
 				</router-link>
 			</header>
 
 			<!-- Title -->
 			<div class="item-author__field">
 				<label class="item-author__label" for="item-title">
-					{{ t('scholiq', 'Item title') }}
+					{{ t('learniq', 'Item title') }}
 				</label>
 				<input
 					id="item-title"
 					v-model="form.title"
 					class="item-author__input"
 					type="text"
-					:placeholder="t('scholiq', 'Enter item title...')" />
+					:placeholder="t('learniq', 'Enter item title...')" />
 			</div>
 
 			<!-- Interaction type -->
 			<div class="item-author__field">
 				<label class="item-author__label" for="item-type">
-					{{ t('scholiq', 'Interaction type') }}
+					{{ t('learniq', 'Interaction type') }}
 				</label>
 				<select
 					id="item-type"
 					v-model="form.interactionType"
 					class="item-author__select">
 					<option value="choice">
-						{{ t('scholiq', 'Multiple choice') }}
+						{{ t('learniq', 'Multiple choice') }}
 					</option>
 					<option value="extendedText">
-						{{ t('scholiq', 'Essay (extended text)') }}
+						{{ t('learniq', 'Essay (extended text)') }}
 					</option>
 					<option disabled value="textEntry">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'Text entry (editor coming soon — use QTI import)',
 							)
 						}}
@@ -100,7 +100,7 @@
 					<option disabled value="hotspot">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'Hotspot (editor coming soon — use QTI import)',
 							)
 						}}
@@ -108,7 +108,7 @@
 					<option disabled value="order">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'Order (editor coming soon — use QTI import)',
 							)
 						}}
@@ -116,7 +116,7 @@
 					<option disabled value="match">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'Match (editor coming soon — use QTI import)',
 							)
 						}}
@@ -124,7 +124,7 @@
 					<option disabled value="gapMatch">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'Gap match (editor coming soon — use QTI import)',
 							)
 						}}
@@ -132,7 +132,7 @@
 					<option disabled value="inlineChoice">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'Inline choice (editor coming soon — use QTI import)',
 							)
 						}}
@@ -143,7 +143,7 @@
 			<!-- Max score -->
 			<div class="item-author__field">
 				<label class="item-author__label" for="item-max-score">
-					{{ t('scholiq', 'Max score') }}
+					{{ t('learniq', 'Max score') }}
 				</label>
 				<input
 					id="item-max-score"
@@ -157,14 +157,14 @@
 			<!-- Prompt / stem -->
 			<div class="item-author__field">
 				<label class="item-author__label" for="item-prompt">
-					{{ t('scholiq', 'Question prompt / stem') }}
+					{{ t('learniq', 'Question prompt / stem') }}
 				</label>
 				<textarea
 					id="item-prompt"
 					v-model="form.prompt"
 					class="item-author__textarea"
 					rows="4"
-					:placeholder="t('scholiq', 'Enter the question text...')" />
+					:placeholder="t('learniq', 'Enter the question text...')" />
 			</div>
 
 			<!-- Choice-specific: answer options -->
@@ -172,7 +172,7 @@
 				v-if="form.interactionType === 'choice'"
 				class="item-author__choices">
 				<h3 class="item-author__sub-heading">
-					{{ t('scholiq', 'Answer options') }}
+					{{ t('learniq', 'Answer options') }}
 				</h3>
 				<ul class="item-author__choice-list">
 					<li
@@ -183,34 +183,34 @@
 							type="radio"
 							name="correct-choice"
 							:checked="form.correctChoiceIdx === idx"
-							:aria-label="t('scholiq', 'Mark as correct answer')"
+							:aria-label="t('learniq', 'Mark as correct answer')"
 							@change="form.correctChoiceIdx = idx" />
 						<input
 							v-model="choice.label"
 							class="item-author__input"
 							type="text"
 							:aria-label="
-								t('scholiq', 'Text of option {n}', { n: idx + 1 })
+								t('learniq', 'Text of option {n}', { n: idx + 1 })
 							"
 							:placeholder="
-								t('scholiq', 'Option {n}', { n: idx + 1 })
+								t('learniq', 'Option {n}', { n: idx + 1 })
 							" />
 						<button
 							class="item-author__remove-btn"
 							:disabled="form.choices.length <= 2"
-							:aria-label="t('scholiq', 'Remove option')"
+							:aria-label="t('learniq', 'Remove option')"
 							@click="removeChoice(idx)">
 							<span class="icon-close" aria-hidden="true" />
 						</button>
 					</li>
 				</ul>
 				<button class="button-vue" @click="addChoice">
-					{{ t('scholiq', 'Add option') }}
+					{{ t('learniq', 'Add option') }}
 				</button>
 				<p class="item-author__hint">
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'Click the radio button to mark the correct answer.',
 						)
 					}}
@@ -225,7 +225,7 @@
 				<p>
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'Essay items have no automatic correct response — teachers score these manually. This item will require manual scoring before the AssessmentResult can be graded.',
 						)
 					}}
@@ -239,7 +239,7 @@
 					:disabled="saving || !form.title"
 					@click="saveItem">
 					<span v-if="saving" class="icon-loading" aria-hidden="true" />
-					{{ t('scholiq', 'Save item') }}
+					{{ t('learniq', 'Save item') }}
 				</button>
 			</div>
 			<p v-if="saveError" role="alert" class="item-author__error-inline">
@@ -323,7 +323,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					`/apps/openregister/api/objects/scholiq/Item/${itemId}`,
+					`/apps/openregister/api/objects/learniq/Item/${itemId}`,
 				)
 				const resp = await fetch(url, {
 					headers: {
@@ -371,7 +371,7 @@ export default {
 				}
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load item. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -513,9 +513,9 @@ export default {
 			const isEdit = Boolean(this.id)
 			const url = isEdit
 				? generateUrl(
-						`/apps/openregister/api/objects/scholiq/Item/${this.id}`,
+						`/apps/openregister/api/objects/learniq/Item/${this.id}`,
 					)
-				: generateUrl('/apps/openregister/api/objects/scholiq/Item')
+				: generateUrl('/apps/openregister/api/objects/learniq/Item')
 
 			try {
 				const resp = await fetch(url, {
@@ -531,7 +531,7 @@ export default {
 				this.saved = true
 			} catch (err) {
 				this.saveError = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to save item. Please try again.',
 				)
 				// eslint-disable-next-line no-console

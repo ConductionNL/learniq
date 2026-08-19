@@ -27,12 +27,12 @@
 	<div class="admissions-review-board">
 		<header class="admissions-review-board__header">
 			<h2 class="admissions-review-board__title">
-				{{ t('scholiq', 'Admissions review board') }}
+				{{ t('learniq', 'Admissions review board') }}
 			</h2>
 			<p class="admissions-review-board__subtitle">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						"Applications that have completed intake and are ready for a placement decision, with their round's deadline, kind, and remaining capacity.",
 					)
 				}}
@@ -45,7 +45,7 @@
 			class="admissions-review-board__loading"
 			aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading pending applications...') }}</span>
+			<span>{{ t('learniq', 'Loading pending applications...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -63,7 +63,7 @@
 			<p>
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'No applications are currently awaiting a decision.',
 					)
 				}}
@@ -85,7 +85,7 @@
 					</span>
 					<span class="admissions-review-board__deadline">
 						{{
-							t('scholiq', 'Deadline: {deadline}', {
+							t('learniq', 'Deadline: {deadline}', {
 								deadline: formatDate(
 									/**
 									 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
@@ -101,7 +101,7 @@
 					</span>
 					<span class="admissions-review-board__submitted">
 						{{
-							t('scholiq', 'Submitted {when}', {
+							t('learniq', 'Submitted {when}', {
 								when: formatDate(application.submittedAt),
 							})
 						}}
@@ -112,7 +112,7 @@
 					<a
 						class="button-vue button-vue--vue-primary"
 						:href="decisionHref(application)">
-						{{ t('scholiq', 'Record decision') }}
+						{{ t('learniq', 'Record decision') }}
 					</a>
 				</div>
 			</li>
@@ -172,7 +172,7 @@ export default {
 				const [applicationsResp, roundsResp] = await Promise.all([
 					fetch(
 						generateUrl(
-							'/apps/openregister/api/objects/scholiq/Application?limit=200',
+							'/apps/openregister/api/objects/learniq/Application?limit=200',
 						),
 						{
 							headers: {
@@ -183,7 +183,7 @@ export default {
 					),
 					fetch(
 						generateUrl(
-							'/apps/openregister/api/objects/scholiq/admissions-round?limit=200',
+							'/apps/openregister/api/objects/learniq/admissions-round?limit=200',
 						),
 						{
 							headers: {
@@ -215,7 +215,7 @@ export default {
 					roundsJson.results ?? roundsJson.objects ?? roundsJson ?? []
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load pending applications. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -254,19 +254,20 @@ export default {
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		roundKindLabel(application) {
 			const round = this.roundFor(application)
-			if (!round) return this.t('scholiq', 'Unknown round')
+			if (!round) return this.t('learniq', 'Unknown round')
 
 			const labels = {
-				'mbo-toelatingsrecht': this.t('scholiq', 'MBO toelatingsrecht'),
+				'mbo-toelatingsrecht': this.t('learniq', 'MBO toelatingsrecht'),
 				'vo-schooladvies-doorstroomtoets': this.t(
-					'scholiq',
+					'learniq',
 					'VO schooladvies/doorstroomtoets',
 				),
 
-				generic: this.t('scholiq', 'Generic'),
+				generic: this.t('learniq', 'Generic'),
 			}
 			return labels[round.kind] || round.kind || ''
 		},
@@ -282,7 +283,7 @@ export default {
 		capacityLabel(application) {
 			const round = this.roundFor(application)
 			if (!round || round.capacity === null || round.capacity === undefined) {
-				return this.t('scholiq', 'Capacity: uncapped')
+				return this.t('learniq', 'Capacity: uncapped')
 			}
 
 			const placedCount = this.applications.filter((a) => {
@@ -293,7 +294,7 @@ export default {
 			}).length
 
 			const remaining = Math.max(0, round.capacity - placedCount)
-			return this.t('scholiq', '{remaining} of {capacity} seat(s) remaining', {
+			return this.t('learniq', '{remaining} of {capacity} seat(s) remaining', {
 				remaining,
 				capacity: round.capacity,
 			})
@@ -316,9 +317,10 @@ export default {
 		 *
 		 * @param {string|null} dt ISO date(-time) string
 		 * @return {string}
+		 * @spec exclude Generic Intl.DateTimeFormat wrapper with a raw-string fallback; no admissions-domain behaviour, just locale-aware date rendering shared by any field on this page.
 		 */
 		formatDate(dt) {
-			if (!dt) return this.t('scholiq', 'not set')
+			if (!dt) return this.t('learniq', 'not set')
 			try {
 				return new Intl.DateTimeFormat(navigator.language, {
 					year: 'numeric',

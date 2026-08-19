@@ -16,7 +16,7 @@
  * (FinalGrade / GradeFormulaEvaluator). NOT a TimedJob (ADR-022).
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -33,11 +33,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\CourseEvaluation\CourseQualityScoreEvaluator;
+use OCA\Learniq\CourseEvaluation\CourseQualityScoreEvaluator;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
@@ -48,7 +48,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class CourseQualityScoreRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const COURSE_EVALUATION_RESPONSE_SCHEMA = 'course-evaluation-response';
 	private const COURSE_QUALITY_SCORE_SCHEMA = 'course-quality-score';
 

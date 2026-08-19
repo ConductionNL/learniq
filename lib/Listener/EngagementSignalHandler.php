@@ -41,7 +41,7 @@
  * BsaProgressFlag.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -58,13 +58,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Analytics\EngagementScoreEvaluator;
-use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Analytics\EngagementScoreEvaluator;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -76,7 +76,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class EngagementSignalHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const XAPI_SCHEMA = 'xapi-statement';
 	private const ENGAGEMENT_SCORE_SCHEMA = 'engagement-score';
 	private const ENGAGEMENT_RISK_THRESHOLD_SCHEMA = 'engagement-risk-threshold';

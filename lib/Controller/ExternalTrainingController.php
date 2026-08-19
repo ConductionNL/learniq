@@ -17,7 +17,7 @@
  * operations that the generic object API cannot express.
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -34,12 +34,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\Service\ActionAuthService;
-use OCA\Scholiq\Service\ExternalTrainingService;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\ExternalTrainingService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -154,7 +154,7 @@ class ExternalTrainingController extends Controller {
 		try {
 			$recordObj = $this->objectService->find(
 				id: $recordId,
-				register: 'scholiq',
+				register: 'learniq',
 				schema: 'external-training-record'
 			);
 		} catch (DoesNotExistException $e) {
@@ -184,7 +184,7 @@ class ExternalTrainingController extends Controller {
 		// Do NOT set lifecycle — OR fires the `issue` transition (and its signing
 		// guard) from the initial state, mirroring CredentialIssuanceHandler.
 		$saved = $this->objectService->saveObject(
-			register: 'scholiq',
+			register: 'learniq',
 			schema: 'credential',
 			object: $payload
 		);
@@ -196,7 +196,7 @@ class ExternalTrainingController extends Controller {
 		if ($credentialId !== '') {
 			$record['credentialId'] = $credentialId;
 			$this->objectService->saveObject(
-				register: 'scholiq',
+				register: 'learniq',
 				schema: 'external-training-record',
 				object: $record
 			);

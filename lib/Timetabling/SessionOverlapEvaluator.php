@@ -4,7 +4,7 @@
  * Scholiq Session Overlap Evaluator
  *
  * The pure decision half of the conflict scan, split out of
- * {@see \OCA\Scholiq\Timetabling\TimetableConflictDetector} so the detector
+ * {@see \OCA\Learniq\Timetabling\TimetableConflictDetector} so the detector
  * owns only orchestration and the TimetableConflict writes.
  *
  * Given two already-fetched Session data arrays (and their already-resolved
@@ -20,7 +20,7 @@
  * a different room or time.
  *
  * @category Service
- * @package  OCA\Scholiq\Timetabling
+ * @package  OCA\Learniq\Timetabling
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -37,7 +37,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Timetabling;
+namespace OCA\Learniq\Timetabling;
 
 /**
  * Pure overlap and capacity rules over Session/Cohort/Room data arrays.

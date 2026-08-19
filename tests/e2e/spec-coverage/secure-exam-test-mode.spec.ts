@@ -26,8 +26,8 @@
 import { test, expect } from '../fixtures'
 
 const TAKE_ASSESSMENT_URL =
-	'/index.php/apps/scholiq/#/assessments/e2e-smoke-placeholder/take'
-const REVIEW_QUEUE_URL = '/index.php/apps/scholiq/#/assessments/proctoring/review'
+	'/index.php/apps/learniq/#/assessments/e2e-smoke-placeholder/take'
+const REVIEW_QUEUE_URL = '/index.php/apps/learniq/#/assessments/proctoring/review'
 
 function collectFatalErrors(page: import('@playwright/test').Page): string[] {
 	const errors: string[] = []

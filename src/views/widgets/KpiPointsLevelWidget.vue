@@ -17,7 +17,7 @@
 <template>
 	<div class="kpi-points-level">
 		<CnStatsBlock
-			:title="t('scholiq', 'My points')"
+			:title="t('learniq', 'My points')"
 			:count="displayPoints"
 			:loading="loading"
 			variant="primary"
@@ -27,7 +27,7 @@
 				levelName
 			}}</span>
 			<span v-if="streakDays > 0" class="kpi-points-level__streak">
-				{{ t('scholiq', '{days}-day streak', { days: streakDays }) }}
+				{{ t('learniq', '{days}-day streak', { days: streakDays }) }}
 			</span>
 		</p>
 	</div>
@@ -86,7 +86,7 @@ export default {
 				const uid = getCurrentUser()?.uid ?? ''
 				const params = new URLSearchParams({ learnerId: uid, _limit: '1' })
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/learner-engagement?'
+					'/apps/openregister/api/objects/learniq/learner-engagement?'
 						+ params.toString(),
 				)
 				const response = await axios.get(url)
@@ -120,7 +120,7 @@ export default {
 		async fetchLevelName(levelId) {
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/engagement-level/'
+					'/apps/openregister/api/objects/learniq/engagement-level/'
 						+ levelId,
 				)
 				const response = await axios.get(url)

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Report Card PDF Delegation Service
+ * Learniq Report Card PDF Delegation Service
  *
  * Lifecycle guard for the ReportCard schema's `renderToPdf`
  * (finalised -> finalised) and `rerenderToPdf` (published-to-parents ->
@@ -20,23 +20,23 @@
  * recorded in `docudeskRenderError`, and MUST NOT block any ReportCard
  * lifecycle transition — this guard therefore always returns `true`,
  * catching every `Throwable` and mirroring
- * {@see \OCA\Scholiq\Service\WalletRevocationPropagationService}'s
+ * {@see \OCA\Learniq\Service\WalletRevocationPropagationService}'s
  * fail-soft shape (a render failure is a convenience-feature-degraded
  * state, not a compliance blocker).
  *
  * Reuses the `IClientService` + `IURLGenerator` + `IAppConfig`
  * bearer-token seam `DataExchangeRunHandler::callOpenConnector()` /
  * `WalletOfferDelegationService` already establish
- * (`scholiq.docudesk_api_token`, mirroring `scholiq.openconnector_api_token`).
+ * (`learniq.docudesk_api_token`, mirroring `learniq.openconnector_api_token`).
  *
  * Legitimate PHP per ADR-031: "external-system bridge — a genuine
  * cross-app delegation that cannot be expressed as a schema declaration."
  * Referenced from the ReportCard schema's
  * x-openregister-lifecycle.transitions.renderToPdf/rerenderToPdf.requires
- * in scholiq_register.json.
+ * in learniq_register.json.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -54,7 +54,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
@@ -88,7 +88,7 @@ class ReportCardPdfDelegationService {
 
 	/**
 	 * App-config key for the docudesk bearer credential, mirroring
-	 * `scholiq.openconnector_api_token`.
+	 * `learniq.openconnector_api_token`.
 	 *
 	 * @var string
 	 */
@@ -188,14 +188,14 @@ class ReportCardPdfDelegationService {
 		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . self::DOCUDESK_RENDER_PATH);
 
 		$apiToken = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::DOCUDESK_TOKEN_KEY,
 			default: ''
 		);
 
 		if ($apiToken === '') {
 			$this->logger->warning(
-				'[ReportCardPdfDelegationService] No docudesk API token configured (scholiq.docudesk_api_token); '
+				'[ReportCardPdfDelegationService] No docudesk API token configured (learniq.docudesk_api_token); '
 				. 'the render call will fail with 401/403.'
 			);
 			return null;

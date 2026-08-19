@@ -11,7 +11,7 @@
  * a schema declaration."
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -28,11 +28,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\Service\KeyManagementService;
-use OCA\Scholiq\Settings\AdminSettings;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\KeyManagementService;
+use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\AuthorizedAdminSetting;
 use OCP\AppFramework\Http\JSONResponse;
@@ -147,7 +147,7 @@ class KeyAdminController extends Controller {
 
 			// Record the timestamp for throttle enforcement on the next rotation.
 			$this->appConfig->setValueString(
-				app: 'scholiq',
+				app: 'learniq',
 				key: self::KEYGEN_LAST_AT_PREFIX . $tenantId,
 				value: (string)time()
 			);
@@ -208,7 +208,7 @@ class KeyAdminController extends Controller {
 
 		$tenantId = $this->config->getUserValue(
 			userId: $user->getUID(),
-			appName: 'scholiq',
+			appName: 'learniq',
 			key: 'tenant_id',
 			default: ''
 		);
@@ -229,7 +229,7 @@ class KeyAdminController extends Controller {
 	 */
 	private function checkRotationThrottle(string $tenantId): ?string {
 		$lastAtStr = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::KEYGEN_LAST_AT_PREFIX . $tenantId,
 			default: ''
 		);

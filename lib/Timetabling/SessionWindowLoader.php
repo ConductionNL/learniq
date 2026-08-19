@@ -4,7 +4,7 @@
  * Scholiq Session Window Loader
  *
  * The OpenRegister read side of the conflict scan, split out of
- * {@see \OCA\Scholiq\Timetabling\TimetableConflictDetector} so the detector
+ * {@see \OCA\Learniq\Timetabling\TimetableConflictDetector} so the detector
  * owns only the decision logic and the TimetableConflict writes.
  *
  * Everything here is a read: the affected date window (never a full-register
@@ -17,7 +17,7 @@
  * two concurrent scans in one request can never see each other's entries.
  *
  * @category Service
- * @package  OCA\Scholiq\Timetabling
+ * @package  OCA\Learniq\Timetabling
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -34,7 +34,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Timetabling;
+namespace OCA\Learniq\Timetabling;
 
 use OCA\OpenRegister\Service\ObjectService;
 
@@ -47,7 +47,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class SessionWindowLoader {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
 	private const COHORT_SCHEMA = 'cohort';
 	private const ROOM_SCHEMA = 'room';

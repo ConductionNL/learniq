@@ -11,7 +11,7 @@
  * existing pending-parent-review gate").
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -29,14 +29,14 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Listener\SupportRequestSubmitHandler;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Listener\SupportRequestSubmitHandler;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -157,7 +157,7 @@ class SupportRequestSubmitHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('support-request');
 		$event->method('getTo')->willReturn('submitted');
 		$event->method('getFrom')->willReturn('draft');
@@ -266,7 +266,7 @@ class SupportRequestSubmitHandlerTest extends TestCase {
 		$handler = $this->makeHandler(savedJobId: 'job-4');
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('learning-plan');
 		$event->method('getTo')->willReturn('submitted');
 
@@ -286,7 +286,7 @@ class SupportRequestSubmitHandlerTest extends TestCase {
 		$handler = $this->makeHandler(savedJobId: 'job-5');
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('support-request');
 		$event->method('getTo')->willReturn('closed');
 

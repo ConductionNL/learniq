@@ -2,11 +2,11 @@
 <!-- Copyright (C) 2026 Conduction B.V. -->
 
 <!--
- ScholiqAiProcessingDisclosure — the sovereign-ai-guarantee disclosure
+ LearniqAiProcessingDisclosure — the sovereign-ai-guarantee disclosure
  surface a school hands to its DPO (sovereign-ai-guarantee).
 
  A singleton disclosure page (no `:id` route, mirrors
- ScholiqAccessibilityStatement.vue's exact shape): the school's
+ LearniqAccessibilityStatement.vue's exact shape): the school's
  SovereigntyPolicy tier, editable inline via OpenRegister's existing generic
  object-create/update endpoint (useObjectStore.saveObject — no bespoke write
  controller, per ADR-022, mirrors CourseBuilder.vue/CourseTemplate's
@@ -33,11 +33,11 @@
 			class="ai-processing-disclosure__loading" />
 
 		<template v-else>
-			<h2>{{ t('scholiq', 'AI processing disclosure') }}</h2>
+			<h2>{{ t('learniq', 'AI processing disclosure') }}</h2>
 			<p class="ai-processing-disclosure__intro">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						"A school-verifiable record of where this school's AI-assisted processing runs, for your DPO.",
 					)
 				}}
@@ -45,40 +45,40 @@
 
 			<!-- Sovereignty policy tier — editable. -->
 			<section class="ai-processing-disclosure__policy">
-				<h3>{{ t('scholiq', 'Locality policy') }}</h3>
+				<h3>{{ t('learniq', 'Locality policy') }}</h3>
 				<NcSelect
 					v-model="policyForm.policy"
 					:options="policyOptions"
 					:reduce="(opt) => opt.value"
 					:clearable="false"
-					:inputLabel="t('scholiq', 'Locality policy tier')"
-					:aria-label-combobox="t('scholiq', 'Locality policy tier')" />
+					:inputLabel="t('learniq', 'Locality policy tier')"
+					:aria-label-combobox="t('learniq', 'Locality policy tier')" />
 
 				<label
 					class="ai-processing-disclosure__field-label"
 					for="ai-disclosure-rationale">
-					{{ t('scholiq', 'Rationale (optional)') }}
+					{{ t('learniq', 'Rationale (optional)') }}
 				</label>
 				<textarea
 					id="ai-disclosure-rationale"
 					v-model="policyForm.rationale"
 					class="ai-processing-disclosure__rationale"
 					:placeholder="
-						t('scholiq', 'Why this tier was chosen, for the DPO record.')
+						t('learniq', 'Why this tier was chosen, for the DPO record.')
 					" />
 
 				<NcButton variant="primary" :disabled="saving" @click="savePolicy">
 					{{
 						saving
-							? t('scholiq', 'Saving…')
-							: t('scholiq', 'Save policy')
+							? t('learniq', 'Saving…')
+							: t('learniq', 'Save policy')
 					}}
 				</NcButton>
 
 				<p v-if="policy.setAt" class="ai-processing-disclosure__meta">
 					{{
-						t('scholiq', 'Last set by {setBy} on {setAt}', {
-							setBy: policy.setBy || t('scholiq', 'unknown'),
+						t('learniq', 'Last set by {setBy} on {setAt}', {
+							setBy: policy.setBy || t('learniq', 'unknown'),
 							setAt: policy.setAt,
 						})
 					}}
@@ -87,12 +87,12 @@
 
 			<!-- Hermiq-governed AI features + locality verdicts. -->
 			<section class="ai-processing-disclosure__features">
-				<h3>{{ t('scholiq', 'AI features') }}</h3>
+				<h3>{{ t('learniq', 'AI features') }}</h3>
 
 				<NcNoteCard v-if="!hermiqInstalled" type="warning">
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'Install and enable the Hermiq app to see the EU AI Act high-risk AI-feature register here.',
 						)
 					}}
@@ -102,17 +102,17 @@
 					v-else-if="features.length === 0"
 					class="ai-processing-disclosure__no-features">
 					{{
-						t('scholiq', 'No AI features are registered in Hermiq yet.')
+						t('learniq', 'No AI features are registered in Hermiq yet.')
 					}}
 				</p>
 
 				<table v-else class="ai-processing-disclosure__table">
 					<thead>
 						<tr>
-							<th scope="col">{{ t('scholiq', 'Feature') }}</th>
-							<th scope="col">{{ t('scholiq', 'DPO state') }}</th>
-							<th scope="col">{{ t('scholiq', 'Purpose (AVG)') }}</th>
-							<th scope="col">{{ t('scholiq', 'Locality') }}</th>
+							<th scope="col">{{ t('learniq', 'Feature') }}</th>
+							<th scope="col">{{ t('learniq', 'DPO state') }}</th>
+							<th scope="col">{{ t('learniq', 'Purpose (AVG)') }}</th>
+							<th scope="col">{{ t('learniq', 'Locality') }}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -150,7 +150,7 @@ import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
 
-const REGISTER = 'scholiq'
+const REGISTER = 'learniq'
 // The slug this schema declares in lib/Settings/scholiq_register.json, verbatim.
 // The resolver lowercases both sides, so casing is irrelevant — but a structural
 // difference (here the hyphen) is not: 'SovereigntyPolicy' lowercases to
@@ -160,7 +160,7 @@ const POLICY_SCHEMA = 'sovereignty-policy'
 const POLICY_TYPE = `${REGISTER}-${POLICY_SCHEMA}`
 
 export default {
-	name: 'ScholiqAiProcessingDisclosure',
+	name: 'LearniqAiProcessingDisclosure',
 
 	components: {
 		NcButton,
@@ -198,15 +198,15 @@ export default {
 			return [
 				{
 					value: 'on-premises-only',
-					label: this.t('scholiq', 'On-premises only'),
+					label: this.t('learniq', 'On-premises only'),
 				},
 				{
 					value: 'eu-hosted-allowed',
-					label: this.t('scholiq', 'EU-hosted allowed'),
+					label: this.t('learniq', 'EU-hosted allowed'),
 				},
 				{
 					value: 'third-country-allowed',
-					label: this.t('scholiq', 'Third-country allowed'),
+					label: this.t('learniq', 'Third-country allowed'),
 				},
 			]
 		},
@@ -274,7 +274,7 @@ export default {
 		 */
 		async loadDisclosure() {
 			try {
-				const url = generateUrl('/apps/scholiq/api/ai-processing-disclosure')
+				const url = generateUrl('/apps/learniq/api/ai-processing-disclosure')
 				const resp = await fetch(url, {
 					headers: {
 						'OCS-APIREQUEST': 'true',
@@ -292,7 +292,7 @@ export default {
 				this.features = []
 				// eslint-disable-next-line no-console
 				console.error(
-					'[ScholiqAiProcessingDisclosure] loadDisclosure error',
+					'[LearniqAiProcessingDisclosure] loadDisclosure error',
 					err,
 				)
 			}
@@ -342,7 +342,7 @@ export default {
 			} catch (err) {
 				// eslint-disable-next-line no-console
 				console.error(
-					'[ScholiqAiProcessingDisclosure] savePolicy error',
+					'[LearniqAiProcessingDisclosure] savePolicy error',
 					err,
 				)
 			} finally {
@@ -378,11 +378,11 @@ export default {
 		 */
 		badgeLabel(feature) {
 			if (feature.verified !== true) {
-				return this.t('scholiq', 'Unverified')
+				return this.t('learniq', 'Unverified')
 			}
 			return feature.policyCompliant === true
-				? this.t('scholiq', 'Compliant')
-				: this.t('scholiq', 'Violates policy')
+				? this.t('learniq', 'Compliant')
+				: this.t('learniq', 'Violates policy')
 		},
 	},
 }

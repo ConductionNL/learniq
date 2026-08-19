@@ -24,7 +24,7 @@
  * expressed as a schema declaration.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -42,7 +42,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -60,7 +60,7 @@ use Psr\Log\LoggerInterface;
  */
 class PortfolioGradeEmitHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const PORTFOLIO_SCHEMA = 'portfolio';
 	private const CURRICULUM_SCHEMA = 'curriculum-plan';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';

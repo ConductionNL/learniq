@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Scholiq Wallet Claim Sync Service
+ * Learniq Wallet Claim Sync Service
  *
  * Lifecycle guard for the Credential schema's `recordWalletClaim` transition.
  * System-triggered only (never a user-facing action) — invoked by
- * {@see \OCA\Scholiq\Listener\WalletOfferConcludedListener} when openconnector
+ * {@see \OCA\Learniq\Listener\WalletOfferConcludedListener} when openconnector
  * reports the wallet holder claimed an outstanding offer. Writes the claim
  * timestamp onto the Credential.
  *
@@ -21,11 +21,11 @@
  * before a state transition and cannot be expressed as a schema declaration."
  * Referenced from the Credential schema's
  * x-openregister-lifecycle.transitions.recordWalletClaim.requires in
- * scholiq_register.json. Built to the `check(array &$transitionContext): bool`
+ * learniq_register.json. Built to the `check(array &$transitionContext): bool`
  * contract `CredentialSigningService` establishes.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -42,7 +42,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 /**
  * Guards the Credential `recordWalletClaim` transition.

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Learning Plan Signature Guard
+ * Learniq Learning Plan Signature Guard
  *
  * Lifecycle guard for the LearningPlan schema's `draft → active` transition.
  * Blocks activation unless every role declared in the template's
@@ -21,7 +21,7 @@
  * schema metadata declarations.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -39,7 +39,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -54,9 +54,9 @@ use Psr\Log\LoggerInterface;
 class LearningPlanSignatureGuard {
 
 	/**
-	 * Scholiq register slug.
+	 * Learniq register slug.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Minimum assurance level for most roles.

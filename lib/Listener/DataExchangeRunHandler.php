@@ -23,7 +23,7 @@
  * — orchestrate the OpenConnector call. No protocol code lives here.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -41,12 +41,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\DataExchangePayloadBuilder;
+use OCA\Learniq\Service\DataExchangePayloadBuilder;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Http\Client\IClientService;
@@ -68,7 +68,7 @@ use RuntimeException;
  */
 class DataExchangeRunHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const JOB_SCHEMA = 'data-exchange-job';
 	private const MAPPING_PROFILE_SCHEMA = 'data-mapping-profile';
 
@@ -93,7 +93,7 @@ class DataExchangeRunHandler implements IEventListener {
 
 	/**
 	 * App-config key for the OpenConnector internal API token.
-	 * Admins must set `scholiq.openconnector_api_token` to a valid app-password
+	 * Admins must set `learniq.openconnector_api_token` to a valid app-password
 	 * or API token for the internal source-run call to succeed. Fixes #189.
 	 */
 	private const OPENCONNECTOR_TOKEN_KEY = 'openconnector_api_token';
@@ -151,7 +151,7 @@ class DataExchangeRunHandler implements IEventListener {
 		// Timetabling-and-substitution: target: timetable-import is a PULL
 		// (external -> Scholiq Session upserts), a fundamentally different
 		// shape than every other target this handler's runJob() implements
-		// (Scholiq objects -> external PUSH). OCA\Scholiq\Timetabling\
+		// (Scholiq objects -> external PUSH). OCA\Learniq\Timetabling\
 		// TimetableImportHandler owns that target exclusively, registered
 		// against this SAME event in lib/AppInfo/Application.php — bail here
 		// so the two handlers never race to transition the same job.
@@ -566,7 +566,7 @@ class DataExchangeRunHandler implements IEventListener {
 		// #189: attach the configured API token so the OpenConnector endpoint
 		// does not need to be @PublicPage (and is therefore not unauthenticated).
 		$apiToken = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::OPENCONNECTOR_TOKEN_KEY,
 			default: ''
 		);
@@ -579,7 +579,7 @@ class DataExchangeRunHandler implements IEventListener {
 		if ($apiToken === '') {
 			$this->logger->warning(
 				'[DataExchangeRunHandler] No OpenConnector API token configured ('
-				. 'scholiq.openconnector_api_token); the call may fail with 401/403. '
+				. 'learniq.openconnector_api_token); the call may fail with 401/403. '
 				. 'Set the token via the Scholiq admin settings.'
 			);
 		}

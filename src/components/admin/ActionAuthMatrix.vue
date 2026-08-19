@@ -1,11 +1,11 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <template>
 	<div class="scholiq-admin__section" data-testid="admin-action-auth-section">
-		<h3>{{ t('scholiq', 'Action authorization') }}</h3>
+		<h3>{{ t('learniq', 'Action authorization') }}</h3>
 		<p class="scholiq-admin__hint">
 			{{
 				t(
-					'scholiq',
+					'learniq',
 					'Decide which Nextcloud groups may invoke each Scholiq action (ADR-023). Admins always pass. Every action defaults to admin-only — tick a group to broaden it.',
 				)
 			}}
@@ -16,7 +16,7 @@
 		</div>
 
 		<p v-if="loading" class="scholiq-admin__hint">
-			{{ t('scholiq', 'Loading action matrix…') }}
+			{{ t('learniq', 'Loading action matrix…') }}
 		</p>
 
 		<div v-else class="scholiq-admin__matrix-wrapper">
@@ -24,7 +24,7 @@
 				<thead>
 					<tr>
 						<th scope="col">
-							{{ t('scholiq', 'Action') }}
+							{{ t('learniq', 'Action') }}
 						</th>
 						<th
 							v-for="group in displayGroups"
@@ -49,7 +49,7 @@
 								:disabled="group === 'admin'"
 								:aria-label="
 									t(
-										'scholiq',
+										'learniq',
 										'Allow group {group} to perform {action}',
 										{ group, action },
 									)
@@ -69,8 +69,8 @@
 				@click="save">
 				{{
 					saving
-						? t('scholiq', 'Saving…')
-						: t('scholiq', 'Save action matrix')
+						? t('learniq', 'Saving…')
+						: t('learniq', 'Save action matrix')
 				}}
 			</NcButton>
 		</div>
@@ -133,7 +133,7 @@ export default {
 			this.error = ''
 			try {
 				const response = await fetch(
-					generateUrl('/apps/scholiq/api/admin/action-matrix'),
+					generateUrl('/apps/learniq/api/admin/action-matrix'),
 					{
 						headers: { 'Content-Type': 'application/json' },
 					},
@@ -154,7 +154,7 @@ export default {
 				this.matrix = next
 			} catch (e) {
 				console.error('Failed to load action matrix', e)
-				this.error = t('scholiq', 'Failed to load the action matrix.')
+				this.error = t('learniq', 'Failed to load the action matrix.')
 			} finally {
 				this.loading = false
 			}
@@ -211,7 +211,7 @@ export default {
 					payload[action] = ['admin', ...extra]
 				}
 				const response = await fetch(
-					generateUrl('/apps/scholiq/api/admin/action-matrix'),
+					generateUrl('/apps/learniq/api/admin/action-matrix'),
 					{
 						method: 'PUT',
 						headers: { 'Content-Type': 'application/json' },
@@ -229,10 +229,10 @@ export default {
 					next[action] = [...allowed]
 				}
 				this.matrix = next
-				showSuccess(t('scholiq', 'Action matrix saved.'))
+				showSuccess(t('learniq', 'Action matrix saved.'))
 			} catch (e) {
 				console.error('Failed to save action matrix', e)
-				showError(t('scholiq', 'Failed to save the action matrix.'))
+				showError(t('learniq', 'Failed to save the action matrix.'))
 			} finally {
 				this.saving = false
 			}

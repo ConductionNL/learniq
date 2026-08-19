@@ -11,7 +11,7 @@
  * contract (amendment A1), so no mocks and no container are involved.
  *
  * A register-drift pin (testManifestMatchesRegisterSchemas) loads the shipped
- * `scholiq_register.json` and asserts every schema slug, scope field,
+ * `learniq_register.json` and asserts every schema slug, scope field,
  * whitelisted field AND parent `via` scope field the manifest references
  * actually exists — so a rename in the register (or a missing `portal-identity`
  * ref) fails this test instead of silently breaking the portal at runtime. The
@@ -19,7 +19,7 @@
  * reverse / scope-value `via` join (`match: 'scopeField'`).
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Unit\Portal
+ * @package  OCA\Learniq\Tests\Unit\Portal
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -34,9 +34,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Portal;
+namespace OCA\Learniq\Tests\Unit\Portal;
 
-use OCA\Scholiq\Portal\PortalContributionProvider;
+use OCA\Learniq\Portal\PortalContributionProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -196,7 +196,7 @@ class PortalContributionProviderTest extends TestCase {
 		);
 
 		foreach ($collections as $collection) {
-			$this->assertSame('scholiq', $collection['register']);
+			$this->assertSame('learniq', $collection['register']);
 			$this->assertSame('learnerRef', $collection['scopeClaim']);
 			$this->assertNotEmpty($collection['fields']);
 			// Submission is scoped by the learnerRefs ARRAY (membership); every
@@ -288,7 +288,7 @@ class PortalContributionProviderTest extends TestCase {
 		);
 
 		foreach ($collections as $collection) {
-			$this->assertSame('scholiq', $collection['register']);
+			$this->assertSame('learniq', $collection['register']);
 			// Parent scope key is the guardian claim; the outer record scope
 			// field is the child's learnerRef (matched by the reverse via).
 			$this->assertSame('guardianRef', $collection['scopeClaim']);
@@ -355,7 +355,7 @@ class PortalContributionProviderTest extends TestCase {
 				"via keys must be exactly the reader's contract for '{$collection['id']}'"
 			);
 
-			$this->assertSame('scholiq', $via['register']);
+			$this->assertSame('learniq', $via['register']);
 			$this->assertSame('learner-profile', $via['schema']);
 			// The join row's field matched against the guardian scope value.
 			$this->assertSame('guardianRefs', $via['scopeField']);
@@ -412,7 +412,7 @@ class PortalContributionProviderTest extends TestCase {
 		$collection = $collections[0];
 
 		$this->assertSame('poBpvPlacements', $collection['id']);
-		$this->assertSame('scholiq', $collection['register']);
+		$this->assertSame('learniq', $collection['register']);
 		$this->assertSame('bpv-placement', $collection['schema']);
 		// Direct match — not a reverse `via` join like `parent`.
 		$this->assertSame('practicalTrainerId', $collection['scopeField']);
@@ -442,7 +442,7 @@ class PortalContributionProviderTest extends TestCase {
 		$collection = $manifest['collections'][1];
 
 		$this->assertSame('poSharedPortfolios', $collection['id']);
-		$this->assertSame('scholiq', $collection['register']);
+		$this->assertSame('learniq', $collection['register']);
 		$this->assertSame('portfolio-share', $collection['schema']);
 		$this->assertSame('sharedWithPracticalTrainerId', $collection['scopeField']);
 		$this->assertSame('practicalTrainerId', $collection['scopeClaim']);
@@ -477,7 +477,7 @@ class PortalContributionProviderTest extends TestCase {
 		$collection = $collections[0];
 
 		$this->assertSame('eaSharedPortfolios', $collection['id']);
-		$this->assertSame('scholiq', $collection['register']);
+		$this->assertSame('learniq', $collection['register']);
 		$this->assertSame('portfolio-share', $collection['schema']);
 		$this->assertSame('sharedWithExternalAssessorId', $collection['scopeField']);
 		$this->assertSame('externalAssessorId', $collection['scopeClaim']);
@@ -548,7 +548,7 @@ class PortalContributionProviderTest extends TestCase {
 	/**
 	 * Register-drift pin: every schema slug, scope field, whitelisted field and
 	 * `via` scope-field the manifest references MUST exist in the shipped
-	 * scholiq_register.json — proving the `portal-identity` refs are present and
+	 * learniq_register.json — proving the `portal-identity` refs are present and
 	 * that no register rename silently broke the portal. Covers the parent
 	 * reverse-join collections too (their via `scopeField` is `guardianRefs` on
 	 * `learner-profile`; `targetField` is the OR object-identity token `id`, not
@@ -557,7 +557,7 @@ class PortalContributionProviderTest extends TestCase {
 	 * @return void
 	 */
 	public function testManifestMatchesRegisterSchemas(): void {
-		$registerPath = __DIR__ . '/../../../lib/Settings/scholiq_register.json';
+		$registerPath = __DIR__ . '/../../../lib/Settings/learniq_register.json';
 		$this->assertFileExists($registerPath);
 
 		$register = json_decode((string)file_get_contents($registerPath), true);

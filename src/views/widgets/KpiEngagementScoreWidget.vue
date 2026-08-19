@@ -16,7 +16,7 @@
 		class="kpi-engagement-score"
 		:class="link ? 'kpi-engagement-score--linkable' : ''">
 		<CnStatsBlock
-			:title="t('scholiq', 'Avg. engagement score')"
+			:title="t('learniq', 'Avg. engagement score')"
 			:count="displayValue"
 			:loading="loading"
 			variant="primary"
@@ -88,7 +88,7 @@ export default {
 			this.loading = true
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/engagement-score?_limit=200',
+					'/apps/openregister/api/objects/learniq/engagement-score?_limit=200',
 				)
 				const response = await axios.get(url)
 				const data = response.data ?? {}

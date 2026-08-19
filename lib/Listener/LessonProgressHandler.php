@@ -27,7 +27,7 @@
  * bridge from an OR ObjectCreatedEvent to a LessonCompletion object write.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -44,11 +44,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  */
 class LessonProgressHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const XAPI_SCHEMA = 'xapi-statement';
 	private const LESSON_SCHEMA = 'lesson';
 	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';

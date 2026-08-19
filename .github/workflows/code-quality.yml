@@ -112,7 +112,7 @@ jobs:
     if: github.event_name != 'push' || github.event.created != true
     uses: ConductionNL/.github/.github/workflows/quality.yml@main
     with:
-      app-name: scholiq
+      app-name: learniq
       php-version: "8.3"
       php-test-versions: '["8.3", "8.4"]'
       # THE LIST IS THE WHOLE DECLARED RANGE. This comment previously read
@@ -137,7 +137,7 @@ jobs:
       # scholiq's info.xml declares <app>openregister</app>/<app>openconnector</app>
       # and Application.php registers listeners for OR lifecycle events; OR's
       # `development` carries ObjectCreatedEvent/ObjectTransitionedEvent + the
-      # IMcpToolProvider interface the ScholiqToolProvider tests need.
+      # IMcpToolProvider interface the LearniqToolProvider tests need.
       #
       # openconnector is deliberately NOT installed here. It is a SOFT
       # dependency in src/manifest.json: scholiq proxies to it only for the LTI
@@ -193,7 +193,7 @@ jobs:
       #
       # global-setup.ts detects the marker this script writes and skips its own
       # seed, so the import does not run twice.
-      playwright-seed-command: 'bash apps/scholiq/tests/e2e/ci-seed.sh'
+      playwright-seed-command: 'bash apps/learniq/tests/e2e/ci-seed.sh'
 
       # Integration Tests (Newman) stays OFF here, deliberately. The
       # `enable-newman: false` further up is not a default nobody chose: it

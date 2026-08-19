@@ -29,7 +29,7 @@
  * not expressible as a single declarative OR query or schema calculation.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -46,7 +46,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;

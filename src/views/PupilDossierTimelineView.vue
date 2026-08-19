@@ -40,12 +40,12 @@
 	<div class="pupil-dossier-timeline">
 		<header class="pupil-dossier-timeline__header">
 			<h2 class="pupil-dossier-timeline__title">
-				{{ t('scholiq', 'Pupil dossier timeline') }}
+				{{ t('learniq', 'Pupil dossier timeline') }}
 			</h2>
 			<p class="pupil-dossier-timeline__subtitle">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'Notes, incidents, wellbeing check-ins, and the formal care chain for one learner, merged chronologically.',
 					)
 				}}
@@ -55,27 +55,27 @@
 		<!-- No learner selected: inline picker. -->
 		<div v-if="!learnerId" class="pupil-dossier-timeline__picker" role="form">
 			<label for="pupil-dossier-timeline-learner-id">
-				{{ t('scholiq', 'Learner ID') }}
+				{{ t('learniq', 'Learner ID') }}
 			</label>
 			<div class="pupil-dossier-timeline__picker-row">
 				<input
 					id="pupil-dossier-timeline-learner-id"
 					v-model="learnerIdInput"
 					type="text"
-					:placeholder="t('scholiq', 'Nextcloud user ID of the learner')"
+					:placeholder="t('learniq', 'Nextcloud user ID of the learner')"
 					@keyup.enter="openLearner" />
 				<button
 					type="button"
 					class="button-vue button-vue--vue-primary"
 					:disabled="!learnerIdInput"
 					@click="openLearner">
-					{{ t('scholiq', 'Open timeline') }}
+					{{ t('learniq', 'Open timeline') }}
 				</button>
 			</div>
 			<p class="pupil-dossier-timeline__picker-hint">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'Usually opened from a learner\'s profile page ("Dossier timeline" tile) — this picker is a fallback for direct navigation.',
 					)
 				}}
@@ -89,7 +89,7 @@
 				class="pupil-dossier-timeline__loading"
 				aria-live="polite">
 				<span class="icon-loading" aria-hidden="true" />
-				<span>{{ t('scholiq', 'Loading dossier timeline...') }}</span>
+				<span>{{ t('learniq', 'Loading dossier timeline...') }}</span>
 			</div>
 
 			<!-- Error -->
@@ -110,7 +110,7 @@
 				<p>
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'This learner has no dossier notes, incidents, check-ins, or care-chain records yet.',
 						)
 					}}
@@ -258,7 +258,7 @@ export default {
 		 */
 		async fetchSchema(schema, query) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/${schema}?${query}`,
+				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -311,7 +311,7 @@ export default {
 				}
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load the dossier timeline. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -329,7 +329,7 @@ export default {
 		normaliseNote(o) {
 			return {
 				kind: 'dossier-note',
-				kindLabel: this.t('scholiq', 'Dossier note'),
+				kindLabel: this.t('learniq', 'Dossier note'),
 				id: o.id ?? o.uuid,
 				date: o.date,
 				title: o.category,
@@ -346,10 +346,10 @@ export default {
 		normaliseIncident(o) {
 			return {
 				kind: 'behaviour-incident',
-				kindLabel: this.t('scholiq', 'Behaviour incident'),
+				kindLabel: this.t('learniq', 'Behaviour incident'),
 				id: o.id ?? o.uuid,
 				date: o.occurredAt,
-				title: this.t('scholiq', 'Incident ({severity})', {
+				title: this.t('learniq', 'Incident ({severity})', {
 					severity: o.severity,
 				}),
 
@@ -366,10 +366,10 @@ export default {
 		normaliseCheckIn(o) {
 			return {
 				kind: 'wellbeing-check-in',
-				kindLabel: this.t('scholiq', 'Wellbeing check-in'),
+				kindLabel: this.t('learniq', 'Wellbeing check-in'),
 				id: o.id ?? o.uuid,
 				date: o.submittedAt,
-				title: this.t('scholiq', 'Mood: {mood}/5', { mood: o.moodScale }),
+				title: this.t('learniq', 'Mood: {mood}/5', { mood: o.moodScale }),
 				summary: o.comment,
 				route: 'WellbeingCheckInDetail',
 			}
@@ -383,7 +383,7 @@ export default {
 		normalisePlan(o) {
 			return {
 				kind: 'learning-plan',
-				kindLabel: this.t('scholiq', 'Learning plan'),
+				kindLabel: this.t('learniq', 'Learning plan'),
 				id: o.id ?? o.uuid,
 				date: o.created ?? o.startDate ?? o.nextReviewAt,
 				title: o.kind,
@@ -400,7 +400,7 @@ export default {
 		normaliseRequest(o) {
 			return {
 				kind: 'support-request',
-				kindLabel: this.t('scholiq', 'Support request'),
+				kindLabel: this.t('learniq', 'Support request'),
 				id: o.id ?? o.uuid,
 				date: o.created ?? o.submittedAt,
 				title: o.supportDomain,
@@ -417,7 +417,7 @@ export default {
 		normaliseDeliberation(o) {
 			return {
 				kind: 'deliberation-record',
-				kindLabel: this.t('scholiq', 'Deliberation record'),
+				kindLabel: this.t('learniq', 'Deliberation record'),
 				id: o.id ?? o.uuid,
 				date: o.recordedAt ?? o.scheduledAt,
 				title: o.outcome,

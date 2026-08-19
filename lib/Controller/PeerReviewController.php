@@ -14,7 +14,7 @@
  * methods (design.md "Reviewer Allocation").
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -31,11 +31,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\PeerReview\PeerReviewAllocationService;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\PeerReview\PeerReviewAllocationService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -53,7 +53,7 @@ use OCP\IUserSession;
  */
 class PeerReviewController extends Controller {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
 	private const SESSION_SCHEMA = 'session';
 	private const COHORT_SCHEMA = 'cohort';

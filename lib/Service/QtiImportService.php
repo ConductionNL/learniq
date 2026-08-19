@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq QTI Import Service
+ * Learniq QTI Import Service
  *
  * Imports QTI 2.x / 3.0 packages and IMS Common Cartridge archives, converts
  * items to the canonical QTI 3.0 stored form, and creates `Item` objects in
@@ -20,7 +20,7 @@
  * a TODO marker in their correctResponse, pending a future parsing extension.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -37,7 +37,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use DOMDocument;
 use DOMElement;
@@ -47,7 +47,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
 /**
- * Imports QTI 2.x / 3.0 packages and Common Cartridge files into the Scholiq
+ * Imports QTI 2.x / 3.0 packages and Common Cartridge files into the Learniq
  * ItemBank as `Item` objects.
  *
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
@@ -65,7 +65,7 @@ class QtiImportService {
 	private const QTI2_NS = 'http://www.imsglobal.org/xsd/imsqti_v2p1';
 
 	/**
-	 * Map of QTI interaction element names → Scholiq interactionType slugs.
+	 * Map of QTI interaction element names → Learniq interactionType slugs.
 	 */
 	private const INTERACTION_MAP = [
 		'choiceInteraction' => 'choice',
@@ -311,11 +311,11 @@ class QtiImportService {
 
 		// OpenRegister's saveObject() takes the payload FIRST and returns a
 		// non-nullable ObjectEntity. This used to be called positionally as
-		// saveObject('scholiq', 'item', $itemData), which passes the register
+		// saveObject('learniq', 'item', $itemData), which passes the register
 		// slug as the payload — a guaranteed TypeError against the real
 		// service. Named arguments are the only safe call shape here.
 		$saved = $this->objectService->saveObject(
-			register: 'scholiq',
+			register: 'learniq',
 			schema: 'item',
 			object: $itemData
 		);

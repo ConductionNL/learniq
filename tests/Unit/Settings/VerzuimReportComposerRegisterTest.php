@@ -17,7 +17,7 @@
  * ProcessingActivityCatalogueTest.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Settings
+ * @package  OCA\Learniq\Tests\Unit\Settings
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -32,7 +32,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Settings;
+namespace OCA\Learniq\Tests\Unit\Settings;
 
 use PHPUnit\Framework\TestCase;
 
@@ -57,7 +57,7 @@ class VerzuimReportComposerRegisterTest extends TestCase {
 	 */
 	protected function setUp(): void {
 		parent::setUp();
-		$path = __DIR__ . '/../../../lib/Settings/scholiq_register.json';
+		$path = __DIR__ . '/../../../lib/Settings/learniq_register.json';
 		$this->config = json_decode((string)file_get_contents($path), true);
 
 	}//end setUp()
@@ -221,11 +221,11 @@ class VerzuimReportComposerRegisterTest extends TestCase {
 		$recordFeedback = $transitions['recordMunicipalityFeedback'];
 		self::assertSame('succeeded', $recordFeedback['from']);
 		self::assertSame('succeeded', $recordFeedback['to']);
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\MunicipalityFeedbackGuard', $recordFeedback['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\MunicipalityFeedbackGuard', $recordFeedback['requires']);
 
 		// Existing chain untouched.
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\DataExchangeRunGuard', $transitions['run']['requires']);
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\OsoDossierReviewGuard', $transitions['approveDossier']['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\DataExchangeRunGuard', $transitions['run']['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\OsoDossierReviewGuard', $transitions['approveDossier']['requires']);
 		self::assertArrayNotHasKey('requires', $transitions['succeed']);
 
 	}//end testRecordMunicipalityFeedbackTransitionShape()

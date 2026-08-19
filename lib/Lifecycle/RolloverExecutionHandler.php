@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Scholiq Rollover Execution Handler
+ * Learniq Rollover Execution Handler
  *
  * Listens for the RolloverPlan `previewed → executing` (and `failed → executing`
  * retry) transition and runs the chunked, idempotent rollover via RolloverService,
  * then drives the plan to `completed` or `failed`.
  *
- * Per the fleet jobs-never-ran bug, scholiq does NOT register a background job
+ * Per the fleet jobs-never-ran bug, learniq does NOT register a background job
  * via `IRegistrationContext::registerJob`; async work in this app is event-driven
  * off OpenRegister's `ObjectTransitionedEvent` (the same mechanism every other
- * Scholiq bridge uses). OR's lifecycle engine fires this event when an admin
+ * Learniq bridge uses). OR's lifecycle engine fires this event when an admin
  * transitions the plan to `executing`; execution is idempotent and resumable so a
  * `failed` plan can be retried without duplicating already-created cohorts or
  * carried-over enrolments.
@@ -20,7 +20,7 @@
  * expressed as declarative schema metadata.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -37,12 +37,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\RolloverExecutionService;
-use OCA\Scholiq\Service\RolloverService;
+use OCA\Learniq\Service\RolloverExecutionService;
+use OCA\Learniq\Service\RolloverService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -57,7 +57,7 @@ class RolloverExecutionHandler implements IEventListener {
 	/**
 	 * OpenRegister register slug.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * RolloverPlan schema slug.

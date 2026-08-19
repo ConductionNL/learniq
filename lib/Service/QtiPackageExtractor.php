@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq QTI Package Extractor
+ * Learniq QTI Package Extractor
  *
  * Stateless helper: owns the hardened ZIP extraction path for QTI 2.x / 3.0
  * and IMS Common Cartridge packages — the zip-slip and decompression-bomb
@@ -17,7 +17,7 @@
  * declaratively.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -34,7 +34,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use RuntimeException;
 use ZipArchive;

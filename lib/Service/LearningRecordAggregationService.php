@@ -23,7 +23,7 @@
  * exercises, learner-initiated instead of institution-initiated.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -40,7 +40,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 
@@ -52,7 +52,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class LearningRecordAggregationService {
 
-	private const REGISTER = 'scholiq';
+	private const REGISTER = 'learniq';
 
 	private const SCHEMA_LEARNER_PROFILE = 'learner-profile';
 	private const SCHEMA_ENROLMENT = 'enrolment';

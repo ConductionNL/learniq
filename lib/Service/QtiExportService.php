@@ -20,7 +20,7 @@
  * `AuditPackExportController`'s in-memory-ZIP pattern.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -37,7 +37,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
@@ -48,7 +48,7 @@ use ZipArchive;
  */
 class QtiExportService {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.
@@ -150,7 +150,7 @@ class QtiExportService {
 	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
 	 */
 	private function buildZip(array $files): string {
-		$tmpFile = tempnam(sys_get_temp_dir(), 'scholiq_qti_export_');
+		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_qti_export_');
 		if ($tmpFile === false) {
 			return '';
 		}

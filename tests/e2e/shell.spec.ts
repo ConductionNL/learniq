@@ -3,7 +3,7 @@ import { test, expect } from './fixtures'
 /**
  * Shell smoke tests — verify the Scholiq SPA shell loads correctly.
  *
- * These tests navigate to /index.php/apps/scholiq/ and check that:
+ * These tests navigate to /index.php/apps/learniq/ and check that:
  *   1. The CnAppRoot shell renders (no blank page / fatal error).
  *   2. The navigation contains the expected top-level menu items.
  *
@@ -18,7 +18,7 @@ test.describe('Scholiq shell', () => {
 			}
 		})
 
-		await page.goto('/index.php/apps/scholiq/')
+		await page.goto('/index.php/apps/learniq/')
 
 		// Wait for the app root to be present
 		await page.waitForSelector('body', { timeout: 15_000 })
@@ -47,7 +47,7 @@ test.describe('Scholiq shell', () => {
 	})
 
 	test('nav contains expected menu items', async ({ loggedInPage: page }) => {
-		await page.goto('/index.php/apps/scholiq/')
+		await page.goto('/index.php/apps/learniq/')
 
 		// Wait for the document to be parsed. NOT `networkidle`: Nextcloud's
 		// notification poll keeps a request in flight for the whole session, so
@@ -71,7 +71,7 @@ test.describe('Scholiq shell', () => {
 		// manifest gates it on
 		//     visibleIf: { "user.primaryRole": { in: ["compliance-officer", "hr"] } }
 		// and the CI session resolves `primaryRole` to the default `learner`
-		// (src/main.js: loadState('scholiq', 'primaryRole', 'learner')). Asserting it
+		// (src/main.js: loadState('learniq', 'primaryRole', 'learner')). Asserting it
 		// unconditionally contradicted the manifest's own declared visibility rule and
 		// failed on CI run 30798535945.
 		//
@@ -79,21 +79,43 @@ test.describe('Scholiq shell', () => {
 		// is not one of the gated roles, the entry MUST be absent. That is a stronger
 		// check than the one it replaces — it proves `visibleIf` is enforced, which the
 		// old assertion could not have detected being broken.
+		// Read initial state from the `value` ATTRIBUTE, not `textContent`.
+		// Nextcloud renders initial state as `<input type="hidden" value="<base64>">`,
+		// so `textContent` is the empty string whether the state is set or not — a
+		// property that cannot say "no" is not evidence. The previous version of this
+		// probe used `textContent`, so `primaryRole` was ALWAYS null and the branch
+		// below always ran, regardless of who was signed in.
 		const primaryRole = await page.evaluate(() => {
-			const el = document.querySelector('#initial-state-scholiq-primaryRole')
+			const el = document.querySelector('#initial-state-learniq-primaryRole')
+			const raw = el?.getAttribute('value') ?? ''
 			try {
-				return el ? JSON.parse(atob(el.textContent ?? '')) : null
+				return raw ? JSON.parse(atob(raw)) : null
 			} catch {
 				return null
 			}
 		})
-		if (primaryRole !== 'compliance-officer' && primaryRole !== 'hr') {
-			const complianceNav = page
-				.locator('#app-navigation-vue a, #app-navigation-vue button')
-				.filter({ hasText: /^\s*Compliance\s*$/ })
+
+		// The gate is `visibleIf: { "user.primaryRole": { in: [...] } }`.
+		// `admin` was ADDED to it by the `fix-dead-role-gates` change: Compliance
+		// is the app's headline compliance-training feature and it was invisible
+		// to every administrator, because the resolver returns `admin` first and
+		// returns exactly one value. This assertion previously encoded that defect
+		// as intended behaviour.
+		const complianceEntitled = ['compliance-officer', 'hr', 'admin']
+		const complianceNav = page
+			.locator('#app-navigation-vue a, #app-navigation-vue button')
+			.filter({ hasText: /^\s*Compliance\s*$/ })
+		const complianceCount = await complianceNav.count()
+
+		if (primaryRole !== null && complianceEntitled.includes(primaryRole)) {
 			expect(
-				await complianceNav.count(),
-				`"Compliance" is visibleIf-gated on primaryRole in [compliance-officer, hr]; this session is "${primaryRole}", so it must not appear in the app nav`,
+				complianceCount,
+				`"Compliance" is visibleIf-gated on primaryRole in [${complianceEntitled.join(', ')}]; this session is "${primaryRole}", so it MUST appear in the app nav`,
+			).toBeGreaterThan(0)
+		} else {
+			expect(
+				complianceCount,
+				`"Compliance" is visibleIf-gated on primaryRole in [${complianceEntitled.join(', ')}]; this session is "${primaryRole}", so it must not appear in the app nav`,
 			).toBe(0)
 		}
 	})

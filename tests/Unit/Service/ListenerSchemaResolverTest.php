@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests for {@see \OCA\Scholiq\Service\ListenerSchemaResolver}.
+ * Tests for {@see \OCA\Learniq\Service\ListenerSchemaResolver}.
  *
  * These are POSITIVE controls for the id-vs-slug listener defect: each one
  * asserts the resolver actually PRODUCES the register/schema slugs a listener
@@ -16,7 +16,7 @@
  * colliding `automation` schemas 71 / 5103.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -29,10 +29,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Scholiq\Service\ListenerSchemaResolver;
-use OCA\Scholiq\Service\ListenerSlugContract;
+use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\ListenerSlugContract;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -203,12 +203,12 @@ class ListenerSchemaResolverTest extends TestCase {
 	public function testResolvesRegisterAndSchemaIdsToSlugs(): void {
 		$resolver = $this->resolver(
 			schemas: ['1280' => 'xapi-statement'],
-			registers: ['9' => 'scholiq'],
+			registers: ['9' => 'learniq'],
 		);
 
 		$entity = $this->entity(registerId: '9', schemaId: '1280');
 
-		$this->assertSame('scholiq', $resolver->registerSlug(entity: $entity));
+		$this->assertSame('learniq', $resolver->registerSlug(entity: $entity));
 		$this->assertSame('xapi-statement', $resolver->schemaSlug(entity: $entity));
 
 	}//end testResolvesRegisterAndSchemaIdsToSlugs()
@@ -225,7 +225,7 @@ class ListenerSchemaResolverTest extends TestCase {
 				'1286' => 'session',
 				'1293' => 'assessment-result',
 			],
-			registers: ['9' => 'scholiq'],
+			registers: ['9' => 'learniq'],
 		);
 
 		$this->assertSame(
@@ -257,7 +257,7 @@ class ListenerSchemaResolverTest extends TestCase {
 				'5103' => 'automation',
 			],
 			registers: [
-				'9' => 'scholiq',
+				'9' => 'learniq',
 				'264' => 'shillinq',
 			],
 		);
@@ -285,7 +285,7 @@ class ListenerSchemaResolverTest extends TestCase {
 	public function testDisabledContractReturnsRawIdsSoListenersStayDead(): void {
 		$resolver = $this->resolver(
 			schemas: ['1280' => 'xapi-statement'],
-			registers: ['9' => 'scholiq'],
+			registers: ['9' => 'learniq'],
 			enabled: false,
 		);
 
@@ -303,7 +303,7 @@ class ListenerSchemaResolverTest extends TestCase {
 	 * @return void
 	 */
 	public function testUnresolvableSchemaDegradesToEmptyString(): void {
-		$resolver = $this->resolver(schemas: [], registers: ['9' => 'scholiq']);
+		$resolver = $this->resolver(schemas: [], registers: ['9' => 'learniq']);
 
 		$this->assertSame(
 			'',
@@ -338,10 +338,10 @@ class ListenerSchemaResolverTest extends TestCase {
 			registers: [],
 		);
 
-		$entity = $this->entity(registerId: 'scholiq', schemaId: '1280');
+		$entity = $this->entity(registerId: 'learniq', schemaId: '1280');
 
 		$this->assertTrue($resolver->isOwnRegister(entity: $entity));
-		$this->assertSame('scholiq', $resolver->registerSlug(entity: $entity));
+		$this->assertSame('learniq', $resolver->registerSlug(entity: $entity));
 
 	}//end testRegisterSlugIsAcceptedDirectly()
 }//end class

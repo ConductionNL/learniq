@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Scholiq Application
+ * Learniq Application
  *
- * Main application class for the Scholiq Nextcloud app.
+ * Main application class for the Learniq Nextcloud app.
  *
  * @category AppInfo
- * @package  OCA\Scholiq\AppInfo
+ * @package  OCA\Learniq\AppInfo
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -21,12 +21,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\AppInfo;
+namespace OCA\Learniq\AppInfo;
 
 use OCA\OpenRegister\AppHost\Bootstrap;
-use OCA\Scholiq\AppInfo\Registrar\EventListenerWiring;
-use OCA\Scholiq\AppInfo\Registrar\ServiceOverrideRegistrar;
-use OCA\Scholiq\Mcp\ScholiqToolProvider;
+use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\AppInfo\Registrar\ServiceOverrideRegistrar;
+use OCA\Learniq\Mcp\LearniqToolProvider;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -34,7 +34,7 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\EventDispatcher\IEventDispatcher;
 
 /**
- * Main application class for the Scholiq Nextcloud app.
+ * Main application class for the Learniq Nextcloud app.
  *
  * Per ADR-031: DI registrations limited to legitimate PHP seams only:
  *   - Cryptographic operations (Cmi5LaunchTokenService)
@@ -44,18 +44,18 @@ use OCP\EventDispatcher\IEventDispatcher;
  * NOT registered: AuditTrail, AuditedController, AiFeatureRegistry,
  * NotificationService, OpenRegisterGuard, AdminSettings, PersonalSettings.
  * All state machines and notifications are declared via x-openregister-*
- * in lib/Settings/scholiq_register.json (per ADR-022 + ADR-031).
+ * in lib/Settings/learniq_register.json (per ADR-022 + ADR-031).
  *
- * Settings UI is handled by the manifest's Settings custom page (ScholiqSettings
+ * Settings UI is handled by the manifest's Settings custom page (LearniqSettings
  * Vue component) — no OCP\Settings\ISettings PHP class needed (per ADR-024).
  *
  * The listener wiring itself lives in domain-scoped registrars under
- * {@see \OCA\Scholiq\AppInfo\Registrar}, reached through
+ * {@see \OCA\Learniq\AppInfo\Registrar}, reached through
  * {@see EventListenerWiring}. This class therefore names the bootstrap seams,
  * not the ~40 listener classes behind them.
  */
 class Application extends App implements IBootstrap {
-	public const APP_ID = 'scholiq';
+	public const APP_ID = 'learniq';
 
 	/**
 	 * Constructor for the Application class.
@@ -104,7 +104,7 @@ class Application extends App implements IBootstrap {
 		// alphabet, not a design property. The Bootstrap::register() call below is
 		// UNGUARDED, so the moment the ordering stops holding the resulting \Error
 		// aborts this ENTIRE register() — Coordinator catches it, logs an
-		// 'emergency' and continues, leaving Scholiq enabled and serving with the
+		// 'emergency' and continues, leaving Learniq enabled and serving with the
 		// two registrars below silently never wired.
 		//
 		// Registering the prefix ourselves removes the dependency on ordering.
@@ -119,14 +119,14 @@ class Application extends App implements IBootstrap {
 			$context,
 			self::APP_ID,
 			[
-				'namespace' => 'OCA\\Scholiq',
-				'sectionName' => 'Scholiq',
-				'mcpProvider' => ScholiqToolProvider::class,
+				'namespace' => 'OCA\\Learniq',
+				'sectionName' => 'Learniq',
+				'mcpProvider' => LearniqToolProvider::class,
 			]
 		);
 
 		// Override cookbook (ADR-040): re-point the settings controller/service,
-		// the action-auth service and the install repair step at Scholiq's own
+		// the action-auth service and the install repair step at Learniq's own
 		// implementations, AFTER Bootstrap so they win over the generic aliases.
 		(new ServiceOverrideRegistrar())->register(context: $context, appId: self::APP_ID);
 
@@ -142,7 +142,7 @@ class Application extends App implements IBootstrap {
 	 * Every object-event listener that declares a register/schema interest is
 	 * subscribed here rather than in register(): OpenRegister's
 	 * `ObjectEventSubscription` is only guaranteed autoloadable once every app's
-	 * register() has run. See {@see \OCA\Scholiq\AppInfo\Registrar\BootListenerRegistrar}.
+	 * register() has run. See {@see \OCA\Learniq\AppInfo\Registrar\BootListenerRegistrar}.
 	 *
 	 * @param IBootContext $context The boot context
 	 *

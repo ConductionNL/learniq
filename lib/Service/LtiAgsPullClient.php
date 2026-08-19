@@ -16,7 +16,7 @@
  * reused as the app-password — not a bearer token.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -33,9 +33,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
-use OCA\Scholiq\AppInfo\Application;
+use OCA\Learniq\AppInfo\Application;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
@@ -96,7 +96,7 @@ class LtiAgsPullClient {
 	/**
 	 * Pull pending AGS messages from OpenConnector for a subscription.
 	 *
-	 * @param string $subscriptionId The scholiq-owned event_subscription UUID.
+	 * @param string $subscriptionId The learniq-owned event_subscription UUID.
 	 * @param string $cursor The last-seen event_message cursor ('' for a first sweep).
 	 *
 	 * @return array{messages: array<int,mixed>, cursor: string|null}|null The pull result, or null on failure.
@@ -174,7 +174,7 @@ class LtiAgsPullClient {
 
 		$this->logger->warning(
 			'[LtiAgsPullClient] OpenConnector API user/token not fully configured '
-			. '(scholiq.openconnector_api_user / scholiq.openconnector_api_token); '
+			. '(learniq.openconnector_api_user / learniq.openconnector_api_token); '
 			. 'the pull call may fail with 401/403.'
 		);
 

@@ -21,12 +21,12 @@
 	<div class="learning-record-import">
 		<header class="learning-record-import__header">
 			<h2 class="learning-record-import__heading">
-				{{ t('scholiq', 'Import prior learning record') }}
+				{{ t('learniq', 'Import prior learning record') }}
 			</h2>
 			<p class="learning-record-import__intro">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						"Upload the applicant's exported Scholiq learning record, or a bare ELM/Europass credential set. Every record found in the bundle is reported — nothing is silently lost. This is evidence for your own decision, not an automatic write.",
 					)
 				}}
@@ -36,22 +36,22 @@
 		<!-- Upload form -->
 		<div v-if="!report" class="learning-record-import__upload">
 			<label class="learning-record-import__label" for="lri-source-format">
-				{{ t('scholiq', 'Bundle format') }}
+				{{ t('learniq', 'Bundle format') }}
 			</label>
 			<select
 				id="lri-source-format"
 				v-model="sourceFormat"
 				class="learning-record-import__select">
 				<option value="scholiq-learning-record">
-					{{ t('scholiq', 'Scholiq learning record export') }}
+					{{ t('learniq', 'Scholiq learning record export') }}
 				</option>
 				<option value="elm-europass">
-					{{ t('scholiq', 'Bare ELM / Europass credential set') }}
+					{{ t('learniq', 'Bare ELM / Europass credential set') }}
 				</option>
 			</select>
 
 			<label class="learning-record-import__label" for="lri-file">
-				{{ t('scholiq', 'Bundle file') }}
+				{{ t('learniq', 'Bundle file') }}
 			</label>
 			<input
 				id="lri-file"
@@ -63,7 +63,7 @@
 				@change="onFileSelected" />
 
 			<p v-if="selectedFileName" class="learning-record-import__selected">
-				{{ t('scholiq', 'Selected: {name}', { name: selectedFileName }) }}
+				{{ t('learniq', 'Selected: {name}', { name: selectedFileName }) }}
 			</p>
 
 			<button
@@ -73,8 +73,8 @@
 				<span v-if="uploading" class="icon-loading" aria-hidden="true" />
 				{{
 					uploading
-						? t('scholiq', 'Uploading…')
-						: t('scholiq', 'Upload and parse')
+						? t('learniq', 'Uploading…')
+						: t('learniq', 'Upload and parse')
 				}}
 			</button>
 
@@ -102,20 +102,20 @@
 				<label
 					class="learning-record-import__label"
 					for="lri-outcome-filter">
-					{{ t('scholiq', 'Filter by outcome') }}
+					{{ t('learniq', 'Filter by outcome') }}
 				</label>
 				<select
 					id="lri-outcome-filter"
 					v-model="outcomeFilter"
 					class="learning-record-import__select">
 					<option value="all">
-						{{ t('scholiq', 'All records') }}
+						{{ t('learniq', 'All records') }}
 					</option>
 					<option value="recognized">
-						{{ t('scholiq', 'Recognized') }}
+						{{ t('learniq', 'Recognized') }}
 					</option>
 					<option value="unrecognized">
-						{{ t('scholiq', 'Unrecognized') }}
+						{{ t('learniq', 'Unrecognized') }}
 					</option>
 				</select>
 			</div>
@@ -124,10 +124,10 @@
 			<table class="learning-record-import__table">
 				<thead>
 					<tr>
-						<th scope="col">{{ t('scholiq', 'Title') }}</th>
-						<th scope="col">{{ t('scholiq', 'Source schema') }}</th>
-						<th scope="col">{{ t('scholiq', 'Outcome') }}</th>
-						<th scope="col">{{ t('scholiq', 'Reason') }}</th>
+						<th scope="col">{{ t('learniq', 'Title') }}</th>
+						<th scope="col">{{ t('learniq', 'Source schema') }}</th>
+						<th scope="col">{{ t('learniq', 'Outcome') }}</th>
+						<th scope="col">{{ t('learniq', 'Reason') }}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -144,14 +144,14 @@
 					</tr>
 					<tr v-if="filteredEntries.length === 0">
 						<td colspan="4" class="learning-record-import__empty">
-							{{ t('scholiq', 'No records match this filter.') }}
+							{{ t('learniq', 'No records match this filter.') }}
 						</td>
 					</tr>
 				</tbody>
 			</table>
 
 			<button class="button-vue" @click="reset">
-				{{ t('scholiq', 'Upload another bundle') }}
+				{{ t('learniq', 'Upload another bundle') }}
 			</button>
 		</div>
 	</div>
@@ -190,28 +190,29 @@ export default {
 		 * Human-readable verification summary line.
 		 *
 		 * @return {string} Localised summary text.
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
 		 */
 		verificationLabel() {
 			if (!this.report) return ''
 			const labels = {
 				verified: this.t(
-					'scholiq',
+					'learniq',
 					'Verified — the signing tenant is recognised by this school.',
 				),
 
 				unverifiable: this.t(
-					'scholiq',
+					'learniq',
 					'Unverifiable — a well-formed bundle from a system this school does not recognise. This is expected, not an error.',
 				),
 
 				invalid: this.t(
-					'scholiq',
+					'learniq',
 					'Signature invalid — this bundle may have been tampered with.',
 				),
 			}
 			return (
 				labels[this.report.verificationStatus]
-				?? this.t('scholiq', 'Could not be parsed.')
+				?? this.t('learniq', 'Could not be parsed.')
 			)
 		},
 
@@ -276,7 +277,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					`/apps/scholiq/api/applications/${this.applicationId}/learning-record-imports`,
+					`/apps/learniq/api/applications/${this.applicationId}/learning-record-imports`,
 				)
 				const resp = await fetch(url, {
 					method: 'POST',
@@ -295,7 +296,7 @@ export default {
 				this.report = json
 			} catch (err) {
 				this.uploadError = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to upload the bundle. Please try again.',
 				)
 				// eslint-disable-next-line no-console

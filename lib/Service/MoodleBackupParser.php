@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Moodle Backup Manifest Parser
+ * Learniq Moodle Backup Manifest Parser
  *
  * Walks an extracted Moodle backup (`.mbz`)'s `moodle_backup.xml`: the
  * section structure and the flat activity (module) list, classifying each
@@ -15,7 +15,7 @@
  * external interchange format cannot be expressed declaratively.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -32,7 +32,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use DOMDocument;
 use DOMElement;
@@ -44,7 +44,7 @@ use RuntimeException;
 class MoodleBackupParser {
 
 	/**
-	 * Moodle module names this importer materialises as scholiq objects (not `other`/dropped).
+	 * Moodle module names this importer materialises as learniq objects (not `other`/dropped).
 	 * `quiz` and `assign` are handled specially by the orchestrator (question mapping / Assignment
 	 * creation respectively); `resource`/`page`/`url` become Material.
 	 */

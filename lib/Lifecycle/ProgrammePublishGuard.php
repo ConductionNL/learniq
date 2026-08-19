@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Programme Publish Guard
+ * Learniq Programme Publish Guard
  *
  * Lifecycle guard for the Programme schema's `publish` transition. Enforces that a
  * Programme has an assigned CurriculumPlan and that the plan is published with at
@@ -10,10 +10,10 @@
  * Legitimate PHP per ADR-031: "Lifecycle guard — business rule that must run before
  * a state transition and cannot be expressed as a schema declaration."
  * Referenced from the Programme schema's x-openregister-lifecycle.transitions.publish.requires
- * in scholiq_register.json.
+ * in learniq_register.json.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -30,7 +30,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -46,9 +46,9 @@ use Psr\Log\LoggerInterface;
 class ProgrammePublishGuard {
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.

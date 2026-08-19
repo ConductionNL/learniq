@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit;
+namespace OCA\Learniq\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 
 /**
  * Placeholder unit test — replace with real tests for your app logic.
  */
-class ScholiqTest extends TestCase {
+class LearniqTest extends TestCase {
 
 	public function testPlaceholder(): void {
 		$this->assertTrue(true);

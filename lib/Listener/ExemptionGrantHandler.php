@@ -18,7 +18,7 @@
  * declarations. Same cross-schema-side-effect shape as `ExcuseApprovalHandler`.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -35,7 +35,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -53,7 +53,7 @@ use Psr\Log\LoggerInterface;
  */
 class ExemptionGrantHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const EXEMPTION_CASE_SCHEMA = 'exemption-case';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 

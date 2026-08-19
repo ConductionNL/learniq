@@ -25,7 +25,7 @@
  * this array" nor "this scalar field is a member of another object's array field".
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -42,7 +42,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -55,7 +55,7 @@ use Psr\Log\LoggerInterface;
  */
 class RubricScoresCompletionGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
 	private const RUBRIC_SCHEMA = 'rubric';
 	private const SUBMISSION_SCHEMA = 'submission';

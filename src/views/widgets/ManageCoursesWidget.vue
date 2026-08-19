@@ -5,7 +5,7 @@
 <template>
 	<ManageListWidget
 		schema="Course"
-		:schemaLabel="t('scholiq', 'course')"
+		:schemaLabel="t('learniq', 'course')"
 		:columns="['name', 'lifecycle']"
 		indexRoute="/courses"
 		:limit="6" />

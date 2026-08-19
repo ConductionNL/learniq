@@ -67,7 +67,7 @@ test.describe('Scholiq page routes', () => {
 				}
 			})
 
-			await page.goto(`/index.php/apps/scholiq/${path}`)
+			await page.goto(`/index.php/apps/learniq/${path}`)
 
 			// Wait for the page to stabilise
 			await page.waitForLoadState('domcontentloaded', { timeout: 15_000 })

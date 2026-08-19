@@ -2,19 +2,19 @@
 <template>
 	<div class="scholiq-admin">
 		<CnVersionInfoCard
-			appName="Scholiq"
+			appName="Learniq"
 			:appVersion="appVersion"
 			:isUpToDate="true"
 			:showUpdateButton="true"
-			:title="t('scholiq', 'Version Information')"
+			:title="t('learniq', 'Version Information')"
 			:description="
-				t('scholiq', 'Information about the current Scholiq installation')
+				t('learniq', 'Information about the current Learniq installation')
 			">
 			<template #footer>
 				<div class="cn-support-info">
-					<h4>{{ t('scholiq', 'Support') }}</h4>
+					<h4>{{ t('learniq', 'Support') }}</h4>
 					<p>
-						{{ t('scholiq', 'For support, contact us at') }}
+						{{ t('learniq', 'For support, contact us at') }}
 						<a href="mailto:support@conduction.nl"
 							>support@conduction.nl</a
 						>
@@ -23,7 +23,7 @@
 			</template>
 		</CnVersionInfoCard>
 
-		<ScholiqSettings v-if="storesReady" />
+		<LearniqSettings v-if="storesReady" />
 		<DataExchangeSettingsSection />
 		<ActionAuthMatrix />
 	</div>
@@ -33,7 +33,7 @@
 import { CnVersionInfoCard } from '@conduction/nextcloud-vue'
 import { loadState } from '@nextcloud/initial-state'
 import ActionAuthMatrix from '../../components/admin/ActionAuthMatrix.vue'
-import ScholiqSettings from '../ScholiqSettings.vue'
+import LearniqSettings from '../LearniqSettings.vue'
 import DataExchangeSettingsSection from './DataExchangeSettingsSection.vue'
 import { initializeStores } from '../../store/store.js'
 
@@ -41,7 +41,7 @@ export default {
 	name: 'AdminRoot',
 	components: {
 		CnVersionInfoCard,
-		ScholiqSettings,
+		LearniqSettings,
 		DataExchangeSettingsSection,
 		ActionAuthMatrix,
 	},
@@ -49,7 +49,7 @@ export default {
 	data() {
 		return {
 			storesReady: false,
-			appVersion: loadState('scholiq', 'version', 'Unknown'),
+			appVersion: loadState('learniq', 'version', 'Unknown'),
 		}
 	},
 

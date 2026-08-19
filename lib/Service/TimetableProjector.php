@@ -4,7 +4,7 @@
  * Scholiq Timetable Projector
  *
  * The window/projection half of the personal timetable, split out of
- * {@see \OCA\Scholiq\Controller\TimetableController} so the controller owns
+ * {@see \OCA\Learniq\Controller\TimetableController} so the controller owns
  * only authentication, cohort resolution and the OpenRegister reads while this
  * collaborator owns the two things the caller actually sees:
  *
@@ -21,7 +21,7 @@
  * Session.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -38,7 +38,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;

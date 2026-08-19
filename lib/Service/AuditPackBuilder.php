@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Audit Pack Builder
+ * Learniq Audit Pack Builder
  *
  * Assembles the ADR-008 §6 compliance audit-pack ZIP: queries OR's audit trail,
  * verifies the HMAC chain over exactly the exported ID range, renders every
@@ -16,7 +16,7 @@
  * local event store or write any audit entries itself.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -34,7 +34,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -147,7 +147,7 @@ class AuditPackBuilder {
 	private function resolveTenantId(IUser $user): string {
 		$userTenantId = $this->config->getUserValue(
 			userId: $user->getUID(),
-			appName: 'scholiq',
+			appName: 'learniq',
 			key: 'tenant_id',
 			default: ''
 		);
@@ -419,7 +419,7 @@ class AuditPackBuilder {
 			'signature_status' => $signatureStatus,
 			'export_timestamp' => $exportTimestamp,
 			'key_fingerprint' => $keyFingerprint,
-			'generator' => 'scholiq/AuditPackExportController@0.1.0',
+			'generator' => 'learniq/AuditPackExportController@0.1.0',
 		];
 
 		return (string)json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -445,7 +445,7 @@ class AuditPackBuilder {
 		$brokenAt = $verification['brokenAt'] ?? null;
 
 		$lines = [];
-		$lines[] = '=== Scholiq Compliance Audit Pack — Signature Verification Report ===';
+		$lines[] = '=== Learniq Compliance Audit Pack — Signature Verification Report ===';
 		$lines[] = '';
 		$lines[] = 'Status          : ' . $status;
 		$lines[] = 'Entries verified: ' . $entriesVerified;
@@ -477,7 +477,7 @@ class AuditPackBuilder {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
 	 */
 	private function buildZip(array $files): string {
-		$tmpFile = tempnam(sys_get_temp_dir(), 'scholiq_audit_');
+		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_audit_');
 		if ($tmpFile === false) {
 			return '';
 		}

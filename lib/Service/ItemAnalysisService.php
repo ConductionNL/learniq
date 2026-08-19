@@ -33,7 +33,7 @@
  * AssessmentReliability with the returned arrays).
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -51,7 +51,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DOMDocument;
@@ -80,7 +80,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class ItemAnalysisService {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'assessment';
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
 	private const ITEM_SCHEMA = 'item';

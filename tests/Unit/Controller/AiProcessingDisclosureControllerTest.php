@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq AiProcessingDisclosureController unit tests.
+ * Learniq AiProcessingDisclosureController unit tests.
  *
  * Coverage for sovereign-ai-guarantee tasks.md#3.2: the disclosure endpoint
  * composes Hermiq's agentaifeature register, the scholiq-ai-features AVG
@@ -9,7 +9,7 @@
  * errors) when Hermiq is absent.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Controller
+ * @package  OCA\Learniq\Tests\Unit\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -26,12 +26,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Controller;
+namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Controller\AiProcessingDisclosureController;
-use OCA\Scholiq\Service\AiLocalityClassifier;
-use OCA\Scholiq\Service\SovereigntyPolicyService;
+use OCA\Learniq\Controller\AiProcessingDisclosureController;
+use OCA\Learniq\Service\AiLocalityClassifier;
+use OCA\Learniq\Service\SovereigntyPolicyService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\IRequest;

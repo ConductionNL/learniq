@@ -4,7 +4,7 @@
  * Scholiq ReportPeriodComposeGuard unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Lifecycle
+ * @package  OCA\Learniq\Tests\Unit\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -22,9 +22,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Lifecycle;
+namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
-use OCA\Scholiq\Lifecycle\ReportPeriodComposeGuard;
+use OCA\Learniq\Lifecycle\ReportPeriodComposeGuard;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 

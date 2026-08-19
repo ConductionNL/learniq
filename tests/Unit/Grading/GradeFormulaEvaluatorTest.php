@@ -12,7 +12,7 @@
  * threshold without a numeric comparison.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Grading
+ * @package  OCA\Learniq\Tests\Unit\Grading
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -30,14 +30,14 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Grading;
+namespace OCA\Learniq\Tests\Unit\Grading;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Grading\GradeAggregationEngine;
-use OCA\Scholiq\Grading\GradeFormulaEvaluator;
-use OCA\Scholiq\Grading\GradePassEvaluator;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Grading\GradeAggregationEngine;
+use OCA\Learniq\Grading\GradeFormulaEvaluator;
+use OCA\Learniq\Grading\GradePassEvaluator;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 
 /**

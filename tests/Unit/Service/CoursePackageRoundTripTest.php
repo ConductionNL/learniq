@@ -9,7 +9,7 @@
  * matrix promises for the scholiq-native JSON format.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -26,27 +26,27 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\CommonCartridgeParser;
-use OCA\Scholiq\Service\CoursePackage\CommonCartridgeCourseImporter;
-use OCA\Scholiq\Service\CoursePackage\CommonCartridgeResourceRouter;
-use OCA\Scholiq\Service\CoursePackage\CoursePackageFileWriter;
-use OCA\Scholiq\Service\CoursePackage\CoursePackageImportReporter;
-use OCA\Scholiq\Service\CoursePackage\CoursePackageObjectWriter;
-use OCA\Scholiq\Service\CoursePackage\MoodleActivityRouter;
-use OCA\Scholiq\Service\CoursePackage\MoodleCourseImporter;
-use OCA\Scholiq\Service\CoursePackage\PackageXmlValueReader;
-use OCA\Scholiq\Service\CoursePackage\ScholiqJsonCourseImporter;
-use OCA\Scholiq\Service\CoursePackageExportService;
-use OCA\Scholiq\Service\CoursePackageImportService;
-use OCA\Scholiq\Service\MbzExtractor;
-use OCA\Scholiq\Service\MoodleBackupParser;
-use OCA\Scholiq\Service\MoodleQuizQuestionMapper;
-use OCA\Scholiq\Service\QtiExportService;
-use OCA\Scholiq\Service\QtiImportService;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Service\CommonCartridgeParser;
+use OCA\Learniq\Service\CoursePackage\CommonCartridgeCourseImporter;
+use OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Learniq\Service\CoursePackage\MoodleActivityRouter;
+use OCA\Learniq\Service\CoursePackage\MoodleCourseImporter;
+use OCA\Learniq\Service\CoursePackage\PackageXmlValueReader;
+use OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter;
+use OCA\Learniq\Service\CoursePackageExportService;
+use OCA\Learniq\Service\CoursePackageImportService;
+use OCA\Learniq\Service\MbzExtractor;
+use OCA\Learniq\Service\MoodleBackupParser;
+use OCA\Learniq\Service\MoodleQuizQuestionMapper;
+use OCA\Learniq\Service\QtiExportService;
+use OCA\Learniq\Service\QtiImportService;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -175,7 +175,7 @@ class CoursePackageRoundTripTest extends TestCase {
 				$objectWriter,
 				$reporter,
 			),
-			new ScholiqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
+			new LearniqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
 			$fileWriter,
 			$reporter,
 			$importLogger,

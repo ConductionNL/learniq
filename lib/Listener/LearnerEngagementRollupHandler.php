@@ -23,7 +23,7 @@
  * PointAward ObjectCreatedEvent -- NOT a TimedJob (ADR-022).
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -40,13 +40,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Engagement\PointEngagementEvaluator;
-use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Engagement\PointEngagementEvaluator;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -60,7 +60,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class LearnerEngagementRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const POINT_AWARD_SCHEMA = 'point-award';
 	private const POINT_RULE_SCHEMA = 'point-rule';
 	private const LEARNER_ENGAGEMENT_SCHEMA = 'learner-engagement';

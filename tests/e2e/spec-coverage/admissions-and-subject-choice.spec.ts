@@ -31,7 +31,7 @@ import { test, expect } from '../fixtures'
 // ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
 // `#/…` URL resolves to a location no route matches and renders an empty app body.
 // See accessibility-conformance.spec.ts for the measurement.
-const ADMISSIONS_REVIEW_BOARD_URL = '/index.php/apps/scholiq/admissions/review-board'
+const ADMISSIONS_REVIEW_BOARD_URL = '/index.php/apps/learniq/admissions/review-board'
 
 // The view this spec drives, named after the component file it covers. The
 // URL is unchanged — this makes the spec-to-component link readable in
@@ -39,7 +39,7 @@ const ADMISSIONS_REVIEW_BOARD_URL = '/index.php/apps/scholiq/admissions/review-b
 // page against its component stem, and the stem appeared only in comments).
 const SubjectChoicePicker = ADMISSIONS_REVIEW_BOARD_URL
 
-const SUBJECT_CHOICE_PICKER_URL = '/index.php/apps/scholiq/subject-choice/picker'
+const SUBJECT_CHOICE_PICKER_URL = '/index.php/apps/learniq/subject-choice/picker'
 
 function collectFatalErrors(errors: string[]): string[] {
 	return errors.filter(
@@ -71,7 +71,7 @@ test.describe('admissions-and-subject-choice — review board and subject-choice
 		// in flight all session), so it silently burns its full 30 s out of
 		// this test's 60 s budget and surfaces as a bare timeout that looks
 		// like an app outage. ADR-074 rule 4 / hydra gate 58.
-		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
+		await expect(page.locator('#learniq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		// The custom AdmissionsReviewBoard component resolved (not a blank/404
 		// shell) — its heading is present, and either the pending-applications

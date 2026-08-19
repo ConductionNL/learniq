@@ -9,7 +9,7 @@
  * fingerprint are stored plain for verification.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -26,7 +26,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use InvalidArgumentException;
 use OCP\IAppConfig;
@@ -47,22 +47,22 @@ class KeyManagementService {
 	/**
 	 * App config key prefix for encrypted private keys (active key only).
 	 */
-	private const PRIVATE_KEY_PREFIX = 'scholiq.credential.signing.private.';
+	private const PRIVATE_KEY_PREFIX = 'learniq.credential.signing.private.';
 
 	/**
 	 * App config key prefix for public keys (plain PEM, active key only).
 	 */
-	private const PUBLIC_KEY_PREFIX = 'scholiq.credential.signing.public.';
+	private const PUBLIC_KEY_PREFIX = 'learniq.credential.signing.public.';
 
 	/**
 	 * App config key prefix for public key fingerprints.
 	 */
-	private const FINGERPRINT_KEY_PREFIX = 'scholiq.credential.signing.fingerprint.';
+	private const FINGERPRINT_KEY_PREFIX = 'learniq.credential.signing.fingerprint.';
 
 	/**
 	 * App config key prefix for archived (verification-only) public keys (JSON array of PEM strings).
 	 */
-	private const ARCHIVED_KEYS_PREFIX = 'scholiq.credential.signing.archived_keys.';
+	private const ARCHIVED_KEYS_PREFIX = 'learniq.credential.signing.archived_keys.';
 
 	/**
 	 * Maximum number of archived public keys retained per tenant.
@@ -141,17 +141,17 @@ class KeyManagementService {
 		$encryptedPrivKey = $this->crypto->encrypt($privateKeyPem);
 
 		$this->appConfig->setValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::PRIVATE_KEY_PREFIX . $tenantId,
 			value: $encryptedPrivKey
 		);
 		$this->appConfig->setValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::PUBLIC_KEY_PREFIX . $tenantId,
 			value: $publicKeyPem
 		);
 		$this->appConfig->setValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::FINGERPRINT_KEY_PREFIX . $tenantId,
 			value: $fingerprint
 		);
@@ -172,8 +172,8 @@ class KeyManagementService {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
 	 */
 	public function getTenantKeyStatus(string $tenantId): ?array {
-		$publicKey = $this->appConfig->getValueString(app: 'scholiq', key: self::PUBLIC_KEY_PREFIX . $tenantId, default: '');
-		$fingerprint = $this->appConfig->getValueString(app: 'scholiq', key: self::FINGERPRINT_KEY_PREFIX . $tenantId, default: '');
+		$publicKey = $this->appConfig->getValueString(app: 'learniq', key: self::PUBLIC_KEY_PREFIX . $tenantId, default: '');
+		$fingerprint = $this->appConfig->getValueString(app: 'learniq', key: self::FINGERPRINT_KEY_PREFIX . $tenantId, default: '');
 
 		if ($publicKey === '') {
 			return null;
@@ -195,16 +195,18 @@ class KeyManagementService {
 	 * @param string $fingerprint 32-char hex fingerprint (first 32 chars of SHA-256 of PEM).
 	 *
 	 * @return string|null PEM string of the matching public key, or null if not found.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
 	 */
 	public function resolvePublicKeyByFingerprint(string $tenantId, string $fingerprint): ?string {
 		// Check the active key first.
-		$activePublicKey = $this->appConfig->getValueString(app: 'scholiq', key: self::PUBLIC_KEY_PREFIX . $tenantId, default: '');
+		$activePublicKey = $this->appConfig->getValueString(app: 'learniq', key: self::PUBLIC_KEY_PREFIX . $tenantId, default: '');
 		if ($activePublicKey !== '' && substr(hash('sha256', $activePublicKey), 0, 32) === $fingerprint) {
 			return $activePublicKey;
 		}
 
 		// Check the archived keys.
-		$archivedJson = $this->appConfig->getValueString(app: 'scholiq', key: self::ARCHIVED_KEYS_PREFIX . $tenantId, default: '[]');
+		$archivedJson = $this->appConfig->getValueString(app: 'learniq', key: self::ARCHIVED_KEYS_PREFIX . $tenantId, default: '[]');
 		$archived = json_decode($archivedJson, true);
 		if (is_array($archived) === false) {
 			return null;
@@ -231,14 +233,14 @@ class KeyManagementService {
 	 * @return void
 	 */
 	private function archiveCurrentPublicKey(string $tenantId): void {
-		$current = $this->appConfig->getValueString(app: 'scholiq', key: self::PUBLIC_KEY_PREFIX . $tenantId, default: '');
+		$current = $this->appConfig->getValueString(app: 'learniq', key: self::PUBLIC_KEY_PREFIX . $tenantId, default: '');
 
 		if ($current === '') {
 			// No active key to archive — first-time generation.
 			return;
 		}
 
-		$archivedJson = $this->appConfig->getValueString(app: 'scholiq', key: self::ARCHIVED_KEYS_PREFIX . $tenantId, default: '[]');
+		$archivedJson = $this->appConfig->getValueString(app: 'learniq', key: self::ARCHIVED_KEYS_PREFIX . $tenantId, default: '[]');
 		$archived = json_decode($archivedJson, true);
 		if (is_array($archived) === false) {
 			$archived = [];
@@ -255,7 +257,7 @@ class KeyManagementService {
 		}
 
 		$this->appConfig->setValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::ARCHIVED_KEYS_PREFIX . $tenantId,
 			value: (string)json_encode($archived)
 		);

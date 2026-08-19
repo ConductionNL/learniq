@@ -9,9 +9,9 @@
   the response as-is" rule, mirroring LessonPlayer's LTI-launch handling).
 
   Talks to:
-    - GET  /apps/openregister/api/objects/scholiq/order/:orderId
-    - GET  /apps/openregister/api/objects/scholiq/order-line?orderId=:orderId
-    - POST /apps/scholiq/api/payments/:orderId/initiate
+    - GET  /apps/openregister/api/objects/learniq/order/:orderId
+    - GET  /apps/openregister/api/objects/learniq/order-line?orderId=:orderId
+    - POST /apps/learniq/api/payments/:orderId/initiate
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring LessonPlayer's shape — the only other genuine custom-view
@@ -25,12 +25,12 @@
 	<div class="order-payment-panel">
 		<div v-if="loading" class="order-payment-panel__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading order…') }}</span>
+			<span>{{ t('learniq', 'Loading order…') }}</span>
 		</div>
 
 		<div v-else-if="error" class="order-payment-panel__error" role="alert">
 			<NcEmptyContent
-				:name="t('scholiq', 'Order not found')"
+				:name="t('learniq', 'Order not found')"
 				:description="error">
 				<template #icon>
 					<AlertCircleOutline />
@@ -41,7 +41,7 @@
 		<article v-else class="order-payment-panel__content">
 			<header class="order-payment-panel__header">
 				<h1 class="order-payment-panel__title">
-					{{ t('scholiq', 'Payment') }}
+					{{ t('learniq', 'Payment') }}
 				</h1>
 				<p class="order-payment-panel__status">
 					{{ statusLabel }}
@@ -51,9 +51,9 @@
 			<table class="order-payment-panel__lines">
 				<thead>
 					<tr>
-						<th scope="col">{{ t('scholiq', 'Description') }}</th>
-						<th scope="col">{{ t('scholiq', 'Quantity') }}</th>
-						<th scope="col">{{ t('scholiq', 'Amount') }}</th>
+						<th scope="col">{{ t('learniq', 'Description') }}</th>
+						<th scope="col">{{ t('learniq', 'Quantity') }}</th>
+						<th scope="col">{{ t('learniq', 'Amount') }}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -64,14 +64,14 @@
 					</tr>
 					<tr v-if="orderLines.length === 0">
 						<td colspan="3">
-							{{ t('scholiq', 'This order has no lines yet.') }}
+							{{ t('learniq', 'This order has no lines yet.') }}
 						</td>
 					</tr>
 				</tbody>
 				<tfoot>
 					<tr>
 						<td colspan="2">
-							{{ t('scholiq', 'Total') }}
+							{{ t('learniq', 'Total') }}
 						</td>
 						<td>{{ formatAmount(order.totalAmount) }}</td>
 					</tr>
@@ -87,14 +87,14 @@
 					:reduce="(o) => o.value"
 					label="label"
 					:clearable="false"
-					:inputLabel="t('scholiq', 'Payment provider')"
-					:aria-label-combobox="t('scholiq', 'Payment provider')" />
+					:inputLabel="t('learniq', 'Payment provider')"
+					:aria-label-combobox="t('learniq', 'Payment provider')" />
 
 				<NcButton variant="primary" :disabled="paying" @click="payNow">
 					{{
 						paying
-							? t('scholiq', 'Starting payment…')
-							: t('scholiq', 'Pay now')
+							? t('learniq', 'Starting payment…')
+							: t('learniq', 'Pay now')
 					}}
 				</NcButton>
 
@@ -108,8 +108,8 @@
 
 			<NcEmptyContent
 				v-else-if="isSettled"
-				:name="t('scholiq', 'This order is already paid')"
-				:description="t('scholiq', 'No further payment is needed.')">
+				:name="t('learniq', 'This order is already paid')"
+				:description="t('learniq', 'No further payment is needed.')">
 				<template #icon>
 					<CheckCircleOutline />
 				</template>
@@ -117,9 +117,9 @@
 
 			<NcEmptyContent
 				v-else
-				:name="t('scholiq', 'This order cannot be paid')"
+				:name="t('learniq', 'This order cannot be paid')"
 				:description="
-					t('scholiq', 'Its current status does not allow payment.')
+					t('learniq', 'Its current status does not allow payment.')
 				">
 				<template #icon>
 					<AlertCircleOutline />
@@ -127,13 +127,13 @@
 			</NcEmptyContent>
 
 			<section v-if="checkoutReference" class="order-payment-panel__checkout">
-				<p>{{ t('scholiq', 'Continue to complete your payment:') }}</p>
+				<p>{{ t('learniq', 'Continue to complete your payment:') }}</p>
 				<NcButton
 					variant="primary"
 					:href="checkoutReference"
 					target="_blank"
 					rel="noopener">
-					{{ t('scholiq', 'Continue to payment') }}
+					{{ t('learniq', 'Continue to payment') }}
 				</NcButton>
 			</section>
 		</article>
@@ -189,8 +189,8 @@ export default {
 			orderLines: [],
 			pspProvider: 'mollie',
 			pspOptions: [
-				{ value: 'mollie', label: this.t('scholiq', 'Mollie') },
-				{ value: 'stripe', label: this.t('scholiq', 'Stripe') },
+				{ value: 'mollie', label: this.t('learniq', 'Mollie') },
+				{ value: 'stripe', label: this.t('learniq', 'Stripe') },
 			],
 
 			paying: false,
@@ -211,11 +211,14 @@ export default {
 			return !!this.order && SETTLED_STATES.includes(this.order.lifecycle)
 		},
 
+		/**
+		 * @spec exclude Presentation-only string formatting a "Order status: {lifecycle}" line from the raw lifecycle value; the payable/settled business rules live in canPay/isSettled, not here.
+		 */
 		statusLabel() {
 			if (!this.order) {
 				return ''
 			}
-			return this.t('scholiq', 'Order status: {status}', {
+			return this.t('learniq', 'Order status: {status}', {
 				status: this.order.lifecycle,
 			})
 		},
@@ -240,13 +243,13 @@ export default {
 				const [orderRes, linesRes] = await Promise.all([
 					fetch(
 						generateUrl(
-							'/apps/openregister/api/objects/scholiq/order/'
+							'/apps/openregister/api/objects/learniq/order/'
 								+ this.orderId,
 						),
 					),
 					fetch(
 						generateUrl(
-							'/apps/openregister/api/objects/scholiq/order-line?orderId='
+							'/apps/openregister/api/objects/learniq/order-line?orderId='
 								+ this.orderId
 								+ '&limit=100',
 						),
@@ -256,7 +259,7 @@ export default {
 				if (!orderRes.ok) {
 					throw new Error(
 						this.t(
-							'scholiq',
+							'learniq',
 							'This order does not exist or you do not have access to it.',
 						),
 					)
@@ -306,7 +309,7 @@ export default {
 			try {
 				const res = await fetch(
 					generateUrl(
-						'/apps/scholiq/api/payments/' + this.orderId + '/initiate',
+						'/apps/learniq/api/payments/' + this.orderId + '/initiate',
 					),
 					{
 						method: 'POST',
@@ -322,7 +325,7 @@ export default {
 					throw new Error(
 						body?.error
 							|| this.t(
-								'scholiq',
+								'learniq',
 								'Failed to start payment (HTTP {status})',
 								{ status: res.status },
 							),

@@ -4,7 +4,7 @@
  * Scholiq SessionChangeGuard unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Lifecycle
+ * @package  OCA\Learniq\Tests\Unit\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,10 +21,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Lifecycle;
+namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Lifecycle\SessionChangeGuard;
+use OCA\Learniq\Lifecycle\SessionChangeGuard;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;

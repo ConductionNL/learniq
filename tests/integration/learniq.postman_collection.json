@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "scholiq-collection",
+		"_postman_id": "learniq-collection",
 		"name": "Scholiq Integration Tests",
 		"description": "Active Newman collection — runs in CI on every push to `development`. Each folder creates its own prerequisite schemas/objects via OR's REST API and cleans up after itself (see: openregister#1487 — app-bootstrap is broken so we cannot rely on pre-seeded data). Lifecycle transitions use PATCH on the lifecycle field (the /transition sub-resource is not yet exposed in this OR version). Variables: baseUrl, adminUser, adminPass.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -8,14 +8,34 @@
 	"auth": {
 		"type": "basic",
 		"basic": [
-			{ "key": "username", "value": "{{adminUser}}", "type": "string" },
-			{ "key": "password", "value": "{{adminPass}}", "type": "string" }
+			{
+				"key": "username",
+				"value": "{{adminUser}}",
+				"type": "string"
+			},
+			{
+				"key": "password",
+				"value": "{{adminPass}}",
+				"type": "string"
+			}
 		]
 	},
 	"variable": [
-		{ "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
-		{ "key": "adminUser", "value": "admin", "type": "string" },
-		{ "key": "adminPass", "value": "admin", "type": "string" }
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "adminUser",
+			"value": "admin",
+			"type": "string"
+		},
+		{
+			"key": "adminPass",
+			"value": "admin",
+			"type": "string"
+		}
 	],
 	"item": [
 		{
@@ -26,7 +46,10 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
 						],
 						"url": "{{baseUrl}}/status.php",
 						"description": "Verify Nextcloud is running."
@@ -58,11 +81,20 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/Course",
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/Course",
 						"body": {
 							"mode": "raw",
 							"raw": "{\"title\":\"Newman Test Course\",\"lifecycle\":\"draft\"}"
@@ -92,11 +124,20 @@
 					"request": {
 						"method": "PATCH",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/Course/{{cm_courseId}}",
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/Course/{{cm_courseId}}",
 						"body": {
 							"mode": "raw",
 							"raw": "{\"lifecycle\":\"published\"}"
@@ -125,9 +166,12 @@
 					"request": {
 						"method": "DELETE",
 						"header": [
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/Course/{{cm_courseId}}"
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/Course/{{cm_courseId}}"
 					},
 					"event": [
 						{
@@ -147,21 +191,30 @@
 		},
 		{
 			"name": "enrolment",
-			"description": "Creates a temporary Enrolment schema, creates an Enrolment object (lifecycle=pending), updates dueDate, asserts it persists, then cleans up.\n\nWhy a temp schema? OR app-bootstrap is broken (openregister#1487) so the Enrolment schema may not exist until the scholiq app initialises it on first page load. This folder is self-contained.",
+			"description": "Creates a temporary Enrolment schema, creates an Enrolment object (lifecycle=pending), updates dueDate, asserts it persists, then cleans up.\n\nWhy a temp schema? OR app-bootstrap is broken (openregister#1487) so the Enrolment schema may not exist until the learniq app initialises it on first page load. This folder is self-contained.",
 			"item": [
 				{
 					"name": "Setup — create temporary Enrolment schema",
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
 						"url": "{{baseUrl}}/apps/openregister/api/schemas",
 						"body": {
 							"mode": "raw",
-							"raw": "{\"title\":\"newman-enrolment-tmp\",\"slug\":\"newman-enrolment-tmp\",\"register\":\"scholiq\",\"properties\":{\"learnerId\":{\"type\":\"string\"},\"courseId\":{\"type\":\"string\"},\"dueDate\":{\"type\":\"string\",\"format\":\"date-time\"},\"lifecycle\":{\"type\":\"string\",\"default\":\"pending\"}}}"
+							"raw": "{\"title\":\"newman-enrolment-tmp\",\"slug\":\"newman-enrolment-tmp\",\"register\":\"learniq\",\"properties\":{\"learnerId\":{\"type\":\"string\"},\"courseId\":{\"type\":\"string\"},\"dueDate\":{\"type\":\"string\",\"format\":\"date-time\"},\"lifecycle\":{\"type\":\"string\",\"default\":\"pending\"}}}"
 						}
 					},
 					"event": [
@@ -185,11 +238,20 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-enrolment-tmp",
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-enrolment-tmp",
 						"body": {
 							"mode": "raw",
 							"raw": "{\"learnerId\":\"learner-newman-001\",\"courseId\":\"00000000-0000-0000-0000-000000000001\",\"lifecycle\":\"pending\"}"
@@ -219,11 +281,20 @@
 					"request": {
 						"method": "PATCH",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-enrolment-tmp/{{enr_enrolmentId}}",
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-enrolment-tmp/{{enr_enrolmentId}}",
 						"body": {
 							"mode": "raw",
 							"raw": "{\"dueDate\":\"2027-12-31T23:59:59Z\"}"
@@ -252,9 +323,12 @@
 					"request": {
 						"method": "DELETE",
 						"header": [
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-enrolment-tmp/{{enr_enrolmentId}}"
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-enrolment-tmp/{{enr_enrolmentId}}"
 					},
 					"event": [
 						{
@@ -275,7 +349,10 @@
 					"request": {
 						"method": "DELETE",
 						"header": [
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
 						"url": "{{baseUrl}}/apps/openregister/api/schemas/{{enr_schemaId}}"
 					},
@@ -304,14 +381,23 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
 						"url": "{{baseUrl}}/apps/openregister/api/schemas",
 						"body": {
 							"mode": "raw",
-							"raw": "{\"title\":\"newman-append-only-tmp\",\"slug\":\"newman-append-only-tmp\",\"register\":\"scholiq\",\"x-openregister\":{\"appendOnly\":true},\"properties\":{\"verbId\":{\"type\":\"string\"},\"objectId\":{\"type\":\"string\"}}}"
+							"raw": "{\"title\":\"newman-append-only-tmp\",\"slug\":\"newman-append-only-tmp\",\"register\":\"learniq\",\"x-openregister\":{\"appendOnly\":true},\"properties\":{\"verbId\":{\"type\":\"string\"},\"objectId\":{\"type\":\"string\"}}}"
 						}
 					},
 					"event": [
@@ -335,14 +421,23 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-append-only-tmp",
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-append-only-tmp",
 						"body": {
 							"mode": "raw",
-							"raw": "{\"verbId\":\"http://adlnet.gov/expapi/verbs/launched\",\"objectId\":\"https://scholiq.test/lessons/ao-test\"}"
+							"raw": "{\"verbId\":\"http://adlnet.gov/expapi/verbs/launched\",\"objectId\":\"https://learniq.test/lessons/ao-test\"}"
 						}
 					},
 					"event": [
@@ -366,11 +461,20 @@
 					"request": {
 						"method": "PUT",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-append-only-tmp/{{ao_objectId}}",
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-append-only-tmp/{{ao_objectId}}",
 						"body": {
 							"mode": "raw",
 							"raw": "{\"verbId\":\"http://adlnet.gov/expapi/verbs/completed\"}"
@@ -405,9 +509,12 @@
 					"request": {
 						"method": "DELETE",
 						"header": [
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-append-only-tmp/{{ao_objectId}}"
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-append-only-tmp/{{ao_objectId}}"
 					},
 					"event": [
 						{
@@ -428,7 +535,10 @@
 					"request": {
 						"method": "DELETE",
 						"header": [
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
 						"url": "{{baseUrl}}/apps/openregister/api/schemas/{{ao_schemaId}}"
 					},
@@ -450,21 +560,30 @@
 		},
 		{
 			"name": "regulation coverage",
-			"description": "Creates a temp Enrolment-like schema, seeds 3 Enrolments with matching regulationSlug, completes 2, then asserts the coverage aggregation (via OR filter + count) is ≈ 66.6%.\n\nNOTE: The /api/regulations/{slug}/coverage endpoint is a scholiq-app endpoint planned for v0.2. Until it lands, this folder verifies coverage via OR's native aggregation: GET /api/objects?schema=Enrolment&regulationSlug=X returns the full list; the test counts completed vs total client-side. This test will fail if the scholiq coverage endpoint is expected — that is a known, documented blocker.",
+			"description": "Creates a temp Enrolment-like schema, seeds 3 Enrolments with matching regulationSlug, completes 2, then asserts the coverage aggregation (via OR filter + count) is ≈ 66.6%.\n\nNOTE: The /api/regulations/{slug}/coverage endpoint is a learniq-app endpoint planned for v0.2. Until it lands, this folder verifies coverage via OR's native aggregation: GET /api/objects?schema=Enrolment&regulationSlug=X returns the full list; the test counts completed vs total client-side. This test will fail if the learniq coverage endpoint is expected — that is a known, documented blocker.",
 			"item": [
 				{
 					"name": "Setup — create temp coverage-enrolment schema",
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
 						"url": "{{baseUrl}}/apps/openregister/api/schemas",
 						"body": {
 							"mode": "raw",
-							"raw": "{\"title\":\"newman-cov-enrolment-tmp\",\"slug\":\"newman-cov-enrolment-tmp\",\"register\":\"scholiq\",\"properties\":{\"learnerId\":{\"type\":\"string\"},\"regulationSlug\":{\"type\":\"string\"},\"lifecycle\":{\"type\":\"string\",\"default\":\"active\"}}}"
+							"raw": "{\"title\":\"newman-cov-enrolment-tmp\",\"slug\":\"newman-cov-enrolment-tmp\",\"register\":\"learniq\",\"properties\":{\"learnerId\":{\"type\":\"string\"},\"regulationSlug\":{\"type\":\"string\"},\"lifecycle\":{\"type\":\"string\",\"default\":\"active\"}}}"
 						}
 					},
 					"event": [
@@ -487,14 +606,23 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
 						"url": "{{baseUrl}}/apps/openregister/api/schemas",
 						"body": {
 							"mode": "raw",
-							"raw": "{\"title\":\"newman-regulation-tmp\",\"slug\":\"newman-regulation-tmp\",\"register\":\"scholiq\",\"properties\":{\"title\":{\"type\":\"string\"},\"slug\":{\"type\":\"string\"},\"lifecycle\":{\"type\":\"string\",\"default\":\"draft\"}}}"
+							"raw": "{\"title\":\"newman-regulation-tmp\",\"slug\":\"newman-regulation-tmp\",\"register\":\"learniq\",\"properties\":{\"title\":{\"type\":\"string\"},\"slug\":{\"type\":\"string\"},\"lifecycle\":{\"type\":\"string\",\"default\":\"draft\"}}}"
 						}
 					},
 					"event": [
@@ -517,11 +645,20 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-regulation-tmp",
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-regulation-tmp",
 						"body": {
 							"mode": "raw",
 							"raw": "{\"title\":\"Newman Coverage Test\",\"slug\":\"newman-cov-slug\",\"lifecycle\":\"draft\"}"
@@ -549,11 +686,20 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-cov-enrolment-tmp",
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-cov-enrolment-tmp",
 						"body": {
 							"mode": "raw",
 							"raw": "{\"learnerId\":\"cov-learner-1\",\"regulationSlug\":\"newman-cov-slug\",\"lifecycle\":\"active\"}"
@@ -577,11 +723,20 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-cov-enrolment-tmp",
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-cov-enrolment-tmp",
 						"body": {
 							"mode": "raw",
 							"raw": "{\"learnerId\":\"cov-learner-2\",\"regulationSlug\":\"newman-cov-slug\",\"lifecycle\":\"active\"}"
@@ -605,11 +760,20 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-cov-enrolment-tmp",
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-cov-enrolment-tmp",
 						"body": {
 							"mode": "raw",
 							"raw": "{\"learnerId\":\"cov-learner-3\",\"regulationSlug\":\"newman-cov-slug\",\"lifecycle\":\"active\"}"
@@ -633,11 +797,20 @@
 					"request": {
 						"method": "PATCH",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-cov-enrolment-tmp/{{cov_e2Id}}",
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-cov-enrolment-tmp/{{cov_e2Id}}",
 						"body": {
 							"mode": "raw",
 							"raw": "{\"lifecycle\":\"completed\"}"
@@ -660,11 +833,20 @@
 					"request": {
 						"method": "PATCH",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-cov-enrolment-tmp/{{cov_e3Id}}",
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-cov-enrolment-tmp/{{cov_e3Id}}",
 						"body": {
 							"mode": "raw",
 							"raw": "{\"lifecycle\":\"completed\"}"
@@ -687,14 +869,34 @@
 					"request": {
 						"method": "GET",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-cov-enrolment-tmp?regulationSlug=newman-cov-slug",
-							"host": ["{{baseUrl}}"],
-							"path": ["apps", "openregister", "api", "objects", "scholiq", "newman-cov-enrolment-tmp"],
-							"query": [{ "key": "regulationSlug", "value": "newman-cov-slug" }]
+							"raw": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-cov-enrolment-tmp?regulationSlug=newman-cov-slug",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"apps",
+								"openregister",
+								"api",
+								"objects",
+								"learniq",
+								"newman-cov-enrolment-tmp"
+							],
+							"query": [
+								{
+									"key": "regulationSlug",
+									"value": "newman-cov-slug"
+								}
+							]
 						}
 					},
 					"event": [
@@ -717,7 +919,7 @@
 									"    pm.expect(pct).to.be.within(60, 70, 'Coverage should be ~66.6%');",
 									"    console.log('Coverage: ' + pct.toFixed(1) + '% (' + completed + '/' + total + ')');",
 									"});",
-									"// NOTE: the /api/regulations/{slug}/coverage scholiq-app endpoint is planned",
+									"// NOTE: the /api/regulations/{slug}/coverage learniq-app endpoint is planned",
 									"// for v0.2. This test verifies the underlying OR data is correct.",
 									"// When that endpoint lands, replace this request with the app endpoint."
 								]
@@ -729,15 +931,22 @@
 					"name": "Cleanup — delete Enrolment 1",
 					"request": {
 						"method": "DELETE",
-						"header": [{ "key": "OCS-APIRequest", "value": "true" }],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-cov-enrolment-tmp/{{cov_e1Id}}"
+						"header": [
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
+						],
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-cov-enrolment-tmp/{{cov_e1Id}}"
 					},
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"type": "text/javascript",
-								"exec": ["pm.test('E1 deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"]
+								"exec": [
+									"pm.test('E1 deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+								]
 							}
 						}
 					]
@@ -746,15 +955,22 @@
 					"name": "Cleanup — delete Enrolment 2",
 					"request": {
 						"method": "DELETE",
-						"header": [{ "key": "OCS-APIRequest", "value": "true" }],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-cov-enrolment-tmp/{{cov_e2Id}}"
+						"header": [
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
+						],
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-cov-enrolment-tmp/{{cov_e2Id}}"
 					},
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"type": "text/javascript",
-								"exec": ["pm.test('E2 deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"]
+								"exec": [
+									"pm.test('E2 deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+								]
 							}
 						}
 					]
@@ -763,15 +979,22 @@
 					"name": "Cleanup — delete Enrolment 3",
 					"request": {
 						"method": "DELETE",
-						"header": [{ "key": "OCS-APIRequest", "value": "true" }],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-cov-enrolment-tmp/{{cov_e3Id}}"
+						"header": [
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
+						],
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-cov-enrolment-tmp/{{cov_e3Id}}"
 					},
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"type": "text/javascript",
-								"exec": ["pm.test('E3 deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"]
+								"exec": [
+									"pm.test('E3 deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+								]
 							}
 						}
 					]
@@ -780,15 +1003,22 @@
 					"name": "Cleanup — delete Regulation object",
 					"request": {
 						"method": "DELETE",
-						"header": [{ "key": "OCS-APIRequest", "value": "true" }],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-regulation-tmp/{{cov_regulationId}}"
+						"header": [
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
+						],
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-regulation-tmp/{{cov_regulationId}}"
 					},
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"type": "text/javascript",
-								"exec": ["pm.test('Regulation deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"]
+								"exec": [
+									"pm.test('Regulation deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+								]
 							}
 						}
 					]
@@ -797,7 +1027,12 @@
 					"name": "Cleanup — delete temp cov-enrolment schema",
 					"request": {
 						"method": "DELETE",
-						"header": [{ "key": "OCS-APIRequest", "value": "true" }],
+						"header": [
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
+						],
 						"url": "{{baseUrl}}/apps/openregister/api/schemas/{{cov_schemaId}}"
 					},
 					"event": [
@@ -805,7 +1040,9 @@
 							"listen": "test",
 							"script": {
 								"type": "text/javascript",
-								"exec": ["pm.test('Cov enrolment schema deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"]
+								"exec": [
+									"pm.test('Cov enrolment schema deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+								]
 							}
 						}
 					]
@@ -814,7 +1051,12 @@
 					"name": "Cleanup — delete temp Regulation schema",
 					"request": {
 						"method": "DELETE",
-						"header": [{ "key": "OCS-APIRequest", "value": "true" }],
+						"header": [
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
+						],
 						"url": "{{baseUrl}}/apps/openregister/api/schemas/{{cov_regulationSchemaId}}"
 					},
 					"event": [
@@ -822,7 +1064,9 @@
 							"listen": "test",
 							"script": {
 								"type": "text/javascript",
-								"exec": ["pm.test('Regulation schema deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"]
+								"exec": [
+									"pm.test('Regulation schema deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+								]
 							}
 						}
 					]
@@ -838,14 +1082,23 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
 						"url": "{{baseUrl}}/apps/openregister/api/schemas",
 						"body": {
 							"mode": "raw",
-							"raw": "{\"title\":\"newman-attestation-tmp\",\"slug\":\"newman-attestation-tmp\",\"register\":\"scholiq\",\"properties\":{\"regulationSlug\":{\"type\":\"string\"},\"attestedBy\":{\"type\":\"string\"},\"signature\":{\"type\":\"string\"},\"lifecycle\":{\"type\":\"string\",\"default\":\"draft\"}}}"
+							"raw": "{\"title\":\"newman-attestation-tmp\",\"slug\":\"newman-attestation-tmp\",\"register\":\"learniq\",\"properties\":{\"regulationSlug\":{\"type\":\"string\"},\"attestedBy\":{\"type\":\"string\"},\"signature\":{\"type\":\"string\"},\"lifecycle\":{\"type\":\"string\",\"default\":\"draft\"}}}"
 						}
 					},
 					"event": [
@@ -868,11 +1121,20 @@
 					"request": {
 						"method": "POST",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-attestation-tmp",
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-attestation-tmp",
 						"body": {
 							"mode": "raw",
 							"raw": "{\"regulationSlug\":\"newman-sign-test\",\"attestedBy\":\"admin\",\"lifecycle\":\"draft\"}"
@@ -898,11 +1160,20 @@
 					"request": {
 						"method": "PATCH",
 						"header": [
-							{ "key": "Accept", "value": "application/json" },
-							{ "key": "Content-Type", "value": "application/json" },
-							{ "key": "OCS-APIRequest", "value": "true" }
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
 						],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-attestation-tmp/{{att_attestationId}}",
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-attestation-tmp/{{att_attestationId}}",
 						"body": {
 							"mode": "raw",
 							"raw": "{\"lifecycle\":\"signed\",\"signature\":\"pending\"}"
@@ -933,15 +1204,22 @@
 					"name": "Cleanup — delete Attestation",
 					"request": {
 						"method": "DELETE",
-						"header": [{ "key": "OCS-APIRequest", "value": "true" }],
-						"url": "{{baseUrl}}/apps/openregister/api/objects/scholiq/newman-attestation-tmp/{{att_attestationId}}"
+						"header": [
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
+						],
+						"url": "{{baseUrl}}/apps/openregister/api/objects/learniq/newman-attestation-tmp/{{att_attestationId}}"
 					},
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"type": "text/javascript",
-								"exec": ["pm.test('Attestation deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"]
+								"exec": [
+									"pm.test('Attestation deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+								]
 							}
 						}
 					]
@@ -950,7 +1228,12 @@
 					"name": "Cleanup — delete temp Attestation schema",
 					"request": {
 						"method": "DELETE",
-						"header": [{ "key": "OCS-APIRequest", "value": "true" }],
+						"header": [
+							{
+								"key": "OCS-APIRequest",
+								"value": "true"
+							}
+						],
 						"url": "{{baseUrl}}/apps/openregister/api/schemas/{{att_schemaId}}"
 					},
 					"event": [
@@ -958,7 +1241,9 @@
 							"listen": "test",
 							"script": {
 								"type": "text/javascript",
-								"exec": ["pm.test('Attestation schema deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"]
+								"exec": [
+									"pm.test('Attestation schema deleted', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+								]
 							}
 						}
 					]

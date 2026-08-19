@@ -80,16 +80,22 @@ if (!defined('OC_CONSOLE')) {
 	// tests/Stubs/ shims only, so guard these NC-only calls.
 	if (class_exists('\OC_App')) {
 		\OC_App::loadApps();
-		\OC_App::loadApp('scholiq');
+		\OC_App::loadApp('learniq');
 		\OC_Hook::clear();
 	}
 }
 
 // IMcpToolProvider stub — loaded when the openregister runtime (PR #1466) is absent.
-// This lets ScholiqToolProvider unit tests run in standalone CI environments.
+// This lets LearniqToolProvider unit tests run in standalone CI environments.
 if (interface_exists(\OCA\OpenRegister\Mcp\IMcpToolProvider::class) === false) {
 	require_once __DIR__ . '/Stubs/Mcp/IMcpToolProvider.php';
 }
+
+// Doctrine\DBAL\ParameterType stub — IQueryBuilder references it in its own
+// constant declarations, so doubling OCP\IDBConnection loads it. The file
+// self-guards, so where the real Doctrine package is installed this is a
+// no-op rather than a shadowing second definition.
+require_once __DIR__ . '/Stubs/DoctrineParameterType.php';
 
 // OC\Hooks\Emitter stub — loaded when the live Nextcloud server runtime (which
 // ships lib/private/Hooks/Emitter.php) is absent.

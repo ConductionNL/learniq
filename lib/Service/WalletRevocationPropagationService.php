@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Wallet Revocation Propagation Service
+ * Learniq Wallet Revocation Propagation Service
  *
  * Lifecycle guard for the Credential schema's `revoke` transition. When a
  * credential with an outstanding wallet offer is revoked, propagates the
@@ -16,7 +16,7 @@
  * openconnector's real, routed REST endpoint
  * (`POST /api/eudi/credential-offers/{id}/revoke`,
  * `EudiWalletController::revoke()`), reusing the same
- * `scholiq.openconnector_api_token` bearer-credential convention as
+ * `learniq.openconnector_api_token` bearer-credential convention as
  * {@see WalletOfferDelegationService} (same AUTH GAP applies: the endpoint
  * expects a consumer JWT, not a generic static token).
  *
@@ -24,7 +24,7 @@
  * before a state transition and cannot be expressed as a schema declaration."
  * Referenced from the Credential schema's
  * x-openregister-lifecycle.transitions.revoke.requires in
- * scholiq_register.json. Built to the `check(array &$transitionContext): bool`
+ * learniq_register.json. Built to the `check(array &$transitionContext): bool`
  * contract `CredentialSigningService` establishes.
  *
  * FAIL-SOFT BY DESIGN (per spec): revoking a credential is the compliance
@@ -33,7 +33,7 @@
  * `Throwable` and logging rather than surfacing a transition error.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -50,7 +50,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
@@ -188,7 +188,7 @@ class WalletRevocationPropagationService {
 		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . $path);
 
 		$apiToken = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::OPENCONNECTOR_TOKEN_KEY,
 			default: ''
 		);
@@ -196,7 +196,7 @@ class WalletRevocationPropagationService {
 		if ($apiToken === '') {
 			$this->logger->warning(
 				'[WalletRevocationPropagationService] No OpenConnector API token configured ('
-				. 'scholiq.openconnector_api_token); the revocation call will fail with 401.'
+				. 'learniq.openconnector_api_token); the revocation call will fail with 401.'
 			);
 			return false;
 		}

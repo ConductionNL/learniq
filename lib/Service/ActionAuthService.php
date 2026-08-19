@@ -1,17 +1,17 @@
 <?php
 
 /**
- * Scholiq Action Authorization Service (AppHost stub)
+ * Learniq Action Authorization Service (AppHost stub)
  *
  * One-line subclass of the OpenRegister AppHost {@see GenericActionAuthService}
- * (ADR-040). The class name must physically exist in Scholiq's namespace because
+ * (ADR-040). The class name must physically exist in Learniq's namespace because
  * five domain controllers (KeyAdmin/ActionMatrix/AuditPackExport/QtiImport/
  * ExternalTraining/Rollover) and the InitializeActions repair step type-hint
- * `OCA\Scholiq\Service\ActionAuthService` in their constructors; the generic
- * carries all ADR-023 behaviour (matrix in IAppConfig under `scholiq.actions`).
+ * `OCA\Learniq\Service\ActionAuthService` in their constructors; the generic
+ * carries all ADR-023 behaviour (matrix in IAppConfig under `learniq.actions`).
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2024 Conduction B.V.
@@ -28,12 +28,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\AppHost\Service\GenericActionAuthService;
 
 /**
- * AppHost stub for Scholiq's ADR-023 action-authorization service.
+ * AppHost stub for Learniq's ADR-023 action-authorization service.
  */
 class ActionAuthService extends GenericActionAuthService {
 }//end class

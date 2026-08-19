@@ -11,7 +11,7 @@
  * its own payload shapes.
  *
  * @category Service
- * @package  OCA\Scholiq\Service\CoursePackage
+ * @package  OCA\Learniq\Service\CoursePackage
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -28,7 +28,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service\CoursePackage;
+namespace OCA\Learniq\Service\CoursePackage;
 
 use OCA\OpenRegister\Service\ObjectService;
 
@@ -37,7 +37,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class CoursePackageObjectWriter {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Constructor.

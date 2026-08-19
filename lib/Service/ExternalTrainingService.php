@@ -14,7 +14,7 @@
  * write audit entries.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -31,7 +31,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -48,7 +48,7 @@ class ExternalTrainingService {
 	/**
 	 * OpenRegister register slug Scholiq objects live in.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Schema slug of the external-training record.

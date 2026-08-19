@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Case Listener Registrar
+ * Learniq Case Listener Registrar
  *
  * One of the domain-scoped registrars `Application::register()` delegates its
  * event-listener wiring to, so no single class has to name every listener in
@@ -14,7 +14,7 @@
  * write no declarative schema expression covers.
  *
  * @category AppInfo
- * @package  OCA\Scholiq\AppInfo\Registrar
+ * @package  OCA\Learniq\AppInfo\Registrar
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -31,18 +31,18 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\AppInfo\Registrar;
+namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
-use OCA\Scholiq\Lifecycle\RolloverExecutionHandler;
-use OCA\Scholiq\Listener\BpvLeerbedrijfVerificationHandler;
-use OCA\Scholiq\Listener\BsaProgressFlagHandler;
-use OCA\Scholiq\Listener\CompetencyAttainmentRollupHandler;
-use OCA\Scholiq\Listener\DataExchangeRunHandler;
-use OCA\Scholiq\Listener\FraudCaseDecisionHandler;
-use OCA\Scholiq\Listener\RejectionMappingHandler;
-use OCA\Scholiq\Listener\SupportRequestSubmitHandler;
-use OCA\Scholiq\Timetabling\TimetableImportHandler;
+use OCA\Learniq\Lifecycle\RolloverExecutionHandler;
+use OCA\Learniq\Listener\BpvLeerbedrijfVerificationHandler;
+use OCA\Learniq\Listener\BsaProgressFlagHandler;
+use OCA\Learniq\Listener\CompetencyAttainmentRollupHandler;
+use OCA\Learniq\Listener\DataExchangeRunHandler;
+use OCA\Learniq\Listener\FraudCaseDecisionHandler;
+use OCA\Learniq\Listener\RejectionMappingHandler;
+use OCA\Learniq\Listener\SupportRequestSubmitHandler;
+use OCA\Learniq\Timetabling\TimetableImportHandler;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 /**
@@ -78,7 +78,7 @@ class CaseListenerRegistrar {
 		// When a DataExchangeJob transitions to `running`, the handler loads the
 		// DataMappingProfile, queries source objects, applies field transforms
 		// (bsn-to-pseudonym using eckId, date-iso8601, cohort-to-brin), and delegates
-		// to OpenConnector via REST API. No wire protocols are implemented in Scholiq;
+		// to OpenConnector via REST API. No wire protocols are implemented in Learniq;
 		// all Edukoppeling/StUF/OSO-XML/Digikoppeling/SAML logic lives in OpenConnector.
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
@@ -115,7 +115,7 @@ class CaseListenerRegistrar {
 		// — see its own handle()). Pulls a generated timetable from
 		// OpenConnector and idempotently upserts Session objects by
 		// externalRef, then triggers TimetableConflictDetector's batch scan.
-		// No Zermelo/Untis/Xedule wire protocol is implemented in Scholiq.
+		// No Zermelo/Untis/Xedule wire protocol is implemented in Learniq.
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: TimetableImportHandler::class
@@ -148,7 +148,7 @@ class CaseListenerRegistrar {
 		// (→ sbb-verification-pending) → resolve the configured
 		// ProvidesLeerbedrijfVerification adapter (if any) and write the SBB
 		// erkend-leerbedrijf verification result back onto the placement.
-		// No provider configured is a no-op — Scholiq ships no bundled SBB adapter.
+		// No provider configured is a no-op — Learniq ships no bundled SBB adapter.
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: BpvLeerbedrijfVerificationHandler::class

@@ -38,13 +38,13 @@ import { test, expect } from '../fixtures'
 // `#/…` URL resolves to a location no route matches and renders an empty app body.
 // See accessibility-conformance.spec.ts for the measurement.
 const LEARNING_RECORD_EXPORTS_INDEX_URL =
-	'/index.php/apps/scholiq/learning-records/exports'
+	'/index.php/apps/learniq/learning-records/exports'
 const LEARNING_RECORD_SHARES_INDEX_URL =
-	'/index.php/apps/scholiq/learning-records/shares'
+	'/index.php/apps/learniq/learning-records/shares'
 const LEARNING_RECORD_IMPORTS_INDEX_URL =
-	'/index.php/apps/scholiq/learning-records/imports'
-const MY_LEARNING_RECORD_URL = '/index.php/apps/scholiq/learning-records/me'
-const APPLICATIONS_INDEX_URL = '/index.php/apps/scholiq/admissions/applications'
+	'/index.php/apps/learniq/learning-records/imports'
+const MY_LEARNING_RECORD_URL = '/index.php/apps/learniq/learning-records/me'
+const APPLICATIONS_INDEX_URL = '/index.php/apps/learniq/admissions/applications'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise
@@ -162,7 +162,7 @@ test.describe('portable-learning-record — custom views resolve (registry.js wi
 		// in flight all session), so it silently burns its full 30 s out of
 		// this test's 60 s budget and surfaces as a bare timeout that looks
 		// like an app outage. ADR-074 rule 4 / hydra gate 58.
-		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
+		await expect(page.locator('#learniq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -177,7 +177,7 @@ test.describe('portable-learning-record — custom views resolve (registry.js wi
 		const errors = collectFatalErrors(page)
 
 		await page.goto(
-			'/index.php/apps/scholiq/admissions/applications/00000000-0000-0000-0000-000000000000/learning-record-import',
+			'/index.php/apps/learniq/admissions/applications/00000000-0000-0000-0000-000000000000/learning-record-import',
 		)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
@@ -195,11 +195,11 @@ test.describe('portable-learning-record — custom views resolve (registry.js wi
 		const errors = collectFatalErrors(page)
 
 		await page.goto(
-			'/index.php/apps/scholiq/learning-record-shares/00000000-0000-0000-0000-000000000000/verify',
+			'/index.php/apps/learniq/learning-record-shares/00000000-0000-0000-0000-000000000000/verify',
 		)
 		// Readiness signal: the Vue root has rendered. NOT `networkidle` —
 		// see ADR-074 rule 4 / hydra gate 58.
-		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
+		await expect(page.locator('#learniq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)

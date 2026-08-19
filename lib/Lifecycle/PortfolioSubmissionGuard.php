@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Portfolio Submission Guard
+ * Learniq Portfolio Submission Guard
  *
  * Lifecycle guard for the Portfolio schema's `submit` transition
  * (draft|active → submitted). When the transitioning Portfolio's `templateId`
@@ -18,10 +18,10 @@
  * Requires a cross-schema query (Portfolio → PortfolioTemplate →
  * PortfolioEntry). Mirrors SubmissionWindowGuard's `requires:` shape.
  * Referenced from the Portfolio schema's x-openregister-lifecycle.transitions.
- * submit.requires in scholiq_register.json.
+ * submit.requires in learniq_register.json.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -38,7 +38,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -58,9 +58,9 @@ use Psr\Log\LoggerInterface;
 class PortfolioSubmissionGuard {
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * OR schema slug for PortfolioTemplate.

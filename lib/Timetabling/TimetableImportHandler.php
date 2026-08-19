@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Timetable Import Handler
+ * Learniq Timetable Import Handler
  *
  * IEventListener for DataExchangeJob lifecycle -> `running` (the same OR
  * ObjectTransitionedEvent DataExchangeRunHandler consumes), filtered to
@@ -29,14 +29,14 @@
  *    overwritten — the lookup filter always requires a non-empty
  *    externalRef.
  * 5. Once the job reaches `succeeded`/`partial`, triggers
- *    {@see \OCA\Scholiq\Timetabling\TimetableConflictDetector}'s batch scan
+ *    {@see \OCA\Learniq\Timetabling\TimetableConflictDetector}'s batch scan
  *    over every upserted Session.
  *
  * ADR-031 legitimate exception: external-system bridge — the same shape as
  * `data-exchange`'s existing job-execution handler (DataExchangeRunHandler).
  *
  * @category Service
- * @package  OCA\Scholiq\Timetabling
+ * @package  OCA\Learniq\Timetabling
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -54,7 +54,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Timetabling;
+namespace OCA\Learniq\Timetabling;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
@@ -76,7 +76,7 @@ use Psr\Log\LoggerInterface;
  */
 class TimetableImportHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const JOB_SCHEMA = 'data-exchange-job';
 	private const MAPPING_PROFILE_SCHEMA = 'data-mapping-profile';
 	private const SESSION_SCHEMA = 'session';
@@ -426,7 +426,7 @@ class TimetableImportHandler implements IEventListener {
 		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . $path);
 
 		$apiToken = $this->appConfig->getValueString(
-			app: 'scholiq',
+			app: 'learniq',
 			key: self::OPENCONNECTOR_TOKEN_KEY,
 			default: ''
 		);
@@ -439,7 +439,7 @@ class TimetableImportHandler implements IEventListener {
 		if ($apiToken === '') {
 			$this->logger->warning(
 				'[TimetableImportHandler] No OpenConnector API token configured '
-				. '(scholiq.openconnector_api_token); the call may fail with 401/403.'
+				. '(learniq.openconnector_api_token); the call may fail with 401/403.'
 			);
 		}
 

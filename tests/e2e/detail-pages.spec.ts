@@ -13,7 +13,7 @@ import manifest from '../../src/manifest.json'
  * placeholder that produces a syntactically valid URL.
  */
 
-const APP_BASE = '/index.php/apps/scholiq'
+const APP_BASE = '/index.php/apps/learniq'
 
 /**
  * True once the seeder has actually populated the register.
@@ -91,7 +91,7 @@ test.describe(`Scholiq detail pages (${detailPages.length})`, () => {
 					.soft(
 						await page
 							.locator(
-								'.app-navigation, nav#app-navigation, [data-app="scholiq"]',
+								'.app-navigation, nav#app-navigation, [data-app="learniq"]',
 							)
 							.first()
 							.isVisible()

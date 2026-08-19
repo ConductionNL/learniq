@@ -11,7 +11,7 @@
  * availability schedules a previously waitlisted signup).
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -28,13 +28,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Listener\ConferenceScheduleGenerator;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Listener\ConferenceScheduleGenerator;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -128,7 +128,7 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('conference-round');
 		$event->method('getTo')->willReturn('scheduled');
 		$event->method('getFrom')->willReturn($from);
@@ -399,7 +399,7 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('conference-round');
 		$event->method('getTo')->willReturn('booking-closed');
 		$event->method('getFrom')->willReturn('booking-open');

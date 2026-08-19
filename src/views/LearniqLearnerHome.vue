@@ -2,14 +2,14 @@
 <!-- Copyright (C) 2026 Conduction B.V. -->
 
 <!--
- ScholiqLearnerHome — "My learning" dashboard for learners.
+ LearniqLearnerHome — "My learning" dashboard for learners.
  Shows the current user's mandatory training obligations.
 
  @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-18
 -->
 <template>
 	<CnDashboardPage
-		:title="t('scholiq', 'My learning')"
+		:title="t('learniq', 'My learning')"
 		:widgets="widgets"
 		:layout="layout">
 		<template #widget-my-mandatory-training>
@@ -23,7 +23,7 @@ import { CnDashboardPage } from '@conduction/nextcloud-vue'
 import MyMandatoryTrainingWidget from './widgets/MyMandatoryTrainingWidget.vue'
 
 export default {
-	name: 'ScholiqLearnerHome',
+	name: 'LearniqLearnerHome',
 
 	components: {
 		CnDashboardPage,

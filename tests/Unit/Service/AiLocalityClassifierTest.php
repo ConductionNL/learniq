@@ -11,7 +11,7 @@
  * `on-premises`/`eu-hosted`.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -28,12 +28,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\AiLocalityClassifier;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Service\AiLocalityClassifier;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\App\IAppManager;
 use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;

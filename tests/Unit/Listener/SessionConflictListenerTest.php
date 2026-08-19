@@ -4,7 +4,7 @@
  * Scholiq SessionConflictListener unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,14 +21,14 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
-use OCA\Scholiq\Listener\SessionConflictListener;
-use OCA\Scholiq\Service\ListenerSchemaResolver;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
-use OCA\Scholiq\Timetabling\TimetableConflictDetector;
+use OCA\Learniq\Listener\SessionConflictListener;
+use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Timetabling\TimetableConflictDetector;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -66,7 +66,7 @@ class SessionConflictListenerTest extends TestCase {
 	 * @return void
 	 */
 	private function stubResolver(string $schemaSlug): void {
-		$this->schemaResolver->method('registerSlug')->willReturn('scholiq');
+		$this->schemaResolver->method('registerSlug')->willReturn('learniq');
 		$this->schemaResolver->method('schemaSlug')->willReturn($schemaSlug);
 
 	}//end stubResolver()

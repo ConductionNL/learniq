@@ -22,12 +22,12 @@
 	<div class="course-package-import">
 		<header class="course-package-import__header">
 			<h2 class="course-package-import__heading">
-				{{ t('scholiq', 'Import course package') }}
+				{{ t('learniq', 'Import course package') }}
 			</h2>
 			<p class="course-package-import__intro">
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'Upload an IMS Common Cartridge 1.3 (.imscc/.zip) or Moodle backup (.mbz) package. Every resource in the package is reported — imported, degraded, or dropped — nothing is silently lost.',
 					)
 				}}
@@ -37,7 +37,7 @@
 		<!-- Upload form -->
 		<div v-if="!report" class="course-package-import__upload">
 			<label class="course-package-import__label" for="course-package-file">
-				{{ t('scholiq', 'Course package file') }}
+				{{ t('learniq', 'Course package file') }}
 			</label>
 			<input
 				id="course-package-file"
@@ -49,7 +49,7 @@
 				@change="onFileSelected" />
 
 			<p v-if="selectedFileName" class="course-package-import__selected">
-				{{ t('scholiq', 'Selected: {name}', { name: selectedFileName }) }}
+				{{ t('learniq', 'Selected: {name}', { name: selectedFileName }) }}
 			</p>
 
 			<button
@@ -59,8 +59,8 @@
 				<span v-if="uploading" class="icon-loading" aria-hidden="true" />
 				{{
 					uploading
-						? t('scholiq', 'Importing…')
-						: t('scholiq', 'Import package')
+						? t('learniq', 'Importing…')
+						: t('learniq', 'Import package')
 				}}
 			</button>
 
@@ -84,21 +84,21 @@
 				<ul v-else class="course-package-import__counts">
 					<li>
 						{{
-							t('scholiq', '{n} imported', {
+							t('learniq', '{n} imported', {
 								n: report.resourcesImported,
 							})
 						}}
 					</li>
 					<li>
 						{{
-							t('scholiq', '{n} degraded', {
+							t('learniq', '{n} degraded', {
 								n: report.resourcesDegraded,
 							})
 						}}
 					</li>
 					<li>
 						{{
-							t('scholiq', '{n} dropped', {
+							t('learniq', '{n} dropped', {
 								n: report.resourcesDropped,
 							})
 						}}
@@ -109,23 +109,23 @@
 			<!-- Outcome filter -->
 			<div class="course-package-import__filter">
 				<label class="course-package-import__label" for="outcome-filter">
-					{{ t('scholiq', 'Filter by outcome') }}
+					{{ t('learniq', 'Filter by outcome') }}
 				</label>
 				<select
 					id="outcome-filter"
 					v-model="outcomeFilter"
 					class="course-package-import__select">
 					<option value="all">
-						{{ t('scholiq', 'All resources') }}
+						{{ t('learniq', 'All resources') }}
 					</option>
 					<option value="imported">
-						{{ t('scholiq', 'Imported') }}
+						{{ t('learniq', 'Imported') }}
 					</option>
 					<option value="degraded">
-						{{ t('scholiq', 'Degraded') }}
+						{{ t('learniq', 'Degraded') }}
 					</option>
 					<option value="dropped">
-						{{ t('scholiq', 'Dropped') }}
+						{{ t('learniq', 'Dropped') }}
 					</option>
 				</select>
 			</div>
@@ -134,11 +134,11 @@
 			<table class="course-package-import__table">
 				<thead>
 					<tr>
-						<th scope="col">{{ t('scholiq', 'Title') }}</th>
-						<th scope="col">{{ t('scholiq', 'Resource type') }}</th>
-						<th scope="col">{{ t('scholiq', 'Outcome') }}</th>
-						<th scope="col">{{ t('scholiq', 'Target') }}</th>
-						<th scope="col">{{ t('scholiq', 'Reason') }}</th>
+						<th scope="col">{{ t('learniq', 'Title') }}</th>
+						<th scope="col">{{ t('learniq', 'Resource type') }}</th>
+						<th scope="col">{{ t('learniq', 'Outcome') }}</th>
+						<th scope="col">{{ t('learniq', 'Target') }}</th>
+						<th scope="col">{{ t('learniq', 'Reason') }}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -156,14 +156,14 @@
 					</tr>
 					<tr v-if="filteredEntries.length === 0">
 						<td colspan="5" class="course-package-import__empty">
-							{{ t('scholiq', 'No resources match this filter.') }}
+							{{ t('learniq', 'No resources match this filter.') }}
 						</td>
 					</tr>
 				</tbody>
 			</table>
 
 			<button class="button-vue" @click="reset">
-				{{ t('scholiq', 'Import another package') }}
+				{{ t('learniq', 'Import another package') }}
 			</button>
 		</div>
 	</div>
@@ -197,17 +197,17 @@ export default {
 			if (!this.report) return ''
 			const labels = {
 				succeeded: this.t(
-					'scholiq',
+					'learniq',
 					'Import succeeded — every resource was imported.',
 				),
 
 				partial: this.t(
-					'scholiq',
+					'learniq',
 					'Import completed with some resources degraded or dropped.',
 				),
 
-				failed: this.t('scholiq', 'Import failed.'),
-				running: this.t('scholiq', 'Import in progress…'),
+				failed: this.t('learniq', 'Import failed.'),
+				running: this.t('learniq', 'Import in progress…'),
 			}
 			return labels[this.report.lifecycle] ?? this.report.lifecycle
 		},
@@ -257,7 +257,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					'/apps/scholiq/api/course-management/course-package-import',
+					'/apps/learniq/api/course-management/course-package-import',
 				)
 				const resp = await fetch(url, {
 					method: 'POST',
@@ -276,7 +276,7 @@ export default {
 				this.report = json
 			} catch (err) {
 				this.uploadError = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to import the package. Please try again.',
 				)
 				// eslint-disable-next-line no-console

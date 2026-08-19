@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq OSO Dossier Review Guard
+ * Learniq OSO Dossier Review Guard
  *
  * Lifecycle guard for the DataExchangeJob schema's `approveDossier`
  * transition (`pending-parent-review → running`). Verifies that the actor
@@ -21,7 +21,7 @@
  * the OSO dossier approval. No protocol or serialisation logic.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -38,7 +38,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -51,7 +51,7 @@ use Psr\Log\LoggerInterface;
  */
 class OsoDossierReviewGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 
 	/**

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Collaboration Listener Registrar
+ * Learniq Collaboration Listener Registrar
  *
  * One of the domain-scoped registrars `Application::register()` delegates its
  * event-listener wiring to, so no single class has to name every listener in
@@ -13,7 +13,7 @@
  * write no declarative schema expression covers.
  *
  * @category AppInfo
- * @package  OCA\Scholiq\AppInfo\Registrar
+ * @package  OCA\Learniq\AppInfo\Registrar
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -30,19 +30,19 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\AppInfo\Registrar;
+namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
-use OCA\Scholiq\Lifecycle\PortfolioShareGrantHandler;
-use OCA\Scholiq\Listener\CohortTalkMembershipHandler;
-use OCA\Scholiq\Listener\ConferenceScheduleGenerator;
-use OCA\Scholiq\Listener\CourseEvaluationResponseSubmittedHandler;
-use OCA\Scholiq\Listener\CourseQualityScoreRollupHandler;
-use OCA\Scholiq\Listener\EvaluationInvitationProvisioningHandler;
-use OCA\Scholiq\Listener\PeerFeedbackAggregator;
-use OCA\Scholiq\Listener\PointAwardTriggerHandler;
-use OCA\Scholiq\Listener\ReportCardComposer;
-use OCA\Scholiq\Listener\ReportCardPublishHandler;
+use OCA\Learniq\Lifecycle\PortfolioShareGrantHandler;
+use OCA\Learniq\Listener\CohortTalkMembershipHandler;
+use OCA\Learniq\Listener\ConferenceScheduleGenerator;
+use OCA\Learniq\Listener\CourseEvaluationResponseSubmittedHandler;
+use OCA\Learniq\Listener\CourseQualityScoreRollupHandler;
+use OCA\Learniq\Listener\EvaluationInvitationProvisioningHandler;
+use OCA\Learniq\Listener\PeerFeedbackAggregator;
+use OCA\Learniq\Listener\PointAwardTriggerHandler;
+use OCA\Learniq\Listener\ReportCardComposer;
+use OCA\Learniq\Listener\ReportCardPublishHandler;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 /**
@@ -147,7 +147,7 @@ class CollaborationListenerRegistrar {
 		// ADR-031 legitimate exception (eportfolio): PortfolioShare `grant` transition
 		// (draft -> active) -> native NC Files read-only share creation for
 		// sharedWithKind=teacher, via OCP\Share\IManager. The same class is ALSO
-		// referenced as the transition's `requires:` guard in scholiq_register.json
+		// referenced as the transition's `requires:` guard in learniq_register.json
 		// (self-grant block) — this registration only wires its IEventListener half;
 		// praktijkopleider/external-assessor visibility is served declaratively by
 		// PortalContributionProvider, not by this listener.

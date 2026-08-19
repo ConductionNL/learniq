@@ -4,7 +4,7 @@
  * Scholiq GradeVisibilityResolver unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Grading
+ * @package  OCA\Learniq\Tests\Unit\Grading
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,11 +21,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Grading;
+namespace OCA\Learniq\Tests\Unit\Grading;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use OCA\Scholiq\Grading\GradeVisibilityResolver;
+use OCA\Learniq\Grading\GradeVisibilityResolver;
 use PHPUnit\Framework\TestCase;
 
 /**

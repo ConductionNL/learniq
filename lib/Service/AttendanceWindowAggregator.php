@@ -23,7 +23,7 @@
  *   - ReportCardComposer (constructor injection)
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -40,7 +40,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 
@@ -49,7 +49,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class AttendanceWindowAggregator {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
 	private const ATTENDANCE_RECORD_SCHEMA = 'attendance-record';
 

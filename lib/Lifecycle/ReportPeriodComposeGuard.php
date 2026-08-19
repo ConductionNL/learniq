@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Report Period Compose Guard
+ * Learniq Report Period Compose Guard
  *
  * Lifecycle guard for the ReportPeriod schema's `compose` transition
  * (open -> composed). Blocks composition until the period is `isLocked`
@@ -23,10 +23,10 @@
  * before a state transition and cannot be expressed as a schema
  * declaration." Referenced from the ReportPeriod schema's
  * x-openregister-lifecycle.transitions.compose.requires in
- * scholiq_register.json.
+ * learniq_register.json.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -44,7 +44,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use Psr\Log\LoggerInterface;
 

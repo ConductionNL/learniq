@@ -8,7 +8,7 @@
  * tar-slip path-traversal rejection and the oversized-entry cap.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -25,9 +25,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Scholiq\Service\MbzExtractor;
+use OCA\Learniq\Service\MbzExtractor;
 use PharData;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;

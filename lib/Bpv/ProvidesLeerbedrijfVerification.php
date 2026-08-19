@@ -22,7 +22,7 @@
  * expressed in PHP").
  *
  * @category Bpv
- * @package  OCA\Scholiq\Bpv
+ * @package  OCA\Learniq\Bpv
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -39,7 +39,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Bpv;
+namespace OCA\Learniq\Bpv;
 
 /**
  * Pluggable leerbedrijf-verification provider interface.

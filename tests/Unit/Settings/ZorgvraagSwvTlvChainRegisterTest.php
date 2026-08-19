@@ -20,7 +20,7 @@
  * the DataExchangeJob/DataMappingProfile swv-target extension.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Settings
+ * @package  OCA\Learniq\Tests\Unit\Settings
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -35,7 +35,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Settings;
+namespace OCA\Learniq\Tests\Unit\Settings;
 
 use PHPUnit\Framework\TestCase;
 
@@ -59,7 +59,7 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 	 */
 	protected function setUp(): void {
 		parent::setUp();
-		$path = __DIR__ . '/../../../lib/Settings/scholiq_register.json';
+		$path = __DIR__ . '/../../../lib/Settings/learniq_register.json';
 		$this->config = json_decode((string)file_get_contents($path), true);
 
 	}//end setUp()
@@ -87,7 +87,23 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 		self::assertSame('LearningPlan', $learningPlanId['$ref']);
 		self::assertNull($learningPlanId['default']);
 
-		self::assertSame(['admin', 'principal'], $schema['x-openregister-authorization']['create']);
+		// rbac-declare-groups: the old assertion read `x-openregister-authorization`
+		// and named `principal`. Neither survives: OpenRegister reads
+		// `authorization`, never the `x-` variant, and `principal` was retired
+		// from the role vocabulary as school-specific when the app was reframed
+		// from Scholiq to Learniq. SupportRequest carries no schema-level block
+		// and is governed by the register cascade (Tier 2), so the assertion is
+		// that the decoy is gone and the cascade is what applies.
+		self::assertArrayNotHasKey(
+			'x-openregister-authorization',
+			$schema,
+			'The decoy key MUST be gone — OpenRegister never read it.'
+		);
+		self::assertArrayNotHasKey(
+			'authorization',
+			$schema,
+			'SupportRequest is Tier 2: it inherits the register cascade rather than declaring its own block.'
+		);
 
 	}//end testSupportRequestLifecycleAndAuthorizationShape()
 
@@ -209,7 +225,7 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 		$recordTransition = $schema['x-openregister-lifecycle']['transitions']['record'];
 		self::assertSame('scheduled', $recordTransition['from']);
 		self::assertSame('recorded', $recordTransition['to']);
-		self::assertSame('OCA\\Scholiq\\Lifecycle\\PupilVoiceGuard', $recordTransition['requires']);
+		self::assertSame('OCA\\Learniq\\Lifecycle\\PupilVoiceGuard', $recordTransition['requires']);
 
 	}//end testDeliberationRecordAppendOnlyAndRequiredOneOfShape()
 

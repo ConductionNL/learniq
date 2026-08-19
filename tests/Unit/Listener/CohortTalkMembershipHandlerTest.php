@@ -16,7 +16,7 @@
  * shapes, instead of hand-rolled duck-typed fakes.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -33,12 +33,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\TalkLinkService;
-use OCA\Scholiq\Listener\CohortTalkMembershipHandler;
+use OCA\Learniq\Listener\CohortTalkMembershipHandler;
 use OCA\Talk\Manager as TalkManager;
 use OCA\Talk\Room as TalkRoom;
 use OCA\Talk\Service\ParticipantService as TalkParticipantService;
@@ -104,7 +104,7 @@ class CohortTalkMembershipHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('enrolment');
 		$event->method('getAction')->willReturn($action);
 

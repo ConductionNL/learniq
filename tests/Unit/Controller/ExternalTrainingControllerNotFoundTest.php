@@ -4,7 +4,7 @@
  * Scholiq ExternalTrainingController not-found path unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Controller
+ * @package  OCA\Learniq\Tests\Unit\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,12 +21,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Controller;
+namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Controller\ExternalTrainingController;
-use OCA\Scholiq\Service\ActionAuthService;
-use OCA\Scholiq\Service\ExternalTrainingService;
+use OCA\Learniq\Controller\ExternalTrainingController;
+use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\ExternalTrainingService;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
 use OCP\IUser;

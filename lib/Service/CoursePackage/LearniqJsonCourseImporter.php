@@ -17,7 +17,7 @@
  * (no live OpenConnector deployment carried).
  *
  * @category Service
- * @package  OCA\Scholiq\Service\CoursePackage
+ * @package  OCA\Learniq\Service\CoursePackage
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -34,12 +34,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service\CoursePackage;
+namespace OCA\Learniq\Service\CoursePackage;
 
 /**
  * Re-imports a scholiq-native JSON course export.
  */
-class ScholiqJsonCourseImporter {
+class LearniqJsonCourseImporter {
 
 	private const SOURCE_FORMAT = 'scholiq-json';
 

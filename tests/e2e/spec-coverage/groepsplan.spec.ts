@@ -26,21 +26,21 @@
  */
 import { test, expect } from '../fixtures'
 
-const GROUP_PLANS_INDEX_URL = '/index.php/apps/scholiq/#/group-plans'
+const GROUP_PLANS_INDEX_URL = '/index.php/apps/learniq/#/group-plans'
 const GROUP_PLAN_DETAIL_URL =
-	'/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000'
+	'/index.php/apps/learniq/#/group-plans/00000000-0000-0000-0000-000000000000'
 const GROUP_PLAN_SUBGROUP_DETAIL_URL =
-	'/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000/subgroups/00000000-0000-0000-0000-000000000000'
+	'/index.php/apps/learniq/#/group-plans/00000000-0000-0000-0000-000000000000/subgroups/00000000-0000-0000-0000-000000000000'
 const GROUP_PLAN_EVALUATION_DETAIL_URL =
-	'/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000/evaluations/00000000-0000-0000-0000-000000000000'
+	'/index.php/apps/learniq/#/group-plans/00000000-0000-0000-0000-000000000000/evaluations/00000000-0000-0000-0000-000000000000'
 const LEARNER_CONTEXT_URL =
-	'/index.php/apps/scholiq/#/group-plans/subgroup-learner-context'
+	'/index.php/apps/learniq/#/group-plans/subgroup-learner-context'
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
 const GROUP_PLAN_SUBGROUP_LIST_API =
-	'/index.php/apps/openregister/api/objects/scholiq/GroupPlanSubgroup?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/GroupPlanSubgroup?limit=200'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise

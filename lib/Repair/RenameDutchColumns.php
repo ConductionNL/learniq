@@ -38,7 +38,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  *
  * @category Repair
- * @package  OCA\Scholiq\Repair
+ * @package  OCA\Learniq\Repair
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -51,7 +51,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Repair;
+namespace OCA\Learniq\Repair;
 
 use OCP\DB\Exception;
 use OCP\IDBConnection;
@@ -69,6 +69,14 @@ use Psr\Log\LoggerInterface;
 class RenameDutchColumns implements IRepairStep {
 	/**
 	 * Slug prefix of the registers in scope.
+	 *
+	 * rename-to-learniq: intentionally NOT renamed to 'learniq'. This step
+	 * runs in <post-migration> BEFORE RenameRegisterSlug (info.xml lists it
+	 * first), so at the moment it executes the register's slug in the
+	 * database is still literally 'scholiq' — RenameRegisterSlug has not run
+	 * yet in the same upgrade pass. Matching 'learniq' here would find zero
+	 * registers and silently no-op this step's own migration on any install
+	 * that had not already completed it before this rename shipped.
 	 *
 	 * @var string
 	 */

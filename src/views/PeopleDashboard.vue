@@ -34,7 +34,7 @@
 			<template #widget-manage-learners>
 				<ManageListWidget
 					schema="learner-profile"
-					:schemaLabel="t('scholiq', 'learner')"
+					:schemaLabel="t('learniq', 'learner')"
 					:columns="['name']"
 					:nameResolver="learnerName"
 					indexRoute="/learner-profiles"
@@ -43,7 +43,7 @@
 			<template #widget-manage-enrolments>
 				<ManageListWidget
 					schema="Enrolment"
-					:schemaLabel="t('scholiq', 'enrolment')"
+					:schemaLabel="t('learniq', 'enrolment')"
 					:columns="['name']"
 					:extend="['learnerId', 'courseId']"
 					:nameResolver="enrolmentName"
@@ -53,7 +53,7 @@
 			<template #widget-manage-attendance>
 				<ManageListWidget
 					schema="attendance-record"
-					:schemaLabel="t('scholiq', 'attendance record')"
+					:schemaLabel="t('learniq', 'attendance record')"
 					:columns="['name', 'lifecycle']"
 					indexRoute="/attendance/records"
 					:limit="6" />
@@ -61,7 +61,7 @@
 			<template #widget-manage-credentials>
 				<ManageListWidget
 					schema="Credential"
-					:schemaLabel="t('scholiq', 'credential')"
+					:schemaLabel="t('learniq', 'credential')"
 					:columns="['name', 'lifecycle']"
 					indexRoute="/credentials"
 					:limit="6" />
@@ -98,54 +98,55 @@ export default {
 		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-people-domain-dashboard
 		 */
 		pageTitle() {
-			return this.t('scholiq', 'People')
+			return this.t('learniq', 'People')
 		},
 
 		/**
 		 * The CnDashboardPage `widgets` declaration.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-people-domain-dashboard
 		 */
 		widgets() {
 			return [
 				{
 					id: 'kpi-learners',
-					title: this.t('scholiq', 'Learners'),
+					title: this.t('learniq', 'Learners'),
 					type: 'custom',
 				},
 				{
 					id: 'kpi-active-enrolments',
-					title: this.t('scholiq', 'Active enrolments'),
+					title: this.t('learniq', 'Active enrolments'),
 					type: 'custom',
 				},
 				{
 					id: 'kpi-cohorts',
-					title: this.t('scholiq', 'Cohorts'),
+					title: this.t('learniq', 'Cohorts'),
 					type: 'custom',
 				},
 				{
 					id: 'kpi-open-flags',
-					title: this.t('scholiq', 'Open attendance flags'),
+					title: this.t('learniq', 'Open attendance flags'),
 					type: 'custom',
 				},
 				{
 					id: 'manage-learners',
-					title: this.t('scholiq', 'Learners'),
+					title: this.t('learniq', 'Learners'),
 					type: 'custom',
 				},
 				{
 					id: 'manage-enrolments',
-					title: this.t('scholiq', 'Enrolments'),
+					title: this.t('learniq', 'Enrolments'),
 					type: 'custom',
 				},
 				{
 					id: 'manage-attendance',
-					title: this.t('scholiq', 'Attendance'),
+					title: this.t('learniq', 'Attendance'),
 					type: 'custom',
 				},
 				{
 					id: 'manage-credentials',
-					title: this.t('scholiq', 'Credentials'),
+					title: this.t('learniq', 'Credentials'),
 					type: 'custom',
 				},
 			]

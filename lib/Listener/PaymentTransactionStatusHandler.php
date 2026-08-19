@@ -24,7 +24,7 @@
  * shape.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -41,7 +41,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
@@ -59,7 +59,7 @@ use Psr\Log\LoggerInterface;
  */
 class PaymentTransactionStatusHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const PAYMENT_TRANSACTION_SCHEMA = 'payment-transaction';
 	private const ORDER_SCHEMA = 'order';
 	private const ORDER_LINE_SCHEMA = 'order-line';

@@ -23,7 +23,7 @@
  * No audit writes (OR's lifecycle engine handles those).
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -42,13 +42,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Grading\GradeFormulaEvaluator;
-use OCA\Scholiq\Grading\GradeVisibilityResolver;
+use OCA\Learniq\Grading\GradeFormulaEvaluator;
+use OCA\Learniq\Grading\GradeVisibilityResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -61,7 +61,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class GradeRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 	private const FINAL_GRADE_SCHEMA = 'final-grade';
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';

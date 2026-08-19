@@ -9,7 +9,7 @@
  * offerToWallet/walletOfferStatus, and generation fails closed on error.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -26,13 +26,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\LearningRecordAggregationService;
-use OCA\Scholiq\Service\LearningRecordBundleWriter;
-use OCA\Scholiq\Service\LearningRecordExportService;
-use OCA\Scholiq\Service\LearningRecordExportSigningService;
+use OCA\Learniq\Service\LearningRecordAggregationService;
+use OCA\Learniq\Service\LearningRecordBundleWriter;
+use OCA\Learniq\Service\LearningRecordExportService;
+use OCA\Learniq\Service\LearningRecordExportSigningService;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -175,7 +175,7 @@ class LearningRecordExportServiceTest extends TestCase {
 			)
 		);
 
-		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:scholiq:tenant-1:abc');
+		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:abc');
 		$this->signingService->method('sign')->willReturn('header..signature');
 
 		$context = $this->baseContext();
@@ -206,7 +206,7 @@ class LearningRecordExportServiceTest extends TestCase {
 			)
 		);
 
-		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:scholiq:tenant-1:abc');
+		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:abc');
 		$this->signingService->method('sign')->willReturn('header..signature');
 
 		$context = $this->baseContext();
@@ -234,7 +234,7 @@ class LearningRecordExportServiceTest extends TestCase {
 			)
 		);
 
-		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:scholiq:tenant-1:abc');
+		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:abc');
 		$this->signingService->method('sign')->willReturn('header..signature');
 
 		$context = $this->baseContext(['periodFrom' => '2026-01-01', 'periodTo' => '2026-12-31']);
@@ -274,7 +274,7 @@ class LearningRecordExportServiceTest extends TestCase {
 			)
 		);
 
-		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:scholiq:tenant-1:abc');
+		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:abc');
 		$this->signingService->method('sign')->willReturn('header..signature');
 
 		$context = $this->baseContext();

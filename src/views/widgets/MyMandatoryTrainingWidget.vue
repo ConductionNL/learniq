@@ -17,7 +17,7 @@
 		</div>
 
 		<div v-else-if="enrolments.length === 0" class="my-training-widget__empty">
-			{{ t('scholiq', 'No mandatory training due') }}
+			{{ t('learniq', 'No mandatory training due') }}
 		</div>
 
 		<ul v-else class="my-training-widget__list">
@@ -30,13 +30,13 @@
 						{{
 							enrolment.courseTitle
 							|| enrolment.courseId
-							|| t('scholiq', 'Course')
+							|| t('learniq', 'Course')
 						}}
 					</span>
 					<span
 						v-if="enrolment.dueDate"
 						class="my-training-widget__item-due">
-						{{ t('scholiq', 'Due') }}:
+						{{ t('learniq', 'Due') }}:
 						{{ formatDate(enrolment.dueDate) }}
 					</span>
 					<div
@@ -50,7 +50,7 @@
 						aria-valuemin="0"
 						aria-valuemax="100"
 						:aria-label="
-							t('scholiq', 'Progress: {percent}%', {
+							t('learniq', 'Progress: {percent}%', {
 								percent: enrolment.progressPercent,
 							})
 						">
@@ -70,7 +70,7 @@
 					v-if="enrolment.courseId"
 					class="my-training-widget__start-link"
 					:to="courseLessonsPath(enrolment)">
-					{{ t('scholiq', 'Start') }}
+					{{ t('learniq', 'Start') }}
 				</router-link>
 			</li>
 		</ul>
@@ -117,7 +117,7 @@ export default {
 					_order: 'dueDate',
 				})
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/Enrolment?'
+					'/apps/openregister/api/objects/learniq/Enrolment?'
 						+ params.toString(),
 				)
 				const response = await axios.get(url)

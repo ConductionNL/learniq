@@ -11,7 +11,7 @@
  * relies on.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -28,11 +28,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\QtiImportService;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Service\QtiImportService;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ZipArchive;

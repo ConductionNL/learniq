@@ -10,7 +10,7 @@
  * In CI environments without a running Nextcloud the test is skipped automatically.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Integration\Lifecycle
+ * @package  OCA\Learniq\Tests\Integration\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -32,7 +32,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Integration\Lifecycle;
+namespace OCA\Learniq\Tests\Integration\Lifecycle;
 
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -47,7 +47,7 @@ use PHPUnit\Framework\TestCase;
  * enough matching published Items exist.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Integration\Lifecycle
+ * @package  OCA\Learniq\Tests\Integration\Lifecycle
  */
 class AssessmentPublishGuardRandomDrawIntegrationTest extends TestCase {
 
@@ -128,7 +128,7 @@ class AssessmentPublishGuardRandomDrawIntegrationTest extends TestCase {
 	 */
 	private function createObject(string $schema, array $data): array {
 		try {
-			$obj = $this->objectService->saveObject(register: 'scholiq', schema: $schema, object: $data);
+			$obj = $this->objectService->saveObject(register: 'learniq', schema: $schema, object: $data);
 		} catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
 			$this->markTestSkipped('Scholiq register/schema not seeded: ' . $e->getMessage());
 		} catch (\OCA\OpenRegister\Exception\NotAuthorizedException $e) {

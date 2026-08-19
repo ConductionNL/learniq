@@ -14,7 +14,7 @@
  * register's calculation DSL (see EnrolmentProgressEvaluator).
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -31,12 +31,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Progress\EnrolmentProgressEvaluator;
-use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Progress\EnrolmentProgressEvaluator;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
@@ -47,7 +47,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class EnrolmentProgressRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
 	private const ENROLMENT_SCHEMA = 'enrolment';
 

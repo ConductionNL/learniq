@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Scholiq Initialize Settings Repair Step
+ * Learniq Initialize Settings Repair Step
  *
- * Repair step that initializes Scholiq register and schemas on install/upgrade.
+ * Repair step that initializes Learniq register and schemas on install/upgrade.
  *
  * @category Repair
- * @package  OCA\Scholiq\Repair
+ * @package  OCA\Learniq\Repair
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -21,15 +21,15 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Repair;
+namespace OCA\Learniq\Repair;
 
-use OCA\Scholiq\Service\SettingsService;
+use OCA\Learniq\Service\SettingsService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
 use Psr\Log\LoggerInterface;
 
 /**
- * Repair step that initializes Scholiq configuration via SettingsService.
+ * Repair step that initializes Learniq configuration via SettingsService.
  */
 class InitializeSettings implements IRepairStep {
 	/**
@@ -52,11 +52,11 @@ class InitializeSettings implements IRepairStep {
 	 * @return string
 	 */
 	public function getName(): string {
-		return 'Initialize Scholiq register and schemas via ConfigurationService';
+		return 'Initialize Learniq register and schemas via ConfigurationService';
 	}//end getName()
 
 	/**
-	 * Run the repair step to initialize Scholiq configuration.
+	 * Run the repair step to initialize Learniq configuration.
 	 *
 	 * @param IOutput $output The output interface for progress reporting
 	 *
@@ -65,23 +65,23 @@ class InitializeSettings implements IRepairStep {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-26
 	 */
 	public function run(IOutput $output): void {
-		$output->info('Initializing Scholiq configuration...');
+		$output->info('Initializing Learniq configuration...');
 
 		if ($this->settingsService->isOpenRegisterAvailable() === false) {
 			$output->warning(
 				'OpenRegister is not installed or enabled. Skipping auto-configuration.'
 			);
 			$this->logger->warning(
-				'Scholiq: OpenRegister not available, skipping register initialization'
+				'Learniq: OpenRegister not available, skipping register initialization'
 			);
 			return;
 		}
 
 		try {
 			// NOT forced. `force: true` bypasses OpenRegister's app-level import fast-skip
-			// (gated on `$force === false`), so this step re-parsed scholiq_register.json and
+			// (gated on `$force === false`), so this step re-parsed learniq_register.json and
 			// walked every register/schema on EVERY upgrade, even when nothing changed. Unlike
-			// the fragmented apps, scholiq's info.version is static, so loadConfiguration() now
+			// the fragmented apps, learniq's info.version is static, so loadConfiguration() now
 			// content-addresses the version (`+def.<sha256>`) — a definition change bumps the
 			// version and re-imports; an unchanged config fast-skips. OpenRegister#426's
 			// content-aware gate is belt-and-suspenders on top of that.
@@ -90,19 +90,19 @@ class InitializeSettings implements IRepairStep {
 			if ($result['success'] === true) {
 				$version = ($result['version'] ?? 'unknown');
 				$output->info(
-					'Scholiq configuration imported successfully (version: ' . $version . ')'
+					'Learniq configuration imported successfully (version: ' . $version . ')'
 				);
 				return;
 			}
 
 			$message = ($result['message'] ?? 'unknown error');
 			$output->warning(
-				'Scholiq configuration import issue: ' . $message
+				'Learniq configuration import issue: ' . $message
 			);
 		} catch (\Throwable $e) {
-			$output->warning('Could not auto-configure Scholiq: ' . $e->getMessage());
+			$output->warning('Could not auto-configure Learniq: ' . $e->getMessage());
 			$this->logger->error(
-				'Scholiq initialization failed',
+				'Learniq initialization failed',
 				['exception' => $e->getMessage()]
 			);
 		}//end try

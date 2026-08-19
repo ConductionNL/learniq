@@ -13,7 +13,7 @@
  * coordinator group) — NOT a plain `@NoAdminRequired` pass-through.
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -30,12 +30,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\Service\ActionAuthService;
-use OCA\Scholiq\Service\RolloverService;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\RolloverService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -97,7 +97,7 @@ class RolloverController extends Controller {
 
 		$cohorts = $this->objectService->findAll(
 			[
-				'register' => 'scholiq',
+				'register' => 'learniq',
 				'schema' => 'cohort',
 				'filters' => ['academicYear' => $fromAcademicYear],
 			]
@@ -147,7 +147,7 @@ class RolloverController extends Controller {
 		// it does not return null — so without this catch the 404 below was dead
 		// code and an unknown planId escaped as a 500 with a stack trace.
 		try {
-			$planObj = $this->objectService->find(id: $planId, register: 'scholiq', schema: 'rollover-plan');
+			$planObj = $this->objectService->find(id: $planId, register: 'learniq', schema: 'rollover-plan');
 		} catch (DoesNotExistException $e) {
 			return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
 		}
@@ -167,7 +167,7 @@ class RolloverController extends Controller {
 			$plan['lifecycle'] = 'previewed';
 		}
 
-		$this->objectService->saveObject(register: 'scholiq', schema: 'rollover-plan', object: $plan);
+		$this->objectService->saveObject(register: 'learniq', schema: 'rollover-plan', object: $plan);
 
 		return new JSONResponse(data: ['report' => $report, 'blocked' => ($report['blocked'] ?? false)]);
 	}//end preview()

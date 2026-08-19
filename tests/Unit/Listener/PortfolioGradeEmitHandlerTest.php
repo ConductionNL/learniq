@@ -4,7 +4,7 @@
  * Scholiq PortfolioGradeEmitHandler unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,13 +21,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Listener\PortfolioGradeEmitHandler;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Listener\PortfolioGradeEmitHandler;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -111,7 +111,7 @@ class PortfolioGradeEmitHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('portfolio');
 		$event->method('getTo')->willReturn('graded');
 		$event->method('getFrom')->willReturn('submitted');
@@ -227,7 +227,7 @@ class PortfolioGradeEmitHandlerTest extends TestCase {
 		$objectEntity = $this->createMock(ObjectEntity::class);
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('werkproces-assessment');
 		$event->method('getTo')->willReturn('graded');
 

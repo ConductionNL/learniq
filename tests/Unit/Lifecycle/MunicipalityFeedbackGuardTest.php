@@ -4,7 +4,7 @@
  * Scholiq MunicipalityFeedbackGuard unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Lifecycle
+ * @package  OCA\Learniq\Tests\Unit\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,9 +21,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Lifecycle;
+namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
-use OCA\Scholiq\Lifecycle\MunicipalityFeedbackGuard;
+use OCA\Learniq\Lifecycle\MunicipalityFeedbackGuard;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;

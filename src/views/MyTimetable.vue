@@ -19,12 +19,12 @@
 	<div class="my-timetable">
 		<div class="my-timetable__header">
 			<h2 class="my-timetable__title">
-				{{ t('scholiq', 'My timetable') }}
+				{{ t('learniq', 'My timetable') }}
 			</h2>
 			<div class="my-timetable__controls">
 				<NcButton
 					variant="tertiary"
-					:aria-label="t('scholiq', 'Previous week')"
+					:aria-label="t('learniq', 'Previous week')"
 					:disabled="loading"
 					@click="shiftWeek(-1)">
 					‹
@@ -32,7 +32,7 @@
 				<span class="my-timetable__range">{{ rangeLabel }}</span>
 				<NcButton
 					variant="tertiary"
-					:aria-label="t('scholiq', 'Next week')"
+					:aria-label="t('learniq', 'Next week')"
 					:disabled="loading"
 					@click="shiftWeek(1)">
 					›
@@ -40,18 +40,18 @@
 				<div
 					class="my-timetable__toggle"
 					role="group"
-					:aria-label="t('scholiq', 'View mode')">
+					:aria-label="t('learniq', 'View mode')">
 					<NcButton
 						:variant="mode === 'today' ? 'primary' : 'secondary'"
 						:disabled="loading"
 						@click="setMode('today')">
-						{{ t('scholiq', 'Today') }}
+						{{ t('learniq', 'Today') }}
 					</NcButton>
 					<NcButton
 						:variant="mode === 'week' ? 'primary' : 'secondary'"
 						:disabled="loading"
 						@click="setMode('week')">
-						{{ t('scholiq', 'Week') }}
+						{{ t('learniq', 'Week') }}
 					</NcButton>
 				</div>
 			</div>
@@ -61,7 +61,7 @@
 
 		<NcEmptyContent
 			v-else-if="error"
-			:name="t('scholiq', 'Could not load your timetable')"
+			:name="t('learniq', 'Could not load your timetable')"
 			:description="error">
 			<template #icon>
 				<span class="icon-error" />
@@ -73,7 +73,7 @@
 			class="my-timetable__changes"
 			aria-live="polite">
 			<h3 class="my-timetable__changes-title">
-				{{ t('scholiq', "Today's changes") }}
+				{{ t('learniq', "Today's changes") }}
 			</h3>
 			<ul class="my-timetable__changes-list">
 				<li
@@ -81,7 +81,7 @@
 					:key="'change-' + session.id"
 					class="my-timetable__change">
 					<span class="my-timetable__change-name">{{
-						session.title || t('scholiq', 'Untitled session')
+						session.title || t('learniq', 'Untitled session')
 					}}</span>
 					<span
 						class="my-timetable__change-badge"
@@ -99,7 +99,7 @@
 
 		<NcEmptyContent
 			v-if="!loading && !error && sessions.length === 0"
-			:name="t('scholiq', 'No sessions')"
+			:name="t('learniq', 'No sessions')"
 			:description="emptyDescription">
 			<template #icon>
 				<span class="icon-calendar" />
@@ -121,7 +121,7 @@
 				</header>
 				<ul class="my-timetable__sessions">
 					<li v-if="day.sessions.length === 0" class="my-timetable__none">
-						{{ t('scholiq', 'No sessions') }}
+						{{ t('learniq', 'No sessions') }}
 					</li>
 					<li
 						v-for="session in day.sessions"
@@ -142,7 +142,7 @@
 								timeRange(session)
 							}}</span>
 							<span class="my-timetable__session-name">{{
-								session.title || t('scholiq', 'Untitled session')
+								session.title || t('learniq', 'Untitled session')
 							}}</span>
 							<span
 								v-if="session.room"
@@ -170,9 +170,9 @@
 						<NcButton
 							class="my-timetable__session-manage"
 							variant="tertiary"
-							:aria-label="t('scholiq', 'Manage this session')"
+							:aria-label="t('learniq', 'Manage this session')"
 							@click="manage(session)">
-							{{ t('scholiq', 'Manage') }}
+							{{ t('learniq', 'Manage') }}
 						</NcButton>
 					</li>
 				</ul>
@@ -321,9 +321,9 @@ export default {
 		 */
 		emptyDescription() {
 			return this.mode === 'today'
-				? t('scholiq', 'You have no sessions scheduled for today.')
+				? t('learniq', 'You have no sessions scheduled for today.')
 				: t(
-						'scholiq',
+						'learniq',
 						'You have no sessions scheduled for this week. If you are not enrolled in or teaching any cohort, your timetable stays empty.',
 					)
 		},
@@ -366,7 +366,7 @@ export default {
 				this.changes = result.changes
 			} catch (e) {
 				this.error = t(
-					'scholiq',
+					'learniq',
 					'The timetable service is unavailable. Please try again later.',
 				)
 				this.sessions = []
@@ -474,7 +474,7 @@ export default {
 		 */
 		sessionAria(session) {
 			const parts = [
-				session.title || t('scholiq', 'Untitled session'),
+				session.title || t('learniq', 'Untitled session'),
 				this.timeRange(session),
 			]
 			if (session.location) {
@@ -493,10 +493,10 @@ export default {
 		 */
 		statusLabel(session) {
 			if (session.lifecycle === 'cancelled') {
-				return t('scholiq', 'Cancelled')
+				return t('learniq', 'Cancelled')
 			}
 			if (session.substituteTeacherId) {
-				return t('scholiq', 'Substitute: {id}', {
+				return t('learniq', 'Substitute: {id}', {
 					id: session.substituteTeacherId,
 				})
 			}

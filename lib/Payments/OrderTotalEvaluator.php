@@ -17,10 +17,10 @@
  * no state, no audit writes.
  *
  * Consumed by:
- *   - OCA\Scholiq\Lifecycle\OrderTotalValidationGuard (Order draft -> open)
+ *   - OCA\Learniq\Lifecycle\OrderTotalValidationGuard (Order draft -> open)
  *
  * @category Payments
- * @package  OCA\Scholiq\Payments
+ * @package  OCA\Learniq\Payments
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -37,7 +37,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Payments;
+namespace OCA\Learniq\Payments;
 
 use OCA\OpenRegister\Service\ObjectService;
 
@@ -48,7 +48,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class OrderTotalEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ORDER_LINE_SCHEMA = 'order-line';
 
 	/**

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq OpenRegister autoload prelude
+ * Learniq OpenRegister autoload prelude
  *
  * Puts OpenRegister's PSR-4 prefix on the autoloader so this app can reference
  * `OCA\OpenRegister\AppHost\…` from its own `Application::register()`.
@@ -10,7 +10,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  *
  * @category AppInfo
- * @package  OCA\Scholiq\AppInfo
+ * @package  OCA\Learniq\AppInfo
  *
  * @author    Conduction Development Team <dev@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -23,7 +23,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\AppInfo;
+namespace OCA\Learniq\AppInfo;
 
 /**
  * Registers OpenRegister's autoload prefix before AppHost is referenced.

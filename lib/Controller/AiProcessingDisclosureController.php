@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Scholiq AI Processing Disclosure Controller
+ * Learniq AI Processing Disclosure Controller
  *
  * One read-only endpoint (sovereign-ai-guarantee): composes Hermiq's
- * `agentaifeature` register (cross-app, when installed), Scholiq's own
+ * `agentaifeature` register (cross-app, when installed), Learniq's own
  * `AiFeature` AVG Art. 30 processing-activity carrier (`scholiq-ai-features`
  * — avg-verwerkingsregister's existing catalogue entry, read from
- * `scholiq_register.json` the same way `SettingsService::loadConfiguration()`
+ * `learniq_register.json` the same way `SettingsService::loadConfiguration()`
  * already reads it, NOT duplicated as a second declaration), and the
  * {@see AiLocalityClassifier}/{@see SovereigntyPolicyService} verdict for the
  * currently active Hermiq chat provider into one DPO-facing disclosure
@@ -16,17 +16,17 @@
  *
  * Legitimate PHP per ADR-031: composes two cross-app registers plus derived
  * classification into one payload — not a single declarative OR query.
- * Identical justification {@see \OCA\Scholiq\Lifecycle\AssessmentPublishGuard}'s
+ * Identical justification {@see \OCA\Learniq\Lifecycle\AssessmentPublishGuard}'s
  * own docblock already gives for its Hermiq read: "Requires a cross-schema
  * query ... and conditional logic."
  *
  * No write path lives here: `SovereigntyPolicy` create/update goes through
  * OpenRegister's existing generic object-create/update endpoint directly from
- * `ScholiqAiProcessingDisclosure.vue`, mirroring `CourseTemplate`'s
+ * `LearniqAiProcessingDisclosure.vue`, mirroring `CourseTemplate`'s
  * frontend-orchestration precedent (no bespoke write controller, per ADR-022).
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -43,12 +43,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\Service\AiLocalityClassifier;
-use OCA\Scholiq\Service\SovereigntyPolicyService;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\AiLocalityClassifier;
+use OCA\Learniq\Service\SovereigntyPolicyService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -82,9 +82,9 @@ class AiProcessingDisclosureController extends Controller {
 	private const HERMIQ_AI_FEATURE_SCHEMA = 'agentaifeature';
 
 	/**
-	 * OR register slug for Scholiq objects.
+	 * OR register slug for Learniq objects.
 	 */
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * OR schema slug for the SovereigntyPolicy singleton.
@@ -273,7 +273,7 @@ class AiProcessingDisclosureController extends Controller {
 	/**
 	 * Read the `scholiq-ai-features` AVG Art. 30 catalogue annotation
 	 * (`AiFeature.x-openregister-processing`) directly from
-	 * `scholiq_register.json` — the SAME file-read pattern
+	 * `learniq_register.json` — the SAME file-read pattern
 	 * `SettingsService::loadConfiguration()` already uses, so this disclosure
 	 * can never drift from the register's own declaration (no second,
 	 * hand-copied carrier).
@@ -283,7 +283,7 @@ class AiProcessingDisclosureController extends Controller {
 	 */
 	private function loadAiProcessingActivity(): array {
 		try {
-			$configPath = __DIR__ . '/../Settings/scholiq_register.json';
+			$configPath = __DIR__ . '/../Settings/learniq_register.json';
 			$raw = file_get_contents($configPath);
 			if ($raw === false) {
 				return [];

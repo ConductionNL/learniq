@@ -16,7 +16,7 @@
  * bundle and driving the parse transition cannot be expressed declaratively.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -33,7 +33,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -54,7 +54,7 @@ use Psr\Log\LoggerInterface;
  */
 class LearningRecordImportIntakeService {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SCHEMA = 'learning-record-import';
 
 	/**
@@ -92,7 +92,7 @@ class LearningRecordImportIntakeService {
 	public function resolveTenantId(IUser $user): string {
 		$userTenantId = $this->config->getUserValue(
 			userId: $user->getUID(),
-			appName: 'scholiq',
+			appName: 'learniq',
 			key: 'tenant_id',
 			default: ''
 		);

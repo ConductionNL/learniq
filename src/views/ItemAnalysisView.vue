@@ -36,7 +36,7 @@
 			<p>
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'You do not have permission to view item statistics.',
 					)
 				}}
@@ -46,7 +46,7 @@
 		<template v-else>
 			<div v-if="loading" class="item-analysis__loading" aria-live="polite">
 				<span class="icon-loading" aria-hidden="true" />
-				<span>{{ t('scholiq', 'Loading item analysis...') }}</span>
+				<span>{{ t('learniq', 'Loading item analysis...') }}</span>
 			</div>
 
 			<div v-else-if="error" class="item-analysis__error" role="alert">
@@ -57,20 +57,20 @@
 			<template v-else>
 				<header class="item-analysis__header">
 					<h2 class="item-analysis__heading">
-						{{ itemTitle || t('scholiq', 'Item analysis') }}
+						{{ itemTitle || t('learniq', 'Item analysis') }}
 					</h2>
 				</header>
 
 				<section v-if="itemId" class="item-analysis__section">
 					<h3 class="item-analysis__sub-heading">
-						{{ t('scholiq', 'Statistics per assessment') }}
+						{{ t('learniq', 'Statistics per assessment') }}
 					</h3>
 					<p
 						v-if="itemStatisticsList.length === 0"
 						class="item-analysis__empty">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'No statistics computed yet — an item needs graded attempts before statistics exist.',
 							)
 						}}
@@ -81,7 +81,7 @@
 						class="item-analysis__stat-card">
 						<h4 class="item-analysis__assessment-id">
 							{{
-								t('scholiq', 'Assessment {id}', {
+								t('learniq', 'Assessment {id}', {
 									id: stat.assessmentId,
 								})
 							}}
@@ -92,7 +92,7 @@
 							class="item-analysis__insufficient">
 							{{
 								t(
-									'scholiq',
+									'learniq',
 									'Not enough attempts yet (n={n} of {min}).',
 									{ n: stat.sampleSize, min: minSampleSize },
 								)
@@ -100,14 +100,14 @@
 						</p>
 
 						<dl v-else class="item-analysis__stat-list">
-							<dt>{{ t('scholiq', 'Sample size') }}</dt>
+							<dt>{{ t('learniq', 'Sample size') }}</dt>
 							<dd>{{ stat.sampleSize }}</dd>
-							<dt>{{ t('scholiq', 'p-value (difficulty)') }}</dt>
+							<dt>{{ t('learniq', 'p-value (difficulty)') }}</dt>
 							<dd>{{ formatNumber(stat.pValue) }}</dd>
 							<dt>
 								{{
 									t(
-										'scholiq',
+										'learniq',
 										'Item-total correlation (discrimination)',
 									)
 								}}
@@ -130,12 +130,12 @@
 								}}</span>
 								<span
 									class="item-analysis__distractor-bar item-analysis__distractor-bar--high"
-									:title="t('scholiq', 'High-scoring group')">
+									:title="t('learniq', 'High-scoring group')">
 									{{ option.selectedByHighGroup }}
 								</span>
 								<span
 									class="item-analysis__distractor-bar item-analysis__distractor-bar--low"
-									:title="t('scholiq', 'Low-scoring group')">
+									:title="t('learniq', 'Low-scoring group')">
 									{{ option.selectedByLowGroup }}
 								</span>
 							</li>
@@ -145,17 +145,17 @@
 
 				<section v-if="assessmentId" class="item-analysis__section">
 					<h3 class="item-analysis__sub-heading">
-						{{ t('scholiq', 'Assessment reliability') }}
+						{{ t('learniq', 'Assessment reliability') }}
 					</h3>
 					<p v-if="!reliability" class="item-analysis__empty">
-						{{ t('scholiq', 'No reliability figure computed yet.') }}
+						{{ t('learniq', 'No reliability figure computed yet.') }}
 					</p>
 					<p
 						v-else-if="reliability.insufficientData"
 						class="item-analysis__insufficient">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'Not enough graded attempts yet (n={n} of {min}).',
 								{
 									n: reliability.sampleSize,
@@ -165,11 +165,11 @@
 						}}
 					</p>
 					<dl v-else class="item-analysis__stat-list">
-						<dt>{{ t('scholiq', "Cronbach's alpha") }}</dt>
+						<dt>{{ t('learniq', "Cronbach's alpha") }}</dt>
 						<dd>{{ formatNumber(reliability.cronbachAlpha) }}</dd>
-						<dt>{{ t('scholiq', 'Sample size') }}</dt>
+						<dt>{{ t('learniq', 'Sample size') }}</dt>
 						<dd>{{ reliability.sampleSize }}</dd>
-						<dt>{{ t('scholiq', 'Item count') }}</dt>
+						<dt>{{ t('learniq', 'Item count') }}</dt>
 						<dd>{{ reliability.itemCount }}</dd>
 					</dl>
 				</section>
@@ -275,7 +275,7 @@ export default {
 				}
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load item analysis. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -293,7 +293,7 @@ export default {
 		 */
 		async loadItemTitle() {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/Item/${this.itemId}`,
+				`/apps/openregister/api/objects/learniq/Item/${this.itemId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -314,7 +314,7 @@ export default {
 		 */
 		async loadItemStatistics() {
 			const url = generateUrl(
-				'/apps/openregister/api/objects/scholiq/item-statistics?limit=200',
+				'/apps/openregister/api/objects/learniq/item-statistics?limit=200',
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -336,7 +336,7 @@ export default {
 		 */
 		async loadReliability() {
 			const url = generateUrl(
-				'/apps/openregister/api/objects/scholiq/assessment-reliability?limit=200',
+				'/apps/openregister/api/objects/learniq/assessment-reliability?limit=200',
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },

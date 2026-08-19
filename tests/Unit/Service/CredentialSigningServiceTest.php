@@ -8,7 +8,7 @@
  *   - GitHub #175: base64url header, kid in JWS header, DataIntegrityProof proof type.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -23,9 +23,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Scholiq\Service\CredentialSigningService;
+use OCA\Learniq\Service\CredentialSigningService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
 use OCP\Security\ICrypto;
@@ -112,7 +112,7 @@ class CredentialSigningServiceTest extends TestCase {
 		$urlGenerator
 			->method('linkToRouteAbsolute')
 			->willReturnCallback(function (string $routeName, array $params): string {
-				return 'https://example.test/apps/scholiq/api/credentials/' . $params['id'] . '/verify';
+				return 'https://example.test/apps/learniq/api/credentials/' . $params['id'] . '/verify';
 			});
 
 		return new CredentialSigningService($appConfig, $crypto, $urlGenerator);
@@ -158,7 +158,7 @@ class CredentialSigningServiceTest extends TestCase {
 			courseId: null,
 			issuedAt: '2026-01-01T00:00:00+00:00',
 			expiresAt: null,
-			issuerDid: 'did:web:scholiq:tenant-1:aabbcc',
+			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
 			issuedBy: 'Test School',
 			verificationUrl: 'https://example.test/api/credentials/cred-001/verify',
 		);
@@ -190,7 +190,7 @@ class CredentialSigningServiceTest extends TestCase {
 			courseId: null,
 			issuedAt: '2026-01-01T00:00:00+00:00',
 			expiresAt: null,
-			issuerDid: 'did:web:scholiq:tenant-1:aabbcc',
+			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
 			issuedBy: 'Test School',
 			verificationUrl: 'https://example.test/api/credentials/cred-001/verify',
 		);
@@ -225,7 +225,7 @@ class CredentialSigningServiceTest extends TestCase {
 			courseId: null,
 			issuedAt: '2026-01-01T00:00:00+00:00',
 			expiresAt: null,
-			issuerDid: 'did:web:scholiq:tenant-1:aabbcc',
+			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
 			issuedBy: 'Test School',
 			verificationUrl: 'https://example.test/api/credentials/cred-001/verify',
 		);
@@ -268,7 +268,7 @@ class CredentialSigningServiceTest extends TestCase {
 			courseId: 'course-77',
 			issuedAt: '2026-06-01T00:00:00+00:00',
 			expiresAt: '2027-06-01T00:00:00+00:00',
-			issuerDid: 'did:web:scholiq:tenant-1:aabbcc',
+			issuerDid: 'did:web:learniq:tenant-1:aabbcc',
 			issuedBy: 'Round-Trip School',
 			verificationUrl: 'https://example.test/api/credentials/cred-rtrip/verify',
 		);
@@ -397,10 +397,10 @@ class CredentialSigningServiceTest extends TestCase {
 			->expects($this->once())
 			->method('linkToRouteAbsolute')
 			->with(
-				'scholiq.credentialVerify.verify',
+				'learniq.credentialVerify.verify',
 				$this->arrayHasKey('id')
 			)
-			->willReturn('https://example.test/apps/scholiq/api/credentials/cred-123/verify');
+			->willReturn('https://example.test/apps/learniq/api/credentials/cred-123/verify');
 
 		$service = new CredentialSigningService($appConfig, $crypto, $urlGenerator);
 

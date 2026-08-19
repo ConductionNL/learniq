@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq QTI Manifest Scanner
+ * Learniq QTI Manifest Scanner
  *
  * Stateless helper: reads an already-extracted QTI 2.x / 3.0 or IMS Common
  * Cartridge package's `imsmanifest.xml` to decide which interchange format it
@@ -17,7 +17,7 @@
  * external interchange format cannot be expressed declaratively.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -34,7 +34,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use DOMDocument;
 use DOMElement;

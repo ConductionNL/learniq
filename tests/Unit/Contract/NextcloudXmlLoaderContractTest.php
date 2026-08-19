@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Guards scholiq's XML parsing against Nextcloud's XXE hardening.
+ * Guards learniq's XML parsing against Nextcloud's XXE hardening.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Contract
+ * @package  OCA\Learniq\Tests\Unit\Contract
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -16,16 +16,16 @@
  *
  * @link https://conduction.nl
  *
- * @spec exclude Test-infrastructure guard; asserts a Nextcloud runtime constraint, not a Scholiq requirement.
+ * @spec exclude Test-infrastructure guard; asserts a Nextcloud runtime constraint, not a Learniq requirement.
  */
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Contract;
+namespace OCA\Learniq\Tests\Unit\Contract;
 
 use DOMDocument;
-use OCA\Scholiq\Service\CommonCartridgeParser;
-use OCA\Scholiq\Service\MoodleBackupParser;
+use OCA\Learniq\Service\CommonCartridgeParser;
+use OCA\Learniq\Service\MoodleBackupParser;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -38,7 +38,7 @@ use PHPUnit\Framework\TestCase;
  * Nextcloud `load()` ALWAYS returns false — while `loadXML()` on a string is
  * unaffected.
  *
- * Every scholiq XML parser used `load($path)`, so Common Cartridge, Moodle
+ * Every learniq XML parser used `load($path)`, so Common Cartridge, Moodle
  * backup, QTI and course-package import could never have worked on a real
  * instance. The unit suite could not see it because it ran without Nextcloud
  * bootstrapped; in CI, where the app IS loaded into a server tree, those tests
@@ -68,7 +68,7 @@ final class NextcloudXmlLoaderContractTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		$this->dir = sys_get_temp_dir() . '/scholiq_xmlguard_' . bin2hex(random_bytes(6));
+		$this->dir = sys_get_temp_dir() . '/learniq_xmlguard_' . bin2hex(random_bytes(6));
 		mkdir($this->dir, 0700, true);
 
 		libxml_set_external_entity_loader(static function () {
@@ -130,7 +130,7 @@ final class NextcloudXmlLoaderContractTest extends TestCase {
 
 		$this->assertTrue(
 			$loadedViaString,
-			'DOMDocument::loadXML($string) must keep working — it is what every scholiq parser relies on.'
+			'DOMDocument::loadXML($string) must keep working — it is what every learniq parser relies on.'
 		);
 
 	}//end testDomDocumentLoadFromPathIsBrokenByNextcloudsEntityLoader()

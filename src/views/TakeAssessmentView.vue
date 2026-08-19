@@ -28,7 +28,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="take-assessment__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading assessment...') }}</span>
+			<span>{{ t('learniq', 'Loading assessment...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -44,11 +44,11 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('scholiq', 'Assessment submitted!') }}</h2>
+			<h2>{{ t('learniq', 'Assessment submitted!') }}</h2>
 			<p>
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'Your responses have been recorded. Auto-scored items are marked immediately. Essay items will be reviewed by your teacher.',
 					)
 				}}
@@ -61,11 +61,11 @@
 			class="take-assessment__proctoring-notice"
 			role="status">
 			<span class="icon-warning" aria-hidden="true" />
-			<h3>{{ t('scholiq', 'Proctoring configured') }}</h3>
+			<h3>{{ t('learniq', 'Proctoring configured') }}</h3>
 			<p>
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'This assessment is configured with proctoring (provider: {provider}). No proctoring adapter is installed — the assessment will proceed without live proctoring. Contact your administrator.',
 						{ provider: assessment.proctoring.provider },
 					)
@@ -74,7 +74,7 @@
 			<button
 				class="button-vue button-vue--primary"
 				@click="dismissProctoringNotice">
-				{{ t('scholiq', 'Continue without proctoring') }}
+				{{ t('learniq', 'Continue without proctoring') }}
 			</button>
 		</div>
 
@@ -84,12 +84,12 @@
 			class="take-assessment__test-mode-intro"
 			role="status">
 			<span class="icon-info" aria-hidden="true" />
-			<h3>{{ t('scholiq', 'Secure test mode') }}</h3>
+			<h3>{{ t('learniq', 'Secure test mode') }}</h3>
 			<ul class="take-assessment__test-mode-intro-list">
 				<li v-if="assessment.proctoring.lockdownBrowser">
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'Fullscreen is required while this test is open.',
 						)
 					}}
@@ -97,7 +97,7 @@
 				<li>
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'Switching tabs, minimising the window, or losing focus is logged and reviewed by your teacher — nothing is acted on automatically.',
 						)
 					}}
@@ -105,7 +105,7 @@
 				<li>
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'No camera, microphone, or screen content outside this page is captured.',
 						)
 					}}
@@ -113,7 +113,7 @@
 				<li>
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'This test can only be open in one browser tab or window at a time.',
 						)
 					}}
@@ -122,7 +122,7 @@
 			<button
 				class="button-vue button-vue--primary"
 				@click="startNativeTestMode">
-				{{ t('scholiq', 'Start') }}
+				{{ t('learniq', 'Start') }}
 			</button>
 		</div>
 
@@ -132,11 +132,11 @@
 			class="take-assessment__tab-lock-blocked"
 			role="alert">
 			<span class="icon-error" aria-hidden="true" />
-			<h3>{{ t('scholiq', 'Already open in another tab') }}</h3>
+			<h3>{{ t('learniq', 'Already open in another tab') }}</h3>
 			<p>
 				{{
 					t(
-						'scholiq',
+						'learniq',
 						'This assessment is already open in another browser tab or window. Close this tab and continue there.',
 					)
 				}}
@@ -155,14 +155,14 @@
 						class="take-assessment__timer"
 						:class="{ 'take-assessment__timer--warning': timeWarning }">
 						{{
-							t('scholiq', 'Time remaining: {time}', {
+							t('learniq', 'Time remaining: {time}', {
 								time: formattedTimeRemaining,
 							})
 						}}
 					</span>
 					<span class="take-assessment__progress">
 						{{
-							t('scholiq', 'Item {current} of {total}', {
+							t('learniq', 'Item {current} of {total}', {
 								current: currentItemIndex + 1,
 								total: items.length,
 							})
@@ -221,12 +221,12 @@
 						class="take-assessment__essay-input"
 						rows="10"
 						aria-labelledby="take-assessment-essay-prompt"
-						:placeholder="t('scholiq', 'Write your response here...')"
+						:placeholder="t('learniq', 'Write your response here...')"
 						:value="currentResponse || ''"
 						@input="setResponse($event.target.value)" />
 					<p class="take-assessment__essay-note">
 						{{
-							t('scholiq', 'This item will be marked by your teacher.')
+							t('learniq', 'This item will be marked by your teacher.')
 						}}
 					</p>
 				</div>
@@ -240,7 +240,7 @@
 					<p class="take-assessment__interaction-note">
 						{{
 							t(
-								'scholiq',
+								'learniq',
 								'Interaction type "{type}" — please provide your response:',
 								{ type: currentItem.interactionType },
 							)
@@ -251,7 +251,7 @@
 						class="take-assessment__essay-input"
 						rows="6"
 						aria-labelledby="take-assessment-other-prompt"
-						:placeholder="t('scholiq', 'Enter your response...')"
+						:placeholder="t('learniq', 'Enter your response...')"
 						:value="currentResponse || ''"
 						@input="setResponse($event.target.value)" />
 				</div>
@@ -263,13 +263,13 @@
 					class="button-vue"
 					:disabled="currentItemIndex === 0"
 					@click="prevItem">
-					{{ t('scholiq', 'Previous') }}
+					{{ t('learniq', 'Previous') }}
 				</button>
 				<button
 					v-if="currentItemIndex < items.length - 1"
 					class="button-vue button-vue--primary"
 					@click="nextItem">
-					{{ t('scholiq', 'Next') }}
+					{{ t('learniq', 'Next') }}
 				</button>
 				<button
 					v-else
@@ -280,7 +280,7 @@
 						v-if="submitting"
 						class="icon-loading"
 						aria-hidden="true" />
-					{{ t('scholiq', 'Submit assessment') }}
+					{{ t('learniq', 'Submit assessment') }}
 				</button>
 			</nav>
 			<p v-if="submitError" role="alert" class="take-assessment__error-inline">
@@ -459,7 +459,7 @@ export default {
 			&& typeof navigator.sendBeacon === 'function'
 		) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/proctoring-session/${this.proctoringSession.uuid}/transition/end`,
+				`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}/transition/end`,
 			)
 			const blob = new Blob([JSON.stringify({})], { type: 'application/json' })
 			navigator.sendBeacon(url, blob)
@@ -515,7 +515,7 @@ export default {
 				this.startTimer()
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load assessment. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -534,7 +534,7 @@ export default {
 		 */
 		async loadAssessment(id) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/Assessment/${id}`,
+				`/apps/openregister/api/objects/learniq/Assessment/${id}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -569,7 +569,7 @@ export default {
 			const fetched = await Promise.all(
 				itemIds.map(async (itemId) => {
 					const url = generateUrl(
-						`/apps/openregister/api/objects/scholiq/Item/${itemId}`,
+						`/apps/openregister/api/objects/learniq/Item/${itemId}`,
 					)
 					const resp = await fetch(url, {
 						headers: {
@@ -598,7 +598,7 @@ export default {
 			const learnerId = currentUser?.uid ?? 'anonymous'
 
 			const url = generateUrl(
-				'/apps/openregister/api/objects/scholiq/assessment-result',
+				'/apps/openregister/api/objects/learniq/assessment-result',
 			)
 			const resp = await fetch(url, {
 				method: 'POST',
@@ -639,7 +639,7 @@ export default {
 		 */
 		async fetchResult(resultId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/assessment-result/${resultId}`,
+				`/apps/openregister/api/objects/learniq/assessment-result/${resultId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -666,7 +666,7 @@ export default {
 			const learnerId = currentUser?.uid ?? 'anonymous'
 
 			const url = generateUrl(
-				'/apps/openregister/api/objects/scholiq/assessment-result?limit=100',
+				'/apps/openregister/api/objects/learniq/assessment-result?limit=100',
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -772,7 +772,7 @@ export default {
 				this.startTimer()
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to start assessment. Please try again.',
 				)
 			} finally {
@@ -809,7 +809,7 @@ export default {
 				this.startTimer()
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to start assessment. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -905,7 +905,7 @@ export default {
 		async flagConcurrentSessionForBlockedTab(resultId) {
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/proctoring-session?limit=100',
+					'/apps/openregister/api/objects/learniq/proctoring-session?limit=100',
 				)
 				const resp = await fetch(url, {
 					headers: {
@@ -944,7 +944,7 @@ export default {
 			const learnerId = currentUser?.uid ?? 'anonymous'
 
 			const url = generateUrl(
-				'/apps/openregister/api/objects/scholiq/proctoring-session',
+				'/apps/openregister/api/objects/learniq/proctoring-session',
 			)
 			const resp = await fetch(url, {
 				method: 'POST',
@@ -968,7 +968,7 @@ export default {
 			this.proctoringSession = json.object ?? json ?? {}
 
 			const transitionUrl = generateUrl(
-				`/apps/openregister/api/objects/scholiq/proctoring-session/${this.proctoringSession.uuid}/transition/activate`,
+				`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}/transition/activate`,
 			)
 			const transitionResp = await fetch(transitionUrl, {
 				method: 'POST',
@@ -1107,7 +1107,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					`/apps/openregister/api/objects/scholiq/proctoring-session/${this.proctoringSession.uuid}`,
+					`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}`,
 				)
 				const resp = await fetch(url, {
 					method: 'PUT',
@@ -1154,7 +1154,7 @@ export default {
 			if (this.proctoringSession?.uuid) {
 				try {
 					const transitionUrl = generateUrl(
-						`/apps/openregister/api/objects/scholiq/proctoring-session/${this.proctoringSession.uuid}/transition/end`,
+						`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}/transition/end`,
 					)
 					const resp = await fetch(transitionUrl, {
 						method: 'POST',
@@ -1240,7 +1240,7 @@ export default {
 			try {
 				// Persist responses.
 				const patchUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/assessment-result/${this.resultId}`,
+					`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`,
 				)
 				const patchResp = await fetch(patchUrl, {
 					method: 'PUT',
@@ -1260,7 +1260,7 @@ export default {
 
 				// Dispatch submit transition (triggers AssessmentScoringHandler).
 				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/assessment-result/${this.resultId}/transition/submit`,
+					`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}/transition/submit`,
 				)
 				const transitionResp = await fetch(transitionUrl, {
 					method: 'POST',
@@ -1284,7 +1284,7 @@ export default {
 				}
 			} catch (err) {
 				this.submitError = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to submit assessment. Please try again.',
 				)
 				// eslint-disable-next-line no-console

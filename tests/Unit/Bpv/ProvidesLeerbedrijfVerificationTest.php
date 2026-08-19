@@ -10,7 +10,7 @@
  * BpvLeerbedrijfVerificationHandler.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Bpv
+ * @package  OCA\Learniq\Tests\Unit\Bpv
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -27,9 +27,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Bpv;
+namespace OCA\Learniq\Tests\Unit\Bpv;
 
-use OCA\Scholiq\Bpv\ProvidesLeerbedrijfVerification;
+use OCA\Learniq\Bpv\ProvidesLeerbedrijfVerification;
 use PHPUnit\Framework\TestCase;
 
 /**

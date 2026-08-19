@@ -31,7 +31,7 @@ import { test, expect } from '../fixtures'
 // ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
 // `#/…` URL resolves to a location no route matches and renders an empty app body.
 // See accessibility-conformance.spec.ts for the measurement.
-const SKILLS_GAP_DASHBOARD_URL = '/index.php/apps/scholiq/competencies/skills-gap'
+const SKILLS_GAP_DASHBOARD_URL = '/index.php/apps/learniq/competencies/skills-gap'
 
 // The view this spec drives, named after the component file it covers. The
 // URL is unchanged — this makes the spec-to-component link readable in

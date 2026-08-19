@@ -4,7 +4,7 @@
  * Scholiq PeerReviewAllocationService unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\PeerReview
+ * @package  OCA\Learniq\Tests\Unit\PeerReview
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,11 +21,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\PeerReview;
+namespace OCA\Learniq\Tests\Unit\PeerReview;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\PeerReview\PeerReviewAllocationService;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\PeerReview\PeerReviewAllocationService;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 

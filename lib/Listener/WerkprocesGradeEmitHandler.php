@@ -27,7 +27,7 @@
  * write) that cannot be expressed as a schema declaration.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -44,7 +44,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  */
 class WerkprocesGradeEmitHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'werkproces-assessment';
 	private const PLACEMENT_SCHEMA = 'bpv-placement';
 	private const CURRICULUM_SCHEMA = 'curriculum-plan';

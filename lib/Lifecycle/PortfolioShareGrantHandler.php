@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Scholiq Portfolio Share Grant Handler
+ * Learniq Portfolio Share Grant Handler
  *
  * Dual-role class for the PortfolioShare schema's `grant` transition
  * (draft → active):
  *
  * 1. Lifecycle guard (`check()`, referenced from the `grant` transition's
- *    `requires:` in scholiq_register.json): blocks the transition when
+ *    `requires:` in learniq_register.json): blocks the transition when
  *    `sharedBy` equals the resolved recipient identity for the share's
  *    `sharedWithKind` — a recipient must never be able to grant themselves
  *    access. `x-property-rbac`/`x-openregister-authorization` cannot express
@@ -16,7 +16,7 @@
  *    never a second property), so it is a PHP guard per ADR-031.
  * 2. IEventListener (`handle()`, registered against
  *    OCA\OpenRegister\Event\ObjectTransitionedEvent in
- *    OCA\Scholiq\AppInfo\Application, mirroring
+ *    OCA\Learniq\AppInfo\Application, mirroring
  *    WerkprocesGradeEmitHandler's event-listener shape): on
  *    PortfolioShare.active with `sharedWithKind: teacher`, resolves the NC
  *    file paths behind the shared portfolio's (or selected entries')
@@ -35,7 +35,7 @@
  * expressed as schema declarations.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -52,7 +52,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -75,7 +75,7 @@ use Psr\Log\LoggerInterface;
  */
 class PortfolioShareGrantHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SHARE_SCHEMA = 'portfolio-share';
 	private const PORTFOLIO_SCHEMA = 'portfolio';
 	private const ENTRY_SCHEMA = 'portfolio-entry';

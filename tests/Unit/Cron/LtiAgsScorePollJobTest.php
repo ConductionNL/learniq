@@ -12,7 +12,7 @@
  * without throwing (task 4.9).
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Cron
+ * @package  OCA\Learniq\Tests\Unit\Cron
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -31,13 +31,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Cron;
+namespace OCA\Learniq\Tests\Unit\Cron;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Cron\LtiAgsScorePollJob;
-use OCA\Scholiq\Service\LtiAgsPullClient;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Cron\LtiAgsScorePollJob;
+use OCA\Learniq\Service\LtiAgsPullClient;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -261,7 +261,7 @@ class LtiAgsScorePollJobTest extends TestCase {
 
 		self::assertCount(1, $this->savedObjects);
 		$saved = $this->savedObjects[0];
-		self::assertSame('scholiq', $saved['register']);
+		self::assertSame('learniq', $saved['register']);
 		self::assertSame('grade-entry', $saved['schema']);
 		self::assertSame('lti-ags', $saved['object']['sourceKind']);
 		self::assertSame('component-1', $saved['object']['componentId']);

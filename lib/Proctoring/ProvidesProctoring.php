@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Scholiq Proctoring Provider Interface
+ * Learniq Proctoring Provider Interface
  *
  * Pluggable interface for proctoring provider adapters. Concrete implementations
  * are configured via the Assessment's `proctoring.provider` field and resolved by
- * the application container — no concrete provider ships with Scholiq itself.
+ * the application container — no concrete provider ships with Learniq itself.
  *
  * This is the single PHP seam for proctoring integration per the `assessment` spec
  * (ADR-031: "External-system contract — SDK/API bridge that must be expressed in PHP").
@@ -15,11 +15,11 @@
  * - MUST NOT auto-alter an AssessmentResult based on flags (human oversight, Art. 14).
  * - If using AI-assisted flag analysis, the high-risk AI feature with slug
  *   `assessment-ai-proctor-review` MUST be registered and DPO-enabled in the
- *   central Hermiq governance register (ADR-005 DPO gate). Scholiq delegates
+ *   central Hermiq governance register (ADR-005 DPO gate). Learniq delegates
  *   AI-feature governance to Hermiq (ai-feature-delegate-to-hermiq).
  *
  * @category Proctoring
- * @package  OCA\Scholiq\Proctoring
+ * @package  OCA\Learniq\Proctoring
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -36,14 +36,14 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Proctoring;
+namespace OCA\Learniq\Proctoring;
 
 /**
  * Pluggable proctoring provider interface.
  *
  * Adapters for external proctoring services (ProctorU, Honorlock, SURF Exam,
  * or any custom on-premises provider) implement this interface. No concrete
- * provider ships with Scholiq; this is the integration seam only.
+ * provider ships with Learniq; this is the integration seam only.
  *
  * Implementation notes:
  * - `startSession()` should create a provider-side session and return the

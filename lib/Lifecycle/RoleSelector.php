@@ -1,19 +1,19 @@
 <?php
 
 /**
- * Scholiq Role Selector
+ * Learniq Role Selector
  *
  * Single-method calculation helper that resolves a LearnerProfile's highest-
- * priority Scholiq role. Called by OpenRegister's calculation engine to
+ * priority Learniq role. Called by OpenRegister's calculation engine to
  * materialise the `primaryRole` calculated field declared on the LearnerProfile
- * schema in lib/Settings/scholiq_register.json.
+ * schema in lib/Settings/learniq_register.json.
  *
  * This is a legitimate ADR-031 §"Domain rule engines that operate above schema
  * metadata" exception: the selector picks WHICH manifest dashboard page applies;
  * the selected page (and its widgets) remain fully declarative per ADR-022/024.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -30,14 +30,15 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Service\DashboardRoleService;
 use OCP\IGroupManager;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;
 
 /**
- * Resolves the highest-priority Scholiq role for a LearnerProfile.
+ * Resolves the highest-priority Learniq role for a LearnerProfile.
  *
  * Priority order (highest first):
  *   compliance-officer(5) > hr(4) > admin(3) > manager(3) > instructor(2) > learner(1)
@@ -80,7 +81,7 @@ class RoleSelector {
 	 *
 	 * @param array<string,mixed> $calculationContext Context provided by OR's calculation engine.
 	 *
-	 * @return string Highest-priority Scholiq role, defaults to 'learner'.
+	 * @return string Highest-priority Learniq role, defaults to 'learner'.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-18
 	 */
@@ -143,7 +144,16 @@ class RoleSelector {
 			return true;
 		}
 
-		$groupName = 'scholiq-' . $role;
+		// Group ids are unprefixed and shared across the fleet (OpenRegister's
+		// rbac-scopes: "free-form and SHALL NOT be prefixed or namespaced"), so
+		// the role->group map lives in exactly one place. The old
+		// `'scholiq-' . $role` form named groups that never existed on any
+		// instance, so this branch could never be true.
+		$groupName = DashboardRoleService::GROUP_BACKED_ROLES[$role] ?? null;
+		if ($groupName === null) {
+			return false;
+		}
+
 		if ($this->groupManager->isInGroup(userId: $user->getUID(), group: $groupName) === true) {
 			return true;
 		}

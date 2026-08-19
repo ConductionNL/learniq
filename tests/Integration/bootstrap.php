@@ -7,7 +7,7 @@
  * \OC::$server, ObjectService, and TransitionEngine are available.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Integration
+ * @package  OCA\Learniq\Tests\Integration
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -33,5 +33,5 @@ if (file_exists(__DIR__ . '/../../../../../../tests/autoload.php')) {
 }
 
 \OC_App::loadApps();
-\OC_App::loadApp('scholiq');
+\OC_App::loadApp('learniq');
 OC_Hook::clear();

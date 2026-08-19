@@ -18,7 +18,7 @@
  *   - FinalGrade x-openregister-calculations engine (referenced by FQCN)
  *
  * @category Grading
- * @package  OCA\Scholiq\Grading
+ * @package  OCA\Learniq\Grading
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -35,7 +35,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Grading;
+namespace OCA\Learniq\Grading;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
@@ -45,7 +45,7 @@ use OCA\OpenRegister\Service\ObjectService;
  */
 class GradeFormulaEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 	private const CURRICULUM_PLAN_SCHEMA = 'curriculum-plan';
 	private const GRADE_SCALE_SCHEMA = 'grade-scale';

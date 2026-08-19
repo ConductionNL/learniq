@@ -64,12 +64,12 @@ type Page = import('@playwright/test').Page
  * ⚠️ THE APP BASE IS RESOLVED AT RUNTIME, NOT HARDCODED.
  *
  * `src/main.js` builds the router with
- * `createWebHistory(generateUrl('/apps/scholiq'))`, and `generateUrl` emits the
+ * `createWebHistory(generateUrl('/apps/learniq'))`, and `generateUrl` emits the
  * `/index.php` prefix ONLY when the instance does not serve pretty urls. CI runs
  * a bare `php -S`, which has no rewrite, so there the base IS
- * `/index.php/apps/scholiq` — the form hardcoded throughout the rest of this
- * suite. On an Apache instance with mod_rewrite the base is `/apps/scholiq`, and
- * a `/index.php/apps/scholiq/compliance` url then has a pathname the router
+ * `/index.php/apps/learniq` — the form hardcoded throughout the rest of this
+ * suite. On an Apache instance with mod_rewrite the base is `/apps/learniq`, and
+ * a `/index.php/apps/learniq/compliance` url then has a pathname the router
  * cannot strip its base from: no route matches, the router falls back to the
  * default route, and the browser shows the ADMIN DASHBOARD.
  *
@@ -80,7 +80,7 @@ type Page = import('@playwright/test').Page
  *
  * Asking the page for its own base makes the spec correct on both.
  */
-const ENTRY_URL = '/index.php/apps/scholiq/'
+const ENTRY_URL = '/index.php/apps/learniq/'
 let appBase: string | null = null
 
 /**
@@ -95,7 +95,7 @@ async function resolveAppBase(page: Page): Promise<string> {
 	const base = await page.evaluate(() =>
 		(
 			window as unknown as { OC: { generateUrl: (_p: string) => string } }
-		).OC.generateUrl('/apps/scholiq'),
+		).OC.generateUrl('/apps/learniq'),
 	)
 	expect(base, 'OC.generateUrl did not resolve the scholiq app base').toBeTruthy()
 	appBase = base.replace(/\/+$/, '')
@@ -153,7 +153,7 @@ function assertNoFatalErrors(errors: string[]): void {
  * Navigate to an app route and wait for the component root to appear.
  *
  * ⚠️ NO `#`. `src/main.js` builds the router with
- * `createWebHistory(generateUrl('/apps/scholiq'))`, so a `#/x` url resolves to
+ * `createWebHistory(generateUrl('/apps/learniq'))`, so a `#/x` url resolves to
  * a location no route matches and renders the Nextcloud chrome with an empty
  * app body.
  *
@@ -181,7 +181,7 @@ async function goTo(page: Page, path: string): Promise<void> {
 
 authed.describe('gate-26 — every page component renders its own screen', () => {
 	authed('Compliance dashboard', async ({ loggedInPage: page }) => {
-		expect(manifestComponentFor('/compliance')).toBe('ScholiqCompliance')
+		expect(manifestComponentFor('/compliance')).toBe('LearniqCompliance')
 		const errors = collectFatalErrors(page)
 		await goTo(page, '/compliance')
 		// The header action is rendered by this view only.
@@ -192,8 +192,34 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 		assertNoFatalErrors(errors)
 	})
 
+	authed('Role-resolved dashboard (app root)', async ({ loggedInPage: page }) => {
+		// The landing surface. It resolves to the caller's own view from the
+		// `dashboardRole` initial state rather than taking a role prop, so the
+		// assertion is that the root route mounts THIS component at all —
+		// gate-26 flagged it as an uncovered page component after the rename.
+		expect(manifestComponentFor('/')).toBe('LearniqDashboards')
+		const errors = collectFatalErrors(page)
+		await goTo(page, '/')
+		await expect(
+			page.locator('#app-navigation-vue').first(),
+		).toBeVisible({ timeout: 20_000 })
+		assertNoFatalErrors(errors)
+	})
+
+	authed('Accessibility statement', async ({ loggedInPage: page }) => {
+		expect(manifestComponentFor('/accessibility')).toBe(
+			'LearniqAccessibilityStatement',
+		)
+		const errors = collectFatalErrors(page)
+		await goTo(page, '/accessibility')
+		await expect(page.locator('.app-content').first()).toBeVisible({
+			timeout: 20_000,
+		})
+		assertNoFatalErrors(errors)
+	})
+
 	authed('Learner home dashboard', async ({ loggedInPage: page }) => {
-		expect(manifestComponentFor('/learner')).toBe('ScholiqLearnerHome')
+		expect(manifestComponentFor('/learner')).toBe('LearniqLearnerHome')
 		const errors = collectFatalErrors(page)
 		await goTo(page, '/learner')
 		// The single widget this view mounts.
@@ -205,7 +231,7 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 
 	authed('AI processing disclosure', async ({ loggedInPage: page }) => {
 		expect(manifestComponentFor('/ai-processing-disclosure')).toBe(
-			'ScholiqAiProcessingDisclosure',
+			'LearniqAiProcessingDisclosure',
 		)
 		const errors = collectFatalErrors(page)
 		await openPage(

@@ -5,7 +5,7 @@
 <template>
 	<KpiCard
 		schema="Attestation"
-		:label="t('scholiq', 'Signed attestations')"
+		:label="t('learniq', 'Signed attestations')"
 		link="/compliance/attestations"
 		variant="success" />
 </template>

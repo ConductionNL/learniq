@@ -14,14 +14,14 @@
   server-side on the `graded` transition).
 
   Talks only to OpenRegister's REST API:
-    - GET  /api/objects/scholiq/Portfolio/:id
-    - GET  /api/objects/scholiq/portfolio-entry?filters[portfolioId]=:id
-    - GET  /api/objects/scholiq/Submission/:id                  (per submission-kind entry)
-    - GET  /api/objects/scholiq/werkproces-assessment/:id        (per werkproces-assessment-kind entry)
-    - GET  /api/objects/scholiq/external-training-record/:id      (per external-training-record-kind entry)
-    - GET  /api/objects/scholiq/Credential/:id                  (per credential-kind entry)
-    - PUT  /api/objects/scholiq/Portfolio/:id                   (gradeValue)
-    - POST /api/objects/scholiq/Portfolio/:id/transition/grade
+    - GET  /api/objects/learniq/Portfolio/:id
+    - GET  /api/objects/learniq/portfolio-entry?filters[portfolioId]=:id
+    - GET  /api/objects/learniq/Submission/:id                  (per submission-kind entry)
+    - GET  /api/objects/learniq/werkproces-assessment/:id        (per werkproces-assessment-kind entry)
+    - GET  /api/objects/learniq/external-training-record/:id      (per external-training-record-kind entry)
+    - GET  /api/objects/learniq/Credential/:id                  (per credential-kind entry)
+    - PUT  /api/objects/learniq/Portfolio/:id                   (gradeValue)
+    - POST /api/objects/learniq/Portfolio/:id/transition/grade
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView.vue's existing shape.
@@ -41,7 +41,7 @@
 			class="portfolio-review-view__loading"
 			aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading portfolio...') }}</span>
+			<span>{{ t('learniq', 'Loading portfolio...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -54,18 +54,18 @@
 			<header class="portfolio-review-view__header">
 				<h2>
 					{{
-						t('scholiq', 'Review portfolio: {title}', {
+						t('learniq', 'Review portfolio: {title}', {
 							title: portfolio.title || '',
 						})
 					}}
 				</h2>
 				<p class="portfolio-review-view__meta">
 					{{
-						t('scholiq', 'Kind: {kind}', { kind: portfolio.kind || '' })
+						t('learniq', 'Kind: {kind}', { kind: portfolio.kind || '' })
 					}}
 					<span class="portfolio-review-view__lifecycle">
 						{{
-							t('scholiq', 'Status: {status}', {
+							t('learniq', 'Status: {status}', {
 								status: portfolio.lifecycle || '',
 							})
 						}}
@@ -75,7 +75,7 @@
 
 			<!-- Entries (read-only) -->
 			<section class="portfolio-review-view__entries">
-				<h3>{{ t('scholiq', 'Evidence entries') }}</h3>
+				<h3>{{ t('learniq', 'Evidence entries') }}</h3>
 				<ul
 					v-if="entries.length > 0"
 					class="portfolio-review-view__entry-list">
@@ -113,18 +113,18 @@
 					</li>
 				</ul>
 				<p v-else class="portfolio-review-view__no-entries">
-					{{ t('scholiq', 'No evidence entries.') }}
+					{{ t('learniq', 'No evidence entries.') }}
 				</p>
 			</section>
 
 			<!-- Teacher grading (course-bound + submitted only) -->
 			<section v-if="canGrade" class="portfolio-review-view__grading">
-				<h3>{{ t('scholiq', 'Grade this portfolio') }}</h3>
+				<h3>{{ t('learniq', 'Grade this portfolio') }}</h3>
 
 				<label
 					for="pr-grade-value"
 					class="portfolio-review-view__field-label">
-					{{ t('scholiq', 'Grade value') }}
+					{{ t('learniq', 'Grade value') }}
 				</label>
 				<input
 					id="pr-grade-value"
@@ -144,7 +144,7 @@
 							v-if="grading"
 							class="icon-loading"
 							aria-hidden="true" />
-						{{ t('scholiq', 'Save grade & transition to graded') }}
+						{{ t('learniq', 'Save grade & transition to graded') }}
 					</button>
 				</div>
 				<p
@@ -160,7 +160,7 @@
 				class="portfolio-review-view__graded-confirmation"
 				role="status">
 				{{
-					t('scholiq', 'This portfolio has been graded. Grade: {grade}', {
+					t('learniq', 'This portfolio has been graded. Grade: {grade}', {
 						grade: portfolio.gradeValue,
 					})
 				}}
@@ -280,7 +280,7 @@ export default {
 				await this.resolveEntryReferences()
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load portfolio. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -300,7 +300,7 @@ export default {
 		 */
 		async fetchObject(schema, objId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/${schema}/${objId}`,
+				`/apps/openregister/api/objects/learniq/${schema}/${objId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -322,7 +322,7 @@ export default {
 		 */
 		async fetchList(schema, query) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/${schema}?${query}`,
+				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -380,19 +380,20 @@ export default {
 		 *
 		 * @param {string} kind evidenceKind value.
 		 * @return {string}
+		 * @spec exclude Presentation-only label map from the 6 fixed evidenceKind values to their localized display names; the per-kind reference discipline itself is governed by requirement-portfolioentry-references-existing-evidence-objects-via-per-kind-fields-never-a-polymorphic-ref, not by this string lookup.
 		 */
 		evidenceKindLabel(kind) {
 			const labels = {
-				file: this.t('scholiq', 'File'),
-				submission: this.t('scholiq', 'Submission'),
-				'werkproces-assessment': this.t('scholiq', 'Werkproces assessment'),
+				file: this.t('learniq', 'File'),
+				submission: this.t('learniq', 'Submission'),
+				'werkproces-assessment': this.t('learniq', 'Werkproces assessment'),
 				'external-training-record': this.t(
-					'scholiq',
+					'learniq',
 					'External training record',
 				),
 
-				credential: this.t('scholiq', 'Credential'),
-				reflection: this.t('scholiq', 'Reflection'),
+				credential: this.t('learniq', 'Credential'),
+				reflection: this.t('learniq', 'Reflection'),
 			}
 			return labels[kind] ?? kind
 		},
@@ -415,7 +416,7 @@ export default {
 
 			try {
 				const updateUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/Portfolio/${this.id}`,
+					`/apps/openregister/api/objects/learniq/Portfolio/${this.id}`,
 				)
 				const updateResp = await fetch(updateUrl, {
 					method: 'PUT',
@@ -431,7 +432,7 @@ export default {
 				}
 
 				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/Portfolio/${this.id}/transition/grade`,
+					`/apps/openregister/api/objects/learniq/Portfolio/${this.id}/transition/grade`,
 				)
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',
@@ -451,7 +452,7 @@ export default {
 				this.portfolio = await this.fetchObject('Portfolio', this.id)
 			} catch (err) {
 				this.gradeError = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to save grade. Please try again.',
 				)
 				// eslint-disable-next-line no-console

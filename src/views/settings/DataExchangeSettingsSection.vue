@@ -10,16 +10,16 @@
  Admin Settings page (AdminRoot.vue), is now the discoverable entry point: it
  deep-links into the still-routable SPA pages. The Admin Settings mount has no
  in-app vue-router, so links use a full navigation to the app's hash routes
- (mirrors ScholiqSettings.vue's "Manage AI features" affordance).
+ (mirrors LearniqSettings.vue's "Manage AI features" affordance).
 
  @spec openspec/changes/relocate-dataexchange-remove-assistant/specs/data-exchange/spec.md#requirement-data-exchange-management-is-reached-from-the-admin-settings-page
 -->
 <template>
 	<NcSettingsSection
-		:name="t('scholiq', 'Data exchange')"
+		:name="t('learniq', 'Data exchange')"
 		:description="
 			t(
-				'scholiq',
+				'learniq',
 				'Manage the aanleveringen and imports scholiq exchanges with DUO/BRON, OSO, the municipality, and ELO systems. Jobs and field-mapping profiles are administered here.',
 			)
 		">
@@ -28,7 +28,7 @@
 				<template #icon>
 					<SwapHorizontal :size="20" />
 				</template>
-				{{ t('scholiq', 'Data-exchange jobs') }}
+				{{ t('learniq', 'Data-exchange jobs') }}
 			</NcButton>
 			<NcButton
 				variant="secondary"
@@ -36,7 +36,7 @@
 				<template #icon>
 					<MapIcon :size="20" />
 				</template>
-				{{ t('scholiq', 'Mapping profiles') }}
+				{{ t('learniq', 'Mapping profiles') }}
 			</NcButton>
 		</div>
 	</NcSettingsSection>
@@ -62,14 +62,14 @@ export default {
 		/**
 		 * Open a data-exchange SPA page. The Admin Settings mount has no in-app
 		 * router, so navigate the browser to the app's history-mode route path
-		 * (mirrors ScholiqSettings.vue's "Manage AI features" affordance).
+		 * (mirrors LearniqSettings.vue's "Manage AI features" affordance).
 		 *
 		 * @param {string} routePath The app route path, e.g. `/data-exchange/jobs`.
 		 * @return {void}
 		 * @spec openspec/changes/relocate-dataexchange-remove-assistant/specs/data-exchange/spec.md#requirement-data-exchange-management-is-reached-from-the-admin-settings-page
 		 */
 		open(routePath) {
-			window.location.href = generateUrl('/apps/scholiq') + routePath
+			window.location.href = generateUrl('/apps/learniq') + routePath
 		},
 	},
 }

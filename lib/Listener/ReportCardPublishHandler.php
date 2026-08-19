@@ -19,7 +19,7 @@
  * bridge that cannot be expressed as a schema declaration."
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -37,7 +37,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -56,7 +56,7 @@ use Psr\Log\LoggerInterface;
  */
 class ReportCardPublishHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const REPORT_CARD_SCHEMA = 'report-card';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 	private const REPORT_CARD_PARENT_NOTIFICATION_SCHEMA = 'report-card-parent-notification';

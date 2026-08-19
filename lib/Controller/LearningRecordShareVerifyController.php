@@ -28,7 +28,7 @@
  * not pollute the learner's own "was this viewed" signal.
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -45,14 +45,14 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\Service\LearningRecordExportSigningService;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\LearningRecordExportSigningService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
@@ -88,7 +88,7 @@ class LearningRecordShareVerifyController extends Controller {
 	 *
 	 * @var string
 	 */
-	private const THROTTLE_ACTION = 'scholiq_learning_record_share_verify';
+	private const THROTTLE_ACTION = 'learniq_learning_record_share_verify';
 
 	/**
 	 * Record a failed verification with the brute-force throttler.
@@ -112,7 +112,7 @@ class LearningRecordShareVerifyController extends Controller {
 	}//end registerFailedVerification()
 
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SHARE_SCHEMA = 'learning-record-share';
 	private const EXPORT_SCHEMA = 'learning-record-export';
 

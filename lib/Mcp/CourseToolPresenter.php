@@ -1,22 +1,22 @@
 <?php
 
 /**
- * Scholiq MCP Course Tool Presenter
+ * Learniq MCP Course Tool Presenter
  *
- * Response-shaping half of the Scholiq MCP surface, extracted from
- * `ScholiqToolProvider` so each class carries one cohesive responsibility: this
+ * Response-shaping half of the Learniq MCP surface, extracted from
+ * `LearniqToolProvider` so each class carries one cohesive responsibility: this
  * one owns *how a course or module is rendered to the LLM* (normalising an
  * OpenRegister object to a plain array, extracting its UUID, allow-listing the
  * privacy-safe fields and building the citation sources plus their deep links),
- * while `ScholiqToolProvider` keeps the tool catalogue, argument validation,
+ * while `LearniqToolProvider` keeps the tool catalogue, argument validation,
  * authorisation and the reads.
  *
  * The allow-lists live here and nowhere else: every field an LLM can ever see
  * for a Course or a Lesson is enumerated in `courseSummary()`/`moduleSummary()`,
- * so the "no learner PII leaves Scholiq" guarantee is reviewable in one place.
+ * so the "no learner PII leaves Learniq" guarantee is reviewable in one place.
  *
  * @category Mcp
- * @package  OCA\Scholiq\Mcp
+ * @package  OCA\Learniq\Mcp
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2026 Conduction B.V.
@@ -32,7 +32,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Mcp;
+namespace OCA\Learniq\Mcp;
 
 /**
  * Normalises OpenRegister course/lesson objects into privacy-safe MCP payloads.
@@ -50,7 +50,7 @@ class CourseToolPresenter {
 	 */
 	public function courseSource(array $course, string $courseUuid): array {
 		return [
-			'type' => 'scholiq.course',
+			'type' => 'learniq.course',
 			'uuid' => $courseUuid,
 			'url' => $this->buildDeepLink(type: 'course', uuid: $courseUuid),
 			'label' => (string)($course['name'] ?? $course['code'] ?? 'course'),
@@ -76,7 +76,7 @@ class CourseToolPresenter {
 		foreach ($modules as $module) {
 			$moduleUuid = (string)($module['uuid'] ?? '');
 			$sources[] = [
-				'type' => 'scholiq.module',
+				'type' => 'learniq.module',
 				'uuid' => $moduleUuid,
 				'url' => $this->buildDeepLink(type: 'module', uuid: $moduleUuid),
 				'label' => (string)($module['name'] ?? 'Module'),
@@ -146,22 +146,22 @@ class CourseToolPresenter {
 	}//end moduleSummary()
 
 	/**
-	 * Build a deep link URL for a Scholiq resource.
+	 * Build a deep link URL for a Learniq resource.
 	 *
 	 * @param string $type One of: course, module.
 	 * @param string $uuid The object UUID.
 	 *
-	 * @return string The deep link path, e.g. /apps/scholiq/courses/<uuid>.
+	 * @return string The deep link path, e.g. /apps/learniq/courses/<uuid>.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-ai-companion-tools/tasks.md#task-4
 	 */
 	public function buildDeepLink(string $type, string $uuid): string {
 		$paths = [
-			'course' => '/apps/scholiq/courses',
-			'module' => '/apps/scholiq/modules',
+			'course' => '/apps/learniq/courses',
+			'module' => '/apps/learniq/modules',
 		];
 
-		$base = $paths[$type] ?? "/apps/scholiq/{$type}s";
+		$base = $paths[$type] ?? "/apps/learniq/{$type}s";
 		return "{$base}/{$uuid}";
 	}//end buildDeepLink()
 

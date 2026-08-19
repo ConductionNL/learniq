@@ -16,7 +16,7 @@
  * behaviour is covered by their own dedicated unit test suites.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Settings
+ * @package  OCA\Learniq\Tests\Unit\Settings
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -31,7 +31,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Settings;
+namespace OCA\Learniq\Tests\Unit\Settings;
 
 use PHPUnit\Framework\TestCase;
 
@@ -53,12 +53,12 @@ class CourseEvaluationRegisterTest extends TestCase {
 	 * @return void
 	 */
 	protected function setUp(): void {
-		$path = __DIR__ . '/../../../lib/Settings/scholiq_register.json';
+		$path = __DIR__ . '/../../../lib/Settings/learniq_register.json';
 		$raw = file_get_contents($path);
-		$this->assertNotFalse($raw, 'scholiq_register.json must be readable');
+		$this->assertNotFalse($raw, 'learniq_register.json must be readable');
 
 		$decoded = json_decode($raw, true);
-		$this->assertIsArray($decoded, 'scholiq_register.json must be valid JSON');
+		$this->assertIsArray($decoded, 'learniq_register.json must be valid JSON');
 		$this->config = $decoded;
 
 	}//end setUp()
@@ -146,7 +146,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 		$this->assertSame('draft', $submit['from'] ?? null);
 		$this->assertSame('submitted', $submit['to'] ?? null);
 		$this->assertSame(
-			'OCA\\Scholiq\\Lifecycle\\CourseEvaluationEligibilityGuard',
+			'OCA\\Learniq\\Lifecycle\\CourseEvaluationEligibilityGuard',
 			$submit['requires'] ?? null,
 			'submit MUST require CourseEvaluationEligibilityGuard'
 		);
@@ -249,7 +249,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 
 		$trigger = $schema['x-openregister-triggers']['invitationProvisioning'] ?? null;
 		$this->assertSame(
-			'OCA\\Scholiq\\Listener\\EvaluationInvitationProvisioningHandler',
+			'OCA\\Learniq\\Listener\\EvaluationInvitationProvisioningHandler',
 			$trigger['handler'] ?? null
 		);
 
@@ -280,7 +280,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 		// recompute fires on the response's submit, not on this row itself.
 		$sourceTrigger = $this->config['components']['schemas']['CourseEvaluationResponse']['x-openregister-triggers']['qualityScoreRollup'] ?? null;
 		$this->assertSame(
-			'OCA\\Scholiq\\Listener\\CourseQualityScoreRollupHandler',
+			'OCA\\Learniq\\Listener\\CourseQualityScoreRollupHandler',
 			$sourceTrigger['handler'] ?? null
 		);
 

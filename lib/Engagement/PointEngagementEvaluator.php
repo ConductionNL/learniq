@@ -32,7 +32,7 @@
  *   - LearnerEngagementRollupHandler (via ObjectCreatedEvent on PointAward)
  *
  * @category Engagement
- * @package  OCA\Scholiq\Engagement
+ * @package  OCA\Learniq\Engagement
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -49,7 +49,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Engagement;
+namespace OCA\Learniq\Engagement;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
@@ -63,7 +63,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
  */
 class PointEngagementEvaluator {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const POINT_AWARD_SCHEMA = 'point-award';
 	private const ENGAGEMENT_LEVEL_SCHEMA = 'engagement-level';
 

@@ -41,7 +41,7 @@
  * declaration alone. Never a TimedJob (ADR-022).
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -59,16 +59,16 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\CompetencyAttainmentWriter;
-use OCA\Scholiq\Service\CompetencyLevelResolver;
-use OCA\Scholiq\Service\GradeEvidenceRollup;
-use OCA\Scholiq\Service\ListenerSchemaResolver;
-use OCA\Scholiq\Service\ObjectRowReader;
+use OCA\Learniq\Service\CompetencyAttainmentWriter;
+use OCA\Learniq\Service\CompetencyLevelResolver;
+use OCA\Learniq\Service\GradeEvidenceRollup;
+use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\ObjectRowReader;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -83,7 +83,7 @@ use Psr\Log\LoggerInterface;
  */
 class CompetencyAttainmentRollupHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 	private const WERKPROCES_SCHEMA = 'werkproces-assessment';
 	private const BPV_PLACEMENT_SCHEMA = 'bpv-placement';

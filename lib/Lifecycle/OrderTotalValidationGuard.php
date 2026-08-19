@@ -18,7 +18,7 @@
  * needs to be correct at the moment a payer can no longer edit the lines.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -35,9 +35,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
-use OCA\Scholiq\Payments\OrderTotalEvaluator;
+use OCA\Learniq\Payments\OrderTotalEvaluator;
 use Psr\Log\LoggerInterface;
 
 /**

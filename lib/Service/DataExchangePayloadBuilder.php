@@ -17,7 +17,7 @@
  * logic remains in OpenConnector (ADR-031 "external-system bridge").
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -35,7 +35,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
@@ -47,7 +47,7 @@ use RuntimeException;
  * @spec openspec/changes/verzuim-report-composer/tasks.md#task-3.1
  */
 class DataExchangePayloadBuilder {
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 
 	/**
 	 * Target that composes the verzuimloket dossier (attendance-flag +

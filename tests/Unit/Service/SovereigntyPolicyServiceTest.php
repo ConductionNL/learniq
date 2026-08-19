@@ -9,7 +9,7 @@
  * `SovereigntyPolicy` object yet defaults to `eu-hosted-allowed`.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -27,10 +27,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\SovereigntyPolicyService;
+use OCA\Learniq\Service\SovereigntyPolicyService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 

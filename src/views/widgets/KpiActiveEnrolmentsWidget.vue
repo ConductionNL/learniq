@@ -5,7 +5,7 @@
 <template>
 	<KpiCard
 		schema="Enrolment"
-		:label="t('scholiq', 'Active enrolments')"
+		:label="t('learniq', 'Active enrolments')"
 		:filter="{ lifecycle: 'active' }"
 		link="/enrolments"
 		variant="primary" />

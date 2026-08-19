@@ -6,7 +6,7 @@
  * IEventListener for Session create/update (OR's `ObjectCreatedEvent` and
  * `ObjectUpdatedEvent`, filtered to register=scholiq, schema=session).
  * Delegates the actual pairwise overlap scan to
- * {@see \OCA\Scholiq\Timetabling\TimetableConflictDetector} — this class'
+ * {@see \OCA\Learniq\Timetabling\TimetableConflictDetector} — this class'
  * only responsibility is filtering the incoming OR event to the right
  * schema and invoking the detector for the single changed Session, per the
  * timetabling spec's "Detection MUST run as an OR-event-driven scan (on
@@ -26,7 +26,7 @@
  * not here.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -43,12 +43,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
-use OCA\Scholiq\Service\ListenerSchemaResolver;
-use OCA\Scholiq\Timetabling\TimetableConflictDetector;
+use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Timetabling\TimetableConflictDetector;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
@@ -61,7 +61,7 @@ use OCP\EventDispatcher\IEventListener;
  */
 class SessionConflictListener implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
 
 	/**

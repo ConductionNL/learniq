@@ -29,7 +29,7 @@
  * call chain that runJob()/handle() also perform.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -47,13 +47,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Listener\DataExchangeRunHandler;
-use OCA\Scholiq\Service\DataExchangePayloadBuilder;
-use OCA\Scholiq\Service\DataExchangeTransformer;
+use OCA\Learniq\Listener\DataExchangeRunHandler;
+use OCA\Learniq\Service\DataExchangePayloadBuilder;
+use OCA\Learniq\Service\DataExchangeTransformer;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;

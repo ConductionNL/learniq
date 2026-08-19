@@ -25,7 +25,7 @@
  * PeerReviewController::allocate().
  *
  * @category PeerReview
- * @package  OCA\Scholiq\PeerReview
+ * @package  OCA\Learniq\PeerReview
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -42,7 +42,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\PeerReview;
+namespace OCA\Learniq\PeerReview;
 
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -54,7 +54,7 @@ use Psr\Log\LoggerInterface;
  */
 class PeerReviewAllocationService {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
 	private const SUBMISSION_SCHEMA = 'submission';
 	private const PEER_REVIEW_SCHEMA = 'peer-review';

@@ -25,7 +25,7 @@
 			<template #widget-manage-courses>
 				<ManageListWidget
 					schema="Course"
-					:schemaLabel="t('scholiq', 'course')"
+					:schemaLabel="t('learniq', 'course')"
 					:columns="['name', 'lifecycle', 'lessonCount']"
 					indexRoute="/courses"
 					:limit="6" />
@@ -33,7 +33,7 @@
 			<template #widget-manage-curriculum>
 				<ManageListWidget
 					schema="Programme"
-					:schemaLabel="t('scholiq', 'programme')"
+					:schemaLabel="t('learniq', 'programme')"
 					:columns="['name', 'lifecycle']"
 					indexRoute="/curriculum/programmes"
 					:limit="6" />
@@ -41,7 +41,7 @@
 			<template #widget-manage-assignments>
 				<ManageListWidget
 					schema="Assignment"
-					:schemaLabel="t('scholiq', 'assignment')"
+					:schemaLabel="t('learniq', 'assignment')"
 					:columns="['name', 'dueDate', 'lifecycle']"
 					indexRoute="/assignments"
 					:limit="6" />
@@ -49,7 +49,7 @@
 			<template #widget-manage-assessments>
 				<ManageListWidget
 					schema="Assessment"
-					:schemaLabel="t('scholiq', 'assessment')"
+					:schemaLabel="t('learniq', 'assessment')"
 					:columns="['name', 'lifecycle']"
 					indexRoute="/assessments"
 					:limit="6" />
@@ -57,7 +57,7 @@
 			<template #widget-manage-learning-plans>
 				<ManageListWidget
 					schema="learning-plan"
-					:schemaLabel="t('scholiq', 'learning plan')"
+					:schemaLabel="t('learniq', 'learning plan')"
 					:columns="['name', 'lifecycle']"
 					indexRoute="/learning-plans"
 					:limit="6" />
@@ -65,7 +65,7 @@
 			<template #widget-manage-grades>
 				<ManageListWidget
 					schema="grade-entry"
-					:schemaLabel="t('scholiq', 'grade')"
+					:schemaLabel="t('learniq', 'grade')"
 					:columns="['name', 'lifecycle']"
 					indexRoute="/grades/entries"
 					:limit="6" />
@@ -96,49 +96,50 @@ export default {
 		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 		 */
 		pageTitle() {
-			return this.t('scholiq', 'Learning')
+			return this.t('learniq', 'Learning')
 		},
 
 		/**
 		 * The CnDashboardPage `widgets` declaration.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 		 */
 		widgets() {
 			return [
 				{
 					id: 'kpi-courses',
-					title: this.t('scholiq', 'Courses'),
+					title: this.t('learniq', 'Courses'),
 					type: 'custom',
 				},
 				{
 					id: 'manage-courses',
-					title: this.t('scholiq', 'Courses'),
+					title: this.t('learniq', 'Courses'),
 					type: 'custom',
 				},
 				{
 					id: 'manage-curriculum',
-					title: this.t('scholiq', 'Curriculum'),
+					title: this.t('learniq', 'Curriculum'),
 					type: 'custom',
 				},
 				{
 					id: 'manage-assignments',
-					title: this.t('scholiq', 'Assignments'),
+					title: this.t('learniq', 'Assignments'),
 					type: 'custom',
 				},
 				{
 					id: 'manage-assessments',
-					title: this.t('scholiq', 'Assessments'),
+					title: this.t('learniq', 'Assessments'),
 					type: 'custom',
 				},
 				{
 					id: 'manage-learning-plans',
-					title: this.t('scholiq', 'Learning plans'),
+					title: this.t('learniq', 'Learning plans'),
 					type: 'custom',
 				},
 				{
 					id: 'manage-grades',
-					title: this.t('scholiq', 'Grades'),
+					title: this.t('learniq', 'Grades'),
 					type: 'custom',
 				},
 			]

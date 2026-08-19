@@ -4,7 +4,7 @@
  * Scholiq EngagementSignalHandler unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,7 +21,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use DateTime;
 use DateTimeImmutable;
@@ -29,10 +29,10 @@ use DateTimeZone;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Analytics\EngagementScoreEvaluator;
-use OCA\Scholiq\Listener\EngagementSignalHandler;
-use OCA\Scholiq\Service\ListenerSchemaResolver;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Analytics\EngagementScoreEvaluator;
+use OCA\Learniq\Listener\EngagementSignalHandler;
+use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -87,7 +87,7 @@ class EngagementSignalHandlerTest extends TestCase {
 	 * @return void
 	 */
 	private function stubResolver(string $schemaSlug): void {
-		$this->schemaResolver->method('registerSlug')->willReturn('scholiq');
+		$this->schemaResolver->method('registerSlug')->willReturn('learniq');
 		$this->schemaResolver->method('schemaSlug')->willReturn($schemaSlug);
 
 	}//end stubResolver()

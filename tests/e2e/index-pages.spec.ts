@@ -16,8 +16,8 @@ import manifest from '../../src/manifest.json'
  *      fail the whole run.
  *
  * Routing: the SPA uses vue-router in `history` mode with base
- * `/index.php/apps/scholiq`, so a manifest route like `/courses` is reached at
- * `/index.php/apps/scholiq/courses` (the PageController `catchAll` route serves
+ * `/index.php/apps/learniq`, so a manifest route like `/courses` is reached at
+ * `/index.php/apps/learniq/courses` (the PageController `catchAll` route serves
  * the SPA shell for `/{path}`).
  *
  * The seed script (tests/e2e/seed-example-data.mjs) runs in ci-seed.sh (CI) or
@@ -36,7 +36,7 @@ import manifest from '../../src/manifest.json'
  * ci-seed.sh gates the floor so a silent collapse to zero still fails the job.
  */
 
-const APP_BASE = '/index.php/apps/scholiq'
+const APP_BASE = '/index.php/apps/learniq'
 
 /**
  * Per-schema row counts the seeder actually produced, keyed by the register's
@@ -152,7 +152,7 @@ test.describe(`Scholiq index pages (${indexPages.length})`, () => {
 					.soft(
 						await page
 							.locator(
-								'.app-navigation, nav#app-navigation, [data-app="scholiq"]',
+								'.app-navigation, nav#app-navigation, [data-app="learniq"]',
 							)
 							.first()
 							.isVisible()

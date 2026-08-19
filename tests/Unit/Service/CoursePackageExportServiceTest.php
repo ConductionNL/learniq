@@ -4,7 +4,7 @@
  * Scholiq CoursePackageExportService unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,12 +21,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\CoursePackageExportService;
-use OCA\Scholiq\Service\QtiExportService;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Service\CoursePackageExportService;
+use OCA\Learniq\Service\QtiExportService;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;

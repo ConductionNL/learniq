@@ -10,7 +10,7 @@
  * events/transitions are ignored.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -27,14 +27,14 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Listener\FraudCaseDecisionHandler;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Listener\FraudCaseDecisionHandler;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -99,7 +99,7 @@ class FraudCaseDecisionHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('fraud-case');
 		$event->method('getTo')->willReturn('decided');
 		$event->method('getFrom')->willReturn('heard');
@@ -217,7 +217,7 @@ class FraudCaseDecisionHandlerTest extends TestCase {
 		$handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('exemption-case');
 		$event->method('getTo')->willReturn('decided');
 
@@ -236,7 +236,7 @@ class FraudCaseDecisionHandlerTest extends TestCase {
 		$handler = $this->makeHandler(gradeEntry: ['id' => 'entry-1', 'lifecycle' => 'concept']);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('fraud-case');
 		$event->method('getTo')->willReturn('dismissed');
 

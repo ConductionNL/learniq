@@ -28,7 +28,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="grade-impact__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading grade impact...') }}</span>
+			<span>{{ t('learniq', 'Loading grade impact...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -40,17 +40,17 @@
 		<!-- Content -->
 		<template v-else-if="entry">
 			<header class="grade-impact__header">
-				<h2>{{ t('scholiq', 'Grade impact') }}</h2>
+				<h2>{{ t('learniq', 'Grade impact') }}</h2>
 				<p class="grade-impact__meta">
 					{{
-						t('scholiq', 'Component: {id}', {
+						t('learniq', 'Component: {id}', {
 							id: entry.componentId || '',
 						})
 					}}
 					<span v-if="entry.period">
 						—
 						{{
-							t('scholiq', 'Period: {period}', {
+							t('learniq', 'Period: {period}', {
 								period: entry.period,
 							})
 						}}</span
@@ -59,11 +59,11 @@
 				<span
 					class="grade-impact__lifecycle-badge"
 					:class="`grade-impact__lifecycle-badge--${lifecycleBadgeState}`">
-					{{ isScheduled ? t('scholiq', 'scheduled') : entry.lifecycle }}
+					{{ isScheduled ? t('learniq', 'scheduled') : entry.lifecycle }}
 				</span>
 				<p v-if="isScheduled" class="grade-impact__meta">
 					{{
-						t('scholiq', 'Visible to the learner from {date}', {
+						t('learniq', 'Visible to the learner from {date}', {
 							date: formatDate(entry.visibleFrom),
 						})
 					}}
@@ -72,16 +72,16 @@
 
 			<!-- Grade value block -->
 			<section class="grade-impact__section">
-				<h3>{{ t('scholiq', 'This grade') }}</h3>
+				<h3>{{ t('learniq', 'This grade') }}</h3>
 				<dl class="grade-impact__dl">
 					<div class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Value') }}</dt>
+						<dt>{{ t('learniq', 'Value') }}</dt>
 						<dd class="grade-impact__value">
 							{{ formatValue(entry.value) }}
 						</dd>
 					</div>
 					<div class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Effective weight') }}</dt>
+						<dt>{{ t('learniq', 'Effective weight') }}</dt>
 						<dd>
 							{{
 								entry.weight !== null && entry.weight !== undefined
@@ -91,19 +91,19 @@
 						</dd>
 					</div>
 					<div class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Points contributed') }}</dt>
+						<dt>{{ t('learniq', 'Points contributed') }}</dt>
 						<dd>{{ formatValue(pointsContributed) }}</dd>
 					</div>
 					<div v-if="entry.grader" class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Grader') }}</dt>
+						<dt>{{ t('learniq', 'Grader') }}</dt>
 						<dd>{{ entry.grader }}</dd>
 					</div>
 					<div v-if="entry.gradedAt" class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Graded at') }}</dt>
+						<dt>{{ t('learniq', 'Graded at') }}</dt>
 						<dd>{{ formatDate(entry.gradedAt) }}</dd>
 					</div>
 					<div v-if="entry.comment" class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Comment') }}</dt>
+						<dt>{{ t('learniq', 'Comment') }}</dt>
 						<dd>{{ entry.comment }}</dd>
 					</div>
 				</dl>
@@ -113,18 +113,18 @@
 			<section v-if="periodEntries.length > 0" class="grade-impact__section">
 				<h3>
 					{{
-						t('scholiq', 'Period {period} average', {
+						t('learniq', 'Period {period} average', {
 							period: entry.period || '',
 						})
 					}}
 				</h3>
 				<dl class="grade-impact__dl">
 					<div class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Published grades in period') }}</dt>
+						<dt>{{ t('learniq', 'Published grades in period') }}</dt>
 						<dd>{{ periodEntries.length }}</dd>
 					</div>
 					<div class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Period average') }}</dt>
+						<dt>{{ t('learniq', 'Period average') }}</dt>
 						<dd class="grade-impact__value">
 							{{ formatValue(periodAverage) }}
 						</dd>
@@ -134,16 +134,16 @@
 
 			<!-- Final grade impact block -->
 			<section v-if="finalGrade" class="grade-impact__section">
-				<h3>{{ t('scholiq', 'Final grade') }}</h3>
+				<h3>{{ t('learniq', 'Final grade') }}</h3>
 				<dl class="grade-impact__dl">
 					<div class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Current final grade') }}</dt>
+						<dt>{{ t('learniq', 'Current final grade') }}</dt>
 						<dd class="grade-impact__value">
 							{{ formatValue(finalGrade.value) }}
 						</dd>
 					</div>
 					<div class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Pass status') }}</dt>
+						<dt>{{ t('learniq', 'Pass status') }}</dt>
 						<dd>
 							<span
 								v-if="finalGrade.passed !== null"
@@ -154,19 +154,19 @@
 								">
 								{{
 									finalGrade.passed
-										? t('scholiq', 'Passed')
-										: t('scholiq', 'Not passed')
+										? t('learniq', 'Passed')
+										: t('learniq', 'Not passed')
 								}}
 							</span>
 							<span v-else class="grade-impact__pending">{{
-								t('scholiq', 'Pending')
+								t('learniq', 'Pending')
 							}}</span>
 						</dd>
 					</div>
 					<div
 						v-if="finalGrade.lastRecomputedAt"
 						class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Last recomputed') }}</dt>
+						<dt>{{ t('learniq', 'Last recomputed') }}</dt>
 						<dd>{{ formatDate(finalGrade.lastRecomputedAt) }}</dd>
 					</div>
 				</dl>
@@ -364,7 +364,7 @@ export default {
 				}
 			} catch (err) {
 				this.error = this.t(
-					'scholiq',
+					'learniq',
 					'Failed to load grade impact. Please try again.',
 				)
 				// eslint-disable-next-line no-console
@@ -383,7 +383,7 @@ export default {
 		 */
 		async loadEntry(entryId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/grade-entry/${entryId}`,
+				`/apps/openregister/api/objects/learniq/grade-entry/${entryId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -409,7 +409,7 @@ export default {
 			}
 
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/curriculum-plan/${planId}`,
+				`/apps/openregister/api/objects/learniq/curriculum-plan/${planId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -439,7 +439,7 @@ export default {
 			}
 
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/grade-entry?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&period=${encodeURIComponent(period)}&lifecycle=published&limit=100`,
+				`/apps/openregister/api/objects/learniq/grade-entry?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&period=${encodeURIComponent(period)}&lifecycle=published&limit=100`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -469,7 +469,7 @@ export default {
 			}
 
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/final-grade?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&limit=1`,
+				`/apps/openregister/api/objects/learniq/final-grade?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&limit=1`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },

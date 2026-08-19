@@ -11,7 +11,7 @@
  * on failure.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -28,9 +28,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Scholiq\Service\WalletRevocationPropagationService;
+use OCA\Learniq\Service\WalletRevocationPropagationService;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
@@ -75,7 +75,7 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 		$this->appConfig = $this->createMock(IAppConfig::class);
 
 		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
-			static fn (string $path): string => 'https://scholiq.example' . $path
+			static fn (string $path): string => 'https://learniq.example' . $path
 		);
 	}//end setUp()
 

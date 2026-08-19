@@ -4,7 +4,7 @@
  * Scholiq OrderTotalEvaluator unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Payments
+ * @package  OCA\Learniq\Tests\Unit\Payments
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,10 +21,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Payments;
+namespace OCA\Learniq\Tests\Unit\Payments;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Payments\OrderTotalEvaluator;
+use OCA\Learniq\Payments\OrderTotalEvaluator;
 use PHPUnit\Framework\TestCase;
 
 /**

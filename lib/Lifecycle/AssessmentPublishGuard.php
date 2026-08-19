@@ -28,7 +28,7 @@
  *
  * Locality gate (sovereign-ai-guarantee): AFTER the DPO-enablement check above
  * passes, this guard additionally calls {@see AiLocalityClassifier} and
- * {@see \OCA\Scholiq\Service\SovereigntyPolicyService} — a school-verifiable
+ * {@see \OCA\Learniq\Service\SovereigntyPolicyService} — a school-verifiable
  * locality guarantee composed on top of the existing DPO gate, not a second
  * `x-openregister-lifecycle.requires` entry (verified at HEAD:
  * `LifecycleAnnotationValidator`/`LifecycleGuardRegistry` resolve `requires` as
@@ -45,7 +45,7 @@
  * x-openregister-lifecycle.transitions.publish.requires in scholiq_register.json.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -63,12 +63,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\AiLocalityClassifier;
-use OCA\Scholiq\Service\ItemPoolFilter;
-use OCA\Scholiq\Service\SovereigntyPolicyService;
+use OCA\Learniq\Service\AiLocalityClassifier;
+use OCA\Learniq\Service\ItemPoolFilter;
+use OCA\Learniq\Service\SovereigntyPolicyService;
 use OCP\App\IAppManager;
 use Psr\Log\LoggerInterface;
 
@@ -311,7 +311,7 @@ class AssessmentPublishGuard {
 	private function countDistinctVariantGroups(array $poolConfig, string $itemBankId): int {
 		$items = $this->objectService->findAll(
 			[
-				'register' => 'scholiq',
+				'register' => 'learniq',
 				'schema' => self::ITEM_SCHEMA,
 				'filters' => ['itemBankId' => $itemBankId, 'lifecycle' => 'published'],
 			]

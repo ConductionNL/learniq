@@ -53,7 +53,7 @@ const PAGES: ManifestPage[] = (manifest as { pages?: ManifestPage[] }).pages ?? 
  * ⚠️ Resolved at runtime, never hardcoded — see
  * tests/e2e/visual/pages.visual.spec.ts for the measurement. `generateUrl`
  * emits `/index.php` only on an instance without pretty urls (CI's `php -S`);
- * on Apache the base is `/apps/scholiq` and a hardcoded prefix silently lands
+ * on Apache the base is `/apps/learniq` and a hardcoded prefix silently lands
  * on the app's DEFAULT route.
  */
 let appBase: string | null = null
@@ -66,11 +66,11 @@ let appBase: string | null = null
  */
 async function resolveAppBase(page: Page): Promise<string> {
 	if (appBase) return appBase
-	await page.goto('/index.php/apps/scholiq/')
+	await page.goto('/index.php/apps/learniq/')
 	const base = await page.evaluate(() =>
 		(
 			window as unknown as { OC: { generateUrl: (_p: string) => string } }
-		).OC.generateUrl('/apps/scholiq'),
+		).OC.generateUrl('/apps/learniq'),
 	)
 	expect(base, 'OC.generateUrl did not resolve the scholiq app base').toBeTruthy()
 	appBase = base.replace(/\/+$/, '')
@@ -141,7 +141,7 @@ function assertDeclarativeExcept(
  * @return void
  */
 async function assertRouteAnswers(page: Page): Promise<void> {
-	const resp = await page.request.get('/index.php/apps/scholiq/api/health', {
+	const resp = await page.request.get('/index.php/apps/learniq/api/health', {
 		headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 	})
 	const type = resp.headers()['content-type'] ?? ''
@@ -159,9 +159,9 @@ async function assertRouteAnswers(page: Page): Promise<void> {
  * `/{path}`, so EVERY path under the app answers **200 text/html** whether a
  * controller exists or not. Measured:
  *
- *   /apps/scholiq/api/health           -> 200 application/json   (real controller)
- *   /apps/scholiq/api/conference-round -> 200 text/html          (SPA catch-all)
- *   /apps/scholiq/api/zzz-not-a-thing  -> 200 text/html          (SPA catch-all)
+ *   /apps/learniq/api/health           -> 200 application/json   (real controller)
+ *   /apps/learniq/api/conference-round -> 200 text/html          (SPA catch-all)
+ *   /apps/learniq/api/zzz-not-a-thing  -> 200 text/html          (SPA catch-all)
  *
  * The discriminator is therefore the CONTENT TYPE, not the status. An earlier
  * revision of this helper asserted `404` and failed all six cases — an absence
@@ -188,8 +188,8 @@ async function assertRouteAnswers(page: Page): Promise<void> {
  */
 async function assertNoCrudController(page: Page, slugs: string[]): Promise<void> {
 	const paths = slugs.flatMap((slug) => [
-		`/index.php/apps/scholiq/api/${slug}`,
-		`/index.php/apps/scholiq/api/${slug}s`,
+		`/index.php/apps/learniq/api/${slug}`,
+		`/index.php/apps/learniq/api/${slug}s`,
 	])
 	const results = await Promise.all(
 		paths.map(async (path) => {
@@ -316,7 +316,7 @@ test.describe('declarative frontends with named custom views', () => {
 		const base = await resolveAppBase(page)
 
 		await page.goto(`${base}/exam-board/exemptions`)
-		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
+		await expect(page.locator('#learniq-app')).not.toBeEmpty({ timeout: 20_000 })
 		await expect(page.locator('.exam-case-dossier')).toHaveCount(0)
 
 		await assertRouteAnswers(page)
@@ -357,7 +357,7 @@ test.describe('declarative frontends with named custom views', () => {
 		const base = await resolveAppBase(page)
 
 		await page.goto(`${base}/report-periods`)
-		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
+		await expect(page.locator('#learniq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		await assertRouteAnswers(page)
 		await assertNoCrudController(page, ['report-period', 'report-card'])
@@ -374,7 +374,7 @@ test.describe('declarative frontends with named custom views', () => {
 		const base = await resolveAppBase(page)
 
 		await page.goto(`${base}/bpv/placements`)
-		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
+		await expect(page.locator('#learniq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		await assertRouteAnswers(page)
 		await assertNoCrudController(page, [

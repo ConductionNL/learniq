@@ -28,7 +28,7 @@
  * trigger" shape.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -46,7 +46,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
@@ -62,7 +62,7 @@ use Psr\Log\LoggerInterface;
  */
 class SupportRequestSubmitHandler implements IEventListener {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const SUPPORT_REQUEST_SCHEMA = 'support-request';
 	private const JOB_SCHEMA = 'data-exchange-job';
 	private const MAPPING_PROFILE_SCHEMA = 'data-mapping-profile';

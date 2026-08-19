@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Report Card Visibility Guard
+ * Learniq Report Card Visibility Guard
  *
  * Lifecycle guard for the ReportCard schema's `publishToParents` transition
  * (finalised -> published-to-parents). Re-resolves every contributing
@@ -24,10 +24,10 @@
  * before a state transition and cannot be expressed as a schema
  * declaration." Referenced from the ReportCard schema's
  * x-openregister-lifecycle.transitions.publishToParents.requires in
- * scholiq_register.json.
+ * learniq_register.json.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -45,7 +45,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
@@ -65,7 +65,7 @@ use Psr\Log\LoggerInterface;
  */
 class ReportCardVisibilityGuard {
 
-	private const SCHOLIQ_REGISTER = 'scholiq';
+	private const SCHOLIQ_REGISTER = 'learniq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 
 	/**

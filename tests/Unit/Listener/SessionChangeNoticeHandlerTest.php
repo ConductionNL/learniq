@@ -4,7 +4,7 @@
  * Scholiq SessionChangeNoticeHandler unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,13 +21,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Listener\SessionChangeNoticeHandler;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Listener\SessionChangeNoticeHandler;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -119,7 +119,7 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('session');
 		$event->method('getAction')->willReturn($action);
 
@@ -198,7 +198,7 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 		$this->wire([], []);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('cohort');
 		$event->method('getAction')->willReturn('activate');
 		$event->expects(self::never())->method('getObject');

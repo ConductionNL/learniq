@@ -6,7 +6,7 @@
  * Orchestrates course-package import: it sniffs the uploaded archive's format,
  * hands extraction/parsing and materialisation to the matching format importer
  * (`CommonCartridgeCourseImporter`, `MoodleCourseImporter` or
- * `ScholiqJsonCourseImporter`), and persists the resulting
+ * `LearniqJsonCourseImporter`), and persists the resulting
  * `CoursePackageImportReport` through `CoursePackageImportReporter`. Every
  * source-package resource — supported or not — produces exactly one report
  * entry; nothing is ever silently dropped (the structural anti-Canvas promise,
@@ -18,7 +18,7 @@
  * (design.md "Routing: scholiq, not openconnector").
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -35,13 +35,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
-use OCA\Scholiq\Service\CoursePackage\CommonCartridgeCourseImporter;
-use OCA\Scholiq\Service\CoursePackage\CoursePackageFileWriter;
-use OCA\Scholiq\Service\CoursePackage\CoursePackageImportReporter;
-use OCA\Scholiq\Service\CoursePackage\MoodleCourseImporter;
-use OCA\Scholiq\Service\CoursePackage\ScholiqJsonCourseImporter;
+use OCA\Learniq\Service\CoursePackage\CommonCartridgeCourseImporter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
+use OCA\Learniq\Service\CoursePackage\MoodleCourseImporter;
+use OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -59,7 +59,7 @@ class CoursePackageImportService {
 	 *
 	 * @param CommonCartridgeCourseImporter $ccImporter Common Cartridge extraction + materialisation.
 	 * @param MoodleCourseImporter $moodleImporter Moodle backup extraction + materialisation.
-	 * @param ScholiqJsonCourseImporter $jsonImporter Scholiq-native JSON round-trip import.
+	 * @param LearniqJsonCourseImporter $jsonImporter Scholiq-native JSON round-trip import.
 	 * @param CoursePackageFileWriter $fileWriter Temp-directory cleanup after every import.
 	 * @param CoursePackageImportReporter $reporter Builds and persists the import report.
 	 * @param LoggerInterface $logger PSR logger.
@@ -69,7 +69,7 @@ class CoursePackageImportService {
 	public function __construct(
 		private readonly CommonCartridgeCourseImporter $ccImporter,
 		private readonly MoodleCourseImporter $moodleImporter,
-		private readonly ScholiqJsonCourseImporter $jsonImporter,
+		private readonly LearniqJsonCourseImporter $jsonImporter,
 		private readonly CoursePackageFileWriter $fileWriter,
 		private readonly CoursePackageImportReporter $reporter,
 		private readonly LoggerInterface $logger,

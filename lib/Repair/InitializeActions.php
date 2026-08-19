@@ -1,17 +1,17 @@
 <?php
 
 /**
- * Scholiq Initialize Actions Repair Step (AppHost stub)
+ * Learniq Initialize Actions Repair Step (AppHost stub)
  *
  * One-line subclass of the OpenRegister AppHost {@see GenericInitializeActions}
- * (ADR-040). The class name must physically exist in Scholiq's namespace
+ * (ADR-040). The class name must physically exist in Learniq's namespace
  * because info.xml `<repair-steps>` loads it by class name. The generic seeds
  * the ADR-023 action-authorization matrix from `lib/actions.seed.json` on fresh
- * install if the matrix (IAppConfig `scholiq.actions`) is empty, preserving any
+ * install if the matrix (IAppConfig `learniq.actions`) is empty, preserving any
  * admin-customised matrix on upgrade.
  *
  * @category Repair
- * @package  OCA\Scholiq\Repair
+ * @package  OCA\Learniq\Repair
  *
  * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2024 Conduction B.V.
@@ -28,12 +28,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Repair;
+namespace OCA\Learniq\Repair;
 
 use OCA\OpenRegister\AppHost\Repair\GenericInitializeActions;
 
 /**
- * AppHost stub for Scholiq's ADR-023 action-matrix seed repair step.
+ * AppHost stub for Learniq's ADR-023 action-matrix seed repair step.
  */
 class InitializeActions extends GenericInitializeActions {
 }//end class

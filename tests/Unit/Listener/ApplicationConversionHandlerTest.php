@@ -4,7 +4,7 @@
  * Scholiq ApplicationConversionHandler unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,14 +21,14 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Listener\ApplicationConversionHandler;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Listener\ApplicationConversionHandler;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -139,7 +139,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('application');
 		$event->method('getTo')->willReturn('placed');
 		$event->method('getFrom')->willReturn('intake-completed');
@@ -258,7 +258,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 		$handler = $this->makeHandler(programme: null);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('subject-choice');
 		$event->method('getTo')->willReturn('placed');
 
@@ -278,7 +278,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 		$handler = $this->makeHandler(programme: null);
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('application');
 		$event->method('getTo')->willReturn('rejected');
 

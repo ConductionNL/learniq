@@ -22,7 +22,7 @@
 <template>
 	<div class="lrs-verify">
 		<p v-if="loading" class="lrs-verify__loading">
-			{{ t('scholiq', 'Verifying…') }}
+			{{ t('learniq', 'Verifying…') }}
 		</p>
 
 		<template v-else>
@@ -31,24 +31,24 @@
 				class="lrs-verify__result lrs-verify__result--valid"
 				role="status">
 				<h2 class="lrs-verify__heading">
-					{{ t('scholiq', 'Verified learning record') }}
+					{{ t('learniq', 'Verified learning record') }}
 				</h2>
 				<p class="lrs-verify__hint">
 					{{
 						t(
-							'scholiq',
+							'learniq',
 							'This bundle was signed by the issuing school and has not been tampered with.',
 						)
 					}}
 				</p>
 				<dl class="lrs-verify__bundle">
-					<dt>{{ t('scholiq', 'Issuer') }}</dt>
+					<dt>{{ t('learniq', 'Issuer') }}</dt>
 					<dd>{{ bundle.issuerDid }}</dd>
-					<dt>{{ t('scholiq', 'Generated at') }}</dt>
+					<dt>{{ t('learniq', 'Generated at') }}</dt>
 					<dd>{{ bundle.generatedAt }}</dd>
 				</dl>
 				<details class="lrs-verify__raw">
-					<summary>{{ t('scholiq', 'Full record content') }}</summary>
+					<summary>{{ t('learniq', 'Full record content') }}</summary>
 					<pre>{{ prettyBundle }}</pre>
 				</details>
 			</div>
@@ -58,7 +58,7 @@
 				class="lrs-verify__result lrs-verify__result--denied"
 				role="alert">
 				<h2 class="lrs-verify__heading">
-					{{ t('scholiq', 'This share could not be verified') }}
+					{{ t('learniq', 'This share could not be verified') }}
 				</h2>
 				<p>{{ deniedReasonLabel }}</p>
 			</div>
@@ -110,31 +110,31 @@ export default {
 		 */
 		deniedReasonLabel() {
 			const labels = {
-				not_found: this.t('scholiq', 'This link does not exist.'),
+				not_found: this.t('learniq', 'This link does not exist.'),
 				revoked: this.t(
-					'scholiq',
+					'learniq',
 					'This share has been revoked by the learner.',
 				),
 
-				expired: this.t('scholiq', 'This share has expired.'),
+				expired: this.t('learniq', 'This share has expired.'),
 				export_not_found: this.t(
-					'scholiq',
+					'learniq',
 					'The underlying record could not be found.',
 				),
 
 				bundle_unreadable: this.t(
-					'scholiq',
+					'learniq',
 					'The underlying record could not be read.',
 				),
 
 				signature_invalid: this.t(
-					'scholiq',
+					'learniq',
 					"This record's signature could not be verified — it may have been altered.",
 				),
 			}
 			return (
 				labels[this.reason]
-				?? this.t('scholiq', 'This link is no longer valid.')
+				?? this.t('learniq', 'This link is no longer valid.')
 			)
 		},
 	},
@@ -156,7 +156,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					`/apps/scholiq/api/learning-record-shares/${this.shareId}/verify`,
+					`/apps/learniq/api/learning-record-shares/${this.shareId}/verify`,
 				)
 				const resp = await fetch(url, {
 					headers: {

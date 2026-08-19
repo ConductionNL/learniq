@@ -42,7 +42,7 @@
  * OpenRegister, so the lookup does not add a query per event.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -57,7 +57,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -74,7 +74,7 @@ class ListenerSchemaResolver {
 	 *
 	 * @var string
 	 */
-	public const REGISTER_SLUG = 'scholiq';
+	public const REGISTER_SLUG = 'learniq';
 
 	/**
 	 * FQCN of OpenRegister's schema mapper.

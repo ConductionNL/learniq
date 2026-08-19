@@ -4,7 +4,7 @@
  * Scholiq PointAwardTriggerHandler unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -22,16 +22,16 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use DateTime;
 use DateTimeZone;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Grading\GradeFormulaEvaluator;
-use OCA\Scholiq\Listener\PointAwardTriggerHandler;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Grading\GradeFormulaEvaluator;
+use OCA\Learniq\Listener\PointAwardTriggerHandler;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -153,7 +153,7 @@ class PointAwardTriggerHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
-		$event->method('getRegister')->willReturn('scholiq');
+		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn($schema);
 		$event->method('getTo')->willReturn($to);
 
@@ -370,7 +370,7 @@ class PointAwardTriggerHandlerTest extends TestCase {
 	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-no-pointrule-kind-exists-for-peer-review
 	 */
 	public function testNoPeerReviewKindExistsInRegister(): void {
-		$registerPath = dirname(__DIR__, 3) . '/lib/Settings/scholiq_register.json';
+		$registerPath = dirname(__DIR__, 3) . '/lib/Settings/learniq_register.json';
 		$register = json_decode((string)file_get_contents($registerPath), true);
 
 		$enum = $register['components']['schemas']['PointRule']['properties']['kind']['enum'] ?? [];

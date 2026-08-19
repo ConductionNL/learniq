@@ -4,7 +4,7 @@
  * Scholiq MoodleQuizQuestionMapper unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,9 +21,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Scholiq\Service\MoodleQuizQuestionMapper;
+use OCA\Learniq\Service\MoodleQuizQuestionMapper;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -41,7 +41,7 @@ class MoodleQuizQuestionMapperTest extends TestCase {
 	 */
 	public static function setUpBeforeClass(): void {
 		$mbzExtractPath = sys_get_temp_dir() . '/scholiq_test_quizmap_' . bin2hex(random_bytes(6));
-		(new \OCA\Scholiq\Service\MbzExtractor())->extract(
+		(new \OCA\Learniq\Service\MbzExtractor())->extract(
 			__DIR__ . '/../../fixtures/course-packages/minimal-moodle.mbz',
 			$mbzExtractPath
 		);

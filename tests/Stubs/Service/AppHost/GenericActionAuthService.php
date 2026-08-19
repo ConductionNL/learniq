@@ -20,7 +20,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Stubs\Service\AppHost
+ * @package  OCA\Learniq\Tests\Stubs\Service\AppHost
  */
 
 declare(strict_types=1);
