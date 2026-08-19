@@ -5,21 +5,21 @@ declare(strict_types=1);
 
 /*
  * AppHost adoption (ADR-040): the preferences, health and metrics controllers
- * are the OpenRegister AppHost generics, aliased onto Scholiq's conventional
+ * are the OpenRegister AppHost generics, aliased onto Learniq's conventional
  * controller class names in lib/AppInfo/Application.php via
  * \OCA\OpenRegister\AppHost\Bootstrap::register(). The route entries below keep
- * Scholiq's URLs and route names so info.xml navigation + frontend
+ * Learniq's URLs and route names so info.xml navigation + frontend
  * `generateUrl` calls are unchanged; only those controller bodies are engine-owned.
  *
  * Settings is NOT one of them. Bootstrap::aliasControllerUnlessLeafDefinesIt()
  * registers the DI alias only when the leaf app does NOT ship a controller of
- * that name, and Scholiq ships lib/Controller/SettingsController.php — so
- * `settings#*` dispatches to Scholiq's own bespoke controller and the generic
+ * that name, and Learniq ships lib/Controller/SettingsController.php — so
+ * `settings#*` dispatches to Learniq's own bespoke controller and the generic
  * is never constructed. (An earlier revision of this comment claimed the
  * opposite; that claim is what let `settings#update` stay unrouted unnoticed.)
  * The same holds for the domain controllers and for PageController below.
  *
- * Routes::standard() is intentionally NOT used for the SPA shell: Scholiq's
+ * Routes::standard() is intentionally NOT used for the SPA shell: Learniq's
  * `page#index`/`page#catchAll` keep pointing at the bespoke PageController,
  * which provides role-aware dashboard initial-state (primaryRole / dashboardRole
  * / dashboardRoles) that the generic GenericDashboardController does not — this
@@ -116,9 +116,9 @@ return [
         // Metrics#index → GenericMetricsController (admin-only Prometheus text).
         ['name' => 'metrics#index', 'url' => '/api/metrics', 'verb' => 'GET'],
 
-        // Settings (admin-only) — Scholiq's OWN bespoke SettingsController, NOT
+        // Settings (admin-only) — Learniq's OWN bespoke SettingsController, NOT
         // the AppHost generic: Bootstrap::aliasControllerUnlessLeafDefinesIt()
-        // skips the alias whenever the leaf ships the class, and Scholiq ships
+        // skips the alias whenever the leaf ships the class, and Learniq ships
         // lib/Controller/SettingsController.php. This is deliberate (see the
         // apphost-adoption spec: the register-import path calls OpenRegister
         // ConfigurationService::importFromApp(appId, data, version, force), a
@@ -148,7 +148,7 @@ return [
         ['name' => 'leaderboard#getRankings', 'url' => '/api/leaderboard/{cohortId}', 'verb' => 'GET'],
 
         // AI processing disclosure — read-only composition of Hermiq's
-        // agentaifeature register, Scholiq's scholiq-ai-features AVG carrier,
+        // agentaifeature register, Learniq's scholiq-ai-features AVG carrier,
         // and the AiLocalityClassifier/SovereigntyPolicyService verdict for
         // the currently active provider (sovereign-ai-guarantee).
         // Controller: AiProcessingDisclosureController (slug: aiProcessingDisclosure).

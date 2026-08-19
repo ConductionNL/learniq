@@ -89,8 +89,8 @@ export default defineConfig({
 		// dirty in `git diff --name-only`.
 		//
 		// Gate it on an env var so the documented behaviour is the real behaviour:
-		//   SCHOLIQ_DOCS_CAPTURE=1 npx playwright test --project docs-capture
-		...(process.env.SCHOLIQ_DOCS_CAPTURE
+		//   LEARNIQ_DOCS_CAPTURE=1 npx playwright test --project docs-capture
+		...(process.env.LEARNIQ_DOCS_CAPTURE
 			? [
 					{
 						name: 'docs-capture',
