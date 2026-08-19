@@ -32,6 +32,8 @@ namespace OCA\Scholiq\Tests\Integration\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Lifecycle\XapiCompletionHandler;
+use OCA\Scholiq\Listener\DeferredWorkGuard;
+use OCA\Scholiq\Tests\Unit\Listener\RecordingDeferralService;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -53,6 +55,36 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 
 	/** @var XapiCompletionHandler|null */
 	private ?XapiCompletionHandler $handler = null;
+
+	/**
+	 * Recorder standing in for OpenRegister's ListenerDeferralService.
+	 *
+	 * @var RecordingDeferralService|null
+	 */
+	private ?RecordingDeferralService $deferral = null;
+
+	/**
+	 * Hand the event to the listener, then run whatever it queued.
+	 *
+	 * ADR-078 moved the transition off the write path, so `handle()` alone no
+	 * longer produces the effect these tests assert — the deferred entry does.
+	 * Draining here keeps every assertion below about BEHAVIOUR rather than
+	 * about which method happens to contain it.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 */
+	private function handleAndRunDeferred(Event $event): void {
+		DeferredWorkGuard::reset();
+		$this->deferral->entries = [];
+		$this->handler->handle($event);
+
+		foreach ($this->deferral->entries as $entry) {
+			$this->handler->runDeferredWork($entry);
+		}
+
+	}//end handleAndRunDeferred()
 
 	/** Cleanup: UUIDs of objects created by this test run. */
 	private array $createdUuids = [];
@@ -86,10 +118,18 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 			// container is what turns one into the other in production.
 			$schemaResolver = \OC::$server->get(\OCA\Scholiq\Service\ListenerSchemaResolver::class);
 
+			// ADR-078: the handler now queues onto DeferredObjectListenerJob
+			// instead of transitioning inline. The real deferral service would
+			// enqueue a job row this test cannot drain, so it gets the
+			// recording double and the test drives runDeferredWork() through
+			// the entry the handler produced.
+			$this->deferral = new RecordingDeferralService();
+
 			$this->handler = new XapiCompletionHandler(
 				$this->objectService,
 				$transitionEngine,
 				$schemaResolver,
+				$this->deferral,
 				new NullLogger(),
 			);
 		} catch (\Throwable $e) {
@@ -251,7 +291,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 		];
 
 		$event = $this->makeXapiEvent($xapiStatement);
-		$this->handler->handle($event);
+		$this->handleAndRunDeferred($event);
 
 		// ── Assertions ─────────────────────────────────────────────────
 		// The Enrolment should now be in `completed` state.
@@ -323,7 +363,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 			]
 		);
 
-		$this->handler->handle($event);
+		$this->handleAndRunDeferred($event);
 
 		$still = $this->objectService->get(register: 'scholiq', schema: 'Enrolment', uuid: $enrolment['uuid']);
 		$this->assertSame('active', $still['lifecycle'] ?? null, 'Enrolment should remain active after non-mandatory lesson completion.');
@@ -362,7 +402,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 			]
 		);
 
-		$this->handler->handle($event);
+		$this->handleAndRunDeferred($event);
 
 		$still = $this->objectService->get(register: 'scholiq', schema: 'Enrolment', uuid: $enrolment['uuid']);
 		$this->assertSame('active', $still['lifecycle'] ?? null, 'Enrolment should remain active for non-completion verbs.');

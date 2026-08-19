@@ -108,3 +108,15 @@ if (interface_exists(\OCA\OpenRegister\Mcp\IMcpToolProvider::class) === false) {
 if (interface_exists(\OC\Hooks\Emitter::class) === false) {
 	require_once __DIR__ . '/Stubs/Hooks/Emitter.php';
 }
+
+// ADR-078 deferral test helpers. The `OCA\Scholiq\Tests\` namespace has no
+// PSR-4 mapping and PHPUnit only auto-loads files whose name ends in
+// `Test.php`, so these two collaborators have to be required explicitly —
+// same reason as the Support/ doubles.
+if (file_exists(__DIR__ . '/Unit/Listener/RecordingDeferralService.php') === true) {
+	require_once __DIR__ . '/Unit/Listener/RecordingDeferralService.php';
+}
+
+if (file_exists(__DIR__ . '/Unit/Listener/DeferredJobDrain.php') === true) {
+	require_once __DIR__ . '/Unit/Listener/DeferredJobDrain.php';
+}

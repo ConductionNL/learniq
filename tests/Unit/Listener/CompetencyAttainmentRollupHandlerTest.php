@@ -28,7 +28,9 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\BackgroundJob\DeferredObjectListenerJob;
 use OCA\Scholiq\Listener\CompetencyAttainmentRollupHandler;
+use OCA\Scholiq\Listener\DeferredWorkGuard;
 use OCA\Scholiq\Service\CompetencyAttainmentWriter;
 use OCA\Scholiq\Service\CompetencyLevelResolver;
 use OCA\Scholiq\Service\GradeEvidenceRollup;
@@ -71,6 +73,13 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 	private ListenerSchemaResolver&MockObject $schemaResolver;
 
 	/**
+	 * Recorder standing in for OpenRegister's ListenerDeferralService.
+	 *
+	 * @var RecordingDeferralService
+	 */
+	private RecordingDeferralService $deferral;
+
+	/**
 	 * Reset fixtures before each test.
 	 *
 	 * @return void
@@ -80,8 +89,38 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 		$this->db = [];
 		$this->savedObjects = [];
 		$this->schemaResolver = $this->createMock(ListenerSchemaResolver::class);
+		$this->deferral = new RecordingDeferralService();
+		DeferredWorkGuard::reset();
 
 	}//end setUp()
+
+	/**
+	 * Drop any guard claim a failing test may have leaked.
+	 *
+	 * @return void
+	 */
+	protected function tearDown(): void {
+		DeferredWorkGuard::reset();
+		parent::tearDown();
+
+	}//end tearDown()
+
+	/**
+	 * Handle an event and then run whatever it queued, through the real job.
+	 *
+	 * Transition events do no queueing, so this is a no-op drain for them —
+	 * only the ObjectCreatedEvent half of this listener is deferred.
+	 *
+	 * @param CompetencyAttainmentRollupHandler $handler The handler under test.
+	 * @param object $event The event to hand it.
+	 *
+	 * @return void
+	 */
+	private function handleAndDrain(CompetencyAttainmentRollupHandler $handler, object $event): void {
+		$handler->handle($event);
+		DeferredJobDrain::run(test: $this, deferral: $this->deferral, listener: $handler);
+
+	}//end handleAndDrain()
 
 	/**
 	 * Stub the resolver the way OpenRegister behaves in production: the entity
@@ -134,6 +173,20 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 			}
 		);
 
+		// The deferred pass re-reads the assessment by uuid; an unknown uuid is
+		// a stale entry and must resolve to null, not to a fixture.
+		$objectService->method('find')->willReturnCallback(
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+				foreach (($this->db[(string)$schema] ?? []) as $record) {
+					if (($record['id'] ?? null) === $id) {
+						return OrEntityFactory::make($record, (string)$schema, 'scholiq', (string)$id);
+					}
+				}
+
+				return null;
+			}
+		);
+
 		$objectService->method('saveObject')->willReturnCallback(
 			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
 				$register = (string)$register;
@@ -175,7 +228,8 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 			$reader,
 			$writer,
 			$levelResolver,
-			new GradeEvidenceRollup($reader, $writer)
+			new GradeEvidenceRollup($reader, $writer),
+			$this->deferral
 		);
 
 	}//end makeHandler()
@@ -192,6 +246,24 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 		$this->db[$schema][] = $record;
 
 	}//end seed()
+
+	/**
+	 * Whether a record with this id is already in the fake datastore.
+	 *
+	 * @param string $schema Schema slug.
+	 * @param string $id Record id.
+	 *
+	 * @return bool
+	 */
+	private function findSeeded(string $schema, string $id): bool {
+		foreach (($this->db[$schema] ?? []) as $record) {
+			if ((string)($record['id'] ?? '') === $id) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end findSeeded()
 
 	/**
 	 * Build a mocked ObjectTransitionedEvent.
@@ -225,7 +297,13 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 	 * @return ObjectCreatedEvent
 	 */
 	private function makeCreatedEvent(string $schema, array $data): ObjectCreatedEvent {
-		$objectEntity = OrEntityFactory::make($data, '1280', '9');
+		$uuid = (string)($data['id'] ?? 'created-1');
+		$objectEntity = OrEntityFactory::make($data, '1280', '9', $uuid);
+		// Seed it so the deferred pass can re-read it, unless the test already did.
+		if ($this->findSeeded($schema, $uuid) === false) {
+			$this->seed($schema, $data);
+		}
+
 		$this->stubResolver($schema);
 
 		// NOTE: OR's real ObjectCreatedEvent exposes only getObject() — it has no
@@ -579,7 +657,7 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 			'tenant_id' => 'tenant-a',
 		];
 
-		$handler->handle($this->makeCreatedEvent('werkproces-assessment', $assessment));
+		$this->handleAndDrain($handler, $this->makeCreatedEvent('werkproces-assessment', $assessment));
 
 		$saved = $this->savedFor('werkproces-assessment');
 		$this->assertCount(1, $saved);
@@ -611,7 +689,7 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 			'tenant_id' => 'tenant-a',
 		];
 
-		$handler->handle($this->makeCreatedEvent('werkproces-assessment', $assessment));
+		$this->handleAndDrain($handler, $this->makeCreatedEvent('werkproces-assessment', $assessment));
 
 		$this->assertCount(0, $this->savedFor('werkproces-assessment'));
 
@@ -639,7 +717,7 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 	public function testIgnoresUnrelatedCreatedEvents(): void {
 		$handler = $this->makeHandler();
 
-		$handler->handle($this->makeCreatedEvent('lesson', ['id' => 'x']));
+		$this->handleAndDrain($handler, $this->makeCreatedEvent('lesson', ['id' => 'x']));
 
 		$this->assertCount(0, $this->savedObjects);
 

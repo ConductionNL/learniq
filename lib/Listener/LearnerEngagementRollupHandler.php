@@ -44,7 +44,9 @@ namespace OCA\Scholiq\Listener;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\BackgroundJob\DeferredObjectListenerJob;
 use OCA\Scholiq\Engagement\PointEngagementEvaluator;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -55,10 +57,20 @@ use OCP\EventDispatcher\IEventListener;
  * Recomputes LearnerEngagement and awards streak-milestone bonuses when a
  * PointAward is created.
  *
+ * ADR-078: `ObjectCreatedEvent` is a POST event, so the roll-up and the
+ * milestone scan are queued onto {@see DeferredObjectListenerJob} under the
+ * acting user rather than run inside the award write.
+ *
+ * ⚠️ THE MILESTONE BONUS IS A CHAIN THE GUARD MUST NOT CUT. A bonus award is a
+ * NEW PointAward with a different uuid, so it legitimately rolls up in its own
+ * right; {@see DeferredWorkGuard} is keyed on `(handler, uuid)` precisely so
+ * that stays possible, while the existing `sourceKind` check is what terminates
+ * the chain after one bonus.
+ *
  * @implements IEventListener<Event>
  * @spec       openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
  */
-class LearnerEngagementRollupHandler implements IEventListener {
+class LearnerEngagementRollupHandler implements IEventListener, DeferredObjectWork {
 
 	private const SCHOLIQ_REGISTER = 'scholiq';
 	private const POINT_AWARD_SCHEMA = 'point-award';
@@ -67,12 +79,20 @@ class LearnerEngagementRollupHandler implements IEventListener {
 	private const STREAK_MILESTONE_KIND = 'streak-milestone';
 
 	/**
+	 * Identifies this listener's entries in the deferral job.
+	 *
+	 * @var string
+	 */
+	public const HANDLER_KEY = 'learner-engagement-rollup';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param PointEngagementEvaluator $evaluator Totals/level/streak calculation engine.
 	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 * @param ListenerDeferralService $deferral The actor-forwarding deferral service.
 	 *
 	 * @return void
 	 */
@@ -81,11 +101,14 @@ class LearnerEngagementRollupHandler implements IEventListener {
 		private readonly PointEngagementEvaluator $evaluator,
 		private readonly ListenerSchemaResolver $schemaResolver,
 		private readonly ITimeFactory $timeFactory,
+		private readonly ListenerDeferralService $deferral,
 	) {
 	}//end __construct()
 
 	/**
 	 * Handle an ObjectCreatedEvent.
+	 *
+	 * Does no work: filters to the PointAward schema and queues the roll-up.
 	 *
 	 * @param Event $event The dispatched event.
 	 *
@@ -106,7 +129,45 @@ class LearnerEngagementRollupHandler implements IEventListener {
 			return;
 		}
 
-		$award = $objectEntity->jsonSerialize();
+		$uuid = (string)$objectEntity->getUuid();
+		if ($uuid === '') {
+			return;
+		}
+
+		if (DeferredWorkGuard::isRunning(key: DeferredWorkGuard::key(handler: self::HANDLER_KEY, uuid: $uuid)) === true) {
+			return;
+		}
+
+		$this->deferral->defer(
+			jobClass: DeferredObjectListenerJob::class,
+			entry: [
+				'handler' => self::HANDLER_KEY,
+				'uuid' => $uuid,
+			],
+			dedupeKey: self::HANDLER_KEY . '|' . $uuid
+		);
+
+	}//end handle()
+
+	/**
+	 * Recompute totals/level/streak and check milestones, against CURRENT state.
+	 *
+	 * Re-reads the PointAward rather than trusting the dispatch-time payload:
+	 * delivery is at-least-once and the award may have been removed since
+	 * (ADR-078 Rule 7).
+	 *
+	 * @param array<string, mixed> $entry The entry captured at dispatch time.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
+	 */
+	public function runDeferredWork(array $entry): void {
+		$award = $this->readAward(uuid: (string)($entry['uuid'] ?? ''));
+		if ($award === null) {
+			return;
+		}
+
 		$learnerId = $award['learnerId'] ?? '';
 		$tenantId = $award['tenant_id'] ?? '';
 		$sourceKind = $award['sourceKind'] ?? '';
@@ -153,7 +214,32 @@ class LearnerEngagementRollupHandler implements IEventListener {
 			newStreak: $result['currentStreakDays']
 		);
 
-	}//end handle()
+	}//end runDeferredWork()
+
+	/**
+	 * Re-read the PointAward the entry refers to.
+	 *
+	 * @param string $uuid The PointAward UUID.
+	 *
+	 * @return array<string, mixed>|null The current data, or null when it is gone.
+	 */
+	private function readAward(string $uuid): ?array {
+		if ($uuid === '') {
+			return null;
+		}
+
+		$object = $this->objectService->find(
+			id: $uuid,
+			register: self::SCHOLIQ_REGISTER,
+			schema: self::POINT_AWARD_SCHEMA
+		);
+
+		if ($object === null) {
+			return null;
+		}
+
+		return $object->jsonSerialize();
+	}//end readAward()
 
 	/**
 	 * Find the learner's existing LearnerEngagement row, if any.

@@ -28,7 +28,9 @@ use DateTimeZone;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\BackgroundJob\DeferredObjectListenerJob;
 use OCA\Scholiq\Engagement\PointEngagementEvaluator;
+use OCA\Scholiq\Listener\DeferredWorkGuard;
 use OCA\Scholiq\Listener\LearnerEngagementRollupHandler;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCA\Scholiq\Tests\Support\OrEntityFactory;
@@ -37,7 +39,12 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests for LearnerEngagementRollupHandler::handle().
+ * Tests for LearnerEngagementRollupHandler.
+ *
+ * ADR-078: `handle()` only queues; the roll-up and the streak-milestone scan
+ * run in {@see DeferredObjectListenerJob}. Every behavioural test handles the
+ * event AND drains through the real job, so the re-entrancy guard is held
+ * exactly as it is in production.
  */
 class LearnerEngagementRollupHandlerTest extends TestCase {
 
@@ -54,6 +61,20 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 	 * @var array<string,mixed>|null
 	 */
 	private ?array $existingEngagement = null;
+
+	/**
+	 * PointAward rows the deferred pass can re-read, keyed by uuid.
+	 *
+	 * @var array<string, array<string, mixed>>
+	 */
+	private array $awards = [];
+
+	/**
+	 * Recorder standing in for OpenRegister's ListenerDeferralService.
+	 *
+	 * @var RecordingDeferralService
+	 */
+	private RecordingDeferralService $deferral;
 
 	/**
 	 * Active streak-milestone PointRule rows to return from findAll().
@@ -93,6 +114,9 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 		$this->savedObjects = [];
 		$this->existingEngagement = null;
 		$this->streakRules = [];
+		$this->awards = [];
+		$this->deferral = new RecordingDeferralService();
+		DeferredWorkGuard::reset();
 		$this->evaluatorResult = [
 			'totalPoints' => 0.0,
 			'levelId' => null,
@@ -102,6 +126,31 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 		];
 
 	}//end setUp()
+
+	/**
+	 * Drop any guard claim a failing test may have leaked.
+	 *
+	 * @return void
+	 */
+	protected function tearDown(): void {
+		DeferredWorkGuard::reset();
+		parent::tearDown();
+
+	}//end tearDown()
+
+	/**
+	 * Handle an event and then run whatever it queued, through the real job.
+	 *
+	 * @param LearnerEngagementRollupHandler $handler The handler under test.
+	 * @param ObjectCreatedEvent $event The event to hand it.
+	 *
+	 * @return void
+	 */
+	private function handleAndDrain(LearnerEngagementRollupHandler $handler, ObjectCreatedEvent $event): void {
+		$handler->handle($event);
+		DeferredJobDrain::run(test: $this, deferral: $this->deferral, listener: $handler);
+
+	}//end handleAndDrain()
 
 	/**
 	 * Stub the resolver the way OpenRegister behaves in production: the entity
@@ -141,6 +190,19 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 			}
 		);
 
+		// The deferred pass re-reads the PointAward by uuid; an unknown uuid is
+		// a stale entry and must resolve to null, not to a fixture.
+		$objectService->method('find')->willReturnCallback(
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+				$row = ($this->awards[(string)$id] ?? null);
+				if ($row === null) {
+					return null;
+				}
+
+				return OrEntityFactory::make($row, (string)$schema, (string)$register, (string)$id);
+			}
+		);
+
 		$objectService->method('saveObject')->willReturnCallback(
 			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
@@ -159,18 +221,21 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 		$timeFactory = $this->createMock(ITimeFactory::class);
 		$timeFactory->method('getDateTime')->willReturn($now);
 
-		return new LearnerEngagementRollupHandler($objectService, $evaluator, $this->schemaResolver, $timeFactory);
+		return new LearnerEngagementRollupHandler($objectService, $evaluator, $this->schemaResolver, $timeFactory, $this->deferral);
 	}//end makeHandler()
 
 	/**
-	 * Build a mocked ObjectCreatedEvent for a PointAward.
+	 * Build a mocked ObjectCreatedEvent for a PointAward and make its payload
+	 * readable to the deferred pass.
 	 *
 	 * @param array<string, mixed> $data The PointAward's jsonSerialize() payload.
+	 * @param string $uuid The PointAward uuid.
 	 *
 	 * @return ObjectCreatedEvent
 	 */
-	private function makeEvent(array $data): ObjectCreatedEvent {
-		$objectEntity = OrEntityFactory::make($data, '1280', '9');
+	private function makeEvent(array $data, string $uuid = 'award-1'): ObjectCreatedEvent {
+		$objectEntity = OrEntityFactory::make($data, '1280', '9', $uuid);
+		$this->awards[$uuid] = $data;
 		$this->stubResolver('point-award');
 
 		$event = $this->createMock(ObjectCreatedEvent::class);
@@ -211,7 +276,7 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 		$handler = $this->makeHandler(now: $now);
 
 		$award = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'sourceKind' => 'enrolment'];
-		$handler->handle($this->makeEvent($award));
+		$this->handleAndDrain($handler, $this->makeEvent($award));
 
 		$saves = $this->savesFor('learner-engagement');
 		self::assertCount(1, $saves);
@@ -247,7 +312,7 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 		$handler = $this->makeHandler(now: $now);
 
 		$award = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'sourceKind' => 'submission'];
-		$handler->handle($this->makeEvent($award));
+		$this->handleAndDrain($handler, $this->makeEvent($award));
 
 		$bonusSaves = $this->savesFor('point-award');
 		self::assertCount(1, $bonusSaves);
@@ -285,7 +350,7 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 
 		// This event's OWN sourceKind is streak-milestone -- the recursion guard.
 		$award = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'sourceKind' => 'streak-milestone'];
-		$handler->handle($this->makeEvent($award));
+		$this->handleAndDrain($handler, $this->makeEvent($award));
 
 		self::assertCount(0, $this->savesFor('point-award'));
 		self::assertCount(1, $this->savesFor('learner-engagement'));
@@ -315,7 +380,7 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 		$handler = $this->makeHandler(now: $now);
 
 		$award = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'sourceKind' => 'grade-entry'];
-		$handler->handle($this->makeEvent($award));
+		$this->handleAndDrain($handler, $this->makeEvent($award));
 
 		self::assertCount(0, $this->savesFor('point-award'));
 

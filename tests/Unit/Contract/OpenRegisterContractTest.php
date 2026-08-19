@@ -23,9 +23,12 @@ declare(strict_types=1);
 
 namespace OCA\Scholiq\Tests\Unit\Contract;
 
+use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
@@ -284,6 +287,55 @@ final class OpenRegisterContractTest extends TestCase {
 		);
 
 	}//end testBothProbesSeeTheConcreteAccessors()
+
+	/**
+	 * ADR-078 deferral contract: the three OpenRegister types the converted
+	 * post-event listeners and their job are written against.
+	 *
+	 * These have the same two-implementations problem as ObjectService above,
+	 * and one sharper failure mode: `ActorForwardedJob` is an ABSTRACT base
+	 * this app extends, so a constructor-signature drift is not a wrong value
+	 * at run time — it is a fatal at class load, in cron, where nobody is
+	 * looking. `defer()`'s parameter NAMES matter for the same reason
+	 * `find()`'s do: every call site here passes them by name.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/event-listener-work-placement/spec.md#requirement-deferred-post-event-work-runs-in-one-actor-forwarded-job
+	 */
+	public function testTheDeferralContractIsUnchanged(): void {
+		$this->assertParameterNames(
+			new ReflectionMethod(ListenerDeferralService::class, 'defer'),
+			['jobClass', 'entry', 'chunkSize', 'dedupeKey']
+		);
+		$this->assertReturnTypeIs(new ReflectionMethod(ListenerDeferralService::class, 'defer'), 'void');
+
+		$this->assertParameterNames(
+			new ReflectionMethod(ActorForwardedJob::class, '__construct'),
+			['time', 'userSession', 'userManager', 'organisation', 'logger']
+		);
+
+		$runDeferred = new ReflectionMethod(ActorForwardedJob::class, 'runDeferred');
+		$this->assertTrue(
+			$runDeferred->isAbstract(),
+			'runDeferred() must stay the abstract hook DeferredObjectListenerJob implements.'
+		);
+		$this->assertTrue(
+			$runDeferred->isProtected(),
+			'runDeferred() is protected; a visibility change would make our override a fatal.'
+		);
+
+		$context = new ReflectionClass(DeferredListenerContext::class);
+		foreach (['getUserId', 'getOrganisationUuid', 'getEntries', 'toJobArguments', 'fromJobArguments'] as $method) {
+			$this->assertTrue(
+				$context->hasMethod($method),
+				'DeferredListenerContext::' . $method . '() is used by the job or its tests.'
+			);
+		}
+
+		$this->assertReturnTypeIs(new ReflectionMethod(DeferredListenerContext::class, 'getEntries'), 'array');
+
+	}//end testTheDeferralContractIsUnchanged()
 
 	/**
 	 * Assert a method's parameters are named exactly as expected, in order.

@@ -11,7 +11,19 @@
         <exclude name="StaticAccess"/>
     </rule>
 
-    <!-- StaticAccess: one exception, and only one.
+    <!-- StaticAccess: two exceptions, and only two.
+
+         `\OCA\Scholiq\Listener\DeferredWorkGuard` (ADR-078, gate-61) is static
+         BECAUSE injecting it would break it. Nextcloud resolves a listener from
+         the container per dispatch, so the re-entrant dispatch raised by a
+         deferred pass's own `saveObject()` is not guaranteed to reach the same
+         listener instance — an injected, per-instance claim would simply not be
+         visible to the re-entrant call, and the listener would enqueue another
+         job whose write re-enters again. `cron.php` runs one job per web call,
+         so that is not a wasted cycle, it is a starved queue. The class is a
+         final, five-method process-local claim register with no state to inject
+         and no alternative implementation; the process context is torn down per
+         request and per cron job, so nothing leaks between them.
 
          `\OCA\OpenRegister\AppHost\Bootstrap` exposes exactly ONE public member,
          `public static function register()`; its other seven methods are all
@@ -31,7 +43,7 @@
          place, a probe using a DIFFERENT static call is still reported. -->
     <rule ref="rulesets/cleancode.xml/StaticAccess">
         <properties>
-            <property name="exceptions" value="\OCA\OpenRegister\AppHost\Bootstrap"/>
+            <property name="exceptions" value="\OCA\OpenRegister\AppHost\Bootstrap,\OCA\Scholiq\Listener\DeferredWorkGuard"/>
         </properties>
     </rule>
 </ruleset>

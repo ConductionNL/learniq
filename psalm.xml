@@ -103,6 +103,15 @@
                 <referencedClass name="OCA\OpenRegister\Db\AuditTrailMapper"/>
                 <referencedClass name="OCA\OpenRegister\Service\AuditHashService"/>
                 <referencedClass name="OCA\OpenRegister\AppHost\Service\GenericActionAuthService"/>
+                <!-- ADR-078 actor-forwarded deferral contract (gate-61). The six
+                     converted post-event listeners hand their work to
+                     DeferredObjectListenerJob through ListenerDeferralService instead
+                     of running it inside the learner's write; all four types live in
+                     OpenRegister and resolve at runtime, exactly like ObjectService. -->
+                <referencedClass name="OCA\OpenRegister\Service\Deferral\ListenerDeferralService"/>
+                <referencedClass name="OCA\OpenRegister\Service\Deferral\DeferredListenerContext"/>
+                <referencedClass name="OCA\OpenRegister\Service\OrganisationService"/>
+                <referencedClass name="OCA\OpenRegister\BackgroundJob\ActorForwardedJob"/>
                 <!-- Additional OCP infrastructure types used across the fleet -->
                 <referencedClass name="OCP\AppFramework\Bootstrap\IBootContext"/>
                 <referencedClass name="OCP\AppFramework\Bootstrap\IRegistrationContext"/>

@@ -30,6 +30,8 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Analytics\EngagementScoreEvaluator;
+use OCA\Scholiq\BackgroundJob\DeferredObjectListenerJob;
+use OCA\Scholiq\Listener\DeferredWorkGuard;
 use OCA\Scholiq\Listener\EngagementSignalHandler;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCA\Scholiq\Tests\Support\OrEntityFactory;
@@ -38,7 +40,13 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests for EngagementSignalHandler::handle() on ObjectCreatedEvent<XapiStatement>.
+ * Tests for EngagementSignalHandler on ObjectCreatedEvent<XapiStatement>.
+ *
+ * ADR-078: `handle()` only queues; the score recompute and threshold scan run
+ * in {@see DeferredObjectListenerJob}. Every behavioural test handles the event
+ * AND drains through the real job — a test that called `runDeferredWork()`
+ * directly would run with the re-entrancy guard NOT held, which is the one
+ * condition production never has.
  */
 class EngagementSignalHandlerTest extends TestCase {
 
@@ -66,6 +74,13 @@ class EngagementSignalHandlerTest extends TestCase {
 	private ListenerSchemaResolver&MockObject $schemaResolver;
 
 	/**
+	 * Recorder standing in for OpenRegister's ListenerDeferralService.
+	 *
+	 * @var RecordingDeferralService
+	 */
+	private RecordingDeferralService $deferral;
+
+	/**
 	 * Reset fixtures before each test.
 	 *
 	 * @return void
@@ -75,8 +90,35 @@ class EngagementSignalHandlerTest extends TestCase {
 		$this->db = [];
 		$this->savedObjects = [];
 		$this->schemaResolver = $this->createMock(ListenerSchemaResolver::class);
+		$this->deferral = new RecordingDeferralService();
+		DeferredWorkGuard::reset();
 
 	}//end setUp()
+
+	/**
+	 * Drop any guard claim a failing test may have leaked.
+	 *
+	 * @return void
+	 */
+	protected function tearDown(): void {
+		DeferredWorkGuard::reset();
+		parent::tearDown();
+
+	}//end tearDown()
+
+	/**
+	 * Handle an event and then run whatever it queued, through the real job.
+	 *
+	 * @param EngagementSignalHandler $handler The handler under test.
+	 * @param ObjectCreatedEvent $event The event to hand it.
+	 *
+	 * @return void
+	 */
+	private function handleAndDrain(EngagementSignalHandler $handler, ObjectCreatedEvent $event): void {
+		$handler->handle($event);
+		DeferredJobDrain::run(test: $this, deferral: $this->deferral, listener: $handler);
+
+	}//end handleAndDrain()
 
 	/**
 	 * Stub the resolver the way OpenRegister behaves in production: the entity
@@ -106,11 +148,11 @@ class EngagementSignalHandlerTest extends TestCase {
 
 		$objectService->method('find')->willReturnCallback(
 			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
-				if ($schema === 'cohort') {
-					foreach (($this->db['cohort'] ?? []) as $cohort) {
-						if (($cohort['id'] ?? null) === $id) {
-							return OrEntityFactory::make($cohort, 'cohort');
-						}
+				// The deferred pass re-reads the statement by uuid; the
+				// cohort lookup is the pre-existing membership check.
+				foreach (($this->db[(string)$schema] ?? []) as $record) {
+					if (($record['id'] ?? null) === $id) {
+						return OrEntityFactory::make($record, (string)$schema, 'scholiq', (string)$id);
 					}
 				}
 
@@ -183,7 +225,7 @@ class EngagementSignalHandlerTest extends TestCase {
 		$timeFactory->method('getDateTime')->willReturn($now);
 		$timeFactory->method('now')->willReturn(DateTimeImmutable::createFromMutable($now));
 
-		return new EngagementSignalHandler($objectService, $evaluator, $this->schemaResolver, $timeFactory);
+		return new EngagementSignalHandler($objectService, $evaluator, $this->schemaResolver, $timeFactory, $this->deferral);
 	}//end makeHandler()
 
 	/**
@@ -200,14 +242,17 @@ class EngagementSignalHandlerTest extends TestCase {
 	}//end seed()
 
 	/**
-	 * Build a mocked ObjectCreatedEvent<XapiStatement>.
+	 * Build a mocked ObjectCreatedEvent<XapiStatement> and seed the statement
+	 * so the deferred pass can re-read it.
 	 *
 	 * @param array<string, mixed> $data The XapiStatement jsonSerialize() payload.
+	 * @param string $uuid The XapiStatement uuid.
 	 *
 	 * @return ObjectCreatedEvent
 	 */
-	private function makeXapiEvent(array $data): ObjectCreatedEvent {
-		$objectEntity = OrEntityFactory::make($data, '1280', '9');
+	private function makeXapiEvent(array $data, string $uuid = 'statement-1'): ObjectCreatedEvent {
+		$objectEntity = OrEntityFactory::make($data, '1280', '9', $uuid);
+		$this->seed('xapi-statement', array_merge($data, ['id' => $uuid]));
 		$this->stubResolver('xapi-statement');
 
 		$event = $this->createMock(ObjectCreatedEvent::class);
@@ -248,7 +293,8 @@ class EngagementSignalHandlerTest extends TestCase {
 			now: $now
 		);
 
-		$handler->handle(
+		$this->handleAndDrain(
+			$handler,
 			$this->makeXapiEvent(
 				['verified_actor_id' => 'learner-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']
 			)
@@ -291,7 +337,8 @@ class EngagementSignalHandlerTest extends TestCase {
 			now: $now
 		);
 
-		$handler->handle(
+		$this->handleAndDrain(
+			$handler,
 			$this->makeXapiEvent(
 				['verified_actor_id' => 'learner-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']
 			)
@@ -343,7 +390,8 @@ class EngagementSignalHandlerTest extends TestCase {
 			now: $now
 		);
 
-		$handler->handle(
+		$this->handleAndDrain(
+			$handler,
 			$this->makeXapiEvent(
 				['verified_actor_id' => 'learner-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']
 			)
@@ -389,7 +437,8 @@ class EngagementSignalHandlerTest extends TestCase {
 			now: $now
 		);
 
-		$handler->handle(
+		$this->handleAndDrain(
+			$handler,
 			$this->makeXapiEvent(
 				['verified_actor_id' => 'learner-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']
 			)
@@ -426,7 +475,8 @@ class EngagementSignalHandlerTest extends TestCase {
 			now: $now
 		);
 
-		$handler->handle(
+		$this->handleAndDrain(
+			$handler,
 			$this->makeXapiEvent(
 				['verified_actor_id' => 'learner-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']
 			)

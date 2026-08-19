@@ -29,8 +29,12 @@ declare(strict_types=1);
 namespace OCA\Scholiq\Lifecycle;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\BackgroundJob\DeferredObjectListenerJob;
+use OCA\Scholiq\Listener\DeferredObjectWork;
+use OCA\Scholiq\Listener\DeferredWorkGuard;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -44,12 +48,19 @@ use Psr\Log\LoggerInterface;
  * ADR-031 §"Lifecycle guards": single-method handler, no state machine logic,
  * no notification dispatch, no audit writing — all delegated to OR via transition.
  *
+ * ADR-078: `ObjectCreatedEvent` is a POST event. The statement is already
+ * written and the `complete` transition cannot change that, so the four lookups
+ * behind it — including the unbounded published-lesson listing needed to decide
+ * whether this was the final lesson — are queued onto
+ * {@see DeferredObjectListenerJob} under the acting user rather than charged to
+ * the learner's statement write.
+ *
  * @category Lifecycle
  * @package  OCA\Scholiq\Lifecycle
  *
  * @implements IEventListener<Event>
  */
-class XapiCompletionHandler implements IEventListener {
+class XapiCompletionHandler implements IEventListener, DeferredObjectWork {
 
 	/**
 	 * OR register slug for Scholiq objects.
@@ -72,11 +83,19 @@ class XapiCompletionHandler implements IEventListener {
 	];
 
 	/**
+	 * Identifies this listener's entries in the deferral job.
+	 *
+	 * @var string
+	 */
+	public const HANDLER_KEY = 'xapi-completion';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object service used to query Lessons and Enrolments.
 	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `complete` transition.
 	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param ListenerDeferralService $deferral The actor-forwarding deferral service.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -85,6 +104,7 @@ class XapiCompletionHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerDeferralService $deferral,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -92,17 +112,12 @@ class XapiCompletionHandler implements IEventListener {
 	/**
 	 * Handle an incoming ObjectCreatedEvent.
 	 *
-	 * Only acts on XapiStatement objects in the scholiq register.
-	 * Fires the `complete` transition on the learner's active Enrolment when:
-	 *   1. verb.id is `completed` or `passed`
-	 *   2. The related Lesson has mandatoryTraining=true
-	 *   3. The Lesson is the final published Lesson of its Course
+	 * Does no work: filters to a completed/passed XapiStatement in the scholiq
+	 * register and queues the completion evaluation.
 	 *
 	 * @param Event $event The dispatched event from OR.
 	 *
 	 * @return void
-	 *
-	 * @SuppressWarnings(PHPMD.CyclomaticComplexity)
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-19
 	 */
@@ -119,6 +134,57 @@ class XapiCompletionHandler implements IEventListener {
 		}
 
 		$payload = $objectEntity->jsonSerialize();
+
+		// Guard 1: verb must be completed/passed. Answerable from the event
+		// payload alone, so an uninteresting statement never costs a job row.
+		if (in_array(($payload['verb']['id'] ?? ''), self::COMPLETION_VERBS, true) === false) {
+			return;
+		}
+
+		$uuid = (string)$objectEntity->getUuid();
+		if ($uuid === '') {
+			return;
+		}
+
+		if (DeferredWorkGuard::isRunning(key: DeferredWorkGuard::key(handler: self::HANDLER_KEY, uuid: $uuid)) === true) {
+			return;
+		}
+
+		$this->deferral->defer(
+			jobClass: DeferredObjectListenerJob::class,
+			entry: [
+				'handler' => self::HANDLER_KEY,
+				'uuid' => $uuid,
+			],
+			dedupeKey: self::HANDLER_KEY . '|' . $uuid
+		);
+
+	}//end handle()
+
+	/**
+	 * Fire the `complete` transition when the statement still qualifies.
+	 *
+	 * Re-reads the XapiStatement rather than trusting the dispatch-time
+	 * payload: delivery is at-least-once and the statement may have been
+	 * removed since (ADR-078 Rule 7). Fires when:
+	 *   1. verb.id is `completed` or `passed`
+	 *   2. The related Lesson has mandatoryTraining=true
+	 *   3. The Lesson is the final published Lesson of its Course
+	 *
+	 * @param array<string, mixed> $entry The entry captured at dispatch time.
+	 *
+	 * @return void
+	 *
+	 * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-19
+	 */
+	public function runDeferredWork(array $entry): void {
+		$payload = $this->readStatement(uuid: (string)($entry['uuid'] ?? ''));
+		if ($payload === null) {
+			return;
+		}
+
 		$tenantId = $payload['tenant_id'] ?? '';
 
 		// Guard 1: verb must be completed/passed.
@@ -159,7 +225,32 @@ class XapiCompletionHandler implements IEventListener {
 			['id' => $enrolmentId]
 		);
 
-	}//end handle()
+	}//end runDeferredWork()
+
+	/**
+	 * Re-read the XapiStatement the entry refers to.
+	 *
+	 * @param string $uuid The XapiStatement UUID.
+	 *
+	 * @return array<string,mixed>|null The current payload, or null when it is gone.
+	 */
+	private function readStatement(string $uuid): ?array {
+		if ($uuid === '') {
+			return null;
+		}
+
+		$object = $this->objectService->find(
+			id: $uuid,
+			register: self::SCHOLIQ_REGISTER,
+			schema: self::XAPI_SCHEMA
+		);
+
+		if ($object === null) {
+			return null;
+		}
+
+		return $object->jsonSerialize();
+	}//end readStatement()
 
 	/**
 	 * Whether the created object is an XapiStatement in the scholiq register.

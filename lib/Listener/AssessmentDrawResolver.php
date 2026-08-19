@@ -111,6 +111,26 @@ class AssessmentDrawResolver implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
+	 * @spec openspec/specs/event-listener-work-placement/spec.md#requirement-a-post-event-listener-may-stay-inline-only-with-a-closed-category-reason
+	 *
+	 * @listener-placement inline correctness — the AssessmentResult's caller
+	 *  READS BACK the value this listener writes, in the same interaction, with
+	 *  no poll and no retry. `TakeAssessmentView.getOrCreateResult()` POSTs the
+	 *  AssessmentResult, immediately GETs it by id, and `loadItems()` renders
+	 *  the exam from `drawnItemRefs`; when that array is empty it sets
+	 *  `this.items = []` and the learner is shown a zero-item exam. Deferring
+	 *  this to a QueuedJob would mean the draw lands on the next cron turn —
+	 *  `cron.php` runs one job per web call — so every attempt would open empty.
+	 *  The other six converted listeners here write projections nobody reads
+	 *  synchronously; this one resolves the attempt's own content, which is why
+	 *  it is the only ADR-078 exception in this app. Falling back to
+	 *  `Assessment.itemRefs` client-side is not available either: it would
+	 *  reinstate exactly the client-supplied draw this listener exists to
+	 *  prevent. The bounded alternative — moving the resolution onto
+	 *  `ObjectCreatingEvent` and mutating via `setModifiedData()` — removes the
+	 *  second write but leaves the same pool query on the request path, so it
+	 *  changes what the gate can see rather than what the learner waits for;
+	 *  it is recorded as follow-up work, not done here.
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectCreatedEvent) === false) {

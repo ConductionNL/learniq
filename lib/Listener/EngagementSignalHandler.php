@@ -62,8 +62,10 @@ namespace OCA\Scholiq\Listener;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Scholiq\Analytics\EngagementScoreEvaluator;
+use OCA\Scholiq\BackgroundJob\DeferredObjectListenerJob;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -72,9 +74,15 @@ use OCP\EventDispatcher\IEventListener;
 /**
  * Recomputes EngagementScore and raises EngagementRiskFlags on threshold crossings.
  *
+ * ADR-078: `ObjectCreatedEvent` is a POST event. Scoring a learner and scanning
+ * every active EngagementRiskThreshold is the most expensive work any listener
+ * in this app does, and none of it can change the statement write that
+ * triggered it — so it is queued onto {@see DeferredObjectListenerJob} under
+ * the acting user instead of being charged to the learner's request.
+ *
  * @implements IEventListener<Event>
  */
-class EngagementSignalHandler implements IEventListener {
+class EngagementSignalHandler implements IEventListener, DeferredObjectWork {
 
 	private const SCHOLIQ_REGISTER = 'scholiq';
 	private const XAPI_SCHEMA = 'xapi-statement';
@@ -92,12 +100,20 @@ class EngagementSignalHandler implements IEventListener {
 	private const OPEN_FLAG_STATES = ['open', 'in-handling'];
 
 	/**
+	 * Identifies this listener's entries in the deferral job.
+	 *
+	 * @var string
+	 */
+	public const HANDLER_KEY = 'engagement-signal';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access.
 	 * @param EngagementScoreEvaluator $evaluator Engagement calculation engine.
 	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 * @param ListenerDeferralService $deferral The actor-forwarding deferral service.
 	 *
 	 * @return void
 	 */
@@ -106,11 +122,15 @@ class EngagementSignalHandler implements IEventListener {
 		private readonly EngagementScoreEvaluator $evaluator,
 		private readonly ListenerSchemaResolver $schemaResolver,
 		private readonly ITimeFactory $timeFactory,
+		private readonly ListenerDeferralService $deferral,
 	) {
 	}//end __construct()
 
 	/**
 	 * Handle an ObjectCreatedEvent.
+	 *
+	 * Does no work: filters to the XapiStatement schema and queues the
+	 * recompute.
 	 *
 	 * @param Event $event The dispatched event.
 	 *
@@ -131,7 +151,45 @@ class EngagementSignalHandler implements IEventListener {
 			return;
 		}
 
-		$payload = $objectEntity->jsonSerialize();
+		$uuid = (string)$objectEntity->getUuid();
+		if ($uuid === '') {
+			return;
+		}
+
+		if (DeferredWorkGuard::isRunning(key: DeferredWorkGuard::key(handler: self::HANDLER_KEY, uuid: $uuid)) === true) {
+			return;
+		}
+
+		$this->deferral->defer(
+			jobClass: DeferredObjectListenerJob::class,
+			entry: [
+				'handler' => self::HANDLER_KEY,
+				'uuid' => $uuid,
+			],
+			dedupeKey: self::HANDLER_KEY . '|' . $uuid
+		);
+
+	}//end handle()
+
+	/**
+	 * Recompute the score and re-evaluate the thresholds, against CURRENT state.
+	 *
+	 * Re-reads the XapiStatement rather than trusting the dispatch-time
+	 * payload: delivery is at-least-once and the statement may have been
+	 * removed since (ADR-078 Rule 7).
+	 *
+	 * @param array<string, mixed> $entry The entry captured at dispatch time.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 */
+	public function runDeferredWork(array $entry): void {
+		$payload = $this->readStatement(uuid: (string)($entry['uuid'] ?? ''));
+		if ($payload === null) {
+			return;
+		}
+
 		$tenantId = $payload['tenant_id'] ?? '';
 		$learnerId = $payload['verified_actor_id'] ?? null;
 		$courseId = $payload['courseId'] ?? null;
@@ -154,7 +212,32 @@ class EngagementSignalHandler implements IEventListener {
 			engagementScore: $engagementScore
 		);
 
-	}//end handle()
+	}//end runDeferredWork()
+
+	/**
+	 * Re-read the XapiStatement the entry refers to.
+	 *
+	 * @param string $uuid The XapiStatement UUID.
+	 *
+	 * @return array<string, mixed>|null The current payload, or null when it is gone.
+	 */
+	private function readStatement(string $uuid): ?array {
+		if ($uuid === '') {
+			return null;
+		}
+
+		$object = $this->objectService->find(
+			id: $uuid,
+			register: self::SCHOLIQ_REGISTER,
+			schema: self::XAPI_SCHEMA
+		);
+
+		if ($object === null) {
+			return null;
+		}
+
+		return $object->jsonSerialize();
+	}//end readStatement()
 
 	/**
 	 * Recompute and persist the learner's EngagementScore for a course.

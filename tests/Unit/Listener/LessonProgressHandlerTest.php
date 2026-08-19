@@ -28,6 +28,8 @@ use DateTimeZone;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\BackgroundJob\DeferredObjectListenerJob;
+use OCA\Scholiq\Listener\DeferredWorkGuard;
 use OCA\Scholiq\Listener\LessonProgressHandler;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCA\Scholiq\Tests\Support\OrEntityFactory;
@@ -37,7 +39,11 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
- * Tests for LessonProgressHandler::handle() on ObjectCreatedEvent<XapiStatement>.
+ * Tests for LessonProgressHandler on ObjectCreatedEvent<XapiStatement>.
+ *
+ * ADR-078: `handle()` only filters and queues; the LessonCompletion upsert runs
+ * in {@see DeferredObjectListenerJob}. Every behavioural test handles the event
+ * AND drains through the real job.
  */
 class LessonProgressHandlerTest extends TestCase {
 
@@ -63,6 +69,13 @@ class LessonProgressHandlerTest extends TestCase {
 	private ListenerSchemaResolver&MockObject $schemaResolver;
 
 	/**
+	 * Recorder standing in for OpenRegister's ListenerDeferralService.
+	 *
+	 * @var RecordingDeferralService
+	 */
+	private RecordingDeferralService $deferral;
+
+	/**
 	 * Reset fixtures before each test.
 	 *
 	 * @return void
@@ -72,8 +85,35 @@ class LessonProgressHandlerTest extends TestCase {
 		$this->db = [];
 		$this->savedObjects = [];
 		$this->schemaResolver = $this->createMock(ListenerSchemaResolver::class);
+		$this->deferral = new RecordingDeferralService();
+		DeferredWorkGuard::reset();
 
 	}//end setUp()
+
+	/**
+	 * Drop any guard claim a failing test may have leaked.
+	 *
+	 * @return void
+	 */
+	protected function tearDown(): void {
+		DeferredWorkGuard::reset();
+		parent::tearDown();
+
+	}//end tearDown()
+
+	/**
+	 * Handle an event and then run whatever it queued, through the real job.
+	 *
+	 * @param LessonProgressHandler $handler The handler under test.
+	 * @param ObjectCreatedEvent $event The event to hand it.
+	 *
+	 * @return void
+	 */
+	private function handleAndDrain(LessonProgressHandler $handler, ObjectCreatedEvent $event): void {
+		$handler->handle($event);
+		DeferredJobDrain::run(test: $this, deferral: $this->deferral, listener: $handler);
+
+	}//end handleAndDrain()
 
 	/**
 	 * Stub the resolver the way OpenRegister behaves in production: the entity
@@ -128,6 +168,20 @@ class LessonProgressHandlerTest extends TestCase {
 			}
 		);
 
+		// The deferred pass re-reads the statement by uuid; an unknown uuid is
+		// a stale entry and must resolve to null, not to a fixture.
+		$objectService->method('find')->willReturnCallback(
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+				foreach (($this->db[(string)$schema] ?? []) as $record) {
+					if (($record['id'] ?? null) === $id) {
+						return OrEntityFactory::make($record, (string)$schema, 'scholiq', (string)$id);
+					}
+				}
+
+				return null;
+			}
+		);
+
 		$objectService->method('saveObject')->willReturnCallback(
 			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
 				$schema = (string)$schema;
@@ -168,6 +222,7 @@ class LessonProgressHandlerTest extends TestCase {
 			$objectService,
 			$this->schemaResolver,
 			$timeFactory,
+			$this->deferral,
 			$this->createMock(LoggerInterface::class)
 		);
 
@@ -187,14 +242,17 @@ class LessonProgressHandlerTest extends TestCase {
 	}//end seed()
 
 	/**
-	 * Build a mocked ObjectCreatedEvent<XapiStatement>.
+	 * Build a mocked ObjectCreatedEvent<XapiStatement> and seed the statement so
+	 * the deferred pass can re-read it.
 	 *
 	 * @param array<string, mixed> $data The XapiStatement jsonSerialize() payload.
+	 * @param string $uuid The XapiStatement uuid.
 	 *
 	 * @return ObjectCreatedEvent
 	 */
-	private function makeXapiEvent(array $data): ObjectCreatedEvent {
-		$objectEntity = OrEntityFactory::make($data, '1280', '9');
+	private function makeXapiEvent(array $data, string $uuid = 'statement-1'): ObjectCreatedEvent {
+		$objectEntity = OrEntityFactory::make($data, '1280', '9', $uuid);
+		$this->seed('xapi-statement', array_merge($data, ['id' => $uuid]));
 		$this->stubResolver('xapi-statement');
 
 		$event = $this->createMock(ObjectCreatedEvent::class);
@@ -253,7 +311,7 @@ class LessonProgressHandlerTest extends TestCase {
 			]
 		);
 
-		$handler->handle($event);
+		$this->handleAndDrain($handler, $event);
 
 		$saved = $this->savedCompletions();
 		self::assertCount(1, $saved);
@@ -309,7 +367,7 @@ class LessonProgressHandlerTest extends TestCase {
 			]
 		);
 
-		$handler->handle($event);
+		$this->handleAndDrain($handler, $event);
 
 		// Still exactly one row in the datastore — updated, not duplicated.
 		self::assertCount(1, $this->db['lesson-completion']);
@@ -339,7 +397,7 @@ class LessonProgressHandlerTest extends TestCase {
 			]
 		);
 
-		$handler->handle($event);
+		$this->handleAndDrain($handler, $event);
 
 		self::assertCount(0, $this->savedCompletions());
 
@@ -373,7 +431,7 @@ class LessonProgressHandlerTest extends TestCase {
 			]
 		);
 
-		$handler->handle($event);
+		$this->handleAndDrain($handler, $event);
 
 		self::assertCount(0, $this->savedCompletions());
 
@@ -408,7 +466,7 @@ class LessonProgressHandlerTest extends TestCase {
 			]
 		);
 
-		$handler->handle($event);
+		$this->handleAndDrain($handler, $event);
 
 		self::assertCount(0, $this->savedCompletions());
 
@@ -429,7 +487,7 @@ class LessonProgressHandlerTest extends TestCase {
 		$event = $this->createMock(ObjectCreatedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
 
-		$handler->handle($event);
+		$this->handleAndDrain($handler, $event);
 
 		self::assertCount(0, $this->savedCompletions());
 

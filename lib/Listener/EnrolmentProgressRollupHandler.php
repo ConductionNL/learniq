@@ -34,7 +34,9 @@ declare(strict_types=1);
 namespace OCA\Scholiq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\BackgroundJob\DeferredObjectListenerJob;
 use OCA\Scholiq\Progress\EnrolmentProgressEvaluator;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\EventDispatcher\Event;
@@ -43,13 +45,27 @@ use OCP\EventDispatcher\IEventListener;
 /**
  * Recomputes Enrolment.progressPercent whenever a LessonCompletion is created.
  *
+ * ADR-078: `ObjectCreatedEvent` is a POST event. The LessonCompletion is
+ * already written and nothing this listener does can change that, so the
+ * Enrolment recompute no longer runs inside the learner's write — it is
+ * deferred to {@see DeferredObjectListenerJob} under the acting user. The
+ * deferred pass re-reads the LessonCompletion, so an entry whose row is gone is
+ * simply a no-op.
+ *
  * @implements IEventListener<Event>
  */
-class EnrolmentProgressRollupHandler implements IEventListener {
+class EnrolmentProgressRollupHandler implements IEventListener, DeferredObjectWork {
 
 	private const SCHOLIQ_REGISTER = 'scholiq';
 	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
 	private const ENROLMENT_SCHEMA = 'enrolment';
+
+	/**
+	 * Identifies this listener's entries in the deferral job.
+	 *
+	 * @var string
+	 */
+	public const HANDLER_KEY = 'enrolment-progress-rollup';
 
 	/**
 	 * Constructor.
@@ -57,6 +73,7 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access.
 	 * @param EnrolmentProgressEvaluator $evaluator progressPercent calculation engine.
 	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param ListenerDeferralService $deferral The actor-forwarding deferral service.
 	 *
 	 * @return void
 	 */
@@ -64,11 +81,15 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly EnrolmentProgressEvaluator $evaluator,
 		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerDeferralService $deferral,
 	) {
 	}//end __construct()
 
 	/**
 	 * Handle an ObjectCreatedEvent.
+	 *
+	 * Does no work: filters to the LessonCompletion schema and queues the
+	 * recompute.
 	 *
 	 * @param Event $event The dispatched event.
 	 *
@@ -89,7 +110,48 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 			return;
 		}
 
-		$completion = $objectEntity->jsonSerialize();
+		$uuid = (string)$objectEntity->getUuid();
+		if ($uuid === '') {
+			return;
+		}
+
+		// Our own deferred Enrolment write re-enters this listener when the
+		// mapper dispatches for it. Deferring again would enqueue another job
+		// whose write re-enters again — a cron loop.
+		if (DeferredWorkGuard::isRunning(key: DeferredWorkGuard::key(handler: self::HANDLER_KEY, uuid: $uuid)) === true) {
+			return;
+		}
+
+		$this->deferral->defer(
+			jobClass: DeferredObjectListenerJob::class,
+			entry: [
+				'handler' => self::HANDLER_KEY,
+				'uuid' => $uuid,
+			],
+			dedupeKey: self::HANDLER_KEY . '|' . $uuid
+		);
+
+	}//end handle()
+
+	/**
+	 * Recompute the Enrolment's progressPercent against CURRENT state.
+	 *
+	 * Re-reads the LessonCompletion rather than trusting the dispatch-time
+	 * payload: delivery is at-least-once and the row may have been edited or
+	 * removed since (ADR-078 Rule 7).
+	 *
+	 * @param array<string, mixed> $entry The entry captured at dispatch time.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 */
+	public function runDeferredWork(array $entry): void {
+		$completion = $this->readCompletion(uuid: (string)($entry['uuid'] ?? ''));
+		if ($completion === null) {
+			return;
+		}
+
 		$learnerId = $completion['learnerId'] ?? '';
 		// LessonCompletion already denormalizes courseId (mirrors
 		// XapiStatement.courseId/.lessonId) — no extra Lesson lookup needed
@@ -115,7 +177,32 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 			object: array_merge($enrolment, ['progressPercent' => $result['progressPercent']])
 		);
 
-	}//end handle()
+	}//end runDeferredWork()
+
+	/**
+	 * Re-read the LessonCompletion the entry refers to.
+	 *
+	 * @param string $uuid The LessonCompletion UUID.
+	 *
+	 * @return array<string, mixed>|null The current data, or null when it is gone.
+	 */
+	private function readCompletion(string $uuid): ?array {
+		if ($uuid === '') {
+			return null;
+		}
+
+		$object = $this->objectService->find(
+			id: $uuid,
+			register: self::SCHOLIQ_REGISTER,
+			schema: self::LESSON_COMPLETION_SCHEMA
+		);
+
+		if ($object === null) {
+			return null;
+		}
+
+		return $object->jsonSerialize();
+	}//end readCompletion()
 
 	/**
 	 * Find the learner's active Enrolment for a course.

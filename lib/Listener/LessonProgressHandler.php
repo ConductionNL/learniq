@@ -47,7 +47,9 @@ declare(strict_types=1);
 namespace OCA\Scholiq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\BackgroundJob\DeferredObjectListenerJob;
 use OCA\Scholiq\Service\ListenerSchemaResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -58,9 +60,20 @@ use Psr\Log\LoggerInterface;
  * Upserts a LessonCompletion for every resolvable completed/passed xAPI
  * statement — no mandatoryTraining or last-lesson gate.
  *
+ * ADR-078: `ObjectCreatedEvent` is a POST event, so the LessonCompletion upsert
+ * is queued onto {@see DeferredObjectListenerJob} rather than charged to the
+ * learner's statement write. `handle()` keeps only the schema guard and the
+ * completion-verb short-circuit, both answerable from the event payload alone.
+ *
+ * ⚠️ THIS LISTENER'S DEFERRED WRITE IS THE HEAD OF A CHAIN.
+ * {@see EnrolmentProgressRollupHandler} listens for the LessonCompletion this
+ * job creates, so that recompute is queued by the JOB's write and runs on the
+ * next cron turn. That is a chain, not a loop — the two listeners react to
+ * different schemas, so neither can re-enter the other.
+ *
  * @implements IEventListener<Event>
  */
-class LessonProgressHandler implements IEventListener {
+class LessonProgressHandler implements IEventListener, DeferredObjectWork {
 
 	private const SCHOLIQ_REGISTER = 'scholiq';
 	private const XAPI_SCHEMA = 'xapi-statement';
@@ -85,11 +98,19 @@ class LessonProgressHandler implements IEventListener {
 	];
 
 	/**
+	 * Identifies this listener's entries in the deferral job.
+	 *
+	 * @var string
+	 */
+	public const HANDLER_KEY = 'lesson-progress';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object service used to query/write objects.
 	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
+	 * @param ListenerDeferralService $deferral The actor-forwarding deferral service.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -98,12 +119,16 @@ class LessonProgressHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly ListenerSchemaResolver $schemaResolver,
 		private readonly ITimeFactory $timeFactory,
+		private readonly ListenerDeferralService $deferral,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
 
 	/**
 	 * Handle an incoming ObjectCreatedEvent.
+	 *
+	 * Does no work: filters to a completed/passed XapiStatement and queues the
+	 * LessonCompletion upsert.
 	 *
 	 * @param Event $event The dispatched event from OR.
 	 *
@@ -124,9 +149,57 @@ class LessonProgressHandler implements IEventListener {
 		}
 
 		$payload = $objectEntity->jsonSerialize();
+
+		// Guard 1: verb must be completed/passed. Answerable from the event
+		// payload alone, so it stays here and keeps an uninteresting statement
+		// from costing a job row at all.
+		$verbId = $payload['verb']['id'] ?? '';
+		if (in_array($verbId, self::COMPLETION_VERBS, true) === false) {
+			return;
+		}
+
+		$uuid = (string)$objectEntity->getUuid();
+		if ($uuid === '') {
+			return;
+		}
+
+		if (DeferredWorkGuard::isRunning(key: DeferredWorkGuard::key(handler: self::HANDLER_KEY, uuid: $uuid)) === true) {
+			return;
+		}
+
+		$this->deferral->defer(
+			jobClass: DeferredObjectListenerJob::class,
+			entry: [
+				'handler' => self::HANDLER_KEY,
+				'uuid' => $uuid,
+			],
+			dedupeKey: self::HANDLER_KEY . '|' . $uuid
+		);
+
+	}//end handle()
+
+	/**
+	 * Upsert the LessonCompletion for the statement, against CURRENT state.
+	 *
+	 * Re-reads the XapiStatement rather than trusting the dispatch-time
+	 * payload: delivery is at-least-once and the statement may have been
+	 * removed since (ADR-078 Rule 7). The completion-verb guard is re-evaluated
+	 * against the re-read payload for the same reason.
+	 *
+	 * @param array<string, mixed> $entry The entry captured at dispatch time.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#requirement-xapi-completion-statements-are-wired-into-per-lesson-completion-not-duplicated
+	 */
+	public function runDeferredWork(array $entry): void {
+		$payload = $this->readStatement(uuid: (string)($entry['uuid'] ?? ''));
+		if ($payload === null) {
+			return;
+		}
+
 		$tenantId = $payload['tenant_id'] ?? '';
 
-		// Guard 1: verb must be completed/passed.
 		$verbId = $payload['verb']['id'] ?? '';
 		if (in_array($verbId, self::COMPLETION_VERBS, true) === false) {
 			return;
@@ -168,7 +241,32 @@ class LessonProgressHandler implements IEventListener {
 			tenantId: $tenantId
 		);
 
-	}//end handle()
+	}//end runDeferredWork()
+
+	/**
+	 * Re-read the XapiStatement the entry refers to.
+	 *
+	 * @param string $uuid The XapiStatement UUID.
+	 *
+	 * @return array<string, mixed>|null The current payload, or null when it is gone.
+	 */
+	private function readStatement(string $uuid): ?array {
+		if ($uuid === '') {
+			return null;
+		}
+
+		$object = $this->objectService->find(
+			id: $uuid,
+			register: self::SCHOLIQ_REGISTER,
+			schema: self::XAPI_SCHEMA
+		);
+
+		if ($object === null) {
+			return null;
+		}
+
+		return $object->jsonSerialize();
+	}//end readStatement()
 
 	/**
 	 * Whether the created object is an XapiStatement in the scholiq register.

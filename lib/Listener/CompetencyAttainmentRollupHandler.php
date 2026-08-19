@@ -63,7 +63,9 @@ namespace OCA\Scholiq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Scholiq\BackgroundJob\DeferredObjectListenerJob;
 use OCA\Scholiq\Service\CompetencyAttainmentWriter;
 use OCA\Scholiq\Service\CompetencyLevelResolver;
 use OCA\Scholiq\Service\GradeEvidenceRollup;
@@ -77,11 +79,31 @@ use Psr\Log\LoggerInterface;
  * Resolves WerkprocesAssessment.competencyId at creation and rolls up
  * competency-aligned evidence into CompetencyAttainment on transition.
  *
+ * ADR-078 applies to the `ObjectCreatedEvent` half ONLY. That is a POST event —
+ * the assessment is already written, the competencyId back-fill cannot change
+ * it, and the framework/competency lookups behind it are the expensive part —
+ * so it is queued onto {@see DeferredObjectListenerJob} under the acting user.
+ *
+ * The `ObjectTransitionedEvent` half stays synchronous and is untouched: a
+ * transition is a deliberate state change whose roll-up the caller expects to
+ * have happened, and it is not one of the three post events ADR-078 governs.
+ *
  * @implements IEventListener<Event>
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) The ADR-078 conversion added
+ *  exactly two collaborators — ListenerDeferralService and the job it queues
+ *  onto — which took this class from 11 to 13. Nothing else changed: it already
+ *  bridged the schema map, the row reader, the attainment writer, the level
+ *  resolver and the grade-evidence roll-up, and the gate-61 pattern REQUIRES
+ *  both new names to appear in the listener itself (the gate's `defers` test is
+ *  class-level, so hiding them behind a helper would reopen the finding). The
+ *  proportionate fix is splitting the werkproces-competency resolution out into
+ *  its own service, which is a behaviour-bearing refactor of a handler this
+ *  change does not otherwise touch; recorded as follow-up, not done here.
  *
  * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
  */
-class CompetencyAttainmentRollupHandler implements IEventListener {
+class CompetencyAttainmentRollupHandler implements IEventListener, DeferredObjectWork {
 
 	private const SCHOLIQ_REGISTER = 'scholiq';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
@@ -96,6 +118,13 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 	private const SBB_SOURCE_AUTHORITY = 'sbb-kwalificatiedossier';
 
 	/**
+	 * Identifies this listener's entries in the deferral job.
+	 *
+	 * @var string
+	 */
+	public const HANDLER_KEY = 'competency-attainment-rollup';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
@@ -105,6 +134,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 	 * @param CompetencyAttainmentWriter $attainment Upserts CompetencyAttainment rows and appends evidence.
 	 * @param CompetencyLevelResolver $levelResolver Resolves a proficiencyLevelId from a beoordeling label.
 	 * @param GradeEvidenceRollup $gradeEvidence Rolls a published GradeEntry into the competencies it evidences.
+	 * @param ListenerDeferralService $deferral The actor-forwarding deferral service.
 	 *
 	 * @return void
 	 */
@@ -116,6 +146,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 		private readonly CompetencyAttainmentWriter $attainment,
 		private readonly CompetencyLevelResolver $levelResolver,
 		private readonly GradeEvidenceRollup $gradeEvidence,
+		private readonly ListenerDeferralService $deferral,
 	) {
 	}//end __construct()
 
@@ -141,7 +172,9 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 	}//end handle()
 
 	/**
-	 * Handle an ObjectCreatedEvent — resolves WerkprocesAssessment.competencyId.
+	 * Handle an ObjectCreatedEvent — queues the competencyId resolution.
+	 *
+	 * Does no work: filters to the WerkprocesAssessment schema and defers.
 	 *
 	 * @param ObjectCreatedEvent $event The created-object event.
 	 *
@@ -158,9 +191,66 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 			return;
 		}
 
-		$this->resolveWerkprocesCompetencyId(data: $entity->jsonSerialize());
+		$uuid = (string)$entity->getUuid();
+		if ($uuid === '') {
+			return;
+		}
+
+		// The deferred pass writes the assessment back, which re-enters this
+		// listener. Deferring again would enqueue another job whose write
+		// re-enters again — a cron loop. The `competencyId already set`
+		// short-circuit below would also stop it, but only because that field
+		// happens to be the one written; the guard does not depend on that.
+		if (DeferredWorkGuard::isRunning(key: DeferredWorkGuard::key(handler: self::HANDLER_KEY, uuid: $uuid)) === true) {
+			return;
+		}
+
+		$this->deferral->defer(
+			jobClass: DeferredObjectListenerJob::class,
+			entry: [
+				'handler' => self::HANDLER_KEY,
+				'uuid' => $uuid,
+			],
+			dedupeKey: self::HANDLER_KEY . '|' . $uuid
+		);
 
 	}//end handleObjectCreated()
+
+	/**
+	 * Resolve the assessment's competencyId against CURRENT state.
+	 *
+	 * Re-reads the WerkprocesAssessment rather than trusting the dispatch-time
+	 * payload: delivery is at-least-once and another path may have resolved
+	 * competencyId, or removed the row, since (ADR-078 Rule 7). The
+	 * "already resolved" short-circuit inside
+	 * {@see self::resolveWerkprocesCompetencyId()} is therefore re-evaluated
+	 * against what is stored now, not against what was dispatched.
+	 *
+	 * @param array<string, mixed> $entry The entry captured at dispatch time.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+	 */
+	public function runDeferredWork(array $entry): void {
+		$uuid = (string)($entry['uuid'] ?? '');
+		if ($uuid === '') {
+			return;
+		}
+
+		$assessment = $this->objectService->find(
+			id: $uuid,
+			register: self::SCHOLIQ_REGISTER,
+			schema: self::WERKPROCES_SCHEMA
+		);
+
+		if ($assessment === null) {
+			return;
+		}
+
+		$this->resolveWerkprocesCompetencyId(data: $assessment->jsonSerialize());
+
+	}//end runDeferredWork()
 
 	/**
 	 * Handle an ObjectTransitionedEvent — GradeEntry.published or WerkprocesAssessment.confirmed.
