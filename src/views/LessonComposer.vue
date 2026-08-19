@@ -114,6 +114,9 @@
 							class="lesson-composer__handle icon-menu"
 							aria-hidden="true" />
 						<span class="lesson-composer__block-type">{{
+							/**
+							 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+							 */
 							blockTypeLabel(block.type)
 						}}</span>
 						<button
@@ -347,10 +350,16 @@ export default {
 	},
 
 	computed: {
+		/**
+		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 */
 		materialOptions() {
 			return this.materials.map((m) => ({ id: m.id, label: m.title }))
 		},
 
+		/**
+		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 */
 		assessmentOptions() {
 			return this.assessments.map((a) => ({ id: a.id, label: a.title }))
 		},
@@ -426,6 +435,9 @@ export default {
 		},
 
 		/** @return {void} */
+		/**
+		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 */
 		goBack() {
 			if (this.$router) {
 				this.$router
@@ -455,6 +467,7 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {string} objId Object UUID.
 		 * @return {Promise<object>}
+		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		async fetchObject(schema, objId) {
 			const url = generateUrl(
@@ -474,6 +487,7 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {string} query Pre-built query string.
 		 * @return {Promise<Array<object>>}
+		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		async fetchList(schema, query) {
 			const url = generateUrl(
@@ -493,6 +507,7 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {object} body Payload.
 		 * @return {Promise<object>} The created object.
+		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		async createObject(schema, body) {
 			const url = generateUrl(
@@ -517,6 +532,7 @@ export default {
 		 * where available (mirrors TakeAssessmentView.vue's generateId()).
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		generateBlockId() {
 			if (
@@ -572,6 +588,7 @@ export default {
 		 * @param {string} field Field name.
 		 * @param {*} value New value.
 		 * @return {void}
+		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		onBlockFieldInput(block, field, value) {
 			block[field] = value
@@ -598,6 +615,7 @@ export default {
 		 * together via `save()` — so this only mutates local state.
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		renumberBlocks() {
 			this.blocks.forEach((b, idx) => {
@@ -635,11 +653,17 @@ export default {
 		},
 
 		/** @param {number} idx Block index. @return {void} */
+		/**
+		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 */
 		moveBlockUp(idx) {
 			this.reorderBlock(idx, idx - 1)
 		},
 
 		/** @param {number} idx Block index. @return {void} */
+		/**
+		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 */
 		moveBlockDown(idx) {
 			this.reorderBlock(idx, idx + 1)
 		},

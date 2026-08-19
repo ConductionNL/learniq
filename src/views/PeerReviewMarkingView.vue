@@ -253,6 +253,7 @@ export default {
 		 * Sum of points for all selected criterion levels.
 		 *
 		 * @return {number}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		computedScore() {
 			return Object.values(this.selectedLevels).reduce(
@@ -275,6 +276,7 @@ export default {
 		 * the server enforces this via RubricScoresCompletionGuard regardless).
 		 *
 		 * @return {boolean}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		canSubmit() {
 			if (
@@ -298,6 +300,7 @@ export default {
 			 *
 			 * @param {string} newId New PeerReview UUID
 			 * @return {void}
+			 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 			 */
 			handler(newId) {
 				if (newId) {
@@ -314,6 +317,7 @@ export default {
 		 *
 		 * @param {string} peerReviewId PeerReview UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async loadData(peerReviewId) {
 			this.loading = true
@@ -358,6 +362,7 @@ export default {
 		 *
 		 * @param {string} peerReviewId PeerReview UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async loadPeerReview(peerReviewId) {
 			const url = generateUrl(
@@ -378,6 +383,7 @@ export default {
 		 *
 		 * @param {string} assignmentId Assignment UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async loadAssignment(assignmentId) {
 			const url = generateUrl(
@@ -398,6 +404,7 @@ export default {
 		 *
 		 * @param {string} rubricId Rubric UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async loadRubric(rubricId) {
 			const url = generateUrl(
@@ -420,6 +427,7 @@ export default {
 		 *
 		 * @param {string} submissionId Submission UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async loadSubmissionLearnerIds(submissionId) {
 			const url = generateUrl(
@@ -452,6 +460,7 @@ export default {
 		 * @param {object} criterion Rubric criterion object
 		 * @param {object} level     Selected level object
 		 * @return {void}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		selectLevel(criterion, level) {
 			this.selectedLevels = {
@@ -467,6 +476,7 @@ export default {
 		 * Build the rubricScores array from current selections.
 		 *
 		 * @return {Array<{criterionId: string, levelId: string, points: number}>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		buildRubricScores() {
 			return Object.entries(this.selectedLevels).map(([criterionId, sel]) => ({
@@ -481,6 +491,7 @@ export default {
 		 * dispatch the `submit` lifecycle transition.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async saveAndSubmit() {
 			if (!this.peerReview) {

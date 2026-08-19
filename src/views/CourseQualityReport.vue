@@ -175,6 +175,7 @@ export default {
 		 * Course picker options.
 		 *
 		 * @return {Array<{id: string, label: string}>}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		courseOptions() {
 			return this.courses.map((c) => ({
@@ -189,6 +190,7 @@ export default {
 		 * rows — plus an "All teachers" (course-level, teacherId:null) option.
 		 *
 		 * @return {Array<{id: string, label: string}>}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		teacherOptions() {
 			const ids = new Set(
@@ -252,6 +254,7 @@ export default {
 		 * can always change the campaign in the create form itself.
 		 *
 		 * @return {object|null}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		latestCampaignForCourse() {
 			const matches = this.campaigns
@@ -278,6 +281,7 @@ export default {
 		 * API — no new schema.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		async loadCourses() {
 			this.loadingCourses = true
@@ -332,6 +336,7 @@ export default {
 		 * this course's CourseQualityScore rows and CourseEvaluationResponses.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		async onCourseChange() {
 			this.selectedTeacherId = ''
@@ -418,6 +423,7 @@ export default {
 		 * to the schema's own properties (ADR-062).
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		draftImprovementAction() {
 			const query = { courseId: this.selectedCourseId }
@@ -433,6 +439,7 @@ export default {
 		 *
 		 * @param {number|null} value Average overall score.
 		 * @return {string}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		formatScore(value) {
 			return value === null || value === undefined
@@ -445,6 +452,7 @@ export default {
 		 *
 		 * @param {number|null} value Response rate (0-1).
 		 * @return {string}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		formatRate(value) {
 			return value === null || value === undefined
