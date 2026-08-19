@@ -98,6 +98,8 @@ class LearniqToolProvider implements IMcpToolProvider {
 	private const TOOL_DESCRIPTORS = [
 		[
 			'id' => 'learniq.listCourses',
+			'subject' => 'course',
+			'action' => 'list',
 			'name' => 'List courses',
 			'description' => 'List Learniq courses visible to you. Catalogue only, no learner data. Optional status: draft/published/archived.',
 			'inputSchema' => [
@@ -119,6 +121,8 @@ class LearniqToolProvider implements IMcpToolProvider {
 		],
 		[
 			'id' => 'learniq.getCourseDetails',
+			'subject' => 'course',
+			'action' => 'get',
 			'name' => 'Get course details',
 			'description' => 'Get one Learniq course by id, uuid or slug with its module list. Course and module metadata only, no learner data.',
 			'inputSchema' => [
