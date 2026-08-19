@@ -92,6 +92,43 @@ let appBase: string | null = null
 async function resolveAppBase(page: Page): Promise<string> {
 	if (appBase) return appBase
 	await page.goto(ENTRY_URL)
+
+	// Guard the global instead of reading it blind.
+	//
+	// Reading `OC.generateUrl` straight after `goto` fails with "Cannot read
+	// properties of undefined" on any page that is not the app — and the two
+	// that actually occur here are Nextcloud's MAINTENANCE page and the login
+	// page. Both return 200 with a normal document, so neither `goto` nor a
+	// status check notices; the suite just reports a TypeError deep in a
+	// helper, which reads as "the app is broken". Observed 2026-08-19: a
+	// concurrent session ran an `occ` command, Nextcloud went into maintenance
+	// for under a minute, and 15 tests failed pointing at application code.
+	//
+	// So: wait for the global, then say plainly what its absence means.
+	await page
+		.waitForFunction(
+			() =>
+				typeof (window as unknown as { OC?: { generateUrl?: unknown } }).OC
+					?.generateUrl === 'function',
+			undefined,
+			{ timeout: 30_000 },
+		)
+		.catch(async () => {
+			const heading = await page
+				.locator('h2')
+				.first()
+				.textContent()
+				.catch(() => null)
+			throw new Error(
+				'OC.generateUrl never appeared on '
+					+ page.url()
+					+ (heading ? ` (page heading: "${heading.trim()}")` : '')
+					+ '. This is an ENVIRONMENT problem, not an app failure — the usual '
+					+ 'causes are Nextcloud maintenance mode or an expired session, both '
+					+ 'of which serve a normal 200 page.',
+			)
+		})
+
 	const base = await page.evaluate(() =>
 		(
 			window as unknown as { OC: { generateUrl: (_p: string) => string } }
