@@ -196,6 +196,7 @@ export default {
 		 *
 		 * @param {number|null} value EC value
 		 * @return {string}
+		 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
 		 */
 		formatEcts(value) {
 			if (value === null || value === undefined) return '-'
@@ -207,6 +208,7 @@ export default {
 		 *
 		 * @param {string} dt ISO datetime string
 		 * @return {string}
+		 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
 		 */
 		formatDate(dt) {
 			if (!dt) return ''

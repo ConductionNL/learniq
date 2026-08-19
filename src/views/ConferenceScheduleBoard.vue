@@ -167,6 +167,7 @@ export default {
 		 * where waitlist resolution happens).
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		roundOptions() {
 			return this.rounds.map((r) => ({
@@ -225,6 +226,7 @@ export default {
 		 *
 		 * @param {object} _signup Reserved for future per-signup narrowing (unused today).
 		 * @return {Array<object>}
+		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		teacherOptions(_signup) {
 			if (!this.selectedRound) return []
@@ -280,6 +282,7 @@ export default {
 		 *
 		 * @param {object} signup The waitlisted ConferenceSignup being resolved.
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async createManualSlot(signup) {
 			const signupId = signup.id || signup.uuid

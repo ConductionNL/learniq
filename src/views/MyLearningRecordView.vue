@@ -650,6 +650,7 @@ export default {
 		 * Load every LearningRecordShare for the latest generated export.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
 		 */
 		async loadShares() {
 			if (!this.latestExport) return
@@ -675,6 +676,7 @@ export default {
 		 *
 		 * @param {string} shareId LearningRecordShare UUID.
 		 * @return {string}
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-learningrecordaggregationservice-composes-a-learner-s-trajectory-live-with-no-materialized-rollup
 		 */
 		verifyUrl(shareId) {
 			return generateUrl(
