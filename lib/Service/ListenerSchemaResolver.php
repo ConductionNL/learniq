@@ -121,6 +121,14 @@ class ListenerSchemaResolver {
 	 * @param object|null $entity The OpenRegister ObjectEntity from the event.
 	 *
 	 * @return string The schema slug, or '' when this is not a Learniq object.
+	 *
+	 * @spec exclude Listener plumbing, not a behavioural requirement: it answers
+	 *       "is this event about one of our objects" and returns '' for every
+	 *       negative case so callers bail out. The register it matches against
+	 *       is the app id, which the Scholiq->Learniq rename changed — which is
+	 *       why the rename's diff surfaced this method to gate-16 at all. No
+	 *       canonical spec governs the resolution itself; the behaviour that
+	 *       DOES carry requirements lives in the listeners that call it.
 	 */
 	public function schemaSlug(?object $entity): string {
 		// `is_callable()`, NOT `method_exists()`. OpenRegister's ObjectEntity
