@@ -52,7 +52,7 @@ class DashboardRoleService {
 	 *
 	 * @var array<string, string>
 	 */
-	private const GROUP_BACKED_ROLES = [
+	public const GROUP_BACKED_ROLES = [
 		'compliance-officer'     => 'compliance-officers',
 		'hr'                     => 'hr',
 		'administration-manager' => 'administration-managers',

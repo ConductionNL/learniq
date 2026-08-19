@@ -283,7 +283,7 @@ class AiProcessingDisclosureController extends Controller {
 	 */
 	private function loadAiProcessingActivity(): array {
 		try {
-			$configPath = __DIR__ . '/../Settings/scholiq_register.json';
+			$configPath = __DIR__ . '/../Settings/learniq_register.json';
 			$raw = file_get_contents($configPath);
 			if ($raw === false) {
 				return [];

@@ -102,6 +102,27 @@ class MigrateAppConfigKeys implements IRepairStep {
 	private const NEW_APP_ID = 'learniq';
 
 	/**
+	 * Config keys Nextcloud owns and manages for every app. These MUST NOT be
+	 * copied.
+	 *
+	 * `AppManager::enableApp()` writes `enabled` through the deprecated
+	 * `IAppConfig::setValue()`, which stores type MIXED. Copying the old app's
+	 * `enabled` with `setValueString()` stores type STRING, and the next
+	 * `app:enable` then dies with `AppConfigTypeConflictException: conflict
+	 * between new type (mixed) and old type (string)` — permanently, because
+	 * the failure happens before the app can run anything that would fix it.
+	 * Observed on the dev instance 2026-08-19: the app could not be enabled at
+	 * all until these rows were deleted by hand.
+	 *
+	 * @var string[]
+	 */
+	private const RESERVED_KEYS = [
+		'enabled',
+		'installed_version',
+		'types',
+	];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IAppConfig $appConfig App config service.
@@ -140,7 +161,14 @@ class MigrateAppConfigKeys implements IRepairStep {
 		$alreadyPresent = 0;
 		$emptySource = 0;
 
+		$skippedReserved = 0;
+
 		foreach ($keys as $key) {
+			if (in_array($key, self::RESERVED_KEYS, strict: true) === true) {
+				$skippedReserved++;
+				continue;
+			}
+
 			$old = $this->appConfig->getValueString(self::OLD_APP_ID, $key, '');
 			if ($old === '') {
 				$emptySource++;
@@ -166,7 +194,8 @@ class MigrateAppConfigKeys implements IRepairStep {
 
 		$output->info(
 			'MigrateAppConfigKeys: ' . $migrated . ' key(s) migrated, ' . $alreadyPresent
-			. ' already present, ' . $emptySource . ' had no value to migrate.'
+			. ' already present, ' . $emptySource . ' had no value to migrate, '
+			. $skippedReserved . ' skipped as Nextcloud-reserved.'
 		);
 	}//end run()
 
