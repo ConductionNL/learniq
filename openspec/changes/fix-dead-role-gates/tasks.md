@@ -61,8 +61,8 @@
   - GIVEN one test user is added to each of `instructors`, `administration-managers`, `team-leads`, `coordinators`, `guardians`, `compliance-officers`, `hr` (created manually if `rbac-declare-groups` has not yet provisioned them — design.md Decision 4) WHEN each logs in and opens the navigation THEN the implementing engineer records, per user, the exact set of role-gated menu items visible, cross-checked item-by-item against Task 4's table — not a general "looked correct" pass
   - GIVEN a same-session no-group learner WHEN the navigation is opened THEN the implementing engineer confirms the EXACT count (1 of 24 role-gated items visible — Book Conference Slots) and names the other 23 explicitly as confirmed absent, per the spec's refusal scenario
   - GIVEN this verification pass WHEN it completes THEN its results (screenshots plus the per-role checklist) are attached to the PR, since every scenario above carries `@e2e exclude` in the spec and has no automated substitute
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 6: Extend hydra gate 30 with `role-resolvable` and `group-declared` checks
 - **spec_ref**: `openspec/changes/fix-dead-role-gates/specs/dashboard/spec.md#requirement-a-ci-gate-must-reject-a-manifest-role-literal-the-resolver-cannot-emit-and-a-group-name-no-declaration-provisions`
