@@ -19,6 +19,6 @@ jobs:
     # as every other workflow in this repo does.
     uses: ConductionNL/.github/.github/workflows/openspec-sync.yml@main
     with:
-      app-name: scholiq
+      app-name: learniq
     secrets:
       PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
