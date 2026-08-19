@@ -209,6 +209,7 @@ export default {
 		 *
 		 * @param {string} kind The raw kind value.
 		 * @return {string}
+		 * @spec exclude Presentation-only label map from the 6 fixed conflict-kind values to their localized display names; no behavioural spec requirement of its own — the queueing behaviour is covered by requirement-detected-conflicts-are-queued-for-coordinator-review.
 		 */
 		kindLabel(kind) {
 			const labels = {

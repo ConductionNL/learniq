@@ -103,6 +103,8 @@ class RenameRegisterSlug implements IRepairStep {
 	 * @param IOutput $output Repair output.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/rename-to-learniq/specs/app-metadata/spec.md#requirement-pre-existing-openregister-objects-resolve-after-the-register-slug-migration
 	 */
 	public function run(IOutput $output): void {
 		if ($this->hasCollision() === true) {

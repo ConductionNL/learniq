@@ -190,6 +190,7 @@ export default {
 		 * Human-readable verification summary line.
 		 *
 		 * @return {string} Localised summary text.
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
 		 */
 		verificationLabel() {
 			if (!this.report) return ''

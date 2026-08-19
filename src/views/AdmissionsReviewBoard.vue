@@ -254,6 +254,7 @@ export default {
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		roundKindLabel(application) {
 			const round = this.roundFor(application)
@@ -316,6 +317,7 @@ export default {
 		 *
 		 * @param {string|null} dt ISO date(-time) string
 		 * @return {string}
+		 * @spec exclude Generic Intl.DateTimeFormat wrapper with a raw-string fallback; no admissions-domain behaviour, just locale-aware date rendering shared by any field on this page.
 		 */
 		formatDate(dt) {
 			if (!dt) return this.t('learniq', 'not set')

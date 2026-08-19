@@ -211,6 +211,9 @@ export default {
 			return !!this.order && SETTLED_STATES.includes(this.order.lifecycle)
 		},
 
+		/**
+		 * @spec exclude Presentation-only string formatting a "Order status: {lifecycle}" line from the raw lifecycle value; the payable/settled business rules live in canPay/isSettled, not here.
+		 */
 		statusLabel() {
 			if (!this.order) {
 				return ''

@@ -549,6 +549,7 @@ export default {
 		 *
 		 * @param {string} type Block type value.
 		 * @return {string}
+		 * @spec exclude Presentation-only label map from the 5 fixed block-type values to their localized display names; no behavioural spec requirement of its own.
 		 */
 		blockTypeLabel(type) {
 			const labels = {
@@ -673,6 +674,7 @@ export default {
 		 * `v-model`; just renumber + announce.
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
 		 */
 		onBlocksDragEnd() {
 			this.renumberBlocks()

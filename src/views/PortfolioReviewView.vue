@@ -380,6 +380,7 @@ export default {
 		 *
 		 * @param {string} kind evidenceKind value.
 		 * @return {string}
+		 * @spec exclude Presentation-only label map from the 6 fixed evidenceKind values to their localized display names; the per-kind reference discipline itself is governed by requirement-portfolioentry-references-existing-evidence-objects-via-per-kind-fields-never-a-polymorphic-ref, not by this string lookup.
 		 */
 		evidenceKindLabel(kind) {
 			const labels = {

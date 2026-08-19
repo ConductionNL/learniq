@@ -149,6 +149,8 @@ class MigrateAppConfigKeys implements IRepairStep {
 	 * @param IOutput $output Repair output.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/rename-to-learniq/specs/app-metadata/spec.md#requirement-stored-per-install-configuration-survives-the-identity-rename
 	 */
 	public function run(IOutput $output): void {
 		$keys = $this->oldKeys();

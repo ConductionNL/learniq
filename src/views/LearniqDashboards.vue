@@ -220,6 +220,7 @@ export default {
 		 * Admin KPI + manage layout (the previous default dashboard).
 		 *
 		 * @return {{widgets: Array<object>, layout: Array<object>}}
+		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
 		 */
 		adminConfig() {
 			return {
@@ -495,6 +496,7 @@ export default {
 		 *
 		 * @param {string} role One of admin|teacher|student.
 		 * @return {string}
+		 * @spec exclude Presentation-only label map for the three fixed role names; the role-gating behaviour itself is covered by viewConfig/activeRole, not by this string lookup.
 		 */
 		roleLabel(role) {
 			if (role === 'admin') {

@@ -195,6 +195,8 @@ class KeyManagementService {
 	 * @param string $fingerprint 32-char hex fingerprint (first 32 chars of SHA-256 of PEM).
 	 *
 	 * @return string|null PEM string of the matching public key, or null if not found.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
 	 */
 	public function resolvePublicKeyByFingerprint(string $tenantId, string $fingerprint): ?string {
 		// Check the active key first.

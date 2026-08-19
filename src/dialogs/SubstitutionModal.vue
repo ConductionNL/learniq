@@ -159,6 +159,7 @@ export default {
 		 * Reason-kind options, matching Session.changeReasonKind's declared enum.
 		 *
 		 * @return {Array<{value:string,label:string}>}
+		 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-cohort-teacher-cancels-a-session-with-a-reason
 		 */
 		reasonOptions() {
 			return [

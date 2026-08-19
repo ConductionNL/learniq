@@ -264,6 +264,7 @@ export default {
 		 * @param {object} item The preference row being changed.
 		 * @param {boolean} value The new enabled state.
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/fix-dashboards-settings-notifications/specs/nextcloud-app/spec.md#requirement-per-user-notification-preferences-in-the-user-settings-dialog
 		 */
 		async toggle(item, value) {
 			const previous = item.enabled

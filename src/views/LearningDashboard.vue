@@ -103,6 +103,7 @@ export default {
 		 * The CnDashboardPage `widgets` declaration.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 		 */
 		widgets() {
 			return [

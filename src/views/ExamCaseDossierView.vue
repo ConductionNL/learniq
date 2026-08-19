@@ -448,6 +448,7 @@ export default {
 		 * Load the case object from OpenRegister.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/exam-board/spec.md#requirement-frontend-is-declarative-with-one-shared-custom-detail-view
 		 */
 		async loadCase() {
 			this.loading = true
