@@ -173,6 +173,7 @@ export default {
 		 * Human-readable label for the statement's 3-value status.
 		 *
 		 * @return {string} The translated status label.
+		 * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-the-accessibility-statement-must-carry-the-dutch-government-model-s-mandatory-fields
 		 */
 		statusLabel() {
 			if (!this.statement || !this.statement.status) {

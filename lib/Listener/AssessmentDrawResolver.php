@@ -110,6 +110,16 @@ class AssessmentDrawResolver implements IEventListener {
 	 *
 	 * @return void
 	 *
+	 * @listener-placement inline correctness — this writes the AssessmentResult's
+	 * `drawnItemRefs`, which IS the set of items the learner is about to be
+	 * served, and the class contract is that it is "written once; never
+	 * recomputed by any later process". Deferring it to a background job would
+	 * hand the learner an attempt whose drawnItemRefs is still the default `[]`
+	 * for however long the queue takes — i.e. an assessment with no questions,
+	 * or the fail-closed empty state — because `TakeAssessmentView.vue` POSTs the
+	 * AssessmentResult and reads it straight back. The work is also bounded: one
+	 * ItemBank read plus a Fisher-Yates permutation over drawCount items.
+	 *
 	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-draw-and-shuffle-resolution-runs-server-side-and-never-trusts-a-client-supplied-value
 	 */
 	public function handle(Event $event): void {
@@ -182,8 +192,9 @@ class AssessmentDrawResolver implements IEventListener {
 	 * @param array<string,mixed> $assessment Assessment data.
 	 * @param string $tenantId Tenant ID to scope the random-draw Item lookup.
 	 *
+	 * Null when random-draw fails closed (the pool cannot supply drawCount).
+	 *
 	 * @return array{itemIds: array<int,string>, pointsOverride: array<string,mixed>}|null
-	 *                                                                                     Null when random-draw fails closed (pool cannot supply drawCount).
 	 *
 	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
 	 */

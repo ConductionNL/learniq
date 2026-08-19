@@ -192,6 +192,7 @@ export default {
 		 * NcSelect options for the three-tier locality policy, strictest first.
 		 *
 		 * @return {Array<{value: string, label: string}>} Options.
+		 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
 		 */
 		policyOptions() {
 			return [
@@ -211,6 +212,9 @@ export default {
 		},
 	},
 
+	/**
+	 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
+	 */
 	async mounted() {
 		await Promise.all([this.loadPolicy(), this.loadDisclosure()])
 		this.loading = false
@@ -370,6 +374,7 @@ export default {
 		 *
 		 * @param {object} feature A disclosure row.
 		 * @return {string} Translated label.
+		 * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
 		 */
 		badgeLabel(feature) {
 			if (feature.verified !== true) {

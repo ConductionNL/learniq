@@ -129,6 +129,9 @@
 							entry.kindLabel
 						}}</span>
 						<span class="pupil-dossier-timeline__entry-date">{{
+							/**
+							 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
+							 */
 							formatDate(entry.date)
 						}}</span>
 					</div>
@@ -181,6 +184,7 @@ export default {
 		 * (populated by LearnerProfileDetail's "Dossier timeline" KPI tile).
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		learnerId() {
 			return (
@@ -214,6 +218,9 @@ export default {
 	watch: {
 		learnerId: {
 			immediate: true,
+			/**
+			 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
+			 */
 			handler() {
 				if (this.learnerId) this.loadAll()
 			},
@@ -227,6 +234,7 @@ export default {
 		 * navigation without a pre-selected learner).
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		openLearner() {
 			const id = this.learnerIdInput.trim()
@@ -246,6 +254,7 @@ export default {
 		 * @param {string} query Query string, WITHOUT the leading "?" (already
 		 *   `encodeURIComponent`-escaped by the caller).
 		 * @return {Promise<Array<object>>}
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		async fetchSchema(schema, query) {
 			const url = generateUrl(
@@ -315,6 +324,7 @@ export default {
 		/**
 		 * @param {object} o DossierNote object.
 		 * @return {object} Normalised timeline entry.
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		normaliseNote(o) {
 			return {
@@ -331,6 +341,7 @@ export default {
 		/**
 		 * @param {object} o BehaviourIncident object.
 		 * @return {object} Normalised timeline entry.
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		normaliseIncident(o) {
 			return {
@@ -350,6 +361,7 @@ export default {
 		/**
 		 * @param {object} o WellbeingCheckIn object.
 		 * @return {object} Normalised timeline entry.
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		normaliseCheckIn(o) {
 			return {
@@ -366,6 +378,7 @@ export default {
 		/**
 		 * @param {object} o LearningPlan object.
 		 * @return {object} Normalised timeline entry.
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		normalisePlan(o) {
 			return {
@@ -382,6 +395,7 @@ export default {
 		/**
 		 * @param {object} o SupportRequest object.
 		 * @return {object} Normalised timeline entry.
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		normaliseRequest(o) {
 			return {
@@ -398,6 +412,7 @@ export default {
 		/**
 		 * @param {object} o DeliberationRecord object.
 		 * @return {object} Normalised timeline entry.
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		normaliseDeliberation(o) {
 			return {

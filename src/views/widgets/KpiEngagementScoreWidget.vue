@@ -51,6 +51,7 @@ export default {
 		 * average.
 		 *
 		 * @return {string|number}
+		 * @spec openspec/specs/student-analytics/spec.md#requirement-persist-engagementscore-domain-objects-in-openregister
 		 */
 		displayValue() {
 			return this.average === null ? '—' : this.average
