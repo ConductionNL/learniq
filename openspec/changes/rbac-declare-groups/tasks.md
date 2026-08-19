@@ -58,8 +58,8 @@
   - GIVEN `GET /cloud/groups` matches zero of the eight canonical ids before import WHEN the updated register is imported THEN a subsequent `GET /cloud/groups` lists all eight, each with zero members, including `learners`/`coordinators`/`guardians`/`administration-managers` which no authorization rule in this change references — TC-1 in test-plan.md
   - GIVEN the register's content hash already matches (no-op skip case) AND an administrator has since deleted `learners` (declared scope-map-only, per REQ-004) WHEN the register is imported again THEN `learners` exists again — TC-2 in test-plan.md, proving the scope-map-only declaration path survives the import skip check, not just the authorization-block path
   - GIVEN the same post-import `GET /cloud/groups` response WHEN checked for a NINTH group literally named `authenticated` THEN it IS present, with zero members — TC-9 in test-plan.md; this is expected-but-undesirable (design.md Decision 7/C6), verified explicitly rather than assumed away, and should be raised with OpenRegister as a candidate third `RESERVED_PRINCIPALS` entry
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test — verified live on localhost:8080: `GET /cloud/groups` was 28 groups pre-import (zero canonical matches), 36 post-import (all eight canonical ids present, each zero members). `authenticated` was already present pre-import (provisioned by another app's rbac declaration) and remains present post-import — the TC-9 side effect is confirmed structurally present, though this specific import didn't newly create it.
 
 ### Task 7: Verify the corrected rule on one actor — a `learners`-only user reads the catalogue AND is refused another learner's own record
 - **spec_ref**: `openspec/changes/rbac-declare-groups/specs/rbac-groups/spec.md#requirement-req-002-21-named-tier-1-schemas-declare-narrow-individually-assigned-authorization`, `openspec/changes/rbac-declare-groups/specs/rbac-groups/spec.md#requirement-req-001-the-scholiq-register-declares-a-role-based-authorization-cascade-staff-only`, `openspec/changes/rbac-declare-groups/specs/rbac-groups/spec.md#requirement-req-003-21-named-tier-3-catalogue-schemas-declare-wide-read-staff-only-write-across-two-profiles`
@@ -67,14 +67,14 @@
 - **acceptance_criteria**:
   - GIVEN a test user in no declared group WHEN they `GET` a `DossierNote` object THEN the response is 403, AND a test user in `instructors` gets 200 on the same object — TC-3/TC-4 in test-plan.md, proving the 403 is the group check working, not an unrelated failure
   - GIVEN a SINGLE test user in `learners` only WHEN they `GET` a `Course` object (catalogue) THEN the response is 200, AND WHEN the SAME user `GET`s or `POST`s a `GradeEntry` object owned by a DIFFERENT learner THEN both are refused (403) — TC-7 in test-plan.md, the paired check that catches the C5 bug: a suite that only asserted the refusal half would still pass on a broken (empty-catalogue) build
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test — verified live with a fresh non-admin user in each role (`rbactest`, no group; `learniq-test-instructor`, `instructors`; `learniq-test-learner`, `learners`). TC-3: `rbactest` GET on a `DossierNote` → HTTP 404 (RBAC-denied read; OpenRegister's `ObjectsController::show()` deliberately remaps a `NotAuthorizedException` 403 to 404 to avoid leaking object existence — confirmed in `ObjectsController.php`, not a routing defect). TC-4: `learniq-test-instructor` GET on the SAME `DossierNote` → HTTP 200. TC-7, same actor (`learniq-test-learner`): GET `Course` → HTTP 200; GET a different learner's `GradeEntry` → HTTP 404 (same privacy-remap); POST a new `GradeEntry` → HTTP 403 `"User ... does not have permission to 'create' objects in schema 'GradeEntry'"`. Both halves proven on one actor, as required.
 
 ## Verification
-- [ ] All tasks checked off
-- [ ] `openspec validate` passes
-- [ ] Manual testing against acceptance criteria (Tasks 6–7 ARE the manual testing — no separate pass needed)
-- [ ] Code review against spec requirements (REQ-001 through REQ-006, all six)
+- [x] All tasks checked off
+- [x] `openspec validate` passes (`openspec validate --changes rbac-declare-groups --strict` → passed)
+- [x] Manual testing against acceptance criteria (Tasks 6–7 ARE the manual testing — no separate pass needed)
+- [x] Code review against spec requirements (REQ-001 through REQ-006, all six) — verified programmatically: diffed the original vs. mutated register schema-by-schema; confirmed no schema outside the 42 named ones gained an `authorization` block, no schema outside the 20 named decoys lost `x-openregister-authorization`, and every other field in every schema (all 118) is byte-identical to the pre-change file.
 
 ## Tests (company-wide ADR-009)
 - N/A — no PHPUnit-testable business logic is added (config-only change, ADR-031). Coverage is TC-1 through TC-9 in test-plan.md, run against the live dev instance per Tasks 6–7.
