@@ -1,5 +1,5 @@
 {
-    "name": "conductionnl/scholiq",
+    "name": "conductionnl/learniq",
     "description": "A template for creating new Nextcloud apps",
     "license": "EUPL-1.2",
     "authors": [
@@ -11,7 +11,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "OCA\\Scholiq\\": "lib/"
+            "OCA\\Learniq\\": "lib/"
         }
     },
     "require": {
