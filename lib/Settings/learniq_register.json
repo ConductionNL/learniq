@@ -7,15 +7,15 @@
     },
     "x-openregister": {
         "type": "application",
-        "app": "scholiq",
+        "app": "learniq",
         "openregister": "^v0.2.14",
         "description": "Scholiq — open-source LVS + LMS for Nextcloud compliance training, certification, and learning management."
     },
     "paths": {},
     "components": {
         "registers": {
-            "scholiq": {
-                "slug": "scholiq",
+            "learniq": {
+                "slug": "learniq",
                 "title": "Scholiq Register",
                 "description": "Scholiq — open-source LVS + LMS for Nextcloud compliance training, certification, and learning management. Holds every learner, enrolment, assessment, grade, attendance, portfolio, credential and exchange object the app reads and writes.",
                 "version": "0.20.0",
@@ -167,7 +167,7 @@
         "objects": [
             {
                 "@self": {
-                    "register": "scholiq",
+                    "register": "learniq",
                     "schema": "programme",
                     "slug": "prog-compliance-2026"
                 },
@@ -177,7 +177,7 @@
             },
             {
                 "@self": {
-                    "register": "scholiq",
+                    "register": "learniq",
                     "schema": "programme",
                     "slug": "prog-onboarding"
                 },
@@ -187,7 +187,7 @@
             },
             {
                 "@self": {
-                    "register": "scholiq",
+                    "register": "learniq",
                     "schema": "course",
                     "slug": "course-avg-2026"
                 },
@@ -199,7 +199,7 @@
             },
             {
                 "@self": {
-                    "register": "scholiq",
+                    "register": "learniq",
                     "schema": "course",
                     "slug": "course-bio2-2026"
                 },
@@ -211,7 +211,7 @@
             },
             {
                 "@self": {
-                    "register": "scholiq",
+                    "register": "learniq",
                     "schema": "course",
                     "slug": "course-nis2-2026"
                 },
@@ -223,7 +223,7 @@
             },
             {
                 "@self": {
-                    "register": "scholiq",
+                    "register": "learniq",
                     "schema": "cohort",
                     "slug": "cohort-employees-2026"
                 },
@@ -234,7 +234,7 @@
             },
             {
                 "@self": {
-                    "register": "scholiq",
+                    "register": "learniq",
                     "schema": "learner-profile",
                     "slug": "learner-anna"
                 },
@@ -248,7 +248,7 @@
             },
             {
                 "@self": {
-                    "register": "scholiq",
+                    "register": "learniq",
                     "schema": "learner-profile",
                     "slug": "learner-bram"
                 },
@@ -262,7 +262,7 @@
             },
             {
                 "@self": {
-                    "register": "scholiq",
+                    "register": "learniq",
                     "schema": "learner-profile",
                     "slug": "learner-admin"
                 },
@@ -276,7 +276,7 @@
             },
             {
                 "@self": {
-                    "register": "scholiq",
+                    "register": "learniq",
                     "schema": "enrolment",
                     "slug": "enrol-anna-avg"
                 },
@@ -288,7 +288,7 @@
             },
             {
                 "@self": {
-                    "register": "scholiq",
+                    "register": "learniq",
                     "schema": "enrolment",
                     "slug": "enrol-bram-avg"
                 },
@@ -300,7 +300,7 @@
             },
             {
                 "@self": {
-                    "register": "scholiq",
+                    "register": "learniq",
                     "schema": "enrolment",
                     "slug": "enrol-anna-bio2"
                 },
@@ -312,7 +312,7 @@
             },
             {
                 "@self": {
-                    "register": "scholiq",
+                    "register": "learniq",
                     "schema": "regulation",
                     "slug": "reg-avg"
                 },
@@ -555,7 +555,7 @@
                         "revoke": {
                             "from": "issued",
                             "to": "revoked",
-                            "requires": "OCA\\Scholiq\\Service\\WalletRevocationPropagationService"
+                            "requires": "OCA\\Learniq\\Service\\WalletRevocationPropagationService"
                         },
                         "expire": {
                             "from": "issued",
@@ -566,14 +566,14 @@
                                 "issued"
                             ],
                             "to": "issued",
-                            "requires": "OCA\\Scholiq\\Service\\WalletOfferDelegationService"
+                            "requires": "OCA\\Learniq\\Service\\WalletOfferDelegationService"
                         },
                         "recordWalletClaim": {
                             "from": [
                                 "issued"
                             ],
                             "to": "issued",
-                            "requires": "OCA\\Scholiq\\Service\\WalletClaimSyncService"
+                            "requires": "OCA\\Learniq\\Service\\WalletClaimSyncService"
                         }
                     }
                 },
@@ -1223,7 +1223,7 @@
                         "publish": {
                             "from": "draft",
                             "to": "published",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\CoursePublishGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\CoursePublishGuard"
                         },
                         "archive": {
                             "from": "published",
@@ -2661,7 +2661,7 @@
                 "x-openregister-triggers": {
                     "calculatedChange": {
                         "description": "Recompute progressPercent whenever a LessonCompletion for this (learnerId, courseId) is created or updated. Implemented via EnrolmentProgressRollupHandler listening on ObjectCreatedEvent<LessonCompletion> — NOT a TimedJob (ADR-022). Mirrors FinalGrade's own x-openregister-triggers block.",
-                        "handler": "OCA\\Scholiq\\Listener\\EnrolmentProgressRollupHandler"
+                        "handler": "OCA\\Learniq\\Listener\\EnrolmentProgressRollupHandler"
                     }
                 },
                 "x-openregister-notifications": {
@@ -3245,27 +3245,27 @@
                         "completeIntake": {
                             "from": "intake-scheduled",
                             "to": "intake-completed",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\AdmissionsDecisionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\AdmissionsDecisionGuard"
                         },
                         "place": {
                             "from": "intake-completed",
                             "to": "placed",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\AdmissionsDecisionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\AdmissionsDecisionGuard"
                         },
                         "waitlist": {
                             "from": "intake-completed",
                             "to": "waitlisted",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\AdmissionsDecisionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\AdmissionsDecisionGuard"
                         },
                         "reject": {
                             "from": "intake-completed",
                             "to": "rejected",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\AdmissionsDecisionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\AdmissionsDecisionGuard"
                         },
                         "promote": {
                             "from": "waitlisted",
                             "to": "placed",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\AdmissionsDecisionGuard",
+                            "requires": "OCA\\Learniq\\Lifecycle\\AdmissionsDecisionGuard",
                             "description": "Driven by AdmissionsWaitlistPromoter when a placed Application for the same round transitions to withdrawn/rejected — promotes the oldest-submittedAt waitlisted Application, re-running AdmissionsDecisionGuard's capacity branch."
                         },
                         "convert": {
@@ -3712,7 +3712,7 @@
                         "sign": {
                             "from": "drafted",
                             "to": "signed",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\AttestationSigningGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\AttestationSigningGuard"
                         },
                         "revoke": {
                             "from": "signed",
@@ -3918,7 +3918,7 @@
                         "verify": {
                             "from": "submitted",
                             "to": "verified",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\ExternalTrainingVerificationGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\ExternalTrainingVerificationGuard"
                         },
                         "reject": {
                             "from": "submitted",
@@ -4385,7 +4385,7 @@
                         "publish": {
                             "from": "draft",
                             "to": "published",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\ProgrammePublishGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\ProgrammePublishGuard"
                         },
                         "archive": {
                             "from": "published",
@@ -4889,7 +4889,7 @@
                         "submit": {
                             "from": "draft",
                             "to": "submitted",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\SubjectChoiceConsentGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\SubjectChoiceConsentGuard"
                         },
                         "validate": {
                             "from": "submitted",
@@ -5021,7 +5021,7 @@
                         "activate": {
                             "from": "planned",
                             "to": "active",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\CohortMembershipGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\CohortMembershipGuard"
                         },
                         "complete": {
                             "from": "active",
@@ -5593,19 +5593,19 @@
                                 "in-progress"
                             ],
                             "to": "cancelled",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\SessionChangeGuard",
+                            "requires": "OCA\\Learniq\\Lifecycle\\SessionChangeGuard",
                             "description": "Requires SessionChangeGuard: caller must be a Cohort.teacherIds member or admin/coordinator, and changeReasonKind must be set ('no cancellation without a reason')."
                         },
                         "substitute-teacher": {
                             "from": "scheduled",
                             "to": "scheduled",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\SessionChangeGuard",
+                            "requires": "OCA\\Learniq\\Lifecycle\\SessionChangeGuard",
                             "description": "Assigns a substitute teacher without changing lifecycle — a genuine self-loop. Requires SessionChangeGuard (same authorization as cancel, plus substituteTeacherId must be set). Scoped to a single from-state (scheduled), matching this register's only two prior self-loop precedents (ConferenceRound.regenerate: scheduled->scheduled; DataExchangeJob.recordMunicipalityFeedback: succeeded->succeeded) — both pair one 'from' state with an identical 'to' value; verified at HEAD (TransitionEngine::transition()) that 'to' is resolved as a single scalar string, so an array 'from' converging on one fixed 'to' value is only correct for a state-CHANGING transition (this same schema's cancel, above), never a true multi-state self-loop. substitute-teacher-in-progress (below) is the in-progress counterpart, split into its own action name for that reason. design.md/spec.md describe this as one transition with from:[scheduled,in-progress]; this is the concrete two-action realization of that requirement."
                         },
                         "substitute-teacher-in-progress": {
                             "from": "in-progress",
                             "to": "in-progress",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\SessionChangeGuard",
+                            "requires": "OCA\\Learniq\\Lifecycle\\SessionChangeGuard",
                             "description": "The in-progress counterpart of substitute-teacher above — identical guard, identical effect (substituteTeacherId/changeReasonKind set, no lifecycle change), split into its own action name so this register's single-from-state self-loop precedent holds for both source states declared by spec.md's substitute-teacher requirement."
                         }
                     }
@@ -5909,7 +5909,7 @@
                         "approve": {
                             "from": "requested",
                             "to": "approved",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\ExamAccommodationApprovalGuard",
+                            "requires": "OCA\\Learniq\\Lifecycle\\ExamAccommodationApprovalGuard",
                             "description": "Restricted to admin/compliance-officer/mentor — a learner MUST NOT self-approve. No x-openregister-authorization key expresses a per-transition role gate in this register (verified: every existing x-openregister-authorization block uses only create/update/read/delete keys, never a transition action name), so — mirroring MunicipalityFeedbackGuard's identical 'no declarative field/transition-scoped write-authorization extension exists' rationale — a small PHP lifecycle guard is the only ADR-031-legitimate seam. This is a 5th PHP class beyond the 4 named in spec.md's 'Frontend is declarative' requirement text; the deviation is documented here and on the guard class itself, same as ReportPeriodLockGuard's own documented deviation."
                         },
                         "activate": {
@@ -6359,7 +6359,7 @@
                     "plagiarismProvider": {
                         "type": "string",
                         "nullable": true,
-                        "description": "Pluggable plagiarism-check provider identifier (e.g. 'turnitin', 'ouriginal'). Resolved to OCA\\Scholiq\\Plagiarism\\ProvidesPlagiarismCheck at runtime. No built-in provider — hook only.",
+                        "description": "Pluggable plagiarism-check provider identifier (e.g. 'turnitin', 'ouriginal'). Resolved to OCA\\Learniq\\Plagiarism\\ProvidesPlagiarismCheck at runtime. No built-in provider — hook only.",
                         "example": "turnitin",
                         "title": "Plagiarism Provider"
                     },
@@ -6468,7 +6468,7 @@
                         "publish": {
                             "from": "draft",
                             "to": "published",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\AssignmentPublishGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\AssignmentPublishGuard"
                         },
                         "close": {
                             "from": "published",
@@ -6675,7 +6675,7 @@
                         "submit": {
                             "from": "draft",
                             "to": "submitted",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\SubmissionWindowGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\SubmissionWindowGuard"
                         },
                         "return": {
                             "from": [
@@ -6890,7 +6890,7 @@
                         "submit": {
                             "from": "assigned",
                             "to": "submitted",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\RubricScoresCompletionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\RubricScoresCompletionGuard"
                         },
                         "release": {
                             "from": "submitted",
@@ -7065,7 +7065,7 @@
                         "submit": {
                             "from": "draft",
                             "to": "submitted",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\RubricScoresCompletionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\RubricScoresCompletionGuard"
                         }
                     }
                 },
@@ -7221,7 +7221,7 @@
                 "x-openregister-triggers": {
                     "calculatedChange": {
                         "description": "Recompute this PeerFeedbackSummary whenever a PeerReview for this submissionId transitions to released. Implemented via PeerFeedbackAggregator listening on ObjectTransitionedEvent — NOT a TimedJob.",
-                        "handler": "OCA\\Scholiq\\Listener\\PeerFeedbackAggregator"
+                        "handler": "OCA\\Learniq\\Listener\\PeerFeedbackAggregator"
                     }
                 }
             },
@@ -7925,7 +7925,7 @@
                         "publish": {
                             "from": "draft",
                             "to": "published",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\AssessmentPublishGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\AssessmentPublishGuard"
                         },
                         "close": {
                             "from": "published",
@@ -8189,12 +8189,12 @@
                         "submit": {
                             "from": "in-progress",
                             "to": "submitted",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\AssessmentScoringHandler"
+                            "requires": "OCA\\Learniq\\Lifecycle\\AssessmentScoringHandler"
                         },
                         "grade": {
                             "from": "submitted",
                             "to": "graded",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\AssessmentGradeGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\AssessmentGradeGuard"
                         }
                     }
                 },
@@ -9141,14 +9141,14 @@
                     }
                 ],
                 "x-openregister-lifecycle": {
-                    "_comment": "report-card: publish/republish's requires guard is OCA\\Scholiq\\Lifecycle\\ReportPeriodLockGuard, which composes the original OCA\\Scholiq\\Lifecycle\\FraudCaseBlockGuard check internally (constructor-injected, called first, unchanged behaviour) and then additionally blocks publishing into a locked report-card ReportPeriod's scope unless the actor holds admin/mentor/principal. requires is a single DI-tag string in this register's lifecycle engine (verified: OpenRegister's LifecycleAnnotationValidator rejects a non-string requires value) — there is no 'second requires entry' array shape to add alongside FraudCaseBlockGuard, so the guard composes rather than stacks.",
+                    "_comment": "report-card: publish/republish's requires guard is OCA\\Learniq\\Lifecycle\\ReportPeriodLockGuard, which composes the original OCA\\Learniq\\Lifecycle\\FraudCaseBlockGuard check internally (constructor-injected, called first, unchanged behaviour) and then additionally blocks publishing into a locked report-card ReportPeriod's scope unless the actor holds admin/mentor/principal. requires is a single DI-tag string in this register's lifecycle engine (verified: OpenRegister's LifecycleAnnotationValidator rejects a non-string requires value) — there is no 'second requires entry' array shape to add alongside FraudCaseBlockGuard, so the guard composes rather than stacks.",
                     "property": "lifecycle",
                     "initial": "concept",
                     "transitions": {
                         "publish": {
                             "from": "concept",
                             "to": "published",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\ReportPeriodLockGuard",
+                            "requires": "OCA\\Learniq\\Lifecycle\\ReportPeriodLockGuard",
                             "notifications": [
                                 "gradePublished"
                             ]
@@ -9160,7 +9160,7 @@
                         "republish": {
                             "from": "revised",
                             "to": "published",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\ReportPeriodLockGuard",
+                            "requires": "OCA\\Learniq\\Lifecycle\\ReportPeriodLockGuard",
                             "notifications": [
                                 "gradePublished"
                             ]
@@ -9168,7 +9168,7 @@
                         "invalidate": {
                             "from": "concept",
                             "to": "invalidated",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\FraudCaseInvalidationGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\FraudCaseInvalidationGuard"
                         }
                     }
                 },
@@ -9347,7 +9347,7 @@
                 "x-openregister-triggers": {
                     "calculatedChange": {
                         "description": "Recompute this FinalGrade whenever a GradeEntry for (learnerId, curriculumPlanId) publishes. Implemented via GradeRollupHandler listening on ObjectTransitionedEvent — NOT a TimedJob.",
-                        "handler": "OCA\\Scholiq\\Listener\\GradeRollupHandler"
+                        "handler": "OCA\\Learniq\\Listener\\GradeRollupHandler"
                     }
                 },
                 "x-property-rbac": {
@@ -9483,7 +9483,7 @@
                         "compose": {
                             "from": "open",
                             "to": "composed",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\ReportPeriodComposeGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\ReportPeriodComposeGuard"
                         },
                         "archive": {
                             "from": "composed",
@@ -9808,17 +9808,17 @@
                         "finalise": {
                             "from": "rapportvergadering-review",
                             "to": "finalised",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\ReportCardFinaliseGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\ReportCardFinaliseGuard"
                         },
                         "reopen": {
                             "from": "finalised",
                             "to": "rapportvergadering-review",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\ReportCardReopenGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\ReportCardReopenGuard"
                         },
                         "publishToParents": {
                             "from": "finalised",
                             "to": "published-to-parents",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\ReportCardVisibilityGuard",
+                            "requires": "OCA\\Learniq\\Lifecycle\\ReportCardVisibilityGuard",
                             "notifications": [
                                 "reportCardPublished"
                             ]
@@ -9831,12 +9831,12 @@
                         "renderToPdf": {
                             "from": "finalised",
                             "to": "finalised",
-                            "requires": "OCA\\Scholiq\\Service\\ReportCardPdfDelegationService"
+                            "requires": "OCA\\Learniq\\Service\\ReportCardPdfDelegationService"
                         },
                         "rerenderToPdf": {
                             "from": "published-to-parents",
                             "to": "published-to-parents",
-                            "requires": "OCA\\Scholiq\\Service\\ReportCardPdfDelegationService"
+                            "requires": "OCA\\Learniq\\Service\\ReportCardPdfDelegationService"
                         }
                     }
                 },
@@ -10409,7 +10409,7 @@
                 "x-openregister-triggers": {
                     "calculatedChange": {
                         "description": "Recompute this CompetencyAttainment whenever a competency-aligned GradeEntry publishes or a WerkprocesAssessment with a resolved competencyId is confirmed. Implemented via CompetencyAttainmentRollupHandler listening on ObjectTransitionedEvent — NOT a TimedJob.",
-                        "handler": "OCA\\Scholiq\\Listener\\CompetencyAttainmentRollupHandler"
+                        "handler": "OCA\\Learniq\\Listener\\CompetencyAttainmentRollupHandler"
                     }
                 },
                 "x-property-rbac": {
@@ -10589,12 +10589,12 @@
                         "grant": {
                             "from": "in-assessment",
                             "to": "granted",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\ExemptionDecisionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\ExemptionDecisionGuard"
                         },
                         "reject": {
                             "from": "in-assessment",
                             "to": "rejected",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\ExemptionDecisionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\ExemptionDecisionGuard"
                         },
                         "withdraw": {
                             "from": [
@@ -10975,7 +10975,7 @@
                         "scheduleHearing": {
                             "from": "reported",
                             "to": "hearing-scheduled",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\FraudCaseHearingGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\FraudCaseHearingGuard"
                         },
                         "holdHearing": {
                             "from": "hearing-scheduled",
@@ -10984,7 +10984,7 @@
                         "decide": {
                             "from": "heard",
                             "to": "decided",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\FraudCaseDecisionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\FraudCaseDecisionGuard"
                         },
                         "dismiss": {
                             "from": [
@@ -11479,7 +11479,7 @@
                                 "draft"
                             ],
                             "to": "active",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\LearningPlanSignatureGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\LearningPlanSignatureGuard"
                         },
                         "startEvaluation": {
                             "from": [
@@ -12926,7 +12926,7 @@
                         "record": {
                             "from": "scheduled",
                             "to": "recorded",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\PupilVoiceGuard",
+                            "requires": "OCA\\Learniq\\Lifecycle\\PupilVoiceGuard",
                             "description": "Blocked unless pupilVoice.heard is true or pupilVoice.waived is true with a non-empty waiverReason (2025 hoorrecht, insight 1145)."
                         }
                     }
@@ -14337,7 +14337,7 @@
                         "report": {
                             "from": "in-handling",
                             "to": "reported",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\AttendanceFlagReportGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\AttendanceFlagReportGuard"
                         },
                         "resolve": {
                             "from": [
@@ -14953,7 +14953,7 @@
                 "x-openregister-triggers": {
                     "calculatedChange": {
                         "description": "Recompute this EngagementScore whenever an XapiStatement for this (learnerId, courseId) is received. Implemented via EngagementSignalHandler listening on ObjectCreatedEvent<XapiStatement> — NOT a TimedJob (ADR-022).",
-                        "handler": "OCA\\Scholiq\\Listener\\EngagementSignalHandler"
+                        "handler": "OCA\\Learniq\\Listener\\EngagementSignalHandler"
                     }
                 },
                 "x-property-rbac": {
@@ -15404,7 +15404,7 @@
                         "issue": {
                             "from": "drafted",
                             "to": "issued",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\BsaWarningSigningGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\BsaWarningSigningGuard"
                         },
                         "acknowledge": {
                             "from": "issued",
@@ -15606,7 +15606,7 @@
                         "decide": {
                             "from": "drafted",
                             "to": "decided",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\BsaDecisionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\BsaDecisionGuard"
                         },
                         "appeal": {
                             "from": "decided",
@@ -16370,13 +16370,13 @@
                         "approveDossier": {
                             "from": "pending-parent-review",
                             "to": "running",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\OsoDossierReviewGuard",
+                            "requires": "OCA\\Learniq\\Lifecycle\\OsoDossierReviewGuard",
                             "description": "Parent approves the OSO dossier; job proceeds to running."
                         },
                         "run": {
                             "from": "queued",
                             "to": "running",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\DataExchangeRunGuard",
+                            "requires": "OCA\\Learniq\\Lifecycle\\DataExchangeRunGuard",
                             "description": "Non-OSO jobs: direct queued → running. OSO jobs: blocked by DataExchangeRunGuard (must go via pending-parent-review → approveDossier)."
                         },
                         "succeed": {
@@ -16386,7 +16386,7 @@
                         "recordMunicipalityFeedback": {
                             "from": "succeeded",
                             "to": "succeeded",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\MunicipalityFeedbackGuard",
+                            "requires": "OCA\\Learniq\\Lifecycle\\MunicipalityFeedbackGuard",
                             "description": "Coordinator/admin records the municipality's MAS-route feedback for a succeeded leerplicht report. A self-loop transition (lifecycle stays succeeded) used solely to attach MunicipalityFeedbackGuard's role + target check to this field write — this register has no declarative field-scoped write-authorization extension yet (ADR-031 exception; see design.md Security Considerations). ASSUMPTION (unverified against OpenRegister core, which is not present in this repo): the lifecycle engine permits a from==to transition; flag for confirmation during review."
                         },
                         "partial": {
@@ -16676,7 +16676,7 @@
                         "resubmit": {
                             "from": "corrected",
                             "to": "resubmitted",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\RejectionResubmitGuard",
+                            "requires": "OCA\\Learniq\\Lifecycle\\RejectionResubmitGuard",
                             "description": "Creates one new single-record DataExchangeJob scoped to this rejection's source object and stamps resubmittedJobId server-side."
                         },
                         "accept": {
@@ -16695,7 +16695,7 @@
                                 "corrected"
                             ],
                             "to": "waived",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\RejectionWaiveGuard",
+                            "requires": "OCA\\Learniq\\Lifecycle\\RejectionWaiveGuard",
                             "description": "Admin/coordinator waives the rejection with a mandatory reason; waivedBy/waivedAt are server-stamped."
                         }
                     }
@@ -17304,7 +17304,7 @@
                                 "sbb-verification-pending"
                             ],
                             "to": "confirmed",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\BpvConfirmationGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\BpvConfirmationGuard"
                         },
                         "activate": {
                             "from": [
@@ -17417,7 +17417,7 @@
                                 "pending-signatures"
                             ],
                             "to": "active",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\PokActivationGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\PokActivationGuard"
                         },
                         "complete": {
                             "from": [
@@ -18288,7 +18288,7 @@
                         "submit": {
                             "from": "draft",
                             "to": "submitted",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\ConferenceSignupGuardianGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\ConferenceSignupGuardianGuard"
                         },
                         "schedule": {
                             "from": "submitted",
@@ -18900,7 +18900,7 @@
                                 "active"
                             ],
                             "to": "submitted",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\PortfolioSubmissionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\PortfolioSubmissionGuard"
                         },
                         "grade": {
                             "from": "submitted",
@@ -19261,7 +19261,7 @@
                         "grant": {
                             "from": "draft",
                             "to": "active",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\PortfolioShareGrantHandler"
+                            "requires": "OCA\\Learniq\\Lifecycle\\PortfolioShareGrantHandler"
                         },
                         "revoke": {
                             "from": "active",
@@ -19434,7 +19434,7 @@
                         "generate": {
                             "from": "requested",
                             "to": "generated",
-                            "requires": "OCA\\Scholiq\\Service\\LearningRecordExportService"
+                            "requires": "OCA\\Learniq\\Service\\LearningRecordExportService"
                         }
                     }
                 },
@@ -19813,7 +19813,7 @@
                         "parse": {
                             "from": "uploaded",
                             "to": "parsed",
-                            "requires": "OCA\\Scholiq\\Service\\LearningRecordImportService"
+                            "requires": "OCA\\Learniq\\Service\\LearningRecordImportService"
                         }
                     }
                 },
@@ -20177,7 +20177,7 @@
                 "x-openregister-triggers": {
                     "calculatedChange": {
                         "description": "Recompute this LearnerEngagement whenever a PointAward for this learner is created. Implemented via LearnerEngagementRollupHandler listening on ObjectCreatedEvent -- NOT a TimedJob.",
-                        "handler": "OCA\\Scholiq\\Listener\\LearnerEngagementRollupHandler"
+                        "handler": "OCA\\Learniq\\Listener\\LearnerEngagementRollupHandler"
                     }
                 },
                 "x-property-rbac": {
@@ -20507,7 +20507,7 @@
                 "x-openregister-triggers": {
                     "invitationProvisioning": {
                         "description": "Provision one EvaluationInvitation per learner in scope (resolved from courseIds/cohortIds via the referenced Cohort.learnerIds) when the campaign opens. Implemented via EvaluationInvitationProvisioningHandler listening on ObjectTransitionedEvent -- NOT a TimedJob. Idempotency-keyed so a duplicate open event does not create duplicate invitations for the same (campaignId, learnerId).",
-                        "handler": "OCA\\Scholiq\\Listener\\EvaluationInvitationProvisioningHandler"
+                        "handler": "OCA\\Learniq\\Listener\\EvaluationInvitationProvisioningHandler"
                     }
                 },
                 "x-openregister-seed": []
@@ -20764,18 +20764,18 @@
                         "submit": {
                             "from": "draft",
                             "to": "submitted",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\CourseEvaluationEligibilityGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\CourseEvaluationEligibilityGuard"
                         }
                     }
                 },
                 "x-openregister-triggers": {
                     "qualityScoreRollup": {
                         "description": "Recompute the matching CourseQualityScore row (find-or-create, keyed on courseId/teacherId/academicYear/period) whenever a CourseEvaluationResponse submits. Implemented via CourseQualityScoreRollupHandler (internally calling CourseQualityScoreEvaluator) listening on ObjectTransitionedEvent -- NOT a TimedJob. Mirrors FinalGrade's own x-openregister-triggers block.",
-                        "handler": "OCA\\Scholiq\\Listener\\CourseQualityScoreRollupHandler"
+                        "handler": "OCA\\Learniq\\Listener\\CourseQualityScoreRollupHandler"
                     },
                     "invitationFlip": {
                         "description": "Flip the submitting learner's own EvaluationInvitation to hasResponded:true/respondedAt:now, re-resolving the same session-caller identity the guard used. Implemented via CourseEvaluationResponseSubmittedHandler listening on ObjectTransitionedEvent -- never reads or writes an identity field on this object.",
-                        "handler": "OCA\\Scholiq\\Listener\\CourseEvaluationResponseSubmittedHandler"
+                        "handler": "OCA\\Learniq\\Listener\\CourseEvaluationResponseSubmittedHandler"
                     }
                 },
                 "x-openregister-seed": []
@@ -21460,7 +21460,7 @@
                         "finalize": {
                             "from": "draft",
                             "to": "open",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\OrderTotalValidationGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\OrderTotalValidationGuard"
                         },
                         "markPartiallyPaid": {
                             "from": "open",
@@ -21928,14 +21928,14 @@
                         "grant": {
                             "from": "pending",
                             "to": "active",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\FeeItemVoluntaryEntitlementGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\FeeItemVoluntaryEntitlementGuard"
                         },
                         "revoke": {
                             "from": "active",
                             "to": "revoked"
                         }
                     },
-                    "_comment": "requires is a single DI-tag string in this register's lifecycle engine (verified: ReportPeriodLockGuard's own docblock/changelog entry — OpenRegister's LifecycleAnnotationValidator rejects a non-string requires value) — there is no 'second requires entry' array shape. FeeItemVoluntaryEntitlementGuard composes OCA\\Scholiq\\Lifecycle\\EntitlementOrderPaidGuard internally (constructor-injected, called after the voluntary check passes), mirroring ReportPeriodLockGuard's own composition of FraudCaseBlockGuard. The voluntary check runs FIRST and short-circuits so a voluntary FeeItem is refused regardless of the linked Order's paid status, exactly as the spec's own scenario requires."
+                    "_comment": "requires is a single DI-tag string in this register's lifecycle engine (verified: ReportPeriodLockGuard's own docblock/changelog entry — OpenRegister's LifecycleAnnotationValidator rejects a non-string requires value) — there is no 'second requires entry' array shape. FeeItemVoluntaryEntitlementGuard composes OCA\\Learniq\\Lifecycle\\EntitlementOrderPaidGuard internally (constructor-injected, called after the voluntary check passes), mirroring ReportPeriodLockGuard's own composition of FraudCaseBlockGuard. The voluntary check runs FIRST and short-circuits so a voluntary FeeItem is refused regardless of the linked Order's paid status, exactly as the spec's own scenario requires."
                 },
                 "x-property-rbac": {
                     "_comment": "Mirrors FinalGrade's block: the learner reads their own Entitlement; admin/finance roles read all. A learner MUST NOT read another learner's Entitlement.",
@@ -22093,7 +22093,7 @@
                         "publish": {
                             "from": "draft",
                             "to": "published",
-                            "requires": "OCA\\Scholiq\\Lifecycle\\AccessibilityStatementPublishGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\AccessibilityStatementPublishGuard"
                         },
                         "archive": {
                             "from": "published",

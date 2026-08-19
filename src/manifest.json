@@ -3,67 +3,96 @@
 	"version": "0.1.0",
 	"dependencies": [
 		"openregister",
-		{ "id": "openconnector", "required": false, "name": "OpenConnector" }
+		{
+			"id": "openconnector",
+			"required": false,
+			"name": "OpenConnector"
+		}
 	],
 	"observability": {
 		"health": {
 			"statusCodePolicy": "adr006",
 			"checks": [
-				{ "id": "database", "type": "database", "severity": "critical" },
-				{ "id": "or", "type": "orAvailable", "severity": "critical" },
-				{ "id": "launchpad", "type": "appEnabled", "app": "launchpad", "severity": "degraded" }
+				{
+					"id": "database",
+					"type": "database",
+					"severity": "critical"
+				},
+				{
+					"id": "or",
+					"type": "orAvailable",
+					"severity": "critical"
+				},
+				{
+					"id": "launchpad",
+					"type": "appEnabled",
+					"app": "launchpad",
+					"severity": "degraded"
+				}
 			]
 		},
 		"metrics": [
 			{
-				"name": "scholiq_courses_total",
+				"name": "learniq_courses_total",
 				"type": "gauge",
 				"help": "Number of Course objects in the Scholiq register.",
-				"source": { "kind": "objectCount", "register": "scholiq", "schema": "course" }
+				"source": {
+					"kind": "objectCount",
+					"register": "learniq",
+					"schema": "course"
+				}
 			},
 			{
-				"name": "scholiq_enrolments_total",
+				"name": "learniq_enrolments_total",
 				"type": "gauge",
 				"help": "Number of Enrolment objects in the Scholiq register.",
-				"source": { "kind": "objectCount", "register": "scholiq", "schema": "enrolment" }
+				"source": {
+					"kind": "objectCount",
+					"register": "learniq",
+					"schema": "enrolment"
+				}
 			},
 			{
-				"name": "scholiq_learner_profiles_total",
+				"name": "learniq_learner_profiles_total",
 				"type": "gauge",
 				"help": "Number of LearnerProfile objects in the Scholiq register.",
-				"source": { "kind": "objectCount", "register": "scholiq", "schema": "learner-profile" }
+				"source": {
+					"kind": "objectCount",
+					"register": "learniq",
+					"schema": "learner-profile"
+				}
 			}
 		]
 	},
 	"deepLinks": [
 		{
-			"registerSlug": "scholiq",
+			"registerSlug": "learniq",
 			"schemaSlug": "course",
-			"urlTemplate": "/apps/scholiq/#/courses/{uuid}",
+			"urlTemplate": "/apps/learniq/#/courses/{uuid}",
 			"displayName": "Course"
 		},
 		{
-			"registerSlug": "scholiq",
+			"registerSlug": "learniq",
 			"schemaSlug": "enrolment",
-			"urlTemplate": "/apps/scholiq/#/enrolments/{uuid}",
+			"urlTemplate": "/apps/learniq/#/enrolments/{uuid}",
 			"displayName": "Enrolment"
 		},
 		{
-			"registerSlug": "scholiq",
+			"registerSlug": "learniq",
 			"schemaSlug": "learner-profile",
-			"urlTemplate": "/apps/scholiq/#/learner-profiles/{uuid}",
+			"urlTemplate": "/apps/learniq/#/learner-profiles/{uuid}",
 			"displayName": "Learner"
 		},
 		{
-			"registerSlug": "scholiq",
+			"registerSlug": "learniq",
 			"schemaSlug": "credential",
-			"urlTemplate": "/apps/scholiq/#/credentials/{uuid}",
+			"urlTemplate": "/apps/learniq/#/credentials/{uuid}",
 			"displayName": "Credential"
 		},
 		{
-			"registerSlug": "scholiq",
+			"registerSlug": "learniq",
 			"schemaSlug": "support-request",
-			"urlTemplate": "/apps/scholiq/#/support-requests/{uuid}",
+			"urlTemplate": "/apps/learniq/#/support-requests/{uuid}",
 			"displayName": "Support request"
 		}
 	],
@@ -415,7 +444,10 @@
 					"order": 10,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "administration-manager"]
+							"in": [
+								"admin",
+								"administration-manager"
+							]
 						}
 					}
 				},
@@ -427,7 +459,10 @@
 					"order": 20,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "administration-manager"]
+							"in": [
+								"admin",
+								"administration-manager"
+							]
 						}
 					}
 				},
@@ -439,7 +474,10 @@
 					"order": 30,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "administration-manager"]
+							"in": [
+								"admin",
+								"administration-manager"
+							]
 						}
 					}
 				},
@@ -451,7 +489,10 @@
 					"order": 40,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "administration-manager"]
+							"in": [
+								"admin",
+								"administration-manager"
+							]
 						}
 					}
 				}
@@ -572,7 +613,10 @@
 					"order": 10,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "instructor"]
+							"in": [
+								"admin",
+								"instructor"
+							]
 						}
 					}
 				},
@@ -598,7 +642,10 @@
 					"order": 40,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "coordinator"]
+							"in": [
+								"admin",
+								"coordinator"
+							]
 						}
 					}
 				},
@@ -632,7 +679,10 @@
 					"order": 20,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "coordinator"]
+							"in": [
+								"admin",
+								"coordinator"
+							]
 						}
 					}
 				},
@@ -644,7 +694,10 @@
 					"order": 30,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "coordinator"]
+							"in": [
+								"admin",
+								"coordinator"
+							]
 						}
 					}
 				},
@@ -656,7 +709,10 @@
 					"order": 40,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "coordinator"]
+							"in": [
+								"admin",
+								"coordinator"
+							]
 						}
 					}
 				},
@@ -668,7 +724,10 @@
 					"order": 50,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "coordinator"]
+							"in": [
+								"admin",
+								"coordinator"
+							]
 						}
 					}
 				},
@@ -683,47 +742,51 @@
 		},
 		{
 			"id": "GroupCourseEvaluation",
-"label": "Course evaluation",
-"icon": "BookOpenPageVariantOutline",
-"order": 33,
-"children": [
-{
-"id": "EvaluationCampaignsMenu",
-"label": "Evaluation campaigns",
-"icon": "ClipboardOutline",
-"route": "EvaluationCampaigns",
-"order": 10
-},
-{
-"id": "CourseQualityReportMenu",
-"label": "Quality report",
-"icon": "ChartBoxOutline",
-"route": "CourseQualityReport",
-"order": 20
-},
-{
-"id": "CourseEvaluationResponsesMenu",
-"label": "Responses",
-"icon": "CommentOutline",
-"route": "CourseEvaluationResponses",
-"order": 30,
-"visibleIf": {
-"user.primaryRole": {
-"in": ["admin", "coordinator", "instructor"]
-}
-}
-},
-{
-"id": "ImprovementActionsMenu",
-"label": "Improvement actions",
-"icon": "Check",
-"route": "ImprovementActions",
-"order": 40
-}
-]
-},
-{
-"id": "GroupBpv",
+			"label": "Course evaluation",
+			"icon": "BookOpenPageVariantOutline",
+			"order": 33,
+			"children": [
+				{
+					"id": "EvaluationCampaignsMenu",
+					"label": "Evaluation campaigns",
+					"icon": "ClipboardOutline",
+					"route": "EvaluationCampaigns",
+					"order": 10
+				},
+				{
+					"id": "CourseQualityReportMenu",
+					"label": "Quality report",
+					"icon": "ChartBoxOutline",
+					"route": "CourseQualityReport",
+					"order": 20
+				},
+				{
+					"id": "CourseEvaluationResponsesMenu",
+					"label": "Responses",
+					"icon": "CommentOutline",
+					"route": "CourseEvaluationResponses",
+					"order": 30,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"admin",
+								"coordinator",
+								"instructor"
+							]
+						}
+					}
+				},
+				{
+					"id": "ImprovementActionsMenu",
+					"label": "Improvement actions",
+					"icon": "Check",
+					"route": "ImprovementActions",
+					"order": 40
+				}
+			]
+		},
+		{
+			"id": "GroupBpv",
 			"label": "BPV",
 			"icon": "BriefcaseOutline",
 			"order": 26,
@@ -836,7 +899,11 @@
 					"order": 10,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["guardian", "learner", "admin"]
+							"in": [
+								"guardian",
+								"learner",
+								"admin"
+							]
 						}
 					}
 				},
@@ -862,7 +929,11 @@
 					"order": 40,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "team-lead", "administration-manager"]
+							"in": [
+								"admin",
+								"team-lead",
+								"administration-manager"
+							]
 						}
 					}
 				},
@@ -896,7 +967,10 @@
 					"order": 20,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "coordinator"]
+							"in": [
+								"admin",
+								"coordinator"
+							]
 						}
 					}
 				},
@@ -930,7 +1004,9 @@
 					"order": 20,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin"]
+							"in": [
+								"admin"
+							]
 						}
 					}
 				},
@@ -942,7 +1018,9 @@
 					"order": 30,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin"]
+							"in": [
+								"admin"
+							]
 						}
 					}
 				},
@@ -954,7 +1032,9 @@
 					"order": 40,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin"]
+							"in": [
+								"admin"
+							]
 						}
 					}
 				},
@@ -966,7 +1046,9 @@
 					"order": 50,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin"]
+							"in": [
+								"admin"
+							]
 						}
 					}
 				}
@@ -976,7 +1058,7 @@
 			"id": "Documentation",
 			"label": "Documentation",
 			"icon": "BookOpenVariantOutline",
-			"href": "https://scholiq.conduction.nl",
+			"href": "https://learniq.conduction.nl",
 			"section": "footer",
 			"order": 90
 		},
@@ -1033,8 +1115,8 @@
 			"route": "/",
 			"type": "custom",
 			"title": "Dashboards",
-			"component": "ScholiqDashboards",
-			"_note": "Landing dashboard (ADR-009 §6): ScholiqDashboards with no role prop resolves to the user's default view (initial state dashboardRole). The three explicit per-role pages below back the group-gated Administration/Teaching/My learning menu items — the in-page role switcher was removed."
+			"component": "LearniqDashboards",
+			"_note": "Landing dashboard (ADR-009 §6): LearniqDashboards with no role prop resolves to the user's default view (initial state dashboardRole). The three explicit per-role pages below back the group-gated Administration/Teaching/My learning menu items — the in-page role switcher was removed."
 		},
 		{
 			"id": "DashboardAdmin",
@@ -1042,7 +1124,7 @@
 			"type": "custom",
 			"title": "Administration",
 			"component": "DashboardAdmin",
-			"_note": "Per-role dashboard (ADR-009 §6): DashboardAdmin renders ScholiqDashboards in its admin view. Backs the group-gated Administration menu item (visibleIf user.canAdminDashboard)."
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardAdmin renders LearniqDashboards in its admin view. Backs the group-gated Administration menu item (visibleIf user.canAdminDashboard)."
 		},
 		{
 			"id": "DashboardTeacher",
@@ -1050,7 +1132,7 @@
 			"type": "custom",
 			"title": "Teaching",
 			"component": "DashboardTeacher",
-			"_note": "Per-role dashboard (ADR-009 §6): DashboardTeacher renders ScholiqDashboards in its teacher view. Backs the group-gated Teaching menu item (visibleIf user.canTeachDashboard)."
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardTeacher renders LearniqDashboards in its teacher view. Backs the group-gated Teaching menu item (visibleIf user.canTeachDashboard)."
 		},
 		{
 			"id": "DashboardStudent",
@@ -1058,7 +1140,7 @@
 			"type": "custom",
 			"title": "My learning",
 			"component": "DashboardStudent",
-			"_note": "Per-role dashboard (ADR-009 §6): DashboardStudent renders ScholiqDashboards in its student view. Backs the group-gated My learning menu item (visibleIf user.canLearnDashboard)."
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardStudent renders LearniqDashboards in its student view. Backs the group-gated My learning menu item (visibleIf user.canLearnDashboard)."
 		},
 		{
 			"id": "Courses",
@@ -1066,7 +1148,7 @@
 			"type": "index",
 			"title": "Courses",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Course"
 			}
 		},
@@ -1076,7 +1158,7 @@
 			"type": "index",
 			"title": "Enrolments",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Enrolment"
 			}
 		},
@@ -1086,7 +1168,7 @@
 			"type": "index",
 			"title": "Credentials",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Credential"
 			}
 		},
@@ -1095,190 +1177,190 @@
 			"route": "/compliance",
 			"type": "custom",
 			"title": "Compliance",
-			"component": "ScholiqCompliance",
+			"component": "LearniqCompliance",
 			"_note": "Compliance overview surface (regulation coverage, attestations); officer/hr gated; no generic lib index/detail analogue."
-			},
-			{
-				"id": "AiProcessingDisclosure",
-					"route": "/ai-processing-disclosure",
-					"type": "custom",
-					"title": "AI processing disclosure",
-					"component": "ScholiqAiProcessingDisclosure",
-					"_note": "sovereign-ai-guarantee: the AI-processing locality disclosure surface a school hands to its DPO, mirrors ScholiqAccessibilityStatement's exact shape (no generic lib index/detail analogue, no :id route param, singleton disclosure page). Composes AiProcessingDisclosureController's server-side read (Hermiq agentaifeature register + scholiq-ai-features AVG carrier + AiLocalityClassifier/SovereigntyPolicyService verdict) with an inline SovereigntyPolicy editor. Gated to admin/compliance-officer via the AiProcessingDisclosure nav entry's visibleIf (unlike Accessibility, which is open to every authenticated user)."
+		},
+		{
+			"id": "AiProcessingDisclosure",
+			"route": "/ai-processing-disclosure",
+			"type": "custom",
+			"title": "AI processing disclosure",
+			"component": "LearniqAiProcessingDisclosure",
+			"_note": "sovereign-ai-guarantee: the AI-processing locality disclosure surface a school hands to its DPO, mirrors LearniqAccessibilityStatement's exact shape (no generic lib index/detail analogue, no :id route param, singleton disclosure page). Composes AiProcessingDisclosureController's server-side read (Hermiq agentaifeature register + scholiq-ai-features AVG carrier + AiLocalityClassifier/SovereigntyPolicyService verdict) with an inline SovereigntyPolicy editor. Gated to admin/compliance-officer via the AiProcessingDisclosure nav entry's visibleIf (unlike Accessibility, which is open to every authenticated user)."
+		},
+		{
+			"id": "AccessibilityStatement",
+			"route": "/accessibility",
+			"type": "custom",
+			"title": "Accessibility statement",
+			"component": "LearniqAccessibilityStatement",
+			"_note": "accessibility-conformance-statement: the toegankelijkheidsverklaring disclosure surface, mirrors LearniqCompliance's role as a purpose-built read surface over cross-schema data (the published AccessibilityStatement plus its linked AccessibilityLimitation rows). No generic lib index/detail analogue: no :id route param, this is a singleton disclosure page. Reachable by every authenticated user (no visibleIf role gate on its Accessibility nav entry) - hosts the persistent 'Report an accessibility problem' entry point that opens AccessibilityFeedbackCreate."
+		},
+		{
+			"id": "AccessibilityLimitations",
+			"route": "/accessibility/limitations",
+			"type": "index",
+			"title": "Accessibility limitations",
+			"config": {
+				"register": "learniq",
+				"schema": "accessibility-limitation",
+				"_note": "accessibility-conformance-statement: the known-limitations register index, compliance-officer/admin authoring surface (gated via the Accessibility limitations nav entry's visibleIf). Generic declarative index - no bespoke UI."
+			}
+		},
+		{
+			"id": "AccessibilityLimitationDetail",
+			"route": "/accessibility/limitations/:id",
+			"type": "detail",
+			"title": "Accessibility limitation",
+			"config": {
+				"register": "learniq",
+				"schema": "accessibility-limitation",
+				"lifecycleActions": {
+					"field": "lifecycle"
 				},
-				{
-					"id": "AccessibilityStatement",
-				"route": "/accessibility",
-				"type": "custom",
-				"title": "Accessibility statement",
-				"component": "ScholiqAccessibilityStatement",
-				"_note": "accessibility-conformance-statement: the toegankelijkheidsverklaring disclosure surface, mirrors ScholiqCompliance's role as a purpose-built read surface over cross-schema data (the published AccessibilityStatement plus its linked AccessibilityLimitation rows). No generic lib index/detail analogue: no :id route param, this is a singleton disclosure page. Reachable by every authenticated user (no visibleIf role gate on its Accessibility nav entry) - hosts the persistent 'Report an accessibility problem' entry point that opens AccessibilityFeedbackCreate."
-			},
-			{
-				"id": "AccessibilityLimitations",
-				"route": "/accessibility/limitations",
-				"type": "index",
-				"title": "Accessibility limitations",
-				"config": {
-					"register": "scholiq",
-					"schema": "accessibility-limitation",
-					"_note": "accessibility-conformance-statement: the known-limitations register index, compliance-officer/admin authoring surface (gated via the Accessibility limitations nav entry's visibleIf). Generic declarative index - no bespoke UI."
-				}
-			},
-			{
-				"id": "AccessibilityLimitationDetail",
-				"route": "/accessibility/limitations/:id",
-				"type": "detail",
-				"title": "Accessibility limitation",
-				"config": {
-					"register": "scholiq",
-					"schema": "accessibility-limitation",
-					"lifecycleActions": {
-						"field": "lifecycle"
+				"widgets": [
+					{
+						"id": "al-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AlertCircleOutline"
 					},
-					"widgets": [
-						{
-							"id": "al-data",
-							"type": "data",
-							"title": "Data",
-							"content": {
-								"columns": 2
-							},
-							"icon": "AlertCircleOutline"
-						},
-						{
-							"id": "al-related",
-							"type": "related",
-							"title": "Related",
-							"icon": "LinkVariant"
-						}
-					],
-					"layout": [
-						{
-							"id": "1",
-							"widgetId": "al-data",
-							"gridX": 0,
-							"gridY": 0,
-							"gridWidth": 8,
-							"gridHeight": 5,
-							"showTitle": false
-						},
-						{
-							"id": "2",
-							"widgetId": "al-related",
-							"gridX": 8,
-							"gridY": 0,
-							"gridWidth": 4,
-							"gridHeight": 5,
-							"showTitle": false
-						}
-					],
-					"sidebar": {
-						"enabled": true,
-						"showMetadata": true,
-						"tabs": [
-							{
-								"id": "audit",
-								"label": "History",
-								"icon": "History",
-								"widgets": [
-									{
-										"type": "audit"
-									}
-								]
-							}
-						]
+					{
+						"id": "al-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
 					}
-				}
-			},
-			{
-				"id": "AccessibilityFeedbacks",
-				"route": "/accessibility/feedback",
-				"type": "index",
-				"title": "Accessibility feedback",
-				"config": {
-					"register": "scholiq",
-					"schema": "accessibility-feedback",
-					"_note": "accessibility-conformance-statement: the triage log of user-submitted AccessibilityFeedback, compliance-officer/admin surface (gated via the Accessibility feedback nav entry's visibleIf). Creation itself stays open to any authenticated user via AccessibilityFeedbackCreate, reached from the AccessibilityStatement page's 'Report an accessibility problem' entry point, not from this index."
-				}
-			},
-			{
-				"id": "AccessibilityFeedbackDetail",
-				"route": "/accessibility/feedback/:id",
-				"type": "detail",
-				"title": "Accessibility feedback",
-				"config": {
-					"register": "scholiq",
-					"schema": "accessibility-feedback",
-					"lifecycleActions": {
-						"field": "lifecycle"
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "al-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
 					},
-					"widgets": [
-						{
-							"id": "af-data",
-							"type": "data",
-							"title": "Data",
-							"content": {
-								"columns": 2
-							},
-							"icon": "MessageTextOutline"
-						},
-						{
-							"id": "af-related",
-							"type": "related",
-							"title": "Related",
-							"icon": "LinkVariant"
-						}
-					],
-					"layout": [
-						{
-							"id": "1",
-							"widgetId": "af-data",
-							"gridX": 0,
-							"gridY": 0,
-							"gridWidth": 8,
-							"gridHeight": 5,
-							"showTitle": false
-						},
-						{
-							"id": "2",
-							"widgetId": "af-related",
-							"gridX": 8,
-							"gridY": 0,
-							"gridWidth": 4,
-							"gridHeight": 5,
-							"showTitle": false
-						}
-					],
-					"sidebar": {
-						"enabled": true,
-						"showMetadata": true,
-						"tabs": [
-							{
-								"id": "audit",
-								"label": "History",
-								"icon": "History",
-								"widgets": [
-									{
-										"type": "audit"
-									}
-								]
-							}
-						]
+					{
+						"id": "2",
+						"widgetId": "al-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
 					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
 				}
-			},
-			{
-				"id": "AccessibilityFeedbackCreate",
-				"route": "/accessibility/feedback/new",
-				"type": "detail",
-				"title": "Report an accessibility problem",
-				"config": {
-					"register": "scholiq",
-					"schema": "accessibility-feedback",
-					"_note": "accessibility-conformance-statement: a dedicated no-id detail route so CnDetailPage's isCreateMode (ADR-062) opens an empty create form - the same pattern as course-evaluation's ImprovementActionCreate. Reached from ScholiqAccessibilityStatement.vue's persistent 'Report an accessibility problem' entry point. Creation is open to any authenticated user (AccessibilityFeedback carries no x-openregister-authorization.create restriction) - the opposite RBAC posture from the statement/limitation authoring pages above, deliberately (design.md Decision 3). Vue Router 4 ranks this static 'new' segment above AccessibilityFeedbackDetail's dynamic :id segment regardless of declaration order."
+			}
+		},
+		{
+			"id": "AccessibilityFeedbacks",
+			"route": "/accessibility/feedback",
+			"type": "index",
+			"title": "Accessibility feedback",
+			"config": {
+				"register": "learniq",
+				"schema": "accessibility-feedback",
+				"_note": "accessibility-conformance-statement: the triage log of user-submitted AccessibilityFeedback, compliance-officer/admin surface (gated via the Accessibility feedback nav entry's visibleIf). Creation itself stays open to any authenticated user via AccessibilityFeedbackCreate, reached from the AccessibilityStatement page's 'Report an accessibility problem' entry point, not from this index."
+			}
+		},
+		{
+			"id": "AccessibilityFeedbackDetail",
+			"route": "/accessibility/feedback/:id",
+			"type": "detail",
+			"title": "Accessibility feedback",
+			"config": {
+				"register": "learniq",
+				"schema": "accessibility-feedback",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "af-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "MessageTextOutline"
+					},
+					{
+						"id": "af-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "af-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "af-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
 				}
-			},
+			}
+		},
+		{
+			"id": "AccessibilityFeedbackCreate",
+			"route": "/accessibility/feedback/new",
+			"type": "detail",
+			"title": "Report an accessibility problem",
+			"config": {
+				"register": "learniq",
+				"schema": "accessibility-feedback",
+				"_note": "accessibility-conformance-statement: a dedicated no-id detail route so CnDetailPage's isCreateMode (ADR-062) opens an empty create form - the same pattern as course-evaluation's ImprovementActionCreate. Reached from LearniqAccessibilityStatement.vue's persistent 'Report an accessibility problem' entry point. Creation is open to any authenticated user (AccessibilityFeedback carries no x-openregister-authorization.create restriction) - the opposite RBAC posture from the statement/limitation authoring pages above, deliberately (design.md Decision 3). Vue Router 4 ranks this static 'new' segment above AccessibilityFeedbackDetail's dynamic :id segment regardless of declaration order."
+			}
+		},
 		{
 			"id": "CourseDetail",
 			"route": "/courses/:id",
@@ -1286,7 +1368,7 @@
 			"title": "Course Detail",
 			"_note": "A Course is a curricular container — the education 'catalog/parent' archetype. What a course owner comes here to manage is its four child collections, each its own object-list scoped by courseId: Lessons (the syllabus), Enrolments (the students taking it), Sessions & classes (the scheduled meetings), Assignments and Tests & assessments — plus the delivery Cohorts. These pair 6+6 below the metadata Data block (8-wide) and a compact Related panel (parent-course/curriculum-plan/programmes). A stats-block KPI panel counts lessons/enrolments/assignments/assessments at a glance, and lifecycleActions drives the draft→published→archived transitions (CoursePublishGuard). Course Materials render as a Files leaf — materials/handouts are the course's document surface. No email/calendar/talk: the Course schema declares NO linkedTypes and a course is a definition, not a correspondence thread (HARD RULE 1). The audit trail is a rarely-read history, so it lives as the single sidebar tab (the built-in audit widget), not a body widget (HARD RULE 4).",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Course",
 				"lifecycleActions": {
 					"field": "lifecycle"
@@ -1337,7 +1419,7 @@
 							"entries": [
 								{
 									"title": "Lessons",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "lesson",
 									"metric": "count",
 									"filter": {
@@ -1357,7 +1439,7 @@
 							"entries": [
 								{
 									"title": "Enrolments",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "enrolment",
 									"metric": "count",
 									"filter": {
@@ -1377,7 +1459,7 @@
 							"entries": [
 								{
 									"title": "Assignments",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "assignment",
 									"metric": "count",
 									"filter": {
@@ -1397,7 +1479,7 @@
 							"entries": [
 								{
 									"title": "Assessments",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "assessment",
 									"metric": "count",
 									"filter": {
@@ -1413,7 +1495,7 @@
 						"type": "object-list",
 						"title": "Lessons",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Lesson",
 							"filter": {
 								"courseId": "@objectId"
@@ -1459,7 +1541,7 @@
 						"type": "object-list",
 						"title": "Enrolments",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Enrolment",
 							"filter": {
 								"courseId": "@objectId"
@@ -1505,7 +1587,7 @@
 						"type": "object-list",
 						"title": "Cohorts",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Cohort",
 							"filter": {
 								"courseId": "@objectId"
@@ -1547,7 +1629,7 @@
 						"type": "object-list",
 						"title": "Assignments",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Assignment",
 							"filter": {
 								"courseId": "@objectId"
@@ -1589,7 +1671,7 @@
 						"type": "object-list",
 						"title": "Sessions & classes",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Session",
 							"filter": {
 								"courseId": "@objectId"
@@ -1631,7 +1713,7 @@
 						"type": "object-list",
 						"title": "Tests & assessments",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Assessment",
 							"filter": {
 								"courseId": "@objectId"
@@ -1835,7 +1917,7 @@
 			"title": "Course package import reports",
 			"_note": "course-package-import-export: the anti-Canvas promise made structural — one CoursePackageImportReport per course-package import attempt, listing every source-package resource's outcome (imported/degraded/dropped). Index lists every attempt; CoursePackageImportReportDetail renders the full entries table.",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "course-package-import-report"
 			}
 		},
@@ -1846,7 +1928,7 @@
 			"title": "Course package import report",
 			"_note": "course-package-import-export: renders one import attempt's full outcome — summary counts, lifecycle (running/succeeded/partial/failed), and the entries[] table (resourceIdentifier/resourceType/title/outcome/targetType/targetId/reason) naming every source resource, never a silent omission. Links to the created Course when one exists.",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "course-package-import-report",
 				"widgets": [
 					{
@@ -1945,7 +2027,7 @@
 			"title": "Learning record exports",
 			"_note": "portable-learning-record: read-only history of LearningRecordExport rows — a learner-initiated, signed, dual-shaped bundle of the learner's own trajectory. No create/edit actions beyond the declarative generate lifecycle action.",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learning-record-export"
 			}
 		},
@@ -1956,7 +2038,7 @@
 			"title": "Learning record export",
 			"_note": "portable-learning-record: renders one LearningRecordExport's coverageReport (naming every source object's included/summarized/omitted outcome), bundle reference, signature, and issuer DID. lifecycleActions expose generate (requested → generated) as a button.",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learning-record-export",
 				"lifecycleActions": {
 					"field": "lifecycle"
@@ -2029,7 +2111,7 @@
 			"title": "Learning record shares",
 			"_note": "portable-learning-record: read-only history of LearningRecordShare rows — a time-boxed, revocable grant of one generated export to a named external recipient. No create/edit actions beyond the declarative grant/revoke lifecycle actions.",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learning-record-share"
 			}
 		},
@@ -2040,7 +2122,7 @@
 			"title": "Learning record share",
 			"_note": "portable-learning-record: renders one LearningRecordShare's recipient, expiry, revocation, and access-tracking data plus a Related panel resolving the shared LearningRecordExport. lifecycleActions expose grant/revoke as buttons.",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learning-record-share",
 				"lifecycleActions": {
 					"field": "lifecycle"
@@ -2104,7 +2186,7 @@
 			"title": "Learning record imports",
 			"_note": "portable-learning-record: read-only history of LearningRecordImport rows — a coordinator-facing, evidence-only report of an applicant-uploaded prior-institution bundle during Application intake. No create/edit actions beyond the declarative parse lifecycle action.",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learning-record-import"
 			}
 		},
@@ -2115,7 +2197,7 @@
 			"title": "Learning record import",
 			"_note": "portable-learning-record: renders one LearningRecordImport's verificationStatus and entries[] table (mirrors CoursePackageImportReportDetail's entries table, applied to the input side) plus a Related panel resolving the Application it is evidence for. lifecycleActions expose parse as a button.",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learning-record-import",
 				"lifecycleActions": {
 					"field": "lifecycle"
@@ -2227,7 +2309,7 @@
 			"type": "index",
 			"title": "Lessons",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Lesson",
 				"filter": {
 					"courseId": "@route.courseId"
@@ -2241,7 +2323,7 @@
 			"title": "Lesson Detail",
 			"_note": "A Lesson is a single learning unit inside a course (ordered content item with a media contentRef) — the education content-item archetype. Body leads with lesson metadata (order, contentType, contentRef, duration, learning objectives, mandatory-training flag, regulation) 8-wide, with a Related panel resolving the parent Course alongside. Below, the lesson's Materials (files/media pointed at by lessonId) render as a related-index table plus a Files leaf, because a lesson IS its content and handouts. No comms leaves: Lesson declares no linkedTypes and is a definition, not a conversation (HARD RULE 1). Sidebar keeps metadata + an audit-trail leaf for content-change history.",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Lesson",
 				"lifecycleActions": {
 					"field": "lifecycle"
@@ -2265,7 +2347,7 @@
 							"entries": [
 								{
 									"title": "Materials",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "material",
 									"metric": "count",
 									"filter": {
@@ -2281,7 +2363,7 @@
 						"type": "object-list",
 						"title": "Materials",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Material",
 							"filter": {
 								"lessonId": "@objectId"
@@ -2428,7 +2510,7 @@
 			"title": "Enrolment",
 			"_note": "An Enrolment links one learner to one course (learnerId, courseId, cohortId, mandatory flag, dueDate, source, manager, regulation) — the education enrolment/participation archetype. Body leads with enrolment metadata 8-wide with a Related panel resolving learner + course + cohort. The enrolment's academic footprint is surfaced as related-index tables filtered by learnerId + courseId: Grade entries, Submissions and Attendance records — the progress a coordinator checks on this enrolment. No email/calendar: the Enrolment schema declares no linkedTypes; learner correspondence belongs on the Learner profile, not on a join record (HARD RULE 1). Sidebar keeps metadata + audit-trail (enrolment source/mandate changes are compliance-relevant).",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Enrolment",
 				"lifecycleActions": {
 					"field": "lifecycle"
@@ -2476,7 +2558,7 @@
 							"entries": [
 								{
 									"title": "Grade entries",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "grade-entry",
 									"metric": "count",
 									"filter": {
@@ -2497,7 +2579,7 @@
 							"entries": [
 								{
 									"title": "Attendance records",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "attendance-record",
 									"metric": "count",
 									"filter": {
@@ -2514,7 +2596,7 @@
 						"type": "object-list",
 						"title": "Grade entries",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "grade-entry",
 							"filter": {
 								"learnerId": "@object.learnerId",
@@ -2563,7 +2645,7 @@
 						"type": "object-list",
 						"title": "Submissions",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Submission",
 							"filter": {
 								"learnerIds": "@object.learnerId"
@@ -2602,7 +2684,7 @@
 						"type": "object-list",
 						"title": "Attendance",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "attendance-record",
 							"filter": {
 								"learnerId": "@object.learnerId",
@@ -2755,7 +2837,7 @@
 			"type": "index",
 			"title": "Regulations",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Regulation"
 			}
 		},
@@ -2767,7 +2849,7 @@
 			"title": "Regulation",
 			"_note": "A Regulation is a compliance rule (applicability criteria, audience scope, annual-renewal + cycle, RAG thresholds) that mandatory courses map to via regulationSlug — the config/rule archetype. Body leads with the rule definition 8-wide + a Related panel. Its compliance footprint is shown as related-index tables of the records that cite this regulation's slug: Attestations (proof-of-completion) and External training records, plus the mandatory Courses bound to it — what a compliance officer audits. No comms/files: a regulation is a policy definition, not a document or conversation (HARD RULES 1-2); attestations carry the evidence. Sidebar keeps metadata + audit-trail (threshold/renewal changes are auditable policy edits). type:\"custom\" (not \"detail\") because the route is business-slug-keyed (/compliance/regulations/AVG) and OpenRegister's generic single-object lookup only matches id/uuid/@self.slug/@self.uri, not the schema's own `slug` property — RegulationDetailPage.vue resolves the object itself (native match, falling back to a slug-filtered collection lookup) before mounting CnDetailPage with this config's widgets/layout/sidebar, and shows an explicit loading/not-found state instead of the null-objectData crash the generic detail dispatch hit on both link forms.",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Regulation",
 				"lifecycleActions": {
 					"field": "lifecycle"
@@ -2791,7 +2873,7 @@
 							"entries": [
 								{
 									"title": "Attestations",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "attestation",
 									"metric": "count",
 									"filter": {
@@ -2801,7 +2883,7 @@
 								},
 								{
 									"title": "External training",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "external-training-record",
 									"metric": "count",
 									"filter": {
@@ -2811,7 +2893,7 @@
 								},
 								{
 									"title": "Mandatory courses",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "course",
 									"metric": "count",
 									"filter": {
@@ -2827,7 +2909,7 @@
 						"type": "object-list",
 						"title": "Attestations",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Attestation",
 							"filter": {
 								"regulationSlug": "@object.slug"
@@ -2866,7 +2948,7 @@
 						"type": "object-list",
 						"title": "External training",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "external-training-record",
 							"filter": {
 								"regulationSlug": "@object.slug"
@@ -2913,7 +2995,7 @@
 						"type": "object-list",
 						"title": "Mandatory courses",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Course",
 							"filter": {
 								"regulationSlug": "@object.slug"
@@ -3037,7 +3119,7 @@
 			"type": "index",
 			"title": "Attestations",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Attestation",
 				"readOnly": true
 			}
@@ -3049,7 +3131,7 @@
 			"title": "Attestation",
 			"_note": "An Attestation is an immutable proof-of-completion record (learner, course/lesson, regulation, score, signature, signing key, actor IP, xAPI statement) — the education document/record archetype, read-only. Body leads with the attestation fields 8-wide + a Related panel resolving learner + course + lesson + regulation. Signed evidence renders as a Files leaf below (the attestation IS a signed document a compliance officer downloads). No email/calendar: an attestation is a sealed record, not a conversation (HARD RULE 1). Sidebar keeps metadata + audit-trail — the tamper-evidence trail is the whole point of an attestation.",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Attestation",
 				"readOnly": true,
 				"widgets": [
@@ -3138,7 +3220,7 @@
 			"title": "Credential",
 			"_note": "A Credential is an issued certificate/badge (learner, course, kind, issued/expires, issuer DID, signature, OpenBadges3 + EDCI payloads, verification URL, revocation reason) — the education document/attestation archetype. Body leads with issuance metadata 8-wide + a Related panel resolving learner + course + issuing enrolment. The signed badge artefacts render as a Files leaf (a credential IS a downloadable/verifiable document). No email/calendar: a credential is a sealed award, not correspondence (HARD RULE 1). Sidebar keeps metadata + audit-trail — issuance and revocation events are the credential's legal record.",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Credential",
 				"lifecycleActions": {
 					"field": "lifecycle"
@@ -3221,7 +3303,7 @@
 			"title": "Verify Credential",
 			"_note": "Public verification view of a Credential (mode:public) — a third party checking authenticity, NOT an internal editor. Deliberately minimal: a single full-width Data block showing only the verifiable claims (kind, learner, course, issued/expires, issuer DID, revocation status) plus a Files leaf for the signed badge artefact. No related-index, no comms, no audit sidebar — a public verifier must see the assertion and its signature and nothing about internal relations or history (HARD RULE 1, minimal-surface). Sidebar disabled: this is an anonymous proof page.",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Credential",
 				"mode": "public",
 				"id": "@route.id",
@@ -3273,7 +3355,7 @@
 			"route": "/learner",
 			"type": "custom",
 			"title": "My learning",
-			"component": "ScholiqLearnerHome",
+			"component": "LearniqLearnerHome",
 			"_note": "Learner-facing home surface (enrolled courses, progress, next activities); no generic lib index/detail analogue."
 		},
 		{
@@ -3282,7 +3364,7 @@
 			"type": "index",
 			"title": "Programmes",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Programme"
 			}
 		},
@@ -3292,7 +3374,7 @@
 			"type": "detail",
 			"title": "Programme",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Programme",
 				"_note": "A Programme is a qualification-level container (level, code, curriculum-plan, member courses, credential template) — the education 'parent/catalog' archetype. Body leads with programme metadata (8-wide) and a Related panel resolving the curriculum-plan and credential template. Below, the constituent Courses and delivery Cohorts render as related-index rosters — the two things a programme owner manages — and Final grades give an outcome roster. A stats-block KPI panel counts courses/cohorts/final-grades and lifecycleActions drives draft→published→archived (ProgrammePublishGuard). No comms leaves: Programme declares no linkedTypes and is a definition, not a correspondence thread (HARD RULE 1). The audit trail is the single sidebar tab (the built-in audit widget), not a body widget (HARD RULE 4).",
 				"lifecycleActions": {
@@ -3317,7 +3399,7 @@
 							"entries": [
 								{
 									"title": "Courses",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "course",
 									"metric": "count",
 									"filter": {
@@ -3337,7 +3419,7 @@
 							"entries": [
 								{
 									"title": "Cohorts",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "cohort",
 									"metric": "count",
 									"filter": {
@@ -3357,7 +3439,7 @@
 							"entries": [
 								{
 									"title": "Final grades",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "final-grade",
 									"metric": "count",
 									"filter": {
@@ -3373,7 +3455,7 @@
 						"type": "object-list",
 						"title": "Courses",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Course",
 							"filter": {
 								"programmeId": "@objectId"
@@ -3415,7 +3497,7 @@
 						"type": "object-list",
 						"title": "Cohorts",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Cohort",
 							"filter": {
 								"programmeId": "@objectId"
@@ -3457,7 +3539,7 @@
 						"type": "object-list",
 						"title": "Final grades",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "final-grade",
 							"filter": {
 								"programmeId": "@objectId"
@@ -3600,7 +3682,7 @@
 			"type": "index",
 			"title": "Curriculum plans",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "curriculum-plan"
 			}
 		},
@@ -3610,7 +3692,7 @@
 			"type": "detail",
 			"title": "Curriculum plan",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "curriculum-plan",
 				"_note": "A Curriculum Plan defines the structure and pass-rules of a qualification (required/elective courses, components, formula, grade-scale, pass rules, periods) — a config/structure archetype. Body leads with the plan definition (8-wide) plus a Related panel resolving the grade-scale and owning programmes. Below, the Grade entries and Final grades computed against this plan render as related-index tables so an examinations officer can audit outcomes. No comms leaves (no linkedTypes; this is a rule definition). Sidebar keeps metadata + audit-trail for rule-change history.",
 				"lifecycleActions": {
@@ -3635,7 +3717,7 @@
 							"entries": [
 								{
 									"title": "Grade entries",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "grade-entry",
 									"metric": "count",
 									"filter": {
@@ -3655,7 +3737,7 @@
 							"entries": [
 								{
 									"title": "Final grades",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "final-grade",
 									"metric": "count",
 									"filter": {
@@ -3671,7 +3753,7 @@
 						"type": "object-list",
 						"title": "Grade entries",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "grade-entry",
 							"filter": {
 								"curriculumPlanId": "@objectId"
@@ -3714,7 +3796,7 @@
 						"type": "object-list",
 						"title": "Final grades",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "final-grade",
 							"filter": {
 								"curriculumPlanId": "@objectId"
@@ -3839,7 +3921,7 @@
 			"type": "index",
 			"title": "Cohorts",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Cohort"
 			}
 		},
@@ -3849,7 +3931,7 @@
 			"type": "detail",
 			"title": "Cohort",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Cohort",
 				"_note": "A Cohort is a delivery group (a course/programme run for a set of learners in an academic year/period, mapped to an NC group). Body leads with cohort metadata (8-wide) and a Related panel resolving programme, course and NC group. The three things a cohort coordinator manages render as related-index rosters: scheduled Sessions, Enrolments (the roster) and Attendance flags (early-warning). HARD RULE 1 exception (talk-classroom-spaces): Cohort is a delivery-run archetype, not a catalog definition, so it gains linkedTypes:[\"talk\"] and a persistent class-space widget consuming OpenRegister's existing TalkLinkService/TalkProvider unchanged — CohortTalkMembershipHandler keeps the linked conversation's participants in sync with active Enrolments. Course/Programme/CurriculumPlan keep zero comms leaves. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -3874,7 +3956,7 @@
 							"entries": [
 								{
 									"title": "Sessions",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "session",
 									"metric": "count",
 									"filter": {
@@ -3894,7 +3976,7 @@
 							"entries": [
 								{
 									"title": "Enrolments",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "enrolment",
 									"metric": "count",
 									"filter": {
@@ -3914,7 +3996,7 @@
 							"entries": [
 								{
 									"title": "Attendance flags",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "attendance-flag",
 									"metric": "count",
 									"filter": {
@@ -3930,7 +4012,7 @@
 						"type": "object-list",
 						"title": "Sessions",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Session",
 							"filter": {
 								"cohortId": "@objectId"
@@ -3972,7 +4054,7 @@
 						"type": "object-list",
 						"title": "Enrolments",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Enrolment",
 							"filter": {
 								"cohortId": "@objectId"
@@ -4014,7 +4096,7 @@
 						"type": "object-list",
 						"title": "Attendance flags",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "attendance-flag",
 							"filter": {
 								"cohortId": "@objectId"
@@ -4189,7 +4271,7 @@
 			"type": "index",
 			"title": "Sessions",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Session"
 			}
 		},
@@ -4199,7 +4281,7 @@
 			"type": "detail",
 			"title": "Session",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Session",
 				"_note": "A Session is a scheduled teaching occurrence (start/end, location, tied to cohort/course/lesson, with materials and assignments). Body leads with session details (8-wide) and a Related panel resolving cohort/course/lesson. The attendance roster is the primary operational surface, so Attendance records render as a wide related-index; assigned work shows as an Assignments table. Session materials render as a Files leaf (handouts for the session). HARD RULE 1 exception (talk-classroom-spaces): a Session is a scheduled occurrence, not a catalog definition, so it gains linkedTypes:[\"talk\"] and a join-call widget — in practice a teacher links the parent Cohort's already-linked conversation (the common recurring-class path) or a fresh one-off room, via OR's existing picker/create UI unchanged. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -4224,7 +4306,7 @@
 							"entries": [
 								{
 									"title": "Attendance",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "attendance-record",
 									"metric": "count",
 									"filter": {
@@ -4244,7 +4326,7 @@
 							"entries": [
 								{
 									"title": "Assignments",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "assignment",
 									"metric": "count",
 									"filter": {
@@ -4260,7 +4342,7 @@
 						"type": "object-list",
 						"title": "Attendance",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "attendance-record",
 							"filter": {
 								"sessionId": "@objectId"
@@ -4303,7 +4385,7 @@
 						"type": "object-list",
 						"title": "Assignments",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Assignment",
 							"filter": {
 								"sessionId": "@objectId"
@@ -4455,7 +4537,7 @@
 			"type": "index",
 			"title": "Materials",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Material"
 			}
 		},
@@ -4465,7 +4547,7 @@
 			"type": "detail",
 			"title": "Material",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Material",
 				"_note": "A Material is a learning resource (kind, file reference or URL, license, LOM tags) attached to a course/lesson/session — a document/asset archetype, so it is files-first. Body leads with the actual file/preview via a wide Files leaf, then the material metadata (kind, license, LOM tags, order) below, with a Related panel resolving the owning course/lesson/session. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for version history.",
 				"widgets": [
@@ -4545,7 +4627,7 @@
 			"type": "index",
 			"title": "Rooms",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "room"
 			}
 		},
@@ -4555,7 +4637,7 @@
 			"type": "detail",
 			"title": "Room",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "room",
 				"_note": "timetabling-and-substitution: a Room is a plain bookable resource (capacity/kind/facilities/buildingCode/floor), no lifecycle — the same resource-metadata archetype as Material. Body leads with the room definition (8-wide); the Sessions booked into this room render as a wide related-index so a coordinator can see the room's schedule. Sidebar keeps metadata + audit-trail.",
 				"widgets": [
@@ -4577,7 +4659,7 @@
 							"entries": [
 								{
 									"title": "Booked sessions",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "session",
 									"metric": "count",
 									"filter": {
@@ -4593,7 +4675,7 @@
 						"type": "object-list",
 						"title": "Booked sessions",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Session",
 							"filter": {
 								"roomId": "@objectId"
@@ -4699,7 +4781,7 @@
 			"type": "index",
 			"title": "Timetable conflicts",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "timetable-conflict"
 			}
 		},
@@ -4709,7 +4791,7 @@
 			"type": "detail",
 			"title": "Timetable conflict",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "timetable-conflict",
 				"_note": "timetabling-and-substitution: a detected (never auto-resolved) double-booking or capacity overrun. Body leads with the conflict data (kind/severity/scopeRef/detectedAt) and a Related panel resolving the referenced Sessions. Admin/coordinator/scheduling-role read only (x-property-rbac) — a learner cannot reach this page. The primary review surface is the TimetableConflictQueue custom view; this detail page is the single-object drill-down. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -4776,7 +4858,7 @@
 			"type": "index",
 			"title": "Exam accommodations",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "exam-accommodation"
 			}
 		},
@@ -4786,7 +4868,7 @@
 			"type": "detail",
 			"title": "Exam accommodation",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "exam-accommodation",
 				"_note": "timetabling-and-substitution: a learner's approved, evidence-backed exam entitlement (extra time, separate room, reader, etc.). AVG-sensitive (health/disability-adjacent) — x-property-rbac restricts read to admin/compliance-officer/mentor/the learner themselves/the submitter. Body leads with the accommodation data (accommodationKind/value/evidenceRef/approvedBy) and a Related panel resolving the linked Assessment (when set). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -4861,7 +4943,7 @@
 			"type": "index",
 			"title": "Rubrics",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Rubric"
 			}
 		},
@@ -4871,7 +4953,7 @@
 			"type": "detail",
 			"title": "Rubric",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Rubric",
 				"_note": "A Rubric is a scoring scaffold (named criteria + max points) reused across assignments — a config/definition archetype. Body leads with the rubric definition including the criteria list (8-wide) and a Related panel. Below, the Assignments that reference this rubric render as a related-index so a designer sees reuse. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -4896,7 +4978,7 @@
 							"entries": [
 								{
 									"title": "Used by assignments",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "assignment",
 									"metric": "count",
 									"filter": {
@@ -4912,7 +4994,7 @@
 						"type": "object-list",
 						"title": "Used by assignments",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Assignment",
 							"filter": {
 								"rubricId": "@objectId"
@@ -5018,7 +5100,7 @@
 			"type": "index",
 			"title": "Assignments",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Assignment"
 			}
 		},
@@ -5028,7 +5110,7 @@
 			"type": "detail",
 			"title": "Assignment",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Assignment",
 				"_note": "An Assignment is gradable work (instructions, due date, max points, rubric, late/plagiarism policy) belonging to a course/session/cohort. Body leads with assignment details (8-wide) and a Related panel resolving course/session/rubric. The Submissions roster is the operational heart, rendered as a wide related-index, with a Submissions-received KPI stat. Briefing materials render as a Files leaf. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -5053,7 +5135,7 @@
 							"entries": [
 								{
 									"title": "Submissions",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "submission",
 									"metric": "count",
 									"filter": {
@@ -5069,7 +5151,7 @@
 						"type": "object-list",
 						"title": "Submissions",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Submission",
 							"filter": {
 								"assignmentId": "@objectId"
@@ -5192,7 +5274,7 @@
 			"type": "index",
 			"title": "Submissions",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Submission",
 				"filter": {
 					"assignmentId": "@route.assignmentId"
@@ -5205,7 +5287,7 @@
 			"type": "detail",
 			"title": "Submission",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Submission",
 				"readOnly": true,
 				"_note": "A Submission is a learner's handed-in work for an assignment (attachments, feedback, rubric scores, proposed grade, linked grade entry) — a result/score record. Body leads with the submission data including feedback and rubric scores (8-wide), a proposed-grade KPI stat, and a Related panel resolving the assignment and grade entry. The submitted work renders as a Files leaf (attachments are the point of a submission). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
@@ -5302,7 +5384,7 @@
 			"type": "index",
 			"title": "Peer reviews",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "peer-review",
 				"filter": {
 					"assignmentId": "@route.assignmentId"
@@ -5315,7 +5397,7 @@
 			"type": "detail",
 			"title": "Peer review",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "peer-review",
 				"_note": "A PeerReview is one reviewer's rubric-based assessment of another learner's Submission (peer-and-self-assessment) — a result/score record, mirroring Submission's own detail-page archetype. Body leads with the rubric scores + comments (8-wide) and a Related panel resolving the assignment/submission. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. x-property-rbac restricts read to admin/reviewer-self — the submission's author can never open this page directly; they read peer feedback through the PeerFeedbackSummary panel on their Submission's detail page instead.",
 				"lifecycleActions": {
@@ -5390,7 +5472,7 @@
 			"type": "index",
 			"title": "Self-assessments",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "self-assessment",
 				"filter": {
 					"assignmentId": "@route.assignmentId"
@@ -5403,7 +5485,7 @@
 			"type": "detail",
 			"title": "Self-assessment",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "self-assessment",
 				"_note": "A SelfAssessment is a learner's own rubric-based assessment of their own Submission (peer-and-self-assessment) — a result/score record. Body leads with the rubric scores + comments (8-wide) and a Related panel resolving the assignment/submission. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. x-property-rbac restricts read to admin/learner-self.",
 				"lifecycleActions": {
@@ -5478,7 +5560,7 @@
 			"type": "index",
 			"title": "Peer feedback summaries",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "peer-feedback-summary",
 				"readOnly": true,
 				"filter": {
@@ -5492,7 +5574,7 @@
 			"type": "detail",
 			"title": "Peer feedback summary",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "peer-feedback-summary",
 				"readOnly": true,
 				"_note": "PeerFeedbackSummary is a computed, read-only aggregate of a Submission's released PeerReviews (peer-and-self-assessment) — the only surface a submission's author reads peer feedback through; feedbackItems[].reviewerId is server-computed as null when the governing Assignment's peerReviewAnonymity is blind/double-blind. Mirrors FinalGrade's own read-only detail-page archetype. Body leads with the aggregate data (8-wide) and a Related panel resolving the submission/assignment. No lifecycle (fully derived). No comms leaves.",
@@ -5546,7 +5628,7 @@
 			"type": "index",
 			"title": "Item banks",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "item-bank"
 			}
 		},
@@ -5556,7 +5638,7 @@
 			"type": "detail",
 			"title": "Item bank",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "item-bank",
 				"_note": "An Item Bank is a reusable pool of assessment questions grouped by subject. Body leads with the bank metadata (8-wide) and a Related panel. The constituent Items render as a wide related-index (the bank's actual content), with a total-items KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -5581,7 +5663,7 @@
 							"entries": [
 								{
 									"title": "Items",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "item",
 									"metric": "count",
 									"filter": {
@@ -5597,7 +5679,7 @@
 						"type": "object-list",
 						"title": "Items",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Item",
 							"filter": {
 								"itemBankId": "@objectId"
@@ -5703,7 +5785,7 @@
 			"type": "index",
 			"title": "Items",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Item"
 			}
 		},
@@ -5713,7 +5795,7 @@
 			"type": "detail",
 			"title": "Item",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Item",
 				"_note": "An Item is a single assessment question (interaction type, QTI body, correct response, max score, difficulty, subject tags). Body leads with the item definition including the QTI body (8-wide) and a Related panel resolving the owning item-bank. No child rosters (an item is a leaf). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for revision history.",
 				"lifecycleActions": {
@@ -5780,7 +5862,7 @@
 			"type": "index",
 			"title": "Assessments",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Assessment"
 			}
 		},
@@ -5790,7 +5872,7 @@
 			"type": "detail",
 			"title": "Assessment",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Assessment",
 				"_note": "An Assessment is a configured test (item refs, scoring scheme, pass mark, time limit, attempts, proctoring, availability window) tied to a course/session/cohort. Body leads with the assessment configuration (8-wide) and a Related panel resolving course/session and grade-entry component. Learner attempts render as a wide Results related-index, with an attempts KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -5815,7 +5897,7 @@
 							"entries": [
 								{
 									"title": "Attempts",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "assessment-result",
 									"metric": "count",
 									"filter": {
@@ -5831,7 +5913,7 @@
 						"type": "object-list",
 						"title": "Results",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "assessment-result",
 							"filter": {
 								"assessmentId": "@objectId"
@@ -5938,7 +6020,7 @@
 			"type": "index",
 			"title": "Assessment results",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "assessment-result",
 				"filter": {
 					"assessmentId": "@route.assessmentId"
@@ -5960,7 +6042,7 @@
 			"type": "detail",
 			"title": "Assessment result",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "assessment-result",
 				"readOnly": true,
 				"_note": "An Assessment Result is one learner's attempt (responses, timing, proctoring session, grade entry). Body leads with the result data including responses (8-wide) and a Related panel resolving the assessment, learner and grade entry. The proctoring evidence for this attempt renders as a related-index. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
@@ -5983,7 +6065,7 @@
 							"entries": [
 								{
 									"title": "Proctoring sessions",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "proctoring-session",
 									"metric": "count",
 									"filter": {
@@ -5999,7 +6081,7 @@
 						"type": "object-list",
 						"title": "Proctoring",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "proctoring-session",
 							"filter": {
 								"assessmentResultId": "@objectId"
@@ -6102,7 +6184,7 @@
 			"type": "index",
 			"title": "Item statistics",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "item-statistics",
 				"readOnly": true
 			}
@@ -6113,7 +6195,7 @@
 			"type": "detail",
 			"title": "Item statistics",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "item-statistics",
 				"readOnly": true,
 				"_note": "assessment-item-pools-and-analysis: ItemStatistics is a fully-derived CTT computation (p-value, item-total correlation, distractor analysis, insufficientData gate) for one Item within one Assessment, mirroring the FinalGrade 'no lifecycle, read-only' precedent. Body leads with the statistics data (8-wide) and a Related panel resolving the item and assessment. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
@@ -6178,7 +6260,7 @@
 			"type": "index",
 			"title": "Assessment reliability",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "assessment-reliability",
 				"readOnly": true
 			}
@@ -6189,7 +6271,7 @@
 			"type": "detail",
 			"title": "Assessment reliability",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "assessment-reliability",
 				"readOnly": true,
 				"_note": "assessment-item-pools-and-analysis: AssessmentReliability is a fully-derived Cronbach's-alpha computation for one Assessment, mirroring the FinalGrade 'no lifecycle, read-only' precedent. Body leads with the reliability data (8-wide) and a Related panel resolving the assessment. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
@@ -6254,7 +6336,7 @@
 			"type": "index",
 			"title": "Item revision flags",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "item-revision-flag",
 				"readOnly": true
 			}
@@ -6265,7 +6347,7 @@
 			"type": "detail",
 			"title": "Item revision flag",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "item-revision-flag",
 				"readOnly": true,
 				"_note": "assessment-item-pools-and-analysis: an ItemRevisionFlag is a raised quality-review signal (item, triggering statistics, reason) — an alert/case archetype, mirroring EngagementRiskFlag/BsaProgressFlag/AttendanceFlag. A review signal ONLY — it never alters the flagged Item automatically. Body leads with the flag data (8-wide) and a Related panel resolving the item and triggering ItemStatistics. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
@@ -6341,7 +6423,7 @@
 			"type": "index",
 			"title": "Proctoring sessions",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "proctoring-session",
 				"readOnly": true
 			}
@@ -6352,7 +6434,7 @@
 			"type": "detail",
 			"title": "Proctoring session",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "proctoring-session",
 				"readOnly": true,
 				"_note": "A Proctoring Session records exam-monitoring for one assessment attempt (provider, status, recorded artefacts, integrity flags) — an evidence archetype. Body leads with the session data including flags (8-wide) and a Related panel resolving the assessment result and learner. Recorded artefacts (video/screen captures) render as a wide Files leaf — the evidence surface. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as a tamper log.",
@@ -6465,7 +6547,7 @@
 			"type": "index",
 			"title": "Grade scales",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "grade-scale"
 			}
 		},
@@ -6475,7 +6557,7 @@
 			"type": "detail",
 			"title": "Grade scale",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "grade-scale",
 				"_note": "A Grade Scale defines how scores map to grades (kind, bands, min/max, pass threshold, rounding) — a config archetype. Body leads with the scale definition including bands (8-wide) and a Related panel. Grade entries recorded against this scale render as a related-index so an examinations officer sees usage. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for rule-change history.",
 				"lifecycleActions": {
@@ -6500,7 +6582,7 @@
 							"entries": [
 								{
 									"title": "Grade entries",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "grade-entry",
 									"metric": "count",
 									"filter": {
@@ -6516,7 +6598,7 @@
 						"type": "object-list",
 						"title": "Grade entries",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "grade-entry",
 							"filter": {
 								"gradeScaleId": "@objectId"
@@ -6623,7 +6705,7 @@
 			"type": "index",
 			"title": "LTI tool placements",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "lti-tool-placement"
 			}
 		},
@@ -6633,7 +6715,7 @@
 			"type": "detail",
 			"title": "LTI tool placement",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "lti-tool-placement",
 				"_note": "An LtiToolPlacement names which lesson/course an external LTI 1.3 tool is placed into and, optionally, which grading component its AGS scores feed — a config archetype, same shape as GradeScale. Body leads with the placement definition (8-wide) and a Related panel resolving the Lesson/Course/CurriculumPlan/GradeScale it references. No comms leaves (no linkedTypes) — this is configuration, not a conversation. Sidebar keeps metadata + audit-trail for config-change history (openspec/changes/lti-tool-placement/tasks.md#task-3.3).",
 				"lifecycleActions": {
@@ -6700,7 +6782,7 @@
 			"type": "index",
 			"title": "Grade entries",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "grade-entry"
 			}
 		},
@@ -6710,7 +6792,7 @@
 			"type": "detail",
 			"title": "Grade entry",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "grade-entry",
 				"_note": "A Grade Entry is a single recorded score (value, scale, weight, period, grader, source submission/result) for a learner and curriculum component — a score record. Body leads with the entry data including value and comment (8-wide), a value KPI stat, and a Related panel resolving the learner, course, grade-scale and source submission/result. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as the grade-change audit.",
 				"lifecycleActions": {
@@ -6777,7 +6859,7 @@
 			"type": "index",
 			"title": "Final grades",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "final-grade",
 				"readOnly": true
 			}
@@ -6788,7 +6870,7 @@
 			"type": "detail",
 			"title": "Final grade",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "final-grade",
 				"readOnly": true,
 				"_note": "A Final Grade is the computed outcome for a learner on a course/programme (value, passed flag, breakdown, last recompute time) — an aggregate result. Body leads with the final-grade data including the breakdown (8-wide), a value KPI stat and a passed KPI, plus a Related panel resolving learner/course/programme/plan. The contributing Grade entries render as a related-index for traceability. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
@@ -6811,7 +6893,7 @@
 							"entries": [
 								{
 									"title": "Contributing grades",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "grade-entry",
 									"metric": "count",
 									"filter": {
@@ -6828,7 +6910,7 @@
 						"type": "object-list",
 						"title": "Contributing grades",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "grade-entry",
 							"filter": {
 								"learnerId": "@object.learnerId",
@@ -6953,7 +7035,7 @@
 			"type": "roadmap",
 			"title": "Features & roadmap",
 			"config": {
-				"documentationUrl": "https://scholiq.conduction.nl"
+				"documentationUrl": "https://learniq.conduction.nl"
 			}
 		},
 		{
@@ -6962,7 +7044,7 @@
 			"type": "index",
 			"title": "Course templates",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "course-template"
 			}
 		},
@@ -6972,7 +7054,7 @@
 			"type": "detail",
 			"title": "Course template",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "course-template",
 				"_note": "course-authoring-ux: a Course Template is a reusable Course→Module→Lesson skeleton (+ optional CurriculumPlan skeleton) — a config/template archetype, mirroring LearningPlanTemplateDetail's shape. Body leads with the template definition (8-wide) and a Related panel resolving the source Course (sourceCoursesId, when captured via 'Save as template'). moduleStructure/curriculumPlanSkeleton render via the generic data widget (nested arrays/objects). 'Save as template' (from CourseBuilder) creates rows here; 'New course from template' (also in CourseBuilder) reads a row and instantiates a fresh Course tree — both bespoke actions live in CourseBuilder.vue, not here. No comms leaves (no linkedTypes) — a template is a definition, not a correspondence thread. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -7039,7 +7121,7 @@
 			"type": "index",
 			"title": "Learning plan templates",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learning-plan-template"
 			}
 		},
@@ -7049,7 +7131,7 @@
 			"type": "detail",
 			"title": "Learning plan template",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learning-plan-template",
 				"_note": "A Learning Plan Template defines the structure of individual learning/support plans (sections, goal domains, required signer roles, review cadence) — a config/template archetype. Body leads with the template definition (8-wide) and a Related panel. Learning plans instantiated from this template render as a related-index so a coordinator sees adoption. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -7074,7 +7156,7 @@
 							"entries": [
 								{
 									"title": "Plans using template",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "learning-plan",
 									"metric": "count",
 									"filter": {
@@ -7090,7 +7172,7 @@
 						"type": "object-list",
 						"title": "Plans using template",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "learning-plan",
 							"filter": {
 								"templateId": "@objectId"
@@ -7196,7 +7278,7 @@
 			"type": "index",
 			"title": "Learning plans",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learning-plan"
 			}
 		},
@@ -7206,7 +7288,7 @@
 			"type": "detail",
 			"title": "Learning plan",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learning-plan",
 				"_note": "A Learning Plan is an individual learner's development/support plan (goals, support measures, review cadence, coordinator, versioning). Body leads with the plan data including goals and support measures (8-wide) and a Related panel resolving learner, template, cohort/course and coordinator. Its Evaluations (periodic reviews) render as a wide related-index — the plan's living history — and supporting documents render as a Files leaf. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -7231,7 +7313,7 @@
 							"entries": [
 								{
 									"title": "Evaluations",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "learning-plan-evaluation",
 									"metric": "count",
 									"filter": {
@@ -7241,7 +7323,7 @@
 								},
 								{
 									"title": "Support requests",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "support-request",
 									"metric": "count",
 									"filter": {
@@ -7257,7 +7339,7 @@
 						"type": "object-list",
 						"title": "Evaluations",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "learning-plan-evaluation",
 							"filter": {
 								"learningPlanId": "@objectId"
@@ -7302,7 +7384,7 @@
 						"type": "object-list",
 						"title": "Support requests (SWV chain)",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "support-request",
 							"filter": {
 								"learningPlanId": "@objectId"
@@ -7424,7 +7506,7 @@
 			"type": "index",
 			"title": "Learning plan evaluations",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learning-plan-evaluation",
 				"filter": {
 					"learningPlanId": "@route.planId"
@@ -7446,7 +7528,7 @@
 			"type": "detail",
 			"title": "Learning plan evaluation",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learning-plan-evaluation",
 				"readOnly": true,
 				"_note": "A Learning Plan Evaluation is a periodic review of a learning plan (goal outcomes, narrative, attendees, next review date). Body leads with the evaluation data including goal outcomes and narrative (8-wide) and a Related panel resolving the parent plan and attendees. Supporting documents (minutes/evidence) render as a Files leaf. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
@@ -7527,7 +7609,7 @@
 			"type": "index",
 			"title": "Signatures",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Signature",
 				"filter": {
 					"subjectKind": "learning-plan",
@@ -7550,7 +7632,7 @@
 			"type": "detail",
 			"title": "Signature",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "Signature",
 				"readOnly": true,
 				"_note": "A Signature is a cryptographic/attested sign-off on a subject object (subject kind/id/version, signer, role, assurance level, method, evidence ref) — an attestation/evidence archetype, files-first. Body leads with the signed-evidence artefact via a Files leaf, then the signature metadata (signer, role, assurance, method) and a Related panel resolving the signed subject. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as a tamper log.",
@@ -7640,491 +7722,491 @@
 			"title": "Learning plan editor",
 			"component": "CnRelationshipGraph",
 			"_note": "Mounts CnRelationshipGraph from @conduction/nextcloud-vue for the learning-plan editor (dependency-chain layout, drag-drop ordering, milestone scoring)."
-			},
-			{
-				"id": "GroupPlans",
-				"route": "/group-plans",
-				"type": "index",
-				"title": "Group plans",
-				"config": {
-					"register": "scholiq",
-					"schema": "group-plan"
-				}
-			},
-			{
-				"id": "GroupPlanDetail",
-				"route": "/group-plans/:id",
-				"type": "detail",
-				"title": "Group plan",
-				"config": {
-					"register": "scholiq",
-					"schema": "group-plan",
-					"_note": "A GroupPlan is the groepsplan — Dutch PO/SBO's group-level HGW/1-zorgroute planning cycle for one Cohort/subject/period: results analysis, group-wide goals, lifecycle, and the version-chain supersedesId (identical pattern to LearningPlan.supersedesId). Body leads with the plan data (2-column) and a Related panel resolving the cohort, coordinator, and prior-period plan; its GroupPlanSubgroups (instructieniveau split) and GroupPlanEvaluations (period-end reviews) render as wide related-index panels, mirroring LearningPlanDetail's Evaluations pattern. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
-					"lifecycleActions": {
-						"field": "lifecycle"
+		},
+		{
+			"id": "GroupPlans",
+			"route": "/group-plans",
+			"type": "index",
+			"title": "Group plans",
+			"config": {
+				"register": "learniq",
+				"schema": "group-plan"
+			}
+		},
+		{
+			"id": "GroupPlanDetail",
+			"route": "/group-plans/:id",
+			"type": "detail",
+			"title": "Group plan",
+			"config": {
+				"register": "learniq",
+				"schema": "group-plan",
+				"_note": "A GroupPlan is the groepsplan — Dutch PO/SBO's group-level HGW/1-zorgroute planning cycle for one Cohort/subject/period: results analysis, group-wide goals, lifecycle, and the version-chain supersedesId (identical pattern to LearningPlan.supersedesId). Body leads with the plan data (2-column) and a Related panel resolving the cohort, coordinator, and prior-period plan; its GroupPlanSubgroups (instructieniveau split) and GroupPlanEvaluations (period-end reviews) render as wide related-index panels, mirroring LearningPlanDetail's Evaluations pattern. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "gp-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountGroup"
 					},
-					"widgets": [
-						{
-							"id": "gp-data",
-							"type": "data",
-							"title": "Data",
-							"content": {
-								"columns": 2
-							},
-							"icon": "AccountGroup"
-						},
-						{
-							"id": "gp-kpis",
-							"type": "stats-block",
-							"title": "Overview",
-							"icon": "ChartBar",
-							"content": {
-								"entries": [
-									{
-										"title": "Subgroups",
-										"register": "scholiq",
-										"schema": "group-plan-subgroup",
-										"metric": "count",
-										"filter": {
-											"groupPlanId": "@objectId"
-										},
-										"route": "GroupPlanSubgroups"
+					{
+						"id": "gp-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Subgroups",
+									"register": "learniq",
+									"schema": "group-plan-subgroup",
+									"metric": "count",
+									"filter": {
+										"groupPlanId": "@objectId"
 									},
-									{
-										"title": "Evaluations",
-										"register": "scholiq",
-										"schema": "group-plan-evaluation",
-										"metric": "count",
-										"filter": {
-											"groupPlanId": "@objectId"
-										},
-										"route": "GroupPlanEvaluations"
-									}
-								]
-							}
-						},
-						{
-							"id": "gp-subgroups",
-							"type": "object-list",
-							"title": "Subgroups",
-							"content": {
-								"register": "scholiq",
-								"schema": "group-plan-subgroup",
-								"filter": {
-									"groupPlanId": "@objectId"
+									"route": "GroupPlanSubgroups"
 								},
-								"sort": {
-									"field": "id",
-									"dir": "asc"
-								},
-								"limit": 25,
-								"columns": [
-									{
-										"key": "name",
-										"label": "Name"
+								{
+									"title": "Evaluations",
+									"register": "learniq",
+									"schema": "group-plan-evaluation",
+									"metric": "count",
+									"filter": {
+										"groupPlanId": "@objectId"
 									},
-									{
-										"key": "instructieniveau",
-										"label": "Instructieniveau"
-									},
-									{
-										"key": "differentiatedGoal",
-										"label": "Differentiated Goal"
-									}
-								],
-								"rowRoute": "GroupPlanSubgroupDetail",
-								"viewAllRoute": "GroupPlanSubgroups",
-								"viewAllQuery": {
-									"groupPlanId": "@objectId"
-								},
-								"emptyText": "No subgroups found.",
-								"allowCreate": true
-							},
-							"icon": "AccountBoxOutline"
-						},
-						{
-							"id": "gp-related",
-							"type": "related",
-							"title": "Related",
-							"icon": "LinkVariant"
-						},
-						{
-							"id": "gp-evals",
-							"type": "object-list",
-							"title": "Evaluations",
-							"content": {
-								"register": "scholiq",
-								"schema": "group-plan-evaluation",
-								"filter": {
-									"groupPlanId": "@objectId"
-								},
-								"sort": {
-									"field": "id",
-									"dir": "asc"
-								},
-								"limit": 25,
-								"columns": [
-									{
-										"key": "evaluatedAt",
-										"label": "Evaluated At"
-									},
-									{
-										"key": "evaluatedBy",
-										"label": "Evaluated By"
-									}
-								],
-								"rowRoute": "GroupPlanEvaluationDetail",
-								"viewAllRoute": "GroupPlanEvaluations",
-								"viewAllQuery": {
-									"groupPlanId": "@objectId"
-								},
-								"emptyText": "No evaluations found.",
-								"allowCreate": true
-							},
-							"icon": "CheckCircleOutline"
+									"route": "GroupPlanEvaluations"
+								}
+							]
 						}
-					],
-					"layout": [
-						{
-							"id": "1",
-							"widgetId": "gp-data",
-							"gridX": 0,
-							"gridY": 0,
-							"gridWidth": 8,
-							"gridHeight": 5,
-							"showTitle": false
+					},
+					{
+						"id": "gp-subgroups",
+						"type": "object-list",
+						"title": "Subgroups",
+						"content": {
+							"register": "learniq",
+							"schema": "group-plan-subgroup",
+							"filter": {
+								"groupPlanId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "name",
+									"label": "Name"
+								},
+								{
+									"key": "instructieniveau",
+									"label": "Instructieniveau"
+								},
+								{
+									"key": "differentiatedGoal",
+									"label": "Differentiated Goal"
+								}
+							],
+							"rowRoute": "GroupPlanSubgroupDetail",
+							"viewAllRoute": "GroupPlanSubgroups",
+							"viewAllQuery": {
+								"groupPlanId": "@objectId"
+							},
+							"emptyText": "No subgroups found.",
+							"allowCreate": true
 						},
-						{
-							"id": "2",
-							"widgetId": "gp-kpis",
-							"gridX": 8,
-							"gridY": 0,
-							"gridWidth": 4,
-							"gridHeight": 5,
-							"showTitle": false
+						"icon": "AccountBoxOutline"
+					},
+					{
+						"id": "gp-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "gp-evals",
+						"type": "object-list",
+						"title": "Evaluations",
+						"content": {
+							"register": "learniq",
+							"schema": "group-plan-evaluation",
+							"filter": {
+								"groupPlanId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "evaluatedAt",
+									"label": "Evaluated At"
+								},
+								{
+									"key": "evaluatedBy",
+									"label": "Evaluated By"
+								}
+							],
+							"rowRoute": "GroupPlanEvaluationDetail",
+							"viewAllRoute": "GroupPlanEvaluations",
+							"viewAllQuery": {
+								"groupPlanId": "@objectId"
+							},
+							"emptyText": "No evaluations found.",
+							"allowCreate": true
 						},
-						{
-							"id": "3",
-							"widgetId": "gp-subgroups",
-							"gridX": 0,
-							"gridY": 5,
-							"gridWidth": 6,
-							"gridHeight": 5,
-							"showTitle": false
-						},
-						{
-							"id": "4",
-							"widgetId": "gp-related",
-							"gridX": 6,
-							"gridY": 5,
-							"gridWidth": 6,
-							"gridHeight": 5,
-							"showTitle": false
-						},
-						{
-							"id": "5",
-							"widgetId": "gp-evals",
-							"gridX": 0,
-							"gridY": 10,
-							"gridWidth": 12,
-							"gridHeight": 4,
-							"showTitle": false
-						}
-					],
-					"sidebar": {
-						"enabled": true,
-						"showMetadata": true,
-						"tabs": [
-							{
-								"id": "audit",
-								"label": "History",
-								"icon": "History",
-								"widgets": [
-									{
-										"type": "audit"
-									}
-								]
-							}
-						]
+						"icon": "CheckCircleOutline"
 					}
-				}
-			},
-			{
-				"id": "GroupPlanSubgroups",
-				"route": "/group-plans/:planId/subgroups",
-				"type": "index",
-				"title": "Group plan subgroups",
-				"config": {
-					"register": "scholiq",
-					"schema": "group-plan-subgroup",
-					"filter": {
-						"groupPlanId": "@route.planId"
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "gp-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
 					},
-					"selectable": false,
-					"showAdd": false,
-					"showFormDialog": false,
-					"showEditAction": false,
-					"showCopyAction": false,
-					"showDeleteAction": false,
-					"showMassImport": false,
-					"showMassCopy": false,
-					"showMassDelete": false
+					{
+						"id": "2",
+						"widgetId": "gp-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "gp-subgroups",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "gp-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "gp-evals",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
+						"gridHeight": 4,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
 				}
-			},
-			{
-				"id": "GroupPlanSubgroupDetail",
-				"route": "/group-plans/:planId/subgroups/:id",
-				"type": "detail",
-				"title": "Group plan subgroup",
-				"config": {
-					"register": "scholiq",
-					"schema": "group-plan-subgroup",
-					"_note": "A GroupPlanSubgroup is a named instructieniveau split (intensief/basis/verdiept or custom) within a GroupPlan — its own differentiated goal, approach, and intended outcome. Body leads with the subgroup data (2-column) and a Related panel resolving the parent plan; the 'Learner context' KPI tile links to GroupPlanSubgroupLearnerContext.vue, the one named custom view resolving each member learner's active LearningPlan (the manifest's equality-only filter DSL cannot express the learnerIds array-membership lookup — design.md 'Why no stored link'). SupportRequests raised from this subgroup render as a standard equality-filtered object-list (originGroupPlanSubgroupId: @objectId) — no custom view needed for that reverse link. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
-					"widgets": [
-						{
-							"id": "gps-data",
-							"type": "data",
-							"title": "Data",
-							"content": {
-								"columns": 2
-							},
-							"icon": "AccountBoxOutline"
+			}
+		},
+		{
+			"id": "GroupPlanSubgroups",
+			"route": "/group-plans/:planId/subgroups",
+			"type": "index",
+			"title": "Group plan subgroups",
+			"config": {
+				"register": "learniq",
+				"schema": "group-plan-subgroup",
+				"filter": {
+					"groupPlanId": "@route.planId"
+				},
+				"selectable": false,
+				"showAdd": false,
+				"showFormDialog": false,
+				"showEditAction": false,
+				"showCopyAction": false,
+				"showDeleteAction": false,
+				"showMassImport": false,
+				"showMassCopy": false,
+				"showMassDelete": false
+			}
+		},
+		{
+			"id": "GroupPlanSubgroupDetail",
+			"route": "/group-plans/:planId/subgroups/:id",
+			"type": "detail",
+			"title": "Group plan subgroup",
+			"config": {
+				"register": "learniq",
+				"schema": "group-plan-subgroup",
+				"_note": "A GroupPlanSubgroup is a named instructieniveau split (intensief/basis/verdiept or custom) within a GroupPlan — its own differentiated goal, approach, and intended outcome. Body leads with the subgroup data (2-column) and a Related panel resolving the parent plan; the 'Learner context' KPI tile links to GroupPlanSubgroupLearnerContext.vue, the one named custom view resolving each member learner's active LearningPlan (the manifest's equality-only filter DSL cannot express the learnerIds array-membership lookup — design.md 'Why no stored link'). SupportRequests raised from this subgroup render as a standard equality-filtered object-list (originGroupPlanSubgroupId: @objectId) — no custom view needed for that reverse link. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "gps-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
 						},
-						{
-							"id": "gps-kpis",
-							"type": "stats-block",
-							"title": "Learner context",
-							"icon": "ChartBar",
-							"content": {
-								"entries": [
-									{
-										"title": "Learner context",
-										"register": "scholiq",
-										"schema": "group-plan-subgroup",
-										"metric": "count",
-										"countLabel": "subgroup",
-										"filter": {
-											"id": "@objectId"
-										},
-										"route": {
-											"name": "GroupPlanSubgroupLearnerContext",
-											"query": {
-												"subgroupId": "@objectId"
-											}
+						"icon": "AccountBoxOutline"
+					},
+					{
+						"id": "gps-kpis",
+						"type": "stats-block",
+						"title": "Learner context",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Learner context",
+									"register": "learniq",
+									"schema": "group-plan-subgroup",
+									"metric": "count",
+									"countLabel": "subgroup",
+									"filter": {
+										"id": "@objectId"
+									},
+									"route": {
+										"name": "GroupPlanSubgroupLearnerContext",
+										"query": {
+											"subgroupId": "@objectId"
 										}
 									}
-								]
-							},
-							"_note": "The only token-resolved (@objectId) deep link from a detail page to another named route this manifest dialect supports (stats-block entry.route, resolved by CnStatsBlockWidget) — same mechanism as LearnerProfileDetail's 'Dossier timeline' KPI tile (lprof-kpis-dossier-timeline). Clicking it opens GroupPlanSubgroupLearnerContext pre-scoped to this subgroup via the subgroupId query param."
+								}
+							]
 						},
-						{
-							"id": "gps-related",
-							"type": "related",
-							"title": "Related",
-							"icon": "LinkVariant"
-						},
-						{
-							"id": "gps-support-requests",
-							"type": "object-list",
-							"title": "Support requests",
-							"content": {
-								"register": "scholiq",
-								"schema": "support-request",
-								"filter": {
-									"originGroupPlanSubgroupId": "@objectId"
-								},
-								"sort": {
-									"field": "id",
-									"dir": "asc"
-								},
-								"limit": 25,
-								"columns": [
-									{
-										"key": "supportDomain",
-										"label": "Support Domain"
-									},
-									{
-										"key": "urgency",
-										"label": "Urgency"
-									},
-									{
-										"key": "lifecycle",
-										"label": "Status"
-									}
-								],
-								"rowRoute": "SupportRequestDetail",
-								"viewAllRoute": "SupportRequests",
-								"viewAllQuery": {
-									"originGroupPlanSubgroupId": "@objectId"
-								},
-								"emptyText": "No support requests found.",
-								"allowCreate": false
-							},
-							"icon": "HandshakeOutline"
-						}
-					],
-					"layout": [
-						{
-							"id": "1",
-							"widgetId": "gps-data",
-							"gridX": 0,
-							"gridY": 0,
-							"gridWidth": 8,
-							"gridHeight": 5,
-							"showTitle": false
-						},
-						{
-							"id": "2",
-							"widgetId": "gps-kpis",
-							"gridX": 8,
-							"gridY": 0,
-							"gridWidth": 4,
-							"gridHeight": 5,
-							"showTitle": false
-						},
-						{
-							"id": "3",
-							"widgetId": "gps-related",
-							"gridX": 0,
-							"gridY": 5,
-							"gridWidth": 6,
-							"gridHeight": 5,
-							"showTitle": false
-						},
-						{
-							"id": "4",
-							"widgetId": "gps-support-requests",
-							"gridX": 6,
-							"gridY": 5,
-							"gridWidth": 6,
-							"gridHeight": 5,
-							"showTitle": false
-						}
-					],
-					"sidebar": {
-						"enabled": true,
-						"showMetadata": true,
-						"tabs": [
-							{
-								"id": "audit",
-								"label": "History",
-								"icon": "History",
-								"widgets": [
-									{
-										"type": "audit"
-									}
-								]
-							}
-						]
-					}
-				}
-			},
-			{
-				"id": "GroupPlanEvaluations",
-				"route": "/group-plans/:planId/evaluations",
-				"type": "index",
-				"title": "Group plan evaluations",
-				"config": {
-					"register": "scholiq",
-					"schema": "group-plan-evaluation",
-					"filter": {
-						"groupPlanId": "@route.planId"
+						"_note": "The only token-resolved (@objectId) deep link from a detail page to another named route this manifest dialect supports (stats-block entry.route, resolved by CnStatsBlockWidget) — same mechanism as LearnerProfileDetail's 'Dossier timeline' KPI tile (lprof-kpis-dossier-timeline). Clicking it opens GroupPlanSubgroupLearnerContext pre-scoped to this subgroup via the subgroupId query param."
 					},
-					"selectable": false,
-					"showAdd": false,
-					"showFormDialog": false,
-					"showEditAction": false,
-					"showCopyAction": false,
-					"showDeleteAction": false,
-					"showMassImport": false,
-					"showMassCopy": false,
-					"showMassDelete": false
-				}
-			},
-			{
-				"id": "GroupPlanEvaluationDetail",
-				"route": "/group-plans/:planId/evaluations/:id",
-				"type": "detail",
-				"title": "Group plan evaluation",
-				"config": {
-					"register": "scholiq",
-					"schema": "group-plan-evaluation",
-					"readOnly": true,
-					"_note": "A GroupPlanEvaluation is the period-end review of a GroupPlan — a per-subgroup outcome plus an overall narrative, closing the HGW cycle. The next period's GroupPlan seeds from it via GroupPlan.supersedesId (design.md 'GroupPlanEvaluation and cycle-seeding via supersedesId'), not a forward-pointing field on this record. Body leads with the evaluation data (8-wide) and a Related panel resolving the parent plan. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
-					"widgets": [
-						{
-							"id": "gpe-data",
-							"type": "data",
-							"title": "Data",
-							"content": {
-								"columns": 2
+					{
+						"id": "gps-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "gps-support-requests",
+						"type": "object-list",
+						"title": "Support requests",
+						"content": {
+							"register": "learniq",
+							"schema": "support-request",
+							"filter": {
+								"originGroupPlanSubgroupId": "@objectId"
 							},
-							"icon": "ClipboardCheckOutline"
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "supportDomain",
+									"label": "Support Domain"
+								},
+								{
+									"key": "urgency",
+									"label": "Urgency"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "SupportRequestDetail",
+							"viewAllRoute": "SupportRequests",
+							"viewAllQuery": {
+								"originGroupPlanSubgroupId": "@objectId"
+							},
+							"emptyText": "No support requests found.",
+							"allowCreate": false
 						},
-						{
-							"id": "gpe-related",
-							"type": "related",
-							"title": "Related",
-							"icon": "LinkVariant"
-						}
-					],
-					"layout": [
-						{
-							"id": "1",
-							"widgetId": "gpe-data",
-							"gridX": 0,
-							"gridY": 0,
-							"gridWidth": 8,
-							"gridHeight": 5,
-							"showTitle": false
-						},
-						{
-							"id": "2",
-							"widgetId": "gpe-related",
-							"gridX": 8,
-							"gridY": 0,
-							"gridWidth": 4,
-							"gridHeight": 5,
-							"showTitle": false
-						}
-					],
-					"sidebar": {
-						"enabled": true,
-						"showMetadata": true,
-						"tabs": [
-							{
-								"id": "audit",
-								"label": "History",
-								"icon": "History",
-								"widgets": [
-									{
-										"type": "audit"
-									}
-								]
-							}
-						]
+						"icon": "HandshakeOutline"
 					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "gps-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "gps-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "gps-related",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "gps-support-requests",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
 				}
-			},
-			{
-				"id": "GroupPlanSubgroupLearnerContext",
-				"route": "/group-plans/subgroup-learner-context",
-				"type": "custom",
-				"title": "Subgroup learner context",
-				"component": "GroupPlanSubgroupLearnerContext",
-				"_note": "groepsplan (the one genuine custom-view exception for this capability): resolves each GroupPlanSubgroup member learner's active LearningPlan (if any) — the manifest's equality-only object-list filter DSL cannot express an array-membership match against learnerIds (design.md 'Why no stored link'). Reached via GroupPlanSubgroupDetail's 'Learner context' KPI tile (gps-kpis), which resolves @objectId into this route's subgroupId query parameter — the same token-resolved deep-link mechanism as LearnerProfileDetail's 'Dossier timeline' tile (lprof-kpis-dossier-timeline). Reads subgroupId from $route.query.subgroupId. No PHP CRUD controller — reads via the OpenRegister object API only.",
-				"config": {
-					"register": "scholiq",
-					"schema": "group-plan-subgroup"
+			}
+		},
+		{
+			"id": "GroupPlanEvaluations",
+			"route": "/group-plans/:planId/evaluations",
+			"type": "index",
+			"title": "Group plan evaluations",
+			"config": {
+				"register": "learniq",
+				"schema": "group-plan-evaluation",
+				"filter": {
+					"groupPlanId": "@route.planId"
+				},
+				"selectable": false,
+				"showAdd": false,
+				"showFormDialog": false,
+				"showEditAction": false,
+				"showCopyAction": false,
+				"showDeleteAction": false,
+				"showMassImport": false,
+				"showMassCopy": false,
+				"showMassDelete": false
+			}
+		},
+		{
+			"id": "GroupPlanEvaluationDetail",
+			"route": "/group-plans/:planId/evaluations/:id",
+			"type": "detail",
+			"title": "Group plan evaluation",
+			"config": {
+				"register": "learniq",
+				"schema": "group-plan-evaluation",
+				"readOnly": true,
+				"_note": "A GroupPlanEvaluation is the period-end review of a GroupPlan — a per-subgroup outcome plus an overall narrative, closing the HGW cycle. The next period's GroupPlan seeds from it via GroupPlan.supersedesId (design.md 'GroupPlanEvaluation and cycle-seeding via supersedesId'), not a forward-pointing field on this record. Body leads with the evaluation data (8-wide) and a Related panel resolving the parent plan. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "gpe-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardCheckOutline"
+					},
+					{
+						"id": "gpe-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "gpe-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "gpe-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
 				}
-			},
+			}
+		},
+		{
+			"id": "GroupPlanSubgroupLearnerContext",
+			"route": "/group-plans/subgroup-learner-context",
+			"type": "custom",
+			"title": "Subgroup learner context",
+			"component": "GroupPlanSubgroupLearnerContext",
+			"_note": "groepsplan (the one genuine custom-view exception for this capability): resolves each GroupPlanSubgroup member learner's active LearningPlan (if any) — the manifest's equality-only object-list filter DSL cannot express an array-membership match against learnerIds (design.md 'Why no stored link'). Reached via GroupPlanSubgroupDetail's 'Learner context' KPI tile (gps-kpis), which resolves @objectId into this route's subgroupId query parameter — the same token-resolved deep-link mechanism as LearnerProfileDetail's 'Dossier timeline' tile (lprof-kpis-dossier-timeline). Reads subgroupId from $route.query.subgroupId. No PHP CRUD controller — reads via the OpenRegister object API only.",
+			"config": {
+				"register": "learniq",
+				"schema": "group-plan-subgroup"
+			}
+		},
 		{
 			"id": "SupportRequests",
 			"route": "/support-requests",
 			"type": "index",
 			"title": "Support requests",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "support-request"
 			}
 		},
@@ -8134,7 +8216,7 @@
 			"type": "detail",
 			"title": "Support request",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "support-request",
 				"_note": "A SupportRequest is the zorgvraag (support/care request) raised from a pupil's dossier — the school-side start of the Wet passend onderwijs SWV chain (openspec/changes/zorgvraag-swv-tlv-chain). Submitting it auto-queues a DataExchangeJob (target: swv) that routes an OSO-format dossier to the samenwerkingsverband, gated by the same pending-parent-review step OsoDossierReviewView already renders for target: oso jobs — reused here, not duplicated. Body leads with the request data (8-wide) and a Related panel resolving the learner and optional LearningPlan; TLV applications and deliberation records tracing to this request render as wide related-index panels. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. Zorg data is the most sensitive category this app handles (design.md Security Considerations) — full-detail read is restricted to admin/principal plus the raising coordinator.",
 				"lifecycleActions": {
@@ -8159,7 +8241,7 @@
 							"entries": [
 								{
 									"title": "TLV applications",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "tlv-application",
 									"metric": "count",
 									"filter": {
@@ -8169,7 +8251,7 @@
 								},
 								{
 									"title": "Deliberation records",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "deliberation-record",
 									"metric": "count",
 									"filter": {
@@ -8185,7 +8267,7 @@
 						"type": "object-list",
 						"title": "TLV applications",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "tlv-application",
 							"filter": {
 								"supportRequestId": "@objectId"
@@ -8224,7 +8306,7 @@
 						"type": "object-list",
 						"title": "Deliberation records",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "deliberation-record",
 							"filter": {
 								"supportRequestId": "@objectId"
@@ -8332,7 +8414,7 @@
 			"type": "index",
 			"title": "TLV applications",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "tlv-application"
 			}
 		},
@@ -8342,7 +8424,7 @@
 			"type": "detail",
 			"title": "TLV application",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "tlv-application",
 				"_note": "A TlvApplication is the toelaatbaarheidsverklaring (TLV) application tracing to a SupportRequest. Scholiq RECORDS the samenwerkingsverband's decision — it never adjudicates it (design.md Decisions 'TLV decision recorded, never adjudicated'); there is no approval/rejection logic in this app. validUntil drives a declared tlvExpiringSoon calculation (no PHP TimedJob). Body leads with the application data (8-wide) and a Related panel resolving the SupportRequest and its linked deliberation records. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -8409,7 +8491,7 @@
 			"type": "index",
 			"title": "Deliberation records",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "deliberation-record"
 			}
 		},
@@ -8419,7 +8501,7 @@
 			"type": "detail",
 			"title": "Deliberation record",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "deliberation-record",
 				"readOnly": true,
 				"_note": "A DeliberationRecord is a structured, append-only record of a consultation round (parents, municipality, care partners, school, SWV coordinator) concerning a SupportRequest and/or TlvApplication. Carries the pupilVoice block first — heard/statementNote or waived/waiverReason — reflecting the 2025 Wet versterking positie ouders en leerlingen in passend onderwijs hoorrecht (insight 1145); the scheduled → recorded transition is HARD-BLOCKED by PupilVoiceGuard until pupilVoice is satisfied, so the Data widget below is the coordinator's only path to clear that gate — it cannot be missed without also being unable to finalise the record. appendOnly: true once recorded — readOnly here; a correction creates a new record referencing this one (correctsId), it never mutates it. Body leads with the full record data (8-wide, pupilVoice included) and a Related panel resolving the SupportRequest/TlvApplication and attendees. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
@@ -8487,7 +8569,7 @@
 			"type": "index",
 			"title": "Dossier notes",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "dossier-note"
 			}
 		},
@@ -8497,7 +8579,7 @@
 			"type": "detail",
 			"title": "Dossier note",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "dossier-note",
 				"readOnly": true,
 				"_note": "pupil-dossier-notes: a DossierNote is the everyday pupil-dossier record a mentor/coordinator keeps day to day (observation/conversation/phone-call-home/concern/positive), distinct from the formal LearningPlan/SupportRequest/DeliberationRecord care chain. appendOnly: true — readOnly here; a correction is a new note, never an in-place edit. Body leads with the note data (8-wide) and a Related panel. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. x-property-rbac restricts every row server-side to admin/mentor/coordinator/the note's own author regardless of confidentiality value — the finer three-way confidentiality tiering beyond that floor is a named, unimplemented OpenRegister platform-capability gap (design.md Decision 1), not a UI filter.",
@@ -8562,7 +8644,7 @@
 			"type": "index",
 			"title": "Behaviour incidents",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "behaviour-incident"
 			}
 		},
@@ -8572,7 +8654,7 @@
 			"type": "detail",
 			"title": "Behaviour incident",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "behaviour-incident",
 				"_note": "pupil-dossier-notes: a BehaviourIncident is what/where/who-involved, severity, an append-only followUpActions log, and an eventual resolution — own lifecycle open -> in-handling -> resolved, no guard on either transition (mirrors AttendanceThreshold's own unguarded activate/archive). Optionally references a SupportRequest (escalatedSupportRequestId) when staff raise a formal zorgvraag from it; the incident never duplicates SupportRequest fields, it only points at one. Body leads with the incident data (8-wide) and a Related panel resolving the escalated SupportRequest, if any. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -8639,7 +8721,7 @@
 			"type": "index",
 			"title": "Wellbeing check-ins",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "wellbeing-check-in"
 			}
 		},
@@ -8649,7 +8731,7 @@
 			"type": "detail",
 			"title": "Wellbeing check-in",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "wellbeing-check-in",
 				"readOnly": true,
 				"_note": "pupil-dossier-notes: a WellbeingCheckIn is a light, learner-authored periodic self-report (moodScale 1-5 + optional comment) — the Reflect-style shape, not a clinical instrument. appendOnly: true, no lifecycle — readOnly here; each check-in is a single point-in-time record. Body leads with the check-in data (8-wide) and a Related panel. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
@@ -8716,7 +8798,7 @@
 			"component": "PupilDossierTimelineView",
 			"_note": "pupil-dossier-notes (the one genuine custom-view exception for this capability): merges DossierNote + BehaviourIncident + WellbeingCheckIn with the existing LearningPlan/SupportRequest/DeliberationRecord care-chain objects into one chronological feed for a single learner — no object-list widget filter can merge more than one schema (verified: the manifest's object-list/stats-block/data/integration/related widget types are all single-schema). Reached via the 'Dossier timeline' KPI tile on LearnerProfileDetail (lprof-kpis-dossier-timeline), which resolves @objectId into this route's learnerId query parameter — the only token-resolved deep-link mechanism the v2 action dialect has for a detail-page-to-custom-page link at HEAD (open-page/navigate header actions do not carry the current object id; verified against actionsDispatcher.js). Reads learnerId from $route.query.learnerId; shows a learner-picker empty state when absent (e.g. direct navigation).",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learner-profile"
 			}
 		},
@@ -8726,7 +8808,7 @@
 			"type": "index",
 			"title": "Attendance records",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "attendance-record"
 			}
 		},
@@ -8736,7 +8818,7 @@
 			"type": "detail",
 			"title": "Attendance record",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "attendance-record",
 				"_note": "An Attendance Record is a single presence mark (status, minutes attended, marked by/at, reason, linked excuse) for a learner in a session. Body leads with the record data (8-wide) and a Related panel resolving session, learner, cohort and any linked excuse request. Supporting evidence renders as a Files leaf. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as the mark-change audit.",
 				"widgets": [
@@ -8816,7 +8898,7 @@
 			"type": "index",
 			"title": "Excuse requests",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "excuse-request"
 			}
 		},
@@ -8826,7 +8908,7 @@
 			"type": "detail",
 			"title": "Excuse request",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "excuse-request",
 				"_note": "An Excuse Request is an absence justification (date range, reason kind, attachment, submitter auth level, decision) — a request/case archetype. Body leads with the request data including reason and decision (8-wide), a Related panel resolving learner and submitter, and the supporting attachment as a wide Files leaf (the evidence). Attendance records covered by this excuse render as a related-index. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -8851,7 +8933,7 @@
 							"entries": [
 								{
 									"title": "Covered records",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "attendance-record",
 									"metric": "count",
 									"filter": {
@@ -8867,7 +8949,7 @@
 						"type": "object-list",
 						"title": "Covered records",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "attendance-record",
 							"filter": {
 								"excuseRequestId": "@objectId"
@@ -8986,7 +9068,7 @@
 			"type": "index",
 			"title": "Attendance thresholds",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "attendance-threshold"
 			}
 		},
@@ -8996,7 +9078,7 @@
 			"type": "detail",
 			"title": "Attendance threshold",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "attendance-threshold",
 				"_note": "An Attendance Threshold is a rule (kind, scope, window, metric, limit, on-cross action) that triggers early-warning flags — a config/rule archetype. Body leads with the rule definition (8-wide) and a Related panel resolving the scoped cohort. The Attendance flags this rule has raised render as a wide related-index so a mentor sees its effect. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for rule-change history.",
 				"lifecycleActions": {
@@ -9021,7 +9103,7 @@
 							"entries": [
 								{
 									"title": "Raised flags",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "attendance-flag",
 									"metric": "count",
 									"filter": {
@@ -9037,7 +9119,7 @@
 						"type": "object-list",
 						"title": "Raised flags",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "attendance-flag",
 							"filter": {
 								"attendanceThresholdId": "@objectId"
@@ -9144,7 +9226,7 @@
 			"type": "index",
 			"title": "Attendance flags",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "attendance-flag",
 				"readOnly": true
 			}
@@ -9155,7 +9237,7 @@
 			"type": "detail",
 			"title": "Attendance flag",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "attendance-flag",
 				"readOnly": true,
 				"_note": "An Attendance Flag is a raised early-warning (learner, threshold, window, metric value, breaching records, mentor) — an alert/case archetype. Body leads with the flag data including the metric value (8-wide), a metric KPI stat, and a Related panel resolving learner, threshold, cohort, mentor and any data-exchange job. The breaching Attendance records render as a related-index (the evidence). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
@@ -9174,7 +9256,7 @@
 						"type": "object-list",
 						"title": "Attendance records",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "attendance-record",
 							"filter": {
 								"learnerId": "@object.learnerId",
@@ -9290,7 +9372,7 @@
 			"type": "index",
 			"title": "Data mapping profiles",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "data-mapping-profile"
 			}
 		},
@@ -9300,7 +9382,7 @@
 			"type": "detail",
 			"title": "Data mapping profile",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "data-mapping-profile",
 				"_note": "A Data Mapping Profile is an integration config (target, direction, source/target schema, field mappings, validation) for data exchange — a technical/config archetype. Body leads with the profile definition including field mappings (8-wide) and a Related panel. The Data exchange jobs run against this profile render as a wide related-index (the run log). NO comms leaves — this is machine config, not correspondence (HARD RULE 1). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -9325,7 +9407,7 @@
 							"entries": [
 								{
 									"title": "Exchange jobs",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "data-exchange-job",
 									"metric": "count",
 									"filter": {
@@ -9341,7 +9423,7 @@
 						"type": "object-list",
 						"title": "Exchange jobs",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "data-exchange-job",
 							"filter": {
 								"mappingProfileId": "@objectId"
@@ -9448,7 +9530,7 @@
 			"type": "index",
 			"title": "Data exchange jobs",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "data-exchange-job"
 			}
 		},
@@ -9458,7 +9540,7 @@
 			"type": "detail",
 			"title": "Data exchange job",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "data-exchange-job",
 				"_note": "A Data Exchange Job is a single import/export run (direction, target, mapping profile, scope, format, timing, result, connector run, error) — a technical/run-log archetype. Body leads with the job data including result and error message (8-wide) and a Related panel resolving the mapping profile, requester and originating flag. The result payload/log renders as a Files leaf. NO comms leaves (machine job, not correspondence). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -9492,7 +9574,7 @@
 						"type": "object-list",
 						"title": "Rejections",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "exchange-rejection",
 							"filter": {
 								"dataExchangeJobId": "@objectId"
@@ -9593,7 +9675,7 @@
 			"type": "index",
 			"title": "Exchange rejections",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "exchange-rejection"
 			}
 		},
@@ -9603,7 +9685,7 @@
 			"type": "detail",
 			"title": "Exchange rejection",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "exchange-rejection",
 				"_note": "An Exchange Rejection is a single afkeurmelding — DUO's (or any target's) refusal of one exported record, resolved back to its Scholiq source object via sourceKind + a typed $ref id field — the correction-loop worklist entry. Body leads with the rejection data (error code/message, age) (8-wide) and a Related panel that auto-resolves the originating DataExchangeJob AND whichever sourceKind $ref field is set (learnerProfileId/enrolmentId/finalGradeId/attendanceFlagId/supportRequestId) into a deep link to the offending object's own editable detail page — the whole point of this page (design.md 'sourceKind enum + per-kind typed $ref'). lifecycleActions renders Mark corrected/Resubmit/Waive from the declared lifecycle. NO comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -9670,7 +9752,7 @@
 			"type": "index",
 			"title": "Exchange error codes",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "exchange-error-code"
 			}
 		},
@@ -9680,7 +9762,7 @@
 			"type": "detail",
 			"title": "Exchange error code",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "exchange-error-code",
 				"_note": "An Exchange Error Code is a local, admin-editable reference-data catalogue entry (code, target, bilingual description, category, severity, active) used by RejectionMappingHandler to best-effort resolve ExchangeRejection.errorCodeRef — explicitly illustrative starter data, not DUO's authoritative list (design.md). Body is the data block only (8-wide) — reference data has no Related panel and no lifecycleActions beyond the register's own default create/edit. Sidebar keeps metadata + audit-trail.",
 				"widgets": [
@@ -9745,7 +9827,7 @@
 			"type": "index",
 			"title": "Learners",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learner-profile"
 			}
 		},
@@ -9755,7 +9837,7 @@
 			"type": "detail",
 			"title": "Learner",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learner-profile",
 				"_note": "A Learner Profile is the person record — the STUDENT hub. What a mentor lands here to see is this learner's whole footprint, each its own object-list scoped by learnerId: Enrolments (the courses they take), Final grades (outcomes/results), Attendance (presence), Learning plans (support/OPP), and Credentials (diplomas/badges earned) — paired 6+6 below the profile Data block (8-wide) and a Related panel resolving parents + manager. A stats-block KPI panel counts enrolments/attendance/credentials at a glance. No lifecycleActions: LearnerProfile uses a states model (active/merged/deleted via merge/delete transitions), not a linear `lifecycle` enum, so status changes are handled by dedicated flows, not a generic transition menu. No comms leaves on the body: LearnerProfile declares no linkedTypes (HARD RULE 1). The audit trail lives as the single sidebar tab (the built-in audit widget), not a body widget (HARD RULE 4).",
 				"widgets": [
@@ -9777,7 +9859,7 @@
 							"entries": [
 								{
 									"title": "Enrolments",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "enrolment",
 									"metric": "count",
 									"filter": {
@@ -9797,7 +9879,7 @@
 							"entries": [
 								{
 									"title": "Attendance records",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "attendance-record",
 									"metric": "count",
 									"filter": {
@@ -9817,7 +9899,7 @@
 							"entries": [
 								{
 									"title": "Credentials",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "credential",
 									"metric": "count",
 									"filter": {
@@ -9837,7 +9919,7 @@
 							"entries": [
 								{
 									"title": "Dossier notes",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "dossier-note",
 									"metric": "count",
 									"filter": {
@@ -9859,7 +9941,7 @@
 						"type": "object-list",
 						"title": "Enrolments",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "Enrolment",
 							"filter": {
 								"learnerId": "@objectId"
@@ -9901,7 +9983,7 @@
 						"type": "object-list",
 						"title": "Learning plans",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "learning-plan",
 							"filter": {
 								"learnerId": "@objectId"
@@ -9939,7 +10021,7 @@
 						"type": "object-list",
 						"title": "Final grades",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "final-grade",
 							"filter": {
 								"learnerId": "@objectId"
@@ -9978,7 +10060,7 @@
 						"type": "object-list",
 						"title": "Attendance",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "attendance-record",
 							"filter": {
 								"learnerId": "@objectId"
@@ -10021,7 +10103,7 @@
 						"type": "object-list",
 						"title": "Credentials",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "credential",
 							"filter": {
 								"learnerId": "@objectId"
@@ -10070,7 +10152,7 @@
 						"type": "object-list",
 						"title": "Dossier notes",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "dossier-note",
 							"filter": {
 								"learnerId": "@objectId"
@@ -10108,7 +10190,7 @@
 						"type": "object-list",
 						"title": "Behaviour incidents",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "behaviour-incident",
 							"filter": {
 								"learnerId": "@objectId"
@@ -10146,7 +10228,7 @@
 						"type": "object-list",
 						"title": "Wellbeing check-ins",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "wellbeing-check-in",
 							"filter": {
 								"learnerId": "@objectId"
@@ -10328,7 +10410,7 @@
 			"type": "index",
 			"title": "xAPI statements",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "xapi-statement",
 				"readOnly": true
 			}
@@ -10339,7 +10421,7 @@
 			"type": "detail",
 			"title": "xAPI statement",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "xapi-statement",
 				"readOnly": true,
 				"_note": "An xAPI Statement is an immutable learning-experience event (actor, verb, object, result, context, timestamp, authority) — a log/technical archetype. Body leads with the statement data including the full actor/verb/object/result JSON (wide, 12-col, single column for readability) and a Related panel resolving the linked course/lesson. NO comms leaves, NO child rosters — an xAPI statement is a write-once event. Sidebar keeps metadata + audit-trail.",
@@ -10412,7 +10494,7 @@
 			"type": "index",
 			"title": "External training",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "external-training-record"
 			}
 		},
@@ -10422,7 +10504,7 @@
 			"type": "detail",
 			"title": "External training",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "external-training-record",
 				"_note": "An External Training Record is a learner's externally-completed training awaiting verification (title, provider, kind, regulation, completion/validity dates, evidence, verifier, resulting credential) — a request/evidence archetype. Body leads with the record data including verification status (8-wide), a Related panel resolving learner, linked course and resulting credential, and the certificate/evidence as a wide Files leaf (the point of the record). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as the verification audit.",
 				"lifecycleActions": {
@@ -10505,7 +10587,7 @@
 			"type": "index",
 			"title": "BPV placements",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "bpv-placement"
 			}
 		},
@@ -10515,7 +10597,7 @@
 			"type": "index",
 			"title": "Praktijkopleiders",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "praktijkopleider"
 			}
 		},
@@ -10525,7 +10607,7 @@
 			"type": "index",
 			"title": "Praktijkovereenkomsten",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "praktijkovereenkomst"
 			}
 		},
@@ -10535,7 +10617,7 @@
 			"type": "index",
 			"title": "Werkproces assessments",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "werkproces-assessment"
 			}
 		},
@@ -10545,7 +10627,7 @@
 			"type": "index",
 			"title": "BPV visit reports",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "bpv-visit-report"
 			}
 		},
@@ -10555,9 +10637,9 @@
 			"type": "detail",
 			"title": "BPV placement",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "bpv-placement",
-				"_note": "A BpvPlacement is the learner \u2194 leerbedrijf match for one BPV period \u2014 the hub record for the bpv-praktijkovereenkomst capability. Body leads with the placement data (8-wide, including leerbedrijfVerification.status so the coordinator sees the SBB gate state inline) and a Related panel resolving learner/programme/curriculum plan/praktijkopleider. Its Praktijkovereenkomst, werkproces assessments and visit reports render as related-index tables \u2014 the placement's living dossier. lifecycleActions renders the checkLeerbedrijf/confirm/activate/complete/terminate transition buttons declaratively (no custom code). Sidebar keeps metadata + audit-trail.",
+				"_note": "A BpvPlacement is the learner ↔ leerbedrijf match for one BPV period — the hub record for the bpv-praktijkovereenkomst capability. Body leads with the placement data (8-wide, including leerbedrijfVerification.status so the coordinator sees the SBB gate state inline) and a Related panel resolving learner/programme/curriculum plan/praktijkopleider. Its Praktijkovereenkomst, werkproces assessments and visit reports render as related-index tables — the placement's living dossier. lifecycleActions renders the checkLeerbedrijf/confirm/activate/complete/terminate transition buttons declaratively (no custom code). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
@@ -10582,7 +10664,7 @@
 						"type": "object-list",
 						"title": "Praktijkovereenkomst",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "praktijkovereenkomst",
 							"filter": {
 								"bpvPlacementId": "@objectId"
@@ -10625,7 +10707,7 @@
 						"type": "object-list",
 						"title": "Werkproces assessments",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "werkproces-assessment",
 							"filter": {
 								"bpvPlacementId": "@objectId"
@@ -10668,7 +10750,7 @@
 						"type": "object-list",
 						"title": "Visit reports",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "bpv-visit-report",
 							"filter": {
 								"bpvPlacementId": "@objectId"
@@ -10774,9 +10856,9 @@
 			"type": "detail",
 			"title": "Praktijkopleider",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "praktijkopleider",
-				"_note": "A Praktijkopleider is the workplace supervisor's own identity anchor \u2014 a plain reference/identity object with no lifecycle (ADR-046: a person with no Nextcloud account by definition; `active` alone gates whether the portal identity is usable). Body leads with contact + leerbedrijf data 8-wide plus a Related panel showing the BpvPlacements this praktijkopleider is responsible for. No lifecycleActions (the schema has no lifecycle field). Sidebar keeps metadata + audit-trail.",
+				"_note": "A Praktijkopleider is the workplace supervisor's own identity anchor — a plain reference/identity object with no lifecycle (ADR-046: a person with no Nextcloud account by definition; `active` alone gates whether the portal identity is usable). Body leads with contact + leerbedrijf data 8-wide plus a Related panel showing the BpvPlacements this praktijkopleider is responsible for. No lifecycleActions (the schema has no lifecycle field). Sidebar keeps metadata + audit-trail.",
 				"widgets": [
 					{
 						"id": "po-data",
@@ -10798,7 +10880,7 @@
 						"type": "object-list",
 						"title": "BPV placements",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "bpv-placement",
 							"filter": {
 								"practicalTrainerId": "@objectId"
@@ -10890,9 +10972,9 @@
 			"type": "detail",
 			"title": "Praktijkovereenkomst",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "praktijkovereenkomst",
-				"_note": "A Praktijkovereenkomst (POK) is the three-party work-placement agreement (WEB art. 7.2.8/7.2.9) for one BpvPlacement. Body leads with the POK terms/version data 8-wide (including isFullySigned so the coordinator sees the co-sign gate state inline) plus a Related panel resolving the governing BpvPlacement. Its PokSignatures render as a related-index \u2014 the append-only co-sign audit trail. lifecycleActions renders requestSignatures/activate/complete/terminate declaratively; activate is gated by PokActivationGuard. The student/school signing legs use the separate SignPokModal custom page; the praktijkopleider signs via the portal.",
+				"_note": "A Praktijkovereenkomst (POK) is the three-party work-placement agreement (WEB art. 7.2.8/7.2.9) for one BpvPlacement. Body leads with the POK terms/version data 8-wide (including isFullySigned so the coordinator sees the co-sign gate state inline) plus a Related panel resolving the governing BpvPlacement. Its PokSignatures render as a related-index — the append-only co-sign audit trail. lifecycleActions renders requestSignatures/activate/complete/terminate declaratively; activate is gated by PokActivationGuard. The student/school signing legs use the separate SignPokModal custom page; the praktijkopleider signs via the portal.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
@@ -10917,7 +10999,7 @@
 						"type": "object-list",
 						"title": "Signatures",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "pok-signature",
 							"filter": {
 								"subjectId": "@objectId"
@@ -11004,7 +11086,7 @@
 			"type": "detail",
 			"title": "Werkproces assessment",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "werkproces-assessment",
 				"_note": "A WerkprocesAssessment is one workplace assessment against one werkproces of the kwalificatiedossier, for one BpvPlacement. Body leads with the assessment data 8-wide (kwalificatiedossier taxonomy + beoordeling) plus a Related panel resolving the BpvPlacement, CurriculumPlan and assessor (Praktijkopleider). lifecycleActions renders submit/confirm declaratively; confirming feeds a GradeEntry via WerkprocesGradeEmitHandler (no schema-level grade computation). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -11071,7 +11153,7 @@
 			"type": "detail",
 			"title": "BPV visit report",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "bpv-visit-report",
 				"_note": "A BpvVisitReport is a visit / three-way-conversation report for one BpvPlacement, linked to the learner's LearnerProfile dossier via learnerRef. Body leads with the visit data 8-wide (including nextVisitDue so the coordinator sees the reminder cadence inline) plus a Related panel resolving the BpvPlacement and learner. lifecycleActions renders finalize declaratively. The declared visitDueReminder notification targets schoolCoachId only (documented gap: the praktijkopleider has no NC-reachable channel). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -11146,7 +11228,7 @@
 			"type": "index",
 			"title": "Conference rounds",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "conference-round"
 			}
 		},
@@ -11156,7 +11238,7 @@
 			"type": "detail",
 			"title": "Conference round",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "conference-round",
 				"_note": "A ConferenceRound is one oudergesprekken-cyclus for a report period — an event/cycle archetype (scope, timing, booking window, invited learners). Body leads with round details (8-wide) and a Related panel. The generated ConferenceSlots for the round render as a wide related-index (the schedule). lifecycleActions expose send-invitations/open-booking/close-booking/generate/regenerate/complete/cancel as buttons. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -11177,7 +11259,7 @@
 						"type": "object-list",
 						"title": "Conference slots",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "conference-slot",
 							"filter": {
 								"conferenceRoundId": "@object.id"
@@ -11279,7 +11361,7 @@
 			"type": "index",
 			"title": "Teacher availability",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "teacher-availability"
 			}
 		},
@@ -11289,7 +11371,7 @@
 			"type": "detail",
 			"title": "Teacher availability",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "teacher-availability",
 				"_note": "A TeacherAvailability is a teacher's declared free blocks for one ConferenceRound — a config/technical archetype consumed by ConferenceScheduleGenerator. Body leads with the blocks data (8-wide) and a Related panel resolving the ConferenceRound. No comms leaves. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -11356,7 +11438,7 @@
 			"type": "index",
 			"title": "Conference slots",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "conference-slot"
 			}
 		},
@@ -11366,7 +11448,7 @@
 			"type": "detail",
 			"title": "Conference slot",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "conference-slot",
 				"_note": "A ConferenceSlot is one generated parent-teacher conversation appointment — a scheduled-occurrence archetype (mirrors Session). Body leads with the appointment details (8-wide) and a Related panel resolving the ConferenceRound and ConferenceSignup. lifecycleActions expose confirm/complete/markNoShow/cancel. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -11433,7 +11515,7 @@
 			"type": "index",
 			"title": "Conference reports",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "conference-report"
 			}
 		},
@@ -11443,7 +11525,7 @@
 			"type": "detail",
 			"title": "Conference report",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "conference-report",
 				"_note": "A ConferenceReport is the gespreksverslag recorded against a completed ConferenceSlot — append-only audit evidence, mirrors LearningPlanEvaluation. Body leads with the narrative/attendees (8-wide) and a Related panel resolving the ConferenceSlot and learner. lifecycleActions exposes record only (draft -> recorded); once recorded the object is immutable. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -11526,7 +11608,7 @@
 			"type": "index",
 			"title": "Exemption requests",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "exemption-case"
 			}
 		},
@@ -11537,7 +11619,7 @@
 			"title": "Exemption request",
 			"component": "ExamCaseDossierView",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "exemption-case"
 			},
 			"_note": "exam-board-case-handling: shared ExamCaseDossierView (the 'custom view only where a manifest page can't render it' exception) — a manifest detail page can render fields but not the accused/reporter-vs-examboard conditional withholding of hearing/decision internals this dossier needs for FraudCase; ExemptionCase reuses the same component (config.schema=exemption-case) for a consistent case-dossier layout even though it has no internal-detail withholding of its own."
@@ -11548,7 +11630,7 @@
 			"type": "index",
 			"title": "Fraud cases",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "fraud-case"
 			}
 		},
@@ -11559,7 +11641,7 @@
 			"title": "Fraud case",
 			"component": "ExamCaseDossierView",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "fraud-case"
 			},
 			"_note": "exam-board-case-handling: FraudCase.x-property-rbac already fails closed server-side for anyone outside admin/examboard/accused/reporter; within that readable set, ExamCaseDossierView additionally withholds hearingRecords and decision-internal fields from anyone who is not the accused, the reporter, or an examboard member — an application-level UI convention, not server-enforced field RBAC (design.md §8)."
@@ -11570,7 +11652,7 @@
 			"type": "index",
 			"title": "BSA trajectories",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "bsa-trajectory"
 			}
 		},
@@ -11580,7 +11662,7 @@
 			"type": "detail",
 			"title": "BSA trajectory",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "bsa-trajectory",
 				"_note": "bsa-study-progress-guard: a BsaTrajectory is the BSA norm config per Programme + academicYear (kind, normEcts, interim-check window, onAtRisk action) — a config/rule archetype, mirroring AttendanceThreshold. Body leads with the rule definition (8-wide) and a Related panel resolving the scoped Programme/Cohort. The BsaProgressFlags this rule has raised render as a wide related-index so a study-advisor sees its effect. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for rule-change history.",
 				"lifecycleActions": {
@@ -11605,7 +11687,7 @@
 							"entries": [
 								{
 									"title": "Raised flags",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "bsa-progress-flag",
 									"metric": "count",
 									"filter": {
@@ -11621,7 +11703,7 @@
 						"type": "object-list",
 						"title": "Raised flags",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "bsa-progress-flag",
 							"filter": {
 								"bsaTrajectoryId": "@objectId"
@@ -11728,7 +11810,7 @@
 			"type": "index",
 			"title": "BSA progress flags",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "bsa-progress-flag",
 				"readOnly": true
 			}
@@ -11739,7 +11821,7 @@
 			"type": "detail",
 			"title": "BSA progress flag",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "bsa-progress-flag",
 				"readOnly": true,
 				"_note": "bsa-study-progress-guard: a BsaProgressFlag is a raised early-warning (learner, trajectory, ectsEarned vs. interim norm) — an alert/case archetype, mirroring AttendanceFlag. Body leads with the flag data (8-wide) and a Related panel resolving learner, programme and trajectory. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
@@ -11804,7 +11886,7 @@
 			"type": "index",
 			"title": "BSA warnings",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "bsa-warning"
 			}
 		},
@@ -11814,7 +11896,7 @@
 			"type": "detail",
 			"title": "BSA warning",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "bsa-warning",
 				"_note": "bsa-study-progress-guard: a BsaWarning is the formal, signed early-warning evidence record (improvementPeriod, offeredGuidance, personalCircumstancesNote, signature) required before a negative BSA decision can survive appeal — an append-only signed-evidence archetype, mirroring Attestation. Body leads with the warning fields (8-wide) and a Related panel resolving learner, programme and the originating flag. No comms leaves (no linkedTypes) — the x-openregister-notifications dialect handles the learner-facing notification on issue. Sidebar keeps metadata + audit-trail — the tamper-evidence trail is the whole point of a signed warning.",
 				"lifecycleActions": {
@@ -11881,7 +11963,7 @@
 			"type": "index",
 			"title": "BSA decisions",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "bsa-decision"
 			}
 		},
@@ -11891,7 +11973,7 @@
 			"type": "detail",
 			"title": "BSA decision",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "bsa-decision",
 				"_note": "bsa-study-progress-guard: a BsaDecision is the year-end bindend studieadvies decision with a full evidence trail (credits, norm, warningIds, personal circumstances, hoorplicht, appeal sub-lifecycle) — an append-only signed-evidence + case archetype. BsaDecisionGuard structurally blocks a negative* decide transition without a logged issued BsaWarning. Body leads with the decision fields (8-wide) and a Related panel resolving learner, programme and referenced warnings. No comms leaves — x-openregister-notifications handles the learner/study-advisor notification on decide. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -11966,7 +12048,7 @@
 			"type": "index",
 			"title": "Competency frameworks",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "competency-framework"
 			}
 		},
@@ -11976,7 +12058,7 @@
 			"type": "detail",
 			"title": "Competency framework",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "competency-framework",
 				"_note": "competency-framework: a CompetencyFramework is a named taxonomy (SBB kwalificatiedossier, SLO kerndoelen/eindtermen, ESCO, or school-defined) declaring its own proficiencyLevels scale — a config archetype like GradeScale. Body leads with the framework definition including proficiencyLevels (8-wide) and a Related panel. The Competency nodes declared under this framework render as a related-index so a curriculum designer sees the taxonomy tree. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -12001,7 +12083,7 @@
 							"entries": [
 								{
 									"title": "Competencies",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "competency",
 									"metric": "count",
 									"filter": {
@@ -12017,7 +12099,7 @@
 						"type": "object-list",
 						"title": "Competencies",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "competency",
 							"filter": {
 								"frameworkId": "@objectId"
@@ -12120,7 +12202,7 @@
 			"type": "index",
 			"title": "Competencies",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "competency"
 			}
 		},
@@ -12130,7 +12212,7 @@
 			"type": "detail",
 			"title": "Competency",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "competency",
 				"_note": "competency-framework: Competency is a recursive taxonomy node (mirrors Course.parentCourseId) — a leaf node (isLeaf: true) IS the learning outcome, no separate LearningOutcome schema. Body leads with the node's data (8-wide) and a Related panel resolving frameworkId/parentId. Child Competency nodes (sub-tree) and the CompetencyAttainment rows recorded against this node each render as a related-index for traceability. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -12155,7 +12237,7 @@
 							"entries": [
 								{
 									"title": "Sub-competencies",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "competency",
 									"metric": "count",
 									"filter": {
@@ -12165,7 +12247,7 @@
 								},
 								{
 									"title": "Attainment rows",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "competency-attainment",
 									"metric": "count",
 									"filter": {
@@ -12181,7 +12263,7 @@
 						"type": "object-list",
 						"title": "Sub-competencies",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "competency",
 							"filter": {
 								"parentId": "@objectId"
@@ -12284,7 +12366,7 @@
 			"type": "index",
 			"title": "Competency attainment",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "competency-attainment",
 				"readOnly": true
 			}
@@ -12295,7 +12377,7 @@
 			"type": "detail",
 			"title": "Competency attainment",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "competency-attainment",
 				"readOnly": true,
 				"_note": "competency-framework: a CompetencyAttainment is the computed roll-up outcome for a learner on a Competency (proficiencyLevelId plus four evidence-id arrays) — an aggregate result, mirrors FinalGrade's detail page exactly. Body leads with the attainment data (8-wide) and a Related panel resolving learner/competency/framework. No comms leaves (no linkedTypes). System-derived — no create/edit actions; sidebar keeps metadata + audit-trail.",
@@ -12368,7 +12450,7 @@
 			"type": "index",
 			"title": "Lesson completions",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "lesson-completion"
 			}
 		},
@@ -12378,7 +12460,7 @@
 			"type": "detail",
 			"title": "Lesson completion",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "lesson-completion",
 				"_note": "learning-progress-and-analytics: a LessonCompletion is a per-(learner, lesson) completion fact — no lifecycle. Body leads with the completion data (8-wide) and a Related panel resolving learner/lesson/course/enrolment. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"widgets": [
@@ -12442,7 +12524,7 @@
 			"type": "index",
 			"title": "Engagement scores",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "engagement-score",
 				"readOnly": true
 			}
@@ -12453,7 +12535,7 @@
 			"type": "detail",
 			"title": "Engagement score",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "engagement-score",
 				"readOnly": true,
 				"_note": "learning-progress-and-analytics: an EngagementScore is a computed per-(learner, course) roll-up (activityCount, timeOnTaskMinutes, lastActivityAt, recencyDays, score) — an aggregate result, mirroring FinalGrade. Body leads with the score data (8-wide) and a Related panel resolving learner/course. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
@@ -12518,7 +12600,7 @@
 			"type": "index",
 			"title": "Engagement thresholds",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "engagement-risk-threshold"
 			}
 		},
@@ -12528,7 +12610,7 @@
 			"type": "detail",
 			"title": "Engagement threshold",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "engagement-risk-threshold",
 				"_note": "learning-progress-and-analytics: an EngagementRiskThreshold is a config/rule row (name, kind, scope, metric, limit, onAtRisk), mirroring AttendanceThreshold/BsaTrajectory. Body leads with the rule definition (8-wide) and a Related panel. The EngagementRiskFlags this rule has raised render as a wide related-index so a coordinator sees its effect. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for rule-change history.",
 				"lifecycleActions": {
@@ -12553,7 +12635,7 @@
 							"entries": [
 								{
 									"title": "Raised flags",
-									"register": "scholiq",
+									"register": "learniq",
 									"schema": "engagement-risk-flag",
 									"metric": "count",
 									"filter": {
@@ -12569,7 +12651,7 @@
 						"type": "object-list",
 						"title": "Raised flags",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "engagement-risk-flag",
 							"filter": {
 								"engagementRiskThresholdId": "@objectId"
@@ -12672,7 +12754,7 @@
 			"type": "index",
 			"title": "Engagement risk flags",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "engagement-risk-flag",
 				"readOnly": true
 			}
@@ -12683,7 +12765,7 @@
 			"type": "detail",
 			"title": "Engagement risk flag",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "engagement-risk-flag",
 				"readOnly": true,
 				"_note": "learning-progress-and-analytics: an EngagementRiskFlag is a raised early-warning (learner, threshold, metric value at flag) — an alert/case archetype, mirroring BsaProgressFlag/AttendanceFlag. Body leads with the flag data (8-wide) and a Related panel resolving learner, course and threshold. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
@@ -12759,7 +12841,7 @@
 			"type": "index",
 			"title": "Report periods",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "report-period"
 			}
 		},
@@ -12769,7 +12851,7 @@
 			"type": "detail",
 			"title": "Report period",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "report-period",
 				"_note": "report-card-composer: a ReportPeriod is the school-wide term a periodic rapport is composed for (periodCode/academicYear/startDate/endDate/curriculumPlanIds/cohortIds/lockDate) — a config/scheduling archetype consumed by ReportCardComposer. Body leads with the period data (8-wide, includes the materialised isLocked calc) and a Related panel. lifecycleActions expose compose/archive declaratively; ReportPeriodComposeGuard blocks compose until isLocked. The richer compose confirmation (scope summary + lock-state explanation) lives in RapportvergaderingReviewView's ComposeReportPeriodModal, reached via the rapportvergadering review link. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -12790,7 +12872,7 @@
 						"type": "object-list",
 						"title": "Report cards",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "report-card",
 							"filter": {
 								"reportPeriodId": "@object.id"
@@ -12884,7 +12966,7 @@
 			"type": "index",
 			"title": "Report cards",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "report-card"
 			}
 		},
@@ -12894,7 +12976,7 @@
 			"type": "detail",
 			"title": "Report card",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "report-card",
 				"_note": "report-card-composer: a ReportCard is one composed periodic rapport for one learner (subjectGrades[] snapshotting FinalGrade.breakdown.periods[periodCode], attendanceSummary, teacher/mentor comments, fail-soft docudesk PDF-render state) — a document/record archetype. Body leads with the card data (8-wide, generic 'data' widget renders subjectGrades[]/attendanceSummary as-is, no content.fields allowlist needed per the DataMappingProfile.fieldMappings precedent) and a Related panel resolving the ReportPeriod/learner. lifecycleActions expose pullIntoReview/finalise/reopen/publishToParents/recompose/renderToPdf/rerenderToPdf declaratively — ReportCardFinaliseGuard/ReportCardReopenGuard/ReportCardVisibilityGuard enforce the review-then-publish gate server-side; the cohort-wide bulk review grid lives in the separate RapportvergaderingReviewView custom view. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -12969,7 +13051,7 @@
 			"type": "index",
 			"title": "Portfolio templates",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "portfolio-template"
 			}
 		},
@@ -12979,7 +13061,7 @@
 			"type": "index",
 			"title": "Portfolios",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "portfolio"
 			}
 		},
@@ -12989,7 +13071,7 @@
 			"type": "index",
 			"title": "Portfolio entries",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "portfolio-entry"
 			}
 		},
@@ -12999,7 +13081,7 @@
 			"type": "index",
 			"title": "External assessors",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "external-assessor"
 			}
 		},
@@ -13009,7 +13091,7 @@
 			"type": "index",
 			"title": "Portfolio shares",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "portfolio-share"
 			}
 		},
@@ -13019,7 +13101,7 @@
 			"type": "detail",
 			"title": "Portfolio template",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "portfolio-template",
 				"_note": "eportfolio: a teacher-authored structure (sections[]/criteria[], mirroring LearningPlanTemplate.sections + Rubric.criteria combined) a course-bound Portfolio can be instantiated from. Body leads with the template data 8-wide (name/kind/description/rubricId; sections[] renders as-is via the generic 'data' widget, no content.fields allowlist needed) plus a Related panel resolving the optional Rubric. lifecycleActions renders activate/archive/reactivate declaratively. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -13086,7 +13168,7 @@
 			"type": "detail",
 			"title": "Portfolio",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "portfolio",
 				"_note": "eportfolio: the container a learner curates evidence into. kind discriminates personal (draft/active/archived only) from course-bound (adds submitted/graded). Body leads with the portfolio data 8-wide (kind/templateId/courseId/curriculumPlanId/title/dueAt/gradeValue/gradeEntryId) plus a Related panel resolving the LearnerProfile/PortfolioTemplate/Course/CurriculumPlan/GradeEntry. Its PortfolioEntry rows render as a related-index — the portfolio's evidence dossier. lifecycleActions renders activate/submit/grade/archive/reactivate declaratively (submit is gated server-side by PortfolioSubmissionGuard). PortfolioBuilder.vue and PortfolioReviewView.vue (custom views, linked from here) are the learner's/teacher's respective working surfaces for entry curation and grading. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -13113,7 +13195,7 @@
 						"type": "object-list",
 						"title": "Evidence entries",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "portfolio-entry",
 							"filter": {
 								"portfolioId": "@objectId"
@@ -13201,7 +13283,7 @@
 			"type": "detail",
 			"title": "Portfolio entry",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "portfolio-entry",
 				"_note": "eportfolio: one evidence item — references, never copies, exactly one existing object per evidenceKind. No lifecycle of its own (mirrors SelfAssessment). Body leads with the entry data 8-wide (evidenceKind + whichever per-kind reference field is set + reflectionText/sectionId/criterionId/competencyId) plus a Related panel resolving the parent Portfolio and the referenced Submission/WerkprocesAssessment/ExternalTrainingRecord/Credential/Competency. No lifecycleActions. Sidebar keeps metadata + audit-trail.",
 				"widgets": [
@@ -13265,7 +13347,7 @@
 			"type": "detail",
 			"title": "External assessor",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "external-assessor",
 				"_note": "eportfolio: a non-BPV external assessor's own identity anchor — a plain reference/identity object with no lifecycle (ADR-046: a person with no Nextcloud account by definition; active alone gates whether the portal identity is usable), structurally identical to Praktijkopleider. Body leads with contact data 8-wide plus a Related panel showing the PortfolioShare grants naming this assessor. No lifecycleActions. Sidebar keeps metadata + audit-trail.",
 				"widgets": [
@@ -13289,7 +13371,7 @@
 						"type": "object-list",
 						"title": "Portfolio shares",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "portfolio-share",
 							"filter": {
 								"sharedWithExternalAssessorId": "@objectId"
@@ -13377,7 +13459,7 @@
 			"type": "detail",
 			"title": "Portfolio share",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "portfolio-share",
 				"_note": "eportfolio: a single, revocable, read-only grant of a learner's Portfolio (or a selection of its PortfolioEntry rows) to a teacher/praktijkopleider/external-assessor. Append-only audit trail (lifecycle: draft -> active -> revoked). Body leads with the grant data 8-wide (sharedWithKind + whichever per-kind recipient field is set, entryIds, expiresAt, sharedBy) plus a Related panel resolving the Portfolio/Praktijkopleider/ExternalAssessor. lifecycleActions renders grant/revoke declaratively — grant is gated server-side by PortfolioShareGrantHandler's self-grant guard, and on success creates the native NC Files share for sharedWithKind=teacher. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -13460,7 +13542,7 @@
 			"type": "index",
 			"title": "Point rules",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "point-rule"
 			}
 		},
@@ -13470,7 +13552,7 @@
 			"type": "detail",
 			"title": "Point rule",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "point-rule",
 				"_note": "engagement-gamification: a PointRule is a declarative event -> points config (kind, points, optional cohort/course scope) — a config/rule archetype, mirroring AttendanceThreshold. Body leads with the rule definition (8-wide) and a Related panel resolving the optional scope Cohort/Course. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for rule-change history.",
 				"lifecycleActions": {
@@ -13537,7 +13619,7 @@
 			"type": "index",
 			"title": "Engagement levels",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "engagement-level"
 			}
 		},
@@ -13547,7 +13629,7 @@
 			"type": "detail",
 			"title": "Engagement level",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "engagement-level",
 				"_note": "engagement-gamification: an EngagementLevel is a standalone, independently editable threshold row (name, order, minPoints, icon) — no lifecycle, mirroring AttendanceThreshold's row-per-rule editability rather than a buried array. Body leads with the level data (8-wide); no cross-object references to resolve, so the Related panel is omitted. Sidebar keeps metadata + audit-trail.",
 				"widgets": [
@@ -13596,7 +13678,7 @@
 			"type": "index",
 			"title": "Leaderboards",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "leaderboard"
 			}
 		},
@@ -13606,7 +13688,7 @@
 			"type": "detail",
 			"title": "Leaderboard",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "leaderboard",
 				"_note": "engagement-gamification: a Leaderboard is the opt-in policy row scoping a ranked view to one Cohort or Course (draft -> active -> archived; default OFF -- see design.md). Body leads with the policy data (8-wide) and a Related panel resolving the scoped Cohort/Course. No ranking data lives on this object -- LeaderboardController computes it live. Sidebar keeps metadata + audit-trail for activation history.",
 				"lifecycleActions": {
@@ -13673,7 +13755,7 @@
 			"type": "index",
 			"title": "Point awards",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "point-award",
 				"readOnly": true
 			}
@@ -13684,7 +13766,7 @@
 			"type": "detail",
 			"title": "Point award",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "point-award",
 				"readOnly": true,
 				"_note": "engagement-gamification: a PointAward is an append-only ledger row (learner, rule, points, source) -- an immutable evidence archetype, mirroring AttendanceFlag/AssessmentResult. Body leads with the award data (8-wide) and a Related panel resolving the learner's PointRule. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
@@ -13749,7 +13831,7 @@
 			"type": "index",
 			"title": "Learner engagement",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learner-engagement",
 				"readOnly": true
 			}
@@ -13760,7 +13842,7 @@
 			"type": "detail",
 			"title": "Learner engagement",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "learner-engagement",
 				"readOnly": true,
 				"_note": "engagement-gamification: LearnerEngagement is the derived per-learner roll-up (totalPoints, levelId, streak days) -- an aggregate-result archetype, mirroring FinalGrade. x-property-rbac restricts reads to admin + the learner's own self-match, so a non-admin caller only ever sees their own row here regardless of the index filter. Body leads with the roll-up data (8-wide) and a Related panel resolving the learner's EngagementLevel. Sidebar keeps metadata + audit-trail.",
@@ -13828,174 +13910,301 @@
 			"_note": "engagement-gamification (story-required custom view, mirrors BsaRiskDashboard's status as the sole custom-UI exception): renders LeaderboardController's ranked response for a cohort with an active Leaderboard, with an inline opt-out toggle wired to the existing preferences-api. No manifest declarative page can render this — the ranking is computed live by a narrow authorizing controller, not a raw OR object list (see design.md 'Why the RBAC gap forces a controller')."
 		},
 		{
-"id": "EvaluationCampaigns",
-"route": "/course-evaluation/campaigns",
-"type": "index",
-"title": "Evaluation campaigns",
-"config": {
-"register": "scholiq",
-"schema": "evaluation-campaign"
-}
+			"id": "EvaluationCampaigns",
+			"route": "/course-evaluation/campaigns",
+			"type": "index",
+			"title": "Evaluation campaigns",
+			"config": {
+				"register": "learniq",
+				"schema": "evaluation-campaign"
+			}
 		},
 		{
-"id": "EvaluationCampaignDetail",
-"route": "/course-evaluation/campaigns/:id",
-"type": "detail",
-"title": "Evaluation campaign",
-"config": {
-"register": "scholiq",
-"schema": "evaluation-campaign",
-"_note": "course-evaluation: an EvaluationCampaign scopes which Course(s)/Cohort(s) a vakevaluatie evaluates, its academic period, instrument, and a fixed fully-anonymous policy. Body leads with the campaign data (8-wide) and a Related panel resolving the scoped Course(s)/Cohort(s). A read-only responses preview shows submitted CourseEvaluationResponses in scope (anonymous by schema shape -- no learner-identifying field exists to display). lifecycleActions exposes draft -> open -> closed -> archived; opening provisions EvaluationInvitations server-side (EvaluationInvitationProvisioningHandler). Sidebar keeps metadata + audit-trail.",
-"lifecycleActions": {
-"field": "lifecycle"
-},
-"widgets": [
-{
-"id": "campaign-data",
-"type": "data",
-"title": "Data",
-"content": { "columns": 2 },
-"icon": "ClipboardList"
-},
-{
-"id": "campaign-responses",
-"type": "object-list",
-"title": "Responses",
-"content": {
-"register": "scholiq",
-"schema": "course-evaluation-response",
-"filter": { "campaignId": "@object.id" },
-"sort": { "field": "submittedAt", "dir": "desc" },
-"limit": 20,
-"columns": [
-{ "key": "courseId", "label": "Course" },
-{ "key": "overallScore", "label": "Overall score" },
-{ "key": "submittedAt", "label": "Submitted at" }
-],
-"rowRoute": "CourseEvaluationResponseDetail",
-"viewAllRoute": "CourseEvaluationResponses",
-"viewAllQuery": { "campaignId": "@object.id" },
-"emptyText": "No responses submitted yet.",
-"allowCreate": false
-},
-"icon": "MessageTextOutline"
-},
-{
-"id": "campaign-related",
-"type": "related",
-"title": "Related",
-"icon": "LinkVariant"
-}
-],
-"layout": [
-{ "id": "1", "widgetId": "campaign-data", "gridX": 0, "gridY": 0, "gridWidth": 8, "gridHeight": 5, "showTitle": false },
-{ "id": "2", "widgetId": "campaign-related", "gridX": 8, "gridY": 0, "gridWidth": 4, "gridHeight": 5, "showTitle": false },
-{ "id": "3", "widgetId": "campaign-responses", "gridX": 0, "gridY": 5, "gridWidth": 12, "gridHeight": 5, "showTitle": true }
-],
-"sidebar": {
-"enabled": true,
-"showMetadata": true,
-"tabs": [
-{ "id": "audit", "label": "History", "icon": "History", "widgets": [ { "type": "audit" } ] }
-]
-}
-}
+			"id": "EvaluationCampaignDetail",
+			"route": "/course-evaluation/campaigns/:id",
+			"type": "detail",
+			"title": "Evaluation campaign",
+			"config": {
+				"register": "learniq",
+				"schema": "evaluation-campaign",
+				"_note": "course-evaluation: an EvaluationCampaign scopes which Course(s)/Cohort(s) a vakevaluatie evaluates, its academic period, instrument, and a fixed fully-anonymous policy. Body leads with the campaign data (8-wide) and a Related panel resolving the scoped Course(s)/Cohort(s). A read-only responses preview shows submitted CourseEvaluationResponses in scope (anonymous by schema shape -- no learner-identifying field exists to display). lifecycleActions exposes draft -> open -> closed -> archived; opening provisions EvaluationInvitations server-side (EvaluationInvitationProvisioningHandler). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "campaign-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardList"
+					},
+					{
+						"id": "campaign-responses",
+						"type": "object-list",
+						"title": "Responses",
+						"content": {
+							"register": "learniq",
+							"schema": "course-evaluation-response",
+							"filter": {
+								"campaignId": "@object.id"
+							},
+							"sort": {
+								"field": "submittedAt",
+								"dir": "desc"
+							},
+							"limit": 20,
+							"columns": [
+								{
+									"key": "courseId",
+									"label": "Course"
+								},
+								{
+									"key": "overallScore",
+									"label": "Overall score"
+								},
+								{
+									"key": "submittedAt",
+									"label": "Submitted at"
+								}
+							],
+							"rowRoute": "CourseEvaluationResponseDetail",
+							"viewAllRoute": "CourseEvaluationResponses",
+							"viewAllQuery": {
+								"campaignId": "@object.id"
+							},
+							"emptyText": "No responses submitted yet.",
+							"allowCreate": false
+						},
+						"icon": "MessageTextOutline"
+					},
+					{
+						"id": "campaign-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "campaign-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "campaign-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "campaign-responses",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": true
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
 		},
 		{
-"id": "CourseEvaluationResponses",
-"route": "/course-evaluation/responses",
-"type": "index",
-"title": "Evaluation responses",
-"config": {
-"register": "scholiq",
-"schema": "course-evaluation-response",
-"readOnly": true
-}
+			"id": "CourseEvaluationResponses",
+			"route": "/course-evaluation/responses",
+			"type": "index",
+			"title": "Evaluation responses",
+			"config": {
+				"register": "learniq",
+				"schema": "course-evaluation-response",
+				"readOnly": true
+			}
 		},
 		{
-"id": "CourseEvaluationResponseDetail",
-"route": "/course-evaluation/responses/:id",
-"type": "detail",
-"title": "Evaluation response",
-"config": {
-"register": "scholiq",
-"schema": "course-evaluation-response",
-"readOnly": true,
-"_note": "course-evaluation: an anonymous course-evaluation response -- appendOnly, anonymous by SCHEMA SHAPE (no learnerId/submittedBy property exists anywhere on this object; design.md Decision 2). readOnly:true -- no edit/delete affordance and no lifecycleActions block, matching AssessmentResult's own appendOnly-evidence pattern; the guarded submit transition happens server-side (CourseEvaluationEligibilityGuard), not through this administrative view. Body leads with the response data (8-wide, includes answers[]) and a Related panel resolving the campaign/course/cohort. Sidebar keeps metadata + audit-trail.",
-"widgets": [
-{ "id": "resp-data", "type": "data", "title": "Data", "content": { "columns": 2 }, "icon": "MessageTextOutline" },
-{ "id": "resp-related", "type": "related", "title": "Related", "icon": "LinkVariant" }
-],
-"layout": [
-{ "id": "1", "widgetId": "resp-data", "gridX": 0, "gridY": 0, "gridWidth": 8, "gridHeight": 6, "showTitle": false },
-{ "id": "2", "widgetId": "resp-related", "gridX": 8, "gridY": 0, "gridWidth": 4, "gridHeight": 6, "showTitle": false }
-],
-"sidebar": {
-"enabled": true,
-"showMetadata": true,
-"tabs": [
-{ "id": "audit", "label": "History", "icon": "History", "widgets": [ { "type": "audit" } ] }
-]
-}
-}
+			"id": "CourseEvaluationResponseDetail",
+			"route": "/course-evaluation/responses/:id",
+			"type": "detail",
+			"title": "Evaluation response",
+			"config": {
+				"register": "learniq",
+				"schema": "course-evaluation-response",
+				"readOnly": true,
+				"_note": "course-evaluation: an anonymous course-evaluation response -- appendOnly, anonymous by SCHEMA SHAPE (no learnerId/submittedBy property exists anywhere on this object; design.md Decision 2). readOnly:true -- no edit/delete affordance and no lifecycleActions block, matching AssessmentResult's own appendOnly-evidence pattern; the guarded submit transition happens server-side (CourseEvaluationEligibilityGuard), not through this administrative view. Body leads with the response data (8-wide, includes answers[]) and a Related panel resolving the campaign/course/cohort. Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "resp-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "MessageTextOutline"
+					},
+					{
+						"id": "resp-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "resp-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "resp-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
 		},
 		{
-"id": "ImprovementActions",
-"route": "/course-evaluation/improvement-actions",
-"type": "index",
-"title": "Improvement actions",
-"config": {
-"register": "scholiq",
-"schema": "improvement-action"
-}
+			"id": "ImprovementActions",
+			"route": "/course-evaluation/improvement-actions",
+			"type": "index",
+			"title": "Improvement actions",
+			"config": {
+				"register": "learniq",
+				"schema": "improvement-action"
+			}
 		},
 		{
-"id": "ImprovementActionDetail",
-"route": "/course-evaluation/improvement-actions/:id",
-"type": "detail",
-"title": "Improvement action",
-"config": {
-"register": "scholiq",
-"schema": "improvement-action",
-"_note": "course-evaluation: closes the evaluation cycle -- an opleidingscommissie/vaksectie reviewer's findings and a recorded action against a campaign/course's results. Purely declarative CRUD, no PHP guard. Body leads with the action data (8-wide) and a Related panel resolving the campaign/course. lifecycleActions exposes planned -> in-progress -> done|dropped. Sidebar keeps metadata + audit-trail.",
-"lifecycleActions": {
-"field": "lifecycle"
-},
-"widgets": [
-{ "id": "ia-data", "type": "data", "title": "Data", "content": { "columns": 2 }, "icon": "ClipboardCheckOutline" },
-{ "id": "ia-related", "type": "related", "title": "Related", "icon": "LinkVariant" }
-],
-"layout": [
-{ "id": "1", "widgetId": "ia-data", "gridX": 0, "gridY": 0, "gridWidth": 8, "gridHeight": 5, "showTitle": false },
-{ "id": "2", "widgetId": "ia-related", "gridX": 8, "gridY": 0, "gridWidth": 4, "gridHeight": 5, "showTitle": false }
-],
-"sidebar": {
-"enabled": true,
-"showMetadata": true,
-"tabs": [
-{ "id": "audit", "label": "History", "icon": "History", "widgets": [ { "type": "audit" } ] }
-]
-}
-}
+			"id": "ImprovementActionDetail",
+			"route": "/course-evaluation/improvement-actions/:id",
+			"type": "detail",
+			"title": "Improvement action",
+			"config": {
+				"register": "learniq",
+				"schema": "improvement-action",
+				"_note": "course-evaluation: closes the evaluation cycle -- an opleidingscommissie/vaksectie reviewer's findings and a recorded action against a campaign/course's results. Purely declarative CRUD, no PHP guard. Body leads with the action data (8-wide) and a Related panel resolving the campaign/course. lifecycleActions exposes planned -> in-progress -> done|dropped. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "ia-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardCheckOutline"
+					},
+					{
+						"id": "ia-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "ia-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "ia-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
 		},
 		{
-"id": "ImprovementActionCreate",
-"route": "/course-evaluation/improvement-actions/new",
-"type": "detail",
-"title": "New improvement action",
-"config": {
-"register": "scholiq",
-"schema": "improvement-action",
-"_note": "course-evaluation: a dedicated no-id detail route so CnDetailPage's isCreateMode (ADR-062) opens an empty create form pre-filled from ?campaignId=&courseId= query params (CnDetailPage.createPrefill, filtered to the schema's own properties) -- reached from CourseQualityReport.vue's 'Draft improvement action' link. Vue Router 4 ranks this static 'new' segment above ImprovementActionDetail's dynamic :id segment regardless of declaration order."
-}
+			"id": "ImprovementActionCreate",
+			"route": "/course-evaluation/improvement-actions/new",
+			"type": "detail",
+			"title": "New improvement action",
+			"config": {
+				"register": "learniq",
+				"schema": "improvement-action",
+				"_note": "course-evaluation: a dedicated no-id detail route so CnDetailPage's isCreateMode (ADR-062) opens an empty create form pre-filled from ?campaignId=&courseId= query params (CnDetailPage.createPrefill, filtered to the schema's own properties) -- reached from CourseQualityReport.vue's 'Draft improvement action' link. Vue Router 4 ranks this static 'new' segment above ImprovementActionDetail's dynamic :id segment regardless of declaration order."
+			}
 		},
 		{
-"id": "CourseQualityReport",
-"route": "/course-evaluation/quality-report",
-"type": "custom",
-"title": "Course quality report",
-"component": "CourseQualityReport",
-"_note": "course-evaluation: the one genuine custom-view exception for this capability (mirrors GroupTrendHeatmap/LeaderboardView's precedent) -- a coordinator/opleidingscommissie view of a course's CourseQualityScore trend over time, response rate, and raw free-text answers, with a link to draft an ImprovementAction. Own in-page Course (and optional teacher) picker, since the manifest router only auto-binds :route params (not ?query=) to props -- reached via the Course evaluation menu with no id required."
+			"id": "CourseQualityReport",
+			"route": "/course-evaluation/quality-report",
+			"type": "custom",
+			"title": "Course quality report",
+			"component": "CourseQualityReport",
+			"_note": "course-evaluation: the one genuine custom-view exception for this capability (mirrors GroupTrendHeatmap/LeaderboardView's precedent) -- a coordinator/opleidingscommissie view of a course's CourseQualityScore trend over time, response rate, and raw free-text answers, with a link to draft an ImprovementAction. Own in-page Course (and optional teacher) picker, since the manifest router only auto-binds :route params (not ?query=) to props -- reached via the Course evaluation menu with no id required."
 		},
 		{
 			"id": "AdmissionsRounds",
@@ -14003,7 +14212,7 @@
 			"type": "index",
 			"title": "Admissions rounds",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "admissions-round"
 			}
 		},
@@ -14013,7 +14222,7 @@
 			"type": "detail",
 			"title": "Admissions round",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "admissions-round",
 				"_note": "admissions-and-subject-choice: an AdmissionsRound is the intake norm config per Programme/level + academicYear (kind, applicationDeadline, mandatoryIntake, capacity) -- a config/rule archetype, mirroring BsaTrajectory/AttendanceThreshold. Body leads with the round definition (8-wide) and a Related panel resolving the scoped Programme. The Applications submitted into this round render as a wide related-index so a coordinator sees the round's intake at a glance. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -14034,7 +14243,7 @@
 						"type": "object-list",
 						"title": "Applications",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "application",
 							"filter": {
 								"admissionsRoundId": "@objectId"
@@ -14107,7 +14316,7 @@
 			"type": "index",
 			"title": "Applications",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "application"
 			}
 		},
@@ -14117,7 +14326,7 @@
 			"type": "detail",
 			"title": "Application",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "application",
 				"_note": "admissions-and-subject-choice: an Application is the aanmelding a coordinator scores through an intake conversation to a placed/waitlisted/rejected decision, gated by AdmissionsDecisionGuard. Body leads with applicant/guardian/decision data (8-wide) and a Related panel resolving the AdmissionsRound and Programme applied for. lifecycleActions expose submit/scheduleIntake/completeIntake/place/waitlist/reject/withdraw as buttons. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -14145,7 +14354,7 @@
 						"icon": "FileDocument",
 						"_note": "portable-learning-record: presentation-only related-index panel resolving LearningRecordImport rows uploaded as evidence for this Application. Application's own schema is unchanged.",
 						"content": {
-							"register": "scholiq",
+							"register": "learniq",
 							"schema": "learning-record-import",
 							"filter": {
 								"applicationId": "@objectId"
@@ -14211,7 +14420,7 @@
 			"type": "index",
 			"title": "Subject choices",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "subject-choice"
 			}
 		},
@@ -14221,7 +14430,7 @@
 			"type": "detail",
 			"title": "Subject choice",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "subject-choice",
 				"_note": "admissions-and-subject-choice: a SubjectChoice is a learner's vakkenpakket against a governing CurriculumPlan.electiveRules, gated by SubjectChoiceConsentGuard at submit and scored by SubjectChoiceValidator into validated/needs-revision. Body leads with the selection/consent/validationErrors data (8-wide) and a Related panel resolving the CurriculumPlan. lifecycleActions expose submit/revise/approve/lock as buttons. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
@@ -14293,7 +14502,7 @@
 			"type": "index",
 			"title": "Fee items",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "fee-item"
 			}
 		},
@@ -14303,7 +14512,7 @@
 			"type": "detail",
 			"title": "Fee item",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "fee-item",
 				"widgets": [
 					{
@@ -14366,7 +14575,7 @@
 			"type": "index",
 			"title": "Orders",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "order"
 			}
 		},
@@ -14376,7 +14585,7 @@
 			"type": "detail",
 			"title": "Order",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "order",
 				"widgets": [
 					{
@@ -14439,7 +14648,7 @@
 			"type": "index",
 			"title": "Order lines",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "order-line"
 			}
 		},
@@ -14449,7 +14658,7 @@
 			"type": "detail",
 			"title": "Order line",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "order-line",
 				"widgets": [
 					{
@@ -14512,7 +14721,7 @@
 			"type": "index",
 			"title": "Payment transactions",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "payment-transaction"
 			}
 		},
@@ -14522,7 +14731,7 @@
 			"type": "detail",
 			"title": "Payment transaction",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "payment-transaction",
 				"widgets": [
 					{
@@ -14585,7 +14794,7 @@
 			"type": "index",
 			"title": "Entitlements",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "entitlement"
 			}
 		},
@@ -14595,7 +14804,7 @@
 			"type": "detail",
 			"title": "Entitlement",
 			"config": {
-				"register": "scholiq",
+				"register": "learniq",
 				"schema": "entitlement",
 				"widgets": [
 					{
