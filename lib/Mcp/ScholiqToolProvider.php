@@ -98,6 +98,8 @@ class ScholiqToolProvider implements IMcpToolProvider {
 	private const TOOL_DESCRIPTORS = [
 		[
 			'id' => 'scholiq.listCourses',
+			'subject' => 'course',
+			'action' => 'list',
 			'name' => 'List courses',
 			'description' => 'List Scholiq courses visible to you. Catalogue only, no learner data. Optional status: draft/published/archived.',
 			'inputSchema' => [
@@ -119,6 +121,8 @@ class ScholiqToolProvider implements IMcpToolProvider {
 		],
 		[
 			'id' => 'scholiq.getCourseDetails',
+			'subject' => 'course',
+			'action' => 'get',
 			'name' => 'Get course details',
 			'description' => 'Get one Scholiq course by id, uuid or slug with its module list. Course and module metadata only, no learner data.',
 			'inputSchema' => [
