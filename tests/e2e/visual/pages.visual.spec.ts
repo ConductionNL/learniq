@@ -181,7 +181,7 @@ async function goTo(page: Page, path: string): Promise<void> {
 
 authed.describe('gate-26 — every page component renders its own screen', () => {
 	authed('Compliance dashboard', async ({ loggedInPage: page }) => {
-		expect(manifestComponentFor('/compliance')).toBe('ScholiqCompliance')
+		expect(manifestComponentFor('/compliance')).toBe('LearniqCompliance')
 		const errors = collectFatalErrors(page)
 		await goTo(page, '/compliance')
 		// The header action is rendered by this view only.
@@ -193,7 +193,7 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 	})
 
 	authed('Learner home dashboard', async ({ loggedInPage: page }) => {
-		expect(manifestComponentFor('/learner')).toBe('ScholiqLearnerHome')
+		expect(manifestComponentFor('/learner')).toBe('LearniqLearnerHome')
 		const errors = collectFatalErrors(page)
 		await goTo(page, '/learner')
 		// The single widget this view mounts.
@@ -205,7 +205,7 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 
 	authed('AI processing disclosure', async ({ loggedInPage: page }) => {
 		expect(manifestComponentFor('/ai-processing-disclosure')).toBe(
-			'ScholiqAiProcessingDisclosure',
+			'LearniqAiProcessingDisclosure',
 		)
 		const errors = collectFatalErrors(page)
 		await openPage(
