@@ -77,6 +77,20 @@ import LeaderboardView from './views/LeaderboardView.vue'
 import LearningDashboard from './views/LearningDashboard.vue'
 import LearningRecordImportView from './views/LearningRecordImportView.vue'
 import LearningRecordShareVerifyView from './views/LearningRecordShareVerifyView.vue'
+// accessibility-conformance-statement: the toegankelijkheidsverklaring
+// disclosure surface — a purpose-built read surface over the published
+// AccessibilityStatement plus its linked AccessibilityLimitation rows
+// (mirrors LearniqCompliance's role), reachable by every authenticated user.
+import LearniqAccessibilityStatement from './views/LearniqAccessibilityStatement.vue'
+// sovereign-ai-guarantee: the AI-processing disclosure surface a school hands
+// to its DPO — mirrors LearniqAccessibilityStatement's singleton, no-:id-route
+// shape. Composes AiProcessingDisclosureController's server-side read with an
+// inline SovereigntyPolicy editor (writes via OpenRegister's generic
+// object-create/update endpoint, no bespoke write controller, per ADR-022).
+import LearniqAiProcessingDisclosure from './views/LearniqAiProcessingDisclosure.vue'
+import LearniqCompliance from './views/LearniqCompliance.vue'
+import LearniqDashboards from './views/LearniqDashboards.vue'
+import LearniqLearnerHome from './views/LearniqLearnerHome.vue'
 import LessonComposer from './views/LessonComposer.vue'
 import LessonPlayer from './views/LessonPlayer.vue'
 import MarkSubmissionView from './views/MarkSubmissionView.vue'
@@ -110,20 +124,6 @@ import PupilDossierTimelineView from './views/PupilDossierTimelineView.vue'
 import RapportvergaderingReviewView from './views/RapportvergaderingReviewView.vue'
 import RegulationDetailPage from './views/RegulationDetailPage.vue'
 import RolloverWizard from './views/RolloverWizard.vue'
-// accessibility-conformance-statement: the toegankelijkheidsverklaring
-// disclosure surface — a purpose-built read surface over the published
-// AccessibilityStatement plus its linked AccessibilityLimitation rows
-// (mirrors LearniqCompliance's role), reachable by every authenticated user.
-import LearniqAccessibilityStatement from './views/LearniqAccessibilityStatement.vue'
-// sovereign-ai-guarantee: the AI-processing disclosure surface a school hands
-// to its DPO — mirrors LearniqAccessibilityStatement's singleton, no-:id-route
-// shape. Composes AiProcessingDisclosureController's server-side read with an
-// inline SovereigntyPolicy editor (writes via OpenRegister's generic
-// object-create/update endpoint, no bespoke write controller, per ADR-022).
-import LearniqAiProcessingDisclosure from './views/LearniqAiProcessingDisclosure.vue'
-import LearniqCompliance from './views/LearniqCompliance.vue'
-import LearniqDashboards from './views/LearniqDashboards.vue'
-import LearniqLearnerHome from './views/LearniqLearnerHome.vue'
 import SelfAssessmentView from './views/SelfAssessmentView.vue'
 import SkillsGapDashboard from './views/SkillsGapDashboard.vue'
 import SubjectChoicePicker from './views/SubjectChoicePicker.vue'

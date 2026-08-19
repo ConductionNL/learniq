@@ -91,6 +91,12 @@ if (interface_exists(\OCA\OpenRegister\Mcp\IMcpToolProvider::class) === false) {
 	require_once __DIR__ . '/Stubs/Mcp/IMcpToolProvider.php';
 }
 
+// Doctrine\DBAL\ParameterType stub — IQueryBuilder references it in its own
+// constant declarations, so doubling OCP\IDBConnection loads it. The file
+// self-guards, so where the real Doctrine package is installed this is a
+// no-op rather than a shadowing second definition.
+require_once __DIR__ . '/Stubs/DoctrineParameterType.php';
+
 // OC\Hooks\Emitter stub — loaded when the live Nextcloud server runtime (which
 // ships lib/private/Hooks/Emitter.php) is absent.
 //

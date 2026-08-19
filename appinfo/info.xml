@@ -4,8 +4,9 @@
     <id>learniq</id>
     <name lang="en">Learniq</name>
     <name lang="nl">Learniq</name>
-    <summary lang="en">Open-source learning system for Nextcloud — course creation, learner tracking, certification, and compliance training for schools, training providers, and companies.</summary>
-    <summary lang="nl">Open-source leersysteem voor Nextcloud — cursusbeheer, voortgangsregistratie, certificering en compliance-training voor scholen, opleiders en bedrijven.</summary>
+    <!-- The App Store schema caps <summary> at 128 characters. Keep both under it. -->
+    <summary lang="en">Learning system for schools, training providers and companies: courses, progress, certification, compliance.</summary>
+    <summary lang="nl">Leersysteem voor scholen, opleiders en bedrijven: cursussen, voortgang, certificering en compliance.</summary>
     <description lang="en"><![CDATA[Learniq is a learning system for Nextcloud: a leerlingvolgsysteem (LVS)-style progress-tracking core for primary, secondary, and higher education, and a leeromgeving / LMS for corporate L&D and government employee training — the same underlying data model serves both.
 
 **v0.1 wedge — Compliance training**
