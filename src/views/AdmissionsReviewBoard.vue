@@ -87,6 +87,9 @@
 						{{
 							t('scholiq', 'Deadline: {deadline}', {
 								deadline: formatDate(
+									/**
+									 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+									 */
 									roundFor(application)
 										&& roundFor(application).applicationDeadline,
 								),
@@ -238,6 +241,7 @@ export default {
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		applicantName(application) {
 			const given = application.applicantGivenName || ''
@@ -300,6 +304,7 @@ export default {
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		decisionHref(application) {
 			const id = application.id || application.uuid

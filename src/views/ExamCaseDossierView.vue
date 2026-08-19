@@ -483,6 +483,7 @@ export default {
 		 * @param {object} payload Fields to submit alongside the transition (read by
 		 *                         the server-side guard as part of the transitioning object).
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
 		 */
 		async transition(action, payload = {}) {
 			this.saving = true
@@ -516,10 +517,16 @@ export default {
 			}
 		},
 
+		/**
+		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 */
 		startAssessment() {
 			return this.transition('startAssessment')
 		},
 
+		/**
+		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 */
 		grantExemption() {
 			return this.transition('grant', {
 				decisionRationale: this.decisionRationale,
@@ -534,20 +541,32 @@ export default {
 			})
 		},
 
+		/**
+		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 */
 		withdrawExemption() {
 			return this.transition('withdraw')
 		},
 
+		/**
+		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 */
 		scheduleHearing() {
 			return this.transition('scheduleHearing', {
 				hearingDate: this.hearingDate,
 			})
 		},
 
+		/**
+		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 */
 		holdHearing() {
 			return this.transition('holdHearing')
 		},
 
+		/**
+		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 */
 		decideFraudCase() {
 			const payload = {
 				verdict: this.verdict,
@@ -561,6 +580,9 @@ export default {
 			return this.transition('decide', payload)
 		},
 
+		/**
+		 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-read-access-is-restricted-hearing-decision-internals-are-ui-gated-within-that-set
+		 */
 		dismissFraudCase() {
 			return this.transition('dismiss')
 		},
