@@ -182,8 +182,9 @@ class AssessmentDrawResolver implements IEventListener {
 	 * @param array<string,mixed> $assessment Assessment data.
 	 * @param string $tenantId Tenant ID to scope the random-draw Item lookup.
 	 *
+	 * Null when random-draw fails closed (the pool cannot supply drawCount).
+	 *
 	 * @return array{itemIds: array<int,string>, pointsOverride: array<string,mixed>}|null
-	 *                                                                                     Null when random-draw fails closed (pool cannot supply drawCount).
 	 *
 	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
 	 */
