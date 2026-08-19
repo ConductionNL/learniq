@@ -191,6 +191,7 @@ export default {
 		 * Human-readable lifecycle summary line.
 		 *
 		 * @return {string} Localised summary text.
+		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		lifecycleLabel() {
 			if (!this.report) return ''
@@ -215,6 +216,7 @@ export default {
 		 * Report entries filtered by the selected outcome.
 		 *
 		 * @return {Array<object>} Filtered entries.
+		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		filteredEntries() {
 			const entries = this.report?.entries ?? []
@@ -288,6 +290,7 @@ export default {
 		 * Reset the view to upload another package.
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		reset() {
 			this.report = null

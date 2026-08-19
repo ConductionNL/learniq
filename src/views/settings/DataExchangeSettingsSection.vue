@@ -66,6 +66,7 @@ export default {
 		 *
 		 * @param {string} routePath The app route path, e.g. `/data-exchange/jobs`.
 		 * @return {void}
+		 * @spec openspec/changes/relocate-dataexchange-remove-assistant/specs/data-exchange/spec.md#requirement-data-exchange-management-is-reached-from-the-admin-settings-page
 		 */
 		open(routePath) {
 			window.location.href = generateUrl('/apps/scholiq') + routePath
