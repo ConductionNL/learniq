@@ -228,7 +228,10 @@ class CommonCartridgeCourseImporter {
 		}
 
 		$courseId = $this->objectWriter->createCourse(title: $node['title'], parentCourseId: $parentCourseId, tenantId: $tenantId);
-		$courseIdByOrgId[$node['identifier']] = $courseId;
+		// Cast the key: this map is declared array<string, string|null> and
+		// passed BY REFERENCE, so a mixed key from $node degrades it to
+		// array<string|null> at the call boundary.
+		$courseIdByOrgId[(string)$node['identifier']] = $courseId;
 		if ($topCourseId === null) {
 			$topCourseId = $courseId;
 		}

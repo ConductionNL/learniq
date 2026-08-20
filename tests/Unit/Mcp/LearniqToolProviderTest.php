@@ -208,6 +208,55 @@ class LearniqToolProviderTest extends TestCase {
 	}//end testListCoursesForbiddenWhenAnonymous()
 
 	/**
+	 * A session whose user reports an EMPTY uid is refused exactly as an
+	 * anonymous caller is, and reads no data.
+	 *
+	 * This is the arm that made `requireCourseReadAccess()`'s final
+	 * `return $userId !== ''` unreachable-as-false: the empty-uid case has
+	 * already returned by then. Pinning it here is what lets that final
+	 * statement be written as a plain `return true` without the deny path
+	 * quietly disappearing.
+	 *
+	 * @return void
+	 */
+	public function testListCoursesForbiddenWhenUidIsEmpty(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('');
+		$this->userSession->method('getUser')->willReturn($user);
+		$this->objectService->expects($this->never())->method('findAll');
+
+		$result = $this->provider->invokeTool('learniq.listCourses', []);
+
+		$this->assertTrue($result['isError'] ?? false);
+		$this->assertSame('forbidden', $result['error'] ?? null);
+
+	}//end testListCoursesForbiddenWhenUidIsEmpty()
+
+	/**
+	 * An authenticated NON-admin is allowed through the provider boundary.
+	 *
+	 * That is deliberate, not an oversight: OpenRegister's own RBAC (inside
+	 * ObjectService, with `_rbac`/`_multitenancy` left at their defaults) is
+	 * the per-object gate that scopes which courses this user actually sees.
+	 * Pins the allow half of the boundary decision.
+	 *
+	 * @return void
+	 */
+	public function testListCoursesAllowedForAuthenticatedNonAdmin(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('learner1');
+		$this->userSession->method('getUser')->willReturn($user);
+		$this->groupManager->method('isAdmin')->with('learner1')->willReturn(false);
+		$this->objectService->expects($this->atLeastOnce())->method('findAll')->willReturn([]);
+
+		$result = $this->provider->invokeTool('learniq.listCourses', []);
+
+		$this->assertFalse($result['isError'] ?? false);
+		$this->assertNull($result['error'] ?? null);
+
+	}//end testListCoursesAllowedForAuthenticatedNonAdmin()
+
+	/**
 	 * getCourseDetails without the required id argument is rejected.
 	 *
 	 * @return void
