@@ -6,6 +6,32 @@ depends_on:
 
 # Proposal: menu-six-main-items
 
+> **⚠️ AMENDED 2026-08-20 — read design.md "Decision 1" first; it overrides the
+> nesting language throughout this file, tasks.md and test-plan.md.**
+>
+> This proposal was written when no component in `@conduction/nextcloud-vue`
+> could render a grid of arbitrary navigation links, so Progress and Compliance
+> were specified as NESTED sub-groups — knowingly reintroducing the 3-level
+> depth ADR-044 exists to eliminate.
+>
+> `@conduction/nextcloud-vue` **2.8.0** now ships `CnNavCardGrid`, registered as
+> the built-in widgetKey `nav-card-grid`. Verified in the installed package: 216
+> occurrences of `nav-card-grid` in `dist`, including the compiled manifest
+> validator.
+>
+> **Progress and Compliance therefore get real card-grid landing pages**, one
+> card per former sub-group, and nav depth stays at two. Wherever this file says
+> those two "nest", read "one top-level entry routing to a `type: "dashboard"`
+> page carrying a single `nav-card-grid` widget". The mechanism for the OTHER
+> folds (People's sub-groups, Learning's timetabling leaves) is unchanged, and
+> Decision 2's finding — that `applyMenuRelocations` DISSOLVES a relocated group
+> and discards its label — still stands and is still why those use fragment
+> nesting rather than relocations.
+>
+> This adds a hard floor of `@conduction/nextcloud-vue >= 2.8.0`; the pin moves
+> from `^2.3.0` and the lockfile with it, as part of this change.
+
+
 ## Summary
 
 Collapses Scholiq's top-level navigation from 24 measured main-nav groups down to six named destinations (**Dashboard, Learning, People, Progress, Compliance, My learning**) plus the two groups already scheduled for extraction by other changes (**Data exchange** → `openconnector-flow-migration`, **Payments** → a future pipelinq change), which this change deliberately leaves untouched. It also finally completes work `nav-restructure-dashboards` started but did not finish: `GroupInsight` — measured today as still rendering non-empty with four leftover Accessibility/Compliance children — fully dissolves once this change relocates its last children out.

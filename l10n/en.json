@@ -942,7 +942,13 @@
         "Import completed with some resources degraded or dropped.": "Import completed with some resources degraded or dropped.",
         "Import failed.": "Import failed.",
         "Import in progress…": "Import in progress…",
-        "Failed to import the package. Please try again.": "Failed to import the package. Please try again."
+        "Failed to import the package. Please try again.": "Failed to import the package. Please try again.",
+        "Overview": "Overview",
+        "Progress": "Progress",
+        "Compliance": "Compliance",
+        "My learning": "My learning",
+        "Administration": "Administration",
+        "Teaching": "Teaching"
     },
     "plurals": ""
 }

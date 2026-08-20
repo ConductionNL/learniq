@@ -1,0 +1,223 @@
+{
+	"_meta": {
+		"spdx-license": "EUPL-1.2",
+		"spdx-copyright": "2026 Conduction B.V.",
+		"change": "manifest-fragment-split",
+		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
+		"description": "ExternalTraining only — Compliance itself stays inside GroupInsight/dashboard.json per Decision 1 (no cross-file children split); see design.md \"Why compliance.json is nearly empty today\"."
+	},
+	"menu": [
+		{
+			"id": "GroupCompliance",
+			"label": "Compliance",
+			"icon": "ClipboardCheckOutline",
+			"order": 27,
+			"route": "ComplianceLanding"
+		},
+		{
+			"id": "ExternalTraining",
+			"label": "External training",
+			"icon": "Plus",
+			"route": "ExternalTrainingRecords",
+			"order": 52,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"compliance-officer",
+						"hr",
+						"admin"
+					]
+				}
+			}
+		}
+	],
+	"pages": [
+		{
+			"id": "ExternalTrainingRecords",
+			"route": "/compliance/external-training",
+			"type": "index",
+			"title": "External training",
+			"config": {
+				"register": "learniq",
+				"schema": "external-training-record"
+			}
+		},
+		{
+			"id": "ExternalTrainingRecordDetail",
+			"route": "/compliance/external-training/:id",
+			"type": "detail",
+			"title": "External training",
+			"config": {
+				"register": "learniq",
+				"schema": "external-training-record",
+				"_note": "An External Training Record is a learner's externally-completed training awaiting verification (title, provider, kind, regulation, completion/validity dates, evidence, verifier, resulting credential) — a request/evidence archetype. Body leads with the record data including verification status (8-wide), a Related panel resolving learner, linked course and resulting credential, and the certificate/evidence as a wide Files leaf (the point of the record). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as the verification audit.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "ext-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "School"
+					},
+					{
+						"id": "ext-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "ext-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Certificate & evidence",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "ext-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "ext-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "ext-files",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ComplianceLanding",
+			"route": "/compliance-overview",
+			"type": "dashboard",
+			"title": "Compliance",
+			"_note": "ADR-044 §4 cards-collapse. This page exists so the group above it is ONE top-level entry instead of a long flat child list: relocating a group into another DISSOLVES it (buildManifest applyMenuRelocations discards the group's own label), which produced a 33-item undifferentiated list — the exact failure ADR-097 Decision 6 names. Each former leaf is a card here, keeping its label, with a description wherever the label is ambiguous out of context.",
+			"config": {
+				"allowEdit": false
+			},
+			"widgets": [
+				{
+					"id": "compliance-landing-cards",
+					"widgetKey": "nav-card-grid",
+					"slot": "body",
+					"gridX": 0,
+					"gridY": 0,
+					"gridWidth": 12,
+					"gridHeight": 8,
+					"props": {
+						"entries": [
+							{
+								"id": "Compliance",
+								"label": "Overview",
+								"route": "Compliance",
+								"order": 10,
+								"icon": "ClipboardCheckOutline",
+								"description": "Regulation coverage and attestations"
+							},
+							{
+								"id": "ExternalTraining",
+								"label": "External training",
+								"route": "ExternalTrainingRecords",
+								"order": 20,
+								"icon": "Plus",
+								"description": "Training recorded outside the app"
+							},
+							{
+								"id": "Accessibility",
+								"label": "Accessibility statement",
+								"route": "AccessibilityStatement",
+								"order": 30,
+								"icon": "InformationOutline"
+							},
+							{
+								"id": "AccessibilityLimitationsMenu",
+								"label": "Accessibility limitations",
+								"route": "AccessibilityLimitations",
+								"order": 40,
+								"icon": "HumanWheelchair"
+							},
+							{
+								"id": "AccessibilityFeedbacksMenu",
+								"label": "Accessibility feedback",
+								"route": "AccessibilityFeedbacks",
+								"order": 50,
+								"icon": "CommentOutline"
+							},
+							{
+								"id": "AiProcessingDisclosureMenu",
+								"label": "AI processing disclosure",
+								"route": "AiProcessingDisclosure",
+								"order": 60,
+								"icon": "Lock",
+								"description": "What the AI features process"
+							},
+							{
+								"id": "ExemptionCasesMenu",
+								"label": "Exemption requests",
+								"route": "ExemptionCases",
+								"order": 70,
+								"icon": "Check",
+								"description": "Exam-board exemption requests"
+							},
+							{
+								"id": "FraudCasesMenu",
+								"label": "Fraud cases",
+								"route": "FraudCases",
+								"order": 80,
+								"icon": "FolderAccountOutline",
+								"description": "Exam-board integrity cases"
+							},
+							{
+								"id": "ItemRevisionFlagsMenu",
+								"label": "Item revision flags",
+								"route": "ItemRevisionFlags",
+								"order": 90,
+								"icon": "FlagVariantOutline",
+								"description": "Assessment items flagged for revision"
+							}
+						]
+					}
+				}
+			]
+		}
+	]
+}

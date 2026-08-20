@@ -12,16 +12,51 @@ Same pipeline as `manifest-fragment-split`: `buildManifest(base, fragments, menu
 
 ## Decisions
 
-### Decision 1: Progress and Compliance's source groups nest, they don't get a card-grid landing page — and here is the exact reason
+### Decision 1: Progress and Compliance get a real card-grid landing page
 
-ADR-044 §4 prescribes cards-collapse for a deep group: "collapse into a single top-level menu item that links to a card-grid landing page — one card per former sub-item — instead of a nested menu." That is the architecturally correct remedy for Progress (7 source groups, ~28 leaves total) and Compliance (Exam board + 5 flat leaves). This change does not implement it, for two independently sufficient reasons, both verified against the actual `@conduction/nextcloud-vue` source in `node_modules/@conduction/nextcloud-vue/src/`:
+**This decision was reversed on 2026-08-20, and the reversal is the point of this note.**
 
-1. **No built-in component renders a grid of arbitrary navigation links.** The only two "card grid" components in the library are `CnCardGrid` (`src/components/CnCardGrid/CnCardGrid.vue`) and its dashboard-widget wrapper `CnWidgetCardGrid` (`widgetKey: "card-grid"`, one of the schema's exempt single-widget-dashboard keys). Both render an `objects` array through `CnObjectCard`, which is explicitly "Schema-configuration-driven card for object display" — it reads `schema.configuration` to resolve title/description/image and its click handler navigates via the object's own register/schema-derived detail route. There is no prop or slot for "a card that links to an arbitrary manifest route" independent of an OpenRegister object. Using it for Progress's cards would mean either fabricating fake OpenRegister objects that don't represent real data (wrong data model, and OpenRegister's schema validation would reject or misrepresent them) or extending `CnObjectCard`/`CnCardGrid` in `@conduction/nextcloud-vue` to support a generic link-card mode — a cross-project library change, out of scope for a scholiq-only, `kind: config` change.
-2. **Building a bespoke Vue component (the Learning/People precedent) is a `kind: code` change.** `LearningDashboard.vue`/`PeopleDashboard.vue` are exactly this pattern done right — but they were built in `nav-restructure-dashboards`, a `kind: code` change. This change is declared `kind: config`; its tasks must be JSON patches only (ADR-031), so a new `ProgressDashboard.vue`/`ComplianceDashboard.vue` is not an option here.
+The original version of this section nested each source group under the new
+parent, producing a 3-level tree (`Progress` → `Engagement` → leaf) — which it
+correctly identified as *exactly* the anti-pattern ADR-044's own Context section
+exists to eliminate. It accepted that cost for one stated reason:
 
-**What this change does instead**: restructures the relevant `manifest.d/*.json` fragments so each source group is declared as a nested child of the new parent (`GroupProgress`/`GroupCompliance`) instead of an independent top-level id. This preserves every source group's own label (see Decision 2 for why this matters) using only JSON structure, zero new code.
+> No built-in component renders a grid of arbitrary navigation links.
 
-**The cost, stated plainly**: this produces a 3-level-deep nav tree (`Progress` → `Engagement` → leaf), which is *exactly* the anti-pattern ADR-044's own Context section names as one of the two problems the ADR exists to solve ("A top-level group with many sub-items... forced 3-level navigation and hid related views"). This change does not resolve that tension — it trades "card-grid landing page" (the architecturally correct fix, blocked by reasons 1–2 above) for "nested groups" (achievable now, but reintroduces 3-level depth). This is the single most important open question in this change; see the proposal's Open Questions and the DEFERRED_QUESTIONS in the final report. The recommended resolution is a follow-up `kind: code` change that replaces `GroupProgress`/`GroupCompliance`'s nested-group structure with real card-grid domain dashboards, once someone scopes whether that means extending `CnCardGrid` (fleet-wide benefit, cross-project change) or building two more bespoke `CnDashboardPage` hosts (scholiq-only, faster, matches existing precedent).
+**That reason is no longer true.** `@conduction/nextcloud-vue` **2.8.0**, released
+and published to npm, ships `CnNavCardGrid` and registers it as the built-in
+widgetKey `nav-card-grid` in `src/components/CnWidgetGrid/builtInWidgets.js`,
+beside the existing `'card-grid'`. It was built precisely because this gap
+blocked ADR-044 §4 for ten-plus apps (ConductionNL/nextcloud-vue#701).
+
+Verified in the installed package, not assumed:
+- `node_modules/@conduction/nextcloud-vue/dist` contains 216 occurrences of
+  `nav-card-grid`, including the compiled manifest validator.
+- The component renders each `entries[]` item as a native `<router-link>`
+  (resolvable `route`), `<a>` (`href`), or a disabled and visibly-flagged
+  `<div>` for an unresolvable route — ADR-044 §5 forbids losing a reachable
+  function silently.
+- It performs NO data fetching; `count: "auto"` resolves from `cnMenuCounts`.
+- Entries carry `label`, `description?`, `icon?`, `route?`/`href?`, `count?`,
+  `order?` — the vocabulary this change needs and nothing more.
+
+**What this change does**: `Progress` and `Compliance` each become ONE top-level
+entry routing to a `type: "dashboard"` page whose single full-width widget is a
+`nav-card-grid`, one card per former sub-group. Each card keeps that
+sub-group's own label, which is what the nesting workaround was protecting and
+what `applyMenuRelocations` destroys (see Decision 2 — that finding stands).
+
+**Consequences of the reversal:**
+- Nav depth stays at two, satisfying ADR-044 §4 as written rather than trading
+  it away.
+- The change stays `kind: config`: a manifest page plus a widget entry. No new
+  Vue file ships in this app.
+- It gains a hard dependency on `@conduction/nextcloud-vue >= 2.8.0`. The pin
+  moves from `^2.3.0` to `^2.8.0` and the lockfile with it. An app resolving an
+  older version would render nothing for these two routes, so the version bump
+  is part of this change, not a follow-up.
+- The follow-up `kind: code` change the original section recommended is no
+  longer needed and should not be filed.
 
 ### Decision 2: Why flattening (the `menu-layout.json#relocations` default) was rejected, with evidence
 

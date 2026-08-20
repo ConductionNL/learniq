@@ -1,0 +1,6462 @@
+{
+	"_meta": {
+		"spdx-license": "EUPL-1.2",
+		"spdx-copyright": "2026 Conduction B.V.",
+		"change": "manifest-fragment-split",
+		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
+		"description": "GroupLearning + GroupTimetabling (design.md: timetabling folds in here because menu-six-main-items already treats \"sessions, rooms, scheduling\" as Learning). Also carries the former learning-dashboard.json content (GroupLearning.route + the LearningDashboard page)."
+	},
+	"menu": [
+		{
+			"id": "GroupLearning",
+			"label": "Learning",
+			"icon": "SchoolOutline",
+			"route": "LearningDashboard",
+			"order": 10,
+			"children": [
+				{
+					"id": "Courses",
+					"label": "Courses",
+					"icon": "BookOpenPageVariantOutline",
+					"route": "Courses",
+					"order": 10
+				},
+				{
+					"id": "CoursePackageImportMenu",
+					"label": "Import course package",
+					"icon": "DatabaseImportOutline",
+					"route": "CoursePackageImportView",
+					"order": 11
+				},
+				{
+					"id": "CoursePackageExportMenu",
+					"label": "Export course package",
+					"icon": "DatabaseExportOutline",
+					"route": "CoursePackageExport",
+					"order": 12
+				},
+				{
+					"id": "CoursePackageImportReportsMenu",
+					"label": "Course package import reports",
+					"icon": "DatabaseImportOutline",
+					"route": "CoursePackageImportReports",
+					"order": 13
+				},
+				{
+					"id": "Curriculum",
+					"label": "Curriculum",
+					"icon": "BriefcaseOutline",
+					"route": "Programmes",
+					"order": 20
+				},
+				{
+					"id": "CourseTemplatesMenu",
+					"label": "Course templates",
+					"icon": "FileReplaceOutline",
+					"route": "CourseTemplates",
+					"order": 22
+				},
+				{
+					"id": "LearningPlans",
+					"label": "Learning plans",
+					"icon": "SchoolOutline",
+					"route": "LearningPlans",
+					"order": 30
+				},
+				{
+					"id": "GroupPlans",
+					"label": "Group plans",
+					"icon": "AccountGroupOutline",
+					"route": "GroupPlans",
+					"order": 32
+				},
+				{
+					"id": "SupportRequests",
+					"label": "Support requests",
+					"icon": "CommentOutline",
+					"route": "SupportRequests",
+					"order": 35
+				},
+				{
+					"id": "Assignments",
+					"label": "Assignments",
+					"icon": "ClipboardTextOutline",
+					"route": "Assignments",
+					"order": 40
+				},
+				{
+					"id": "SubjectChoicesMenu",
+					"label": "Subject choices",
+					"icon": "Check",
+					"route": "SubjectChoices",
+					"order": 45
+				},
+				{
+					"id": "SubjectChoicePickerMenu",
+					"label": "Pick electives",
+					"icon": "Check",
+					"route": "SubjectChoicePicker",
+					"order": 46
+				},
+				{
+					"id": "Assessments",
+					"label": "Assessments",
+					"icon": "ClipboardOutline",
+					"route": "Assessments",
+					"order": 50
+				},
+				{
+					"id": "Grades",
+					"label": "Grades",
+					"icon": "Gauge",
+					"route": "GradeEntries",
+					"order": 60
+				},
+				{
+					"id": "ReportPeriodsMenu",
+					"label": "Report periods",
+					"icon": "ChartBoxOutline",
+					"route": "ReportPeriods",
+					"order": 62
+				},
+				{
+					"id": "ReportCardsMenu",
+					"label": "Report cards",
+					"icon": "ChartBoxOutline",
+					"route": "ReportCards",
+					"order": 64
+				},
+				{
+					"id": "LtiToolPlacementsMenu",
+					"label": "LTI tools",
+					"icon": "OpenInNew",
+					"route": "LtiToolPlacements",
+					"order": 65
+				}
+			]
+		},
+		{
+			"id": "GroupTimetabling",
+			"label": "Timetabling",
+			"icon": "Calendar",
+			"order": 28,
+			"children": [
+				{
+					"id": "RoomsMenu",
+					"label": "Rooms",
+					"icon": "OfficeBuilding",
+					"route": "Rooms",
+					"order": 70
+				},
+				{
+					"id": "TimetableConflictQueueMenu",
+					"label": "Timetable conflicts",
+					"icon": "TableClock",
+					"route": "TimetableConflictQueue",
+					"order": 71,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": ["admin", "coordinator"]
+						}
+					}
+				},
+				{
+					"id": "ExamAccommodationsMenu",
+					"label": "Exam accommodations",
+					"icon": "ClipboardTextOutline",
+					"route": "ExamAccommodations",
+					"order": 72
+				}
+			]
+		}
+	],
+	"pages": [
+		{
+			"id": "Courses",
+			"route": "/courses",
+			"type": "index",
+			"title": "Courses",
+			"config": {
+				"register": "learniq",
+				"schema": "Course"
+			}
+		},
+		{
+			"id": "CourseDetail",
+			"route": "/courses/:id",
+			"type": "detail",
+			"title": "Course Detail",
+			"_note": "A Course is a curricular container — the education 'catalog/parent' archetype. What a course owner comes here to manage is its four child collections, each its own object-list scoped by courseId: Lessons (the syllabus), Enrolments (the students taking it), Sessions & classes (the scheduled meetings), Assignments and Tests & assessments — plus the delivery Cohorts. These pair 6+6 below the metadata Data block (8-wide) and a compact Related panel (parent-course/curriculum-plan/programmes). A stats-block KPI panel counts lessons/enrolments/assignments/assessments at a glance, and lifecycleActions drives the draft→published→archived transitions (CoursePublishGuard). Course Materials render as a Files leaf — materials/handouts are the course's document surface. No email/calendar/talk: the Course schema declares NO linkedTypes and a course is a definition, not a correspondence thread (HARD RULE 1). The audit trail is a rarely-read history, so it lives as the single sidebar tab (the built-in audit widget), not a body widget (HARD RULE 4).",
+			"config": {
+				"register": "learniq",
+				"schema": "Course",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "course-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2,
+							"include": [
+								"code",
+								"name",
+								"name_nl",
+								"description",
+								"level",
+								"language",
+								"tags",
+								"mandatoryTraining",
+								"certificateTemplate"
+							]
+						},
+						"icon": "School"
+					},
+					{
+						"id": "course-details2",
+						"type": "data",
+						"title": "Curriculum & compliance",
+						"icon": "Sitemap",
+						"content": {
+							"columns": 2,
+							"include": [
+								"regulationSlug",
+								"renewalCourseSlug",
+								"parentCourseId",
+								"curriculumPlanId",
+								"programmeIds"
+							]
+						}
+					},
+					{
+						"id": "course-kpis-lessons",
+						"type": "stats-block",
+						"title": "Lessons",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Lessons",
+									"register": "learniq",
+									"schema": "lesson",
+									"metric": "count",
+									"filter": {
+										"courseId": "@objectId"
+									},
+									"route": "LessonIndex"
+								}
+							]
+						}
+					},
+					{
+						"id": "course-kpis-enrolments",
+						"type": "stats-block",
+						"title": "Enrolments",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Enrolments",
+									"register": "learniq",
+									"schema": "enrolment",
+									"metric": "count",
+									"filter": {
+										"courseId": "@objectId"
+									},
+									"route": "Enrolments"
+								}
+							]
+						}
+					},
+					{
+						"id": "course-kpis-assignments",
+						"type": "stats-block",
+						"title": "Assignments",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Assignments",
+									"register": "learniq",
+									"schema": "assignment",
+									"metric": "count",
+									"filter": {
+										"courseId": "@objectId"
+									},
+									"route": "Assignments"
+								}
+							]
+						}
+					},
+					{
+						"id": "course-kpis-assessments",
+						"type": "stats-block",
+						"title": "Assessments",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Assessments",
+									"register": "learniq",
+									"schema": "assessment",
+									"metric": "count",
+									"filter": {
+										"courseId": "@objectId"
+									},
+									"route": "Assessments"
+								}
+							]
+						}
+					},
+					{
+						"id": "course-lessons",
+						"type": "object-list",
+						"title": "Lessons",
+						"content": {
+							"register": "learniq",
+							"schema": "Lesson",
+							"filter": {
+								"courseId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "order",
+									"label": "Order"
+								},
+								{
+									"key": "name",
+									"label": "Name"
+								},
+								{
+									"key": "contentType",
+									"label": "Content Type"
+								},
+								{
+									"key": "durationMinutes",
+									"label": "Duration Minutes"
+								},
+								{
+									"key": "mandatoryTraining",
+									"label": "Mandatory Training"
+								}
+							],
+							"rowRoute": "LessonDetail",
+							"viewAllRoute": "LessonIndex",
+							"viewAllQuery": {
+								"courseId": "@objectId"
+							},
+							"emptyText": "No lessons found."
+						},
+						"icon": "BookOpenVariant"
+					},
+					{
+						"id": "course-enrolments",
+						"type": "object-list",
+						"title": "Enrolments",
+						"content": {
+							"register": "learniq",
+							"schema": "Enrolment",
+							"filter": {
+								"courseId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "cohortId",
+									"label": "Cohort ID"
+								},
+								{
+									"key": "mandatory",
+									"label": "Mandatory"
+								},
+								{
+									"key": "dueDate",
+									"label": "Due Date"
+								},
+								{
+									"key": "source",
+									"label": "Source"
+								}
+							],
+							"rowRoute": "EnrolmentDetail",
+							"viewAllRoute": "Enrolments",
+							"viewAllQuery": {
+								"courseId": "@objectId"
+							},
+							"emptyText": "No enrolments found."
+						},
+						"icon": "AccountGroup"
+					},
+					{
+						"id": "course-cohorts",
+						"type": "object-list",
+						"title": "Cohorts",
+						"content": {
+							"register": "learniq",
+							"schema": "Cohort",
+							"filter": {
+								"courseId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "name",
+									"label": "Name"
+								},
+								{
+									"key": "academicYear",
+									"label": "Academic Year"
+								},
+								{
+									"key": "period",
+									"label": "Period"
+								},
+								{
+									"key": "programmeId",
+									"label": "Programme ID"
+								}
+							],
+							"rowRoute": "CohortDetail",
+							"viewAllRoute": "Cohorts",
+							"viewAllQuery": {
+								"courseId": "@objectId"
+							},
+							"emptyText": "No cohorts found."
+						},
+						"icon": "AccountGroup"
+					},
+					{
+						"id": "course-assignments",
+						"type": "object-list",
+						"title": "Assignments",
+						"content": {
+							"register": "learniq",
+							"schema": "Assignment",
+							"filter": {
+								"courseId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "dueAt",
+									"label": "Due At"
+								},
+								{
+									"key": "maxPoints",
+									"label": "Max Points"
+								},
+								{
+									"key": "rubricId",
+									"label": "Rubric ID"
+								}
+							],
+							"rowRoute": "AssignmentDetail",
+							"viewAllRoute": "Assignments",
+							"viewAllQuery": {
+								"courseId": "@objectId"
+							},
+							"emptyText": "No assignments found."
+						},
+						"icon": "ClipboardList"
+					},
+					{
+						"id": "course-sessions",
+						"type": "object-list",
+						"title": "Sessions & classes",
+						"content": {
+							"register": "learniq",
+							"schema": "Session",
+							"filter": {
+								"courseId": "@objectId"
+							},
+							"sort": {
+								"field": "startsAt",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "startsAt",
+									"label": "Starts At"
+								},
+								{
+									"key": "endsAt",
+									"label": "Ends At"
+								},
+								{
+									"key": "location",
+									"label": "Location"
+								}
+							],
+							"rowRoute": "SessionDetail",
+							"viewAllRoute": "Sessions",
+							"viewAllQuery": {
+								"courseId": "@objectId"
+							},
+							"emptyText": "No sessions & classes found."
+						},
+						"icon": "Calendar"
+					},
+					{
+						"id": "course-assessments",
+						"type": "object-list",
+						"title": "Tests & assessments",
+						"content": {
+							"register": "learniq",
+							"schema": "Assessment",
+							"filter": {
+								"courseId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "scoringScheme",
+									"label": "Scoring"
+								},
+								{
+									"key": "passMark",
+									"label": "Pass Mark"
+								},
+								{
+									"key": "availableFrom",
+									"label": "Available From"
+								}
+							],
+							"rowRoute": "AssessmentDetail",
+							"viewAllRoute": "Assessments",
+							"viewAllQuery": {
+								"courseId": "@objectId"
+							},
+							"emptyText": "No tests & assessments found."
+						},
+						"icon": "ClipboardCheckOutline"
+					},
+					{
+						"id": "course-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "course-materials",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Course materials",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "course-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2-1",
+						"widgetId": "course-kpis-lessons",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "2-2",
+						"widgetId": "course-kpis-enrolments",
+						"gridX": 8,
+						"gridY": 2,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "2-3",
+						"widgetId": "course-kpis-assignments",
+						"gridX": 8,
+						"gridY": 4,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "2-4",
+						"widgetId": "course-kpis-assessments",
+						"gridX": 8,
+						"gridY": 6,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "course-details2",
+						"gridX": 0,
+						"gridY": 8,
+						"gridWidth": 8,
+						"gridHeight": 4,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "course-related",
+						"gridX": 8,
+						"gridY": 8,
+						"gridWidth": 4,
+						"gridHeight": 4,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "course-lessons",
+						"gridX": 0,
+						"gridY": 12,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "6",
+						"widgetId": "course-enrolments",
+						"gridX": 6,
+						"gridY": 12,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "7",
+						"widgetId": "course-cohorts",
+						"gridX": 0,
+						"gridY": 17,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "8",
+						"widgetId": "course-assignments",
+						"gridX": 6,
+						"gridY": 17,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "9",
+						"widgetId": "course-sessions",
+						"gridX": 0,
+						"gridY": 22,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "10",
+						"widgetId": "course-assessments",
+						"gridX": 6,
+						"gridY": 22,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "11",
+						"widgetId": "course-materials",
+						"gridX": 0,
+						"gridY": 27,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "CoursePackageImportReports",
+			"route": "/course-packages/reports",
+			"type": "index",
+			"title": "Course package import reports",
+			"_note": "course-package-import-export: the anti-Canvas promise made structural — one CoursePackageImportReport per course-package import attempt, listing every source-package resource's outcome (imported/degraded/dropped). Index lists every attempt; CoursePackageImportReportDetail renders the full entries table.",
+			"config": {
+				"register": "learniq",
+				"schema": "course-package-import-report"
+			}
+		},
+		{
+			"id": "CoursePackageImportReportDetail",
+			"route": "/course-packages/reports/:id",
+			"type": "detail",
+			"title": "Course package import report",
+			"_note": "course-package-import-export: renders one import attempt's full outcome — summary counts, lifecycle (running/succeeded/partial/failed), and the entries[] table (resourceIdentifier/resourceType/title/outcome/targetType/targetId/reason) naming every source resource, never a silent omission. Links to the created Course when one exists.",
+			"config": {
+				"register": "learniq",
+				"schema": "course-package-import-report",
+				"widgets": [
+					{
+						"id": "cpir-summary",
+						"type": "data",
+						"title": "Import summary",
+						"icon": "Package",
+						"content": {
+							"columns": 2,
+							"include": [
+								"sourceFormat",
+								"sourceFilename",
+								"courseId",
+								"importedBy",
+								"importedAt",
+								"lifecycle",
+								"resourcesTotal",
+								"resourcesImported",
+								"resourcesDegraded",
+								"resourcesDropped",
+								"errorMessage"
+							]
+						}
+					},
+					{
+						"id": "cpir-entries",
+						"type": "data",
+						"title": "Resource entries",
+						"icon": "TableColumn",
+						"content": {
+							"columns": 1,
+							"include": ["entries"]
+						}
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "cpir-summary",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 4,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "cpir-entries",
+						"gridX": 0,
+						"gridY": 4,
+						"gridWidth": 12,
+						"gridHeight": 6,
+						"showTitle": true
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "CoursePackageImportView",
+			"route": "/course-packages/import",
+			"type": "custom",
+			"title": "Import course package",
+			"component": "CoursePackageImportView",
+			"_note": "course-package-import-export: the one genuine new custom view this change adds — uploads an IMS Common Cartridge 1.3 or Moodle backup (.mbz) package and renders the resulting CoursePackageImportReport's entries table (filterable by outcome), so an instructional designer sees every imported, degraded, and dropped resource in one place. No PHP CRUD controller — CoursePackageImportController is thin per ADR-022."
+		},
+		{
+			"id": "CoursePackageExport",
+			"route": "/course-packages/export",
+			"type": "custom",
+			"title": "Export course package",
+			"component": "CnExportWizard",
+			"_note": "course-package-import-export: mounts CnExportWizard from @conduction/nextcloud-vue for the course export (Course scope + common-cartridge/scholiq-json format picker → server-side bundle), the same declarative pattern AuditPackExport (src/manifest.json) already uses — no bespoke Vue file needed."
+		},
+		{
+			"id": "LessonIndex",
+			"route": "/courses/:courseId/lessons",
+			"type": "index",
+			"title": "Lessons",
+			"config": {
+				"register": "learniq",
+				"schema": "Lesson",
+				"filter": {
+					"courseId": "@route.courseId"
+				}
+			}
+		},
+		{
+			"id": "LessonDetail",
+			"route": "/courses/:courseId/lessons/:id",
+			"type": "detail",
+			"title": "Lesson Detail",
+			"_note": "A Lesson is a single learning unit inside a course (ordered content item with a media contentRef) — the education content-item archetype. Body leads with lesson metadata (order, contentType, contentRef, duration, learning objectives, mandatory-training flag, regulation) 8-wide, with a Related panel resolving the parent Course alongside. Below, the lesson's Materials (files/media pointed at by lessonId) render as a related-index table plus a Files leaf, because a lesson IS its content and handouts. No comms leaves: Lesson declares no linkedTypes and is a definition, not a conversation (HARD RULE 1). Sidebar keeps metadata + an audit-trail leaf for content-change history.",
+			"config": {
+				"register": "learniq",
+				"schema": "Lesson",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "lesson-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "BookOpenVariant"
+					},
+					{
+						"id": "lesson-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Materials",
+									"register": "learniq",
+									"schema": "material",
+									"metric": "count",
+									"filter": {
+										"lessonId": "@objectId"
+									},
+									"route": "Materials"
+								}
+							]
+						}
+					},
+					{
+						"id": "lesson-materials",
+						"type": "object-list",
+						"title": "Materials",
+						"content": {
+							"register": "learniq",
+							"schema": "Material",
+							"filter": {
+								"lessonId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "order",
+									"label": "Order"
+								},
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "kind",
+									"label": "Kind"
+								},
+								{
+									"key": "license",
+									"label": "License"
+								}
+							],
+							"rowRoute": "MaterialDetail",
+							"viewAllRoute": "Materials",
+							"viewAllQuery": {
+								"lessonId": "@objectId"
+							},
+							"emptyText": "No materials found."
+						},
+						"icon": "FolderOutline"
+					},
+					{
+						"id": "lesson-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "lesson-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Lesson content",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "lesson-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "lesson-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "lesson-materials",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "lesson-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "lesson-files",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "LessonPlayer",
+			"route": "/courses/:courseId/lessons/:lessonId/play",
+			"type": "custom",
+			"title": "Lesson Player",
+			"component": "LessonPlayer",
+			"_note": "Interactive lesson playback (scene navigation, media controls, attempt tracking). No lib analogue."
+		},
+		{
+			"id": "CourseBuilder",
+			"route": "/courses/:courseId/builder",
+			"type": "custom",
+			"title": "Course Builder",
+			"component": "CourseBuilder",
+			"_note": "course-authoring-ux: the Course/Module/Lesson tree editor — create, reorder (drag-and-drop AND keyboard move-up/move-down, WCAG 2.1 AA SC 2.1.1), and delete modules and lessons; 'Save as template' / 'New course from template' actions against the new CourseTemplate schema. No lib analogue. No new PHP controller — every write is a call against OpenRegister's existing object-create/update/delete endpoints (ADR-022)."
+		},
+		{
+			"id": "LessonComposer",
+			"route": "/courses/:courseId/lessons/:lessonId/compose",
+			"type": "custom",
+			"title": "Lesson Composer",
+			"component": "LessonComposer",
+			"_note": "course-authoring-ux: the per-lesson block editor — add/remove/reorder (drag-and-drop AND keyboard, WCAG 2.1 AA SC 2.1.1) typed content blocks (richText/media/quiz/assignment/ltiTool) and edit each block's payload, persisting the full Lesson.blocks array via OR's existing object-update endpoint. No lib analogue."
+		},
+		{
+			"id": "Programmes",
+			"route": "/curriculum/programmes",
+			"type": "index",
+			"title": "Programmes",
+			"config": {
+				"register": "learniq",
+				"schema": "Programme"
+			}
+		},
+		{
+			"id": "ProgrammeDetail",
+			"route": "/curriculum/programmes/:id",
+			"type": "detail",
+			"title": "Programme",
+			"config": {
+				"register": "learniq",
+				"schema": "Programme",
+				"_note": "A Programme is a qualification-level container (level, code, curriculum-plan, member courses, credential template) — the education 'parent/catalog' archetype. Body leads with programme metadata (8-wide) and a Related panel resolving the curriculum-plan and credential template. Below, the constituent Courses and delivery Cohorts render as related-index rosters — the two things a programme owner manages — and Final grades give an outcome roster. A stats-block KPI panel counts courses/cohorts/final-grades and lifecycleActions drives draft→published→archived (ProgrammePublishGuard). No comms leaves: Programme declares no linkedTypes and is a definition, not a correspondence thread (HARD RULE 1). The audit trail is the single sidebar tab (the built-in audit widget), not a body widget (HARD RULE 4).",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "prog-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Sitemap"
+					},
+					{
+						"id": "prog-kpis-courses",
+						"type": "stats-block",
+						"title": "Courses",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Courses",
+									"register": "learniq",
+									"schema": "course",
+									"metric": "count",
+									"filter": {
+										"programmeId": "@objectId"
+									},
+									"route": "Courses"
+								}
+							]
+						}
+					},
+					{
+						"id": "prog-kpis-cohorts",
+						"type": "stats-block",
+						"title": "Cohorts",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Cohorts",
+									"register": "learniq",
+									"schema": "cohort",
+									"metric": "count",
+									"filter": {
+										"programmeId": "@objectId"
+									},
+									"route": "Cohorts"
+								}
+							]
+						}
+					},
+					{
+						"id": "prog-kpis-final-grades",
+						"type": "stats-block",
+						"title": "Final grades",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Final grades",
+									"register": "learniq",
+									"schema": "final-grade",
+									"metric": "count",
+									"filter": {
+										"programmeId": "@objectId"
+									},
+									"route": "FinalGrades"
+								}
+							]
+						}
+					},
+					{
+						"id": "prog-courses",
+						"type": "object-list",
+						"title": "Courses",
+						"content": {
+							"register": "learniq",
+							"schema": "Course",
+							"filter": {
+								"programmeId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "code",
+									"label": "Code"
+								},
+								{
+									"key": "name",
+									"label": "Name"
+								},
+								{
+									"key": "level",
+									"label": "Level"
+								},
+								{
+									"key": "language",
+									"label": "Language"
+								}
+							],
+							"rowRoute": "CourseDetail",
+							"viewAllRoute": "Courses",
+							"viewAllQuery": {
+								"programmeId": "@objectId"
+							},
+							"emptyText": "No courses found."
+						},
+						"icon": "School"
+					},
+					{
+						"id": "prog-cohorts",
+						"type": "object-list",
+						"title": "Cohorts",
+						"content": {
+							"register": "learniq",
+							"schema": "Cohort",
+							"filter": {
+								"programmeId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "name",
+									"label": "Name"
+								},
+								{
+									"key": "academicYear",
+									"label": "Academic Year"
+								},
+								{
+									"key": "period",
+									"label": "Period"
+								},
+								{
+									"key": "courseId",
+									"label": "Course ID"
+								}
+							],
+							"rowRoute": "CohortDetail",
+							"viewAllRoute": "Cohorts",
+							"viewAllQuery": {
+								"programmeId": "@objectId"
+							},
+							"emptyText": "No cohorts found."
+						},
+						"icon": "AccountGroup"
+					},
+					{
+						"id": "prog-finals",
+						"type": "object-list",
+						"title": "Final grades",
+						"content": {
+							"register": "learniq",
+							"schema": "final-grade",
+							"filter": {
+								"programmeId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "courseId",
+									"label": "Course ID"
+								},
+								{
+									"key": "value",
+									"label": "Value"
+								},
+								{
+									"key": "passed",
+									"label": "Passed"
+								}
+							],
+							"rowRoute": "FinalGradeDetail",
+							"viewAllRoute": "FinalGrades",
+							"viewAllQuery": {
+								"programmeId": "@objectId"
+							},
+							"emptyText": "No final grades found.",
+							"allowCreate": false
+						},
+						"icon": "Trophy"
+					},
+					{
+						"id": "prog-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "prog-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2-1",
+						"widgetId": "prog-kpis-courses",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "2-2",
+						"widgetId": "prog-kpis-cohorts",
+						"gridX": 8,
+						"gridY": 2,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "2-3",
+						"widgetId": "prog-kpis-final-grades",
+						"gridX": 8,
+						"gridY": 4,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "prog-courses",
+						"gridX": 0,
+						"gridY": 6,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "prog-cohorts",
+						"gridX": 6,
+						"gridY": 6,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "prog-finals",
+						"gridX": 0,
+						"gridY": 11,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "6",
+						"widgetId": "prog-related",
+						"gridX": 6,
+						"gridY": 11,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "CurriculumPlans",
+			"route": "/curriculum/plans",
+			"type": "index",
+			"title": "Curriculum plans",
+			"config": {
+				"register": "learniq",
+				"schema": "curriculum-plan"
+			}
+		},
+		{
+			"id": "CurriculumPlanDetail",
+			"route": "/curriculum/plans/:id",
+			"type": "detail",
+			"title": "Curriculum plan",
+			"config": {
+				"register": "learniq",
+				"schema": "curriculum-plan",
+				"_note": "A Curriculum Plan defines the structure and pass-rules of a qualification (required/elective courses, components, formula, grade-scale, pass rules, periods) — a config/structure archetype. Body leads with the plan definition (8-wide) plus a Related panel resolving the grade-scale and owning programmes. Below, the Grade entries and Final grades computed against this plan render as related-index tables so an examinations officer can audit outcomes. No comms leaves (no linkedTypes; this is a rule definition). Sidebar keeps metadata + audit-trail for rule-change history.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "cplan-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Sitemap"
+					},
+					{
+						"id": "cplan-kpis-grade-entries",
+						"type": "stats-block",
+						"title": "Grade entries",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Grade entries",
+									"register": "learniq",
+									"schema": "grade-entry",
+									"metric": "count",
+									"filter": {
+										"curriculumPlanId": "@objectId"
+									},
+									"route": "GradeEntries"
+								}
+							]
+						}
+					},
+					{
+						"id": "cplan-kpis-final-grades",
+						"type": "stats-block",
+						"title": "Final grades",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Final grades",
+									"register": "learniq",
+									"schema": "final-grade",
+									"metric": "count",
+									"filter": {
+										"curriculumPlanId": "@objectId"
+									},
+									"route": "FinalGrades"
+								}
+							]
+						}
+					},
+					{
+						"id": "cplan-grades",
+						"type": "object-list",
+						"title": "Grade entries",
+						"content": {
+							"register": "learniq",
+							"schema": "grade-entry",
+							"filter": {
+								"curriculumPlanId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "componentId",
+									"label": "Component ID"
+								},
+								{
+									"key": "value",
+									"label": "Value"
+								},
+								{
+									"key": "period",
+									"label": "Period"
+								}
+							],
+							"rowRoute": "GradeEntryDetail",
+							"viewAllRoute": "GradeEntries",
+							"viewAllQuery": {
+								"curriculumPlanId": "@objectId"
+							},
+							"emptyText": "No grade entries found.",
+							"allowCreate": false
+						},
+						"icon": "Percent"
+					},
+					{
+						"id": "cplan-finals",
+						"type": "object-list",
+						"title": "Final grades",
+						"content": {
+							"register": "learniq",
+							"schema": "final-grade",
+							"filter": {
+								"curriculumPlanId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "courseId",
+									"label": "Course ID"
+								},
+								{
+									"key": "value",
+									"label": "Value"
+								},
+								{
+									"key": "passed",
+									"label": "Passed"
+								}
+							],
+							"rowRoute": "FinalGradeDetail",
+							"viewAllRoute": "FinalGrades",
+							"viewAllQuery": {
+								"curriculumPlanId": "@objectId"
+							},
+							"emptyText": "No final grades found.",
+							"allowCreate": false
+						},
+						"icon": "Trophy"
+					},
+					{
+						"id": "cplan-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "cplan-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2-1",
+						"widgetId": "cplan-kpis-grade-entries",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "2-2",
+						"widgetId": "cplan-kpis-final-grades",
+						"gridX": 8,
+						"gridY": 2,
+						"gridWidth": 4,
+						"gridHeight": 3,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "cplan-grades",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "cplan-finals",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "cplan-related",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "Cohorts",
+			"route": "/cohorts",
+			"type": "index",
+			"title": "Cohorts",
+			"config": {
+				"register": "learniq",
+				"schema": "Cohort"
+			}
+		},
+		{
+			"id": "CohortDetail",
+			"route": "/cohorts/:id",
+			"type": "detail",
+			"title": "Cohort",
+			"config": {
+				"register": "learniq",
+				"schema": "Cohort",
+				"_note": "A Cohort is a delivery group (a course/programme run for a set of learners in an academic year/period, mapped to an NC group). Body leads with cohort metadata (8-wide) and a Related panel resolving programme, course and NC group. The three things a cohort coordinator manages render as related-index rosters: scheduled Sessions, Enrolments (the roster) and Attendance flags (early-warning). HARD RULE 1 exception (talk-classroom-spaces): Cohort is a delivery-run archetype, not a catalog definition, so it gains linkedTypes:[\"talk\"] and a persistent class-space widget consuming OpenRegister's existing TalkLinkService/TalkProvider unchanged — CohortTalkMembershipHandler keeps the linked conversation's participants in sync with active Enrolments. Course/Programme/CurriculumPlan keep zero comms leaves. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "coh-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountGroup"
+					},
+					{
+						"id": "coh-kpis-sessions",
+						"type": "stats-block",
+						"title": "Sessions",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Sessions",
+									"register": "learniq",
+									"schema": "session",
+									"metric": "count",
+									"filter": {
+										"cohortId": "@objectId"
+									},
+									"route": "Sessions"
+								}
+							]
+						}
+					},
+					{
+						"id": "coh-kpis-enrolments",
+						"type": "stats-block",
+						"title": "Enrolments",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Enrolments",
+									"register": "learniq",
+									"schema": "enrolment",
+									"metric": "count",
+									"filter": {
+										"cohortId": "@objectId"
+									},
+									"route": "Enrolments"
+								}
+							]
+						}
+					},
+					{
+						"id": "coh-kpis-attendance-flags",
+						"type": "stats-block",
+						"title": "Attendance flags",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Attendance flags",
+									"register": "learniq",
+									"schema": "attendance-flag",
+									"metric": "count",
+									"filter": {
+										"cohortId": "@objectId"
+									},
+									"route": "AttendanceFlags"
+								}
+							]
+						}
+					},
+					{
+						"id": "coh-sessions",
+						"type": "object-list",
+						"title": "Sessions",
+						"content": {
+							"register": "learniq",
+							"schema": "Session",
+							"filter": {
+								"cohortId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "startsAt",
+									"label": "Starts At"
+								},
+								{
+									"key": "endsAt",
+									"label": "Ends At"
+								},
+								{
+									"key": "location",
+									"label": "Location"
+								}
+							],
+							"rowRoute": "SessionDetail",
+							"viewAllRoute": "Sessions",
+							"viewAllQuery": {
+								"cohortId": "@objectId"
+							},
+							"emptyText": "No sessions found."
+						},
+						"icon": "Calendar"
+					},
+					{
+						"id": "coh-enrol",
+						"type": "object-list",
+						"title": "Enrolments",
+						"content": {
+							"register": "learniq",
+							"schema": "Enrolment",
+							"filter": {
+								"cohortId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "courseId",
+									"label": "Course ID"
+								},
+								{
+									"key": "mandatory",
+									"label": "Mandatory"
+								},
+								{
+									"key": "dueDate",
+									"label": "Due Date"
+								}
+							],
+							"rowRoute": "EnrolmentDetail",
+							"viewAllRoute": "Enrolments",
+							"viewAllQuery": {
+								"cohortId": "@objectId"
+							},
+							"emptyText": "No enrolments found."
+						},
+						"icon": "AccountGroup"
+					},
+					{
+						"id": "coh-flags",
+						"type": "object-list",
+						"title": "Attendance flags",
+						"content": {
+							"register": "learniq",
+							"schema": "attendance-flag",
+							"filter": {
+								"cohortId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "metricValue",
+									"label": "Metric Value"
+								},
+								{
+									"key": "windowStart",
+									"label": "Window Start"
+								},
+								{
+									"key": "windowEnd",
+									"label": "Window End"
+								}
+							],
+							"rowRoute": "AttendanceFlagDetail",
+							"viewAllRoute": "AttendanceFlags",
+							"viewAllQuery": {
+								"cohortId": "@objectId"
+							},
+							"emptyText": "No attendance flags found.",
+							"allowCreate": false
+						},
+						"icon": "AlertCircleOutline"
+					},
+					{
+						"id": "coh-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "cohort-talk",
+						"type": "integration",
+						"integrationId": "talk",
+						"title": "Class space",
+						"icon": "MessageTextOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "coh-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2-1",
+						"widgetId": "coh-kpis-sessions",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "2-2",
+						"widgetId": "coh-kpis-enrolments",
+						"gridX": 8,
+						"gridY": 2,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "2-3",
+						"widgetId": "coh-kpis-attendance-flags",
+						"gridX": 8,
+						"gridY": 4,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "coh-sessions",
+						"gridX": 0,
+						"gridY": 6,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "coh-enrol",
+						"gridX": 6,
+						"gridY": 6,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "coh-flags",
+						"gridX": 0,
+						"gridY": 11,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "6",
+						"widgetId": "coh-related",
+						"gridX": 6,
+						"gridY": 11,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "7",
+						"widgetId": "cohort-talk",
+						"gridX": 0,
+						"gridY": 16,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "CohortTimetable",
+			"route": "/cohorts/:id/timetable",
+			"type": "custom",
+			"title": "Cohort timetable",
+			"component": "CnTimelineView",
+			"_note": "Mounts CnTimelineView from @conduction/nextcloud-vue for the date-grouped session timetable (calendar-like layout)."
+		},
+		{
+			"id": "Sessions",
+			"route": "/sessions",
+			"type": "index",
+			"title": "Sessions",
+			"config": {
+				"register": "learniq",
+				"schema": "Session"
+			}
+		},
+		{
+			"id": "SessionDetail",
+			"route": "/sessions/:id",
+			"type": "detail",
+			"title": "Session",
+			"config": {
+				"register": "learniq",
+				"schema": "Session",
+				"_note": "A Session is a scheduled teaching occurrence (start/end, location, tied to cohort/course/lesson, with materials and assignments). Body leads with session details (8-wide) and a Related panel resolving cohort/course/lesson. The attendance roster is the primary operational surface, so Attendance records render as a wide related-index; assigned work shows as an Assignments table. Session materials render as a Files leaf (handouts for the session). HARD RULE 1 exception (talk-classroom-spaces): a Session is a scheduled occurrence, not a catalog definition, so it gains linkedTypes:[\"talk\"] and a join-call widget — in practice a teacher links the parent Cohort's already-linked conversation (the common recurring-class path) or a fresh one-off room, via OR's existing picker/create UI unchanged. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "sess-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Calendar"
+					},
+					{
+						"id": "sess-kpis-attendance",
+						"type": "stats-block",
+						"title": "Attendance",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Attendance",
+									"register": "learniq",
+									"schema": "attendance-record",
+									"metric": "count",
+									"filter": {
+										"sessionId": "@objectId"
+									},
+									"route": "AttendanceRecords"
+								}
+							]
+						}
+					},
+					{
+						"id": "sess-kpis-assignments",
+						"type": "stats-block",
+						"title": "Assignments",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Assignments",
+									"register": "learniq",
+									"schema": "assignment",
+									"metric": "count",
+									"filter": {
+										"sessionId": "@objectId"
+									},
+									"route": "Assignments"
+								}
+							]
+						}
+					},
+					{
+						"id": "sess-attend",
+						"type": "object-list",
+						"title": "Attendance",
+						"content": {
+							"register": "learniq",
+							"schema": "attendance-record",
+							"filter": {
+								"sessionId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "status",
+									"label": "Status"
+								},
+								{
+									"key": "minutesAttended",
+									"label": "Minutes Attended"
+								},
+								{
+									"key": "markedAt",
+									"label": "Marked At"
+								}
+							],
+							"rowRoute": "AttendanceRecordDetail",
+							"viewAllRoute": "AttendanceRecords",
+							"viewAllQuery": {
+								"sessionId": "@objectId"
+							},
+							"emptyText": "No attendance found.",
+							"allowCreate": false
+						},
+						"icon": "CheckCircleOutline"
+					},
+					{
+						"id": "sess-assign",
+						"type": "object-list",
+						"title": "Assignments",
+						"content": {
+							"register": "learniq",
+							"schema": "Assignment",
+							"filter": {
+								"sessionId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "dueAt",
+									"label": "Due At"
+								},
+								{
+									"key": "maxPoints",
+									"label": "Max Points"
+								}
+							],
+							"rowRoute": "AssignmentDetail",
+							"viewAllRoute": "Assignments",
+							"viewAllQuery": {
+								"sessionId": "@objectId"
+							},
+							"emptyText": "No assignments found."
+						},
+						"icon": "ClipboardList"
+					},
+					{
+						"id": "sess-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "sess-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Session materials",
+						"icon": "FolderOutline"
+					},
+					{
+						"id": "session-talk",
+						"type": "integration",
+						"integrationId": "talk",
+						"title": "Join call",
+						"icon": "Phone"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "sess-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2-1",
+						"widgetId": "sess-kpis-attendance",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "2-2",
+						"widgetId": "sess-kpis-assignments",
+						"gridX": 8,
+						"gridY": 2,
+						"gridWidth": 4,
+						"gridHeight": 3,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "sess-attend",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "sess-assign",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "sess-related",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "6",
+						"widgetId": "sess-files",
+						"gridX": 0,
+						"gridY": 15,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					},
+					{
+						"id": "7",
+						"widgetId": "session-talk",
+						"gridX": 0,
+						"gridY": 18,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "Materials",
+			"route": "/materials",
+			"type": "index",
+			"title": "Materials",
+			"config": {
+				"register": "learniq",
+				"schema": "Material"
+			}
+		},
+		{
+			"id": "MaterialDetail",
+			"route": "/materials/:id",
+			"type": "detail",
+			"title": "Material",
+			"config": {
+				"register": "learniq",
+				"schema": "Material",
+				"_note": "A Material is a learning resource (kind, file reference or URL, license, LOM tags) attached to a course/lesson/session — a document/asset archetype, so it is files-first. Body leads with the actual file/preview via a wide Files leaf, then the material metadata (kind, license, LOM tags, order) below, with a Related panel resolving the owning course/lesson/session. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for version history.",
+				"widgets": [
+					{
+						"id": "mat-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "FolderOutline"
+					},
+					{
+						"id": "mat-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "mat-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Resource file",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "mat-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "mat-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "mat-files",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "Rooms",
+			"route": "/rooms",
+			"type": "index",
+			"title": "Rooms",
+			"config": {
+				"register": "learniq",
+				"schema": "room"
+			}
+		},
+		{
+			"id": "RoomDetail",
+			"route": "/rooms/:id",
+			"type": "detail",
+			"title": "Room",
+			"config": {
+				"register": "learniq",
+				"schema": "room",
+				"_note": "timetabling-and-substitution: a Room is a plain bookable resource (capacity/kind/facilities/buildingCode/floor), no lifecycle — the same resource-metadata archetype as Material. Body leads with the room definition (8-wide); the Sessions booked into this room render as a wide related-index so a coordinator can see the room's schedule. Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "room-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "OfficeBuilding"
+					},
+					{
+						"id": "room-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Booked sessions",
+									"register": "learniq",
+									"schema": "session",
+									"metric": "count",
+									"filter": {
+										"roomId": "@objectId"
+									},
+									"route": "Sessions"
+								}
+							]
+						}
+					},
+					{
+						"id": "room-sessions",
+						"type": "object-list",
+						"title": "Booked sessions",
+						"content": {
+							"register": "learniq",
+							"schema": "Session",
+							"filter": {
+								"roomId": "@objectId"
+							},
+							"sort": {
+								"field": "startsAt",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "startsAt",
+									"label": "Starts At"
+								},
+								{
+									"key": "endsAt",
+									"label": "Ends At"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Lifecycle"
+								}
+							],
+							"rowRoute": "SessionDetail",
+							"viewAllRoute": "Sessions",
+							"viewAllQuery": {
+								"roomId": "@objectId"
+							},
+							"emptyText": "No booked sessions found."
+						},
+						"icon": "Calendar"
+					},
+					{
+						"id": "room-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "room-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "room-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "room-sessions",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "room-related",
+						"gridX": 8,
+						"gridY": 5,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "TimetableConflicts",
+			"route": "/timetable-conflicts",
+			"type": "index",
+			"title": "Timetable conflicts",
+			"config": {
+				"register": "learniq",
+				"schema": "timetable-conflict"
+			}
+		},
+		{
+			"id": "TimetableConflictDetail",
+			"route": "/timetable-conflicts/:id",
+			"type": "detail",
+			"title": "Timetable conflict",
+			"config": {
+				"register": "learniq",
+				"schema": "timetable-conflict",
+				"_note": "timetabling-and-substitution: a detected (never auto-resolved) double-booking or capacity overrun. Body leads with the conflict data (kind/severity/scopeRef/detectedAt) and a Related panel resolving the referenced Sessions. Admin/coordinator/scheduling-role read only (x-property-rbac) — a learner cannot reach this page. The primary review surface is the TimetableConflictQueue custom view; this detail page is the single-object drill-down. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "conflict-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AlertCircleOutline"
+					},
+					{
+						"id": "conflict-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "conflict-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "conflict-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ExamAccommodations",
+			"route": "/exam-accommodations",
+			"type": "index",
+			"title": "Exam accommodations",
+			"config": {
+				"register": "learniq",
+				"schema": "exam-accommodation"
+			}
+		},
+		{
+			"id": "ExamAccommodationDetail",
+			"route": "/exam-accommodations/:id",
+			"type": "detail",
+			"title": "Exam accommodation",
+			"config": {
+				"register": "learniq",
+				"schema": "exam-accommodation",
+				"_note": "timetabling-and-substitution: a learner's approved, evidence-backed exam entitlement (extra time, separate room, reader, etc.). AVG-sensitive (health/disability-adjacent) — x-property-rbac restricts read to admin/compliance-officer/mentor/the learner themselves/the submitter. Body leads with the accommodation data (accommodationKind/value/evidenceRef/approvedBy) and a Related panel resolving the linked Assessment (when set). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "accom-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ShieldCheckOutline"
+					},
+					{
+						"id": "accom-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "accom-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "accom-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "TimetableConflictQueue",
+			"route": "/timetable-conflict-queue",
+			"type": "custom",
+			"title": "Timetable conflict queue",
+			"component": "TimetableConflictQueue",
+			"_note": "timetabling-and-substitution: the scheduling-coordinator's review queue for open/acknowledged TimetableConflict rows (acknowledge/resolve actions). The one genuine new routed custom view this change adds — every other Room/TimetableConflict/ExamAccommodation screen is a declarative manifest page. SubstitutionModal.vue is a dialog opened from MyTimetable.vue, not a routed page."
+		},
+		{
+			"id": "Rubrics",
+			"route": "/assignments/rubrics",
+			"type": "index",
+			"title": "Rubrics",
+			"config": {
+				"register": "learniq",
+				"schema": "Rubric"
+			}
+		},
+		{
+			"id": "RubricDetail",
+			"route": "/assignments/rubrics/:id",
+			"type": "detail",
+			"title": "Rubric",
+			"config": {
+				"register": "learniq",
+				"schema": "Rubric",
+				"_note": "A Rubric is a scoring scaffold (named criteria + max points) reused across assignments — a config/definition archetype. Body leads with the rubric definition including the criteria list (8-wide) and a Related panel. Below, the Assignments that reference this rubric render as a related-index so a designer sees reuse. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "rub-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardList"
+					},
+					{
+						"id": "rub-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Used by assignments",
+									"register": "learniq",
+									"schema": "assignment",
+									"metric": "count",
+									"filter": {
+										"rubricId": "@objectId"
+									},
+									"route": "Assignments"
+								}
+							]
+						}
+					},
+					{
+						"id": "rub-assign",
+						"type": "object-list",
+						"title": "Used by assignments",
+						"content": {
+							"register": "learniq",
+							"schema": "Assignment",
+							"filter": {
+								"rubricId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "courseId",
+									"label": "Course ID"
+								},
+								{
+									"key": "dueAt",
+									"label": "Due At"
+								},
+								{
+									"key": "maxPoints",
+									"label": "Max Points"
+								}
+							],
+							"rowRoute": "AssignmentDetail",
+							"viewAllRoute": "Assignments",
+							"viewAllQuery": {
+								"rubricId": "@objectId"
+							},
+							"emptyText": "No used by assignments found."
+						},
+						"icon": "ClipboardList"
+					},
+					{
+						"id": "rub-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "rub-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "rub-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "rub-assign",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "rub-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "Assignments",
+			"route": "/assignments",
+			"type": "index",
+			"title": "Assignments",
+			"config": {
+				"register": "learniq",
+				"schema": "Assignment"
+			}
+		},
+		{
+			"id": "AssignmentDetail",
+			"route": "/assignments/:id",
+			"type": "detail",
+			"title": "Assignment",
+			"config": {
+				"register": "learniq",
+				"schema": "Assignment",
+				"_note": "An Assignment is gradable work (instructions, due date, max points, rubric, late/plagiarism policy) belonging to a course/session/cohort. Body leads with assignment details (8-wide) and a Related panel resolving course/session/rubric. The Submissions roster is the operational heart, rendered as a wide related-index, with a Submissions-received KPI stat. Briefing materials render as a Files leaf. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "asn-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardList"
+					},
+					{
+						"id": "asn-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Submissions",
+									"register": "learniq",
+									"schema": "submission",
+									"metric": "count",
+									"filter": {
+										"assignmentId": "@objectId"
+									},
+									"route": "Submissions"
+								}
+							]
+						}
+					},
+					{
+						"id": "asn-subs",
+						"type": "object-list",
+						"title": "Submissions",
+						"content": {
+							"register": "learniq",
+							"schema": "Submission",
+							"filter": {
+								"assignmentId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerIds",
+									"label": "Learner Ids"
+								},
+								{
+									"key": "submittedAt",
+									"label": "Submitted At"
+								},
+								{
+									"key": "proposedGrade",
+									"label": "Proposed Grade"
+								},
+								{
+									"key": "gradeEntryId",
+									"label": "Grade Entry ID"
+								}
+							],
+							"rowRoute": "SubmissionDetail",
+							"viewAllRoute": "Submissions",
+							"viewAllQuery": {
+								"assignmentId": "@objectId"
+							},
+							"emptyText": "No submissions found.",
+							"allowCreate": false
+						},
+						"icon": "FileDocument"
+					},
+					{
+						"id": "asn-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "asn-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Briefing materials",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "asn-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "asn-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "asn-subs",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "asn-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "asn-files",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "Submissions",
+			"route": "/assignments/:assignmentId/submissions",
+			"type": "index",
+			"title": "Submissions",
+			"config": {
+				"register": "learniq",
+				"schema": "Submission",
+				"filter": {
+					"assignmentId": "@route.assignmentId"
+				}
+			}
+		},
+		{
+			"id": "SubmissionDetail",
+			"route": "/assignments/:assignmentId/submissions/:id",
+			"type": "detail",
+			"title": "Submission",
+			"config": {
+				"register": "learniq",
+				"schema": "Submission",
+				"readOnly": true,
+				"_note": "A Submission is a learner's handed-in work for an assignment (attachments, feedback, rubric scores, proposed grade, linked grade entry) — a result/score record. Body leads with the submission data including feedback and rubric scores (8-wide), a proposed-grade KPI stat, and a Related panel resolving the assignment and grade entry. The submitted work renders as a Files leaf (attachments are the point of a submission). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "sub-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "FileDocument"
+					},
+					{
+						"id": "sub-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "sub-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Submitted work",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "sub-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "sub-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "sub-files",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "SubmitWorkModal",
+			"route": "/assignments/:assignmentId/submit",
+			"type": "custom",
+			"title": "Submit work",
+			"component": "CnRichSubmitDialog",
+			"_note": "Mounts CnRichSubmitDialog from @conduction/nextcloud-vue for assignment submission (file upload + late-submission rules)."
+		},
+		{
+			"id": "MarkSubmissionView",
+			"route": "/assignments/:assignmentId/submissions/:id/mark",
+			"type": "custom",
+			"title": "Mark submission",
+			"component": "MarkSubmissionView",
+			"_note": "Grading UI (rubric scores, inline feedback, attachments). Lib gap: grading workflow widget. peer-and-self-assessment: gains a read-only PeerFeedbackSummary/SelfAssessment context panel and, when peerReviewWeightPercent is set, an advisory-only blended-score suggestion — never pre-fills proposedGrade."
+		},
+		{
+			"id": "PeerReviews",
+			"route": "/assignments/:assignmentId/peer-reviews",
+			"type": "index",
+			"title": "Peer reviews",
+			"config": {
+				"register": "learniq",
+				"schema": "peer-review",
+				"filter": {
+					"assignmentId": "@route.assignmentId"
+				}
+			}
+		},
+		{
+			"id": "PeerReviewDetail",
+			"route": "/assignments/:assignmentId/peer-reviews/:id",
+			"type": "detail",
+			"title": "Peer review",
+			"config": {
+				"register": "learniq",
+				"schema": "peer-review",
+				"_note": "A PeerReview is one reviewer's rubric-based assessment of another learner's Submission (peer-and-self-assessment) — a result/score record, mirroring Submission's own detail-page archetype. Body leads with the rubric scores + comments (8-wide) and a Related panel resolving the assignment/submission. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. x-property-rbac restricts read to admin/reviewer-self — the submission's author can never open this page directly; they read peer feedback through the PeerFeedbackSummary panel on their Submission's detail page instead.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "pr-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountGroup"
+					},
+					{
+						"id": "pr-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "pr-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "pr-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "PeerReviewMarkingView",
+			"route": "/assignments/:assignmentId/peer-reviews/:id/mark",
+			"type": "custom",
+			"title": "Complete peer review",
+			"component": "PeerReviewMarkingView",
+			"_note": "Reviewer's rubric-scoring UI for an assigned PeerReview (peer-and-self-assessment). Lib gap: peer-review marking workflow widget — mirrors MarkSubmissionView's own genuine-UI justification. When the governing Assignment's peerReviewAnonymity is double-blind, this view withholds the reviewed Submission's learner identity from its own display (a UI convention, not a server-enforced guarantee — see design.md 'Anonymity Enforcement')."
+		},
+		{
+			"id": "SelfAssessments",
+			"route": "/assignments/:assignmentId/self-assessments",
+			"type": "index",
+			"title": "Self-assessments",
+			"config": {
+				"register": "learniq",
+				"schema": "self-assessment",
+				"filter": {
+					"assignmentId": "@route.assignmentId"
+				}
+			}
+		},
+		{
+			"id": "SelfAssessmentDetail",
+			"route": "/assignments/:assignmentId/self-assessments/:id",
+			"type": "detail",
+			"title": "Self-assessment",
+			"config": {
+				"register": "learniq",
+				"schema": "self-assessment",
+				"_note": "A SelfAssessment is a learner's own rubric-based assessment of their own Submission (peer-and-self-assessment) — a result/score record. Body leads with the rubric scores + comments (8-wide) and a Related panel resolving the assignment/submission. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. x-property-rbac restricts read to admin/learner-self.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "sa-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardCheckOutline"
+					},
+					{
+						"id": "sa-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "sa-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "sa-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "SelfAssessmentView",
+			"route": "/assignments/:assignmentId/submissions/:id/self-assessment",
+			"type": "custom",
+			"title": "Self-assessment",
+			"component": "SelfAssessmentView",
+			"_note": "Learner's rubric self-scoring UI for their own Submission, shown before-submission/after-submission/both per Assignment.selfAssessmentTiming (peer-and-self-assessment). Lib gap: self-assessment workflow widget — mirrors MarkSubmissionView's own genuine-UI justification."
+		},
+		{
+			"id": "PeerFeedbackSummaries",
+			"route": "/assignments/:assignmentId/peer-feedback-summaries",
+			"type": "index",
+			"title": "Peer feedback summaries",
+			"config": {
+				"register": "learniq",
+				"schema": "peer-feedback-summary",
+				"readOnly": true,
+				"filter": {
+					"assignmentId": "@route.assignmentId"
+				}
+			}
+		},
+		{
+			"id": "PeerFeedbackSummaryDetail",
+			"route": "/assignments/:assignmentId/peer-feedback-summaries/:id",
+			"type": "detail",
+			"title": "Peer feedback summary",
+			"config": {
+				"register": "learniq",
+				"schema": "peer-feedback-summary",
+				"readOnly": true,
+				"_note": "PeerFeedbackSummary is a computed, read-only aggregate of a Submission's released PeerReviews (peer-and-self-assessment) — the only surface a submission's author reads peer feedback through; feedbackItems[].reviewerId is server-computed as null when the governing Assignment's peerReviewAnonymity is blind/double-blind. Mirrors FinalGrade's own read-only detail-page archetype. Body leads with the aggregate data (8-wide) and a Related panel resolving the submission/assignment. No lifecycle (fully derived). No comms leaves.",
+				"widgets": [
+					{
+						"id": "pfs-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "MessageTextOutline"
+					},
+					{
+						"id": "pfs-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "pfs-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "pfs-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": []
+				}
+			}
+		},
+		{
+			"id": "ItemBanks",
+			"route": "/assessments/item-banks",
+			"type": "index",
+			"title": "Item banks",
+			"config": {
+				"register": "learniq",
+				"schema": "item-bank"
+			}
+		},
+		{
+			"id": "ItemBankDetail",
+			"route": "/assessments/item-banks/:id",
+			"type": "detail",
+			"title": "Item bank",
+			"config": {
+				"register": "learniq",
+				"schema": "item-bank",
+				"_note": "An Item Bank is a reusable pool of assessment questions grouped by subject. Body leads with the bank metadata (8-wide) and a Related panel. The constituent Items render as a wide related-index (the bank's actual content), with a total-items KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "ibank-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "DatabaseOutline"
+					},
+					{
+						"id": "ibank-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Items",
+									"register": "learniq",
+									"schema": "item",
+									"metric": "count",
+									"filter": {
+										"itemBankId": "@objectId"
+									},
+									"route": "Items"
+								}
+							]
+						}
+					},
+					{
+						"id": "ibank-items",
+						"type": "object-list",
+						"title": "Items",
+						"content": {
+							"register": "learniq",
+							"schema": "Item",
+							"filter": {
+								"itemBankId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "interactionType",
+									"label": "Interaction Type"
+								},
+								{
+									"key": "maxScore",
+									"label": "Max Score"
+								},
+								{
+									"key": "difficulty",
+									"label": "Difficulty"
+								}
+							],
+							"rowRoute": "ItemDetail",
+							"viewAllRoute": "Items",
+							"viewAllQuery": {
+								"itemBankId": "@objectId"
+							},
+							"emptyText": "No items found."
+						},
+						"icon": "DatabaseOutline"
+					},
+					{
+						"id": "ibank-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "ibank-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "ibank-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "ibank-items",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "ibank-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "Items",
+			"route": "/assessments/items",
+			"type": "index",
+			"title": "Items",
+			"config": {
+				"register": "learniq",
+				"schema": "Item"
+			}
+		},
+		{
+			"id": "ItemDetail",
+			"route": "/assessments/items/:id",
+			"type": "detail",
+			"title": "Item",
+			"config": {
+				"register": "learniq",
+				"schema": "Item",
+				"_note": "An Item is a single assessment question (interaction type, QTI body, correct response, max score, difficulty, subject tags). Body leads with the item definition including the QTI body (8-wide) and a Related panel resolving the owning item-bank. No child rosters (an item is a leaf). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for revision history.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "item-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "DatabaseOutline"
+					},
+					{
+						"id": "item-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "item-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "item-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "Assessments",
+			"route": "/assessments",
+			"type": "index",
+			"title": "Assessments",
+			"config": {
+				"register": "learniq",
+				"schema": "Assessment"
+			}
+		},
+		{
+			"id": "AssessmentDetail",
+			"route": "/assessments/:id",
+			"type": "detail",
+			"title": "Assessment",
+			"config": {
+				"register": "learniq",
+				"schema": "Assessment",
+				"_note": "An Assessment is a configured test (item refs, scoring scheme, pass mark, time limit, attempts, proctoring, availability window) tied to a course/session/cohort. Body leads with the assessment configuration (8-wide) and a Related panel resolving course/session and grade-entry component. Learner attempts render as a wide Results related-index, with an attempts KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "ass-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardCheckOutline"
+					},
+					{
+						"id": "ass-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Attempts",
+									"register": "learniq",
+									"schema": "assessment-result",
+									"metric": "count",
+									"filter": {
+										"assessmentId": "@objectId"
+									},
+									"route": "AssessmentResults"
+								}
+							]
+						}
+					},
+					{
+						"id": "ass-res",
+						"type": "object-list",
+						"title": "Results",
+						"content": {
+							"register": "learniq",
+							"schema": "assessment-result",
+							"filter": {
+								"assessmentId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "attemptNumber",
+									"label": "Attempt Number"
+								},
+								{
+									"key": "submittedAt",
+									"label": "Submitted At"
+								},
+								{
+									"key": "gradeEntryId",
+									"label": "Grade Entry ID"
+								}
+							],
+							"rowRoute": "AssessmentResultDetail",
+							"viewAllRoute": "AssessmentResults",
+							"viewAllQuery": {
+								"assessmentId": "@objectId"
+							},
+							"emptyText": "No results found.",
+							"allowCreate": false
+						},
+						"icon": "ClipboardCheckOutline"
+					},
+					{
+						"id": "ass-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "ass-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "ass-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "ass-res",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "ass-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "AssessmentResults",
+			"route": "/assessments/:assessmentId/results",
+			"type": "index",
+			"title": "Assessment results",
+			"config": {
+				"register": "learniq",
+				"schema": "assessment-result",
+				"filter": {
+					"assessmentId": "@route.assessmentId"
+				},
+				"selectable": false,
+				"showAdd": false,
+				"showFormDialog": false,
+				"showEditAction": false,
+				"showCopyAction": false,
+				"showDeleteAction": false,
+				"showMassImport": false,
+				"showMassCopy": false,
+				"showMassDelete": false
+			}
+		},
+		{
+			"id": "AssessmentResultDetail",
+			"route": "/assessments/:assessmentId/results/:id",
+			"type": "detail",
+			"title": "Assessment result",
+			"config": {
+				"register": "learniq",
+				"schema": "assessment-result",
+				"readOnly": true,
+				"_note": "An Assessment Result is one learner's attempt (responses, timing, proctoring session, grade entry). Body leads with the result data including responses (8-wide) and a Related panel resolving the assessment, learner and grade entry. The proctoring evidence for this attempt renders as a related-index. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "ares-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardCheckOutline"
+					},
+					{
+						"id": "ares-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Proctoring sessions",
+									"register": "learniq",
+									"schema": "proctoring-session",
+									"metric": "count",
+									"filter": {
+										"assessmentResultId": "@objectId"
+									},
+									"route": "ProctoringSessions"
+								}
+							]
+						}
+					},
+					{
+						"id": "ares-proc",
+						"type": "object-list",
+						"title": "Proctoring",
+						"content": {
+							"register": "learniq",
+							"schema": "proctoring-session",
+							"filter": {
+								"assessmentResultId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "provider",
+									"label": "Provider"
+								},
+								{
+									"key": "status",
+									"label": "Status"
+								},
+								{
+									"key": "flags",
+									"label": "Flags"
+								}
+							],
+							"rowRoute": "ProctoringSessionDetail",
+							"viewAllRoute": "ProctoringSessions",
+							"viewAllQuery": {
+								"assessmentResultId": "@objectId"
+							},
+							"emptyText": "No proctoring found.",
+							"allowCreate": false
+						},
+						"icon": "ShieldCheckOutline"
+					},
+					{
+						"id": "ares-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "ares-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "ares-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "ares-proc",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "ares-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ItemStatisticsList",
+			"route": "/assessments/item-statistics",
+			"type": "index",
+			"title": "Item statistics",
+			"config": {
+				"register": "learniq",
+				"schema": "item-statistics",
+				"readOnly": true
+			}
+		},
+		{
+			"id": "ItemStatisticsDetail",
+			"route": "/assessments/item-statistics/:id",
+			"type": "detail",
+			"title": "Item statistics",
+			"config": {
+				"register": "learniq",
+				"schema": "item-statistics",
+				"readOnly": true,
+				"_note": "assessment-item-pools-and-analysis: ItemStatistics is a fully-derived CTT computation (p-value, item-total correlation, distractor analysis, insufficientData gate) for one Item within one Assessment, mirroring the FinalGrade 'no lifecycle, read-only' precedent. Body leads with the statistics data (8-wide) and a Related panel resolving the item and assessment. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "istat-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ChartBar"
+					},
+					{
+						"id": "istat-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "istat-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "istat-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "AssessmentReliabilityList",
+			"route": "/assessments/reliability",
+			"type": "index",
+			"title": "Assessment reliability",
+			"config": {
+				"register": "learniq",
+				"schema": "assessment-reliability",
+				"readOnly": true
+			}
+		},
+		{
+			"id": "AssessmentReliabilityDetail",
+			"route": "/assessments/reliability/:id",
+			"type": "detail",
+			"title": "Assessment reliability",
+			"config": {
+				"register": "learniq",
+				"schema": "assessment-reliability",
+				"readOnly": true,
+				"_note": "assessment-item-pools-and-analysis: AssessmentReliability is a fully-derived Cronbach's-alpha computation for one Assessment, mirroring the FinalGrade 'no lifecycle, read-only' precedent. Body leads with the reliability data (8-wide) and a Related panel resolving the assessment. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "arel-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ChartBar"
+					},
+					{
+						"id": "arel-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "arel-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "arel-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ItemAnalysisView",
+			"route": "/assessments/items/:itemId/analysis",
+			"type": "custom",
+			"title": "Item analysis",
+			"component": "ItemAnalysisView",
+			"_note": "assessment-item-pools-and-analysis: renders ItemStatistics (p-value, item-total correlation, distractor bars) for an Item across the Assessments it appears in, and AssessmentReliability for an Assessment (via ?assessmentId= query param). No declarative chart/statistics-panel primitive exists in this register. Linked from ItemAuthorView.vue. Staff-only (RBAC enforced server-side via x-property-rbac; view also gates client-side)."
+		},
+		{
+			"id": "ProctoringSessions",
+			"route": "/assessments/proctoring-sessions",
+			"type": "index",
+			"title": "Proctoring sessions",
+			"config": {
+				"register": "learniq",
+				"schema": "proctoring-session",
+				"readOnly": true
+			}
+		},
+		{
+			"id": "ProctoringSessionDetail",
+			"route": "/assessments/proctoring-sessions/:id",
+			"type": "detail",
+			"title": "Proctoring session",
+			"config": {
+				"register": "learniq",
+				"schema": "proctoring-session",
+				"readOnly": true,
+				"_note": "A Proctoring Session records exam-monitoring for one assessment attempt (provider, status, recorded artefacts, integrity flags) — an evidence archetype. Body leads with the session data including flags (8-wide) and a Related panel resolving the assessment result and learner. Recorded artefacts (video/screen captures) render as a wide Files leaf — the evidence surface. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as a tamper log.",
+				"widgets": [
+					{
+						"id": "proc-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ShieldCheckOutline"
+					},
+					{
+						"id": "proc-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "proc-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Recorded artefacts",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "proc-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "proc-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "proc-files",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "TakeAssessmentView",
+			"route": "/assessments/:assessmentId/take",
+			"type": "custom",
+			"title": "Take assessment",
+			"component": "TakeAssessmentView",
+			"_note": "Assessment-taking UI (timer, item navigation, autosave, proctoring hooks). No lib analogue."
+		},
+		{
+			"id": "ItemAuthorView",
+			"route": "/assessments/items/:id/author",
+			"type": "custom",
+			"title": "Item author",
+			"component": "ItemAuthorView",
+			"_note": "Assessment item authoring (item-bank editor, response key, scoring rules). No lib analogue."
+		},
+		{
+			"id": "ProctoringReviewQueue",
+			"route": "/assessments/proctoring/review",
+			"type": "custom",
+			"title": "Proctoring review queue",
+			"component": "ProctoringReviewQueue",
+			"_note": "Proctoring review queue with playback annotations + flagged events. No lib analogue."
+		},
+		{
+			"id": "ImportQtiModal",
+			"route": "/assessments/item-banks/:itemBankId/import",
+			"type": "custom",
+			"title": "Import QTI package",
+			"component": "CnWizardDialog",
+			"_note": "Mounts CnWizardDialog from @conduction/nextcloud-vue for the QTI item-bank import (file upload → parse → preview → commit)."
+		},
+		{
+			"id": "GradeScales",
+			"route": "/grades/scales",
+			"type": "index",
+			"title": "Grade scales",
+			"config": {
+				"register": "learniq",
+				"schema": "grade-scale"
+			}
+		},
+		{
+			"id": "GradeScaleDetail",
+			"route": "/grades/scales/:id",
+			"type": "detail",
+			"title": "Grade scale",
+			"config": {
+				"register": "learniq",
+				"schema": "grade-scale",
+				"_note": "A Grade Scale defines how scores map to grades (kind, bands, min/max, pass threshold, rounding) — a config archetype. Body leads with the scale definition including bands (8-wide) and a Related panel. Grade entries recorded against this scale render as a related-index so an examinations officer sees usage. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for rule-change history.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "gscale-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ScaleBalance"
+					},
+					{
+						"id": "gscale-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Grade entries",
+									"register": "learniq",
+									"schema": "grade-entry",
+									"metric": "count",
+									"filter": {
+										"gradeScaleId": "@objectId"
+									},
+									"route": "GradeEntries"
+								}
+							]
+						}
+					},
+					{
+						"id": "gscale-grades",
+						"type": "object-list",
+						"title": "Grade entries",
+						"content": {
+							"register": "learniq",
+							"schema": "grade-entry",
+							"filter": {
+								"gradeScaleId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "componentId",
+									"label": "Component ID"
+								},
+								{
+									"key": "value",
+									"label": "Value"
+								},
+								{
+									"key": "period",
+									"label": "Period"
+								}
+							],
+							"rowRoute": "GradeEntryDetail",
+							"viewAllRoute": "GradeEntries",
+							"viewAllQuery": {
+								"gradeScaleId": "@objectId"
+							},
+							"emptyText": "No grade entries found.",
+							"allowCreate": false
+						},
+						"icon": "Percent"
+					},
+					{
+						"id": "gscale-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "gscale-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "gscale-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "gscale-grades",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "gscale-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "LtiToolPlacements",
+			"route": "/courses/lti-placements",
+			"type": "index",
+			"title": "LTI tool placements",
+			"config": {
+				"register": "learniq",
+				"schema": "lti-tool-placement"
+			}
+		},
+		{
+			"id": "LtiToolPlacementDetail",
+			"route": "/courses/lti-placements/:id",
+			"type": "detail",
+			"title": "LTI tool placement",
+			"config": {
+				"register": "learniq",
+				"schema": "lti-tool-placement",
+				"_note": "An LtiToolPlacement names which lesson/course an external LTI 1.3 tool is placed into and, optionally, which grading component its AGS scores feed — a config archetype, same shape as GradeScale. Body leads with the placement definition (8-wide) and a Related panel resolving the Lesson/Course/CurriculumPlan/GradeScale it references. No comms leaves (no linkedTypes) — this is configuration, not a conversation. Sidebar keeps metadata + audit-trail for config-change history (openspec/changes/lti-tool-placement/tasks.md#task-3.3).",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "ltip-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Web"
+					},
+					{
+						"id": "ltip-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "ltip-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "ltip-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "GradeEntries",
+			"route": "/grades/entries",
+			"type": "index",
+			"title": "Grade entries",
+			"config": {
+				"register": "learniq",
+				"schema": "grade-entry"
+			}
+		},
+		{
+			"id": "GradeEntryDetail",
+			"route": "/grades/entries/:id",
+			"type": "detail",
+			"title": "Grade entry",
+			"config": {
+				"register": "learniq",
+				"schema": "grade-entry",
+				"_note": "A Grade Entry is a single recorded score (value, scale, weight, period, grader, source submission/result) for a learner and curriculum component — a score record. Body leads with the entry data including value and comment (8-wide), a value KPI stat, and a Related panel resolving the learner, course, grade-scale and source submission/result. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as the grade-change audit.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "gentry-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Percent"
+					},
+					{
+						"id": "gentry-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "gentry-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "gentry-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "FinalGrades",
+			"route": "/grades/final",
+			"type": "index",
+			"title": "Final grades",
+			"config": {
+				"register": "learniq",
+				"schema": "final-grade",
+				"readOnly": true
+			}
+		},
+		{
+			"id": "FinalGradeDetail",
+			"route": "/grades/final/:id",
+			"type": "detail",
+			"title": "Final grade",
+			"config": {
+				"register": "learniq",
+				"schema": "final-grade",
+				"readOnly": true,
+				"_note": "A Final Grade is the computed outcome for a learner on a course/programme (value, passed flag, breakdown, last recompute time) — an aggregate result. Body leads with the final-grade data including the breakdown (8-wide), a value KPI stat and a passed KPI, plus a Related panel resolving learner/course/programme/plan. The contributing Grade entries render as a related-index for traceability. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "fgrade-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Trophy"
+					},
+					{
+						"id": "fgrade-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Contributing grades",
+									"register": "learniq",
+									"schema": "grade-entry",
+									"metric": "count",
+									"filter": {
+										"learnerId": "@object.learnerId",
+										"courseId": "@object.courseId"
+									},
+									"route": "GradeEntries"
+								}
+							]
+						}
+					},
+					{
+						"id": "fgrade-grades",
+						"type": "object-list",
+						"title": "Contributing grades",
+						"content": {
+							"register": "learniq",
+							"schema": "grade-entry",
+							"filter": {
+								"learnerId": "@object.learnerId",
+								"courseId": "@object.courseId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "componentId",
+									"label": "Component ID"
+								},
+								{
+									"key": "sourceKind",
+									"label": "Source Kind"
+								},
+								{
+									"key": "value",
+									"label": "Value"
+								},
+								{
+									"key": "period",
+									"label": "Period"
+								}
+							],
+							"rowRoute": "GradeEntryDetail",
+							"viewAllRoute": "GradeEntries",
+							"viewAllQuery": {
+								"learnerId": "@object.learnerId",
+								"courseId": "@object.courseId"
+							},
+							"emptyText": "No contributing grades found.",
+							"allowCreate": false
+						},
+						"icon": "Percent"
+					},
+					{
+						"id": "fgrade-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "fgrade-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "fgrade-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "fgrade-grades",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "fgrade-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "GradebookView",
+			"route": "/grades/cohort/:cohortId/plan/:planId",
+			"type": "custom",
+			"title": "Gradebook",
+			"component": "CnDataMatrix",
+			"_note": "Mounts CnDataMatrix from @conduction/nextcloud-vue for the gradebook (cohort × plan inline-edit grid with weighted aggregation)."
+		},
+		{
+			"id": "GradeImpactDetail",
+			"route": "/grades/entries/:id/impact",
+			"type": "custom",
+			"title": "Grade impact",
+			"component": "GradeImpactDetail",
+			"_note": "Grade impact detail (factor breakdown + override history). Could be type:\"detail\" once secondary panels lift into widgets."
+		},
+		{
+			"id": "CourseTemplates",
+			"route": "/courses/templates",
+			"type": "index",
+			"title": "Course templates",
+			"config": {
+				"register": "learniq",
+				"schema": "course-template"
+			}
+		},
+		{
+			"id": "CourseTemplateDetail",
+			"route": "/courses/templates/:id",
+			"type": "detail",
+			"title": "Course template",
+			"config": {
+				"register": "learniq",
+				"schema": "course-template",
+				"_note": "course-authoring-ux: a Course Template is a reusable Course→Module→Lesson skeleton (+ optional CurriculumPlan skeleton) — a config/template archetype, mirroring LearningPlanTemplateDetail's shape. Body leads with the template definition (8-wide) and a Related panel resolving the source Course (sourceCoursesId, when captured via 'Save as template'). moduleStructure/curriculumPlanSkeleton render via the generic data widget (nested arrays/objects). 'Save as template' (from CourseBuilder) creates rows here; 'New course from template' (also in CourseBuilder) reads a row and instantiates a fresh Course tree — both bespoke actions live in CourseBuilder.vue, not here. No comms leaves (no linkedTypes) — a template is a definition, not a correspondence thread. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "ctpl-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "NoteTextOutline"
+					},
+					{
+						"id": "ctpl-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "ctpl-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "ctpl-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "LearningPlanTemplates",
+			"route": "/learning-plans/templates",
+			"type": "index",
+			"title": "Learning plan templates",
+			"config": {
+				"register": "learniq",
+				"schema": "learning-plan-template"
+			}
+		},
+		{
+			"id": "LearningPlanTemplateDetail",
+			"route": "/learning-plans/templates/:id",
+			"type": "detail",
+			"title": "Learning plan template",
+			"config": {
+				"register": "learniq",
+				"schema": "learning-plan-template",
+				"_note": "A Learning Plan Template defines the structure of individual learning/support plans (sections, goal domains, required signer roles, review cadence) — a config/template archetype. Body leads with the template definition (8-wide) and a Related panel. Learning plans instantiated from this template render as a related-index so a coordinator sees adoption. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "lpt-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "NoteTextOutline"
+					},
+					{
+						"id": "lpt-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Plans using template",
+									"register": "learniq",
+									"schema": "learning-plan",
+									"metric": "count",
+									"filter": {
+										"templateId": "@objectId"
+									},
+									"route": "LearningPlans"
+								}
+							]
+						}
+					},
+					{
+						"id": "lpt-plans",
+						"type": "object-list",
+						"title": "Plans using template",
+						"content": {
+							"register": "learniq",
+							"schema": "learning-plan",
+							"filter": {
+								"templateId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "kind",
+									"label": "Kind"
+								},
+								{
+									"key": "period",
+									"label": "Period"
+								},
+								{
+									"key": "nextReviewAt",
+									"label": "Next Review At"
+								}
+							],
+							"rowRoute": "LearningPlanDetail",
+							"viewAllRoute": "LearningPlans",
+							"viewAllQuery": {
+								"templateId": "@objectId"
+							},
+							"emptyText": "No plans using template found."
+						},
+						"icon": "NoteTextOutline"
+					},
+					{
+						"id": "lpt-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "lpt-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "lpt-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "lpt-plans",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "lpt-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "LearningPlans",
+			"route": "/learning-plans",
+			"type": "index",
+			"title": "Learning plans",
+			"config": {
+				"register": "learniq",
+				"schema": "learning-plan"
+			}
+		},
+		{
+			"id": "LearningPlanDetail",
+			"route": "/learning-plans/:id",
+			"type": "detail",
+			"title": "Learning plan",
+			"config": {
+				"register": "learniq",
+				"schema": "learning-plan",
+				"_note": "A Learning Plan is an individual learner's development/support plan (goals, support measures, review cadence, coordinator, versioning). Body leads with the plan data including goals and support measures (8-wide) and a Related panel resolving learner, template, cohort/course and coordinator. Its Evaluations (periodic reviews) render as a wide related-index — the plan's living history — and supporting documents render as a Files leaf. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "lp-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "NoteTextOutline"
+					},
+					{
+						"id": "lp-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Evaluations",
+									"register": "learniq",
+									"schema": "learning-plan-evaluation",
+									"metric": "count",
+									"filter": {
+										"learningPlanId": "@objectId"
+									},
+									"route": "LearningPlanEvaluations"
+								},
+								{
+									"title": "Support requests",
+									"register": "learniq",
+									"schema": "support-request",
+									"metric": "count",
+									"filter": {
+										"learningPlanId": "@objectId"
+									},
+									"route": "SupportRequests"
+								}
+							]
+						}
+					},
+					{
+						"id": "lp-evals",
+						"type": "object-list",
+						"title": "Evaluations",
+						"content": {
+							"register": "learniq",
+							"schema": "learning-plan-evaluation",
+							"filter": {
+								"learningPlanId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "evaluatedAt",
+									"label": "Evaluated At"
+								},
+								{
+									"key": "evaluatedBy",
+									"label": "Evaluated By"
+								},
+								{
+									"key": "nextReviewAt",
+									"label": "Next Review At"
+								}
+							],
+							"rowRoute": "LearningPlanEvaluationDetail",
+							"viewAllRoute": "LearningPlanEvaluations",
+							"viewAllQuery": {
+								"learningPlanId": "@objectId"
+							},
+							"emptyText": "No evaluations found.",
+							"allowCreate": false
+						},
+						"icon": "CheckCircleOutline"
+					},
+					{
+						"id": "lp-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "lp-support-requests",
+						"type": "object-list",
+						"title": "Support requests (SWV chain)",
+						"content": {
+							"register": "learniq",
+							"schema": "support-request",
+							"filter": {
+								"learningPlanId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "supportDomain",
+									"label": "Support Domain"
+								},
+								{
+									"key": "urgency",
+									"label": "Urgency"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "SupportRequestDetail",
+							"viewAllRoute": "SupportRequests",
+							"viewAllQuery": {
+								"learningPlanId": "@objectId"
+							},
+							"emptyText": "No support requests found.",
+							"allowCreate": false
+						},
+						"icon": "HandshakeOutline"
+					},
+					{
+						"id": "lp-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Plan documents",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "lp-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "lp-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "lp-evals",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "lp-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "lp-support-requests",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
+						"gridHeight": 4,
+						"showTitle": false
+					},
+					{
+						"id": "6",
+						"widgetId": "lp-files",
+						"gridX": 0,
+						"gridY": 14,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "LearningPlanEvaluations",
+			"route": "/learning-plans/:planId/evaluations",
+			"type": "index",
+			"title": "Learning plan evaluations",
+			"config": {
+				"register": "learniq",
+				"schema": "learning-plan-evaluation",
+				"filter": {
+					"learningPlanId": "@route.planId"
+				},
+				"selectable": false,
+				"showAdd": false,
+				"showFormDialog": false,
+				"showEditAction": false,
+				"showCopyAction": false,
+				"showDeleteAction": false,
+				"showMassImport": false,
+				"showMassCopy": false,
+				"showMassDelete": false
+			}
+		},
+		{
+			"id": "LearningPlanEvaluationDetail",
+			"route": "/learning-plans/:planId/evaluations/:id",
+			"type": "detail",
+			"title": "Learning plan evaluation",
+			"config": {
+				"register": "learniq",
+				"schema": "learning-plan-evaluation",
+				"readOnly": true,
+				"_note": "A Learning Plan Evaluation is a periodic review of a learning plan (goal outcomes, narrative, attendees, next review date). Body leads with the evaluation data including goal outcomes and narrative (8-wide) and a Related panel resolving the parent plan and attendees. Supporting documents (minutes/evidence) render as a Files leaf. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "lpe-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "CheckCircleOutline"
+					},
+					{
+						"id": "lpe-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "lpe-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Review documents",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "lpe-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "lpe-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "lpe-files",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "Signatures",
+			"route": "/learning-plans/:planId/signatures",
+			"type": "index",
+			"title": "Signatures",
+			"config": {
+				"register": "learniq",
+				"schema": "Signature",
+				"filter": {
+					"subjectKind": "learning-plan",
+					"subjectId": "@route.planId"
+				},
+				"selectable": false,
+				"showAdd": false,
+				"showFormDialog": false,
+				"showEditAction": false,
+				"showCopyAction": false,
+				"showDeleteAction": false,
+				"showMassImport": false,
+				"showMassCopy": false,
+				"showMassDelete": false
+			}
+		},
+		{
+			"id": "SignatureDetail",
+			"route": "/learning-plans/:planId/signatures/:id",
+			"type": "detail",
+			"title": "Signature",
+			"config": {
+				"register": "learniq",
+				"schema": "Signature",
+				"readOnly": true,
+				"_note": "A Signature is a cryptographic/attested sign-off on a subject object (subject kind/id/version, signer, role, assurance level, method, evidence ref) — an attestation/evidence archetype, files-first. Body leads with the signed-evidence artefact via a Files leaf, then the signature metadata (signer, role, assurance, method) and a Related panel resolving the signed subject. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as a tamper log.",
+				"widgets": [
+					{
+						"id": "sig-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "FileSign"
+					},
+					{
+						"id": "sig-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "sig-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Signed evidence",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "sig-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "sig-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "sig-files",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "SignPlanModal",
+			"route": "/learning-plans/:planId/sign",
+			"type": "custom",
+			"title": "Sign learning plan",
+			"component": "CnSignatureCapture",
+			"_note": "Mounts CnSignatureCapture from @conduction/nextcloud-vue for the learning-plan signature flow (canvas/typed signature + audit)."
+		},
+		{
+			"id": "LearningPlanEditor",
+			"route": "/learning-plans/:planId/edit",
+			"type": "custom",
+			"title": "Learning plan editor",
+			"component": "CnRelationshipGraph",
+			"_note": "Mounts CnRelationshipGraph from @conduction/nextcloud-vue for the learning-plan editor (dependency-chain layout, drag-drop ordering, milestone scoring)."
+		},
+		{
+			"id": "GroupPlans",
+			"route": "/group-plans",
+			"type": "index",
+			"title": "Group plans",
+			"config": {
+				"register": "learniq",
+				"schema": "group-plan"
+			}
+		},
+		{
+			"id": "GroupPlanDetail",
+			"route": "/group-plans/:id",
+			"type": "detail",
+			"title": "Group plan",
+			"config": {
+				"register": "learniq",
+				"schema": "group-plan",
+				"_note": "A GroupPlan is the groepsplan — Dutch PO/SBO's group-level HGW/1-zorgroute planning cycle for one Cohort/subject/period: results analysis, group-wide goals, lifecycle, and the version-chain supersedesId (identical pattern to LearningPlan.supersedesId). Body leads with the plan data (2-column) and a Related panel resolving the cohort, coordinator, and prior-period plan; its GroupPlanSubgroups (instructieniveau split) and GroupPlanEvaluations (period-end reviews) render as wide related-index panels, mirroring LearningPlanDetail's Evaluations pattern. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "gp-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountGroup"
+					},
+					{
+						"id": "gp-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Subgroups",
+									"register": "learniq",
+									"schema": "group-plan-subgroup",
+									"metric": "count",
+									"filter": {
+										"groupPlanId": "@objectId"
+									},
+									"route": "GroupPlanSubgroups"
+								},
+								{
+									"title": "Evaluations",
+									"register": "learniq",
+									"schema": "group-plan-evaluation",
+									"metric": "count",
+									"filter": {
+										"groupPlanId": "@objectId"
+									},
+									"route": "GroupPlanEvaluations"
+								}
+							]
+						}
+					},
+					{
+						"id": "gp-subgroups",
+						"type": "object-list",
+						"title": "Subgroups",
+						"content": {
+							"register": "learniq",
+							"schema": "group-plan-subgroup",
+							"filter": {
+								"groupPlanId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "name",
+									"label": "Name"
+								},
+								{
+									"key": "instructieniveau",
+									"label": "Instructieniveau"
+								},
+								{
+									"key": "differentiatedGoal",
+									"label": "Differentiated Goal"
+								}
+							],
+							"rowRoute": "GroupPlanSubgroupDetail",
+							"viewAllRoute": "GroupPlanSubgroups",
+							"viewAllQuery": {
+								"groupPlanId": "@objectId"
+							},
+							"emptyText": "No subgroups found.",
+							"allowCreate": true
+						},
+						"icon": "AccountBoxOutline"
+					},
+					{
+						"id": "gp-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "gp-evals",
+						"type": "object-list",
+						"title": "Evaluations",
+						"content": {
+							"register": "learniq",
+							"schema": "group-plan-evaluation",
+							"filter": {
+								"groupPlanId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "evaluatedAt",
+									"label": "Evaluated At"
+								},
+								{
+									"key": "evaluatedBy",
+									"label": "Evaluated By"
+								}
+							],
+							"rowRoute": "GroupPlanEvaluationDetail",
+							"viewAllRoute": "GroupPlanEvaluations",
+							"viewAllQuery": {
+								"groupPlanId": "@objectId"
+							},
+							"emptyText": "No evaluations found.",
+							"allowCreate": true
+						},
+						"icon": "CheckCircleOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "gp-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "gp-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "gp-subgroups",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "gp-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "gp-evals",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
+						"gridHeight": 4,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "GroupPlanSubgroups",
+			"route": "/group-plans/:planId/subgroups",
+			"type": "index",
+			"title": "Group plan subgroups",
+			"config": {
+				"register": "learniq",
+				"schema": "group-plan-subgroup",
+				"filter": {
+					"groupPlanId": "@route.planId"
+				},
+				"selectable": false,
+				"showAdd": false,
+				"showFormDialog": false,
+				"showEditAction": false,
+				"showCopyAction": false,
+				"showDeleteAction": false,
+				"showMassImport": false,
+				"showMassCopy": false,
+				"showMassDelete": false
+			}
+		},
+		{
+			"id": "GroupPlanSubgroupDetail",
+			"route": "/group-plans/:planId/subgroups/:id",
+			"type": "detail",
+			"title": "Group plan subgroup",
+			"config": {
+				"register": "learniq",
+				"schema": "group-plan-subgroup",
+				"_note": "A GroupPlanSubgroup is a named instructieniveau split (intensief/basis/verdiept or custom) within a GroupPlan — its own differentiated goal, approach, and intended outcome. Body leads with the subgroup data (2-column) and a Related panel resolving the parent plan; the 'Learner context' KPI tile links to GroupPlanSubgroupLearnerContext.vue, the one named custom view resolving each member learner's active LearningPlan (the manifest's equality-only filter DSL cannot express the learnerIds array-membership lookup — design.md 'Why no stored link'). SupportRequests raised from this subgroup render as a standard equality-filtered object-list (originGroupPlanSubgroupId: @objectId) — no custom view needed for that reverse link. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "gps-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountBoxOutline"
+					},
+					{
+						"id": "gps-kpis",
+						"type": "stats-block",
+						"title": "Learner context",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Learner context",
+									"register": "learniq",
+									"schema": "group-plan-subgroup",
+									"metric": "count",
+									"countLabel": "subgroup",
+									"filter": {
+										"id": "@objectId"
+									},
+									"route": {
+										"name": "GroupPlanSubgroupLearnerContext",
+										"query": {
+											"subgroupId": "@objectId"
+										}
+									}
+								}
+							]
+						},
+						"_note": "The only token-resolved (@objectId) deep link from a detail page to another named route this manifest dialect supports (stats-block entry.route, resolved by CnStatsBlockWidget) — same mechanism as LearnerProfileDetail's 'Dossier timeline' KPI tile (lprof-kpis-dossier-timeline). Clicking it opens GroupPlanSubgroupLearnerContext pre-scoped to this subgroup via the subgroupId query param."
+					},
+					{
+						"id": "gps-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "gps-support-requests",
+						"type": "object-list",
+						"title": "Support requests",
+						"content": {
+							"register": "learniq",
+							"schema": "support-request",
+							"filter": {
+								"originGroupPlanSubgroupId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "supportDomain",
+									"label": "Support Domain"
+								},
+								{
+									"key": "urgency",
+									"label": "Urgency"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "SupportRequestDetail",
+							"viewAllRoute": "SupportRequests",
+							"viewAllQuery": {
+								"originGroupPlanSubgroupId": "@objectId"
+							},
+							"emptyText": "No support requests found.",
+							"allowCreate": false
+						},
+						"icon": "HandshakeOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "gps-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "gps-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "gps-related",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "gps-support-requests",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "GroupPlanEvaluations",
+			"route": "/group-plans/:planId/evaluations",
+			"type": "index",
+			"title": "Group plan evaluations",
+			"config": {
+				"register": "learniq",
+				"schema": "group-plan-evaluation",
+				"filter": {
+					"groupPlanId": "@route.planId"
+				},
+				"selectable": false,
+				"showAdd": false,
+				"showFormDialog": false,
+				"showEditAction": false,
+				"showCopyAction": false,
+				"showDeleteAction": false,
+				"showMassImport": false,
+				"showMassCopy": false,
+				"showMassDelete": false
+			}
+		},
+		{
+			"id": "GroupPlanEvaluationDetail",
+			"route": "/group-plans/:planId/evaluations/:id",
+			"type": "detail",
+			"title": "Group plan evaluation",
+			"config": {
+				"register": "learniq",
+				"schema": "group-plan-evaluation",
+				"readOnly": true,
+				"_note": "A GroupPlanEvaluation is the period-end review of a GroupPlan — a per-subgroup outcome plus an overall narrative, closing the HGW cycle. The next period's GroupPlan seeds from it via GroupPlan.supersedesId (design.md 'GroupPlanEvaluation and cycle-seeding via supersedesId'), not a forward-pointing field on this record. Body leads with the evaluation data (8-wide) and a Related panel resolving the parent plan. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "gpe-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardCheckOutline"
+					},
+					{
+						"id": "gpe-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "gpe-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "gpe-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "GroupPlanSubgroupLearnerContext",
+			"route": "/group-plans/subgroup-learner-context",
+			"type": "custom",
+			"title": "Subgroup learner context",
+			"component": "GroupPlanSubgroupLearnerContext",
+			"_note": "groepsplan (the one genuine custom-view exception for this capability): resolves each GroupPlanSubgroup member learner's active LearningPlan (if any) — the manifest's equality-only object-list filter DSL cannot express an array-membership match against learnerIds (design.md 'Why no stored link'). Reached via GroupPlanSubgroupDetail's 'Learner context' KPI tile (gps-kpis), which resolves @objectId into this route's subgroupId query parameter — the same token-resolved deep-link mechanism as LearnerProfileDetail's 'Dossier timeline' tile (lprof-kpis-dossier-timeline). Reads subgroupId from $route.query.subgroupId. No PHP CRUD controller — reads via the OpenRegister object API only.",
+			"config": {
+				"register": "learniq",
+				"schema": "group-plan-subgroup"
+			}
+		},
+		{
+			"id": "SupportRequests",
+			"route": "/support-requests",
+			"type": "index",
+			"title": "Support requests",
+			"config": {
+				"register": "learniq",
+				"schema": "support-request"
+			}
+		},
+		{
+			"id": "SupportRequestDetail",
+			"route": "/support-requests/:id",
+			"type": "detail",
+			"title": "Support request",
+			"config": {
+				"register": "learniq",
+				"schema": "support-request",
+				"_note": "A SupportRequest is the zorgvraag (support/care request) raised from a pupil's dossier — the school-side start of the Wet passend onderwijs SWV chain (openspec/changes/zorgvraag-swv-tlv-chain). Submitting it auto-queues a DataExchangeJob (target: swv) that routes an OSO-format dossier to the samenwerkingsverband, gated by the same pending-parent-review step OsoDossierReviewView already renders for target: oso jobs — reused here, not duplicated. Body leads with the request data (8-wide) and a Related panel resolving the learner and optional LearningPlan; TLV applications and deliberation records tracing to this request render as wide related-index panels. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. Zorg data is the most sensitive category this app handles (design.md Security Considerations) — full-detail read is restricted to admin/principal plus the raising coordinator.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "sr-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "HandshakeOutline"
+					},
+					{
+						"id": "sr-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "TLV applications",
+									"register": "learniq",
+									"schema": "tlv-application",
+									"metric": "count",
+									"filter": {
+										"supportRequestId": "@objectId"
+									},
+									"route": "TlvApplications"
+								},
+								{
+									"title": "Deliberation records",
+									"register": "learniq",
+									"schema": "deliberation-record",
+									"metric": "count",
+									"filter": {
+										"supportRequestId": "@objectId"
+									},
+									"route": "DeliberationRecords"
+								}
+							]
+						}
+					},
+					{
+						"id": "sr-tlvs",
+						"type": "object-list",
+						"title": "TLV applications",
+						"content": {
+							"register": "learniq",
+							"schema": "tlv-application",
+							"filter": {
+								"supportRequestId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "arrangementType",
+									"label": "Arrangement"
+								},
+								{
+									"key": "decision",
+									"label": "Decision"
+								},
+								{
+									"key": "validUntil",
+									"label": "Valid Until"
+								}
+							],
+							"rowRoute": "TlvApplicationDetail",
+							"viewAllRoute": "TlvApplications",
+							"viewAllQuery": {
+								"supportRequestId": "@objectId"
+							},
+							"emptyText": "No TLV applications found.",
+							"allowCreate": false
+						},
+						"icon": "FileSign"
+					},
+					{
+						"id": "sr-deliberations",
+						"type": "object-list",
+						"title": "Deliberation records",
+						"content": {
+							"register": "learniq",
+							"schema": "deliberation-record",
+							"filter": {
+								"supportRequestId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "scheduledAt",
+									"label": "Scheduled At"
+								},
+								{
+									"key": "outcome",
+									"label": "Outcome"
+								}
+							],
+							"rowRoute": "DeliberationRecordDetail",
+							"viewAllRoute": "DeliberationRecords",
+							"viewAllQuery": {
+								"supportRequestId": "@objectId"
+							},
+							"emptyText": "No deliberation records found.",
+							"allowCreate": false
+						},
+						"icon": "AccountGroup"
+					},
+					{
+						"id": "sr-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "sr-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "sr-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "sr-tlvs",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "sr-deliberations",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "sr-related",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
+						"gridHeight": 4,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "TlvApplications",
+			"route": "/tlv-applications",
+			"type": "index",
+			"title": "TLV applications",
+			"config": {
+				"register": "learniq",
+				"schema": "tlv-application"
+			}
+		},
+		{
+			"id": "TlvApplicationDetail",
+			"route": "/tlv-applications/:id",
+			"type": "detail",
+			"title": "TLV application",
+			"config": {
+				"register": "learniq",
+				"schema": "tlv-application",
+				"_note": "A TlvApplication is the toelaatbaarheidsverklaring (TLV) application tracing to a SupportRequest. Learniq RECORDS the samenwerkingsverband's decision — it never adjudicates it (design.md Decisions 'TLV decision recorded, never adjudicated'); there is no approval/rejection logic in this app. validUntil drives a declared tlvExpiringSoon calculation (no PHP TimedJob). Body leads with the application data (8-wide) and a Related panel resolving the SupportRequest and its linked deliberation records. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "tlv-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "FileSign"
+					},
+					{
+						"id": "tlv-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "tlv-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "tlv-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "DeliberationRecords",
+			"route": "/deliberation-records",
+			"type": "index",
+			"title": "Deliberation records",
+			"config": {
+				"register": "learniq",
+				"schema": "deliberation-record"
+			}
+		},
+		{
+			"id": "DeliberationRecordDetail",
+			"route": "/deliberation-records/:id",
+			"type": "detail",
+			"title": "Deliberation record",
+			"config": {
+				"register": "learniq",
+				"schema": "deliberation-record",
+				"readOnly": true,
+				"_note": "A DeliberationRecord is a structured, append-only record of a consultation round (parents, municipality, care partners, school, SWV coordinator) concerning a SupportRequest and/or TlvApplication. Carries the pupilVoice block first — heard/statementNote or waived/waiverReason — reflecting the 2025 Wet versterking positie ouders en leerlingen in passend onderwijs hoorrecht (insight 1145); the scheduled → recorded transition is HARD-BLOCKED by PupilVoiceGuard until pupilVoice is satisfied, so the Data widget below is the coordinator's only path to clear that gate — it cannot be missed without also being unable to finalise the record. appendOnly: true once recorded — readOnly here; a correction creates a new record referencing this one (correctsId), it never mutates it. Body leads with the full record data (8-wide, pupilVoice included) and a Related panel resolving the SupportRequest/TlvApplication and attendees. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "dr-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountGroup"
+					},
+					{
+						"id": "dr-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "dr-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 7,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "dr-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 7,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "MarkAttendanceView",
+			"route": "/sessions/:sessionId/attendance",
+			"type": "custom",
+			"title": "Mark attendance",
+			"component": "CnDataMatrix",
+			"_note": "Mounts CnDataMatrix from @conduction/nextcloud-vue for roster-based attendance marking (inline-edit grid with bulk + per-student state + late codes)."
+		},
+		{
+			"id": "ReportPeriods",
+			"route": "/report-periods",
+			"type": "index",
+			"title": "Report periods",
+			"config": {
+				"register": "learniq",
+				"schema": "report-period"
+			}
+		},
+		{
+			"id": "ReportPeriodDetail",
+			"route": "/report-periods/:id",
+			"type": "detail",
+			"title": "Report period",
+			"config": {
+				"register": "learniq",
+				"schema": "report-period",
+				"_note": "report-card-composer: a ReportPeriod is the school-wide term a periodic rapport is composed for (periodCode/academicYear/startDate/endDate/curriculumPlanIds/cohortIds/lockDate) — a config/scheduling archetype consumed by ReportCardComposer. Body leads with the period data (8-wide, includes the materialised isLocked calc) and a Related panel. lifecycleActions expose compose/archive declaratively; ReportPeriodComposeGuard blocks compose until isLocked. The richer compose confirmation (scope summary + lock-state explanation) lives in RapportvergaderingReviewView's ComposeReportPeriodModal, reached via the rapportvergadering review link. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "period-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Calendar"
+					},
+					{
+						"id": "period-cards",
+						"type": "object-list",
+						"title": "Report cards",
+						"content": {
+							"register": "learniq",
+							"schema": "report-card",
+							"filter": {
+								"reportPeriodId": "@object.id"
+							},
+							"sort": {
+								"field": "learnerId",
+								"dir": "asc"
+							},
+							"limit": 50,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								},
+								{
+									"key": "composedAt",
+									"label": "Composed at"
+								}
+							],
+							"rowRoute": "ReportCardDetail",
+							"viewAllRoute": "ReportCards",
+							"viewAllQuery": {
+								"reportPeriodId": "@object.id"
+							},
+							"emptyText": "No report cards composed yet.",
+							"allowCreate": false
+						},
+						"icon": "FileDocument"
+					},
+					{
+						"id": "period-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "period-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "period-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "period-cards",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ReportCards",
+			"route": "/report-cards",
+			"type": "index",
+			"title": "Report cards",
+			"config": {
+				"register": "learniq",
+				"schema": "report-card"
+			}
+		},
+		{
+			"id": "ReportCardDetail",
+			"route": "/report-cards/:id",
+			"type": "detail",
+			"title": "Report card",
+			"config": {
+				"register": "learniq",
+				"schema": "report-card",
+				"_note": "report-card-composer: a ReportCard is one composed periodic rapport for one learner (subjectGrades[] snapshotting FinalGrade.breakdown.periods[periodCode], attendanceSummary, teacher/mentor comments, fail-soft docudesk PDF-render state) — a document/record archetype. Body leads with the card data (8-wide, generic 'data' widget renders subjectGrades[]/attendanceSummary as-is, no content.fields allowlist needed per the DataMappingProfile.fieldMappings precedent) and a Related panel resolving the ReportPeriod/learner. lifecycleActions expose pullIntoReview/finalise/reopen/publishToParents/recompose/renderToPdf/rerenderToPdf declaratively — ReportCardFinaliseGuard/ReportCardReopenGuard/ReportCardVisibilityGuard enforce the review-then-publish gate server-side; the cohort-wide bulk review grid lives in the separate RapportvergaderingReviewView custom view. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "card-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "FileDocument"
+					},
+					{
+						"id": "card-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "card-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "card-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "RapportvergaderingReviewView",
+			"route": "/report-periods/:id/review",
+			"type": "custom",
+			"title": "Rapportvergadering review",
+			"component": "RapportvergaderingReviewView",
+			"_note": "report-card-composer: the cohort-wide rapportvergadering review grid (one row per learner's ReportCard, one column per in-scope subject, inline teacherComment/mentorComment editing, finalise/reopen/publishToParents actions) — no manifest page can render a cohort grid, mirrors GradebookView's existing precedent for the same reason. Also hosts the ComposeReportPeriodModal confirmation dialog for a still-`open` ReportPeriod."
+		},
+		{
+			"id": "SubjectChoices",
+			"route": "/subject-choice/choices",
+			"type": "index",
+			"title": "Subject choices",
+			"config": {
+				"register": "learniq",
+				"schema": "subject-choice"
+			}
+		},
+		{
+			"id": "SubjectChoiceDetail",
+			"route": "/subject-choice/choices/:id",
+			"type": "detail",
+			"title": "Subject choice",
+			"config": {
+				"register": "learniq",
+				"schema": "subject-choice",
+				"_note": "admissions-and-subject-choice: a SubjectChoice is a learner's vakkenpakket against a governing CurriculumPlan.electiveRules, gated by SubjectChoiceConsentGuard at submit and scored by SubjectChoiceValidator into validated/needs-revision. Body leads with the selection/consent/validationErrors data (8-wide) and a Related panel resolving the CurriculumPlan. lifecycleActions expose submit/revise/approve/lock as buttons. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "sc-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardCheckOutline"
+					},
+					{
+						"id": "sc-related",
+						"type": "related",
+						"title": "Related"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "sc-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6
+					},
+					{
+						"id": "2",
+						"widgetId": "sc-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "SubjectChoicePicker",
+			"route": "/subject-choice/picker",
+			"type": "custom",
+			"title": "Pick electives",
+			"component": "SubjectChoicePicker",
+			"_note": "admissions-and-subject-choice (task 5.3): the one genuine custom-view exception for subject choice -- an interactive elective picker for a CurriculumPlan showing live feedback against minElectives/maxElectives, mandatory combinations, and remaining capacityByCourseId before submission, which a generic manifest form cannot render. Every other SubjectChoice screen is a declarative manifest index/detail page."
+		},
+		{
+			"id": "LearningDashboard",
+			"route": "/learning",
+			"type": "custom",
+			"title": "Learning",
+			"component": "LearningDashboard",
+			"config": {
+				"register": "learniq"
+			},
+			"_note": "nav-restructure-dashboards: GroupLearning's navigable landing dashboard — a bespoke domain overview with no generic index/detail/dashboard analogue. The nav icon + group association live on the GroupLearning menu entry (base manifest + this fragment's menu route), not on the page (icon/group are not valid v2 page props)."
+		}
+	]
+}

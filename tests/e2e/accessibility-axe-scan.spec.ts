@@ -1,6 +1,6 @@
-import { test, expect } from './fixtures'
 import AxeBuilder from '@axe-core/playwright'
-import manifest from '../../src/manifest.json'
+import { effectiveManifest } from './effective-manifest.ts'
+import { expect, test } from './fixtures.ts'
 
 /**
  * accessibility-conformance-statement — automated accessibility scan (axe-core).
@@ -40,7 +40,7 @@ type SampledPage = { id: string; route: string }
 
 // Every `type: "index"` page with a static route — the bulk of the manifest,
 // uniform CnIndexPage shape, cheap to sample exhaustively.
-const indexPages: SampledPage[] = (manifest as any).pages
+const indexPages: SampledPage[] = (effectiveManifest as any).pages
 	.filter(
 		(p: any) =>
 			p.type === 'index'
@@ -60,7 +60,7 @@ const customPageIds = [
 	'RolloverWizard',
 	'AdmissionsReviewBoard',
 ]
-const customPages: SampledPage[] = (manifest as any).pages
+const customPages: SampledPage[] = (effectiveManifest as any).pages
 	.filter((p: any) => customPageIds.includes(p.id) && typeof p.route === 'string')
 	.map((p: any) => ({ id: p.id, route: p.route }))
 
