@@ -1,0 +1,165 @@
+{
+	"_meta": {
+		"spdx-license": "EUPL-1.2",
+		"spdx-copyright": "2026 Conduction B.V.",
+		"change": "manifest-fragment-split",
+		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
+		"description": "GroupExamBoard."
+	},
+	"menu": [
+		{
+			"id": "GroupExamBoard",
+			"label": "Exam board",
+			"icon": "ClipboardTextOutline",
+			"order": 28,
+			"children": [
+				{
+					"id": "ExemptionCasesMenu",
+					"label": "Exemption requests",
+					"icon": "Check",
+					"route": "ExemptionCases",
+					"order": 10
+				},
+				{
+					"id": "FraudCasesMenu",
+					"label": "Fraud cases",
+					"icon": "FolderAccountOutline",
+					"route": "FraudCases",
+					"order": 20
+				},
+				{
+					"id": "ItemRevisionFlagsMenu",
+					"label": "Item revision flags",
+					"icon": "FlagVariantOutline",
+					"route": "ItemRevisionFlags",
+					"order": 30
+				}
+			]
+		}
+	],
+	"pages": [
+		{
+			"id": "ItemRevisionFlags",
+			"route": "/assessments/item-revision-flags",
+			"type": "index",
+			"title": "Item revision flags",
+			"config": {
+				"register": "learniq",
+				"schema": "item-revision-flag",
+				"readOnly": true
+			}
+		},
+		{
+			"id": "ItemRevisionFlagDetail",
+			"route": "/assessments/item-revision-flags/:id",
+			"type": "detail",
+			"title": "Item revision flag",
+			"config": {
+				"register": "learniq",
+				"schema": "item-revision-flag",
+				"readOnly": true,
+				"_note": "assessment-item-pools-and-analysis: an ItemRevisionFlag is a raised quality-review signal (item, triggering statistics, reason) — an alert/case archetype, mirroring EngagementRiskFlag/BsaProgressFlag/AttendanceFlag. A review signal ONLY — it never alters the flagged Item automatically. Body leads with the flag data (8-wide) and a Related panel resolving the item and triggering ItemStatistics. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "irf-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AlertCircleOutline"
+					},
+					{
+						"id": "irf-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "irf-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "irf-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ExemptionCases",
+			"route": "/exam-board/exemptions",
+			"type": "index",
+			"title": "Exemption requests",
+			"config": {
+				"register": "learniq",
+				"schema": "exemption-case"
+			}
+		},
+		{
+			"id": "ExemptionCaseDetail",
+			"route": "/exam-board/exemptions/:id",
+			"type": "custom",
+			"title": "Exemption request",
+			"component": "ExamCaseDossierView",
+			"config": {
+				"register": "learniq",
+				"schema": "exemption-case"
+			},
+			"_note": "exam-board-case-handling: shared ExamCaseDossierView (the 'custom view only where a manifest page can't render it' exception) — a manifest detail page can render fields but not the accused/reporter-vs-examboard conditional withholding of hearing/decision internals this dossier needs for FraudCase; ExemptionCase reuses the same component (config.schema=exemption-case) for a consistent case-dossier layout even though it has no internal-detail withholding of its own."
+		},
+		{
+			"id": "FraudCases",
+			"route": "/exam-board/fraud-cases",
+			"type": "index",
+			"title": "Fraud cases",
+			"config": {
+				"register": "learniq",
+				"schema": "fraud-case"
+			}
+		},
+		{
+			"id": "FraudCaseDetail",
+			"route": "/exam-board/fraud-cases/:id",
+			"type": "custom",
+			"title": "Fraud case",
+			"component": "ExamCaseDossierView",
+			"config": {
+				"register": "learniq",
+				"schema": "fraud-case"
+			},
+			"_note": "exam-board-case-handling: FraudCase.x-property-rbac already fails closed server-side for anyone outside admin/examboard/accused/reporter; within that readable set, ExamCaseDossierView additionally withholds hearingRecords and decision-internal fields from anyone who is not the accused, the reporter, or an examboard member — an application-level UI convention, not server-enforced field RBAC (design.md §8)."
+		}
+	]
+}

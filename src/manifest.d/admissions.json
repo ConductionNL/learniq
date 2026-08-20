@@ -1,0 +1,258 @@
+{
+	"_meta": {
+		"spdx-license": "EUPL-1.2",
+		"spdx-copyright": "2026 Conduction B.V.",
+		"change": "manifest-fragment-split",
+		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
+		"description": "GroupAdmissions."
+	},
+	"menu": [
+		{
+			"id": "GroupAdmissions",
+			"label": "Admissions",
+			"icon": "Plus",
+			"order": 15,
+			"children": [
+				{
+					"id": "AdmissionsReviewBoardMenu",
+					"label": "Review board",
+					"icon": "CommentOutline",
+					"route": "AdmissionsReviewBoard",
+					"order": 10
+				},
+				{
+					"id": "ApplicationsMenu",
+					"label": "Applications",
+					"icon": "ApplicationOutline",
+					"route": "Applications",
+					"order": 20
+				},
+				{
+					"id": "AdmissionsRoundsMenu",
+					"label": "Admissions rounds",
+					"icon": "Calendar",
+					"route": "AdmissionsRounds",
+					"order": 30
+				}
+			]
+		}
+	],
+	"pages": [
+		{
+			"id": "LearningRecordImportView",
+			"route": "/admissions/applications/:applicationId/learning-record-import",
+			"type": "custom",
+			"title": "Import prior learning record",
+			"component": "LearningRecordImportView",
+			"_note": "portable-learning-record: coordinator upload + live coverage report for one Application's admissions intake, modeled directly on CoursePackageImportView's upload+live-report shape. Reachable from ApplicationDetail's related-index panel."
+		},
+		{
+			"id": "AdmissionsRounds",
+			"route": "/admissions/rounds",
+			"type": "index",
+			"title": "Admissions rounds",
+			"config": {
+				"register": "learniq",
+				"schema": "admissions-round"
+			}
+		},
+		{
+			"id": "AdmissionsRoundDetail",
+			"route": "/admissions/rounds/:id",
+			"type": "detail",
+			"title": "Admissions round",
+			"config": {
+				"register": "learniq",
+				"schema": "admissions-round",
+				"_note": "admissions-and-subject-choice: an AdmissionsRound is the intake norm config per Programme/level + academicYear (kind, applicationDeadline, mandatoryIntake, capacity) -- a config/rule archetype, mirroring BsaTrajectory/AttendanceThreshold. Body leads with the round definition (8-wide) and a Related panel resolving the scoped Programme. The Applications submitted into this round render as a wide related-index so a coordinator sees the round's intake at a glance. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "ar-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Calendar"
+					},
+					{
+						"id": "ar-applications",
+						"type": "object-list",
+						"title": "Applications",
+						"content": {
+							"register": "learniq",
+							"schema": "application",
+							"filter": {
+								"admissionsRoundId": "@objectId"
+							},
+							"sort": {
+								"field": "submittedAt",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "applicantGivenName",
+									"label": "Given name"
+								},
+								{
+									"key": "applicantFamilyName",
+									"label": "Family name"
+								},
+								{
+									"key": "lifecycle",
+									"label": "State"
+								},
+								{
+									"key": "submittedAt",
+									"label": "Submitted"
+								}
+							]
+						}
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "ar-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6
+					},
+					{
+						"id": "2",
+						"widgetId": "ar-applications",
+						"gridX": 0,
+						"gridY": 6,
+						"gridWidth": 12,
+						"gridHeight": 6
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "Applications",
+			"route": "/admissions/applications",
+			"type": "index",
+			"title": "Applications",
+			"config": {
+				"register": "learniq",
+				"schema": "application"
+			}
+		},
+		{
+			"id": "ApplicationDetail",
+			"route": "/admissions/applications/:id",
+			"type": "detail",
+			"title": "Application",
+			"config": {
+				"register": "learniq",
+				"schema": "application",
+				"_note": "admissions-and-subject-choice: an Application is the aanmelding a coordinator scores through an intake conversation to a placed/waitlisted/rejected decision, gated by AdmissionsDecisionGuard. Body leads with applicant/guardian/decision data (8-wide) and a Related panel resolving the AdmissionsRound and Programme applied for. lifecycleActions expose submit/scheduleIntake/completeIntake/place/waitlist/reject/withdraw as buttons. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "app-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountBoxOutline"
+					},
+					{
+						"id": "app-related",
+						"type": "related",
+						"title": "Related"
+					},
+					{
+						"id": "app-learning-record-imports",
+						"type": "object-list",
+						"title": "Prior learning records",
+						"icon": "FileDocument",
+						"_note": "portable-learning-record: presentation-only related-index panel resolving LearningRecordImport rows uploaded as evidence for this Application. Application's own schema is unchanged.",
+						"content": {
+							"register": "learniq",
+							"schema": "learning-record-import",
+							"filter": {
+								"applicationId": "@objectId"
+							}
+						}
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "app-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6
+					},
+					{
+						"id": "2",
+						"widgetId": "app-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6
+					},
+					{
+						"id": "3",
+						"widgetId": "app-learning-record-imports",
+						"gridX": 0,
+						"gridY": 6,
+						"gridWidth": 12,
+						"gridHeight": 4
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "AdmissionsReviewBoard",
+			"route": "/admissions/review-board",
+			"type": "custom",
+			"title": "Admissions review board",
+			"component": "AdmissionsReviewBoard",
+			"_note": "admissions-and-subject-choice (task 5.2): the one genuine custom-view exception for admissions -- a coordinator's queue of Applications in intake-completed needing a decision, cross-referencing each Application against its round's deadline, kind, and remaining capacity (a join a generic list widget cannot express), with a link to record the decision. Every other Application/AdmissionsRound screen is a declarative manifest index/detail page."
+		}
+	]
+}
