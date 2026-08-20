@@ -18,21 +18,21 @@
 					"label": "Dossier notes",
 					"icon": "CommentOutline",
 					"route": "DossierNotes",
-					"order": 10
+					"order": 60
 				},
 				{
 					"id": "BehaviourIncidentsMenu",
 					"label": "Behaviour incidents",
 					"icon": "AlertOutline",
 					"route": "BehaviourIncidents",
-					"order": 20
+					"order": 61
 				},
 				{
 					"id": "WellbeingCheckInsMenu",
 					"label": "Wellbeing check-ins",
 					"icon": "BriefcaseOutline",
 					"route": "WellbeingCheckIns",
-					"order": 30
+					"order": 62
 				}
 			]
 		}

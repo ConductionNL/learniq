@@ -18,21 +18,21 @@
 					"label": "Review board",
 					"icon": "CommentOutline",
 					"route": "AdmissionsReviewBoard",
-					"order": 10
+					"order": 50
 				},
 				{
 					"id": "ApplicationsMenu",
 					"label": "Applications",
 					"icon": "ApplicationOutline",
 					"route": "Applications",
-					"order": 20
+					"order": 51
 				},
 				{
 					"id": "AdmissionsRoundsMenu",
 					"label": "Admissions rounds",
 					"icon": "Calendar",
 					"route": "AdmissionsRounds",
-					"order": 30
+					"order": 52
 				}
 			]
 		}

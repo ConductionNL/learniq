@@ -18,35 +18,35 @@
 					"label": "Placements",
 					"icon": "BriefcaseOutline",
 					"route": "BpvPlacements",
-					"order": 10
+					"order": 710
 				},
 				{
 					"id": "PraktijkovereenkomstenMenu",
 					"label": "Praktijkovereenkomsten",
 					"icon": "FileOutline",
 					"route": "Praktijkovereenkomsten",
-					"order": 20
+					"order": 720
 				},
 				{
 					"id": "WerkprocesAssessmentsMenu",
 					"label": "Werkproces assessments",
 					"icon": "Check",
 					"route": "WerkprocesAssessments",
-					"order": 30
+					"order": 730
 				},
 				{
 					"id": "BpvVisitReportsMenu",
 					"label": "Visit reports",
 					"icon": "ChartBoxOutline",
 					"route": "BpvVisitReports",
-					"order": 40
+					"order": 740
 				},
 				{
 					"id": "PraktijkopleidersMenu",
 					"label": "Praktijkopleiders",
 					"icon": "AccountBox",
 					"route": "Praktijkopleiders",
-					"order": 50
+					"order": 750
 				}
 			]
 		}

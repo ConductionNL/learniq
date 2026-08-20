@@ -18,7 +18,7 @@
 					"label": "Book a conversation",
 					"icon": "Calendar",
 					"route": "BookConferenceSlotsView",
-					"order": 10,
+					"order": 70,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": ["guardian", "learner", "admin"]
@@ -30,21 +30,21 @@
 					"label": "Conference rounds",
 					"icon": "Calendar",
 					"route": "ConferenceRounds",
-					"order": 20
+					"order": 71
 				},
 				{
 					"id": "TeacherAvailabilitiesMenu",
 					"label": "Teacher availability",
 					"icon": "Calendar",
 					"route": "TeacherAvailabilities",
-					"order": 30
+					"order": 72
 				},
 				{
 					"id": "ConferenceScheduleBoardMenu",
 					"label": "Schedule board",
 					"icon": "Check",
 					"route": "ConferenceScheduleBoard",
-					"order": 40,
+					"order": 73,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": ["admin", "team-lead", "administration-manager"]
@@ -56,7 +56,7 @@
 					"label": "Conference reports",
 					"icon": "ChartBoxOutline",
 					"route": "ConferenceReports",
-					"order": 50
+					"order": 74
 				}
 			]
 		}

@@ -18,28 +18,28 @@
 					"label": "Risk dashboard",
 					"icon": "ViewDashboardOutline",
 					"route": "BsaRiskDashboard",
-					"order": 10
+					"order": 610
 				},
 				{
 					"id": "BsaTrajectoriesMenu",
 					"label": "Trajectories",
 					"icon": "BriefcaseOutline",
 					"route": "BsaTrajectories",
-					"order": 20
+					"order": 620
 				},
 				{
 					"id": "BsaWarningsMenu",
 					"label": "Warnings",
 					"icon": "Lock",
 					"route": "BsaWarnings",
-					"order": 30
+					"order": 630
 				},
 				{
 					"id": "BsaDecisionsMenu",
 					"label": "Decisions",
 					"icon": "Gavel",
 					"route": "BsaDecisions",
-					"order": 40
+					"order": 640
 				}
 			]
 		}

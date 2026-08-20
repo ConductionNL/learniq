@@ -18,21 +18,21 @@
 					"label": "Exemption requests",
 					"icon": "Check",
 					"route": "ExemptionCases",
-					"order": 10
+					"order": 60
 				},
 				{
 					"id": "FraudCasesMenu",
 					"label": "Fraud cases",
 					"icon": "FolderAccountOutline",
 					"route": "FraudCases",
-					"order": 20
+					"order": 61
 				},
 				{
 					"id": "ItemRevisionFlagsMenu",
 					"label": "Item revision flags",
 					"icon": "FlagVariantOutline",
 					"route": "ItemRevisionFlags",
-					"order": 30
+					"order": 62
 				}
 			]
 		}

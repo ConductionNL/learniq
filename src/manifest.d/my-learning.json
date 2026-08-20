@@ -8,6 +8,13 @@
 	},
 	"menu": [
 		{
+			"id": "GroupMyLearning",
+			"label": "My learning",
+			"icon": "AccountSchoolOutline",
+			"order": 29,
+			"route": "LearnerHome"
+		},
+		{
 			"id": "MyTimetableMenu",
 			"label": "My timetable",
 			"icon": "TableClock",
@@ -63,7 +70,9 @@
 						"icon": "TableColumn",
 						"content": {
 							"columns": 1,
-							"include": ["coverageReport"]
+							"include": [
+								"coverageReport"
+							]
 						}
 					}
 				],
@@ -210,7 +219,9 @@
 						"title": "Data",
 						"content": {
 							"columns": 2,
-							"exclude": ["sourceRef"]
+							"exclude": [
+								"sourceRef"
+							]
 						},
 						"icon": "FileSign"
 					},
@@ -221,7 +232,9 @@
 						"icon": "TableColumn",
 						"content": {
 							"columns": 1,
-							"include": ["entries"]
+							"include": [
+								"entries"
+							]
 						}
 					},
 					{

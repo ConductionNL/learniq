@@ -8,6 +8,13 @@
 	},
 	"menu": [
 		{
+			"id": "Dashboard",
+			"label": "Dashboard",
+			"icon": "ViewDashboardOutline",
+			"route": "Dashboard",
+			"order": 1
+		},
+		{
 			"id": "GroupInsight",
 			"label": "Insight",
 			"icon": "BriefcaseOutline",
@@ -39,7 +46,7 @@
 				},
 				{
 					"id": "DashboardStudent",
-					"label": "My learning",
+					"label": "Learner",
 					"icon": "SchoolOutline",
 					"route": "DashboardStudent",
 					"order": 7,
@@ -51,7 +58,7 @@
 				},
 				{
 					"id": "Compliance",
-					"label": "Compliance",
+					"label": "Overview",
 					"icon": "ClipboardCheckOutline",
 					"route": "Compliance",
 					"order": 30,
@@ -97,7 +104,7 @@
 					"label": "Accessibility feedback",
 					"icon": "CommentOutline",
 					"route": "AccessibilityFeedbacks",
-					"order": 42,
+					"order": 43,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": ["compliance-officer", "admin"]

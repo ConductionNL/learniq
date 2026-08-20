@@ -942,7 +942,13 @@
         "Import completed with some resources degraded or dropped.": "Import voltooid, met enkele verminderde of vervallen bronnen.",
         "Import failed.": "Import mislukt.",
         "Import in progress…": "Import wordt uitgevoerd…",
-        "Failed to import the package. Please try again.": "Het importeren van het pakket is mislukt. Probeer het opnieuw."
+        "Failed to import the package. Please try again.": "Het importeren van het pakket is mislukt. Probeer het opnieuw.",
+        "Overview": "Overzicht",
+        "Progress": "Voortgang",
+        "Compliance": "Compliance",
+        "My learning": "Mijn leren",
+        "Administration": "Beheer",
+        "Teaching": "Lesgeven"
     },
     "plurals": ""
 }

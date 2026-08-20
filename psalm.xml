@@ -28,7 +28,7 @@
              its ADR-023 methods (requireAction/getMatrix/setMatrix) to type-check
              both the DI factory in AppInfo\Application and every controller that
              type-hints ActionAuthService. -->
-        <file name="tests/Stubs/Service/AppHost/GenericActionAuthService.php" preloadClasses="true" />
+        <file name="tests/Stubs/AppHost/Service/GenericActionAuthService.php" preloadClasses="true" />
         <!-- Cross-app OpenRegister services that Learniq resolves dynamically from the
              container. Real classes live in openregister/lib/Service/. -->
         <file name="tests/Stubs/Service/TenantKeyService.php" preloadClasses="true" />

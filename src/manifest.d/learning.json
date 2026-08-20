@@ -146,14 +146,14 @@
 					"label": "Rooms",
 					"icon": "OfficeBuilding",
 					"route": "Rooms",
-					"order": 10
+					"order": 70
 				},
 				{
 					"id": "TimetableConflictQueueMenu",
 					"label": "Timetable conflicts",
 					"icon": "TableClock",
 					"route": "TimetableConflictQueue",
-					"order": 20,
+					"order": 71,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": ["admin", "coordinator"]
@@ -165,7 +165,7 @@
 					"label": "Exam accommodations",
 					"icon": "ClipboardTextOutline",
 					"route": "ExamAccommodations",
-					"order": 30
+					"order": 72
 				}
 			]
 		}
