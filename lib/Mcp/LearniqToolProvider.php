@@ -542,8 +542,12 @@ class LearniqToolProvider implements IMcpToolProvider {
 	 *   why both `_rbac` and `_multitenancy` are left at their default `true`.
 	 * - System admins are explicitly allowed (defensive; the RBAC gate also
 	 *   honours admin, but stating it here documents the intent).
-	 * - This helper MUST actually run — it does not return true unconditionally
-	 *   and is NOT wrapped in catch(\Throwable).
+	 * - This helper MUST actually run, and is NOT wrapped in catch(\Throwable).
+	 *   Its last statement is a plain `return true`, but the method as a whole
+	 *   is NOT unconditional: an anonymous caller and an empty uid have both
+	 *   already returned false above it. Both deny arms and this allow arm are
+	 *   pinned by tests in LearniqToolProviderTest, so the decision cannot be
+	 *   widened without a test turning red.
 	 *
 	 * @return bool True when the caller is an authenticated user.
 	 *
