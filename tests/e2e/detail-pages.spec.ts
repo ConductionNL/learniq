@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { test, expect } from './fixtures'
-import manifest from '../../src/manifest.json'
+import { effectiveManifest } from './effective-manifest.ts'
+import { expect, test } from './fixtures.ts'
 
 /**
  * Smoke-tests EVERY `type: "detail"` page declared in src/manifest.json with a
@@ -50,7 +50,7 @@ function resolveRoute(route: string): string {
 	return route.replace(/:([A-Za-z0-9_]+)/g, 'e2e-nonexistent')
 }
 
-const detailPages: DetailPage[] = (manifest as any).pages
+const detailPages: DetailPage[] = (effectiveManifest as any).pages
 	.filter((p: any) => p.type === 'detail' && typeof p.route === 'string')
 	.map((p: any) => ({ id: p.id, route: p.route, resolved: resolveRoute(p.route) }))
 

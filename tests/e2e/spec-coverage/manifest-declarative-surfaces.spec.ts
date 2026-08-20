@@ -31,13 +31,10 @@
  * never out of the spec, so those markers proved nothing and the gate correctly
  * kept reporting the scenarios as uncovered.
  */
-import { test, expect } from '../fixtures'
-import manifest from '../../../src/manifest.json'
+import type { Page } from '@playwright/test'
 
-// `import type { Page } from '@playwright/test'` trips
-// `n/no-unpublished-import` because Playwright is a devDependency; every other
-// spec in this repo spells the type inline for the same reason.
-type Page = import('@playwright/test').Page
+import { effectiveManifest } from '../effective-manifest.ts'
+import { expect, test } from '../fixtures.ts'
 
 type ManifestPage = {
 	id?: string
@@ -47,7 +44,8 @@ type ManifestPage = {
 	config?: { schema?: string }
 }
 
-const PAGES: ManifestPage[] = (manifest as { pages?: ManifestPage[] }).pages ?? []
+const PAGES: ManifestPage[] =
+	(effectiveManifest as { pages?: ManifestPage[] }).pages ?? []
 
 /**
  * ⚠️ Resolved at runtime, never hardcoded — see

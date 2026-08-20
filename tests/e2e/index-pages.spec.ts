@@ -1,7 +1,9 @@
+import type { Page as PWPage } from '@playwright/test'
+
 import * as fs from 'fs'
 import * as path from 'path'
-import { test, expect } from './fixtures'
-import manifest from '../../src/manifest.json'
+import { effectiveManifest } from './effective-manifest.ts'
+import { expect, test } from './fixtures.ts'
 
 /**
  * Visits EVERY `type: "index"` page declared in src/manifest.json and asserts:
@@ -71,7 +73,7 @@ const SEEDED =
 
 type IndexPage = { id: string; route: string; title: string; schema?: string }
 
-const indexPages: IndexPage[] = (manifest as any).pages
+const indexPages: IndexPage[] = (effectiveManifest as any).pages
 	.filter(
 		(p: any) =>
 			p.type === 'index'
@@ -85,7 +87,7 @@ const indexPages: IndexPage[] = (manifest as any).pages
 		schema: p.config?.schema,
 	}))
 
-function attachErrorCollector(page: import('@playwright/test').Page): string[] {
+function attachErrorCollector(page: PWPage): string[] {
 	const errs: string[] = []
 	page.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`))
 	page.on('console', (msg) => {

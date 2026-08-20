@@ -16,8 +16,9 @@
  *
  * That makes "the name appears in this file" worthless as evidence by itself.
  * Every `component` string below is therefore fed to `expect()`:
- * `manifestComponentFor(route)` reads `src/manifest.json` and the case asserts
- * the manifest really maps that route to that component. A typo, a rename or a
+ * `manifestComponentFor(route)` reads the effective (post-`buildManifest`)
+ * manifest and the case asserts the manifest really maps that route to that
+ * component. A typo, a rename or a
  * deleted manifest entry fails the test instead of silently continuing to pay
  * the gate. The token is load-bearing.
  *
@@ -51,14 +52,11 @@
  * assertions below are environment-stable and check the same property a
  * baseline is meant to check: that this route really renders THIS component.
  */
-import { test as authed, expect } from '../fixtures'
-import { createObject, firstObjectId } from '../or-api'
-import manifest from '../../../src/manifest.json'
+import type { Page } from '@playwright/test'
 
-// `import type { Page } from '@playwright/test'` trips
-// `n/no-unpublished-import` because Playwright is a devDependency; every other
-// spec in this repo spells the type inline for the same reason.
-type Page = import('@playwright/test').Page
+import { effectiveManifest } from '../effective-manifest.ts'
+import { test as authed, expect } from '../fixtures.ts'
+import { createObject, firstObjectId } from '../or-api.ts'
 
 /**
  * ⚠️ THE APP BASE IS RESOLVED AT RUNTIME, NOT HARDCODED.
@@ -142,15 +140,18 @@ async function resolveAppBase(page: Page): Promise<string> {
 }
 
 /**
- * The component `src/manifest.json` declares for a manifest route.
+ * The component the effective manifest declares for a manifest route.
  *
  * @param route The manifest `route` value, e.g. `/compliance/regulations/:slug`.
  * @return The declared component name, or null when no entry declares that route.
  */
 function manifestComponentFor(route: string): string | null {
 	const pages =
-		(manifest as { pages?: Array<{ route?: string; component?: string }> }).pages
-		?? []
+		(
+			effectiveManifest as {
+				pages?: Array<{ route?: string; component?: string }>
+			}
+		).pages ?? []
 	const entry = pages.find((p) => p.route === route)
 	return entry?.component ?? null
 }
