@@ -243,7 +243,7 @@ export default {
 
 .lrs-verify__raw pre {
 	white-space: pre-wrap;
-	word-break: break-word;
+	overflow-wrap: break-word;
 	max-height: 480px;
 	overflow: auto;
 	background: var(--color-background-dark, #f5f5f5);
