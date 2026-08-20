@@ -91,7 +91,9 @@ let appBase: string | null = null
  */
 async function resolveAppBase(page: Page): Promise<string> {
 	if (appBase) return appBase
-	await page.goto(ENTRY_URL)
+	// Same reasoning as goTo below: `load` waits for the whole 11.3 MiB
+	// entrypoint. The waitForFunction underneath is the real wait here.
+	await page.goto(ENTRY_URL, { waitUntil: 'domcontentloaded' })
 
 	// Guard the global instead of reading it blind.
 	//
@@ -207,13 +209,25 @@ async function openPage(page: Page, path: string, root: string): Promise<void> {
 /**
  * Navigate to an app route using the instance's real router base.
  *
+ * `waitUntil: 'domcontentloaded'` rather than Playwright's default `load`.
+ * `load` waits for every subresource, and this app's entrypoint bundle is
+ * 11.3 MiB — on a Nextcloud with many apps installed that routinely exceeds
+ * the 60s per-test budget, and the run then reports `page.goto` timeouts that
+ * look like application failures. Measured 2026-08-19: the HTML itself came
+ * back in ~5s while the container sat at 269% CPU.
+ *
+ * Nothing is lost by not waiting for `load`: every caller either asserts a
+ * component root is visible (see openPage) or asserts on content, and those
+ * assertions carry their own waits. Waiting for the last font to arrive was
+ * never what made these tests meaningful.
+ *
  * @param page The page to drive.
  * @param path The app-relative path.
  * @return void
  */
 async function goTo(page: Page, path: string): Promise<void> {
 	const base = await resolveAppBase(page)
-	await page.goto(`${base}${path}`)
+	await page.goto(`${base}${path}`, { waitUntil: 'domcontentloaded' })
 }
 
 authed.describe('gate-26 — every page component renders its own screen', () => {
