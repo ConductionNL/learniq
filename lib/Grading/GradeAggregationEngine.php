@@ -175,7 +175,9 @@ class GradeAggregationEngine {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
 	 */
 	private function effectiveWeight(array $entry, array $components): float {
-		if (isset($entry['weight']) === true && $entry['weight'] !== null) {
+		// `isset()` is already false for null — the `!== null` this replaces
+		// was unreachable.
+		if (isset($entry['weight']) === true) {
 			return (float)$entry['weight'];
 		}
 

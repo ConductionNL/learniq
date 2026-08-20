@@ -336,7 +336,11 @@ class ConferenceScheduleGenerator implements IEventListener {
 				)
 			);
 
-			$queues[$teacherId] = array_merge(($queues[$teacherId] ?? []), $free);
+			// Cast the key: this map is declared
+			// array<string,array<int,array<string,mixed>>> and passed BY
+			// REFERENCE into assignSlotsForSignup(), so an un-narrowed key
+			// degrades it at that boundary.
+			$queues[(string)$teacherId] = array_merge(($queues[(string)$teacherId] ?? []), $free);
 		}//end foreach
 
 		foreach ($queues as $teacherId => $queue) {
@@ -459,9 +463,13 @@ class ConferenceScheduleGenerator implements IEventListener {
 				continue;
 			}
 
-			$queue = ($queues[$teacherId] ?? []);
+			// Cast the key — $queues is declared
+			// array<string,array<int,array<string,mixed>>> and is taken BY
+			// REFERENCE by this method, so writing with an un-narrowed
+			// $teacherId degrades it to array<...> at the boundary.
+			$queue = ($queues[(string)$teacherId] ?? []);
 			$slot = $this->popNextNonOverlapping(queue: $queue, blocked: $assignedIntervals);
-			$queues[$teacherId] = $queue;
+			$queues[(string)$teacherId] = $queue;
 
 			if ($slot === null) {
 				$unmetTeacherIds[] = $teacherId;

@@ -242,7 +242,13 @@ class SessionWindowLoader {
 	 *
 	 * @param string $cohortId Cohort UUID.
 	 * @param string $tenantId Tenant scope.
-	 * @param array<string,array<string,mixed>> $cache Per-scan cache (mutated: entries added).
+	 * @param array<string,array<string,mixed>|null> $cache Per-scan cache (mutated: entries added).
+	 *        The `|null` is load-bearing: a MISS is cached as null so a repeat
+	 *        lookup short-circuits instead of re-querying — see
+	 *        `$cache[$cohortId] = $cohort` at the end of this method, and
+	 *        hasLinkedAssessment(), which already declared `string|null` for the
+	 *        same reason. The type this replaces claimed the cache never holds
+	 *        null while the method's own last statement writes it.
 	 *
 	 * @return array<string,mixed>|null The cohort data, or null.
 	 *
@@ -286,7 +292,9 @@ class SessionWindowLoader {
 	 *
 	 * @param string $roomId Room UUID.
 	 * @param string $tenantId Tenant scope.
-	 * @param array<string,array<string,mixed>> $cache Per-scan cache (mutated: entries added).
+	 * @param array<string,array<string,mixed>|null> $cache Per-scan cache (mutated: entries added).
+	 *        `|null` for the same reason as loadCohort(): a miss is cached as
+	 *        null so a repeat lookup short-circuits.
 	 *
 	 * @return array<string,mixed>|null The room data, or null.
 	 *

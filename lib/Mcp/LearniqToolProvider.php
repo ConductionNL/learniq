@@ -566,7 +566,12 @@ class LearniqToolProvider implements IMcpToolProvider {
 
 		// Authenticated non-admin user: allowed at the provider boundary;
 		// OpenRegister RBAC inside ObjectService scopes the actual rows.
-		return $userId !== '';
+		//
+		// Unconditionally true — the `$userId === ''` guard above has already
+		// returned false, so the `$userId !== ''` this replaces could not be
+		// reached as false. Stating it plainly keeps the allow decision
+		// visible rather than hiding it behind a check that never fires.
+		return true;
 	}//end requireCourseReadAccess()
 
 	/**
