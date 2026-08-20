@@ -77,7 +77,26 @@ Scholiq SHALL serve its per-user preferences, action authorization, repair-step 
 #### Scenario: Settings endpoints parity
 
 - **GIVEN** an admin
-- **WHEN** they call `GET /api/settings`, `POST /api/settings`, and `POST /api/settings/load`
+- **WHEN** they call `GET /api/settings`, `PUT /api/settings`, `POST /api/settings`, and `POST /api/settings/load`
 - **THEN** the responses MUST match the pre-adoption shapes (config keys incl. `register`, `openregisters`, `isAdmin`; load re-imports `scholiq_register.json`), still gated by `#[AuthorizedAdminSetting]`
+- **AND** `PUT /api/settings` (`settings#update`) MUST be the canonical write while `POST /api/settings` (`settings#create`) remains a behaviourally identical legacy alias delegating to it — neither verb may resolve to a missing route (405) or a missing method (500)
 - @e2e exclude API-only endpoint — covered by the OR AppHost Newman contract collection
 
+
+### Requirement: OpenRegister's Autoloader Is Registered Before AppHost Is Referenced
+
+`AppInfo\OpenRegisterAutoloader::register()` SHALL put OpenRegister's PSR-4 prefix on the composer autoloader — via `OC_App::registerAutoloading('openregister', …)` — before the composition root references any `OCA\OpenRegister\AppHost\…` name, including any `class_exists()` guard.
+
+Nextcloud registers apps in sorted order: `OC_App::getEnabledApps()` does `sort($apps)` and `Coordinator::registerApps()` walks that list calling `OC_App::registerAutoloading($appId, $path)` and then `$app->register()` for one app at a time, so every app's `register()` runs before the PSR-4 prefix of every alphabetically-later app exists.
+
+`OC_App::registerAutoloading()` is idempotent and touches only the autoloader. `IAppManager::loadApp('openregister')` MUST NOT be used instead: it marks OpenRegister loaded and calls `Coordinator::bootApp()`, booting OpenRegister before its own `register()` has run.
+
+The prelude MUST NOT throw under any instance state. An exception escaping it would abort the entire `register()`, which is strictly worse than the failure it prevents — `Coordinator::registerApps()` catches the Throwable, logs an `emergency` and continues, leaving the app enabled and serving with every later registration silently missing.
+
+These behaviours are asserted at the unit level rather than as spec scenarios,
+in `tests/Unit/AppInfo/OpenRegisterAutoloaderTest.php`, and mechanically by
+hydra gate-64 (`apphost-autoload-prelude`). Neither behaviour is reachable from
+a browser or an HTTP client: both live in the app-registration phase, which
+completes before the first request is dispatched, and the absent-OpenRegister
+path cannot be set up on an instance that must have OpenRegister to serve this
+app at all.

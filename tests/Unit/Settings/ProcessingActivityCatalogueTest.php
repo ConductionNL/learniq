@@ -2,28 +2,31 @@
 
 /**
  * Unit tests for the AVG Art. 30 processing-activity catalogue annotations
- * added to `scholiq_register.json` by the `avg-verwerkingsregister` change.
+ * added to `learniq_register.json` by the `avg-verwerkingsregister` change.
  *
- * Scholiq is a THIN CONSUMER of OpenRegister's platform processing-activity
- * register (OR-PA-1..9): it declares its seven processing activities as
- * `x-openregister-processing` catalogue annotations and opts the carrying
- * schemas into OpenRegister's per-access read-logging. The ProcessingActivity
- * entity, validation, lifecycle, versioning, review-due notifications, the
- * aggregate Art. 30 export, and the access gating all live in OpenRegister
- * (ADR-022); Scholiq owns NO export service, controller, schema, or template.
+ * Learniq is a THIN CONSUMER of OpenRegister's platform processing-activity
+ * register (OR-PA-1..9): it declares its ten processing activities (seven
+ * from the original catalogue plus the three pupil-dossier-notes activities
+ * — scholiq-pupil-dossier-notes, scholiq-behaviour-incidents,
+ * scholiq-wellbeing-checkins) as `x-openregister-processing` catalogue
+ * annotations and opts the carrying schemas into OpenRegister's per-access
+ * read-logging. The ProcessingActivity entity, validation, lifecycle,
+ * versioning, review-due notifications, the aggregate Art. 30 export, and
+ * the access gating all live in OpenRegister (ADR-022); Learniq owns NO
+ * export service, controller, schema, or template.
  *
  * These tests assert:
- *   - the seven activities are declared with the required catalogue fields;
+ *   - the ten activities are declared with the required catalogue fields;
  *   - each annotation opts the schema into read-logging and attributes to its
  *     own activity code (resolvable by OpenRegister's ProcessingLogService);
  *   - owner/review fields are present so OR-PA-1 review notifications fire,
- *     while Scholiq ships NO notification rule of its own;
+ *     while Learniq ships NO notification rule of its own;
  *   - the register requires a processing-capable OpenRegister (>= 0.2.14);
- *   - Scholiq ships NO route or controller that aggregates / exports
+ *   - Learniq ships NO route or controller that aggregates / exports
  *     processing activities (the export is OR-PA-7's).
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Settings
+ * @package  OCA\Learniq\Tests\Unit\Settings
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -38,7 +41,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Settings;
+namespace OCA\Learniq\Tests\Unit\Settings;
 
 use PHPUnit\Framework\TestCase;
 
@@ -46,238 +49,253 @@ use PHPUnit\Framework\TestCase;
  * Verifies the processing-activity catalogue contract, the read-log opt-in,
  * the audit-pack inclusion step, and the no-export-engine guard.
  */
-class ProcessingActivityCatalogueTest extends TestCase
-{
+class ProcessingActivityCatalogueTest extends TestCase {
 
-    /**
-     * Decoded register configuration.
-     *
-     * @var array<string, mixed>
-     */
-    private array $config;
+	/**
+	 * Decoded register configuration.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private array $config;
 
-    /**
-     * Map of carrying schema => expected activity code.
-     *
-     * @var array<string, string>
-     */
-    private const ACTIVITY_SCHEMAS = [
-        'LearnerProfile'   => 'scholiq-learner-administration',
-        'AttendanceRecord' => 'scholiq-attendance-leerplicht',
-        'Assessment'       => 'scholiq-grading-assessment',
-        'Attestation'      => 'scholiq-attestations',
-        'Credential'       => 'scholiq-credentialing',
-        'DataExchangeJob'  => 'scholiq-data-exchange',
-        'AiFeature'        => 'scholiq-ai-features',
-    ];
+	/**
+	 * Map of carrying schema => expected activity code.
+	 *
+	 * @var array<string, string>
+	 */
+	private const ACTIVITY_SCHEMAS = [
+		'LearnerProfile' => 'scholiq-learner-administration',
+		'AttendanceRecord' => 'scholiq-attendance-leerplicht',
+		'Assessment' => 'scholiq-grading-assessment',
+		'Attestation' => 'scholiq-attestations',
+		'Credential' => 'scholiq-credentialing',
+		'DataExchangeJob' => 'scholiq-data-exchange',
+		'AiFeature' => 'scholiq-ai-features',
+		'DossierNote' => 'scholiq-pupil-dossier-notes',
+		'BehaviourIncident' => 'scholiq-behaviour-incidents',
+		'WellbeingCheckIn' => 'scholiq-wellbeing-checkins',
+	];
 
+	/**
+	 * Load the register configuration once per test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		$path = __DIR__ . '/../../../lib/Settings/learniq_register.json';
+		$raw = file_get_contents($path);
+		$this->assertNotFalse($raw, 'learniq_register.json must be readable');
 
-    /**
-     * Load the register configuration once per test.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        $path = __DIR__.'/../../../lib/Settings/scholiq_register.json';
-        $raw  = file_get_contents($path);
-        $this->assertNotFalse($raw, 'scholiq_register.json must be readable');
+		$decoded = json_decode($raw, true);
+		$this->assertIsArray($decoded, 'learniq_register.json must be valid JSON');
+		$this->config = $decoded;
 
-        $decoded = json_decode($raw, true);
-        $this->assertIsArray($decoded, 'scholiq_register.json must be valid JSON');
-        $this->config = $decoded;
+	}//end setUp()
 
-    }//end setUp()
+	/**
+	 * The ten activities are declared, each on its carrying schema, with the
+	 * required Art. 30 catalogue fields and its own attribution code.
+	 *
+	 * @return void
+	 */
+	public function testTenActivitiesDeclaredWithCatalogueFields(): void {
+		$schemas = $this->config['components']['schemas'] ?? [];
+		$codes = [];
 
+		foreach (self::ACTIVITY_SCHEMAS as $schemaName => $expectedCode) {
+			$this->assertArrayHasKey($schemaName, $schemas, "schema $schemaName MUST exist");
+			$processing = $schemas[$schemaName]['x-openregister-processing'] ?? null;
+			$this->assertIsArray($processing, "$schemaName MUST carry x-openregister-processing");
 
-    /**
-     * The seven activities are declared, each on its carrying schema, with the
-     * required Art. 30 catalogue fields and its own attribution code.
-     *
-     * @return void
-     */
-    public function testSevenActivitiesDeclaredWithCatalogueFields(): void
-    {
-        $schemas = $this->config['components']['schemas'] ?? [];
-        $codes   = [];
+			// Required Art. 30 catalogue fields.
+			foreach (['code', 'naam', 'doelbinding', 'rechtsgrond', 'dataCategories', 'backend', 'retentionReference', 'grondslagSource'] as $field) {
+				$this->assertArrayHasKey($field, $processing, "$schemaName.$field MUST be declared");
+				$this->assertNotEmpty($processing[$field], "$schemaName.$field MUST be non-empty");
+			}
 
-        foreach (self::ACTIVITY_SCHEMAS as $schemaName => $expectedCode) {
-            $this->assertArrayHasKey($schemaName, $schemas, "schema $schemaName MUST exist");
-            $processing = $schemas[$schemaName]['x-openregister-processing'] ?? null;
-            $this->assertIsArray($processing, "$schemaName MUST carry x-openregister-processing");
+			$this->assertSame($expectedCode, $processing['code'], "$schemaName MUST declare code $expectedCode");
+			$codes[] = $processing['code'];
+		}
 
-            // Required Art. 30 catalogue fields.
-            foreach (['code', 'naam', 'doelbinding', 'rechtsgrond', 'dataCategories', 'backend', 'retentionReference', 'grondslagSource'] as $field) {
-                $this->assertArrayHasKey($field, $processing, "$schemaName.$field MUST be declared");
-                $this->assertNotEmpty($processing[$field], "$schemaName.$field MUST be non-empty");
-            }
+		$this->assertCount(10, array_unique($codes), 'Exactly ten distinct activity codes expected');
 
-            $this->assertSame($expectedCode, $processing['code'], "$schemaName MUST declare code $expectedCode");
-            $codes[] = $processing['code'];
-        }
+	}//end testTenActivitiesDeclaredWithCatalogueFields()
 
-        $this->assertCount(7, array_unique($codes), 'Exactly seven distinct activity codes expected');
+	/**
+	 * Each annotation opts the schema into read-logging and attributes reads
+	 * to its own activity code (resolvable by OpenRegister by code).
+	 *
+	 * @return void
+	 */
+	public function testActivitiesOptInToReadLoggingAndSelfAttribute(): void {
+		$schemas = $this->config['components']['schemas'] ?? [];
 
-    }//end testSevenActivitiesDeclaredWithCatalogueFields()
+		foreach (self::ACTIVITY_SCHEMAS as $schemaName => $expectedCode) {
+			$processing = $schemas[$schemaName]['x-openregister-processing'];
 
+			$this->assertTrue(
+				($processing['logReads'] ?? false) === true,
+				"$schemaName MUST opt into per-access read logging (logReads: true)"
+			);
 
-    /**
-     * Each annotation opts the schema into read-logging and attributes reads
-     * to its own activity code (resolvable by OpenRegister by code).
-     *
-     * @return void
-     */
-    public function testActivitiesOptInToReadLoggingAndSelfAttribute(): void
-    {
-        $schemas = $this->config['components']['schemas'] ?? [];
+			$this->assertArrayHasKey('attribution', $processing, "$schemaName MUST declare attribution");
+			$this->assertSame(
+				$expectedCode,
+				$processing['attribution']['default'] ?? null,
+				"$schemaName attribution.default MUST reference its own activity code"
+			);
 
-        foreach (self::ACTIVITY_SCHEMAS as $schemaName => $expectedCode) {
-            $processing = $schemas[$schemaName]['x-openregister-processing'];
+			$this->assertArrayHasKey('subjectIdFields', $processing, "$schemaName MUST declare subjectIdFields (may be empty)");
+			$this->assertIsArray($processing['subjectIdFields']);
+		}
 
-            $this->assertTrue(
-                ($processing['logReads'] ?? false) === true,
-                "$schemaName MUST opt into per-access read logging (logReads: true)"
-            );
+	}//end testActivitiesOptInToReadLoggingAndSelfAttribute()
 
-            $this->assertArrayHasKey('attribution', $processing, "$schemaName MUST declare attribution");
-            $this->assertSame(
-                $expectedCode,
-                $processing['attribution']['default'] ?? null,
-                "$schemaName attribution.default MUST reference its own activity code"
-            );
+	/**
+	 * Each activity carries owner/review fields so OpenRegister's review-due
+	 * notification (OR-PA-1) fires — and Learniq ships NO notification rule of
+	 * its own for processing-activity reviews.
+	 *
+	 * @return void
+	 */
+	public function testOwnerReviewFieldsPresentAndNoLearniqNotificationRule(): void {
+		$schemas = $this->config['components']['schemas'] ?? [];
 
-            $this->assertArrayHasKey('subjectIdFields', $processing, "$schemaName MUST declare subjectIdFields (may be empty)");
-            $this->assertIsArray($processing['subjectIdFields']);
-        }
+		foreach (self::ACTIVITY_SCHEMAS as $schemaName => $code) {
+			$processing = $schemas[$schemaName]['x-openregister-processing'];
 
-    }//end testActivitiesOptInToReadLoggingAndSelfAttribute()
+			foreach (['ownerUserId', 'reviewIntervalMonths', 'nextReviewAt'] as $field) {
+				$this->assertArrayHasKey($field, $processing, "$schemaName.$field MUST be set so OR-PA-1 review notifications fire");
+				$this->assertNotEmpty($processing[$field], "$schemaName.$field MUST be non-empty");
+			}
 
+			// Seeds arrive as drafts; the privacy officer activates them.
+			$this->assertSame('draft', $processing['lifecycle'] ?? null, "$schemaName MUST seed as a draft");
 
-    /**
-     * Each activity carries owner/review fields so OpenRegister's review-due
-     * notification (OR-PA-1) fires — and Scholiq ships NO notification rule of
-     * its own for processing-activity reviews.
-     *
-     * @return void
-     */
-    public function testOwnerReviewFieldsPresentAndNoScholiqNotificationRule(): void
-    {
-        $schemas = $this->config['components']['schemas'] ?? [];
+			// No notification rule referencing processing-activity reviews lives
+			// in the carrying schema — the platform owns the notification.
+			$encoded = (string)json_encode($schemas[$schemaName]['x-openregister-notifications'] ?? []);
+			$this->assertStringNotContainsStringIgnoringCase(
+				'review',
+				$encoded,
+				"$schemaName MUST NOT declare a processing-activity review notification rule"
+			);
+		}
 
-        foreach (self::ACTIVITY_SCHEMAS as $schemaName => $code) {
-            $processing = $schemas[$schemaName]['x-openregister-processing'];
+	}//end testOwnerReviewFieldsPresentAndNoLearniqNotificationRule()
 
-            foreach (['ownerUserId', 'reviewIntervalMonths', 'nextReviewAt'] as $field) {
-                $this->assertArrayHasKey($field, $processing, "$schemaName.$field MUST be set so OR-PA-1 review notifications fire");
-                $this->assertNotEmpty($processing[$field], "$schemaName.$field MUST be non-empty");
-            }
+	/**
+	 * The register requires the OpenRegister version that ships the per-access
+	 * read-logging dialect (>= 0.2.14).
+	 *
+	 * @return void
+	 */
+	public function testRegisterRequiresProcessingCapableOpenRegister(): void {
+		$constraint = (string)($this->config['x-openregister']['openregister'] ?? '');
+		$this->assertNotSame('', $constraint, 'OpenRegister version constraint MUST be declared');
 
-            // Seeds arrive as drafts; the privacy officer activates them.
-            $this->assertSame('draft', $processing['lifecycle'] ?? null, "$schemaName MUST seed as a draft");
+		// Extract the minor version from a `^vX.Y.Z` style constraint.
+		$this->assertMatchesRegularExpression('/0\.2\.(1[4-9]|[2-9][0-9]|[3-9])/', $constraint, 'OpenRegister constraint MUST be >= 0.2.14');
 
-            // No notification rule referencing processing-activity reviews lives
-            // in the carrying schema — the platform owns the notification.
-            $encoded = (string) json_encode($schemas[$schemaName]['x-openregister-notifications'] ?? []);
-            $this->assertStringNotContainsStringIgnoringCase('review', $encoded, "$schemaName MUST NOT declare a processing-activity review notification rule");
-        }
+	}//end testRegisterRequiresProcessingCapableOpenRegister()
 
-    }//end testOwnerReviewFieldsPresentAndNoScholiqNotificationRule()
+	/**
+	 * The compliance audit-pack writer includes the platform-generated
+	 * verwerkingsregister artefact and degrades loudly when the platform
+	 * capability is absent — and ships NO export engine of its own.
+	 *
+	 * @return void
+	 */
+	public function testAuditPackIncludesVerwerkingsregisterAndFailsLoudly(): void {
+		// The audit-pack writer spans the controller and the collaborators it
+		// delegates to (AuditPackBuilder assembles the artefact set,
+		// VerwerkingsregisterCsvBuilder sources the Art. 30 slice from OR).
+		$writerFiles = [
+			__DIR__ . '/../../../lib/Controller/AuditPackExportController.php',
+			__DIR__ . '/../../../lib/Service/AuditPackBuilder.php',
+			__DIR__ . '/../../../lib/Service/VerwerkingsregisterCsvBuilder.php',
+		];
 
+		$source = '';
+		foreach ($writerFiles as $writerFile) {
+			$this->assertFileExists($writerFile);
+			$fileSource = file_get_contents($writerFile);
+			$this->assertIsString($fileSource);
+			$source .= $fileSource;
+		}
 
-    /**
-     * The register requires the OpenRegister version that ships the per-access
-     * read-logging dialect (>= 0.2.14).
-     *
-     * @return void
-     */
-    public function testRegisterRequiresProcessingCapableOpenRegister(): void
-    {
-        $constraint = (string) ($this->config['x-openregister']['openregister'] ?? '');
-        $this->assertNotSame('', $constraint, 'OpenRegister version constraint MUST be declared');
+		// The artefact is added to the ZIP file set.
+		$this->assertStringContainsString(
+			"'verwerkingsregister.csv'",
+			$source,
+			'The audit pack MUST include a verwerkingsregister.csv artefact'
+		);
 
-        // Extract the minor version from a `^vX.Y.Z` style constraint.
-        $this->assertMatchesRegularExpression('/0\.2\.(1[4-9]|[2-9][0-9]|[3-9])/', $constraint, 'OpenRegister constraint MUST be >= 0.2.14');
+		// The artefact is fetched from OpenRegister's processing-log capability
+		// (OR-PA-7/8) — learniq does not generate the register itself.
+		$this->assertStringContainsString(
+			'openregister.processingLog.index',
+			$source,
+			'The verwerkingsregister artefact MUST be sourced from OpenRegister, not generated by learniq'
+		);
 
-    }//end testRegisterRequiresProcessingCapableOpenRegister()
+		// The capability-missing path degrades loudly, never silently.
+		$this->assertStringContainsString(
+			'PLATFORM CAPABILITY MISSING',
+			$source,
+			'A missing platform capability MUST surface a loud warning, never a silent omission'
+		);
 
+	}//end testAuditPackIncludesVerwerkingsregisterAndFailsLoudly()
 
-    /**
-     * The compliance audit-pack writer includes the platform-generated
-     * verwerkingsregister artefact and degrades loudly when the platform
-     * capability is absent — and ships NO export engine of its own.
-     *
-     * @return void
-     */
-    public function testAuditPackIncludesVerwerkingsregisterAndFailsLoudly(): void
-    {
-        $source = file_get_contents(__DIR__.'/../../../lib/Controller/AuditPackExportController.php');
-        $this->assertIsString($source);
+	/**
+	 * Learniq ships NO endpoint or controller that aggregates / exports
+	 * processing activities — that surface is OpenRegister's (OR-PA-7), per
+	 * ADR-022.
+	 *
+	 * @return void
+	 */
+	public function testNoLearniqProcessingExportEndpointExists(): void {
+		$routesPath = __DIR__ . '/../../../appinfo/routes.php';
+		$routes = include $routesPath;
+		$this->assertIsArray($routes);
 
-        // The artefact is added to the ZIP file set.
-        $this->assertStringContainsString(
-            "'verwerkingsregister.csv'",
-            $source,
-            'The audit pack MUST include a verwerkingsregister.csv artefact'
-        );
+		$names = [];
+		foreach (($routes['routes'] ?? []) as $route) {
+			$names[] = strtolower((string)($route['name'] ?? ''));
+		}
 
-        // The artefact is fetched from OpenRegister's processing-log capability
-        // (OR-PA-7/8) — scholiq does not generate the register itself.
-        $this->assertStringContainsString(
-            'openregister.processingLog.index',
-            $source,
-            'The verwerkingsregister artefact MUST be sourced from OpenRegister, not generated by scholiq'
-        );
+		$forbidden = ['verwerkingen', 'verwerkingsactiviteit', 'verwerkingsregister', 'processingactivit', 'art30', 'art-30'];
+		foreach ($names as $name) {
+			foreach ($forbidden as $needle) {
+				$this->assertStringNotContainsString(
+					$needle,
+					$name,
+					"Learniq MUST NOT register a processing-activity export route ($name) — the export is OR-PA-7's"
+				);
+			}
+		}
 
-        // The capability-missing path degrades loudly, never silently.
-        $this->assertStringContainsString(
-            'PLATFORM CAPABILITY MISSING',
-            $source,
-            'A missing platform capability MUST surface a loud warning, never a silent omission'
-        );
+		// No controller class implements an aggregation/export surface.
+		$controllerDir = __DIR__ . '/../../../lib/Controller';
+		$this->assertDirectoryExists($controllerDir);
+		$hits = glob($controllerDir . '/*ProcessingActivit*Controller.php');
+		if ($hits === false) {
+			$hits = [];
+		}
 
-    }//end testAuditPackIncludesVerwerkingsregisterAndFailsLoudly()
+		$processingHits = glob($controllerDir . '/*Verwerking*Controller.php');
+		if ($processingHits === false) {
+			$processingHits = [];
+		}
 
+		$hits = array_merge($hits, $processingHits);
+		$this->assertSame([], $hits, 'Learniq MUST NOT ship a processing-activity / verwerkingsregister controller');
 
-    /**
-     * Scholiq ships NO endpoint or controller that aggregates / exports
-     * processing activities — that surface is OpenRegister's (OR-PA-7), per
-     * ADR-022.
-     *
-     * @return void
-     */
-    public function testNoScholiqProcessingExportEndpointExists(): void
-    {
-        $routesPath = __DIR__.'/../../../appinfo/routes.php';
-        $routes     = require $routesPath;
-        $this->assertIsArray($routes);
+		// No schema named ProcessingActivity is defined in learniq's register —
+		// the entity is OpenRegister's (OR-PA-1).
+		$schemas = $this->config['components']['schemas'] ?? [];
+		$this->assertArrayNotHasKey('ProcessingActivity', $schemas, 'Learniq MUST NOT define a ProcessingActivity schema — the entity is OR-PA-1');
 
-        $names = [];
-        foreach (($routes['routes'] ?? []) as $route) {
-            $names[] = strtolower((string) ($route['name'] ?? ''));
-        }
-
-        $forbidden = ['verwerkingen', 'verwerkingsactiviteit', 'verwerkingsregister', 'processingactivit', 'art30', 'art-30'];
-        foreach ($names as $name) {
-            foreach ($forbidden as $needle) {
-                $this->assertStringNotContainsString(
-                    $needle,
-                    $name,
-                    "Scholiq MUST NOT register a processing-activity export route ($name) — the export is OR-PA-7's"
-                );
-            }
-        }
-
-        // No controller class implements an aggregation/export surface.
-        $controllerDir = __DIR__.'/../../../lib/Controller';
-        $this->assertDirectoryExists($controllerDir);
-        $hits = glob($controllerDir.'/*ProcessingActivit*Controller.php') ?: [];
-        $hits = array_merge($hits, (glob($controllerDir.'/*Verwerking*Controller.php') ?: []));
-        $this->assertSame([], $hits, 'Scholiq MUST NOT ship a processing-activity / verwerkingsregister controller');
-
-        // No schema named ProcessingActivity is defined in scholiq's register —
-        // the entity is OpenRegister's (OR-PA-1).
-        $schemas = $this->config['components']['schemas'] ?? [];
-        $this->assertArrayNotHasKey('ProcessingActivity', $schemas, 'Scholiq MUST NOT define a ProcessingActivity schema — the entity is OR-PA-1');
-
-    }//end testNoScholiqProcessingExportEndpointExists()
+	}//end testNoLearniqProcessingExportEndpointExists()
 }//end class

@@ -3,27 +3,27 @@
 
 <!--
  KpiCard widget — a single KPI stat tile.
- Fetches the count of objects from OpenRegister (scholiq register) via the
+ Fetches the count of objects from OpenRegister (learniq register) via the
  REST objects endpoint with _limit=1 to read the `total` field. Shows a
  CnStatsBlock (big number + label); NcLoadingIcon while fetching; "0" on failure.
 -->
 <template>
-	<div class="kpi-card" :class="link ? 'kpi-card--linkable' : ''" @click="navigate">
+	<div class="kpi-card" :class="link ? 'kpi-card--linkable' : ''">
 		<CnStatsBlock
 			:title="label"
 			:count="count"
 			:loading="loading"
 			:icon="icon"
 			:variant="variant"
-			:clickable="!!link"
+			:route="routeTarget"
 			horizontal />
 	</div>
 </template>
 
 <script>
+import { CnStatsBlock } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { CnStatsBlock } from '@conduction/nextcloud-vue'
 
 export default {
 	name: 'KpiCard',
@@ -38,26 +38,31 @@ export default {
 			type: String,
 			required: true,
 		},
+
 		/** Human-readable label */
 		label: {
 			type: String,
 			required: true,
 		},
+
 		/** MDI icon component (optional) */
 		icon: {
 			type: [Object, Function],
 			default: null,
 		},
+
 		/** Router-link target path (optional) */
 		link: {
 			type: String,
 			default: null,
 		},
+
 		/** Additional query filters, e.g. { lifecycle: 'active' } */
 		filter: {
 			type: Object,
 			default: () => ({}),
 		},
+
 		/** CnStatsBlock colour variant */
 		variant: {
 			type: String,
@@ -70,6 +75,23 @@ export default {
 			count: 0,
 			loading: true,
 		}
+	},
+
+	computed: {
+		/**
+		 * Vue Router location for the tile, or null when the tile is static.
+		 *
+		 * Passing `route` (rather than `clickable` + a click handler) makes
+		 * CnStatsBlock render a real <router-link>, so the tile is reachable by
+		 * keyboard, exposed to assistive tech as a link, and supports
+		 * middle-click / open-in-new-tab. A bare <div @click> was none of those.
+		 *
+		 * @return {object|null} Router location object, or null when not linkable.
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
+		 */
+		routeTarget() {
+			return this.link ? { path: this.link } : null
+		},
 	},
 
 	created() {
@@ -88,28 +110,22 @@ export default {
 			try {
 				const params = new URLSearchParams({ _limit: '1', ...this.filter })
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/' + this.schema + '?' + params.toString(),
+					'/apps/openregister/api/objects/learniq/'
+						+ this.schema
+						+ '?'
+						+ params.toString(),
 				)
 				const response = await axios.get(url)
 				const data = response.data ?? {}
 				// OR paginated envelope uses `total`, `count`, or object array length
-				this.count = data.total ?? data.count ?? (Array.isArray(data.results) ? data.results.length : 0)
+				this.count =
+					data.total
+					?? data.count
+					?? (Array.isArray(data.results) ? data.results.length : 0)
 			} catch {
 				this.count = 0
 			} finally {
 				this.loading = false
-			}
-		},
-
-		/**
-		 * Navigate to the configured router link when the card is clickable.
-		 *
-		 * @return {void}
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
-		 */
-		navigate() {
-			if (this.link) {
-				this.$router.push(this.link).catch(() => {})
 			}
 		},
 	},

@@ -7,7 +7,7 @@
  * covering route-wiring (#174) and JWS proof validation (C1).
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Controller
+ * @package  OCA\Learniq\Tests\Unit\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -22,14 +22,18 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Controller;
+namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Controller\CredentialVerifyController;
-use OCA\Scholiq\Service\KeyManagementService;
+use OCA\Learniq\Controller\CredentialVerifyController;
+use OCA\Learniq\Service\KeyManagementService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
+use RuntimeException;
+use OCP\Security\Bruteforce\IThrottler;
+use Psr\Log\LoggerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -40,332 +44,386 @@ use PHPUnit\Framework\TestCase;
  * tests confirm the controller behaves correctly for every credential state,
  * meaning any 500 caused by wrong-controller wiring is now a test failure.
  */
-class CredentialVerifyControllerTest extends TestCase
-{
-    /**
-     * The controller under test.
-     *
-     * @var CredentialVerifyController
-     */
-    private CredentialVerifyController $controller;
+class CredentialVerifyControllerTest extends TestCase {
+	/**
+	 * The controller under test.
+	 *
+	 * @var CredentialVerifyController
+	 */
+	private CredentialVerifyController $controller;
 
-    /**
-     * ObjectService mock.
-     *
-     * @var ObjectService&MockObject
-     */
-    private ObjectService&MockObject $objectService;
+	/**
+	 * ObjectService mock.
+	 *
+	 * @var ObjectService&MockObject
+	 */
+	private ObjectService&MockObject $objectService;
 
-    /**
-     * KeyManagementService mock.
-     *
-     * @var KeyManagementService&MockObject
-     */
-    private KeyManagementService&MockObject $keyManagementService;
+	/**
+	 * KeyManagementService mock.
+	 *
+	 * @var KeyManagementService&MockObject
+	 */
+	private KeyManagementService&MockObject $keyManagementService;
 
-    /**
-     * RSA test private key PEM.
-     *
-     * @var string
-     */
-    private string $privateKeyPem = '';
+	/**
+	 * Brute-force throttler mock — held so the tests can assert WHICH
+	 * failure shapes register an attempt and which deliberately do not.
+	 *
+	 * @var IThrottler&MockObject
+	 */
+	private IThrottler&MockObject $throttler;
 
-    /**
-     * RSA test public key PEM.
-     *
-     * @var string
-     */
-    private string $publicKeyPem = '';
+	/**
+	 * RSA test private key PEM.
+	 *
+	 * @var string
+	 */
+	private string $privateKeyPem = '';
 
-    /**
-     * Set up the controller under test.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
+	/**
+	 * RSA test public key PEM.
+	 *
+	 * @var string
+	 */
+	private string $publicKeyPem = '';
 
-        // Generate a fresh RSA keypair for tests that need real JWS verification.
-        $resource      = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_RSA, 'private_key_bits' => 2048]);
-        $privateKeyPem = '';
-        openssl_pkey_export($resource, $privateKeyPem);
-        $this->privateKeyPem = $privateKeyPem;
-        $details             = openssl_pkey_get_details($resource);
-        $this->publicKeyPem  = $details['key'];
+	/**
+	 * Set up the controller under test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
 
-        $this->objectService        = $this->createMock(ObjectService::class);
-        $this->keyManagementService = $this->createMock(KeyManagementService::class);
+		// Generate a fresh RSA keypair for tests that need real JWS verification.
+		$resource = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_RSA, 'private_key_bits' => 2048]);
+		$privateKeyPem = '';
+		openssl_pkey_export($resource, $privateKeyPem);
+		$this->privateKeyPem = $privateKeyPem;
+		$details = openssl_pkey_get_details($resource);
+		$this->publicKeyPem = $details['key'];
 
-        $this->controller = new CredentialVerifyController(
-            request: $this->createMock(IRequest::class),
-            objectService: $this->objectService,
-            keyManagementService: $this->keyManagementService,
-        );
-    }//end setUp()
+		$this->objectService = $this->createMock(ObjectService::class);
+		$this->keyManagementService = $this->createMock(KeyManagementService::class);
+		$this->throttler = $this->createMock(IThrottler::class);
 
-    /**
-     * Create a stub ObjectEntity mock with the given serialized data.
-     *
-     * @param array<string,mixed> $data The data returned by jsonSerialize().
-     *
-     * @return ObjectEntity&MockObject
-     */
-    private function stubEntity(array $data): ObjectEntity&MockObject
-    {
-        $mock = $this->createMock(ObjectEntity::class);
-        $mock->method('jsonSerialize')->willReturn($data);
-        return $mock;
-    }//end stubEntity()
+		$this->controller = new CredentialVerifyController(
+			request: $this->createMock(IRequest::class),
+			objectService: $this->objectService,
+			keyManagementService: $this->keyManagementService,
+			throttler: $this->throttler,
+			logger: $this->createMock(LoggerInterface::class),
+		);
+	}//end setUp()
 
-    /**
-     * Build a valid compact JWS with detached payload (matching CredentialSigningService format).
-     *
-     * @param array<string,mixed> $payloadToSign The OB3 payload (without proof).
-     * @param string              $kid           Key fingerprint for the header.
-     *
-     * @return string Compact JWS string.
-     */
-    private function buildValidJws(array $payloadToSign, string $kid): string
-    {
-        $headerJson    = (string) json_encode(['alg' => 'RS256', 'b64' => false, 'crit' => ['b64'], 'kid' => $kid]);
-        $headerB64     = rtrim(strtr(base64_encode($headerJson), '+/', '-_'), '=');
-        // H6: sort keys recursively to match CredentialSigningService::canonicalisePayload.
-        $canonicalised = (string) json_encode($this->sortKeysRecursive(data: $payloadToSign), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $signingInput  = $headerB64.'.'.$canonicalised;
+	/**
+	 * Create a stub ObjectEntity mock with the given serialized data.
+	 *
+	 * @param array<string,mixed> $data The data returned by jsonSerialize().
+	 *
+	 * @return ObjectEntity&MockObject
+	 */
+	private function stubEntity(array $data): ObjectEntity&MockObject {
+		$mock = $this->createMock(ObjectEntity::class);
+		$mock->method('jsonSerialize')->willReturn($data);
+		return $mock;
+	}//end stubEntity()
 
-        $signature = '';
-        openssl_sign($signingInput, $signature, $this->privateKeyPem, OPENSSL_ALGO_SHA256);
-        $sigB64 = rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
+	/**
+	 * Build a valid compact JWS with detached payload (matching CredentialSigningService format).
+	 *
+	 * @param array<string,mixed> $payloadToSign The OB3 payload (without proof).
+	 * @param string $kid Key fingerprint for the header.
+	 *
+	 * @return string Compact JWS string.
+	 */
+	private function buildValidJws(array $payloadToSign, string $kid): string {
+		$headerJson = (string)json_encode(['alg' => 'RS256', 'b64' => false, 'crit' => ['b64'], 'kid' => $kid]);
+		$headerB64 = rtrim(strtr(base64_encode($headerJson), '+/', '-_'), '=');
+		// H6: sort keys recursively to match CredentialSigningService::canonicalisePayload.
+		$canonicalised = (string)json_encode($this->sortKeysRecursive(data: $payloadToSign), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+		$signingInput = $headerB64 . '.' . $canonicalised;
 
-        return $headerB64.'..'.$sigB64;
-    }//end buildValidJws()
+		$signature = '';
+		openssl_sign($signingInput, $signature, $this->privateKeyPem, OPENSSL_ALGO_SHA256);
+		$sigB64 = rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
 
-    /**
-     * Recursively sort array keys (RFC 8785 JCS) — mirrors CredentialSigningService::canonicalisePayload.
-     *
-     * @param array<string,mixed> $data The array to sort.
-     *
-     * @return array<string,mixed> Sorted copy.
-     */
-    private function sortKeysRecursive(array $data): array
-    {
-        $isObject = count(array_filter(array_keys($data), 'is_string')) > 0;
-        if ($isObject === true) {
-            ksort($data, SORT_STRING);
-        }
+		return $headerB64 . '..' . $sigB64;
+	}//end buildValidJws()
 
-        foreach ($data as $key => $value) {
-            if (is_array($value) === true) {
-                $data[$key] = $this->sortKeysRecursive(data: $value);
-            }
-        }
+	/**
+	 * Recursively sort array keys (RFC 8785 JCS) — mirrors CredentialSigningService::canonicalisePayload.
+	 *
+	 * @param array<string,mixed> $data The array to sort.
+	 *
+	 * @return array<string,mixed> Sorted copy.
+	 */
+	private function sortKeysRecursive(array $data): array {
+		$isObject = count(array_filter(array_keys($data), 'is_string')) > 0;
+		if ($isObject === true) {
+			ksort($data, SORT_STRING);
+		}
 
-        return $data;
-    }//end sortKeysRecursive()
+		foreach ($data as $key => $value) {
+			if (is_array($value) === true) {
+				$data[$key] = $this->sortKeysRecursive(data: $value);
+			}
+		}
 
-    /**
-     * A valid, issued, non-expired credential with a valid JWS returns {valid:true} with 200.
-     *
-     * @return void
-     */
-    public function testVerifyReturnsValidForIssuedNonExpiredCredential(): void
-    {
-        $kid     = substr(hash('sha256', $this->publicKeyPem), 0, 32);
-        $payload = [
-            '@context'     => ['https://www.w3.org/2018/credentials/v1'],
-            'type'         => ['VerifiableCredential'],
-            'credentialSubject' => ['id' => 'urn:scholiq:learner:learner-42'],
-        ];
-        $jws = $this->buildValidJws(payloadToSign: $payload, kid: $kid);
+		return $data;
+	}//end sortKeysRecursive()
 
-        $this->keyManagementService
-            ->method('resolvePublicKeyByFingerprint')
-            ->willReturn($this->publicKeyPem);
+	/**
+	 * A valid, issued, non-expired credential with a valid JWS returns {valid:true} with 200.
+	 *
+	 * @return void
+	 */
+	public function testVerifyReturnsValidForIssuedNonExpiredCredential(): void {
+		$kid = substr(hash('sha256', $this->publicKeyPem), 0, 32);
+		$payload = [
+			'@context' => ['https://www.w3.org/2018/credentials/v1'],
+			'type' => ['VerifiableCredential'],
+			'credentialSubject' => ['id' => 'urn:learniq:learner:learner-42'],
+		];
+		$jws = $this->buildValidJws(payloadToSign: $payload, kid: $kid);
 
-        $this->objectService
-            ->method('find')
-            ->willReturn($this->stubEntity([
-                'lifecycle'          => 'issued',
-                'isExpired'          => false,
-                'issuedAt'           => '2026-01-01T00:00:00+00:00',
-                'expiresAt'          => '2027-01-01T00:00:00+00:00',
-                'issuedBy'           => 'Test School',
-                'tenant_id'          => 'tenant-1',
-                'openbadges3Payload' => array_merge($payload, ['proof' => ['type' => 'DataIntegrityProof', 'jws' => $jws]]),
-            ]));
+		$this->keyManagementService
+			->method('resolvePublicKeyByFingerprint')
+			->willReturn($this->publicKeyPem);
 
-        $response = $this->controller->verify('cred-uuid-001');
+		$this->objectService
+			->method('find')
+			->willReturn($this->stubEntity([
+				'lifecycle' => 'issued',
+				'isExpired' => false,
+				'issuedAt' => '2026-01-01T00:00:00+00:00',
+				'expiresAt' => '2027-01-01T00:00:00+00:00',
+				'issuedBy' => 'Test School',
+				'tenant_id' => 'tenant-1',
+				'openbadges3Payload' => array_merge($payload, ['proof' => ['type' => 'DataIntegrityProof', 'jws' => $jws]]),
+			]));
 
-        self::assertInstanceOf(JSONResponse::class, $response);
-        self::assertSame(200, $response->getStatus());
+		$response = $this->controller->verify('cred-uuid-001');
 
-        $data = $response->getData();
-        self::assertTrue($data['valid']);
-        self::assertSame('Test School', $data['issuerName']);
-    }//end testVerifyReturnsValidForIssuedNonExpiredCredential()
+		self::assertInstanceOf(JSONResponse::class, $response);
+		self::assertSame(200, $response->getStatus());
 
-    /**
-     * An expired credential (isExpired = true) returns {valid:false}.
-     *
-     * @return void
-     */
-    public function testVerifyReturnsFalseForExpiredCredential(): void
-    {
-        $kid     = substr(hash('sha256', $this->publicKeyPem), 0, 32);
-        $payload = ['@context' => ['https://www.w3.org/2018/credentials/v1']];
-        $jws     = $this->buildValidJws(payloadToSign: $payload, kid: $kid);
+		$data = $response->getData();
+		self::assertTrue($data['valid']);
+		self::assertSame('Test School', $data['issuerName']);
+	}//end testVerifyReturnsValidForIssuedNonExpiredCredential()
 
-        $this->keyManagementService->method('resolvePublicKeyByFingerprint')->willReturn($this->publicKeyPem);
+	/**
+	 * An expired credential (isExpired = true) returns {valid:false}.
+	 *
+	 * @return void
+	 */
+	public function testVerifyReturnsFalseForExpiredCredential(): void {
+		$kid = substr(hash('sha256', $this->publicKeyPem), 0, 32);
+		$payload = ['@context' => ['https://www.w3.org/2018/credentials/v1']];
+		$jws = $this->buildValidJws(payloadToSign: $payload, kid: $kid);
 
-        $this->objectService
-            ->method('find')
-            ->willReturn($this->stubEntity([
-                'lifecycle'          => 'issued',
-                'isExpired'          => true,
-                'issuedAt'           => '2025-01-01T00:00:00+00:00',
-                'expiresAt'          => '2026-01-01T00:00:00+00:00',
-                'issuedBy'           => 'Test School',
-                'tenant_id'          => 'tenant-1',
-                'openbadges3Payload' => array_merge($payload, ['proof' => ['jws' => $jws]]),
-            ]));
+		$this->keyManagementService->method('resolvePublicKeyByFingerprint')->willReturn($this->publicKeyPem);
 
-        $response = $this->controller->verify('cred-uuid-002');
+		$this->objectService
+			->method('find')
+			->willReturn($this->stubEntity([
+				'lifecycle' => 'issued',
+				'isExpired' => true,
+				'issuedAt' => '2025-01-01T00:00:00+00:00',
+				'expiresAt' => '2026-01-01T00:00:00+00:00',
+				'issuedBy' => 'Test School',
+				'tenant_id' => 'tenant-1',
+				'openbadges3Payload' => array_merge($payload, ['proof' => ['jws' => $jws]]),
+			]));
 
-        $data = $response->getData();
-        self::assertFalse($data['valid']);
-    }//end testVerifyReturnsFalseForExpiredCredential()
+		$response = $this->controller->verify('cred-uuid-002');
 
-    /**
-     * A revoked credential returns {valid:false, revokedAt, revocationReason}.
-     *
-     * @return void
-     */
-    public function testVerifyReturnsRevocationDataForRevokedCredential(): void
-    {
-        $this->objectService
-            ->method('find')
-            ->willReturn($this->stubEntity([
-                'lifecycle'        => 'revoked',
-                'updatedAt'        => '2026-03-15T10:00:00+00:00',
-                'revocationReason' => 'Learner failed re-assessment',
-            ]));
+		$data = $response->getData();
+		self::assertFalse($data['valid']);
+	}//end testVerifyReturnsFalseForExpiredCredential()
 
-        $response = $this->controller->verify('cred-uuid-003');
+	/**
+	 * A revoked credential returns {valid:false, revokedAt, revocationReason}.
+	 *
+	 * @return void
+	 */
+	public function testVerifyReturnsRevocationDataForRevokedCredential(): void {
+		$this->objectService
+			->method('find')
+			->willReturn($this->stubEntity([
+				'lifecycle' => 'revoked',
+				'updatedAt' => '2026-03-15T10:00:00+00:00',
+				'revocationReason' => 'Learner failed re-assessment',
+			]));
 
-        $data = $response->getData();
-        self::assertFalse($data['valid']);
-        self::assertArrayHasKey('revokedAt', $data);
-        self::assertArrayHasKey('revocationReason', $data);
-        self::assertSame('2026-03-15T10:00:00+00:00', $data['revokedAt']);
-    }//end testVerifyReturnsRevocationDataForRevokedCredential()
+		$response = $this->controller->verify('cred-uuid-003');
 
-    /**
-     * An unknown credential ID returns {valid:false} with HTTP 404.
-     *
-     * @return void
-     */
-    public function testVerifyReturns404ForUnknownCredential(): void
-    {
-        $this->objectService->method('find')->willReturn(null);
+		$data = $response->getData();
+		self::assertFalse($data['valid']);
+		self::assertArrayHasKey('revokedAt', $data);
+		self::assertArrayHasKey('revocationReason', $data);
+		self::assertSame('2026-03-15T10:00:00+00:00', $data['revokedAt']);
+	}//end testVerifyReturnsRevocationDataForRevokedCredential()
 
-        $response = $this->controller->verify('does-not-exist');
+	/**
+	 * An unknown credential ID returns {valid:false} with HTTP 404.
+	 *
+	 * @return void
+	 */
+	public function testVerifyReturns404ForUnknownCredential(): void {
+		$this->objectService->method('find')->willReturn(null);
 
-        self::assertSame(404, $response->getStatus());
-        self::assertFalse($response->getData()['valid']);
-        self::assertSame('not_found', $response->getData()['error']);
-    }//end testVerifyReturns404ForUnknownCredential()
+		$response = $this->controller->verify('does-not-exist');
 
-    /**
-     * C1: a credential with a tampered JWS returns valid:false + signature_invalid.
-     *
-     * @return void
-     */
-    public function testVerifyReturnsFalseForInvalidJwsSignature(): void
-    {
-        $kid = substr(hash('sha256', $this->publicKeyPem), 0, 32);
-        // Build a JWS header referencing the known kid but with a garbage signature.
-        $headerJson  = (string) json_encode(['alg' => 'RS256', 'b64' => false, 'crit' => ['b64'], 'kid' => $kid]);
-        $headerB64   = rtrim(strtr(base64_encode($headerJson), '+/', '-_'), '=');
-        $tamperedJws = $headerB64.'..'.rtrim(strtr(base64_encode(str_repeat('X', 256)), '+/', '-_'), '=');
+		self::assertSame(404, $response->getStatus());
+		self::assertFalse($response->getData()['valid']);
+		self::assertSame('not_found', $response->getData()['error']);
+	}//end testVerifyReturns404ForUnknownCredential()
 
-        $this->keyManagementService
-            ->method('resolvePublicKeyByFingerprint')
-            ->willReturn($this->publicKeyPem);
+	/**
+	 * ABSENCE ALSO ARRIVES AS AN EXCEPTION, NOT ONLY AS NULL.
+	 *
+	 * `ObjectService::find()` documents `@throws Exception If the object is
+	 * not found`, and resolving the `learniq` register / `credential` schema
+	 * slug raises DoesNotExistException on an install that never got them.
+	 * Before this was caught, that path answered an anonymous caller with a
+	 * framework HTTP 500 and a stack trace AND skipped the throttle
+	 * registration — so the enumeration oracle this endpoint throttles was
+	 * open on exactly those requests.
+	 *
+	 * @return void
+	 */
+	public function testVerifyTranslatesDoesNotExistExceptionTo404AndThrottles(): void {
+		$this->objectService
+			->method('find')
+			->willThrowException(new DoesNotExistException('no such credential'));
 
-        $payload = ['@context' => ['https://www.w3.org/2018/credentials/v1']];
+		$this->throttler
+			->expects(self::once())
+			->method('registerAttempt');
 
-        $this->objectService
-            ->method('find')
-            ->willReturn($this->stubEntity([
-                'lifecycle'          => 'issued',
-                'isExpired'          => false,
-                'issuedAt'           => '2026-01-01T00:00:00+00:00',
-                'tenant_id'          => 'tenant-1',
-                'openbadges3Payload' => array_merge($payload, ['proof' => ['jws' => $tamperedJws]]),
-            ]));
+		$response = $this->controller->verify('does-not-exist');
 
-        $response = $this->controller->verify('cred-tampered');
+		self::assertSame(404, $response->getStatus());
+		self::assertFalse($response->getData()['valid']);
+		self::assertSame('not_found', $response->getData()['error']);
+	}//end testVerifyTranslatesDoesNotExistExceptionTo404AndThrottles()
 
-        $data = $response->getData();
-        self::assertFalse($data['valid']);
-        self::assertSame('signature_invalid', $data['error']);
-    }//end testVerifyReturnsFalseForInvalidJwsSignature()
+	/**
+	 * A SERVER FAULT IS NOT AN ATTACKER'S GUESS.
+	 *
+	 * An unexpected failure in the lookup answers 500 with a generic
+	 * envelope — never a stack trace — and deliberately does NOT register a
+	 * throttle attempt: counting our own outage against the caller's IP
+	 * would let a broken OpenRegister lock out every legitimate verifier.
+	 *
+	 * @return void
+	 */
+	public function testVerifyTranslatesUnexpectedFailureTo500WithoutThrottling(): void {
+		$this->objectService
+			->method('find')
+			->willThrowException(new RuntimeException('database is on fire'));
 
-    /**
-     * C1: a credential whose kid cannot be resolved returns valid:false + signature_invalid.
-     *
-     * @return void
-     */
-    public function testVerifyReturnsFalseWhenKidNotResolved(): void
-    {
-        $kid        = 'unknownfingerprint00000000000000';
-        $headerJson = (string) json_encode(['alg' => 'RS256', 'b64' => false, 'kid' => $kid]);
-        $headerB64  = rtrim(strtr(base64_encode($headerJson), '+/', '-_'), '=');
-        $jws        = $headerB64.'..fakesig';
+		$this->throttler
+			->expects(self::never())
+			->method('registerAttempt');
 
-        $this->keyManagementService
-            ->method('resolvePublicKeyByFingerprint')
-            ->willReturn(null);
+		$response = $this->controller->verify('cred-uuid-500');
 
-        $payload = ['@context' => ['https://www.w3.org/2018/credentials/v1']];
+		self::assertSame(500, $response->getStatus());
+		self::assertFalse($response->getData()['valid']);
+		self::assertSame('verification_unavailable', $response->getData()['error']);
+	}//end testVerifyTranslatesUnexpectedFailureTo500WithoutThrottling()
 
-        $this->objectService
-            ->method('find')
-            ->willReturn($this->stubEntity([
-                'lifecycle'          => 'issued',
-                'isExpired'          => false,
-                'tenant_id'          => 'tenant-1',
-                'openbadges3Payload' => array_merge($payload, ['proof' => ['jws' => $jws]]),
-            ]));
+	/**
+	 * C1: a credential with a tampered JWS returns valid:false + signature_invalid.
+	 *
+	 * @return void
+	 */
+	public function testVerifyReturnsFalseForInvalidJwsSignature(): void {
+		$kid = substr(hash('sha256', $this->publicKeyPem), 0, 32);
+		// Build a JWS header referencing the known kid but with a garbage signature.
+		$headerJson = (string)json_encode(['alg' => 'RS256', 'b64' => false, 'crit' => ['b64'], 'kid' => $kid]);
+		$headerB64 = rtrim(strtr(base64_encode($headerJson), '+/', '-_'), '=');
+		$tamperedJws = $headerB64 . '..' . rtrim(strtr(base64_encode(str_repeat('X', 256)), '+/', '-_'), '=');
 
-        $response = $this->controller->verify('cred-no-key');
+		$this->keyManagementService
+			->method('resolvePublicKeyByFingerprint')
+			->willReturn($this->publicKeyPem);
 
-        $data = $response->getData();
-        self::assertFalse($data['valid']);
-        self::assertSame('signature_invalid', $data['error']);
-    }//end testVerifyReturnsFalseWhenKidNotResolved()
+		$payload = ['@context' => ['https://www.w3.org/2018/credentials/v1']];
 
-    /**
-     * A credential without an openbadges3Payload (legacy pre-signing record) still returns valid:true.
-     *
-     * @return void
-     */
-    public function testVerifyAcceptsLegacyCredentialWithoutProof(): void
-    {
-        $this->objectService
-            ->method('find')
-            ->willReturn($this->stubEntity([
-                'lifecycle' => 'issued',
-                'isExpired' => false,
-                'issuedAt'  => '2025-01-01T00:00:00+00:00',
-                'issuedBy'  => 'Legacy School',
-                'tenant_id' => 'tenant-1',
-            ]));
+		$this->objectService
+			->method('find')
+			->willReturn($this->stubEntity([
+				'lifecycle' => 'issued',
+				'isExpired' => false,
+				'issuedAt' => '2026-01-01T00:00:00+00:00',
+				'tenant_id' => 'tenant-1',
+				'openbadges3Payload' => array_merge($payload, ['proof' => ['jws' => $tamperedJws]]),
+			]));
 
-        $response = $this->controller->verify('cred-legacy');
+		$response = $this->controller->verify('cred-tampered');
 
-        $data = $response->getData();
-        self::assertTrue($data['valid']);
-    }//end testVerifyAcceptsLegacyCredentialWithoutProof()
+		$data = $response->getData();
+		self::assertFalse($data['valid']);
+		self::assertSame('signature_invalid', $data['error']);
+	}//end testVerifyReturnsFalseForInvalidJwsSignature()
+
+	/**
+	 * C1: a credential whose kid cannot be resolved returns valid:false + signature_invalid.
+	 *
+	 * @return void
+	 */
+	public function testVerifyReturnsFalseWhenKidNotResolved(): void {
+		$kid = 'unknownfingerprint00000000000000';
+		$headerJson = (string)json_encode(['alg' => 'RS256', 'b64' => false, 'kid' => $kid]);
+		$headerB64 = rtrim(strtr(base64_encode($headerJson), '+/', '-_'), '=');
+		$jws = $headerB64 . '..fakesig';
+
+		$this->keyManagementService
+			->method('resolvePublicKeyByFingerprint')
+			->willReturn(null);
+
+		$payload = ['@context' => ['https://www.w3.org/2018/credentials/v1']];
+
+		$this->objectService
+			->method('find')
+			->willReturn($this->stubEntity([
+				'lifecycle' => 'issued',
+				'isExpired' => false,
+				'tenant_id' => 'tenant-1',
+				'openbadges3Payload' => array_merge($payload, ['proof' => ['jws' => $jws]]),
+			]));
+
+		$response = $this->controller->verify('cred-no-key');
+
+		$data = $response->getData();
+		self::assertFalse($data['valid']);
+		self::assertSame('signature_invalid', $data['error']);
+	}//end testVerifyReturnsFalseWhenKidNotResolved()
+
+	/**
+	 * A credential without an openbadges3Payload (legacy pre-signing record) still returns valid:true.
+	 *
+	 * @return void
+	 */
+	public function testVerifyAcceptsLegacyCredentialWithoutProof(): void {
+		$this->objectService
+			->method('find')
+			->willReturn($this->stubEntity([
+				'lifecycle' => 'issued',
+				'isExpired' => false,
+				'issuedAt' => '2025-01-01T00:00:00+00:00',
+				'issuedBy' => 'Legacy School',
+				'tenant_id' => 'tenant-1',
+			]));
+
+		$response = $this->controller->verify('cred-legacy');
+
+		$data = $response->getData();
+		self::assertTrue($data['valid']);
+	}//end testVerifyAcceptsLegacyCredentialWithoutProof()
 }//end class

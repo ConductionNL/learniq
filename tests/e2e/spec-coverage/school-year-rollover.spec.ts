@@ -18,12 +18,13 @@
  */
 import { test, expect } from '../fixtures'
 
-const WIZARD_URL = '/index.php/apps/scholiq/#/structure/rollover'
+const WIZARD_URL = '/index.php/apps/learniq/#/structure/rollover'
 
 test.describe('school-year-rollover — rollover wizard page', () => {
-
 	// @e2e openspec/specs/school-year-rollover/spec.md#executor-is-notified-on-completion
-	test('rollover wizard page renders the mapping editor without a fatal error', async ({ loggedInPage: page }) => {
+	test('rollover wizard page renders the mapping editor without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -33,7 +34,7 @@ test.describe('school-year-rollover — rollover wizard page', () => {
 
 		await page.goto(WIZARD_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The wizard heading or its year inputs must be present (page resolved the
 		// custom RolloverWizard component, not a blank/404 shell).
@@ -49,6 +50,8 @@ test.describe('school-year-rollover — rollover wizard page', () => {
 				&& !e.includes('Failed to fetch')
 				&& !e.includes('ERR_CONNECTION_REFUSED'),
 		)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

@@ -12,6 +12,8 @@
   - For `extendedText`: configure prompt only (no correctResponse — teacher scores).
   - Writes `qtiBody` (simplified QTI 3.0 XML) and `correctResponse` to the Item.
   - Loads existing Item data if a UUID is in the route.
+  - When editing an existing item, links to ItemAnalysisView (p-value,
+    item-total correlation, distractor bars — assessment-item-pools-and-analysis).
 
   Uses Options API + direct fetch calls (no custom Pinia store modules).
 
@@ -19,16 +21,15 @@
   Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+  @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-item-and-assessment-statistics-are-read-restricted-to-staff-roles
 -->
 
 <template>
 	<div class="item-author">
 		<!-- Loading -->
-		<div v-if="loading"
-			class="item-author__loading"
-			aria-live="polite">
+		<div v-if="loading" class="item-author__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading item...') }}</span>
+			<span>{{ t('learniq', 'Loading item...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -38,63 +39,103 @@
 		</div>
 
 		<!-- Saved -->
-		<div v-else-if="saved"
+		<div
+			v-else-if="saved"
 			class="item-author__saved"
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<p>{{ t('scholiq', 'Item saved successfully.') }}</p>
+			<p>{{ t('learniq', 'Item saved successfully.') }}</p>
 		</div>
 
 		<template v-else>
 			<header class="item-author__header">
 				<h2 class="item-author__heading">
-					{{ id ? t('scholiq', 'Edit item') : t('scholiq', 'New item') }}
+					{{ id ? t('learniq', 'Edit item') : t('learniq', 'New item') }}
 				</h2>
+				<router-link
+					v-if="id"
+					class="item-author__analysis-link"
+					:to="`/assessments/items/${id}/analysis`">
+					{{ t('learniq', 'View item statistics') }}
+				</router-link>
 			</header>
 
 			<!-- Title -->
 			<div class="item-author__field">
 				<label class="item-author__label" for="item-title">
-					{{ t('scholiq', 'Item title') }}
+					{{ t('learniq', 'Item title') }}
 				</label>
 				<input
 					id="item-title"
 					v-model="form.title"
 					class="item-author__input"
 					type="text"
-					:placeholder="t('scholiq', 'Enter item title...')">
+					:placeholder="t('learniq', 'Enter item title...')" />
 			</div>
 
 			<!-- Interaction type -->
 			<div class="item-author__field">
 				<label class="item-author__label" for="item-type">
-					{{ t('scholiq', 'Interaction type') }}
+					{{ t('learniq', 'Interaction type') }}
 				</label>
-				<select id="item-type" v-model="form.interactionType" class="item-author__select">
+				<select
+					id="item-type"
+					v-model="form.interactionType"
+					class="item-author__select">
 					<option value="choice">
-						{{ t('scholiq', 'Multiple choice') }}
+						{{ t('learniq', 'Multiple choice') }}
 					</option>
 					<option value="extendedText">
-						{{ t('scholiq', 'Essay (extended text)') }}
+						{{ t('learniq', 'Essay (extended text)') }}
 					</option>
 					<option disabled value="textEntry">
-						{{ t('scholiq', 'Text entry (editor coming soon — use QTI import)') }}
+						{{
+							t(
+								'learniq',
+								'Text entry (editor coming soon — use QTI import)',
+							)
+						}}
 					</option>
 					<option disabled value="hotspot">
-						{{ t('scholiq', 'Hotspot (editor coming soon — use QTI import)') }}
+						{{
+							t(
+								'learniq',
+								'Hotspot (editor coming soon — use QTI import)',
+							)
+						}}
 					</option>
 					<option disabled value="order">
-						{{ t('scholiq', 'Order (editor coming soon — use QTI import)') }}
+						{{
+							t(
+								'learniq',
+								'Order (editor coming soon — use QTI import)',
+							)
+						}}
 					</option>
 					<option disabled value="match">
-						{{ t('scholiq', 'Match (editor coming soon — use QTI import)') }}
+						{{
+							t(
+								'learniq',
+								'Match (editor coming soon — use QTI import)',
+							)
+						}}
 					</option>
 					<option disabled value="gapMatch">
-						{{ t('scholiq', 'Gap match (editor coming soon — use QTI import)') }}
+						{{
+							t(
+								'learniq',
+								'Gap match (editor coming soon — use QTI import)',
+							)
+						}}
 					</option>
 					<option disabled value="inlineChoice">
-						{{ t('scholiq', 'Inline choice (editor coming soon — use QTI import)') }}
+						{{
+							t(
+								'learniq',
+								'Inline choice (editor coming soon — use QTI import)',
+							)
+						}}
 					</option>
 				</select>
 			</div>
@@ -102,7 +143,7 @@
 			<!-- Max score -->
 			<div class="item-author__field">
 				<label class="item-author__label" for="item-max-score">
-					{{ t('scholiq', 'Max score') }}
+					{{ t('learniq', 'Max score') }}
 				</label>
 				<input
 					id="item-max-score"
@@ -110,26 +151,28 @@
 					class="item-author__input item-author__input--narrow"
 					type="number"
 					min="0"
-					step="0.5">
+					step="0.5" />
 			</div>
 
 			<!-- Prompt / stem -->
 			<div class="item-author__field">
 				<label class="item-author__label" for="item-prompt">
-					{{ t('scholiq', 'Question prompt / stem') }}
+					{{ t('learniq', 'Question prompt / stem') }}
 				</label>
 				<textarea
 					id="item-prompt"
 					v-model="form.prompt"
 					class="item-author__textarea"
 					rows="4"
-					:placeholder="t('scholiq', 'Enter the question text...')" />
+					:placeholder="t('learniq', 'Enter the question text...')" />
 			</div>
 
 			<!-- Choice-specific: answer options -->
-			<div v-if="form.interactionType === 'choice'" class="item-author__choices">
+			<div
+				v-if="form.interactionType === 'choice'"
+				class="item-author__choices">
 				<h3 class="item-author__sub-heading">
-					{{ t('scholiq', 'Answer options') }}
+					{{ t('learniq', 'Answer options') }}
 				</h3>
 				<ul class="item-author__choice-list">
 					<li
@@ -138,36 +181,55 @@
 						class="item-author__choice-item">
 						<input
 							type="radio"
-							:name="'correct-choice'"
+							name="correct-choice"
 							:checked="form.correctChoiceIdx === idx"
-							:aria-label="t('scholiq', 'Mark as correct answer')"
-							@change="form.correctChoiceIdx = idx">
+							:aria-label="t('learniq', 'Mark as correct answer')"
+							@change="form.correctChoiceIdx = idx" />
 						<input
 							v-model="choice.label"
 							class="item-author__input"
 							type="text"
-							:placeholder="t('scholiq', 'Option {n}', { n: idx + 1 })">
+							:aria-label="
+								t('learniq', 'Text of option {n}', { n: idx + 1 })
+							"
+							:placeholder="
+								t('learniq', 'Option {n}', { n: idx + 1 })
+							" />
 						<button
 							class="item-author__remove-btn"
 							:disabled="form.choices.length <= 2"
-							:aria-label="t('scholiq', 'Remove option')"
+							:aria-label="t('learniq', 'Remove option')"
 							@click="removeChoice(idx)">
 							<span class="icon-close" aria-hidden="true" />
 						</button>
 					</li>
 				</ul>
 				<button class="button-vue" @click="addChoice">
-					{{ t('scholiq', 'Add option') }}
+					{{ t('learniq', 'Add option') }}
 				</button>
 				<p class="item-author__hint">
-					{{ t('scholiq', 'Click the radio button to mark the correct answer.') }}
+					{{
+						t(
+							'learniq',
+							'Click the radio button to mark the correct answer.',
+						)
+					}}
 				</p>
 			</div>
 
 			<!-- extendedText note -->
-			<div v-else-if="form.interactionType === 'extendedText'" class="item-author__essay-note">
+			<div
+				v-else-if="form.interactionType === 'extendedText'"
+				class="item-author__essay-note">
 				<span class="icon-info" aria-hidden="true" />
-				<p>{{ t('scholiq', 'Essay items have no automatic correct response — teachers score these manually. This item will require manual scoring before the AssessmentResult can be graded.') }}</p>
+				<p>
+					{{
+						t(
+							'learniq',
+							'Essay items have no automatic correct response — teachers score these manually. This item will require manual scoring before the AssessmentResult can be graded.',
+						)
+					}}
+				</p>
 			</div>
 
 			<!-- Save button -->
@@ -177,7 +239,7 @@
 					:disabled="saving || !form.title"
 					@click="saveItem">
 					<span v-if="saving" class="icon-loading" aria-hidden="true" />
-					{{ t('scholiq', 'Save item') }}
+					{{ t('learniq', 'Save item') }}
 				</button>
 			</div>
 			<p v-if="saveError" role="alert" class="item-author__error-inline">
@@ -223,6 +285,7 @@ export default {
 					{ id: 'C', label: '' },
 					{ id: 'D', label: '' },
 				],
+
 				correctChoiceIdx: 0,
 			},
 		}
@@ -259,9 +322,14 @@ export default {
 			this.error = null
 
 			try {
-				const url = generateUrl(`/apps/openregister/api/objects/scholiq/Item/${itemId}`)
+				const url = generateUrl(
+					`/apps/openregister/api/objects/learniq/Item/${itemId}`,
+				)
 				const resp = await fetch(url, {
-					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+					},
 				})
 				if (!resp.ok) throw new Error(`Item fetch failed: ${resp.status}`)
 
@@ -274,7 +342,10 @@ export default {
 				this.itemBankId = item.itemBankId ?? null
 
 				// Extract prompt from qtiBody (strip XML).
-				this.form.prompt = (item.qtiBody ?? '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+				this.form.prompt = (item.qtiBody ?? '')
+					.replace(/<[^>]+>/g, ' ')
+					.replace(/\s+/g, ' ')
+					.trim()
 
 				// Restore choices for choice interaction.
 				if (item.interactionType === 'choice' && item.qtiBody) {
@@ -282,10 +353,14 @@ export default {
 					const doc = parser.parseFromString(item.qtiBody, 'text/xml')
 					const simpleChoices = doc.getElementsByTagName('simpleChoice')
 					if (simpleChoices.length > 0) {
-						this.form.choices = Array.from(simpleChoices).map((sc, i) => ({
-							id: sc.getAttribute('identifier') ?? String.fromCharCode(65 + i),
-							label: sc.textContent?.trim() ?? '',
-						}))
+						this.form.choices = Array.from(simpleChoices).map(
+							(sc, i) => ({
+								id:
+									sc.getAttribute('identifier')
+									?? String.fromCharCode(65 + i),
+								label: sc.textContent?.trim() ?? '',
+							}),
+						)
 					}
 
 					const cr = item.correctResponse
@@ -295,7 +370,10 @@ export default {
 					}
 				}
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load item. Please try again.')
+				this.error = this.t(
+					'learniq',
+					'Failed to load item. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[ItemAuthorView] loadItem error', err)
 			} finally {
@@ -341,7 +419,10 @@ export default {
 
 			if (interactionType === 'choice') {
 				const optionXml = choices
-					.map((c) => `<simpleChoice identifier="${c.id}">${this.escapeXml(c.label)}</simpleChoice>`)
+					.map(
+						(c) =>
+							`<simpleChoice identifier="${c.id}">${this.escapeXml(c.label)}</simpleChoice>`,
+					)
 					.join('\n      ')
 
 				return `<?xml version="1.0" encoding="UTF-8"?>
@@ -392,7 +473,11 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		escapeXml(str) {
-			return (str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+			return (str ?? '')
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;')
 		},
 
 		/**
@@ -407,9 +492,10 @@ export default {
 			this.saved = false
 
 			const qtiBody = this.buildQtiBody()
-			const correctResponse = this.form.interactionType === 'choice'
-				? (this.form.choices[this.form.correctChoiceIdx]?.id ?? null)
-				: null
+			const correctResponse =
+				this.form.interactionType === 'choice'
+					? (this.form.choices[this.form.correctChoiceIdx]?.id ?? null)
+					: null
 
 			const payload = {
 				title: this.form.title,
@@ -426,8 +512,10 @@ export default {
 
 			const isEdit = Boolean(this.id)
 			const url = isEdit
-				? generateUrl(`/apps/openregister/api/objects/scholiq/Item/${this.id}`)
-				: generateUrl('/apps/openregister/api/objects/scholiq/Item')
+				? generateUrl(
+						`/apps/openregister/api/objects/learniq/Item/${this.id}`,
+					)
+				: generateUrl('/apps/openregister/api/objects/learniq/Item')
 
 			try {
 				const resp = await fetch(url, {
@@ -442,7 +530,10 @@ export default {
 				if (!resp.ok) throw new Error(`Save failed: ${resp.status}`)
 				this.saved = true
 			} catch (err) {
-				this.saveError = this.t('scholiq', 'Failed to save item. Please try again.')
+				this.saveError = this.t(
+					'learniq',
+					'Failed to save item. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[ItemAuthorView] saveItem error', err)
 			} finally {
@@ -457,7 +548,8 @@ export default {
 .item-author {
 	max-width: 720px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .item-author__loading,
@@ -468,10 +560,22 @@ export default {
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
+.item-author__header {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: calc(var(--default-grid-baseline, 8px) * 2);
+}
+
 .item-author__heading {
 	font-size: var(--default-font-size, 15px);
 	font-weight: bold;
 	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
+}
+
+.item-author__analysis-link {
+	font-size: 0.9em;
+	white-space: nowrap;
 }
 
 .item-author__field {

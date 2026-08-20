@@ -5,7 +5,7 @@
 <template>
 	<KpiCard
 		schema="external-training-record"
-		:label="t('scholiq', 'External training')"
+		:label="t('learniq', 'External training')"
 		link="/compliance/external-training"
 		variant="success" />
 </template>

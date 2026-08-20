@@ -1,7 +1,7 @@
+import { getRequestToken } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
 // SPDX-License-Identifier: EUPL-1.2
 import { defineStore } from 'pinia'
-import { generateUrl } from '@nextcloud/router'
-import { getRequestToken } from '@nextcloud/auth'
 
 export const useSettingsStore = defineStore('settings', {
 	state: () => ({
@@ -18,7 +18,7 @@ export const useSettingsStore = defineStore('settings', {
 
 	actions: {
 		/**
-		 * Fetch the Scholiq settings (incl. openregisters + isAdmin metadata) from the Settings API.
+		 * Fetch the Learniq settings (incl. openregisters + isAdmin metadata) from the Settings API.
 		 *
 		 * @return {Promise<object|null>}
 		 * @spec openspec/changes/retrofit-2026-05-25-app-shell-settings/tasks.md#task-1
@@ -26,9 +26,12 @@ export const useSettingsStore = defineStore('settings', {
 		async fetchSettings() {
 			this.loading = true
 			try {
-				const response = await fetch(generateUrl('/apps/scholiq/api/settings'), {
-					headers: { requesttoken: getRequestToken() },
-				})
+				const response = await fetch(
+					generateUrl('/apps/learniq/api/settings'),
+					{
+						headers: { requesttoken: getRequestToken() },
+					},
+				)
 				if (response.ok) {
 					const data = await response.json()
 					this.settings = data
@@ -54,14 +57,17 @@ export const useSettingsStore = defineStore('settings', {
 		async saveSettings(settings) {
 			this.loading = true
 			try {
-				const response = await fetch(generateUrl('/apps/scholiq/api/settings'), {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						requesttoken: getRequestToken(),
+				const response = await fetch(
+					generateUrl('/apps/learniq/api/settings'),
+					{
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							requesttoken: getRequestToken(),
+						},
+						body: JSON.stringify(settings),
 					},
-					body: JSON.stringify(settings),
-				})
+				)
 				if (response.ok) {
 					const data = await response.json()
 					this.settings = data

@@ -1,46 +1,58 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <template>
-	<div class="scholiq-admin">
+	<div class="learniq-admin">
 		<CnVersionInfoCard
-			:app-name="'Scholiq'"
-			:app-version="appVersion"
-			:is-up-to-date="true"
-			:show-update-button="true"
-			:title="t('scholiq', 'Version Information')"
-			:description="t('scholiq', 'Information about the current Scholiq installation')">
+			appName="Learniq"
+			:appVersion="appVersion"
+			:isUpToDate="true"
+			:showUpdateButton="true"
+			:title="t('learniq', 'Version Information')"
+			:description="
+				t('learniq', 'Information about the current Learniq installation')
+			">
 			<template #footer>
 				<div class="cn-support-info">
-					<h4>{{ t('scholiq', 'Support') }}</h4>
-					<p>{{ t('scholiq', 'For support, contact us at') }} <a href="mailto:support@conduction.nl">support@conduction.nl</a></p>
+					<h4>{{ t('learniq', 'Support') }}</h4>
+					<p>
+						{{ t('learniq', 'For support, contact us at') }}
+						<a href="mailto:support@conduction.nl"
+							>support@conduction.nl</a
+						>
+					</p>
 				</div>
 			</template>
 		</CnVersionInfoCard>
 
-		<ScholiqSettings v-if="storesReady" />
+		<LearniqSettings v-if="storesReady" />
+		<DataExchangeSettingsSection />
 		<ActionAuthMatrix />
 	</div>
 </template>
 
 <script>
-import { loadState } from '@nextcloud/initial-state'
 import { CnVersionInfoCard } from '@conduction/nextcloud-vue'
-import ScholiqSettings from '../ScholiqSettings.vue'
+import { loadState } from '@nextcloud/initial-state'
 import ActionAuthMatrix from '../../components/admin/ActionAuthMatrix.vue'
+import LearniqSettings from '../LearniqSettings.vue'
+import DataExchangeSettingsSection from './DataExchangeSettingsSection.vue'
 import { initializeStores } from '../../store/store.js'
 
 export default {
 	name: 'AdminRoot',
 	components: {
 		CnVersionInfoCard,
-		ScholiqSettings,
+		LearniqSettings,
+		DataExchangeSettingsSection,
 		ActionAuthMatrix,
 	},
+
 	data() {
 		return {
 			storesReady: false,
-			appVersion: loadState('scholiq', 'version', 'Unknown'),
+			appVersion: loadState('learniq', 'version', 'Unknown'),
 		}
 	},
+
 	/**
 	 * Initialise the Pinia stores at boot before rendering settings.
 	 *
@@ -55,7 +67,7 @@ export default {
 </script>
 
 <style scoped>
-.scholiq-admin {
+.learniq-admin {
 	max-width: 900px;
 }
 </style>

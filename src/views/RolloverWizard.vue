@@ -13,21 +13,34 @@
 
  Storage/lifecycle/audit/notifications are OpenRegister's; this view only edits
  the plan's mappings and drives proposal/preview/execute through the
- Scholiq rollover API + OR object API.
+ Learniq rollover API + OR object API.
 
- @spec openspec/specs/school-year-rollover/spec.md#requirement-mandatory-side-effect-free-preview-gate
+ @spec openspec/specs/school-year-rollover/spec.md#requirement-preview-must-be-side-effect-free-and-produce-a-complete-dry-run-report
 -->
 <template>
 	<div class="rollover-wizard">
-		<h2>{{ t('scholiq', 'School-year rollover') }}</h2>
+		<h2>{{ t('learniq', 'School-year rollover') }}</h2>
 
 		<div class="rollover-wizard__years">
-			<label for="rollover-from">{{ t('scholiq', 'From academic year') }}</label>
-			<input id="rollover-from" v-model="fromAcademicYear" type="text" placeholder="2025/2026">
-			<label for="rollover-to">{{ t('scholiq', 'To academic year') }}</label>
-			<input id="rollover-to" v-model="toAcademicYear" type="text" placeholder="2026/2027">
-			<NcButton type="secondary" :disabled="!fromAcademicYear" @click="propose">
-				{{ t('scholiq', 'Propose mapping') }}
+			<label for="rollover-from">{{
+				t('learniq', 'From academic year')
+			}}</label>
+			<input
+				id="rollover-from"
+				v-model="fromAcademicYear"
+				type="text"
+				placeholder="2025/2026" />
+			<label for="rollover-to">{{ t('learniq', 'To academic year') }}</label>
+			<input
+				id="rollover-to"
+				v-model="toAcademicYear"
+				type="text"
+				placeholder="2026/2027" />
+			<NcButton
+				variant="secondary"
+				:disabled="!fromAcademicYear"
+				@click="propose">
+				{{ t('learniq', 'Propose mapping') }}
 			</NcButton>
 		</div>
 
@@ -36,23 +49,34 @@
 		<table v-else-if="mappings.length > 0" class="rollover-wizard__table">
 			<thead>
 				<tr>
-					<th>{{ t('scholiq', 'From cohort') }}</th>
-					<th>{{ t('scholiq', 'Action') }}</th>
-					<th>{{ t('scholiq', 'To cohort') }}</th>
+					<th scope="col">{{ t('learniq', 'From cohort') }}</th>
+					<th scope="col">{{ t('learniq', 'Action') }}</th>
+					<th scope="col">{{ t('learniq', 'To cohort') }}</th>
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="(m, i) in mappings" :key="m.fromCohortId || i" :class="{ 'rollover-wizard__row--blocked': !m.action }">
+				<tr
+					v-for="(m, i) in mappings"
+					:key="m.fromCohortId || i"
+					:class="{ 'rollover-wizard__row--blocked': !m.action }">
 					<td>{{ m.fromCohortId }}</td>
 					<td>
 						<NcSelect
 							v-model="m.action"
 							:options="actionOptions"
-							:input-label="t('scholiq', 'Action')"
-							:aria-label-combobox="t('scholiq', 'Action')" />
+							:inputLabel="t('learniq', 'Action')"
+							:aria-label-combobox="t('learniq', 'Action')" />
 					</td>
 					<td>
-						<input v-model="m.toCohortName" type="text" :placeholder="t('scholiq', 'New cohort name')">
+						<input
+							v-model="m.toCohortName"
+							type="text"
+							:aria-label="
+								t('learniq', 'New cohort name for {from}', {
+									from: m.fromCohortId,
+								})
+							"
+							:placeholder="t('learniq', 'New cohort name')" />
 					</td>
 				</tr>
 			</tbody>
@@ -60,30 +84,43 @@
 
 		<NcEmptyContent
 			v-else
-			:name="t('scholiq', 'No cohorts to roll over')"
-			:description="t('scholiq', 'Enter a from-year and propose a mapping to begin.')" />
+			:name="t('learniq', 'No cohorts to roll over')"
+			:description="
+				t('learniq', 'Enter a from-year and propose a mapping to begin.')
+			" />
 
 		<div v-if="mappings.length > 0" class="rollover-wizard__actions">
-			<NcButton type="secondary" @click="preview">
-				{{ t('scholiq', 'Preview') }}
+			<NcButton variant="secondary" @click="preview">
+				{{ t('learniq', 'Preview') }}
 			</NcButton>
-			<NcButton type="primary" :disabled="!canExecute" @click="execute">
-				{{ t('scholiq', 'Execute rollover') }}
+			<NcButton variant="primary" :disabled="!canExecute" @click="execute">
+				{{ t('learniq', 'Execute rollover') }}
 			</NcButton>
 		</div>
 
 		<div v-if="report" class="rollover-wizard__report">
-			<h3>{{ t('scholiq', 'Dry-run report') }}</h3>
+			<h3>{{ t('learniq', 'Dry-run report') }}</h3>
 			<p v-if="report.blocked" class="rollover-wizard__report--blocked">
-				{{ t('scholiq', 'Preview blocked: resolve every cohort action before executing.') }}
+				{{
+					t(
+						'learniq',
+						'Preview blocked: resolve every cohort action before executing.',
+					)
+				}}
 			</p>
 			<ul>
-				<li>{{ t('scholiq', 'Promote') }}: {{ report.counts.promote }}</li>
-				<li>{{ t('scholiq', 'Retain') }}: {{ report.counts.retain }}</li>
-				<li>{{ t('scholiq', 'Graduate') }}: {{ report.counts.graduate }}</li>
-				<li>{{ t('scholiq', 'Outflow') }}: {{ report.counts.outflow }}</li>
-				<li>{{ t('scholiq', 'Enrolments to carry over') }}: {{ report.enrolmentsToCarry }}</li>
-				<li>{{ t('scholiq', 'Cohorts to create') }}: {{ report.cohortsToCreate.length }}</li>
+				<li>{{ t('learniq', 'Promote') }}: {{ report.counts.promote }}</li>
+				<li>{{ t('learniq', 'Retain') }}: {{ report.counts.retain }}</li>
+				<li>{{ t('learniq', 'Graduate') }}: {{ report.counts.graduate }}</li>
+				<li>{{ t('learniq', 'Outflow') }}: {{ report.counts.outflow }}</li>
+				<li>
+					{{ t('learniq', 'Enrolments to carry over') }}:
+					{{ report.enrolmentsToCarry }}
+				</li>
+				<li>
+					{{ t('learniq', 'Cohorts to create') }}:
+					{{ report.cohortsToCreate.length }}
+				</li>
 			</ul>
 		</div>
 	</div>
@@ -124,7 +161,11 @@ export default {
 		 * @spec openspec/specs/school-year-rollover/spec.md#requirement-preview-must-be-side-effect-free-and-produce-a-complete-dry-run-report
 		 */
 		canExecute() {
-			return this.report !== null && this.report.blocked === false && this.planId !== ''
+			return (
+				this.report !== null
+				&& this.report.blocked === false
+				&& this.planId !== ''
+			)
 		},
 	},
 
@@ -138,7 +179,10 @@ export default {
 		async propose() {
 			this.loading = true
 			try {
-				const url = generateUrl('/apps/scholiq/api/rollover/propose?fromAcademicYear={year}', { year: this.fromAcademicYear })
+				const url = generateUrl(
+					'/apps/learniq/api/rollover/propose?fromAcademicYear={year}',
+					{ year: this.fromAcademicYear },
+				)
 				const response = await axios.get(url)
 				this.mappings = (response.data && response.data.mappings) || []
 				this.report = null
@@ -163,7 +207,10 @@ export default {
 				if (this.planId === '') {
 					return
 				}
-				const url = generateUrl('/apps/scholiq/api/rollover/{planId}/preview', { planId: this.planId })
+				const url = generateUrl(
+					'/apps/learniq/api/rollover/{planId}/preview',
+					{ planId: this.planId },
+				)
 				const response = await axios.post(url, {})
 				this.report = (response.data && response.data.report) || null
 			} catch (e) {
@@ -189,7 +236,10 @@ export default {
 			try {
 				// OR lifecycle transition draft→… is driven by writing the lifecycle
 				// field through OR's object API; the RolloverExecutionHandler reacts.
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/rollover-plan/{id}', { id: this.planId })
+				const url = generateUrl(
+					'/apps/openregister/api/objects/learniq/rollover-plan/{id}',
+					{ id: this.planId },
+				)
 				await axios.put(url, { lifecycle: 'executing' })
 			} catch (e) {
 				console.error('[RolloverWizard] execute failed', e)
@@ -212,11 +262,16 @@ export default {
 					mappings: this.mappings,
 				}
 				if (this.planId !== '') {
-					const url = generateUrl('/apps/openregister/api/objects/scholiq/rollover-plan/{id}', { id: this.planId })
+					const url = generateUrl(
+						'/apps/openregister/api/objects/learniq/rollover-plan/{id}',
+						{ id: this.planId },
+					)
 					const r = await axios.put(url, body)
 					return (r.data && (r.data.id || r.data.uuid)) || this.planId
 				}
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/rollover-plan')
+				const url = generateUrl(
+					'/apps/openregister/api/objects/learniq/rollover-plan',
+				)
 				const r = await axios.post(url, body)
 				return (r.data && (r.data.id || r.data.uuid)) || ''
 			} catch (e) {

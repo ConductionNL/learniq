@@ -1,13 +1,13 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <!-- Copyright (C) 2026 Conduction B.V. -->
 
-<!-- Dashboard manage-programmes widget: top-N programmes with courseCount + lifecycle. -->
+<!-- Dashboard manage-programmes widget: top-N programmes with lifecycle status. -->
 <template>
 	<ManageListWidget
 		schema="Programme"
-		:schema-label="t('scholiq', 'programme')"
-		:columns="['name', 'lifecycle', 'courseCount']"
-		index-route="/curriculum/programmes"
+		:schemaLabel="t('learniq', 'programme')"
+		:columns="['name', 'lifecycle']"
+		indexRoute="/curriculum/programmes"
 		:limit="6" />
 </template>
 

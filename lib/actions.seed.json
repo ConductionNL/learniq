@@ -1,10 +1,14 @@
 {
-  "$comment": "ADR-023 action matrix seed for scholiq. Default admin-only; broaden via Admin Settings > Scholiq > Action authorization.",
+  "$comment": "ADR-023 action matrix seed for learniq. Default admin-only; broaden via Admin Settings > Learniq > Action authorization.",
   "actions": {
     "audit-pack.export": ["admin"],
     "qti.import": ["admin"],
+    "qti.export": ["admin"],
+    "course-package.import": ["admin"],
+    "course-package.export": ["admin"],
     "rollover.plan": ["admin"],
     "external-training.bulk-record": ["admin", "compliance-officer", "hr"],
-    "external-training.issue-credential": ["admin", "compliance-officer", "hr"]
+    "external-training.issue-credential": ["admin", "compliance-officer", "hr"],
+    "learning-record.import": ["admin"]
   }
 }

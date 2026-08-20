@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Rollover Controller
+ * Learniq Rollover Controller
  *
  * Endpoints for the school-year rollover wizard: propose a default mapping,
  * compute a side-effect-free preview (storing the dryRunReport and advancing the
@@ -13,7 +13,7 @@
  * coordinator group) — NOT a plain `@NoAdminRequired` pass-through.
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -30,13 +30,14 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\Service\ActionAuthService;
-use OCA\Scholiq\Service\RolloverService;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\RolloverService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -48,116 +49,126 @@ use OCP\IUserSession;
  *
  * @spec openspec/changes/school-year-rollover/tasks.md
  */
-class RolloverController extends Controller
-{
-    /**
-     * Constructor.
-     *
-     * @param IRequest          $request         HTTP request.
-     * @param IUserSession      $userSession     Current user session.
-     * @param ActionAuthService $actionAuth      ADR-023 action authorization.
-     * @param RolloverService   $rolloverService Rollover logic.
-     * @param ObjectService     $objectService   OR object query/persistence.
-     */
-    public function __construct(
-        IRequest $request,
-        private readonly IUserSession $userSession,
-        private readonly ActionAuthService $actionAuth,
-        private readonly RolloverService $rolloverService,
-        private readonly ObjectService $objectService,
-    ) {
-        parent::__construct(appName: Application::APP_ID, request: $request);
-    }//end __construct()
+class RolloverController extends Controller {
+	/**
+	 * Constructor.
+	 *
+	 * @param IRequest $request HTTP request.
+	 * @param IUserSession $userSession Current user session.
+	 * @param ActionAuthService $actionAuth ADR-023 action authorization.
+	 * @param RolloverService $rolloverService Rollover logic.
+	 * @param ObjectService $objectService OR object query/persistence.
+	 */
+	public function __construct(
+		IRequest $request,
+		private readonly IUserSession $userSession,
+		private readonly ActionAuthService $actionAuth,
+		private readonly RolloverService $rolloverService,
+		private readonly ObjectService $objectService,
+	) {
+		parent::__construct(appName: Application::APP_ID, request: $request);
+	}//end __construct()
 
-    /**
-     * Propose a default per-cohort mapping for a from-year.
-     *
-     * Loads the from-year cohorts for the tenant and returns the leerjaar-increment
-     * default mapping; unparseable cohort names map to a null action the wizard must
-     * resolve.
-     *
-     * @param string $fromAcademicYear The year being rolled out of.
-     *
-     * @return JSONResponse The proposed mappings.
-     *
-     * @spec openspec/changes/school-year-rollover/tasks.md
-     */
-    #[NoAdminRequired]
-    public function proposeMapping(string $fromAcademicYear=''): JSONResponse
-    {
-        $user = $this->userSession->getUser();
-        if ($user === null) {
-            return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
-        }
+	/**
+	 * Propose a default per-cohort mapping for a from-year.
+	 *
+	 * Loads the from-year cohorts for the tenant and returns the leerjaar-increment
+	 * default mapping; unparseable cohort names map to a null action the wizard must
+	 * resolve.
+	 *
+	 * @param string $fromAcademicYear The year being rolled out of.
+	 *
+	 * @return JSONResponse The proposed mappings.
+	 *
+	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 */
+	#[NoAdminRequired]
+	public function proposeMapping(string $fromAcademicYear = ''): JSONResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
 
-        $this->actionAuth->requireAction(user: $user, action: 'rollover.plan');
+		$this->actionAuth->requireAction(user: $user, action: 'rollover.plan');
 
-        if ($fromAcademicYear === '') {
-            return new JSONResponse(data: ['error' => 'fromAcademicYear is required'], statusCode: Http::STATUS_BAD_REQUEST);
-        }
+		if ($fromAcademicYear === '') {
+			return new JSONResponse(data: ['error' => 'fromAcademicYear is required'], statusCode: Http::STATUS_BAD_REQUEST);
+		}
 
-        $cohorts = $this->objectService->findAll(
-            [
-                'register' => 'scholiq',
-                'schema'   => 'cohort',
-                'filters'  => ['academicYear' => $fromAcademicYear],
-            ]
-        );
+		$cohorts = $this->objectService->findAll(
+			[
+				'register' => 'learniq',
+				'schema' => 'cohort',
+				'filters' => ['academicYear' => $fromAcademicYear],
+			]
+		);
 
-        $fromCohorts = [];
-        foreach ($cohorts as $row) {
-            $fromCohorts[] = is_array($row) === true ? $row : (array) $row->jsonSerialize();
-        }
+		$fromCohorts = [];
+		foreach ($cohorts as $row) {
+			if (is_array($row) === true) {
+				$fromCohorts[] = $row;
+				continue;
+			}
 
-        return new JSONResponse(data: ['mappings' => $this->rolloverService->proposeDefaultMapping(fromCohorts: $fromCohorts)]);
-    }//end proposeMapping()
+			$fromCohorts[] = (array)$row->jsonSerialize();
+		}
 
-    /**
-     * Compute the preview for a plan and advance it to `previewed`.
-     *
-     * The preview is side-effect-free except for storing the resulting
-     * `dryRunReport` on the plan and transitioning `draft → previewed`. A blocked
-     * preview (unresolved null mapping action) is returned but does NOT advance the
-     * plan, keeping the dry-run gate structural.
-     *
-     * @param string $planId UUID of the draft RolloverPlan.
-     *
-     * @return JSONResponse The dry-run report (+ blocked flag).
-     *
-     * @spec openspec/changes/school-year-rollover/tasks.md
-     */
-    #[NoAdminRequired]
-    public function preview(string $planId=''): JSONResponse
-    {
-        $user = $this->userSession->getUser();
-        if ($user === null) {
-            return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
-        }
+		return new JSONResponse(data: ['mappings' => $this->rolloverService->proposeDefaultMapping(fromCohorts: $fromCohorts)]);
+	}//end proposeMapping()
 
-        $this->actionAuth->requireAction(user: $user, action: 'rollover.plan');
+	/**
+	 * Compute the preview for a plan and advance it to `previewed`.
+	 *
+	 * The preview is side-effect-free except for storing the resulting
+	 * `dryRunReport` on the plan and transitioning `draft → previewed`. A blocked
+	 * preview (unresolved null mapping action) is returned but does NOT advance the
+	 * plan, keeping the dry-run gate structural.
+	 *
+	 * @param string $planId UUID of the draft RolloverPlan.
+	 *
+	 * @return JSONResponse The dry-run report (+ blocked flag).
+	 *
+	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 */
+	#[NoAdminRequired]
+	public function preview(string $planId = ''): JSONResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
 
-        if ($planId === '') {
-            return new JSONResponse(data: ['error' => 'planId is required'], statusCode: Http::STATUS_BAD_REQUEST);
-        }
+		$this->actionAuth->requireAction(user: $user, action: 'rollover.plan');
 
-        $planObj = $this->objectService->find(id: $planId, register: 'scholiq', schema: 'rollover-plan');
-        if ($planObj === null) {
-            return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
-        }
+		if ($planId === '') {
+			return new JSONResponse(data: ['error' => 'planId is required'], statusCode: Http::STATUS_BAD_REQUEST);
+		}
 
-        $plan   = $planObj->jsonSerialize();
-        $report = $this->rolloverService->preview(plan: $plan);
+		// ObjectService::find() THROWS DoesNotExistException for an unknown id —
+		// it does not return null — so without this catch the 404 below was dead
+		// code and an unknown planId escaped as a 500 with a stack trace.
+		try {
+			$planObj = $this->objectService->find(id: $planId, register: 'learniq', schema: 'rollover-plan');
+		} catch (DoesNotExistException $e) {
+			return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
+		}
 
-        $plan['dryRunReport'] = $report;
+		if ($planObj === null) {
+			return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
+		}
 
-        // Only advance to `previewed` when the preview is not blocked; a blocked
-        // preview keeps the plan in draft so it cannot be executed.
-        if (($report['blocked'] ?? false) === false) {
-            $plan['lifecycle'] = 'previewed';
-        }
+		$plan = $planObj->jsonSerialize();
+		$report = $this->rolloverService->preview(plan: $plan);
 
-        $this->objectService->saveObject(register: 'scholiq', schema: 'rollover-plan', object: $plan);
+		$plan['dryRunReport'] = $report;
 
-        return new JSONResponse(data: ['report' => $report, 'blocked' => ($report['blocked'] ?? false)]);
-    }//end preview()
+		// Only advance to `previewed` when the preview is not blocked; a blocked
+		// preview keeps the plan in draft so it cannot be executed.
+		if (($report['blocked'] ?? false) === false) {
+			$plan['lifecycle'] = 'previewed';
+		}
+
+		$this->objectService->saveObject(register: 'learniq', schema: 'rollover-plan', object: $plan);
+
+		return new JSONResponse(data: ['report' => $report, 'blocked' => ($report['blocked'] ?? false)]);
+	}//end preview()
 }//end class

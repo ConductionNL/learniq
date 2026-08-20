@@ -35,7 +35,10 @@ const MANIFEST_PATH = path.join(REPO_ROOT, 'src', 'manifest.json')
  * @return {boolean} True when the manifest targets the v2 schema.
  */
 function isV2Manifest(manifest) {
-	return typeof manifest.$schema === 'string' && manifest.$schema.includes('app-manifest-v2')
+	return (
+		typeof manifest.$schema === 'string'
+		&& manifest.$schema.includes('app-manifest-v2')
+	)
 }
 
 /**
@@ -46,13 +49,24 @@ function isV2Manifest(manifest) {
  * @return {string[]} Candidate paths (env override first, then node_modules, then siblings).
  */
 function schemaCandidates(manifest) {
-	const schemaFile = isV2Manifest(manifest) ? 'app-manifest-v2.schema.json' : 'app-manifest.schema.json'
+	const schemaFile = isV2Manifest(manifest)
+		? 'app-manifest-v2.schema.json'
+		: 'app-manifest.schema.json'
 	return [
 		process.env.APP_MANIFEST_SCHEMA,
-		path.join(REPO_ROOT, 'node_modules', '@conduction', 'nextcloud-vue', 'src', 'schemas', schemaFile),
+		path.join(
+			REPO_ROOT,
+			'node_modules',
+			'@conduction',
+			'nextcloud-vue',
+			'src',
+			'schemas',
+			schemaFile,
+		),
 		path.join(REPO_ROOT, '..', 'nextcloud-vue', 'src', 'schemas', schemaFile),
 		'/tmp/worktrees/nextcloud-vue-manifest-v1/src/schemas/' + schemaFile,
-		'/tmp/worktrees/nextcloud-vue-page-type-extensions/src/schemas/' + schemaFile,
+		'/tmp/worktrees/nextcloud-vue-page-type-extensions/src/schemas/'
+			+ schemaFile,
 	].filter(Boolean)
 }
 
@@ -89,8 +103,12 @@ function loadAjv() {
 			Ajv2020 = require('ajv').default || require('ajv')
 		} catch (__) {
 			console.error('[validate-manifest] Ajv not installed in node_modules.')
-			console.error('[validate-manifest] Install with: npm i -D ajv ajv-formats')
-			console.error('[validate-manifest] Falling back to a structural lint pass.')
+			console.error(
+				'[validate-manifest] Install with: npm i -D ajv ajv-formats',
+			)
+			console.error(
+				'[validate-manifest] Falling back to a structural lint pass.',
+			)
 			return { Ajv: null, addFormats: null }
 		}
 	}
@@ -110,14 +128,29 @@ function structuralLint(manifest) {
 	if (!manifest.version || typeof manifest.version !== 'string') {
 		errors.push('top-level: version (string) is required')
 	}
-	if (!Array.isArray(manifest.menu)) errors.push('top-level: menu (array) is required')
-	if (!Array.isArray(manifest.pages)) errors.push('top-level: pages (array) is required')
+	if (!Array.isArray(manifest.menu))
+		errors.push('top-level: menu (array) is required')
+	if (!Array.isArray(manifest.pages))
+		errors.push('top-level: pages (array) is required')
 	// Mirror the canonical @conduction/nextcloud-vue renderer's supported page
 	// types (render_check.js: dashboard|index|settings|logs|wiki|map|roadmap|
 	// files|chat|form), plus detail + custom. The structural-lint set was
 	// previously missing wiki/map/roadmap/form, falsely flagging the
 	// legitimate "Features & roadmap" page (type: "roadmap").
-	const allowedTypes = new Set(['index', 'detail', 'dashboard', 'logs', 'settings', 'chat', 'files', 'custom', 'wiki', 'map', 'roadmap', 'form'])
+	const allowedTypes = new Set([
+		'index',
+		'detail',
+		'dashboard',
+		'logs',
+		'settings',
+		'chat',
+		'files',
+		'custom',
+		'wiki',
+		'map',
+		'roadmap',
+		'form',
+	])
 	const seenIds = new Set()
 	for (let i = 0; i < (manifest.pages || []).length; i++) {
 		const page = manifest.pages[i]
@@ -127,14 +160,17 @@ function structuralLint(manifest) {
 		}
 		for (const required of ['id', 'route', 'type', 'title']) {
 			if (!page[required] || typeof page[required] !== 'string') {
-				errors.push(`pages[${i}]: missing required string field "${required}"`)
+				errors.push(
+					`pages[${i}]: missing required string field "${required}"`,
+				)
 			}
 		}
 		if (page.type && !allowedTypes.has(page.type)) {
 			errors.push(`pages[${i}].type: "${page.type}" not in known enum`)
 		}
 		if (page.id) {
-			if (seenIds.has(page.id)) errors.push(`pages[${i}].id: duplicate "${page.id}"`)
+			if (seenIds.has(page.id))
+				errors.push(`pages[${i}].id: duplicate "${page.id}"`)
 			seenIds.add(page.id)
 		}
 	}
@@ -150,12 +186,16 @@ function main() {
 	const manifest = loadJson(MANIFEST_PATH)
 	const schemaVariant = isV2Manifest(manifest) ? 'v2' : 'v1'
 	console.log(`[validate-manifest] manifest: ${MANIFEST_PATH}`)
-	console.log(`[validate-manifest] manifest.version: ${manifest.version} (schema variant: ${schemaVariant})`)
+	console.log(
+		`[validate-manifest] manifest.version: ${manifest.version} (schema variant: ${schemaVariant})`,
+	)
 	console.log(`[validate-manifest] pages: ${(manifest.pages || []).length}`)
 
 	const schemaPath = findSchemaPath(manifest)
 	if (!schemaPath) {
-		console.warn(`[validate-manifest] no ${schemaVariant} schema candidate resolved; falling back to structural lint.`)
+		console.warn(
+			`[validate-manifest] no ${schemaVariant} schema candidate resolved; falling back to structural lint.`,
+		)
 		const errors = structuralLint(manifest)
 		if (errors.length === 0) {
 			console.log('[validate-manifest] structural lint: PASS (0 issues)')
@@ -173,7 +213,9 @@ function main() {
 	if (!Ajv) {
 		const errors = structuralLint(manifest)
 		if (errors.length === 0) {
-			console.log('[validate-manifest] structural lint (no Ajv): PASS (0 issues)')
+			console.log(
+				'[validate-manifest] structural lint (no Ajv): PASS (0 issues)',
+			)
 			process.exit(0)
 		}
 		console.error('[validate-manifest] structural lint (no Ajv): FAIL')
@@ -191,7 +233,9 @@ function main() {
 	}
 	console.error('[validate-manifest] Ajv validation: FAIL')
 	for (const err of validate.errors || []) {
-		console.error(`  - ${err.instancePath || '(root)'} ${err.message} (keyword=${err.keyword})`)
+		console.error(
+			`  - ${err.instancePath || '(root)'} ${err.message} (keyword=${err.keyword})`,
+		)
 	}
 	process.exit(1)
 }

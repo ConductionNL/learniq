@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Submission Window Guard
+ * Learniq Submission Window Guard
  *
  * Lifecycle guard for the Submission schema's `submit` transition. Enforces the
  * Assignment's submission window: after dueAt, submission is blocked (HTTP 422) unless
@@ -12,10 +12,10 @@
  * a state transition and cannot be expressed as a schema declaration." Requires a
  * cross-schema query (Submission → Assignment) and datetime comparison.
  * Referenced from the Submission schema's x-openregister-lifecycle.transitions.submit.requires
- * in scholiq_register.json.
+ * in learniq_register.json.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -32,7 +32,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use DateTimeImmutable;
 use DateTimeZone;
@@ -48,130 +48,128 @@ use Psr\Log\LoggerInterface;
  * - now > dueAt + allowLateSubmission=false → block (return false).
  * - now > dueAt + allowLateSubmission=true  → redirect `to` to `late` and allow.
  */
-class SubmissionWindowGuard
-{
+class SubmissionWindowGuard {
 
-    /**
-     * OR register slug for Scholiq objects.
-     */
-    private const SCHOLIQ_REGISTER = 'scholiq';
+	/**
+	 * OR register slug for Learniq objects.
+	 */
+	private const LEARNIQ_REGISTER = 'learniq';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService   $objectService OR object service for fetching the parent Assignment.
-     * @param LoggerInterface $logger        PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object service for fetching the parent Assignment.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point.
-     *
-     * Called by OpenRegister's lifecycle engine before executing the `submit`
-     * transition on a Submission object. Looks up the parent Assignment to check
-     * whether the submission window is still open.
-     *
-     * When the deadline has passed and late submission is allowed, this guard mutates
-     * $transitionContext['to'] = 'late' so OpenRegister lands the Submission in the
-     * `late` state rather than `submitted`.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the Submission data array
-     *                                               - 'transition' : 'submit'
-     *                                               - 'from'       : 'draft'
-     *                                               - 'to'         : 'submitted' (may be mutated to 'late')
-     *
-     * @return bool True to allow the transition; false blocks it (HTTP 422 from OR engine).
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-9
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $object       = $transitionContext['object'] ?? [];
-        $assignmentId = $object['assignmentId'] ?? null;
-        $tenantId     = $object['tenant_id'] ?? '';
+	/**
+	 * OR lifecycle guard entry-point.
+	 *
+	 * Called by OpenRegister's lifecycle engine before executing the `submit`
+	 * transition on a Submission object. Looks up the parent Assignment to check
+	 * whether the submission window is still open.
+	 *
+	 * When the deadline has passed and late submission is allowed, this guard mutates
+	 * $transitionContext['to'] = 'late' so OpenRegister lands the Submission in the
+	 * `late` state rather than `submitted`.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the Submission data array
+	 *                                               - 'transition' : 'submit'
+	 *                                               - 'from'       : 'draft'
+	 *                                               - 'to'         : 'submitted' (may be mutated to 'late')
+	 *
+	 * @return bool True to allow the transition; false blocks it (HTTP 422 from OR engine).
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-9
+	 */
+	public function check(array &$transitionContext): bool {
+		$object = $transitionContext['object'] ?? [];
+		$assignmentId = $object['assignmentId'] ?? null;
+		$tenantId = $object['tenant_id'] ?? '';
 
-        if ($assignmentId === null) {
-            $this->logger->info(
-                '[SubmissionWindowGuard] Submission has no assignmentId; blocking submit.'
-            );
-            return false;
-        }
+		if ($assignmentId === null) {
+			$this->logger->info(
+				'[SubmissionWindowGuard] Submission has no assignmentId; blocking submit.'
+			);
+			return false;
+		}
 
-        // H1: scope Assignment lookup to the same tenant.
-        $assignmentFilters = ['uuid' => $assignmentId];
-        if ($tenantId !== '') {
-            $assignmentFilters['tenant_id'] = $tenantId;
-        }
+		// H1: scope Assignment lookup to the same tenant.
+		$assignmentFilters = ['uuid' => $assignmentId];
+		if ($tenantId !== '') {
+			$assignmentFilters['tenant_id'] = $tenantId;
+		}
 
-        $assignments = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => 'assignment',
-                'filters'  => $assignmentFilters,
-                'limit'    => 1,
-            ]
-        );
+		$assignments = $this->objectService->findAll(
+			[
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => 'assignment',
+				'filters' => $assignmentFilters,
+				'limit' => 1,
+			]
+		);
 
-        if (empty($assignments) === true) {
-            $this->logger->info(
-                '[SubmissionWindowGuard] Assignment {id} not found; blocking submit.',
-                ['id' => $assignmentId]
-            );
-            return false;
-        }
+		if (empty($assignments) === true) {
+			$this->logger->info(
+				'[SubmissionWindowGuard] Assignment {id} not found; blocking submit.',
+				['id' => $assignmentId]
+			);
+			return false;
+		}
 
-        $assignment = $assignments[0];
-        $dueAtRaw   = $assignment['dueAt'] ?? null;
+		$assignment = $assignments[0];
+		$dueAtRaw = $assignment['dueAt'] ?? null;
 
-        if ($dueAtRaw === null) {
-            // Open-ended assignment — no deadline to enforce.
-            return true;
-        }
+		if ($dueAtRaw === null) {
+			// Open-ended assignment — no deadline to enforce.
+			return true;
+		}
 
-        // #202: use explicit UTC timezone for both timestamps so DST transitions on the
-        // server do not cause inconsistent deadline comparisons. Stored dueAt values must
-        // include a timezone offset (ISO 8601); if they don't we default to UTC.
-        // #219: wrap DateTimeImmutable construction in a try/catch to surface malformed
-        // dueAt values as a guard rejection rather than an unhandled 500.
-        try {
-            $dueAt = new DateTimeImmutable($dueAtRaw, new DateTimeZone('UTC'));
-        } catch (\Exception $e) {
-            $this->logger->warning(
-                '[SubmissionWindowGuard] Assignment {id} has malformed dueAt value; blocking submit.',
-                ['id' => $assignmentId]
-            );
-            return false;
-        }
+		// #202: use explicit UTC timezone for both timestamps so DST transitions on the
+		// server do not cause inconsistent deadline comparisons. Stored dueAt values must
+		// include a timezone offset (ISO 8601); if they don't we default to UTC.
+		// #219: wrap DateTimeImmutable construction in a try/catch to surface malformed
+		// dueAt values as a guard rejection rather than an unhandled 500.
+		try {
+			$dueAt = new DateTimeImmutable($dueAtRaw, new DateTimeZone('UTC'));
+		} catch (\Exception $e) {
+			$this->logger->warning(
+				'[SubmissionWindowGuard] Assignment {id} has malformed dueAt value; blocking submit.',
+				['id' => $assignmentId]
+			);
+			return false;
+		}
 
-        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+		$now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
 
-        if ($now <= $dueAt) {
-            // Within the window — normal submit.
-            return true;
-        }
+		if ($now <= $dueAt) {
+			// Within the window — normal submit.
+			return true;
+		}
 
-        $allowLate = (bool) ($assignment['allowLateSubmission'] ?? false);
+		$allowLate = (bool)($assignment['allowLateSubmission'] ?? false);
 
-        if ($allowLate === false) {
-            $this->logger->info(
-                '[SubmissionWindowGuard] Submission after dueAt and late submission not allowed; blocking.'
-            );
-            return false;
-        }
+		if ($allowLate === false) {
+			$this->logger->info(
+				'[SubmissionWindowGuard] Submission after dueAt and late submission not allowed; blocking.'
+			);
+			return false;
+		}
 
-        // Past deadline but late submission is allowed → redirect lifecycle target to `late`.
-        $transitionContext['to'] = 'late';
-        $this->logger->info(
-            '[SubmissionWindowGuard] Submission after dueAt; redirecting lifecycle to `late`.'
-        );
+		// Past deadline but late submission is allowed → redirect lifecycle target to `late`.
+		$transitionContext['to'] = 'late';
+		$this->logger->info(
+			'[SubmissionWindowGuard] Submission after dueAt; redirecting lifecycle to `late`.'
+		);
 
-        return true;
-    }//end check()
+		return true;
+	}//end check()
 }//end class

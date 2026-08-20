@@ -102,7 +102,7 @@ npm run build           # production build
 
 | Layer | Technology |
 |---|---|
-| Frontend | Vue 2.7, `@conduction/nextcloud-vue` CnAppRoot (Tier 4) |
+| Frontend | Vue 3.5, `@nextcloud/vue` 9, `@conduction/nextcloud-vue` CnAppRoot (Tier 4) |
 | Data model | `src/manifest.json` + `lib/Settings/scholiq_register.json` |
 | Build | Webpack 5, `@nextcloud/webpack-vue-config` |
 | Backend | PHP 8.1+, Nextcloud App Framework |

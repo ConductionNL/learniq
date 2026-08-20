@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Scholiq Page Controller
+ * Learniq Page Controller
  *
  * Renders the SPA shell and serves the bundled app manifest (ADR-024 §4).
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -21,10 +21,10 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\Service\DashboardRoleService;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\DashboardRoleService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -44,92 +44,88 @@ use OCP\IUserSession;
  *
  * @spec exclude framework glue — SPA shell + manifest passthrough + role initial-state provider; no business behaviour
  */
-class PageController extends Controller
-{
-    /**
-     * Constructor.
-     *
-     * @param IRequest             $request          The request object.
-     * @param IUserSession         $userSession      The user session.
-     * @param IInitialState        $initialState     The initial-state service.
-     * @param DashboardRoleService $dashboardRoleSvc Resolves the user's role + dashboard views.
-     *
-     * @return void
-     */
-    public function __construct(
-        IRequest $request,
-        private readonly IUserSession $userSession,
-        private readonly IInitialState $initialState,
-        private readonly DashboardRoleService $dashboardRoleSvc,
-    ) {
-        parent::__construct(appName: Application::APP_ID, request: $request);
-    }//end __construct()
+class PageController extends Controller {
+	/**
+	 * Constructor.
+	 *
+	 * @param IRequest $request The request object.
+	 * @param IUserSession $userSession The user session.
+	 * @param IInitialState $initialState The initial-state service.
+	 * @param DashboardRoleService $dashboardRoleSvc Resolves the user's role + dashboard views.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		IRequest $request,
+		private readonly IUserSession $userSession,
+		private readonly IInitialState $initialState,
+		private readonly DashboardRoleService $dashboardRoleSvc,
+	) {
+		parent::__construct(appName: Application::APP_ID, request: $request);
+	}//end __construct()
 
-    /**
-     * Render the main SPA page.
-     *
-     * Provides the resolved Scholiq role context as initial state so the
-     * manifest shell can populate `runtime.user.primaryRole` (menu visibleIf)
-     * and the role-aware Dashboards component can pick its default view and
-     * switcher set without a second round-trip.
-     *
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     *
-     * @return TemplateResponse
-     *
-     * @spec exclude framework glue — returns the static index TemplateResponse that boots the Vue SPA; provides role initial state only
-     */
-    public function index(): TemplateResponse
-    {
-        $user = $this->userSession->getUser();
-        if ($user !== null) {
-            $this->initialState->provideInitialState('primaryRole', $this->dashboardRoleSvc->resolvePrimaryRole($user));
-            $this->initialState->provideInitialState('dashboardRole', $this->dashboardRoleSvc->resolveDefaultView($user));
-            $this->initialState->provideInitialState('dashboardRoles', $this->dashboardRoleSvc->resolveViews($user));
-        }
+	/**
+	 * Render the main SPA page.
+	 *
+	 * Provides the resolved Learniq role context as initial state so the
+	 * manifest shell can populate `runtime.user.primaryRole` (menu visibleIf)
+	 * and the role-aware Dashboards component can pick its default view and
+	 * switcher set without a second round-trip.
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @return TemplateResponse
+	 *
+	 * @spec exclude framework glue — returns the static index TemplateResponse that boots the Vue SPA; provides role initial state only
+	 */
+	public function index(): TemplateResponse {
+		$user = $this->userSession->getUser();
+		if ($user !== null) {
+			$this->initialState->provideInitialState('primaryRole', $this->dashboardRoleSvc->resolvePrimaryRole($user));
+			$this->initialState->provideInitialState('dashboardRole', $this->dashboardRoleSvc->resolveDefaultView($user));
+			$this->initialState->provideInitialState('dashboardRoles', $this->dashboardRoleSvc->resolveViews($user));
+		}
 
-        return new TemplateResponse(Application::APP_ID, 'index');
-    }//end index()
+		return new TemplateResponse(Application::APP_ID, 'index');
+	}//end index()
 
-    /**
-     * Serve the SPA for deep links (Vue history mode). Delegates to index().
-     *
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     *
-     * @return TemplateResponse
-     *
-     * @spec exclude framework glue — deep-link catch-all that delegates to index() so Vue Router can resolve the path; no business behavior
-     */
-    public function catchAll(): TemplateResponse
-    {
-        return $this->index();
-    }//end catchAll()
+	/**
+	 * Serve the SPA for deep links (Vue history mode). Delegates to index().
+	 *
+	 * @NoAdminRequired
+	 * @NoCSRFRequired
+	 *
+	 * @return TemplateResponse
+	 *
+	 * @spec exclude framework glue — deep-link catch-all that delegates to index() so Vue Router can resolve the path; no business behavior
+	 */
+	public function catchAll(): TemplateResponse {
+		return $this->index();
+	}//end catchAll()
 
-    /**
-     * Return the bundled app manifest as JSON (ADR-024 §4).
-     *
-     * V0.1: returns the bundled src/manifest.json blob unchanged.
-     * V0.2 (deferred): will merge partial overrides from IAppConfig for
-     * admin-customised menu order / hidden pages.
-     *
-     * @return JSONResponse
-     *
-     * @spec openspec/changes/retrofit-2026-05-25-app-shell-settings/tasks.md#task-5
-     */
-    #[NoAdminRequired]
-    #[NoCSRFRequired]
-    public function manifest(): JSONResponse
-    {
-        if ($this->userSession->getUser() === null) {
-            return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
-        }
+	/**
+	 * Return the bundled app manifest as JSON (ADR-024 §4).
+	 *
+	 * V0.1: returns the bundled src/manifest.json blob unchanged.
+	 * V0.2 (deferred): will merge partial overrides from IAppConfig for
+	 * admin-customised menu order / hidden pages.
+	 *
+	 * @return JSONResponse
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-25-app-shell-settings/tasks.md#task-5
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function manifest(): JSONResponse {
+		if ($this->userSession->getUser() === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
 
-        $manifestPath = __DIR__.'/../../src/manifest.json';
-        $manifestJson = file_get_contents($manifestPath);
-        $manifest     = json_decode($manifestJson, associative: true);
+		$manifestPath = __DIR__ . '/../../src/manifest.json';
+		$manifestJson = file_get_contents($manifestPath);
+		$manifest = json_decode($manifestJson, associative: true);
 
-        return new JSONResponse($manifest);
-    }//end manifest()
+		return new JSONResponse($manifest);
+	}//end manifest()
 }//end class

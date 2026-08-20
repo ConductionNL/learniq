@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Assessment Grade Guard
+ * Learniq Assessment Grade Guard
  *
  * Lifecycle guard for the AssessmentResult schema's `grade` transition. Enforces that
  * every item that requires manual scoring has a non-null manualScore in the result's
@@ -15,10 +15,10 @@
  * cross-schema query (AssessmentResult → Assessment → Item) to determine which
  * items need manual scoring.
  * Referenced from the AssessmentResult schema's x-openregister-lifecycle.transitions.grade.requires
- * in scholiq_register.json.
+ * in learniq_register.json.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -35,7 +35,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -48,180 +48,268 @@ use Psr\Log\LoggerInterface;
  * entirely of auto-scored items pass immediately (AssessmentScoringHandler already
  * set all autoScores on the submit transition).
  */
-class AssessmentGradeGuard
-{
+class AssessmentGradeGuard {
 
-    /**
-     * OR register slug for Scholiq objects.
-     */
-    private const SCHOLIQ_REGISTER = 'scholiq';
+	/**
+	 * OR register slug for Learniq objects.
+	 */
+	private const LEARNIQ_REGISTER = 'learniq';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService   $objectService OR object service for Assessment and Item lookups.
-     * @param LoggerInterface $logger        PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object service for Assessment and Item lookups.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point.
-     *
-     * Called by OpenRegister's lifecycle engine before executing the `grade`
-     * transition on an AssessmentResult object.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the AssessmentResult data array
-     *                                               - 'transition' : 'grade'
-     *                                               - 'from'       : 'submitted'
-     *                                               - 'to'         : 'graded'
-     *
-     * @return bool True if all manual-scoring items have scores; false blocks the transition.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-7
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $result       = $transitionContext['object'] ?? [];
-        $assessmentId = $result['assessmentId'] ?? null;
-        $responses    = $result['responses'] ?? [];
-        $tenantId     = $result['tenant_id'] ?? '';
+	/**
+	 * OR lifecycle guard entry-point.
+	 *
+	 * Called by OpenRegister's lifecycle engine before executing the `grade`
+	 * transition on an AssessmentResult object.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the AssessmentResult data array
+	 *                                               - 'transition' : 'grade'
+	 *                                               - 'from'       : 'submitted'
+	 *                                               - 'to'         : 'graded'
+	 *
+	 * @return bool True if all manual-scoring items have scores; false blocks the transition.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-7
+	 */
+	public function check(array &$transitionContext): bool {
+		$result = $transitionContext['object'] ?? [];
+		$assessmentId = $result['assessmentId'] ?? null;
+		$responses = $result['responses'] ?? [];
+		$tenantId = $result['tenant_id'] ?? '';
 
-        if ($assessmentId === null) {
-            $this->logger->info(
-                '[AssessmentGradeGuard] AssessmentResult has no assessmentId; blocking grade.'
-            );
-            return false;
-        }
+		if ($assessmentId === null) {
+			$this->logger->info(
+				'[AssessmentGradeGuard] AssessmentResult has no assessmentId; blocking grade.'
+			);
+			return false;
+		}
 
-        // H1: scope Assessment lookup to the same tenant.
-        $assessmentFilters = ['uuid' => $assessmentId];
-        if ($tenantId !== '') {
-            $assessmentFilters['tenant_id'] = $tenantId;
-        }
+		$assessments = $this->objectService->findAll(
+			[
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => 'assessment',
+				// H1: scope Assessment lookup to the same tenant.
+				'filters' => $this->tenantScoped(filters: ['uuid' => $assessmentId], tenantId: $tenantId),
+				'limit' => 1,
+			]
+		);
 
-        $assessments = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => 'assessment',
-                'filters'  => $assessmentFilters,
-                'limit'    => 1,
-            ]
-        );
+		if (empty($assessments) === true) {
+			$this->logger->info(
+				'[AssessmentGradeGuard] Assessment {id} not found; blocking grade.',
+				['id' => $assessmentId]
+			);
+			return false;
+		}
 
-        if (empty($assessments) === true) {
-            $this->logger->info(
-                '[AssessmentGradeGuard] Assessment {id} not found; blocking grade.',
-                ['id' => $assessmentId]
-            );
-            return false;
-        }
+		$assessment = $assessments[0];
+		$itemRefs = $assessment['itemRefs'] ?? [];
 
-        $assessment = $assessments[0];
-        $itemRefs   = $assessment['itemRefs'] ?? [];
+		// #196: collect all item IDs in one pass, then bulk-fetch in a single OR query
+		// rather than issuing one query per item (which causes N+1 under load).
+		$allItemIds = $this->collectItemIds(itemRefs: $itemRefs);
+		if (empty($allItemIds) === true) {
+			return true;
+		}
 
-        // Build a map of itemId → response for O(1) lookup.
-        $responseByItemId = [];
-        foreach ($responses as $response) {
-            $itemId = $response['itemId'] ?? null;
-            if ($itemId !== null) {
-                $responseByItemId[$itemId] = $response;
-            }
-        }
+		$unscored = $this->findUnscoredItem(
+			itemRefs: $itemRefs,
+			itemByUuid: $this->fetchItemsByUuid(itemIds: $allItemIds, tenantId: $tenantId),
+			responseByItemId: $this->indexResponsesByItemId(responses: $responses),
+		);
 
-        // #196: Collect all item IDs in one pass, then bulk-fetch in a single OR query
-        // rather than issuing one query per item (which causes N+1 under load).
-        $allItemIds = [];
-        foreach ($itemRefs as $itemRef) {
-            $itemId = $itemRef['itemId'] ?? null;
-            if ($itemId !== null) {
-                $allItemIds[] = $itemId;
-            }
-        }
+		if ($unscored !== null) {
+			$this->logger->info(
+				'[AssessmentGradeGuard] Item {itemId} (interactionType={type}) needs manual scoring but '
+				. 'neither manualScore nor autoScore is set; blocking grade.',
+				['itemId' => $unscored['itemId'], 'type' => $unscored['interactionType']]
+			);
+			return false;
+		}
 
-        if (empty($allItemIds) === true) {
-            return true;
-        }
+		return true;
+	}//end check()
 
-        // Single bulk query for all items referenced by this assessment.
-        // H1: scope the Item lookup to the same tenant.
-        $bulkFilters = ['uuid' => $allItemIds];
-        if ($tenantId !== '') {
-            $bulkFilters['tenant_id'] = $tenantId;
-        }
+	/**
+	 * Add the tenant filter to a filter set when a tenant scope is known.
+	 *
+	 * H1: every lookup this guard makes must be scoped to the AssessmentResult's
+	 * own tenant, so neither the Assessment nor its Items can be read across a
+	 * tenant boundary.
+	 *
+	 * @param array<string,mixed> $filters The filters built so far.
+	 * @param string $tenantId Tenant UUID, or '' when unknown.
+	 *
+	 * @return array<string,mixed> The filters, tenant-scoped when possible.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-7
+	 */
+	private function tenantScoped(array $filters, string $tenantId): array {
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
 
-        $fetchedItems = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => 'item',
-                'filters'  => $bulkFilters,
-                'limit'    => count($allItemIds) + 1,
-            ]
-        );
+		return $filters;
+	}//end tenantScoped()
 
-        // Index fetched items by UUID for O(1) lookup.
-        $itemByUuid = [];
-        foreach ($fetchedItems as $rawItem) {
-            $itemArr = $rawItem;
-            if (is_array($rawItem) === false) {
-                $itemArr = $rawItem->jsonSerialize();
-            }
+	/**
+	 * Index an AssessmentResult's responses by the item they answer.
+	 *
+	 * @param array<int,array<string,mixed>> $responses The result's responses.
+	 *
+	 * @return array<string,array<string,mixed>> Map of itemId => response.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-7
+	 */
+	private function indexResponsesByItemId(array $responses): array {
+		$responseByItemId = [];
+		foreach ($responses as $response) {
+			$itemId = $response['itemId'] ?? null;
+			if ($itemId !== null) {
+				$responseByItemId[$itemId] = $response;
+			}
+		}
 
-            $uuid = $itemArr['uuid'] ?? ($itemArr['id'] ?? null);
-            if ($uuid !== null) {
-                $itemByUuid[$uuid] = $itemArr;
-            }
-        }
+		return $responseByItemId;
+	}//end indexResponsesByItemId()
 
-        // For each referenced item, check if it needs manual scoring.
-        foreach ($itemRefs as $itemRef) {
-            $itemId = $itemRef['itemId'] ?? null;
-            if ($itemId === null) {
-                continue;
-            }
+	/**
+	 * Collect the item UUIDs an Assessment's itemRefs point at.
+	 *
+	 * @param array<int,array<string,mixed>> $itemRefs The Assessment's itemRefs.
+	 *
+	 * @return array<int,string> Referenced item UUIDs, in reference order.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-7
+	 */
+	private function collectItemIds(array $itemRefs): array {
+		$allItemIds = [];
+		foreach ($itemRefs as $itemRef) {
+			$itemId = $itemRef['itemId'] ?? null;
+			if ($itemId !== null) {
+				$allItemIds[] = $itemId;
+			}
+		}
 
-            // Bulk-fetched above (#196): O(1) lookup, tenant-scoped.
-            $item = $itemByUuid[$itemId] ?? null;
-            if ($item === null) {
-                continue;
-            }
+		return $allItemIds;
+	}//end collectItemIds()
 
-            $interactionType = $item['interactionType'] ?? '';
-            $correctResponse = $item['correctResponse'] ?? null;
+	/**
+	 * Bulk-fetch the referenced Items in one tenant-scoped query and index them
+	 * by UUID (#196 — one query, not one per item).
+	 *
+	 * @param array<int,string> $itemIds Referenced item UUIDs.
+	 * @param string $tenantId Tenant UUID, or '' when unknown.
+	 *
+	 * @return array<string,array<string,mixed>> Map of item UUID => item data.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-7
+	 */
+	private function fetchItemsByUuid(array $itemIds, string $tenantId): array {
+		$fetchedItems = $this->objectService->findAll(
+			[
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => 'item',
+				// H1: scope the Item lookup to the same tenant.
+				'filters' => $this->tenantScoped(filters: ['uuid' => $itemIds], tenantId: $tenantId),
+				'limit' => (count($itemIds) + 1),
+			]
+		);
 
-            // An item needs manual scoring if it is an extendedText interaction (always) or
-            // if correctResponse is null (could not be auto-scored by AssessmentScoringHandler).
-            $needsManualScoring = ($interactionType === 'extendedText') || ($correctResponse === null);
+		$itemByUuid = [];
+		foreach ($fetchedItems as $rawItem) {
+			$itemArr = $rawItem;
+			if (is_array($rawItem) === false) {
+				$itemArr = $rawItem->jsonSerialize();
+			}
 
-            if ($needsManualScoring === false) {
-                continue;
-            }
+			$uuid = $itemArr['uuid'] ?? ($itemArr['id'] ?? null);
+			if ($uuid !== null) {
+				$itemByUuid[$uuid] = $itemArr;
+			}
+		}
 
-            $response    = $responseByItemId[$itemId] ?? null;
-            $manualScore = $response['manualScore'] ?? null;
+		return $itemByUuid;
+	}//end fetchItemsByUuid()
 
-            // #199: an item without correctResponse that also has a non-null autoScore
-            // (e.g. a teacher corrected it via the scoring interface without using
-            // the manualScore field name) should not silently block grading.
-            // Treat autoScore as an acceptable fallback when manualScore is absent.
-            $autoScore = $response['autoScore'] ?? null;
+	/**
+	 * Find the first referenced Item that needs manual scoring but carries no
+	 * score at all, which is what blocks the grade transition.
+	 *
+	 * #199: an item without a correctResponse but with a non-null autoScore (a
+	 * teacher corrected it through the scoring interface without using the
+	 * manualScore field name) must not silently block grading, so autoScore is
+	 * an acceptable fallback.
+	 *
+	 * @param array<int,array<string,mixed>> $itemRefs The Assessment's itemRefs.
+	 * @param array<string,array<string,mixed>> $itemByUuid Bulk-fetched Items, indexed by UUID.
+	 * @param array<string,array<string,mixed>> $responseByItemId The result's responses, indexed by itemId.
+	 *
+	 * @return array{itemId: string, interactionType: string}|null The blocking item, or null when all are scored.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-7
+	 */
+	private function findUnscoredItem(array $itemRefs, array $itemByUuid, array $responseByItemId): ?array {
+		foreach ($itemRefs as $itemRef) {
+			$itemId = $itemRef['itemId'] ?? null;
+			if ($itemId === null) {
+				continue;
+			}
 
-            if ($manualScore === null && $autoScore === null) {
-                $this->logger->info(
-                    '[AssessmentGradeGuard] Item {itemId} (interactionType={type}) needs manual scoring but '
-                    .'neither manualScore nor autoScore is set; blocking grade.',
-                    ['itemId' => $itemId, 'type' => $interactionType]
-                );
-                return false;
-            }
-        }//end foreach
+			// Bulk-fetched above (#196): O(1) lookup, tenant-scoped.
+			$item = ($itemByUuid[$itemId] ?? null);
+			if ($item === null) {
+				continue;
+			}
 
-        return true;
-    }//end check()
+			if ($this->needsManualScoring(item: $item) === false) {
+				continue;
+			}
+
+			$response = ($responseByItemId[$itemId] ?? null);
+			if (($response['manualScore'] ?? null) === null && ($response['autoScore'] ?? null) === null) {
+				return [
+					'itemId' => (string)$itemId,
+					'interactionType' => (string)($item['interactionType'] ?? ''),
+				];
+			}
+		}//end foreach
+
+		return null;
+	}//end findUnscoredItem()
+
+	/**
+	 * Whether an Item can only be scored by a human.
+	 *
+	 * An extendedText interaction always is; so is any item whose
+	 * `correctResponse` is null, because `AssessmentScoringHandler` had nothing
+	 * to auto-score it against.
+	 *
+	 * @param array<string,mixed> $item The Item data.
+	 *
+	 * @return bool True when the item requires a manual score.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-7
+	 */
+	private function needsManualScoring(array $item): bool {
+		if (($item['interactionType'] ?? '') === 'extendedText') {
+			return true;
+		}
+
+		return (($item['correctResponse'] ?? null) === null);
+	}//end needsManualScoring()
 }//end class

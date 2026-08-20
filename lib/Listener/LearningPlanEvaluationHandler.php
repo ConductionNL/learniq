@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Learning Plan Evaluation Handler
+ * Learniq Learning Plan Evaluation Handler
  *
  * IEventListener for OpenRegister's ObjectTransitionedEvent. When a
  * LearningPlanEvaluation transitions to `recorded`, this handler:
@@ -21,7 +21,7 @@
  * translate an evaluation record event into LearningPlan goal-status updates.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -38,7 +38,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -51,177 +51,214 @@ use Psr\Log\LoggerInterface;
  *
  * @implements IEventListener<Event>
  */
-class LearningPlanEvaluationHandler implements IEventListener
-{
+class LearningPlanEvaluationHandler implements IEventListener {
 
-    private const SCHOLIQ_REGISTER     = 'scholiq';
-    private const EVALUATION_SCHEMA    = 'learning-plan-evaluation';
-    private const LEARNING_PLAN_SCHEMA = 'learning-plan';
+	private const LEARNIQ_REGISTER = 'learniq';
+	private const EVALUATION_SCHEMA = 'learning-plan-evaluation';
+	private const LEARNING_PLAN_SCHEMA = 'learning-plan';
 
-    /**
-     * Outcome values that cause a goal status update.
-     * 'continued' is intentionally absent — it leaves status as 'open'.
-     *
-     * @var array<string,string>
-     */
-    private const OUTCOME_TO_STATUS = [
-        'met'      => 'met',
-        'adjusted' => 'adjusted',
-        'dropped'  => 'dropped',
-    ];
+	/**
+	 * Outcome values that cause a goal status update.
+	 * 'continued' is intentionally absent — it leaves status as 'open'.
+	 *
+	 * @var array<string,string>
+	 */
+	private const OUTCOME_TO_STATUS = [
+		'met' => 'met',
+		'adjusted' => 'adjusted',
+		'dropped' => 'dropped',
+	];
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService   $objectService OR object access.
-     * @param LoggerInterface $logger        PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an ObjectTransitionedEvent.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-23
-     */
-    public function handle(Event $event): void
-    {
-        if (($event instanceof ObjectTransitionedEvent) === false) {
-            return;
-        }
+	/**
+	 * Handle an ObjectTransitionedEvent.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-23
+	 */
+	public function handle(Event $event): void {
+		if (($event instanceof ObjectTransitionedEvent) === false) {
+			return;
+		}
 
-        if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
-            return;
-        }
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+			return;
+		}
 
-        if ($event->getSchema() !== self::EVALUATION_SCHEMA) {
-            return;
-        }
+		if ($event->getSchema() !== self::EVALUATION_SCHEMA) {
+			return;
+		}
 
-        if ($event->getTo() !== 'recorded') {
-            return;
-        }
+		if ($event->getTo() !== 'recorded') {
+			return;
+		}
 
-        $this->handleEvaluationRecorded(event: $event);
+		$this->handleEvaluationRecorded(event: $event);
 
-    }//end handle()
+	}//end handle()
 
-    /**
-     * Apply evaluation goal outcomes to the parent LearningPlan.
-     *
-     * @param ObjectTransitionedEvent $event The transition event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-23
-     */
-    private function handleEvaluationRecorded(ObjectTransitionedEvent $event): void
-    {
-        $evaluation   = $event->getObject()->jsonSerialize();
-        $planId       = $evaluation['learningPlanId'] ?? '';
-        $goalOutcomes = $evaluation['goalOutcomes'] ?? [];
-        $nextReviewAt = $evaluation['nextReviewAt'] ?? null;
+	/**
+	 * Apply evaluation goal outcomes to the parent LearningPlan.
+	 *
+	 * @param ObjectTransitionedEvent $event The transition event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-23
+	 */
+	private function handleEvaluationRecorded(ObjectTransitionedEvent $event): void {
+		$evaluation = $event->getObject()->jsonSerialize();
+		$planId = $evaluation['learningPlanId'] ?? '';
+		$goalOutcomes = $evaluation['goalOutcomes'] ?? [];
+		$nextReviewAt = $evaluation['nextReviewAt'] ?? null;
 
-        if ($planId === '') {
-            $this->logger->warning('[LearningPlanEvaluationHandler] Evaluation has no learningPlanId — skipping.');
-            return;
-        }
+		if ($planId === '') {
+			$this->logger->warning('[LearningPlanEvaluationHandler] Evaluation has no learningPlanId — skipping.');
+			return;
+		}
 
-        // Fetch the parent LearningPlan.
-        $plans = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::LEARNING_PLAN_SCHEMA,
-                'filters'  => ['uuid' => $planId],
-                'limit'    => 1,
-            ]
-        );
+		// Fetch the parent LearningPlan.
+		$plans = $this->objectService->findAll(
+			[
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => self::LEARNING_PLAN_SCHEMA,
+				'filters' => ['uuid' => $planId],
+				'limit' => 1,
+			]
+		);
 
-        if (empty($plans) === true) {
-            $this->logger->warning(
-                '[LearningPlanEvaluationHandler] LearningPlan {id} not found — skipping.',
-                ['id' => $planId]
-            );
-            return;
-        }
+		if (empty($plans) === true) {
+			$this->logger->warning(
+				'[LearningPlanEvaluationHandler] LearningPlan {id} not found — skipping.',
+				['id' => $planId]
+			);
+			return;
+		}
 
-        $plan = $plans[0];
-        if (is_array($plans[0]) === false) {
-            $plan = $plans[0]->jsonSerialize();
-        }
+		$plan = $plans[0];
+		if (is_array($plans[0]) === false) {
+			$plan = $plans[0]->jsonSerialize();
+		}
 
-        $goals = $plan['goals'] ?? [];
+		$applied = $this->applyOutcomesToGoals(
+			goals: ($plan['goals'] ?? []),
+			outcomeMap: $this->buildOutcomeMap(goalOutcomes: $goalOutcomes)
+		);
 
-        // Build a goalId → outcome map for O(1) lookups.
-        $outcomeMap = [];
-        foreach ($goalOutcomes as $outcome) {
-            $goalId = $outcome['goalId'] ?? null;
-            if ($goalId !== null) {
-                $outcomeMap[$goalId] = $outcome['outcome'] ?? 'continued';
-            }
-        }
+		$goals = $applied['goals'];
+		$changed = $applied['changed'];
 
-        // Update goal statuses.
-        $changed = false;
-        foreach ($goals as &$goal) {
-            $goalId  = $goal['goalId'] ?? null;
-            $outcome = null;
-            if ($goalId !== null) {
-                $outcome = $outcomeMap[$goalId] ?? null;
-            }
+		// Update nextReviewAt if provided.
+		if ($nextReviewAt !== null) {
+			$plan['nextReviewAt'] = $nextReviewAt;
+			$changed = true;
+		}
 
-            if ($outcome === null) {
-                continue;
-            }
+		if ($changed === false) {
+			$this->logger->info(
+				'[LearningPlanEvaluationHandler] No changes needed for LearningPlan {id}.',
+				['id' => $planId]
+			);
+			return;
+		}
 
-            if (isset(self::OUTCOME_TO_STATUS[$outcome]) === true) {
-                $newStatus = self::OUTCOME_TO_STATUS[$outcome];
-                if (($goal['status'] ?? 'open') !== $newStatus) {
-                    $goal['status'] = $newStatus;
-                    $changed        = true;
-                }
-            }
+		$plan['goals'] = $goals;
 
-            // 'continued' → leave status as-is.
-        }//end foreach
+		$this->objectService->saveObject(
+			register: self::LEARNIQ_REGISTER,
+			schema: self::LEARNING_PLAN_SCHEMA,
+			object: $plan
+		);
 
-        unset($goal);
+		$this->logger->info(
+			'[LearningPlanEvaluationHandler] Updated LearningPlan {id} after evaluation recorded.',
+			['id' => $planId]
+		);
 
-        // Update nextReviewAt if provided.
-        if ($nextReviewAt !== null) {
-            $plan['nextReviewAt'] = $nextReviewAt;
-            $changed = true;
-        }
+	}//end handleEvaluationRecorded()
 
-        if ($changed === false) {
-            $this->logger->info(
-                '[LearningPlanEvaluationHandler] No changes needed for LearningPlan {id}.',
-                ['id' => $planId]
-            );
-            return;
-        }
+	/**
+	 * Build the goalId => outcome map for O(1) lookups.
+	 *
+	 * An outcome row naming no goal cannot be applied to anything, so it is
+	 * dropped rather than defaulted onto an arbitrary goal.
+	 *
+	 * @param array<int,array<string,mixed>> $goalOutcomes The evaluation's goalOutcomes rows.
+	 *
+	 * @return array<string,mixed> Map of goalId => outcome.
+	 *
+	 * @spec openspec/changes/learning-plan/specs/learning-plan/spec.md#requirement-learningplanevaluation-schema-persistence-and-goal-status-update
+	 */
+	private function buildOutcomeMap(array $goalOutcomes): array {
+		$outcomeMap = [];
+		foreach ($goalOutcomes as $outcome) {
+			$goalId = $outcome['goalId'] ?? null;
+			if ($goalId !== null) {
+				$outcomeMap[$goalId] = ($outcome['outcome'] ?? 'continued');
+			}
+		}
 
-        $plan['goals'] = $goals;
+		return $outcomeMap;
+	}//end buildOutcomeMap()
 
-        $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::LEARNING_PLAN_SCHEMA,
-            object: $plan
-        );
+	/**
+	 * Apply the recorded outcomes to the plan's goals.
+	 *
+	 * A goal the evaluation did not mention is left alone, and so is one whose
+	 * outcome is `continued` — only an outcome that maps to a different status
+	 * changes anything, which is what makes the `changed` flag meaningful.
+	 *
+	 * @param array<int,array<string,mixed>> $goals The LearningPlan's goals.
+	 * @param array<string,mixed> $outcomeMap Map of goalId => outcome.
+	 *
+	 * @return array{goals: array<int,array<string,mixed>>, changed: bool}
+	 *
+	 * @spec openspec/changes/learning-plan/specs/learning-plan/spec.md#requirement-learningplanevaluation-schema-persistence-and-goal-status-update
+	 */
+	private function applyOutcomesToGoals(array $goals, array $outcomeMap): array {
+		$changed = false;
 
-        $this->logger->info(
-            '[LearningPlanEvaluationHandler] Updated LearningPlan {id} after evaluation recorded.',
-            ['id' => $planId]
-        );
+		foreach ($goals as &$goal) {
+			$goalId = $goal['goalId'] ?? null;
+			if ($goalId === null) {
+				continue;
+			}
 
-    }//end handleEvaluationRecorded()
+			$outcome = ($outcomeMap[$goalId] ?? null);
+			if ($outcome === null || isset(self::OUTCOME_TO_STATUS[$outcome]) === false) {
+				// Unmentioned, or 'continued' — leave the status as-is.
+				continue;
+			}
+
+			$newStatus = self::OUTCOME_TO_STATUS[$outcome];
+			if (($goal['status'] ?? 'open') !== $newStatus) {
+				$goal['status'] = $newStatus;
+				$changed = true;
+			}
+		}//end foreach
+
+		unset($goal);
+
+		return [
+			'goals' => $goals,
+			'changed' => $changed,
+		];
+
+	}//end applyOutcomesToGoals()
 }//end class

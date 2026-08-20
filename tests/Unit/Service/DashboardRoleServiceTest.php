@@ -4,7 +4,7 @@
  * Unit tests for DashboardRoleService.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -17,112 +17,170 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Scholiq\Service\DashboardRoleService;
+use OCA\Learniq\Service\DashboardRoleService;
 use OCP\IGroupManager;
 use OCP\IUser;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \OCA\Scholiq\Service\DashboardRoleService
+ * @covers \OCA\Learniq\Service\DashboardRoleService
  */
-class DashboardRoleServiceTest extends TestCase
-{
-    /**
-     * Build a service whose group manager answers a fixed membership map.
-     *
-     * @param bool                $isAdmin Whether the user is in the admin group.
-     * @param array<string, bool> $groups  Map of group id => membership.
-     *
-     * @return DashboardRoleService
-     */
-    private function serviceWith(bool $isAdmin, array $groups): DashboardRoleService
-    {
-        $groupManager = $this->createMock(IGroupManager::class);
-        $groupManager->method('isAdmin')->willReturn($isAdmin);
-        $groupManager->method('isInGroup')->willReturnCallback(
-            static function (string $uid, string $gid) use ($groups): bool {
-                return ($groups[$gid] ?? false);
-            }
-        );
+class DashboardRoleServiceTest extends TestCase {
+	/**
+	 * Build a service whose group manager answers a fixed membership map.
+	 *
+	 * @param bool $isAdmin Whether the user is in the admin group.
+	 * @param array<string, bool> $groups Map of group id => membership.
+	 *
+	 * @return DashboardRoleService
+	 */
+	private function serviceWith(bool $isAdmin, array $groups): DashboardRoleService {
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('isAdmin')->willReturn($isAdmin);
+		$groupManager->method('isInGroup')->willReturnCallback(
+			static function (string $uid, string $gid) use ($groups): bool {
+				return ($groups[$gid] ?? false);
+			}
+		);
 
-        return new DashboardRoleService(groupManager: $groupManager);
-    }//end serviceWith()
+		return new DashboardRoleService(groupManager: $groupManager);
+	}//end serviceWith()
 
-    /**
-     * Build a stub user with a fixed UID.
-     *
-     * @return IUser
-     */
-    private function user(): IUser
-    {
-        $user = $this->createMock(IUser::class);
-        $user->method('getUID')->willReturn('alice');
-        return $user;
-    }//end user()
+	/**
+	 * Build a stub user with a fixed UID.
+	 *
+	 * @return IUser
+	 */
+	private function user(): IUser {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('alice');
+		return $user;
+	}//end user()
 
-    /**
-     * An admin-group member always resolves to the admin role + admin view.
-     *
-     * @return void
-     */
-    public function testAdminGroupResolvesToAdmin(): void
-    {
-        $service = $this->serviceWith(isAdmin: true, groups: []);
-        $user    = $this->user();
+	/**
+	 * An admin-group member always resolves to the admin role + admin view.
+	 *
+	 * @return void
+	 */
+	public function testAdminGroupResolvesToAdmin(): void {
+		$service = $this->serviceWith(isAdmin: true, groups: []);
+		$user = $this->user();
 
-        $this->assertSame('admin', $service->resolvePrimaryRole(user: $user));
-        $this->assertSame('admin', $service->resolveDefaultView(user: $user));
-        $this->assertSame(['admin', 'teacher', 'student'], $service->resolveViews(user: $user));
-    }//end testAdminGroupResolvesToAdmin()
+		$this->assertSame('admin', $service->resolvePrimaryRole(user: $user));
+		$this->assertSame('admin', $service->resolveDefaultView(user: $user));
+		$this->assertSame(['admin', 'teacher', 'student'], $service->resolveViews(user: $user));
+	}//end testAdminGroupResolvesToAdmin()
 
-    /**
-     * An instructor (group-backed) resolves to the teacher view by default and
-     * can also see the student view.
-     *
-     * @return void
-     */
-    public function testInstructorResolvesToTeacher(): void
-    {
-        $service = $this->serviceWith(isAdmin: false, groups: ['scholiq-instructor' => true]);
-        $user    = $this->user();
+	/**
+	 * An instructor (group-backed, `instructors` group) resolves to the
+	 * teacher view by default and can also see the student view. The group id
+	 * moved from `scholiq-instructor` to the unprefixed `instructors`; the
+	 * role string itself is unchanged.
+	 *
+	 * @return void
+	 */
+	public function testInstructorResolvesToTeacher(): void {
+		$service = $this->serviceWith(isAdmin: false, groups: ['instructors' => true]);
+		$user = $this->user();
 
-        $this->assertSame('instructor', $service->resolvePrimaryRole(user: $user));
-        $this->assertSame('teacher', $service->resolveDefaultView(user: $user));
-        $this->assertSame(['teacher', 'student'], $service->resolveViews(user: $user));
-    }//end testInstructorResolvesToTeacher()
+		$this->assertSame('instructor', $service->resolvePrimaryRole(user: $user));
+		$this->assertSame('teacher', $service->resolveDefaultView(user: $user));
+		$this->assertSame(['teacher', 'student'], $service->resolveViews(user: $user));
+	}//end testInstructorResolvesToTeacher()
 
-    /**
-     * A user with no Scholiq group is a learner and only sees the student view.
-     *
-     * @return void
-     */
-    public function testNoGroupResolvesToLearnerStudent(): void
-    {
-        $service = $this->serviceWith(isAdmin: false, groups: []);
-        $user    = $this->user();
+	/**
+	 * A member of `administration-managers` resolves to `administration-manager`
+	 * (renamed from `manager`) and gets the teacher-tier view.
+	 *
+	 * @return void
+	 */
+	public function testAdministrationManagerResolvesToTeacher(): void {
+		$service = $this->serviceWith(isAdmin: false, groups: ['administration-managers' => true]);
+		$user = $this->user();
 
-        $this->assertSame('learner', $service->resolvePrimaryRole(user: $user));
-        $this->assertSame('student', $service->resolveDefaultView(user: $user));
-        $this->assertSame(['student'], $service->resolveViews(user: $user));
-    }//end testNoGroupResolvesToLearnerStudent()
+		$this->assertSame('administration-manager', $service->resolvePrimaryRole(user: $user));
+		$this->assertSame('teacher', $service->resolveDefaultView(user: $user));
+		$this->assertSame(['teacher', 'student'], $service->resolveViews(user: $user));
+	}//end testAdministrationManagerResolvesToTeacher()
 
-    /**
-     * Higher-priority group membership wins over lower-priority membership.
-     *
-     * @return void
-     */
-    public function testHighestPriorityGroupWins(): void
-    {
-        $service = $this->serviceWith(
-            isAdmin: false,
-            groups: ['scholiq-instructor' => true, 'scholiq-hr' => true]
-        );
-        $user = $this->user();
+	/**
+	 * A member of `team-leads` resolves to the new `team-lead` role and gets
+	 * the teacher-tier view.
+	 *
+	 * @return void
+	 */
+	public function testTeamLeadResolvesToTeacher(): void {
+		$service = $this->serviceWith(isAdmin: false, groups: ['team-leads' => true]);
+		$user = $this->user();
 
-        // hr outranks instructor, and hr maps to the admin view.
-        $this->assertSame('hr', $service->resolvePrimaryRole(user: $user));
-        $this->assertSame('admin', $service->resolveDefaultView(user: $user));
-    }//end testHighestPriorityGroupWins()
+		$this->assertSame('team-lead', $service->resolvePrimaryRole(user: $user));
+		$this->assertSame('teacher', $service->resolveDefaultView(user: $user));
+		$this->assertSame(['teacher', 'student'], $service->resolveViews(user: $user));
+	}//end testTeamLeadResolvesToTeacher()
+
+	/**
+	 * A member of `coordinators` resolves to the new `coordinator` role and
+	 * gets the teacher-tier view.
+	 *
+	 * @return void
+	 */
+	public function testCoordinatorResolvesToTeacher(): void {
+		$service = $this->serviceWith(isAdmin: false, groups: ['coordinators' => true]);
+		$user = $this->user();
+
+		$this->assertSame('coordinator', $service->resolvePrimaryRole(user: $user));
+		$this->assertSame('teacher', $service->resolveDefaultView(user: $user));
+		$this->assertSame(['teacher', 'student'], $service->resolveViews(user: $user));
+	}//end testCoordinatorResolvesToTeacher()
+
+	/**
+	 * A member of `guardians` resolves to the new `guardian` role and, unlike
+	 * the other group-backed roles, falls through to the base student-tier
+	 * view only — a guardian is not staff.
+	 *
+	 * @return void
+	 */
+	public function testGuardianResolvesToStudentOnly(): void {
+		$service = $this->serviceWith(isAdmin: false, groups: ['guardians' => true]);
+		$user = $this->user();
+
+		$this->assertSame('guardian', $service->resolvePrimaryRole(user: $user));
+		$this->assertSame('student', $service->resolveDefaultView(user: $user));
+		$this->assertSame(['student'], $service->resolveViews(user: $user));
+	}//end testGuardianResolvesToStudentOnly()
+
+	/**
+	 * A user with no privileged group is a learner and only sees the student
+	 * view — the refusal/negative case: proves the resolver does not grant a
+	 * role nobody is entitled to, and that `learner` needs no group membership.
+	 *
+	 * @return void
+	 */
+	public function testNoGroupResolvesToLearnerStudent(): void {
+		$service = $this->serviceWith(isAdmin: false, groups: []);
+		$user = $this->user();
+
+		$this->assertSame('learner', $service->resolvePrimaryRole(user: $user));
+		$this->assertSame('student', $service->resolveDefaultView(user: $user));
+		$this->assertSame(['student'], $service->resolveViews(user: $user));
+	}//end testNoGroupResolvesToLearnerStudent()
+
+	/**
+	 * Higher-priority group membership wins over lower-priority membership.
+	 *
+	 * @return void
+	 */
+	public function testHighestPriorityGroupWins(): void {
+		$service = $this->serviceWith(
+			isAdmin: false,
+			groups: ['instructors' => true, 'hr' => true]
+		);
+		$user = $this->user();
+
+		// hr outranks instructor, and hr maps to the admin view.
+		$this->assertSame('hr', $service->resolvePrimaryRole(user: $user));
+		$this->assertSame('admin', $service->resolveDefaultView(user: $user));
+	}//end testHighestPriorityGroupWins()
 }//end class
