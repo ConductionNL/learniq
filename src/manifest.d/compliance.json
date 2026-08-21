@@ -132,92 +132,97 @@
 			"title": "Compliance",
 			"_note": "ADR-044 §4 cards-collapse. This page exists so the group above it is ONE top-level entry instead of a long flat child list: relocating a group into another DISSOLVES it (buildManifest applyMenuRelocations discards the group's own label), which produced a 33-item undifferentiated list — the exact failure ADR-097 Decision 6 names. Each former leaf is a card here, keeping its label, with a description wherever the label is ambiguous out of context.",
 			"config": {
-				"allowEdit": false
-			},
-			"widgets": [
-				{
-					"id": "compliance-landing-cards",
-					"widgetKey": "nav-card-grid",
-					"slot": "body",
-					"gridX": 0,
-					"gridY": 0,
-					"gridWidth": 12,
-					"gridHeight": 8,
-					"props": {
-						"entries": [
-							{
-								"id": "Compliance",
-								"label": "Overview",
-								"route": "Compliance",
-								"order": 10,
-								"icon": "ClipboardCheckOutline",
-								"description": "Regulation coverage and attestations"
-							},
-							{
-								"id": "ExternalTraining",
-								"label": "External training",
-								"route": "ExternalTrainingRecords",
-								"order": 20,
-								"icon": "Plus",
-								"description": "Training recorded outside the app"
-							},
-							{
-								"id": "Accessibility",
-								"label": "Accessibility statement",
-								"route": "AccessibilityStatement",
-								"order": 30,
-								"icon": "InformationOutline"
-							},
-							{
-								"id": "AccessibilityLimitationsMenu",
-								"label": "Accessibility limitations",
-								"route": "AccessibilityLimitations",
-								"order": 40,
-								"icon": "HumanWheelchair"
-							},
-							{
-								"id": "AccessibilityFeedbacksMenu",
-								"label": "Accessibility feedback",
-								"route": "AccessibilityFeedbacks",
-								"order": 50,
-								"icon": "CommentOutline"
-							},
-							{
-								"id": "AiProcessingDisclosureMenu",
-								"label": "AI processing disclosure",
-								"route": "AiProcessingDisclosure",
-								"order": 60,
-								"icon": "Lock",
-								"description": "What the AI features process"
-							},
-							{
-								"id": "ExemptionCasesMenu",
-								"label": "Exemption requests",
-								"route": "ExemptionCases",
-								"order": 70,
-								"icon": "Check",
-								"description": "Exam-board exemption requests"
-							},
-							{
-								"id": "FraudCasesMenu",
-								"label": "Fraud cases",
-								"route": "FraudCases",
-								"order": 80,
-								"icon": "FolderAccountOutline",
-								"description": "Exam-board integrity cases"
-							},
-							{
-								"id": "ItemRevisionFlagsMenu",
-								"label": "Item revision flags",
-								"route": "ItemRevisionFlags",
-								"order": 90,
-								"icon": "FlagVariantOutline",
-								"description": "Assessment items flagged for revision"
-							}
-						]
+				"allowEdit": false,
+				"widgets": [
+					{
+						"id": "nav-card-grid",
+						"type": "nav-card-grid",
+						"content": {
+							"entries": [
+								{
+									"id": "Compliance",
+									"label": "Overview",
+									"route": "Compliance",
+									"order": 10,
+									"icon": "ClipboardCheckOutline",
+									"description": "Regulation coverage and attestations"
+								},
+								{
+									"id": "ExternalTraining",
+									"label": "External training",
+									"route": "ExternalTrainingRecords",
+									"order": 20,
+									"icon": "Plus",
+									"description": "Training recorded outside the app"
+								},
+								{
+									"id": "Accessibility",
+									"label": "Accessibility statement",
+									"route": "AccessibilityStatement",
+									"order": 30,
+									"icon": "InformationOutline"
+								},
+								{
+									"id": "AccessibilityLimitationsMenu",
+									"label": "Accessibility limitations",
+									"route": "AccessibilityLimitations",
+									"order": 40,
+									"icon": "HumanWheelchair"
+								},
+								{
+									"id": "AccessibilityFeedbacksMenu",
+									"label": "Accessibility feedback",
+									"route": "AccessibilityFeedbacks",
+									"order": 50,
+									"icon": "CommentOutline"
+								},
+								{
+									"id": "AiProcessingDisclosureMenu",
+									"label": "AI processing disclosure",
+									"route": "AiProcessingDisclosure",
+									"order": 60,
+									"icon": "Lock",
+									"description": "What the AI features process"
+								},
+								{
+									"id": "ExemptionCasesMenu",
+									"label": "Exemption requests",
+									"route": "ExemptionCases",
+									"order": 70,
+									"icon": "Check",
+									"description": "Exam-board exemption requests"
+								},
+								{
+									"id": "FraudCasesMenu",
+									"label": "Fraud cases",
+									"route": "FraudCases",
+									"order": 80,
+									"icon": "FolderAccountOutline",
+									"description": "Exam-board integrity cases"
+								},
+								{
+									"id": "ItemRevisionFlagsMenu",
+									"label": "Item revision flags",
+									"route": "ItemRevisionFlags",
+									"order": 90,
+									"icon": "FlagVariantOutline",
+									"description": "Assessment items flagged for revision"
+								}
+							]
+						}
 					}
-				}
-			]
+				],
+				"layout": [
+					{
+						"id": 1,
+						"widgetId": "nav-card-grid",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 8
+					}
+				]
+			}
 		}
 	]
 }
