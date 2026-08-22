@@ -1,5 +1,6 @@
-{
-    "translations": {
+OC.L10N.register(
+    "learniq",
+    {
         "My learning record": "Mijn leerdossier",
         "Everything you have earned, everywhere in Learniq — composed live, read-only. Nothing here can be edited or deleted from this page.": "Alles wat je hebt behaald, overal in Learniq — live samengesteld, alleen-lezen. Hier kan niets worden bewerkt of verwijderd.",
         "Loading your record…": "Je dossier wordt geladen…",
@@ -950,6 +951,5 @@
         "Administration": "Beheer",
         "Teaching": "Lesgeven"
     },
-    "plurals": "",
-    "pluralForm": "nplurals=2; plural=(n != 1);"
-}
+    "nplurals=2; plural=(n != 1);"
+)
