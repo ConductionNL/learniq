@@ -1,5 +1,6 @@
-{
-    "translations": {
+OC.L10N.register(
+    "learniq",
+    {
         "My learning record": "My learning record",
         "Everything you have earned, everywhere in Learniq — composed live, read-only. Nothing here can be edited or deleted from this page.": "Everything you have earned, everywhere in Learniq — composed live, read-only. Nothing here can be edited or deleted from this page.",
         "Loading your record…": "Loading your record…",
@@ -950,6 +951,5 @@
         "Administration": "Administration",
         "Teaching": "Teaching"
     },
-    "plurals": "",
-    "pluralForm": "nplurals=2; plural=(n != 1);"
-}
+    "nplurals=2; plural=(n != 1);"
+)
