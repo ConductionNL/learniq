@@ -168,152 +168,170 @@
 			<section class="course-builder__modules">
 				<h3>{{ t('learniq', 'Modules') }}</h3>
 
+				<!-- vuedraggable 4 renders its rows through an `#item` slot and
+				     requires `item-key`; the v2 form (a `v-for` child in the
+				     default slot) throws "draggable element must have an item
+				     slot" and takes the whole list down with it. -->
 				<Draggable
 					v-model="modules"
 					tag="ul"
+					itemKey="id"
 					class="course-builder__module-list"
 					handle=".course-builder__handle"
 					@end="onModulesDragEnd">
-					<li
-						v-for="(module, mIdx) in modules"
-						:key="module.id"
-						class="course-builder__module">
-						<div class="course-builder__module-row">
-							<span
-								class="course-builder__handle icon-menu"
-								aria-hidden="true" />
-							<span class="course-builder__module-name">{{
-								module.name
-							}}</span>
-							<button
-								type="button"
-								class="course-builder__icon-btn"
-								:disabled="mIdx === 0"
-								:aria-label="
-									t('learniq', 'Move module \'{name}\' up', {
-										name: module.name,
-									})
-								"
-								@click="moveModuleUp(mIdx)">
-								<ChevronUp :size="18" />
-							</button>
-							<button
-								type="button"
-								class="course-builder__icon-btn"
-								:disabled="mIdx === modules.length - 1"
-								:aria-label="
-									t('learniq', 'Move module \'{name}\' down', {
-										name: module.name,
-									})
-								"
-								@click="moveModuleDown(mIdx)">
-								<ChevronDown :size="18" />
-							</button>
-							<button
-								type="button"
-								class="course-builder__icon-btn"
-								:aria-label="
-									t('learniq', 'Delete module \'{name}\'', {
-										name: module.name,
-									})
-								"
-								@click="deleteModule(module, mIdx)">
-								<DeleteOutline :size="18" />
-							</button>
-						</div>
-
-						<Draggable
-							v-model="module.lessons"
-							tag="ul"
-							class="course-builder__lesson-list"
-							handle=".course-builder__handle"
-							@end="onLessonsDragEnd(module)">
-							<li
-								v-for="(lesson, lIdx) in module.lessons"
-								:key="lesson.id"
-								class="course-builder__lesson">
+					<template #item="{ element: module, index: mIdx }">
+						<li class="course-builder__module">
+							<div class="course-builder__module-row">
 								<span
 									class="course-builder__handle icon-menu"
 									aria-hidden="true" />
-								<span class="course-builder__lesson-name">{{
-									lesson.name
-								}}</span>
-								<span class="course-builder__lesson-type">{{
-									lesson.contentType
+								<span class="course-builder__module-name">{{
+									module.name
 								}}</span>
 								<button
 									type="button"
 									class="course-builder__icon-btn"
-									:disabled="lIdx === 0"
+									:disabled="mIdx === 0"
 									:aria-label="
-										t('learniq', 'Move lesson \'{name}\' up', {
-											name: lesson.name,
+										t('learniq', 'Move module \'{name}\' up', {
+											name: module.name,
 										})
 									"
-									@click="moveLessonUp(module, lIdx)">
-									<ChevronUp :size="16" />
+									@click="moveModuleUp(mIdx)">
+									<ChevronUp :size="18" />
 								</button>
 								<button
 									type="button"
 									class="course-builder__icon-btn"
-									:disabled="lIdx === module.lessons.length - 1"
+									:disabled="mIdx === modules.length - 1"
 									:aria-label="
-										t('learniq', 'Move lesson \'{name}\' down', {
-											name: lesson.name,
+										t('learniq', 'Move module \'{name}\' down', {
+											name: module.name,
 										})
 									"
-									@click="moveLessonDown(module, lIdx)">
-									<ChevronDown :size="16" />
-								</button>
-								<button
-									type="button"
-									class="button-vue"
-									@click="openComposer(lesson)">
-									{{ t('learniq', 'Compose') }}
-								</button>
-								<button
-									type="button"
-									class="button-vue"
-									@click="openPlayer(lesson)">
-									{{ t('learniq', 'Preview') }}
+									@click="moveModuleDown(mIdx)">
+									<ChevronDown :size="18" />
 								</button>
 								<button
 									type="button"
 									class="course-builder__icon-btn"
 									:aria-label="
-										t('learniq', 'Delete lesson \'{name}\'', {
-											name: lesson.name,
+										t('learniq', 'Delete module \'{name}\'', {
+											name: module.name,
 										})
 									"
-									@click="deleteLesson(module, lIdx)">
-									<DeleteOutline :size="16" />
+									@click="deleteModule(module, mIdx)">
+									<DeleteOutline :size="18" />
 								</button>
-							</li>
-						</Draggable>
+							</div>
 
-						<div class="course-builder__add-row">
-							<input
-								v-model="newLessonNames[module.id]"
-								type="text"
-								class="course-builder__input"
-								:placeholder="t('learniq', 'New lesson name')"
-								:aria-label="
-									t(
-										'learniq',
-										'New lesson name for module {name}',
-										{ name: module.name },
-									)
-								" />
-							<button
-								type="button"
-								class="button-vue"
-								:disabled="!newLessonNames[module.id]"
-								@click="addLesson(module)">
-								<PlusIcon :size="16" />
-								{{ t('learniq', 'Add lesson') }}
-							</button>
-						</div>
-					</li>
+							<Draggable
+								v-model="module.lessons"
+								tag="ul"
+								itemKey="id"
+								class="course-builder__lesson-list"
+								handle=".course-builder__handle"
+								@end="onLessonsDragEnd(module)">
+								<template #item="{ element: lesson, index: lIdx }">
+									<li class="course-builder__lesson">
+										<span
+											class="course-builder__handle icon-menu"
+											aria-hidden="true" />
+										<span class="course-builder__lesson-name">{{
+											lesson.name
+										}}</span>
+										<span class="course-builder__lesson-type">{{
+											lesson.contentType
+										}}</span>
+										<button
+											type="button"
+											class="course-builder__icon-btn"
+											:disabled="lIdx === 0"
+											:aria-label="
+												t(
+													'learniq',
+													'Move lesson \'{name}\' up',
+													{
+														name: lesson.name,
+													},
+												)
+											"
+											@click="moveLessonUp(module, lIdx)">
+											<ChevronUp :size="16" />
+										</button>
+										<button
+											type="button"
+											class="course-builder__icon-btn"
+											:disabled="
+												lIdx === module.lessons.length - 1
+											"
+											:aria-label="
+												t(
+													'learniq',
+													'Move lesson \'{name}\' down',
+													{
+														name: lesson.name,
+													},
+												)
+											"
+											@click="moveLessonDown(module, lIdx)">
+											<ChevronDown :size="16" />
+										</button>
+										<button
+											type="button"
+											class="button-vue"
+											@click="openComposer(lesson)">
+											{{ t('learniq', 'Compose') }}
+										</button>
+										<button
+											type="button"
+											class="button-vue"
+											@click="openPlayer(lesson)">
+											{{ t('learniq', 'Preview') }}
+										</button>
+										<button
+											type="button"
+											class="course-builder__icon-btn"
+											:aria-label="
+												t(
+													'learniq',
+													'Delete lesson \'{name}\'',
+													{
+														name: lesson.name,
+													},
+												)
+											"
+											@click="deleteLesson(module, lIdx)">
+											<DeleteOutline :size="16" />
+										</button>
+									</li>
+								</template>
+							</Draggable>
+
+							<div class="course-builder__add-row">
+								<input
+									v-model="newLessonNames[module.id]"
+									type="text"
+									class="course-builder__input"
+									:placeholder="t('learniq', 'New lesson name')"
+									:aria-label="
+										t(
+											'learniq',
+											'New lesson name for module {name}',
+											{ name: module.name },
+										)
+									" />
+								<button
+									type="button"
+									class="button-vue"
+									:disabled="!newLessonNames[module.id]"
+									@click="addLesson(module)">
+									<PlusIcon :size="16" />
+									{{ t('learniq', 'Add lesson') }}
+								</button>
+							</div>
+						</li>
+					</template>
 				</Draggable>
 
 				<div class="course-builder__add-row">
