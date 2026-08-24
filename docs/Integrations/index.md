@@ -5,7 +5,7 @@ draft: true
 
 # Integrations
 
-This section is under construction. Integration guides for Scholiq are being authored in [GitHub issue #73](https://codeberg.org/Conduction/scholiq/issues/73).
+This section is under construction. Integration guides for Scholiq are being authored in Codeberg issue #73 (pre-migration, not migrated to GitHub).
 
 ## Nextcloud Talk (live)
 
@@ -42,4 +42,4 @@ Planned integrations include:
 - **SURFconext**: SSO federation for higher education
 - **DUO BRON/ROD**: student registration exchange
 
-Follow [#73](https://codeberg.org/Conduction/scholiq/issues/73) for progress.
+Follow Codeberg issue #73 (pre-migration, not migrated to GitHub) for progress.
