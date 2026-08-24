@@ -92,7 +92,16 @@ async function openCourseBuilder(
 	page: import('@playwright/test').Page,
 	courseId: string,
 ) {
-	await page.goto(`/index.php/apps/learniq/#/courses/${courseId}/builder`)
+	// PATH, not hash. learniq's router is `createWebHistory(generateUrl(
+	// '/apps/learniq'))` — history mode. A `#/courses/...` URL therefore leaves
+	// the PATH at `/apps/learniq/`, which resolves to the default route, so
+	// every navigation written this way silently landed on the Dashboard and
+	// the assertions below ran against a page they never asked for.
+	//
+	// The tell was in the suite all along: the specs that pass navigate by path
+	// (`/apps/learniq/settings`, `/apps/learniq/progress/...`), and only the
+	// failing ones used the hash form.
+	await page.goto(`/index.php/apps/learniq/courses/${courseId}/builder`)
 
 	// Wait for the BUILDER, not for the document.
 	//

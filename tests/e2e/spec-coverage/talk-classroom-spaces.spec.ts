@@ -90,8 +90,19 @@ function fatalOnly(errors: string[]): string[] {
 }
 
 async function openRoute(page: import('@playwright/test').Page, route: string) {
-	await page.goto(`/index.php/apps/learniq/#${route}`)
-	await page.waitForSelector('body', { timeout: 15_000 })
+	// PATH, not hash — learniq's router is `createWebHistory(generateUrl(
+	// '/apps/learniq'))`. A `#${route}` URL leaves the PATH at `/apps/learniq/`,
+	// which resolves to the default route, so this helper navigated every test
+	// in this file to the Dashboard and the widget assertions below ran against
+	// a page that never had a cohort or a session on it.
+	//
+	// `route` already carries its leading slash (`/cohorts/<id>`), so it
+	// appends directly to the app base.
+	await page.goto(`/index.php/apps/learniq${route}`)
+
+	// `domcontentloaded` fires before the SPA mounts and `body` exists
+	// immediately, so neither waited for anything. The retrying assertions in
+	// the tests are what actually wait for the widget.
 	await page.waitForLoadState('domcontentloaded')
 }
 
