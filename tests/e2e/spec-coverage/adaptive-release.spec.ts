@@ -37,8 +37,12 @@ import { test, expect } from '../fixtures'
 // `/index.php/apps/openregister/...` works. The failure surfaces as a selector
 // or empty-result assertion, never as a visible 404. 29 of this suite's 34 spec
 // files already used the `/index.php/` form.
+// `_limit`, NOT `limit` — an unrecognised OpenRegister query parameter is
+// applied as a PROPERTY FILTER rather than ignored, so `?limit=200` returns
+// HTTP 200 with an empty result set and the guards below read it as "no Lesson
+// seeded". This spec ran 0 of its 3 tests on every green run.
 const LESSON_LIST_API =
-	'/index.php/apps/openregister/api/objects/learniq/Lesson?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/Lesson?_limit=200'
 
 /**
  * Fetch every Lesson and return the first one matching the given predicate,

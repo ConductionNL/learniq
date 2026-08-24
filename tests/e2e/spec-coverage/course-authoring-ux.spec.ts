@@ -34,8 +34,22 @@ import { test, expect } from '../fixtures'
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
+// `_limit`, NOT `limit`. OpenRegister control parameters carry a leading
+// underscore, and an UNRECOGNISED parameter is not ignored — it is applied as a
+// PROPERTY FILTER. So `?limit=200` asks for Courses whose `limit` property
+// equals 200, no object has one, and the endpoint answers HTTP 200 with a
+// well-formed `{"results":[],"total":0}`.
+//
+// Measured live 2026-08-24 against a seeded instance:
+//   ?_limit=200      -> total=3
+//   ?limit=200       -> total=0
+//   ?bogusprop=xyz   -> total=0     (same shape — it really is a filter)
+//
+// `resp.ok()` is therefore TRUE, the guard below reads an empty list, and the
+// test skips as "No top-level Course seeded" — blaming the fixture for a typo
+// in the query. This spec ran 0 of its 4 tests on every green CI run.
 const COURSE_LIST_API =
-	'/index.php/apps/openregister/api/objects/learniq/Course?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/Course?_limit=200'
 
 /**
  * Fetch every Course and return the first top-level one (no parentCourseId),

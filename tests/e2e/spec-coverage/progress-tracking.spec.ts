@@ -28,8 +28,12 @@ import { test, expect } from '../fixtures'
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
+// `_limit`, NOT `limit` — an unrecognised OpenRegister query parameter is
+// applied as a PROPERTY FILTER rather than ignored, so `?limit=200` returns
+// HTTP 200 with an empty result set and the guards below read it as "no
+// published Lesson seeded". This spec ran 0 of its 2 tests on every green run.
 const LESSON_LIST_API =
-	'/index.php/apps/openregister/api/objects/learniq/Lesson?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/Lesson?_limit=200'
 
 /**
  * Fetch every Lesson and return the first one matching the given predicate,
