@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkscholiq_docs=globalThis.webpackChunkscholiq_docs||[]).push([[4229],{64229(s,c,e){e.d(c,{createCynefinServices:()=>h.t});var h=e(63486);e(51400)}}]);

@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkscholiq_docs=globalThis.webpackChunkscholiq_docs||[]).push([[8391],{28391(s,c,e){e.d(c,{createInfoServices:()=>h.v});var h=e(6491);e(51400)}}]);

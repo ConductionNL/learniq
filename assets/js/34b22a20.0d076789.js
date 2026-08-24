@@ -1,1 +1,0 @@
-"use strict";(globalThis.webpackChunkscholiq_docs=globalThis.webpackChunkscholiq_docs||[]).push([[8807],{558(s){s.exports={}}}]);

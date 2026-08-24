@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkscholiq_docs=globalThis.webpackChunkscholiq_docs||[]).push([[206],{20206(e,s,c){c.d(s,{createTreeViewServices:()=>h.I});var h=c(92275);c(51400)}}]);

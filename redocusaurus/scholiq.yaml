@@ -11,7 +11,7 @@ info:
 
     **Note:** This specification is a placeholder. The full OpenAPI spec is
     being authored in [GitHub issue
-    #75](https://github.com/ConductionNL/scholiq/issues/75).
+    #75](https://codeberg.org/Conduction/scholiq/issues/75).
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
