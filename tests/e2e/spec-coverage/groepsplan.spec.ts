@@ -39,8 +39,11 @@ const LEARNER_CONTEXT_URL =
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
+// `_limit`, NOT `limit` — an unrecognised OpenRegister query parameter is
+// applied as a PROPERTY FILTER rather than ignored, so `?limit=200` returns
+// HTTP 200 with an empty result set that reads as "nothing seeded".
 const GROUP_PLAN_SUBGROUP_LIST_API =
-	'/index.php/apps/openregister/api/objects/learniq/GroupPlanSubgroup?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/GroupPlanSubgroup?_limit=200'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise

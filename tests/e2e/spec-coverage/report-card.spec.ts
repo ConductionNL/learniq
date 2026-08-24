@@ -44,12 +44,17 @@ import { test, expect } from '../fixtures'
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
+// `_limit`, NOT `limit` — an unrecognised OpenRegister query parameter is
+// applied as a PROPERTY FILTER rather than ignored, so `?limit=200` returns
+// HTTP 200 with an empty result set that reads as "nothing seeded". These three
+// already used the correct lowercase slugs; only the control parameter was
+// wrong, which is precisely why it went unnoticed.
 const REPORT_PERIOD_LIST_API =
-	'/index.php/apps/openregister/api/objects/learniq/report-period?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/report-period?_limit=200'
 const REPORT_CARD_LIST_API =
-	'/index.php/apps/openregister/api/objects/learniq/report-card?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/report-card?_limit=200'
 const GRADE_ENTRY_LIST_API =
-	'/index.php/apps/openregister/api/objects/learniq/grade-entry?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/grade-entry?_limit=200'
 
 /**
  * Fetch every row for a schema's index endpoint and return the first one

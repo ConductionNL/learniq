@@ -34,8 +34,22 @@ import { test, expect } from '../fixtures'
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
+// `_limit`, NOT `limit`. OpenRegister control parameters carry a leading
+// underscore, and an UNRECOGNISED parameter is not ignored — it is applied as a
+// PROPERTY FILTER. So `?limit=200` asks for Courses whose `limit` property
+// equals 200, no object has one, and the endpoint answers HTTP 200 with a
+// well-formed `{"results":[],"total":0}`.
+//
+// Measured live 2026-08-24 against a seeded instance:
+//   ?_limit=200      -> total=3
+//   ?limit=200       -> total=0
+//   ?bogusprop=xyz   -> total=0     (same shape — it really is a filter)
+//
+// `resp.ok()` is therefore TRUE, the guard below reads an empty list, and the
+// test skips as "No top-level Course seeded" — blaming the fixture for a typo
+// in the query. This spec ran 0 of its 4 tests on every green CI run.
 const COURSE_LIST_API =
-	'/index.php/apps/openregister/api/objects/learniq/Course?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/Course?_limit=200'
 
 /**
  * Fetch every Course and return the first top-level one (no parentCourseId),
@@ -79,8 +93,25 @@ async function openCourseBuilder(
 	courseId: string,
 ) {
 	await page.goto(`/index.php/apps/learniq/#/courses/${courseId}/builder`)
-	await page.waitForSelector('body', { timeout: 15_000 })
-	await page.waitForLoadState('domcontentloaded')
+
+	// Wait for the BUILDER, not for the document.
+	//
+	// This is a hash route in an SPA: `domcontentloaded` fires as soon as the
+	// shell parses, long before Vue has mounted the view or fetched the course.
+	// Waiting on `body` is weaker still — `body` exists immediately. The old
+	// helper did both and then the test read `innerText('body')` ONCE, with no
+	// retry, so it asserted against whatever had rendered by that instant:
+	// the app chrome and nothing else.
+	//
+	// `.course-builder__header` is the right anchor because CourseBuilder.vue
+	// renders exactly one of three branches — `loading`, `error`, or the
+	// content — and the header exists only in the third. Reaching it therefore
+	// proves the course resolved, which is what every assertion below assumes.
+	//
+	// It is also translation-independent: every string in this view goes
+	// through `t('learniq', ...)`, so a class is a stable anchor where the
+	// heading text is not.
+	await page.waitForSelector('.course-builder__header', { timeout: 20_000 })
 }
 
 test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPlayer', () => {
@@ -94,8 +125,9 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		const errors = collectFatalErrors(page)
 		await openCourseBuilder(page, course.id ?? course.uuid)
 
-		const bodyText = await page.innerText('body')
-		expect(bodyText).toContain('Course builder')
+		// Structural, not textual — see openCourseBuilder(). The heading itself
+		// is translated, so assert the surface that is not.
+		await expect(page.locator('.course-builder__header')).toBeVisible()
 
 		// Add two modules through the builder's own UI (no raw API POST).
 		const moduleNameInput = page.getByPlaceholder('New module name')
@@ -189,9 +221,12 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await moduleRow.getByRole('button', { name: 'Add lesson' }).click()
 
 		await moduleRow.getByRole('button', { name: 'Compose' }).click()
-		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('domcontentloaded')
-		await expect(page.getByText('Compose lesson')).toBeVisible()
+		// No page load here — Compose is an in-app view switch, so waiting on
+		// `body` / `domcontentloaded` measured nothing and only read as a wait.
+		// The retrying assertion below is what actually waits for the view.
+		await expect(page.getByText('Compose lesson')).toBeVisible({
+			timeout: 20_000,
+		})
 
 		// Add two richText blocks (no file-picker/NcSelect data dependency —
 		// drivable without seeded Material/Assessment fixtures).
