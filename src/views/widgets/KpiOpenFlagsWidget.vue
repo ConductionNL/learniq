@@ -4,8 +4,8 @@
 <!-- KPI tile: open attendance flags (lifecycle=open). -->
 <template>
 	<KpiCard
-		schema="AttendanceFlag"
-		:label="t('scholiq', 'Open attendance flags')"
+		schema="attendance-flag"
+		:label="t('learniq', 'Open attendance flags')"
 		:filter="{ lifecycle: 'open' }"
 		link="/attendance/flags"
 		variant="warning" />

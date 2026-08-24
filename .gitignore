@@ -8,8 +8,8 @@ docusaurus/.cache-loader/
 /docs/build/
 /docs/.docusaurus/
 /docs/.cache-loader/
-# Generated translation files — re-enable when a Dutch translation pass ships
-/docs/i18n/nl/
+# Generated translation files — scaffold committed; exclude generated build artefacts only
+/docs/i18n/nl/docusaurus-plugin-content-docs/current/.cache-loader/
 node_modules/
 .npm/
 
@@ -51,10 +51,16 @@ coverage/
 .nyc_output/
 
 # Playwright
+/test-results/
+/playwright-report/
 test-results/
 playwright-report/
 .playwright/
+# e2e provisioning state (seed markers). Deliberately NOT under test-results/ —
+# Playwright deletes every project outputDir at the start of a run.
+/.e2e-state/
 
 # Misc
 *.bak
 .cache/
+.phpunit.cache

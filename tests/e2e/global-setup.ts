@@ -2,22 +2,67 @@ import { chromium } from '@playwright/test'
 import { execFileSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
+import { baseUrl } from './base-url'
+
+/** Repo root — `tests/e2e/` is two levels down. */
+const APP_ROOT = path.resolve(__dirname, '..', '..')
 
 /**
- * Run the example-data seed (imports the scholiq register into OpenRegister + creates
+ * Where the authenticated browser state is written.
+ *
+ * Anchored to the repo root rather than the process CWD. Both playwright
+ * configs point `use.storageState` at this same location, and a CWD-relative
+ * path here silently writes the file somewhere Playwright will not read it —
+ * which does not fail, it just runs the whole suite logged OUT.
+ */
+const AUTH_FILE = path.join(APP_ROOT, 'test-results', '.auth', 'admin.json')
+
+/**
+ * Marker written by tests/e2e/ci-seed.sh once it has provisioned the register
+ * and seeded the example dataset. Its presence means this globalSetup does not
+ * have to repeat a multi-minute seed that already ran in the workflow's
+ * dedicated "Seed test data" step.
+ *
+ * ⚠️ Deliberately NOT under test-results/. Playwright removes every project
+ * `outputDir` at the start of the run (createRemoveOutputDirsTask, which runs
+ * before globalSetup), so a marker left there by an earlier workflow step no
+ * longer exists by the time this function reads it.
+ */
+const SEED_MARKER = path.join(APP_ROOT, '.e2e-state', 'ci-seeded')
+
+/**
+ * Run the example-data seed (imports the learniq register into OpenRegister + creates
  * a coherent example dataset). Best-effort: a failing seed (NC unreachable in CI, or
  * the OR register-import gap openregister#1487) does NOT abort the run — it just means
  * the index-page specs skip their row-count soft-assertions. Sets
- * process.env.SCHOLIQ_E2E_SEEDED='1' on success.
+ * process.env.LEARNIQ_E2E_SEEDED='1' on success.
  */
 function runSeed(): void {
+	// ci-seed.sh already ran the same seed, in the step whose job it is, and
+	// recorded whether it fully succeeded. Re-running it here would cost several
+	// minutes of redundant existence checks on every CI run.
+	if (fs.existsSync(SEED_MARKER)) {
+		const status = fs.readFileSync(SEED_MARKER, 'utf8').trim()
+		if (status === 'full') {
+			process.env.LEARNIQ_E2E_SEEDED = '1'
+			console.log(
+				'[global-setup] seed already done by ci-seed.sh (full) — skipping',
+			)
+		} else {
+			console.warn(
+				`[global-setup] seed already done by ci-seed.sh (${status}) — skipping; index specs will not assert row counts`,
+			)
+		}
+		return
+	}
+
 	const seedScript = path.join(__dirname, 'seed-example-data.mjs')
 	if (!fs.existsSync(seedScript)) return
 	try {
 		const out = execFileSync('node', [seedScript], {
 			env: {
 				...process.env,
-				OR_BASE_URL: process.env.PW_BASE_URL ?? 'http://localhost:8080',
+				OR_BASE_URL: baseUrl(),
 				OR_USER: process.env.NC_ADMIN_USER ?? 'admin',
 				OR_PASS: process.env.NC_ADMIN_PASS ?? 'admin',
 			},
@@ -25,10 +70,13 @@ function runSeed(): void {
 			timeout: 120_000,
 		})
 		process.stdout.write(out)
-		process.env.SCHOLIQ_E2E_SEEDED = '1'
+		process.env.LEARNIQ_E2E_SEEDED = '1'
 		console.log('[global-setup] example data seeded')
 	} catch (err: any) {
-		console.warn('[global-setup] seed skipped/failed (continuing — index specs will not assert row counts):', err?.message ?? err)
+		console.warn(
+			'[global-setup] seed skipped/failed (continuing — index specs will not assert row counts):',
+			err?.message ?? err,
+		)
 		if (err?.stdout) process.stdout.write(err.stdout)
 	}
 }
@@ -41,10 +89,10 @@ function runSeed(): void {
  * All tests share this session — no per-test login overhead.
  */
 async function globalSetup(): Promise<void> {
-	const baseURL = process.env.PW_BASE_URL ?? 'http://localhost:8080'
+	const baseURL = baseUrl()
 	const username = process.env.NC_ADMIN_USER ?? 'admin'
 	const password = process.env.NC_ADMIN_PASS ?? 'admin'
-	const authFile = 'test-results/.auth/admin.json'
+	const authFile = AUTH_FILE
 
 	// Ensure output directory exists
 	fs.mkdirSync(path.dirname(authFile), { recursive: true })
@@ -69,7 +117,9 @@ async function globalSetup(): Promise<void> {
 
 			// Wait for the redirect away from login
 			await page
-				.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 30_000 })
+				.waitForURL((url) => !url.pathname.includes('/login'), {
+					timeout: 30_000,
+				})
 				.catch(() => {
 					// May already be redirected
 				})

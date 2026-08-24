@@ -4,8 +4,8 @@
 <!-- KPI tile: total learner-profile count. -->
 <template>
 	<KpiCard
-		schema="LearnerProfile"
-		:label="t('scholiq', 'Learners')"
+		schema="learner-profile"
+		:label="t('learniq', 'Learners')"
 		link="/learner-profiles"
 		variant="success" />
 </template>

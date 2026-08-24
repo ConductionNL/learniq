@@ -5,7 +5,7 @@
 <template>
 	<KpiCard
 		schema="Regulation"
-		:label="t('scholiq', 'Regulations')"
+		:label="t('learniq', 'Regulations')"
 		link="/compliance/regulations" />
 </template>
 

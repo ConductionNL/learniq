@@ -6,7 +6,7 @@ This directory holds Newman-shaped TDD stubs for the 14 capability specs in `ope
 
 When a Hydra PR implements a capability spec:
 
-1. **Move the matching folder** out of `tests/wedge-scaffolds/scholiq-wedge.postman_collection.json` and into `tests/integration/scholiq.postman_collection.json` (under the active `item[]`).
+1. **Move the matching folder** out of `tests/wedge-scaffolds/learniq-wedge.postman_collection.json` and into `tests/integration/learniq.postman_collection.json` (under the active `item[]`).
 2. **Implement the endpoints** the requests target.
 3. **CI Newman job** runs against the moved folder and validates the implementation against the previously-static contract.
 
@@ -16,7 +16,7 @@ This pattern gives Hydra builders a concrete API target before code lands, witho
 
 | File | Purpose |
 |---|---|
-| `scholiq-wedge.postman_collection.json` | 14 folders × 3-7 requests = 56 requests covering all 19 critical-priority user stories from `intelligence-db.user_stories`. Postman Collection v2.1.0. |
+| `learniq-wedge.postman_collection.json` | 14 folders × 3-7 requests = 56 requests covering all 19 critical-priority user stories from `intelligence-db.user_stories`. Postman Collection v2.1.0. |
 
 ## Folder order (matches WEDGE-PLAN.md sequencing)
 
@@ -43,7 +43,7 @@ This pattern gives Hydra builders a concrete API target before code lands, witho
 ## Convention reminders
 
 - All requests use basic auth (`{{adminUser}}` / `{{adminPass}}`) — overridable per Newman environment.
-- All requests target `{{baseUrl}}/index.php/apps/scholiq/api/…`.
+- All requests target `{{baseUrl}}/index.php/apps/learniq/api/…`.
 - `OCS-APIRequest: true` header is required on every request (Nextcloud convention).
 - Each request's `description` cites the user-story slug + the openspec/specs/ path so Hydra builders can trace evidence.
 - Each request's `event.test` script asserts a 200/201/204 status + expected top-level response shape — these are the contracts the implementation must satisfy.

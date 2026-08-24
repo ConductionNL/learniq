@@ -364,7 +364,7 @@ export default function Home() {
           secondaryCta={{ label: 'Read the docs', href: '/docs/intro' }}
           tertiaryCta={{
             label: 'View on GitHub',
-            href: 'https://github.com/ConductionNL/scholiq',
+            href: 'https://github.com/ConductionNL/learniq',
           }}
           iconColor="var(--c-orange-knvb)"
           icon={SCHOLIQ_ICON}

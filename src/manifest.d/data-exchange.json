@@ -1,0 +1,524 @@
+{
+	"_meta": {
+		"spdx-license": "EUPL-1.2",
+		"spdx-copyright": "2026 Conduction B.V.",
+		"change": "manifest-fragment-split",
+		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
+		"description": "GroupDataExchange — slated to leave the app via openconnector-flow-migration; isolating it to one file makes that a file deletion."
+	},
+	"menu": [
+		{
+			"id": "GroupDataExchange",
+			"label": "Data exchange",
+			"icon": "DatabaseOutline",
+			"order": 31,
+			"children": [
+				{
+					"id": "DataMappingProfilesMenu",
+					"label": "Mapping profiles",
+					"icon": "SwapHorizontal",
+					"route": "DataMappingProfiles",
+					"order": 10,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": ["admin", "administration-manager"]
+						}
+					}
+				},
+				{
+					"id": "DataExchangeJobsMenu",
+					"label": "Exchange jobs",
+					"icon": "ShareVariant",
+					"route": "DataExchangeJobs",
+					"order": 20,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": ["admin", "administration-manager"]
+						}
+					}
+				},
+				{
+					"id": "ExchangeRejectionsMenu",
+					"label": "Rejections",
+					"icon": "CloseCircleOutline",
+					"route": "ExchangeRejections",
+					"order": 30,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": ["admin", "administration-manager"]
+						}
+					}
+				},
+				{
+					"id": "ExchangeErrorCodesMenu",
+					"label": "Error codes",
+					"icon": "InformationOutline",
+					"route": "ExchangeErrorCodes",
+					"order": 40,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": ["admin", "administration-manager"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"pages": [
+		{
+			"id": "DataMappingProfiles",
+			"route": "/data-exchange/mapping-profiles",
+			"type": "index",
+			"title": "Data mapping profiles",
+			"config": {
+				"register": "learniq",
+				"schema": "data-mapping-profile"
+			}
+		},
+		{
+			"id": "DataMappingProfileDetail",
+			"route": "/data-exchange/mapping-profiles/:id",
+			"type": "detail",
+			"title": "Data mapping profile",
+			"config": {
+				"register": "learniq",
+				"schema": "data-mapping-profile",
+				"_note": "A Data Mapping Profile is an integration config (target, direction, source/target schema, field mappings, validation) for data exchange — a technical/config archetype. Body leads with the profile definition including field mappings (8-wide) and a Related panel. The Data exchange jobs run against this profile render as a wide related-index (the run log). NO comms leaves — this is machine config, not correspondence (HARD RULE 1). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "dmp-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Sitemap"
+					},
+					{
+						"id": "dmp-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Exchange jobs",
+									"register": "learniq",
+									"schema": "data-exchange-job",
+									"metric": "count",
+									"filter": {
+										"mappingProfileId": "@objectId"
+									},
+									"route": "DataExchangeJobs"
+								}
+							]
+						}
+					},
+					{
+						"id": "dmp-jobs",
+						"type": "object-list",
+						"title": "Exchange jobs",
+						"content": {
+							"register": "learniq",
+							"schema": "data-exchange-job",
+							"filter": {
+								"mappingProfileId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "direction",
+									"label": "Direction"
+								},
+								{
+									"key": "target",
+									"label": "Target"
+								},
+								{
+									"key": "requestedAt",
+									"label": "Requested At"
+								},
+								{
+									"key": "result",
+									"label": "Result"
+								}
+							],
+							"rowRoute": "DataExchangeJobDetail",
+							"viewAllRoute": "DataExchangeJobs",
+							"viewAllQuery": {
+								"mappingProfileId": "@objectId"
+							},
+							"emptyText": "No exchange jobs found.",
+							"allowCreate": false
+						},
+						"icon": "DatabaseOutline"
+					},
+					{
+						"id": "dmp-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "dmp-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "dmp-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "dmp-jobs",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "dmp-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "DataExchangeJobs",
+			"route": "/data-exchange/jobs",
+			"type": "index",
+			"title": "Data exchange jobs",
+			"config": {
+				"register": "learniq",
+				"schema": "data-exchange-job"
+			}
+		},
+		{
+			"id": "DataExchangeJobDetail",
+			"route": "/data-exchange/jobs/:id",
+			"type": "detail",
+			"title": "Data exchange job",
+			"config": {
+				"register": "learniq",
+				"schema": "data-exchange-job",
+				"_note": "A Data Exchange Job is a single import/export run (direction, target, mapping profile, scope, format, timing, result, connector run, error) — a technical/run-log archetype. Body leads with the job data including result and error message (8-wide) and a Related panel resolving the mapping profile, requester and originating flag. The result payload/log renders as a Files leaf. NO comms leaves (machine job, not correspondence). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "dej-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "DatabaseOutline"
+					},
+					{
+						"id": "dej-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "dej-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Job payload & logs",
+						"icon": "FolderOutline"
+					},
+					{
+						"id": "dej-rejections",
+						"type": "object-list",
+						"title": "Rejections",
+						"content": {
+							"register": "learniq",
+							"schema": "exchange-rejection",
+							"filter": {
+								"dataExchangeJobId": "@objectId"
+							},
+							"sort": {
+								"field": "detectedAt",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "errorCode",
+									"label": "Error Code"
+								},
+								{
+									"key": "sourceKind",
+									"label": "Source Kind"
+								},
+								{
+									"key": "status",
+									"label": "Status"
+								},
+								{
+									"key": "detectedAt",
+									"label": "Detected At"
+								}
+							],
+							"rowRoute": "ExchangeRejectionDetail",
+							"viewAllRoute": "ExchangeRejections",
+							"viewAllQuery": {
+								"dataExchangeJobId": "@objectId"
+							},
+							"emptyText": "No rejections found for this job.",
+							"allowCreate": false
+						},
+						"icon": "AlertCircleOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "dej-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "dej-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "dej-files",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "dej-rejections",
+						"gridX": 0,
+						"gridY": 8,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ExchangeRejections",
+			"route": "/data-exchange/rejections",
+			"type": "index",
+			"title": "Exchange rejections",
+			"config": {
+				"register": "learniq",
+				"schema": "exchange-rejection"
+			}
+		},
+		{
+			"id": "ExchangeRejectionDetail",
+			"route": "/data-exchange/rejections/:id",
+			"type": "detail",
+			"title": "Exchange rejection",
+			"config": {
+				"register": "learniq",
+				"schema": "exchange-rejection",
+				"_note": "An Exchange Rejection is a single afkeurmelding — DUO's (or any target's) refusal of one exported record, resolved back to its Learniq source object via sourceKind + a typed $ref id field — the correction-loop worklist entry. Body leads with the rejection data (error code/message, age) (8-wide) and a Related panel that auto-resolves the originating DataExchangeJob AND whichever sourceKind $ref field is set (learnerProfileId/enrolmentId/finalGradeId/attendanceFlagId/supportRequestId) into a deep link to the offending object's own editable detail page — the whole point of this page (design.md 'sourceKind enum + per-kind typed $ref'). lifecycleActions renders Mark corrected/Resubmit/Waive from the declared lifecycle. NO comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "status"
+				},
+				"widgets": [
+					{
+						"id": "erej-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AlertCircleOutline"
+					},
+					{
+						"id": "erej-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "erej-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "erej-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ExchangeErrorCodes",
+			"route": "/data-exchange/error-codes",
+			"type": "index",
+			"title": "Exchange error codes",
+			"config": {
+				"register": "learniq",
+				"schema": "exchange-error-code"
+			}
+		},
+		{
+			"id": "ExchangeErrorCodeDetail",
+			"route": "/data-exchange/error-codes/:id",
+			"type": "detail",
+			"title": "Exchange error code",
+			"config": {
+				"register": "learniq",
+				"schema": "exchange-error-code",
+				"_note": "An Exchange Error Code is a local, admin-editable reference-data catalogue entry (code, target, bilingual description, category, severity, active) used by RejectionMappingHandler to best-effort resolve ExchangeRejection.errorCodeRef — explicitly illustrative starter data, not DUO's authoritative list (design.md). Body is the data block only (8-wide) — reference data has no Related panel and no lifecycleActions beyond the register's own default create/edit. Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "eec-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "BookOpenVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "eec-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "RequestExportModal",
+			"route": "/data-exchange/request",
+			"type": "custom",
+			"title": "Request export",
+			"component": "CnExportWizard",
+			"_note": "Mounts CnExportWizard from @conduction/nextcloud-vue for the data-exchange export request (regulation + scope + delivery channel)."
+		},
+		{
+			"id": "OsoDossierReviewView",
+			"route": "/data-exchange/jobs/:id/oso-review",
+			"type": "custom",
+			"title": "OSO-format dossier review",
+			"component": "CnStructuredDocReview",
+			"_note": "Mounts CnStructuredDocReview from @conduction/nextcloud-vue for the pending-parent-review dossier step of any OSO-format DataExchangeJob — the PO→VO overstapdossier (target: oso) AND the SWV zorgvraag care-request dossier (target: swv, openspec/changes/zorgvraag-swv-tlv-chain), reused unchanged per the data-exchange spec's 'OSO-format dossier parent-review gate covers the SWV zorgvraag target too' requirement. This view is generic by job :id, not target-filtered, so no manifest change was needed to extend it — DataExchangeJobDetail's lifecycleActions panel routes here for either target whenever the job's lifecycle is pending-parent-review. No new component was added."
+		}
+	]
+}

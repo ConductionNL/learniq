@@ -13,23 +13,33 @@
 
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
+
+  @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 -->
 
 <template>
 	<div class="proctoring-review-queue">
 		<header class="proctoring-review-queue__header">
 			<h2 class="proctoring-review-queue__title">
-				{{ t('scholiq', 'Proctoring flag review queue') }}
+				{{ t('learniq', 'Proctoring flag review queue') }}
 			</h2>
 			<p class="proctoring-review-queue__subtitle">
-				{{ t('scholiq', 'Review flagged proctoring events. Decisions are recorded for compliance; no result is altered automatically (EU AI Act Art. 14).') }}
+				{{
+					t(
+						'learniq',
+						'Review flagged proctoring events. Decisions are recorded for compliance; no result is altered automatically (EU AI Act Art. 14).',
+					)
+				}}
 			</p>
 		</header>
 
 		<!-- Loading -->
-		<div v-if="loading" class="proctoring-review-queue__loading" aria-live="polite">
+		<div
+			v-if="loading"
+			class="proctoring-review-queue__loading"
+			aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading sessions...') }}</span>
+			<span>{{ t('learniq', 'Loading sessions...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -39,9 +49,12 @@
 		</div>
 
 		<!-- Empty -->
-		<div v-else-if="sessionsWithPendingFlags.length === 0" class="proctoring-review-queue__empty" role="status">
+		<div
+			v-else-if="sessionsWithPendingFlags.length === 0"
+			class="proctoring-review-queue__empty"
+			role="status">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<p>{{ t('scholiq', 'No sessions with pending flags.') }}</p>
+			<p>{{ t('learniq', 'No sessions with pending flags.') }}</p>
 		</div>
 
 		<!-- Session list -->
@@ -51,14 +64,26 @@
 				:key="session.uuid"
 				class="proctoring-review-queue__session">
 				<header class="proctoring-review-queue__session-header">
-					<h3>{{ t('scholiq', 'Session {id}', { id: shortId(session.uuid) }) }}</h3>
+					<h3>
+						{{
+							t('learniq', 'Session {id}', {
+								id: shortId(session.uuid),
+							})
+						}}
+					</h3>
 					<span class="proctoring-review-queue__meta">
-						{{ t('scholiq', 'Learner: {id}', { id: session.learnerId }) }}
+						{{
+							t('learniq', 'Learner: {id}', { id: session.learnerId })
+						}}
 						&mdash;
-						{{ t('scholiq', 'Provider: {p}', { p: session.provider }) }}
+						{{ t('learniq', 'Provider: {p}', { p: session.provider }) }}
 					</span>
 					<span class="proctoring-review-queue__pending-count">
-						{{ t('scholiq', '{n} pending flag(s)', { n: pendingCount(session) }) }}
+						{{
+							t('learniq', '{n} pending flag(s)', {
+								n: pendingCount(session),
+							})
+						}}
 					</span>
 				</header>
 
@@ -70,9 +95,15 @@
 						class="proctoring-review-queue__flag"
 						:class="'proctoring-review-queue__flag--' + flag.severity">
 						<div class="proctoring-review-queue__flag-info">
-							<span class="proctoring-review-queue__flag-kind">{{ flag.kind }}</span>
-							<span class="proctoring-review-queue__flag-severity">{{ flag.severity }}</span>
-							<span class="proctoring-review-queue__flag-time">{{ formatDate(flag.occurredAt) }}</span>
+							<span class="proctoring-review-queue__flag-kind">{{
+								flagKindLabel(flag.kind)
+							}}</span>
+							<span class="proctoring-review-queue__flag-severity">{{
+								flag.severity
+							}}</span>
+							<span class="proctoring-review-queue__flag-time">{{
+								formatDate(flag.occurredAt)
+							}}</span>
 						</div>
 
 						<div class="proctoring-review-queue__flag-decision">
@@ -80,36 +111,65 @@
 								<button
 									class="button-vue"
 									:disabled="savingFlagId === flag.flagId"
-									@click="recordDecision(session, flag, 'allowed')">
-									<span v-if="savingFlagId === flag.flagId" class="icon-loading" aria-hidden="true" />
-									{{ t('scholiq', 'Allow') }}
+									@click="
+										recordDecision(session, flag, 'allowed')
+									">
+									<span
+										v-if="savingFlagId === flag.flagId"
+										class="icon-loading"
+										aria-hidden="true" />
+									{{ t('learniq', 'Allow') }}
 								</button>
 								<button
 									class="button-vue button-vue--error"
 									:disabled="savingFlagId === flag.flagId"
-									@click="recordDecision(session, flag, 'annulled')">
-									{{ t('scholiq', 'Annul') }}
+									@click="
+										recordDecision(session, flag, 'annulled')
+									">
+									{{ t('learniq', 'Annul') }}
 								</button>
 							</template>
 							<template v-else>
-								<span class="proctoring-review-queue__flag-decided" :class="'proctoring-review-queue__flag-decided--' + flag.reviewDecision">
-									{{ flag.reviewDecision === 'allowed' ? t('scholiq', 'Allowed') : t('scholiq', 'Annulled') }}
+								<span
+									class="proctoring-review-queue__flag-decided"
+									:class="
+										'proctoring-review-queue__flag-decided--'
+										+ flag.reviewDecision
+									">
+									{{
+										flag.reviewDecision === 'allowed'
+											? t('learniq', 'Allowed')
+											: t('learniq', 'Annulled')
+									}}
 								</span>
 								<span class="proctoring-review-queue__flag-reviewer">
-									{{ t('scholiq', 'by {who} at {when}', { who: flag.reviewedBy, when: formatDate(flag.reviewedAt) }) }}
+									{{
+										t('learniq', 'by {who} at {when}', {
+											who: flag.reviewedBy,
+											when: formatDate(flag.reviewedAt),
+										})
+									}}
 								</span>
 							</template>
 						</div>
 					</li>
 				</ul>
 
-				<p v-if="sessionError[session.uuid]" role="alert" class="proctoring-review-queue__error-inline">
+				<p
+					v-if="sessionError[session.uuid]"
+					role="alert"
+					class="proctoring-review-queue__error-inline">
 					{{ sessionError[session.uuid] }}
 				</p>
 
 				<!-- Human-oversight reminder -->
 				<p class="proctoring-review-queue__oversight-note">
-					{{ t('scholiq', 'Annulling a flag does not automatically invalidate the result. Use the AssessmentResult view to take further action.') }}
+					{{
+						t(
+							'learniq',
+							'Annulling a flag does not automatically invalidate the result. Use the AssessmentResult view to take further action.',
+						)
+					}}
 				</p>
 			</li>
 		</ul>
@@ -117,8 +177,8 @@
 </template>
 
 <script>
-import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'ProctoringReviewQueue',
@@ -139,7 +199,9 @@ export default {
 	computed: {
 		/**
 		 * Sessions that have at least one pending flag.
+		 *
 		 * @return {object[]}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		sessionsWithPendingFlags() {
 			return this.sessions.filter((s) => this.pendingCount(s) > 0)
@@ -155,21 +217,31 @@ export default {
 		 * Fetch all ProctoringSession objects.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		async loadSessions() {
 			this.loading = true
 			this.error = null
 
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/ProctoringSession?limit=100')
+				const url = generateUrl(
+					'/apps/openregister/api/objects/learniq/proctoring-session?limit=100',
+				)
 				const resp = await fetch(url, {
-					headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+					},
 				})
-				if (!resp.ok) throw new Error(`Sessions fetch failed: ${resp.status}`)
+				if (!resp.ok)
+					throw new Error(`Sessions fetch failed: ${resp.status}`)
 				const json = await resp.json()
 				this.sessions = json.results ?? json.objects ?? json ?? []
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load proctoring sessions. Please try again.')
+				this.error = this.t(
+					'learniq',
+					'Failed to load proctoring sessions. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[ProctoringReviewQueue] loadSessions error', err)
 			} finally {
@@ -182,9 +254,36 @@ export default {
 		 *
 		 * @param {object} session ProctoringSession object
 		 * @return {number}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		pendingCount(session) {
-			return (session.flags ?? []).filter((f) => f.reviewDecision === 'pending').length
+			return (session.flags ?? []).filter(
+				(f) => f.reviewDecision === 'pending',
+			).length
+		},
+
+		/**
+		 * Human-readable label for a flag kind. Falls back to the raw kind value
+		 * for kinds this app has no label for (e.g. external-provider-specific
+		 * kinds like gaze-away/audio-event/object-detected) — the queue stays
+		 * generic for any provider, native or external.
+		 *
+		 * @param {string} kind Flag kind value
+		 * @return {string}
+		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 */
+		flagKindLabel(kind) {
+			const labels = {
+				'fullscreen-exit': this.t('learniq', 'Fullscreen exit'),
+				'tab-hidden': this.t('learniq', 'Tab switched or window minimised'),
+				'window-blur': this.t('learniq', 'Window lost focus'),
+				'blocked-navigation': this.t('learniq', 'Back-navigation attempt'),
+				'concurrent-session-detected': this.t(
+					'learniq',
+					'Opened in a second tab or window',
+				),
+			}
+			return labels[kind] ?? kind
 		},
 
 		/**
@@ -195,6 +294,7 @@ export default {
 		 * @param {object} flag       The flag to decide on
 		 * @param {string} decision   'allowed' or 'annulled'
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		async recordDecision(session, flag, decision) {
 			const currentUser = getCurrentUser()
@@ -216,7 +316,7 @@ export default {
 				})
 
 				const url = generateUrl(
-					`/apps/openregister/api/objects/scholiq/ProctoringSession/${session.uuid}`,
+					`/apps/openregister/api/objects/learniq/proctoring-session/${session.uuid}`,
 				)
 				const resp = await fetch(url, {
 					method: 'PUT',
@@ -235,14 +335,20 @@ export default {
 				// Update local state.
 				const idx = this.sessions.findIndex((s) => s.uuid === session.uuid)
 				if (idx >= 0) {
-					this.sessions[idx] = { ...this.sessions[idx], flags: updatedFlags }
+					this.sessions[idx] = {
+						...this.sessions[idx],
+						flags: updatedFlags,
+					}
 					// Force Vue 2 reactivity.
 					this.sessions = [...this.sessions]
 				}
 			} catch (err) {
 				this.sessionError = {
 					...this.sessionError,
-					[session.uuid]: this.t('scholiq', 'Failed to save review decision. Please try again.'),
+					[session.uuid]: this.t(
+						'learniq',
+						'Failed to save review decision. Please try again.',
+					),
 				}
 				// eslint-disable-next-line no-console
 				console.error('[ProctoringReviewQueue] recordDecision error', err)
@@ -256,6 +362,7 @@ export default {
 		 *
 		 * @param {string} dt ISO datetime string
 		 * @return {string}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		formatDate(dt) {
 			if (!dt) return ''
@@ -277,6 +384,7 @@ export default {
 		 *
 		 * @param {string} uuid Full UUID
 		 * @return {string}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		shortId(uuid) {
 			return (uuid ?? '').slice(0, 8)
@@ -289,7 +397,8 @@ export default {
 .proctoring-review-queue {
 	max-width: 900px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .proctoring-review-queue__header {
@@ -329,7 +438,8 @@ export default {
 }
 
 .proctoring-review-queue__session-header {
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 	background: var(--color-background-dark);
 	display: flex;
 	flex-wrap: wrap;
@@ -362,7 +472,8 @@ export default {
 	display: flex;
 	align-items: center;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 	border-top: 1px solid var(--color-border);
 }
 
@@ -425,7 +536,8 @@ export default {
 }
 
 .proctoring-review-queue__oversight-note {
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 	font-size: 0.85em;
 	color: var(--color-text-maxcontrast);
 	font-style: italic;
@@ -433,7 +545,8 @@ export default {
 }
 
 .proctoring-review-queue__error-inline {
-	margin: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	margin: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 	color: var(--color-error);
 	font-size: 0.9em;
 }

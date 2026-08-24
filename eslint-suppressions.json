@@ -1,0 +1,168 @@
+{
+  "src/components/admin/ActionAuthMatrix.vue": {
+    "jsdoc/require-param-type": {
+      "count": 5
+    },
+    "no-console": {
+      "count": 2
+    }
+  },
+  "src/dialogs/ComposeReportPeriodModal.vue": {
+    "no-console": {
+      "count": 2
+    }
+  },
+  "src/dialogs/SubstitutionModal.vue": {
+    "no-console": {
+      "count": 1
+    }
+  },
+  "src/store/modules/object.js": {
+    "no-console": {
+      "count": 2
+    }
+  },
+  "src/store/modules/settings.js": {
+    "no-console": {
+      "count": 2
+    }
+  },
+  "src/views/AdmissionsReviewBoard.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 1
+    }
+  },
+  "src/views/BookConferenceSlotsView.vue": {
+    "no-console": {
+      "count": 3
+    }
+  },
+  "src/views/BsaRiskDashboard.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 1
+    }
+  },
+  "src/views/ConferenceScheduleBoard.vue": {
+    "no-console": {
+      "count": 4
+    }
+  },
+  "src/views/ExamCaseDossierView.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 1
+    }
+  },
+  "src/views/GradeImpactDetail.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 1
+    }
+  },
+  "src/views/GroupPlanSubgroupLearnerContext.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 1
+    }
+  },
+  "src/views/GroupTrendHeatmap.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 1
+    }
+  },
+  "src/views/ItemAnalysisView.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 1
+    }
+  },
+  "src/views/ItemAuthorView.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 3
+    }
+  },
+  "src/views/MarkSubmissionView.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 2
+    },
+    "eqeqeq": {
+      "count": 3
+    }
+  },
+  "src/views/MyTimetable.vue": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "src/views/PeerReviewMarkingView.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 2
+    },
+    "eqeqeq": {
+      "count": 1
+    }
+  },
+  "src/views/PortfolioBuilder.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 1
+    }
+  },
+  "src/views/PortfolioReviewView.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 1
+    }
+  },
+  "src/views/ProctoringReviewQueue.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 1
+    }
+  },
+  "src/views/PupilDossierTimelineView.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 1
+    }
+  },
+  "src/views/RapportvergaderingReviewView.vue": {
+    "no-console": {
+      "count": 5
+    }
+  },
+  "src/views/RolloverWizard.vue": {
+    "no-console": {
+      "count": 4
+    }
+  },
+  "src/views/SelfAssessmentView.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 2
+    },
+    "eqeqeq": {
+      "count": 2
+    }
+  },
+  "src/views/SkillsGapDashboard.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 1
+    }
+  },
+  "src/views/TakeAssessmentView.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 3
+    },
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    },
+    "no-useless-assignment": {
+      "count": 1
+    }
+  },
+  "src/views/TimetableConflictQueue.vue": {
+    "no-console": {
+      "count": 2
+    }
+  },
+  "src/views/settings/Settings.vue": {
+    "@nextcloud/l10n-enforce-ellipsis": {
+      "count": 1
+    },
+    "vue/multi-word-component-names": {
+      "count": 1
+    }
+  }
+}

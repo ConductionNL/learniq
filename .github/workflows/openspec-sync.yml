@@ -8,8 +8,17 @@ on:
 
 jobs:
   sync:
-    uses: ConductionNL/.github/.github/workflows/openspec-sync.yml@feature/openspec-project-sync
+    # ⚠️ This was pinned to `@feature/openspec-project-sync`, a branch that does
+    # not exist in ConductionNL/.github (verified with `git ls-remote --heads`,
+    # positive-controlled against `main`, which does resolve). The org is right,
+    # so a `uses:`-grep for `Conduction/` finds nothing wrong — but Actions still
+    # cannot resolve the ref, and the workflow has produced ZERO jobs on every
+    # push since 2026-05-23. The tell is in `gh run list --json name`: runs from
+    # 2026-05-18 and earlier report `OpenSpec Sync`; every run since reports the
+    # raw path `.github/workflows/openspec-sync.yml`. Pin to the default branch,
+    # as every other workflow in this repo does.
+    uses: ConductionNL/.github/.github/workflows/openspec-sync.yml@main
     with:
-      app-name: scholiq
+      app-name: learniq
     secrets:
       PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}

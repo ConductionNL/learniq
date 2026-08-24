@@ -8,11 +8,19 @@
      for the same learner + curriculumPlan).
   3. The delta to the learner's FinalGrade (fetched from the FinalGrade schema).
 
+  The lifecycle badge shows a distinct "scheduled" state — instead of
+  "published" — while `entry.lifecycle === 'published'` but `entry.visibleFrom`
+  is still in the future, i.e. the entry has published but its scheduled
+  visibility window (grade-visibility-scheduling) has not opened yet.
+
   Route param: :id (GradeEntry UUID).
   Uses Options API + direct fetch (no custom Pinia store modules).
 
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
+
+  @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
+  @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-gradeentry-schema-carries-a-scheduled-visibility-window
 -->
 
 <template>
@@ -20,7 +28,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="grade-impact__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading grade impact...') }}</span>
+			<span>{{ t('learniq', 'Loading grade impact...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -32,46 +40,70 @@
 		<!-- Content -->
 		<template v-else-if="entry">
 			<header class="grade-impact__header">
-				<h2>{{ t('scholiq', 'Grade impact') }}</h2>
+				<h2>{{ t('learniq', 'Grade impact') }}</h2>
 				<p class="grade-impact__meta">
-					{{ t('scholiq', 'Component: {id}', { id: entry.componentId || '' }) }}
-					<span v-if="entry.period"> — {{ t('scholiq', 'Period: {period}', { period: entry.period }) }}</span>
+					{{
+						t('learniq', 'Component: {id}', {
+							id: entry.componentId || '',
+						})
+					}}
+					<span v-if="entry.period">
+						—
+						{{
+							t('learniq', 'Period: {period}', {
+								period: entry.period,
+							})
+						}}</span
+					>
 				</p>
 				<span
 					class="grade-impact__lifecycle-badge"
-					:class="`grade-impact__lifecycle-badge--${entry.lifecycle}`">
-					{{ entry.lifecycle }}
+					:class="`grade-impact__lifecycle-badge--${lifecycleBadgeState}`">
+					{{ isScheduled ? t('learniq', 'scheduled') : entry.lifecycle }}
 				</span>
+				<p v-if="isScheduled" class="grade-impact__meta">
+					{{
+						t('learniq', 'Visible to the learner from {date}', {
+							date: formatDate(entry.visibleFrom),
+						})
+					}}
+				</p>
 			</header>
 
 			<!-- Grade value block -->
 			<section class="grade-impact__section">
-				<h3>{{ t('scholiq', 'This grade') }}</h3>
+				<h3>{{ t('learniq', 'This grade') }}</h3>
 				<dl class="grade-impact__dl">
 					<div class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Value') }}</dt>
+						<dt>{{ t('learniq', 'Value') }}</dt>
 						<dd class="grade-impact__value">
 							{{ formatValue(entry.value) }}
 						</dd>
 					</div>
 					<div class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Effective weight') }}</dt>
-						<dd>{{ entry.weight !== null && entry.weight !== undefined ? entry.weight : planComponentWeight }}</dd>
+						<dt>{{ t('learniq', 'Effective weight') }}</dt>
+						<dd>
+							{{
+								entry.weight !== null && entry.weight !== undefined
+									? entry.weight
+									: planComponentWeight
+							}}
+						</dd>
 					</div>
 					<div class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Points contributed') }}</dt>
+						<dt>{{ t('learniq', 'Points contributed') }}</dt>
 						<dd>{{ formatValue(pointsContributed) }}</dd>
 					</div>
 					<div v-if="entry.grader" class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Grader') }}</dt>
+						<dt>{{ t('learniq', 'Grader') }}</dt>
 						<dd>{{ entry.grader }}</dd>
 					</div>
 					<div v-if="entry.gradedAt" class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Graded at') }}</dt>
+						<dt>{{ t('learniq', 'Graded at') }}</dt>
 						<dd>{{ formatDate(entry.gradedAt) }}</dd>
 					</div>
 					<div v-if="entry.comment" class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Comment') }}</dt>
+						<dt>{{ t('learniq', 'Comment') }}</dt>
 						<dd>{{ entry.comment }}</dd>
 					</div>
 				</dl>
@@ -79,14 +111,20 @@
 
 			<!-- Period average block -->
 			<section v-if="periodEntries.length > 0" class="grade-impact__section">
-				<h3>{{ t('scholiq', 'Period {period} average', { period: entry.period || '' }) }}</h3>
+				<h3>
+					{{
+						t('learniq', 'Period {period} average', {
+							period: entry.period || '',
+						})
+					}}
+				</h3>
 				<dl class="grade-impact__dl">
 					<div class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Published grades in period') }}</dt>
+						<dt>{{ t('learniq', 'Published grades in period') }}</dt>
 						<dd>{{ periodEntries.length }}</dd>
 					</div>
 					<div class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Period average') }}</dt>
+						<dt>{{ t('learniq', 'Period average') }}</dt>
 						<dd class="grade-impact__value">
 							{{ formatValue(periodAverage) }}
 						</dd>
@@ -96,27 +134,39 @@
 
 			<!-- Final grade impact block -->
 			<section v-if="finalGrade" class="grade-impact__section">
-				<h3>{{ t('scholiq', 'Final grade') }}</h3>
+				<h3>{{ t('learniq', 'Final grade') }}</h3>
 				<dl class="grade-impact__dl">
 					<div class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Current final grade') }}</dt>
+						<dt>{{ t('learniq', 'Current final grade') }}</dt>
 						<dd class="grade-impact__value">
 							{{ formatValue(finalGrade.value) }}
 						</dd>
 					</div>
 					<div class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Pass status') }}</dt>
+						<dt>{{ t('learniq', 'Pass status') }}</dt>
 						<dd>
 							<span
 								v-if="finalGrade.passed !== null"
-								:class="finalGrade.passed ? 'grade-impact__pass' : 'grade-impact__fail'">
-								{{ finalGrade.passed ? t('scholiq', 'Passed') : t('scholiq', 'Not passed') }}
+								:class="
+									finalGrade.passed
+										? 'grade-impact__pass'
+										: 'grade-impact__fail'
+								">
+								{{
+									finalGrade.passed
+										? t('learniq', 'Passed')
+										: t('learniq', 'Not passed')
+								}}
 							</span>
-							<span v-else class="grade-impact__pending">{{ t('scholiq', 'Pending') }}</span>
+							<span v-else class="grade-impact__pending">{{
+								t('learniq', 'Pending')
+							}}</span>
 						</dd>
 					</div>
-					<div v-if="finalGrade.lastRecomputedAt" class="grade-impact__dl-row">
-						<dt>{{ t('scholiq', 'Last recomputed') }}</dt>
+					<div
+						v-if="finalGrade.lastRecomputedAt"
+						class="grade-impact__dl-row">
+						<dt>{{ t('learniq', 'Last recomputed') }}</dt>
 						<dd>{{ formatDate(finalGrade.lastRecomputedAt) }}</dd>
 					</div>
 				</dl>
@@ -158,9 +208,49 @@ export default {
 
 	computed: {
 		/**
+		 * True when this entry has published but its scheduled visibility window
+		 * (visibleFrom) has not opened yet — the learner-facing notification has
+		 * not fired.
+		 *
+		 * @return {boolean}
+		 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-gradeentry-schema-carries-a-scheduled-visibility-window
+		 */
+		isScheduled() {
+			if (
+				!this.entry
+				|| this.entry.lifecycle !== 'published'
+				|| !this.entry.visibleFrom
+			) {
+				return false
+			}
+
+			const visibleFrom = new Date(this.entry.visibleFrom)
+			return (
+				!Number.isNaN(visibleFrom.getTime())
+				&& visibleFrom.getTime() > Date.now()
+			)
+		},
+
+		/**
+		 * The CSS modifier / display state for the lifecycle badge — 'scheduled'
+		 * overrides 'published' while the visibility window is still in the future.
+		 *
+		 * @return {string}
+		 * @spec openspec/changes/grade-visibility-scheduling/specs/grading/spec.md#scenario-gradeentry-schema-carries-a-scheduled-visibility-window
+		 */
+		lifecycleBadgeState() {
+			if (this.isScheduled) {
+				return 'scheduled'
+			}
+
+			return this.entry?.lifecycle
+		},
+
+		/**
 		 * The weight of the plan component matching this entry's componentId.
 		 *
 		 * @return {number}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		planComponentWeight() {
 			if (!this.plan || !this.entry) {
@@ -177,6 +267,7 @@ export default {
 		 * Effective weight: per-entry override or plan component default.
 		 *
 		 * @return {number}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		effectiveWeight() {
 			if (this.entry?.weight !== null && this.entry?.weight !== undefined) {
@@ -190,9 +281,14 @@ export default {
 		 * Points contributed by this entry to the weighted sum.
 		 *
 		 * @return {number|null}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		pointsContributed() {
-			if (!this.entry || this.entry.value === null || this.entry.value === undefined) {
+			if (
+				!this.entry
+				|| this.entry.value === null
+				|| this.entry.value === undefined
+			) {
 				return null
 			}
 
@@ -203,6 +299,7 @@ export default {
 		 * Weighted average of published entries in the same period.
 		 *
 		 * @return {number|null}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		periodAverage() {
 			if (this.periodEntries.length === 0) {
@@ -212,18 +309,30 @@ export default {
 			let weightedSum = 0
 			let totalWeight = 0
 			for (const e of this.periodEntries) {
-				const w = e.weight !== null && e.weight !== undefined ? Number(e.weight) : 1
+				const w =
+					e.weight !== null && e.weight !== undefined
+						? Number(e.weight)
+						: 1
 				weightedSum += Number(e.value) * w
 				totalWeight += w
 			}
 
-			return totalWeight > 0 ? Math.round((weightedSum / totalWeight) * 100) / 100 : null
+			return totalWeight > 0
+				? Math.round((weightedSum / totalWeight) * 100) / 100
+				: null
 		},
 	},
 
 	watch: {
 		id: {
 			immediate: true,
+			/**
+			 * React to the GradeEntry id prop changing by loading all data.
+			 *
+			 * @param {string} newId New GradeEntry UUID
+			 * @return {void}
+			 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
+			 */
 			handler(newId) {
 				if (newId) {
 					this.loadData(newId)
@@ -238,6 +347,7 @@ export default {
 		 *
 		 * @param {string} entryId GradeEntry UUID.
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		async loadData(entryId) {
 			this.loading = true
@@ -253,7 +363,10 @@ export default {
 					])
 				}
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load grade impact. Please try again.')
+				this.error = this.t(
+					'learniq',
+					'Failed to load grade impact. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[GradeImpactDetail] loadData error', err)
 			} finally {
@@ -266,10 +379,15 @@ export default {
 		 *
 		 * @param {string} entryId GradeEntry UUID.
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		async loadEntry(entryId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/GradeEntry/${entryId}`)
-			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/grade-entry/${entryId}`,
+			)
+			const resp = await fetch(url, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) {
 				throw new Error(`GradeEntry fetch failed: ${resp.status}`)
 			}
@@ -283,14 +401,19 @@ export default {
 		 *
 		 * @param {string} planId CurriculumPlan UUID.
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		async loadPlan(planId) {
 			if (!planId) {
 				return
 			}
 
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/CurriculumPlan/${planId}`)
-			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/curriculum-plan/${planId}`,
+			)
+			const resp = await fetch(url, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) {
 				return
 			}
@@ -303,6 +426,7 @@ export default {
 		 * Fetch other published GradeEntries in the same period for this learner + plan.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		async loadPeriodEntries() {
 			if (!this.entry) {
@@ -315,9 +439,11 @@ export default {
 			}
 
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/GradeEntry?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&period=${encodeURIComponent(period)}&lifecycle=published&limit=100`,
+				`/apps/openregister/api/objects/learniq/grade-entry?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&period=${encodeURIComponent(period)}&lifecycle=published&limit=100`,
 			)
-			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const resp = await fetch(url, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) {
 				return
 			}
@@ -330,6 +456,7 @@ export default {
 		 * Fetch the FinalGrade for this learner + curriculumPlan.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		async loadFinalGrade() {
 			if (!this.entry) {
@@ -342,9 +469,11 @@ export default {
 			}
 
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/FinalGrade?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&limit=1`,
+				`/apps/openregister/api/objects/learniq/final-grade?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&limit=1`,
 			)
-			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const resp = await fetch(url, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) {
 				return
 			}
@@ -359,6 +488,7 @@ export default {
 		 *
 		 * @param {number|null} value Grade value.
 		 * @return {string}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		formatValue(value) {
 			if (value === null || value === undefined) {
@@ -373,6 +503,7 @@ export default {
 		 *
 		 * @param {string} isoString ISO-8601 datetime string.
 		 * @return {string}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		formatDate(isoString) {
 			if (!isoString) {
@@ -393,7 +524,8 @@ export default {
 .grade-impact {
 	max-width: 640px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .grade-impact__loading,
@@ -438,6 +570,11 @@ export default {
 .grade-impact__lifecycle-badge--revised {
 	background: var(--color-primary);
 	color: var(--color-primary-text);
+}
+
+.grade-impact__lifecycle-badge--scheduled {
+	background: var(--color-warning);
+	color: var(--color-main-background);
 }
 
 .grade-impact__section {

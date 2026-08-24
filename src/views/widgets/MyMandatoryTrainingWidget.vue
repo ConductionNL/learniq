@@ -4,7 +4,11 @@
 <!--
  MyMandatoryTrainingWidget — learner-home widget.
  Shows the current user's mandatory enrolments in lifecycle=pending or active,
- sorted by dueDate. Each row has a "Start" link to the course player.
+ sorted by dueDate. Each row has a "Start" link to the course player and, once
+ progressPercent is populated (learning-progress-and-analytics), a progress
+ bar — declarative reuse of Enrolment.progressPercent, no new custom view.
+
+ @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-is-visible-on-the-learners-my-learning-dashboard
 -->
 <template>
 	<div class="my-training-widget">
@@ -13,7 +17,7 @@
 		</div>
 
 		<div v-else-if="enrolments.length === 0" class="my-training-widget__empty">
-			{{ t('scholiq', 'No mandatory training due') }}
+			{{ t('learniq', 'No mandatory training due') }}
 		</div>
 
 		<ul v-else class="my-training-widget__list">
@@ -23,17 +27,51 @@
 				class="my-training-widget__item">
 				<div class="my-training-widget__item-info">
 					<span class="my-training-widget__item-name">
-						{{ enrolment.courseTitle || enrolment.courseId || t('scholiq', 'Course') }}
+						{{
+							enrolment.courseTitle
+							|| enrolment.courseId
+							|| t('learniq', 'Course')
+						}}
 					</span>
-					<span v-if="enrolment.dueDate" class="my-training-widget__item-due">
-						{{ t('scholiq', 'Due') }}: {{ formatDate(enrolment.dueDate) }}
+					<span
+						v-if="enrolment.dueDate"
+						class="my-training-widget__item-due">
+						{{ t('learniq', 'Due') }}:
+						{{ formatDate(enrolment.dueDate) }}
 					</span>
+					<div
+						v-if="
+							enrolment.progressPercent !== null
+							&& enrolment.progressPercent !== undefined
+						"
+						class="my-training-widget__progress"
+						role="progressbar"
+						:aria-valuenow="enrolment.progressPercent"
+						aria-valuemin="0"
+						aria-valuemax="100"
+						:aria-label="
+							t('learniq', 'Progress: {percent}%', {
+								percent: enrolment.progressPercent,
+							})
+						">
+						<div class="my-training-widget__progress-track">
+							<div
+								class="my-training-widget__progress-fill"
+								:style="{
+									width: enrolment.progressPercent + '%',
+								}" />
+						</div>
+						<span class="my-training-widget__progress-label"
+							>{{ enrolment.progressPercent }}%</span
+						>
+					</div>
 				</div>
-				<a
+				<router-link
+					v-if="enrolment.courseId"
 					class="my-training-widget__start-link"
-					@click.prevent="startCourse(enrolment)">
-					{{ t('scholiq', 'Start') }}
-				</a>
+					:to="courseLessonsPath(enrolment)">
+					{{ t('learniq', 'Start') }}
+				</router-link>
 			</li>
 		</ul>
 	</div>
@@ -63,6 +101,12 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * Fetch the current user's pending/active mandatory enrolments from OpenRegister.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
+		 */
 		async fetchEnrolments() {
 			this.loading = true
 			try {
@@ -73,7 +117,8 @@ export default {
 					_order: 'dueDate',
 				})
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/Enrolment?' + params.toString(),
+					'/apps/openregister/api/objects/learniq/Enrolment?'
+						+ params.toString(),
 				)
 				const response = await axios.get(url)
 				const data = response.data ?? {}
@@ -85,6 +130,13 @@ export default {
 			}
 		},
 
+		/**
+		 * Format an ISO date string as a localised date.
+		 *
+		 * @param {string} dateStr ISO date string
+		 * @return {string}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
+		 */
 		formatDate(dateStr) {
 			if (!dateStr) return ''
 			try {
@@ -94,11 +146,20 @@ export default {
 			}
 		},
 
-		startCourse(enrolment) {
-			const courseId = enrolment.courseId
-			if (courseId) {
-				this.$router.push('/courses/' + courseId + '/lessons').catch(() => {})
-			}
+		/**
+		 * Router path to the lessons view for the enrolment's course.
+		 *
+		 * Returned as a route rather than pushed from a click handler so the
+		 * control renders as a real <router-link> anchor — focusable, activatable
+		 * by keyboard, and openable in a new tab. The previous <a> carried no
+		 * href, so it was not in the tab order at all.
+		 *
+		 * @param {object} enrolment Enrolment object
+		 * @return {string} Router path for the course's lessons view.
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
+		 */
+		courseLessonsPath(enrolment) {
+			return '/courses/' + enrolment.courseId + '/lessons'
 		},
 	},
 }
@@ -161,6 +222,34 @@ export default {
 .my-training-widget__item-due {
 	font-size: 11px;
 	color: var(--color-text-maxcontrast);
+}
+
+.my-training-widget__progress {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 2px;
+}
+
+.my-training-widget__progress-track {
+	flex: 1;
+	height: 4px;
+	border-radius: 2px;
+	background-color: var(--color-border);
+	overflow: hidden;
+}
+
+.my-training-widget__progress-fill {
+	height: 100%;
+	background-color: var(--color-primary-element, var(--color-primary));
+	border-radius: 2px;
+}
+
+.my-training-widget__progress-label {
+	font-size: 10px;
+	color: var(--color-text-maxcontrast);
+	min-width: 28px;
+	text-align: right;
 }
 
 .my-training-widget__start-link {

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq QTI Import Controller
+ * Learniq QTI Import Controller
  *
  * Thin HTTP endpoint for uploading and importing a QTI 2.x / 3.0 or Common Cartridge
  * ZIP package into a specified ItemBank. All heavy lifting is delegated to
@@ -13,7 +13,7 @@
  * exception. This controller provides the Nextcloud HTTP surface only.
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -24,18 +24,24 @@
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
+ *
+ * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
  */
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\Service\QtiImportService;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\QtiImportService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\IConfig;
 use OCP\IRequest;
+use OCP\IUserSession;
 
 /**
  * Handles QTI package upload and import into an ItemBank.
@@ -50,90 +56,127 @@ use OCP\IRequest;
  *   - { itemCount: N, itemIds: [uuid, ...] } on success
  *   - { error: "message" }                   on failure
  */
-class QtiImportController extends Controller
-{
-    /**
-     * Constructor.
-     *
-     * @param IRequest         $request          HTTP request.
-     * @param QtiImportService $qtiImportService QTI import service.
-     *
-     * @return void
-     */
-    public function __construct(
-        IRequest $request,
-        private readonly QtiImportService $qtiImportService,
-    ) {
-        parent::__construct(appName: Application::APP_ID, request: $request);
-    }//end __construct()
+class QtiImportController extends Controller {
+	/**
+	 * Constructor.
+	 *
+	 * @param IRequest $request HTTP request.
+	 * @param QtiImportService $qtiImportService QTI import service.
+	 * @param IUserSession $userSession Nextcloud user session.
+	 * @param ActionAuthService $actionAuth ADR-023 action authorization service.
+	 * @param IConfig $config Nextcloud config for tenant resolution.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		IRequest $request,
+		private readonly QtiImportService $qtiImportService,
+		private readonly IUserSession $userSession,
+		private readonly ActionAuthService $actionAuth,
+		private readonly IConfig $config,
+	) {
+		parent::__construct(appName: Application::APP_ID, request: $request);
+	}//end __construct()
 
-    /**
-     * Import a QTI 2.x / 3.0 or Common Cartridge ZIP package into an ItemBank.
-     *
-     * @param string $itemBankId UUID of the target ItemBank.
-     *
-     * @return JSONResponse JSON with created item UUIDs and count, or an error.
-     *
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     */
-    public function import(string $itemBankId=''): JSONResponse
-    {
-        if ($itemBankId === '') {
-            return new JSONResponse(
-                data: ['error' => 'itemBankId is required'],
-                statusCode: Http::STATUS_BAD_REQUEST
-            );
-        }
+	/**
+	 * Import a QTI 2.x / 3.0 or Common Cartridge ZIP package into an ItemBank.
+	 *
+	 * CSRF is required (mutating endpoint — wave-12 WF2). The caller must supply a
+	 * valid Nextcloud CSRF token in the request; AJAX clients set this automatically
+	 * via the `requesttoken` header or form field.
+	 *
+	 * The caller's tenant is resolved from the authenticated user's per-user tenant
+	 * binding (same pattern as AuditPackExportController). Items are written scoped to
+	 * that tenant so cross-tenant ItemBank poisoning is not possible even if an ItemBank
+	 * UUID from another tenant is supplied.
+	 *
+	 * @param string $itemBankId UUID of the target ItemBank.
+	 *
+	 * @return JSONResponse JSON with created item UUIDs and count, or an error.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
+	 */
+	#[NoAdminRequired]
+	public function import(string $itemBankId = ''): JSONResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new JSONResponse(
+				data: ['error' => 'Not authenticated'],
+				statusCode: Http::STATUS_UNAUTHORIZED
+			);
+		}
 
-        $uploadedFile = $this->request->getUploadedFile('file');
+		$this->actionAuth->requireAction(user: $user, action: 'qti.import');
 
-        if (isset($uploadedFile['tmp_name']) === false) {
-            return new JSONResponse(
-                data: ['error' => 'No file uploaded. POST a multipart/form-data request with a `file` field.'],
-                statusCode: Http::STATUS_BAD_REQUEST
-            );
-        }
+		if ($itemBankId === '') {
+			return new JSONResponse(
+				data: ['error' => 'itemBankId is required'],
+				statusCode: Http::STATUS_BAD_REQUEST
+			);
+		}
 
-        if ($uploadedFile['error'] !== UPLOAD_ERR_OK) {
-            return new JSONResponse(
-                data: ['error' => 'File upload error code '.$uploadedFile['error']],
-                statusCode: Http::STATUS_BAD_REQUEST
-            );
-        }
+		// Resolve the caller's tenant — prevents cross-tenant ItemBank poisoning (wave-12 WF2).
+		// Same pattern as AuditPackExportController::export().
+		$tenantId = $this->config->getSystemValue('instanceid', '');
+		$userTenantId = $this->config->getUserValue(
+			userId: $user->getUID(),
+			appName: 'learniq',
+			key: 'tenant_id',
+			default: ''
+		);
+		if ($userTenantId !== '') {
+			$tenantId = $userTenantId;
+		}
 
-        $tmpPath = $uploadedFile['tmp_name'];
+		$uploadedFile = $this->request->getUploadedFile('file');
 
-        if (file_exists($tmpPath) === false) {
-            return new JSONResponse(
-                data: ['error' => 'Uploaded file not found on server.'],
-                statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-            );
-        }
+		if (isset($uploadedFile['tmp_name']) === false) {
+			return new JSONResponse(
+				data: ['error' => 'No file uploaded. POST a multipart/form-data request with a `file` field.'],
+				statusCode: Http::STATUS_BAD_REQUEST
+			);
+		}
 
-        try {
-            $createdIds = $this->qtiImportService->import(
-                packagePath: $tmpPath,
-                itemBankId: $itemBankId,
-            );
-        } catch (\RuntimeException $e) {
-            return new JSONResponse(
-                data: ['error' => $e->getMessage()],
-                statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
-            );
-        } catch (\Throwable $e) {
-            return new JSONResponse(
-                data: ['error' => 'Import failed: '.$e->getMessage()],
-                statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-            );
-        }
+		if ($uploadedFile['error'] !== UPLOAD_ERR_OK) {
+			return new JSONResponse(
+				data: ['error' => 'File upload error code ' . $uploadedFile['error']],
+				statusCode: Http::STATUS_BAD_REQUEST
+			);
+		}
 
-        return new JSONResponse(
-            data: [
-                'itemCount' => count($createdIds),
-                'itemIds'   => $createdIds,
-            ],
-            statusCode: Http::STATUS_OK
-        );
-    }//end import()
+		$tmpPath = $uploadedFile['tmp_name'];
+
+		if (file_exists($tmpPath) === false) {
+			return new JSONResponse(
+				data: ['error' => 'Uploaded file not found on server.'],
+				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
+			);
+		}
+
+		try {
+			$createdIds = $this->qtiImportService->import(
+				packagePath: $tmpPath,
+				itemBankId: $itemBankId,
+				tenantId: $tenantId,
+			);
+		} catch (\RuntimeException $e) {
+			return new JSONResponse(
+				data: ['error' => $e->getMessage()],
+				statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		} catch (\Throwable $e) {
+			return new JSONResponse(
+				data: ['error' => 'Import failed: ' . $e->getMessage()],
+				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
+			);
+		}
+
+		return new JSONResponse(
+			data: [
+				'itemCount' => count($createdIds),
+				'itemIds' => $createdIds,
+			],
+			statusCode: Http::STATUS_OK
+		);
+	}//end import()
 }//end class

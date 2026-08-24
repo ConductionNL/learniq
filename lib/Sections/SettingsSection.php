@@ -1,14 +1,18 @@
 <?php
 
 /**
- * Scholiq Settings Section
+ * Learniq Settings Section (AppHost stub)
  *
- * Defines the Scholiq section in the Nextcloud admin settings.
+ * One-line subclass of the OpenRegister AppHost {@see GenericSettingsSection}
+ * (ADR-040). The class name must physically exist in Learniq's namespace
+ * because info.xml `<settings><admin-section>` loads it by class name. The
+ * generic provides the IIconSection (id `learniq`, name "Learniq", icon
+ * app-dark.svg, priority 75).
  *
  * @category Sections
- * @package  OCA\Scholiq\Sections
+ * @package  OCA\Learniq\Sections
  *
- * @author    Conduction Development Team <dev@conductio.nl>
+ * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2024 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
@@ -21,68 +25,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Sections;
+namespace OCA\Learniq\Sections;
 
-use OCP\IL10N;
-use OCP\IURLGenerator;
-use OCP\Settings\IIconSection;
+use OCA\OpenRegister\AppHost\Settings\GenericSettingsSection;
 
 /**
- * Defines the Scholiq section in the Nextcloud admin settings.
+ * AppHost stub for Learniq's admin settings section.
  */
-class SettingsSection implements IIconSection
-{
-    /**
-     * Constructor for SettingsSection.
-     *
-     * @param IL10N         $l            The localization service
-     * @param IURLGenerator $urlGenerator The URL generator service
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly IL10N $l,
-        private readonly IURLGenerator $urlGenerator,
-    ) {
-    }//end __construct()
-
-    /**
-     * Get the section identifier.
-     *
-     * @return string
-     */
-    public function getID(): string
-    {
-        return 'scholiq';
-    }//end getID()
-
-    /**
-     * Get the display name of this section.
-     *
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->l->t('Scholiq');
-    }//end getName()
-
-    /**
-     * Get the priority for ordering this section.
-     *
-     * @return int
-     */
-    public function getPriority(): int
-    {
-        return 75;
-    }//end getPriority()
-
-    /**
-     * Get the icon path for this section.
-     *
-     * @return string
-     */
-    public function getIcon(): string
-    {
-        return $this->urlGenerator->imagePath(appName: 'scholiq', file: 'app-dark.svg');
-    }//end getIcon()
+class SettingsSection extends GenericSettingsSection {
 }//end class
