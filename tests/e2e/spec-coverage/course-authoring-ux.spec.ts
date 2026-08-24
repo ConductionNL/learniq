@@ -93,8 +93,25 @@ async function openCourseBuilder(
 	courseId: string,
 ) {
 	await page.goto(`/index.php/apps/learniq/#/courses/${courseId}/builder`)
-	await page.waitForSelector('body', { timeout: 15_000 })
-	await page.waitForLoadState('domcontentloaded')
+
+	// Wait for the BUILDER, not for the document.
+	//
+	// This is a hash route in an SPA: `domcontentloaded` fires as soon as the
+	// shell parses, long before Vue has mounted the view or fetched the course.
+	// Waiting on `body` is weaker still — `body` exists immediately. The old
+	// helper did both and then the test read `innerText('body')` ONCE, with no
+	// retry, so it asserted against whatever had rendered by that instant:
+	// the app chrome and nothing else.
+	//
+	// `.course-builder__header` is the right anchor because CourseBuilder.vue
+	// renders exactly one of three branches — `loading`, `error`, or the
+	// content — and the header exists only in the third. Reaching it therefore
+	// proves the course resolved, which is what every assertion below assumes.
+	//
+	// It is also translation-independent: every string in this view goes
+	// through `t('learniq', ...)`, so a class is a stable anchor where the
+	// heading text is not.
+	await page.waitForSelector('.course-builder__header', { timeout: 20_000 })
 }
 
 test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPlayer', () => {
@@ -108,8 +125,9 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		const errors = collectFatalErrors(page)
 		await openCourseBuilder(page, course.id ?? course.uuid)
 
-		const bodyText = await page.innerText('body')
-		expect(bodyText).toContain('Course builder')
+		// Structural, not textual — see openCourseBuilder(). The heading itself
+		// is translated, so assert the surface that is not.
+		await expect(page.locator('.course-builder__header')).toBeVisible()
 
 		// Add two modules through the builder's own UI (no raw API POST).
 		const moduleNameInput = page.getByPlaceholder('New module name')
@@ -203,9 +221,12 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await moduleRow.getByRole('button', { name: 'Add lesson' }).click()
 
 		await moduleRow.getByRole('button', { name: 'Compose' }).click()
-		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('domcontentloaded')
-		await expect(page.getByText('Compose lesson')).toBeVisible()
+		// No page load here — Compose is an in-app view switch, so waiting on
+		// `body` / `domcontentloaded` measured nothing and only read as a wait.
+		// The retrying assertion below is what actually waits for the view.
+		await expect(page.getByText('Compose lesson')).toBeVisible({
+			timeout: 20_000,
+		})
 
 		// Add two richText blocks (no file-picker/NcSelect data dependency —
 		// drivable without seeded Material/Assessment fixtures).
