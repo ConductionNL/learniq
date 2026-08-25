@@ -439,7 +439,7 @@ export default {
 			}
 
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/grade-entry?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&period=${encodeURIComponent(period)}&lifecycle=published&limit=100`,
+				`/apps/openregister/api/objects/learniq/grade-entry?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&period=${encodeURIComponent(period)}&lifecycle=published&_limit=100`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -469,7 +469,7 @@ export default {
 			}
 
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/final-grade?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&limit=1`,
+				`/apps/openregister/api/objects/learniq/final-grade?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&_limit=1`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },

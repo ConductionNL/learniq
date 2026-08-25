@@ -598,7 +598,7 @@ export default {
 		 */
 		async loadPeerFeedbackSummary(submissionId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/peer-feedback-summary?filters[submissionId]=${submissionId}&limit=1`,
+				`/apps/openregister/api/objects/learniq/peer-feedback-summary?filters[submissionId]=${submissionId}&_limit=1`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -623,7 +623,7 @@ export default {
 		 */
 		async loadSelfAssessment(submissionId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/self-assessment?filters[submissionId]=${submissionId}&limit=1`,
+				`/apps/openregister/api/objects/learniq/self-assessment?filters[submissionId]=${submissionId}&_limit=1`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },

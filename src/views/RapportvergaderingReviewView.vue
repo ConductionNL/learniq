@@ -367,7 +367,7 @@ export default {
 			this.loadingCards = true
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/report-card?reportPeriodId={periodId}&limit=500',
+					'/apps/openregister/api/objects/learniq/report-card?reportPeriodId={periodId}&_limit=500',
 					{ periodId: this.id },
 				)
 				const response = await axios.get(url)

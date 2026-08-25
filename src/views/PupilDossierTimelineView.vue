@@ -280,7 +280,7 @@ export default {
 		async loadAll() {
 			this.loading = true
 			this.error = null
-			const learnerQuery = `learnerId=${encodeURIComponent(this.learnerId)}&limit=200`
+			const learnerQuery = `learnerId=${encodeURIComponent(this.learnerId)}&_limit=200`
 
 			try {
 				const [notes, incidents, checkIns, plans, requests] =

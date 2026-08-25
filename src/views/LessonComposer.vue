@@ -403,19 +403,19 @@ export default {
 					await Promise.all([
 						this.fetchList(
 							'Material',
-							`filters[lessonId]=${this.lessonId}&limit=200`,
+							`filters[lessonId]=${this.lessonId}&_limit=200`,
 						),
 						this.fetchList(
 							'Assessment',
-							`filters[courseId]=${this.courseId}&limit=200`,
+							`filters[courseId]=${this.courseId}&_limit=200`,
 						),
 						this.fetchList(
 							'Assignment',
-							`filters[courseId]=${this.courseId}&limit=200`,
+							`filters[courseId]=${this.courseId}&_limit=200`,
 						),
 						this.fetchList(
 							'LtiToolPlacement',
-							`filters[courseId]=${this.courseId}&limit=200`,
+							`filters[courseId]=${this.courseId}&_limit=200`,
 						),
 					])
 				this.materials = materials

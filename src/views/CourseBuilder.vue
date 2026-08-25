@@ -426,13 +426,13 @@ export default {
 				this.course = await this.fetchObject('Course', this.courseId)
 				const modules = await this.fetchList(
 					'Course',
-					`filters[parentCourseId]=${this.courseId}&limit=200`,
+					`filters[parentCourseId]=${this.courseId}&_limit=200`,
 				)
 				modules.sort(compareByOrder)
 				for (const module of modules) {
 					const lessons = await this.fetchList(
 						'Lesson',
-						`filters[courseId]=${module.id}&limit=200`,
+						`filters[courseId]=${module.id}&_limit=200`,
 					)
 					lessons.sort(compareByOrder)
 					module.lessons = lessons
