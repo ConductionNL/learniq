@@ -434,7 +434,18 @@ async function seedObjects(presentSlugs) {
 			...(id(courseCompliance) ? { courseId: id(courseCompliance) } : {}),
 		})
 	}
-	for (let n = 1; n <= 2; n++) await seed('enrolment', { field: 'learnerId', value: `demo-learner-${n}` }, { learnerId: `demo-learner-${n}`, courseId: id(courseCompliance) ?? id(courseRoot) ?? 'demo-course', mandatory: n === 1, dueDate: '2026-12-01', source: 'bulk', tenant_id: TENANT, ...(id(cohort) ? { cohortId: id(cohort) } : {}) })
+	// `lifecycle: 'active'` on the first enrolment is load-bearing, not colour.
+	// Enrolment.lifecycle DEFAULTS TO 'pending' and this seeder never set it, so
+	// the instance held no active enrolment at all — which silently disabled
+	// talk-classroom-spaces.spec.ts's "an enrolled learner sees the join-call
+	// action" scenario: its `lifecycle === 'active'` guard matched nothing and
+	// the test SKIPPED on every green run rather than failing. The schema calls
+	// the field engine-managed ("do not set directly"), but this is fixture data
+	// for a scenario that is *about* an enrolled learner, and this file already
+	// seeds lifecycle directly elsewhere (published / drafted / issued / queued).
+	// The Sessions above are seeded against the same `cohort`, so the active
+	// enrolment and a Session genuinely share a cohortId.
+	for (let n = 1; n <= 2; n++) await seed('enrolment', { field: 'learnerId', value: `demo-learner-${n}` }, { learnerId: `demo-learner-${n}`, courseId: id(courseCompliance) ?? id(courseRoot) ?? 'demo-course', mandatory: n === 1, dueDate: '2026-12-01', source: 'bulk', lifecycle: n === 1 ? 'active' : 'pending', tenant_id: TENANT, ...(id(cohort) ? { cohortId: id(cohort) } : {}) })
 	// xAPI, DataExchange. (AiFeature governance is delegated to Hermiq — learniq seeds no AiFeature objects.)
 	// `stored` (XapiStatement), `direction`/`sourceSchema` (DataMappingProfile)
 	// and `requestedAt` (DataExchangeJob) are required and were all missing.
