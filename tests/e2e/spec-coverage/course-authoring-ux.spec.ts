@@ -249,7 +249,16 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		// `.first()` — one Compose button per LESSON, and the module row contains
 		// the whole lesson list. Unique module names fixed the earlier collision
 		// between runs; this is a different multiplicity, inside a single module.
-		await moduleRow.getByRole('button', { name: 'Compose' }).first().click()
+		//
+		// Scrolled first: with a run's worth of modules above it the button sits
+		// far below the fold, and Playwright's actionability check then spends
+		// the whole timeout on "waiting for element to be visible, enabled and
+		// stable" — 52 attempts in the run that failed — without ever clicking.
+		const composeButton = moduleRow
+			.getByRole('button', { name: 'Compose' })
+			.first()
+		await composeButton.scrollIntoViewIfNeeded()
+		await composeButton.click()
 		// No page load here — Compose is an in-app view switch, so waiting on
 		// `body` / `domcontentloaded` measured nothing and only read as a wait.
 		// The retrying assertion below is what actually waits for the view.
@@ -329,7 +338,12 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		// as a template". The template existing, with the name just typed, IS
 		// that claim; which view the app lands on afterwards is not.
 		const saved = await page.request.get(
-			'/index.php/apps/openregister/api/objects/learniq/CourseTemplate?_limit=200',
+			// `course-template`, the SLUG. The component POSTs to `CourseTemplate`
+			// and OpenRegister resolves that on create, but the GET listing answered
+			// 404 for it — CourseBuilder.vue's own header documents the read as
+			// `GET /api/objects/learniq/course-template`, and the register confirms
+			// `slug: course-template`.
+			'/index.php/apps/openregister/api/objects/learniq/course-template?_limit=200',
 			{ headers: { Accept: 'application/json' } },
 		)
 		expect(
