@@ -31,10 +31,10 @@
  */
 import { test, expect } from '../fixtures'
 
-const PORTFOLIOS_INDEX_URL = '/index.php/apps/learniq/#/eportfolio/portfolios'
+const PORTFOLIOS_INDEX_URL = '/index.php/apps/learniq/eportfolio/portfolios'
 const PORTFOLIO_TEMPLATES_INDEX_URL =
-	'/index.php/apps/learniq/#/eportfolio/templates'
-const PORTFOLIO_ENTRIES_INDEX_URL = '/index.php/apps/learniq/#/eportfolio/entries'
+	'/index.php/apps/learniq/eportfolio/templates'
+const PORTFOLIO_ENTRIES_INDEX_URL = '/index.php/apps/learniq/eportfolio/entries'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise
@@ -132,7 +132,7 @@ test.describe('eportfolio — custom views resolve (registry.js wiring)', () => 
 		// gate-19 smoke pass, matching every other custom-view spec in this
 		// repo's coverage style).
 		await page.goto(
-			'/index.php/apps/learniq/#/eportfolio/portfolios/00000000-0000-0000-0000-000000000000/build',
+			'/index.php/apps/learniq/eportfolio/portfolios/00000000-0000-0000-0000-000000000000/build',
 		)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
@@ -150,7 +150,7 @@ test.describe('eportfolio — custom views resolve (registry.js wiring)', () => 
 		const errors = collectFatalErrors(page)
 
 		await page.goto(
-			'/index.php/apps/learniq/#/eportfolio/portfolios/00000000-0000-0000-0000-000000000000/review',
+			'/index.php/apps/learniq/eportfolio/portfolios/00000000-0000-0000-0000-000000000000/review',
 		)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')

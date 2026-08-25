@@ -183,7 +183,7 @@ const TALK_CARD_BODY = '.cn-talk-card__list, .cn-talk-card__empty'
  *
  * src/main.js builds it with `createWebHistory(generateUrl('/apps/learniq'))`.
  * vue-router strips that base from `location.pathname` and appends the
- * UNTOUCHED hash, so `/index.php/apps/learniq/#/sessions/<id>` resolved to
+ * UNTOUCHED hash, so `/index.php/apps/learniq/sessions/<id>` resolved to
  * `/#/sessions/<id>`, matched no declared route, and fell through
  * `routesFromManifest`'s `/:pathMatch(.*)*` catch-all — which `redirect: '/'`s
  * to the DASHBOARD. Every failure screenshot in CI run 32833668787 shows
