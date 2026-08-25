@@ -249,7 +249,13 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await lessonNameInput.fill('e2e Compose Lesson')
 		await moduleRow.getByRole('button', { name: 'Add lesson' }).click()
 
-		await moduleRow.getByRole('button', { name: 'Compose' }).click()
+		// `exact: true` is load-bearing. getByRole's `name` is a SUBSTRING match
+		// by default, and this module is called "e2e Compose Module", so its
+		// three icon buttons carry accessible names containing "Compose"
+		// ("Move module 'e2e Compose Module' up", … down, "Delete module …").
+		// Without it the locator resolved to 4 elements and Playwright failed
+		// on strict mode rather than clicking the lesson's Compose button.
+		await moduleRow.getByRole('button', { name: 'Compose', exact: true }).click()
 		// No page load here — Compose is an in-app view switch, so waiting on
 		// `body` / `domcontentloaded` measured nothing and only read as a wait.
 		// The retrying assertion below is what actually waits for the view.
@@ -306,7 +312,24 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		const templateName = `e2e Template ${Date.now()}`
 		await page.locator('#cb-template-name').fill(templateName)
 		await page.getByRole('button', { name: 'Save template' }).click()
-		await expect(page.getByText('Template saved.')).toBeVisible()
+
+		// Assert the OUTCOME, not the confirmation banner.
+		//
+		// This used to wait for "Template saved.". That string is unobservable:
+		// saveAsTemplate() sets `saveTemplateDone` and then, in the same
+		// handler, `$router.push`es to CourseTemplateDetail — so the banner is
+		// replaced by the destination route within a tick. Measured on CI run
+		// 32842613952 once the schema-slug 404 was fixed: the create answered
+		// **201 Created** and the trace shows the app immediately GETting
+		// `/objects/learniq/course-template/<uuid>` for the detail page, while
+		// the assertion timed out after 15s having never seen the text.
+		//
+		// Landing on the new template's own detail route is the stronger
+		// assertion anyway: it can only happen if the create succeeded AND
+		// returned an id. A save that 404s (the original defect) fails it.
+		await page.waitForURL(/\/courses\/templates\/[0-9a-f-]+$/, {
+			timeout: 15_000,
+		})
 
 		// Instantiate-from-template: back on a fresh CourseBuilder (any course,
 		// the action creates a brand-new independent Course tree regardless of
