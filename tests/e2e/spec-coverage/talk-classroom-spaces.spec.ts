@@ -24,9 +24,12 @@
  * shared library, not learniq); it asserts the one thing learniq's own
  * change is responsible for: the `integration`/`talk` widget declared on
  * CohortDetail (`cohort-talk`, manifest title "Class space") and SessionDetail
- * (`session-talk`, "Join call") is wired and mounts without a fatal error,
- * mirroring adaptive-release.spec.ts / progress-tracking.spec.ts's
- * fixture-discovery + skip-if-absent convention.
+ * (`session-talk`, "Join call") is wired and mounts without a fatal error.
+ *
+ * Fixtures are DISCOVERED, as in adaptive-release.spec.ts /
+ * progress-tracking.spec.ts — but a missing one only skips on an UNSEEDED
+ * instance. On a seeded instance it fails: see requireFixture() for the run
+ * where that distinction was worth an entire scenario.
  *
  * Those manifest titles are page-authoring labels and are NOT rendered — the
  * card draws its own header from the shared registry leaf. The anchors below
@@ -39,7 +42,60 @@
  *
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
+import * as fs from 'fs'
+import * as path from 'path'
 import { test, expect } from '../fixtures'
+
+/**
+ * True once the seeder has actually populated the register.
+ *
+ * Same signal detail-pages.spec.ts uses, and for the same reason: it separates
+ * "this instance was never seeded, so the question cannot be asked" from "the
+ * instance WAS seeded and the fixture is missing", which is a defect. Reads the
+ * seeder's marker file rather than `process.env`, because globalSetup mutates
+ * the runner's environment and test workers are separate processes.
+ *
+ * @return {boolean} true when the seeder reported at least one schema.
+ */
+function isSeeded(): boolean {
+	const file = path.resolve(
+		__dirname,
+		'..',
+		'..',
+		'..',
+		'.e2e-state',
+		'seeded-schemas.json',
+	)
+	try {
+		return Object.keys(JSON.parse(fs.readFileSync(file, 'utf8'))).length > 0
+	} catch {
+		return process.env.LEARNIQ_E2E_SEEDED === '1'
+	}
+}
+
+const SEEDED = isSeeded()
+
+/**
+ * Require a discovered fixture on a seeded instance; skip only when the
+ * instance was never seeded.
+ *
+ * ⚠️ A plain `test.skip(!row, …)` is why this suite's third scenario went
+ * unnoticed for so long. Enrolment.lifecycle DEFAULTS to 'pending' and the
+ * seeder never set it, so the `lifecycle === 'active'` guard matched nothing
+ * and the test SKIPPED on every green run — reported as a pass, asserting
+ * nothing. A fixture the seeder is supposed to create must FAIL when it is
+ * absent, or the scenario silently stops being covered.
+ *
+ * @param row   The discovered row, or null.
+ * @param what  What was being looked for, for the failure message.
+ */
+function requireFixture(row: unknown, what: string) {
+	test.skip(!SEEDED && !row, `Instance not seeded — cannot look for ${what}.`)
+	expect(
+		row,
+		`${what} is missing on a SEEDED instance — the seeder should provide it (tests/e2e/seed-example-data.mjs).`,
+	).toBeTruthy()
+}
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
@@ -246,7 +302,7 @@ test.describe('talk-classroom-spaces — Cohort class-space widget', () => {
 		loggedInPage: page,
 	}) => {
 		const cohort = await findRow(page, COHORT_LIST_API, () => true)
-		test.skip(!cohort, 'No Cohort seeded in this environment.')
+		requireFixture(cohort, 'a Cohort')
 
 		const talkInstalled = await isTalkInstalled(page)
 		test.info().annotations.push({
@@ -277,7 +333,7 @@ test.describe('talk-classroom-spaces — Session join-call widget', () => {
 		loggedInPage: page,
 	}) => {
 		const session = await findRow(page, SESSION_LIST_API, () => true)
-		test.skip(!session, 'No Session seeded in this environment.')
+		requireFixture(session, 'a Session')
 
 		const talkInstalled = await isTalkInstalled(page)
 		test.info().annotations.push({
@@ -307,20 +363,14 @@ test.describe('talk-classroom-spaces — Session join-call widget', () => {
 			ENROLMENT_LIST_API,
 			(e) => e.lifecycle === 'active' && !!e.cohortId,
 		)
-		test.skip(
-			!activeEnrolment,
-			'No active Enrolment with a cohortId seeded in this environment.',
-		)
+		requireFixture(activeEnrolment, 'an active Enrolment with a cohortId')
 
 		const session = await findRow(
 			page,
 			SESSION_LIST_API,
 			(s) => s.cohortId === activeEnrolment.cohortId,
 		)
-		test.skip(
-			!session,
-			"No Session belonging to that learner's Cohort seeded in this environment.",
-		)
+		requireFixture(session, "a Session belonging to that learner's Cohort")
 
 		// Guards the premise of this test rather than trusting it: `findRow` no
 		// longer falls back to an arbitrary row, so a Session reaching here
