@@ -193,13 +193,32 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 			hasText: 'e2e Reorder Module',
 		})
 		const lessonNameInput = moduleRow.getByPlaceholder('New lesson name')
+		const lessonRows = moduleRow.locator('.course-builder__lesson')
+
+		// Wait for each lesson to LAND before adding the next.
+		//
+		// addLesson() computes `order: module.lessons.length + 1` and appends
+		// on resolve, so firing the second click while the first create is
+		// still in flight gives BOTH lessons `order: 1` and leaves the rendered
+		// order down to which POST returns first. Measured on CI run
+		// 32845673708: the list came back as [Lesson 2, Lesson 1], so
+		// "Move lesson 'e2e Lesson 2' up" was disabled — it was already first —
+		// and the click timed out after 40s against a permanently disabled
+		// button.
+		//
+		// Waiting on the row is also what a user actually does, and it keeps
+		// the reorder assertions below testing reordering rather than a race.
 		await lessonNameInput.fill('e2e Lesson 1')
 		await moduleRow.getByRole('button', { name: 'Add lesson' }).click()
+		await expect(lessonRows).toHaveCount(1)
+
 		await lessonNameInput.fill('e2e Lesson 2')
 		await moduleRow.getByRole('button', { name: 'Add lesson' }).click()
-
-		const lessonRows = moduleRow.locator('.course-builder__lesson')
 		await expect(lessonRows).toHaveCount(2)
+
+		// The fixture the reorder assertions assume: creation order, so
+		// "move Lesson 2 up" is a real move rather than a no-op on row 0.
+		await expect(lessonRows.first()).toContainText('e2e Lesson 1')
 
 		// Keyboard reorder: move the second lesson up via its "Move ... up" button.
 		await moduleRow
@@ -249,7 +268,13 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await lessonNameInput.fill('e2e Compose Lesson')
 		await moduleRow.getByRole('button', { name: 'Add lesson' }).click()
 
-		await moduleRow.getByRole('button', { name: 'Compose' }).click()
+		// `exact: true` is load-bearing. getByRole's `name` is a SUBSTRING match
+		// by default, and this module is called "e2e Compose Module", so its
+		// three icon buttons carry accessible names containing "Compose"
+		// ("Move module 'e2e Compose Module' up", … down, "Delete module …").
+		// Without it the locator resolved to 4 elements and Playwright failed
+		// on strict mode rather than clicking the lesson's Compose button.
+		await moduleRow.getByRole('button', { name: 'Compose', exact: true }).click()
 		// No page load here — Compose is an in-app view switch, so waiting on
 		// `body` / `domcontentloaded` measured nothing and only read as a wait.
 		// The retrying assertion below is what actually waits for the view.
@@ -268,8 +293,16 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await textareas.nth(0).fill('First block text')
 		await textareas.nth(1).fill('Second block text')
 
-		// Keyboard-only block reorder: move the second block up.
-		await page.getByRole('button', { name: /Move Rich text block up/ }).click()
+		// Keyboard-only block reorder: move the SECOND block up.
+		//
+		// Addressed by position, which is now part of the button's accessible
+		// name. It previously read `/Move Rich text block up/`, which matched
+		// one control per block — two rich-text blocks, two identical names,
+		// strict-mode violation. That ambiguity was a real a11y defect rather
+		// than a test problem (a screen-reader user heard the same name twice
+		// with no way to tell the controls apart), so it is fixed in
+		// LessonComposer.vue and the locator simply names the block it means.
+		await page.getByRole('button', { name: 'Move Rich text block 2 up' }).click()
 		await expect(textareas.nth(0)).toHaveValue('Second block text')
 
 		await page.getByRole('button', { name: 'Save lesson' }).click()
@@ -306,7 +339,24 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		const templateName = `e2e Template ${Date.now()}`
 		await page.locator('#cb-template-name').fill(templateName)
 		await page.getByRole('button', { name: 'Save template' }).click()
-		await expect(page.getByText('Template saved.')).toBeVisible()
+
+		// Assert the OUTCOME, not the confirmation banner.
+		//
+		// This used to wait for "Template saved.". That string is unobservable:
+		// saveAsTemplate() sets `saveTemplateDone` and then, in the same
+		// handler, `$router.push`es to CourseTemplateDetail — so the banner is
+		// replaced by the destination route within a tick. Measured on CI run
+		// 32842613952 once the schema-slug 404 was fixed: the create answered
+		// **201 Created** and the trace shows the app immediately GETting
+		// `/objects/learniq/course-template/<uuid>` for the detail page, while
+		// the assertion timed out after 15s having never seen the text.
+		//
+		// Landing on the new template's own detail route is the stronger
+		// assertion anyway: it can only happen if the create succeeded AND
+		// returned an id. A save that 404s (the original defect) fails it.
+		await page.waitForURL(/\/courses\/templates\/[0-9a-f-]+$/, {
+			timeout: 15_000,
+		})
 
 		// Instantiate-from-template: back on a fresh CourseBuilder (any course,
 		// the action creates a brand-new independent Course tree regardless of
@@ -315,9 +365,41 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await page.getByRole('button', { name: 'New course from template' }).click()
 		const newCourseName = `e2e New Course ${Date.now()}`
 		await page.locator('#cb-new-course-name').fill(newCourseName)
+
 		// Select the just-saved template via NcSelect.
-		await page.getByText('Template').first().click()
-		await page.getByText(templateName).click()
+		//
+		// ⚠️ NOT `getByText('Template').first()`. getByText is a
+		// case-insensitive SUBSTRING match, and the app's own sidebar carries a
+		// "Course templates" link — which is earlier in the DOM than this
+		// panel, so `.first()` clicked the NAVIGATION and left the page.
+		// Measured on CI run 32845673708, the frame URL went
+		//   /courses/<id>/builder -> /courses/templates -> /courses/templates/<id>
+		// so the following `getByText(templateName)` then clicked that
+		// template's row in the index, and "Create course" — which is disabled
+		// until `instantiateForm.templateId` is set — was never reachable. The
+		// 40s timeout was on a control that had never become enabled, on a page
+		// the test had navigated away from.
+		//
+		// Scope to the panel and use the combobox/option roles, the pattern
+		// nextcloud-app.spec.ts already uses for NcSelect.
+		const instantiatePanel = page.locator('.course-builder__panel', {
+			hasText: 'Create a new course from a template',
+		})
+		// The panel holds exactly one combobox (the template NcSelect); its
+		// siblings are a textbox and a button. Scoping rather than naming keeps
+		// this off NcSelect's internal label wiring, and strict mode still fails
+		// loudly if a second combobox ever appears here.
+		await instantiatePanel.getByRole('combobox').click()
+		// The dropdown renders in a portal outside the panel, so match at page
+		// level — on the template this test just created, by its unique name.
+		//
+		// Filtered by TEXT CONTENT, not by accessible name. NcSelect renders an
+		// option's label across several elements, and accessible-name
+		// computation joins those with a space: the snapshot for this very
+		// template read `option "e2e Template 178 7662941039"` — a space the
+		// name never contained — so `{ name: templateName }` could not match.
+		// `hasText` reads textContent, which concatenates without the space.
+		await page.getByRole('option').filter({ hasText: templateName }).click()
 		await page.getByRole('button', { name: 'Create course' }).click()
 
 		// Instantiation navigates to the new Course's own builder — proves a
