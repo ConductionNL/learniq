@@ -168,7 +168,9 @@
 								:value="block.text || ''"
 								:aria-label="t('learniq', 'Rich text content')"
 								:rows="6"
-								@input="(v) => onBlockFieldInput(block, 'text', v)" />
+								@input="
+									(v) => onBlockFieldInput(block, 'text', v)
+								" />
 						</div>
 
 						<!-- media -->

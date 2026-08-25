@@ -252,9 +252,13 @@
 											class="course-builder__icon-btn"
 											:disabled="lIdx === 0"
 											:aria-label="
-												t('learniq', 'Move lesson \'{name}\' up', {
-													name: lesson.name,
-												})
+												t(
+													'learniq',
+													'Move lesson \'{name}\' up',
+													{
+														name: lesson.name,
+													},
+												)
 											"
 											@click="moveLessonUp(module, lIdx)">
 											<ChevronUp :size="16" />
@@ -262,11 +266,17 @@
 										<button
 											type="button"
 											class="course-builder__icon-btn"
-											:disabled="lIdx === module.lessons.length - 1"
+											:disabled="
+												lIdx === module.lessons.length - 1
+											"
 											:aria-label="
-												t('learniq', 'Move lesson \'{name}\' down', {
-													name: lesson.name,
-												})
+												t(
+													'learniq',
+													'Move lesson \'{name}\' down',
+													{
+														name: lesson.name,
+													},
+												)
 											"
 											@click="moveLessonDown(module, lIdx)">
 											<ChevronDown :size="16" />
@@ -287,9 +297,13 @@
 											type="button"
 											class="course-builder__icon-btn"
 											:aria-label="
-												t('learniq', 'Delete lesson \'{name}\'', {
-													name: lesson.name,
-												})
+												t(
+													'learniq',
+													'Delete lesson \'{name}\'',
+													{
+														name: lesson.name,
+													},
+												)
 											"
 											@click="deleteLesson(module, lIdx)">
 											<DeleteOutline :size="16" />
