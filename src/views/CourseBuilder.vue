@@ -596,8 +596,21 @@ export default {
 			const url = generateUrl(
 				`/apps/openregister/api/objects/learniq/${schema}/${objId}`,
 			)
+			// PATCH, not PUT. Every caller of this method sends a PARTIAL body —
+			// `persistOrder()` sends `{ order }` and nothing else — and
+			// OpenRegister's PUT (`objects#update`) replaces the object, so the
+			// schema's required fields arrive missing and the request is
+			// rejected:
+			//
+			//     Error: Lesson update failed: 400
+			//       at Proxy.updateObject … at async Promise.all
+			//
+			// Reordering modules or lessons in the builder therefore failed in
+			// the browser, every time. `objects#patch` exists for exactly this:
+			// it "merges it with the existing object data … Only the provided
+			// fields are updated, while other fields remain unchanged".
 			const resp = await fetch(url, {
-				method: 'PUT',
+				method: 'PATCH',
 				headers: {
 					'OCS-APIREQUEST': 'true',
 					Accept: 'application/json',

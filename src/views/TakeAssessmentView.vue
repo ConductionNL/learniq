@@ -1110,7 +1110,7 @@ export default {
 					`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}`,
 				)
 				const resp = await fetch(url, {
-					method: 'PUT',
+					method: 'PATCH',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',
@@ -1243,7 +1243,7 @@ export default {
 					`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`,
 				)
 				const patchResp = await fetch(patchUrl, {
-					method: 'PUT',
+					method: 'PATCH',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',

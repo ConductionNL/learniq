@@ -706,7 +706,7 @@ export default {
 					`/apps/openregister/api/objects/learniq/Submission/${this.id}`,
 				)
 				const updateResp = await fetch(updateUrl, {
-					method: 'PUT',
+					method: 'PATCH',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',
@@ -762,7 +762,7 @@ export default {
 								`/apps/openregister/api/objects/learniq/Submission/${this.id}`,
 							)
 							await fetch(linkUrl, {
-								method: 'PUT',
+								method: 'PATCH',
 								headers: {
 									'OCS-APIREQUEST': 'true',
 									Accept: 'application/json',

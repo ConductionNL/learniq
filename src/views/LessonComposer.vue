@@ -750,7 +750,7 @@ export default {
 					`/apps/openregister/api/objects/learniq/Lesson/${this.lessonId}`,
 				)
 				const resp = await fetch(url, {
-					method: 'PUT',
+					method: 'PATCH',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',

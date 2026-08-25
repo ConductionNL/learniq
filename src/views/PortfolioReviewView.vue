@@ -419,7 +419,7 @@ export default {
 					`/apps/openregister/api/objects/learniq/Portfolio/${this.id}`,
 				)
 				const updateResp = await fetch(updateUrl, {
-					method: 'PUT',
+					method: 'PATCH',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',
