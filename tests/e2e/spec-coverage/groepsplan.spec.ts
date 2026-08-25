@@ -25,6 +25,7 @@
  * (not failed) when the seeded dev instance carries no matching fixtures yet.
  */
 import { test, expect } from '../fixtures'
+import { requireFixture } from '../seeded'
 
 const GROUP_PLANS_INDEX_URL = '/index.php/apps/learniq/#/group-plans'
 const GROUP_PLAN_DETAIL_URL =
@@ -197,10 +198,7 @@ test.describe('groepsplan — GroupPlanSubgroupLearnerContext resolves (registry
 		loggedInPage: page,
 	}) => {
 		const subgroup = await findIntensiefSubgroup(page)
-		test.skip(
-			!subgroup,
-			'No seeded intensief GroupPlanSubgroup with members found on this dev instance yet.',
-		)
+		requireFixture(subgroup, 'an intensief GroupPlanSubgroup with members')
 
 		const errors = collectFatalErrors(page)
 		const id = subgroup.id ?? subgroup.uuid

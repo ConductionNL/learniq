@@ -28,6 +28,7 @@
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
 import { test, expect } from '../fixtures'
+import { requireFixture } from '../seeded'
 
 // `/index.php/` prefix is load-bearing on CI. The shared workflow serves
 // Nextcloud with a bare `php -S` and no router script, so pretty URLs are not
@@ -110,9 +111,9 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 					(c: any) => c.kind === 'lesson-completed',
 				),
 		)
-		test.skip(
-			!lesson,
-			'No published Lesson with a lesson-completed releaseConditions entry seeded in this environment.',
+		requireFixture(
+			lesson,
+			'a published Lesson with a lesson-completed releaseConditions entry',
 		)
 
 		const errors = collectFatalErrors(page)
@@ -153,10 +154,7 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 				&& (l.releaseConditions == null || l.releaseConditions.length === 0)
 				&& l.availableAfterDays == null,
 		)
-		test.skip(
-			!lesson,
-			'No published, ungated contentType=text Lesson seeded in this environment.',
-		)
+		requireFixture(lesson, 'a published, ungated contentType=text Lesson')
 
 		const errors = collectFatalErrors(page)
 		const lessonId = lesson.id ?? lesson.uuid
@@ -184,10 +182,7 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 			(l) =>
 				typeof l.availableAfterDays === 'number' && l.availableAfterDays > 0,
 		)
-		test.skip(
-			!lesson,
-			'No Lesson with availableAfterDays > 0 seeded in this environment.',
-		)
+		requireFixture(lesson, 'a Lesson with availableAfterDays > 0')
 
 		const errors = collectFatalErrors(page)
 		const lessonId = lesson.id ?? lesson.uuid

@@ -24,6 +24,7 @@
  * markTestSkipped convention for environment-dependent fixtures.
  */
 import { test, expect } from '../fixtures'
+import { requireFixture } from '../seeded'
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
@@ -75,9 +76,9 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 			(l) => l.contentType === 'text' && l.lifecycle === 'published',
 		)
 		const courseId = courseIdOf(lesson)
-		test.skip(
-			!lesson || !courseId,
-			'No published contentType=text Lesson seeded in this environment.',
+		requireFixture(
+			lesson && courseId,
+			'a published contentType=text Lesson with a courseId',
 		)
 
 		const errors: string[] = []
@@ -137,9 +138,9 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 			(l) => l.contentType === 'cmi5' && l.lifecycle === 'published',
 		)
 		const courseId = courseIdOf(lesson)
-		test.skip(
-			!lesson || !courseId,
-			'No published contentType=cmi5 Lesson seeded in this environment.',
+		requireFixture(
+			lesson && courseId,
+			'a published contentType=cmi5 Lesson with a courseId',
 		)
 
 		const lessonId = lesson.id ?? lesson.uuid

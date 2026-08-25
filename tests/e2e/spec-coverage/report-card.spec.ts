@@ -40,6 +40,7 @@
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
 import { test, expect } from '../fixtures'
+import { requireFixture } from '../seeded'
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
@@ -139,9 +140,9 @@ test.describe('report-card-composer — ReportPeriod scope and lock-gated compos
 				&& Array.isArray(p.cohortIds)
 				&& p.cohortIds.length > 0,
 		)
-		test.skip(
-			!period,
-			'No ReportPeriod with a non-empty curriculumPlanIds/cohortIds scope seeded in this environment.',
+		requireFixture(
+			period,
+			'a ReportPeriod with a non-empty curriculumPlanIds/cohortIds scope',
 		)
 
 		const errors = collectFatalErrors(page)
@@ -164,10 +165,8 @@ test.describe('report-card-composer — ReportPeriod scope and lock-gated compos
 			REPORT_PERIOD_LIST_API,
 			(p) => p.lifecycle === 'open' && p.isLocked === true,
 		)
-		test.skip(
-			!period,
-			'No open + isLocked ReportPeriod seeded in this environment — ComposeReportPeriodModal only enables Compose when locked.',
-		)
+		// ComposeReportPeriodModal only enables Compose when the period is locked.
+		requireFixture(period, 'an open + isLocked ReportPeriod')
 
 		const errors = collectFatalErrors(page)
 		const periodId = period.id ?? period.uuid
@@ -195,7 +194,7 @@ test.describe('report-card-composer — ReportPeriod scope and lock-gated compos
 			REPORT_PERIOD_LIST_API,
 			(p) => p.lifecycle === 'composed',
 		)
-		test.skip(!period, 'No composed ReportPeriod seeded in this environment.')
+		requireFixture(period, 'a composed ReportPeriod')
 
 		const periodId = period.id ?? period.uuid
 		const errors = collectFatalErrors(page)
@@ -225,9 +224,9 @@ test.describe('report-card-composer — rapportvergadering review lifecycle', ()
 				c.lifecycle === 'rapportvergadering-review'
 				&& (!c.mentorComment || c.mentorComment.trim() === ''),
 		)
-		test.skip(
-			!card,
-			'No rapportvergadering-review ReportCard with an empty mentorComment seeded in this environment.',
+		requireFixture(
+			card,
+			'a rapportvergadering-review ReportCard with an empty mentorComment',
 		)
 
 		const errors = collectFatalErrors(page)
@@ -257,7 +256,7 @@ test.describe('report-card-composer — rapportvergadering review lifecycle', ()
 			REPORT_CARD_LIST_API,
 			(c) => c.lifecycle === 'finalised',
 		)
-		test.skip(!card, 'No finalised ReportCard seeded in this environment.')
+		requireFixture(card, 'a finalised ReportCard')
 
 		const errors = collectFatalErrors(page)
 		const periodId = card.reportPeriodId
@@ -282,9 +281,9 @@ test.describe('report-card-composer — rapportvergadering review lifecycle', ()
 			GRADE_ENTRY_LIST_API,
 			(g) => g.visibleFrom && new Date(g.visibleFrom).getTime() > Date.now(),
 		)
-		test.skip(
-			!futureGrade,
-			'No published GradeEntry with a future visibleFrom seeded in this environment.',
+		requireFixture(
+			futureGrade,
+			'a published GradeEntry with a future visibleFrom',
 		)
 
 		const card = await findRow(
@@ -301,9 +300,9 @@ test.describe('report-card-composer — rapportvergadering review lifecycle', ()
 						),
 				),
 		)
-		test.skip(
-			!card,
-			'No finalised ReportCard referencing that not-yet-visible GradeEntry seeded in this environment.',
+		requireFixture(
+			card,
+			'a finalised ReportCard referencing that not-yet-visible GradeEntry',
 		)
 
 		const errors = collectFatalErrors(page)
@@ -329,10 +328,7 @@ test.describe('report-card-composer — rapportvergadering review lifecycle', ()
 			REPORT_CARD_LIST_API,
 			(c) => c.lifecycle === 'published-to-parents',
 		)
-		test.skip(
-			!card,
-			'No published-to-parents ReportCard seeded in this environment.',
-		)
+		requireFixture(card, 'a published-to-parents ReportCard')
 
 		const errors = collectFatalErrors(page)
 		const periodId = card.reportPeriodId
@@ -361,10 +357,7 @@ test.describe('report-card-composer — grading spec delta (ReportPeriodLockGuar
 			REPORT_PERIOD_LIST_API,
 			(p) => p.isLocked === true,
 		)
-		test.skip(
-			!lockedPeriod,
-			'No isLocked ReportPeriod seeded in this environment.',
-		)
+		requireFixture(lockedPeriod, 'an isLocked ReportPeriod')
 
 		const concept = await findRow(
 			page,
@@ -375,9 +368,9 @@ test.describe('report-card-composer — grading spec delta (ReportPeriodLockGuar
 				&& Array.isArray(lockedPeriod.curriculumPlanIds)
 				&& lockedPeriod.curriculumPlanIds.includes(g.curriculumPlanId),
 		)
-		test.skip(
-			!concept,
-			'No concept GradeEntry within the locked ReportPeriod scope seeded in this environment.',
+		requireFixture(
+			concept,
+			'a concept GradeEntry within the locked ReportPeriod scope',
 		)
 
 		const errors = collectFatalErrors(page)

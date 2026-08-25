@@ -30,6 +30,7 @@
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
 import { test, expect } from '../fixtures'
+import { requireFixture } from '../seeded'
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
@@ -149,7 +150,7 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		loggedInPage: page,
 	}) => {
 		const course = await findTopLevelCourse(page)
-		test.skip(!course, 'No top-level Course seeded in this environment.')
+		requireFixture(course, 'a top-level Course')
 
 		const errors = collectFatalErrors(page)
 		await openCourseBuilder(page, course.id ?? course.uuid)
@@ -180,7 +181,7 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		loggedInPage: page,
 	}) => {
 		const course = await findTopLevelCourse(page)
-		test.skip(!course, 'No top-level Course seeded in this environment.')
+		requireFixture(course, 'a top-level Course')
 
 		const errors = collectFatalErrors(page)
 		await openCourseBuilder(page, course.id ?? course.uuid)
@@ -252,7 +253,7 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		loggedInPage: page,
 	}) => {
 		const course = await findTopLevelCourse(page)
-		test.skip(!course, 'No top-level Course seeded in this environment.')
+		requireFixture(course, 'a top-level Course')
 
 		const errors = collectFatalErrors(page)
 		await openCourseBuilder(page, course.id ?? course.uuid)
@@ -330,7 +331,7 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		loggedInPage: page,
 	}) => {
 		const course = await findTopLevelCourse(page)
-		test.skip(!course, 'No top-level Course seeded in this environment.')
+		requireFixture(course, 'a top-level Course')
 
 		const errors = collectFatalErrors(page)
 		await openCourseBuilder(page, course.id ?? course.uuid)
