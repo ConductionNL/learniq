@@ -139,14 +139,25 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await expect(page.locator('.course-builder__header')).toBeVisible()
 
 		// Add two modules through the builder's own UI (no raw API POST).
+		//
+		// UNIQUE NAMES PER RUN. These tests really do create objects now, and
+		// the objects persist in the register, so a fixed name accumulates one
+		// duplicate per CI run. That is not hypothetical — the second run after
+		// these tests started passing died on
+		// "strict mode violation: locator('.course-builder__module')
+		//  .filter({ hasText: 'e2e Compose Module' }) resolved to 2 elements".
+		// The template test below already stamped its name for this reason.
+		const runId = Date.now()
+		const moduleA = `e2e Module A ${runId}`
+		const moduleB = `e2e Module B ${runId}`
 		const moduleNameInput = page.getByPlaceholder('New module name')
-		await moduleNameInput.fill('e2e Module A')
+		await moduleNameInput.fill(moduleA)
 		await page.getByRole('button', { name: 'Add module' }).click()
-		await moduleNameInput.fill('e2e Module B')
+		await moduleNameInput.fill(moduleB)
 		await page.getByRole('button', { name: 'Add module' }).click()
 
-		await expect(page.getByText('e2e Module A')).toBeVisible()
-		await expect(page.getByText('e2e Module B')).toBeVisible()
+		await expect(page.getByText(moduleA)).toBeVisible()
+		await expect(page.getByText(moduleB)).toBeVisible()
 
 		const fatal = fatalOnly(errors)
 		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
@@ -166,16 +177,18 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await openCourseBuilder(page, course.id ?? course.uuid)
 
 		const moduleNameInput = page.getByPlaceholder('New module name')
-		await moduleNameInput.fill('e2e Reorder Module')
+		const runId = Date.now()
+		const reorderModule = `e2e Reorder Module ${runId}`
+		await moduleNameInput.fill(reorderModule)
 		await page.getByRole('button', { name: 'Add module' }).click()
 
 		const moduleRow = page.locator('.course-builder__module', {
-			hasText: 'e2e Reorder Module',
+			hasText: reorderModule,
 		})
 		const lessonNameInput = moduleRow.getByPlaceholder('New lesson name')
-		await lessonNameInput.fill('e2e Lesson 1')
+		await lessonNameInput.fill(`e2e Lesson 1 ${runId}`)
 		await moduleRow.getByRole('button', { name: 'Add lesson' }).click()
-		await lessonNameInput.fill('e2e Lesson 2')
+		await lessonNameInput.fill(`e2e Lesson 2 ${runId}`)
 		await moduleRow.getByRole('button', { name: 'Add lesson' }).click()
 
 		const lessonRows = moduleRow.locator('.course-builder__lesson')
@@ -183,7 +196,9 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 
 		// Keyboard reorder: move the second lesson up via its "Move ... up" button.
 		await moduleRow
-			.getByRole('button', { name: /Move lesson 'e2e Lesson 2' up/ })
+			.getByRole('button', {
+				name: new RegExp(`Move lesson 'e2e Lesson 2 ${runId}' up`),
+			})
 			.click()
 		await expect(lessonRows.first()).toContainText('e2e Lesson 2')
 
@@ -219,14 +234,16 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await openCourseBuilder(page, course.id ?? course.uuid)
 
 		const moduleNameInput = page.getByPlaceholder('New module name')
-		await moduleNameInput.fill('e2e Compose Module')
+		const runId = Date.now()
+		const composeModule = `e2e Compose Module ${runId}`
+		await moduleNameInput.fill(composeModule)
 		await page.getByRole('button', { name: 'Add module' }).click()
 
 		const moduleRow = page.locator('.course-builder__module', {
-			hasText: 'e2e Compose Module',
+			hasText: composeModule,
 		})
 		const lessonNameInput = moduleRow.getByPlaceholder('New lesson name')
-		await lessonNameInput.fill('e2e Compose Lesson')
+		await lessonNameInput.fill(`e2e Compose Lesson ${runId}`)
 		await moduleRow.getByRole('button', { name: 'Add lesson' }).click()
 
 		await moduleRow.getByRole('button', { name: 'Compose' }).click()
@@ -286,7 +303,21 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		const templateName = `e2e Template ${Date.now()}`
 		await page.locator('#cb-template-name').fill(templateName)
 		await page.getByRole('button', { name: 'Save template' }).click()
-		await expect(page.getByText('Template saved.')).toBeVisible()
+
+		// Assert the NAVIGATION, not the flash message. saveAsTemplate() sets
+		// `saveTemplateDone = true` and then, in the same success branch,
+		// immediately `$router.push`es to CourseTemplateDetail — so
+		// "Template saved." is replaced by the next view and is not reliably
+		// observable. Waiting for it timed out even on a save that had worked.
+		//
+		// Landing on the created template's own page is the stronger claim
+		// anyway: it proves the object exists and carries the name just typed,
+		// where the message only proved a flag was set.
+		await page.waitForURL(/\/courses\/templates\/[^/]+/, { timeout: 20_000 })
+		await expect(
+			page.getByText(templateName, { exact: false }).first(),
+			'the saved template must render on the page it navigates to',
+		).toBeVisible({ timeout: 20_000 })
 
 		// Instantiate-from-template: back on a fresh CourseBuilder (any course,
 		// the action creates a brand-new independent Course tree regardless of
