@@ -666,7 +666,7 @@ export default {
 			const learnerId = currentUser?.uid ?? 'anonymous'
 
 			const url = generateUrl(
-				'/apps/openregister/api/objects/learniq/assessment-result?limit=100',
+				'/apps/openregister/api/objects/learniq/assessment-result?_limit=100',
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -905,7 +905,7 @@ export default {
 		async flagConcurrentSessionForBlockedTab(resultId) {
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/proctoring-session?limit=100',
+					'/apps/openregister/api/objects/learniq/proctoring-session?_limit=100',
 				)
 				const resp = await fetch(url, {
 					headers: {

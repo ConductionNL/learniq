@@ -181,7 +181,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/timetable-conflict?limit=200',
+					'/apps/openregister/api/objects/learniq/timetable-conflict?_limit=200',
 				)
 				const resp = await fetch(url, {
 					headers: {

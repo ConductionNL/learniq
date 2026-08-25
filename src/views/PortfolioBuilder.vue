@@ -494,7 +494,7 @@ export default {
 		async loadEntries(portfolioId) {
 			this.entries = await this.fetchList(
 				'PortfolioEntry',
-				`filters[portfolioId]=${portfolioId}&limit=100`,
+				`filters[portfolioId]=${portfolioId}&_limit=100`,
 			)
 		},
 
@@ -519,7 +519,7 @@ export default {
 				if (kind === 'submission') {
 					const rows = await this.fetchList(
 						'Submission',
-						`filters[learnerIds]=${uid}&limit=100`,
+						`filters[learnerIds]=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
@@ -530,7 +530,7 @@ export default {
 				} else if (kind === 'werkproces-assessment') {
 					const rows = await this.fetchList(
 						'WerkprocesAssessment',
-						`filters[learnerId]=${uid}&limit=100`,
+						`filters[learnerId]=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
@@ -539,7 +539,7 @@ export default {
 				} else if (kind === 'external-training-record') {
 					const rows = await this.fetchList(
 						'ExternalTrainingRecord',
-						`filters[learnerId]=${uid}&limit=100`,
+						`filters[learnerId]=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
@@ -548,7 +548,7 @@ export default {
 				} else if (kind === 'credential') {
 					const rows = await this.fetchList(
 						'Credential',
-						`filters[learnerId]=${uid}&limit=100`,
+						`filters[learnerId]=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,

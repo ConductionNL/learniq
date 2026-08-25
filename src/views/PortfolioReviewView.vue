@@ -275,7 +275,7 @@ export default {
 
 				this.entries = await this.fetchList(
 					'PortfolioEntry',
-					`filters[portfolioId]=${portfolioId}&limit=100`,
+					`filters[portfolioId]=${portfolioId}&_limit=100`,
 				)
 				await this.resolveEntryReferences()
 			} catch (err) {
