@@ -670,6 +670,60 @@ export default {
 		},
 
 		/**
+		 * The `blocks` array as the Lesson schema will accept it: every block
+		 * keeps `blockId`/`type`/`order` (its required trio) plus ONLY the
+		 * payload field its type actually populates.
+		 *
+		 * ⚠️ Do not send the unused payload fields as `null`. addBlock() seeds
+		 * all four pointers to null for editing convenience, and saving that
+		 * shape verbatim was rejected:
+		 *
+		 *   Property 'blocks.0.materialId' should be type 'string' but is
+		 *   'null'. Please provide a value of the correct type.
+		 *
+		 * The schema marks `materialId` `nullable: true`, but it also carries
+		 * `$ref: "Material"`, and OpenRegister's validator does not apply
+		 * `nullable` to a `$ref`-bearing property — so an explicit null fails
+		 * where an ABSENT key is fine. The schema's own wording ("Each block
+		 * carries exactly one payload matching its type") describes the shape
+		 * this produces, so omitting is the intended contract, not a
+		 * workaround.
+		 *
+		 * Applied at the save boundary rather than in addBlock() so blocks
+		 * LOADED from the server — which may already carry nulls from earlier
+		 * writes — are normalised too.
+		 *
+		 * @return {Array<object>} Blocks safe to persist.
+		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 */
+		serialisableBlocks() {
+			// The payload field each block type populates. A type missing here
+			// carries no payload beyond the required trio.
+			const payloadField = {
+				richText: 'text',
+				media: 'materialId',
+				quiz: 'assessmentId',
+				assignment: 'assignmentId',
+				ltiTool: 'ltiToolPlacementId',
+			}
+
+			return this.blocks.map((block) => {
+				const serialised = {
+					blockId: block.blockId,
+					type: block.type,
+					order: block.order,
+				}
+				const field = payloadField[block.type]
+				// `null`/`undefined` are dropped; '' is a legitimate value for a
+				// richText block the author deliberately emptied.
+				if (field && block[field] !== null && block[field] !== undefined) {
+					serialised[field] = block[field]
+				}
+				return serialised
+			})
+		},
+
+		/**
 		 * Move `blocks[fromIndex]` to `toIndex`, renumber, and announce.
 		 *
 		 * @param {number} fromIndex Current index.
@@ -808,7 +862,7 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({ blocks: this.blocks }),
+					body: JSON.stringify({ blocks: this.serialisableBlocks() }),
 				})
 				if (!resp.ok) {
 					throw new Error(`Lesson blocks save failed: ${resp.status}`)

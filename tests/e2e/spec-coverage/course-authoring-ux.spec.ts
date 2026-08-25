@@ -392,7 +392,14 @@ test.describe('course-authoring-ux — CourseBuilder / LessonComposer / LessonPl
 		await instantiatePanel.getByRole('combobox').click()
 		// The dropdown renders in a portal outside the panel, so match at page
 		// level — on the template this test just created, by its unique name.
-		await page.getByRole('option', { name: templateName }).click()
+		//
+		// Filtered by TEXT CONTENT, not by accessible name. NcSelect renders an
+		// option's label across several elements, and accessible-name
+		// computation joins those with a space: the snapshot for this very
+		// template read `option "e2e Template 178 7662941039"` — a space the
+		// name never contained — so `{ name: templateName }` could not match.
+		// `hasText` reads textContent, which concatenates without the space.
+		await page.getByRole('option').filter({ hasText: templateName }).click()
 		await page.getByRole('button', { name: 'Create course' }).click()
 
 		// Instantiation navigates to the new Course's own builder — proves a
