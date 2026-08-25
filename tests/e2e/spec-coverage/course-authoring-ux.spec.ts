@@ -92,16 +92,45 @@ async function openCourseBuilder(
 	page: import('@playwright/test').Page,
 	courseId: string,
 ) {
-	await page.goto(`/index.php/apps/learniq/#/courses/${courseId}/builder`)
+	// ⚠️ NO `#` — the router is HISTORY mode, not hash mode.
+	//
+	// src/main.js builds it with `createWebHistory(generateUrl('/apps/learniq'))`.
+	// vue-router strips that base from `location.pathname` and appends the
+	// UNTOUCHED hash, so `/index.php/apps/learniq/#/courses/<id>/builder`
+	// resolved to `/#/courses/<id>/builder`, matched no declared route, and fell
+	// through `routesFromManifest`'s `/:pathMatch(.*)*` catch-all — which
+	// `redirect: '/'`s to the DASHBOARD. Every failure screenshot in CI run
+	// 32833668787 shows "Administrator · Dashboard", not the builder, which is
+	// why `.course-builder__header` never appeared.
+	//
+	// This spec did not regress: it never ran. Its `?limit=200` fixture probe
+	// (see COURSE_LIST_API above) returned an empty list, so all four tests
+	// skipped on every green run until that typo was fixed in #597 — and the
+	// first run that actually executed them hit this second bug. Same plain-path
+	// form as detail-pages.spec.ts / accessibility-conformance.spec.ts, which
+	// both carry the same warning.
+	await page.goto(`/index.php/apps/learniq/courses/${courseId}/builder`)
+
+	// The catch-all redirect rewrites the URL when no route matched, so this
+	// separates "the builder is slow/broken" from "we are not on the builder
+	// at all" — the latter is what a 20s selector timeout used to look like.
+	// Matched on the `/builder` leaf rather than the whole route so an id
+	// canonicalised in the URL does not read as a routing failure; the
+	// dashboard's pathname is the bare app base and has no such segment.
+	await expect
+		.poll(() => new URL(page.url()).pathname, {
+			message: 'router fell through to the dashboard — no route matched',
+			timeout: 10_000,
+		})
+		.toMatch(/\/courses\/[^/]+\/builder\/?$/)
 
 	// Wait for the BUILDER, not for the document.
 	//
-	// This is a hash route in an SPA: `domcontentloaded` fires as soon as the
-	// shell parses, long before Vue has mounted the view or fetched the course.
-	// Waiting on `body` is weaker still — `body` exists immediately. The old
-	// helper did both and then the test read `innerText('body')` ONCE, with no
-	// retry, so it asserted against whatever had rendered by that instant:
-	// the app chrome and nothing else.
+	// `domcontentloaded` fires as soon as the shell parses, long before Vue has
+	// mounted the view or fetched the course. Waiting on `body` is weaker still
+	// — `body` exists immediately. The old helper did both and then the test
+	// read `innerText('body')` ONCE, with no retry, so it asserted against
+	// whatever had rendered by that instant: the app chrome and nothing else.
 	//
 	// `.course-builder__header` is the right anchor because CourseBuilder.vue
 	// renders exactly one of three branches — `loading`, `error`, or the
