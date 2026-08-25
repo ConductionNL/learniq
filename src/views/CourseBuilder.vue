@@ -15,10 +15,16 @@
     - GET  /api/objects/learniq/Course/:courseId
     - GET  /api/objects/learniq/Course?filters[parentCourseId]=:courseId
     - GET  /api/objects/learniq/Lesson?filters[courseId]=:moduleId
-    - POST /api/objects/learniq/Course | Lesson | CourseTemplate
-    - PUT  /api/objects/learniq/Course/:id | Lesson/:id  (order updates)
+    - POST /api/objects/learniq/Course | Lesson | course-template
+    - PATCH /api/objects/learniq/Course/:id | Lesson/:id  (order updates)
     - DELETE /api/objects/learniq/Course/:id | Lesson/:id
     - GET  /api/objects/learniq/course-template
+
+  PATCH, not PUT, for the order updates: OR's PUT is a full replace and a
+  partial body fails the schema's `required` list. See updateObject().
+  Multi-word schemas are addressed by their kebab-case SLUG
+  (`course-template`, `curriculum-plan`) — OR slugifies the identifier and
+  does not convert PascalCase, so `CourseTemplate` 404s.
 
   No new PHP controller: every write is a call against OpenRegister's
   existing object-create/update/delete endpoints (ADR-022). Template
@@ -252,9 +258,13 @@
 											class="course-builder__icon-btn"
 											:disabled="lIdx === 0"
 											:aria-label="
-												t('learniq', 'Move lesson \'{name}\' up', {
-													name: lesson.name,
-												})
+												t(
+													'learniq',
+													'Move lesson \'{name}\' up',
+													{
+														name: lesson.name,
+													},
+												)
 											"
 											@click="moveLessonUp(module, lIdx)">
 											<ChevronUp :size="16" />
@@ -262,11 +272,17 @@
 										<button
 											type="button"
 											class="course-builder__icon-btn"
-											:disabled="lIdx === module.lessons.length - 1"
+											:disabled="
+												lIdx === module.lessons.length - 1
+											"
 											:aria-label="
-												t('learniq', 'Move lesson \'{name}\' down', {
-													name: lesson.name,
-												})
+												t(
+													'learniq',
+													'Move lesson \'{name}\' down',
+													{
+														name: lesson.name,
+													},
+												)
 											"
 											@click="moveLessonDown(module, lIdx)">
 											<ChevronDown :size="16" />
@@ -287,9 +303,13 @@
 											type="button"
 											class="course-builder__icon-btn"
 											:aria-label="
-												t('learniq', 'Delete lesson \'{name}\'', {
-													name: lesson.name,
-												})
+												t(
+													'learniq',
+													'Delete lesson \'{name}\'',
+													{
+														name: lesson.name,
+													},
+												)
 											"
 											@click="deleteLesson(module, lIdx)">
 											<DeleteOutline :size="16" />
@@ -585,8 +605,20 @@ export default {
 		},
 
 		/**
-		 * Partially update an OR object (PUT with only the changed fields —
-		 * precedented by ProctoringReviewQueue.vue's flags-only PUT body).
+		 * Partially update an OR object.
+		 *
+		 * ⚠️ PATCH, not PUT. OpenRegister routes `objects#update` (PUT) as a
+		 * full REPLACE and `objects#patch` (PATCH) as a read-merge-write
+		 * partial update (appinfo/routes.php 796-797). Sending only the changed
+		 * fields over PUT therefore drops every field you omitted, and the
+		 * schema's `required` list rejects the result: `Lesson.required` is
+		 * `[courseId, name, order, contentType, tenant_id]`, so persistOrder's
+		 * `{ order }` body answered **400** and reordering lessons could never
+		 * be saved. PATCH merges into the stored object and validates the
+		 * merged result, so `{ order }` is enough.
+		 *
+		 * OR's optimistic-concurrency guard (`_expectedUpdated`) is opt-in;
+		 * omitting it keeps the plain last-write-wins merge this caller wants.
 		 *
 		 * @param {string} schema OR schema SLUG, as registered in
 		 *   lib/Settings/learniq_register.json — `course`, `course-template`.
@@ -603,7 +635,7 @@ export default {
 				`/apps/openregister/api/objects/learniq/${schema}/${objId}`,
 			)
 			const resp = await fetch(url, {
-				method: 'PUT',
+				method: 'PATCH',
 				headers: {
 					'OCS-APIREQUEST': 'true',
 					Accept: 'application/json',

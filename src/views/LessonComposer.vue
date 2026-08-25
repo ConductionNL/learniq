@@ -18,7 +18,12 @@
     - GET /api/objects/learniq/Material|Assessment|Assignment|LtiToolPlacement
       (scoped pickers)
     - POST /api/objects/learniq/Material (new media block upload)
-    - PUT  /api/objects/learniq/Lesson/:lessonId (persists the full blocks array)
+    - PATCH /api/objects/learniq/Lesson/:lessonId (persists the blocks array)
+
+  PATCH, not PUT: the body carries only `blocks`, and OR's PUT is a full
+  replace that would drop every other field and then fail `required`.
+  The pickers address `lti-tool-placement` by its kebab-case SLUG — OR
+  slugifies the identifier and does not convert PascalCase.
 
   No new PHP controller — every write is a call against OpenRegister's
   existing object-create/update endpoints (ADR-022). A media block never
@@ -168,7 +173,9 @@
 								:value="block.text || ''"
 								:aria-label="t('learniq', 'Rich text content')"
 								:rows="6"
-								@input="(v) => onBlockFieldInput(block, 'text', v)" />
+								@input="
+									(v) => onBlockFieldInput(block, 'text', v)
+								" />
 						</div>
 
 						<!-- media -->
@@ -769,8 +776,15 @@ export default {
 				const url = generateUrl(
 					`/apps/openregister/api/objects/learniq/Lesson/${this.lessonId}`,
 				)
+				// ⚠️ PATCH, not PUT — this body carries only `blocks`, and OR
+				// routes PUT (`objects#update`) as a full REPLACE. A partial PUT
+				// drops every omitted field and then fails the schema's
+				// `required` list (`Lesson.required` is
+				// `[courseId, name, order, contentType, tenant_id]`), answering
+				// 400. PATCH (`objects#patch`) is the read-merge-write partial
+				// update. Same fix as CourseBuilder.updateObject().
 				const resp = await fetch(url, {
-					method: 'PUT',
+					method: 'PATCH',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',
