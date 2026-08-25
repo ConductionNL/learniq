@@ -168,152 +168,160 @@
 			<section class="course-builder__modules">
 				<h3>{{ t('learniq', 'Modules') }}</h3>
 
+				<!-- vuedraggable 4 (Vue 3) renders its rows through the REQUIRED
+				     `#item` scoped slot and computes each key from `itemKey`.
+				     A `v-for` in the default slot is the Vue 2 API: v4 throws
+				     "draggable element must have an item slot" from
+				     computeNodes(), which kills the whole Modules section's
+				     render — the list never appears and neither does any module
+				     added through the form below it. -->
 				<Draggable
 					v-model="modules"
 					tag="ul"
 					class="course-builder__module-list"
 					handle=".course-builder__handle"
+					itemKey="id"
 					@end="onModulesDragEnd">
-					<li
-						v-for="(module, mIdx) in modules"
-						:key="module.id"
-						class="course-builder__module">
-						<div class="course-builder__module-row">
-							<span
-								class="course-builder__handle icon-menu"
-								aria-hidden="true" />
-							<span class="course-builder__module-name">{{
-								module.name
-							}}</span>
-							<button
-								type="button"
-								class="course-builder__icon-btn"
-								:disabled="mIdx === 0"
-								:aria-label="
-									t('learniq', 'Move module \'{name}\' up', {
-										name: module.name,
-									})
-								"
-								@click="moveModuleUp(mIdx)">
-								<ChevronUp :size="18" />
-							</button>
-							<button
-								type="button"
-								class="course-builder__icon-btn"
-								:disabled="mIdx === modules.length - 1"
-								:aria-label="
-									t('learniq', 'Move module \'{name}\' down', {
-										name: module.name,
-									})
-								"
-								@click="moveModuleDown(mIdx)">
-								<ChevronDown :size="18" />
-							</button>
-							<button
-								type="button"
-								class="course-builder__icon-btn"
-								:aria-label="
-									t('learniq', 'Delete module \'{name}\'', {
-										name: module.name,
-									})
-								"
-								@click="deleteModule(module, mIdx)">
-								<DeleteOutline :size="18" />
-							</button>
-						</div>
-
-						<Draggable
-							v-model="module.lessons"
-							tag="ul"
-							class="course-builder__lesson-list"
-							handle=".course-builder__handle"
-							@end="onLessonsDragEnd(module)">
-							<li
-								v-for="(lesson, lIdx) in module.lessons"
-								:key="lesson.id"
-								class="course-builder__lesson">
+					<template #item="{ element: module, index: mIdx }">
+						<li class="course-builder__module">
+							<div class="course-builder__module-row">
 								<span
 									class="course-builder__handle icon-menu"
 									aria-hidden="true" />
-								<span class="course-builder__lesson-name">{{
-									lesson.name
-								}}</span>
-								<span class="course-builder__lesson-type">{{
-									lesson.contentType
+								<span class="course-builder__module-name">{{
+									module.name
 								}}</span>
 								<button
 									type="button"
 									class="course-builder__icon-btn"
-									:disabled="lIdx === 0"
+									:disabled="mIdx === 0"
 									:aria-label="
-										t('learniq', 'Move lesson \'{name}\' up', {
-											name: lesson.name,
+										t('learniq', 'Move module \'{name}\' up', {
+											name: module.name,
 										})
 									"
-									@click="moveLessonUp(module, lIdx)">
-									<ChevronUp :size="16" />
+									@click="moveModuleUp(mIdx)">
+									<ChevronUp :size="18" />
 								</button>
 								<button
 									type="button"
 									class="course-builder__icon-btn"
-									:disabled="lIdx === module.lessons.length - 1"
+									:disabled="mIdx === modules.length - 1"
 									:aria-label="
-										t('learniq', 'Move lesson \'{name}\' down', {
-											name: lesson.name,
+										t('learniq', 'Move module \'{name}\' down', {
+											name: module.name,
 										})
 									"
-									@click="moveLessonDown(module, lIdx)">
-									<ChevronDown :size="16" />
-								</button>
-								<button
-									type="button"
-									class="button-vue"
-									@click="openComposer(lesson)">
-									{{ t('learniq', 'Compose') }}
-								</button>
-								<button
-									type="button"
-									class="button-vue"
-									@click="openPlayer(lesson)">
-									{{ t('learniq', 'Preview') }}
+									@click="moveModuleDown(mIdx)">
+									<ChevronDown :size="18" />
 								</button>
 								<button
 									type="button"
 									class="course-builder__icon-btn"
 									:aria-label="
-										t('learniq', 'Delete lesson \'{name}\'', {
-											name: lesson.name,
+										t('learniq', 'Delete module \'{name}\'', {
+											name: module.name,
 										})
 									"
-									@click="deleteLesson(module, lIdx)">
-									<DeleteOutline :size="16" />
+									@click="deleteModule(module, mIdx)">
+									<DeleteOutline :size="18" />
 								</button>
-							</li>
-						</Draggable>
+							</div>
 
-						<div class="course-builder__add-row">
-							<input
-								v-model="newLessonNames[module.id]"
-								type="text"
-								class="course-builder__input"
-								:placeholder="t('learniq', 'New lesson name')"
-								:aria-label="
-									t(
-										'learniq',
-										'New lesson name for module {name}',
-										{ name: module.name },
-									)
-								" />
-							<button
-								type="button"
-								class="button-vue"
-								:disabled="!newLessonNames[module.id]"
-								@click="addLesson(module)">
-								<PlusIcon :size="16" />
-								{{ t('learniq', 'Add lesson') }}
-							</button>
-						</div>
-					</li>
+							<!-- Same v4 `#item` contract as the modules list above. -->
+							<Draggable
+								v-model="module.lessons"
+								tag="ul"
+								class="course-builder__lesson-list"
+								handle=".course-builder__handle"
+								itemKey="id"
+								@end="onLessonsDragEnd(module)">
+								<template #item="{ element: lesson, index: lIdx }">
+									<li class="course-builder__lesson">
+										<span
+											class="course-builder__handle icon-menu"
+											aria-hidden="true" />
+										<span class="course-builder__lesson-name">{{
+											lesson.name
+										}}</span>
+										<span class="course-builder__lesson-type">{{
+											lesson.contentType
+										}}</span>
+										<button
+											type="button"
+											class="course-builder__icon-btn"
+											:disabled="lIdx === 0"
+											:aria-label="
+												t('learniq', 'Move lesson \'{name}\' up', {
+													name: lesson.name,
+												})
+											"
+											@click="moveLessonUp(module, lIdx)">
+											<ChevronUp :size="16" />
+										</button>
+										<button
+											type="button"
+											class="course-builder__icon-btn"
+											:disabled="lIdx === module.lessons.length - 1"
+											:aria-label="
+												t('learniq', 'Move lesson \'{name}\' down', {
+													name: lesson.name,
+												})
+											"
+											@click="moveLessonDown(module, lIdx)">
+											<ChevronDown :size="16" />
+										</button>
+										<button
+											type="button"
+											class="button-vue"
+											@click="openComposer(lesson)">
+											{{ t('learniq', 'Compose') }}
+										</button>
+										<button
+											type="button"
+											class="button-vue"
+											@click="openPlayer(lesson)">
+											{{ t('learniq', 'Preview') }}
+										</button>
+										<button
+											type="button"
+											class="course-builder__icon-btn"
+											:aria-label="
+												t('learniq', 'Delete lesson \'{name}\'', {
+													name: lesson.name,
+												})
+											"
+											@click="deleteLesson(module, lIdx)">
+											<DeleteOutline :size="16" />
+										</button>
+									</li>
+								</template>
+							</Draggable>
+
+							<div class="course-builder__add-row">
+								<input
+									v-model="newLessonNames[module.id]"
+									type="text"
+									class="course-builder__input"
+									:placeholder="t('learniq', 'New lesson name')"
+									:aria-label="
+										t(
+											'learniq',
+											'New lesson name for module {name}',
+											{ name: module.name },
+										)
+									" />
+								<button
+									type="button"
+									class="button-vue"
+									:disabled="!newLessonNames[module.id]"
+									@click="addLesson(module)">
+									<PlusIcon :size="16" />
+									{{ t('learniq', 'Add lesson') }}
+								</button>
+							</div>
+						</li>
+					</template>
 				</Draggable>
 
 				<div class="course-builder__add-row">
@@ -501,7 +509,11 @@ export default {
 		/**
 		 * Fetch a single OR object.
 		 *
-		 * @param {string} schema OR schema PascalCase key.
+		 * @param {string} schema OR schema SLUG, as registered in
+		 *   lib/Settings/learniq_register.json — `course`, `course-template`.
+		 *   Lookup is case-insensitive but does NOT convert PascalCase to
+		 *   kebab-case, so a multi-word key like `CourseTemplate` lowercases to
+		 *   `coursetemplate`, matches no schema, and the endpoint 404s.
 		 * @param {string} objId Object UUID.
 		 * @return {Promise<object>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
@@ -521,7 +533,11 @@ export default {
 		/**
 		 * Fetch a filtered list of OR objects.
 		 *
-		 * @param {string} schema OR schema PascalCase key.
+		 * @param {string} schema OR schema SLUG, as registered in
+		 *   lib/Settings/learniq_register.json — `course`, `course-template`.
+		 *   Lookup is case-insensitive but does NOT convert PascalCase to
+		 *   kebab-case, so a multi-word key like `CourseTemplate` lowercases to
+		 *   `coursetemplate`, matches no schema, and the endpoint 404s.
 		 * @param {string} query Pre-built query string.
 		 * @return {Promise<Array<object>>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
@@ -541,7 +557,11 @@ export default {
 		/**
 		 * Create an OR object.
 		 *
-		 * @param {string} schema OR schema PascalCase key.
+		 * @param {string} schema OR schema SLUG, as registered in
+		 *   lib/Settings/learniq_register.json — `course`, `course-template`.
+		 *   Lookup is case-insensitive but does NOT convert PascalCase to
+		 *   kebab-case, so a multi-word key like `CourseTemplate` lowercases to
+		 *   `coursetemplate`, matches no schema, and the endpoint 404s.
 		 * @param {object} body Payload.
 		 * @return {Promise<object>} The created object.
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
@@ -568,7 +588,11 @@ export default {
 		 * Partially update an OR object (PUT with only the changed fields —
 		 * precedented by ProctoringReviewQueue.vue's flags-only PUT body).
 		 *
-		 * @param {string} schema OR schema PascalCase key.
+		 * @param {string} schema OR schema SLUG, as registered in
+		 *   lib/Settings/learniq_register.json — `course`, `course-template`.
+		 *   Lookup is case-insensitive but does NOT convert PascalCase to
+		 *   kebab-case, so a multi-word key like `CourseTemplate` lowercases to
+		 *   `coursetemplate`, matches no schema, and the endpoint 404s.
 		 * @param {string} objId Object UUID.
 		 * @param {object} patch Partial payload.
 		 * @return {Promise<void>}
@@ -593,7 +617,11 @@ export default {
 		/**
 		 * Delete an OR object.
 		 *
-		 * @param {string} schema OR schema PascalCase key.
+		 * @param {string} schema OR schema SLUG, as registered in
+		 *   lib/Settings/learniq_register.json — `course`, `course-template`.
+		 *   Lookup is case-insensitive but does NOT convert PascalCase to
+		 *   kebab-case, so a multi-word key like `CourseTemplate` lowercases to
+		 *   `coursetemplate`, matches no schema, and the endpoint 404s.
 		 * @param {string} objId Object UUID.
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
@@ -902,7 +930,7 @@ export default {
 			}))
 
 			try {
-				const created = await this.createObject('CourseTemplate', {
+				const created = await this.createObject('course-template', {
 					name: this.saveTemplateForm.name,
 					description: this.saveTemplateForm.description || null,
 					level: this.course.level,
@@ -941,7 +969,10 @@ export default {
 		async onOpenInstantiate() {
 			this.showInstantiate = !this.showInstantiate
 			if (this.showInstantiate && this.templates.length === 0) {
-				this.templates = await this.fetchList('CourseTemplate', 'limit=200')
+				this.templates = await this.fetchList(
+					'course-template',
+					'_limit=200',
+				)
 			}
 		},
 
@@ -1011,7 +1042,7 @@ export default {
 				}
 
 				if (template.curriculumPlanSkeleton) {
-					const cp = await this.createObject('CurriculumPlan', {
+					const cp = await this.createObject('curriculum-plan', {
 						name: this.t('learniq', '{name} — curriculum plan', {
 							name: this.instantiateForm.name,
 						}),

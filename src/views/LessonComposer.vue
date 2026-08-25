@@ -99,135 +99,140 @@
 				{{ t('learniq', 'Lesson saved.') }}
 			</p>
 
+			<!-- vuedraggable 4 (Vue 3) renders its rows through the REQUIRED
+			     `#item` scoped slot and computes each key from `itemKey`. A
+			     `v-for` in the default slot is the Vue 2 API: v4 throws
+			     "draggable element must have an item slot" from computeNodes(),
+			     which kills this whole section's render. -->
 			<Draggable
 				v-model="blocks"
 				tag="ul"
 				class="lesson-composer__block-list"
 				handle=".lesson-composer__handle"
+				itemKey="blockId"
 				@end="onBlocksDragEnd">
-				<li
-					v-for="(block, idx) in blocks"
-					:key="block.blockId"
-					class="lesson-composer__block">
-					<div class="lesson-composer__block-row">
-						<span
-							class="lesson-composer__handle icon-menu"
-							aria-hidden="true" />
-						<span class="lesson-composer__block-type">{{
-							/**
-							 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
-							 */
-							blockTypeLabel(block.type)
-						}}</span>
-						<button
-							type="button"
-							class="lesson-composer__icon-btn"
-							:disabled="idx === 0"
-							:aria-label="
-								t('learniq', 'Move {type} block up', {
-									type: blockTypeLabel(block.type),
-								})
-							"
-							@click="moveBlockUp(idx)">
-							<ChevronUp :size="18" />
-						</button>
-						<button
-							type="button"
-							class="lesson-composer__icon-btn"
-							:disabled="idx === blocks.length - 1"
-							:aria-label="
-								t('learniq', 'Move {type} block down', {
-									type: blockTypeLabel(block.type),
-								})
-							"
-							@click="moveBlockDown(idx)">
-							<ChevronDown :size="18" />
-						</button>
-						<button
-							type="button"
-							class="lesson-composer__icon-btn"
-							:aria-label="
-								t('learniq', 'Remove {type} block', {
-									type: blockTypeLabel(block.type),
-								})
-							"
-							@click="removeBlock(idx)">
-							<DeleteOutline :size="18" />
-						</button>
-					</div>
-
-					<!-- richText -->
-					<div
-						v-if="block.type === 'richText'"
-						class="lesson-composer__block-body">
-						<CnMarkdownEditor
-							:value="block.text || ''"
-							:aria-label="t('learniq', 'Rich text content')"
-							:rows="6"
-							@input="(v) => onBlockFieldInput(block, 'text', v)" />
-					</div>
-
-					<!-- media -->
-					<div
-						v-else-if="block.type === 'media'"
-						class="lesson-composer__block-body">
-						<NcSelect
-							v-model="block.materialId"
-							:options="materialOptions"
-							:reduce="(opt) => opt.id"
-							:inputLabel="t('learniq', 'Material')"
-							:aria-label-combobox="t('learniq', 'Material')" />
-						<button
-							type="button"
-							class="button-vue"
-							:disabled="pickingFile"
-							@click="pickAndCreateMaterial(block)">
+				<template #item="{ element: block, index: idx }">
+					<li class="lesson-composer__block">
+						<div class="lesson-composer__block-row">
 							<span
-								v-if="pickingFile"
-								class="icon-loading"
+								class="lesson-composer__handle icon-menu"
 								aria-hidden="true" />
-							{{ t('learniq', 'Upload a new file…') }}
-						</button>
-					</div>
+							<span class="lesson-composer__block-type">{{
+								/**
+								 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+								 */
+								blockTypeLabel(block.type)
+							}}</span>
+							<button
+								type="button"
+								class="lesson-composer__icon-btn"
+								:disabled="idx === 0"
+								:aria-label="
+									t('learniq', 'Move {type} block up', {
+										type: blockTypeLabel(block.type),
+									})
+								"
+								@click="moveBlockUp(idx)">
+								<ChevronUp :size="18" />
+							</button>
+							<button
+								type="button"
+								class="lesson-composer__icon-btn"
+								:disabled="idx === blocks.length - 1"
+								:aria-label="
+									t('learniq', 'Move {type} block down', {
+										type: blockTypeLabel(block.type),
+									})
+								"
+								@click="moveBlockDown(idx)">
+								<ChevronDown :size="18" />
+							</button>
+							<button
+								type="button"
+								class="lesson-composer__icon-btn"
+								:aria-label="
+									t('learniq', 'Remove {type} block', {
+										type: blockTypeLabel(block.type),
+									})
+								"
+								@click="removeBlock(idx)">
+								<DeleteOutline :size="18" />
+							</button>
+						</div>
 
-					<!-- quiz -->
-					<div
-						v-else-if="block.type === 'quiz'"
-						class="lesson-composer__block-body">
-						<NcSelect
-							v-model="block.assessmentId"
-							:options="assessmentOptions"
-							:reduce="(opt) => opt.id"
-							:inputLabel="t('learniq', 'Assessment')"
-							:aria-label-combobox="t('learniq', 'Assessment')" />
-					</div>
+						<!-- richText -->
+						<div
+							v-if="block.type === 'richText'"
+							class="lesson-composer__block-body">
+							<CnMarkdownEditor
+								:value="block.text || ''"
+								:aria-label="t('learniq', 'Rich text content')"
+								:rows="6"
+								@input="(v) => onBlockFieldInput(block, 'text', v)" />
+						</div>
 
-					<!-- assignment -->
-					<div
-						v-else-if="block.type === 'assignment'"
-						class="lesson-composer__block-body">
-						<NcSelect
-							v-model="block.assignmentId"
-							:options="assignmentOptions"
-							:reduce="(opt) => opt.id"
-							:inputLabel="t('learniq', 'Assignment')"
-							:aria-label-combobox="t('learniq', 'Assignment')" />
-					</div>
+						<!-- media -->
+						<div
+							v-else-if="block.type === 'media'"
+							class="lesson-composer__block-body">
+							<NcSelect
+								v-model="block.materialId"
+								:options="materialOptions"
+								:reduce="(opt) => opt.id"
+								:inputLabel="t('learniq', 'Material')"
+								:aria-label-combobox="t('learniq', 'Material')" />
+							<button
+								type="button"
+								class="button-vue"
+								:disabled="pickingFile"
+								@click="pickAndCreateMaterial(block)">
+								<span
+									v-if="pickingFile"
+									class="icon-loading"
+									aria-hidden="true" />
+								{{ t('learniq', 'Upload a new file…') }}
+							</button>
+						</div>
 
-					<!-- ltiTool -->
-					<div
-						v-else-if="block.type === 'ltiTool'"
-						class="lesson-composer__block-body">
-						<NcSelect
-							v-model="block.ltiToolPlacementId"
-							:options="ltiToolPlacementOptions"
-							:reduce="(opt) => opt.id"
-							:inputLabel="t('learniq', 'LTI tool placement')"
-							:aria-label-combobox="
-								t('learniq', 'LTI tool placement')
-							" />
-					</div>
-				</li>
+						<!-- quiz -->
+						<div
+							v-else-if="block.type === 'quiz'"
+							class="lesson-composer__block-body">
+							<NcSelect
+								v-model="block.assessmentId"
+								:options="assessmentOptions"
+								:reduce="(opt) => opt.id"
+								:inputLabel="t('learniq', 'Assessment')"
+								:aria-label-combobox="t('learniq', 'Assessment')" />
+						</div>
+
+						<!-- assignment -->
+						<div
+							v-else-if="block.type === 'assignment'"
+							class="lesson-composer__block-body">
+							<NcSelect
+								v-model="block.assignmentId"
+								:options="assignmentOptions"
+								:reduce="(opt) => opt.id"
+								:inputLabel="t('learniq', 'Assignment')"
+								:aria-label-combobox="t('learniq', 'Assignment')" />
+						</div>
+
+						<!-- ltiTool -->
+						<div
+							v-else-if="block.type === 'ltiTool'"
+							class="lesson-composer__block-body">
+							<NcSelect
+								v-model="block.ltiToolPlacementId"
+								:options="ltiToolPlacementOptions"
+								:reduce="(opt) => opt.id"
+								:inputLabel="t('learniq', 'LTI tool placement')"
+								:aria-label-combobox="
+									t('learniq', 'LTI tool placement')
+								" />
+						</div>
+					</li>
+				</template>
 			</Draggable>
 
 			<section class="lesson-composer__add-block">
@@ -414,7 +419,7 @@ export default {
 							`filters[courseId]=${this.courseId}&_limit=200`,
 						),
 						this.fetchList(
-							'LtiToolPlacement',
+							'lti-tool-placement',
 							`filters[courseId]=${this.courseId}&_limit=200`,
 						),
 					])
@@ -464,7 +469,12 @@ export default {
 		/**
 		 * Fetch a single OR object.
 		 *
-		 * @param {string} schema OR schema PascalCase key.
+		 * @param {string} schema OR schema SLUG, as registered in
+		 *   lib/Settings/learniq_register.json — `lesson`,
+		 *   `lti-tool-placement`. Lookup is case-insensitive but does NOT
+		 *   convert PascalCase to kebab-case, so a multi-word key like
+		 *   `LtiToolPlacement` matches no schema and the endpoint 404s —
+		 *   which fetchList() then reports as an empty list.
 		 * @param {string} objId Object UUID.
 		 * @return {Promise<object>}
 		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
@@ -484,7 +494,12 @@ export default {
 		/**
 		 * Fetch a filtered list of OR objects.
 		 *
-		 * @param {string} schema OR schema PascalCase key.
+		 * @param {string} schema OR schema SLUG, as registered in
+		 *   lib/Settings/learniq_register.json — `lesson`,
+		 *   `lti-tool-placement`. Lookup is case-insensitive but does NOT
+		 *   convert PascalCase to kebab-case, so a multi-word key like
+		 *   `LtiToolPlacement` matches no schema and the endpoint 404s —
+		 *   which fetchList() then reports as an empty list.
 		 * @param {string} query Pre-built query string.
 		 * @return {Promise<Array<object>>}
 		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
@@ -504,7 +519,12 @@ export default {
 		/**
 		 * Create an OR object.
 		 *
-		 * @param {string} schema OR schema PascalCase key.
+		 * @param {string} schema OR schema SLUG, as registered in
+		 *   lib/Settings/learniq_register.json — `lesson`,
+		 *   `lti-tool-placement`. Lookup is case-insensitive but does NOT
+		 *   convert PascalCase to kebab-case, so a multi-word key like
+		 *   `LtiToolPlacement` matches no schema and the endpoint 404s —
+		 *   which fetchList() then reports as an empty list.
 		 * @param {object} body Payload.
 		 * @return {Promise<object>} The created object.
 		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
