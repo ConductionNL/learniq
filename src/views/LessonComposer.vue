@@ -128,13 +128,25 @@
 								 */
 								blockTypeLabel(block.type)
 							}}</span>
+							<!-- The position is part of the accessible name, not
+							     decoration. A block has no name of its own, so a
+							     type-only label ("Move Rich text block up") is
+							     IDENTICAL for every block of that type: a lesson
+							     with two rich-text blocks gave a screen-reader
+							     user the same three names twice, with nothing to
+							     tell the pairs apart (WCAG 2.2 SC 4.1.2 / 2.4.6).
+							     The module and lesson controls in CourseBuilder
+							     already disambiguate by naming the item; blocks
+							     were the one list that did not. `position` is
+							     1-based to match what the reader counts. -->
 							<button
 								type="button"
 								class="lesson-composer__icon-btn"
 								:disabled="idx === 0"
 								:aria-label="
-									t('learniq', 'Move {type} block up', {
+									t('learniq', 'Move {type} block {position} up', {
 										type: blockTypeLabel(block.type),
+										position: idx + 1,
 									})
 								"
 								@click="moveBlockUp(idx)">
@@ -145,9 +157,14 @@
 								class="lesson-composer__icon-btn"
 								:disabled="idx === blocks.length - 1"
 								:aria-label="
-									t('learniq', 'Move {type} block down', {
-										type: blockTypeLabel(block.type),
-									})
+									t(
+										'learniq',
+										'Move {type} block {position} down',
+										{
+											type: blockTypeLabel(block.type),
+											position: idx + 1,
+										},
+									)
 								"
 								@click="moveBlockDown(idx)">
 								<ChevronDown :size="18" />
@@ -156,8 +173,9 @@
 								type="button"
 								class="lesson-composer__icon-btn"
 								:aria-label="
-									t('learniq', 'Remove {type} block', {
+									t('learniq', 'Remove {type} block {position}', {
 										type: blockTypeLabel(block.type),
+										position: idx + 1,
 									})
 								"
 								@click="removeBlock(idx)">
