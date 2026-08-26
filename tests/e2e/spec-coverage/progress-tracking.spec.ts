@@ -87,7 +87,7 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 
 		const lessonId = lesson.id ?? lesson.uuid
 		await page.goto(
-			`/index.php/apps/learniq/#/courses/${courseId}/lessons/${lessonId}/play`,
+			`/index.php/apps/learniq/courses/${courseId}/lessons/${lessonId}/play`,
 		)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
@@ -144,7 +144,7 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 
 		const lessonId = lesson.id ?? lesson.uuid
 		await page.goto(
-			`/index.php/apps/learniq/#/courses/${courseId}/lessons/${lessonId}/play`,
+			`/index.php/apps/learniq/courses/${courseId}/lessons/${lessonId}/play`,
 		)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
