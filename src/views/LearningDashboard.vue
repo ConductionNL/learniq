@@ -114,7 +114,11 @@ export default {
 						label: this.t('learniq', 'Courses'),
 						variant: 'primary',
 						clickRoute: { path: '/courses' },
-						source: { register: 'learniq', schema: 'course', metric: 'count' },
+						source: {
+							register: 'learniq',
+							schema: 'course',
+							metric: 'count',
+						},
 					},
 				},
 				{

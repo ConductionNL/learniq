@@ -94,7 +94,11 @@ export default {
 					content: {
 						label: this.t('learniq', 'Regulations'),
 						clickRoute: { path: '/compliance/regulations' },
-						source: { register: 'learniq', schema: 'regulation', metric: 'count' },
+						source: {
+							register: 'learniq',
+							schema: 'regulation',
+							metric: 'count',
+						},
 					},
 				},
 				{
@@ -105,7 +109,11 @@ export default {
 						label: this.t('learniq', 'Signed attestations'),
 						variant: 'success',
 						clickRoute: { path: '/compliance/attestations' },
-						source: { register: 'learniq', schema: 'attestation', metric: 'count' },
+						source: {
+							register: 'learniq',
+							schema: 'attestation',
+							metric: 'count',
+						},
 					},
 				},
 				{

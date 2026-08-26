@@ -107,7 +107,11 @@ export default {
 						label: this.t('learniq', 'Learners'),
 						variant: 'success',
 						clickRoute: { path: '/learner-profiles' },
-						source: { register: 'learniq', schema: 'learner-profile', metric: 'count' },
+						source: {
+							register: 'learniq',
+							schema: 'learner-profile',
+							metric: 'count',
+						},
 					},
 				},
 				{
@@ -133,7 +137,11 @@ export default {
 					content: {
 						label: this.t('learniq', 'Cohorts'),
 						clickRoute: { path: '/cohorts' },
-						source: { register: 'learniq', schema: 'cohort', metric: 'count' },
+						source: {
+							register: 'learniq',
+							schema: 'cohort',
+							metric: 'count',
+						},
 					},
 				},
 				{

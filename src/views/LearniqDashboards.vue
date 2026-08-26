@@ -202,7 +202,11 @@ export default {
 							label: this.t('learniq', 'Courses'),
 							variant: 'primary',
 							clickRoute: { path: '/courses' },
-							source: { register: 'learniq', schema: 'course', metric: 'count' },
+							source: {
+								register: 'learniq',
+								schema: 'course',
+								metric: 'count',
+							},
 						},
 					},
 					{
@@ -216,7 +220,11 @@ export default {
 						content: {
 							label: this.t('learniq', 'Cohorts'),
 							clickRoute: { path: '/cohorts' },
-							source: { register: 'learniq', schema: 'cohort', metric: 'count' },
+							source: {
+								register: 'learniq',
+								schema: 'cohort',
+								metric: 'count',
+							},
 						},
 					},
 					{
@@ -231,7 +239,11 @@ export default {
 							label: this.t('learniq', 'Learners'),
 							variant: 'success',
 							clickRoute: { path: '/learner-profiles' },
-							source: { register: 'learniq', schema: 'learner-profile', metric: 'count' },
+							source: {
+								register: 'learniq',
+								schema: 'learner-profile',
+								metric: 'count',
+							},
 						},
 					},
 					{
@@ -246,7 +258,12 @@ export default {
 							label: this.t('learniq', 'Active enrolments'),
 							variant: 'primary',
 							clickRoute: { path: '/enrolments' },
-							source: { register: 'learniq', schema: 'enrolment', metric: 'count', filter: { lifecycle: 'active' } },
+							source: {
+								register: 'learniq',
+								schema: 'enrolment',
+								metric: 'count',
+								filter: { lifecycle: 'active' },
+							},
 						},
 					},
 					{
@@ -261,7 +278,12 @@ export default {
 							label: this.t('learniq', 'Open attendance flags'),
 							variant: 'warning',
 							clickRoute: { path: '/attendance/flags' },
-							source: { register: 'learniq', schema: 'attendance-flag', metric: 'count', filter: { lifecycle: 'open' } },
+							source: {
+								register: 'learniq',
+								schema: 'attendance-flag',
+								metric: 'count',
+								filter: { lifecycle: 'open' },
+							},
 						},
 					},
 					{
@@ -378,7 +400,12 @@ export default {
 						content: {
 							label: this.t('learniq', 'Avg. engagement score'),
 							clickRoute: { path: '/progress/engagement-scores' },
-							source: { register: 'learniq', schema: 'engagement-score', metric: 'avg', field: 'score' },
+							source: {
+								register: 'learniq',
+								schema: 'engagement-score',
+								metric: 'avg',
+								field: 'score',
+							},
 						},
 					},
 					{
@@ -393,7 +420,12 @@ export default {
 							label: this.t('learniq', 'Open engagement flags'),
 							variant: 'warning',
 							clickRoute: { path: '/progress/engagement-flags' },
-							source: { register: 'learniq', schema: 'engagement-risk-flag', metric: 'count', filter: { lifecycle: 'open' } },
+							source: {
+								register: 'learniq',
+								schema: 'engagement-risk-flag',
+								metric: 'count',
+								filter: { lifecycle: 'open' },
+							},
 						},
 					},
 					{
