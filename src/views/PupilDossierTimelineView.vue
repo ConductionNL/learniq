@@ -250,7 +250,12 @@ export default {
 		/**
 		 * Fetch one schema's objects filtered by the given query string.
 		 *
-		 * @param {string} schema OpenRegister schema title (e.g. "DossierNote").
+		 * @param {string} schema OpenRegister schema SLUG (e.g. "dossier-note").
+		 *   The URL segment is the slug, NOT the schema title — passing the
+		 *   title ("DossierNote") resolves nothing and returns 404. Every
+		 *   declarative widget in `src/manifest.d/` already names the slug; this
+		 *   view is the only caller that builds the URL by hand, which is how it
+		 *   ended up being the only one that got it wrong.
 		 * @param {string} query Query string, WITHOUT the leading "?" (already
 		 *   `encodeURIComponent`-escaped by the caller).
 		 * @return {Promise<Array<object>>}
@@ -285,11 +290,11 @@ export default {
 			try {
 				const [notes, incidents, checkIns, plans, requests] =
 					await Promise.all([
-						this.fetchSchema('DossierNote', learnerQuery),
-						this.fetchSchema('BehaviourIncident', learnerQuery),
-						this.fetchSchema('WellbeingCheckIn', learnerQuery),
-						this.fetchSchema('LearningPlan', learnerQuery),
-						this.fetchSchema('SupportRequest', learnerQuery),
+						this.fetchSchema('dossier-note', learnerQuery),
+						this.fetchSchema('behaviour-incident', learnerQuery),
+						this.fetchSchema('wellbeing-check-in', learnerQuery),
+						this.fetchSchema('learning-plan', learnerQuery),
+						this.fetchSchema('support-request', learnerQuery),
 					])
 				this.notes = notes
 				this.incidents = incidents
@@ -299,9 +304,14 @@ export default {
 
 				const requestIds = new Set(requests.map((r) => r.id ?? r.uuid))
 				if (requestIds.size > 0) {
+					// `_limit`, not `limit`. OpenRegister treats a BARE control
+					// param as a property filter, so `limit=500` asks for records
+					// whose `limit` property equals 500 — of which there are none.
+					// That returns an empty list with HTTP 200: no error, no
+					// deliberations, and nothing to indicate why.
 					const allDeliberations = await this.fetchSchema(
-						'DeliberationRecord',
-						'limit=500',
+						'deliberation-record',
+						'_limit=500',
 					)
 					this.deliberations = allDeliberations.filter((d) =>
 						requestIds.has(d.supportRequestId),
