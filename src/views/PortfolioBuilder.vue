@@ -429,12 +429,28 @@ export default {
 				await this.loadEntries(portfolioId)
 				await this.loadPickerOptions()
 			} catch (err) {
-				this.error = this.t(
-					'learniq',
-					'Failed to load portfolio. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[PortfolioBuilder] loadData error', err)
+				// A MISSING RECORD IS INPUT, NOT A FAULT.
+				//
+				// Opening a stale bookmark, or a link to a portfolio someone has
+				// since deleted, is an ordinary thing for a user to do. It gets a
+				// 404, the view says so, and nothing is wrong with the
+				// application — so it must not reach `console.error`, which is
+				// where genuine faults live. Logging it there buries real errors
+				// in routine noise, and any check asserting "no console errors"
+				// fails on normal navigation.
+				if (err?.notFound === true) {
+					this.error = this.t(
+						'learniq',
+						'This portfolio no longer exists, or you do not have access to it.',
+					)
+				} else {
+					this.error = this.t(
+						'learniq',
+						'Failed to load portfolio. Please try again.',
+					)
+					// eslint-disable-next-line no-console
+					console.error('[PortfolioBuilder] loadData error', err)
+				}
 			} finally {
 				this.loading = false
 			}
@@ -456,7 +472,19 @@ export default {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
 			if (!resp.ok) {
-				throw new Error(`${schema} fetch failed: ${resp.status}`)
+				// `notFound` is set HERE and only here — on the single-object
+				// lookup — not wherever a 404 happens to surface.
+				//
+				// This method and fetchList() both feed the same catch. A 404
+				// from a LIST does not mean "this record is absent": an empty
+				// result set says that, with HTTP 200. A 404 there means the
+				// schema did not resolve, which is a broken register and must
+				// stay loud. Flagging the object lookup specifically keeps the
+				// quiet branch to the one case that is genuinely expected input.
+				const err = new Error(`${schema} fetch failed: ${resp.status}`)
+				err.status = resp.status
+				err.notFound = resp.status === 404
+				throw err
 			}
 			const json = await resp.json()
 			return json.object ?? json ?? {}

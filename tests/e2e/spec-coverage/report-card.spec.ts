@@ -100,7 +100,7 @@ function fatalOnly(errors: string[]): string[] {
 }
 
 async function openRoute(page: import('@playwright/test').Page, route: string) {
-	await page.goto(`/index.php/apps/learniq/#${route}`)
+	await page.goto(`/index.php/apps/learniq${route}`)
 	await page.waitForSelector('body', { timeout: 15_000 })
 	await page.waitForLoadState('domcontentloaded')
 }

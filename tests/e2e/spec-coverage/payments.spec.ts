@@ -26,7 +26,7 @@ import { test, expect } from '../fixtures'
 // exercises that the OrderPaymentPanel component itself mounts and renders
 // rather than the SPA falling back to a blank/404 shell.
 const ORDER_PAYMENT_PANEL_URL =
-	'/index.php/apps/learniq/#/payments/orders/00000000-0000-0000-0000-000000000000/pay'
+	'/index.php/apps/learniq/payments/orders/00000000-0000-0000-0000-000000000000/pay'
 
 test.describe('school-payments — OrderPaymentPanel', () => {
 	// @e2e openspec/changes/school-payments/specs/payments/spec.md#scenario-a-payer-opens-the-payment-panel-and-initiates-payment

@@ -17,7 +17,7 @@
  */
 import { test, expect } from '../fixtures'
 
-const RECORDS_URL = '/index.php/apps/learniq/#/compliance/external-training'
+const RECORDS_URL = '/index.php/apps/learniq/compliance/external-training'
 
 test.describe('external-training-recording — records index page', () => {
 	// @e2e openspec/specs/external-training-recording/spec.md#learner-self-reports-a-conference-with-a-certificate
