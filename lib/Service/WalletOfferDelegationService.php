@@ -95,7 +95,11 @@ class WalletOfferDelegationService {
 	 *
 	 * @var string
 	 */
-	/** Path AFTER the app segment; the segment is resolved at call time. */
+	/**
+	 * Path AFTER the app segment; the segment is resolved at call time.
+	 *
+	 * @var string
+	 */
 	private const OPENCONNECTOR_CREATE_OFFER_PATH = 'api/eudi/credential-offers';
 
 	/**

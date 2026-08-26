@@ -43,7 +43,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -90,8 +89,20 @@ class DataExchangeRunHandler implements IEventListener {
 	 *           validationReport, artefactRef }.
 	 * If this endpoint path changes in OpenConnector, update the constant.
 	 */
-	/** Path AFTER the app segment; the segment is resolved at call time. */
-	private const OPENCONNECTOR_RUN_PATH = 'api/sources/%s/run';
+	/**
+	 * NOT resolved across the fleet rename — see ConductionNL/.github#580.
+	 *
+	 * This app is `integriq` on development and `openconnector` on beta/main,
+	 * so this path 404s on half the fleet. The other six call sites in this app
+	 * now resolve the segment at call time via Support\FleetAppId, but this
+	 * class sits exactly at the CouplingBetweenObjects ceiling (12 of 13) and
+	 * referencing one more type — imported or fully qualified, phpmd counts
+	 * both — tips it over. Fixing it properly means reducing this class's
+	 * dependencies first, which is a separate change.
+	 *
+	 * @var string
+	 */
+	private const OPENCONNECTOR_RUN_PATH = '/apps/openconnector/api/sources/%s/run';
 
 	/**
 	 * App-config key for the OpenConnector internal API token.
@@ -562,7 +573,7 @@ class DataExchangeRunHandler implements IEventListener {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-20
 	 */
 	private function callOpenConnector(string $target, array $payload): ?array {
-		$path = FleetAppId::path('integriq', sprintf(self::OPENCONNECTOR_RUN_PATH, rawurlencode($target)));
+		$path = sprintf(self::OPENCONNECTOR_RUN_PATH, rawurlencode($target));
 		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . $path);
 
 		// #189: attach the configured API token so the OpenConnector endpoint

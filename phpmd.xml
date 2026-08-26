@@ -11,7 +11,19 @@
         <exclude name="StaticAccess"/>
     </rule>
 
-    <!-- StaticAccess: two exceptions, both named and both argued.
+    <!-- StaticAccess: three exceptions, all named and all argued.
+
+         (3) `\OCP\Server` is Nextcloud's service locator, reached from exactly
+         one place here: `Support\FleetAppId::path()`. That method exists because
+         the six call sites it serves hold their paths as class constants and
+         none injects IAppManager; threading the dependency through six
+         constructors, their DI wiring and their tests — for a lookup table that
+         is scheduled for deletion — is not worth it. shillinq already carries
+         `OCP\Server` as an audited exception for the same reason.
+
+         The lookup is guarded: `\OCP\Server::get()` returns null with no
+         container up, and an unguarded call there turns a resolvable path into
+         a fatal.
 
          (2) `\OCA\Learniq\Support\FleetAppId` is a pure resolver over a constant
          map: given an IAppManager and a canonical app name, it returns whichever
@@ -46,7 +58,7 @@
          place, a probe using a DIFFERENT static call is still reported. -->
     <rule ref="rulesets/cleancode.xml/StaticAccess">
         <properties>
-            <property name="exceptions" value="\OCA\OpenRegister\AppHost\Bootstrap,\OCA\Learniq\Support\FleetAppId"/>
+            <property name="exceptions" value="\OCA\OpenRegister\AppHost\Bootstrap,\OCA\Learniq\Support\FleetAppId,\OCP\Server"/>
         </properties>
     </rule>
 </ruleset>

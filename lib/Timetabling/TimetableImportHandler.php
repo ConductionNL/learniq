@@ -91,7 +91,11 @@ class TimetableImportHandler implements IEventListener {
 	 * expected to additionally carry a `records` array of raw external
 	 * records, one per Zermelo/Untis/Xedule occurrence.
 	 */
-	/** Path AFTER the app segment; the segment is resolved at call time. */
+	/**
+	 * Path AFTER the app segment; the segment is resolved at call time.
+	 *
+	 * @var string
+	 */
 	private const OPENCONNECTOR_RUN_PATH = 'api/sources/%s/run';
 
 	private const OPENCONNECTOR_TOKEN_KEY = 'openconnector_api_token';

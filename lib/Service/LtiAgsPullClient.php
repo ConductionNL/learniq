@@ -59,7 +59,11 @@ class LtiAgsPullClient {
 	 *
 	 * @var string
 	 */
-	/** Path AFTER the app segment; the segment is resolved at call time. */
+	/**
+	 * Path AFTER the app segment; the segment is resolved at call time.
+	 *
+	 * @var string
+	 */
 	private const OPENCONNECTOR_PULL_PATH = 'api/events/subscriptions/%s/pull';
 
 	/**
