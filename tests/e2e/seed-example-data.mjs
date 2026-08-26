@@ -463,6 +463,144 @@ async function seedObjects(presentSlugs) {
 		})
 	}
 
+	// ── Fixtures for scenarios that were SKIPPING rather than running ──────
+	//
+	// Fourteen spec-coverage scenarios stood down on `test.skip(!row, 'No X
+	// seeded…')`, which cannot tell "never seeded" from "the seeder owes this
+	// and did not make it" and reports the second as a pass. Once those became
+	// requireFixture() the fourteen failed, and every one named a fixture that
+	// simply does not exist here: five Lesson states, and four schemas this
+	// file never created a single row for.
+	//
+	// `lifecycle` is set directly, as it already is above for grade-entry /
+	// enrolment / credential: these are fixtures FOR scenarios about a
+	// particular state, and the state is the thing under test.
+
+	// Lessons in the states adaptive-release and progress-tracking look for.
+	// `Demo lesson 6` is deliberately plain — published, text, no
+	// releaseConditions, no availableAfterDays — because two scenarios want
+	// exactly "an ungated published lesson" and one of them asserts the ABSENCE
+	// of a gate.
+	const lessonPlain = await seed('lesson', { field: 'name', value: 'Demo lesson 6 (published, ungated)' }, {
+		courseId: id(courseSub) ?? id(courseRoot), name: 'Demo lesson 6 (published, ungated)', order: 6,
+		contentType: 'text', lifecycle: 'published', tenant_id: TENANT,
+	})
+	await seed('lesson', { field: 'name', value: 'Demo lesson 7 (cmi5)' }, {
+		courseId: id(courseSub) ?? id(courseRoot), name: 'Demo lesson 7 (cmi5)', order: 7,
+		contentType: 'cmi5', lifecycle: 'published', tenant_id: TENANT,
+	})
+	// `lessonId` carries a $ref, and OR refuses an explicit null on a
+	// $ref-bearing property while accepting an ABSENT key — so the condition is
+	// only added once there is a real lesson to point at.
+	if (id(lessonPlain)) {
+		await seed('lesson', { field: 'name', value: 'Demo lesson 8 (gated on a prerequisite)' }, {
+			courseId: id(courseSub) ?? id(courseRoot), name: 'Demo lesson 8 (gated on a prerequisite)', order: 8,
+			contentType: 'text', lifecycle: 'published', tenant_id: TENANT,
+			releaseConditions: [{ kind: 'lesson-completed', lessonId: id(lessonPlain) }],
+		})
+	}
+	await seed('lesson', { field: 'name', value: 'Demo lesson 9 (drip-released)' }, {
+		courseId: id(courseSub) ?? id(courseRoot), name: 'Demo lesson 9 (drip-released)', order: 9,
+		contentType: 'text', lifecycle: 'published', availableAfterDays: 7, tenant_id: TENANT,
+	})
+
+	// ReportPeriods. `isLocked` is a MATERIALISED calculation, not a stored
+	// field — the register declares it as `lockDate` set AND `lockDate < now`,
+	// which ReportPeriodComposeGuard reads directly. So a period is made
+	// "locked" by giving it a lockDate in the PAST; setting isLocked would
+	// write a field the schema does not have.
+	const periodLocked = (id(plan) && id(cohort))
+		? await seed('report-period', { field: 'periodCode', value: 'P1' }, {
+			name: 'Rapportperiode 1 (demo)', academicYear: '2026', periodCode: 'P1',
+			startDate: '2026-09-01', endDate: '2026-12-31',
+			curriculumPlanIds: [id(plan)], cohortIds: [id(cohort)],
+			lockDate: '2026-01-15T00:00:00Z', lifecycle: 'open', tenant_id: TENANT,
+		})
+		: null
+	const periodComposed = (id(plan) && id(cohort))
+		? await seed('report-period', { field: 'periodCode', value: 'P2' }, {
+			name: 'Rapportperiode 2 (demo, composed)', academicYear: '2026', periodCode: 'P2',
+			startDate: '2027-01-01', endDate: '2027-03-31',
+			curriculumPlanIds: [id(plan)], cohortIds: [id(cohort)],
+			lockDate: '2026-02-15T00:00:00Z', lifecycle: 'composed', tenant_id: TENANT,
+		})
+		: null
+
+	// A concept GradeEntry inside the locked period's scope — the row the
+	// ReportPeriodLockGuard scenario needs something to refuse.
+	if (id(plan) && id(scale)) {
+		await seed('grade-entry', { field: 'componentId', value: 'c-concept' }, {
+			learnerId: 'demo-learner-2', curriculumPlanId: id(plan), gradeScaleId: id(scale),
+			value: 6, period: 'P1', componentId: 'c-concept', weight: 1,
+			lifecycle: 'concept', tenant_id: TENANT,
+		})
+	}
+	// A published GradeEntry whose visibility window has NOT opened yet. The
+	// date is far enough out that this fixture does not quietly expire and take
+	// the scenario with it — a fixture that stops matching on a given date is
+	// the same silent hole this whole block exists to close.
+	const futureGrade = (id(plan) && id(scale))
+		? await seed('grade-entry', { field: 'componentId', value: 'c-future' }, {
+			learnerId: 'demo-learner-1', curriculumPlanId: id(plan), gradeScaleId: id(scale),
+			value: 8, period: 'P1', componentId: 'c-future', weight: 1,
+			lifecycle: 'published', visibleFrom: '2099-01-01T00:00:00Z', tenant_id: TENANT,
+		})
+		: null
+
+	// ReportCards, one per lifecycle state the review surface is asserted in.
+	if (id(periodLocked)) {
+		await seed('report-card', { field: 'learnerId', value: 'demo-learner-1' }, {
+			learnerId: 'demo-learner-1', reportPeriodId: id(periodLocked),
+			mentorComment: '', lifecycle: 'rapportvergadering-review', tenant_id: TENANT,
+			...(id(cohort) ? { cohortId: id(cohort) } : {}),
+		})
+		// The finalised card CITES the not-yet-visible grade: one scenario looks
+		// for a finalised card, and another for a finalised card whose
+		// subjectGrades reference that specific entry.
+		await seed('report-card', { field: 'learnerId', value: 'demo-learner-2' }, {
+			learnerId: 'demo-learner-2', reportPeriodId: id(periodLocked),
+			mentorComment: 'Goede vooruitgang dit rapport.', lifecycle: 'finalised',
+			composedAt: '2026-12-20T12:00:00Z', tenant_id: TENANT,
+			...(id(cohort) ? { cohortId: id(cohort) } : {}),
+			...(id(plan)
+				? {
+					subjectGrades: [{
+						curriculumPlanId: id(plan), periodAverage: 7.5, passed: true,
+						...(id(futureGrade) ? { sourceGradeEntryIds: [id(futureGrade)] } : {}),
+					}],
+				}
+				: {}),
+		})
+	}
+	if (id(periodComposed)) {
+		await seed('report-card', { field: 'learnerId', value: 'demo-learner-3' }, {
+			learnerId: 'demo-learner-3', reportPeriodId: id(periodComposed),
+			mentorComment: 'Rapport gedeeld met ouders.', lifecycle: 'published-to-parents',
+			composedAt: '2027-03-20T12:00:00Z', tenant_id: TENANT,
+			...(id(cohort) ? { cohortId: id(cohort) } : {}),
+		})
+	}
+
+	// GroupPlan + an intensief subgroup that actually has members. The
+	// subgroup scenario reads learnerIds, so an empty subgroup would leave it
+	// skipping exactly as before.
+	const groupPlan = id(cohort)
+		? await seed('group-plan', { field: 'subject', value: 'technisch lezen' }, {
+			cohortId: id(cohort), subject: 'technisch lezen', coordinatorId: 'demo-learner-1',
+			period: '2026-2027 blok 1', periodEndDate: '2026-12-31',
+			lifecycle: 'active', tenant_id: TENANT,
+		})
+		: null
+	if (id(groupPlan)) {
+		await seed('group-plan-subgroup', { field: 'name', value: 'Intensief (demo)' }, {
+			groupPlanId: id(groupPlan), name: 'Intensief (demo)', instructieniveau: 'intensief',
+			learnerIds: ['demo-learner-2', 'demo-learner-3'],
+			differentiatedGoal: 'Technisch lezen op AVI-E4 met verlengde instructie.',
+			approach: 'Dagelijks 20 minuten verlengde instructie in een kleine kring.',
+			tenant_id: TENANT,
+		})
+	}
+
 	return counts
 }
 
