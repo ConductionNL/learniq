@@ -42,8 +42,7 @@ const ITEM_REVISION_FLAG_DETAIL_URL =
 const ITEM_ANALYSIS_URL =
 	'/index.php/apps/learniq/assessments/items/e2e-smoke-placeholder/analysis'
 const ITEM_STATISTICS_URL = '/index.php/apps/learniq/assessments/item-statistics'
-const ASSESSMENT_RELIABILITY_URL =
-	'/index.php/apps/learniq/assessments/reliability'
+const ASSESSMENT_RELIABILITY_URL = '/index.php/apps/learniq/assessments/reliability'
 
 function collectFatalErrors(page: import('@playwright/test').Page): string[] {
 	const errors: string[] = []

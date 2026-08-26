@@ -32,8 +32,7 @@
 import { test, expect } from '../fixtures'
 
 const PORTFOLIOS_INDEX_URL = '/index.php/apps/learniq/eportfolio/portfolios'
-const PORTFOLIO_TEMPLATES_INDEX_URL =
-	'/index.php/apps/learniq/eportfolio/templates'
+const PORTFOLIO_TEMPLATES_INDEX_URL = '/index.php/apps/learniq/eportfolio/templates'
 const PORTFOLIO_ENTRIES_INDEX_URL = '/index.php/apps/learniq/eportfolio/entries'
 
 /**
