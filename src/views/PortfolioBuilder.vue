@@ -421,7 +421,7 @@ export default {
 
 				if (this.portfolio.templateId) {
 					this.template = await this.fetchObject(
-						'PortfolioTemplate',
+						'portfolio-template',
 						this.portfolio.templateId,
 					)
 				}
@@ -521,7 +521,7 @@ export default {
 		 */
 		async loadEntries(portfolioId) {
 			this.entries = await this.fetchList(
-				'PortfolioEntry',
+				'portfolio-entry',
 				`filters[portfolioId]=${portfolioId}&_limit=100`,
 			)
 		},
@@ -557,7 +557,7 @@ export default {
 					}))
 				} else if (kind === 'werkproces-assessment') {
 					const rows = await this.fetchList(
-						'WerkprocesAssessment',
+						kind,
 						`filters[learnerId]=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({
@@ -566,7 +566,7 @@ export default {
 					}))
 				} else if (kind === 'external-training-record') {
 					const rows = await this.fetchList(
-						'ExternalTrainingRecord',
+						kind,
 						`filters[learnerId]=${uid}&_limit=100`,
 					)
 					this.pickerOptions = rows.map((r) => ({

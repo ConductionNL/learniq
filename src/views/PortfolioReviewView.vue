@@ -180,12 +180,15 @@ import { generateUrl } from '@nextcloud/router'
  */
 const REFERENCE_SCHEMAS = {
 	submission: { schema: 'Submission', idField: 'submissionId' },
+	// `schema` is the OpenRegister SLUG — the URL segment resolves by
+	// lower(slug), so a multi-word title such as "WerkprocesAssessment" 404s.
+	// The map key already IS the slug for these two.
 	'werkproces-assessment': {
-		schema: 'WerkprocesAssessment',
+		schema: 'werkproces-assessment',
 		idField: 'werkprocesAssessmentId',
 	},
 	'external-training-record': {
-		schema: 'ExternalTrainingRecord',
+		schema: 'external-training-record',
 		idField: 'externalTrainingRecordId',
 	},
 	credential: { schema: 'Credential', idField: 'credentialId' },
@@ -274,7 +277,7 @@ export default {
 				this.gradeValue = this.portfolio.gradeValue ?? null
 
 				this.entries = await this.fetchList(
-					'PortfolioEntry',
+					'portfolio-entry',
 					`filters[portfolioId]=${portfolioId}&_limit=100`,
 				)
 				await this.resolveEntryReferences()

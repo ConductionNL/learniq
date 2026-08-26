@@ -312,12 +312,12 @@ export default {
 			this.error = null
 			try {
 				this.subgroup = await this.fetchObject(
-					'GroupPlanSubgroup',
+					'group-plan-subgroup',
 					this.subgroupId,
 				)
 				if (this.subgroup) {
 					this.activeLearningPlans = await this.fetchSchema(
-						'LearningPlan',
+						'learning-plan',
 						'lifecycle=active&_limit=500',
 					)
 				} else {
