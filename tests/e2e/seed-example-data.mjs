@@ -519,6 +519,13 @@ async function seedObjects(presentSlugs) {
 	// which ReportPeriodComposeGuard reads directly. So a period is made
 	// "locked" by giving it a lockDate in the PAST; setting isLocked would
 	// write a field the schema does not have.
+	//
+	// ⚠️ P1 IS LOAD-BEARING EVEN THOUGH NOTHING REFERENCES THE BINDING. Two
+	// scenarios DISCOVER it by shape — "an open + isLocked ReportPeriod" and
+	// the ReportPeriodLockGuard one, which then looks for a concept GradeEntry
+	// whose `period` matches its `periodCode` ('P1'). Deleting this because the
+	// variable looks unused would take both of them out.
+	// eslint-disable-next-line no-unused-vars
 	const periodLocked = (id(plan) && id(cohort))
 		? await seed('report-period', { field: 'periodCode', value: 'P1' }, {
 			name: 'Rapportperiode 1 (demo)', academicYear: '2026', periodCode: 'P1',
@@ -558,9 +565,25 @@ async function seedObjects(presentSlugs) {
 	}
 
 	// ReportCards, one per lifecycle state the review surface is asserted in.
-	if (id(periodLocked)) {
+	//
+	// ⚠️ ALL OF THEM HANG OFF THE **COMPOSED** PERIOD, NOT THE LOCKED ONE.
+	// RapportvergaderingReviewView renders the card grid inside a `v-else`:
+	//
+	//     v-if="period.lifecycle === 'open'"   -> "not composed yet" + Compose
+	//     <template v-else>                    -> the grid, with Finalise/Reopen
+	//
+	// so a card attached to an OPEN period is invisible no matter how correct
+	// the card itself is — the review page shows the compose prompt instead and
+	// the scenarios fail on `element(s) not found`. The card LIST query is not
+	// lifecycle-filtered, which is what made this look like a data problem at
+	// first; the gate is in the template.
+	//
+	// It is also simply what the domain says: cards come INTO existence by
+	// composition, so a card on a period that has not been composed is not a
+	// state the app can reach.
+	if (id(periodComposed)) {
 		await seed('report-card', { field: 'learnerId', value: 'demo-learner-1' }, {
-			learnerId: 'demo-learner-1', reportPeriodId: id(periodLocked),
+			learnerId: 'demo-learner-1', reportPeriodId: id(periodComposed),
 			mentorComment: '', lifecycle: 'rapportvergadering-review', tenant_id: TENANT,
 			...(id(cohort) ? { cohortId: id(cohort) } : {}),
 		})
@@ -578,7 +601,7 @@ async function seedObjects(presentSlugs) {
 		// naming a real platform limitation is worth more than a green one that
 		// asserts nothing.
 		await seed('report-card', { field: 'learnerId', value: 'demo-learner-2' }, {
-			learnerId: 'demo-learner-2', reportPeriodId: id(periodLocked),
+			learnerId: 'demo-learner-2', reportPeriodId: id(periodComposed),
 			mentorComment: 'Goede vooruitgang dit rapport.', lifecycle: 'finalised',
 			composedAt: '2026-12-20T12:00:00Z', tenant_id: TENANT,
 			...(id(cohort) ? { cohortId: id(cohort) } : {}),
