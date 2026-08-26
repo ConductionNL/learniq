@@ -143,7 +143,13 @@ export default {
 		 * projecting it, that becomes the single source and this stops
 		 * recomputing.
 		 *
+		 * The requirement defines locked as "`lockDate` is set AND has passed
+		 * `@now`" and mandates that the GUARDS read `isLocked` directly — it
+		 * says nothing about this dialog, which is why reading the same field
+		 * here, with no fallback, went unnoticed.
+		 *
 		 * @return {boolean}
+		 * @spec openspec/specs/report-card/spec.md#requirement-lock-date-is-enforced-by-a-materialised-calculation-and-guards-not-an-automatic-transition
 		 */
 		isLocked() {
 			if (!this.period) {
