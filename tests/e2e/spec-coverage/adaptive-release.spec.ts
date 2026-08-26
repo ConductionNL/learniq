@@ -91,8 +91,12 @@ async function openLessonPlayer(
 	courseId: string,
 	lessonId: string,
 ) {
+	// ⚠️ NO `#` — HISTORY mode router. With the hash this resolved to
+	// `/#/courses/…/play`, matched no declared route, and the catch-all
+	// redirected to the DASHBOARD, so every assertion here was made against the
+	// dashboard rather than the lesson player.
 	await page.goto(
-		`/index.php/apps/learniq/#/courses/${courseId}/lessons/${lessonId}/play`,
+		`/index.php/apps/learniq/courses/${courseId}/lessons/${lessonId}/play`,
 	)
 	await page.waitForSelector('body', { timeout: 15_000 })
 	await page.waitForLoadState('domcontentloaded')

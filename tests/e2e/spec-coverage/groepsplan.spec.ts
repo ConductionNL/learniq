@@ -27,15 +27,26 @@
 import { test, expect } from '../fixtures'
 import { requireFixture } from '../seeded'
 
-const GROUP_PLANS_INDEX_URL = '/index.php/apps/learniq/#/group-plans'
+// ⚠️ NO `#` — the router is HISTORY mode, not hash mode.
+//
+// src/main.js builds it with `createWebHistory(generateUrl('/apps/learniq'))`.
+// vue-router strips that base from `location.pathname` and appends the
+// UNTOUCHED hash, so `/index.php/apps/learniq/#/group-plans/...` resolved to
+// `/#/group-plans/...`, matched no declared route, and fell through
+// `routesFromManifest`'s `/:pathMatch(.*)*` catch-all — which `redirect: '/'`s
+// to the DASHBOARD. That is why the subgroup scenario asserted /learning plan/i
+// against a page whose text begins "Skip to app navigation … Learniq": it was
+// reading the dashboard. Invisible while the scenario skipped for want of a
+// fixture, because it never navigated at all.
+const GROUP_PLANS_INDEX_URL = '/index.php/apps/learniq/group-plans'
 const GROUP_PLAN_DETAIL_URL =
-	'/index.php/apps/learniq/#/group-plans/00000000-0000-0000-0000-000000000000'
+	'/index.php/apps/learniq/group-plans/00000000-0000-0000-0000-000000000000'
 const GROUP_PLAN_SUBGROUP_DETAIL_URL =
-	'/index.php/apps/learniq/#/group-plans/00000000-0000-0000-0000-000000000000/subgroups/00000000-0000-0000-0000-000000000000'
+	'/index.php/apps/learniq/group-plans/00000000-0000-0000-0000-000000000000/subgroups/00000000-0000-0000-0000-000000000000'
 const GROUP_PLAN_EVALUATION_DETAIL_URL =
-	'/index.php/apps/learniq/#/group-plans/00000000-0000-0000-0000-000000000000/evaluations/00000000-0000-0000-0000-000000000000'
+	'/index.php/apps/learniq/group-plans/00000000-0000-0000-0000-000000000000/evaluations/00000000-0000-0000-0000-000000000000'
 const LEARNER_CONTEXT_URL =
-	'/index.php/apps/learniq/#/group-plans/subgroup-learner-context'
+	'/index.php/apps/learniq/group-plans/subgroup-learner-context'
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so

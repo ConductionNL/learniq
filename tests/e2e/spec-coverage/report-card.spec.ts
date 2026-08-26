@@ -137,7 +137,22 @@ function fatalOnly(errors: string[]): string[] {
 }
 
 async function openRoute(page: import('@playwright/test').Page, route: string) {
-	await page.goto(`/index.php/apps/learniq/#${route}`)
+	// ⚠️ NO `#` — the router is HISTORY mode, not hash mode.
+	//
+	// src/main.js builds it with `createWebHistory(generateUrl('/apps/learniq'))`.
+	// vue-router strips that base from `location.pathname` and appends the
+	// UNTOUCHED hash, so `/index.php/apps/learniq/#/report-periods/<id>/review`
+	// resolved to `/#/report-periods/<id>/review`, matched no declared route,
+	// and fell through `routesFromManifest`'s `/:pathMatch(.*)*` catch-all —
+	// which `redirect: '/'`s to the DASHBOARD.
+	//
+	// That is why every scenario here reported `element(s) not found` for
+	// Finalise / Reopen / "Compose report cards…": the page under assertion was
+	// the dashboard, not the review surface. It was invisible for as long as
+	// these scenarios skipped for want of a fixture — they never navigated at
+	// all. talk-classroom-spaces, course-authoring-ux, detail-pages,
+	// index-pages and accessibility-conformance already carry this warning.
+	await page.goto(`/index.php/apps/learniq${route}`)
 	await page.waitForSelector('body', { timeout: 15_000 })
 	await page.waitForLoadState('domcontentloaded')
 }
