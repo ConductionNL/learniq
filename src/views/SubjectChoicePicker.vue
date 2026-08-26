@@ -360,12 +360,12 @@ export default {
 				const [plansResp, coursesResp] = await Promise.all([
 					axios.get(
 						generateUrl(
-							'/apps/openregister/api/objects/learniq/curriculum-plan?limit=200',
+							'/apps/openregister/api/objects/learniq/curriculum-plan?_limit=200',
 						),
 					),
 					axios.get(
 						generateUrl(
-							'/apps/openregister/api/objects/learniq/course?limit=500',
+							'/apps/openregister/api/objects/learniq/course?_limit=500',
 						),
 					),
 				])
@@ -408,13 +408,13 @@ export default {
 				const [childrenResp, selfResp] = await Promise.all([
 					axios.get(
 						generateUrl(
-							'/apps/openregister/api/objects/learniq/learner-profile?parentIds={uid}&limit=50',
+							'/apps/openregister/api/objects/learniq/learner-profile?parentIds={uid}&_limit=50',
 							{ uid },
 						),
 					),
 					axios.get(
 						generateUrl(
-							'/apps/openregister/api/objects/learniq/learner-profile?ncUserId={uid}&limit=1',
+							'/apps/openregister/api/objects/learniq/learner-profile?ncUserId={uid}&_limit=1',
 							{ uid },
 						),
 					),

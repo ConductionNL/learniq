@@ -13,7 +13,7 @@ import { test, expect } from './fixtures'
  * view" — was wrong on both counts, and it was rationalising a bug rather than
  * describing one. There is no hash route: src/main.js builds the router with
  * `createWebHistory(generateUrl('/apps/learniq'))`. Navigating to
- * `/index.php/apps/learniq/#/credentials/…/verify` therefore resolved to a
+ * `/index.php/apps/learniq/credentials/…/verify` therefore resolved to a
  * location matching no route at all, so the app body rendered EMPTY — every run,
  * not "some runs", and not a timing gap. The URLs below use the plain path form.
  */

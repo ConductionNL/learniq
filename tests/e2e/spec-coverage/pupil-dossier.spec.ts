@@ -29,16 +29,16 @@
  */
 import { test, expect } from '../fixtures'
 
-const DOSSIER_NOTES_INDEX_URL = '/index.php/apps/learniq/#/pupil-dossier/notes'
+const DOSSIER_NOTES_INDEX_URL = '/index.php/apps/learniq/pupil-dossier/notes'
 const BEHAVIOUR_INCIDENTS_INDEX_URL =
-	'/index.php/apps/learniq/#/pupil-dossier/incidents'
+	'/index.php/apps/learniq/pupil-dossier/incidents'
 const WELLBEING_CHECKINS_INDEX_URL =
-	'/index.php/apps/learniq/#/pupil-dossier/check-ins'
+	'/index.php/apps/learniq/pupil-dossier/check-ins'
 const BEHAVIOUR_INCIDENT_DETAIL_URL =
-	'/index.php/apps/learniq/#/pupil-dossier/incidents/00000000-0000-0000-0000-000000000000'
-const TIMELINE_URL = '/index.php/apps/learniq/#/pupil-dossier/timeline'
+	'/index.php/apps/learniq/pupil-dossier/incidents/00000000-0000-0000-0000-000000000000'
+const TIMELINE_URL = '/index.php/apps/learniq/pupil-dossier/timeline'
 const TIMELINE_WITH_LEARNER_URL =
-	'/index.php/apps/learniq/#/pupil-dossier/timeline?learnerId=00000000-0000-0000-0000-000000000000'
+	'/index.php/apps/learniq/pupil-dossier/timeline?learnerId=00000000-0000-0000-0000-000000000000'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise

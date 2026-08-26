@@ -251,7 +251,7 @@ export default {
 						generateUrl(
 							'/apps/openregister/api/objects/learniq/order-line?orderId='
 								+ this.orderId
-								+ '&limit=100',
+								+ '&_limit=100',
 						),
 					),
 				])

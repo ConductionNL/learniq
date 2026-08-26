@@ -289,7 +289,7 @@ export default {
 				const [coursesResp, campaignsResp] = await Promise.all([
 					fetch(
 						generateUrl(
-							'/apps/openregister/api/objects/learniq/Course?limit=500',
+							'/apps/openregister/api/objects/learniq/Course?_limit=500',
 						),
 						{
 							headers: {
@@ -300,7 +300,7 @@ export default {
 					),
 					fetch(
 						generateUrl(
-							'/apps/openregister/api/objects/learniq/evaluation-campaign?limit=200',
+							'/apps/openregister/api/objects/learniq/evaluation-campaign?_limit=200',
 						),
 						{
 							headers: {
@@ -374,7 +374,7 @@ export default {
 				const [scoresResp, responsesResp] = await Promise.all([
 					fetch(
 						generateUrl(
-							`/apps/openregister/api/objects/learniq/course-quality-score?courseId=${courseId}&limit=100`,
+							`/apps/openregister/api/objects/learniq/course-quality-score?courseId=${courseId}&_limit=100`,
 						),
 						{
 							headers: {
@@ -385,7 +385,7 @@ export default {
 					),
 					fetch(
 						generateUrl(
-							`/apps/openregister/api/objects/learniq/course-evaluation-response?courseId=${courseId}&limit=200`,
+							`/apps/openregister/api/objects/learniq/course-evaluation-response?courseId=${courseId}&_limit=200`,
 						),
 						{
 							headers: {

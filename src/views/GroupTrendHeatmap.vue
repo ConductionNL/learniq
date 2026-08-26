@@ -227,7 +227,7 @@ export default {
 				const [cohortsResp, entriesResp] = await Promise.all([
 					fetch(
 						generateUrl(
-							'/apps/openregister/api/objects/learniq/Cohort?limit=200',
+							'/apps/openregister/api/objects/learniq/Cohort?_limit=200',
 						),
 						{
 							headers: {
@@ -238,7 +238,7 @@ export default {
 					),
 					fetch(
 						generateUrl(
-							'/apps/openregister/api/objects/learniq/grade-entry?limit=500&lifecycle=published',
+							'/apps/openregister/api/objects/learniq/grade-entry?_limit=500&lifecycle=published',
 						),
 						{
 							headers: {
