@@ -489,13 +489,21 @@ async function seedObjects(presentSlugs) {
 		courseId: id(courseSub) ?? id(courseRoot), name: 'Demo lesson 7 (cmi5)', order: 7,
 		contentType: 'cmi5', lifecycle: 'published', tenant_id: TENANT,
 	})
-	// ⚠️ NO `lessonId`, DELIBERATELY. Sending one made OpenRegister refuse the
-	// whole create with `403 Unresolved reference: schema:///Lesson#` — it does
-	// not resolve a $ref that sits inside an ARRAY ITEM, even when the target
-	// object exists. `releaseConditions.items.required` is `["kind"]` alone, so
-	// the condition is valid without it, and the scenario reads `kind` only.
-	// The prerequisite's identity is not what this fixture is for; the presence
-	// of a lesson-completed gate is.
+	// ⚠️ NO `lessonId`, AND THIS GATE THEREFORE DOES NOT GATE.
+	//
+	// Sending one made OpenRegister refuse the whole create with
+	// `403 Unresolved reference: schema:///Lesson#` — it does not resolve a
+	// $ref inside an ARRAY ITEM, even a self-referential one, even when the
+	// target exists (ConductionNL/openregister#2179).
+	//
+	// Dropping it makes the write succeed, because
+	// `releaseConditions.items.required` is `["kind"]` alone. But
+	// LessonReleaseEvaluator::evaluateLessonCompletedCondition() returns
+	// `blocked => false` immediately when `lessonId` is empty, so this Lesson
+	// is never actually locked. The row exists to keep the discovery predicate
+	// honest — it is NOT a working release gate, and the scenario that needs a
+	// real one is `test.fixme` in adaptive-release.spec.ts rather than passing
+	// against this stand-in.
 	await seed('lesson', { field: 'name', value: 'Demo lesson 8 (gated on a prerequisite)' }, {
 		courseId: id(courseSub) ?? id(courseRoot), name: 'Demo lesson 8 (gated on a prerequisite)', order: 8,
 		contentType: 'text', lifecycle: 'published', tenant_id: TENANT,

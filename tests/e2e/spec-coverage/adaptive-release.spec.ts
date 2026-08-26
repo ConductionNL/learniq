@@ -100,7 +100,33 @@ async function openLessonPlayer(
 
 test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate locked state', () => {
 	// @e2e openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
-	test('lesson-locked-until-prerequisite-lesson-completed', async ({
+	//
+	// ⚠️ BLOCKED BY ConductionNL/openregister#2179, in a way worth spelling out
+	// because the fixture LOOKS present.
+	//
+	// This needs a Lesson whose `releaseConditions` carries a `lesson-completed`
+	// entry POINTING AT a prerequisite. `lessonId` is a `$ref` inside an array
+	// item, and OpenRegister refuses that write with
+	// `403 Unresolved reference: schema:///Lesson#` — self-referential, but
+	// refused all the same.
+	//
+	// The seeder can drop `lessonId` (items.required is `["kind"]` alone) and
+	// the Lesson then writes successfully — which is exactly the trap.
+	// LessonReleaseEvaluator::evaluateLessonCompletedCondition() opens with:
+	//
+	//     $lessonId = (string)($condition['lessonId'] ?? '');
+	//     if ($lessonId === '') { return ['blocked' => false, …]; }
+	//
+	// so a condition with no `lessonId` is treated as NOT BLOCKING. The fixture
+	// satisfies the discovery predicate (`kind === 'lesson-completed'`) while
+	// being unable to lock anything, and the page renders normally — this test
+	// failed on `toContain("not available")` against a perfectly ordinary
+	// lesson page.
+	//
+	// So the gate cannot be seeded through the object API at all, and a
+	// toothless stand-in is worse than none: it would let a green run claim
+	// coverage of locking. fixme until #2179 lands.
+	test.fixme('lesson-locked-until-prerequisite-lesson-completed', async ({
 		loggedInPage: page,
 	}) => {
 		const lesson = await findLesson(
