@@ -30,17 +30,53 @@
  * convention: every scenario discovers a real ReportPeriod/ReportCard/
  * GradeEntry matching the required shape via the OpenRegister object API
  * rather than fabricating fixtures through raw API POSTs (no spec-coverage
- * test in this app creates objects that way). ReportPeriod/ReportCard both
- * declare `x-openregister-seed: []` (no seed data), so every data-dependent
- * scenario below is expected to SKIP (not fail) on a freshly-seeded dev
- * instance until a school has actually composed a report period — the
- * skip path itself proves the declarative manifest routes resolve without a
- * fatal error, which is the one thing this suite can assert unconditionally.
+ * test in this app creates objects that way).
+ *
+ * ⚠️ A MISSING FIXTURE IS NO LONGER A SKIP. This file used to say that every
+ * data-dependent scenario was "expected to SKIP (not fail)" until a school had
+ * composed a report period — and that is precisely how nine of them stopped
+ * covering anything without a single red run. `test.skip(!row, …)` cannot tell
+ * "this instance was never seeded" from "the seeder owes this row and did not
+ * make it", and it reports the second as a pass.
+ *
+ * The seeder now creates these periods and cards (see
+ * tests/e2e/seed-example-data.mjs), and `requireFixture()` skips only on an
+ * UNSEEDED instance while failing on a seeded one. If a scenario here goes red,
+ * the answer is to seed the fixture or fix why the seeder cannot — not to
+ * restore the skip.
  *
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
 import { test, expect } from '../fixtures'
 import { requireFixture } from '../seeded'
+
+/**
+ * Whether a ReportPeriod is locked.
+ *
+ * ⚠️ `p.isLocked === true` NEVER MATCHES ANYTHING READ BACK FROM THE API.
+ * `isLocked` is a declared `x-openregister-calculations` entry with
+ * `materialise: true`, and it really is computed — a create response carries
+ * `isLocked: true` for a past lockDate. It is just never returned again:
+ * measured on a live instance, BOTH the list endpoint and the single-object
+ * GET omit the field. Filtering a list on it therefore matches zero rows
+ * forever, which the old `test.skip(!period, …)` reported as a pass.
+ *
+ * So this asks the question the way ReportPeriodComposeGuard answers it —
+ * `lockDate` set AND in the past — while still preferring the materialised
+ * value if OpenRegister ever starts projecting it.
+ *
+ * @param p The ReportPeriod row.
+ * @return Whether the period counts as locked.
+ */
+function isLockedPeriod(p: any): boolean {
+	if (p?.isLocked === true) {
+		return true
+	}
+
+	const lockedAt = Date.parse(p?.lockDate ?? '')
+
+	return Number.isNaN(lockedAt) === false && lockedAt < Date.now()
+}
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
@@ -163,7 +199,7 @@ test.describe('report-card-composer — ReportPeriod scope and lock-gated compos
 		const period = await findRow(
 			page,
 			REPORT_PERIOD_LIST_API,
-			(p) => p.lifecycle === 'open' && p.isLocked === true,
+			(p) => p.lifecycle === 'open' && isLockedPeriod(p),
 		)
 		// ComposeReportPeriodModal only enables Compose when the period is locked.
 		requireFixture(period, 'an open + isLocked ReportPeriod')
@@ -352,10 +388,8 @@ test.describe('report-card-composer — grading spec delta (ReportPeriodLockGuar
 	test('teacher-cannot-publish-grade-for-locked-report-period', async ({
 		loggedInPage: page,
 	}) => {
-		const lockedPeriod = await findRow(
-			page,
-			REPORT_PERIOD_LIST_API,
-			(p) => p.isLocked === true,
+		const lockedPeriod = await findRow(page, REPORT_PERIOD_LIST_API, (p) =>
+			isLockedPeriod(p),
 		)
 		requireFixture(lockedPeriod, 'an isLocked ReportPeriod')
 

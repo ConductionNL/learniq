@@ -489,16 +489,18 @@ async function seedObjects(presentSlugs) {
 		courseId: id(courseSub) ?? id(courseRoot), name: 'Demo lesson 7 (cmi5)', order: 7,
 		contentType: 'cmi5', lifecycle: 'published', tenant_id: TENANT,
 	})
-	// `lessonId` carries a $ref, and OR refuses an explicit null on a
-	// $ref-bearing property while accepting an ABSENT key — so the condition is
-	// only added once there is a real lesson to point at.
-	if (id(lessonPlain)) {
-		await seed('lesson', { field: 'name', value: 'Demo lesson 8 (gated on a prerequisite)' }, {
-			courseId: id(courseSub) ?? id(courseRoot), name: 'Demo lesson 8 (gated on a prerequisite)', order: 8,
-			contentType: 'text', lifecycle: 'published', tenant_id: TENANT,
-			releaseConditions: [{ kind: 'lesson-completed', lessonId: id(lessonPlain) }],
-		})
-	}
+	// ⚠️ NO `lessonId`, DELIBERATELY. Sending one made OpenRegister refuse the
+	// whole create with `403 Unresolved reference: schema:///Lesson#` — it does
+	// not resolve a $ref that sits inside an ARRAY ITEM, even when the target
+	// object exists. `releaseConditions.items.required` is `["kind"]` alone, so
+	// the condition is valid without it, and the scenario reads `kind` only.
+	// The prerequisite's identity is not what this fixture is for; the presence
+	// of a lesson-completed gate is.
+	await seed('lesson', { field: 'name', value: 'Demo lesson 8 (gated on a prerequisite)' }, {
+		courseId: id(courseSub) ?? id(courseRoot), name: 'Demo lesson 8 (gated on a prerequisite)', order: 8,
+		contentType: 'text', lifecycle: 'published', tenant_id: TENANT,
+		releaseConditions: [{ kind: 'lesson-completed' }],
+	})
 	await seed('lesson', { field: 'name', value: 'Demo lesson 9 (drip-released)' }, {
 		courseId: id(courseSub) ?? id(courseRoot), name: 'Demo lesson 9 (drip-released)', order: 9,
 		contentType: 'text', lifecycle: 'published', availableAfterDays: 7, tenant_id: TENANT,
@@ -539,13 +541,13 @@ async function seedObjects(presentSlugs) {
 	// date is far enough out that this fixture does not quietly expire and take
 	// the scenario with it — a fixture that stops matching on a given date is
 	// the same silent hole this whole block exists to close.
-	const futureGrade = (id(plan) && id(scale))
-		? await seed('grade-entry', { field: 'componentId', value: 'c-future' }, {
+	if (id(plan) && id(scale)) {
+		await seed('grade-entry', { field: 'componentId', value: 'c-future' }, {
 			learnerId: 'demo-learner-1', curriculumPlanId: id(plan), gradeScaleId: id(scale),
 			value: 8, period: 'P1', componentId: 'c-future', weight: 1,
 			lifecycle: 'published', visibleFrom: '2099-01-01T00:00:00Z', tenant_id: TENANT,
 		})
-		: null
+	}
 
 	// ReportCards, one per lifecycle state the review surface is asserted in.
 	if (id(periodLocked)) {
@@ -554,22 +556,24 @@ async function seedObjects(presentSlugs) {
 			mentorComment: '', lifecycle: 'rapportvergadering-review', tenant_id: TENANT,
 			...(id(cohort) ? { cohortId: id(cohort) } : {}),
 		})
-		// The finalised card CITES the not-yet-visible grade: one scenario looks
-		// for a finalised card, and another for a finalised card whose
-		// subjectGrades reference that specific entry.
+		// ⚠️ NO `subjectGrades`. Sending it made OpenRegister refuse the create
+		// with `403 Unresolved reference: schema:///CurriculumPlan#` — the same
+		// array-item $ref limitation that stopped the gated Lesson above, and
+		// here it cannot be worked around: `subjectGrades.items.required` is
+		// `["curriculumPlanId"]`, so a subject row without it is invalid too.
+		//
+		// The finalised-card scenario only reads `lifecycle`, so it is served.
+		// The narrower scenario — a finalised card CITING the not-yet-visible
+		// GradeEntry through `subjectGrades[].sourceGradeEntryIds` — cannot be
+		// seeded through this API at all until that $ref resolution is fixed,
+		// and is left failing rather than papered over with a skip. A red test
+		// naming a real platform limitation is worth more than a green one that
+		// asserts nothing.
 		await seed('report-card', { field: 'learnerId', value: 'demo-learner-2' }, {
 			learnerId: 'demo-learner-2', reportPeriodId: id(periodLocked),
 			mentorComment: 'Goede vooruitgang dit rapport.', lifecycle: 'finalised',
 			composedAt: '2026-12-20T12:00:00Z', tenant_id: TENANT,
 			...(id(cohort) ? { cohortId: id(cohort) } : {}),
-			...(id(plan)
-				? {
-					subjectGrades: [{
-						curriculumPlanId: id(plan), periodAverage: 7.5, passed: true,
-						...(id(futureGrade) ? { sourceGradeEntryIds: [id(futureGrade)] } : {}),
-					}],
-				}
-				: {}),
 		})
 	}
 	if (id(periodComposed)) {

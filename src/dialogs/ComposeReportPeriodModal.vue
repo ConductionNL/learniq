@@ -123,13 +123,46 @@ export default {
 
 	computed: {
 		/**
-		 * Materialised `isLocked` calculation, read directly off the fetched
-		 * ReportPeriod — mirrors ReportPeriodComposeGuard's own read.
+		 * Whether this period is locked, and therefore composable.
+		 *
+		 * ⚠️ READING `isLocked` ALONE DISABLED THIS BUTTON FOREVER. The field is
+		 * a declared `x-openregister-calculations` entry with `materialise:
+		 * true`, and it IS computed — the create response carries
+		 * `isLocked: true` for a past lockDate. It is simply never returned
+		 * again: measured on a live instance, both the single-object GET and
+		 * the list endpoint omit it entirely. So `period.isLocked` was
+		 * `undefined` on every fetch, `=== true` was always false, and Compose
+		 * could not be clicked no matter how long ago the period locked.
+		 *
+		 * ReportPeriodComposeGuard already carries the same fallback and says
+		 * why — it mirrors the declared expression exactly (`lockDate` set AND
+		 * `lockDate` < now). The two sides now agree instead of one of them
+		 * trusting a field that does not survive a read.
+		 *
+		 * Kept preferring the materialised value: when OpenRegister does start
+		 * projecting it, that becomes the single source and this stops
+		 * recomputing.
 		 *
 		 * @return {boolean}
 		 */
 		isLocked() {
-			return !!(this.period && this.period.isLocked === true)
+			if (!this.period) {
+				return false
+			}
+
+			if (this.period.isLocked === true) {
+				return true
+			}
+
+			const lockDate = this.period.lockDate
+
+			if (lockDate === null || lockDate === undefined || lockDate === '') {
+				return false
+			}
+
+			const lockedAt = Date.parse(lockDate)
+
+			return Number.isNaN(lockedAt) === false && lockedAt < Date.now()
 		},
 
 		/**

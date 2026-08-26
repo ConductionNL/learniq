@@ -43,8 +43,16 @@ const LEARNER_CONTEXT_URL =
 // `_limit`, NOT `limit` — an unrecognised OpenRegister query parameter is
 // applied as a PROPERTY FILTER rather than ignored, so `?limit=200` returns
 // HTTP 200 with an empty result set that reads as "nothing seeded".
+// ⚠️ THE SLUG, NOT THE SCHEMA NAME. This addressed `GroupPlanSubgroup`, and
+// OpenRegister resolves objects by SLUG — `group-plan-subgroup`. Slugs are
+// case-insensitive, but case-insensitivity does not insert hyphens, so the
+// PascalCase form resolved to nothing and the endpoint answered HTTP 200 with
+// an empty result set. Indistinguishable from "the seeder made none", which is
+// exactly how this scenario went unnoticed: the old `test.skip(!subgroup, …)`
+// read that emptiness as "not seeded" and reported a pass. Every other list
+// constant in this suite already used the slug form.
 const GROUP_PLAN_SUBGROUP_LIST_API =
-	'/index.php/apps/openregister/api/objects/learniq/GroupPlanSubgroup?_limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/group-plan-subgroup?_limit=200'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise
