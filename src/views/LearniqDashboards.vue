@@ -25,21 +25,6 @@
 			:widgets="widgets"
 			:layout="layout">
 			<!-- Admin view -->
-			<template #widget-kpi-courses>
-				<KpiCoursesWidget />
-			</template>
-			<template #widget-kpi-cohorts>
-				<KpiCohortsWidget />
-			</template>
-			<template #widget-kpi-learners>
-				<KpiLearnersWidget />
-			</template>
-			<template #widget-kpi-active-enrolments>
-				<KpiActiveEnrolmentsWidget />
-			</template>
-			<template #widget-kpi-open-flags>
-				<KpiOpenFlagsWidget />
-			</template>
 			<template #widget-manage-courses>
 				<ManageCoursesWidget />
 			</template>
@@ -83,12 +68,6 @@
 					indexRoute="/cohorts"
 					:limit="6" />
 			</template>
-			<template #widget-kpi-engagement-score>
-				<KpiEngagementScoreWidget />
-			</template>
-			<template #widget-kpi-engagement-flags>
-				<KpiEngagementRiskFlagsWidget />
-			</template>
 
 			<!-- Student view -->
 			<template #widget-my-mandatory-training>
@@ -104,13 +83,6 @@
 <script>
 import { CnDashboardPage } from '@conduction/nextcloud-vue'
 import { loadState } from '@nextcloud/initial-state'
-import KpiActiveEnrolmentsWidget from './widgets/KpiActiveEnrolmentsWidget.vue'
-import KpiCohortsWidget from './widgets/KpiCohortsWidget.vue'
-import KpiCoursesWidget from './widgets/KpiCoursesWidget.vue'
-import KpiEngagementRiskFlagsWidget from './widgets/KpiEngagementRiskFlagsWidget.vue'
-import KpiEngagementScoreWidget from './widgets/KpiEngagementScoreWidget.vue'
-import KpiLearnersWidget from './widgets/KpiLearnersWidget.vue'
-import KpiOpenFlagsWidget from './widgets/KpiOpenFlagsWidget.vue'
 import KpiPointsLevelWidget from './widgets/KpiPointsLevelWidget.vue'
 import ManageCohortsWidget from './widgets/ManageCohortsWidget.vue'
 import ManageCoursesWidget from './widgets/ManageCoursesWidget.vue'
@@ -125,13 +97,6 @@ export default {
 
 	components: {
 		CnDashboardPage,
-		KpiCoursesWidget,
-		KpiCohortsWidget,
-		KpiLearnersWidget,
-		KpiActiveEnrolmentsWidget,
-		KpiOpenFlagsWidget,
-		KpiEngagementScoreWidget,
-		KpiEngagementRiskFlagsWidget,
 		ManageCoursesWidget,
 		ManageCohortsWidget,
 		ManageProgrammesWidget,
@@ -228,27 +193,76 @@ export default {
 					{
 						id: 'kpi-courses',
 						title: this.t('learniq', 'Courses'),
-						type: 'custom',
+						// Declared, not written. `type: 'stat'` resolves to the shared
+						// CnStatWidget, which aggregates SERVER-side; the wrappers this
+						// replaces each did their own fetch and swallowed failure into a
+						// zero. `schema` is the OpenRegister SLUG.
+						type: 'stat',
+						content: {
+							label: this.t('learniq', 'Courses'),
+							variant: 'primary',
+							clickRoute: { path: '/courses' },
+							source: { register: 'learniq', schema: 'course', metric: 'count' },
+						},
 					},
 					{
 						id: 'kpi-cohorts',
 						title: this.t('learniq', 'Cohorts'),
-						type: 'custom',
+						// Declared, not written. `type: 'stat'` resolves to the shared
+						// CnStatWidget, which aggregates SERVER-side; the wrappers this
+						// replaces each did their own fetch and swallowed failure into a
+						// zero. `schema` is the OpenRegister SLUG.
+						type: 'stat',
+						content: {
+							label: this.t('learniq', 'Cohorts'),
+							clickRoute: { path: '/cohorts' },
+							source: { register: 'learniq', schema: 'cohort', metric: 'count' },
+						},
 					},
 					{
 						id: 'kpi-learners',
 						title: this.t('learniq', 'Learners'),
-						type: 'custom',
+						// Declared, not written. `type: 'stat'` resolves to the shared
+						// CnStatWidget, which aggregates SERVER-side; the wrappers this
+						// replaces each did their own fetch and swallowed failure into a
+						// zero. `schema` is the OpenRegister SLUG.
+						type: 'stat',
+						content: {
+							label: this.t('learniq', 'Learners'),
+							variant: 'success',
+							clickRoute: { path: '/learner-profiles' },
+							source: { register: 'learniq', schema: 'learner-profile', metric: 'count' },
+						},
 					},
 					{
 						id: 'kpi-active-enrolments',
 						title: this.t('learniq', 'Active enrolments'),
-						type: 'custom',
+						// Declared, not written. `type: 'stat'` resolves to the shared
+						// CnStatWidget, which aggregates SERVER-side; the wrappers this
+						// replaces each did their own fetch and swallowed failure into a
+						// zero. `schema` is the OpenRegister SLUG.
+						type: 'stat',
+						content: {
+							label: this.t('learniq', 'Active enrolments'),
+							variant: 'primary',
+							clickRoute: { path: '/enrolments' },
+							source: { register: 'learniq', schema: 'enrolment', metric: 'count', filter: { lifecycle: 'active' } },
+						},
 					},
 					{
 						id: 'kpi-open-flags',
 						title: this.t('learniq', 'Open attendance flags'),
-						type: 'custom',
+						// Declared, not written. `type: 'stat'` resolves to the shared
+						// CnStatWidget, which aggregates SERVER-side; the wrappers this
+						// replaces each did their own fetch and swallowed failure into a
+						// zero. `schema` is the OpenRegister SLUG.
+						type: 'stat',
+						content: {
+							label: this.t('learniq', 'Open attendance flags'),
+							variant: 'warning',
+							clickRoute: { path: '/attendance/flags' },
+							source: { register: 'learniq', schema: 'attendance-flag', metric: 'count', filter: { lifecycle: 'open' } },
+						},
 					},
 					{
 						id: 'manage-courses',
@@ -356,12 +370,31 @@ export default {
 					{
 						id: 'kpi-engagement-score',
 						title: this.t('learniq', 'Avg. engagement score'),
-						type: 'custom',
+						// Declared, not written. `type: 'stat'` resolves to the shared
+						// CnStatWidget, which aggregates SERVER-side; the wrappers this
+						// replaces each did their own fetch and swallowed failure into a
+						// zero. `schema` is the OpenRegister SLUG.
+						type: 'stat',
+						content: {
+							label: this.t('learniq', 'Avg. engagement score'),
+							clickRoute: { path: '/progress/engagement-scores' },
+							source: { register: 'learniq', schema: 'engagement-score', metric: 'avg', field: 'score' },
+						},
 					},
 					{
 						id: 'kpi-engagement-flags',
 						title: this.t('learniq', 'Open engagement flags'),
-						type: 'custom',
+						// Declared, not written. `type: 'stat'` resolves to the shared
+						// CnStatWidget, which aggregates SERVER-side; the wrappers this
+						// replaces each did their own fetch and swallowed failure into a
+						// zero. `schema` is the OpenRegister SLUG.
+						type: 'stat',
+						content: {
+							label: this.t('learniq', 'Open engagement flags'),
+							variant: 'warning',
+							clickRoute: { path: '/progress/engagement-flags' },
+							source: { register: 'learniq', schema: 'engagement-risk-flag', metric: 'count', filter: { lifecycle: 'open' } },
+						},
 					},
 					{
 						id: 'teacher-courses',

@@ -19,18 +19,6 @@
 <template>
 	<div class="learniq-domain-dashboard">
 		<CnDashboardPage :title="pageTitle" :widgets="widgets" :layout="layout">
-			<template #widget-kpi-learners>
-				<KpiLearnersWidget />
-			</template>
-			<template #widget-kpi-active-enrolments>
-				<KpiActiveEnrolmentsWidget />
-			</template>
-			<template #widget-kpi-cohorts>
-				<KpiCohortsWidget />
-			</template>
-			<template #widget-kpi-open-flags>
-				<KpiOpenFlagsWidget />
-			</template>
 			<template #widget-manage-learners>
 				<ManageListWidget
 					schema="learner-profile"
@@ -72,10 +60,6 @@
 
 <script>
 import { CnDashboardPage } from '@conduction/nextcloud-vue'
-import KpiActiveEnrolmentsWidget from './widgets/KpiActiveEnrolmentsWidget.vue'
-import KpiCohortsWidget from './widgets/KpiCohortsWidget.vue'
-import KpiLearnersWidget from './widgets/KpiLearnersWidget.vue'
-import KpiOpenFlagsWidget from './widgets/KpiOpenFlagsWidget.vue'
 import ManageListWidget from './widgets/ManageListWidget.vue'
 
 export default {
@@ -83,10 +67,6 @@ export default {
 
 	components: {
 		CnDashboardPage,
-		KpiLearnersWidget,
-		KpiActiveEnrolmentsWidget,
-		KpiCohortsWidget,
-		KpiOpenFlagsWidget,
 		ManageListWidget,
 	},
 
@@ -109,25 +89,68 @@ export default {
 		 */
 		widgets() {
 			return [
+				// KPI tiles are declared, not written. `type: 'stat'` resolves to
+				// the shared CnStatWidget through the dashboard widget registry,
+				// which counts server-side via the OpenRegister aggregation API.
+				// The wrappers these replace each re-implemented the fetch and
+				// answered `catch { this.count = 0 }`, so a dashboard whose
+				// backend was down showed four confident zeroes.
+				//
+				// `schema` is the OpenRegister SLUG. It resolves by lower(slug),
+				// so a multi-word title would 404 while a single-word one works
+				// by coincidence.
 				{
 					id: 'kpi-learners',
 					title: this.t('learniq', 'Learners'),
-					type: 'custom',
+					type: 'stat',
+					content: {
+						label: this.t('learniq', 'Learners'),
+						variant: 'success',
+						clickRoute: { path: '/learner-profiles' },
+						source: { register: 'learniq', schema: 'learner-profile', metric: 'count' },
+					},
 				},
 				{
 					id: 'kpi-active-enrolments',
 					title: this.t('learniq', 'Active enrolments'),
-					type: 'custom',
+					type: 'stat',
+					content: {
+						label: this.t('learniq', 'Active enrolments'),
+						variant: 'primary',
+						clickRoute: { path: '/enrolments' },
+						source: {
+							register: 'learniq',
+							schema: 'enrolment',
+							metric: 'count',
+							filter: { lifecycle: 'active' },
+						},
+					},
 				},
 				{
 					id: 'kpi-cohorts',
 					title: this.t('learniq', 'Cohorts'),
-					type: 'custom',
+					type: 'stat',
+					content: {
+						label: this.t('learniq', 'Cohorts'),
+						clickRoute: { path: '/cohorts' },
+						source: { register: 'learniq', schema: 'cohort', metric: 'count' },
+					},
 				},
 				{
 					id: 'kpi-open-flags',
 					title: this.t('learniq', 'Open attendance flags'),
-					type: 'custom',
+					type: 'stat',
+					content: {
+						label: this.t('learniq', 'Open attendance flags'),
+						variant: 'warning',
+						clickRoute: { path: '/attendance/flags' },
+						source: {
+							register: 'learniq',
+							schema: 'attendance-flag',
+							metric: 'count',
+							filter: { lifecycle: 'open' },
+						},
+					},
 				},
 				{
 					id: 'manage-learners',

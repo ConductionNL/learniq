@@ -19,9 +19,6 @@
 <template>
 	<div class="learniq-domain-dashboard">
 		<CnDashboardPage :title="pageTitle" :widgets="widgets" :layout="layout">
-			<template #widget-kpi-courses>
-				<KpiCoursesWidget />
-			</template>
 			<template #widget-manage-courses>
 				<ManageListWidget
 					schema="Course"
@@ -76,7 +73,6 @@
 
 <script>
 import { CnDashboardPage } from '@conduction/nextcloud-vue'
-import KpiCoursesWidget from './widgets/KpiCoursesWidget.vue'
 import ManageListWidget from './widgets/ManageListWidget.vue'
 
 export default {
@@ -84,7 +80,6 @@ export default {
 
 	components: {
 		CnDashboardPage,
-		KpiCoursesWidget,
 		ManageListWidget,
 	},
 
@@ -110,7 +105,17 @@ export default {
 				{
 					id: 'kpi-courses',
 					title: this.t('learniq', 'Courses'),
-					type: 'custom',
+					// Declared, not written: `type: 'stat'` resolves to the shared
+					// CnStatWidget, which counts server-side. The wrapper it
+					// replaces did its own fetch and answered
+					// `catch { this.count = 0 }`.
+					type: 'stat',
+					content: {
+						label: this.t('learniq', 'Courses'),
+						variant: 'primary',
+						clickRoute: { path: '/courses' },
+						source: { register: 'learniq', schema: 'course', metric: 'count' },
+					},
 				},
 				{
 					id: 'manage-courses',
