@@ -319,8 +319,20 @@ export default {
 				const requestIds = new Set(requests.map((r) => r.id ?? r.uuid))
 				if (requestIds.size > 0) {
 					const allDeliberations = await this.fetchSchema(
-						'DeliberationRecord',
-						'limit=500',
+						// The SIXTH lookup, and it 404'd for the same reason as
+						// the five above — it just sits outside the Promise.all
+						// block, so the slug sweep missed it. `DeliberationRecord`
+						// slugifies to `deliberationrecord`; the declared slug is
+						// `deliberation-record`.
+						'deliberation-record',
+						// `_limit`, not `limit`. A BARE control param is applied
+						// by OpenRegister as a PROPERTY filter, so `limit=500`
+						// asks for rows whose `limit` field equals 500 and
+						// returns an empty list with HTTP 200 — no error, no
+						// deliberations, silently. `learnerQuery` above already
+						// uses the underscored form; this one call did not, so
+						// even once the slug is right the care chain stays empty.
+						'_limit=500',
 					)
 					this.deliberations = allDeliberations.filter((d) =>
 						requestIds.has(d.supportRequestId),
