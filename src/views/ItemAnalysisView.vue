@@ -314,7 +314,7 @@ export default {
 		 */
 		async loadItemStatistics() {
 			const url = generateUrl(
-				'/apps/openregister/api/objects/learniq/item-statistics?limit=200',
+				'/apps/openregister/api/objects/learniq/item-statistics?_limit=200',
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -336,7 +336,7 @@ export default {
 		 */
 		async loadReliability() {
 			const url = generateUrl(
-				'/apps/openregister/api/objects/learniq/assessment-reliability?limit=200',
+				'/apps/openregister/api/objects/learniq/assessment-reliability?_limit=200',
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },

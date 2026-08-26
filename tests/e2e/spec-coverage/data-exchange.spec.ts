@@ -28,11 +28,11 @@
 import { test, expect } from '../fixtures'
 
 const EXCHANGE_REJECTIONS_INDEX_URL =
-	'/index.php/apps/learniq/#/data-exchange/rejections'
+	'/index.php/apps/learniq/data-exchange/rejections'
 const EXCHANGE_ERROR_CODES_INDEX_URL =
-	'/index.php/apps/learniq/#/data-exchange/error-codes'
+	'/index.php/apps/learniq/data-exchange/error-codes'
 const EXCHANGE_REJECTION_DETAIL_URL =
-	'/index.php/apps/learniq/#/data-exchange/rejections/00000000-0000-0000-0000-000000000000'
+	'/index.php/apps/learniq/data-exchange/rejections/00000000-0000-0000-0000-000000000000'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise

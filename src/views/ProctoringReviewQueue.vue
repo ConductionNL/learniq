@@ -225,7 +225,7 @@ export default {
 
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/proctoring-session?limit=100',
+					'/apps/openregister/api/objects/learniq/proctoring-session?_limit=100',
 				)
 				const resp = await fetch(url, {
 					headers: {

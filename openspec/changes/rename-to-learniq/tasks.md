@@ -31,7 +31,7 @@ boundary resolves at runtime.
 
 ### Task 3: Ship the register-slug repair step and update every literal call site together
 - **spec_ref**: `openspec/changes/rename-to-learniq/specs/app-metadata/spec.md#requirement-pre-existing-openregister-objects-resolve-after-the-register-slug-migration`
-- **files**: `lib/Repair/RenameRegisterSlug.php` (new), `appinfo/info.xml` (`<post-migration>`), all 117 literal `'scholiq'` register-slug call sites across `lib/Controller/`, `lib/Lifecycle/`, `lib/Cron/`, `lib/Analytics/`, `lib/Engagement/`, `lib/Grading/`, `lib/CourseEvaluation/`
+- **files**: `lib/Repair/RenameRegisterSlug.php` (new), `appinfo/info.xml` (`<post-migration>`), all 117 literal `'scholiq'` register-slug call sites across `lib/Controller/`, `lib/Lifecycle/`, `lib/BackgroundJob/`, `lib/Analytics/`, `lib/Engagement/`, `lib/Grading/`, `lib/CourseEvaluation/`
 - **acceptance_criteria**:
   - GIVEN a fresh install WHEN the repair step runs THEN the register's slug is `learniq` and zero shard-table rows are touched (row counts identical before/after)
   - GIVEN the repair step has already run WHEN it runs a second time THEN it makes no further change and logs zero renames (idempotent)

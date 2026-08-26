@@ -318,7 +318,7 @@ export default {
 				if (this.subgroup) {
 					this.activeLearningPlans = await this.fetchSchema(
 						'LearningPlan',
-						'lifecycle=active&limit=500',
+						'lifecycle=active&_limit=500',
 					)
 				} else {
 					this.activeLearningPlans = []

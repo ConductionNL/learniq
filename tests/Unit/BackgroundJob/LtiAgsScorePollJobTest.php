@@ -12,7 +12,7 @@
  * without throwing (task 4.9).
  *
  * @category Tests
- * @package  OCA\Learniq\Tests\Unit\Cron
+ * @package  OCA\Learniq\Tests\Unit\BackgroundJob
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -31,11 +31,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\Tests\Unit\Cron;
+namespace OCA\Learniq\Tests\Unit\BackgroundJob;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Cron\LtiAgsScorePollJob;
+use OCA\Learniq\BackgroundJob\LtiAgsScorePollJob;
 use OCA\Learniq\Service\LtiAgsPullClient;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
