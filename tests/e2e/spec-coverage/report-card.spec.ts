@@ -309,7 +309,28 @@ test.describe('report-card-composer — rapportvergadering review lifecycle', ()
 	})
 
 	// @e2e openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publish-is-blocked-while-a-contributing-grades-visibility-window-has-not-opened
-	test('publish-blocked-while-visibility-window-not-open', async ({
+	//
+	// ⚠️ SKIPPED ON A PLATFORM LIMITATION, NOT ON A MISSING ROW — and the
+	// difference is the reason this file stopped trusting bare skips.
+	//
+	// This scenario needs a finalised ReportCard whose
+	// `subjectGrades[].sourceGradeEntryIds` cites the not-yet-visible
+	// GradeEntry. That object cannot be created through the object API at all:
+	// OpenRegister refuses a `$ref` that sits inside an ARRAY ITEM with
+	// `403 Unresolved reference: schema:///CurriculumPlan#`, and
+	// `subjectGrades.items.required` is `["curriculumPlanId"]` — the refused
+	// property is the required one, so there is no valid object to fall back
+	// to. See ConductionNL/openregister#2179, which now carries this app's
+	// three instances alongside the original hermiq one.
+	//
+	// It is `fixme`, not `skip`, so it reports as a KNOWN failure rather than
+	// as a pass, and it names an issue someone can close. When #2179 lands,
+	// change this back to `test(` and drop the seeder's `subjectGrades` note.
+	//
+	// Declared as `test.fixme(name, fn)` — NOT a bare `test.fixme(true, …)`
+	// statement, which applies to every test in the enclosing describe and
+	// would quietly take the other scenarios down with it.
+	test.fixme('publish-blocked-while-visibility-window-not-open', async ({
 		loggedInPage: page,
 	}) => {
 		const futureGrade = await findRow(
