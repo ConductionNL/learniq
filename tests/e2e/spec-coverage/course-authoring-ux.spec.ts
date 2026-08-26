@@ -97,7 +97,7 @@ async function openCourseBuilder(
 	//
 	// src/main.js builds it with `createWebHistory(generateUrl('/apps/learniq'))`.
 	// vue-router strips that base from `location.pathname` and appends the
-	// UNTOUCHED hash, so `/index.php/apps/learniq/#/courses/<id>/builder`
+	// UNTOUCHED hash, so `/index.php/apps/learniq/courses/<id>/builder`
 	// resolved to `/#/courses/<id>/builder`, matched no declared route, and fell
 	// through `routesFromManifest`'s `/:pathMatch(.*)*` catch-all — which
 	// `redirect: '/'`s to the DASHBOARD. Every failure screenshot in CI run

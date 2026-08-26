@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.1.1-unstable.20260825060043</version>
+    <version>0.1.1-unstable.20260826102619</version>
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -116,7 +116,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
             creates concept GradeEntry rows. No-ops until an admin bootstraps
             learniq.lti_ags_subscription_id (see docs/ARCHITECTURE.md).
         -->
-        <job>OCA\Learniq\Cron\LtiAgsScorePollJob</job>
+        <job>OCA\Learniq\BackgroundJob\LtiAgsScorePollJob</job>
     </background-jobs>
 
     <repair-steps>

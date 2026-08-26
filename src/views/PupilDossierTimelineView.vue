@@ -310,6 +310,15 @@ export default {
 					this.deliberations = []
 				}
 			} catch (err) {
+				// DELIBERATELY NOT GIVEN THE 404 BRANCH the other views get.
+				//
+				// Every call here is a LIST query (`fetchSchema(schema,
+				// learnerId=…&_limit=200)`), so a 404 does not mean "this learner
+				// has no dossier" — an empty result set says that, with HTTP 200.
+				// A 404 on a list means the SCHEMA did not resolve, which is a
+				// misconfigured register and exactly the kind of fault that must
+				// stay loud. Treating it as "not found" would report a broken
+				// environment as an empty timeline.
 				this.error = this.t(
 					'learniq',
 					'Failed to load the dossier timeline. Please try again.',

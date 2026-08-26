@@ -531,7 +531,7 @@
 							"viewAllQuery": {
 								"parentId": "@objectId"
 							},
-							"emptyText": "No sub-competencies found. This is a leaf node (learning outcome).",
+							"emptyText": "No sub-competencies. This is a learning outcome, the lowest level in the tree.",
 							"allowCreate": false
 						},
 						"icon": "Sitemap"
