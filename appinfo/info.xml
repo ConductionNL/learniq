@@ -116,7 +116,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
             creates concept GradeEntry rows. No-ops until an admin bootstraps
             learniq.lti_ags_subscription_id (see docs/ARCHITECTURE.md).
         -->
-        <job>OCA\Learniq\Cron\LtiAgsScorePollJob</job>
+        <job>OCA\Learniq\BackgroundJob\LtiAgsScorePollJob</job>
     </background-jobs>
 
     <repair-steps>
