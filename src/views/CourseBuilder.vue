@@ -724,8 +724,11 @@ export default {
 			)
 		},
 
-		/** @param {number} idx Module index. @return {Promise<void>} */
 		/**
+		 * Move a module one position earlier.
+		 *
+		 * @param {number} idx Module index.
+		 * @return {Promise<void>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		moveModuleUp(idx) {
@@ -738,8 +741,11 @@ export default {
 			)
 		},
 
-		/** @param {number} idx Module index. @return {Promise<void>} */
 		/**
+		 * Move a module one position later.
+		 *
+		 * @param {number} idx Module index.
+		 * @return {Promise<void>}
 		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		moveModuleDown(idx) {
@@ -1027,8 +1033,12 @@ export default {
 			this.instantiateError = ''
 
 			try {
+				// The slug, not the title: OpenRegister resolves this segment by
+				// lower(slug), so "CourseTemplate" 404s where the sibling call a
+				// few lines up survives only because "Course" happens to
+				// lowercase onto its own slug.
 				const template = await this.fetchObject(
-					'CourseTemplate',
+					'course-template',
 					this.instantiateForm.templateId,
 				)
 				const tenantId = template.tenant_id || this.course?.tenant_id || ''
