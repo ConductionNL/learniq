@@ -250,7 +250,9 @@ export default {
 		/**
 		 * Fetch one schema's objects filtered by the given query string.
 		 *
-		 * @param {string} schema OpenRegister schema title (e.g. "DossierNote").
+		 * @param {string} schema OpenRegister schema SLUG as the register
+		 *   declares it (e.g. "dossier-note") — NOT the PascalCase title.
+		 *   The value goes into the URL path verbatim; a title 404s.
 		 * @param {string} query Query string, WITHOUT the leading "?" (already
 		 *   `encodeURIComponent`-escaped by the caller).
 		 * @return {Promise<Array<object>>}
@@ -285,11 +287,17 @@ export default {
 			try {
 				const [notes, incidents, checkIns, plans, requests] =
 					await Promise.all([
-						this.fetchSchema('DossierNote', learnerQuery),
-						this.fetchSchema('BehaviourIncident', learnerQuery),
-						this.fetchSchema('WellbeingCheckIn', learnerQuery),
-						this.fetchSchema('LearningPlan', learnerQuery),
-						this.fetchSchema('SupportRequest', learnerQuery),
+						// SLUGS, not titles. OpenRegister resolves this path
+						// segment against the schema slug the register
+						// declares — `dossier-note`, not `DossierNote`. The
+						// PascalCase names 404, and because Promise.all
+						// rejects on the first failure only ONE of the five
+						// ever surfaced in the error.
+						this.fetchSchema('dossier-note', learnerQuery),
+						this.fetchSchema('behaviour-incident', learnerQuery),
+						this.fetchSchema('wellbeing-check-in', learnerQuery),
+						this.fetchSchema('learning-plan', learnerQuery),
+						this.fetchSchema('support-request', learnerQuery),
 					])
 				this.notes = notes
 				this.incidents = incidents
@@ -300,8 +308,15 @@ export default {
 				const requestIds = new Set(requests.map((r) => r.id ?? r.uuid))
 				if (requestIds.size > 0) {
 					const allDeliberations = await this.fetchSchema(
-						'DeliberationRecord',
-						'limit=500',
+						// Slug, not title — see the note above.
+						'deliberation-record',
+						// `_limit`, not `limit`. A BARE control param is applied
+						// as a PROPERTY filter by OpenRegister, so `limit=500`
+						// asks for rows whose `limit` field equals 500 and
+						// returns an empty list with HTTP 200 — no error, no
+						// deliberations, silently. `learnerQuery` above already
+						// uses the underscored form; this call did not.
+						'_limit=500',
 					)
 					this.deliberations = allDeliberations.filter((d) =>
 						requestIds.has(d.supportRequestId),
