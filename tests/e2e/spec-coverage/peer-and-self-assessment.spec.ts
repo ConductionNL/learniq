@@ -31,7 +31,7 @@
 import { test, expect } from '../fixtures'
 
 const PEER_REVIEW_MARKING_URL = (assignmentId: string, peerReviewId: string) =>
-	`/index.php/apps/learniq/#/assignments/${assignmentId}/peer-reviews/${peerReviewId}/mark`
+	`/index.php/apps/learniq/assignments/${assignmentId}/peer-reviews/${peerReviewId}/mark`
 
 // The view this spec drives, named after the component file it covers. The
 // URL builder is unchanged — this makes the spec-to-component link readable in
@@ -39,9 +39,9 @@ const PEER_REVIEW_MARKING_URL = (assignmentId: string, peerReviewId: string) =>
 // page against its component stem, and the stem appeared only in comments).
 const MarkSubmissionView = PEER_REVIEW_MARKING_URL
 const SELF_ASSESSMENT_URL = (assignmentId: string, submissionId: string) =>
-	`/index.php/apps/learniq/#/assignments/${assignmentId}/submissions/${submissionId}/self-assessment`
+	`/index.php/apps/learniq/assignments/${assignmentId}/submissions/${submissionId}/self-assessment`
 const SUBMISSION_DETAIL_URL = (assignmentId: string, submissionId: string) =>
-	`/index.php/apps/learniq/#/assignments/${assignmentId}/submissions/${submissionId}`
+	`/index.php/apps/learniq/assignments/${assignmentId}/submissions/${submissionId}`
 
 test.describe
 	.skip('peer-and-self-assessment — reviewer/learner/author flows (live run deferred)', () => {

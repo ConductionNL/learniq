@@ -282,14 +282,33 @@ export default {
 			this.error = null
 			const learnerQuery = `learnerId=${encodeURIComponent(this.learnerId)}&_limit=200`
 
+			// ⚠️ ADDRESS THE SCHEMA BY ITS SLUG, NEVER BY ITS TITLE.
+			//
+			// OpenRegister resolves a schema identifier by slugifying it and
+			// matching the slug, so `DossierNote` becomes `dossiernote`, which
+			// matches nothing — the declared slug is `dossier-note`. Every one
+			// of these five is multi-word, so every one of them 404'd, and
+			// loadAll() could never populate a timeline for any learner.
+			//
+			// Measured against a live instance:
+			//
+			//   .../objects/learniq/DossierNote        -> 404
+			//   .../objects/learniq/dossier-note       -> 200
+			//   .../objects/learniq/BehaviourIncident  -> 404
+			//   .../objects/learniq/behaviour-incident -> 200
+			//
+			// A single-word title hides this — `Course` slugifies to `course`
+			// and happens to resolve — which is why the same pattern reads as
+			// fine elsewhere in this app. ExamCaseDossierView carries the same
+			// warning after the same bug was found there.
 			try {
 				const [notes, incidents, checkIns, plans, requests] =
 					await Promise.all([
-						this.fetchSchema('DossierNote', learnerQuery),
-						this.fetchSchema('BehaviourIncident', learnerQuery),
-						this.fetchSchema('WellbeingCheckIn', learnerQuery),
-						this.fetchSchema('LearningPlan', learnerQuery),
-						this.fetchSchema('SupportRequest', learnerQuery),
+						this.fetchSchema('dossier-note', learnerQuery),
+						this.fetchSchema('behaviour-incident', learnerQuery),
+						this.fetchSchema('wellbeing-check-in', learnerQuery),
+						this.fetchSchema('learning-plan', learnerQuery),
+						this.fetchSchema('support-request', learnerQuery),
 					])
 				this.notes = notes
 				this.incidents = incidents
@@ -310,6 +329,15 @@ export default {
 					this.deliberations = []
 				}
 			} catch (err) {
+				// DELIBERATELY NOT GIVEN THE 404 BRANCH the other views get.
+				//
+				// Every call here is a LIST query (`fetchSchema(schema,
+				// learnerId=…&_limit=200)`), so a 404 does not mean "this learner
+				// has no dossier" — an empty result set says that, with HTTP 200.
+				// A 404 on a list means the SCHEMA did not resolve, which is a
+				// misconfigured register and exactly the kind of fault that must
+				// stay loud. Treating it as "not found" would report a broken
+				// environment as an empty timeline.
 				this.error = this.t(
 					'learniq',
 					'Failed to load the dossier timeline. Please try again.',

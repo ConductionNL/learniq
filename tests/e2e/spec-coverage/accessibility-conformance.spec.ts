@@ -35,7 +35,7 @@ import { createObject, seededTenantId } from '../or-api'
 //
 // src/main.js builds the router with `createWebHistory(generateUrl('/apps/learniq'))`.
 // vue-router's history mode strips the base from `location.pathname` and then
-// APPENDS the untouched hash, so `/index.php/apps/learniq/#/accessibility`
+// APPENDS the untouched hash, so `/index.php/apps/learniq/accessibility`
 // resolves to the location `/#/accessibility` — which matches no declared route.
 // `<router-view>` renders nothing and the page shows only the Nextcloud chrome.
 //

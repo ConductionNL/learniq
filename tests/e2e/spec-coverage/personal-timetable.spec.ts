@@ -18,7 +18,7 @@
  */
 import { test, expect } from '../fixtures'
 
-const TIMETABLE_URL = '/index.php/apps/learniq/#/my-timetable'
+const TIMETABLE_URL = '/index.php/apps/learniq/my-timetable'
 
 // The view this spec drives, named after the component file it covers. The
 // URL is unchanged — this makes the spec-to-component link readable in
