@@ -71,14 +71,28 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 	test('a text lesson shows the "Mark lesson complete" action and it can be used', async ({
 		loggedInPage: page,
 	}) => {
+		// ⚠️ UNGATED, EXPLICITLY. This asked only for text + published, which was
+		// unambiguous while exactly one such Lesson existed. It is not any more:
+		// the seeder now also creates a release-gated and a drip-delayed text
+		// Lesson for adaptive-release, and a gated Lesson renders LessonPlayer's
+		// locked branch — which has no footer, and therefore no
+		// "Mark lesson complete" button. Whichever row the API returned first
+		// would decide whether this test passed.
+		//
+		// The scenario is about manual completion, not about gating, so it now
+		// says so: same ungated shape adaptive-release.spec.ts uses.
 		const lesson = await findLesson(
 			page,
-			(l) => l.contentType === 'text' && l.lifecycle === 'published',
+			(l) =>
+				l.contentType === 'text'
+				&& l.lifecycle === 'published'
+				&& (l.releaseConditions == null || l.releaseConditions.length === 0)
+				&& l.availableAfterDays == null,
 		)
 		const courseId = courseIdOf(lesson)
 		requireFixture(
 			lesson && courseId,
-			'a published contentType=text Lesson with a courseId',
+			'a published, ungated contentType=text Lesson with a courseId',
 		)
 
 		const errors: string[] = []
@@ -133,14 +147,24 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 	test('a cmi5 lesson does not show the "Mark lesson complete" action', async ({
 		loggedInPage: page,
 	}) => {
+		// ⚠️ UNGATED TOO, AND FOR A SHARPER REASON THAN ABOVE. This scenario
+		// asserts the button is ABSENT — and a release-gated lesson shows no
+		// button either, because LessonPlayer renders its locked branch instead
+		// of the footer. Selecting a gated cmi5 Lesson would therefore make this
+		// test pass for entirely the wrong reason, proving nothing about
+		// contentType. Requiring an ungated one keeps the absence attributable.
 		const lesson = await findLesson(
 			page,
-			(l) => l.contentType === 'cmi5' && l.lifecycle === 'published',
+			(l) =>
+				l.contentType === 'cmi5'
+				&& l.lifecycle === 'published'
+				&& (l.releaseConditions == null || l.releaseConditions.length === 0)
+				&& l.availableAfterDays == null,
 		)
 		const courseId = courseIdOf(lesson)
 		requireFixture(
 			lesson && courseId,
-			'a published contentType=cmi5 Lesson with a courseId',
+			'a published, ungated contentType=cmi5 Lesson with a courseId',
 		)
 
 		const lessonId = lesson.id ?? lesson.uuid
