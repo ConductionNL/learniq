@@ -37,6 +37,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCP\AppFramework\Controller;
@@ -111,7 +112,8 @@ class LtiToolPlacementController extends Controller {
 	 *
 	 * @var string
 	 */
-	private const OPENCONNECTOR_LAUNCH_PATH = '/apps/openconnector/api/lti/deployments/%s/launch';
+	/** Path AFTER the app segment; the segment is resolved at call time. */
+	private const OPENCONNECTOR_LAUNCH_PATH = 'api/lti/deployments/%s/launch';
 
 	/**
 	 * App-config key for the OpenConnector internal API token. Same key
@@ -255,7 +257,7 @@ class LtiToolPlacementController extends Controller {
 	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-2.1
 	 */
 	private function callOpenConnectorLaunch(string $deploymentId, string $subject, string $messageType): ?array {
-		$path = sprintf(self::OPENCONNECTOR_LAUNCH_PATH, rawurlencode($deploymentId));
+		$path = FleetAppId::path('integriq', sprintf(self::OPENCONNECTOR_LAUNCH_PATH, rawurlencode($deploymentId)));
 		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . $path);
 
 		$apiToken = $this->appConfig->getValueString(

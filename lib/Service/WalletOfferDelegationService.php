@@ -69,6 +69,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Support\FleetAppId;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
@@ -94,7 +95,8 @@ class WalletOfferDelegationService {
 	 *
 	 * @var string
 	 */
-	private const OPENCONNECTOR_CREATE_OFFER_PATH = '/apps/openconnector/api/eudi/credential-offers';
+	/** Path AFTER the app segment; the segment is resolved at call time. */
+	private const OPENCONNECTOR_CREATE_OFFER_PATH = 'api/eudi/credential-offers';
 
 	/**
 	 * App-config key for the OpenConnector bearer credential. Same key
@@ -270,7 +272,9 @@ class WalletOfferDelegationService {
 	 * @return array<string,mixed>|null The decoded response body, or null on failure.
 	 */
 	private function callOpenConnectorCreateOffer(array $requestBody): ?array {
-		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . self::OPENCONNECTOR_CREATE_OFFER_PATH);
+		$url = $this->urlGenerator->getAbsoluteURL(
+			'/index.php' . FleetAppId::path('integriq', self::OPENCONNECTOR_CREATE_OFFER_PATH)
+		);
 
 		$apiToken = $this->appConfig->getValueString(
 			app: 'learniq',

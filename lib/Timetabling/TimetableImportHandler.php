@@ -56,6 +56,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Timetabling;
 
+use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
@@ -90,7 +91,8 @@ class TimetableImportHandler implements IEventListener {
 	 * expected to additionally carry a `records` array of raw external
 	 * records, one per Zermelo/Untis/Xedule occurrence.
 	 */
-	private const OPENCONNECTOR_RUN_PATH = '/apps/openconnector/api/sources/%s/run';
+	/** Path AFTER the app segment; the segment is resolved at call time. */
+	private const OPENCONNECTOR_RUN_PATH = 'api/sources/%s/run';
 
 	private const OPENCONNECTOR_TOKEN_KEY = 'openconnector_api_token';
 
@@ -422,7 +424,7 @@ class TimetableImportHandler implements IEventListener {
 	 * @return array<string,mixed>|null Response data, or null on failure.
 	 */
 	private function callOpenConnector(array $payload): ?array {
-		$path = sprintf(self::OPENCONNECTOR_RUN_PATH, self::TARGET);
+		$path = FleetAppId::path('integriq', sprintf(self::OPENCONNECTOR_RUN_PATH, self::TARGET));
 		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . $path);
 
 		$apiToken = $this->appConfig->getValueString(

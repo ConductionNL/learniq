@@ -56,6 +56,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Support\FleetAppId;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
@@ -84,7 +85,8 @@ class ReportCardPdfDelegationService {
 	 *
 	 * @var string
 	 */
-	private const DOCUDESK_RENDER_PATH = '/apps/docudesk/api/v1/documents/render';
+	/** Path AFTER the app segment; the segment is resolved at call time. */
+	private const DOCUDESK_RENDER_PATH = 'api/v1/documents/render';
 
 	/**
 	 * App-config key for the docudesk bearer credential, mirroring
@@ -185,7 +187,9 @@ class ReportCardPdfDelegationService {
 	 * @return array<string,mixed>|null Response data (expects `documentRef` on success), or null on failure/absence.
 	 */
 	private function callDocudeskRender(array $reportCard): ?array {
-		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . self::DOCUDESK_RENDER_PATH);
+		$url = $this->urlGenerator->getAbsoluteURL(
+			'/index.php' . FleetAppId::path('filinq', self::DOCUDESK_RENDER_PATH)
+		);
 
 		$apiToken = $this->appConfig->getValueString(
 			app: 'learniq',
