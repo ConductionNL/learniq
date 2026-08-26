@@ -514,12 +514,23 @@ export default {
 				await this.loadItems()
 				this.startTimer()
 			} catch (err) {
-				this.error = this.t(
-					'learniq',
-					'Failed to load assessment. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[TakeAssessmentView] init error', err)
+				// A missing record is input, not a fault — see the same branch in
+				// PortfolioBuilder.vue. An assessment that has been withdrawn, or
+				// a link a learner kept after it was removed, is an ordinary 404
+				// and belongs on screen rather than in console.error.
+				if (err?.notFound === true) {
+					this.error = this.t(
+						'learniq',
+						'This assessment is no longer available, or you do not have access to it.',
+					)
+				} else {
+					this.error = this.t(
+						'learniq',
+						'Failed to load assessment. Please try again.',
+					)
+					// eslint-disable-next-line no-console
+					console.error('[TakeAssessmentView] init error', err)
+				}
 			} finally {
 				this.loading = false
 			}
@@ -540,7 +551,14 @@ export default {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
 			if (!resp.ok) {
-				throw new Error(`Assessment fetch failed: ${resp.status}`)
+				// `notFound` marks the single-object lookup — see the same guard
+				// in PortfolioBuilder.vue. init() also awaits list-shaped loads,
+				// and a 404 from one of those means a schema did not resolve
+				// rather than that this assessment is gone.
+				const err = new Error(`Assessment fetch failed: ${resp.status}`)
+				err.status = resp.status
+				err.notFound = resp.status === 404
+				throw err
 			}
 			const json = await resp.json()
 			this.assessment = json.object ?? json ?? {}
