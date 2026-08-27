@@ -535,7 +535,9 @@ export default {
 						content: {
 							label: this.t('learniq', 'My points'),
 							variant: 'primary',
-							endpointSource: { url: '/apps/learniq/api/engagement/me' },
+							endpointSource: {
+								url: '/apps/learniq/api/engagement/me',
+							},
 							valueField: 'totalPoints',
 							// The server composes this line: a caption template resolves a
 							// missing token to '', which would leave a learner with no level
