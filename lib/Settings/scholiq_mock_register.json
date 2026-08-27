@@ -24857,7 +24857,7 @@
         "order": 1,
         "minPoints": 1.0,
         "tenant_id": "00000000-0000-4000-8000-000000000000",
-        "icon": "Voorbeeld Icon 1"
+        "icon": "ViewDashboardOutline"
       },
       {
         "@self": {
@@ -24869,7 +24869,7 @@
         "order": 2,
         "minPoints": 2.0,
         "tenant_id": "00000000-0000-4000-8000-000000000001",
-        "icon": "Voorbeeld Icon 2"
+        "icon": "BookOpenVariantOutline"
       },
       {
         "@self": {
@@ -24881,7 +24881,7 @@
         "order": 3,
         "minPoints": 3.0,
         "tenant_id": "00000000-0000-4000-8000-000000000002",
-        "icon": "Voorbeeld Icon 3"
+        "icon": "MapMarkerPath"
       },
       {
         "@self": {
