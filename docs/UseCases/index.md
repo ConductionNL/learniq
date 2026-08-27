@@ -5,7 +5,7 @@ draft: true
 
 # Use Cases
 
-This section is under construction. Real-world use cases for Scholiq are being authored in [GitHub issue #73](https://codeberg.org/Conduction/scholiq/issues/73).
+This section is under construction. Real-world use cases for Scholiq are being authored in Codeberg issue #73 (pre-migration, not migrated to GitHub).
 
 Planned use cases include:
 
@@ -14,4 +14,4 @@ Planned use cases include:
 - Higher-education coordinator publishing OOAPI catalogs
 - MKB compliance officer proving annual AVG, BIO, and NIS2 board training
 
-Follow [#73](https://codeberg.org/Conduction/scholiq/issues/73) for progress.
+Follow Codeberg issue #73 (pre-migration, not migrated to GitHub) for progress.

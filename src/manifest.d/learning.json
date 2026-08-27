@@ -770,7 +770,8 @@
 								"resourcesDegraded",
 								"resourcesDropped",
 								"errorMessage"
-							]
+							],
+							"overrides": { "importedBy": { "editable": false }, "importedAt": { "editable": false }, "lifecycle": { "editable": false } }
 						}
 					},
 					{

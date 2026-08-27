@@ -184,7 +184,9 @@ class TimetableConflictDetector {
 	 * @param array<string,mixed> $sessionA Session A.
 	 * @param array<string,mixed> $sessionB Session B.
 	 * @param string $tenantId Tenant scope.
-	 * @param array<string,array<string,mixed>> $cohortCache Cohort cache, keyed by cohortId (mutated: entries added).
+	 * @param array<string,array<string,mixed>|null> $cohortCache Cohort cache, keyed by cohortId (mutated: entries added).
+	 *        `|null` because SessionWindowLoader::loadCohort() caches a MISS as
+	 *        null so a repeat lookup short-circuits.
 	 * @param array<string,string|null> $assessmentCache Session -> linked Assessment id cache (mutated: entries added).
 	 * @param array<string,true> $existingOpen Existing open (sessionIds,kind) keys.
 	 * @param array<int,array<string,mixed>> $toCreate Accumulator of TimetableConflict rows to persist (mutated: rows appended).
@@ -242,8 +244,8 @@ class TimetableConflictDetector {
 	 *
 	 * @param array<string,mixed> $session The Session.
 	 * @param string $tenantId Tenant scope.
-	 * @param array<string,array<string,mixed>> $cohortCache Cohort cache (mutated: entries added).
-	 * @param array<string,array<string,mixed>> $roomCache Room cache (mutated: entries added).
+	 * @param array<string,array<string,mixed>|null> $cohortCache Cohort cache (mutated: entries added). Null = cached miss.
+	 * @param array<string,array<string,mixed>|null> $roomCache Room cache (mutated: entries added). Null = cached miss.
 	 * @param array<string,string|null> $assessmentCache Assessment-link cache (mutated: entries added).
 	 * @param array<string,true> $existingOpen Existing open (sessionIds,kind) keys.
 	 * @param array<int,array<string,mixed>> $toCreate Accumulator of rows to persist (mutated: rows appended).
@@ -296,7 +298,7 @@ class TimetableConflictDetector {
 	 *
 	 * @param array<string,mixed> $session The Session data.
 	 * @param string $tenantId Tenant scope.
-	 * @param array<string,array<string,mixed>> $cache Cohort cache (mutated: entries added).
+	 * @param array<string,array<string,mixed>|null> $cache Cohort cache (mutated: entries added). Null = cached miss.
 	 *
 	 * @return array<string,mixed>|null The cohort data, or null.
 	 */

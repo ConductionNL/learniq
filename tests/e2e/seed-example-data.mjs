@@ -434,7 +434,18 @@ async function seedObjects(presentSlugs) {
 			...(id(courseCompliance) ? { courseId: id(courseCompliance) } : {}),
 		})
 	}
-	for (let n = 1; n <= 2; n++) await seed('enrolment', { field: 'learnerId', value: `demo-learner-${n}` }, { learnerId: `demo-learner-${n}`, courseId: id(courseCompliance) ?? id(courseRoot) ?? 'demo-course', mandatory: n === 1, dueDate: '2026-12-01', source: 'bulk', tenant_id: TENANT, ...(id(cohort) ? { cohortId: id(cohort) } : {}) })
+	// `lifecycle: 'active'` on the first enrolment is load-bearing, not colour.
+	// Enrolment.lifecycle DEFAULTS TO 'pending' and this seeder never set it, so
+	// the instance held no active enrolment at all — which silently disabled
+	// talk-classroom-spaces.spec.ts's "an enrolled learner sees the join-call
+	// action" scenario: its `lifecycle === 'active'` guard matched nothing and
+	// the test SKIPPED on every green run rather than failing. The schema calls
+	// the field engine-managed ("do not set directly"), but this is fixture data
+	// for a scenario that is *about* an enrolled learner, and this file already
+	// seeds lifecycle directly elsewhere (published / drafted / issued / queued).
+	// The Sessions above are seeded against the same `cohort`, so the active
+	// enrolment and a Session genuinely share a cohortId.
+	for (let n = 1; n <= 2; n++) await seed('enrolment', { field: 'learnerId', value: `demo-learner-${n}` }, { learnerId: `demo-learner-${n}`, courseId: id(courseCompliance) ?? id(courseRoot) ?? 'demo-course', mandatory: n === 1, dueDate: '2026-12-01', source: 'bulk', lifecycle: n === 1 ? 'active' : 'pending', tenant_id: TENANT, ...(id(cohort) ? { cohortId: id(cohort) } : {}) })
 	// xAPI, DataExchange. (AiFeature governance is delegated to Hermiq — learniq seeds no AiFeature objects.)
 	// `stored` (XapiStatement), `direction`/`sourceSchema` (DataMappingProfile)
 	// and `requestedAt` (DataExchangeJob) are required and were all missing.
@@ -449,6 +460,179 @@ async function seedObjects(presentSlugs) {
 		await seed('portfolio-entry', { field: 'title', value: 'Demo reflection' }, {
 			portfolioId: id(portfolio), learnerId: 'demo-learner-1', title: 'Demo reflection',
 			evidenceKind: 'reflection', reflectionText: 'What I learned this period.', tenant_id: TENANT,
+		})
+	}
+
+	// ── Fixtures for scenarios that were SKIPPING rather than running ──────
+	//
+	// Fourteen spec-coverage scenarios stood down on `test.skip(!row, 'No X
+	// seeded…')`, which cannot tell "never seeded" from "the seeder owes this
+	// and did not make it" and reports the second as a pass. Once those became
+	// requireFixture() the fourteen failed, and every one named a fixture that
+	// simply does not exist here: five Lesson states, and four schemas this
+	// file never created a single row for.
+	//
+	// `lifecycle` is set directly, as it already is above for grade-entry /
+	// enrolment / credential: these are fixtures FOR scenarios about a
+	// particular state, and the state is the thing under test.
+
+	// Lessons in the states adaptive-release and progress-tracking look for.
+	// `Demo lesson 6` is deliberately plain — published, text, no
+	// releaseConditions, no availableAfterDays — because two scenarios want
+	// exactly "an ungated published lesson" and one of them asserts the ABSENCE
+	// of a gate.
+	const lessonPlain = await seed('lesson', { field: 'name', value: 'Demo lesson 6 (published, ungated)' }, {
+		courseId: id(courseSub) ?? id(courseRoot), name: 'Demo lesson 6 (published, ungated)', order: 6,
+		contentType: 'text', lifecycle: 'published', tenant_id: TENANT,
+	})
+	await seed('lesson', { field: 'name', value: 'Demo lesson 7 (cmi5)' }, {
+		courseId: id(courseSub) ?? id(courseRoot), name: 'Demo lesson 7 (cmi5)', order: 7,
+		contentType: 'cmi5', lifecycle: 'published', tenant_id: TENANT,
+	})
+	// ⚠️ NO `lessonId`, AND THIS GATE THEREFORE DOES NOT GATE.
+	//
+	// Sending one made OpenRegister refuse the whole create with
+	// `403 Unresolved reference: schema:///Lesson#` — it does not resolve a
+	// $ref inside an ARRAY ITEM, even a self-referential one, even when the
+	// target exists (ConductionNL/openregister#2179).
+	//
+	// Dropping it makes the write succeed, because
+	// `releaseConditions.items.required` is `["kind"]` alone. But
+	// LessonReleaseEvaluator::evaluateLessonCompletedCondition() returns
+	// `blocked => false` immediately when `lessonId` is empty, so this Lesson
+	// is never actually locked. The row exists to keep the discovery predicate
+	// honest — it is NOT a working release gate, and the scenario that needs a
+	// real one is `test.fixme` in adaptive-release.spec.ts rather than passing
+	// against this stand-in.
+	await seed('lesson', { field: 'name', value: 'Demo lesson 8 (gated on a prerequisite)' }, {
+		courseId: id(courseSub) ?? id(courseRoot), name: 'Demo lesson 8 (gated on a prerequisite)', order: 8,
+		contentType: 'text', lifecycle: 'published', tenant_id: TENANT,
+		releaseConditions: [{ kind: 'lesson-completed' }],
+	})
+	await seed('lesson', { field: 'name', value: 'Demo lesson 9 (drip-released)' }, {
+		courseId: id(courseSub) ?? id(courseRoot), name: 'Demo lesson 9 (drip-released)', order: 9,
+		contentType: 'text', lifecycle: 'published', availableAfterDays: 7, tenant_id: TENANT,
+	})
+
+	// ReportPeriods. `isLocked` is a MATERIALISED calculation, not a stored
+	// field — the register declares it as `lockDate` set AND `lockDate < now`,
+	// which ReportPeriodComposeGuard reads directly. So a period is made
+	// "locked" by giving it a lockDate in the PAST; setting isLocked would
+	// write a field the schema does not have.
+	//
+	// ⚠️ P1 IS LOAD-BEARING EVEN THOUGH NOTHING REFERENCES THE BINDING. Two
+	// scenarios DISCOVER it by shape — "an open + isLocked ReportPeriod" and
+	// the ReportPeriodLockGuard one, which then looks for a concept GradeEntry
+	// whose `period` matches its `periodCode` ('P1'). Deleting this because the
+	// variable looks unused would take both of them out.
+	// eslint-disable-next-line no-unused-vars
+	const periodLocked = (id(plan) && id(cohort))
+		? await seed('report-period', { field: 'periodCode', value: 'P1' }, {
+			name: 'Rapportperiode 1 (demo)', academicYear: '2026', periodCode: 'P1',
+			startDate: '2026-09-01', endDate: '2026-12-31',
+			curriculumPlanIds: [id(plan)], cohortIds: [id(cohort)],
+			lockDate: '2026-01-15T00:00:00Z', lifecycle: 'open', tenant_id: TENANT,
+		})
+		: null
+	const periodComposed = (id(plan) && id(cohort))
+		? await seed('report-period', { field: 'periodCode', value: 'P2' }, {
+			name: 'Rapportperiode 2 (demo, composed)', academicYear: '2026', periodCode: 'P2',
+			startDate: '2027-01-01', endDate: '2027-03-31',
+			curriculumPlanIds: [id(plan)], cohortIds: [id(cohort)],
+			lockDate: '2026-02-15T00:00:00Z', lifecycle: 'composed', tenant_id: TENANT,
+		})
+		: null
+
+	// A concept GradeEntry inside the locked period's scope — the row the
+	// ReportPeriodLockGuard scenario needs something to refuse.
+	if (id(plan) && id(scale)) {
+		await seed('grade-entry', { field: 'componentId', value: 'c-concept' }, {
+			learnerId: 'demo-learner-2', curriculumPlanId: id(plan), gradeScaleId: id(scale),
+			value: 6, period: 'P1', componentId: 'c-concept', weight: 1,
+			lifecycle: 'concept', tenant_id: TENANT,
+		})
+	}
+	// A published GradeEntry whose visibility window has NOT opened yet. The
+	// date is far enough out that this fixture does not quietly expire and take
+	// the scenario with it — a fixture that stops matching on a given date is
+	// the same silent hole this whole block exists to close.
+	if (id(plan) && id(scale)) {
+		await seed('grade-entry', { field: 'componentId', value: 'c-future' }, {
+			learnerId: 'demo-learner-1', curriculumPlanId: id(plan), gradeScaleId: id(scale),
+			value: 8, period: 'P1', componentId: 'c-future', weight: 1,
+			lifecycle: 'published', visibleFrom: '2099-01-01T00:00:00Z', tenant_id: TENANT,
+		})
+	}
+
+	// ReportCards, one per lifecycle state the review surface is asserted in.
+	//
+	// ⚠️ ALL OF THEM HANG OFF THE **COMPOSED** PERIOD, NOT THE LOCKED ONE.
+	// RapportvergaderingReviewView renders the card grid inside a `v-else`:
+	//
+	//     v-if="period.lifecycle === 'open'"   -> "not composed yet" + Compose
+	//     <template v-else>                    -> the grid, with Finalise/Reopen
+	//
+	// so a card attached to an OPEN period is invisible no matter how correct
+	// the card itself is — the review page shows the compose prompt instead and
+	// the scenarios fail on `element(s) not found`. The card LIST query is not
+	// lifecycle-filtered, which is what made this look like a data problem at
+	// first; the gate is in the template.
+	//
+	// It is also simply what the domain says: cards come INTO existence by
+	// composition, so a card on a period that has not been composed is not a
+	// state the app can reach.
+	if (id(periodComposed)) {
+		await seed('report-card', { field: 'learnerId', value: 'demo-learner-1' }, {
+			learnerId: 'demo-learner-1', reportPeriodId: id(periodComposed),
+			mentorComment: '', lifecycle: 'rapportvergadering-review', tenant_id: TENANT,
+			...(id(cohort) ? { cohortId: id(cohort) } : {}),
+		})
+		// ⚠️ NO `subjectGrades`. Sending it made OpenRegister refuse the create
+		// with `403 Unresolved reference: schema:///CurriculumPlan#` — the same
+		// array-item $ref limitation that stopped the gated Lesson above, and
+		// here it cannot be worked around: `subjectGrades.items.required` is
+		// `["curriculumPlanId"]`, so a subject row without it is invalid too.
+		//
+		// The finalised-card scenario only reads `lifecycle`, so it is served.
+		// The narrower scenario — a finalised card CITING the not-yet-visible
+		// GradeEntry through `subjectGrades[].sourceGradeEntryIds` — cannot be
+		// seeded through this API at all until that $ref resolution is fixed,
+		// and is left failing rather than papered over with a skip. A red test
+		// naming a real platform limitation is worth more than a green one that
+		// asserts nothing.
+		await seed('report-card', { field: 'learnerId', value: 'demo-learner-2' }, {
+			learnerId: 'demo-learner-2', reportPeriodId: id(periodComposed),
+			mentorComment: 'Goede vooruitgang dit rapport.', lifecycle: 'finalised',
+			composedAt: '2026-12-20T12:00:00Z', tenant_id: TENANT,
+			...(id(cohort) ? { cohortId: id(cohort) } : {}),
+		})
+	}
+	if (id(periodComposed)) {
+		await seed('report-card', { field: 'learnerId', value: 'demo-learner-3' }, {
+			learnerId: 'demo-learner-3', reportPeriodId: id(periodComposed),
+			mentorComment: 'Rapport gedeeld met ouders.', lifecycle: 'published-to-parents',
+			composedAt: '2027-03-20T12:00:00Z', tenant_id: TENANT,
+			...(id(cohort) ? { cohortId: id(cohort) } : {}),
+		})
+	}
+
+	// GroupPlan + an intensief subgroup that actually has members. The
+	// subgroup scenario reads learnerIds, so an empty subgroup would leave it
+	// skipping exactly as before.
+	const groupPlan = id(cohort)
+		? await seed('group-plan', { field: 'subject', value: 'technisch lezen' }, {
+			cohortId: id(cohort), subject: 'technisch lezen', coordinatorId: 'demo-learner-1',
+			period: '2026-2027 blok 1', periodEndDate: '2026-12-31',
+			lifecycle: 'active', tenant_id: TENANT,
+		})
+		: null
+	if (id(groupPlan)) {
+		await seed('group-plan-subgroup', { field: 'name', value: 'Intensief (demo)' }, {
+			groupPlanId: id(groupPlan), name: 'Intensief (demo)', instructieniveau: 'intensief',
+			learnerIds: ['demo-learner-2', 'demo-learner-3'],
+			differentiatedGoal: 'Technisch lezen op AVI-E4 met verlengde instructie.',
+			approach: 'Dagelijks 20 minuten verlengde instructie in een kleine kring.',
+			tenant_id: TENANT,
 		})
 	}
 

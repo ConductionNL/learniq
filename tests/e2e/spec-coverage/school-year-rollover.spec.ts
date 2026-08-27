@@ -18,7 +18,7 @@
  */
 import { test, expect } from '../fixtures'
 
-const WIZARD_URL = '/index.php/apps/learniq/#/structure/rollover'
+const WIZARD_URL = '/index.php/apps/learniq/structure/rollover'
 
 test.describe('school-year-rollover — rollover wizard page', () => {
 	// @e2e openspec/specs/school-year-rollover/spec.md#executor-is-notified-on-completion

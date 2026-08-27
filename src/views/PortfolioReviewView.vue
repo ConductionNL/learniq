@@ -180,12 +180,15 @@ import { generateUrl } from '@nextcloud/router'
  */
 const REFERENCE_SCHEMAS = {
 	submission: { schema: 'Submission', idField: 'submissionId' },
+	// `schema` is the OpenRegister SLUG — the URL segment resolves by
+	// lower(slug), so a multi-word title such as "WerkprocesAssessment" 404s.
+	// The map key already IS the slug for these two.
 	'werkproces-assessment': {
-		schema: 'WerkprocesAssessment',
+		schema: 'werkproces-assessment',
 		idField: 'werkprocesAssessmentId',
 	},
 	'external-training-record': {
-		schema: 'ExternalTrainingRecord',
+		schema: 'external-training-record',
 		idField: 'externalTrainingRecordId',
 	},
 	credential: { schema: 'Credential', idField: 'credentialId' },
@@ -274,17 +277,28 @@ export default {
 				this.gradeValue = this.portfolio.gradeValue ?? null
 
 				this.entries = await this.fetchList(
-					'PortfolioEntry',
-					`filters[portfolioId]=${portfolioId}&limit=100`,
+					'portfolio-entry',
+					`filters[portfolioId]=${portfolioId}&_limit=100`,
 				)
 				await this.resolveEntryReferences()
 			} catch (err) {
-				this.error = this.t(
-					'learniq',
-					'Failed to load portfolio. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[PortfolioReviewView] loadData error', err)
+				// A missing record is input, not a fault — see the same branch in
+				// PortfolioBuilder.vue. A 404 here means the portfolio is gone or
+				// was never visible to this reviewer; that is worth telling them
+				// and not worth logging as an application error.
+				if (err?.notFound === true) {
+					this.error = this.t(
+						'learniq',
+						'This portfolio no longer exists, or you do not have access to it.',
+					)
+				} else {
+					this.error = this.t(
+						'learniq',
+						'Failed to load portfolio. Please try again.',
+					)
+					// eslint-disable-next-line no-console
+					console.error('[PortfolioReviewView] loadData error', err)
+				}
 			} finally {
 				this.loading = false
 			}
@@ -306,7 +320,14 @@ export default {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
 			if (!resp.ok) {
-				throw new Error(`${schema} fetch failed: ${resp.status}`)
+				// `notFound` is set on the single-object lookup only — see the
+				// same guard in PortfolioBuilder.vue. A 404 from fetchList()
+				// means the schema did not resolve, not that a record is absent,
+				// and must not take the quiet branch.
+				const err = new Error(`${schema} fetch failed: ${resp.status}`)
+				err.status = resp.status
+				err.notFound = resp.status === 404
+				throw err
 			}
 			const json = await resp.json()
 			return json.object ?? json ?? {}

@@ -34,16 +34,15 @@
 import { test, expect } from '../fixtures'
 
 const TAKE_ASSESSMENT_URL =
-	'/index.php/apps/learniq/#/assessments/e2e-smoke-placeholder/take'
+	'/index.php/apps/learniq/assessments/e2e-smoke-placeholder/take'
 const ITEM_REVISION_FLAGS_URL =
-	'/index.php/apps/learniq/#/assessments/item-revision-flags'
+	'/index.php/apps/learniq/assessments/item-revision-flags'
 const ITEM_REVISION_FLAG_DETAIL_URL =
-	'/index.php/apps/learniq/#/assessments/item-revision-flags/e2e-smoke-placeholder'
+	'/index.php/apps/learniq/assessments/item-revision-flags/e2e-smoke-placeholder'
 const ITEM_ANALYSIS_URL =
-	'/index.php/apps/learniq/#/assessments/items/e2e-smoke-placeholder/analysis'
-const ITEM_STATISTICS_URL = '/index.php/apps/learniq/#/assessments/item-statistics'
-const ASSESSMENT_RELIABILITY_URL =
-	'/index.php/apps/learniq/#/assessments/reliability'
+	'/index.php/apps/learniq/assessments/items/e2e-smoke-placeholder/analysis'
+const ITEM_STATISTICS_URL = '/index.php/apps/learniq/assessments/item-statistics'
+const ASSESSMENT_RELIABILITY_URL = '/index.php/apps/learniq/assessments/reliability'
 
 function collectFatalErrors(page: import('@playwright/test').Page): string[] {
 	const errors: string[] = []

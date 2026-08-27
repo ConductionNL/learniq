@@ -238,7 +238,7 @@ export default {
 			this.loading = true
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/conference-round?lifecycle=booking-open&limit=100',
+					'/apps/openregister/api/objects/learniq/conference-round?lifecycle=booking-open&_limit=100',
 				)
 				const response = await axios.get(url)
 				this.rounds =
@@ -273,13 +273,13 @@ export default {
 				const [childrenResp, selfResp] = await Promise.all([
 					axios.get(
 						generateUrl(
-							'/apps/openregister/api/objects/learniq/learner-profile?parentIds={uid}&limit=50',
+							'/apps/openregister/api/objects/learniq/learner-profile?parentIds={uid}&_limit=50',
 							{ uid },
 						),
 					),
 					axios.get(
 						generateUrl(
-							'/apps/openregister/api/objects/learniq/learner-profile?ncUserId={uid}&limit=1',
+							'/apps/openregister/api/objects/learniq/learner-profile?ncUserId={uid}&_limit=1',
 							{ uid },
 						),
 					),

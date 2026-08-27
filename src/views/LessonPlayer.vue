@@ -790,7 +790,7 @@ export default {
 				if (!learnerId) return
 
 				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/lesson-completion?limit=100',
+					'/apps/openregister/api/objects/learniq/lesson-completion?_limit=100',
 				)
 				const resp = await fetch(url, {
 					headers: {

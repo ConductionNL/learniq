@@ -6,9 +6,9 @@
 
 Scholiq is a compliance-training and learning management app for organisations and schools. It ships as a Nextcloud app built manifest-first on OpenRegister — every entity, lifecycle, notification, and dashboard widget is declared in a JSON schema register, not hand-coded in PHP services.
 
-[![Latest release](https://img.shields.io/gitea/v/release/Conduction/scholiq?gitea_url=https%3A%2F%2Fcodeberg.org)](https://codeberg.org/Conduction/scholiq/releases)
+[![Latest release](https://img.shields.io/github/v/release/ConductionNL/learniq)](https://github.com/ConductionNL/learniq/releases)
 [![License](https://img.shields.io/badge/license-EUPL--1.2-blue)](LICENSE)
-[![Code quality](https://ci.codeberg.org/api/badges/Conduction/scholiq/status.svg)](https://ci.codeberg.org/repos/Conduction/scholiq)
+[![Code quality](https://github.com/ConductionNL/learniq/actions/workflows/code-quality.yml/badge.svg)](https://github.com/ConductionNL/learniq/actions/workflows/code-quality.yml)
 
 ---
 
@@ -40,8 +40,8 @@ The wedge targets compliance officers at organisations subject to NIS2 / Cyberbe
 | Nextcloud | 28 – 33 |
 | PHP | 8.1+ |
 | Node.js | 20+ |
-| [OpenRegister](https://codeberg.org/Conduction/openregister) | latest |
-| [OpenConnector](https://codeberg.org/Conduction/openconnector) | latest |
+| [OpenRegister](https://github.com/ConductionNL/openregister) | latest |
+| [OpenConnector](https://github.com/ConductionNL/integriq) | latest |
 
 ### Install
 
@@ -60,7 +60,7 @@ docker exec nextcloud php occ openregister:register:import /var/www/html/custom_
 
 ```bash
 cd /var/www/html/custom_apps
-git clone https://codeberg.org/Conduction/scholiq.git scholiq
+git clone https://github.com/ConductionNL/learniq.git scholiq
 cd scholiq
 npm install && npm run build
 make dev-link          # creates the scholiq -> nextcloud-scholiq symlink if needed
@@ -127,8 +127,8 @@ npm run build           # production build
 
 ## Related apps
 
-- [OpenRegister](https://codeberg.org/Conduction/openregister) — required object-store foundation
-- [OpenConnector](https://codeberg.org/Conduction/openconnector) — required for external adapters
+- [OpenRegister](https://github.com/ConductionNL/openregister) — required object-store foundation
+- [OpenConnector](https://github.com/ConductionNL/integriq) — required for external adapters
 
 ## Support
 

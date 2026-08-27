@@ -205,7 +205,7 @@ export default {
 			this.loadingRounds = true
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/conference-round?lifecycle=scheduled&limit=100',
+					'/apps/openregister/api/objects/learniq/conference-round?lifecycle=scheduled&_limit=100',
 				)
 				const response = await axios.get(url)
 				this.rounds =
@@ -250,7 +250,7 @@ export default {
 			this.loadingSignups = true
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/conference-signup?conferenceRoundId={roundId}&lifecycle=waitlisted&limit=200',
+					'/apps/openregister/api/objects/learniq/conference-signup?conferenceRoundId={roundId}&lifecycle=waitlisted&_limit=200',
 					{ roundId: this.selectedRoundId },
 				)
 				const response = await axios.get(url)

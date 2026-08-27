@@ -197,7 +197,9 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 				continue;
 			}
 
-			$provisioned[$learnerId] = true;
+			// Cast the key: declared array<string, bool> and passed BY
+			// REFERENCE, so an un-narrowed key degrades it to array<bool>.
+			$provisioned[(string)$learnerId] = true;
 
 			$this->objectService->saveObject(
 				register: self::LEARNIQ_REGISTER,
@@ -264,7 +266,10 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 				continue;
 			}
 
-			$byId[$cohortId] = $cohort->jsonSerialize();
+			// Cast the key: the accumulator is declared array<string, array> and
+			// passed BY REFERENCE, so an un-narrowed key degrades it to
+			// array<array> at the call boundary.
+			$byId[(string)$cohortId] = $cohort->jsonSerialize();
 		}//end foreach
 
 	}//end collectCohortsById()
@@ -304,7 +309,10 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 					continue;
 				}
 
-				$byId[$cohortId] = $matchData;
+				// Cast both key and value — see collectCohortsById() above.
+				// $matchData is mixed here, and the accumulator is declared
+				// array<string, array> and taken BY REFERENCE.
+				$byId[(string)$cohortId] = (array)$matchData;
 			}
 		}//end foreach
 

@@ -657,7 +657,7 @@ export default {
 
 			const exportId = this.latestExport.id ?? this.latestExport.uuid
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/learning-record-share?filters[learningRecordExportId]=${exportId}&limit=100`,
+				`/apps/openregister/api/objects/learniq/learning-record-share?filters[learningRecordExportId]=${exportId}&_limit=100`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
