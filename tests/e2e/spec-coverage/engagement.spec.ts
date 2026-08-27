@@ -82,7 +82,9 @@ test.describe('engagement-gamification — points/level widget and leaderboard',
 		// non-zero one — the failure it must catch is the placeholder dash the
 		// tile shows while unresolved, and the error state it shows when the
 		// endpoint fails.
-		const tile = page.locator('.cn-stat-widget', { hasText: 'My points' }).first()
+		const tile = page
+			.locator('.cn-stat-widget', { hasText: 'My points' })
+			.first()
 		await expect(tile).toBeVisible({ timeout: 15_000 })
 		await expect(tile).not.toContainText('—')
 		// Match "contains a digit" rather than a full numeric shape: the tile
