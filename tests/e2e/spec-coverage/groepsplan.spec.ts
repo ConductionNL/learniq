@@ -25,22 +25,45 @@
  * (not failed) when the seeded dev instance carries no matching fixtures yet.
  */
 import { test, expect } from '../fixtures'
+import { requireFixture } from '../seeded'
 
-const GROUP_PLANS_INDEX_URL = '/index.php/apps/learniq/#/group-plans'
+// ⚠️ NO `#` — the router is HISTORY mode, not hash mode. Fixed fleet-wide in
+// #610; this note records what it cost HERE.
+//
+// vue-router strips the `createWebHistory` base from `location.pathname` and
+// appends the UNTOUCHED hash, so `/index.php/apps/learniq/#/group-plans/...`
+// resolved to `/#/group-plans/...`, matched no declared route, and fell through
+// `routesFromManifest`'s `/:pathMatch(.*)*` catch-all — which `redirect: '/'`s
+// to the DASHBOARD. That is why the subgroup scenario matched /learning plan/i
+// against a page beginning "Skip to app navigation … Learniq": it was reading
+// the dashboard. Invisible while the scenario skipped for want of a fixture,
+// because a skipping test never navigates at all.
+const GROUP_PLANS_INDEX_URL = '/index.php/apps/learniq/group-plans'
 const GROUP_PLAN_DETAIL_URL =
-	'/index.php/apps/learniq/#/group-plans/00000000-0000-0000-0000-000000000000'
+	'/index.php/apps/learniq/group-plans/00000000-0000-0000-0000-000000000000'
 const GROUP_PLAN_SUBGROUP_DETAIL_URL =
-	'/index.php/apps/learniq/#/group-plans/00000000-0000-0000-0000-000000000000/subgroups/00000000-0000-0000-0000-000000000000'
+	'/index.php/apps/learniq/group-plans/00000000-0000-0000-0000-000000000000/subgroups/00000000-0000-0000-0000-000000000000'
 const GROUP_PLAN_EVALUATION_DETAIL_URL =
-	'/index.php/apps/learniq/#/group-plans/00000000-0000-0000-0000-000000000000/evaluations/00000000-0000-0000-0000-000000000000'
+	'/index.php/apps/learniq/group-plans/00000000-0000-0000-0000-000000000000/evaluations/00000000-0000-0000-0000-000000000000'
 const LEARNER_CONTEXT_URL =
-	'/index.php/apps/learniq/#/group-plans/subgroup-learner-context'
+	'/index.php/apps/learniq/group-plans/subgroup-learner-context'
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
+// `_limit`, NOT `limit` — an unrecognised OpenRegister query parameter is
+// applied as a PROPERTY FILTER rather than ignored, so `?limit=200` returns
+// HTTP 200 with an empty result set that reads as "nothing seeded".
+// ⚠️ THE SLUG, NOT THE SCHEMA NAME. This addressed `GroupPlanSubgroup`, and
+// OpenRegister resolves objects by SLUG — `group-plan-subgroup`. Slugs are
+// case-insensitive, but case-insensitivity does not insert hyphens, so the
+// PascalCase form resolved to nothing and the endpoint answered HTTP 200 with
+// an empty result set. Indistinguishable from "the seeder made none", which is
+// exactly how this scenario went unnoticed: the old `test.skip(!subgroup, …)`
+// read that emptiness as "not seeded" and reported a pass. Every other list
+// constant in this suite already used the slug form.
 const GROUP_PLAN_SUBGROUP_LIST_API =
-	'/index.php/apps/openregister/api/objects/learniq/GroupPlanSubgroup?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/group-plan-subgroup?_limit=200'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise
@@ -194,10 +217,7 @@ test.describe('groepsplan — GroupPlanSubgroupLearnerContext resolves (registry
 		loggedInPage: page,
 	}) => {
 		const subgroup = await findIntensiefSubgroup(page)
-		test.skip(
-			!subgroup,
-			'No seeded intensief GroupPlanSubgroup with members found on this dev instance yet.',
-		)
+		requireFixture(subgroup, 'an intensief GroupPlanSubgroup with members')
 
 		const errors = collectFatalErrors(page)
 		const id = subgroup.id ?? subgroup.uuid

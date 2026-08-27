@@ -172,7 +172,7 @@ export default {
 				const [applicationsResp, roundsResp] = await Promise.all([
 					fetch(
 						generateUrl(
-							'/apps/openregister/api/objects/learniq/Application?limit=200',
+							'/apps/openregister/api/objects/learniq/Application?_limit=200',
 						),
 						{
 							headers: {
@@ -183,7 +183,7 @@ export default {
 					),
 					fetch(
 						generateUrl(
-							'/apps/openregister/api/objects/learniq/admissions-round?limit=200',
+							'/apps/openregister/api/objects/learniq/admissions-round?_limit=200',
 						),
 						{
 							headers: {

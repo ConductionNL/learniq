@@ -5,8 +5,11 @@ import {
 	buildManifest,
 	CnPageRenderer,
 	defaultPageTypes,
+	installIntegrationRegistry,
 	registerBuiltinDashboardWidgets,
+	registerBuiltinIntegrations,
 	registerIcons,
+	registerLeafIntegrations,
 	registerTranslations,
 } from '@conduction/nextcloud-vue'
 import { loadState } from '@nextcloud/initial-state'
@@ -59,6 +62,28 @@ import './assets/app.css'
 //      `audit-trail` with surfaces:['detail-page'] AND its config form, which
 //      the app-local copy did not have (`form: null`).
 registerBuiltinDashboardWidgets()
+
+// Integration registry (ADR-019). learniq's manifest declares THREE
+// `type: "integration"` widgets — `cohort-talk` ("Class space") on
+// CohortDetail, `session-talk` ("Join call") and `sess-files` ("Session
+// materials") on SessionDetail — and nothing ever registered a provider for
+// them to resolve against.
+//
+// That failure is silent by design. CnDetailPage.resolveIntegrationWidget()
+// returns null when the integration is not registered, and its own docblock
+// says what happens next: "the grid section simply renders nothing extra". No
+// error, no placeholder, no gap in the layout — three declared widgets just
+// were not there, on every page load since they were declared.
+//
+// Note this is NOT the "Talk is not installed" path. A registered talk leaf
+// whose backing app is absent renders CnTalkCard's degraded surface, title and
+// all; an UNREGISTERED one renders nothing whatsoever. talk-classroom-spaces
+// e2e asserted the former and got the latter, and read as a Talk problem.
+//
+// Same three calls, same order, as decidiq's main.js.
+installIntegrationRegistry()
+registerBuiltinIntegrations()
+registerLeafIntegrations()
 
 // Register library-side icon set + lib translations once at bootstrap.
 registerIcons(appIcons)

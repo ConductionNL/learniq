@@ -950,5 +950,6 @@
         "Administration": "Administration",
         "Teaching": "Teaching"
     },
-    "plurals": ""
+    "plurals": "",
+    "pluralForm": "nplurals=2; plural=(n != 1);"
 }

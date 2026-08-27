@@ -531,7 +531,7 @@
 							"viewAllQuery": {
 								"parentId": "@objectId"
 							},
-							"emptyText": "No sub-competencies found — this is a leaf node (learning outcome).",
+							"emptyText": "No sub-competencies. This is a learning outcome, the lowest level in the tree.",
 							"allowCreate": false
 						},
 						"icon": "Sitemap"
@@ -2242,279 +2242,284 @@
 			"title": "Progress",
 			"_note": "ADR-044 §4 cards-collapse. This page exists so the group above it is ONE top-level entry instead of a long flat child list: relocating a group into another DISSOLVES it (buildManifest applyMenuRelocations discards the group's own label), which produced a 33-item undifferentiated list — the exact failure ADR-097 Decision 6 names. Each former leaf is a card here, keeping its label, with a description wherever the label is ambiguous out of context.",
 			"config": {
-				"allowEdit": false
-			},
-			"widgets": [
-				{
-					"id": "progress-landing-cards",
-					"widgetKey": "nav-card-grid",
-					"slot": "body",
-					"gridX": 0,
-					"gridY": 0,
-					"gridWidth": 12,
-					"gridHeight": 8,
-					"props": {
-						"entries": [
-							{
-								"id": "BpvPlacementsMenu",
-								"label": "Placements",
-								"route": "BpvPlacements",
-								"order": 10,
-								"icon": "BriefcaseOutline",
-								"description": "Work placements at an employer"
-							},
-							{
-								"id": "PraktijkovereenkomstenMenu",
-								"label": "Praktijkovereenkomsten",
-								"route": "Praktijkovereenkomsten",
-								"order": 20,
-								"icon": "FileOutline",
-								"description": "Placement agreements (POK)"
-							},
-							{
-								"id": "WerkprocesAssessmentsMenu",
-								"label": "Werkproces assessments",
-								"route": "WerkprocesAssessments",
-								"order": 30,
-								"icon": "Check",
-								"description": "Assessments against work-process criteria"
-							},
-							{
-								"id": "BpvVisitReportsMenu",
-								"label": "Visit reports",
-								"route": "BpvVisitReports",
-								"order": 40,
-								"icon": "ChartBoxOutline",
-								"description": "Reports from workplace visits"
-							},
-							{
-								"id": "PraktijkopleidersMenu",
-								"label": "Praktijkopleiders",
-								"route": "Praktijkopleiders",
-								"order": 50,
-								"icon": "AccountBox",
-								"description": "Workplace trainers at the employer"
-							},
-							{
-								"id": "PortfoliosMenu",
-								"label": "Portfolios",
-								"route": "Portfolios",
-								"order": 60,
-								"icon": "BriefcaseOutline"
-							},
-							{
-								"id": "PortfolioTemplatesMenu",
-								"label": "Portfolio templates",
-								"route": "PortfolioTemplates",
-								"order": 70,
-								"icon": "FileReplaceOutline"
-							},
-							{
-								"id": "PortfolioEntriesMenu",
-								"label": "Portfolio entries",
-								"route": "PortfolioEntries",
-								"order": 80,
-								"icon": "BriefcaseOutline"
-							},
-							{
-								"id": "PortfolioSharesMenu",
-								"label": "Portfolio shares",
-								"route": "PortfolioShares",
-								"order": 90,
-								"icon": "BriefcaseOutline"
-							},
-							{
-								"id": "ExternalAssessorsMenu",
-								"label": "External assessors",
-								"route": "ExternalAssessors",
-								"order": 100,
-								"icon": "AccountBox",
-								"description": "Assessors outside the organisation"
-							},
-							{
-								"id": "EvaluationCampaignsMenu",
-								"label": "Evaluation campaigns",
-								"route": "EvaluationCampaigns",
-								"order": 110,
-								"icon": "ClipboardOutline",
-								"description": "Course-evaluation campaigns"
-							},
-							{
-								"id": "CourseQualityReportMenu",
-								"label": "Quality report",
-								"route": "CourseQualityReport",
-								"order": 120,
-								"icon": "ChartBoxOutline",
-								"description": "Course-quality scores"
-							},
-							{
-								"id": "CourseEvaluationResponsesMenu",
-								"label": "Responses",
-								"route": "CourseEvaluationResponses",
-								"order": 130,
-								"icon": "CommentOutline",
-								"description": "Course-evaluation responses"
-							},
-							{
-								"id": "ImprovementActionsMenu",
-								"label": "Improvement actions",
-								"route": "ImprovementActions",
-								"order": 140,
-								"icon": "Check",
-								"description": "Actions raised from evaluations"
-							},
-							{
-								"id": "LeaderboardViewMenu",
-								"label": "Leaderboard",
-								"route": "LeaderboardView",
-								"order": 150,
-								"icon": "AccountArrowRightOutline",
-								"description": "The live engagement leaderboard"
-							},
-							{
-								"id": "PointRulesMenu",
-								"label": "Point rules",
-								"route": "PointRules",
-								"order": 160,
-								"icon": "Eye",
-								"description": "How engagement points are earned"
-							},
-							{
-								"id": "EngagementLevelsMenu",
-								"label": "Levels",
-								"route": "EngagementLevels",
-								"order": 170,
-								"icon": "ClipboardOutline",
-								"description": "Engagement levels and thresholds"
-							},
-							{
-								"id": "LeaderboardsMenu",
-								"label": "Leaderboards (config)",
-								"route": "Leaderboards",
-								"order": 180,
-								"icon": "AccountArrowRightOutline",
-								"description": "Leaderboard definitions"
-							},
-							{
-								"id": "PointAwardsMenu",
-								"label": "Point awards",
-								"route": "PointAwards",
-								"order": 190,
-								"icon": "History",
-								"description": "Points awarded to learners"
-							},
-							{
-								"id": "LearnerEngagementsMenu",
-								"label": "Learner engagement",
-								"route": "LearnerEngagements",
-								"order": 200,
-								"icon": "ChartLine",
-								"description": "Per-learner engagement records"
-							},
-							{
-								"id": "GroupTrendHeatmapMenu",
-								"label": "Group trend heat map",
-								"route": "GroupTrendHeatmap",
-								"order": 210,
-								"icon": "AccountGroupOutline",
-								"description": "Progress trends across a group"
-							},
-							{
-								"id": "LessonCompletionsMenu",
-								"label": "Lesson completions",
-								"route": "LessonCompletions",
-								"order": 220,
-								"icon": "Check"
-							},
-							{
-								"id": "EngagementScoresMenu",
-								"label": "Engagement scores",
-								"route": "EngagementScores",
-								"order": 230,
-								"icon": "ChartLine"
-							},
-							{
-								"id": "EngagementRiskThresholdsMenu",
-								"label": "Engagement thresholds",
-								"route": "EngagementRiskThresholds",
-								"order": 240,
-								"icon": "Eye",
-								"description": "Thresholds that raise a risk flag"
-							},
-							{
-								"id": "EngagementRiskFlagsMenu",
-								"label": "Engagement flags",
-								"route": "EngagementRiskFlags",
-								"order": 250,
-								"icon": "Lock",
-								"description": "Raised engagement-risk flags"
-							},
-							{
-								"id": "SkillsGapDashboardMenu",
-								"label": "Skills gap dashboard",
-								"route": "SkillsGapDashboard",
-								"order": 260,
-								"icon": "ViewDashboardOutline"
-							},
-							{
-								"id": "CompetencyFrameworksMenu",
-								"label": "Frameworks",
-								"route": "CompetencyFrameworks",
-								"order": 270,
-								"icon": "Folder",
-								"description": "Competency frameworks"
-							},
-							{
-								"id": "CompetenciesMenu",
-								"label": "Competencies",
-								"route": "Competencies",
-								"order": 280,
-								"icon": "MedalOutline"
-							},
-							{
-								"id": "CompetencyAttainmentsMenu",
-								"label": "Attainment",
-								"route": "CompetencyAttainments",
-								"order": 290,
-								"icon": "BriefcaseOutline",
-								"description": "Competencies a learner has attained"
-							},
-							{
-								"id": "BsaRiskDashboardMenu",
-								"label": "Risk dashboard",
-								"route": "BsaRiskDashboard",
-								"order": 300,
-								"icon": "ViewDashboardOutline",
-								"description": "Study-progress risk overview"
-							},
-							{
-								"id": "BsaTrajectoriesMenu",
-								"label": "Trajectories",
-								"route": "BsaTrajectories",
-								"order": 310,
-								"icon": "BriefcaseOutline",
-								"description": "Study-progress trajectories"
-							},
-							{
-								"id": "BsaWarningsMenu",
-								"label": "Warnings",
-								"route": "BsaWarnings",
-								"order": 320,
-								"icon": "Lock",
-								"description": "Study-progress warnings"
-							},
-							{
-								"id": "BsaDecisionsMenu",
-								"label": "Decisions",
-								"route": "BsaDecisions",
-								"order": 330,
-								"icon": "Gavel",
-								"description": "Formal study-progress decisions"
-							}
-						]
+				"allowEdit": false,
+				"widgets": [
+					{
+						"id": "nav-card-grid",
+						"type": "nav-card-grid",
+						"content": {
+							"entries": [
+								{
+									"id": "BpvPlacementsMenu",
+									"label": "Placements",
+									"route": "BpvPlacements",
+									"order": 10,
+									"icon": "BriefcaseOutline",
+									"description": "Work placements at an employer"
+								},
+								{
+									"id": "PraktijkovereenkomstenMenu",
+									"label": "Praktijkovereenkomsten",
+									"route": "Praktijkovereenkomsten",
+									"order": 20,
+									"icon": "FileOutline",
+									"description": "Placement agreements (POK)"
+								},
+								{
+									"id": "WerkprocesAssessmentsMenu",
+									"label": "Werkproces assessments",
+									"route": "WerkprocesAssessments",
+									"order": 30,
+									"icon": "Check",
+									"description": "Assessments against work-process criteria"
+								},
+								{
+									"id": "BpvVisitReportsMenu",
+									"label": "Visit reports",
+									"route": "BpvVisitReports",
+									"order": 40,
+									"icon": "ChartBoxOutline",
+									"description": "Reports from workplace visits"
+								},
+								{
+									"id": "PraktijkopleidersMenu",
+									"label": "Praktijkopleiders",
+									"route": "Praktijkopleiders",
+									"order": 50,
+									"icon": "AccountBox",
+									"description": "Workplace trainers at the employer"
+								},
+								{
+									"id": "PortfoliosMenu",
+									"label": "Portfolios",
+									"route": "Portfolios",
+									"order": 60,
+									"icon": "BriefcaseOutline"
+								},
+								{
+									"id": "PortfolioTemplatesMenu",
+									"label": "Portfolio templates",
+									"route": "PortfolioTemplates",
+									"order": 70,
+									"icon": "FileReplaceOutline"
+								},
+								{
+									"id": "PortfolioEntriesMenu",
+									"label": "Portfolio entries",
+									"route": "PortfolioEntries",
+									"order": 80,
+									"icon": "BriefcaseOutline"
+								},
+								{
+									"id": "PortfolioSharesMenu",
+									"label": "Portfolio shares",
+									"route": "PortfolioShares",
+									"order": 90,
+									"icon": "BriefcaseOutline"
+								},
+								{
+									"id": "ExternalAssessorsMenu",
+									"label": "External assessors",
+									"route": "ExternalAssessors",
+									"order": 100,
+									"icon": "AccountBox",
+									"description": "Assessors outside the organisation"
+								},
+								{
+									"id": "EvaluationCampaignsMenu",
+									"label": "Evaluation campaigns",
+									"route": "EvaluationCampaigns",
+									"order": 110,
+									"icon": "ClipboardOutline",
+									"description": "Course-evaluation campaigns"
+								},
+								{
+									"id": "CourseQualityReportMenu",
+									"label": "Quality report",
+									"route": "CourseQualityReport",
+									"order": 120,
+									"icon": "ChartBoxOutline",
+									"description": "Course-quality scores"
+								},
+								{
+									"id": "CourseEvaluationResponsesMenu",
+									"label": "Responses",
+									"route": "CourseEvaluationResponses",
+									"order": 130,
+									"icon": "CommentOutline",
+									"description": "Course-evaluation responses"
+								},
+								{
+									"id": "ImprovementActionsMenu",
+									"label": "Improvement actions",
+									"route": "ImprovementActions",
+									"order": 140,
+									"icon": "Check",
+									"description": "Actions raised from evaluations"
+								},
+								{
+									"id": "LeaderboardViewMenu",
+									"label": "Leaderboard",
+									"route": "LeaderboardView",
+									"order": 150,
+									"icon": "AccountArrowRightOutline",
+									"description": "The live engagement leaderboard"
+								},
+								{
+									"id": "PointRulesMenu",
+									"label": "Point rules",
+									"route": "PointRules",
+									"order": 160,
+									"icon": "Eye",
+									"description": "How engagement points are earned"
+								},
+								{
+									"id": "EngagementLevelsMenu",
+									"label": "Levels",
+									"route": "EngagementLevels",
+									"order": 170,
+									"icon": "ClipboardOutline",
+									"description": "Engagement levels and thresholds"
+								},
+								{
+									"id": "LeaderboardsMenu",
+									"label": "Leaderboards (config)",
+									"route": "Leaderboards",
+									"order": 180,
+									"icon": "AccountArrowRightOutline",
+									"description": "Leaderboard definitions"
+								},
+								{
+									"id": "PointAwardsMenu",
+									"label": "Point awards",
+									"route": "PointAwards",
+									"order": 190,
+									"icon": "History",
+									"description": "Points awarded to learners"
+								},
+								{
+									"id": "LearnerEngagementsMenu",
+									"label": "Learner engagement",
+									"route": "LearnerEngagements",
+									"order": 200,
+									"icon": "ChartLine",
+									"description": "Per-learner engagement records"
+								},
+								{
+									"id": "GroupTrendHeatmapMenu",
+									"label": "Group trend heat map",
+									"route": "GroupTrendHeatmap",
+									"order": 210,
+									"icon": "AccountGroupOutline",
+									"description": "Progress trends across a group"
+								},
+								{
+									"id": "LessonCompletionsMenu",
+									"label": "Lesson completions",
+									"route": "LessonCompletions",
+									"order": 220,
+									"icon": "Check"
+								},
+								{
+									"id": "EngagementScoresMenu",
+									"label": "Engagement scores",
+									"route": "EngagementScores",
+									"order": 230,
+									"icon": "ChartLine"
+								},
+								{
+									"id": "EngagementRiskThresholdsMenu",
+									"label": "Engagement thresholds",
+									"route": "EngagementRiskThresholds",
+									"order": 240,
+									"icon": "Eye",
+									"description": "Thresholds that raise a risk flag"
+								},
+								{
+									"id": "EngagementRiskFlagsMenu",
+									"label": "Engagement flags",
+									"route": "EngagementRiskFlags",
+									"order": 250,
+									"icon": "Lock",
+									"description": "Raised engagement-risk flags"
+								},
+								{
+									"id": "SkillsGapDashboardMenu",
+									"label": "Skills gap dashboard",
+									"route": "SkillsGapDashboard",
+									"order": 260,
+									"icon": "ViewDashboardOutline"
+								},
+								{
+									"id": "CompetencyFrameworksMenu",
+									"label": "Frameworks",
+									"route": "CompetencyFrameworks",
+									"order": 270,
+									"icon": "Folder",
+									"description": "Competency frameworks"
+								},
+								{
+									"id": "CompetenciesMenu",
+									"label": "Competencies",
+									"route": "Competencies",
+									"order": 280,
+									"icon": "MedalOutline"
+								},
+								{
+									"id": "CompetencyAttainmentsMenu",
+									"label": "Attainment",
+									"route": "CompetencyAttainments",
+									"order": 290,
+									"icon": "BriefcaseOutline",
+									"description": "Competencies a learner has attained"
+								},
+								{
+									"id": "BsaRiskDashboardMenu",
+									"label": "Risk dashboard",
+									"route": "BsaRiskDashboard",
+									"order": 300,
+									"icon": "ViewDashboardOutline",
+									"description": "Study-progress risk overview"
+								},
+								{
+									"id": "BsaTrajectoriesMenu",
+									"label": "Trajectories",
+									"route": "BsaTrajectories",
+									"order": 310,
+									"icon": "BriefcaseOutline",
+									"description": "Study-progress trajectories"
+								},
+								{
+									"id": "BsaWarningsMenu",
+									"label": "Warnings",
+									"route": "BsaWarnings",
+									"order": 320,
+									"icon": "Lock",
+									"description": "Study-progress warnings"
+								},
+								{
+									"id": "BsaDecisionsMenu",
+									"label": "Decisions",
+									"route": "BsaDecisions",
+									"order": 330,
+									"icon": "Gavel",
+									"description": "Formal study-progress decisions"
+								}
+							]
+						}
 					}
-				}
-			]
+				],
+				"layout": [
+					{
+						"id": 1,
+						"widgetId": "nav-card-grid",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 8
+					}
+				]
+			}
 		}
 	]
 }

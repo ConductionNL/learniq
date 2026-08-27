@@ -24,12 +24,17 @@
  * markTestSkipped convention for environment-dependent fixtures.
  */
 import { test, expect } from '../fixtures'
+import { requireFixture } from '../seeded'
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
+// `_limit`, NOT `limit` — an unrecognised OpenRegister query parameter is
+// applied as a PROPERTY FILTER rather than ignored, so `?limit=200` returns
+// HTTP 200 with an empty result set and the guards below read it as "no
+// published Lesson seeded". This spec ran 0 of its 2 tests on every green run.
 const LESSON_LIST_API =
-	'/index.php/apps/openregister/api/objects/learniq/Lesson?limit=200'
+	'/index.php/apps/openregister/api/objects/learniq/Lesson?_limit=200'
 
 /**
  * Fetch every Lesson and return the first one matching the given predicate,
@@ -66,14 +71,28 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 	test('a text lesson shows the "Mark lesson complete" action and it can be used', async ({
 		loggedInPage: page,
 	}) => {
+		// ⚠️ UNGATED, EXPLICITLY. This asked only for text + published, which was
+		// unambiguous while exactly one such Lesson existed. It is not any more:
+		// the seeder now also creates a release-gated and a drip-delayed text
+		// Lesson for adaptive-release, and a gated Lesson renders LessonPlayer's
+		// locked branch — which has no footer, and therefore no
+		// "Mark lesson complete" button. Whichever row the API returned first
+		// would decide whether this test passed.
+		//
+		// The scenario is about manual completion, not about gating, so it now
+		// says so: same ungated shape adaptive-release.spec.ts uses.
 		const lesson = await findLesson(
 			page,
-			(l) => l.contentType === 'text' && l.lifecycle === 'published',
+			(l) =>
+				l.contentType === 'text'
+				&& l.lifecycle === 'published'
+				&& (l.releaseConditions == null || l.releaseConditions.length === 0)
+				&& l.availableAfterDays == null,
 		)
 		const courseId = courseIdOf(lesson)
-		test.skip(
-			!lesson || !courseId,
-			'No published contentType=text Lesson seeded in this environment.',
+		requireFixture(
+			lesson && courseId,
+			'a published, ungated contentType=text Lesson with a courseId',
 		)
 
 		const errors: string[] = []
@@ -83,7 +102,11 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 
 		const lessonId = lesson.id ?? lesson.uuid
 		await page.goto(
-			`/index.php/apps/learniq/#/courses/${courseId}/lessons/${lessonId}/play`,
+			// ⚠️ NO `#` — HISTORY mode router (fixed fleet-wide in #610). With
+			// the hash this resolved to `/#/courses/…/play`, matched no route,
+			// and the catch-all redirected to the DASHBOARD — which is why
+			// neither "Mark lesson complete" nor "Completed" was ever visible.
+			`/index.php/apps/learniq/courses/${courseId}/lessons/${lessonId}/play`,
 		)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')
@@ -128,19 +151,33 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 	test('a cmi5 lesson does not show the "Mark lesson complete" action', async ({
 		loggedInPage: page,
 	}) => {
+		// ⚠️ UNGATED TOO, AND FOR A SHARPER REASON THAN ABOVE. This scenario
+		// asserts the button is ABSENT — and a release-gated lesson shows no
+		// button either, because LessonPlayer renders its locked branch instead
+		// of the footer. Selecting a gated cmi5 Lesson would therefore make this
+		// test pass for entirely the wrong reason, proving nothing about
+		// contentType. Requiring an ungated one keeps the absence attributable.
 		const lesson = await findLesson(
 			page,
-			(l) => l.contentType === 'cmi5' && l.lifecycle === 'published',
+			(l) =>
+				l.contentType === 'cmi5'
+				&& l.lifecycle === 'published'
+				&& (l.releaseConditions == null || l.releaseConditions.length === 0)
+				&& l.availableAfterDays == null,
 		)
 		const courseId = courseIdOf(lesson)
-		test.skip(
-			!lesson || !courseId,
-			'No published contentType=cmi5 Lesson seeded in this environment.',
+		requireFixture(
+			lesson && courseId,
+			'a published, ungated contentType=cmi5 Lesson with a courseId',
 		)
 
 		const lessonId = lesson.id ?? lesson.uuid
 		await page.goto(
-			`/index.php/apps/learniq/#/courses/${courseId}/lessons/${lessonId}/play`,
+			// ⚠️ NO `#` — HISTORY mode router (fixed fleet-wide in #610). With
+			// the hash this resolved to `/#/courses/…/play`, matched no route,
+			// and the catch-all redirected to the DASHBOARD — which is why
+			// neither "Mark lesson complete" nor "Completed" was ever visible.
+			`/index.php/apps/learniq/courses/${courseId}/lessons/${lessonId}/play`,
 		)
 		await page.waitForSelector('body', { timeout: 15_000 })
 		await page.waitForLoadState('domcontentloaded')

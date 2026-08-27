@@ -107,6 +107,24 @@ class RenameRegisterSlug implements IRepairStep {
 	 * @spec openspec/changes/rename-to-learniq/specs/app-metadata/spec.md#requirement-pre-existing-openregister-objects-resolve-after-the-register-slug-migration
 	 */
 	public function run(IOutput $output): void {
+		// A rename is only pending while a row still carries the OLD slug. On an
+		// already-renamed install (or a fresh install created directly as
+		// 'learniq') there is nothing to do — and, crucially, nothing to warn
+		// about: the destination slug existing is the EXPECTED end state, not a
+		// collision. Warning on it made every `occ upgrade` after the rename cry
+		// "manual investigation required" forever.
+		$pending = $this->slugCount(slug: self::OLD_SLUG);
+		if ($pending === null) {
+			// Fail closed: if the pending check itself failed, do not rename.
+			$output->warning('RenameRegisterSlug: could not check for a pending rename — skipped, no change made.');
+			return;
+		}
+
+		if ($pending === 0) {
+			$output->info('RenameRegisterSlug: no register with slug \'' . self::OLD_SLUG . '\' — nothing to rename.');
+			return;
+		}
+
 		if ($this->hasCollision() === true) {
 			$this->logger->warning(
 				'RenameRegisterSlug: a register with slug \'' . self::NEW_SLUG . '\' already exists; '
@@ -130,21 +148,40 @@ class RenameRegisterSlug implements IRepairStep {
 	 * @return bool
 	 */
 	private function hasCollision(): bool {
-		try {
-			$count = $this->db->executeQuery(
-				'SELECT COUNT(*) AS c FROM `*PREFIX*openregister_registers` WHERE slug = ?',
-				[self::NEW_SLUG]
-			)->fetchOne();
-			return ((int)$count) > 0;
-		} catch (Exception $e) {
+		$count = $this->slugCount(slug: self::NEW_SLUG);
+		if ($count === null) {
 			$this->logger->warning(
-				'RenameRegisterSlug: could not check for a slug collision; skipping the rename.',
-				['exception' => $e->getMessage()]
+				'RenameRegisterSlug: could not check for a slug collision; skipping the rename.'
 			);
 			// Fail closed: if the collision check itself failed, do not rename.
 			return true;
 		}
+
+		return $count > 0;
 	}//end hasCollision()
+
+	/**
+	 * Count the registers carrying a slug, or null when the count itself failed.
+	 *
+	 * @param string $slug The register slug to count.
+	 *
+	 * @return int|null The row count, or null when the query errored.
+	 */
+	private function slugCount(string $slug): ?int {
+		try {
+			$count = $this->db->executeQuery(
+				'SELECT COUNT(*) AS c FROM `*PREFIX*openregister_registers` WHERE slug = ?',
+				[$slug]
+			)->fetchOne();
+			return (int)$count;
+		} catch (Exception $e) {
+			$this->logger->warning(
+				'RenameRegisterSlug: could not count registers with slug \'' . $slug . '\'.',
+				['exception' => $e->getMessage()]
+			);
+			return null;
+		}
+	}//end slugCount()
 
 	/**
 	 * Execute the single-row slug UPDATE.

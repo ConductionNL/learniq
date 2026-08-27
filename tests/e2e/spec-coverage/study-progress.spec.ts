@@ -19,7 +19,7 @@
  */
 import { test, expect } from '../fixtures'
 
-const RISK_DASHBOARD_URL = '/index.php/apps/learniq/#/study-progress/risk-dashboard'
+const RISK_DASHBOARD_URL = '/index.php/apps/learniq/study-progress/risk-dashboard'
 
 // The view this spec drives, named after the component file it covers. The
 // URL is unchanged — this makes the spec-to-component link readable in

@@ -73,17 +73,17 @@ Vrij en open source onder de EUPL-1.2-licentie.
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
     <documentation>
-        <user>https://codeberg.org/Conduction/nextcloud-scholiq</user>
-        <admin>https://codeberg.org/Conduction/nextcloud-scholiq</admin>
-        <developer>https://codeberg.org/Conduction/nextcloud-scholiq</developer>
+        <user>https://github.com/ConductionNL/learniq</user>
+        <admin>https://github.com/ConductionNL/learniq</admin>
+        <developer>https://github.com/ConductionNL/learniq</developer>
     </documentation>
     <category>tools</category>
-    <website>https://codeberg.org/Conduction/nextcloud-scholiq</website>
-    <discussion>https://codeberg.org/Conduction/nextcloud-scholiq/discussions</discussion>
-    <bugs>https://codeberg.org/Conduction/nextcloud-scholiq/issues</bugs>
-    <repository>https://codeberg.org/Conduction/nextcloud-scholiq</repository>
+    <website>https://github.com/ConductionNL/learniq</website>
+    <discussion>https://github.com/ConductionNL/learniq/discussions</discussion>
+    <bugs>https://github.com/ConductionNL/learniq/issues</bugs>
+    <repository>https://github.com/ConductionNL/learniq</repository>
 
-    <screenshot>https://codeberg.org/Conduction/scholiq/raw/branch/main/img/app-store.svg</screenshot>
+    <screenshot>https://raw.githubusercontent.com/ConductionNL/learniq/development/img/app-store.svg</screenshot>
 
     <!--
         AVG Art. 30 verwerkingsregister consumes OpenRegister's per-access
@@ -116,7 +116,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
             creates concept GradeEntry rows. No-ops until an admin bootstraps
             learniq.lti_ags_subscription_id (see docs/ARCHITECTURE.md).
         -->
-        <job>OCA\Learniq\Cron\LtiAgsScorePollJob</job>
+        <job>OCA\Learniq\BackgroundJob\LtiAgsScorePollJob</job>
     </background-jobs>
 
     <repair-steps>
@@ -164,6 +164,24 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 (skips a key whose learniq.* destination is already set).
             -->
             <step>OCA\Learniq\Repair\MigrateAppConfigKeys</step>
+            <!--
+                The background job moved from OCA\Learniq\Cron to
+                OCA\Learniq\BackgroundJob in #612. The <job> entry above is a
+                REGISTRATION instruction, not a description of state: on upgrade
+                Nextcloud ADDS a job it does not have, but never removes one
+                whose class disappeared — it cannot tell a renamed class from
+                one merely unavailable this boot.
+
+                Measured on a live instance carrying the equivalent opencatalogi
+                move: oc_jobs still held OCA\OpenCatalogi\Cron\DirectorySync
+                beside its replacement. A row naming a missing class fails to
+                build on every cron tick, and logs rather than raises.
+
+                Independent of the rename ordering above — it removes rows and
+                creates nothing, so no step depends on it either way.
+                post-migration only: a fresh install has no rows to remove.
+            -->
+            <step>OCA\Learniq\Repair\RemoveRetiredCronJobs</step>
             <step>OCA\Learniq\Repair\InitializeSettings</step>
             <!-- ADR-023: seed the action-authorization matrix (default admin-only). -->
             <step>OCA\Learniq\Repair\InitializeActions</step>
