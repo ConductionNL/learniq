@@ -538,6 +538,7 @@ export default {
 							endpointSource: {
 								url: '/apps/learniq/api/engagement/me',
 							},
+
 							valueField: 'totalPoints',
 							// The server composes this line: a caption template resolves a
 							// missing token to '', which would leave a learner with no level
