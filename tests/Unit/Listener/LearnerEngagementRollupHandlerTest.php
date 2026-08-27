@@ -28,7 +28,8 @@ use DateTimeZone;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Engagement\PointEngagementEvaluator;
+use OCA\Learniq\BackgroundJob\LearnerEngagementRollupJob;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCA\Learniq\Listener\LearnerEngagementRollupHandler;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -47,6 +48,12 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
 	 */
 	private array $savedObjects = [];
+
+	/** @var array<int, array<string, mixed>> */
+	private array $deferred = [];
+
+	/** @var ListenerDeferralService&MockObject */
+	private ListenerDeferralService $deferral;
 
 	/**
 	 * Existing LearnerEngagement row to return from findAll(), or null.
@@ -153,13 +160,14 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 			}
 		);
 
-		$evaluator = $this->createMock(PointEngagementEvaluator::class);
-		$evaluator->method('evaluate')->willReturnCallback(fn () => $this->evaluatorResult);
+		$this->deferral = $this->createMock(ListenerDeferralService::class);
+		$this->deferral->method('defer')->willReturnCallback(
+			function (string $jobClass, array $entry, int $chunkSize = 100, ?string $dedupeKey = null): void {
+				$this->deferred[] = ['jobClass' => $jobClass, 'entry' => $entry, 'dedupeKey' => $dedupeKey];
+			}
+		);
 
-		$timeFactory = $this->createMock(ITimeFactory::class);
-		$timeFactory->method('getDateTime')->willReturn($now);
-
-		return new LearnerEngagementRollupHandler($objectService, $evaluator, $this->schemaResolver, $timeFactory);
+		return new LearnerEngagementRollupHandler($this->deferral, $this->schemaResolver);
 	}//end makeHandler()
 
 	/**
@@ -190,142 +198,100 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 		return array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === $schema));
 	}//end savesFor()
 
+
+
+
+
 	/**
-	 * A new PointAward recomputes and saves LearnerEngagement totals/level/streak.
+	 * A PointAward defers the roll-up with the learner, tenant and kind.
+	 *
+	 * The listener's whole job now is to decide a roll-up is owed and say for
+	 * whom — the recompute, the write and the milestone award happen in
+	 * LearnerEngagementRollupJob, out of the PointAward write.
 	 *
 	 * @return void
-	 *
 	 * @spec openspec/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
 	 */
-	public function testNewPointAwardRecomputesLearnerEngagement(): void {
-		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
+	public function testAPointAwardDefersTheRollup(): void {
+		$handler = $this->makeHandler(new DateTime('2026-05-01 12:00:00', new DateTimeZone('UTC')));
 
-		$this->evaluatorResult = [
-			'totalPoints' => 25.0,
-			'levelId' => 'level-silver',
-			'currentStreakDays' => 2,
-			'longestStreakDays' => 2,
-			'lastActivityDate' => '2026-07-15',
-		];
+		$handler->handle(
+			$this->makeEvent(['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'sourceKind' => 'lesson'])
+		);
 
-		$handler = $this->makeHandler(now: $now);
-
-		$award = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'sourceKind' => 'enrolment'];
-		$handler->handle($this->makeEvent($award));
-
-		$saves = $this->savesFor('learner-engagement');
-		self::assertCount(1, $saves);
-		self::assertSame(25.0, $saves[0]['object']['totalPoints']);
-		self::assertSame('level-silver', $saves[0]['object']['levelId']);
-		self::assertSame(2, $saves[0]['object']['currentStreakDays']);
-
-	}//end testNewPointAwardRecomputesLearnerEngagement()
+		self::assertCount(1, $this->deferred);
+		self::assertSame(LearnerEngagementRollupJob::class, $this->deferred[0]['jobClass']);
+		self::assertSame('learner-1', $this->deferred[0]['entry']['learnerId']);
+		self::assertSame('tenant-a', $this->deferred[0]['entry']['tenantId']);
+		self::assertSame('lesson', $this->deferred[0]['entry']['sourceKind']);
+		self::assertSame([], $this->savedObjects, 'nothing may be written on the event path');
+	}//end testAPointAwardDefersTheRollup()
 
 	/**
-	 * A streak crossing from 6 to 7 awards exactly one bonus PointAward for
-	 * an active streak-milestone rule with milestoneDays:7.
+	 * The dedupe key carries `sourceKind`, and that is load-bearing.
+	 *
+	 * A milestone bonus award carries a recursion guard: its own roll-up must
+	 * NOT re-check milestones. If the dedupe key were learner+tenant alone, a
+	 * milestone award arriving first in a request would swallow an ordinary
+	 * award arriving second — and the ordinary award's milestone check, which
+	 * the guard does not apply to, would be silently dropped with it.
 	 *
 	 * @return void
-	 *
-	 * @spec openspec/specs/engagement/spec.md#scenario-a-streak-milestone-awards-a-bonus-pointaward-exactly-once
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
 	 */
-	public function testStreakCrossingAwardsBonusExactlyOnce(): void {
-		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
+	public function testTheDedupeKeyDistinguishesAMilestoneAwardFromAnOrdinaryOne(): void {
+		$handler = $this->makeHandler(new DateTime('2026-05-01 12:00:00', new DateTimeZone('UTC')));
 
-		$this->existingEngagement = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'currentStreakDays' => 6];
-		$this->evaluatorResult = [
-			'totalPoints' => 30.0,
-			'levelId' => null,
-			'currentStreakDays' => 7,
-			'longestStreakDays' => 7,
-			'lastActivityDate' => '2026-07-15',
-		];
-		$this->streakRules = [
-			['id' => 'rule-streak-7', 'points' => 20, 'milestoneDays' => 7],
-		];
+		$handler->handle($this->makeEvent(['learnerId' => 'l1', 'tenant_id' => 't1', 'sourceKind' => 'streak-milestone']));
+		$handler->handle($this->makeEvent(['learnerId' => 'l1', 'tenant_id' => 't1', 'sourceKind' => 'lesson']));
 
-		$handler = $this->makeHandler(now: $now);
-
-		$award = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'sourceKind' => 'submission'];
-		$handler->handle($this->makeEvent($award));
-
-		$bonusSaves = $this->savesFor('point-award');
-		self::assertCount(1, $bonusSaves);
-		self::assertSame('streak-milestone', $bonusSaves[0]['object']['sourceKind']);
-		self::assertNull($bonusSaves[0]['object']['sourceObjectId']);
-		self::assertSame('rule-streak-7', $bonusSaves[0]['object']['pointRuleId']);
-		self::assertSame(20.0, $bonusSaves[0]['object']['points']);
-
-	}//end testStreakCrossingAwardsBonusExactlyOnce()
-
-	/**
-	 * The bonus award's own rollup (sourceKind: streak-milestone) does not
-	 * re-trigger a further streak-milestone check -- the recursion guard.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/specs/engagement/spec.md#scenario-a-streak-milestone-awards-a-bonus-pointaward-exactly-once
-	 */
-	public function testBonusAwardRollupDoesNotReTriggerMilestoneCheck(): void {
-		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
-
-		$this->existingEngagement = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'currentStreakDays' => 7];
-		$this->evaluatorResult = [
-			'totalPoints' => 50.0,
-			'levelId' => null,
-			'currentStreakDays' => 7,
-			'longestStreakDays' => 7,
-			'lastActivityDate' => '2026-07-15',
-		];
-		$this->streakRules = [
-			['id' => 'rule-streak-7', 'points' => 20, 'milestoneDays' => 7],
-		];
-
-		$handler = $this->makeHandler(now: $now);
-
-		// This event's OWN sourceKind is streak-milestone -- the recursion guard.
-		$award = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'sourceKind' => 'streak-milestone'];
-		$handler->handle($this->makeEvent($award));
-
-		self::assertCount(0, $this->savesFor('point-award'));
-		self::assertCount(1, $this->savesFor('learner-engagement'));
-
-	}//end testBonusAwardRollupDoesNotReTriggerMilestoneCheck()
-
-	/**
-	 * No forward streak progress (equal or lower) never awards a bonus.
-	 *
-	 * @return void
-	 */
-	public function testNoForwardStreakProgressAwardsNoBonus(): void {
-		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
-
-		$this->existingEngagement = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'currentStreakDays' => 7];
-		$this->evaluatorResult = [
-			'totalPoints' => 10.0,
-			'levelId' => null,
-			'currentStreakDays' => 7,
-			'longestStreakDays' => 7,
-			'lastActivityDate' => '2026-07-15',
-		];
-		$this->streakRules = [
-			['id' => 'rule-streak-7', 'points' => 20, 'milestoneDays' => 7],
-		];
-
-		$handler = $this->makeHandler(now: $now);
-
-		$award = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'sourceKind' => 'grade-entry'];
-		$handler->handle($this->makeEvent($award));
-
-		self::assertCount(0, $this->savesFor('point-award'));
-
-	}//end testNoForwardStreakProgressAwardsNoBonus()
+		self::assertNotSame(
+			$this->deferred[0]['dedupeKey'],
+			$this->deferred[1]['dedupeKey'],
+			'a milestone award must not coalesce with an ordinary one'
+		);
+		self::assertSame('l1|t1|streak-milestone', $this->deferred[0]['dedupeKey']);
+		self::assertSame('l1|t1|lesson', $this->deferred[1]['dedupeKey']);
+	}//end testTheDedupeKeyDistinguishesAMilestoneAwardFromAnOrdinaryOne()
 
 	/**
 	 * An ObjectCreatedEvent on a different schema is ignored entirely.
 	 *
 	 * @return void
 	 */
+	/**
+	 * An event of another type is ignored before getObject() is reached.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
+	 */
+	public function testAnEventOfAnotherTypeIsIgnored(): void {
+		$handler = $this->makeHandler(now: new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam')));
+
+		$handler->handle(new \OCP\EventDispatcher\GenericEvent());
+
+		self::assertCount(0, $this->deferred);
+
+	}//end testAnEventOfAnotherTypeIsIgnored()
+
+	/**
+	 * A PointAward with no learnerId enqueues nothing — the dedupe key and
+	 * the roll-up itself are both keyed on it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
+	 */
+	public function testAnAwardWithNoLearnerEnqueuesNothing(): void {
+		$handler = $this->makeHandler(now: new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam')));
+
+		$handler->handle($this->makeEvent(['learnerId' => '', 'tenant_id' => 'tenant-a', 'sourceKind' => 'enrolment']));
+
+		self::assertCount(0, $this->deferred);
+
+	}//end testAnAwardWithNoLearnerEnqueuesNothing()
+
 	public function testUnrelatedSchemaIsIgnored(): void {
 		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
 
