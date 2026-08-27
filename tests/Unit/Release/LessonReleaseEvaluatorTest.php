@@ -36,7 +36,7 @@ namespace OCA\Learniq\Tests\Unit\Release;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Release\LessonReleaseEvaluator;
+use OCA\Learniq\Service\LessonReleaseEvaluator;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 

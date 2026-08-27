@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-a-ranked-leaderboard-is-opt-in-per-cohort-course-default-off-and-respects-a-per-learner-opt-out
+ * @spec openspec/specs/engagement/spec.md#requirement-a-ranked-leaderboard-is-opt-in-per-cohort-course-default-off-and-respects-a-per-learner-opt-out
  */
 
 declare(strict_types=1);
@@ -149,7 +149,7 @@ class LeaderboardControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-no-ranking-is-served-without-an-active-leaderboard
+	 * @spec openspec/specs/engagement/spec.md#scenario-no-ranking-is-served-without-an-active-leaderboard
 	 */
 	public function testNoLeaderboardRowRefused(): void {
 		$controller = $this->makeController(
@@ -171,7 +171,7 @@ class LeaderboardControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
+	 * @spec openspec/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
 	 */
 	public function testActiveLeaderboardReturnsSortedRanking(): void {
 		$controller = $this->makeController(
@@ -207,7 +207,7 @@ class LeaderboardControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
+	 * @spec openspec/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
 	 */
 	public function testOptedOutLearnerExcludedFromRanking(): void {
 		$this->optedOut['learner-2'] = true;

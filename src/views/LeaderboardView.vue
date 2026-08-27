@@ -18,7 +18,7 @@
  Uses Options API + direct fetch/axios calls (no custom Pinia store modules),
  mirroring BsaRiskDashboard.vue / RolloverWizard.vue.
 
- @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-frontend-surfaces-a-private-points-level-widget-and-one-opt-in-leaderboard-view
+ @spec openspec/specs/engagement/spec.md#requirement-frontend-surfaces-a-private-points-level-widget-and-one-opt-in-leaderboard-view
 -->
 
 <template>
@@ -166,7 +166,7 @@ export default {
 	},
 
 	/**
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
 	 */
 	created() {
 		this.loadLeaderboards()
@@ -178,7 +178,7 @@ export default {
 		 * Fetch every `active` Leaderboard row and build the cohort picker options.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
+		 * @spec openspec/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
 		 */
 		async loadLeaderboards() {
 			this.loadingLeaderboards = true
@@ -216,7 +216,7 @@ export default {
 		 * Fetch the ranked leaderboard for the selected cohort via LeaderboardController.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
+		 * @spec openspec/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
 		 */
 		async loadRankings() {
 			if (!this.selectedCohortId) {
@@ -250,7 +250,7 @@ export default {
 		 * Load the caller's own standing leaderboard opt-out preference.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
+		 * @spec openspec/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
 		 */
 		async loadOptOutState() {
 			try {
@@ -270,7 +270,7 @@ export default {
 		 *
 		 * @param {boolean} value New opt-out state.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
+		 * @spec openspec/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
 		 */
 		async toggleOptOut(value) {
 			this.optOutSaving = true

@@ -35,7 +35,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\PeerReview\PeerReviewAllocationService;
+use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;

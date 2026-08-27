@@ -30,7 +30,7 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Listener\BsaProgressFlagHandler;
-use OCA\Learniq\StudyProgress\BsaProgressEvaluator;
+use OCA\Learniq\Service\BsaProgressEvaluator;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;

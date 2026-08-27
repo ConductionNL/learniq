@@ -23,8 +23,8 @@
  * Consumed by:
  *   - BsaProgressFlagHandler (via ObjectTransitionedEvent on GradeEntry.published)
  *
- * @category StudyProgress
- * @package  OCA\Learniq\StudyProgress
+ * @category Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -41,7 +41,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\StudyProgress;
+namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 

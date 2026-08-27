@@ -48,7 +48,7 @@ namespace OCA\Learniq\Listener;
 use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\StudyProgress\BsaProgressEvaluator;
+use OCA\Learniq\Service\BsaProgressEvaluator;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;

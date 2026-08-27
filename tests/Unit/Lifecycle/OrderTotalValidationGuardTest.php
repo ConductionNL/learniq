@@ -25,7 +25,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Lifecycle\OrderTotalValidationGuard;
-use OCA\Learniq\Payments\OrderTotalEvaluator;
+use OCA\Learniq\Service\OrderTotalEvaluator;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 

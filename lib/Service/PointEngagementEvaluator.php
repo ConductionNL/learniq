@@ -31,8 +31,8 @@
  * Consumed by:
  *   - LearnerEngagementRollupHandler (via ObjectCreatedEvent on PointAward)
  *
- * @category Engagement
- * @package  OCA\Learniq\Engagement
+ * @category Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -44,12 +44,12 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
+ * @spec openspec/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
  */
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\Engagement;
+namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
@@ -59,7 +59,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
  * Sums a learner's PointAward.points, resolves their EngagementLevel, and
  * computes their activity streak.
  *
- * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
+ * @spec openspec/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
  */
 class PointEngagementEvaluator {
 
@@ -89,7 +89,7 @@ class PointEngagementEvaluator {
 	 *
 	 * @return array{totalPoints: float, levelId: ?string, currentStreakDays: int, longestStreakDays: int, lastActivityDate: ?string}
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
+	 * @spec openspec/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
 	 */
 	public function evaluate(string $learnerId, string $tenantId): array {
 		if ($learnerId === '') {
