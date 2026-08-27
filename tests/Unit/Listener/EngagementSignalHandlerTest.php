@@ -29,7 +29,8 @@ use DateTimeZone;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Analytics\EngagementScoreEvaluator;
+use OCA\Learniq\BackgroundJob\EngagementSignalJob;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCA\Learniq\Listener\EngagementSignalHandler;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -50,6 +51,12 @@ class EngagementSignalHandlerTest extends TestCase {
 	 * @var array<string, array<int, array<string,mixed>>>
 	 */
 	private array $db = [];
+
+	/** @var array<int, array<string, mixed>> */
+	private array $deferred = [];
+
+	/** @var ListenerDeferralService&MockObject */
+	private ListenerDeferralService $deferral;
 
 	/**
 	 * Recorded saveObject() calls.
@@ -176,14 +183,14 @@ class EngagementSignalHandlerTest extends TestCase {
 			}
 		);
 
-		$evaluator = $this->createMock(EngagementScoreEvaluator::class);
-		$evaluator->method('evaluate')->willReturn($evaluated);
+		$this->deferral = $this->createMock(ListenerDeferralService::class);
+		$this->deferral->method('defer')->willReturnCallback(
+			function (string $jobClass, array $entry, int $chunkSize = 100, ?string $dedupeKey = null): void {
+				$this->deferred[] = ['jobClass' => $jobClass, 'entry' => $entry, 'dedupeKey' => $dedupeKey];
+			}
+		);
 
-		$timeFactory = $this->createMock(ITimeFactory::class);
-		$timeFactory->method('getDateTime')->willReturn($now);
-		$timeFactory->method('now')->willReturn(DateTimeImmutable::createFromMutable($now));
-
-		return new EngagementSignalHandler($objectService, $evaluator, $this->schemaResolver, $timeFactory);
+		return new EngagementSignalHandler($this->deferral, $this->schemaResolver);
 	}//end makeHandler()
 
 	/**
@@ -233,19 +240,21 @@ class EngagementSignalHandlerTest extends TestCase {
 
 	}//end savedFor()
 
+
+
+
+
+
 	/**
-	 * The score recompute always runs and persists an EngagementScore, even
-	 * with no active threshold.
+	 * An xAPI statement defers the recompute rather than doing it.
 	 *
 	 * @return void
-	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-engagementscore-objects-persist-and-recompute-from-xapi-activity
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-time-on-task-accumulates-across-statements
 	 */
-	public function testScoreRecomputeAlwaysRuns(): void {
-		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
+	public function testAnXapiStatementDefersTheRecompute(): void {
 		$handler = $this->makeHandler(
 			evaluated: ['timeOnTaskMinutes' => 12.0, 'lastActivityAt' => '2026-07-13T09:00:00+02:00', 'score' => 55],
-			now: $now
+			now: new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'))
 		);
 
 		$handler->handle(
@@ -254,187 +263,13 @@ class EngagementSignalHandlerTest extends TestCase {
 			)
 		);
 
-		$scores = $this->savedFor('engagement-score');
-		self::assertCount(1, $scores);
-		self::assertSame(55, $scores[0]['score']);
-		self::assertSame(0, count($this->savedFor('engagement-risk-flag')));
-
-	}//end testScoreRecomputeAlwaysRuns()
-
-	/**
-	 * A learner whose score falls below an active engagement-score-below
-	 * threshold gets a flag on first crossing.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
-	 */
-	public function testFlagCreatedOnFirstCrossing(): void {
-		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
-
-		$this->seed(
-			'engagement-risk-threshold',
-			[
-				'id' => 'threshold-1',
-				'name' => 'Low engagement',
-				'kind' => 'low-engagement',
-				'scope' => 'per-learner',
-				'cohortId' => null,
-				'metric' => 'engagement-score-below',
-				'limit' => 30,
-				'lifecycle' => 'active',
-			]
-		);
-
-		$handler = $this->makeHandler(
-			evaluated: ['timeOnTaskMinutes' => 1.0, 'lastActivityAt' => '2026-07-13T09:00:00+02:00', 'score' => 20],
-			now: $now
-		);
-
-		$handler->handle(
-			$this->makeXapiEvent(
-				['verified_actor_id' => 'learner-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']
-			)
-		);
-
-		$flags = $this->savedFor('engagement-risk-flag');
-		self::assertCount(1, $flags);
-		self::assertSame('learner-1', $flags[0]['learnerId']);
-		self::assertSame('threshold-1', $flags[0]['engagementRiskThresholdId']);
-		self::assertSame('open', $flags[0]['lifecycle']);
-		self::assertSame(20.0, $flags[0]['metricValueAtFlag']);
-
-	}//end testFlagCreatedOnFirstCrossing()
-
-	/**
-	 * No duplicate flag is created while one is already open for the same
-	 * learner + threshold.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#requirement-at-risk-detection-beyond-bsa-is-a-deterministic-rule-based-threshold--not-aiml
-	 */
-	public function testNoDuplicateFlagWhileOpen(): void {
-		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
-
-		$this->seed(
-			'engagement-risk-threshold',
-			[
-				'id' => 'threshold-1',
-				'scope' => 'per-learner',
-				'cohortId' => null,
-				'metric' => 'engagement-score-below',
-				'limit' => 30,
-				'lifecycle' => 'active',
-			]
-		);
-		$this->seed(
-			'engagement-risk-flag',
-			[
-				'id' => 'flag-1',
-				'learnerId' => 'learner-1',
-				'engagementRiskThresholdId' => 'threshold-1',
-				'lifecycle' => 'open',
-			]
-		);
-
-		$handler = $this->makeHandler(
-			evaluated: ['timeOnTaskMinutes' => 1.0, 'lastActivityAt' => '2026-07-13T09:00:00+02:00', 'score' => 20],
-			now: $now
-		);
-
-		$handler->handle(
-			$this->makeXapiEvent(
-				['verified_actor_id' => 'learner-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']
-			)
-		);
-
-		self::assertCount(0, $this->savedFor('engagement-risk-flag'));
-
-	}//end testNoDuplicateFlagWhileOpen()
-
-	/**
-	 * A resolved flag does not block a new flag on a later relapse.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-a-resolved-flag-does-not-block-re-flagging-on-a-later-relapse
-	 */
-	public function testResolvedFlagAllowsNewFlagOnRelapse(): void {
-		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
-
-		$this->seed(
-			'engagement-risk-threshold',
-			[
-				'id' => 'threshold-1',
-				'scope' => 'per-learner',
-				'cohortId' => null,
-				'metric' => 'engagement-score-below',
-				'limit' => 30,
-				'lifecycle' => 'active',
-			]
-		);
-		$this->seed(
-			'engagement-risk-flag',
-			[
-				'id' => 'flag-1',
-				'learnerId' => 'learner-1',
-				'engagementRiskThresholdId' => 'threshold-1',
-				'lifecycle' => 'resolved',
-			]
-		);
-
-		$handler = $this->makeHandler(
-			evaluated: ['timeOnTaskMinutes' => 1.0, 'lastActivityAt' => '2026-07-13T09:00:00+02:00', 'score' => 20],
-			now: $now
-		);
-
-		$handler->handle(
-			$this->makeXapiEvent(
-				['verified_actor_id' => 'learner-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']
-			)
-		);
-
-		self::assertCount(1, $this->savedFor('engagement-risk-flag'));
-
-	}//end testResolvedFlagAllowsNewFlagOnRelapse()
-
-	/**
-	 * A per-cohort threshold does not fire for a learner who is not a
-	 * member of the scoped Cohort.
-	 *
-	 * @return void
-	 */
-	public function testCohortScopedThresholdSkipsNonMember(): void {
-		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
-
-		$this->seed('cohort', ['id' => 'cohort-1', 'learnerIds' => ['learner-2', 'learner-3']]);
-		$this->seed(
-			'engagement-risk-threshold',
-			[
-				'id' => 'threshold-1',
-				'scope' => 'per-cohort',
-				'cohortId' => 'cohort-1',
-				'metric' => 'engagement-score-below',
-				'limit' => 30,
-				'lifecycle' => 'active',
-			]
-		);
-
-		$handler = $this->makeHandler(
-			evaluated: ['timeOnTaskMinutes' => 1.0, 'lastActivityAt' => '2026-07-13T09:00:00+02:00', 'score' => 20],
-			now: $now
-		);
-
-		$handler->handle(
-			$this->makeXapiEvent(
-				['verified_actor_id' => 'learner-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']
-			)
-		);
-
-		self::assertCount(0, $this->savedFor('engagement-risk-flag'));
-
-	}//end testCohortScopedThresholdSkipsNonMember()
+		self::assertCount(1, $this->deferred);
+		self::assertSame(EngagementSignalJob::class, $this->deferred[0]['jobClass']);
+		self::assertSame('learner-1', $this->deferred[0]['entry']['learnerId']);
+		self::assertSame('course-1', $this->deferred[0]['entry']['courseId']);
+		self::assertSame('learner-1|course-1', $this->deferred[0]['dedupeKey']);
+		self::assertSame([], $this->db, 'nothing may be written on the event path');
+	}//end testAnXapiStatementDefersTheRecompute()
 
 	/**
 	 * No AI/ML client, HTTP call, or Hermiq dependency is constructed
@@ -446,6 +281,51 @@ class EngagementSignalHandlerTest extends TestCase {
 	 *
 	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#requirement-at-risk-detection-beyond-bsa-is-a-deterministic-rule-based-threshold--not-aiml
 	 */
+	/**
+	 * An event of another type is ignored before getObject() is reached.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 */
+	public function testAnEventOfAnotherTypeIsIgnored(): void {
+		$handler = $this->makeHandler(
+			evaluated: ['timeOnTaskMinutes' => 12.0, 'lastActivityAt' => '2026-07-13T09:00:00+02:00', 'score' => 55],
+			now: new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'))
+		);
+
+		$handler->handle(new \OCP\EventDispatcher\GenericEvent());
+
+		self::assertCount(0, $this->deferred);
+
+	}//end testAnEventOfAnotherTypeIsIgnored()
+
+	/**
+	 * A statement with no verified learner, or no course scope, enqueues
+	 * nothing. An unverified actor must not be scored, and a statement with
+	 * no course has no scope to score it against.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 */
+	public function testAStatementWithNoVerifiedLearnerOrCourseEnqueuesNothing(): void {
+		$handler = $this->makeHandler(
+			evaluated: ['timeOnTaskMinutes' => 12.0, 'lastActivityAt' => '2026-07-13T09:00:00+02:00', 'score' => 55],
+			now: new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'))
+		);
+
+		$handler->handle($this->makeXapiEvent(
+			['verified_actor_id' => '', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']
+		));
+		$handler->handle($this->makeXapiEvent(
+			['verified_actor_id' => 'learner-1', 'tenant_id' => 'tenant-a']
+		));
+
+		self::assertCount(0, $this->deferred);
+
+	}//end testAStatementWithNoVerifiedLearnerOrCourseEnqueuesNothing()
+
 	public function testConstructorHasNoAiOrHermiqDependency(): void {
 		$reflection = new \ReflectionClass(EngagementSignalHandler::class);
 		$constructor = $reflection->getConstructor();
