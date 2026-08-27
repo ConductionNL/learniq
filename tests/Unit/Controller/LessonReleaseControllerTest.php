@@ -33,7 +33,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\LessonReleaseController;
-use OCA\Learniq\Release\LessonReleaseEvaluator;
+use OCA\Learniq\Service\LessonReleaseEvaluator;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Http;

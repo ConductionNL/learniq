@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\StudyProgress;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\StudyProgress\BsaProgressEvaluator;
+use OCA\Learniq\Service\BsaProgressEvaluator;
 use PHPUnit\Framework\TestCase;
 
 /**

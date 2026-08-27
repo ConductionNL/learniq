@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\BackgroundJob;
 
 use OCA\Learniq\BackgroundJob\EnrolmentProgressRollupJob;
-use OCA\Learniq\Progress\EnrolmentProgressEvaluator;
+use OCA\Learniq\Service\EnrolmentProgressEvaluator;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\OpenRegister\Service\OrganisationService;

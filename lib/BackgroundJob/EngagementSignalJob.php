@@ -21,7 +21,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeImmutable;
-use OCA\Learniq\Analytics\EngagementScoreEvaluator;
+use OCA\Learniq\Service\EngagementScoreEvaluator;
 use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;

@@ -29,7 +29,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\BackgroundJob\EnrolmentProgressRollupJob;
 use OCA\Learniq\Listener\EnrolmentProgressRollupHandler;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
-use OCA\Learniq\Progress\EnrolmentProgressEvaluator;
+use OCA\Learniq\Service\EnrolmentProgressEvaluator;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\MockObject\MockObject;

@@ -26,7 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Engagement;
 use DateTime;
 use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Engagement\PointEngagementEvaluator;
+use OCA\Learniq\Service\PointEngagementEvaluator;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 

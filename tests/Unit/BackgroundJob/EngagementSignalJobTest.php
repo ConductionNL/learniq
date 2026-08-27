@@ -29,7 +29,7 @@ use DateTimeZone;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Analytics\EngagementScoreEvaluator;
+use OCA\Learniq\Service\EngagementScoreEvaluator;
 use OCA\Learniq\BackgroundJob\EngagementSignalJob;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\OrganisationService;
