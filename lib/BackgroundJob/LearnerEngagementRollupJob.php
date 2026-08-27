@@ -13,7 +13,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+ * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
  */
 
 declare(strict_types=1);
@@ -92,7 +92,7 @@ class LearnerEngagementRollupJob extends ActorForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 	 */
 	protected function runDeferred(DeferredListenerContext $context): void {
 		foreach ($context->getEntries() as $entry) {
@@ -130,7 +130,7 @@ class LearnerEngagementRollupJob extends ActorForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 	 */
 	private function rollUp(string $learnerId, string $tenantId, string $sourceKind): void {
 		$existing = $this->findExistingEngagement(learnerId: $learnerId, tenantId: $tenantId);
@@ -184,7 +184,7 @@ class LearnerEngagementRollupJob extends ActorForwardedJob {
 	 *
 	 * @return array<string, mixed>|null The row, or null when the learner has none yet.
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 	 */
 	private function findExistingEngagement(string $learnerId, string $tenantId): ?array {
 		$existing = $this->objectService->findAll(
@@ -222,7 +222,7 @@ class LearnerEngagementRollupJob extends ActorForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 	 */
 	private function checkStreakMilestones(string $learnerId, string $tenantId, int $previousStreak, int $newStreak): void {
 		if ($newStreak <= $previousStreak) {

@@ -47,7 +47,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-a-ranked-leaderboard-is-opt-in-per-cohort-course-default-off-and-respects-a-per-learner-opt-out
+ * @spec openspec/specs/engagement/spec.md#requirement-a-ranked-leaderboard-is-opt-in-per-cohort-course-default-off-and-respects-a-per-learner-opt-out
  */
 
 declare(strict_types=1);
@@ -71,7 +71,7 @@ use OCP\IUserSession;
  * Serves the ranked, peer-visible leaderboard for a cohort, opt-in and
  * opt-out gated.
  *
- * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-a-ranked-leaderboard-is-opt-in-per-cohort-course-default-off-and-respects-a-per-learner-opt-out
+ * @spec openspec/specs/engagement/spec.md#requirement-a-ranked-leaderboard-is-opt-in-per-cohort-course-default-off-and-respects-a-per-learner-opt-out
  */
 class LeaderboardController extends Controller {
 
@@ -115,8 +115,8 @@ class LeaderboardController extends Controller {
 	 *
 	 * @return JSONResponse `{results: {learnerId, totalPoints, level, rank}[]}`, or an error/denial response.
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-no-ranking-is-served-without-an-active-leaderboard
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
+	 * @spec openspec/specs/engagement/spec.md#scenario-no-ranking-is-served-without-an-active-leaderboard
+	 * @spec openspec/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
 	 */
 	#[NoAdminRequired]
 	public function getRankings(string $cohortId = ''): JSONResponse {
@@ -291,7 +291,7 @@ class LeaderboardController extends Controller {
 	 *
 	 * @return array<int, array{learnerId: string, totalPoints: float, level: string|null, rank: int}>
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
+	 * @spec openspec/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
 	 */
 	private function buildRankings(array $learnerIds, string $tenantId, array $levelNames): array {
 		$engagementRows = $this->objectService->findAll(
@@ -362,7 +362,7 @@ class LeaderboardController extends Controller {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
+	 * @spec openspec/specs/engagement/spec.md#scenario-an-opted-out-learner-is-excluded-from-the-ranking-but-keeps-their-own-view
 	 */
 	private function isOptedOut(string $learnerId): bool {
 		$value = $this->config->getUserValue(
