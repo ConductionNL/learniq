@@ -16,8 +16,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-points-are-awarded-only-for-real-already-firing-events
- * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-pointaward-creation-is-idempotent-and-immutable
+ * @spec openspec/specs/engagement/spec.md#requirement-points-are-awarded-only-for-real-already-firing-events
+ * @spec openspec/specs/engagement/spec.md#requirement-pointaward-creation-is-idempotent-and-immutable
  */
 
 declare(strict_types=1);
@@ -176,7 +176,7 @@ class PointAwardTriggerHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-completing-mandatory-training-awards-enrolment-completed-points
+	 * @spec openspec/specs/engagement/spec.md#scenario-completing-mandatory-training-awards-enrolment-completed-points
 	 */
 	public function testEnrolmentCompletedAwardsPoints(): void {
 		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -205,7 +205,7 @@ class PointAwardTriggerHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-an-on-time-submission-awards-submission-on-time-points-a-late-one-does-not
+	 * @spec openspec/specs/engagement/spec.md#scenario-an-on-time-submission-awards-submission-on-time-points-a-late-one-does-not
 	 */
 	public function testOnTimeSubmissionAwardsEveryLearner(): void {
 		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -237,7 +237,7 @@ class PointAwardTriggerHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-an-on-time-submission-awards-submission-on-time-points-a-late-one-does-not
+	 * @spec openspec/specs/engagement/spec.md#scenario-an-on-time-submission-awards-submission-on-time-points-a-late-one-does-not
 	 */
 	public function testLateSubmissionAwardsNothing(): void {
 		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -266,7 +266,7 @@ class PointAwardTriggerHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-passing-gradeentry-awards-finalgrade-passed-points
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-passing-gradeentry-awards-finalgrade-passed-points
 	 */
 	public function testPassingGradeEntryAwardsPoints(): void {
 		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -321,7 +321,7 @@ class PointAwardTriggerHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-republishing-a-revised-gradeentry-does-not-duplicate-the-award
+	 * @spec openspec/specs/engagement/spec.md#scenario-republishing-a-revised-gradeentry-does-not-duplicate-the-award
 	 */
 	public function testRepublishDoesNotDuplicateAward(): void {
 		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -367,7 +367,7 @@ class PointAwardTriggerHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-no-pointrule-kind-exists-for-peer-review
+	 * @spec openspec/specs/engagement/spec.md#scenario-no-pointrule-kind-exists-for-peer-review
 	 */
 	public function testNoPeerReviewKindExistsInRegister(): void {
 		$registerPath = dirname(__DIR__, 3) . '/lib/Settings/learniq_register.json';

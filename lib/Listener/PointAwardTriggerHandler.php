@@ -55,8 +55,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-points-are-awarded-only-for-real-already-firing-events
- * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-pointaward-creation-is-idempotent-and-immutable
+ * @spec openspec/specs/engagement/spec.md#requirement-points-are-awarded-only-for-real-already-firing-events
+ * @spec openspec/specs/engagement/spec.md#requirement-pointaward-creation-is-idempotent-and-immutable
  */
 
 declare(strict_types=1);
@@ -76,7 +76,7 @@ use OCP\EventDispatcher\IEventListener;
  * transitions into idempotency-keyed PointAward rows.
  *
  * @implements IEventListener<Event>
- * @spec       openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-points-are-awarded-only-for-real-already-firing-events
+ * @spec       openspec/specs/engagement/spec.md#requirement-points-are-awarded-only-for-real-already-firing-events
  */
 class PointAwardTriggerHandler implements IEventListener {
 
@@ -110,7 +110,7 @@ class PointAwardTriggerHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-points-are-awarded-only-for-real-already-firing-events
+	 * @spec openspec/specs/engagement/spec.md#requirement-points-are-awarded-only-for-real-already-firing-events
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false) {
@@ -144,7 +144,7 @@ class PointAwardTriggerHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-completing-mandatory-training-awards-enrolment-completed-points
+	 * @spec openspec/specs/engagement/spec.md#scenario-completing-mandatory-training-awards-enrolment-completed-points
 	 */
 	private function handleEnrolmentCompleted(ObjectTransitionedEvent $event): void {
 		$entry = $event->getObject()->jsonSerialize();
@@ -175,7 +175,7 @@ class PointAwardTriggerHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-an-on-time-submission-awards-submission-on-time-points-a-late-one-does-not
+	 * @spec openspec/specs/engagement/spec.md#scenario-an-on-time-submission-awards-submission-on-time-points-a-late-one-does-not
 	 */
 	private function handleSubmissionSubmitted(ObjectTransitionedEvent $event): void {
 		$entry = $event->getObject()->jsonSerialize();
@@ -218,7 +218,7 @@ class PointAwardTriggerHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-passing-gradeentry-awards-finalgrade-passed-points
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-passing-gradeentry-awards-finalgrade-passed-points
 	 */
 	private function handleGradeEntryPublished(ObjectTransitionedEvent $event): void {
 		$entry = $event->getObject()->jsonSerialize();
@@ -262,7 +262,7 @@ class PointAwardTriggerHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-pointaward-creation-is-idempotent-and-immutable
+	 * @spec openspec/specs/engagement/spec.md#requirement-pointaward-creation-is-idempotent-and-immutable
 	 */
 	private function tryAward(
 		string $kind,

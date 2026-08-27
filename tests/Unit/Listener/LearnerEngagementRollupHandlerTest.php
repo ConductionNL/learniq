@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
+ * @spec openspec/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
  */
 
 declare(strict_types=1);
@@ -210,7 +210,7 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 	 * LearnerEngagementRollupJob, out of the PointAward write.
 	 *
 	 * @return void
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
 	 */
 	public function testAPointAwardDefersTheRollup(): void {
 		$handler = $this->makeHandler(new DateTime('2026-05-01 12:00:00', new DateTimeZone('UTC')));
@@ -237,7 +237,7 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 	 * the guard does not apply to, would be silently dropped with it.
 	 *
 	 * @return void
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
 	 */
 	public function testTheDedupeKeyDistinguishesAMilestoneAwardFromAnOrdinaryOne(): void {
 		$handler = $this->makeHandler(new DateTime('2026-05-01 12:00:00', new DateTimeZone('UTC')));

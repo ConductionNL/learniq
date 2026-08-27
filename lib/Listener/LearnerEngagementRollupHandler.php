@@ -35,7 +35,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
+ * @spec openspec/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
  */
 
 declare(strict_types=1);
@@ -54,7 +54,7 @@ use OCP\EventDispatcher\IEventListener;
  * PointAward is created.
  *
  * @implements IEventListener<Event>
- * @spec       openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
+ * @spec       openspec/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
  */
 class LearnerEngagementRollupHandler implements IEventListener {
 
@@ -82,7 +82,7 @@ class LearnerEngagementRollupHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectCreatedEvent) === false) {
