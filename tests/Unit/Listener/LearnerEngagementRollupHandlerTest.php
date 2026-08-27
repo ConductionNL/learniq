@@ -28,7 +28,7 @@ use DateTimeZone;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Engagement\PointEngagementEvaluator;
+use OCA\Learniq\Service\PointEngagementEvaluator;
 use OCA\Learniq\Listener\LearnerEngagementRollupHandler;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;

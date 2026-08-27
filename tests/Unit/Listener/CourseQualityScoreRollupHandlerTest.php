@@ -26,7 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\CourseEvaluation\CourseQualityScoreEvaluator;
+use OCA\Learniq\Service\CourseQualityScoreEvaluator;
 use OCA\Learniq\Listener\CourseQualityScoreRollupHandler;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;

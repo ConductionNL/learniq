@@ -31,8 +31,8 @@
  * Consumed by:
  *   - LearnerEngagementRollupHandler (via ObjectCreatedEvent on PointAward)
  *
- * @category Engagement
- * @package  OCA\Learniq\Engagement
+ * @category Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -49,7 +49,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\Engagement;
+namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;

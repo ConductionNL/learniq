@@ -24,8 +24,8 @@
  * Consumed by:
  *   - LessonReleaseController::status() / assessmentStatus()
  *
- * @category Release
- * @package  OCA\Learniq\Release
+ * @category Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -45,7 +45,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\Release;
+namespace OCA\Learniq\Service;
 
 use DateInterval;
 use DateTimeImmutable;

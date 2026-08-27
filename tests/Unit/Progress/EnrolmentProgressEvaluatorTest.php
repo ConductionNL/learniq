@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Progress;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Progress\EnrolmentProgressEvaluator;
+use OCA\Learniq\Service\EnrolmentProgressEvaluator;
 use PHPUnit\Framework\TestCase;
 
 /**

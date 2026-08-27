@@ -37,7 +37,7 @@ namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\CourseEvaluation\CourseQualityScoreEvaluator;
+use OCA\Learniq\Service\CourseQualityScoreEvaluator;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 

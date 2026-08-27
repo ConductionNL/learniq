@@ -63,7 +63,7 @@ namespace OCA\Learniq\Listener;
 use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Analytics\EngagementScoreEvaluator;
+use OCA\Learniq\Service\EngagementScoreEvaluator;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;

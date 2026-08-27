@@ -24,8 +24,8 @@
  * a caller holding write access to the Assignment's Course/Cohort) by
  * PeerReviewController::allocate().
  *
- * @category PeerReview
- * @package  OCA\Learniq\PeerReview
+ * @category Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -42,7 +42,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\PeerReview;
+namespace OCA\Learniq\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;

@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Analytics;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Analytics\EngagementScoreEvaluator;
+use OCA\Learniq\Service\EngagementScoreEvaluator;
 use PHPUnit\Framework\TestCase;
 
 /**

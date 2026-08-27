@@ -32,8 +32,8 @@
  * Consumed by:
  *   - EngagementSignalHandler (via ObjectCreatedEvent<XapiStatement>)
  *
- * @category Analytics
- * @package  OCA\Learniq\Analytics
+ * @category Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -50,7 +50,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\Analytics;
+namespace OCA\Learniq\Service;
 
 use DateInterval;
 use DateTimeImmutable;

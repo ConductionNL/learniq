@@ -19,8 +19,8 @@
  * Consumed by:
  *   - CourseQualityScoreRollupHandler (via ObjectTransitionedEvent)
  *
- * @category CourseEvaluation
- * @package  OCA\Learniq\CourseEvaluation
+ * @category Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -37,7 +37,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\CourseEvaluation;
+namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
