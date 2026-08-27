@@ -28,6 +28,7 @@
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
 import { test, expect } from '../fixtures'
+import { requireFixture } from '../seeded'
 
 // `/index.php/` prefix is load-bearing on CI. The shared workflow serves
 // Nextcloud with a bare `php -S` and no router script, so pretty URLs are not
@@ -90,6 +91,10 @@ async function openLessonPlayer(
 	courseId: string,
 	lessonId: string,
 ) {
+	// ⚠️ NO `#` — HISTORY mode router. With the hash this resolved to
+	// `/#/courses/…/play`, matched no declared route, and the catch-all
+	// redirected to the DASHBOARD, so every assertion here was made against the
+	// dashboard rather than the lesson player.
 	await page.goto(
 		`/index.php/apps/learniq/courses/${courseId}/lessons/${lessonId}/play`,
 	)
@@ -99,7 +104,33 @@ async function openLessonPlayer(
 
 test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate locked state', () => {
 	// @e2e openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
-	test('lesson-locked-until-prerequisite-lesson-completed', async ({
+	//
+	// ⚠️ BLOCKED BY ConductionNL/openregister#2179, in a way worth spelling out
+	// because the fixture LOOKS present.
+	//
+	// This needs a Lesson whose `releaseConditions` carries a `lesson-completed`
+	// entry POINTING AT a prerequisite. `lessonId` is a `$ref` inside an array
+	// item, and OpenRegister refuses that write with
+	// `403 Unresolved reference: schema:///Lesson#` — self-referential, but
+	// refused all the same.
+	//
+	// The seeder can drop `lessonId` (items.required is `["kind"]` alone) and
+	// the Lesson then writes successfully — which is exactly the trap.
+	// LessonReleaseEvaluator::evaluateLessonCompletedCondition() opens with:
+	//
+	//     $lessonId = (string)($condition['lessonId'] ?? '');
+	//     if ($lessonId === '') { return ['blocked' => false, …]; }
+	//
+	// so a condition with no `lessonId` is treated as NOT BLOCKING. The fixture
+	// satisfies the discovery predicate (`kind === 'lesson-completed'`) while
+	// being unable to lock anything, and the page renders normally — this test
+	// failed on `toContain("not available")` against a perfectly ordinary
+	// lesson page.
+	//
+	// So the gate cannot be seeded through the object API at all, and a
+	// toothless stand-in is worse than none: it would let a green run claim
+	// coverage of locking. fixme until #2179 lands.
+	test.fixme('lesson-locked-until-prerequisite-lesson-completed', async ({
 		loggedInPage: page,
 	}) => {
 		const lesson = await findLesson(
@@ -110,9 +141,9 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 					(c: any) => c.kind === 'lesson-completed',
 				),
 		)
-		test.skip(
-			!lesson,
-			'No published Lesson with a lesson-completed releaseConditions entry seeded in this environment.',
+		requireFixture(
+			lesson,
+			'a published Lesson with a lesson-completed releaseConditions entry',
 		)
 
 		const errors = collectFatalErrors(page)
@@ -153,10 +184,7 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 				&& (l.releaseConditions == null || l.releaseConditions.length === 0)
 				&& l.availableAfterDays == null,
 		)
-		test.skip(
-			!lesson,
-			'No published, ungated contentType=text Lesson seeded in this environment.',
-		)
+		requireFixture(lesson, 'a published, ungated contentType=text Lesson')
 
 		const errors = collectFatalErrors(page)
 		const lessonId = lesson.id ?? lesson.uuid
@@ -184,10 +212,7 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 			(l) =>
 				typeof l.availableAfterDays === 'number' && l.availableAfterDays > 0,
 		)
-		test.skip(
-			!lesson,
-			'No Lesson with availableAfterDays > 0 seeded in this environment.',
-		)
+		requireFixture(lesson, 'a Lesson with availableAfterDays > 0')
 
 		const errors = collectFatalErrors(page)
 		const lessonId = lesson.id ?? lesson.uuid
