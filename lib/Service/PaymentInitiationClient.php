@@ -33,6 +33,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Support\FleetAppId;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
@@ -65,7 +66,13 @@ class PaymentInitiationClient {
 	 *
 	 * @var string
 	 */
-	private const OPENCONNECTOR_INITIATE_PATH = '/apps/openconnector/api/payments/initiate';
+	/**
+	 * Path AFTER the app segment. The app segment itself is resolved at call
+	 * time: the app answers to `integriq` on development and `openconnector`
+	 * on beta/main, and a URL segment is a routing key — the wrong name is a
+	 * 404, not an error anything reports.
+	 */
+	private const OPENCONNECTOR_INITIATE_PATH = 'api/payments/initiate';
 
 	/**
 	 * App-config key for the outbound OpenConnector API token. Same key
@@ -114,7 +121,9 @@ class PaymentInitiationClient {
 		string $currency,
 		string $pspProvider,
 	): ?array {
-		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . self::OPENCONNECTOR_INITIATE_PATH);
+		$url = $this->urlGenerator->getAbsoluteURL(
+			'/index.php' . FleetAppId::path('integriq', self::OPENCONNECTOR_INITIATE_PATH)
+		);
 
 		$apiToken = $this->appConfig->getValueString(
 			app: Application::APP_ID,

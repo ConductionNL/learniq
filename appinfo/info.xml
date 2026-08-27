@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.1.1-unstable.20260826102619</version>
+    <version>0.1.1-unstable.20260827003013</version>
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -164,6 +164,24 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 (skips a key whose learniq.* destination is already set).
             -->
             <step>OCA\Learniq\Repair\MigrateAppConfigKeys</step>
+            <!--
+                The background job moved from OCA\Learniq\Cron to
+                OCA\Learniq\BackgroundJob in #612. The <job> entry above is a
+                REGISTRATION instruction, not a description of state: on upgrade
+                Nextcloud ADDS a job it does not have, but never removes one
+                whose class disappeared — it cannot tell a renamed class from
+                one merely unavailable this boot.
+
+                Measured on a live instance carrying the equivalent opencatalogi
+                move: oc_jobs still held OCA\OpenCatalogi\Cron\DirectorySync
+                beside its replacement. A row naming a missing class fails to
+                build on every cron tick, and logs rather than raises.
+
+                Independent of the rename ordering above — it removes rows and
+                creates nothing, so no step depends on it either way.
+                post-migration only: a fresh install has no rows to remove.
+            -->
+            <step>OCA\Learniq\Repair\RemoveRetiredCronJobs</step>
             <step>OCA\Learniq\Repair\InitializeSettings</step>
             <!-- ADR-023: seed the action-authorization matrix (default admin-only). -->
             <step>OCA\Learniq\Repair\InitializeActions</step>

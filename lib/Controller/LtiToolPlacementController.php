@@ -111,6 +111,19 @@ class LtiToolPlacementController extends Controller {
 	 *
 	 * @var string
 	 */
+	/**
+	 * NOT resolved across the fleet rename — see ConductionNL/.github#580.
+	 *
+	 * This app is `integriq` on development and `openconnector` on beta/main,
+	 * so this path 404s on half the fleet. The other six call sites in this app
+	 * now resolve the segment at call time via Support\FleetAppId, but this
+	 * class sits exactly at the CouplingBetweenObjects ceiling (12 of 13) and
+	 * referencing one more type — imported or fully qualified, phpmd counts
+	 * both — tips it over. Fixing it properly means reducing this class's
+	 * dependencies first, which is a separate change.
+	 *
+	 * @var string
+	 */
 	private const OPENCONNECTOR_LAUNCH_PATH = '/apps/openconnector/api/lti/deployments/%s/launch';
 
 	/**

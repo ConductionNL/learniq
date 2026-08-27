@@ -153,7 +153,16 @@ class WalletOfferDelegationServiceTest extends TestCase {
 		self::assertNotEmpty($context['object']['walletOfferedAt']);
 		self::assertNull($context['object']['walletOfferError']);
 
-		self::assertStringContainsString('/apps/openconnector/api/eudi/credential-offers', (string)$capturedUrl);
+		// The app SEGMENT is resolved at call time — the target answers to
+		// `integriq` on development and `openconnector` on beta/main — so
+		// pinning either name here would assert the environment rather than the
+		// contract. What must hold is the path after the segment, and that the
+		// segment is one of the two ids the resolver may legitimately produce.
+		self::assertStringContainsString('/api/eudi/credential-offers', (string)$capturedUrl);
+		self::assertMatchesRegularExpression(
+			'#/apps/(integriq|openconnector)/api/eudi/credential-offers#',
+			(string)$capturedUrl
+		);
 		self::assertSame('Bearer token-abc', $capturedOptions['headers']['Authorization']);
 		self::assertSame('jwt_vc_json', $capturedOptions['json']['format']);
 		self::assertSame('edci-diploma', $capturedOptions['json']['credentialConfigurationId']);
