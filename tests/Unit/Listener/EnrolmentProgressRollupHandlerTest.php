@@ -26,7 +26,9 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\BackgroundJob\EnrolmentProgressRollupJob;
 use OCA\Learniq\Listener\EnrolmentProgressRollupHandler;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCA\Learniq\Service\EnrolmentProgressEvaluator;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -46,6 +48,20 @@ class EnrolmentProgressRollupHandlerTest extends TestCase {
 	private array $savedObjects = [];
 
 	/**
+	 * Deferrals captured from the mocked ListenerDeferralService.
+	 *
+	 * @var array<int, array<string, mixed>>
+	 */
+	private array $deferred = [];
+
+	/**
+	 * The mocked deferral service.
+	 *
+	 * @var ListenerDeferralService&\PHPUnit\Framework\MockObject\MockObject
+	 */
+	private ListenerDeferralService $deferral;
+
+	/**
 	 * Resolver turning the entity's numeric register/schema ids into slugs.
 	 *
 	 * @var ListenerSchemaResolver&MockObject
@@ -60,6 +76,7 @@ class EnrolmentProgressRollupHandlerTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		$this->savedObjects = [];
+		$this->deferred = [];
 		$this->schemaResolver = $this->createMock(ListenerSchemaResolver::class);
 
 	}//end setUp()
@@ -87,33 +104,18 @@ class EnrolmentProgressRollupHandlerTest extends TestCase {
 	 * @return EnrolmentProgressRollupHandler
 	 */
 	private function makeHandler(array $enrolments, array $evaluated): EnrolmentProgressRollupHandler {
-		$objectService = $this->createMock(ObjectService::class);
-
-		$objectService->method('findAll')->willReturnCallback(
-			function (array $config) use ($enrolments) {
-				if ($config['schema'] === 'enrolment') {
-					return $enrolments;
-				}
-
-				return [];
-			}
-		);
-
-		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
-				$this->savedObjects[] = [
-					'register' => (string)$register,
-					'schema' => (string)$schema,
-					'object' => $object,
+		$this->deferral = $this->createMock(ListenerDeferralService::class);
+		$this->deferral->method('defer')->willReturnCallback(
+			function (string $jobClass, array $entry, int $chunkSize = 100, ?string $dedupeKey = null): void {
+				$this->deferred[] = [
+					'jobClass' => $jobClass,
+					'entry' => $entry,
+					'dedupeKey' => $dedupeKey,
 				];
-				return OrEntityFactory::make($object, (string)$schema, (string)$register);
 			}
 		);
 
-		$evaluator = $this->createMock(EnrolmentProgressEvaluator::class);
-		$evaluator->method('evaluate')->willReturn($evaluated);
-
-		return new EnrolmentProgressRollupHandler($objectService, $evaluator, $this->schemaResolver);
+		return new EnrolmentProgressRollupHandler($this->deferral, $this->schemaResolver);
 	}//end makeHandler()
 
 	/**
@@ -155,12 +157,40 @@ class EnrolmentProgressRollupHandlerTest extends TestCase {
 			)
 		);
 
-		self::assertCount(1, $this->savedObjects);
-		self::assertSame('enrolment', $this->savedObjects[0]['schema']);
-		self::assertSame('enrolment-1', $this->savedObjects[0]['object']['id']);
-		self::assertSame(40, $this->savedObjects[0]['object']['progressPercent']);
+		// The roll-up is DEFERRED, not performed here. The listener's job is to
+		// decide that a roll-up is owed and say for whom — the recompute and
+		// the write happen in EnrolmentProgressRollupJob, where they no longer
+		// sit inside the LessonCompletion write.
+		self::assertCount(1, $this->deferred);
+		self::assertSame(EnrolmentProgressRollupJob::class, $this->deferred[0]['jobClass']);
+		self::assertSame('learner-1', $this->deferred[0]['entry']['learnerId']);
+		self::assertSame('course-1', $this->deferred[0]['entry']['courseId']);
+		self::assertSame(0, count($this->savedObjects), 'nothing may be written on the event path');
 
 	}//end testNewCompletionTriggersRecompute()
+
+	/**
+	 * Repeated completions for one learner+course coalesce into ONE roll-up.
+	 *
+	 * The dedupe key is what makes deferring cheaper than inline rather than
+	 * merely later: a learner finishing ten lessons in one request owes one
+	 * recompute, not ten identical ones.
+	 *
+	 * @return void
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
+	 */
+	public function testTheDedupeKeyIsLearnerAndCourse(): void {
+		$handler = $this->makeHandler(enrolments: [], evaluated: ['progressPercent' => 0, 'completedLessonCount' => 0, 'totalPublishedLessonCount' => 0]);
+
+		$handler->handle(
+			$this->makeEvent(
+				['learnerId' => 'learner-1', 'lessonId' => 'lesson-4', 'courseId' => 'course-1', 'source' => 'xapi']
+			)
+		);
+
+		self::assertSame('learner-1|course-1', $this->deferred[0]['dedupeKey']);
+
+	}//end testTheDedupeKeyIsLearnerAndCourse()
 
 	/**
 	 * A learner with no active Enrolment for the completion's course is
@@ -171,6 +201,10 @@ class EnrolmentProgressRollupHandlerTest extends TestCase {
 	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#requirement-enrolment-carries-a-declared-lesson-progress-roll-up
 	 */
 	public function testNoActiveEnrolmentIsSkipped(): void {
+		// The listener no longer knows whether an Enrolment exists — it defers
+		// on the completion alone, and the JOB decides there is nothing to
+		// recompute onto. Covered by
+		// EnrolmentProgressRollupJobTest::testAnEntryWithNoActiveEnrolmentWritesNothing.
 		$handler = $this->makeHandler(
 			enrolments: [],
 			evaluated: ['progressPercent' => 0, 'completedLessonCount' => 0, 'totalPublishedLessonCount' => 0]
@@ -182,7 +216,7 @@ class EnrolmentProgressRollupHandlerTest extends TestCase {
 			)
 		);
 
-		self::assertCount(0, $this->savedObjects);
+		self::assertCount(0, $this->savedObjects, 'the event path writes nothing either way');
 
 	}//end testNoActiveEnrolmentIsSkipped()
 
@@ -191,6 +225,50 @@ class EnrolmentProgressRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 */
+	/**
+	 * An event of another type is ignored. The listener is registered for one
+	 * event, but the dispatcher hands `Event`, so the instanceof guard is the
+	 * only thing standing between it and a call to getObject() that does not
+	 * exist on that class.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 */
+	public function testAnEventOfAnotherTypeIsIgnored(): void {
+		$handler = $this->makeHandler(
+			enrolments: [['id' => 'enrolment-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1']],
+			evaluated: ['progressPercent' => 50, 'completedLessonCount' => 5, 'totalPublishedLessonCount' => 10]
+		);
+
+		$handler->handle(new \OCP\EventDispatcher\GenericEvent());
+
+		self::assertCount(0, $this->deferred);
+
+	}//end testAnEventOfAnotherTypeIsIgnored()
+
+	/**
+	 * A completion missing either id enqueues nothing. A roll-up keyed on an
+	 * empty learner or course would match every row or none, and the deferral
+	 * dedupe key is built from exactly those two values.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 */
+	public function testACompletionMissingAnIdEnqueuesNothing(): void {
+		$handler = $this->makeHandler(
+			enrolments: [['id' => 'enrolment-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1']],
+			evaluated: ['progressPercent' => 50, 'completedLessonCount' => 5, 'totalPublishedLessonCount' => 10]
+		);
+
+		$handler->handle($this->makeEvent(['learnerId' => 'learner-1', 'courseId' => '']));
+		$handler->handle($this->makeEvent(['learnerId' => '', 'courseId' => 'course-1']));
+
+		self::assertCount(0, $this->deferred);
+
+	}//end testACompletionMissingAnIdEnqueuesNothing()
+
 	public function testUnrelatedSchemaIsIgnored(): void {
 		$handler = $this->makeHandler(
 			enrolments: [['id' => 'enrolment-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1']],
@@ -205,7 +283,7 @@ class EnrolmentProgressRollupHandlerTest extends TestCase {
 
 		$handler->handle($event);
 
-		self::assertCount(0, $this->savedObjects);
+		self::assertCount(0, $this->deferred, 'an unrelated schema must not even enqueue work');
 
 	}//end testUnrelatedSchemaIsIgnored()
 }//end class

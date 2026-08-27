@@ -33,10 +33,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\OpenRegister\Event\ObjectCreatedEvent;
-use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\EnrolmentProgressEvaluator;
+use OCA\Learniq\BackgroundJob\EnrolmentProgressRollupJob;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
@@ -49,20 +49,17 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
-	private const ENROLMENT_SCHEMA = 'enrolment';
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objectService OR object access.
-	 * @param EnrolmentProgressEvaluator $evaluator progressPercent calculation engine.
+	 * @param ListenerDeferralService $deferral Buffers the roll-up for after the request.
 	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ObjectService $objectService,
-		private readonly EnrolmentProgressEvaluator $evaluator,
+		private readonly ListenerDeferralService $deferral,
 		private readonly ListenerSchemaResolver $schemaResolver,
 	) {
 	}//end __construct()
@@ -100,54 +97,25 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 			return;
 		}
 
-		$enrolment = $this->findActiveEnrolment(learnerId: $learnerId, courseId: $courseId);
-		if ($enrolment === null) {
-			// No active Enrolment for this learner+course — nothing to
-			// recompute onto. Skipped without error.
-			return;
-		}
-
-		$result = $this->evaluator->evaluate(learnerId: $learnerId, courseId: $courseId);
-
-		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ENROLMENT_SCHEMA,
-			object: array_merge($enrolment, ['progressPercent' => $result['progressPercent']])
+		// DEFERRED, not done here. This used to read the active Enrolment,
+		// evaluate the learner's lesson progress and issue a second
+		// saveObject() — all inside the LessonCompletion write that triggered
+		// it. ADR-078 makes post-`*ed` work async by default, and nothing reads
+		// `progressPercent` back in the same request, so inline bought only a
+		// slower write.
+		//
+		// Deduped per learner+course: a batch of lesson completions for one
+		// learner coalesces into ONE roll-up, because the roll-up recomputes
+		// from scratch and repeating it yields the same number.
+		$this->deferral->defer(
+			jobClass: EnrolmentProgressRollupJob::class,
+			entry: [
+				'learnerId' => $learnerId,
+				'courseId' => $courseId,
+			],
+			dedupeKey: $learnerId . '|' . $courseId
 		);
 
 	}//end handle()
 
-	/**
-	 * Find the learner's active Enrolment for a course.
-	 *
-	 * @param string $learnerId NC user ID of the learner.
-	 * @param string $courseId UUID of the Course.
-	 *
-	 * @return array<string, mixed>|null
-	 */
-	private function findActiveEnrolment(string $learnerId, string $courseId): ?array {
-		$results = $this->objectService->findAll(
-			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ENROLMENT_SCHEMA,
-				'filters' => [
-					'learnerId' => $learnerId,
-					'courseId' => $courseId,
-					'lifecycle' => 'active',
-				],
-				'limit' => 1,
-			]
-		);
-
-		if (empty($results) === true) {
-			return null;
-		}
-
-		$enrolment = $results[0];
-		if (is_array($enrolment) === false) {
-			$enrolment = $enrolment->jsonSerialize();
-		}
-
-		return $enrolment;
-	}//end findActiveEnrolment()
 }//end class

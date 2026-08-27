@@ -42,12 +42,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use DateTimeImmutable;
-use OCA\OpenRegister\Event\ObjectCreatedEvent;
-use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\PointEngagementEvaluator;
+use OCA\Learniq\BackgroundJob\LearnerEngagementRollupJob;
 use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCP\AppFramework\Utility\ITimeFactory;
+use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
@@ -62,25 +60,18 @@ class LearnerEngagementRollupHandler implements IEventListener {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const POINT_AWARD_SCHEMA = 'point-award';
-	private const POINT_RULE_SCHEMA = 'point-rule';
-	private const LEARNER_ENGAGEMENT_SCHEMA = 'learner-engagement';
-	private const STREAK_MILESTONE_KIND = 'streak-milestone';
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param PointEngagementEvaluator $evaluator Totals/level/streak calculation engine.
+	 * @param ListenerDeferralService $deferral Buffers the roll-up for after the request.
 	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
-	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ObjectService $objectService,
-		private readonly PointEngagementEvaluator $evaluator,
+		private readonly ListenerDeferralService $deferral,
 		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly ITimeFactory $timeFactory,
 	) {
 	}//end __construct()
 
@@ -115,143 +106,30 @@ class LearnerEngagementRollupHandler implements IEventListener {
 			return;
 		}
 
-		$existing = $this->findExistingEngagement(learnerId: $learnerId, tenantId: $tenantId);
-		$previousStreak = (int)($existing['currentStreakDays'] ?? 0);
-
-		$result = $this->evaluator->evaluate(learnerId: $learnerId, tenantId: $tenantId);
-
-		$data = array_merge(
-			$existing ?? [],
-			[
+		// DEFERRED, not done here. This used to read the engagement row,
+		// evaluate points/level/streak, write the row, then run an UNBOUNDED
+		// findAll() over every active streak-milestone rule and write an award
+		// per crossed milestone — all inside the PointAward write that
+		// triggered it. ADR-078 makes post-`*ed` work async by default.
+		//
+		// The unbounded rule read has not become bounded; it has stopped being
+		// paid on every point a learner earns.
+		//
+		// `sourceKind` travels in the entry because the recursion guard needs
+		// it, and the dedupe key carries it too: a milestone award must NOT
+		// coalesce with an ordinary one, or the ordinary award's milestone
+		// check would be dropped along with it.
+		$this->deferral->defer(
+			jobClass: LearnerEngagementRollupJob::class,
+			entry: [
 				'learnerId' => $learnerId,
-				'totalPoints' => $result['totalPoints'],
-				'levelId' => $result['levelId'],
-				'currentStreakDays' => $result['currentStreakDays'],
-				'longestStreakDays' => $result['longestStreakDays'],
-				'lastActivityDate' => $result['lastActivityDate'],
-				'lastRecomputedAt' => DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime())->format(\DATE_ATOM),
-				'tenant_id' => $tenantId,
-			]
-		);
-
-		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::LEARNER_ENGAGEMENT_SCHEMA,
-			object: $data
-		);
-
-		if ($sourceKind === self::STREAK_MILESTONE_KIND) {
-			// Recursion guard: a milestone bonus award's own rollup must not
-			// re-check streak milestones.
-			return;
-		}
-
-		$this->checkStreakMilestones(
-			learnerId: $learnerId,
-			tenantId: $tenantId,
-			previousStreak: $previousStreak,
-			newStreak: $result['currentStreakDays']
+				'tenantId' => $tenantId,
+				'sourceKind' => $sourceKind,
+			],
+			dedupeKey: $learnerId . '|' . $tenantId . '|' . $sourceKind
 		);
 
 	}//end handle()
 
-	/**
-	 * Find the learner's existing LearnerEngagement row, if any.
-	 *
-	 * @param string $learnerId NC user ID.
-	 * @param string $tenantId Tenant identifier.
-	 *
-	 * @return array<string,mixed>|null
-	 */
-	private function findExistingEngagement(string $learnerId, string $tenantId): ?array {
-		$existing = $this->objectService->findAll(
-			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_ENGAGEMENT_SCHEMA,
-				'filters' => [
-					'learnerId' => $learnerId,
-					'tenant_id' => $tenantId,
-				],
-				'limit' => 1,
-			]
-		);
 
-		if (empty($existing) === true) {
-			return null;
-		}
-
-		if (is_array($existing[0]) === true) {
-			return $existing[0];
-		}
-
-		return $existing[0]->jsonSerialize();
-	}//end findExistingEngagement()
-
-	/**
-	 * Award a bonus PointAward for every active streak-milestone PointRule
-	 * whose milestoneDays was newly crossed by this recompute.
-	 *
-	 * @param string $learnerId NC user ID.
-	 * @param string $tenantId Tenant identifier.
-	 * @param int $previousStreak currentStreakDays before this recompute.
-	 * @param int $newStreak currentStreakDays after this recompute.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-streak-milestone-awards-a-bonus-pointaward-exactly-once
-	 */
-	private function checkStreakMilestones(string $learnerId, string $tenantId, int $previousStreak, int $newStreak): void {
-		if ($newStreak <= $previousStreak) {
-			// No forward progress -- nothing can have been newly crossed.
-			return;
-		}
-
-		$rules = $this->objectService->findAll(
-			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::POINT_RULE_SCHEMA,
-				'filters' => [
-					'kind' => self::STREAK_MILESTONE_KIND,
-					'lifecycle' => 'active',
-					'tenant_id' => $tenantId,
-				],
-			]
-		);
-
-		foreach ($rules as $rule) {
-			if (is_array($rule) === false) {
-				$rule = $rule->jsonSerialize();
-			}
-
-			$milestoneDays = $rule['milestoneDays'] ?? null;
-			if ($milestoneDays === null) {
-				continue;
-			}
-
-			$milestoneDays = (int)$milestoneDays;
-			if ($previousStreak >= $milestoneDays || $newStreak < $milestoneDays) {
-				continue;
-			}
-
-			$ruleId = $rule['id'] ?? ($rule['uuid'] ?? null);
-			if ($ruleId === null) {
-				continue;
-			}
-
-			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::POINT_AWARD_SCHEMA,
-				object: [
-					'learnerId' => $learnerId,
-					'pointRuleId' => $ruleId,
-					'points' => (float)($rule['points'] ?? 0),
-					'sourceKind' => self::STREAK_MILESTONE_KIND,
-					'sourceObjectId' => null,
-					'awardedAt' => DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime())->format(\DATE_ATOM),
-					'tenant_id' => $tenantId,
-				]
-			);
-		}//end foreach
-
-	}//end checkStreakMilestones()
 }//end class
