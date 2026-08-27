@@ -36,6 +36,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Support\FleetAppId;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
@@ -58,7 +59,12 @@ class LtiAgsPullClient {
 	 *
 	 * @var string
 	 */
-	private const OPENCONNECTOR_PULL_PATH = '/apps/openconnector/api/events/subscriptions/%s/pull';
+	/**
+	 * Path AFTER the app segment; the segment is resolved at call time.
+	 *
+	 * @var string
+	 */
+	private const OPENCONNECTOR_PULL_PATH = 'api/events/subscriptions/%s/pull';
 
 	/**
 	 * App-config key for the OpenConnector internal API token. Same key
@@ -104,7 +110,7 @@ class LtiAgsPullClient {
 	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-4.1
 	 */
 	public function pull(string $subscriptionId, string $cursor): ?array {
-		$path = sprintf(self::OPENCONNECTOR_PULL_PATH, rawurlencode($subscriptionId));
+		$path = FleetAppId::path('integriq', sprintf(self::OPENCONNECTOR_PULL_PATH, rawurlencode($subscriptionId)));
 		$query = ['limit' => 100];
 		if ($cursor !== '') {
 			$query['cursor'] = $cursor;

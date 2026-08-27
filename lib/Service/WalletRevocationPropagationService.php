@@ -52,6 +52,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Support\FleetAppId;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
@@ -79,7 +80,12 @@ class WalletRevocationPropagationService {
 	 *
 	 * @var string
 	 */
-	private const OPENCONNECTOR_REVOKE_PATH = '/apps/openconnector/api/eudi/credential-offers/%s/revoke';
+	/**
+	 * Path AFTER the app segment; the segment is resolved at call time.
+	 *
+	 * @var string
+	 */
+	private const OPENCONNECTOR_REVOKE_PATH = 'api/eudi/credential-offers/%s/revoke';
 
 	/**
 	 * App-config key for the OpenConnector bearer credential. Same key
@@ -184,7 +190,7 @@ class WalletRevocationPropagationService {
 	 * @return bool True when openconnector confirmed the revocation (or it was already revoked).
 	 */
 	private function callOpenConnectorRevoke(string $attestationRef): bool {
-		$path = sprintf(self::OPENCONNECTOR_REVOKE_PATH, rawurlencode($attestationRef));
+		$path = FleetAppId::path('integriq', sprintf(self::OPENCONNECTOR_REVOKE_PATH, rawurlencode($attestationRef)));
 		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . $path);
 
 		$apiToken = $this->appConfig->getValueString(
