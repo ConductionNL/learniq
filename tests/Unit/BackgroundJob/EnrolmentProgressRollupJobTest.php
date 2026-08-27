@@ -86,7 +86,7 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 	private function runJob(EnrolmentProgressRollupJob $job, array $entries): void {
 		$method = new \ReflectionMethod($job, 'runDeferred');
 		$method->setAccessible(true);
-		$method->invoke($job, new DeferredListenerContext($entries));
+		$method->invoke($job, new DeferredListenerContext(userId: 'learner-1', orgUuid: null, entries: $entries));
 	}//end runJob()
 
 	/**

@@ -239,7 +239,7 @@ class EngagementSignalJobTest extends TestCase {
 	private function runOne(EngagementSignalJob $job, array $entry): void {
 		$method = new \ReflectionMethod($job, 'runDeferred');
 		$method->setAccessible(true);
-		$method->invoke($job, new DeferredListenerContext([$entry]));
+		$method->invoke($job, new DeferredListenerContext(userId: 'learner-1', orgUuid: null, entries: [$entry]));
 	}//end runOne()
 
 	/**
