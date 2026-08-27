@@ -145,7 +145,16 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 		self::assertNull($context['object']['docudeskRenderError']);
 		self::assertNotEmpty($context['object']['docudeskRequestedAt']);
 
-		self::assertStringContainsString('/apps/docudesk/api/v1/documents/render', (string)$capturedUrl);
+		// The app SEGMENT is resolved at call time — the target answers to
+		// `filinq` on development and `docudesk` on beta/main — so pinning
+		// either name here would assert the environment rather than the
+		// contract. What must hold is the path after the segment, and that the
+		// segment is one of the two ids the resolver may legitimately produce.
+		self::assertStringContainsString('/api/v1/documents/render', (string)$capturedUrl);
+		self::assertMatchesRegularExpression(
+			'#/apps/(filinq|docudesk)/api/v1/documents/render#',
+			(string)$capturedUrl
+		);
 		self::assertSame('Bearer token-abc', $capturedOptions['headers']['Authorization']);
 		self::assertSame('card-1', $capturedOptions['json']['reportCardId']);
 		self::assertSame([['curriculumPlanId' => 'plan-1']], $capturedOptions['json']['subjectGrades']);

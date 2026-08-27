@@ -18,24 +18,12 @@
 				{{ t('learniq', 'View in LaunchPad') }}
 			</NcButton>
 		</template>
-		<template #widget-kpi-regulations>
-			<KpiRegulationsWidget />
-		</template>
-		<template #widget-kpi-attestations>
-			<KpiAttestationsWidget />
-		</template>
-		<template #widget-kpi-external-training>
-			<KpiExternalTrainingWidget />
-		</template>
 	</CnDashboardPage>
 </template>
 
 <script>
 import { CnDashboardPage } from '@conduction/nextcloud-vue'
 import { NcButton } from '@nextcloud/vue'
-import KpiAttestationsWidget from './widgets/KpiAttestationsWidget.vue'
-import KpiExternalTrainingWidget from './widgets/KpiExternalTrainingWidget.vue'
-import KpiRegulationsWidget from './widgets/KpiRegulationsWidget.vue'
 
 export default {
 	name: 'LearniqCompliance',
@@ -43,27 +31,10 @@ export default {
 	components: {
 		CnDashboardPage,
 		NcButton,
-		KpiRegulationsWidget,
-		KpiAttestationsWidget,
-		KpiExternalTrainingWidget,
 	},
 
 	data() {
 		return {
-			widgets: [
-				{ id: 'kpi-regulations', title: 'Regulations', type: 'custom' },
-				{
-					id: 'kpi-attestations',
-					title: 'Signed attestations',
-					type: 'custom',
-				},
-				{
-					id: 'kpi-external-training',
-					title: 'External training',
-					type: 'custom',
-				},
-			],
-
 			layout: [
 				{
 					id: 1,
@@ -94,6 +65,74 @@ export default {
 				},
 			],
 		}
+	},
+
+	computed: {
+		/**
+		 * The three compliance KPI tiles, declared rather than written.
+		 *
+		 * `type: 'stat'` resolves to the shared CnStatWidget through the
+		 * dashboard widget registry, which counts server-side via the
+		 * OpenRegister aggregation API. The wrapper components these replace
+		 * each re-implemented the fetch and answered `catch { this.count = 0 }`,
+		 * so a backend outage rendered as three confident zeroes.
+		 *
+		 * Computed rather than `data` so the labels can be translated: the
+		 * widget titles here were plain English while the tiles they fronted
+		 * were localised, which is the sort of split nobody notices until a
+		 * Dutch user reads half a dashboard in English.
+		 *
+		 * @return {Array<object>} Widget definitions for CnDashboardPage.
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-12
+		 */
+		widgets() {
+			return [
+				{
+					id: 'kpi-regulations',
+					title: this.t('learniq', 'Regulations'),
+					type: 'stat',
+					content: {
+						label: this.t('learniq', 'Regulations'),
+						clickRoute: { path: '/compliance/regulations' },
+						source: {
+							register: 'learniq',
+							schema: 'regulation',
+							metric: 'count',
+						},
+					},
+				},
+				{
+					id: 'kpi-attestations',
+					title: this.t('learniq', 'Signed attestations'),
+					type: 'stat',
+					content: {
+						label: this.t('learniq', 'Signed attestations'),
+						variant: 'success',
+						clickRoute: { path: '/compliance/attestations' },
+						source: {
+							register: 'learniq',
+							schema: 'attestation',
+							metric: 'count',
+						},
+					},
+				},
+				{
+					id: 'kpi-external-training',
+					title: this.t('learniq', 'External training'),
+					type: 'stat',
+					content: {
+						label: this.t('learniq', 'External training'),
+						variant: 'success',
+						clickRoute: { path: '/compliance/external-training' },
+						source: {
+							register: 'learniq',
+							schema: 'external-training-record',
+							metric: 'count',
+						},
+					},
+				},
+			]
+		},
 	},
 
 	methods: {

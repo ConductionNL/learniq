@@ -9,8 +9,24 @@
  Visible unconditionally regardless of any Leaderboard/opt-out state — opting
  out of a peer-visible ranking never hides a learner's own progress from
  themselves (design.md "Pedagogical posture").
- Reuses CnStatsBlock (the same shared KPI-tile component KpiCard/
- KpiEngagementScoreWidget wrap) rather than a bespoke chart component.
+ Reuses CnStatsBlock rather than a bespoke chart component.
+
+ THE LAST BESPOKE KPI TILE IN THIS APP, and it is here for a reason. Every
+ other tile became a declared `type: 'stat'` widget backed by the shared
+ CnStatWidget, which aggregates server-side. This one cannot: it reads the
+ current user's `learner-engagement` row and then resolves `levelId` against
+ `engagement-level` — a JOIN across two schemas, which no single aggregation
+ config expresses.
+
+ The shape that would replace it already exists on the other side:
+ CnStatWidget's `caption` resolves `{token}` placeholders from an endpoint
+ payload, so once learniq exposes the joined record at one URL this becomes
+
+     endpointSource: { url: '/apps/learniq/api/engagement/me' },
+     valueField: 'totalPoints',
+     caption: '{levelName} · {currentStreakDays}-day streak',
+
+ and this file goes away. Tracked separately; see the widget-migration PR.
 
  @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 -->
