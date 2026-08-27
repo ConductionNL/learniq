@@ -71,6 +71,17 @@ class EngagementSignalJobTest extends TestCase {
 	private ListenerSchemaResolver&MockObject $schemaResolver;
 
 	/**
+	 * When set, the evaluator throws for entries carrying this courseId.
+	 *
+	 * Lets a test put a FAILING entry in front of a good one in the same
+	 * chunk, which is the only way to show the per-entry catch is what keeps
+	 * the rest of the chunk alive.
+	 *
+	 * @var string|null
+	 */
+	private ?string $evaluatorThrowsFor = null;
+
+	/**
 	 * Reset fixtures before each test.
 	 *
 	 * @return void
@@ -79,6 +90,7 @@ class EngagementSignalJobTest extends TestCase {
 		parent::setUp();
 		$this->db = [];
 		$this->savedObjects = [];
+		$this->evaluatorThrowsFor = null;
 		$this->schemaResolver = $this->createMock(ListenerSchemaResolver::class);
 
 	}//end setUp()
@@ -182,7 +194,19 @@ class EngagementSignalJobTest extends TestCase {
 		);
 
 		$evaluator = $this->createMock(EngagementScoreEvaluator::class);
-		$evaluator->method('evaluate')->willReturn($evaluated);
+		$evaluator->method('evaluate')->willReturnCallback(
+			function (...$args) use ($evaluated) {
+				if ($this->evaluatorThrowsFor !== null) {
+					foreach ($args as $arg) {
+						if ($arg === $this->evaluatorThrowsFor) {
+							throw new \RuntimeException('evaluator blew up for ' . $this->evaluatorThrowsFor);
+						}
+					}
+				}
+
+				return $evaluated;
+			}
+		);
 
 		$timeFactory = $this->createMock(ITimeFactory::class);
 		$timeFactory->method('getDateTime')->willReturn($now);
@@ -484,6 +508,219 @@ class EngagementSignalJobTest extends TestCase {
 	 *
 	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#requirement-at-risk-detection-beyond-bsa-is-a-deterministic-rule-based-threshold--not-aiml
 	 */
+	/**
+	 * An entry missing either id is skipped rather than recomputed against an
+	 * empty string. The deferral buffer is fed by listeners, so a malformed
+	 * entry is a thing that reaches here, not a thing that cannot.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 */
+	public function testAnEntryMissingAnIdIsSkipped(): void {
+		$job = $this->makeHandler(
+			evaluated: ['timeOnTaskMinutes' => 12.0, 'lastActivityAt' => '2026-07-13T09:00:00+02:00', 'score' => 55],
+			now: new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'))
+		);
+
+		$this->runOne($job, ['learnerId' => 'learner-1', 'courseId' => '', 'tenantId' => 'tenant-a']);
+		$this->runOne($job, ['learnerId' => '', 'courseId' => 'course-1', 'tenantId' => 'tenant-a']);
+
+		self::assertCount(
+			0,
+			$this->savedFor('engagement-score'),
+			'an incomplete entry must not produce a score row keyed on an empty id'
+		);
+
+	}//end testAnEntryMissingAnIdIsSkipped()
+
+	/**
+	 * THE REASON THE PER-ENTRY CATCH EXISTS. A deferred job is handed a CHUNK;
+	 * if one bad entry threw out of the loop, every later entry in that chunk
+	 * would be silently dropped and never retried.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 */
+	public function testOneFailingEntryDoesNotLoseTheRestOfTheChunk(): void {
+		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
+		$job = $this->makeHandler(
+			evaluated: ['timeOnTaskMinutes' => 12.0, 'lastActivityAt' => '2026-07-13T09:00:00+02:00', 'score' => 55],
+			now: $now
+		);
+
+		// The first entry blows up inside the evaluator; the second is fine.
+		$this->evaluatorThrowsFor = 'boom-course';
+
+		$method = new \ReflectionMethod($job, 'runDeferred');
+		$method->setAccessible(true);
+		$method->invoke(
+			$job,
+			new DeferredListenerContext(
+				userId: 'learner-1',
+				orgUuid: null,
+				entries: [
+					['learnerId' => 'learner-1', 'courseId' => 'boom-course', 'tenantId' => 'tenant-a'],
+					['learnerId' => 'learner-2', 'courseId' => 'course-1', 'tenantId' => 'tenant-a'],
+				]
+			)
+		);
+
+		$scores = $this->savedFor('engagement-score');
+		self::assertCount(
+			1,
+			$scores,
+			'the entry AFTER the failing one must still have been processed'
+		);
+		self::assertSame('learner-2', $scores[0]['learnerId'] ?? null);
+
+	}//end testOneFailingEntryDoesNotLoseTheRestOfTheChunk()
+
+	/**
+	 * `recency-days-above` compares whole days since lastActivityAt against
+	 * the limit, and reports "not crossed" — never a crossing — when there is
+	 * no usable timestamp. An unparseable date must not read as "infinitely
+	 * stale" and flag every learner it touches.
+	 *
+	 * @param string|null $lastActivityAt The stamp under test.
+	 * @param float       $limit          The threshold limit, in days.
+	 * @param bool        $expected       Whether it counts as crossed.
+	 *
+	 * @return void
+	 *
+	 * @dataProvider recencyProvider
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 */
+	public function testRecencyDaysAboveCrossing(?string $lastActivityAt, float $limit, bool $expected): void {
+		$job = $this->makeHandler(
+			evaluated: ['score' => 99],
+			now: new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'))
+		);
+
+		$method = new \ReflectionMethod($job, 'isCrossed');
+		$method->setAccessible(true);
+
+		self::assertSame(
+			$expected,
+			$method->invoke($job, 'recency-days-above', $limit, ['lastActivityAt' => $lastActivityAt])
+		);
+
+	}//end testRecencyDaysAboveCrossing()
+
+	/**
+	 * Cases for {@see testRecencyDaysAboveCrossing}.
+	 *
+	 * @return array<string, array{0: string|null, 1: float, 2: bool}>
+	 */
+	public static function recencyProvider(): array {
+		return [
+			'ten days stale, limit 7'      => ['2026-07-03T10:00:00+02:00', 7.0, true],
+			'one day stale, limit 7'       => ['2026-07-12T10:00:00+02:00', 7.0, false],
+			'exactly at the limit'         => ['2026-07-06T10:00:00+02:00', 7.0, false],
+			'null stamp is not a crossing' => [null, 7.0, false],
+			'empty stamp is not a crossing' => ['', 7.0, false],
+			'unparseable is not a crossing' => ['not-a-date', 7.0, false],
+		];
+	}//end recencyProvider()
+
+	/**
+	 * `engagement-score-below` is a strict comparison, and a missing score is
+	 * not a crossing — absence of a measurement is not a low measurement.
+	 *
+	 * @param mixed $score    The score on the EngagementScore, or null.
+	 * @param float $limit    The threshold limit.
+	 * @param bool  $expected Whether it counts as crossed.
+	 *
+	 * @return void
+	 *
+	 * @dataProvider scoreBelowProvider
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 */
+	public function testEngagementScoreBelowCrossing(mixed $score, float $limit, bool $expected): void {
+		$job = $this->makeHandler(
+			evaluated: ['score' => 99],
+			now: new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'))
+		);
+
+		$method = new \ReflectionMethod($job, 'isCrossed');
+		$method->setAccessible(true);
+
+		self::assertSame(
+			$expected,
+			$method->invoke($job, 'engagement-score-below', $limit, ['score' => $score])
+		);
+
+	}//end testEngagementScoreBelowCrossing()
+
+	/**
+	 * Cases for {@see testEngagementScoreBelowCrossing}.
+	 *
+	 * @return array<string, array{0: mixed, 1: float, 2: bool}>
+	 */
+	public static function scoreBelowProvider(): array {
+		return [
+			'below the limit'            => [40, 50.0, true],
+			'above the limit'            => [60, 50.0, false],
+			'exactly at the limit'       => [50, 50.0, false],
+			'missing score is no crossing' => [null, 50.0, false],
+		];
+	}//end scoreBelowProvider()
+
+	/**
+	 * An unknown metric never crosses. A threshold row carrying a metric this
+	 * job does not implement must raise nothing at all, rather than falling
+	 * through to whichever branch happens to be last.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 */
+	public function testAnUnknownMetricNeverCrosses(): void {
+		$job = $this->makeHandler(
+			evaluated: ['score' => 0],
+			now: new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'))
+		);
+
+		$method = new \ReflectionMethod($job, 'isCrossed');
+		$method->setAccessible(true);
+
+		self::assertFalse(
+			$method->invoke($job, 'attendance-below', 100.0, ['score' => 0, 'lastActivityAt' => null])
+		);
+
+	}//end testAnUnknownMetricNeverCrosses()
+
+	/**
+	 * The value stamped onto a new flag is the one its own metric measures —
+	 * days for a recency threshold, the score otherwise.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 */
+	public function testResolveMetricValuePicksTheMetricsOwnNumber(): void {
+		$job = $this->makeHandler(
+			evaluated: ['score' => 0],
+			now: new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'))
+		);
+
+		$method = new \ReflectionMethod($job, 'resolveMetricValue');
+		$method->setAccessible(true);
+
+		$score = ['score' => 42, 'lastActivityAt' => '2026-07-03T10:00:00+02:00'];
+		self::assertSame(10.0, $method->invoke($job, 'recency-days-above', $score));
+		self::assertSame(42.0, $method->invoke($job, 'engagement-score-below', $score));
+		self::assertSame(
+			0.0,
+			$method->invoke($job, 'recency-days-above', ['score' => 42, 'lastActivityAt' => null]),
+			'an unusable stamp resolves to 0 days rather than null'
+		);
+
+	}//end testResolveMetricValuePicksTheMetricsOwnNumber()
+
 	public function testConstructorHasNoAiOrHermiqDependency(): void {
 		$reflection = new \ReflectionClass(EngagementSignalJob::class);
 		$constructor = $reflection->getConstructor();

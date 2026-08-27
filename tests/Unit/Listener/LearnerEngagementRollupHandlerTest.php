@@ -259,6 +259,39 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 */
+	/**
+	 * An event of another type is ignored before getObject() is reached.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
+	 */
+	public function testAnEventOfAnotherTypeIsIgnored(): void {
+		$handler = $this->makeHandler(now: new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam')));
+
+		$handler->handle(new \OCP\EventDispatcher\GenericEvent());
+
+		self::assertCount(0, $this->deferred);
+
+	}//end testAnEventOfAnotherTypeIsIgnored()
+
+	/**
+	 * A PointAward with no learnerId enqueues nothing — the dedupe key and
+	 * the roll-up itself are both keyed on it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
+	 */
+	public function testAnAwardWithNoLearnerEnqueuesNothing(): void {
+		$handler = $this->makeHandler(now: new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam')));
+
+		$handler->handle($this->makeEvent(['learnerId' => '', 'tenant_id' => 'tenant-a', 'sourceKind' => 'enrolment']));
+
+		self::assertCount(0, $this->deferred);
+
+	}//end testAnAwardWithNoLearnerEnqueuesNothing()
+
 	public function testUnrelatedSchemaIsIgnored(): void {
 		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
 

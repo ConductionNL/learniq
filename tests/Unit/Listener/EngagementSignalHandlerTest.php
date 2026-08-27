@@ -281,6 +281,51 @@ class EngagementSignalHandlerTest extends TestCase {
 	 *
 	 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#requirement-at-risk-detection-beyond-bsa-is-a-deterministic-rule-based-threshold--not-aiml
 	 */
+	/**
+	 * An event of another type is ignored before getObject() is reached.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 */
+	public function testAnEventOfAnotherTypeIsIgnored(): void {
+		$handler = $this->makeHandler(
+			evaluated: ['timeOnTaskMinutes' => 12.0, 'lastActivityAt' => '2026-07-13T09:00:00+02:00', 'score' => 55],
+			now: new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'))
+		);
+
+		$handler->handle(new \OCP\EventDispatcher\GenericEvent());
+
+		self::assertCount(0, $this->deferred);
+
+	}//end testAnEventOfAnotherTypeIsIgnored()
+
+	/**
+	 * A statement with no verified learner, or no course scope, enqueues
+	 * nothing. An unverified actor must not be scored, and a statement with
+	 * no course has no scope to score it against.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-falling-below-the-engagement-threshold-raises-a-flag-generalised-beyond-bsa
+	 */
+	public function testAStatementWithNoVerifiedLearnerOrCourseEnqueuesNothing(): void {
+		$handler = $this->makeHandler(
+			evaluated: ['timeOnTaskMinutes' => 12.0, 'lastActivityAt' => '2026-07-13T09:00:00+02:00', 'score' => 55],
+			now: new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'))
+		);
+
+		$handler->handle($this->makeXapiEvent(
+			['verified_actor_id' => '', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']
+		));
+		$handler->handle($this->makeXapiEvent(
+			['verified_actor_id' => 'learner-1', 'tenant_id' => 'tenant-a']
+		));
+
+		self::assertCount(0, $this->deferred);
+
+	}//end testAStatementWithNoVerifiedLearnerOrCourseEnqueuesNothing()
+
 	public function testConstructorHasNoAiOrHermiqDependency(): void {
 		$reflection = new \ReflectionClass(EngagementSignalHandler::class);
 		$constructor = $reflection->getConstructor();

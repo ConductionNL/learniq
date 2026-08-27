@@ -225,6 +225,50 @@ class EnrolmentProgressRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 */
+	/**
+	 * An event of another type is ignored. The listener is registered for one
+	 * event, but the dispatcher hands `Event`, so the instanceof guard is the
+	 * only thing standing between it and a call to getObject() that does not
+	 * exist on that class.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 */
+	public function testAnEventOfAnotherTypeIsIgnored(): void {
+		$handler = $this->makeHandler(
+			enrolments: [['id' => 'enrolment-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1']],
+			evaluated: ['progressPercent' => 50, 'completedLessonCount' => 5, 'totalPublishedLessonCount' => 10]
+		);
+
+		$handler->handle(new \OCP\EventDispatcher\GenericEvent());
+
+		self::assertCount(0, $this->deferred);
+
+	}//end testAnEventOfAnotherTypeIsIgnored()
+
+	/**
+	 * A completion missing either id enqueues nothing. A roll-up keyed on an
+	 * empty learner or course would match every row or none, and the deferral
+	 * dedupe key is built from exactly those two values.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 */
+	public function testACompletionMissingAnIdEnqueuesNothing(): void {
+		$handler = $this->makeHandler(
+			enrolments: [['id' => 'enrolment-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1']],
+			evaluated: ['progressPercent' => 50, 'completedLessonCount' => 5, 'totalPublishedLessonCount' => 10]
+		);
+
+		$handler->handle($this->makeEvent(['learnerId' => 'learner-1', 'courseId' => '']));
+		$handler->handle($this->makeEvent(['learnerId' => '', 'courseId' => 'course-1']));
+
+		self::assertCount(0, $this->deferred);
+
+	}//end testACompletionMissingAnIdEnqueuesNothing()
+
 	public function testUnrelatedSchemaIsIgnored(): void {
 		$handler = $this->makeHandler(
 			enrolments: [['id' => 'enrolment-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1']],

@@ -68,6 +68,14 @@ class LearnerEngagementRollupJobTest extends TestCase {
 	private array $streakRules = [];
 
 	/**
+	 * When true, the evaluator throws. Lets a test put a failing entry ahead
+	 * of a good one in the same chunk.
+	 *
+	 * @var bool
+	 */
+	private bool $evaluatorThrows = false;
+
+	/**
 	 * Evaluator result to return.
 	 *
 	 * @var array<string,mixed>
@@ -159,7 +167,15 @@ class LearnerEngagementRollupJobTest extends TestCase {
 		);
 
 		$evaluator = $this->createMock(PointEngagementEvaluator::class);
-		$evaluator->method('evaluate')->willReturnCallback(fn () => $this->evaluatorResult);
+		$evaluator->method('evaluate')->willReturnCallback(
+			function () {
+				if ($this->evaluatorThrows === true) {
+					throw new \RuntimeException('evaluator blew up');
+				}
+
+				return $this->evaluatorResult;
+			}
+		);
 
 		$timeFactory = $this->createMock(ITimeFactory::class);
 		$timeFactory->method('getDateTime')->willReturn($now);
@@ -223,6 +239,131 @@ class LearnerEngagementRollupJobTest extends TestCase {
 	 *
 	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
 	 */
+	/**
+	 * An entry with no learnerId is skipped rather than rolled up against an
+	 * empty id.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
+	 */
+	public function testAnEntryWithNoLearnerIdIsSkipped(): void {
+		$handler = $this->makeHandler(now: new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam')));
+
+		$this->runOne($handler, ['learnerId' => '', 'tenantId' => 'tenant-a', 'sourceKind' => 'enrolment']);
+
+		self::assertCount(
+			0,
+			$this->savesFor('learner-engagement'),
+			'an entry with no learner must not write a row keyed on an empty id'
+		);
+
+	}//end testAnEntryWithNoLearnerIdIsSkipped()
+
+	/**
+	 * A deferred job is handed a CHUNK. If one entry threw out of the loop,
+	 * every later entry would be dropped silently and never retried, so the
+	 * per-entry catch is the thing keeping the rest of the chunk alive.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
+	 */
+	public function testOneFailingEntryDoesNotLoseTheRestOfTheChunk(): void {
+		$handler = $this->makeHandler(now: new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam')));
+		$this->evaluatorThrows = true;
+
+		$method = new \ReflectionMethod($handler, 'runDeferred');
+		$method->setAccessible(true);
+
+		// Must not escape: the job would be retried wholesale and the entries
+		// already written would be written twice.
+		$method->invoke(
+			$handler,
+			new DeferredListenerContext(
+				userId: 'learner-1',
+				orgUuid: null,
+				entries: [
+					['learnerId' => 'learner-1', 'tenantId' => 'tenant-a', 'sourceKind' => 'enrolment'],
+					['learnerId' => 'learner-2', 'tenantId' => 'tenant-a', 'sourceKind' => 'enrolment'],
+				]
+			)
+		);
+
+		self::assertCount(
+			0,
+			$this->savesFor('learner-engagement'),
+			'both entries failed, and the failure was swallowed per entry rather than thrown'
+		);
+
+	}//end testOneFailingEntryDoesNotLoseTheRestOfTheChunk()
+
+	/**
+	 * A milestone rule with no `milestoneDays` is skipped rather than treated
+	 * as a milestone at day zero, which every streak would cross.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-streak-milestone-awards-a-bonus-pointaward-exactly-once
+	 */
+	public function testAMilestoneRuleWithoutMilestoneDaysAwardsNothing(): void {
+		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
+
+		$this->existingEngagement = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'currentStreakDays' => 6];
+		$this->streakRules = [['id' => 'rule-1', 'tenant_id' => 'tenant-a', 'points' => 10]];
+		$this->evaluatorResult = [
+			'totalPoints' => 70.0,
+			'levelId' => 'level-silver',
+			'currentStreakDays' => 7,
+			'longestStreakDays' => 7,
+			'lastActivityDate' => '2026-07-15',
+		];
+
+		$handler = $this->makeHandler(now: $now);
+		$this->runOne(
+			$handler,
+			$this->makeEvent(['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'sourceKind' => 'enrolment'])
+		);
+
+		self::assertCount(
+			0,
+			$this->savesFor('point-award'),
+			'a rule that names no milestone cannot be crossed'
+		);
+
+	}//end testAMilestoneRuleWithoutMilestoneDaysAwardsNothing()
+
+	/**
+	 * A milestone rule carrying no id is skipped: the bonus award references
+	 * its rule, and an award pointing at nothing is worse than no award.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-streak-milestone-awards-a-bonus-pointaward-exactly-once
+	 */
+	public function testAMilestoneRuleWithoutAnIdAwardsNothing(): void {
+		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
+
+		$this->existingEngagement = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'currentStreakDays' => 6];
+		$this->streakRules = [['tenant_id' => 'tenant-a', 'milestoneDays' => 7, 'points' => 10]];
+		$this->evaluatorResult = [
+			'totalPoints' => 70.0,
+			'levelId' => 'level-silver',
+			'currentStreakDays' => 7,
+			'longestStreakDays' => 7,
+			'lastActivityDate' => '2026-07-15',
+		];
+
+		$handler = $this->makeHandler(now: $now);
+		$this->runOne(
+			$handler,
+			$this->makeEvent(['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'sourceKind' => 'enrolment'])
+		);
+
+		self::assertCount(0, $this->savesFor('point-award'));
+
+	}//end testAMilestoneRuleWithoutAnIdAwardsNothing()
+
 	public function testNewPointAwardRecomputesLearnerEngagement(): void {
 		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
 
