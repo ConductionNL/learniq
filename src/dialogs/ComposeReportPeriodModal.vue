@@ -123,13 +123,52 @@ export default {
 
 	computed: {
 		/**
-		 * Materialised `isLocked` calculation, read directly off the fetched
-		 * ReportPeriod — mirrors ReportPeriodComposeGuard's own read.
+		 * Whether this period is locked, and therefore composable.
+		 *
+		 * ⚠️ READING `isLocked` ALONE DISABLED THIS BUTTON FOREVER. The field is
+		 * a declared `x-openregister-calculations` entry with `materialise:
+		 * true`, and it IS computed — the create response carries
+		 * `isLocked: true` for a past lockDate. It is simply never returned
+		 * again: measured on a live instance, both the single-object GET and
+		 * the list endpoint omit it entirely. So `period.isLocked` was
+		 * `undefined` on every fetch, `=== true` was always false, and Compose
+		 * could not be clicked no matter how long ago the period locked.
+		 *
+		 * ReportPeriodComposeGuard already carries the same fallback and says
+		 * why — it mirrors the declared expression exactly (`lockDate` set AND
+		 * `lockDate` < now). The two sides now agree instead of one of them
+		 * trusting a field that does not survive a read.
+		 *
+		 * Kept preferring the materialised value: when OpenRegister does start
+		 * projecting it, that becomes the single source and this stops
+		 * recomputing.
+		 *
+		 * The requirement defines locked as "`lockDate` is set AND has passed
+		 * `@now`" and mandates that the GUARDS read `isLocked` directly — it
+		 * says nothing about this dialog, which is why reading the same field
+		 * here, with no fallback, went unnoticed.
 		 *
 		 * @return {boolean}
+		 * @spec openspec/specs/report-card/spec.md#requirement-lock-date-is-enforced-by-a-materialised-calculation-and-guards-not-an-automatic-transition
 		 */
 		isLocked() {
-			return !!(this.period && this.period.isLocked === true)
+			if (!this.period) {
+				return false
+			}
+
+			if (this.period.isLocked === true) {
+				return true
+			}
+
+			const lockDate = this.period.lockDate
+
+			if (lockDate === null || lockDate === undefined || lockDate === '') {
+				return false
+			}
+
+			const lockedAt = Date.parse(lockDate)
+
+			return Number.isNaN(lockedAt) === false && lockedAt < Date.now()
 		},
 
 		/**

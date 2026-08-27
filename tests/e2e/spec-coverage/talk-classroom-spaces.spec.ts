@@ -42,60 +42,8 @@
  *
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
-import * as fs from 'fs'
-import * as path from 'path'
 import { test, expect } from '../fixtures'
-
-/**
- * True once the seeder has actually populated the register.
- *
- * Same signal detail-pages.spec.ts uses, and for the same reason: it separates
- * "this instance was never seeded, so the question cannot be asked" from "the
- * instance WAS seeded and the fixture is missing", which is a defect. Reads the
- * seeder's marker file rather than `process.env`, because globalSetup mutates
- * the runner's environment and test workers are separate processes.
- *
- * @return {boolean} true when the seeder reported at least one schema.
- */
-function isSeeded(): boolean {
-	const file = path.resolve(
-		__dirname,
-		'..',
-		'..',
-		'..',
-		'.e2e-state',
-		'seeded-schemas.json',
-	)
-	try {
-		return Object.keys(JSON.parse(fs.readFileSync(file, 'utf8'))).length > 0
-	} catch {
-		return process.env.LEARNIQ_E2E_SEEDED === '1'
-	}
-}
-
-const SEEDED = isSeeded()
-
-/**
- * Require a discovered fixture on a seeded instance; skip only when the
- * instance was never seeded.
- *
- * ⚠️ A plain `test.skip(!row, …)` is why this suite's third scenario went
- * unnoticed for so long. Enrolment.lifecycle DEFAULTS to 'pending' and the
- * seeder never set it, so the `lifecycle === 'active'` guard matched nothing
- * and the test SKIPPED on every green run — reported as a pass, asserting
- * nothing. A fixture the seeder is supposed to create must FAIL when it is
- * absent, or the scenario silently stops being covered.
- *
- * @param row   The discovered row, or null.
- * @param what  What was being looked for, for the failure message.
- */
-function requireFixture(row: unknown, what: string) {
-	test.skip(!SEEDED && !row, `Instance not seeded — cannot look for ${what}.`)
-	expect(
-		row,
-		`${what} is missing on a SEEDED instance — the seeder should provide it (tests/e2e/seed-example-data.mjs).`,
-	).toBeTruthy()
-}
+import { requireFixture } from '../seeded'
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
