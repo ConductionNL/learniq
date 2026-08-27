@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
+ * @spec openspec/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
  */
 
 declare(strict_types=1);
@@ -195,7 +195,7 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-new-pointaward-recomputes-totals-and-level
 	 */
 	public function testNewPointAwardRecomputesLearnerEngagement(): void {
 		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -227,7 +227,7 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-streak-milestone-awards-a-bonus-pointaward-exactly-once
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-streak-milestone-awards-a-bonus-pointaward-exactly-once
 	 */
 	public function testStreakCrossingAwardsBonusExactlyOnce(): void {
 		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));
@@ -264,7 +264,7 @@ class LearnerEngagementRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-streak-milestone-awards-a-bonus-pointaward-exactly-once
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-streak-milestone-awards-a-bonus-pointaward-exactly-once
 	 */
 	public function testBonusAwardRollupDoesNotReTriggerMilestoneCheck(): void {
 		$now = new DateTime('2026-07-15 10:00:00', new DateTimeZone('Europe/Amsterdam'));

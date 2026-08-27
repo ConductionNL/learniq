@@ -147,6 +147,12 @@ return [
         // Controller: LeaderboardController (slug: leaderboard).
         ['name' => 'leaderboard#getRankings', 'url' => '/api/leaderboard/{cohortId}', 'verb' => 'GET'],
 
+        // The signed-in learner's own points/level/streak, joined across
+        // learner-engagement and engagement-level so the KPI tile needs one
+        // call whose success or failure is total. Controller:
+        // EngagementController (slug: engagement).
+        ['name' => 'engagement#getMe', 'url' => '/api/engagement/me', 'verb' => 'GET'],
+
         // AI processing disclosure — read-only composition of Hermiq's
         // agentaifeature register, Learniq's scholiq-ai-features AVG carrier,
         // and the AiLocalityClassifier/SovereigntyPolicyService verdict for
