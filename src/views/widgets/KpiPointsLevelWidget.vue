@@ -36,9 +36,10 @@
 			:title="t('learniq', 'My points')"
 			:count="displayPoints"
 			:loading="loading"
+			:error="error"
 			variant="primary"
 			horizontal />
-		<p v-if="!loading" class="kpi-points-level__detail">
+		<p v-if="!loading && !error" class="kpi-points-level__detail">
 			<span v-if="levelName" class="kpi-points-level__level">{{
 				levelName
 			}}</span>
@@ -68,6 +69,8 @@ export default {
 			levelName: null,
 			streakDays: 0,
 			loading: true,
+			/** The fetch failure, if any. Rendered instead of a points total. */
+			error: null,
 		}
 	},
 
@@ -119,8 +122,12 @@ export default {
 				} else {
 					this.totalPoints = 0
 				}
-			} catch {
-				this.totalPoints = 0
+			} catch (e) {
+				// NOT `this.totalPoints = 0`. A failed read is not a learner
+				// with no points, and rendering 0 made the two identical on
+				// screen. The `else` branch above still sets 0, because an
+				// absent engagement row really does mean none.
+				this.error = e
 			} finally {
 				this.loading = false
 			}
