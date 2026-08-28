@@ -1,5 +1,60 @@
 {
 	"$schema": "https://github.com/ConductionNL/nextcloud-vue/raw/main/src/schemas/app-manifest-v2.schema.json",
+		"walkthrough": {
+			"enabled": true,
+			"version": 1,
+			"completionConfigKey": "walkthrough_completed_version",
+			"tours": [
+				{
+					"id": "learniq:getting-started",
+					"title": "Getting started",
+					"trigger": "first-visit",
+					"steps": [
+						{
+							"id": "welcome",
+							"placement": "center",
+							"title": "Welcome to Learniq",
+							"body": "A short tour of the main screens. It takes under a minute, and you can close it at any point and pick it up again from the help menu.",
+							"target": {
+								"kind": "page",
+								"ref": "FeaturesRoadmap"
+							},
+							"advanceOn": {
+								"type": "manual"
+							}
+						},
+						{
+							"id": "go-featuresroadmap",
+							"placement": "right",
+							"body": "Open Features & roadmap from the menu.",
+							"task": "Click Features & roadmap in the menu",
+							"target": {
+								"kind": "nav-item",
+								"ref": "FeaturesRoadmap"
+							},
+							"advanceOn": {
+								"type": "route-match",
+								"route": "FeaturesRoadmap"
+							}
+						},
+						{
+							"id": "go-rolloverwizard",
+							"placement": "right",
+							"body": "Open School-year rollover from the menu.",
+							"task": "Click School-year rollover in the menu",
+							"target": {
+								"kind": "nav-item",
+								"ref": "RolloverWizard"
+							},
+							"advanceOn": {
+								"type": "route-match",
+								"route": "RolloverWizard"
+							}
+						}
+					]
+				}
+			]
+		},
 	"version": "0.1.0",
 	"dependencies": [
 		"openregister",
