@@ -345,9 +345,17 @@ test.describe('report-card-composer — rapportvergadering review lifecycle', ()
 	// Declared as `test.fixme(name, fn)` — NOT a bare `test.fixme(true, …)`
 	// statement, which applies to every test in the enclosing describe and
 	// would quietly take the other scenarios down with it.
-	test.fixme('publish-blocked-while-visibility-window-not-open', async ({
+	test('publish-blocked-while-visibility-window-not-open', async ({
 		loggedInPage: page,
 	}) => {
+		// Inside the test body, deliberately. A bare `test.fixme(true, …)` at
+		// DESCRIBE level applies to every sibling — the hazard this file's own
+		// note calls out. In the body it scopes to this test alone, and unlike
+		// `test.fixme(name, fn)` it records the reason in the report.
+		test.fixme(
+			true,
+			'blocked on #2179: the seeder emits no GradeEntry with a future visibleFrom, so the fixture this needs cannot exist yet. When #2179 lands, restore this to a plain test and drop the subjectGrades note in the seeder. Kept as fixme (a KNOWN failure, not a pass) rather than skip.',
+		)
 		const futureGrade = await findRow(
 			page,
 			GRADE_ENTRY_LIST_API,
