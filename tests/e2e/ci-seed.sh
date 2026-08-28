@@ -142,7 +142,10 @@ fi
 # Exit codes are meaningful and NOT all failures:
 #   0 — register imported essentially completely AND objects seeded
 #   2 — partial import; seeded what was possible (specs fall back to smoke checks)
-#   1 — Nextcloud unreachable  ← the only genuinely fatal one
+#   1 — the seeder gave up  ← fatal, but NOT self-describing: node also exits
+#       1 on any uncaught exception, so this code means "unreachable OR the
+#       seeder crashed". The handler below probes the instance to tell them
+#       apart rather than assuming the first.
 SEED_STATUS="none"
 set +e
 NC_ADMIN_USER="$USER_NAME" NC_ADMIN_PASS="$USER_PASS" \
@@ -154,7 +157,28 @@ case "$SEED_RC" in
 	0) SEED_STATUS="full" ;;
 	2) SEED_STATUS="partial"
 	   echo "::warning::Learniq example-data seed reported a PARTIAL register import (openregister#1487). Index-page row-count assertions will be skipped." ;;
-	*) echo "::error::Learniq example-data seed failed (exit ${SEED_RC}) — Nextcloud unreachable at ${BASE}."
+	*) # DO NOT ASSERT A CAUSE THIS BRANCH HAS NOT ESTABLISHED.
+	   #
+	   # This used to say "Nextcloud unreachable at $BASE" for every exit code
+	   # that is not 0 or 2. Exit 1 is what the seeder returns when it decides
+	   # the instance is unreachable — and it is equally what node returns for
+	   # ANY uncaught exception, so a crash was being reported as an outage.
+	   #
+	   # Observed on 2026-08-27 (learniq#661): the seeder reached the instance,
+	   # logged "Nextcloud 34.0.3 at http://localhost:8080 — OK", imported 118
+	   # schemas and linked 118/118 — and then died inside node's bundled HTTP
+	   # client with `AssertionError: assert(!this.paused)` at `Parser.finish`
+	   # (undici, node v24.19.0). The job reported "Nextcloud unreachable" about
+	   # a server that had just answered a hundred and eighteen requests, which
+	   # sends the next reader looking for a networking fault that is not there.
+	   #
+	   # So ask the instance directly before naming it. The probe costs one
+	   # request on a path that is already failing.
+	   if curl -fsS -m 10 -o /dev/null "${BASE}/status.php" 2>/dev/null; then
+	       echo "::error::Learniq example-data seed failed (exit ${SEED_RC}), but Nextcloud at ${BASE} IS reachable — status.php answered just now. The seeder itself failed; read its output above rather than looking for a networking fault. A node AssertionError from undici here is a known intermittent crash in the HTTP client, and a re-run usually clears it."
+	   else
+	       echo "::error::Learniq example-data seed failed (exit ${SEED_RC}) and Nextcloud at ${BASE} did not answer status.php — the instance really is unreachable."
+	   fi
 	   exit 1 ;;
 esac
 echo "[ci-seed] seed status: ${SEED_STATUS}"
