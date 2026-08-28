@@ -1,6 +1,15 @@
 OC.L10N.register(
     "learniq",
     {
+        "Getting started": "Aan de slag",
+        "Welcome to Learniq": "Welkom bij Learniq",
+        "A short tour of the main screens. It takes under a minute, and you can close it at any point and pick it up again from the help menu.": "Een korte rondleiding langs de belangrijkste schermen. Het duurt minder dan een minuut en je kunt op elk moment stoppen en later verder gaan via het helpmenu.",
+        "Open Features & roadmap from the menu.": "Open Features & roadmap via het menu.",
+        "Click Features & roadmap in the menu": "Klik op Features & roadmap in het menu",
+        "Open School-year rollover from the menu.": "Open School-year rollover via het menu.",
+        "Click School-year rollover in the menu": "Klik op School-year rollover in het menu",
+        "Flows automate the repetitive parts of this app. Have a look — you do not have to build one now.": "Flows automatiseren het repeterende werk in deze app. Kijk gerust rond — je hoeft er nu geen te maken.",
+        "Open Flows from the menu": "Open Flows via het menu",
         "My learning record": "Mijn leerdossier",
         "Everything you have earned, everywhere in Learniq — composed live, read-only. Nothing here can be edited or deleted from this page.": "Alles wat je hebt behaald, overal in Learniq — live samengesteld, alleen-lezen. Hier kan niets worden bewerkt of verwijderd.",
         "Loading your record…": "Je dossier wordt geladen…",
