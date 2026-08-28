@@ -43,8 +43,14 @@ const SELF_ASSESSMENT_URL = (assignmentId: string, submissionId: string) =>
 const SUBMISSION_DETAIL_URL = (assignmentId: string, submissionId: string) =>
 	`/index.php/apps/learniq/assignments/${assignmentId}/submissions/${submissionId}`
 
-test.describe
-	.skip('peer-and-self-assessment — reviewer/learner/author flows (live run deferred)', () => {
+test.describe('peer-and-self-assessment — reviewer/learner/author flows (live run deferred)', () => {
+	// Reason recorded as an annotation, not only in the header above: the
+	// skip-discipline gate reads the Playwright REPORT, and a `describe.skip`
+	// records no reason there. Same skip, same conditions, now attributable.
+	test.skip(
+		true,
+		'LIVE RUN DEFERRED: needs PeerReviewMarkingView.vue / SelfAssessmentView.vue compiled into the deployed bundle, plus a seeded Assignment (peerReviewEnabled, selfAssessmentEnabled, blind anonymity, rubricId) with two Submissions, an allocated and released PeerReview and a SelfAssessment, on an ISOLATED instance — deploying an unbuilt frontend to the shared dev instance is prohibited. Allocator, guard, aggregator and controller invariants are covered by PeerReviewAllocationServiceTest, RubricScoresCompletionGuardTest, PeerFeedbackAggregatorTest and PeerReviewControllerTest.',
+	)
 	// @e2e peer-and-self-assessment::a-reviewer-completes-an-assigned-peerreview
 	test('a seeded reviewer opens PeerReviewMarkingView, scores the rubric, and submits', async ({
 		loggedInPage: page,

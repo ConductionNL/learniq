@@ -26,8 +26,14 @@ const TIMETABLE_URL = '/index.php/apps/learniq/my-timetable'
 // page against its component stem, and the stem appeared only in comments).
 const MyTimetable = TIMETABLE_URL
 
-test.describe
-	.skip('personal-timetable — my timetable week view (live run deferred)', () => {
+test.describe('personal-timetable — my timetable week view (live run deferred)', () => {
+	// Reason recorded as an annotation, not only in the header above: the
+	// skip-discipline gate reads the Playwright REPORT, and a `describe.skip`
+	// records no reason there.
+	test.skip(
+		true,
+		'LIVE RUN DEFERRED: needs MyTimetable.vue compiled into the deployed bundle and seeded Cohort/Enrolment/Session objects on an ISOLATED instance — deploying an unbuilt frontend to the shared dev instance is prohibited. Cross-object cohort resolution and windowing are covered by TimetableControllerTest (teacher, learner, empty, windowing, no-leakage).',
+	)
 	// @e2e personal-timetable::a-learner-sees-this-weeks-sessions-for-their-enrolled-cohorts
 	test("a learner sees this week's sessions rendered as day blocks", async ({
 		loggedInPage: page,
