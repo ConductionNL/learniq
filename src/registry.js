@@ -168,9 +168,10 @@ const PANEL_WIDGET_META = {
 
 export default {
 	// --- Flows (ADR-110 Decision 4). Only the SIDEBAR is an app component;
-	//     the list and the canvas are the shared `flows` / `flow-detail`
-	//     manifest page types. CnFlowSidebar has to mount in the NC app
-	//     sidebar for the canvas to keep full width. ---
+	//     the list and the canvas are the shared `index` (with
+	//     config.entitySource 'flows') and `flow` manifest page types.
+	//     CnFlowSidebar has to mount in the NC app sidebar for the canvas
+	//     to keep full width. ---
 	FlowDetailSidebar: page(FlowDetailSidebar),
 
 	AdmissionsReviewBoard: page(AdmissionsReviewBoard),
