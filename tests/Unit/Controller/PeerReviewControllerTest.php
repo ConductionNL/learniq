@@ -25,7 +25,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\PeerReviewController;
-use OCA\Learniq\PeerReview\PeerReviewAllocationService;
+use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;

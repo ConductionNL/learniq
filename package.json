@@ -35,7 +35,7 @@
   "dependencies": {
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.5",
-    "@conduction/nextcloud-vue": "^2.19.0",
+    "@conduction/nextcloud-vue": "^2.22.1",
     "@nextcloud/auth": "^2.5.0",
     "@nextcloud/axios": "~2.6.0",
     "@nextcloud/capabilities": "^1.2.1",
@@ -57,7 +57,7 @@
     "stream-browserify": "^3.0.0",
     "vue": "^3.5.0",
     "vue-material-design-icons": "^5.3.0",
-    "vue-router": "^4.5.0",
+    "vue-router": "^5.2.0",
     "vuedraggable": "^4.1.0"
   },
   "overrides": {

@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\PeerReview;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\PeerReview\PeerReviewAllocationService;
+use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;

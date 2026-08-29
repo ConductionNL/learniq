@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Payments;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Payments\OrderTotalEvaluator;
+use OCA\Learniq\Service\OrderTotalEvaluator;
 use PHPUnit\Framework\TestCase;
 
 /**

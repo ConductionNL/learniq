@@ -88,7 +88,8 @@ class StubSignatureParityTest extends TestCase {
 		$stubIsWhatLoaded = (realpath($loadedFrom) === realpath($stubPath));
 
 		if ($stubIsWhatLoaded === false) {
-			// CI: the real app is installed, so reflect it directly.
+			// The real app is installed, so reflect it directly. This is the
+			// path CI always takes.
 			foreach ($reflection->getMethods() as $method) {
 				$stubParams = $this->parseParameterNames($stubSource, $method->getName());
 				if ($stubParams === null) {
@@ -108,13 +109,24 @@ class StubSignatureParityTest extends TestCase {
 		// Local: the stub is what loaded, so reflection would compare it to
 		// itself. Read canonical off disk instead — a checkout of openregister
 		// sits beside this one in the workspace, and inside server/apps in CI.
-		$canonical = $this->locateCanonical($canonicalRelative);
-		self::assertNotNull(
-			$canonical,
-			'neither the real class nor an openregister checkout was found, so stub parity '
-			. 'is UNVERIFIED. Reporting that rather than passing: this check is worthless '
-			. 'if it can silently compare nothing.'
+		// In CI the real app IS installed, so reaching here at all means the
+		// harness is not testing what it claims to. That is a failure, not a
+		// skip — a check that can quietly verify nothing is not a check.
+		self::assertFalse(
+			(getenv('CI') !== false),
+			$className . ' resolved to the STUB inside CI, so every parity '
+			. 'comparison in this run is vacuous. openregister is not installed.'
 		);
+
+		$canonical = $this->locateCanonical($canonicalRelative);
+		if ($canonical === null) {
+			// A local checkout without openregister beside it — e.g. a git
+			// worktree. Say so rather than reporting a pass.
+			self::markTestSkipped(
+				'no openregister checkout found near ' . __DIR__ . ', so ' . $className
+				. ' parity is unverified locally. CI verifies it against the installed app.'
+			);
+		}
 
 		$canonicalSource = (string)file_get_contents($canonical);
 		foreach ($this->declaredMethods($stubSource) as $name) {
@@ -154,15 +166,20 @@ class StubSignatureParityTest extends TestCase {
 	 * @return string|null The absolute path, or null when not found.
 	 */
 	private function locateCanonical(string $relative): ?string {
-		$candidates = [
-			__DIR__ . '/../../../../openregister/' . $relative,
-			__DIR__ . '/../../../../../apps/openregister/' . $relative,
-			__DIR__ . '/../../../openregister/' . $relative,
-		];
-		foreach ($candidates as $candidate) {
-			if (file_exists($candidate) === true) {
-				return $candidate;
+		$base = __DIR__;
+		for ($depth = 0; $depth < 7; $depth++) {
+			$candidates = [
+				$base . '/openregister/' . $relative,
+				$base . '/apps/openregister/' . $relative,
+				$base . '/apps-extra/openregister/' . $relative,
+			];
+			foreach ($candidates as $candidate) {
+				if (file_exists($candidate) === true) {
+					return $candidate;
+				}
 			}
+
+			$base .= '/..';
 		}
 
 		return null;

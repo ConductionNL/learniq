@@ -130,9 +130,17 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 	// So the gate cannot be seeded through the object API at all, and a
 	// toothless stand-in is worse than none: it would let a green run claim
 	// coverage of locking. fixme until #2179 lands.
-	test.fixme('lesson-locked-until-prerequisite-lesson-completed', async ({
+	test('lesson-locked-until-prerequisite-lesson-completed', async ({
 		loggedInPage: page,
 	}) => {
+		// Inside the test body, deliberately. A bare `test.fixme(true, …)` at
+		// DESCRIBE level applies to every sibling — the hazard this file's own
+		// note calls out. In the body it scopes to this test alone, and unlike
+		// `test.fixme(name, fn)` it records the reason in the report.
+		test.fixme(
+			true,
+			'#2179-class gap: the lesson-lock path returns blocked=false when lessonId is empty, so this scenario cannot be driven end-to-end yet. Kept as fixme (a KNOWN failure, not a pass) rather than skip.',
+		)
 		const lesson = await findLesson(
 			page,
 			(l) =>
