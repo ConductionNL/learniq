@@ -35,9 +35,6 @@
  * @spec exclude ADR-042/ADR-111 setup contract; no per-app behavioural spec.
  */
 import { test, expect, type Page } from '@playwright/test'
-import * as path from 'path'
-
-const STORAGE_STATE = path.resolve(__dirname, '../.auth/admin.json')
 
 const BASE = '/apps/learniq'
 
@@ -73,10 +70,6 @@ async function api(
 test.describe.configure({ mode: 'serial' })
 
 test.describe('ADR-111 demo data', () => {
-	// The setup contract lives behind the admin middleware, so these calls need
-	// the real logged-in session `globalSetup` captured — not the suite's
-	// default Basic-auth header, which does not produce an `OC.requestToken`.
-	test.use({ storageState: STORAGE_STATE })
 
 	test.beforeEach(async ({ page }) => {
 		await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' })
