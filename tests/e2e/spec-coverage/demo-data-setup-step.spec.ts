@@ -70,7 +70,6 @@ async function api(
 test.describe.configure({ mode: 'serial' })
 
 test.describe('ADR-111 demo data', () => {
-
 	test.beforeEach(async ({ page }) => {
 		await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' })
 		await page.waitForFunction(() => (window as any).OC?.requestToken, null, {
