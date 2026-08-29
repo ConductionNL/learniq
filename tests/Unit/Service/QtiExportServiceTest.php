@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq QtiExportService unit tests.
+ * Learniq QtiExportService unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,11 +21,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\QtiExportService;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Service\QtiExportService;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use ZipArchive;
@@ -33,76 +33,73 @@ use ZipArchive;
 /**
  * Tests for QtiExportService.
  */
-class QtiExportServiceTest extends TestCase
-{
+class QtiExportServiceTest extends TestCase {
 
-    /**
-     * The exported package byte-matches the stored `qtiBody` for every item,
-     * including one whose `interactionType` was imported with the pre-existing
-     * degraded parsing (raw `qtiBody` preserved, `correctResponse` unresolved)
-     * — export fidelity is unaffected by that import-side limitation.
-     *
-     * @return void
-     */
-    public function testExportProducesAValidPackageWithVerbatimQtiBodies(): void
-    {
-        $fullyParsedBody = '<?xml version="1.0"?><assessmentItem identifier="i1"><itemBody>Q1</itemBody></assessmentItem>';
-        $degradedBody    = '<?xml version="1.0"?><assessmentItem identifier="i2"><itemBody>Q2 (hotspot, raw only)</itemBody></assessmentItem>';
+	/**
+	 * The exported package byte-matches the stored `qtiBody` for every item,
+	 * including one whose `interactionType` was imported with the pre-existing
+	 * degraded parsing (raw `qtiBody` preserved, `correctResponse` unresolved)
+	 * — export fidelity is unaffected by that import-side limitation.
+	 *
+	 * @return void
+	 */
+	public function testExportProducesAValidPackageWithVerbatimQtiBodies(): void {
+		$fullyParsedBody = '<?xml version="1.0"?><assessmentItem identifier="i1"><itemBody>Q1</itemBody></assessmentItem>';
+		$degradedBody = '<?xml version="1.0"?><assessmentItem identifier="i2"><itemBody>Q2 (hotspot, raw only)</itemBody></assessmentItem>';
 
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturnCallback(
-            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($fullyParsedBody, $degradedBody) {
-                if ($schema === 'item-bank') {
-                    return OrEntityFactory::make(
-                        ['id' => 'bank-1', 'name' => 'Physics 101', 'itemIds' => ['item-1', 'item-2']],
-                        'item-bank'
-                    );
-                }
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturnCallback(
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($fullyParsedBody, $degradedBody) {
+				if ($schema === 'item-bank') {
+					return OrEntityFactory::make(
+						['id' => 'bank-1', 'name' => 'Physics 101', 'itemIds' => ['item-1', 'item-2']],
+						'item-bank'
+					);
+				}
 
-                $row = match ($id) {
-                    'item-1' => ['id' => 'item-1', 'qtiBody' => $fullyParsedBody, 'interactionType' => 'choice'],
-                    'item-2' => ['id' => 'item-2', 'qtiBody' => $degradedBody, 'interactionType' => 'hotspot'],
-                    default => null,
-                };
+				$row = match ($id) {
+					'item-1' => ['id' => 'item-1', 'qtiBody' => $fullyParsedBody, 'interactionType' => 'choice'],
+					'item-2' => ['id' => 'item-2', 'qtiBody' => $degradedBody, 'interactionType' => 'hotspot'],
+					default => null,
+				};
 
-                if ($row === null) {
-                    return null;
-                }
+				if ($row === null) {
+					return null;
+				}
 
-                return OrEntityFactory::make($row, 'item');
-            }
-        );
+				return OrEntityFactory::make($row, 'item');
+			}
+		);
 
-        $zipBytes = (new QtiExportService($objectService))->export('bank-1');
+		$zipBytes = (new QtiExportService($objectService))->export('bank-1');
 
-        $tmpFile = tempnam(sys_get_temp_dir(), 'scholiq_qti_export_test_');
-        file_put_contents($tmpFile, $zipBytes);
+		$tmpFile = tempnam(sys_get_temp_dir(), 'learniq_qti_export_test_');
+		file_put_contents($tmpFile, $zipBytes);
 
-        $zip = new ZipArchive();
-        self::assertTrue($zip->open($tmpFile) === true);
+		$zip = new ZipArchive();
+		self::assertTrue($zip->open($tmpFile) === true);
 
-        $manifest = $zip->getFromName('imsmanifest.xml');
-        self::assertIsString($manifest);
-        self::assertStringContainsString('Physics 101', $manifest);
+		$manifest = $zip->getFromName('imsmanifest.xml');
+		self::assertIsString($manifest);
+		self::assertStringContainsString('Physics 101', $manifest);
 
-        self::assertSame($fullyParsedBody, $zip->getFromName('item-1.xml'));
-        self::assertSame($degradedBody, $zip->getFromName('item-2.xml'), 'The degraded-parsing item still exports its raw qtiBody verbatim.');
+		self::assertSame($fullyParsedBody, $zip->getFromName('item-1.xml'));
+		self::assertSame($degradedBody, $zip->getFromName('item-2.xml'), 'The degraded-parsing item still exports its raw qtiBody verbatim.');
 
-        $zip->close();
-        unlink($tmpFile);
-    }//end testExportProducesAValidPackageWithVerbatimQtiBodies()
+		$zip->close();
+		unlink($tmpFile);
+	}//end testExportProducesAValidPackageWithVerbatimQtiBodies()
 
-    /**
-     * Exporting an unknown ItemBank throws so the controller can return a clean 404/422.
-     *
-     * @return void
-     */
-    public function testExportThrowsForUnknownItemBank(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn(null);
+	/**
+	 * Exporting an unknown ItemBank throws so the controller can return a clean 404/422.
+	 *
+	 * @return void
+	 */
+	public function testExportThrowsForUnknownItemBank(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturn(null);
 
-        $this->expectException(RuntimeException::class);
-        (new QtiExportService($objectService))->export('missing-bank');
-    }//end testExportThrowsForUnknownItemBank()
+		$this->expectException(RuntimeException::class);
+		(new QtiExportService($objectService))->export('missing-bank');
+	}//end testExportThrowsForUnknownItemBank()
 }//end class

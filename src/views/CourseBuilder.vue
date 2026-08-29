@@ -12,13 +12,19 @@
   tree — the "Clone for next year" capability).
 
   Talks only to OpenRegister's REST API:
-    - GET  /api/objects/scholiq/Course/:courseId
-    - GET  /api/objects/scholiq/Course?filters[parentCourseId]=:courseId
-    - GET  /api/objects/scholiq/Lesson?filters[courseId]=:moduleId
-    - POST /api/objects/scholiq/Course | Lesson | CourseTemplate
-    - PUT  /api/objects/scholiq/Course/:id | Lesson/:id  (order updates)
-    - DELETE /api/objects/scholiq/Course/:id | Lesson/:id
-    - GET  /api/objects/scholiq/course-template
+    - GET  /api/objects/learniq/Course/:courseId
+    - GET  /api/objects/learniq/Course?filters[parentCourseId]=:courseId
+    - GET  /api/objects/learniq/Lesson?filters[courseId]=:moduleId
+    - POST /api/objects/learniq/Course | Lesson | course-template
+    - PATCH /api/objects/learniq/Course/:id | Lesson/:id  (order updates)
+    - DELETE /api/objects/learniq/Course/:id | Lesson/:id
+    - GET  /api/objects/learniq/course-template
+
+  PATCH, not PUT, for the order updates: OR's PUT is a full replace and a
+  partial body fails the schema's `required` list. See updateObject().
+  Multi-word schemas are addressed by their kebab-case SLUG
+  (`course-template`, `curriculum-plan`) — OR slugifies the identifier and
+  does not convert PascalCase, so `CourseTemplate` 404s.
 
   No new PHP controller: every write is a call against OpenRegister's
   existing object-create/update/delete endpoints (ADR-022). Template
@@ -41,7 +47,7 @@
 	<div class="course-builder">
 		<div v-if="loading" class="course-builder__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading course…') }}</span>
+			<span>{{ t('learniq', 'Loading course…') }}</span>
 		</div>
 
 		<div v-else-if="error" class="course-builder__error" role="alert">
@@ -56,33 +62,41 @@
 			</p>
 
 			<header class="course-builder__header">
-				<h2>{{ t('scholiq', 'Course builder: {name}', { name: course.name || '' }) }}</h2>
+				<h2>
+					{{
+						t('learniq', 'Course builder: {name}', {
+							name: course.name || '',
+						})
+					}}
+				</h2>
 				<div class="course-builder__header-actions">
 					<button class="button-vue" @click="goBack">
-						{{ t('scholiq', 'Back to course') }}
+						{{ t('learniq', 'Back to course') }}
 					</button>
-					<button class="button-vue" @click="showSaveTemplate = !showSaveTemplate">
-						{{ t('scholiq', 'Save as template') }}
+					<button
+						class="button-vue"
+						@click="showSaveTemplate = !showSaveTemplate">
+						{{ t('learniq', 'Save as template') }}
 					</button>
 					<button class="button-vue" @click="onOpenInstantiate">
-						{{ t('scholiq', 'New course from template') }}
+						{{ t('learniq', 'New course from template') }}
 					</button>
 				</div>
 			</header>
 
 			<!-- Save as template -->
 			<section v-if="showSaveTemplate" class="course-builder__panel">
-				<h3>{{ t('scholiq', 'Save this course as a template') }}</h3>
+				<h3>{{ t('learniq', 'Save this course as a template') }}</h3>
 				<label class="course-builder__field-label" for="cb-template-name">
-					{{ t('scholiq', 'Template name') }}
+					{{ t('learniq', 'Template name') }}
 				</label>
 				<input
 					id="cb-template-name"
 					v-model="saveTemplateForm.name"
 					type="text"
-					class="course-builder__input">
+					class="course-builder__input" />
 				<label class="course-builder__field-label" for="cb-template-desc">
-					{{ t('scholiq', 'Description') }}
+					{{ t('learniq', 'Description') }}
 				</label>
 				<textarea
 					id="cb-template-desc"
@@ -94,175 +108,256 @@
 						class="button-vue button-vue--primary"
 						:disabled="savingTemplate || !saveTemplateForm.name"
 						@click="saveAsTemplate">
-						<span v-if="savingTemplate" class="icon-loading" aria-hidden="true" />
-						{{ t('scholiq', 'Save template') }}
+						<span
+							v-if="savingTemplate"
+							class="icon-loading"
+							aria-hidden="true" />
+						{{ t('learniq', 'Save template') }}
 					</button>
 				</div>
-				<p v-if="saveTemplateError" role="alert" class="course-builder__inline-error">
+				<p
+					v-if="saveTemplateError"
+					role="alert"
+					class="course-builder__inline-error">
 					{{ saveTemplateError }}
 				</p>
-				<p v-if="saveTemplateDone" role="status" class="course-builder__inline-success">
-					{{ t('scholiq', 'Template saved.') }}
+				<p
+					v-if="saveTemplateDone"
+					role="status"
+					class="course-builder__inline-success">
+					{{ t('learniq', 'Template saved.') }}
 				</p>
 			</section>
 
 			<!-- New course from template -->
 			<section v-if="showInstantiate" class="course-builder__panel">
-				<h3>{{ t('scholiq', 'Create a new course from a template') }}</h3>
+				<h3>{{ t('learniq', 'Create a new course from a template') }}</h3>
 				<NcSelect
 					v-model="instantiateForm.templateId"
 					:options="templateOptions"
 					:reduce="(opt) => opt.id"
-					:input-label="t('scholiq', 'Template')"
-					:aria-label-combobox="t('scholiq', 'Template')" />
+					:inputLabel="t('learniq', 'Template')"
+					:aria-label-combobox="t('learniq', 'Template')" />
 				<label class="course-builder__field-label" for="cb-new-course-name">
-					{{ t('scholiq', 'New course name') }}
+					{{ t('learniq', 'New course name') }}
 				</label>
 				<input
 					id="cb-new-course-name"
 					v-model="instantiateForm.name"
 					type="text"
-					class="course-builder__input">
+					class="course-builder__input" />
 				<div class="course-builder__panel-actions">
 					<button
 						class="button-vue button-vue--primary"
-						:disabled="instantiating || !instantiateForm.templateId || !instantiateForm.name"
+						:disabled="
+							instantiating
+							|| !instantiateForm.templateId
+							|| !instantiateForm.name
+						"
 						@click="instantiateTemplate">
-						<span v-if="instantiating" class="icon-loading" aria-hidden="true" />
-						{{ t('scholiq', 'Create course') }}
+						<span
+							v-if="instantiating"
+							class="icon-loading"
+							aria-hidden="true" />
+						{{ t('learniq', 'Create course') }}
 					</button>
 				</div>
-				<p v-if="instantiateError" role="alert" class="course-builder__inline-error">
+				<p
+					v-if="instantiateError"
+					role="alert"
+					class="course-builder__inline-error">
 					{{ instantiateError }}
 				</p>
 			</section>
 
 			<!-- Modules -->
 			<section class="course-builder__modules">
-				<h3>{{ t('scholiq', 'Modules') }}</h3>
+				<h3>{{ t('learniq', 'Modules') }}</h3>
 
-				<draggable
+				<!-- vuedraggable 4 (Vue 3) renders its rows through the REQUIRED
+				     `#item` scoped slot and computes each key from `itemKey`.
+				     A `v-for` in the default slot is the Vue 2 API: v4 throws
+				     "draggable element must have an item slot" from
+				     computeNodes(), which kills the whole Modules section's
+				     render — the list never appears and neither does any module
+				     added through the form below it. -->
+				<Draggable
 					v-model="modules"
 					tag="ul"
 					class="course-builder__module-list"
 					handle=".course-builder__handle"
+					itemKey="id"
 					@end="onModulesDragEnd">
-					<li
-						v-for="(module, mIdx) in modules"
-						:key="module.id"
-						class="course-builder__module">
-						<div class="course-builder__module-row">
-							<span class="course-builder__handle icon-menu" aria-hidden="true" />
-							<span class="course-builder__module-name">{{ module.name }}</span>
-							<button
-								type="button"
-								class="course-builder__icon-btn"
-								:disabled="mIdx === 0"
-								:aria-label="t('scholiq', 'Move module \'{name}\' up', { name: module.name })"
-								@click="moveModuleUp(mIdx)">
-								<ChevronUp :size="18" />
-							</button>
-							<button
-								type="button"
-								class="course-builder__icon-btn"
-								:disabled="mIdx === modules.length - 1"
-								:aria-label="t('scholiq', 'Move module \'{name}\' down', { name: module.name })"
-								@click="moveModuleDown(mIdx)">
-								<ChevronDown :size="18" />
-							</button>
-							<button
-								type="button"
-								class="course-builder__icon-btn"
-								:aria-label="t('scholiq', 'Delete module \'{name}\'', { name: module.name })"
-								@click="deleteModule(module, mIdx)">
-								<DeleteOutline :size="18" />
-							</button>
-						</div>
+					<template #item="{ element: module, index: mIdx }">
+						<li class="course-builder__module">
+							<div class="course-builder__module-row">
+								<span
+									class="course-builder__handle icon-menu"
+									aria-hidden="true" />
+								<span class="course-builder__module-name">{{
+									module.name
+								}}</span>
+								<button
+									type="button"
+									class="course-builder__icon-btn"
+									:disabled="mIdx === 0"
+									:aria-label="
+										t('learniq', 'Move module \'{name}\' up', {
+											name: module.name,
+										})
+									"
+									@click="moveModuleUp(mIdx)">
+									<ChevronUp :size="18" />
+								</button>
+								<button
+									type="button"
+									class="course-builder__icon-btn"
+									:disabled="mIdx === modules.length - 1"
+									:aria-label="
+										t('learniq', 'Move module \'{name}\' down', {
+											name: module.name,
+										})
+									"
+									@click="moveModuleDown(mIdx)">
+									<ChevronDown :size="18" />
+								</button>
+								<button
+									type="button"
+									class="course-builder__icon-btn"
+									:aria-label="
+										t('learniq', 'Delete module \'{name}\'', {
+											name: module.name,
+										})
+									"
+									@click="deleteModule(module, mIdx)">
+									<DeleteOutline :size="18" />
+								</button>
+							</div>
 
-						<draggable
-							v-model="module.lessons"
-							tag="ul"
-							class="course-builder__lesson-list"
-							handle=".course-builder__handle"
-							@end="onLessonsDragEnd(module)">
-							<li
-								v-for="(lesson, lIdx) in module.lessons"
-								:key="lesson.id"
-								class="course-builder__lesson">
-								<span class="course-builder__handle icon-menu" aria-hidden="true" />
-								<span class="course-builder__lesson-name">{{ lesson.name }}</span>
-								<span class="course-builder__lesson-type">{{ lesson.contentType }}</span>
-								<button
-									type="button"
-									class="course-builder__icon-btn"
-									:disabled="lIdx === 0"
-									:aria-label="t('scholiq', 'Move lesson \'{name}\' up', { name: lesson.name })"
-									@click="moveLessonUp(module, lIdx)">
-									<ChevronUp :size="16" />
-								</button>
-								<button
-									type="button"
-									class="course-builder__icon-btn"
-									:disabled="lIdx === module.lessons.length - 1"
-									:aria-label="t('scholiq', 'Move lesson \'{name}\' down', { name: lesson.name })"
-									@click="moveLessonDown(module, lIdx)">
-									<ChevronDown :size="16" />
-								</button>
+							<!-- Same v4 `#item` contract as the modules list above. -->
+							<Draggable
+								v-model="module.lessons"
+								tag="ul"
+								class="course-builder__lesson-list"
+								handle=".course-builder__handle"
+								itemKey="id"
+								@end="onLessonsDragEnd(module)">
+								<template #item="{ element: lesson, index: lIdx }">
+									<li class="course-builder__lesson">
+										<span
+											class="course-builder__handle icon-menu"
+											aria-hidden="true" />
+										<span class="course-builder__lesson-name">{{
+											lesson.name
+										}}</span>
+										<span class="course-builder__lesson-type">{{
+											lesson.contentType
+										}}</span>
+										<button
+											type="button"
+											class="course-builder__icon-btn"
+											:disabled="lIdx === 0"
+											:aria-label="
+												t(
+													'learniq',
+													'Move lesson \'{name}\' up',
+													{
+														name: lesson.name,
+													},
+												)
+											"
+											@click="moveLessonUp(module, lIdx)">
+											<ChevronUp :size="16" />
+										</button>
+										<button
+											type="button"
+											class="course-builder__icon-btn"
+											:disabled="
+												lIdx === module.lessons.length - 1
+											"
+											:aria-label="
+												t(
+													'learniq',
+													'Move lesson \'{name}\' down',
+													{
+														name: lesson.name,
+													},
+												)
+											"
+											@click="moveLessonDown(module, lIdx)">
+											<ChevronDown :size="16" />
+										</button>
+										<button
+											type="button"
+											class="button-vue"
+											@click="openComposer(lesson)">
+											{{ t('learniq', 'Compose') }}
+										</button>
+										<button
+											type="button"
+											class="button-vue"
+											@click="openPlayer(lesson)">
+											{{ t('learniq', 'Preview') }}
+										</button>
+										<button
+											type="button"
+											class="course-builder__icon-btn"
+											:aria-label="
+												t(
+													'learniq',
+													'Delete lesson \'{name}\'',
+													{
+														name: lesson.name,
+													},
+												)
+											"
+											@click="deleteLesson(module, lIdx)">
+											<DeleteOutline :size="16" />
+										</button>
+									</li>
+								</template>
+							</Draggable>
+
+							<div class="course-builder__add-row">
+								<input
+									v-model="newLessonNames[module.id]"
+									type="text"
+									class="course-builder__input"
+									:placeholder="t('learniq', 'New lesson name')"
+									:aria-label="
+										t(
+											'learniq',
+											'New lesson name for module {name}',
+											{ name: module.name },
+										)
+									" />
 								<button
 									type="button"
 									class="button-vue"
-									@click="openComposer(lesson)">
-									{{ t('scholiq', 'Compose') }}
+									:disabled="!newLessonNames[module.id]"
+									@click="addLesson(module)">
+									<PlusIcon :size="16" />
+									{{ t('learniq', 'Add lesson') }}
 								</button>
-								<button
-									type="button"
-									class="button-vue"
-									@click="openPlayer(lesson)">
-									{{ t('scholiq', 'Preview') }}
-								</button>
-								<button
-									type="button"
-									class="course-builder__icon-btn"
-									:aria-label="t('scholiq', 'Delete lesson \'{name}\'', { name: lesson.name })"
-									@click="deleteLesson(module, lIdx)">
-									<DeleteOutline :size="16" />
-								</button>
-							</li>
-						</draggable>
-
-						<div class="course-builder__add-row">
-							<input
-								v-model="newLessonNames[module.id]"
-								type="text"
-								class="course-builder__input"
-								:placeholder="t('scholiq', 'New lesson name')"
-								:aria-label="t('scholiq', 'New lesson name for module {name}', { name: module.name })">
-							<button
-								type="button"
-								class="button-vue"
-								:disabled="!newLessonNames[module.id]"
-								@click="addLesson(module)">
-								<PlusIcon :size="16" />
-								{{ t('scholiq', 'Add lesson') }}
-							</button>
-						</div>
-					</li>
-				</draggable>
+							</div>
+						</li>
+					</template>
+				</Draggable>
 
 				<div class="course-builder__add-row">
 					<input
 						v-model="newModuleName"
 						type="text"
 						class="course-builder__input"
-						:placeholder="t('scholiq', 'New module name')"
-						:aria-label="t('scholiq', 'New module name')">
+						:placeholder="t('learniq', 'New module name')"
+						:aria-label="t('learniq', 'New module name')" />
 					<button
 						type="button"
 						class="button-vue button-vue--secondary"
 						:disabled="!newModuleName"
 						@click="addModule">
 						<PlusIcon :size="16" />
-						{{ t('scholiq', 'Add module') }}
+						{{ t('learniq', 'Add module') }}
 					</button>
 				</div>
 			</section>
@@ -274,8 +369,8 @@
 import { generateUrl } from '@nextcloud/router'
 import { NcSelect } from '@nextcloud/vue'
 import draggable from 'vuedraggable'
-import ChevronUp from 'vue-material-design-icons/ChevronUp.vue'
 import ChevronDown from 'vue-material-design-icons/ChevronDown.vue'
+import ChevronUp from 'vue-material-design-icons/ChevronUp.vue'
 import DeleteOutline from 'vue-material-design-icons/DeleteOutline.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import { compareByOrder } from '../utils/courseOrder.js'
@@ -285,7 +380,7 @@ export default {
 
 	components: {
 		NcSelect,
-		draggable,
+		Draggable: draggable,
 		ChevronUp,
 		ChevronDown,
 		DeleteOutline,
@@ -330,6 +425,7 @@ export default {
 		 * NcSelect options for the CourseTemplate picker.
 		 *
 		 * @return {Array<{id: string, label: string}>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		templateOptions() {
 			return this.templates.map((tpl) => ({ id: tpl.id, label: tpl.name }))
@@ -356,16 +452,25 @@ export default {
 			this.error = ''
 			try {
 				this.course = await this.fetchObject('Course', this.courseId)
-				const modules = await this.fetchList('Course', `filters[parentCourseId]=${this.courseId}&limit=200`)
+				const modules = await this.fetchList(
+					'Course',
+					`filters[parentCourseId]=${this.courseId}&_limit=200`,
+				)
 				modules.sort(compareByOrder)
 				for (const module of modules) {
-					const lessons = await this.fetchList('Lesson', `filters[courseId]=${module.id}&limit=200`)
+					const lessons = await this.fetchList(
+						'Lesson',
+						`filters[courseId]=${module.id}&_limit=200`,
+					)
 					lessons.sort(compareByOrder)
 					module.lessons = lessons
 				}
 				this.modules = modules
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load the course. Please try again.')
+				this.error = this.t(
+					'learniq',
+					'Failed to load the course. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] load error', err)
 			} finally {
@@ -374,9 +479,14 @@ export default {
 		},
 
 		/** @return {void} */
+		/**
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
+		 */
 		goBack() {
 			if (this.$router) {
-				this.$router.push({ name: 'CourseDetail', params: { id: this.courseId } }).catch(() => {})
+				this.$router
+					.push({ name: 'CourseDetail', params: { id: this.courseId } })
+					.catch(() => {})
 			}
 		},
 
@@ -385,10 +495,16 @@ export default {
 		 *
 		 * @param {object} lesson The Lesson row.
 		 * @return {void}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		openComposer(lesson) {
 			if (this.$router) {
-				this.$router.push({ name: 'LessonComposer', params: { courseId: this.courseId, lessonId: lesson.id } }).catch(() => {})
+				this.$router
+					.push({
+						name: 'LessonComposer',
+						params: { courseId: this.courseId, lessonId: lesson.id },
+					})
+					.catch(() => {})
 			}
 		},
 
@@ -397,23 +513,38 @@ export default {
 		 *
 		 * @param {object} lesson The Lesson row.
 		 * @return {void}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		openPlayer(lesson) {
 			if (this.$router) {
-				this.$router.push({ name: 'LessonPlayer', params: { courseId: this.courseId, lessonId: lesson.id } }).catch(() => {})
+				this.$router
+					.push({
+						name: 'LessonPlayer',
+						params: { courseId: this.courseId, lessonId: lesson.id },
+					})
+					.catch(() => {})
 			}
 		},
 
 		/**
 		 * Fetch a single OR object.
 		 *
-		 * @param {string} schema OR schema PascalCase key.
+		 * @param {string} schema OR schema SLUG, as registered in
+		 *   lib/Settings/learniq_register.json — `course`, `course-template`.
+		 *   Lookup is case-insensitive but does NOT convert PascalCase to
+		 *   kebab-case, so a multi-word key like `CourseTemplate` lowercases to
+		 *   `coursetemplate`, matches no schema, and the endpoint 404s.
 		 * @param {string} objId Object UUID.
 		 * @return {Promise<object>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async fetchObject(schema, objId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}/${objId}`)
-			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/${schema}/${objId}`,
+			)
+			const resp = await fetch(url, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) throw new Error(`${schema} fetch failed: ${resp.status}`)
 			const json = await resp.json()
 			return json.object ?? json ?? {}
@@ -422,13 +553,22 @@ export default {
 		/**
 		 * Fetch a filtered list of OR objects.
 		 *
-		 * @param {string} schema OR schema PascalCase key.
+		 * @param {string} schema OR schema SLUG, as registered in
+		 *   lib/Settings/learniq_register.json — `course`, `course-template`.
+		 *   Lookup is case-insensitive but does NOT convert PascalCase to
+		 *   kebab-case, so a multi-word key like `CourseTemplate` lowercases to
+		 *   `coursetemplate`, matches no schema, and the endpoint 404s.
 		 * @param {string} query Pre-built query string.
 		 * @return {Promise<Array<object>>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async fetchList(schema, query) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}?${query}`)
-			const resp = await fetch(url, { headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
+			)
+			const resp = await fetch(url, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) return []
 			const json = await resp.json()
 			return json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
@@ -437,15 +577,26 @@ export default {
 		/**
 		 * Create an OR object.
 		 *
-		 * @param {string} schema OR schema PascalCase key.
+		 * @param {string} schema OR schema SLUG, as registered in
+		 *   lib/Settings/learniq_register.json — `course`, `course-template`.
+		 *   Lookup is case-insensitive but does NOT convert PascalCase to
+		 *   kebab-case, so a multi-word key like `CourseTemplate` lowercases to
+		 *   `coursetemplate`, matches no schema, and the endpoint 404s.
 		 * @param {object} body Payload.
 		 * @return {Promise<object>} The created object.
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async createObject(schema, body) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/${schema}`,
+			)
 			const resp = await fetch(url, {
 				method: 'POST',
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json', 'Content-Type': 'application/json' },
+				headers: {
+					'OCS-APIREQUEST': 'true',
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
 				body: JSON.stringify(body),
 			})
 			if (!resp.ok) throw new Error(`${schema} create failed: ${resp.status}`)
@@ -454,19 +605,42 @@ export default {
 		},
 
 		/**
-		 * Partially update an OR object (PUT with only the changed fields —
-		 * precedented by ProctoringReviewQueue.vue's flags-only PUT body).
+		 * Partially update an OR object.
 		 *
-		 * @param {string} schema OR schema PascalCase key.
+		 * ⚠️ PATCH, not PUT. OpenRegister routes `objects#update` (PUT) as a
+		 * full REPLACE and `objects#patch` (PATCH) as a read-merge-write
+		 * partial update (appinfo/routes.php 796-797). Sending only the changed
+		 * fields over PUT therefore drops every field you omitted, and the
+		 * schema's `required` list rejects the result: `Lesson.required` is
+		 * `[courseId, name, order, contentType, tenant_id]`, so persistOrder's
+		 * `{ order }` body answered **400** and reordering lessons could never
+		 * be saved. PATCH merges into the stored object and validates the
+		 * merged result, so `{ order }` is enough.
+		 *
+		 * OR's optimistic-concurrency guard (`_expectedUpdated`) is opt-in;
+		 * omitting it keeps the plain last-write-wins merge this caller wants.
+		 *
+		 * @param {string} schema OR schema SLUG, as registered in
+		 *   lib/Settings/learniq_register.json — `course`, `course-template`.
+		 *   Lookup is case-insensitive but does NOT convert PascalCase to
+		 *   kebab-case, so a multi-word key like `CourseTemplate` lowercases to
+		 *   `coursetemplate`, matches no schema, and the endpoint 404s.
 		 * @param {string} objId Object UUID.
 		 * @param {object} patch Partial payload.
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async updateObject(schema, objId, patch) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}/${objId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/${schema}/${objId}`,
+			)
 			const resp = await fetch(url, {
-				method: 'PUT',
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json', 'Content-Type': 'application/json' },
+				method: 'PATCH',
+				headers: {
+					'OCS-APIREQUEST': 'true',
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
 				body: JSON.stringify(patch),
 			})
 			if (!resp.ok) throw new Error(`${schema} update failed: ${resp.status}`)
@@ -475,13 +649,23 @@ export default {
 		/**
 		 * Delete an OR object.
 		 *
-		 * @param {string} schema OR schema PascalCase key.
+		 * @param {string} schema OR schema SLUG, as registered in
+		 *   lib/Settings/learniq_register.json — `course`, `course-template`.
+		 *   Lookup is case-insensitive but does NOT convert PascalCase to
+		 *   kebab-case, so a multi-word key like `CourseTemplate` lowercases to
+		 *   `coursetemplate`, matches no schema, and the endpoint 404s.
 		 * @param {string} objId Object UUID.
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async deleteObject(schema, objId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}/${objId}`)
-			const resp = await fetch(url, { method: 'DELETE', headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } })
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/${schema}/${objId}`,
+			)
+			const resp = await fetch(url, {
+				method: 'DELETE',
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
 			if (!resp.ok) throw new Error(`${schema} delete failed: ${resp.status}`)
 		},
 
@@ -502,7 +686,9 @@ export default {
 				const newOrder = idx + 1
 				if (item.order !== newOrder) {
 					item.order = newOrder
-					updates.push(this.updateObject(schema, item.id, { order: newOrder }))
+					updates.push(
+						this.updateObject(schema, item.id, { order: newOrder }),
+					)
 				}
 			})
 			if (updates.length) {
@@ -523,45 +709,85 @@ export default {
 		 * @param {string} schema 'Course' or 'Lesson'.
 		 * @param {string} noun Human-readable noun for the announcement ('Module' or 'Lesson').
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async reorder(list, fromIndex, toIndex, schema, noun) {
-			if (fromIndex === toIndex || toIndex < 0 || toIndex >= list.length) return
+			if (fromIndex === toIndex || toIndex < 0 || toIndex >= list.length)
+				return
 			const [moved] = list.splice(fromIndex, 1)
 			list.splice(toIndex, 0, moved)
 			await this.persistOrder(list, schema)
 			this.liveMessage = this.t(
-				'scholiq',
+				'learniq',
 				'{noun} moved to position {pos} of {total}',
 				{ noun, pos: toIndex + 1, total: list.length },
 			)
 		},
 
-		/** @param {number} idx Module index. @return {Promise<void>} */
+		/**
+		 * Move a module one position earlier.
+		 *
+		 * @param {number} idx Module index.
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
+		 */
 		moveModuleUp(idx) {
-			return this.reorder(this.modules, idx, idx - 1, 'Course', this.t('scholiq', 'Module'))
+			return this.reorder(
+				this.modules,
+				idx,
+				idx - 1,
+				'Course',
+				this.t('learniq', 'Module'),
+			)
 		},
 
-		/** @param {number} idx Module index. @return {Promise<void>} */
+		/**
+		 * Move a module one position later.
+		 *
+		 * @param {number} idx Module index.
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
+		 */
 		moveModuleDown(idx) {
-			return this.reorder(this.modules, idx, idx + 1, 'Course', this.t('scholiq', 'Module'))
+			return this.reorder(
+				this.modules,
+				idx,
+				idx + 1,
+				'Course',
+				this.t('learniq', 'Module'),
+			)
 		},
 
 		/**
 		 * @param {object} module Parent module.
 		 * @param {number} idx Lesson index within module.lessons.
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		moveLessonUp(module, idx) {
-			return this.reorder(module.lessons, idx, idx - 1, 'Lesson', this.t('scholiq', 'Lesson'))
+			return this.reorder(
+				module.lessons,
+				idx,
+				idx - 1,
+				'Lesson',
+				this.t('learniq', 'Lesson'),
+			)
 		},
 
 		/**
 		 * @param {object} module Parent module.
 		 * @param {number} idx Lesson index within module.lessons.
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		moveLessonDown(module, idx) {
-			return this.reorder(module.lessons, idx, idx + 1, 'Lesson', this.t('scholiq', 'Lesson'))
+			return this.reorder(
+				module.lessons,
+				idx,
+				idx + 1,
+				'Lesson',
+				this.t('learniq', 'Lesson'),
+			)
 		},
 
 		/**
@@ -569,10 +795,11 @@ export default {
 		 * already reordered by `v-model`; just persist + announce.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async onModulesDragEnd() {
 			await this.persistOrder(this.modules, 'Course')
-			this.liveMessage = this.t('scholiq', 'Module order updated.')
+			this.liveMessage = this.t('learniq', 'Module order updated.')
 		},
 
 		/**
@@ -580,10 +807,11 @@ export default {
 		 *
 		 * @param {object} module The module whose lessons were reordered.
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async onLessonsDragEnd(module) {
 			await this.persistOrder(module.lessons, 'Lesson')
-			this.liveMessage = this.t('scholiq', 'Lesson order updated.')
+			this.liveMessage = this.t('learniq', 'Lesson order updated.')
 		},
 
 		/**
@@ -608,7 +836,10 @@ export default {
 				this.modules.push(created)
 				this.newModuleName = ''
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to add module. Please try again.')
+				this.error = this.t(
+					'learniq',
+					'Failed to add module. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] addModule error', err)
 			}
@@ -629,7 +860,10 @@ export default {
 				this.modules.splice(idx, 1)
 				await this.persistOrder(this.modules, 'Course')
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to delete module. Please try again.')
+				this.error = this.t(
+					'learniq',
+					'Failed to delete module. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] deleteModule error', err)
 			}
@@ -659,7 +893,10 @@ export default {
 				module.lessons.push(created)
 				this.newLessonNames[module.id] = ''
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to add lesson. Please try again.')
+				this.error = this.t(
+					'learniq',
+					'Failed to add lesson. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] addLesson error', err)
 			}
@@ -680,7 +917,10 @@ export default {
 				module.lessons.splice(idx, 1)
 				await this.persistOrder(module.lessons, 'Lesson')
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to delete lesson. Please try again.')
+				this.error = this.t(
+					'learniq',
+					'Failed to delete lesson. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] deleteLesson error', err)
 			}
@@ -719,13 +959,16 @@ export default {
 							blockId: b.blockId,
 							type: 'richText',
 							order: b.order,
-							text: this.t('scholiq', 'Introduction — replace with your own text'),
+							text: this.t(
+								'learniq',
+								'Introduction — replace with your own text',
+							),
 						})),
 				})),
 			}))
 
 			try {
-				const created = await this.createObject('CourseTemplate', {
+				const created = await this.createObject('course-template', {
 					name: this.saveTemplateForm.name,
 					description: this.saveTemplateForm.description || null,
 					level: this.course.level,
@@ -736,10 +979,18 @@ export default {
 				this.saveTemplateDone = true
 				this.saveTemplateForm = { name: '', description: '' }
 				if (this.$router && created.id) {
-					this.$router.push({ name: 'CourseTemplateDetail', params: { id: created.id } }).catch(() => {})
+					this.$router
+						.push({
+							name: 'CourseTemplateDetail',
+							params: { id: created.id },
+						})
+						.catch(() => {})
 				}
 			} catch (err) {
-				this.saveTemplateError = this.t('scholiq', 'Failed to save the template. Please try again.')
+				this.saveTemplateError = this.t(
+					'learniq',
+					'Failed to save the template. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] saveAsTemplate error', err)
 			} finally {
@@ -751,11 +1002,15 @@ export default {
 		 * Load available CourseTemplates when the instantiate panel opens.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#requirement-course-module-lesson-hierarchy-in-openregister
 		 */
 		async onOpenInstantiate() {
 			this.showInstantiate = !this.showInstantiate
 			if (this.showInstantiate && this.templates.length === 0) {
-				this.templates = await this.fetchList('CourseTemplate', 'limit=200')
+				this.templates = await this.fetchList(
+					'course-template',
+					'_limit=200',
+				)
 			}
 		},
 
@@ -772,12 +1027,20 @@ export default {
 		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-course-structure-can-be-saved-as-a-reusable-template-and-instantiated
 		 */
 		async instantiateTemplate() {
-			if (!this.instantiateForm.templateId || !this.instantiateForm.name) return
+			if (!this.instantiateForm.templateId || !this.instantiateForm.name)
+				return
 			this.instantiating = true
 			this.instantiateError = ''
 
 			try {
-				const template = await this.fetchObject('CourseTemplate', this.instantiateForm.templateId)
+				// The slug, not the title: OpenRegister resolves this segment by
+				// lower(slug), so "CourseTemplate" 404s where the sibling call a
+				// few lines up survives only because "Course" happens to
+				// lowercase onto its own slug.
+				const template = await this.fetchObject(
+					'course-template',
+					this.instantiateForm.templateId,
+				)
 				const tenantId = template.tenant_id || this.course?.tenant_id || ''
 
 				const newCourse = await this.createObject('Course', {
@@ -788,7 +1051,7 @@ export default {
 					tenant_id: tenantId,
 				})
 
-				for (const moduleSkeleton of (template.moduleStructure || [])) {
+				for (const moduleSkeleton of template.moduleStructure || []) {
 					const newModule = await this.createObject('Course', {
 						code: `${newCourse.code}-${moduleSkeleton.key}`,
 						name: moduleSkeleton.name,
@@ -800,27 +1063,31 @@ export default {
 						tenant_id: tenantId,
 					})
 
-					for (const lessonSkeleton of (moduleSkeleton.lessons || [])) {
+					for (const lessonSkeleton of moduleSkeleton.lessons || []) {
 						await this.createObject('Lesson', {
 							courseId: newModule.id,
 							name: lessonSkeleton.name,
 							order: lessonSkeleton.order,
 							contentType: lessonSkeleton.contentType,
 							durationMinutes: lessonSkeleton.durationMinutes ?? null,
-							blocks: (lessonSkeleton.blocksSkeleton || []).map((b) => ({
-								blockId: b.blockId,
-								type: b.type,
-								order: b.order,
-								text: b.text ?? null,
-							})),
+							blocks: (lessonSkeleton.blocksSkeleton || []).map(
+								(b) => ({
+									blockId: b.blockId,
+									type: b.type,
+									order: b.order,
+									text: b.text ?? null,
+								}),
+							),
 							tenant_id: tenantId,
 						})
 					}
 				}
 
 				if (template.curriculumPlanSkeleton) {
-					const cp = await this.createObject('CurriculumPlan', {
-						name: this.t('scholiq', '{name} — curriculum plan', { name: this.instantiateForm.name }),
+					const cp = await this.createObject('curriculum-plan', {
+						name: this.t('learniq', '{name} — curriculum plan', {
+							name: this.instantiateForm.name,
+						}),
 						kind: template.curriculumPlanSkeleton.kind,
 						formula: template.curriculumPlanSkeleton.formula,
 						components: template.curriculumPlanSkeleton.components || [],
@@ -828,16 +1095,26 @@ export default {
 						passRules: template.curriculumPlanSkeleton.passRules || [],
 						tenant_id: tenantId,
 					})
-					await this.updateObject('Course', newCourse.id, { curriculumPlanId: cp.id })
+					await this.updateObject('Course', newCourse.id, {
+						curriculumPlanId: cp.id,
+					})
 				}
 
 				this.instantiateForm = { templateId: '', name: '' }
 				this.showInstantiate = false
 				if (this.$router) {
-					this.$router.push({ name: 'CourseBuilder', params: { courseId: newCourse.id } }).catch(() => {})
+					this.$router
+						.push({
+							name: 'CourseBuilder',
+							params: { courseId: newCourse.id },
+						})
+						.catch(() => {})
 				}
 			} catch (err) {
-				this.instantiateError = this.t('scholiq', 'Failed to create the course from this template. Please try again.')
+				this.instantiateError = this.t(
+					'learniq',
+					'Failed to create the course from this template. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CourseBuilder] instantiateTemplate error', err)
 			} finally {
@@ -852,7 +1129,8 @@ export default {
 .course-builder {
 	max-width: 960px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .course-builder__loading,
@@ -868,7 +1146,7 @@ export default {
 	width: 1px;
 	height: 1px;
 	overflow: hidden;
-	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
 	white-space: nowrap;
 }
 

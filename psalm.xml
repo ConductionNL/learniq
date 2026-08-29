@@ -28,8 +28,8 @@
              its ADR-023 methods (requireAction/getMatrix/setMatrix) to type-check
              both the DI factory in AppInfo\Application and every controller that
              type-hints ActionAuthService. -->
-        <file name="tests/Stubs/Service/AppHost/GenericActionAuthService.php" preloadClasses="true" />
-        <!-- Cross-app OpenRegister services that Scholiq resolves dynamically from the
+        <file name="tests/Stubs/AppHost/Service/GenericActionAuthService.php" preloadClasses="true" />
+        <!-- Cross-app OpenRegister services that Learniq resolves dynamically from the
              container. Real classes live in openregister/lib/Service/. -->
         <file name="tests/Stubs/Service/TenantKeyService.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/TalkLinkService.php" preloadClasses="true" />
@@ -38,6 +38,12 @@
         <UndefinedDocblockClass errorLevel="suppress"/>
         <UndefinedClass>
             <errorLevel type="suppress">
+                <!-- Nextcloud's legacy bootstrap class. There is no OCP
+                     interface for registering another app's autoloader, so the
+                     ADR-040 load-order prelude in AppInfo\OpenRegisterAutoloader
+                     has to call OC_App::registerAutoloading() directly. It is
+                     server-private and therefore absent from nextcloud/ocp. -->
+                <referencedClass name="OC_App"/>
                 <!-- Nextcloud OCP Classes -->
                 <referencedClass name="OCP\AppFramework\App"/>
                 <referencedClass name="OCP\AppFramework\Bootstrap\IBootstrap"/>
@@ -97,6 +103,12 @@
                 <referencedClass name="OCA\OpenRegister\Db\AuditTrailMapper"/>
                 <referencedClass name="OCA\OpenRegister\Service\AuditHashService"/>
                 <referencedClass name="OCA\OpenRegister\AppHost\Service\GenericActionAuthService"/>
+                <!-- ADR-078 deferral engine: listeners hand post-*ed work to
+                     ListenerDeferralService, which runs it later inside an
+                     ActorForwardedJob and hands back a DeferredListenerContext. -->
+                <referencedClass name="OCA\OpenRegister\Service\Deferral\ListenerDeferralService"/>
+                <referencedClass name="OCA\OpenRegister\Service\Deferral\DeferredListenerContext"/>
+                <referencedClass name="OCA\OpenRegister\BackgroundJob\ActorForwardedJob"/>
                 <!-- Additional OCP infrastructure types used across the fleet -->
                 <referencedClass name="OCP\AppFramework\Bootstrap\IBootContext"/>
                 <referencedClass name="OCP\AppFramework\Bootstrap\IRegistrationContext"/>

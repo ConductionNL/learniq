@@ -24,56 +24,67 @@
 -->
 <template>
 	<div class="book-conference-slots">
-		<h2>{{ t('scholiq', 'Book a parent-teacher conversation') }}</h2>
+		<h2>{{ t('learniq', 'Book a parent-teacher conversation') }}</h2>
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 
-		<NcEmptyContent v-else-if="rounds.length === 0"
-			:name="t('scholiq', 'No conference rounds open for booking')"
-			:description="t('scholiq', 'Check back once your school opens booking for the next oudergesprekken round.')" />
+		<NcEmptyContent
+			v-else-if="rounds.length === 0"
+			:name="t('learniq', 'No conference rounds open for booking')"
+			:description="
+				t(
+					'learniq',
+					'Check back once your school opens booking for the next oudergesprekken round.',
+				)
+			" />
 
 		<template v-else>
 			<div class="book-conference-slots__field">
-				<label for="bcs-round">{{ t('scholiq', 'Conference round') }}</label>
-				<NcSelect id="bcs-round"
+				<label for="bcs-round">{{ t('learniq', 'Conference round') }}</label>
+				<NcSelect
+					id="bcs-round"
 					v-model="selectedRoundId"
 					:options="roundOptions"
 					:reduce="(o) => o.id"
 					label="label"
-					:input-label="t('scholiq', 'Conference round')"
-					:aria-label-combobox="t('scholiq', 'Conference round')"
+					:inputLabel="t('learniq', 'Conference round')"
+					:aria-label-combobox="t('learniq', 'Conference round')"
 					@update:modelValue="onRoundChange" />
 			</div>
 
 			<div v-if="selectedRound" class="book-conference-slots__field">
-				<label for="bcs-learner">{{ t('scholiq', 'For which child (or yourself)') }}</label>
-				<NcSelect id="bcs-learner"
+				<label for="bcs-learner">{{
+					t('learniq', 'For which child (or yourself)')
+				}}</label>
+				<NcSelect
+					id="bcs-learner"
 					v-model="selectedLearnerId"
 					:options="learnerOptions"
 					:reduce="(o) => o.id"
 					label="label"
 					:loading="loadingLearners"
-					:input-label="t('scholiq', 'Learner')"
-					:aria-label-combobox="t('scholiq', 'Learner')" />
+					:inputLabel="t('learniq', 'Learner')"
+					:aria-label-combobox="t('learniq', 'Learner')" />
 			</div>
 
 			<div v-if="selectedRound" class="book-conference-slots__field">
-				<label for="bcs-teachers">{{ t('scholiq', 'Requested teachers (in order of preference)') }}</label>
-				<NcSelect id="bcs-teachers"
+				<label for="bcs-teachers">{{
+					t('learniq', 'Requested teachers (in order of preference)')
+				}}</label>
+				<NcSelect
+					id="bcs-teachers"
 					v-model="selectedTeacherIds"
 					:options="teacherOptions"
 					:reduce="(o) => o.id"
 					label="label"
 					multiple
-					:input-label="t('scholiq', 'Requested teachers')"
-					:aria-label-combobox="t('scholiq', 'Requested teachers')" />
+					:inputLabel="t('learniq', 'Requested teachers')"
+					:aria-label-combobox="t('learniq', 'Requested teachers')" />
 			</div>
 
 			<div v-if="selectedRound" class="book-conference-slots__field">
-				<label for="bcs-notes">{{ t('scholiq', 'Notes (optional)') }}</label>
-				<textarea id="bcs-notes"
-					v-model="notes"
-					rows="3" />
+				<label for="bcs-notes">{{ t('learniq', 'Notes (optional)') }}</label>
+				<textarea id="bcs-notes" v-model="notes" rows="3" />
 			</div>
 
 			<NcNoteCard v-if="submitError" type="error">
@@ -81,23 +92,39 @@
 			</NcNoteCard>
 
 			<NcNoteCard v-if="submitSuccess" type="success">
-				{{ t('scholiq', 'Your request has been submitted. You will be notified once the schedule is generated.') }}
+				{{
+					t(
+						'learniq',
+						'Your request has been submitted. You will be notified once the schedule is generated.',
+					)
+				}}
 			</NcNoteCard>
 
-			<NcButton variant="primary"
+			<NcButton
+				variant="primary"
 				:disabled="!canSubmit || submitting"
 				@click="submitSignup">
-				{{ submitting ? t('scholiq', 'Submitting…') : t('scholiq', 'Submit request') }}
+				{{
+					submitting
+						? t('learniq', 'Submitting…')
+						: t('learniq', 'Submit request')
+				}}
 			</NcButton>
 		</template>
 	</div>
 </template>
 
 <script>
+import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { getCurrentUser } from '@nextcloud/auth'
-import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
+import {
+	NcButton,
+	NcEmptyContent,
+	NcLoadingIcon,
+	NcNoteCard,
+	NcSelect,
+} from '@nextcloud/vue'
 
 export default {
 	name: 'BookConferenceSlotsView',
@@ -134,33 +161,51 @@ export default {
 		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		roundOptions() {
-			return this.rounds.map((r) => ({ id: r.id || r.uuid, label: r.name || r.id || r.uuid }))
+			return this.rounds.map((r) => ({
+				id: r.id || r.uuid,
+				label: r.name || r.id || r.uuid,
+			}))
 		},
+
 		/**
 		 * The currently selected ConferenceRound object, or null.
 		 *
 		 * @return {object|null}
 		 */
 		selectedRound() {
-			return this.rounds.find((r) => (r.id || r.uuid) === this.selectedRoundId) || null
+			return (
+				this.rounds.find((r) => (r.id || r.uuid) === this.selectedRoundId)
+				|| null
+			)
 		},
+
 		/**
 		 * Teacher options scoped to the selected round's teacherIds.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		teacherOptions() {
 			if (!this.selectedRound) return []
-			return (this.selectedRound.teacherIds || []).map((id) => ({ id, label: id }))
+			return (this.selectedRound.teacherIds || []).map((id) => ({
+				id,
+				label: id,
+			}))
 		},
+
 		/**
 		 * Learner options: the caller's linked children plus themselves (18+ self-signup).
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		learnerOptions() {
-			return this.learners.map((l) => ({ id: l.ncUserId, label: l.displayName || l.ncUserId }))
+			return this.learners.map((l) => ({
+				id: l.ncUserId,
+				label: l.displayName || l.ncUserId,
+			}))
 		},
+
 		/**
 		 * Whether the form has enough input to submit.
 		 *
@@ -168,9 +213,11 @@ export default {
 		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#scenario-a-linked-guardian-can-submit-a-signup-for-their-own-child
 		 */
 		canSubmit() {
-			return this.selectedRoundId !== ''
+			return (
+				this.selectedRoundId !== ''
 				&& this.selectedLearnerId !== ''
 				&& this.selectedTeacherIds.length > 0
+			)
 		},
 	},
 
@@ -190,9 +237,15 @@ export default {
 		async loadRounds() {
 			this.loading = true
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/conference-round?lifecycle=booking-open&limit=100')
+				const url = generateUrl(
+					'/apps/openregister/api/objects/learniq/conference-round?lifecycle=booking-open&_limit=100',
+				)
 				const response = await axios.get(url)
-				this.rounds = (response.data && (response.data.results || response.data.objects)) || response.data || []
+				this.rounds =
+					(response.data
+						&& (response.data.results || response.data.objects))
+					|| response.data
+					|| []
 			} catch (e) {
 				console.error('[BookConferenceSlotsView] loadRounds failed', e)
 				this.rounds = []
@@ -218,11 +271,27 @@ export default {
 
 			try {
 				const [childrenResp, selfResp] = await Promise.all([
-					axios.get(generateUrl('/apps/openregister/api/objects/scholiq/learner-profile?parentIds={uid}&limit=50', { uid })),
-					axios.get(generateUrl('/apps/openregister/api/objects/scholiq/learner-profile?ncUserId={uid}&limit=1', { uid })),
+					axios.get(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/learner-profile?parentIds={uid}&_limit=50',
+							{ uid },
+						),
+					),
+					axios.get(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/learner-profile?ncUserId={uid}&_limit=1',
+							{ uid },
+						),
+					),
 				])
-				const children = (childrenResp.data && (childrenResp.data.results || childrenResp.data.objects)) || []
-				const self = (selfResp.data && (selfResp.data.results || selfResp.data.objects)) || []
+				const children =
+					(childrenResp.data
+						&& (childrenResp.data.results || childrenResp.data.objects))
+					|| []
+				const self =
+					(selfResp.data
+						&& (selfResp.data.results || selfResp.data.objects))
+					|| []
 				const byId = new Map()
 				;[...children, ...self].forEach((l) => byId.set(l.ncUserId, l))
 				this.learners = Array.from(byId.values())
@@ -238,6 +307,7 @@ export default {
 		 * Reset the teacher/learner selection when the round changes.
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/parent-evening-planner/specs/parent-conferences/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		onRoundChange() {
 			this.selectedTeacherIds = []
@@ -265,18 +335,26 @@ export default {
 					learnerId: this.selectedLearnerId,
 					requestedTeacherIds: this.selectedTeacherIds,
 					notes: this.notes || null,
-					tenant_id: this.selectedRound ? this.selectedRound.tenant_id : undefined,
+					tenant_id: this.selectedRound
+						? this.selectedRound.tenant_id
+						: undefined,
 				}
 
-				const createUrl = generateUrl('/apps/openregister/api/objects/scholiq/conference-signup')
+				const createUrl = generateUrl(
+					'/apps/openregister/api/objects/learniq/conference-signup',
+				)
 				const created = await axios.post(createUrl, body)
-				const signupId = (created.data && (created.data.id || created.data.uuid)) || ''
+				const signupId =
+					(created.data && (created.data.id || created.data.uuid)) || ''
 
 				if (signupId === '') {
 					throw new Error('No signup id returned')
 				}
 
-				const transitionUrl = generateUrl('/apps/openregister/api/objects/scholiq/conference-signup/{id}', { id: signupId })
+				const transitionUrl = generateUrl(
+					'/apps/openregister/api/objects/learniq/conference-signup/{id}',
+					{ id: signupId },
+				)
 				await axios.put(transitionUrl, { lifecycle: 'submitted' })
 
 				this.submitSuccess = true
@@ -284,7 +362,10 @@ export default {
 				this.notes = ''
 			} catch (e) {
 				console.error('[BookConferenceSlotsView] submitSignup failed', e)
-				this.submitError = t('scholiq', 'We could not submit your request. You may not be a linked guardian for this child, or the round may no longer be open for booking.')
+				this.submitError = t(
+					'learniq',
+					'We could not submit your request. You may not be a linked guardian for this child, or the round may no longer be open for booking.',
+				)
 			} finally {
 				this.submitting = false
 			}

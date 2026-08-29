@@ -25,12 +25,14 @@ import { test, expect } from '../fixtures'
 // "order not found" error state is expected and non-fatal; this test
 // exercises that the OrderPaymentPanel component itself mounts and renders
 // rather than the SPA falling back to a blank/404 shell.
-const ORDER_PAYMENT_PANEL_URL = '/index.php/apps/scholiq/#/payments/orders/00000000-0000-0000-0000-000000000000/pay'
+const ORDER_PAYMENT_PANEL_URL =
+	'/index.php/apps/learniq/payments/orders/00000000-0000-0000-0000-000000000000/pay'
 
 test.describe('school-payments — OrderPaymentPanel', () => {
-
 	// @e2e openspec/changes/school-payments/specs/payments/spec.md#scenario-a-payer-opens-the-payment-panel-and-initiates-payment
-	test('OrderPaymentPanel renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('OrderPaymentPanel renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -40,7 +42,7 @@ test.describe('school-payments — OrderPaymentPanel', () => {
 
 		await page.goto(ORDER_PAYMENT_PANEL_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The panel resolved the custom OrderPaymentPanel component (its own
 		// loading/error state, not a blank/404 shell).
@@ -56,6 +58,8 @@ test.describe('school-payments — OrderPaymentPanel', () => {
 				&& !e.includes('Failed to fetch')
 				&& !e.includes('ERR_CONNECTION_REFUSED'),
 		)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

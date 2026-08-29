@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq EnrolmentProgressEvaluator unit tests.
+ * Learniq EnrolmentProgressEvaluator unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Progress
+ * @package  OCA\Learniq\Tests\Unit\Progress
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,131 +21,123 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Progress;
+namespace OCA\Learniq\Tests\Unit\Progress;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Progress\EnrolmentProgressEvaluator;
+use OCA\Learniq\Service\EnrolmentProgressEvaluator;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Tests for EnrolmentProgressEvaluator::evaluate().
  */
-class EnrolmentProgressEvaluatorTest extends TestCase
-{
+class EnrolmentProgressEvaluatorTest extends TestCase {
 
-    /**
-     * Build an evaluator whose ObjectService returns the given completed and
-     * published-lesson counts for the (learnerId, courseId) pair.
-     *
-     * @param int $completedCount Number of LessonCompletion rows to return.
-     * @param int $publishedCount Number of published Lesson rows to return.
-     *
-     * @return EnrolmentProgressEvaluator
-     */
-    private function makeEvaluator(int $completedCount, int $publishedCount): EnrolmentProgressEvaluator
-    {
-        $objectService = $this->createMock(ObjectService::class);
+	/**
+	 * Build an evaluator whose ObjectService returns the given completed and
+	 * published-lesson counts for the (learnerId, courseId) pair.
+	 *
+	 * @param int $completedCount Number of LessonCompletion rows to return.
+	 * @param int $publishedCount Number of published Lesson rows to return.
+	 *
+	 * @return EnrolmentProgressEvaluator
+	 */
+	private function makeEvaluator(int $completedCount, int $publishedCount): EnrolmentProgressEvaluator {
+		$objectService = $this->createMock(ObjectService::class);
 
-        $objectService->method('findAll')->willReturnCallback(
-            function (array $config) use ($completedCount, $publishedCount) {
-                if ($config['schema'] === 'lesson-completion') {
-                    return array_fill(0, $completedCount, ['id' => 'x']);
-                }
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config) use ($completedCount, $publishedCount) {
+				if ($config['schema'] === 'lesson-completion') {
+					return array_fill(0, $completedCount, ['id' => 'x']);
+				}
 
-                if ($config['schema'] === 'lesson') {
-                    return array_fill(0, $publishedCount, ['id' => 'y']);
-                }
+				if ($config['schema'] === 'lesson') {
+					return array_fill(0, $publishedCount, ['id' => 'y']);
+				}
 
-                return [];
-            }
-        );
+				return [];
+			}
+		);
 
-        return new EnrolmentProgressEvaluator($objectService);
+		return new EnrolmentProgressEvaluator($objectService);
+	}//end makeEvaluator()
 
-    }//end makeEvaluator()
+	/**
+	 * A normal ratio computes the expected percentage.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 */
+	public function testNormalRatio(): void {
+		$evaluator = $this->makeEvaluator(completedCount: 4, publishedCount: 10);
 
-    /**
-     * A normal ratio computes the expected percentage.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
-     */
-    public function testNormalRatio(): void
-    {
-        $evaluator = $this->makeEvaluator(completedCount: 4, publishedCount: 10);
+		$result = $evaluator->evaluate(learnerId: 'learner-1', courseId: 'course-1');
 
-        $result = $evaluator->evaluate(learnerId: 'learner-1', courseId: 'course-1');
+		self::assertSame(40, $result['progressPercent']);
+		self::assertSame(4, $result['completedLessonCount']);
+		self::assertSame(10, $result['totalPublishedLessonCount']);
 
-        self::assertSame(40, $result['progressPercent']);
-        self::assertSame(4, $result['completedLessonCount']);
-        self::assertSame(10, $result['totalPublishedLessonCount']);
+	}//end testNormalRatio()
 
-    }//end testNormalRatio()
+	/**
+	 * Zero completions yields 0%, not an error.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
+	 */
+	public function testZeroCompletions(): void {
+		$evaluator = $this->makeEvaluator(completedCount: 0, publishedCount: 10);
 
-    /**
-     * Zero completions yields 0%, not an error.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
-     */
-    public function testZeroCompletions(): void
-    {
-        $evaluator = $this->makeEvaluator(completedCount: 0, publishedCount: 10);
+		$result = $evaluator->evaluate(learnerId: 'learner-1', courseId: 'course-1');
 
-        $result = $evaluator->evaluate(learnerId: 'learner-1', courseId: 'course-1');
+		self::assertSame(0, $result['progressPercent']);
 
-        self::assertSame(0, $result['progressPercent']);
+	}//end testZeroCompletions()
 
-    }//end testZeroCompletions()
+	/**
+	 * Zero published lessons yields 0%, never a divide-by-zero error.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
+	 */
+	public function testZeroPublishedLessons(): void {
+		$evaluator = $this->makeEvaluator(completedCount: 0, publishedCount: 0);
 
-    /**
-     * Zero published lessons yields 0%, never a divide-by-zero error.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-is-null-safe-before-any-lesson-completes
-     */
-    public function testZeroPublishedLessons(): void
-    {
-        $evaluator = $this->makeEvaluator(completedCount: 0, publishedCount: 0);
+		$result = $evaluator->evaluate(learnerId: 'learner-1', courseId: 'course-1');
 
-        $result = $evaluator->evaluate(learnerId: 'learner-1', courseId: 'course-1');
+		self::assertSame(0, $result['progressPercent']);
+		self::assertSame(0, $result['totalPublishedLessonCount']);
 
-        self::assertSame(0, $result['progressPercent']);
-        self::assertSame(0, $result['totalPublishedLessonCount']);
+	}//end testZeroPublishedLessons()
 
-    }//end testZeroPublishedLessons()
+	/**
+	 * A ratio that does not divide evenly is rounded.
+	 *
+	 * @return void
+	 */
+	public function testRatioRequiringRounding(): void {
+		$evaluator = $this->makeEvaluator(completedCount: 1, publishedCount: 3);
 
-    /**
-     * A ratio that does not divide evenly is rounded.
-     *
-     * @return void
-     */
-    public function testRatioRequiringRounding(): void
-    {
-        $evaluator = $this->makeEvaluator(completedCount: 1, publishedCount: 3);
+		$result = $evaluator->evaluate(learnerId: 'learner-1', courseId: 'course-1');
 
-        $result = $evaluator->evaluate(learnerId: 'learner-1', courseId: 'course-1');
+		// 1/3 * 100 = 33.33... -> rounds to 33.
+		self::assertSame(33, $result['progressPercent']);
 
-        // 1/3 * 100 = 33.33... -> rounds to 33.
-        self::assertSame(33, $result['progressPercent']);
+	}//end testRatioRequiringRounding()
 
-    }//end testRatioRequiringRounding()
+	/**
+	 * Full completion yields exactly 100%.
+	 *
+	 * @return void
+	 */
+	public function testFullCompletion(): void {
+		$evaluator = $this->makeEvaluator(completedCount: 10, publishedCount: 10);
 
-    /**
-     * Full completion yields exactly 100%.
-     *
-     * @return void
-     */
-    public function testFullCompletion(): void
-    {
-        $evaluator = $this->makeEvaluator(completedCount: 10, publishedCount: 10);
+		$result = $evaluator->evaluate(learnerId: 'learner-1', courseId: 'course-1');
 
-        $result = $evaluator->evaluate(learnerId: 'learner-1', courseId: 'course-1');
+		self::assertSame(100, $result['progressPercent']);
 
-        self::assertSame(100, $result['progressPercent']);
-
-    }//end testFullCompletion()
+	}//end testFullCompletion()
 }//end class

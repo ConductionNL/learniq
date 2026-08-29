@@ -5,9 +5,9 @@
 <template>
 	<ManageListWidget
 		schema="Programme"
-		:schema-label="t('scholiq', 'programme')"
+		:schemaLabel="t('learniq', 'programme')"
 		:columns="['name', 'lifecycle']"
-		index-route="/curriculum/programmes"
+		indexRoute="/curriculum/programmes"
 		:limit="6" />
 </template>
 

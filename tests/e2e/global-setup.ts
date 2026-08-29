@@ -31,11 +31,11 @@ const AUTH_FILE = path.join(APP_ROOT, 'test-results', '.auth', 'admin.json')
 const SEED_MARKER = path.join(APP_ROOT, '.e2e-state', 'ci-seeded')
 
 /**
- * Run the example-data seed (imports the scholiq register into OpenRegister + creates
+ * Run the example-data seed (imports the learniq register into OpenRegister + creates
  * a coherent example dataset). Best-effort: a failing seed (NC unreachable in CI, or
  * the OR register-import gap openregister#1487) does NOT abort the run — it just means
  * the index-page specs skip their row-count soft-assertions. Sets
- * process.env.SCHOLIQ_E2E_SEEDED='1' on success.
+ * process.env.LEARNIQ_E2E_SEEDED='1' on success.
  */
 function runSeed(): void {
 	// ci-seed.sh already ran the same seed, in the step whose job it is, and
@@ -44,10 +44,14 @@ function runSeed(): void {
 	if (fs.existsSync(SEED_MARKER)) {
 		const status = fs.readFileSync(SEED_MARKER, 'utf8').trim()
 		if (status === 'full') {
-			process.env.SCHOLIQ_E2E_SEEDED = '1'
-			console.log('[global-setup] seed already done by ci-seed.sh (full) — skipping')
+			process.env.LEARNIQ_E2E_SEEDED = '1'
+			console.log(
+				'[global-setup] seed already done by ci-seed.sh (full) — skipping',
+			)
 		} else {
-			console.warn(`[global-setup] seed already done by ci-seed.sh (${status}) — skipping; index specs will not assert row counts`)
+			console.warn(
+				`[global-setup] seed already done by ci-seed.sh (${status}) — skipping; index specs will not assert row counts`,
+			)
 		}
 		return
 	}
@@ -66,10 +70,13 @@ function runSeed(): void {
 			timeout: 120_000,
 		})
 		process.stdout.write(out)
-		process.env.SCHOLIQ_E2E_SEEDED = '1'
+		process.env.LEARNIQ_E2E_SEEDED = '1'
 		console.log('[global-setup] example data seeded')
 	} catch (err: any) {
-		console.warn('[global-setup] seed skipped/failed (continuing — index specs will not assert row counts):', err?.message ?? err)
+		console.warn(
+			'[global-setup] seed skipped/failed (continuing — index specs will not assert row counts):',
+			err?.message ?? err,
+		)
 		if (err?.stdout) process.stdout.write(err.stdout)
 	}
 }
@@ -110,10 +117,47 @@ async function globalSetup(): Promise<void> {
 
 			// Wait for the redirect away from login
 			await page
-				.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 30_000 })
+				.waitForURL((url) => !url.pathname.includes('/login'), {
+					timeout: 30_000,
+				})
 				.catch(() => {
 					// May already be redirected
 				})
+		}
+
+		/*
+		 * Suppress the product walkthrough (ADR-043) for automated runs, the way
+		 * dossiq's global-setup already does.
+		 *
+		 * This became load-bearing with @conduction/nextcloud-vue 2.22.x. A
+		 * `placement: "center"` welcome step used to be parked in
+		 * `_pendingAutoTour` and never opened; the library now correctly starts
+		 * it on any route, so the tour actually appears — and its
+		 * `cn-walkthrough__dim--full` layer is a `role="dialog" aria-modal="true"`
+		 * overlay that intercepts every click behind it. Specs that had never had
+		 * to account for a tour started timing out, and `getByRole('dialog')`
+		 * began resolving to the dim layer instead of the modal under test.
+		 *
+		 * The marker is per USER, not per test, so without it the suite is also
+		 * order-dependent: whichever spec runs first wears the tour.
+		 *
+		 * The sentinel is higher than any real app version, so every step's
+		 * `sinceVersion` sorts below it and the tour composes to an empty step
+		 * set rather than merely starting dismissed.
+		 */
+		try {
+			await page.evaluate(() => {
+				try {
+					window.localStorage.setItem(
+						'cn-walkthrough-seen:learniq',
+						'999.0.0',
+					)
+				} catch (e) {
+					// localStorage unavailable — specs fall back to dismissing by hand.
+				}
+			})
+		} catch {
+			// Never fail setup over an optional convenience.
 		}
 
 		// Save authenticated state

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq course-package round-trip smoke test.
+ * Learniq course-package round-trip smoke test.
  *
  * Exports a seeded course as scholiq-native JSON via CoursePackageExportService,
  * re-imports it via CoursePackageImportService, and diffs the resulting object
@@ -9,7 +9,7 @@
  * matrix promises for the scholiq-native JSON format.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,23 +21,32 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/course-package-import-export/tasks.md#81-openspec-validate-course-package-import-export---strict-clean-phpunit-green-for-all-new-php-classes-plus-the-qtiimportservice-regression-suite-playwright-course-package-import-exportspects-green-no-dangling-refs-in-the-register-json-and-a-round-trip-smoke-test-export-a-seeded-course-as-scholiq-native-json-re-import-it-diff-the-resulting-object-graph-passes
+ * @spec openspec/specs/course-management/spec.md#requirement-export-a-full-course-as-common-cartridge-and-scholiq-native-json-with-resolved-file-attachments
  */
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\CommonCartridgeParser;
-use OCA\Scholiq\Service\CoursePackageExportService;
-use OCA\Scholiq\Service\CoursePackageImportService;
-use OCA\Scholiq\Service\MbzExtractor;
-use OCA\Scholiq\Service\MoodleBackupParser;
-use OCA\Scholiq\Service\MoodleQuizQuestionMapper;
-use OCA\Scholiq\Service\QtiExportService;
-use OCA\Scholiq\Service\QtiImportService;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Service\CommonCartridgeParser;
+use OCA\Learniq\Service\CoursePackage\CommonCartridgeCourseImporter;
+use OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Learniq\Service\CoursePackage\MoodleActivityRouter;
+use OCA\Learniq\Service\CoursePackage\MoodleCourseImporter;
+use OCA\Learniq\Service\CoursePackage\PackageXmlValueReader;
+use OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter;
+use OCA\Learniq\Service\CoursePackageExportService;
+use OCA\Learniq\Service\CoursePackageImportService;
+use OCA\Learniq\Service\MbzExtractor;
+use OCA\Learniq\Service\MoodleBackupParser;
+use OCA\Learniq\Service\MoodleQuizQuestionMapper;
+use OCA\Learniq\Service\QtiExportService;
+use OCA\Learniq\Service\QtiImportService;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -48,127 +57,148 @@ use Psr\Log\NullLogger;
 /**
  * Round-trip smoke test: export → re-import → diff.
  */
-class CoursePackageRoundTripTest extends TestCase
-{
+class CoursePackageRoundTripTest extends TestCase {
 
-    /**
-     * Export a seeded Course as scholiq-native JSON, re-import it, and assert
-     * the re-created object graph reproduces the source Course/Lesson/
-     * Material/Rubric shapes (design.md's lossless round-trip promise).
-     *
-     * @return void
-     */
-    public function testScholiqJsonExportReimportsToAnEquivalentObjectGraph(): void
-    {
-        // --- Seed source object graph (mocked ObjectService, export side). ---
-        $exportObjectService = $this->createMock(ObjectService::class);
-        $exportObjectService->method('find')->willReturnCallback(
-            static function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) {
-                $row = match ([$schema, $id]) {
-                    ['course', 'course-source'] => ['id' => 'course-source', 'name' => 'Physics 101', 'tenant_id' => 't1'],
-                    ['rubric', 'rubric-source'] => ['id' => 'rubric-source', 'name' => 'Essay rubric', 'criteria' => [], 'maxPoints' => 20],
-                    default => null,
-                };
+	/**
+	 * Export a seeded Course as scholiq-native JSON, re-import it, and assert
+	 * the re-created object graph reproduces the source Course/Lesson/
+	 * Material/Rubric shapes (design.md's lossless round-trip promise).
+	 *
+	 * @return void
+	 */
+	public function testScholiqJsonExportReimportsToAnEquivalentObjectGraph(): void {
+		// --- Seed source object graph (mocked ObjectService, export side). ---
+		$exportObjectService = $this->createMock(ObjectService::class);
+		$exportObjectService->method('find')->willReturnCallback(
+			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+				$row = match ([$schema, $id]) {
+					['course', 'course-source'] => ['id' => 'course-source', 'name' => 'Physics 101', 'tenant_id' => 't1'],
+					['rubric', 'rubric-source'] => ['id' => 'rubric-source', 'name' => 'Essay rubric', 'criteria' => [], 'maxPoints' => 20],
+					default => null,
+				};
 
-                if ($row === null) {
-                    return null;
-                }
+				if ($row === null) {
+					return null;
+				}
 
-                return OrEntityFactory::make($row, (string) $schema);
-            }
-        );
-        $exportObjectService->method('findAll')->willReturnCallback(
-            static function (array $config): array {
-                return match ($config['schema']) {
-                    'course' => [],
-                    'lesson' => [['id' => 'lesson-source', 'name' => 'Introduction', 'order' => 1, 'contentType' => 'text', 'contentRef' => 'material-source', 'courseId' => 'course-source']],
-                    'material' => [['id' => 'material-source', 'title' => 'Syllabus', 'kind' => 'document', 'fileRef' => '/Scholiq/materials/syllabus.pdf', 'courseId' => 'course-source']],
-                    'assessment' => [],
-                    'assignment' => [['id' => 'assignment-source', 'title' => 'Essay', 'rubricId' => 'rubric-source', 'courseId' => 'course-source']],
-                    'lti-tool-placement' => [],
-                    default => [],
-                };
-            }
-        );
+				return OrEntityFactory::make($row, (string)$schema);
+			}
+		);
+		$exportObjectService->method('findAll')->willReturnCallback(
+			static function (array $config): array {
+				return match ($config['schema']) {
+					'course' => [],
+					'lesson' => [['id' => 'lesson-source', 'name' => 'Introduction', 'order' => 1, 'contentType' => 'text', 'contentRef' => 'material-source', 'courseId' => 'course-source']],
+					'material' => [['id' => 'material-source', 'title' => 'Syllabus', 'kind' => 'document', 'fileRef' => '/Scholiq/materials/syllabus.pdf', 'courseId' => 'course-source']],
+					'assessment' => [],
+					'assignment' => [['id' => 'assignment-source', 'title' => 'Essay', 'rubricId' => 'rubric-source', 'courseId' => 'course-source']],
+					'lti-tool-placement' => [],
+					default => [],
+				};
+			}
+		);
 
-        $folder = $this->createMock(Folder::class);
-        $folder->method('get')->willReturnCallback(
-            function (string $path) {
-                if ($path === 'Scholiq/materials/syllabus.pdf') {
-                    $node = $this->createMock(File::class);
-                    $node->method('getContent')->willReturn('SYLLABUS-BYTES');
-                    return $node;
-                }
+		$folder = $this->createMock(Folder::class);
+		$folder->method('get')->willReturnCallback(
+			function (string $path) {
+				if ($path === 'Scholiq/materials/syllabus.pdf') {
+					$node = $this->createMock(File::class);
+					$node->method('getContent')->willReturn('SYLLABUS-BYTES');
+					return $node;
+				}
 
-                throw new NotFoundException($path);
-            }
-        );
-        $rootFolder = $this->createMock(IRootFolder::class);
-        $rootFolder->method('getUserFolder')->willReturn($folder);
+				throw new NotFoundException($path);
+			}
+		);
+		$rootFolder = $this->createMock(IRootFolder::class);
+		$rootFolder->method('getUserFolder')->willReturn($folder);
 
-        $qtiExportService  = $this->createMock(QtiExportService::class);
-        $exportService      = new CoursePackageExportService($exportObjectService, $qtiExportService, $rootFolder, new NullLogger());
-        $json                = $exportService->exportScholiqJson('course-source', 'teacher1');
+		$qtiExportService = $this->createMock(QtiExportService::class);
+		$exportService = new CoursePackageExportService($exportObjectService, $qtiExportService, $rootFolder, new NullLogger());
+		$json = $exportService->exportScholiqJson('course-source', 'teacher1');
 
-        // --- Re-import the exported JSON into a fresh object graph. ---
-        $savedByschema = [];
-        $importObjectService = $this->createMock(ObjectService::class);
-        $importObjectService->method('saveObject')->willReturnCallback(
-            static function (array $object, ?array $extend=[], $register=null, $schema=null) use (&$savedByschema) {
-                $schemaSlug = (string) $schema;
+		// --- Re-import the exported JSON into a fresh object graph. ---
+		$savedByschema = [];
+		$importObjectService = $this->createMock(ObjectService::class);
+		$importObjectService->method('saveObject')->willReturnCallback(
+			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$savedByschema) {
+				$schemaSlug = (string)$schema;
 
-                $savedByschema[$schemaSlug] ??= [];
-                $savedByschema[$schemaSlug][] = $object;
+				$savedByschema[$schemaSlug] ??= [];
+				$savedByschema[$schemaSlug][] = $object;
 
-                return OrEntityFactory::make(
-                    $object,
-                    $schemaSlug,
-                    (string) $register,
-                    $schemaSlug.'-reimported-'.count($savedByschema[$schemaSlug])
-                );
-            }
-        );
+				return OrEntityFactory::make(
+					$object,
+					$schemaSlug,
+					(string)$register,
+					$schemaSlug . '-reimported-' . count($savedByschema[$schemaSlug])
+				);
+			}
+		);
 
-        $importFolder = $this->createMock(Folder::class);
-        $importFolder->method('get')->willThrowException(new NotFoundException('not found'));
-        $importFolder->method('nodeExists')->willReturn(false);
-        $importFolder->method('newFolder')->willReturn($this->createMock(Folder::class));
-        $importFolder->method('newFile')->willReturn($this->createMock(File::class));
-        $importRootFolder = $this->createMock(IRootFolder::class);
-        $importRootFolder->method('getUserFolder')->willReturn($importFolder);
+		$importFolder = $this->createMock(Folder::class);
+		$importFolder->method('get')->willThrowException(new NotFoundException('not found'));
+		$importFolder->method('nodeExists')->willReturn(false);
+		$importFolder->method('newFolder')->willReturn($this->createMock(Folder::class));
+		$importFolder->method('newFile')->willReturn($this->createMock(File::class));
+		$importRootFolder = $this->createMock(IRootFolder::class);
+		$importRootFolder->method('getUserFolder')->willReturn($importFolder);
 
-        $tmpJsonFile = tempnam(sys_get_temp_dir(), 'scholiq_roundtrip_');
-        file_put_contents($tmpJsonFile, $json);
+		$tmpJsonFile = tempnam(sys_get_temp_dir(), 'learniq_roundtrip_');
+		file_put_contents($tmpJsonFile, $json);
 
-        $importService = new CoursePackageImportService(
-            $importObjectService,
-            new QtiImportService($importObjectService, new NullLogger()),
-            new MbzExtractor(),
-            new CommonCartridgeParser(),
-            new MoodleBackupParser(),
-            new MoodleQuizQuestionMapper(),
-            $importRootFolder,
-            new NullLogger(),
-        );
+		$importLogger = new NullLogger();
+		$objectWriter = new CoursePackageObjectWriter($importObjectService);
+		$fileWriter = new CoursePackageFileWriter($importRootFolder, $importLogger);
+		$reporter = new CoursePackageImportReporter($importObjectService);
+		$xmlReader = new PackageXmlValueReader();
 
-        $report = $importService->import($tmpJsonFile, 'course-export.json', 'teacher1', 't1');
-        unlink($tmpJsonFile);
+		$importService = new CoursePackageImportService(
+			new CommonCartridgeCourseImporter(
+				new QtiImportService($importObjectService, $importLogger),
+				new CommonCartridgeParser(),
+				new CommonCartridgeResourceRouter($objectWriter, $fileWriter, $reporter, $xmlReader, $importLogger),
+				$objectWriter,
+				$reporter,
+			),
+			new MoodleCourseImporter(
+				new MbzExtractor(),
+				new MoodleBackupParser(),
+				new MoodleActivityRouter(
+					new MoodleQuizQuestionMapper(),
+					$objectWriter,
+					$fileWriter,
+					$reporter,
+					$xmlReader,
+					$importLogger
+				),
+				$objectWriter,
+				$reporter,
+			),
+			new LearniqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
+			$fileWriter,
+			$reporter,
+			$importLogger,
+		);
 
-        // --- Diff: the re-created object graph reproduces the source shapes. ---
-        self::assertSame('scholiq-json', $report['sourceFormat']);
-        self::assertNotSame('failed', $report['lifecycle']);
-        self::assertNotNull($report['courseId']);
+		$report = $importService->import($tmpJsonFile, 'course-export.json', 'teacher1', 't1');
+		unlink($tmpJsonFile);
 
-        self::assertSame('Physics 101', $savedByschema['course'][0]['name']);
-        self::assertSame('Introduction', $savedByschema['lesson'][0]['name']);
-        self::assertSame('Syllabus', $savedByschema['material'][0]['title']);
-        self::assertSame('Essay rubric', $savedByschema['rubric'][0]['name']);
-        self::assertSame(20, $savedByschema['rubric'][0]['maxPoints']);
+		// --- Diff: the re-created object graph reproduces the source shapes. ---
+		self::assertSame('scholiq-json', $report['sourceFormat']);
+		self::assertNotSame('failed', $report['lifecycle']);
+		self::assertNotNull($report['courseId']);
 
-        // The Material's file bytes were resolved on export (base64) and written
-        // back into nc:files on import — never referencing a path the recipient
-        // tenant cannot resolve.
-        self::assertNotNull($savedByschema['material'][0]['fileRef']);
-        self::assertNotSame('', $savedByschema['material'][0]['fileRef']);
-    }//end testScholiqJsonExportReimportsToAnEquivalentObjectGraph()
+		self::assertSame('Physics 101', $savedByschema['course'][0]['name']);
+		self::assertSame('Introduction', $savedByschema['lesson'][0]['name']);
+		self::assertSame('Syllabus', $savedByschema['material'][0]['title']);
+		self::assertSame('Essay rubric', $savedByschema['rubric'][0]['name']);
+		self::assertSame(20, $savedByschema['rubric'][0]['maxPoints']);
+
+		// The Material's file bytes were resolved on export (base64) and written
+		// back into nc:files on import — never referencing a path the recipient
+		// tenant cannot resolve.
+		self::assertNotNull($savedByschema['material'][0]['fileRef']);
+		self::assertNotSame('', $savedByschema['material'][0]['fileRef']);
+	}//end testScholiqJsonExportReimportsToAnEquivalentObjectGraph()
 }//end class

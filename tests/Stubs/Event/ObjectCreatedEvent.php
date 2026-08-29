@@ -18,7 +18,7 @@
  * SPDX-FileCopyrightText: 2024 Conduction B.V.
  *
  * @category Test
- * @package  OCA\Scholiq\Tests\Stubs\Event
+ * @package  OCA\Learniq\Tests\Stubs\Event
  */
 
 declare(strict_types=1);
@@ -29,18 +29,15 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCP\EventDispatcher\Event;
 
 /**
- * Mirror of OpenRegister's ObjectCreatedEvent for standalone Scholiq unit tests.
+ * Mirror of OpenRegister's ObjectCreatedEvent for standalone Learniq unit tests.
  */
-abstract class ObjectCreatedEvent extends Event
-{
+abstract class ObjectCreatedEvent extends Event {
 
-
-    /**
-     * The created object.
-     *
-     * @return ObjectEntity
-     */
-    abstract public function getObject(): ObjectEntity;
-
+	/**
+	 * The created object.
+	 *
+	 * @return ObjectEntity
+	 */
+	abstract public function getObject(): ObjectEntity;
 
 }//end class

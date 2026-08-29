@@ -14,14 +14,14 @@
   server-side on the `graded` transition).
 
   Talks only to OpenRegister's REST API:
-    - GET  /api/objects/scholiq/Portfolio/:id
-    - GET  /api/objects/scholiq/portfolio-entry?filters[portfolioId]=:id
-    - GET  /api/objects/scholiq/Submission/:id                  (per submission-kind entry)
-    - GET  /api/objects/scholiq/werkproces-assessment/:id        (per werkproces-assessment-kind entry)
-    - GET  /api/objects/scholiq/external-training-record/:id      (per external-training-record-kind entry)
-    - GET  /api/objects/scholiq/Credential/:id                  (per credential-kind entry)
-    - PUT  /api/objects/scholiq/Portfolio/:id                   (gradeValue)
-    - POST /api/objects/scholiq/Portfolio/:id/transition/grade
+    - GET  /api/objects/learniq/Portfolio/:id
+    - GET  /api/objects/learniq/portfolio-entry?filters[portfolioId]=:id
+    - GET  /api/objects/learniq/Submission/:id                  (per submission-kind entry)
+    - GET  /api/objects/learniq/werkproces-assessment/:id        (per werkproces-assessment-kind entry)
+    - GET  /api/objects/learniq/external-training-record/:id      (per external-training-record-kind entry)
+    - GET  /api/objects/learniq/Credential/:id                  (per credential-kind entry)
+    - PUT  /api/objects/learniq/Portfolio/:id                   (gradeValue)
+    - POST /api/objects/learniq/Portfolio/:id/transition/grade
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView.vue's existing shape.
@@ -36,9 +36,12 @@
 <template>
 	<div class="portfolio-review-view">
 		<!-- Loading -->
-		<div v-if="loading" class="portfolio-review-view__loading" aria-live="polite">
+		<div
+			v-if="loading"
+			class="portfolio-review-view__loading"
+			aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading portfolio...') }}</span>
+			<span>{{ t('learniq', 'Loading portfolio...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -49,70 +52,118 @@
 
 		<template v-else-if="portfolio">
 			<header class="portfolio-review-view__header">
-				<h2>{{ t('scholiq', 'Review portfolio: {title}', { title: portfolio.title || '' }) }}</h2>
+				<h2>
+					{{
+						t('learniq', 'Review portfolio: {title}', {
+							title: portfolio.title || '',
+						})
+					}}
+				</h2>
 				<p class="portfolio-review-view__meta">
-					{{ t('scholiq', 'Kind: {kind}', { kind: portfolio.kind || '' }) }}
+					{{
+						t('learniq', 'Kind: {kind}', { kind: portfolio.kind || '' })
+					}}
 					<span class="portfolio-review-view__lifecycle">
-						{{ t('scholiq', 'Status: {status}', { status: portfolio.lifecycle || '' }) }}
+						{{
+							t('learniq', 'Status: {status}', {
+								status: portfolio.lifecycle || '',
+							})
+						}}
 					</span>
 				</p>
 			</header>
 
 			<!-- Entries (read-only) -->
 			<section class="portfolio-review-view__entries">
-				<h3>{{ t('scholiq', 'Evidence entries') }}</h3>
-				<ul v-if="entries.length > 0" class="portfolio-review-view__entry-list">
-					<li v-for="entry in entries" :key="entry.id" class="portfolio-review-view__entry-item">
-						<span class="portfolio-review-view__entry-kind">{{ evidenceKindLabel(entry.evidenceKind) }}</span>
-						<span class="portfolio-review-view__entry-title">{{ entry.title }}</span>
+				<h3>{{ t('learniq', 'Evidence entries') }}</h3>
+				<ul
+					v-if="entries.length > 0"
+					class="portfolio-review-view__entry-list">
+					<li
+						v-for="entry in entries"
+						:key="entry.id"
+						class="portfolio-review-view__entry-item">
+						<span class="portfolio-review-view__entry-kind">{{
+							/**
+							 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+							 */
+							evidenceKindLabel(entry.evidenceKind)
+						}}</span>
+						<span class="portfolio-review-view__entry-title">{{
+							entry.title
+						}}</span>
 
-						<p v-if="entry.evidenceKind === 'reflection'" class="portfolio-review-view__entry-reflection">
+						<p
+							v-if="entry.evidenceKind === 'reflection'"
+							class="portfolio-review-view__entry-reflection">
 							{{ entry.reflectionText }}
 						</p>
-						<p v-else-if="entry.evidenceKind === 'file' && entry.attachmentRef"
+						<p
+							v-else-if="
+								entry.evidenceKind === 'file' && entry.attachmentRef
+							"
 							class="portfolio-review-view__entry-file">
 							{{ entry.attachmentRef }}
 						</p>
-						<p v-else-if="resolvedReferences[entry.id]" class="portfolio-review-view__entry-resolved">
+						<p
+							v-else-if="resolvedReferences[entry.id]"
+							class="portfolio-review-view__entry-resolved">
 							{{ resolvedReferences[entry.id] }}
 						</p>
 					</li>
 				</ul>
 				<p v-else class="portfolio-review-view__no-entries">
-					{{ t('scholiq', 'No evidence entries.') }}
+					{{ t('learniq', 'No evidence entries.') }}
 				</p>
 			</section>
 
 			<!-- Teacher grading (course-bound + submitted only) -->
 			<section v-if="canGrade" class="portfolio-review-view__grading">
-				<h3>{{ t('scholiq', 'Grade this portfolio') }}</h3>
+				<h3>{{ t('learniq', 'Grade this portfolio') }}</h3>
 
-				<label for="pr-grade-value" class="portfolio-review-view__field-label">
-					{{ t('scholiq', 'Grade value') }}
+				<label
+					for="pr-grade-value"
+					class="portfolio-review-view__field-label">
+					{{ t('learniq', 'Grade value') }}
 				</label>
 				<input
 					id="pr-grade-value"
 					v-model.number="gradeValue"
 					type="number"
 					class="portfolio-review-view__grade-input"
-					:disabled="grading">
+					:disabled="grading" />
 
 				<div class="portfolio-review-view__actions">
 					<button
 						class="button-vue button-vue--primary portfolio-review-view__grade-btn"
-						:disabled="grading || gradeValue === null || gradeValue === ''"
+						:disabled="
+							grading || gradeValue === null || gradeValue === ''
+						"
 						@click="gradePortfolio">
-						<span v-if="grading" class="icon-loading" aria-hidden="true" />
-						{{ t('scholiq', 'Save grade & transition to graded') }}
+						<span
+							v-if="grading"
+							class="icon-loading"
+							aria-hidden="true" />
+						{{ t('learniq', 'Save grade & transition to graded') }}
 					</button>
 				</div>
-				<p v-if="gradeError" role="alert" class="portfolio-review-view__grade-error">
+				<p
+					v-if="gradeError"
+					role="alert"
+					class="portfolio-review-view__grade-error">
 					{{ gradeError }}
 				</p>
 			</section>
 
-			<p v-if="portfolio.lifecycle === 'graded'" class="portfolio-review-view__graded-confirmation" role="status">
-				{{ t('scholiq', 'This portfolio has been graded. Grade: {grade}', { grade: portfolio.gradeValue }) }}
+			<p
+				v-if="portfolio.lifecycle === 'graded'"
+				class="portfolio-review-view__graded-confirmation"
+				role="status">
+				{{
+					t('learniq', 'This portfolio has been graded. Grade: {grade}', {
+						grade: portfolio.gradeValue,
+					})
+				}}
 			</p>
 		</template>
 	</div>
@@ -129,8 +180,17 @@ import { generateUrl } from '@nextcloud/router'
  */
 const REFERENCE_SCHEMAS = {
 	submission: { schema: 'Submission', idField: 'submissionId' },
-	'werkproces-assessment': { schema: 'WerkprocesAssessment', idField: 'werkprocesAssessmentId' },
-	'external-training-record': { schema: 'ExternalTrainingRecord', idField: 'externalTrainingRecordId' },
+	// `schema` is the OpenRegister SLUG — the URL segment resolves by
+	// lower(slug), so a multi-word title such as "WerkprocesAssessment" 404s.
+	// The map key already IS the slug for these two.
+	'werkproces-assessment': {
+		schema: 'werkproces-assessment',
+		idField: 'werkprocesAssessmentId',
+	},
+	'external-training-record': {
+		schema: 'external-training-record',
+		idField: 'externalTrainingRecordId',
+	},
 	credential: { schema: 'Credential', idField: 'credentialId' },
 }
 
@@ -171,9 +231,13 @@ export default {
 		 * (`submitted -> graded` is the only transition it reacts to).
 		 *
 		 * @return {boolean}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		canGrade() {
-			return this.portfolio?.kind === 'course-bound' && this.portfolio?.lifecycle === 'submitted'
+			return (
+				this.portfolio?.kind === 'course-bound'
+				&& this.portfolio?.lifecycle === 'submitted'
+			)
 		},
 	},
 
@@ -185,6 +249,7 @@ export default {
 			 *
 			 * @param {string} newId New portfolio UUID
 			 * @return {Promise<void>}
+			 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 			 */
 			async handler(newId) {
 				if (newId) {
@@ -201,6 +266,7 @@ export default {
 		 *
 		 * @param {string} portfolioId Portfolio UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadData(portfolioId) {
 			this.loading = true
@@ -210,12 +276,29 @@ export default {
 				this.portfolio = await this.fetchObject('Portfolio', portfolioId)
 				this.gradeValue = this.portfolio.gradeValue ?? null
 
-				this.entries = await this.fetchList('PortfolioEntry', `filters[portfolioId]=${portfolioId}&limit=100`)
+				this.entries = await this.fetchList(
+					'portfolio-entry',
+					`filters[portfolioId]=${portfolioId}&_limit=100`,
+				)
 				await this.resolveEntryReferences()
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load portfolio. Please try again.')
-				// eslint-disable-next-line no-console
-				console.error('[PortfolioReviewView] loadData error', err)
+				// A missing record is input, not a fault — see the same branch in
+				// PortfolioBuilder.vue. A 404 here means the portfolio is gone or
+				// was never visible to this reviewer; that is worth telling them
+				// and not worth logging as an application error.
+				if (err?.notFound === true) {
+					this.error = this.t(
+						'learniq',
+						'This portfolio no longer exists, or you do not have access to it.',
+					)
+				} else {
+					this.error = this.t(
+						'learniq',
+						'Failed to load portfolio. Please try again.',
+					)
+					// eslint-disable-next-line no-console
+					console.error('[PortfolioReviewView] loadData error', err)
+				}
 			} finally {
 				this.loading = false
 			}
@@ -227,14 +310,24 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {string} objId  Object UUID.
 		 * @return {Promise<object>}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async fetchObject(schema, objId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}/${objId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/${schema}/${objId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
 			if (!resp.ok) {
-				throw new Error(`${schema} fetch failed: ${resp.status}`)
+				// `notFound` is set on the single-object lookup only — see the
+				// same guard in PortfolioBuilder.vue. A 404 from fetchList()
+				// means the schema did not resolve, not that a record is absent,
+				// and must not take the quiet branch.
+				const err = new Error(`${schema} fetch failed: ${resp.status}`)
+				err.status = resp.status
+				err.notFound = resp.status === 404
+				throw err
 			}
 			const json = await resp.json()
 			return json.object ?? json ?? {}
@@ -246,9 +339,12 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {string} query  Pre-built query string (already URL-encoded).
 		 * @return {Promise<Array<object>>}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async fetchList(schema, query) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}?${query}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -266,6 +362,7 @@ export default {
 		 * resolved reference unset.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async resolveEntryReferences() {
 			const resolved = {}
@@ -281,14 +378,18 @@ export default {
 				}
 				try {
 					const referenced = await this.fetchObject(mapping.schema, refId)
-					resolved[entry.id] = referenced.title
+					resolved[entry.id] =
+						referenced.title
 						?? referenced.name
 						?? referenced.feedbackText
 						?? refId
 				} catch (err) {
 					// Non-fatal — the entry simply shows no resolved reference.
 					// eslint-disable-next-line no-console
-					console.error('[PortfolioReviewView] resolveEntryReferences error', err)
+					console.error(
+						'[PortfolioReviewView] resolveEntryReferences error',
+						err,
+					)
 				}
 			}
 
@@ -300,15 +401,20 @@ export default {
 		 *
 		 * @param {string} kind evidenceKind value.
 		 * @return {string}
+		 * @spec exclude Presentation-only label map from the 6 fixed evidenceKind values to their localized display names; the per-kind reference discipline itself is governed by requirement-portfolioentry-references-existing-evidence-objects-via-per-kind-fields-never-a-polymorphic-ref, not by this string lookup.
 		 */
 		evidenceKindLabel(kind) {
 			const labels = {
-				file: this.t('scholiq', 'File'),
-				submission: this.t('scholiq', 'Submission'),
-				'werkproces-assessment': this.t('scholiq', 'Werkproces assessment'),
-				'external-training-record': this.t('scholiq', 'External training record'),
-				credential: this.t('scholiq', 'Credential'),
-				reflection: this.t('scholiq', 'Reflection'),
+				file: this.t('learniq', 'File'),
+				submission: this.t('learniq', 'Submission'),
+				'werkproces-assessment': this.t('learniq', 'Werkproces assessment'),
+				'external-training-record': this.t(
+					'learniq',
+					'External training record',
+				),
+
+				credential: this.t('learniq', 'Credential'),
+				reflection: this.t('learniq', 'Reflection'),
 			}
 			return labels[kind] ?? kind
 		},
@@ -320,6 +426,7 @@ export default {
 		 * view computes no grade itself.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async gradePortfolio() {
 			if (!this.portfolio) {
@@ -329,7 +436,9 @@ export default {
 			this.gradeError = null
 
 			try {
-				const updateUrl = generateUrl(`/apps/openregister/api/objects/scholiq/Portfolio/${this.id}`)
+				const updateUrl = generateUrl(
+					`/apps/openregister/api/objects/learniq/Portfolio/${this.id}`,
+				)
 				const updateResp = await fetch(updateUrl, {
 					method: 'PUT',
 					headers: {
@@ -344,7 +453,7 @@ export default {
 				}
 
 				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/Portfolio/${this.id}/transition/grade`,
+					`/apps/openregister/api/objects/learniq/Portfolio/${this.id}/transition/grade`,
 				)
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',
@@ -356,12 +465,17 @@ export default {
 					body: JSON.stringify({}),
 				})
 				if (!transResp.ok) {
-					throw new Error(`Portfolio grade transition failed: ${transResp.status}`)
+					throw new Error(
+						`Portfolio grade transition failed: ${transResp.status}`,
+					)
 				}
 
 				this.portfolio = await this.fetchObject('Portfolio', this.id)
 			} catch (err) {
-				this.gradeError = this.t('scholiq', 'Failed to save grade. Please try again.')
+				this.gradeError = this.t(
+					'learniq',
+					'Failed to save grade. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[PortfolioReviewView] gradePortfolio error', err)
 			} finally {
@@ -376,7 +490,8 @@ export default {
 .portfolio-review-view {
 	max-width: 860px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .portfolio-review-view__loading,

@@ -45,59 +45,84 @@
 	<div class="gp-subgroup-learner-context">
 		<header class="gp-subgroup-learner-context__header">
 			<h2 class="gp-subgroup-learner-context__title">
-				{{ t('scholiq', 'Subgroup learner context') }}
+				{{ t('learniq', 'Subgroup learner context') }}
 			</h2>
 			<p class="gp-subgroup-learner-context__subtitle">
-				{{ t('scholiq', "For each learner in this subgroup, whether they already have an active LearningPlan (OPP) — resolved live, not stored on the subgroup.") }}
+				{{
+					t(
+						'learniq',
+						'For each learner in this subgroup, whether they already have an active LearningPlan (OPP) — resolved live, not stored on the subgroup.',
+					)
+				}}
 			</p>
 		</header>
 
 		<!-- No subgroup selected: inline picker. -->
-		<div v-if="!subgroupId" class="gp-subgroup-learner-context__picker" role="form">
+		<div
+			v-if="!subgroupId"
+			class="gp-subgroup-learner-context__picker"
+			role="form">
 			<label for="gp-subgroup-learner-context-subgroup-id">
-				{{ t('scholiq', 'Subgroup ID') }}
+				{{ t('learniq', 'Subgroup ID') }}
 			</label>
 			<div class="gp-subgroup-learner-context__picker-row">
 				<input
 					id="gp-subgroup-learner-context-subgroup-id"
 					v-model="subgroupIdInput"
 					type="text"
-					:placeholder="t('scholiq', 'UUID of the GroupPlanSubgroup')"
-					@keyup.enter="openSubgroup">
+					:placeholder="t('learniq', 'UUID of the GroupPlanSubgroup')"
+					@keyup.enter="openSubgroup" />
 				<button
 					type="button"
 					class="button-vue button-vue--vue-primary"
 					:disabled="!subgroupIdInput"
 					@click="openSubgroup">
-					{{ t('scholiq', 'Open learner context') }}
+					{{ t('learniq', 'Open learner context') }}
 				</button>
 			</div>
 			<p class="gp-subgroup-learner-context__picker-hint">
-				{{ t('scholiq', 'Usually opened from a subgroup\'s detail page ("Learner context" tile) — this picker is a fallback for direct navigation.') }}
+				{{
+					t(
+						'learniq',
+						'Usually opened from a subgroup\'s detail page ("Learner context" tile) — this picker is a fallback for direct navigation.',
+					)
+				}}
 			</p>
 		</div>
 
 		<template v-else>
 			<!-- Loading -->
-			<div v-if="loading" class="gp-subgroup-learner-context__loading" aria-live="polite">
+			<div
+				v-if="loading"
+				class="gp-subgroup-learner-context__loading"
+				aria-live="polite">
 				<span class="icon-loading" aria-hidden="true" />
-				<span>{{ t('scholiq', 'Loading learner context...') }}</span>
+				<span>{{ t('learniq', 'Loading learner context...') }}</span>
 			</div>
 
 			<!-- Error -->
-			<div v-else-if="error" class="gp-subgroup-learner-context__error" role="alert">
+			<div
+				v-else-if="error"
+				class="gp-subgroup-learner-context__error"
+				role="alert">
 				<span class="icon-error" aria-hidden="true" />
 				<p>{{ error }}</p>
 			</div>
 
 			<!-- Empty -->
-			<div v-else-if="!subgroup" class="gp-subgroup-learner-context__empty" role="status">
+			<div
+				v-else-if="!subgroup"
+				class="gp-subgroup-learner-context__empty"
+				role="status">
 				<span class="icon-error" aria-hidden="true" />
-				<p>{{ t('scholiq', 'This subgroup could not be found.') }}</p>
+				<p>{{ t('learniq', 'This subgroup could not be found.') }}</p>
 			</div>
-			<div v-else-if="members.length === 0" class="gp-subgroup-learner-context__empty" role="status">
+			<div
+				v-else-if="members.length === 0"
+				class="gp-subgroup-learner-context__empty"
+				role="status">
 				<span class="icon-checkmark" aria-hidden="true" />
-				<p>{{ t('scholiq', 'This subgroup has no learners yet.') }}</p>
+				<p>{{ t('learniq', 'This subgroup has no learners yet.') }}</p>
 			</div>
 
 			<!-- Learner list -->
@@ -110,15 +135,30 @@
 						v-for="member in members"
 						:key="member.learnerId"
 						class="gp-subgroup-learner-context__member">
-						<span class="gp-subgroup-learner-context__member-id">{{ member.learnerId }}</span>
+						<span class="gp-subgroup-learner-context__member-id">{{
+							member.learnerId
+						}}</span>
 						<router-link
 							v-if="member.learningPlan"
-							:to="{ name: 'LearningPlanDetail', params: { id: member.learningPlan.id ?? member.learningPlan.uuid } }"
+							:to="{
+								name: 'LearningPlanDetail',
+								params: {
+									id:
+										member.learningPlan.id
+										?? member.learningPlan.uuid,
+								},
+							}"
 							class="gp-subgroup-learner-context__member-plan gp-subgroup-learner-context__member-plan--active">
-							{{ t('scholiq', 'Active learning plan: {kind}', { kind: member.learningPlan.kind }) }}
+							{{
+								t('learniq', 'Active learning plan: {kind}', {
+									kind: member.learningPlan.kind,
+								})
+							}}
 						</router-link>
-						<span v-else class="gp-subgroup-learner-context__member-plan gp-subgroup-learner-context__member-plan--none">
-							{{ t('scholiq', 'No active learning plan') }}
+						<span
+							v-else
+							class="gp-subgroup-learner-context__member-plan gp-subgroup-learner-context__member-plan--none">
+							{{ t('learniq', 'No active learning plan') }}
 						</span>
 					</li>
 				</ul>
@@ -153,9 +193,13 @@ export default {
 		 * tile).
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		subgroupId() {
-			return (this.$route && this.$route.query && this.$route.query.subgroupId) || ''
+			return (
+				(this.$route && this.$route.query && this.$route.query.subgroupId)
+				|| ''
+			)
 		},
 
 		/**
@@ -168,10 +212,14 @@ export default {
 		 */
 		members() {
 			if (!this.subgroup) return []
-			const learnerIds = Array.isArray(this.subgroup.learnerIds) ? this.subgroup.learnerIds : []
+			const learnerIds = Array.isArray(this.subgroup.learnerIds)
+				? this.subgroup.learnerIds
+				: []
 			return learnerIds.map((learnerId) => ({
 				learnerId,
-				learningPlan: this.activeLearningPlans.find((p) => p.learnerId === learnerId) || null,
+				learningPlan:
+					this.activeLearningPlans.find((p) => p.learnerId === learnerId)
+					|| null,
 			}))
 		},
 	},
@@ -179,6 +227,9 @@ export default {
 	watch: {
 		subgroupId: {
 			immediate: true,
+			/**
+			 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
+			 */
 			handler() {
 				if (this.subgroupId) this.loadAll()
 			},
@@ -192,11 +243,17 @@ export default {
 		 * navigation without a pre-selected subgroup).
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		openSubgroup() {
 			const id = this.subgroupIdInput.trim()
 			if (!id) return
-			this.$router.replace({ name: 'GroupPlanSubgroupLearnerContext', query: { subgroupId: id } }).catch(() => {})
+			this.$router
+				.replace({
+					name: 'GroupPlanSubgroupLearnerContext',
+					query: { subgroupId: id },
+				})
+				.catch(() => {})
 		},
 
 		/**
@@ -205,9 +262,12 @@ export default {
 		 * @param {string} schema OpenRegister schema title (e.g. "GroupPlanSubgroup").
 		 * @param {string} id Object UUID.
 		 * @return {Promise<object|null>}
+		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		async fetchObject(schema, id) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}/${id}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/${schema}/${id}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -222,9 +282,12 @@ export default {
 		 * @param {string} query Query string, WITHOUT the leading "?" (already
 		 *   `encodeURIComponent`-escaped by the caller).
 		 * @return {Promise<Array<object>>}
+		 * @spec openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
 		 */
 		async fetchSchema(schema, query) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}?${query}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -248,14 +311,23 @@ export default {
 			this.loading = true
 			this.error = null
 			try {
-				this.subgroup = await this.fetchObject('GroupPlanSubgroup', this.subgroupId)
+				this.subgroup = await this.fetchObject(
+					'group-plan-subgroup',
+					this.subgroupId,
+				)
 				if (this.subgroup) {
-					this.activeLearningPlans = await this.fetchSchema('LearningPlan', 'lifecycle=active&limit=500')
+					this.activeLearningPlans = await this.fetchSchema(
+						'learning-plan',
+						'lifecycle=active&_limit=500',
+					)
 				} else {
 					this.activeLearningPlans = []
 				}
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load the subgroup learner context. Please try again.')
+				this.error = this.t(
+					'learniq',
+					'Failed to load the subgroup learner context. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[GroupPlanSubgroupLearnerContext] loadAll error', err)
 			} finally {
@@ -270,7 +342,8 @@ export default {
 .gp-subgroup-learner-context {
 	max-width: 900px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .gp-subgroup-learner-context__header {

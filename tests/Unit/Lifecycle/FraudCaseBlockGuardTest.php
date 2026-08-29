@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq FraudCaseBlockGuard unit tests.
+ * Learniq FraudCaseBlockGuard unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Lifecycle
+ * @package  OCA\Learniq\Tests\Unit\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -22,128 +22,119 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Lifecycle;
+namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Lifecycle\FraudCaseBlockGuard;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Lifecycle\FraudCaseBlockGuard;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
  * Tests for the FraudCaseBlockGuard (GradeEntry publish/republish).
  */
-class FraudCaseBlockGuardTest extends TestCase
-{
+class FraudCaseBlockGuardTest extends TestCase {
 
-    /**
-     * Build a guard whose ObjectService::find() returns the given FraudCase (or null).
-     *
-     * @param array<string,mixed>|null $fraudCase FraudCase data, or null (not found).
-     *
-     * @return FraudCaseBlockGuard
-     */
-    private function makeGuard(?array $fraudCase): FraudCaseBlockGuard
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        // OpenRegister's find() returns ?ObjectEntity, never an array.
-        $objectService->method('find')->willReturn(
-            $fraudCase === null ? null : OrEntityFactory::make($fraudCase, 'fraud-case')
-        );
+	/**
+	 * Build a guard whose ObjectService::find() returns the given FraudCase (or null).
+	 *
+	 * @param array<string,mixed>|null $fraudCase FraudCase data, or null (not found).
+	 *
+	 * @return FraudCaseBlockGuard
+	 */
+	private function makeGuard(?array $fraudCase): FraudCaseBlockGuard {
+		$objectService = $this->createMock(ObjectService::class);
+		// OpenRegister's find() returns ?ObjectEntity, never an array.
+		$objectService->method('find')->willReturn(
+			$fraudCase === null ? null : OrEntityFactory::make($fraudCase, 'fraud-case')
+		);
 
-        return new FraudCaseBlockGuard($objectService, $this->createMock(LoggerInterface::class));
+		return new FraudCaseBlockGuard($objectService, $this->createMock(LoggerInterface::class));
+	}//end makeGuard()
 
-    }//end makeGuard()
+	/**
+	 * No fraudCaseId set → allowed unconditionally.
+	 *
+	 * @return void
+	 */
+	public function testNoFraudCaseIdAllowsUnconditionally(): void {
+		$guard = $this->makeGuard(fraudCase: null);
+		$context = ['object' => ['id' => 'entry-1']];
 
-    /**
-     * No fraudCaseId set → allowed unconditionally.
-     *
-     * @return void
-     */
-    public function testNoFraudCaseIdAllowsUnconditionally(): void
-    {
-        $guard   = $this->makeGuard(fraudCase: null);
-        $context = ['object' => ['id' => 'entry-1']];
+		self::assertTrue($guard->check($context));
 
-        self::assertTrue($guard->check($context));
+	}//end testNoFraudCaseIdAllowsUnconditionally()
 
-    }//end testNoFraudCaseIdAllowsUnconditionally()
+	/**
+	 * A linked FraudCase in an open state (reported/hearing-scheduled/heard) blocks publish.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+	 */
+	public function testOpenFraudCaseBlocksPublish(): void {
+		foreach (['reported', 'hearing-scheduled', 'heard'] as $state) {
+			$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => $state]);
+			$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
 
-    /**
-     * A linked FraudCase in an open state (reported/hearing-scheduled/heard) blocks publish.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
-     */
-    public function testOpenFraudCaseBlocksPublish(): void
-    {
-        foreach (['reported', 'hearing-scheduled', 'heard'] as $state) {
-            $guard   = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => $state]);
-            $context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
+			self::assertFalse($guard->check($context), "state '{$state}' should block publish");
+		}
 
-            self::assertFalse($guard->check($context), "state '{$state}' should block publish");
-        }
+	}//end testOpenFraudCaseBlocksPublish()
 
-    }//end testOpenFraudCaseBlocksPublish()
+	/**
+	 * A FraudCase decided fraud-proven blocks publish permanently.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
+	 */
+	public function testDecidedFraudProvenBlocksPublishPermanently(): void {
+		$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'fraud-proven']);
+		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
 
-    /**
-     * A FraudCase decided fraud-proven blocks publish permanently.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-permanently-fraud-proven-link-blocks-publish-even-after-decision
-     */
-    public function testDecidedFraudProvenBlocksPublishPermanently(): void
-    {
-        $guard   = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'fraud-proven']);
-        $context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
+		self::assertFalse($guard->check($context));
 
-        self::assertFalse($guard->check($context));
+	}//end testDecidedFraudProvenBlocksPublishPermanently()
 
-    }//end testDecidedFraudProvenBlocksPublishPermanently()
+	/**
+	 * A FraudCase decided unfounded allows publish.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
+	 */
+	public function testDecidedUnfoundedAllowsPublish(): void {
+		$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'unfounded']);
+		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
 
-    /**
-     * A FraudCase decided unfounded allows publish.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#scenario-a-linked-fraudcase-blocks-publish-and-republish
-     */
-    public function testDecidedUnfoundedAllowsPublish(): void
-    {
-        $guard   = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'unfounded']);
-        $context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
+		self::assertTrue($guard->check($context));
 
-        self::assertTrue($guard->check($context));
+	}//end testDecidedUnfoundedAllowsPublish()
 
-    }//end testDecidedUnfoundedAllowsPublish()
+	/**
+	 * A dismissed FraudCase allows publish.
+	 *
+	 * @return void
+	 */
+	public function testDismissedFraudCaseAllowsPublish(): void {
+		$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'dismissed']);
+		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
 
-    /**
-     * A dismissed FraudCase allows publish.
-     *
-     * @return void
-     */
-    public function testDismissedFraudCaseAllowsPublish(): void
-    {
-        $guard   = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'dismissed']);
-        $context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
+		self::assertTrue($guard->check($context));
 
-        self::assertTrue($guard->check($context));
+	}//end testDismissedFraudCaseAllowsPublish()
 
-    }//end testDismissedFraudCaseAllowsPublish()
+	/**
+	 * A fraudCaseId that resolves to no FraudCase (deleted/bad link) fails closed.
+	 *
+	 * @return void
+	 */
+	public function testUnresolvableFraudCaseFailsClosed(): void {
+		$guard = $this->makeGuard(fraudCase: null);
+		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-missing']];
 
-    /**
-     * A fraudCaseId that resolves to no FraudCase (deleted/bad link) fails closed.
-     *
-     * @return void
-     */
-    public function testUnresolvableFraudCaseFailsClosed(): void
-    {
-        $guard   = $this->makeGuard(fraudCase: null);
-        $context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-missing']];
+		self::assertFalse($guard->check($context));
 
-        self::assertFalse($guard->check($context));
-
-    }//end testUnresolvableFraudCaseFailsClosed()
+	}//end testUnresolvableFraudCaseFailsClosed()
 }//end class

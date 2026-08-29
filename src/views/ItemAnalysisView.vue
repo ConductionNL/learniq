@@ -7,7 +7,7 @@
   appears in, and AssessmentReliability (Cronbach's alpha) for one Assessment
   when reached via the assessmentId query param. This is a custom view
   because the register has no declarative chart/statistics-panel primitive
-  (`grep '"type": "chart"' lib/Settings/scholiq_register.json` — zero hits);
+  (`grep '"type": "chart"' lib/Settings/learniq_register.json` — zero hits);
   the ItemRevisionFlag review queue itself stays a plain manifest list+detail
   page (mirrors AttendanceFlag/BsaProgressFlag/EngagementRiskFlag).
 
@@ -33,13 +33,20 @@
 	<div class="item-analysis">
 		<div v-if="!isStaff" class="item-analysis__denied" role="alert">
 			<span class="icon-error" aria-hidden="true" />
-			<p>{{ t('scholiq', 'You do not have permission to view item statistics.') }}</p>
+			<p>
+				{{
+					t(
+						'learniq',
+						'You do not have permission to view item statistics.',
+					)
+				}}
+			</p>
 		</div>
 
 		<template v-else>
 			<div v-if="loading" class="item-analysis__loading" aria-live="polite">
 				<span class="icon-loading" aria-hidden="true" />
-				<span>{{ t('scholiq', 'Loading item analysis...') }}</span>
+				<span>{{ t('learniq', 'Loading item analysis...') }}</span>
 			</div>
 
 			<div v-else-if="error" class="item-analysis__error" role="alert">
@@ -50,45 +57,85 @@
 			<template v-else>
 				<header class="item-analysis__header">
 					<h2 class="item-analysis__heading">
-						{{ itemTitle || t('scholiq', 'Item analysis') }}
+						{{ itemTitle || t('learniq', 'Item analysis') }}
 					</h2>
 				</header>
 
 				<section v-if="itemId" class="item-analysis__section">
 					<h3 class="item-analysis__sub-heading">
-						{{ t('scholiq', 'Statistics per assessment') }}
+						{{ t('learniq', 'Statistics per assessment') }}
 					</h3>
-					<p v-if="itemStatisticsList.length === 0" class="item-analysis__empty">
-						{{ t('scholiq', 'No statistics computed yet — an item needs graded attempts before statistics exist.') }}
+					<p
+						v-if="itemStatisticsList.length === 0"
+						class="item-analysis__empty">
+						{{
+							t(
+								'learniq',
+								'No statistics computed yet — an item needs graded attempts before statistics exist.',
+							)
+						}}
 					</p>
 					<div
 						v-for="stat in itemStatisticsList"
 						:key="stat.assessmentId"
 						class="item-analysis__stat-card">
 						<h4 class="item-analysis__assessment-id">
-							{{ t('scholiq', 'Assessment {id}', { id: stat.assessmentId }) }}
+							{{
+								t('learniq', 'Assessment {id}', {
+									id: stat.assessmentId,
+								})
+							}}
 						</h4>
 
-						<p v-if="stat.insufficientData" class="item-analysis__insufficient">
-							{{ t('scholiq', 'Not enough attempts yet (n={n} of {min}).', { n: stat.sampleSize, min: minSampleSize }) }}
+						<p
+							v-if="stat.insufficientData"
+							class="item-analysis__insufficient">
+							{{
+								t(
+									'learniq',
+									'Not enough attempts yet (n={n} of {min}).',
+									{ n: stat.sampleSize, min: minSampleSize },
+								)
+							}}
 						</p>
 
 						<dl v-else class="item-analysis__stat-list">
-							<dt>{{ t('scholiq', 'Sample size') }}</dt>
+							<dt>{{ t('learniq', 'Sample size') }}</dt>
 							<dd>{{ stat.sampleSize }}</dd>
-							<dt>{{ t('scholiq', 'p-value (difficulty)') }}</dt>
+							<dt>{{ t('learniq', 'p-value (difficulty)') }}</dt>
 							<dd>{{ formatNumber(stat.pValue) }}</dd>
-							<dt>{{ t('scholiq', 'Item-total correlation (discrimination)') }}</dt>
+							<dt>
+								{{
+									t(
+										'learniq',
+										'Item-total correlation (discrimination)',
+									)
+								}}
+							</dt>
 							<dd>{{ formatNumber(stat.itemTotalCorrelation) }}</dd>
 						</dl>
 
-						<ul v-if="stat.distractorAnalysis && stat.distractorAnalysis.length" class="item-analysis__distractor-list">
-							<li v-for="option in stat.distractorAnalysis" :key="option.optionId" class="item-analysis__distractor">
-								<span class="item-analysis__distractor-label">{{ option.optionId }}</span>
-								<span class="item-analysis__distractor-bar item-analysis__distractor-bar--high" :title="t('scholiq', 'High-scoring group')">
+						<ul
+							v-if="
+								stat.distractorAnalysis
+								&& stat.distractorAnalysis.length
+							"
+							class="item-analysis__distractor-list">
+							<li
+								v-for="option in stat.distractorAnalysis"
+								:key="option.optionId"
+								class="item-analysis__distractor">
+								<span class="item-analysis__distractor-label">{{
+									option.optionId
+								}}</span>
+								<span
+									class="item-analysis__distractor-bar item-analysis__distractor-bar--high"
+									:title="t('learniq', 'High-scoring group')">
 									{{ option.selectedByHighGroup }}
 								</span>
-								<span class="item-analysis__distractor-bar item-analysis__distractor-bar--low" :title="t('scholiq', 'Low-scoring group')">
+								<span
+									class="item-analysis__distractor-bar item-analysis__distractor-bar--low"
+									:title="t('learniq', 'Low-scoring group')">
 									{{ option.selectedByLowGroup }}
 								</span>
 							</li>
@@ -98,20 +145,31 @@
 
 				<section v-if="assessmentId" class="item-analysis__section">
 					<h3 class="item-analysis__sub-heading">
-						{{ t('scholiq', 'Assessment reliability') }}
+						{{ t('learniq', 'Assessment reliability') }}
 					</h3>
 					<p v-if="!reliability" class="item-analysis__empty">
-						{{ t('scholiq', 'No reliability figure computed yet.') }}
+						{{ t('learniq', 'No reliability figure computed yet.') }}
 					</p>
-					<p v-else-if="reliability.insufficientData" class="item-analysis__insufficient">
-						{{ t('scholiq', 'Not enough graded attempts yet (n={n} of {min}).', { n: reliability.sampleSize, min: reliability.reliabilityMinSampleSize || 30 }) }}
+					<p
+						v-else-if="reliability.insufficientData"
+						class="item-analysis__insufficient">
+						{{
+							t(
+								'learniq',
+								'Not enough graded attempts yet (n={n} of {min}).',
+								{
+									n: reliability.sampleSize,
+									min: reliability.reliabilityMinSampleSize || 30,
+								},
+							)
+						}}
 					</p>
 					<dl v-else class="item-analysis__stat-list">
-						<dt>{{ t('scholiq', "Cronbach's alpha") }}</dt>
+						<dt>{{ t('learniq', "Cronbach's alpha") }}</dt>
 						<dd>{{ formatNumber(reliability.cronbachAlpha) }}</dd>
-						<dt>{{ t('scholiq', 'Sample size') }}</dt>
+						<dt>{{ t('learniq', 'Sample size') }}</dt>
 						<dd>{{ reliability.sampleSize }}</dd>
-						<dt>{{ t('scholiq', 'Item count') }}</dt>
+						<dt>{{ t('learniq', 'Item count') }}</dt>
 						<dd>{{ reliability.itemCount }}</dd>
 					</dl>
 				</section>
@@ -121,8 +179,8 @@
 </template>
 
 <script>
-import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'ItemAnalysisView',
@@ -136,6 +194,7 @@ export default {
 			type: String,
 			default: null,
 		},
+
 		/**
 		 * Assessment UUID from the ?assessmentId query param. Null skips the
 		 * reliability section.
@@ -164,6 +223,7 @@ export default {
 		 * Client-side proxy for "may view staff-only item statistics" — see
 		 * file-header note. The server-side x-property-rbac block is the
 		 * actual security boundary.
+		 *
 		 * @return {boolean}
 		 */
 		isStaff() {
@@ -174,10 +234,14 @@ export default {
 	watch: {
 		itemId: {
 			immediate: true,
+			/**
+			 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+			 */
 			handler() {
 				this.load()
 			},
 		},
+
 		assessmentId: {
 			handler() {
 				this.load()
@@ -210,7 +274,10 @@ export default {
 					await this.loadReliability()
 				}
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load item analysis. Please try again.')
+				this.error = this.t(
+					'learniq',
+					'Failed to load item analysis. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[ItemAnalysisView] load error', err)
 			} finally {
@@ -222,9 +289,12 @@ export default {
 		 * Fetch the Item's title for the page heading.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 		 */
 		async loadItemTitle() {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Item/${this.itemId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/Item/${this.itemId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -243,7 +313,9 @@ export default {
 		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 		 */
 		async loadItemStatistics() {
-			const url = generateUrl('/apps/openregister/api/objects/scholiq/item-statistics?limit=200')
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/item-statistics?_limit=200',
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -263,7 +335,9 @@ export default {
 		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
 		 */
 		async loadReliability() {
-			const url = generateUrl('/apps/openregister/api/objects/scholiq/assessment-reliability?limit=200')
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/assessment-reliability?_limit=200',
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -272,7 +346,8 @@ export default {
 			}
 			const json = await resp.json()
 			const all = json.results ?? json.objects ?? json ?? []
-			this.reliability = all.find((r) => r.assessmentId === this.assessmentId) ?? null
+			this.reliability =
+				all.find((r) => r.assessmentId === this.assessmentId) ?? null
 		},
 
 		/**
@@ -280,6 +355,7 @@ export default {
 		 *
 		 * @param {number|null} value Value to format
 		 * @return {string}
+		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 		 */
 		formatNumber(value) {
 			if (value === null || value === undefined) return '—'
@@ -293,7 +369,8 @@ export default {
 .item-analysis {
 	max-width: 800px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .item-analysis__loading,

@@ -26,74 +26,99 @@
 -->
 <template>
 	<div class="subject-choice-picker">
-		<h2>{{ t('scholiq', 'Pick electives (vakkenpakket)') }}</h2>
+		<h2>{{ t('learniq', 'Pick electives (vakkenpakket)') }}</h2>
 
 		<NcLoadingIcon v-if="loading" :size="32" />
 
-		<NcEmptyContent v-else-if="plans.length === 0"
-			:name="t('scholiq', 'No curriculum plans with electives found')"
-			:description="t('scholiq', 'Check back once your school publishes a curriculum plan with electiveCourseIds.')" />
+		<NcEmptyContent
+			v-else-if="plans.length === 0"
+			:name="t('learniq', 'No curriculum plans with electives found')"
+			:description="
+				t(
+					'learniq',
+					'Check back once your school publishes a curriculum plan with electiveCourseIds.',
+				)
+			" />
 
 		<template v-else>
 			<div class="subject-choice-picker__field">
-				<label for="scp-plan">{{ t('scholiq', 'Curriculum plan') }}</label>
-				<NcSelect id="scp-plan"
+				<label for="scp-plan">{{ t('learniq', 'Curriculum plan') }}</label>
+				<NcSelect
+					id="scp-plan"
 					v-model="selectedPlanId"
 					:options="planOptions"
 					:reduce="(o) => o.id"
 					label="label"
-					:input-label="t('scholiq', 'Curriculum plan')"
-					:aria-label-combobox="t('scholiq', 'Curriculum plan')"
+					:inputLabel="t('learniq', 'Curriculum plan')"
+					:aria-label-combobox="t('learniq', 'Curriculum plan')"
 					@update:modelValue="onPlanChange" />
 			</div>
 
 			<div v-if="selectedPlan" class="subject-choice-picker__field">
-				<label for="scp-learner">{{ t('scholiq', 'For which child (or yourself)') }}</label>
-				<NcSelect id="scp-learner"
+				<label for="scp-learner">{{
+					t('learniq', 'For which child (or yourself)')
+				}}</label>
+				<NcSelect
+					id="scp-learner"
 					v-model="selectedLearnerId"
 					:options="learnerOptions"
 					:reduce="(o) => o.id"
 					label="label"
 					:loading="loadingLearners"
-					:input-label="t('scholiq', 'Learner')"
-					:aria-label-combobox="t('scholiq', 'Learner')" />
+					:inputLabel="t('learniq', 'Learner')"
+					:aria-label-combobox="t('learniq', 'Learner')" />
 			</div>
 
 			<div v-if="selectedPlan" class="subject-choice-picker__field">
-				<label for="scp-year">{{ t('scholiq', 'Academic year') }}</label>
-				<input id="scp-year"
+				<label for="scp-year">{{ t('learniq', 'Academic year') }}</label>
+				<input
+					id="scp-year"
 					v-model="academicYear"
 					type="text"
-					placeholder="2026-2027">
+					placeholder="2026-2027" />
 			</div>
 
 			<div v-if="selectedPlan" class="subject-choice-picker__field">
-				<label for="scp-electives">{{ t('scholiq', 'Electives') }}</label>
-				<NcSelect id="scp-electives"
+				<label for="scp-electives">{{ t('learniq', 'Electives') }}</label>
+				<NcSelect
+					id="scp-electives"
 					v-model="selectedCourseIds"
 					:options="electiveOptions"
 					:reduce="(o) => o.id"
 					label="label"
 					multiple
-					:input-label="t('scholiq', 'Electives')"
-					:aria-label-combobox="t('scholiq', 'Electives')" />
+					:inputLabel="t('learniq', 'Electives')"
+					:aria-label-combobox="t('learniq', 'Electives')" />
 			</div>
 
 			<!-- Live rule feedback -->
 			<div v-if="selectedPlan" class="subject-choice-picker__feedback">
 				<NcNoteCard v-if="feedback.length === 0" type="success">
-					{{ t('scholiq', 'Your selection satisfies every declared rule so far.') }}
+					{{
+						t(
+							'learniq',
+							'Your selection satisfies every declared rule so far.',
+						)
+					}}
 				</NcNoteCard>
 				<NcNoteCard v-for="(msg, idx) in feedback" :key="idx" type="warning">
 					{{ msg }}
 				</NcNoteCard>
 			</div>
 
-			<div v-if="selectedPlan" class="subject-choice-picker__field subject-choice-picker__consent">
-				<input id="scp-consent"
+			<div
+				v-if="selectedPlan"
+				class="subject-choice-picker__field subject-choice-picker__consent">
+				<input
+					id="scp-consent"
 					v-model="guardianConsentGiven"
-					type="checkbox">
-				<label for="scp-consent">{{ t('scholiq', 'A guardian (or I, if 18+) consents to this selection') }}</label>
+					type="checkbox" />
+				<label for="scp-consent">{{
+					t(
+						'learniq',
+						'A guardian (or I, if 18+) consents to this selection',
+					)
+				}}</label>
 			</div>
 
 			<NcNoteCard v-if="submitError" type="error">
@@ -101,24 +126,40 @@
 			</NcNoteCard>
 
 			<NcNoteCard v-if="submitSuccess" type="success">
-				{{ t('scholiq', 'Your subject choice has been submitted for review.') }}
+				{{
+					t(
+						'learniq',
+						'Your subject choice has been submitted for review.',
+					)
+				}}
 			</NcNoteCard>
 
-			<NcButton v-if="selectedPlan"
+			<NcButton
+				v-if="selectedPlan"
 				variant="primary"
 				:disabled="!canSubmit || submitting"
 				@click="submitChoice">
-				{{ submitting ? t('scholiq', 'Submitting…') : t('scholiq', 'Submit subject choice') }}
+				{{
+					submitting
+						? t('learniq', 'Submitting…')
+						: t('learniq', 'Submit subject choice')
+				}}
 			</NcButton>
 		</template>
 	</div>
 </template>
 
 <script>
+import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { getCurrentUser } from '@nextcloud/auth'
-import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
+import {
+	NcButton,
+	NcEmptyContent,
+	NcLoadingIcon,
+	NcNoteCard,
+	NcSelect,
+} from '@nextcloud/vue'
 
 export default {
 	name: 'SubjectChoicePicker',
@@ -155,32 +196,49 @@ export default {
 		 * at least one elective course.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		planOptions() {
 			return this.plans
-				.filter((p) => Array.isArray(p.electiveCourseIds) && p.electiveCourseIds.length > 0)
-				.map((p) => ({ id: p.id || p.uuid, label: p.name || p.id || p.uuid }))
+				.filter(
+					(p) =>
+						Array.isArray(p.electiveCourseIds)
+						&& p.electiveCourseIds.length > 0,
+				)
+				.map((p) => ({
+					id: p.id || p.uuid,
+					label: p.name || p.id || p.uuid,
+				}))
 		},
+
 		/**
 		 * The currently selected CurriculumPlan object, or null.
 		 *
 		 * @return {object|null}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		selectedPlan() {
-			return this.plans.find((p) => (p.id || p.uuid) === this.selectedPlanId) || null
+			return (
+				this.plans.find((p) => (p.id || p.uuid) === this.selectedPlanId)
+				|| null
+			)
 		},
+
 		/**
 		 * The selected plan's declared electiveRules, or an empty object when unset.
 		 *
 		 * @return {object}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		electiveRules() {
 			return (this.selectedPlan && this.selectedPlan.electiveRules) || {}
 		},
+
 		/**
 		 * Elective options scoped to the selected plan's electiveCourseIds.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		electiveOptions() {
 			if (!this.selectedPlan) return []
@@ -189,14 +247,20 @@ export default {
 				return { id, label: (course && course.name) || id }
 			})
 		},
+
 		/**
 		 * Learner options: the caller's linked children plus themselves (18+ self-choice).
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		learnerOptions() {
-			return this.learners.map((l) => ({ id: l.ncUserId, label: l.displayName || l.ncUserId }))
+			return this.learners.map((l) => ({
+				id: l.ncUserId,
+				label: l.displayName || l.ncUserId,
+			}))
 		},
+
 		/**
 		 * Live rule/capacity feedback against the current selection -- advisory
 		 * only, the authoritative check is SubjectChoiceValidator server-side.
@@ -209,40 +273,72 @@ export default {
 			const rules = this.electiveRules
 			const selected = this.selectedCourseIds
 
-			if (typeof rules.minElectives === 'number' && selected.length < rules.minElectives) {
-				messages.push(this.t('scholiq', 'Select at least {min} elective(s) (currently {count}).', { min: rules.minElectives, count: selected.length }))
+			if (
+				typeof rules.minElectives === 'number'
+				&& selected.length < rules.minElectives
+			) {
+				messages.push(
+					this.t(
+						'learniq',
+						'Select at least {min} elective(s) (currently {count}).',
+						{ min: rules.minElectives, count: selected.length },
+					),
+				)
 			}
 
-			if (typeof rules.maxElectives === 'number' && selected.length > rules.maxElectives) {
-				messages.push(this.t('scholiq', 'Select at most {max} elective(s) (currently {count}).', { max: rules.maxElectives, count: selected.length }))
+			if (
+				typeof rules.maxElectives === 'number'
+				&& selected.length > rules.maxElectives
+			) {
+				messages.push(
+					this.t(
+						'learniq',
+						'Select at most {max} elective(s) (currently {count}).',
+						{ max: rules.maxElectives, count: selected.length },
+					),
+				)
 			}
 
 			;(rules.mandatoryCombinations || []).forEach((combo) => {
 				const missing = (combo || []).filter((id) => !selected.includes(id))
 				if (missing.length > 0 && missing.length < combo.length) {
-					messages.push(this.t('scholiq', 'This combination must be chosen together — missing selection(s).'))
+					messages.push(
+						this.t(
+							'learniq',
+							'This combination must be chosen together — missing selection(s).',
+						),
+					)
 				}
 			})
 
 			;(rules.mutuallyExclusive || []).forEach((group) => {
 				const chosen = (group || []).filter((id) => selected.includes(id))
 				if (chosen.length > 1) {
-					messages.push(this.t('scholiq', 'These electives cannot be chosen together.'))
+					messages.push(
+						this.t(
+							'learniq',
+							'These electives cannot be chosen together.',
+						),
+					)
 				}
 			})
 
 			return messages
 		},
+
 		/**
 		 * Whether the form has enough input to submit.
 		 *
 		 * @return {boolean}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		canSubmit() {
-			return this.selectedPlanId !== ''
+			return (
+				this.selectedPlanId !== ''
 				&& this.selectedLearnerId !== ''
 				&& this.academicYear !== ''
 				&& this.selectedCourseIds.length > 0
+			)
 		},
 	},
 
@@ -256,16 +352,33 @@ export default {
 		 * Load CurriculumPlans and Courses (for elective display labels).
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		async loadPlansAndCourses() {
 			this.loading = true
 			try {
 				const [plansResp, coursesResp] = await Promise.all([
-					axios.get(generateUrl('/apps/openregister/api/objects/scholiq/curriculum-plan?limit=200')),
-					axios.get(generateUrl('/apps/openregister/api/objects/scholiq/course?limit=500')),
+					axios.get(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/curriculum-plan?_limit=200',
+						),
+					),
+					axios.get(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/course?_limit=500',
+						),
+					),
 				])
-				this.plans = (plansResp.data && (plansResp.data.results || plansResp.data.objects)) || plansResp.data || []
-				this.courses = (coursesResp.data && (coursesResp.data.results || coursesResp.data.objects)) || coursesResp.data || []
+				this.plans =
+					(plansResp.data
+						&& (plansResp.data.results || plansResp.data.objects))
+					|| plansResp.data
+					|| []
+				this.courses =
+					(coursesResp.data
+						&& (coursesResp.data.results || coursesResp.data.objects))
+					|| coursesResp.data
+					|| []
 			} catch (e) {
 				// eslint-disable-next-line no-console
 				console.error('[SubjectChoicePicker] loadPlansAndCourses failed', e)
@@ -281,6 +394,7 @@ export default {
 		 * self via ncUserId for an 18+ self-choice).
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		async loadLearners() {
 			this.loadingLearners = true
@@ -292,11 +406,27 @@ export default {
 
 			try {
 				const [childrenResp, selfResp] = await Promise.all([
-					axios.get(generateUrl('/apps/openregister/api/objects/scholiq/learner-profile?parentIds={uid}&limit=50', { uid })),
-					axios.get(generateUrl('/apps/openregister/api/objects/scholiq/learner-profile?ncUserId={uid}&limit=1', { uid })),
+					axios.get(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/learner-profile?parentIds={uid}&_limit=50',
+							{ uid },
+						),
+					),
+					axios.get(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/learner-profile?ncUserId={uid}&_limit=1',
+							{ uid },
+						),
+					),
 				])
-				const children = (childrenResp.data && (childrenResp.data.results || childrenResp.data.objects)) || []
-				const self = (selfResp.data && (selfResp.data.results || selfResp.data.objects)) || []
+				const children =
+					(childrenResp.data
+						&& (childrenResp.data.results || childrenResp.data.objects))
+					|| []
+				const self =
+					(selfResp.data
+						&& (selfResp.data.results || selfResp.data.objects))
+					|| []
 				const byId = new Map()
 				;[...children, ...self].forEach((l) => byId.set(l.ncUserId, l))
 				this.learners = Array.from(byId.values())
@@ -313,6 +443,7 @@ export default {
 		 * Reset the elective selection when the plan changes.
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
 		 */
 		onPlanChange() {
 			this.selectedCourseIds = []
@@ -340,19 +471,30 @@ export default {
 					academicYear: this.academicYear,
 					selectedElectiveCourseIds: this.selectedCourseIds,
 					guardianConsentGiven: this.guardianConsentGiven,
-					guardianConsentBy: this.guardianConsentGiven ? (getCurrentUser()?.uid || null) : null,
-					tenant_id: this.selectedPlan ? this.selectedPlan.tenant_id : undefined,
+					guardianConsentBy: this.guardianConsentGiven
+						? getCurrentUser()?.uid || null
+						: null,
+
+					tenant_id: this.selectedPlan
+						? this.selectedPlan.tenant_id
+						: undefined,
 				}
 
-				const createUrl = generateUrl('/apps/openregister/api/objects/scholiq/subject-choice')
+				const createUrl = generateUrl(
+					'/apps/openregister/api/objects/learniq/subject-choice',
+				)
 				const created = await axios.post(createUrl, body)
-				const choiceId = (created.data && (created.data.id || created.data.uuid)) || ''
+				const choiceId =
+					(created.data && (created.data.id || created.data.uuid)) || ''
 
 				if (choiceId === '') {
 					throw new Error('No subject-choice id returned')
 				}
 
-				const transitionUrl = generateUrl('/apps/openregister/api/objects/scholiq/subject-choice/{id}', { id: choiceId })
+				const transitionUrl = generateUrl(
+					'/apps/openregister/api/objects/learniq/subject-choice/{id}',
+					{ id: choiceId },
+				)
 				await axios.put(transitionUrl, { lifecycle: 'submitted' })
 
 				this.submitSuccess = true
@@ -360,7 +502,10 @@ export default {
 			} catch (e) {
 				// eslint-disable-next-line no-console
 				console.error('[SubjectChoicePicker] submitChoice failed', e)
-				this.submitError = this.t('scholiq', 'We could not submit your subject choice. You may not be a linked guardian for this child, or the choice may violate a plan rule.')
+				this.submitError = this.t(
+					'learniq',
+					'We could not submit your subject choice. You may not be a linked guardian for this child, or the choice may violate a plan rule.',
+				)
 			} finally {
 				this.submitting = false
 			}

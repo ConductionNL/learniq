@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq RolloverService unit tests.
+ * Learniq RolloverService unit tests.
  *
  * Covers the default-mapping proposal (leerjaar increment + unparseable block),
  * the side-effect-free preview (counts, blocked state, preview-matches-mappings),
@@ -9,7 +9,7 @@
  * per-mapping resume).
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Service
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -24,12 +24,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Service;
+namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\RolloverService;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Service\RolloverExecutionService;
+use OCA\Learniq\Service\RolloverService;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\IGroupManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -37,236 +38,241 @@ use Psr\Log\LoggerInterface;
 /**
  * Tests for RolloverService.
  */
-class RolloverServiceTest extends TestCase
-{
-    /**
-     * Build a service with a configurable ObjectService.
-     *
-     * @param ObjectService|null $objectService Optional pre-built object service mock.
-     *
-     * @return RolloverService
-     */
-    private function makeService(?ObjectService $objectService=null): RolloverService
-    {
-        return new RolloverService(
-            $objectService ?? $this->createMock(ObjectService::class),
-            $this->createMock(IGroupManager::class),
-            $this->createMock(LoggerInterface::class)
-        );
-    }//end makeService()
+class RolloverServiceTest extends TestCase {
+	/**
+	 * Build a service with a configurable ObjectService.
+	 *
+	 * @param ObjectService|null $objectService Optional pre-built object service mock.
+	 *
+	 * @return RolloverService
+	 */
+	private function makeService(?ObjectService $objectService = null): RolloverService {
+		return new RolloverService(
+			$objectService ?? $this->createMock(ObjectService::class)
+		);
+	}//end makeService()
 
-    /**
-     * Default mapping increments the leerjaar and preserves the suffix.
-     *
-     * @return void
-     */
-    public function testProposeDefaultMappingIncrementsLeerjaar(): void
-    {
-        $svc = $this->makeService();
+	/**
+	 * Build the execution service (the write half) over the same ObjectService.
+	 *
+	 * @param ObjectService|null $objectService Optional pre-built object service mock.
+	 *
+	 * @return RolloverExecutionService
+	 */
+	private function makeExecutionService(?ObjectService $objectService = null): RolloverExecutionService {
+		$objectService ??= $this->createMock(ObjectService::class);
 
-        $mappings = $svc->proposeDefaultMapping([
-            ['id' => 'c1', 'name' => '2A', 'programmeId' => 'p1'],
-            ['id' => 'c2', 'name' => '4-VWO'],
-        ]);
+		return new RolloverExecutionService(
+			$objectService,
+			$this->createMock(IGroupManager::class),
+			$this->createMock(LoggerInterface::class),
+			new RolloverService($objectService)
+		);
+	}//end makeExecutionService()
 
-        $this->assertSame('promote', $mappings[0]['action']);
-        $this->assertSame('3A', $mappings[0]['toCohortName']);
-        $this->assertSame('p1', $mappings[0]['toProgrammeId']);
-        $this->assertSame('promote', $mappings[1]['action']);
-        $this->assertSame('5-VWO', $mappings[1]['toCohortName']);
-    }//end testProposeDefaultMappingIncrementsLeerjaar()
+	/**
+	 * Default mapping increments the leerjaar and preserves the suffix.
+	 *
+	 * @return void
+	 */
+	public function testProposeDefaultMappingIncrementsLeerjaar(): void {
+		$svc = $this->makeService();
 
-    /**
-     * An unparseable cohort name yields a null action (blocks preview).
-     *
-     * @return void
-     */
-    public function testProposeDefaultMappingBlocksUnparseableName(): void
-    {
-        $svc = $this->makeService();
+		$mappings = $svc->proposeDefaultMapping([
+			['id' => 'c1', 'name' => '2A', 'programmeId' => 'p1'],
+			['id' => 'c2', 'name' => '4-VWO'],
+		]);
 
-        $mappings = $svc->proposeDefaultMapping([['id' => 'c1', 'name' => 'Examenklas']]);
+		$this->assertSame('promote', $mappings[0]['action']);
+		$this->assertSame('3A', $mappings[0]['toCohortName']);
+		$this->assertSame('p1', $mappings[0]['toProgrammeId']);
+		$this->assertSame('promote', $mappings[1]['action']);
+		$this->assertSame('5-VWO', $mappings[1]['toCohortName']);
+	}//end testProposeDefaultMappingIncrementsLeerjaar()
 
-        $this->assertNull($mappings[0]['action']);
-        $this->assertNull($mappings[0]['toCohortName']);
-    }//end testProposeDefaultMappingBlocksUnparseableName()
+	/**
+	 * An unparseable cohort name yields a null action (blocks preview).
+	 *
+	 * @return void
+	 */
+	public function testProposeDefaultMappingBlocksUnparseableName(): void {
+		$svc = $this->makeService();
 
-    /**
-     * A null mapping action makes the preview blocked.
-     *
-     * @return void
-     */
-    public function testPreviewBlockedOnNullAction(): void
-    {
-        $svc = $this->makeService();
+		$mappings = $svc->proposeDefaultMapping([['id' => 'c1', 'name' => 'Examenklas']]);
 
-        $plan = [
-            'fromAcademicYear' => '2025/2026',
-            'toAcademicYear'   => '2026/2027',
-            'mappings'         => [['fromCohortId' => 'c1', 'action' => null]],
-        ];
+		$this->assertNull($mappings[0]['action']);
+		$this->assertNull($mappings[0]['toCohortName']);
+	}//end testProposeDefaultMappingBlocksUnparseableName()
 
-        $report = $svc->preview($plan);
-        $this->assertTrue($report['blocked']);
-        $this->assertContains('c1', $report['blockingCohorts']);
-    }//end testPreviewBlockedOnNullAction()
+	/**
+	 * A null mapping action makes the preview blocked.
+	 *
+	 * @return void
+	 */
+	public function testPreviewBlockedOnNullAction(): void {
+		$svc = $this->makeService();
 
-    /**
-     * Preview counts promote/graduate per member and lists cohorts to create.
-     *
-     * @return void
-     */
-    public function testPreviewCountsAndCohortsToCreate(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn($this->cohortEntity(['id' => 'c1', 'name' => '2A', 'learnerIds' => ['l1', 'l2', 'l3']]));
-        // No enrolments returned (carry count 0).
-        $objectService->method('findAll')->willReturn([]);
+		$plan = [
+			'fromAcademicYear' => '2025/2026',
+			'toAcademicYear' => '2026/2027',
+			'mappings' => [['fromCohortId' => 'c1', 'action' => null]],
+		];
 
-        $svc = $this->makeService($objectService);
+		$report = $svc->preview($plan);
+		$this->assertTrue($report['blocked']);
+		$this->assertContains('c1', $report['blockingCohorts']);
+	}//end testPreviewBlockedOnNullAction()
 
-        $plan = [
-            'fromAcademicYear' => '2025/2026',
-            'toAcademicYear'   => '2026/2027',
-            'mappings'         => [['fromCohortId' => 'c1', 'action' => 'promote', 'toCohortName' => '3A']],
-            'learnerOverrides' => [['learnerId' => 'l2', 'action' => 'graduate']],
-        ];
+	/**
+	 * Preview counts promote/graduate per member and lists cohorts to create.
+	 *
+	 * @return void
+	 */
+	public function testPreviewCountsAndCohortsToCreate(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturn($this->cohortEntity(['id' => 'c1', 'name' => '2A', 'learnerIds' => ['l1', 'l2', 'l3']]));
+		// No enrolments returned (carry count 0).
+		$objectService->method('findAll')->willReturn([]);
 
-        $report = $svc->preview($plan);
+		$svc = $this->makeService($objectService);
 
-        $this->assertFalse($report['blocked']);
-        $this->assertSame(2, $report['counts']['promote'], 'l1 + l3 promote');
-        $this->assertSame(1, $report['counts']['graduate'], 'l2 graduates');
-        $this->assertContains('3A', $report['cohortsToCreate']);
-        $this->assertContains('scholiq-cohort-2026-2027-3a', $report['ncGroupsToSync']);
-    }//end testPreviewCountsAndCohortsToCreate()
+		$plan = [
+			'fromAcademicYear' => '2025/2026',
+			'toAcademicYear' => '2026/2027',
+			'mappings' => [['fromCohortId' => 'c1', 'action' => 'promote', 'toCohortName' => '3A']],
+			'learnerOverrides' => [['learnerId' => 'l2', 'action' => 'graduate']],
+		];
 
-    /**
-     * previewMatchesMappings is false when no report is stored, true when it matches.
-     *
-     * @return void
-     */
-    public function testPreviewMatchesMappings(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn($this->cohortEntity(['id' => 'c1', 'name' => '2A', 'learnerIds' => ['l1']]));
-        $objectService->method('findAll')->willReturn([]);
+		$report = $svc->preview($plan);
 
-        $svc = $this->makeService($objectService);
+		$this->assertFalse($report['blocked']);
+		$this->assertSame(2, $report['counts']['promote'], 'l1 + l3 promote');
+		$this->assertSame(1, $report['counts']['graduate'], 'l2 graduates');
+		$this->assertContains('3A', $report['cohortsToCreate']);
+		$this->assertContains('scholiq-cohort-2026-2027-3a', $report['ncGroupsToSync']);
+	}//end testPreviewCountsAndCohortsToCreate()
 
-        $plan = [
-            'fromAcademicYear' => '2025/2026',
-            'toAcademicYear'   => '2026/2027',
-            'mappings'         => [['fromCohortId' => 'c1', 'action' => 'promote', 'toCohortName' => '3A']],
-        ];
+	/**
+	 * previewMatchesMappings is false when no report is stored, true when it matches.
+	 *
+	 * @return void
+	 */
+	public function testPreviewMatchesMappings(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturn($this->cohortEntity(['id' => 'c1', 'name' => '2A', 'learnerIds' => ['l1']]));
+		$objectService->method('findAll')->willReturn([]);
 
-        $this->assertFalse($svc->previewMatchesMappings($plan), 'no stored report');
+		$svc = $this->makeService($objectService);
 
-        $plan['dryRunReport'] = $svc->preview($plan);
-        $this->assertTrue($svc->previewMatchesMappings($plan), 'stored report matches current mappings');
+		$plan = [
+			'fromAcademicYear' => '2025/2026',
+			'toAcademicYear' => '2026/2027',
+			'mappings' => [['fromCohortId' => 'c1', 'action' => 'promote', 'toCohortName' => '3A']],
+		];
 
-        // Editing the mappings invalidates the stored preview.
-        $plan['mappings'][0]['toCohortName'] = '3B';
-        // counts unchanged but cohortsToCreate differs.
-        $this->assertFalse($svc->previewMatchesMappings($plan), 'edited mappings invalidate preview');
-    }//end testPreviewMatchesMappings()
+		$this->assertFalse($svc->previewMatchesMappings($plan), 'no stored report');
 
-    /**
-     * Execution creates the to-year cohort, archives the from-year cohort, and
-     * records per-mapping progress.
-     *
-     * @return void
-     */
-    public function testExecuteCreatesCohortArchivesAndRecordsProgress(): void
-    {
-        $saved = [];
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('find')->willReturn($this->cohortEntity(['id' => 'c1', 'name' => '2A', 'learnerIds' => ['l1', 'l2'], 'lifecycle' => 'active']));
-        // No existing to-year cohort, no enrolments.
-        $objectService->method('findAll')->willReturn([]);
-        $objectService->method('saveObject')->willReturnCallback(
-            static function (array $object, ?array $extend=[], $register=null, $schema=null) use (&$saved) {
-                $saved[] = ['schema' => (string) $schema, 'object' => $object];
-                return OrEntityFactory::make($object, (string) $schema, (string) $register);
-            }
-        );
+		$plan['dryRunReport'] = $svc->preview($plan);
+		$this->assertTrue($svc->previewMatchesMappings($plan), 'stored report matches current mappings');
 
-        $svc = $this->makeService($objectService);
+		// Editing the mappings invalidates the stored preview.
+		$plan['mappings'][0]['toCohortName'] = '3B';
+		// counts unchanged but cohortsToCreate differs.
+		$this->assertFalse($svc->previewMatchesMappings($plan), 'edited mappings invalidate preview');
+	}//end testPreviewMatchesMappings()
 
-        $plan = [
-            'fromAcademicYear' => '2025/2026',
-            'toAcademicYear'   => '2026/2027',
-            'tenant_id'        => 'tenant-a',
-            'mappings'         => [['fromCohortId' => 'c1', 'action' => 'promote', 'toCohortName' => '3A']],
-        ];
+	/**
+	 * Execution creates the to-year cohort, archives the from-year cohort, and
+	 * records per-mapping progress.
+	 *
+	 * @return void
+	 */
+	public function testExecuteCreatesCohortArchivesAndRecordsProgress(): void {
+		$saved = [];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturn($this->cohortEntity(['id' => 'c1', 'name' => '2A', 'learnerIds' => ['l1', 'l2'], 'lifecycle' => 'active']));
+		// No existing to-year cohort, no enrolments.
+		$objectService->method('findAll')->willReturn([]);
+		$objectService->method('saveObject')->willReturnCallback(
+			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+				$saved[] = ['schema' => (string)$schema, 'object' => $object];
+				return OrEntityFactory::make($object, (string)$schema, (string)$register);
+			}
+		);
 
-        $progress = $svc->execute($plan);
+		$svc = $this->makeExecutionService($objectService);
 
-        $this->assertSame('done', $progress['c1']);
+		$plan = [
+			'fromAcademicYear' => '2025/2026',
+			'toAcademicYear' => '2026/2027',
+			'tenant_id' => 'tenant-a',
+			'mappings' => [['fromCohortId' => 'c1', 'action' => 'promote', 'toCohortName' => '3A']],
+		];
 
-        $schemasWritten = array_column($saved, 'schema');
-        $this->assertContains('cohort', $schemasWritten, 'to-year cohort created + from-year archived');
+		$progress = $svc->execute($plan);
 
-        // The from-year cohort archival must be present.
-        $archived = array_filter($saved, static fn ($s): bool => $s['schema'] === 'cohort' && ($s['object']['lifecycle'] ?? '') === 'archived');
-        $this->assertNotEmpty($archived, 'from-year cohort archived');
-    }//end testExecuteCreatesCohortArchivesAndRecordsProgress()
+		$this->assertSame('done', $progress['c1']);
 
-    /**
-     * A mapping already marked done is skipped on re-run (idempotency).
-     *
-     * @return void
-     */
-    public function testExecuteSkipsCompletedMappings(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        // find/saveObject must never be called for an already-done mapping.
-        $objectService->expects($this->never())->method('find');
-        $objectService->expects($this->never())->method('saveObject');
+		$schemasWritten = array_column($saved, 'schema');
+		$this->assertContains('cohort', $schemasWritten, 'to-year cohort created + from-year archived');
 
-        $svc = $this->makeService($objectService);
+		// The from-year cohort archival must be present.
+		$archived = array_filter($saved, static fn ($s): bool => $s['schema'] === 'cohort' && ($s['object']['lifecycle'] ?? '') === 'archived');
+		$this->assertNotEmpty($archived, 'from-year cohort archived');
+	}//end testExecuteCreatesCohortArchivesAndRecordsProgress()
 
-        $plan = [
-            'fromAcademicYear'   => '2025/2026',
-            'toAcademicYear'     => '2026/2027',
-            'tenant_id'          => 'tenant-a',
-            'mappings'           => [['fromCohortId' => 'c1', 'action' => 'promote', 'toCohortName' => '3A']],
-            'perMappingProgress' => ['c1' => 'done'],
-        ];
+	/**
+	 * A mapping already marked done is skipped on re-run (idempotency).
+	 *
+	 * @return void
+	 */
+	public function testExecuteSkipsCompletedMappings(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		// find/saveObject must never be called for an already-done mapping.
+		$objectService->expects($this->never())->method('find');
+		$objectService->expects($this->never())->method('saveObject');
 
-        $progress = $svc->execute($plan);
-        $this->assertSame('done', $progress['c1']);
-    }//end testExecuteSkipsCompletedMappings()
+		$svc = $this->makeExecutionService($objectService);
 
-    /**
-     * groupName produces a stable, slugified identifier.
-     *
-     * @return void
-     */
-    public function testGroupNameIsDeterministic(): void
-    {
-        $svc = $this->makeService();
-        $this->assertSame('scholiq-cohort-2026-2027-3a', $svc->groupName('2026/2027', '3A'));
-        $this->assertSame(
-            $svc->groupName('2026/2027', '3A'),
-            $svc->groupName('2026/2027', '3A'),
-            'deterministic across calls'
-        );
-    }//end testGroupNameIsDeterministic()
+		$plan = [
+			'fromAcademicYear' => '2025/2026',
+			'toAcademicYear' => '2026/2027',
+			'tenant_id' => 'tenant-a',
+			'mappings' => [['fromCohortId' => 'c1', 'action' => 'promote', 'toCohortName' => '3A']],
+			'perMappingProgress' => ['c1' => 'done'],
+		];
 
-    /**
-     * Build the cohort ObjectEntity that ObjectService::find() returns.
-     *
-     * `find()` is declared `: ?ObjectEntity`, so an anonymous jsonSerialize()
-     * carrier is not an acceptable stand-in — the mock rejects it with an
-     * IncompatibleReturnValueException.
-     *
-     * @param array<string,mixed> $data The cohort data.
-     *
-     * @return ObjectEntity
-     */
-    private function cohortEntity(array $data): ObjectEntity
-    {
-        return OrEntityFactory::make($data, 'cohort');
-    }//end cohortEntity()
+		$progress = $svc->execute($plan);
+		$this->assertSame('done', $progress['c1']);
+	}//end testExecuteSkipsCompletedMappings()
+
+	/**
+	 * groupName produces a stable, slugified identifier.
+	 *
+	 * @return void
+	 */
+	public function testGroupNameIsDeterministic(): void {
+		$svc = $this->makeService();
+		$this->assertSame('scholiq-cohort-2026-2027-3a', $svc->groupName('2026/2027', '3A'));
+		$this->assertSame(
+			$svc->groupName('2026/2027', '3A'),
+			$svc->groupName('2026/2027', '3A'),
+			'deterministic across calls'
+		);
+	}//end testGroupNameIsDeterministic()
+
+	/**
+	 * Build the cohort ObjectEntity that ObjectService::find() returns.
+	 *
+	 * `find()` is declared `: ?ObjectEntity`, so an anonymous jsonSerialize()
+	 * carrier is not an acceptable stand-in — the mock rejects it with an
+	 * IncompatibleReturnValueException.
+	 *
+	 * @param array<string,mixed> $data The cohort data.
+	 *
+	 * @return ObjectEntity
+	 */
+	private function cohortEntity(array $data): ObjectEntity {
+		return OrEntityFactory::make($data, 'cohort');
+	}//end cohortEntity()
 }//end class

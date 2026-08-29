@@ -1,13 +1,15 @@
+import type { Page as PWPage } from '@playwright/test'
+
 import * as fs from 'fs'
 import * as path from 'path'
-import { test, expect } from './fixtures'
-import manifest from '../../src/manifest.json'
+import { effectiveManifest } from './effective-manifest.ts'
+import { expect, test } from './fixtures.ts'
 
 /**
  * Visits EVERY `type: "index"` page declared in src/manifest.json and asserts:
  *   1. The CnAppRoot shell renders (the app nav + a main content area are present).
  *   2. No *uncaught* JS exception fires (a `pageerror`). OR-API fetch 404s /
- *      "No items" empty states are fine — the scholiq register may not be
+ *      "No items" empty states are fine — the learniq register may not be
  *      imported into OpenRegister yet (openregister#1487); a hard render crash
  *      is not.
  *   3. The page heading reflects the page (its `title`, or the schema name).
@@ -16,8 +18,8 @@ import manifest from '../../src/manifest.json'
  *      fail the whole run.
  *
  * Routing: the SPA uses vue-router in `history` mode with base
- * `/index.php/apps/scholiq`, so a manifest route like `/courses` is reached at
- * `/index.php/apps/scholiq/courses` (the PageController `catchAll` route serves
+ * `/index.php/apps/learniq`, so a manifest route like `/courses` is reached at
+ * `/index.php/apps/learniq/courses` (the PageController `catchAll` route serves
  * the SPA shell for `/{path}`).
  *
  * The seed script (tests/e2e/seed-example-data.mjs) runs in ci-seed.sh (CI) or
@@ -36,7 +38,7 @@ import manifest from '../../src/manifest.json'
  * ci-seed.sh gates the floor so a silent collapse to zero still fails the job.
  */
 
-const APP_BASE = '/index.php/apps/scholiq'
+const APP_BASE = '/index.php/apps/learniq'
 
 /**
  * Per-schema row counts the seeder actually produced, keyed by the register's
@@ -48,7 +50,13 @@ function loadSeededCounts(): Record<string, number> {
 	// `.e2e-state/`, not `test-results/`: Playwright deletes every project
 	// outputDir at the start of the run, which would take the seeder's marker
 	// with it.
-	const file = path.resolve(__dirname, '..', '..', '.e2e-state', 'seeded-schemas.json')
+	const file = path.resolve(
+		__dirname,
+		'..',
+		'..',
+		'.e2e-state',
+		'seeded-schemas.json',
+	)
 	try {
 		return JSON.parse(fs.readFileSync(file, 'utf8'))
 	} catch {
@@ -60,66 +68,111 @@ const SEEDED_COUNTS = loadSeededCounts()
 // The deeper checks are meaningful once the register is actually populated. The
 // file is the reliable signal: globalSetup mutates process.env in the RUNNER
 // process, and Playwright workers are separate processes.
-const SEEDED = Object.keys(SEEDED_COUNTS).length > 0 || process.env.SCHOLIQ_E2E_SEEDED === '1'
+const SEEDED =
+	Object.keys(SEEDED_COUNTS).length > 0 || process.env.LEARNIQ_E2E_SEEDED === '1'
 
 type IndexPage = { id: string; route: string; title: string; schema?: string }
 
-const indexPages: IndexPage[] = (manifest as any).pages
-	.filter((p: any) => p.type === 'index' && typeof p.route === 'string' && !p.route.includes(':'))
-	.map((p: any) => ({ id: p.id, route: p.route, title: p.title ?? p.id, schema: p.config?.schema }))
+const indexPages: IndexPage[] = (effectiveManifest as any).pages
+	.filter(
+		(p: any) =>
+			p.type === 'index'
+			&& typeof p.route === 'string'
+			&& !p.route.includes(':'),
+	)
+	.map((p: any) => ({
+		id: p.id,
+		route: p.route,
+		title: p.title ?? p.id,
+		schema: p.config?.schema,
+	}))
 
-function attachErrorCollector(page: import('@playwright/test').Page): string[] {
+function attachErrorCollector(page: PWPage): string[] {
 	const errs: string[] = []
 	page.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`))
 	page.on('console', (msg) => {
 		if (msg.type() !== 'error') return
 		const t = msg.text()
 		// Tolerated: network / resource / OR-not-imported / unrelated-app noise.
-		if (/favicon|font|Failed to load resource|net::ERR|Failed to fetch|404|NetworkError|\[FATAL\] (photos|pipelinq)/i.test(t)) return
+		if (
+			/favicon|font|Failed to load resource|net::ERR|Failed to fetch|404|NetworkError|\[FATAL\] (photos|pipelinq)/i.test(
+				t,
+			)
+		)
+			return
 		// Tolerated: Vue's "render error" is sometimes logged as a console error AND a
 		// pageerror — we only fail on the pageerror. So skip console here unless it's a
 		// clearly app-fatal pattern.
-		if (/TypeError: Cannot read|is not a function|is not defined/i.test(t)) errs.push(`console.error: ${t}`)
+		if (/TypeError: Cannot read|is not a function|is not defined/i.test(t))
+			errs.push(`console.error: ${t}`)
 	})
 	return errs
 }
 
-test.describe(`Scholiq index pages (${indexPages.length})`, () => {
+test.describe(`Learniq index pages (${indexPages.length})`, () => {
 	for (const p of indexPages) {
 		test(`${p.id} — ${APP_BASE}${p.route}`, async ({ loggedInPage: page }) => {
 			const errors = attachErrorCollector(page)
 
-			await page.goto(`${APP_BASE}${p.route === '/' ? '/' : p.route}`, { waitUntil: 'domcontentloaded', timeout: 20_000 })
+			await page.goto(`${APP_BASE}${p.route === '/' ? '/' : p.route}`, {
+				waitUntil: 'domcontentloaded',
+				timeout: 20_000,
+			})
 			// Give the SPA + the index page's data fetch a moment to settle.
-			await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {})
+			await page.waitForLoadState('domcontentloaded')
 
-			// (hard) The Scholiq SPA shell was served for this route — the page title
+			// (hard) The Learniq SPA shell was served for this route — the page title
 			// says so, the body isn't blank, and it's not an NC 404/500 error page.
 			// This is the only assertion that holds across the board today: 32 of the
 			// 35 schemas can't be imported into OpenRegister yet (openregister#1487), so
 			// most index pages 404 on their data fetch and (until that's fixed) throw a
 			// JS error and render an empty body section — the deeper "no JS error" /
 			// "≥1 row" checks below are kept but only applied once the register is
-			// imported (process.env.SCHOLIQ_E2E_SEEDED, set by the globalSetup seed).
-			expect(await page.title(), `${p.id}: should be the Scholiq app page`).toContain('Scholiq')
+			// imported (process.env.LEARNIQ_E2E_SEEDED, set by the globalSetup seed).
+			expect(
+				await page.title(),
+				`${p.id}: should be the Learniq app page`,
+			).toContain('Learniq')
 			const bodyText = (await page.innerText('body')).trim()
-			expect(bodyText.length, `${p.id}: page body should not be blank`).toBeGreaterThan(0)
-			expect(bodyText, `${p.id}: should not be an NC error page`).not.toMatch(/^(404 Not Found|Internal Server Error)$/i)
+			expect(
+				bodyText.length,
+				`${p.id}: page body should not be blank`,
+			).toBeGreaterThan(0)
+			expect(bodyText, `${p.id}: should not be an NC error page`).not.toMatch(
+				/^(404 Not Found|Internal Server Error)$/i,
+			)
 
-			// Deeper checks — only meaningful once OR has the scholiq register.
+			// Deeper checks — only meaningful once OR has the learniq register.
 			if (SEEDED) {
-				expect.soft(errors, `${p.id}: no uncaught JS error — ${errors.join(' | ')}`).toHaveLength(0)
-				expect.soft(
-					await page.locator('.app-navigation, nav#app-navigation, [data-app="scholiq"]').first().isVisible().catch(() => false),
-					`${p.id}: CnAppRoot nav should be present`,
-				).toBe(true)
+				expect
+					.soft(
+						errors,
+						`${p.id}: no uncaught JS error — ${errors.join(' | ')}`,
+					)
+					.toHaveLength(0)
+				expect
+					.soft(
+						await page
+							.locator(
+								'.app-navigation, nav#app-navigation, [data-app="learniq"]',
+							)
+							.first()
+							.isVisible()
+							.catch(() => false),
+						`${p.id}: CnAppRoot nav should be present`,
+					)
+					.toBe(true)
 				const seededRows = p.schema ? (SEEDED_COUNTS[p.schema] ?? 0) : 0
 				if (seededRows > 0) {
-					const rows = page.locator('table tbody tr, .list-item, [data-cy-object-row], .cn-index-row, .app-content-list-item')
-					expect.soft(
-						await rows.count().catch(() => 0),
-						`${p.id}: the seeder created ${seededRows} "${p.schema}" object(s), so this index page must render ≥1 row`,
-					).toBeGreaterThan(0)
+					const rows = page.locator(
+						'table tbody tr, .list-item, [data-cy-object-row], .cn-index-row, .app-content-list-item',
+					)
+					expect
+						.soft(
+							await rows.count().catch(() => 0),
+							`${p.id}: the seeder created ${seededRows} "${p.schema}" object(s), so this index page must render ≥1 row`,
+						)
+						.toBeGreaterThan(0)
 				}
 			}
 		})

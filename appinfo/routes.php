@@ -4,14 +4,22 @@
 declare(strict_types=1);
 
 /*
- * AppHost adoption (ADR-040): the settings, preferences, health and metrics
- * controllers are the OpenRegister AppHost generics, aliased onto Scholiq's
- * conventional controller class names in lib/AppInfo/Application.php via
+ * AppHost adoption (ADR-040): the preferences, health and metrics controllers
+ * are the OpenRegister AppHost generics, aliased onto Learniq's conventional
+ * controller class names in lib/AppInfo/Application.php via
  * \OCA\OpenRegister\AppHost\Bootstrap::register(). The route entries below keep
- * Scholiq's URLs and route names so info.xml navigation + frontend
- * `generateUrl` calls are unchanged; only the controller bodies are now engine-owned.
+ * Learniq's URLs and route names so info.xml navigation + frontend
+ * `generateUrl` calls are unchanged; only those controller bodies are engine-owned.
  *
- * Routes::standard() is intentionally NOT used for the SPA shell: Scholiq's
+ * Settings is NOT one of them. Bootstrap::aliasControllerUnlessLeafDefinesIt()
+ * registers the DI alias only when the leaf app does NOT ship a controller of
+ * that name, and Learniq ships lib/Controller/SettingsController.php — so
+ * `settings#*` dispatches to Learniq's own bespoke controller and the generic
+ * is never constructed. (An earlier revision of this comment claimed the
+ * opposite; that claim is what let `settings#update` stay unrouted unnoticed.)
+ * The same holds for the domain controllers and for PageController below.
+ *
+ * Routes::standard() is intentionally NOT used for the SPA shell: Learniq's
  * `page#index`/`page#catchAll` keep pointing at the bespoke PageController,
  * which provides role-aware dashboard initial-state (primaryRole / dashboardRole
  * / dashboardRoles) that the generic GenericDashboardController does not — this
@@ -22,6 +30,9 @@ declare(strict_types=1);
 return [
     'routes' => [
         // SPA shell — bespoke PageController (role-aware initial state).
+        // First-time setup wizard (ADR-042) - the standard CnSetupWizard contract.
+        ['name' => 'setup#status',    'url' => '/api/setup/status',            'verb' => 'GET'],
+        ['name' => 'setup#runAction', 'url' => '/api/setup/action/{actionId}', 'verb' => 'POST', 'requirements' => ['actionId' => '[a-z0-9\\-]+']],
         ['name' => 'page#index',     'url' => '/',            'verb' => 'GET'],
         // ADR-024 §4 — manifest endpoint (bundled blob).
         ['name' => 'page#manifest',  'url' => '/api/manifest', 'verb' => 'GET'],
@@ -108,9 +119,21 @@ return [
         // Metrics#index → GenericMetricsController (admin-only Prometheus text).
         ['name' => 'metrics#index', 'url' => '/api/metrics', 'verb' => 'GET'],
 
-        // Settings (admin-only) — AppHost GenericSettingsController.
+        // Settings (admin-only) — Learniq's OWN bespoke SettingsController, NOT
+        // the AppHost generic: Bootstrap::aliasControllerUnlessLeafDefinesIt()
+        // skips the alias whenever the leaf ships the class, and Learniq ships
+        // lib/Controller/SettingsController.php. This is deliberate (see the
+        // apphost-adoption spec: the register-import path calls OpenRegister
+        // ConfigurationService::importFromApp(appId, data, version, force), a
+        // signature the generic settings service does not drive). Consequence:
+        // every method the canonical table routes here must exist on the
+        // bespoke class — a missing one is a 500, or, with no route entry at
+        // all, a 405.
+        // `settings#update` (PUT) is the canonical write; `settings#create`
+        // (POST) is the retained legacy alias that delegates to it.
         ['name' => 'settings#index',  'url' => '/api/settings',      'verb' => 'GET'],
         ['name' => 'settings#create', 'url' => '/api/settings',      'verb' => 'POST'],
+        ['name' => 'settings#update', 'url' => '/api/settings',      'verb' => 'PUT'],
         ['name' => 'settings#load',   'url' => '/api/settings/load', 'verb' => 'POST'],
 
         // ADR-023 action-authorization matrix (admin-only via #[AuthorizedAdminSetting]).
@@ -127,8 +150,14 @@ return [
         // Controller: LeaderboardController (slug: leaderboard).
         ['name' => 'leaderboard#getRankings', 'url' => '/api/leaderboard/{cohortId}', 'verb' => 'GET'],
 
+        // The signed-in learner's own points/level/streak, joined across
+        // learner-engagement and engagement-level so the KPI tile needs one
+        // call whose success or failure is total. Controller:
+        // EngagementController (slug: engagement).
+        ['name' => 'engagement#getMe', 'url' => '/api/engagement/me', 'verb' => 'GET'],
+
         // AI processing disclosure — read-only composition of Hermiq's
-        // agentaifeature register, Scholiq's scholiq-ai-features AVG carrier,
+        // agentaifeature register, Learniq's scholiq-ai-features AVG carrier,
         // and the AiLocalityClassifier/SovereigntyPolicyService verdict for
         // the currently active provider (sovereign-ai-guarantee).
         // Controller: AiProcessingDisclosureController (slug: aiProcessingDisclosure).

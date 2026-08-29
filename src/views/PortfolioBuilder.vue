@@ -14,15 +14,15 @@
   rather than a generic error.
 
   Talks only to OpenRegister's REST API:
-    - GET  /api/objects/scholiq/Portfolio/:id
-    - GET  /api/objects/scholiq/portfolio-template/:id           (when templateId set)
-    - GET  /api/objects/scholiq/portfolio-entry?filters[portfolioId]=:id
-    - GET  /api/objects/scholiq/Submission?filters[learnerIds]=:learnerId
-    - GET  /api/objects/scholiq/werkproces-assessment?filters[...]
-    - GET  /api/objects/scholiq/external-training-record?filters[learnerId]=:learnerId
-    - GET  /api/objects/scholiq/Credential?filters[learnerId]=:learnerId
-    - POST /api/objects/scholiq/portfolio-entry
-    - POST /api/objects/scholiq/Portfolio/:id/transition/submit
+    - GET  /api/objects/learniq/Portfolio/:id
+    - GET  /api/objects/learniq/portfolio-template/:id           (when templateId set)
+    - GET  /api/objects/learniq/portfolio-entry?filters[portfolioId]=:id
+    - GET  /api/objects/learniq/Submission?filters[learnerIds]=:learnerId
+    - GET  /api/objects/learniq/werkproces-assessment?filters[...]
+    - GET  /api/objects/learniq/external-training-record?filters[learnerId]=:learnerId
+    - GET  /api/objects/learniq/Credential?filters[learnerId]=:learnerId
+    - POST /api/objects/learniq/portfolio-entry
+    - POST /api/objects/learniq/Portfolio/:id/transition/submit
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView.vue's existing shape.
@@ -40,7 +40,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="portfolio-builder__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading portfolio...') }}</span>
+			<span>{{ t('learniq', 'Loading portfolio...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -51,27 +51,48 @@
 
 		<template v-else-if="portfolio">
 			<header class="portfolio-builder__header">
-				<h2>{{ t('scholiq', 'Build portfolio: {title}', { title: portfolio.title || '' }) }}</h2>
+				<h2>
+					{{
+						t('learniq', 'Build portfolio: {title}', {
+							title: portfolio.title || '',
+						})
+					}}
+				</h2>
 				<p class="portfolio-builder__meta">
-					{{ t('scholiq', 'Kind: {kind}', { kind: portfolio.kind || '' }) }}
+					{{
+						t('learniq', 'Kind: {kind}', { kind: portfolio.kind || '' })
+					}}
 					<span class="portfolio-builder__lifecycle">
-						{{ t('scholiq', 'Status: {status}', { status: portfolio.lifecycle || '' }) }}
+						{{
+							t('learniq', 'Status: {status}', {
+								status: portfolio.lifecycle || '',
+							})
+						}}
 					</span>
 				</p>
 			</header>
 
 			<!-- Required-section coverage, when a template governs this portfolio -->
-			<section v-if="template && sections.length > 0" class="portfolio-builder__sections">
-				<h3>{{ t('scholiq', 'Required sections') }}</h3>
+			<section
+				v-if="template && sections.length > 0"
+				class="portfolio-builder__sections">
+				<h3>{{ t('learniq', 'Required sections') }}</h3>
 				<ul class="portfolio-builder__section-list">
 					<li
 						v-for="section in sections"
 						:key="section.sectionId"
 						class="portfolio-builder__section-item"
-						:class="{ 'portfolio-builder__section-item--covered': isSectionCovered(section.sectionId) }">
+						:class="{
+							'portfolio-builder__section-item--covered':
+								isSectionCovered(section.sectionId),
+						}">
 						<span
 							class="portfolio-builder__section-icon"
-							:class="isSectionCovered(section.sectionId) ? 'icon-checkmark' : 'icon-error'"
+							:class="
+								isSectionCovered(section.sectionId)
+									? 'icon-checkmark'
+									: 'icon-error'
+							"
 							aria-hidden="true" />
 						<span>{{ section.label }}</span>
 					</li>
@@ -80,27 +101,43 @@
 
 			<!-- Existing entries -->
 			<section class="portfolio-builder__entries">
-				<h3>{{ t('scholiq', 'Evidence entries') }}</h3>
+				<h3>{{ t('learniq', 'Evidence entries') }}</h3>
 				<ul v-if="entries.length > 0" class="portfolio-builder__entry-list">
-					<li v-for="entry in entries" :key="entry.id" class="portfolio-builder__entry-item">
-						<span class="portfolio-builder__entry-kind">{{ evidenceKindLabel(entry.evidenceKind) }}</span>
-						<span class="portfolio-builder__entry-title">{{ entry.title }}</span>
-						<span v-if="entry.sectionId" class="portfolio-builder__entry-section">
-							{{ t('scholiq', 'Section: {s}', { s: sectionLabel(entry.sectionId) }) }}
+					<li
+						v-for="entry in entries"
+						:key="entry.id"
+						class="portfolio-builder__entry-item">
+						<span class="portfolio-builder__entry-kind">{{
+							/**
+							 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+							 */
+							evidenceKindLabel(entry.evidenceKind)
+						}}</span>
+						<span class="portfolio-builder__entry-title">{{
+							entry.title
+						}}</span>
+						<span
+							v-if="entry.sectionId"
+							class="portfolio-builder__entry-section">
+							{{
+								t('learniq', 'Section: {s}', {
+									s: sectionLabel(entry.sectionId),
+								})
+							}}
 						</span>
 					</li>
 				</ul>
 				<p v-else class="portfolio-builder__no-entries">
-					{{ t('scholiq', 'No evidence added yet.') }}
+					{{ t('learniq', 'No evidence added yet.') }}
 				</p>
 			</section>
 
 			<!-- Add-entry form: evidence-kind picker, never a free-text UUID field -->
 			<section class="portfolio-builder__add-entry">
-				<h3>{{ t('scholiq', 'Add evidence') }}</h3>
+				<h3>{{ t('learniq', 'Add evidence') }}</h3>
 
 				<label for="pb-evidence-kind" class="portfolio-builder__field-label">
-					{{ t('scholiq', 'Evidence kind') }}
+					{{ t('learniq', 'Evidence kind') }}
 				</label>
 				<select
 					id="pb-evidence-kind"
@@ -108,25 +145,29 @@
 					class="portfolio-builder__select"
 					@change="onEvidenceKindChange">
 					<option value="submission">
-						{{ t('scholiq', 'Existing submission') }}
+						{{ t('learniq', 'Existing submission') }}
 					</option>
 					<option value="werkproces-assessment">
-						{{ t('scholiq', 'Werkproces assessment') }}
+						{{ t('learniq', 'Werkproces assessment') }}
 					</option>
 					<option value="external-training-record">
-						{{ t('scholiq', 'External training record') }}
+						{{ t('learniq', 'External training record') }}
 					</option>
 					<option value="credential">
-						{{ t('scholiq', 'Credential') }}
+						{{ t('learniq', 'Credential') }}
 					</option>
 					<option value="reflection">
-						{{ t('scholiq', 'Reflection') }}
+						{{ t('learniq', 'Reflection') }}
 					</option>
 				</select>
 
-				<div v-if="newEntry.evidenceKind !== 'reflection'" class="portfolio-builder__picker">
-					<label for="pb-evidence-ref" class="portfolio-builder__field-label">
-						{{ t('scholiq', 'Select existing object') }}
+				<div
+					v-if="newEntry.evidenceKind !== 'reflection'"
+					class="portfolio-builder__picker">
+					<label
+						for="pb-evidence-ref"
+						class="portfolio-builder__field-label">
+						{{ t('learniq', 'Select existing object') }}
 					</label>
 					<select
 						id="pb-evidence-ref"
@@ -134,46 +175,68 @@
 						class="portfolio-builder__select"
 						:disabled="pickerOptions.length === 0">
 						<option value="">
-							{{ t('scholiq', '— choose —') }}
+							{{ t('learniq', '— choose —') }}
 						</option>
-						<option v-for="opt in pickerOptions" :key="opt.id" :value="opt.id">
+						<option
+							v-for="opt in pickerOptions"
+							:key="opt.id"
+							:value="opt.id">
 							{{ opt.label }}
 						</option>
 					</select>
-					<p v-if="pickerOptions.length === 0" class="portfolio-builder__picker-empty">
-						{{ t('scholiq', 'No eligible objects found for this evidence kind.') }}
+					<p
+						v-if="pickerOptions.length === 0"
+						class="portfolio-builder__picker-empty">
+						{{
+							t(
+								'learniq',
+								'No eligible objects found for this evidence kind.',
+							)
+						}}
 					</p>
 				</div>
 
 				<div class="portfolio-builder__field">
 					<label for="pb-title" class="portfolio-builder__field-label">
-						{{ t('scholiq', 'Title') }}
+						{{ t('learniq', 'Title') }}
 					</label>
 					<input
 						id="pb-title"
 						v-model="newEntry.title"
 						type="text"
-						class="portfolio-builder__input">
+						class="portfolio-builder__input" />
 				</div>
 
 				<div v-if="sections.length > 0" class="portfolio-builder__field">
 					<label for="pb-section" class="portfolio-builder__field-label">
-						{{ t('scholiq', 'Section') }}
+						{{ t('learniq', 'Section') }}
 					</label>
-					<select id="pb-section" v-model="newEntry.sectionId" class="portfolio-builder__select">
+					<select
+						id="pb-section"
+						v-model="newEntry.sectionId"
+						class="portfolio-builder__select">
 						<option value="">
-							{{ t('scholiq', '— none —') }}
+							{{ t('learniq', '— none —') }}
 						</option>
-						<option v-for="section in sections" :key="section.sectionId" :value="section.sectionId">
+						<option
+							v-for="section in sections"
+							:key="section.sectionId"
+							:value="section.sectionId">
 							{{ section.label }}
 						</option>
 					</select>
 				</div>
 
-				<div v-if="newEntry.evidenceKind === 'reflection' || newEntry.reflectionText"
+				<div
+					v-if="
+						newEntry.evidenceKind === 'reflection'
+						|| newEntry.reflectionText
+					"
 					class="portfolio-builder__field">
-					<label for="pb-reflection" class="portfolio-builder__field-label">
-						{{ t('scholiq', 'Reflection text') }}
+					<label
+						for="pb-reflection"
+						class="portfolio-builder__field-label">
+						{{ t('learniq', 'Reflection text') }}
 					</label>
 					<textarea
 						id="pb-reflection"
@@ -186,10 +249,16 @@
 					class="button-vue button-vue--secondary portfolio-builder__add-btn"
 					:disabled="addingEntry || !canAddEntry"
 					@click="addEntry">
-					<span v-if="addingEntry" class="icon-loading" aria-hidden="true" />
-					{{ t('scholiq', 'Add evidence entry') }}
+					<span
+						v-if="addingEntry"
+						class="icon-loading"
+						aria-hidden="true" />
+					{{ t('learniq', 'Add evidence entry') }}
 				</button>
-				<p v-if="addEntryError" role="alert" class="portfolio-builder__add-error">
+				<p
+					v-if="addEntryError"
+					role="alert"
+					class="portfolio-builder__add-error">
 					{{ addEntryError }}
 				</p>
 			</section>
@@ -200,23 +269,32 @@
 					class="button-vue button-vue--primary portfolio-builder__submit-btn"
 					:disabled="submitting"
 					@click="submitPortfolio">
-					<span v-if="submitting" class="icon-loading" aria-hidden="true" />
-					{{ t('scholiq', 'Submit portfolio') }}
+					<span
+						v-if="submitting"
+						class="icon-loading"
+						aria-hidden="true" />
+					{{ t('learniq', 'Submit portfolio') }}
 				</button>
 			</div>
-			<p v-if="submitError" role="alert" class="portfolio-builder__submit-error">
+			<p
+				v-if="submitError"
+				role="alert"
+				class="portfolio-builder__submit-error">
 				{{ submitError }}
 			</p>
-			<p v-if="submitted" class="portfolio-builder__submit-confirmation" role="status">
-				{{ t('scholiq', 'Portfolio submitted.') }}
+			<p
+				v-if="submitted"
+				class="portfolio-builder__submit-confirmation"
+				role="status">
+				{{ t('learniq', 'Portfolio submitted.') }}
 			</p>
 		</template>
 	</div>
 </template>
 
 <script>
-import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'PortfolioBuilder',
@@ -248,6 +326,7 @@ export default {
 				sectionId: '',
 				reflectionText: '',
 			},
+
 			loading: false,
 			error: null,
 			addingEntry: false,
@@ -263,6 +342,7 @@ export default {
 		 * The governing PortfolioTemplate's sections, or an empty array when untemplated.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		sections() {
 			return this.template?.sections ?? []
@@ -272,12 +352,18 @@ export default {
 		 * Whether the add-entry form has enough data to submit.
 		 *
 		 * @return {boolean}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		canAddEntry() {
 			if (this.newEntry.evidenceKind === 'reflection') {
-				return this.newEntry.title.trim() !== '' && this.newEntry.reflectionText.trim() !== ''
+				return (
+					this.newEntry.title.trim() !== ''
+					&& this.newEntry.reflectionText.trim() !== ''
+				)
 			}
-			return this.newEntry.title.trim() !== '' && this.newEntry.referenceId !== ''
+			return (
+				this.newEntry.title.trim() !== '' && this.newEntry.referenceId !== ''
+			)
 		},
 
 		/**
@@ -288,10 +374,13 @@ export default {
 		 * not offered").
 		 *
 		 * @return {boolean}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		canSubmit() {
-			return this.portfolio?.kind === 'course-bound'
+			return (
+				this.portfolio?.kind === 'course-bound'
 				&& ['draft', 'active'].includes(this.portfolio?.lifecycle)
+			)
 		},
 	},
 
@@ -303,6 +392,7 @@ export default {
 			 *
 			 * @param {string} newId New portfolio UUID
 			 * @return {Promise<void>}
+			 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 			 */
 			async handler(newId) {
 				if (newId) {
@@ -320,6 +410,7 @@ export default {
 		 *
 		 * @param {string} portfolioId Portfolio UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadData(portfolioId) {
 			this.loading = true
@@ -329,15 +420,37 @@ export default {
 				this.portfolio = await this.fetchObject('Portfolio', portfolioId)
 
 				if (this.portfolio.templateId) {
-					this.template = await this.fetchObject('PortfolioTemplate', this.portfolio.templateId)
+					this.template = await this.fetchObject(
+						'portfolio-template',
+						this.portfolio.templateId,
+					)
 				}
 
 				await this.loadEntries(portfolioId)
 				await this.loadPickerOptions()
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load portfolio. Please try again.')
-				// eslint-disable-next-line no-console
-				console.error('[PortfolioBuilder] loadData error', err)
+				// A MISSING RECORD IS INPUT, NOT A FAULT.
+				//
+				// Opening a stale bookmark, or a link to a portfolio someone has
+				// since deleted, is an ordinary thing for a user to do. It gets a
+				// 404, the view says so, and nothing is wrong with the
+				// application — so it must not reach `console.error`, which is
+				// where genuine faults live. Logging it there buries real errors
+				// in routine noise, and any check asserting "no console errors"
+				// fails on normal navigation.
+				if (err?.notFound === true) {
+					this.error = this.t(
+						'learniq',
+						'This portfolio no longer exists, or you do not have access to it.',
+					)
+				} else {
+					this.error = this.t(
+						'learniq',
+						'Failed to load portfolio. Please try again.',
+					)
+					// eslint-disable-next-line no-console
+					console.error('[PortfolioBuilder] loadData error', err)
+				}
 			} finally {
 				this.loading = false
 			}
@@ -349,14 +462,29 @@ export default {
 		 * @param {string} schema OR schema PascalCase key (matches the object-API path convention).
 		 * @param {string} objId  Object UUID.
 		 * @return {Promise<object>}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async fetchObject(schema, objId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}/${objId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/${schema}/${objId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
 			if (!resp.ok) {
-				throw new Error(`${schema} fetch failed: ${resp.status}`)
+				// `notFound` is set HERE and only here — on the single-object
+				// lookup — not wherever a 404 happens to surface.
+				//
+				// This method and fetchList() both feed the same catch. A 404
+				// from a LIST does not mean "this record is absent": an empty
+				// result set says that, with HTTP 200. A 404 there means the
+				// schema did not resolve, which is a broken register and must
+				// stay loud. Flagging the object lookup specifically keeps the
+				// quiet branch to the one case that is genuinely expected input.
+				const err = new Error(`${schema} fetch failed: ${resp.status}`)
+				err.status = resp.status
+				err.notFound = resp.status === 404
+				throw err
 			}
 			const json = await resp.json()
 			return json.object ?? json ?? {}
@@ -368,9 +496,12 @@ export default {
 		 * @param {string} schema OR schema PascalCase key.
 		 * @param {string} query  Pre-built query string (already URL-encoded).
 		 * @return {Promise<Array<object>>}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async fetchList(schema, query) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}?${query}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -386,9 +517,13 @@ export default {
 		 *
 		 * @param {string} portfolioId Portfolio UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadEntries(portfolioId) {
-			this.entries = await this.fetchList('PortfolioEntry', `filters[portfolioId]=${portfolioId}&limit=100`)
+			this.entries = await this.fetchList(
+				'portfolio-entry',
+				`filters[portfolioId]=${portfolioId}&_limit=100`,
+			)
 		},
 
 		/**
@@ -397,6 +532,7 @@ export default {
 		 * Never a free-text UUID field (spec requirement).
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadPickerOptions() {
 			const uid = getCurrentUser()?.uid ?? ''
@@ -409,25 +545,39 @@ export default {
 
 			try {
 				if (kind === 'submission') {
-					const rows = await this.fetchList('Submission', `filters[learnerIds]=${uid}&limit=100`)
+					const rows = await this.fetchList(
+						'Submission',
+						`filters[learnerIds]=${uid}&_limit=100`,
+					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
-						label: r.feedbackText ? `${r.assignmentId} — ${r.feedbackText}` : (r.assignmentId ?? r.id),
+						label: r.feedbackText
+							? `${r.assignmentId} — ${r.feedbackText}`
+							: (r.assignmentId ?? r.id),
 					}))
 				} else if (kind === 'werkproces-assessment') {
-					const rows = await this.fetchList('WerkprocesAssessment', `filters[learnerId]=${uid}&limit=100`)
+					const rows = await this.fetchList(
+						kind,
+						`filters[learnerId]=${uid}&_limit=100`,
+					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
 						label: r.werkprocesLabel ?? r.werkprocesCode ?? r.id,
 					}))
 				} else if (kind === 'external-training-record') {
-					const rows = await this.fetchList('ExternalTrainingRecord', `filters[learnerId]=${uid}&limit=100`)
+					const rows = await this.fetchList(
+						kind,
+						`filters[learnerId]=${uid}&_limit=100`,
+					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
 						label: r.title ?? r.providerName ?? r.id,
 					}))
 				} else if (kind === 'credential') {
-					const rows = await this.fetchList('Credential', `filters[learnerId]=${uid}&limit=100`)
+					const rows = await this.fetchList(
+						'Credential',
+						`filters[learnerId]=${uid}&_limit=100`,
+					)
 					this.pickerOptions = rows.map((r) => ({
 						id: r.id,
 						label: r.title ?? r.id,
@@ -446,6 +596,7 @@ export default {
 		 * Re-load picker options when the evidence-kind selector changes.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async onEvidenceKindChange() {
 			this.newEntry.referenceId = ''
@@ -469,9 +620,13 @@ export default {
 		 *
 		 * @param {string} sectionId Section identifier.
 		 * @return {string}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		sectionLabel(sectionId) {
-			return this.sections.find((s) => s.sectionId === sectionId)?.label ?? sectionId
+			return (
+				this.sections.find((s) => s.sectionId === sectionId)?.label
+				?? sectionId
+			)
 		},
 
 		/**
@@ -479,15 +634,20 @@ export default {
 		 *
 		 * @param {string} kind evidenceKind value.
 		 * @return {string}
+		 * @spec exclude Presentation-only label map from the 6 fixed evidenceKind values to their localized display names; the per-kind reference discipline itself is governed by requirement-portfolioentry-references-existing-evidence-objects-via-per-kind-fields-never-a-polymorphic-ref, not by this string lookup.
 		 */
 		evidenceKindLabel(kind) {
 			const labels = {
-				file: this.t('scholiq', 'File'),
-				submission: this.t('scholiq', 'Submission'),
-				'werkproces-assessment': this.t('scholiq', 'Werkproces assessment'),
-				'external-training-record': this.t('scholiq', 'External training record'),
-				credential: this.t('scholiq', 'Credential'),
-				reflection: this.t('scholiq', 'Reflection'),
+				file: this.t('learniq', 'File'),
+				submission: this.t('learniq', 'Submission'),
+				'werkproces-assessment': this.t('learniq', 'Werkproces assessment'),
+				'external-training-record': this.t(
+					'learniq',
+					'External training record',
+				),
+
+				credential: this.t('learniq', 'Credential'),
+				reflection: this.t('learniq', 'Reflection'),
 			}
 			return labels[kind] ?? kind
 		},
@@ -498,6 +658,7 @@ export default {
 		 * duplicating the referenced object's own field values.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async addEntry() {
 			if (!this.portfolio) {
@@ -529,7 +690,9 @@ export default {
 			}
 
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/portfolio-entry')
+				const url = generateUrl(
+					'/apps/openregister/api/objects/learniq/portfolio-entry',
+				)
 				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -553,7 +716,10 @@ export default {
 				}
 				await this.loadPickerOptions()
 			} catch (err) {
-				this.addEntryError = this.t('scholiq', 'Failed to add evidence entry. Please try again.')
+				this.addEntryError = this.t(
+					'learniq',
+					'Failed to add evidence entry. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[PortfolioBuilder] addEntry error', err)
 			} finally {
@@ -567,13 +733,16 @@ export default {
 		 * generic error.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async submitPortfolio() {
 			this.submitting = true
 			this.submitError = null
 
 			try {
-				const url = generateUrl(`/apps/openregister/api/objects/scholiq/Portfolio/${this.id}/transition/submit`)
+				const url = generateUrl(
+					`/apps/openregister/api/objects/learniq/Portfolio/${this.id}/transition/submit`,
+				)
 				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -585,18 +754,23 @@ export default {
 				})
 				if (resp.status === 422) {
 					this.submitError = this.t(
-						'scholiq',
+						'learniq',
 						'Submission refused: every required section needs at least one evidence entry.',
 					)
 					return
 				}
 				if (!resp.ok) {
-					throw new Error(`Portfolio submit transition failed: ${resp.status}`)
+					throw new Error(
+						`Portfolio submit transition failed: ${resp.status}`,
+					)
 				}
 				this.portfolio = await this.fetchObject('Portfolio', this.id)
 				this.submitted = true
 			} catch (err) {
-				this.submitError = this.t('scholiq', 'Failed to submit portfolio. Please try again.')
+				this.submitError = this.t(
+					'learniq',
+					'Failed to submit portfolio. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[PortfolioBuilder] submitPortfolio error', err)
 			} finally {
@@ -611,7 +785,8 @@ export default {
 .portfolio-builder {
 	max-width: 860px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .portfolio-builder__loading,

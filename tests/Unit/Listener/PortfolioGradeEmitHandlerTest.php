@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq PortfolioGradeEmitHandler unit tests.
+ * Learniq PortfolioGradeEmitHandler unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,13 +21,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Listener\PortfolioGradeEmitHandler;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Listener\PortfolioGradeEmitHandler;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -37,213 +37,203 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-graded-course-bound-portfolio-flows-through-the-existing-gradeentry-pipeline-not-a-parallel-one
  * @spec openspec/changes/eportfolio/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
-class PortfolioGradeEmitHandlerTest extends TestCase
-{
+class PortfolioGradeEmitHandlerTest extends TestCase {
 
-    /**
-     * Recorded saveObject() calls, captured by the ObjectService stub used per test.
-     *
-     * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
-     */
-    private array $savedObjects = [];
+	/**
+	 * Recorded saveObject() calls, captured by the ObjectService stub used per test.
+	 *
+	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
+	 */
+	private array $savedObjects = [];
 
-    /**
-     * Reset the capture buffer before each test.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->savedObjects = [];
+	/**
+	 * Reset the capture buffer before each test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->savedObjects = [];
 
-    }//end setUp()
+	}//end setUp()
 
-    /**
-     * Build a handler backed by an ObjectService stub.
-     *
-     * @param array<string, mixed>|null $curriculumPlan CurriculumPlan returned for
-     *                                                   curriculum-plan lookups.
-     *
-     * @return PortfolioGradeEmitHandler
-     */
-    private function makeHandler(?array $curriculumPlan): PortfolioGradeEmitHandler
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('findAll')->willReturnCallback(
-            function (array $config) use ($curriculumPlan) {
-                if ($config['schema'] === 'curriculum-plan') {
-                    return ($curriculumPlan === null) ? [] : [$curriculumPlan];
-                }
+	/**
+	 * Build a handler backed by an ObjectService stub.
+	 *
+	 * @param array<string, mixed>|null $curriculumPlan CurriculumPlan returned for
+	 *                                                  curriculum-plan lookups.
+	 *
+	 * @return PortfolioGradeEmitHandler
+	 */
+	private function makeHandler(?array $curriculumPlan): PortfolioGradeEmitHandler {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config) use ($curriculumPlan) {
+				if ($config['schema'] === 'curriculum-plan') {
+					return ($curriculumPlan === null) ? [] : [$curriculumPlan];
+				}
 
-                return [];
-            }
-        );
+				return [];
+			}
+		);
 
-        $objectService->method('saveObject')->willReturnCallback(
-            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null): ObjectEntity {
-                $schema = (string) $schema;
-                $data   = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+		$objectService->method('saveObject')->willReturnCallback(
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+				$schema = (string)$schema;
+				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 
-                $this->savedObjects[] = [
-                    'register' => (string) $register,
-                    'schema'   => $schema,
-                    'object'   => $data,
-                ];
-                if ($schema === 'grade-entry' && ($data['id'] ?? null) === null) {
-                    $data['id'] = 'grade-entry-generated';
-                }
+				$this->savedObjects[] = [
+					'register' => (string)$register,
+					'schema' => $schema,
+					'object' => $data,
+				];
+				if ($schema === 'grade-entry' && ($data['id'] ?? null) === null) {
+					$data['id'] = 'grade-entry-generated';
+				}
 
-                return OrEntityFactory::make($data, $schema, (string) $register);
-            }
-        );
+				return OrEntityFactory::make($data, $schema, (string)$register);
+			}
+		);
 
-        return new PortfolioGradeEmitHandler($objectService, $this->createMock(LoggerInterface::class));
+		return new PortfolioGradeEmitHandler($objectService, $this->createMock(LoggerInterface::class));
+	}//end makeHandler()
 
-    }//end makeHandler()
+	/**
+	 * Build a mocked ObjectTransitionedEvent for a Portfolio → graded transition.
+	 *
+	 * @param array<string, mixed> $portfolioData The Portfolio's jsonSerialize() payload.
+	 *
+	 * @return ObjectTransitionedEvent
+	 */
+	private function makeEvent(array $portfolioData): ObjectTransitionedEvent {
+		$objectEntity = $this->createMock(ObjectEntity::class);
+		$objectEntity->method('jsonSerialize')->willReturn($portfolioData);
 
-    /**
-     * Build a mocked ObjectTransitionedEvent for a Portfolio → graded transition.
-     *
-     * @param array<string, mixed> $portfolioData The Portfolio's jsonSerialize() payload.
-     *
-     * @return ObjectTransitionedEvent
-     */
-    private function makeEvent(array $portfolioData): ObjectTransitionedEvent
-    {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($portfolioData);
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getObject')->willReturn($objectEntity);
+		$event->method('getRegister')->willReturn('learniq');
+		$event->method('getSchema')->willReturn('portfolio');
+		$event->method('getTo')->willReturn('graded');
+		$event->method('getFrom')->willReturn('submitted');
+		$event->method('getUserId')->willReturn('teacher-1');
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getObject')->willReturn($objectEntity);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('portfolio');
-        $event->method('getTo')->willReturn('graded');
-        $event->method('getFrom')->willReturn('submitted');
-        $event->method('getUserId')->willReturn('teacher-1');
+		return $event;
+	}//end makeEvent()
 
-        return $event;
+	/**
+	 * Scenario: "Transitioning a course-bound portfolio to graded emits a concept GradeEntry" —
+	 * sourceKind: portfolio, lifecycle: concept, portfolioId set, and Portfolio.gradeEntryId
+	 * back-linked.
+	 *
+	 * @return void
+	 */
+	public function testGradedPortfolioCreatesConceptGradeEntry(): void {
+		$plan = ['id' => 'plan-1', 'gradeScaleId' => 'scale-numeric'];
+		$handler = $this->makeHandler($plan);
 
-    }//end makeEvent()
+		$portfolio = [
+			'id' => 'portfolio-1',
+			'learnerId' => 'learner-7',
+			'curriculumPlanId' => 'plan-1',
+			'curriculumPlanComponentId' => 'component-9',
+			'gradeValue' => 7.5,
+			'gradeEntryId' => null,
+			'tenant_id' => 'tenant-a',
+		];
 
-    /**
-     * Scenario: "Transitioning a course-bound portfolio to graded emits a concept GradeEntry" —
-     * sourceKind: portfolio, lifecycle: concept, portfolioId set, and Portfolio.gradeEntryId
-     * back-linked.
-     *
-     * @return void
-     */
-    public function testGradedPortfolioCreatesConceptGradeEntry(): void
-    {
-        $plan    = ['id' => 'plan-1', 'gradeScaleId' => 'scale-numeric'];
-        $handler = $this->makeHandler($plan);
+		$handler->handle($this->makeEvent($portfolio));
 
-        $portfolio = [
-            'id'                        => 'portfolio-1',
-            'learnerId'                 => 'learner-7',
-            'curriculumPlanId'          => 'plan-1',
-            'curriculumPlanComponentId' => 'component-9',
-            'gradeValue'                => 7.5,
-            'gradeEntryId'              => null,
-            'tenant_id'                 => 'tenant-a',
-        ];
+		$gradeSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'grade-entry'));
+		$this->assertCount(1, $gradeSaves);
 
-        $handler->handle($this->makeEvent($portfolio));
+		$saved = $gradeSaves[0]['object'];
+		$this->assertSame('portfolio', $saved['sourceKind']);
+		$this->assertSame('portfolio-1', $saved['portfolioId']);
+		$this->assertSame('concept', $saved['lifecycle']);
+		$this->assertSame('learner-7', $saved['learnerId']);
+		$this->assertSame('plan-1', $saved['curriculumPlanId']);
+		$this->assertSame('component-9', $saved['componentId']);
+		$this->assertSame(7.5, $saved['value']);
+		$this->assertSame('scale-numeric', $saved['gradeScaleId']);
+		$this->assertSame('teacher-1', $saved['grader']);
+		$this->assertSame('tenant-a', $saved['tenant_id']);
+		$this->assertNotSame('manual', $saved['sourceKind']);
 
-        $gradeSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'grade-entry'));
-        $this->assertCount(1, $gradeSaves);
+		// Back-link: a second saveObject() call writes gradeEntryId onto the Portfolio.
+		$portfolioSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'portfolio'));
+		$this->assertCount(1, $portfolioSaves);
+		$this->assertSame('grade-entry-generated', $portfolioSaves[0]['object']['gradeEntryId']);
 
-        $saved = $gradeSaves[0]['object'];
-        $this->assertSame('portfolio', $saved['sourceKind']);
-        $this->assertSame('portfolio-1', $saved['portfolioId']);
-        $this->assertSame('concept', $saved['lifecycle']);
-        $this->assertSame('learner-7', $saved['learnerId']);
-        $this->assertSame('plan-1', $saved['curriculumPlanId']);
-        $this->assertSame('component-9', $saved['componentId']);
-        $this->assertSame(7.5, $saved['value']);
-        $this->assertSame('scale-numeric', $saved['gradeScaleId']);
-        $this->assertSame('teacher-1', $saved['grader']);
-        $this->assertSame('tenant-a', $saved['tenant_id']);
-        $this->assertNotSame('manual', $saved['sourceKind']);
+	}//end testGradedPortfolioCreatesConceptGradeEntry()
 
-        // Back-link: a second saveObject() call writes gradeEntryId onto the Portfolio.
-        $portfolioSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'portfolio'));
-        $this->assertCount(1, $portfolioSaves);
-        $this->assertSame('grade-entry-generated', $portfolioSaves[0]['object']['gradeEntryId']);
+	/**
+	 * Scenario: "Re-triggering the graded transition does not create a duplicate GradeEntry" —
+	 * when Portfolio.gradeEntryId is already set, the handler is idempotent and writes nothing.
+	 *
+	 * @return void
+	 */
+	public function testNoDuplicateWhenGradeEntryIdAlreadySet(): void {
+		$handler = $this->makeHandler(['id' => 'plan-1', 'gradeScaleId' => 'scale-numeric']);
 
-    }//end testGradedPortfolioCreatesConceptGradeEntry()
+		$portfolio = [
+			'id' => 'portfolio-1',
+			'learnerId' => 'learner-7',
+			'curriculumPlanId' => 'plan-1',
+			'curriculumPlanComponentId' => 'component-9',
+			'gradeValue' => 7.5,
+			'gradeEntryId' => 'grade-entry-existing',
+			'tenant_id' => 'tenant-a',
+		];
 
-    /**
-     * Scenario: "Re-triggering the graded transition does not create a duplicate GradeEntry" —
-     * when Portfolio.gradeEntryId is already set, the handler is idempotent and writes nothing.
-     *
-     * @return void
-     */
-    public function testNoDuplicateWhenGradeEntryIdAlreadySet(): void
-    {
-        $handler = $this->makeHandler(['id' => 'plan-1', 'gradeScaleId' => 'scale-numeric']);
+		$handler->handle($this->makeEvent($portfolio));
 
-        $portfolio = [
-            'id'                        => 'portfolio-1',
-            'learnerId'                 => 'learner-7',
-            'curriculumPlanId'          => 'plan-1',
-            'curriculumPlanComponentId' => 'component-9',
-            'gradeValue'                => 7.5,
-            'gradeEntryId'              => 'grade-entry-existing',
-            'tenant_id'                 => 'tenant-a',
-        ];
+		$this->assertCount(0, $this->savedObjects);
 
-        $handler->handle($this->makeEvent($portfolio));
+	}//end testNoDuplicateWhenGradeEntryIdAlreadySet()
 
-        $this->assertCount(0, $this->savedObjects);
+	/**
+	 * A graded Portfolio missing a required field (learnerId/curriculumPlanId/
+	 * curriculumPlanComponentId/gradeValue) is a safe no-op — no GradeEntry is written.
+	 *
+	 * @return void
+	 */
+	public function testMissingRequiredFieldIsNoOp(): void {
+		$handler = $this->makeHandler(['id' => 'plan-1', 'gradeScaleId' => 'scale-numeric']);
 
-    }//end testNoDuplicateWhenGradeEntryIdAlreadySet()
+		$portfolio = [
+			'id' => 'portfolio-1',
+			'learnerId' => 'learner-7',
+			'curriculumPlanId' => 'plan-1',
+			'curriculumPlanComponentId' => 'component-9',
+			'gradeValue' => null,
+			'gradeEntryId' => null,
+			'tenant_id' => 'tenant-a',
+		];
 
-    /**
-     * A graded Portfolio missing a required field (learnerId/curriculumPlanId/
-     * curriculumPlanComponentId/gradeValue) is a safe no-op — no GradeEntry is written.
-     *
-     * @return void
-     */
-    public function testMissingRequiredFieldIsNoOp(): void
-    {
-        $handler = $this->makeHandler(['id' => 'plan-1', 'gradeScaleId' => 'scale-numeric']);
+		$handler->handle($this->makeEvent($portfolio));
 
-        $portfolio = [
-            'id'                        => 'portfolio-1',
-            'learnerId'                 => 'learner-7',
-            'curriculumPlanId'          => 'plan-1',
-            'curriculumPlanComponentId' => 'component-9',
-            'gradeValue'                => null,
-            'gradeEntryId'              => null,
-            'tenant_id'                 => 'tenant-a',
-        ];
+		$this->assertCount(0, $this->savedObjects);
 
-        $handler->handle($this->makeEvent($portfolio));
+	}//end testMissingRequiredFieldIsNoOp()
 
-        $this->assertCount(0, $this->savedObjects);
+	/**
+	 * Events for other schemas/states are ignored entirely.
+	 *
+	 * @return void
+	 */
+	public function testIgnoresUnrelatedEvents(): void {
+		$handler = $this->makeHandler(['id' => 'plan-1', 'gradeScaleId' => 'scale-numeric']);
 
-    }//end testMissingRequiredFieldIsNoOp()
+		$objectEntity = $this->createMock(ObjectEntity::class);
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getObject')->willReturn($objectEntity);
+		$event->method('getRegister')->willReturn('learniq');
+		$event->method('getSchema')->willReturn('werkproces-assessment');
+		$event->method('getTo')->willReturn('graded');
 
-    /**
-     * Events for other schemas/states are ignored entirely.
-     *
-     * @return void
-     */
-    public function testIgnoresUnrelatedEvents(): void
-    {
-        $handler = $this->makeHandler(['id' => 'plan-1', 'gradeScaleId' => 'scale-numeric']);
+		$handler->handle($event);
 
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $event        = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getObject')->willReturn($objectEntity);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('werkproces-assessment');
-        $event->method('getTo')->willReturn('graded');
+		$this->assertCount(0, $this->savedObjects);
 
-        $handler->handle($event);
-
-        $this->assertCount(0, $this->savedObjects);
-
-    }//end testIgnoresUnrelatedEvents()
+	}//end testIgnoresUnrelatedEvents()
 }//end class

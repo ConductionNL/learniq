@@ -18,65 +18,92 @@
  Uses Options API + direct fetch/axios calls (no custom Pinia store modules),
  mirroring BsaRiskDashboard.vue / RolloverWizard.vue.
 
- @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#requirement-frontend-surfaces-a-private-points-level-widget-and-one-opt-in-leaderboard-view
+ @spec openspec/specs/engagement/spec.md#requirement-frontend-surfaces-a-private-points-level-widget-and-one-opt-in-leaderboard-view
 -->
 
 <template>
 	<div class="leaderboard-view">
 		<header class="leaderboard-view__header">
 			<h2 class="leaderboard-view__title">
-				{{ t('scholiq', 'Leaderboard') }}
+				{{ t('learniq', 'Leaderboard') }}
 			</h2>
 			<p class="leaderboard-view__subtitle">
-				{{ t('scholiq', 'Ranked points for cohorts that have opted in to a leaderboard. Your own points and level are always visible to you regardless of this setting.') }}
+				{{
+					t(
+						'learniq',
+						'Ranked points for cohorts that have opted in to a leaderboard. Your own points and level are always visible to you regardless of this setting.',
+					)
+				}}
 			</p>
 		</header>
 
 		<!-- Loading the list of active leaderboards -->
-		<div v-if="loadingLeaderboards" class="leaderboard-view__loading" aria-live="polite">
+		<div
+			v-if="loadingLeaderboards"
+			class="leaderboard-view__loading"
+			aria-live="polite">
 			<NcLoadingIcon :size="32" />
 		</div>
 
 		<!-- No cohort currently has an active, opted-in leaderboard -->
 		<NcEmptyContent
 			v-else-if="leaderboardOptions.length === 0"
-			:name="t('scholiq', 'No active leaderboards')"
-			:description="t('scholiq', 'A coordinator has not opted any cohort into a leaderboard yet.')" />
+			:name="t('learniq', 'No active leaderboards')"
+			:description="
+				t(
+					'learniq',
+					'A coordinator has not opted any cohort into a leaderboard yet.',
+				)
+			" />
 
 		<template v-else>
 			<div class="leaderboard-view__field">
-				<label for="leaderboard-cohort-select">{{ t('scholiq', 'Leaderboard') }}</label>
-				<NcSelect id="leaderboard-cohort-select"
+				<label for="leaderboard-cohort-select">{{
+					t('learniq', 'Leaderboard')
+				}}</label>
+				<NcSelect
+					id="leaderboard-cohort-select"
 					v-model="selectedCohortId"
 					:options="leaderboardOptions"
 					:reduce="(o) => o.cohortId"
 					label="name"
-					:input-label="t('scholiq', 'Leaderboard')"
-					:aria-label-combobox="t('scholiq', 'Leaderboard')"
+					:inputLabel="t('learniq', 'Leaderboard')"
+					:aria-label-combobox="t('learniq', 'Leaderboard')"
 					@update:modelValue="loadRankings" />
 			</div>
 
 			<NcCheckboxRadioSwitch
 				type="switch"
-				:checked="optedOut"
+				:modelValue="optedOut"
 				:disabled="optOutSaving"
 				class="leaderboard-view__opt-out"
 				@update:checked="toggleOptOut">
-				{{ t('scholiq', 'Hide me from this leaderboard') }}
+				{{ t('learniq', 'Hide me from this leaderboard') }}
 			</NcCheckboxRadioSwitch>
 
-			<div v-if="loadingRankings" class="leaderboard-view__loading" aria-live="polite">
+			<div
+				v-if="loadingRankings"
+				class="leaderboard-view__loading"
+				aria-live="polite">
 				<NcLoadingIcon :size="32" />
 			</div>
 
-			<p v-else-if="rankingsError" class="leaderboard-view__error" role="alert">
+			<p
+				v-else-if="rankingsError"
+				class="leaderboard-view__error"
+				role="alert">
 				{{ rankingsError }}
 			</p>
 
 			<NcEmptyContent
 				v-else-if="rankings.length === 0"
-				:name="t('scholiq', 'No ranked learners')"
-				:description="t('scholiq', 'Every member of this cohort has opted out, or nobody has earned points yet.')" />
+				:name="t('learniq', 'No ranked learners')"
+				:description="
+					t(
+						'learniq',
+						'Every member of this cohort has opted out, or nobody has earned points yet.',
+					)
+				" />
 
 			<ol v-else class="leaderboard-view__rankings">
 				<li
@@ -84,9 +111,15 @@
 					:key="entry.learnerId"
 					class="leaderboard-view__entry">
 					<span class="leaderboard-view__rank">#{{ entry.rank }}</span>
-					<span class="leaderboard-view__learner">{{ entry.learnerId }}</span>
-					<span v-if="entry.level" class="leaderboard-view__level">{{ entry.level }}</span>
-					<span class="leaderboard-view__points">{{ entry.totalPoints }}</span>
+					<span class="leaderboard-view__learner">{{
+						entry.learnerId
+					}}</span>
+					<span v-if="entry.level" class="leaderboard-view__level">{{
+						entry.level
+					}}</span>
+					<span class="leaderboard-view__points">{{
+						entry.totalPoints
+					}}</span>
 				</li>
 			</ol>
 		</template>
@@ -96,7 +129,12 @@
 <script>
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { NcCheckboxRadioSwitch, NcEmptyContent, NcLoadingIcon, NcSelect } from '@nextcloud/vue'
+import {
+	NcCheckboxRadioSwitch,
+	NcEmptyContent,
+	NcLoadingIcon,
+	NcSelect,
+} from '@nextcloud/vue'
 
 const OPT_OUT_PREFERENCE_KEY = 'leaderboardoptout'
 
@@ -127,6 +165,9 @@ export default {
 		}
 	},
 
+	/**
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
+	 */
 	created() {
 		this.loadLeaderboards()
 		this.loadOptOutState()
@@ -137,21 +178,28 @@ export default {
 		 * Fetch every `active` Leaderboard row and build the cohort picker options.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
+		 * @spec openspec/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
 		 */
 		async loadLeaderboards() {
 			this.loadingLeaderboards = true
 			try {
-				const params = new URLSearchParams({ lifecycle: 'active', _limit: '100' })
+				const params = new URLSearchParams({
+					lifecycle: 'active',
+					_limit: '100',
+				})
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/Leaderboard?' + params.toString(),
+					'/apps/openregister/api/objects/learniq/Leaderboard?'
+						+ params.toString(),
 				)
 				const response = await axios.get(url)
 				const data = response.data ?? {}
 				const rows = data.results ?? (Array.isArray(data) ? data : [])
 				this.leaderboardOptions = rows
 					.filter((row) => !!row.cohortId)
-					.map((row) => ({ cohortId: row.cohortId, name: row.name || row.cohortId }))
+					.map((row) => ({
+						cohortId: row.cohortId,
+						name: row.name || row.cohortId,
+					}))
 
 				if (this.leaderboardOptions.length > 0) {
 					this.selectedCohortId = this.leaderboardOptions[0].cohortId
@@ -168,7 +216,7 @@ export default {
 		 * Fetch the ranked leaderboard for the selected cohort via LeaderboardController.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
+		 * @spec openspec/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
 		 */
 		async loadRankings() {
 			if (!this.selectedCohortId) {
@@ -179,17 +227,20 @@ export default {
 			this.loadingRankings = true
 			this.rankingsError = null
 			try {
-				const url = generateUrl(
-					'/apps/scholiq/api/leaderboard/{cohortId}',
-					{ cohortId: this.selectedCohortId },
-				)
+				const url = generateUrl('/apps/learniq/api/leaderboard/{cohortId}', {
+					cohortId: this.selectedCohortId,
+				})
 				const response = await axios.get(url)
 				this.rankings = response.data?.results ?? []
 			} catch (err) {
 				this.rankings = []
-				this.rankingsError = err?.response?.status === 403
-					? this.t('scholiq', 'You are not a member of this cohort.')
-					: this.t('scholiq', 'Failed to load the leaderboard. Please try again.')
+				this.rankingsError =
+					err?.response?.status === 403
+						? this.t('learniq', 'You are not a member of this cohort.')
+						: this.t(
+								'learniq',
+								'Failed to load the leaderboard. Please try again.',
+							)
 			} finally {
 				this.loadingRankings = false
 			}
@@ -199,13 +250,13 @@ export default {
 		 * Load the caller's own standing leaderboard opt-out preference.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
 		 */
 		async loadOptOutState() {
 			try {
-				const url = generateUrl(
-					'/apps/scholiq/api/preferences/{key}',
-					{ key: OPT_OUT_PREFERENCE_KEY },
-				)
+				const url = generateUrl('/apps/learniq/api/preferences/{key}', {
+					key: OPT_OUT_PREFERENCE_KEY,
+				})
 				const response = await axios.get(url)
 				this.optedOut = !!response.data?.value
 			} catch {
@@ -219,15 +270,14 @@ export default {
 		 *
 		 * @param {boolean} value New opt-out state.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
+		 * @spec openspec/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
 		 */
 		async toggleOptOut(value) {
 			this.optOutSaving = true
 			try {
-				const url = generateUrl(
-					'/apps/scholiq/api/preferences/{key}',
-					{ key: OPT_OUT_PREFERENCE_KEY },
-				)
+				const url = generateUrl('/apps/learniq/api/preferences/{key}', {
+					key: OPT_OUT_PREFERENCE_KEY,
+				})
 				await axios.put(url, { value: value ? 'true' : '' })
 				this.optedOut = value
 				await this.loadRankings()
@@ -243,7 +293,8 @@ export default {
 .leaderboard-view {
 	max-width: 900px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .leaderboard-view__header {
@@ -294,7 +345,8 @@ export default {
 	display: flex;
 	align-items: center;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 	border-bottom: 1px solid var(--color-border);
 }
 

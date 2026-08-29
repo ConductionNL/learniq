@@ -33,17 +33,16 @@
  */
 import { test, expect } from '../fixtures'
 
-// ⚠️ scholiq#267 — this, ITEM_REVISION_FLAG_DETAIL_URL and ITEM_ANALYSIS_URL
-// are still the HASH form, which the history-mode router resolves to NO
-// route: those tests pass without the app rendering. Each needs a seeded
-// Assessment / ItemRevisionFlag / Item fixture (`e2e-smoke-placeholder` is
-// not a real id) before it can be converted to the path form.
-const TAKE_ASSESSMENT_URL = '/index.php/apps/scholiq/#/assessments/e2e-smoke-placeholder/take'
-const ITEM_REVISION_FLAGS_URL = '/index.php/apps/scholiq/assessments/item-revision-flags'
-const ITEM_REVISION_FLAG_DETAIL_URL = '/index.php/apps/scholiq/#/assessments/item-revision-flags/e2e-smoke-placeholder'
-const ITEM_ANALYSIS_URL = '/index.php/apps/scholiq/#/assessments/items/e2e-smoke-placeholder/analysis'
-const ITEM_STATISTICS_URL = '/index.php/apps/scholiq/assessments/item-statistics'
-const ASSESSMENT_RELIABILITY_URL = '/index.php/apps/scholiq/assessments/reliability'
+const TAKE_ASSESSMENT_URL =
+	'/index.php/apps/learniq/assessments/e2e-smoke-placeholder/take'
+const ITEM_REVISION_FLAGS_URL =
+	'/index.php/apps/learniq/assessments/item-revision-flags'
+const ITEM_REVISION_FLAG_DETAIL_URL =
+	'/index.php/apps/learniq/assessments/item-revision-flags/e2e-smoke-placeholder'
+const ITEM_ANALYSIS_URL =
+	'/index.php/apps/learniq/assessments/items/e2e-smoke-placeholder/analysis'
+const ITEM_STATISTICS_URL = '/index.php/apps/learniq/assessments/item-statistics'
+const ASSESSMENT_RELIABILITY_URL = '/index.php/apps/learniq/assessments/reliability'
 
 function collectFatalErrors(page: import('@playwright/test').Page): string[] {
 	const errors: string[] = []
@@ -67,47 +66,64 @@ function fatalOnly(errors: string[]): string[] {
 	)
 }
 
-async function assertRendersWithoutFatalError(page: import('@playwright/test').Page, url: string): Promise<void> {
+async function assertRendersWithoutFatalError(
+	page: import('@playwright/test').Page,
+	url: string,
+): Promise<void> {
 	const errors = collectFatalErrors(page)
 
 	await page.goto(url)
 	await page.waitForSelector('body', { timeout: 15_000 })
-	await page.waitForLoadState('networkidle').catch(() => {})
+	await page.waitForLoadState('domcontentloaded')
 
 	const bodyText = await page.innerText('body')
 	expect(bodyText.trim().length).toBeGreaterThan(0)
 
 	const fatal = fatalOnly(errors)
-	expect(fatal, `unexpected fatal errors on ${url}: ${fatal.join(' | ')}`).toHaveLength(0)
+	expect(
+		fatal,
+		`unexpected fatal errors on ${url}: ${fatal.join(' | ')}`,
+	).toHaveLength(0)
 }
 
 test.describe('assessment-item-pools-and-analysis — new/changed pages', () => {
-
 	// @e2e openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-learner-taking-a-fixed-list-assessment-with-shuffle-enabled-sees-a-permuted-item-order
-	test('take-assessment page renders without a fatal error (drawnItemRefs-driven loadItems)', async ({ loggedInPage: page }) => {
+	test('take-assessment page renders without a fatal error (drawnItemRefs-driven loadItems)', async ({
+		loggedInPage: page,
+	}) => {
 		await assertRendersWithoutFatalError(page, TAKE_ASSESSMENT_URL)
 	})
 
 	// @e2e openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-resolved-itemrevisionflag-is-reviewed-through-the-standard-flag-queue
-	test('item revision flags list page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('item revision flags list page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		await assertRendersWithoutFatalError(page, ITEM_REVISION_FLAGS_URL)
 	})
 
 	// @e2e openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-resolved-itemrevisionflag-is-reviewed-through-the-standard-flag-queue
-	test('item revision flag detail page renders without a fatal error for an unknown id', async ({ loggedInPage: page }) => {
+	test('item revision flag detail page renders without a fatal error for an unknown id', async ({
+		loggedInPage: page,
+	}) => {
 		await assertRendersWithoutFatalError(page, ITEM_REVISION_FLAG_DETAIL_URL)
 	})
 
 	// @e2e openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-learner-cannot-read-an-items-psychometric-statistics
-	test('item analysis custom view renders without a fatal error for an unknown item id', async ({ loggedInPage: page }) => {
+	test('item analysis custom view renders without a fatal error for an unknown item id', async ({
+		loggedInPage: page,
+	}) => {
 		await assertRendersWithoutFatalError(page, ITEM_ANALYSIS_URL)
 	})
 
-	test('item statistics list page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('item statistics list page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		await assertRendersWithoutFatalError(page, ITEM_STATISTICS_URL)
 	})
 
-	test('assessment reliability list page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('assessment reliability list page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		await assertRendersWithoutFatalError(page, ASSESSMENT_RELIABILITY_URL)
 	})
 })

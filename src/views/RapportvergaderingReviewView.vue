@@ -23,42 +23,62 @@
 -->
 <template>
 	<div class="rapportvergadering-review">
-		<h2>{{ t('scholiq', 'Rapportvergadering review') }}</h2>
+		<h2>{{ t('learniq', 'Rapportvergadering review') }}</h2>
 
 		<NcLoadingIcon v-if="loadingPeriod" :size="32" />
 
 		<template v-else-if="period">
 			<p class="rapportvergadering-review__meta">
-				{{ period.name }} — {{ period.academicYear }} ({{ t('scholiq', 'period {code}', { code: period.periodCode }) }})
+				{{ period.name }} — {{ period.academicYear }} ({{
+					t('learniq', 'period {code}', { code: period.periodCode })
+				}})
 			</p>
 
-			<div v-if="period.lifecycle === 'open'" class="rapportvergadering-review__compose">
+			<div
+				v-if="period.lifecycle === 'open'"
+				class="rapportvergadering-review__compose">
 				<NcNoteCard type="info">
-					{{ t('scholiq', 'Report cards have not been composed yet for this period.') }}
+					{{
+						t(
+							'learniq',
+							'Report cards have not been composed yet for this period.',
+						)
+					}}
 				</NcNoteCard>
 				<NcButton variant="primary" @click="showComposeModal = true">
-					{{ t('scholiq', 'Compose report cards…') }}
+					{{ t('learniq', 'Compose report cards…') }}
 				</NcButton>
 			</div>
 
 			<template v-else>
 				<NcLoadingIcon v-if="loadingCards" :size="32" />
 
-				<NcEmptyContent v-else-if="cards.length === 0"
-					:name="t('scholiq', 'No report cards')"
-					:description="t('scholiq', 'This period is composed but no report cards were generated.')" />
+				<NcEmptyContent
+					v-else-if="cards.length === 0"
+					:name="t('learniq', 'No report cards')"
+					:description="
+						t(
+							'learniq',
+							'This period is composed but no report cards were generated.',
+						)
+					" />
 
 				<div v-else class="rapportvergadering-review__table-wrap">
 					<table class="rapportvergadering-review__table">
 						<thead>
 							<tr>
-								<th>{{ t('scholiq', 'Learner') }}</th>
-								<th v-for="plan in subjectColumns" :key="plan.id">
+								<th scope="col">{{ t('learniq', 'Learner') }}</th>
+								<th
+									v-for="plan in subjectColumns"
+									:key="plan.id"
+									scope="col">
 									{{ plan.label }}
 								</th>
-								<th>{{ t('scholiq', 'Mentor comment') }}</th>
-								<th>{{ t('scholiq', 'Status') }}</th>
-								<th>{{ t('scholiq', 'Actions') }}</th>
+								<th scope="col">
+									{{ t('learniq', 'Mentor comment') }}
+								</th>
+								<th scope="col">{{ t('learniq', 'Status') }}</th>
+								<th scope="col">{{ t('learniq', 'Actions') }}</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -67,57 +87,130 @@
 								<td v-for="plan in subjectColumns" :key="plan.id">
 									<template v-if="subjectRow(card, plan.id)">
 										<div class="rapportvergadering-review__cell">
-											<strong>{{ formatAverage(subjectRow(card, plan.id).periodAverage) }}</strong>
-											<span v-if="subjectRow(card, plan.id).passed === false" class="rapportvergadering-review__fail">
-												{{ t('scholiq', 'fail') }}
+											<strong>{{
+												/**
+												 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+												 */
+												formatAverage(
+													subjectRow(card, plan.id)
+														.periodAverage,
+												)
+											}}</strong>
+											<span
+												v-if="
+													subjectRow(card, plan.id).passed
+													=== false
+												"
+												class="rapportvergadering-review__fail">
+												{{ t('learniq', 'fail') }}
 											</span>
 											<textarea
-												:value="subjectRow(card, plan.id).teacherComment"
-												:aria-label="t('scholiq', 'Teacher comment for {subject}', { subject: plan.label })"
+												:value="
+													subjectRow(card, plan.id)
+														.teacherComment
+												"
+												:aria-label="
+													t(
+														'learniq',
+														'Teacher comment for {subject}',
+														{ subject: plan.label },
+													)
+												"
 												:disabled="!isEditable(card)"
 												rows="2"
-												@change="onTeacherCommentChange(card, plan.id, $event.target.value)" />
+												@change="
+													/**
+													 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+													 */
+													onTeacherCommentChange(
+														card,
+														plan.id,
+														$event.target.value,
+													)
+												" />
 										</div>
 									</template>
-									<span v-else class="rapportvergadering-review__empty">—</span>
+									<span
+										v-else
+										class="rapportvergadering-review__empty"
+										>—</span
+									>
 								</td>
 								<td>
 									<textarea
 										:value="card.mentorComment"
-										:aria-label="t('scholiq', 'Mentor comment for {learner}', { learner: card.learnerId })"
+										:aria-label="
+											t(
+												'learniq',
+												'Mentor comment for {learner}',
+												{ learner: card.learnerId },
+											)
+										"
 										:disabled="!isEditable(card)"
 										rows="2"
-										@change="onMentorCommentChange(card, $event.target.value)" />
+										@change="
+											/**
+											 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
+											 */
+											onMentorCommentChange(
+												card,
+												$event.target.value,
+											)
+										" />
 								</td>
 								<td>{{ card.lifecycle }}</td>
 								<td>
 									<div class="rapportvergadering-review__actions">
-										<NcButton v-if="card.lifecycle === 'draft'"
+										<NcButton
+											v-if="card.lifecycle === 'draft'"
 											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
-											@click="transition(card, 'rapportvergadering-review')">
-											{{ t('scholiq', 'Pull into review') }}
+											@click="
+												transition(
+													card,
+													'rapportvergadering-review',
+												)
+											">
+											{{ t('learniq', 'Pull into review') }}
 										</NcButton>
-										<NcButton v-if="card.lifecycle === 'rapportvergadering-review'"
+										<NcButton
+											v-if="
+												card.lifecycle
+												=== 'rapportvergadering-review'
+											"
 											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
 											@click="transition(card, 'finalised')">
-											{{ t('scholiq', 'Finalise') }}
+											{{ t('learniq', 'Finalise') }}
 										</NcButton>
-										<NcButton v-if="card.lifecycle === 'finalised'"
+										<NcButton
+											v-if="card.lifecycle === 'finalised'"
 											variant="tertiary"
 											:disabled="!!transitioning[cardId(card)]"
-											@click="transition(card, 'rapportvergadering-review')">
-											{{ t('scholiq', 'Reopen') }}
+											@click="
+												transition(
+													card,
+													'rapportvergadering-review',
+												)
+											">
+											{{ t('learniq', 'Reopen') }}
 										</NcButton>
-										<NcButton v-if="card.lifecycle === 'finalised'"
+										<NcButton
+											v-if="card.lifecycle === 'finalised'"
 											variant="primary"
 											:disabled="!!transitioning[cardId(card)]"
-											@click="transition(card, 'published-to-parents')">
-											{{ t('scholiq', 'Publish to parents') }}
+											@click="
+												transition(
+													card,
+													'published-to-parents',
+												)
+											">
+											{{ t('learniq', 'Publish to parents') }}
 										</NcButton>
 									</div>
-									<NcNoteCard v-if="cardErrors[cardId(card)]" type="error">
+									<NcNoteCard
+										v-if="cardErrors[cardId(card)]"
+										type="error">
 										{{ cardErrors[cardId(card)] }}
 									</NcNoteCard>
 								</td>
@@ -129,11 +222,12 @@
 		</template>
 
 		<NcNoteCard v-else type="error">
-			{{ t('scholiq', 'Could not load this report period.') }}
+			{{ t('learniq', 'Could not load this report period.') }}
 		</NcNoteCard>
 
-		<ComposeReportPeriodModal v-if="showComposeModal"
-			:report-period-id="id"
+		<ComposeReportPeriodModal
+			v-if="showComposeModal"
+			:reportPeriodId="id"
 			@close="showComposeModal = false"
 			@composed="onComposed" />
 	</div>
@@ -184,12 +278,16 @@ export default {
 		 * One column per in-scope CurriculumPlan, in ReportPeriod.curriculumPlanIds order.
 		 *
 		 * @return {Array<{id: string, label: string}>}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		subjectColumns() {
 			if (!this.period) return []
 			return (this.period.curriculumPlanIds || []).map((planId) => ({
 				id: planId,
-				label: (this.curriculumPlans[planId] && this.curriculumPlans[planId].name) || planId,
+				label:
+					(this.curriculumPlans[planId]
+						&& this.curriculumPlans[planId].name)
+					|| planId,
 			}))
 		},
 	},
@@ -206,11 +304,15 @@ export default {
 		 * CurriculumPlan labels and ReportCards.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadPeriod() {
 			this.loadingPeriod = true
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/report-period/{id}', { id: this.id })
+				const url = generateUrl(
+					'/apps/openregister/api/objects/learniq/report-period/{id}',
+					{ id: this.id },
+				)
 				const response = await axios.get(url)
 				this.period = response.data || null
 			} catch (e) {
@@ -229,6 +331,7 @@ export default {
 		 * Resolve display labels for the period's in-scope CurriculumPlans.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadCurriculumPlans() {
 			const planIds = (this.period && this.period.curriculumPlanIds) || []
@@ -236,11 +339,18 @@ export default {
 			await Promise.all(
 				planIds.map(async (planId) => {
 					try {
-						const url = generateUrl('/apps/openregister/api/objects/scholiq/curriculum-plan/{id}', { id: planId })
+						const url = generateUrl(
+							'/apps/openregister/api/objects/learniq/curriculum-plan/{id}',
+							{ id: planId },
+						)
 						const response = await axios.get(url)
 						plans[planId] = response.data || null
 					} catch (e) {
-						console.error('[RapportvergaderingReviewView] loadCurriculumPlans failed for', planId, e)
+						console.error(
+							'[RapportvergaderingReviewView] loadCurriculumPlans failed for',
+							planId,
+							e,
+						)
 					}
 				}),
 			)
@@ -251,16 +361,21 @@ export default {
 		 * Load every ReportCard composed for this ReportPeriod.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async loadCards() {
 			this.loadingCards = true
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/report-card?reportPeriodId={periodId}&limit=500',
+					'/apps/openregister/api/objects/learniq/report-card?reportPeriodId={periodId}&_limit=500',
 					{ periodId: this.id },
 				)
 				const response = await axios.get(url)
-				this.cards = (response.data && (response.data.results || response.data.objects)) || response.data || []
+				this.cards =
+					(response.data
+						&& (response.data.results || response.data.objects))
+					|| response.data
+					|| []
 			} catch (e) {
 				console.error('[RapportvergaderingReviewView] loadCards failed', e)
 				this.cards = []
@@ -273,6 +388,7 @@ export default {
 		 * Called when ComposeReportPeriodModal successfully triggers `compose`.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async onComposed() {
 			await this.loadPeriod()
@@ -287,7 +403,9 @@ export default {
 		 * @return {object|undefined}
 		 */
 		subjectRow(card, planId) {
-			return (card.subjectGrades || []).find((row) => row.curriculumPlanId === planId)
+			return (card.subjectGrades || []).find(
+				(row) => row.curriculumPlanId === planId,
+			)
 		},
 
 		/**
@@ -309,6 +427,7 @@ export default {
 		 *
 		 * @param {object} card A ReportCard.
 		 * @return {string}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		cardId(card) {
 			return card.id || card.uuid || ''
@@ -358,16 +477,23 @@ export default {
 		 *
 		 * @param {object} card The ReportCard to save.
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-frontend-is-declarative-with-two-named-custom-views
 		 */
 		async saveCard(card) {
 			const id = this.cardId(card)
 			if (!id) return
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/report-card/{id}', { id })
+				const url = generateUrl(
+					'/apps/openregister/api/objects/learniq/report-card/{id}',
+					{ id },
+				)
 				await axios.put(url, card)
 			} catch (e) {
 				console.error('[RapportvergaderingReviewView] saveCard failed', e)
-				this.cardErrors[id] = t('scholiq', 'Could not save changes. Please try again.')
+				this.cardErrors[id] = t(
+					'learniq',
+					'Could not save changes. Please try again.',
+				)
 			}
 		},
 
@@ -388,12 +514,18 @@ export default {
 			this.transitioning[id] = true
 			this.cardErrors[id] = ''
 			try {
-				const url = generateUrl('/apps/openregister/api/objects/scholiq/report-card/{id}', { id })
+				const url = generateUrl(
+					'/apps/openregister/api/objects/learniq/report-card/{id}',
+					{ id },
+				)
 				await axios.put(url, { lifecycle: toLifecycle })
 				await this.loadCards()
 			} catch (e) {
 				console.error('[RapportvergaderingReviewView] transition failed', e)
-				this.cardErrors[id] = t('scholiq', 'This action was blocked. Please check the requirements and try again.')
+				this.cardErrors[id] = t(
+					'learniq',
+					'This action was blocked. Please check the requirements and try again.',
+				)
 			} finally {
 				this.transitioning[id] = false
 			}

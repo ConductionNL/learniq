@@ -14,7 +14,7 @@
  * schema/type change (there is none).
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Settings
+ * @package  OCA\Learniq\Tests\Unit\Settings
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -29,86 +29,81 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Settings;
+namespace OCA\Learniq\Tests\Unit\Settings;
 
 use PHPUnit\Framework\TestCase;
 
 /**
  * Verifies DataExchangeJob.target documents the `ooapi-catalog` OpenConnector target.
  */
-class DataExchangeOoapiCatalogTargetTest extends TestCase
-{
+class DataExchangeOoapiCatalogTargetTest extends TestCase {
 
-    /**
-     * Decoded register configuration.
-     *
-     * @var array<string, mixed>
-     */
-    private array $config;
+	/**
+	 * Decoded register configuration.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private array $config;
 
-    /**
-     * Load the register configuration once per test.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $path         = __DIR__.'/../../../lib/Settings/scholiq_register.json';
-        $this->config = json_decode((string) file_get_contents($path), true);
+	/**
+	 * Load the register configuration once per test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$path = __DIR__ . '/../../../lib/Settings/learniq_register.json';
+		$this->config = json_decode((string)file_get_contents($path), true);
 
-    }//end setUp()
+	}//end setUp()
 
-    /**
-     * DataExchangeJob.target is still a free-text string with no enum — the
-     * `ooapi-catalog` convention must remain a documented example, not a
-     * schema/type constraint (design.md's "no migration" decision).
-     *
-     * @return void
-     *
-     * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.2
-     */
-    public function testTargetRemainsFreeTextStringWithNoEnum(): void
-    {
-        $target = $this->config['components']['schemas']['DataExchangeJob']['properties']['target'];
+	/**
+	 * DataExchangeJob.target is still a free-text string with no enum — the
+	 * `ooapi-catalog` convention must remain a documented example, not a
+	 * schema/type constraint (design.md's "no migration" decision).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.2
+	 */
+	public function testTargetRemainsFreeTextStringWithNoEnum(): void {
+		$target = $this->config['components']['schemas']['DataExchangeJob']['properties']['target'];
 
-        self::assertSame('string', $target['type']);
-        self::assertArrayNotHasKey('enum', $target);
+		self::assertSame('string', $target['type']);
+		self::assertArrayNotHasKey('enum', $target);
 
-    }//end testTargetRemainsFreeTextStringWithNoEnum()
+	}//end testTargetRemainsFreeTextStringWithNoEnum()
 
-    /**
-     * DataExchangeJob.target's description documents the `ooapi-catalog`
-     * target name so implementers discover the convention instead of
-     * inventing their own.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.2
-     */
-    public function testTargetDescriptionDocumentsOoapiCatalog(): void
-    {
-        $description = $this->config['components']['schemas']['DataExchangeJob']['properties']['target']['description'];
+	/**
+	 * DataExchangeJob.target's description documents the `ooapi-catalog`
+	 * target name so implementers discover the convention instead of
+	 * inventing their own.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/delegate-ooapi-to-opencatalogi/tasks.md#task-4.2
+	 */
+	public function testTargetDescriptionDocumentsOoapiCatalog(): void {
+		$description = $this->config['components']['schemas']['DataExchangeJob']['properties']['target']['description'];
 
-        self::assertStringContainsString('ooapi-catalog', $description);
+		self::assertStringContainsString('ooapi-catalog', $description);
 
-    }//end testTargetDescriptionDocumentsOoapiCatalog()
+	}//end testTargetDescriptionDocumentsOoapiCatalog()
 
-    /**
-     * The register's own document version was patch-bumped for this doc-only
-     * edit (design.md: "no migration — the field is already a free-text
-     * string"). Asserts the version is at least 0.6.1 (this change's own
-     * bump) rather than pinning an exact literal, so a later change's own
-     * version bump (e.g. lti-tool-placement's 0.7.0) does not regress this
-     * assertion — the description substring below is the actual doc-only
-     * content this test protects.
-     *
-     * @return void
-     */
-    public function testRegisterInfoVersionWasBumped(): void
-    {
-        self::assertGreaterThanOrEqual(0, version_compare($this->config['info']['version'], '0.6.1'));
-        self::assertStringContainsString('ooapi-catalog', $this->config['info']['description']);
+	/**
+	 * The register's own document version was patch-bumped for this doc-only
+	 * edit (design.md: "no migration — the field is already a free-text
+	 * string"). Asserts the version is at least 0.6.1 (this change's own
+	 * bump) rather than pinning an exact literal, so a later change's own
+	 * version bump (e.g. lti-tool-placement's 0.7.0) does not regress this
+	 * assertion — the description substring below is the actual doc-only
+	 * content this test protects.
+	 *
+	 * @return void
+	 */
+	public function testRegisterInfoVersionWasBumped(): void {
+		self::assertGreaterThanOrEqual(0, version_compare($this->config['info']['version'], '0.6.1'));
+		self::assertStringContainsString('ooapi-catalog', $this->config['info']['description']);
 
-    }//end testRegisterInfoVersionWasBumped()
+	}//end testRegisterInfoVersionWasBumped()
 }//end class

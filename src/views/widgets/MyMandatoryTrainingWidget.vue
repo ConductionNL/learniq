@@ -17,7 +17,7 @@
 		</div>
 
 		<div v-else-if="enrolments.length === 0" class="my-training-widget__empty">
-			{{ t('scholiq', 'No mandatory training due') }}
+			{{ t('learniq', 'No mandatory training due') }}
 		</div>
 
 		<ul v-else class="my-training-widget__list">
@@ -27,32 +27,51 @@
 				class="my-training-widget__item">
 				<div class="my-training-widget__item-info">
 					<span class="my-training-widget__item-name">
-						{{ enrolment.courseTitle || enrolment.courseId || t('scholiq', 'Course') }}
+						{{
+							enrolment.courseTitle
+							|| enrolment.courseId
+							|| t('learniq', 'Course')
+						}}
 					</span>
-					<span v-if="enrolment.dueDate" class="my-training-widget__item-due">
-						{{ t('scholiq', 'Due') }}: {{ formatDate(enrolment.dueDate) }}
+					<span
+						v-if="enrolment.dueDate"
+						class="my-training-widget__item-due">
+						{{ t('learniq', 'Due') }}:
+						{{ formatDate(enrolment.dueDate) }}
 					</span>
 					<div
-						v-if="enrolment.progressPercent !== null && enrolment.progressPercent !== undefined"
+						v-if="
+							enrolment.progressPercent !== null
+							&& enrolment.progressPercent !== undefined
+						"
 						class="my-training-widget__progress"
 						role="progressbar"
 						:aria-valuenow="enrolment.progressPercent"
 						aria-valuemin="0"
 						aria-valuemax="100"
-						:aria-label="t('scholiq', 'Progress: {percent}%', { percent: enrolment.progressPercent })">
+						:aria-label="
+							t('learniq', 'Progress: {percent}%', {
+								percent: enrolment.progressPercent,
+							})
+						">
 						<div class="my-training-widget__progress-track">
 							<div
 								class="my-training-widget__progress-fill"
-								:style="{ width: enrolment.progressPercent + '%' }" />
+								:style="{
+									width: enrolment.progressPercent + '%',
+								}" />
 						</div>
-						<span class="my-training-widget__progress-label">{{ enrolment.progressPercent }}%</span>
+						<span class="my-training-widget__progress-label"
+							>{{ enrolment.progressPercent }}%</span
+						>
 					</div>
 				</div>
-				<a
+				<router-link
+					v-if="enrolment.courseId"
 					class="my-training-widget__start-link"
-					@click.prevent="startCourse(enrolment)">
-					{{ t('scholiq', 'Start') }}
-				</a>
+					:to="courseLessonsPath(enrolment)">
+					{{ t('learniq', 'Start') }}
+				</router-link>
 			</li>
 		</ul>
 	</div>
@@ -98,7 +117,8 @@ export default {
 					_order: 'dueDate',
 				})
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/Enrolment?' + params.toString(),
+					'/apps/openregister/api/objects/learniq/Enrolment?'
+						+ params.toString(),
 				)
 				const response = await axios.get(url)
 				const data = response.data ?? {}
@@ -127,17 +147,19 @@ export default {
 		},
 
 		/**
-		 * Navigate to the lessons view for the enrolment's course.
+		 * Router path to the lessons view for the enrolment's course.
+		 *
+		 * Returned as a route rather than pushed from a click handler so the
+		 * control renders as a real <router-link> anchor — focusable, activatable
+		 * by keyboard, and openable in a new tab. The previous <a> carried no
+		 * href, so it was not in the tab order at all.
 		 *
 		 * @param {object} enrolment Enrolment object
-		 * @return {void}
+		 * @return {string} Router path for the course's lessons view.
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
 		 */
-		startCourse(enrolment) {
-			const courseId = enrolment.courseId
-			if (courseId) {
-				this.$router.push('/courses/' + courseId + '/lessons').catch(() => {})
-			}
+		courseLessonsPath(enrolment) {
+			return '/courses/' + enrolment.courseId + '/lessons'
 		},
 	},
 }

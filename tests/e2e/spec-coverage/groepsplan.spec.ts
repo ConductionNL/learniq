@@ -25,25 +25,45 @@
  * (not failed) when the seeded dev instance carries no matching fixtures yet.
  */
 import { test, expect } from '../fixtures'
+import { requireFixture } from '../seeded'
 
-const GROUP_PLANS_INDEX_URL = '/index.php/apps/scholiq/group-plans'
-// ⚠️ scholiq#267 — the three URLs below are still the HASH form, which the
-// history-mode router resolves to NO route: these tests currently pass
-// without the app rendering. They are not converted here because the path
-// form alone is not enough — a bogus id makes the object store
-// `console.error` on the 404, which this file's own `assertNoFatalErrors`
-// then fails on. Each needs a seeded GroupPlan / GroupPlanSubgroup /
-// GroupPlanEvaluation fixture first (see `tests/e2e/or-api.ts` and the
-// pattern in accessibility-conformance.spec.ts).
-const GROUP_PLAN_DETAIL_URL = '/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000'
-const GROUP_PLAN_SUBGROUP_DETAIL_URL = '/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000/subgroups/00000000-0000-0000-0000-000000000000'
-const GROUP_PLAN_EVALUATION_DETAIL_URL = '/index.php/apps/scholiq/#/group-plans/00000000-0000-0000-0000-000000000000/evaluations/00000000-0000-0000-0000-000000000000'
-const LEARNER_CONTEXT_URL = '/index.php/apps/scholiq/group-plans/subgroup-learner-context'
+// ⚠️ NO `#` — the router is HISTORY mode, not hash mode. Fixed fleet-wide in
+// #610; this note records what it cost HERE.
+//
+// vue-router strips the `createWebHistory` base from `location.pathname` and
+// appends the UNTOUCHED hash, so `/index.php/apps/learniq/#/group-plans/...`
+// resolved to `/#/group-plans/...`, matched no declared route, and fell through
+// `routesFromManifest`'s `/:pathMatch(.*)*` catch-all — which `redirect: '/'`s
+// to the DASHBOARD. That is why the subgroup scenario matched /learning plan/i
+// against a page beginning "Skip to app navigation … Learniq": it was reading
+// the dashboard. Invisible while the scenario skipped for want of a fixture,
+// because a skipping test never navigates at all.
+const GROUP_PLANS_INDEX_URL = '/index.php/apps/learniq/group-plans'
+const GROUP_PLAN_DETAIL_URL =
+	'/index.php/apps/learniq/group-plans/00000000-0000-0000-0000-000000000000'
+const GROUP_PLAN_SUBGROUP_DETAIL_URL =
+	'/index.php/apps/learniq/group-plans/00000000-0000-0000-0000-000000000000/subgroups/00000000-0000-0000-0000-000000000000'
+const GROUP_PLAN_EVALUATION_DETAIL_URL =
+	'/index.php/apps/learniq/group-plans/00000000-0000-0000-0000-000000000000/evaluations/00000000-0000-0000-0000-000000000000'
+const LEARNER_CONTEXT_URL =
+	'/index.php/apps/learniq/group-plans/subgroup-learner-context'
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
 // the short form returns a hard 404. See adaptive-release.spec.ts.
-const GROUP_PLAN_SUBGROUP_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/GroupPlanSubgroup?limit=200'
+// `_limit`, NOT `limit` — an unrecognised OpenRegister query parameter is
+// applied as a PROPERTY FILTER rather than ignored, so `?limit=200` returns
+// HTTP 200 with an empty result set that reads as "nothing seeded".
+// ⚠️ THE SLUG, NOT THE SCHEMA NAME. This addressed `GroupPlanSubgroup`, and
+// OpenRegister resolves objects by SLUG — `group-plan-subgroup`. Slugs are
+// case-insensitive, but case-insensitivity does not insert hyphens, so the
+// PascalCase form resolved to nothing and the endpoint answered HTTP 200 with
+// an empty result set. Indistinguishable from "the seeder made none", which is
+// exactly how this scenario went unnoticed: the old `test.skip(!subgroup, …)`
+// read that emptiness as "not seeded" and reported a pass. Every other list
+// constant in this suite already used the slug form.
+const GROUP_PLAN_SUBGROUP_LIST_API =
+	'/index.php/apps/openregister/api/objects/learniq/group-plan-subgroup?_limit=200'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise
@@ -94,18 +114,26 @@ async function findIntensiefSubgroup(page: import('@playwright/test').Page) {
 
 	const json = await resp.json()
 	const subgroups = json.results ?? json.objects ?? json ?? []
-	return subgroups.find((s: any) => s.instructieniveau === 'intensief' && Array.isArray(s.learnerIds) && s.learnerIds.length > 0) ?? null
+	return (
+		subgroups.find(
+			(s: any) =>
+				s.instructieniveau === 'intensief'
+				&& Array.isArray(s.learnerIds)
+				&& s.learnerIds.length > 0,
+		) ?? null
+	)
 }
 
 test.describe('groepsplan — declarative index/detail pages', () => {
-
 	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
-	test('Group plans index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('Group plans index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(GROUP_PLANS_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -114,7 +142,9 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 	})
 
 	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
-	test('Group plan detail route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
+	test('Group plan detail route resolves the registered component, not a blank/404 shell', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		// A non-existent id is enough to prove the ROUTE resolves the declarative
@@ -124,7 +154,7 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 		// the manifest wiring exists to guarantee.
 		await page.goto(GROUP_PLAN_DETAIL_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -133,12 +163,14 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 	})
 
 	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
-	test('Group plan subgroup detail route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
+	test('Group plan subgroup detail route resolves the registered component, not a blank/404 shell', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(GROUP_PLAN_SUBGROUP_DETAIL_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -147,12 +179,14 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 	})
 
 	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
-	test('Group plan evaluation detail route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
+	test('Group plan evaluation detail route resolves the registered component, not a blank/404 shell', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(GROUP_PLAN_EVALUATION_DETAIL_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -162,14 +196,15 @@ test.describe('groepsplan — declarative index/detail pages', () => {
 })
 
 test.describe('groepsplan — GroupPlanSubgroupLearnerContext resolves (registry.js wiring)', () => {
-
 	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-pages-are-manifest-declared-the-one-array-membership-lookup-uses-a-named-custom-view
-	test('GroupPlanSubgroupLearnerContext route renders its empty-state subgroup picker with no subgroupId query param', async ({ loggedInPage: page }) => {
+	test('GroupPlanSubgroupLearnerContext route renders its empty-state subgroup picker with no subgroupId query param', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(LEARNER_CONTEXT_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -178,16 +213,18 @@ test.describe('groepsplan — GroupPlanSubgroupLearnerContext resolves (registry
 	})
 
 	// @e2e openspec/changes/groepsplan/specs/learning-plan/spec.md#scenario-a-subgroup-member-s-existing-learningplan-is-surfaced-without-a-duplicate-field
-	test('GroupPlanSubgroupLearnerContext shows an active LearningPlan link for a seeded intensief-subgroup member', async ({ loggedInPage: page }) => {
+	test('GroupPlanSubgroupLearnerContext shows an active LearningPlan link for a seeded intensief-subgroup member', async ({
+		loggedInPage: page,
+	}) => {
 		const subgroup = await findIntensiefSubgroup(page)
-		test.skip(!subgroup, 'No seeded intensief GroupPlanSubgroup with members found on this dev instance yet.')
+		requireFixture(subgroup, 'an intensief GroupPlanSubgroup with members')
 
 		const errors = collectFatalErrors(page)
 		const id = subgroup.id ?? subgroup.uuid
 
 		await page.goto(`${LEARNER_CONTEXT_URL}?subgroupId=${id}`)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)

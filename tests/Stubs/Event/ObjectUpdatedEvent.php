@@ -25,8 +25,7 @@ use OCP\EventDispatcher\Event;
 /**
  * Stub for ObjectUpdatedEvent.
  */
-abstract class ObjectUpdatedEvent extends Event
-{
-    abstract public function getObject(): ObjectEntity;
-    abstract public function getOldObject(): ?ObjectEntity;
+abstract class ObjectUpdatedEvent extends Event {
+	abstract public function getObject(): ObjectEntity;
+	abstract public function getOldObject(): ?ObjectEntity;
 }//end class

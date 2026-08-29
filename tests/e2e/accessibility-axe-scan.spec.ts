@@ -1,6 +1,6 @@
-import { test, expect } from './fixtures'
 import AxeBuilder from '@axe-core/playwright'
-import manifest from '../../src/manifest.json'
+import { effectiveManifest } from './effective-manifest.ts'
+import { expect, test } from './fixtures.ts'
 
 /**
  * accessibility-conformance-statement — automated accessibility scan (axe-core).
@@ -29,7 +29,7 @@ import manifest from '../../src/manifest.json'
  * @e2e openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-automated-accessibility-scans-must-be-wired-into-the-playwright-suite-as-citable-evidence
  */
 
-const APP_BASE = '/index.php/apps/scholiq'
+const APP_BASE = '/index.php/apps/learniq'
 
 // `serious`/`critical` fail the run; `minor`/`moderate` are recorded but not
 // blocking, matching the spec's own "fails on a serious or critical
@@ -40,8 +40,13 @@ type SampledPage = { id: string; route: string }
 
 // Every `type: "index"` page with a static route — the bulk of the manifest,
 // uniform CnIndexPage shape, cheap to sample exhaustively.
-const indexPages: SampledPage[] = (manifest as any).pages
-	.filter((p: any) => p.type === 'index' && typeof p.route === 'string' && !p.route.includes(':'))
+const indexPages: SampledPage[] = (effectiveManifest as any).pages
+	.filter(
+		(p: any) =>
+			p.type === 'index'
+			&& typeof p.route === 'string'
+			&& !p.route.includes(':'),
+	)
 	.map((p: any) => ({ id: p.id, route: p.route }))
 
 // A fixed, named sample of `type: "custom"` pages spanning the manifest's
@@ -55,29 +60,50 @@ const customPageIds = [
 	'RolloverWizard',
 	'AdmissionsReviewBoard',
 ]
-const customPages: SampledPage[] = (manifest as any).pages
+const customPages: SampledPage[] = (effectiveManifest as any).pages
 	.filter((p: any) => customPageIds.includes(p.id) && typeof p.route === 'string')
 	.map((p: any) => ({ id: p.id, route: p.route }))
 
 const sample: SampledPage[] = [...indexPages, ...customPages]
 
-test.describe(`Scholiq axe-core accessibility scan (WCAG 2.1 A/AA, ${sample.length} sampled pages)`, () => {
+test.describe(`Learniq axe-core accessibility scan (WCAG 2.1 A/AA, ${sample.length} sampled pages)`, () => {
 	for (const p of sample) {
-		test(`${p.id} — ${APP_BASE}${p.route} has no serious/critical WCAG 2.1 A/AA violations`, async ({ loggedInPage: page }) => {
-			await page.goto(`${APP_BASE}${p.route === '/' ? '/' : p.route}`, { waitUntil: 'domcontentloaded', timeout: 20_000 })
-			await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {})
+		// @e2e accessibility-conformance::the-axe-core-scan-runs-against-manifest-pages-and-fails-on-a-violation
+		//
+		// This is the scenario's THEN, asserted directly: the scan visits a
+		// sampled manifest page, axe-core reports every WCAG 2.1 A/AA violation
+		// it finds, and a `serious`/`critical` one fails the test run
+		// (BLOCKING_IMPACTS + the `toHaveLength(0)` below). Plant a serious
+		// violation on any sampled page and this test goes red — which is what
+		// makes the tag a measurement rather than a claim.
+		test(`${p.id} — ${APP_BASE}${p.route} has no serious/critical WCAG 2.1 A/AA violations`, async ({
+			loggedInPage: page,
+		}) => {
+			await page.goto(`${APP_BASE}${p.route === '/' ? '/' : p.route}`, {
+				waitUntil: 'domcontentloaded',
+				timeout: 20_000,
+			})
+			await page.waitForLoadState('domcontentloaded')
 
 			const results = await new AxeBuilder({ page })
 				.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
 				.analyze()
 
-			const blocking = results.violations.filter((v) => BLOCKING_IMPACTS.has(v.impact ?? ''))
+			const blocking = results.violations.filter((v) =>
+				BLOCKING_IMPACTS.has(v.impact ?? ''),
+			)
 
 			if (blocking.length > 0) {
 				const detail = blocking
-					.map((v) => `${v.id} (${v.impact}): ${v.help} — ${v.nodes.length} node(s)`)
+					.map(
+						(v) =>
+							`${v.id} (${v.impact}): ${v.help} — ${v.nodes.length} node(s)`,
+					)
 					.join('\n')
-				expect(blocking, `${p.id}: serious/critical WCAG 2.1 A/AA violation(s):\n${detail}`).toHaveLength(0)
+				expect(
+					blocking,
+					`${p.id}: serious/critical WCAG 2.1 A/AA violation(s):\n${detail}`,
+				).toHaveLength(0)
 			}
 		})
 	}

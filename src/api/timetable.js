@@ -1,5 +1,5 @@
 /**
- * Scholiq personal-timetable API.
+ * Learniq personal-timetable API.
  *
  * Stateless functions over @nextcloud/axios + generateUrl (no Pinia store,
  * per ADR-004 store-pattern): the personal timetable is a read surface, so a
@@ -43,7 +43,7 @@ export async function fetchMyTimetable(from, to) {
 		params.to = to
 	}
 
-	const url = generateUrl('/apps/scholiq/api/timetable/mine')
+	const url = generateUrl('/apps/learniq/api/timetable/mine')
 	const response = await axios.get(url, { params })
 
 	const data = response.data || {}

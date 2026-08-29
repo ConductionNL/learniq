@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Enrolment Progress Rollup Handler
+ * Learniq Enrolment Progress Rollup Handler
  *
  * Listens for OR's ObjectCreatedEvent on LessonCompletion objects and
  * recomputes the matching Enrolment's progressPercent via
@@ -14,7 +14,7 @@
  * register's calculation DSL (see EnrolmentProgressEvaluator).
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -31,12 +31,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\BackgroundJob\EnrolmentProgressRollupJob;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
-use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Progress\EnrolmentProgressEvaluator;
-use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
@@ -45,113 +45,77 @@ use OCP\EventDispatcher\IEventListener;
  *
  * @implements IEventListener<Event>
  */
-class EnrolmentProgressRollupHandler implements IEventListener
-{
+class EnrolmentProgressRollupHandler implements IEventListener {
 
-    private const SCHOLIQ_REGISTER         = 'scholiq';
-    private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
-    private const ENROLMENT_SCHEMA         = 'enrolment';
+	private const LEARNIQ_REGISTER = 'learniq';
+	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService              $objectService  OR object access.
-     * @param EnrolmentProgressEvaluator $evaluator      progressPercent calculation engine.
-     * @param ListenerSchemaResolver     $schemaResolver Resolves the entity's register/schema ids to slugs.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly EnrolmentProgressEvaluator $evaluator,
-        private readonly ListenerSchemaResolver $schemaResolver,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ListenerDeferralService $deferral Buffers the roll-up for after the request.
+	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ListenerDeferralService $deferral,
+		private readonly ListenerSchemaResolver $schemaResolver,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an ObjectCreatedEvent.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
-     */
-    public function handle(Event $event): void
-    {
-        if ($event instanceof ObjectCreatedEvent === false) {
-            return;
-        }
+	/**
+	 * Handle an ObjectCreatedEvent.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learning-progress-and-analytics/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 */
+	public function handle(Event $event): void {
+		if ($event instanceof ObjectCreatedEvent === false) {
+			return;
+		}
 
-        $objectEntity = $event->getObject();
+		$objectEntity = $event->getObject();
 
-        if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::SCHOLIQ_REGISTER
-            || $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::LESSON_COMPLETION_SCHEMA
-        ) {
-            return;
-        }
+		if ($this->schemaResolver->registerSlug(entity: $objectEntity) !== self::LEARNIQ_REGISTER
+			|| $this->schemaResolver->schemaSlug(entity: $objectEntity) !== self::LESSON_COMPLETION_SCHEMA
+		) {
+			return;
+		}
 
-        $completion = $objectEntity->jsonSerialize();
-        $learnerId  = $completion['learnerId'] ?? '';
-        // LessonCompletion already denormalizes courseId (mirrors
-        // XapiStatement.courseId/.lessonId) — no extra Lesson lookup needed
-        // to resolve the course scope.
-        $courseId = $completion['courseId'] ?? '';
+		$completion = $objectEntity->jsonSerialize();
+		$learnerId = $completion['learnerId'] ?? '';
+		// LessonCompletion already denormalizes courseId (mirrors
+		// XapiStatement.courseId/.lessonId) — no extra Lesson lookup needed
+		// to resolve the course scope.
+		$courseId = $completion['courseId'] ?? '';
 
-        if ($learnerId === '' || $courseId === '') {
-            return;
-        }
+		if ($learnerId === '' || $courseId === '') {
+			return;
+		}
 
-        $enrolment = $this->findActiveEnrolment(learnerId: $learnerId, courseId: $courseId);
-        if ($enrolment === null) {
-            // No active Enrolment for this learner+course — nothing to
-            // recompute onto. Skipped without error.
-            return;
-        }
+		// DEFERRED, not done here. This used to read the active Enrolment,
+		// evaluate the learner's lesson progress and issue a second
+		// saveObject() — all inside the LessonCompletion write that triggered
+		// it. ADR-078 makes post-`*ed` work async by default, and nothing reads
+		// `progressPercent` back in the same request, so inline bought only a
+		// slower write.
+		//
+		// Deduped per learner+course: a batch of lesson completions for one
+		// learner coalesces into ONE roll-up, because the roll-up recomputes
+		// from scratch and repeating it yields the same number.
+		$this->deferral->defer(
+			jobClass: EnrolmentProgressRollupJob::class,
+			entry: [
+				'learnerId' => $learnerId,
+				'courseId' => $courseId,
+			],
+			dedupeKey: $learnerId . '|' . $courseId
+		);
 
-        $result = $this->evaluator->evaluate(learnerId: $learnerId, courseId: $courseId);
+	}//end handle()
 
-        $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::ENROLMENT_SCHEMA,
-            object: array_merge($enrolment, ['progressPercent' => $result['progressPercent']])
-        );
-
-    }//end handle()
-
-    /**
-     * Find the learner's active Enrolment for a course.
-     *
-     * @param string $learnerId NC user ID of the learner.
-     * @param string $courseId  UUID of the Course.
-     *
-     * @return array<string, mixed>|null
-     */
-    private function findActiveEnrolment(string $learnerId, string $courseId): ?array
-    {
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::ENROLMENT_SCHEMA,
-                'filters'  => [
-                    'learnerId' => $learnerId,
-                    'courseId'  => $courseId,
-                    'lifecycle' => 'active',
-                ],
-                'limit'    => 1,
-            ]
-        );
-
-        if (empty($results) === true) {
-            return null;
-        }
-
-        $enrolment = $results[0];
-        if (is_array($enrolment) === false) {
-            $enrolment = $enrolment->jsonSerialize();
-        }
-
-        return $enrolment;
-
-    }//end findActiveEnrolment()
 }//end class

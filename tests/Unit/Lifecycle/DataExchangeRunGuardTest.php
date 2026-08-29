@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq DataExchangeRunGuard unit tests — leerplicht regression coverage.
+ * Learniq DataExchangeRunGuard unit tests — leerplicht regression coverage.
  *
  * Regression test per verzuim-report-composer tasks.md#task-3.2: confirms the
  * `leerplicht` target reaches `running` via the `run` transition (queued →
@@ -17,7 +17,7 @@
  * zorgvraag target too") — added to GATED_TARGETS, not inferred.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Lifecycle
+ * @package  OCA\Learniq\Tests\Unit\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -34,90 +34,85 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Lifecycle;
+namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
-use OCA\Scholiq\Lifecycle\DataExchangeRunGuard;
+use OCA\Learniq\Lifecycle\DataExchangeRunGuard;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Tests for DataExchangeRunGuard::check() — the queued → running transition.
  */
-class DataExchangeRunGuardTest extends TestCase
-{
-    /**
-     * A leerplicht-target job in `queued` is allowed to run directly —
-     * NOT blocked the way an oso-target job in `queued` is.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/verzuim-report-composer/tasks.md#task-3.2
-     */
-    public function testLeerplichtTargetInQueuedIsAllowedToRun(): void
-    {
-        $context = [
-            'object' => ['id' => 'job-1', 'target' => 'leerplicht'],
-            'from'   => 'queued',
-        ];
+class DataExchangeRunGuardTest extends TestCase {
+	/**
+	 * A leerplicht-target job in `queued` is allowed to run directly —
+	 * NOT blocked the way an oso-target job in `queued` is.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-3.2
+	 */
+	public function testLeerplichtTargetInQueuedIsAllowedToRun(): void {
+		$context = [
+			'object' => ['id' => 'job-1', 'target' => 'leerplicht'],
+			'from' => 'queued',
+		];
 
-        self::assertTrue((new DataExchangeRunGuard())->check($context));
+		self::assertTrue((new DataExchangeRunGuard())->check($context));
 
-    }//end testLeerplichtTargetInQueuedIsAllowedToRun()
+	}//end testLeerplichtTargetInQueuedIsAllowedToRun()
 
-    /**
-     * An oso-target job in `queued` is blocked — it must go via
-     * pending-parent-review → approveDossier instead (unchanged behaviour,
-     * asserted here so a future broadening of this guard's condition to
-     * match by dossier richness rather than the literal target string is
-     * caught).
-     *
-     * @return void
-     */
-    public function testOsoTargetInQueuedIsBlocked(): void
-    {
-        $context = [
-            'object' => ['id' => 'job-2', 'target' => 'oso'],
-            'from'   => 'queued',
-        ];
+	/**
+	 * An oso-target job in `queued` is blocked — it must go via
+	 * pending-parent-review → approveDossier instead (unchanged behaviour,
+	 * asserted here so a future broadening of this guard's condition to
+	 * match by dossier richness rather than the literal target string is
+	 * caught).
+	 *
+	 * @return void
+	 */
+	public function testOsoTargetInQueuedIsBlocked(): void {
+		$context = [
+			'object' => ['id' => 'job-2', 'target' => 'oso'],
+			'from' => 'queued',
+		];
 
-        self::assertFalse((new DataExchangeRunGuard())->check($context));
+		self::assertFalse((new DataExchangeRunGuard())->check($context));
 
-    }//end testOsoTargetInQueuedIsBlocked()
+	}//end testOsoTargetInQueuedIsBlocked()
 
-    /**
-     * A bron-rod-target job in `queued` is allowed to run directly, same as
-     * leerplicht — only oso gates on parent review.
-     *
-     * @return void
-     */
-    public function testBronRodTargetInQueuedIsAllowedToRun(): void
-    {
-        $context = [
-            'object' => ['id' => 'job-3', 'target' => 'bron-rod'],
-            'from'   => 'queued',
-        ];
+	/**
+	 * A bron-rod-target job in `queued` is allowed to run directly, same as
+	 * leerplicht — only oso gates on parent review.
+	 *
+	 * @return void
+	 */
+	public function testBronRodTargetInQueuedIsAllowedToRun(): void {
+		$context = [
+			'object' => ['id' => 'job-3', 'target' => 'bron-rod'],
+			'from' => 'queued',
+		];
 
-        self::assertTrue((new DataExchangeRunGuard())->check($context));
+		self::assertTrue((new DataExchangeRunGuard())->check($context));
 
-    }//end testBronRodTargetInQueuedIsAllowedToRun()
+	}//end testBronRodTargetInQueuedIsAllowedToRun()
 
-    /**
-     * A swv-target job in `queued` is blocked — same gate as oso, per
-     * zorgvraag-swv-tlv-chain tasks.md#task-4.4 and the data-exchange spec's
-     * "OSO-format dossier parent-review gate covers the SWV zorgvraag target
-     * too" requirement.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.4
-     */
-    public function testSwvTargetInQueuedIsBlocked(): void
-    {
-        $context = [
-            'object' => ['id' => 'job-4', 'target' => 'swv'],
-            'from'   => 'queued',
-        ];
+	/**
+	 * A swv-target job in `queued` is blocked — same gate as oso, per
+	 * zorgvraag-swv-tlv-chain tasks.md#task-4.4 and the data-exchange spec's
+	 * "OSO-format dossier parent-review gate covers the SWV zorgvraag target
+	 * too" requirement.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.4
+	 */
+	public function testSwvTargetInQueuedIsBlocked(): void {
+		$context = [
+			'object' => ['id' => 'job-4', 'target' => 'swv'],
+			'from' => 'queued',
+		];
 
-        self::assertFalse((new DataExchangeRunGuard())->check($context));
+		self::assertFalse((new DataExchangeRunGuard())->check($context));
 
-    }//end testSwvTargetInQueuedIsBlocked()
+	}//end testSwvTargetInQueuedIsBlocked()
 }//end class

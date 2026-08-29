@@ -8,11 +8,11 @@
  * OpenConnector response unmodified (task 2.4); OpenConnector
  * unreachable/non-2xx returns a clear error response, not a silent empty
  * body (task 2.5); and the bearer-token header reuses the same
- * scholiq.openconnector_api_token config key DataExchangeRunHandler already
+ * learniq.openconnector_api_token config key DataExchangeRunHandler already
  * uses.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Controller
+ * @package  OCA\Learniq\Tests\Unit\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -30,12 +30,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Controller;
+namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Controller\LtiToolPlacementController;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Controller\LtiToolPlacementController;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Http;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -52,229 +52,243 @@ use Psr\Log\NullLogger;
 /**
  * Tests for LtiToolPlacementController::launch().
  */
-class LtiToolPlacementControllerTest extends TestCase
-{
+class LtiToolPlacementControllerTest extends TestCase {
 
-    /**
-     * ObjectService mock.
-     *
-     * @var ObjectService&MockObject
-     */
-    private ObjectService&MockObject $objectService;
+	/**
+	 * ObjectService mock.
+	 *
+	 * @var ObjectService&MockObject
+	 */
+	private ObjectService&MockObject $objectService;
 
-    /**
-     * User-session mock.
-     *
-     * @var IUserSession&MockObject
-     */
-    private IUserSession&MockObject $userSession;
+	/**
+	 * User-session mock.
+	 *
+	 * @var IUserSession&MockObject
+	 */
+	private IUserSession&MockObject $userSession;
 
-    /**
-     * HTTP client-service mock.
-     *
-     * @var IClientService&MockObject
-     */
-    private IClientService&MockObject $clientService;
+	/**
+	 * HTTP client-service mock.
+	 *
+	 * @var IClientService&MockObject
+	 */
+	private IClientService&MockObject $clientService;
 
-    /**
-     * URL generator mock.
-     *
-     * @var IURLGenerator&MockObject
-     */
-    private IURLGenerator&MockObject $urlGenerator;
+	/**
+	 * URL generator mock.
+	 *
+	 * @var IURLGenerator&MockObject
+	 */
+	private IURLGenerator&MockObject $urlGenerator;
 
-    /**
-     * App-config mock.
-     *
-     * @var IAppConfig&MockObject
-     */
-    private IAppConfig&MockObject $appConfig;
+	/**
+	 * App-config mock.
+	 *
+	 * @var IAppConfig&MockObject
+	 */
+	private IAppConfig&MockObject $appConfig;
 
-    /**
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->objectService = $this->createMock(ObjectService::class);
-        $this->userSession   = $this->createMock(IUserSession::class);
-        $this->clientService = $this->createMock(IClientService::class);
-        $this->urlGenerator  = $this->createMock(IURLGenerator::class);
-        $this->appConfig     = $this->createMock(IAppConfig::class);
-    }//end setUp()
+	/**
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->objectService = $this->createMock(ObjectService::class);
+		$this->userSession = $this->createMock(IUserSession::class);
+		$this->clientService = $this->createMock(IClientService::class);
+		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
+	}//end setUp()
 
-    /**
-     * Build the controller under test.
-     *
-     * @return LtiToolPlacementController
-     */
-    private function controller(): LtiToolPlacementController
-    {
-        return new LtiToolPlacementController(
-            request: $this->createMock(IRequest::class),
-            userSession: $this->userSession,
-            objectService: $this->objectService,
-            clientService: $this->clientService,
-            urlGenerator: $this->urlGenerator,
-            appConfig: $this->appConfig,
-            logger: new NullLogger()
-        );
-    }//end controller()
+	/**
+	 * Build the controller under test.
+	 *
+	 * @return LtiToolPlacementController
+	 */
+	private function controller(): LtiToolPlacementController {
+		return new LtiToolPlacementController(
+			request: $this->createMock(IRequest::class),
+			userSession: $this->userSession,
+			objectService: $this->objectService,
+			clientService: $this->clientService,
+			urlGenerator: $this->urlGenerator,
+			appConfig: $this->appConfig,
+			logger: new NullLogger()
+		);
+	}//end controller()
 
-    /**
-     * Sign the caller in as the given uid.
-     *
-     * @param string $uid The user id.
-     *
-     * @return void
-     */
-    private function signInAs(string $uid): void
-    {
-        $user = $this->createMock(IUser::class);
-        $user->method('getUID')->willReturn($uid);
-        $this->userSession->method('getUser')->willReturn($user);
-    }//end signInAs()
+	/**
+	 * Sign the caller in as the given uid.
+	 *
+	 * @param string $uid The user id.
+	 *
+	 * @return void
+	 */
+	private function signInAs(string $uid): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn($uid);
+		$this->userSession->method('getUser')->willReturn($user);
+	}//end signInAs()
 
-    /**
-     * A valid placement's launch call forwards the correct
-     * openconnectorDeploymentId and returns the mocked response unmodified.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/lti-tool-placement/tasks.md#task-2.4
-     */
-    public function testLaunchForwardsDeploymentIdAndReturnsResponseUnmodified(): void
-    {
-        $this->signInAs('learner-1');
+	/**
+	 * A valid placement's launch call forwards the correct
+	 * openconnectorDeploymentId and returns the mocked response unmodified.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-2.4
+	 */
+	public function testLaunchForwardsDeploymentIdAndReturnsResponseUnmodified(): void {
+		$this->signInAs('learner-1');
 
-        // OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
-        // and returns ?ObjectEntity. willReturnCallback() hands the closure the
-        // mock's arguments POSITIONALLY, so the closure must mirror that order.
-        $this->objectService->method('find')->willReturnCallback(
-            function (int | string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null): ?ObjectEntity {
-                if ($register === 'scholiq' && $schema === 'lti-tool-placement' && $id === 'placement-1') {
-                    return OrEntityFactory::make(
-                        [
-                            'id'                        => 'placement-1',
-                            'openconnectorDeploymentId' => 'deployment-uuid-1',
-                            'launchMode'                => 'resource-link',
-                        ],
-                        'lti-tool-placement'
-                    );
-                }
+		// OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
+		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
+		// mock's arguments POSITIONALLY, so the closure must mirror that order.
+		$this->objectService->method('find')->willReturnCallback(
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+				if ($register === 'learniq' && $schema === 'lti-tool-placement' && $id === 'placement-1') {
+					return OrEntityFactory::make(
+						[
+							'id' => 'placement-1',
+							'openconnectorDeploymentId' => 'deployment-uuid-1',
+							'launchMode' => 'resource-link',
+						],
+						'lti-tool-placement'
+					);
+				}
 
-                return null;
-            }
-        );
+				return null;
+			}
+		);
 
-        $this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
-            static fn (string $path): string => 'https://scholiq.example'.$path
-        );
+		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
+			static fn (string $path): string => 'https://learniq.example' . $path
+		);
 
-        $this->appConfig->method('getValueString')->willReturn('token-abc');
+		$this->appConfig->method('getValueString')->willReturn('token-abc');
 
-        $capturedUrl     = null;
-        $capturedOptions = null;
+		$capturedUrl = null;
+		$capturedOptions = null;
 
-        $response = $this->createMock(IResponse::class);
-        $response->method('getBody')->willReturn(json_encode(['formActionUrl' => 'https://tool.example/launch', 'idToken' => 'jwt-value']));
+		$response = $this->createMock(IResponse::class);
+		$response->method('getBody')->willReturn(json_encode(['formActionUrl' => 'https://tool.example/launch', 'idToken' => 'jwt-value']));
 
-        $client = $this->createMock(IClient::class);
-        $client->expects($this->once())
-            ->method('post')
-            ->willReturnCallback(
-                function (string $url, array $options) use (&$capturedUrl, &$capturedOptions, $response): IResponse {
-                    $capturedUrl     = $url;
-                    $capturedOptions = $options;
-                    return $response;
-                }
-            );
+		$client = $this->createMock(IClient::class);
+		$client->expects($this->once())
+			->method('post')
+			->willReturnCallback(
+				function (string $url, array $options) use (&$capturedUrl, &$capturedOptions, $response): IResponse {
+					$capturedUrl = $url;
+					$capturedOptions = $options;
+					return $response;
+				}
+			);
 
-        $this->clientService->method('newClient')->willReturn($client);
+		$this->clientService->method('newClient')->willReturn($client);
 
-        $result = $this->controller()->launch(placementId: 'placement-1');
+		$result = $this->controller()->launch(placementId: 'placement-1');
 
-        self::assertSame(Http::STATUS_OK, $result->getStatus());
-        self::assertSame(
-            ['formActionUrl' => 'https://tool.example/launch', 'idToken' => 'jwt-value', 'launchMode' => 'resource-link'],
-            $result->getData()
-        );
+		self::assertSame(Http::STATUS_OK, $result->getStatus());
+		self::assertSame(
+			['formActionUrl' => 'https://tool.example/launch', 'idToken' => 'jwt-value', 'launchMode' => 'resource-link'],
+			$result->getData()
+		);
 
-        // Forwarded the deployment UUID, not the placement UUID, in the URL.
-        self::assertStringContainsString('deployment-uuid-1', (string) $capturedUrl);
-        self::assertStringNotContainsString('placement-1', (string) $capturedUrl);
+		// Forwarded the deployment UUID, not the placement UUID, in the URL.
+		self::assertStringContainsString('deployment-uuid-1', (string)$capturedUrl);
+		self::assertStringNotContainsString('placement-1', (string)$capturedUrl);
 
-        // Reused the same bearer-token header shape DataExchangeRunHandler uses.
-        self::assertSame('Bearer token-abc', $capturedOptions['headers']['Authorization']);
-        self::assertSame('learner-1', $capturedOptions['json']['subject']);
-    }//end testLaunchForwardsDeploymentIdAndReturnsResponseUnmodified()
+		// Reused the same bearer-token header shape DataExchangeRunHandler uses.
+		self::assertSame('Bearer token-abc', $capturedOptions['headers']['Authorization']);
+		self::assertSame('learner-1', $capturedOptions['json']['subject']);
+	}//end testLaunchForwardsDeploymentIdAndReturnsResponseUnmodified()
 
-    /**
-     * OpenConnector unreachable / non-2xx: launch() returns a clear error
-     * response, not a silent empty body.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/lti-tool-placement/tasks.md#task-2.5
-     */
-    public function testLaunchReturnsClearErrorWhenOpenConnectorUnreachable(): void
-    {
-        $this->signInAs('learner-1');
+	/**
+	 * OpenConnector unreachable / non-2xx: launch() returns a clear error
+	 * response, not a silent empty body.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/lti-tool-placement/tasks.md#task-2.5
+	 */
+	public function testLaunchReturnsClearErrorWhenOpenConnectorUnreachable(): void {
+		$this->signInAs('learner-1');
 
-        $this->objectService->method('find')->willReturn(
-            OrEntityFactory::make(
-                [
-                    'id'                        => 'placement-1',
-                    'openconnectorDeploymentId' => 'deployment-uuid-1',
-                    'launchMode'                => 'resource-link',
-                ],
-                'lti-tool-placement'
-            )
-        );
+		$this->objectService->method('find')->willReturn(
+			OrEntityFactory::make(
+				[
+					'id' => 'placement-1',
+					'openconnectorDeploymentId' => 'deployment-uuid-1',
+					'launchMode' => 'resource-link',
+				],
+				'lti-tool-placement'
+			)
+		);
 
-        $this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
-            static fn (string $path): string => 'https://scholiq.example'.$path
-        );
-        $this->appConfig->method('getValueString')->willReturn('token-abc');
+		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
+			static fn (string $path): string => 'https://learniq.example' . $path
+		);
+		$this->appConfig->method('getValueString')->willReturn('token-abc');
 
-        $client = $this->createMock(IClient::class);
-        $client->method('post')->willThrowException(new \Exception('Connection refused'));
-        $this->clientService->method('newClient')->willReturn($client);
+		$client = $this->createMock(IClient::class);
+		$client->method('post')->willThrowException(new \Exception('Connection refused'));
+		$this->clientService->method('newClient')->willReturn($client);
 
-        $result = $this->controller()->launch(placementId: 'placement-1');
+		$result = $this->controller()->launch(placementId: 'placement-1');
 
-        self::assertSame(Http::STATUS_BAD_GATEWAY, $result->getStatus());
-        self::assertArrayHasKey('error', $result->getData());
-        self::assertNotSame('', $result->getData()['error']);
-    }//end testLaunchReturnsClearErrorWhenOpenConnectorUnreachable()
+		self::assertSame(Http::STATUS_BAD_GATEWAY, $result->getStatus());
+		self::assertArrayHasKey('error', $result->getData());
+		self::assertNotSame('', $result->getData()['error']);
+	}//end testLaunchReturnsClearErrorWhenOpenConnectorUnreachable()
 
-    /**
-     * A placement that does not exist returns 404, never a silent empty body.
-     *
-     * @return void
-     */
-    public function testLaunchReturnsNotFoundForUnknownPlacement(): void
-    {
-        $this->signInAs('learner-1');
-        $this->objectService->method('find')->willReturn(null);
+	/**
+	 * A placement that does not exist returns 404, never a silent empty body.
+	 *
+	 * @return void
+	 */
+	public function testLaunchReturnsNotFoundForUnknownPlacement(): void {
+		$this->signInAs('learner-1');
+		$this->objectService->method('find')->willReturn(null);
 
-        $result = $this->controller()->launch(placementId: 'nope');
+		$result = $this->controller()->launch(placementId: 'nope');
 
-        self::assertSame(Http::STATUS_NOT_FOUND, $result->getStatus());
-    }//end testLaunchReturnsNotFoundForUnknownPlacement()
+		self::assertSame(Http::STATUS_NOT_FOUND, $result->getStatus());
+	}//end testLaunchReturnsNotFoundForUnknownPlacement()
 
-    /**
-     * An unauthenticated caller receives 401, never proceeds to launch.
-     *
-     * @return void
-     */
-    public function testLaunchRequiresAuthentication(): void
-    {
-        $this->userSession->method('getUser')->willReturn(null);
-        $this->objectService->expects($this->never())->method('find');
+	/**
+	 * An unknown placement id returns 404 when ObjectService THROWS.
+	 *
+	 * ObjectService::find() raises DoesNotExistException for an unknown id
+	 * rather than returning null, so before the catch in resolvePlacement()
+	 * the exception escaped launch() entirely and became a 500 with a stack
+	 * trace — the 404 above was unreachable in production, and only passed
+	 * here because the mock returned null instead of throwing.
+	 *
+	 * @return void
+	 */
+	public function testLaunchReturnsNotFoundWhenObjectServiceThrows(): void {
+		$this->signInAs('learner-1');
+		$this->objectService->method('find')->willThrowException(
+			new \OCP\AppFramework\Db\DoesNotExistException('no such object')
+		);
 
-        $result = $this->controller()->launch(placementId: 'placement-1');
+		$result = $this->controller()->launch(placementId: 'nope');
 
-        self::assertSame(Http::STATUS_UNAUTHORIZED, $result->getStatus());
-    }//end testLaunchRequiresAuthentication()
+		self::assertSame(Http::STATUS_NOT_FOUND, $result->getStatus());
+	}//end testLaunchReturnsNotFoundWhenObjectServiceThrows()
+
+	/**
+	 * An unauthenticated caller receives 401, never proceeds to launch.
+	 *
+	 * @return void
+	 */
+	public function testLaunchRequiresAuthentication(): void {
+		$this->userSession->method('getUser')->willReturn(null);
+		$this->objectService->expects($this->never())->method('find');
+
+		$result = $this->controller()->launch(placementId: 'placement-1');
+
+		self::assertSame(Http::STATUS_UNAUTHORIZED, $result->getStatus());
+	}//end testLaunchRequiresAuthentication()
 }//end class

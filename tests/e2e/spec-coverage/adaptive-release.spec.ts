@@ -28,6 +28,7 @@
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
 import { test, expect } from '../fixtures'
+import { requireFixture } from '../seeded'
 
 // `/index.php/` prefix is load-bearing on CI. The shared workflow serves
 // Nextcloud with a bare `php -S` and no router script, so pretty URLs are not
@@ -37,7 +38,12 @@ import { test, expect } from '../fixtures'
 // `/index.php/apps/openregister/...` works. The failure surfaces as a selector
 // or empty-result assertion, never as a visible 404. 29 of this suite's 34 spec
 // files already used the `/index.php/` form.
-const LESSON_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/Lesson?limit=200'
+// `_limit`, NOT `limit` — an unrecognised OpenRegister query parameter is
+// applied as a PROPERTY FILTER rather than ignored, so `?limit=200` returns
+// HTTP 200 with an empty result set and the guards below read it as "no Lesson
+// seeded". This spec ran 0 of its 3 tests on every green run.
+const LESSON_LIST_API =
+	'/index.php/apps/openregister/api/objects/learniq/Lesson?_limit=200'
 
 /**
  * Fetch every Lesson and return the first one matching the given predicate,
@@ -46,7 +52,10 @@ const LESSON_LIST_API = '/index.php/apps/openregister/api/objects/scholiq/Lesson
  * @param page    The Playwright page (used for its authenticated request context).
  * @param matches Predicate a candidate Lesson row must satisfy.
  */
-async function findLesson(page: import('@playwright/test').Page, matches: (_lesson: any) => boolean) {
+async function findLesson(
+	page: import('@playwright/test').Page,
+	matches: (_lesson: any) => boolean,
+) {
 	const resp = await page.request.get(LESSON_LIST_API, {
 		headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 	})
@@ -77,25 +86,73 @@ function fatalOnly(errors: string[]): string[] {
 	)
 }
 
-async function openLessonPlayer(page: import('@playwright/test').Page, courseId: string, lessonId: string) {
-	// ⚠️ scholiq#267 — still the HASH form; the history-mode router resolves it
-	// to NO route, so this file's assertions have never run against the app.
-	// `courseId`/`lessonId` are real seeded ids, so the conversion is trivial —
-	// held back deliberately, see the issue.
-	await page.goto(`/index.php/apps/scholiq/#/courses/${courseId}/lessons/${lessonId}/play`)
+async function openLessonPlayer(
+	page: import('@playwright/test').Page,
+	courseId: string,
+	lessonId: string,
+) {
+	// ⚠️ NO `#` — HISTORY mode router. With the hash this resolved to
+	// `/#/courses/…/play`, matched no declared route, and the catch-all
+	// redirected to the DASHBOARD, so every assertion here was made against the
+	// dashboard rather than the lesson player.
+	await page.goto(
+		`/index.php/apps/learniq/courses/${courseId}/lessons/${lessonId}/play`,
+	)
 	await page.waitForSelector('body', { timeout: 15_000 })
-	await page.waitForLoadState('networkidle').catch(() => {})
+	await page.waitForLoadState('domcontentloaded')
 }
 
 test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate locked state', () => {
-
 	// @e2e openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-unavailable-until-its-prerequisite-lesson-is-completed
-	test('lesson-locked-until-prerequisite-lesson-completed', async ({ loggedInPage: page }) => {
+	//
+	// ⚠️ BLOCKED BY ConductionNL/openregister#2179, in a way worth spelling out
+	// because the fixture LOOKS present.
+	//
+	// This needs a Lesson whose `releaseConditions` carries a `lesson-completed`
+	// entry POINTING AT a prerequisite. `lessonId` is a `$ref` inside an array
+	// item, and OpenRegister refuses that write with
+	// `403 Unresolved reference: schema:///Lesson#` — self-referential, but
+	// refused all the same.
+	//
+	// The seeder can drop `lessonId` (items.required is `["kind"]` alone) and
+	// the Lesson then writes successfully — which is exactly the trap.
+	// LessonReleaseEvaluator::evaluateLessonCompletedCondition() opens with:
+	//
+	//     $lessonId = (string)($condition['lessonId'] ?? '');
+	//     if ($lessonId === '') { return ['blocked' => false, …]; }
+	//
+	// so a condition with no `lessonId` is treated as NOT BLOCKING. The fixture
+	// satisfies the discovery predicate (`kind === 'lesson-completed'`) while
+	// being unable to lock anything, and the page renders normally — this test
+	// failed on `toContain("not available")` against a perfectly ordinary
+	// lesson page.
+	//
+	// So the gate cannot be seeded through the object API at all, and a
+	// toothless stand-in is worse than none: it would let a green run claim
+	// coverage of locking. fixme until #2179 lands.
+	test('lesson-locked-until-prerequisite-lesson-completed', async ({
+		loggedInPage: page,
+	}) => {
+		// Inside the test body, deliberately. A bare `test.fixme(true, …)` at
+		// DESCRIBE level applies to every sibling — the hazard this file's own
+		// note calls out. In the body it scopes to this test alone, and unlike
+		// `test.fixme(name, fn)` it records the reason in the report.
+		test.fixme(
+			true,
+			'#2179-class gap: the lesson-lock path returns blocked=false when lessonId is empty, so this scenario cannot be driven end-to-end yet. Kept as fixme (a KNOWN failure, not a pass) rather than skip.',
+		)
 		const lesson = await findLesson(
 			page,
-			(l) => Array.isArray(l.releaseConditions) && l.releaseConditions.some((c: any) => c.kind === 'lesson-completed'),
+			(l) =>
+				Array.isArray(l.releaseConditions)
+				&& l.releaseConditions.some(
+					(c: any) => c.kind === 'lesson-completed',
+				),
 		)
-		test.skip(!lesson, 'No published Lesson with a lesson-completed releaseConditions entry seeded in this environment.')
+		requireFixture(
+			lesson,
+			'a published Lesson with a lesson-completed releaseConditions entry',
+		)
 
 		const errors = collectFatalErrors(page)
 		const lessonId = lesson.id ?? lesson.uuid
@@ -109,11 +166,15 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 		expect(bodyText).toContain('not available')
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 
 	// @e2e openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-unlocks-once-its-prerequisite-lesson-is-completed
-	test('lesson-unlocks-once-prerequisite-lesson-completed', async ({ loggedInPage: page }) => {
+	test('lesson-unlocks-once-prerequisite-lesson-completed', async ({
+		loggedInPage: page,
+	}) => {
 		// The completion signal is a verified XapiStatement (verified_actor_id
 		// + a completed/passed verb), not a self-reported LessonCompletion —
 		// per spec, only real xAPI completions satisfy a lesson-completed
@@ -125,11 +186,13 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 		// the same code path a satisfied condition takes.
 		const lesson = await findLesson(
 			page,
-			(l) => l.contentType === 'text' && l.lifecycle === 'published'
+			(l) =>
+				l.contentType === 'text'
+				&& l.lifecycle === 'published'
 				&& (l.releaseConditions == null || l.releaseConditions.length === 0)
 				&& l.availableAfterDays == null,
 		)
-		test.skip(!lesson, 'No published, ungated contentType=text Lesson seeded in this environment.')
+		requireFixture(lesson, 'a published, ungated contentType=text Lesson')
 
 		const errors = collectFatalErrors(page)
 		const lessonId = lesson.id ?? lesson.uuid
@@ -143,16 +206,21 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 		await expect(lockedHeading).toHaveCount(0)
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 
 	// @e2e openspec/changes/adaptive-release-and-prerequisites/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
-	test('lesson-locked-until-drip-delay-elapses', async ({ loggedInPage: page }) => {
+	test('lesson-locked-until-drip-delay-elapses', async ({
+		loggedInPage: page,
+	}) => {
 		const lesson = await findLesson(
 			page,
-			(l) => typeof l.availableAfterDays === 'number' && l.availableAfterDays > 0,
+			(l) =>
+				typeof l.availableAfterDays === 'number' && l.availableAfterDays > 0,
 		)
-		test.skip(!lesson, 'No Lesson with availableAfterDays > 0 seeded in this environment.')
+		requireFixture(lesson, 'a Lesson with availableAfterDays > 0')
 
 		const errors = collectFatalErrors(page)
 		const lessonId = lesson.id ?? lesson.uuid
@@ -168,6 +236,8 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 		expect(bodyText.trim().length).toBeGreaterThan(0)
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

@@ -58,16 +58,16 @@ export function baseUrl(): string {
 
 	throw new Error(
 		'No Nextcloud base URL configured for the e2e suite. Set one of '
-		+ candidates.join(', ')
-		+ '. There is deliberately no default: the old default was the SHARED '
-		+ 'developer instance on :8080, which bind-mounts real host checkouts.',
+			+ candidates.join(', ')
+			+ '. There is deliberately no default: the old default was the SHARED '
+			+ 'developer instance on :8080, which bind-mounts real host checkouts.',
 	)
 }
 
 /**
  * Build an absolute URL against the instance under test.
  *
- * @param {string} pathname Absolute path, e.g. `/apps/scholiq/api/settings`.
+ * @param {string} pathname Absolute path, e.g. `/apps/learniq/api/settings`.
  * @return {string} Fully-qualified URL on the instance under test.
  */
 export function apiUrl(pathname: string): string {

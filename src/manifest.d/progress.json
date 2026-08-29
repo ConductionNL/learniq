@@ -1,0 +1,2525 @@
+{
+	"_meta": {
+		"spdx-license": "EUPL-1.2",
+		"spdx-copyright": "2026 Conduction B.V.",
+		"change": "manifest-fragment-split",
+		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
+		"description": "GroupEngagement, GroupCourseEvaluation, GroupCompetency, GroupStudentAnalytics, GroupPortfolio."
+	},
+	"menu": [
+		{
+			"id": "GroupProgress",
+			"label": "Progress",
+			"icon": "TrendingUp",
+			"order": 25,
+			"route": "ProgressLanding"
+		},
+		{
+			"id": "GroupCompetency",
+			"label": "Competencies",
+			"icon": "MedalOutline",
+			"order": 30,
+			"children": [
+				{
+					"id": "SkillsGapDashboardMenu",
+					"label": "Skills gap dashboard",
+					"icon": "ViewDashboardOutline",
+					"route": "SkillsGapDashboard",
+					"order": 110
+				},
+				{
+					"id": "CompetencyFrameworksMenu",
+					"label": "Frameworks",
+					"icon": "Folder",
+					"route": "CompetencyFrameworks",
+					"order": 120
+				},
+				{
+					"id": "CompetenciesMenu",
+					"label": "Competencies",
+					"icon": "MedalOutline",
+					"route": "Competencies",
+					"order": 130
+				},
+				{
+					"id": "CompetencyAttainmentsMenu",
+					"label": "Attainment",
+					"icon": "BriefcaseOutline",
+					"route": "CompetencyAttainments",
+					"order": 140
+				}
+			]
+		},
+		{
+			"id": "GroupStudentAnalytics",
+			"label": "Progress & analytics",
+			"icon": "ChartLineVariant",
+			"order": 31,
+			"children": [
+				{
+					"id": "GroupTrendHeatmapMenu",
+					"label": "Group trend heat map",
+					"icon": "AccountGroupOutline",
+					"route": "GroupTrendHeatmap",
+					"order": 210,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"admin",
+								"instructor"
+							]
+						}
+					}
+				},
+				{
+					"id": "LessonCompletionsMenu",
+					"label": "Lesson completions",
+					"icon": "Check",
+					"route": "LessonCompletions",
+					"order": 220
+				},
+				{
+					"id": "EngagementScoresMenu",
+					"label": "Engagement scores",
+					"icon": "ChartLine",
+					"route": "EngagementScores",
+					"order": 230
+				},
+				{
+					"id": "EngagementRiskThresholdsMenu",
+					"label": "Engagement thresholds",
+					"icon": "Eye",
+					"route": "EngagementRiskThresholds",
+					"order": 240,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"admin",
+								"coordinator"
+							]
+						}
+					}
+				},
+				{
+					"id": "EngagementRiskFlagsMenu",
+					"label": "Engagement flags",
+					"icon": "Lock",
+					"route": "EngagementRiskFlags",
+					"order": 250
+				}
+			]
+		},
+		{
+			"id": "GroupEngagement",
+			"label": "Engagement",
+			"icon": "ChartLine",
+			"order": 32,
+			"children": [
+				{
+					"id": "LeaderboardViewMenu",
+					"label": "Leaderboard",
+					"icon": "AccountArrowRightOutline",
+					"route": "LeaderboardView",
+					"order": 310
+				},
+				{
+					"id": "PointRulesMenu",
+					"label": "Point rules",
+					"icon": "Eye",
+					"route": "PointRules",
+					"order": 320,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"admin",
+								"coordinator"
+							]
+						}
+					}
+				},
+				{
+					"id": "EngagementLevelsMenu",
+					"label": "Levels",
+					"icon": "ClipboardOutline",
+					"route": "EngagementLevels",
+					"order": 330,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"admin",
+								"coordinator"
+							]
+						}
+					}
+				},
+				{
+					"id": "LeaderboardsMenu",
+					"label": "Leaderboards (config)",
+					"icon": "AccountArrowRightOutline",
+					"route": "Leaderboards",
+					"order": 340,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"admin",
+								"coordinator"
+							]
+						}
+					}
+				},
+				{
+					"id": "PointAwardsMenu",
+					"label": "Point awards",
+					"icon": "History",
+					"route": "PointAwards",
+					"order": 350,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"admin",
+								"coordinator"
+							]
+						}
+					}
+				},
+				{
+					"id": "LearnerEngagementsMenu",
+					"label": "Learner engagement",
+					"icon": "ChartLine",
+					"route": "LearnerEngagements",
+					"order": 360
+				}
+			]
+		},
+		{
+			"id": "GroupCourseEvaluation",
+			"label": "Course evaluation",
+			"icon": "BookOpenPageVariantOutline",
+			"order": 33,
+			"children": [
+				{
+					"id": "EvaluationCampaignsMenu",
+					"label": "Evaluation campaigns",
+					"icon": "ClipboardOutline",
+					"route": "EvaluationCampaigns",
+					"order": 410
+				},
+				{
+					"id": "CourseQualityReportMenu",
+					"label": "Quality report",
+					"icon": "ChartBoxOutline",
+					"route": "CourseQualityReport",
+					"order": 420
+				},
+				{
+					"id": "CourseEvaluationResponsesMenu",
+					"label": "Responses",
+					"icon": "CommentOutline",
+					"route": "CourseEvaluationResponses",
+					"order": 430,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"admin",
+								"coordinator",
+								"instructor"
+							]
+						}
+					}
+				},
+				{
+					"id": "ImprovementActionsMenu",
+					"label": "Improvement actions",
+					"icon": "Check",
+					"route": "ImprovementActions",
+					"order": 440
+				}
+			]
+		},
+		{
+			"id": "GroupPortfolio",
+			"label": "Portfolios",
+			"icon": "BriefcaseOutline",
+			"order": 27,
+			"children": [
+				{
+					"id": "PortfoliosMenu",
+					"label": "Portfolios",
+					"icon": "BriefcaseOutline",
+					"route": "Portfolios",
+					"order": 510
+				},
+				{
+					"id": "PortfolioTemplatesMenu",
+					"label": "Portfolio templates",
+					"icon": "FileReplaceOutline",
+					"route": "PortfolioTemplates",
+					"order": 520
+				},
+				{
+					"id": "PortfolioEntriesMenu",
+					"label": "Portfolio entries",
+					"icon": "BriefcaseOutline",
+					"route": "PortfolioEntries",
+					"order": 530
+				},
+				{
+					"id": "PortfolioSharesMenu",
+					"label": "Portfolio shares",
+					"icon": "BriefcaseOutline",
+					"route": "PortfolioShares",
+					"order": 540
+				},
+				{
+					"id": "ExternalAssessorsMenu",
+					"label": "External assessors",
+					"icon": "AccountBox",
+					"route": "ExternalAssessors",
+					"order": 550
+				}
+			]
+		}
+	],
+	"pages": [
+		{
+			"id": "CompetencyFrameworks",
+			"route": "/competencies/frameworks",
+			"type": "index",
+			"title": "Competency frameworks",
+			"config": {
+				"register": "learniq",
+				"schema": "competency-framework"
+			}
+		},
+		{
+			"id": "CompetencyFrameworkDetail",
+			"route": "/competencies/frameworks/:id",
+			"type": "detail",
+			"title": "Competency framework",
+			"config": {
+				"register": "learniq",
+				"schema": "competency-framework",
+				"_note": "competency-framework: a CompetencyFramework is a named taxonomy (SBB kwalificatiedossier, SLO kerndoelen/eindtermen, ESCO, or school-defined) declaring its own proficiencyLevels scale — a config archetype like GradeScale. Body leads with the framework definition including proficiencyLevels (8-wide) and a Related panel. The Competency nodes declared under this framework render as a related-index so a curriculum designer sees the taxonomy tree. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "cfw-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Sitemap"
+					},
+					{
+						"id": "cfw-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Competencies",
+									"register": "learniq",
+									"schema": "competency",
+									"metric": "count",
+									"filter": {
+										"frameworkId": "@objectId"
+									},
+									"route": "Competencies"
+								}
+							]
+						}
+					},
+					{
+						"id": "cfw-competencies",
+						"type": "object-list",
+						"title": "Competencies",
+						"content": {
+							"register": "learniq",
+							"schema": "competency",
+							"filter": {
+								"frameworkId": "@objectId"
+							},
+							"sort": {
+								"field": "order",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "code",
+									"label": "Code"
+								},
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "isLeaf",
+									"label": "Learning outcome"
+								}
+							],
+							"rowRoute": "CompetencyDetail",
+							"viewAllRoute": "Competencies",
+							"viewAllQuery": {
+								"frameworkId": "@objectId"
+							},
+							"emptyText": "No competencies found.",
+							"allowCreate": false
+						},
+						"icon": "Sitemap"
+					},
+					{
+						"id": "cfw-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "cfw-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "cfw-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "cfw-competencies",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "cfw-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "Competencies",
+			"route": "/competencies",
+			"type": "index",
+			"title": "Competencies",
+			"config": {
+				"register": "learniq",
+				"schema": "competency"
+			}
+		},
+		{
+			"id": "CompetencyDetail",
+			"route": "/competencies/:id",
+			"type": "detail",
+			"title": "Competency",
+			"config": {
+				"register": "learniq",
+				"schema": "competency",
+				"_note": "competency-framework: Competency is a recursive taxonomy node (mirrors Course.parentCourseId) — a leaf node (isLeaf: true) IS the learning outcome, no separate LearningOutcome schema. Body leads with the node's data (8-wide) and a Related panel resolving frameworkId/parentId. Child Competency nodes (sub-tree) and the CompetencyAttainment rows recorded against this node each render as a related-index for traceability. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "comp-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Sitemap"
+					},
+					{
+						"id": "comp-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Sub-competencies",
+									"register": "learniq",
+									"schema": "competency",
+									"metric": "count",
+									"filter": {
+										"parentId": "@objectId"
+									},
+									"route": "Competencies"
+								},
+								{
+									"title": "Attainment rows",
+									"register": "learniq",
+									"schema": "competency-attainment",
+									"metric": "count",
+									"filter": {
+										"competencyId": "@objectId"
+									},
+									"route": "CompetencyAttainments"
+								}
+							]
+						}
+					},
+					{
+						"id": "comp-children",
+						"type": "object-list",
+						"title": "Sub-competencies",
+						"content": {
+							"register": "learniq",
+							"schema": "competency",
+							"filter": {
+								"parentId": "@objectId"
+							},
+							"sort": {
+								"field": "order",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "code",
+									"label": "Code"
+								},
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "isLeaf",
+									"label": "Learning outcome"
+								}
+							],
+							"rowRoute": "CompetencyDetail",
+							"viewAllRoute": "Competencies",
+							"viewAllQuery": {
+								"parentId": "@objectId"
+							},
+							"emptyText": "No sub-competencies. This is a learning outcome, the lowest level in the tree.",
+							"allowCreate": false
+						},
+						"icon": "Sitemap"
+					},
+					{
+						"id": "comp-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "comp-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "comp-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "comp-children",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "comp-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "CompetencyAttainments",
+			"route": "/competencies/attainments",
+			"type": "index",
+			"title": "Competency attainment",
+			"config": {
+				"register": "learniq",
+				"schema": "competency-attainment",
+				"readOnly": true
+			}
+		},
+		{
+			"id": "CompetencyAttainmentDetail",
+			"route": "/competencies/attainments/:id",
+			"type": "detail",
+			"title": "Competency attainment",
+			"config": {
+				"register": "learniq",
+				"schema": "competency-attainment",
+				"readOnly": true,
+				"_note": "competency-framework: a CompetencyAttainment is the computed roll-up outcome for a learner on a Competency (proficiencyLevelId plus four evidence-id arrays) — an aggregate result, mirrors FinalGrade's detail page exactly. Body leads with the attainment data (8-wide) and a Related panel resolving learner/competency/framework. No comms leaves (no linkedTypes). System-derived — no create/edit actions; sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "cattain-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Trophy"
+					},
+					{
+						"id": "cattain-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "cattain-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "cattain-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "SkillsGapDashboard",
+			"route": "/competencies/skills-gap",
+			"type": "custom",
+			"title": "Skills gap dashboard",
+			"component": "SkillsGapDashboard",
+			"_note": "competency-framework: the one genuine custom-view exception for the competency capability — a learner/manager view comparing required competencies (Programme.requiredCompetencyIds for the learner's enrolled programme(s), union Competency.requiredForRoles intersecting LearnerProfile.roles) against the learner's CompetencyAttainment rows, listing gaps. Every other competency object is declarative index/detail pages."
+		},
+		{
+			"id": "LessonCompletions",
+			"route": "/progress/lesson-completions",
+			"type": "index",
+			"title": "Lesson completions",
+			"config": {
+				"register": "learniq",
+				"schema": "lesson-completion"
+			}
+		},
+		{
+			"id": "LessonCompletionDetail",
+			"route": "/progress/lesson-completions/:id",
+			"type": "detail",
+			"title": "Lesson completion",
+			"config": {
+				"register": "learniq",
+				"schema": "lesson-completion",
+				"_note": "learning-progress-and-analytics: a LessonCompletion is a per-(learner, lesson) completion fact — no lifecycle. Body leads with the completion data (8-wide) and a Related panel resolving learner/lesson/course/enrolment. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "lc-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "CheckCircleOutline"
+					},
+					{
+						"id": "lc-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "lc-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "lc-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "EngagementScores",
+			"route": "/progress/engagement-scores",
+			"type": "index",
+			"title": "Engagement scores",
+			"config": {
+				"register": "learniq",
+				"schema": "engagement-score",
+				"readOnly": true
+			}
+		},
+		{
+			"id": "EngagementScoreDetail",
+			"route": "/progress/engagement-scores/:id",
+			"type": "detail",
+			"title": "Engagement score",
+			"config": {
+				"register": "learniq",
+				"schema": "engagement-score",
+				"readOnly": true,
+				"_note": "learning-progress-and-analytics: an EngagementScore is a computed per-(learner, course) roll-up (activityCount, timeOnTaskMinutes, lastActivityAt, recencyDays, score) — an aggregate result, mirroring FinalGrade. Body leads with the score data (8-wide) and a Related panel resolving learner/course. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "es-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ChartLine"
+					},
+					{
+						"id": "es-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "es-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "es-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "EngagementRiskThresholds",
+			"route": "/progress/engagement-thresholds",
+			"type": "index",
+			"title": "Engagement thresholds",
+			"config": {
+				"register": "learniq",
+				"schema": "engagement-risk-threshold"
+			}
+		},
+		{
+			"id": "EngagementRiskThresholdDetail",
+			"route": "/progress/engagement-thresholds/:id",
+			"type": "detail",
+			"title": "Engagement threshold",
+			"config": {
+				"register": "learniq",
+				"schema": "engagement-risk-threshold",
+				"_note": "learning-progress-and-analytics: an EngagementRiskThreshold is a config/rule row (name, kind, scope, metric, limit, onAtRisk), mirroring AttendanceThreshold/BsaTrajectory. Body leads with the rule definition (8-wide) and a Related panel. The EngagementRiskFlags this rule has raised render as a wide related-index so a coordinator sees its effect. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for rule-change history.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "ert-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AlertCircleOutline"
+					},
+					{
+						"id": "ert-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Raised flags",
+									"register": "learniq",
+									"schema": "engagement-risk-flag",
+									"metric": "count",
+									"filter": {
+										"engagementRiskThresholdId": "@objectId"
+									},
+									"route": "EngagementRiskFlags"
+								}
+							]
+						}
+					},
+					{
+						"id": "ert-flags",
+						"type": "object-list",
+						"title": "Raised flags",
+						"content": {
+							"register": "learniq",
+							"schema": "engagement-risk-flag",
+							"filter": {
+								"engagementRiskThresholdId": "@objectId"
+							},
+							"sort": {
+								"field": "flaggedAt",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "metricValueAtFlag",
+									"label": "Metric Value"
+								},
+								{
+									"key": "flaggedAt",
+									"label": "Flagged At"
+								}
+							],
+							"rowRoute": "EngagementRiskFlagDetail",
+							"viewAllRoute": "EngagementRiskFlags",
+							"viewAllQuery": {
+								"engagementRiskThresholdId": "@objectId"
+							},
+							"emptyText": "No raised flags found.",
+							"allowCreate": false
+						},
+						"icon": "AlertCircleOutline"
+					},
+					{
+						"id": "ert-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "ert-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "ert-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "ert-flags",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "ert-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "EngagementRiskFlags",
+			"route": "/progress/engagement-flags",
+			"type": "index",
+			"title": "Engagement risk flags",
+			"config": {
+				"register": "learniq",
+				"schema": "engagement-risk-flag",
+				"readOnly": true
+			}
+		},
+		{
+			"id": "EngagementRiskFlagDetail",
+			"route": "/progress/engagement-flags/:id",
+			"type": "detail",
+			"title": "Engagement risk flag",
+			"config": {
+				"register": "learniq",
+				"schema": "engagement-risk-flag",
+				"readOnly": true,
+				"_note": "learning-progress-and-analytics: an EngagementRiskFlag is a raised early-warning (learner, threshold, metric value at flag) — an alert/case archetype, mirroring BsaProgressFlag/AttendanceFlag. Body leads with the flag data (8-wide) and a Related panel resolving learner, course and threshold. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "erf-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AlertCircleOutline"
+					},
+					{
+						"id": "erf-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "erf-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "erf-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "GroupTrendHeatmap",
+			"route": "/progress/group-trend-heatmap",
+			"type": "custom",
+			"title": "Group trend heat map",
+			"component": "GroupTrendHeatmap",
+			"_note": "learning-progress-and-analytics: the one genuine custom-view exception for the student-analytics capability — a teacher/admin cohort x period grade-trend heat map over EXISTING GradeEntry data (cohortId, gradedAt, period, value) via OpenRegister's existing list API. No new schema for the trend itself. Closes the dashboard capability spec's Acceptance Criteria claim of a skill-area heat map that had no implementation anywhere in src/views/** at HEAD."
+		},
+		{
+			"id": "PortfolioTemplates",
+			"route": "/eportfolio/templates",
+			"type": "index",
+			"title": "Portfolio templates",
+			"config": {
+				"register": "learniq",
+				"schema": "portfolio-template"
+			}
+		},
+		{
+			"id": "Portfolios",
+			"route": "/eportfolio/portfolios",
+			"type": "index",
+			"title": "Portfolios",
+			"config": {
+				"register": "learniq",
+				"schema": "portfolio"
+			}
+		},
+		{
+			"id": "PortfolioEntries",
+			"route": "/eportfolio/entries",
+			"type": "index",
+			"title": "Portfolio entries",
+			"config": {
+				"register": "learniq",
+				"schema": "portfolio-entry"
+			}
+		},
+		{
+			"id": "ExternalAssessors",
+			"route": "/eportfolio/external-assessors",
+			"type": "index",
+			"title": "External assessors",
+			"config": {
+				"register": "learniq",
+				"schema": "external-assessor"
+			}
+		},
+		{
+			"id": "PortfolioShares",
+			"route": "/eportfolio/shares",
+			"type": "index",
+			"title": "Portfolio shares",
+			"config": {
+				"register": "learniq",
+				"schema": "portfolio-share"
+			}
+		},
+		{
+			"id": "PortfolioTemplateDetail",
+			"route": "/eportfolio/templates/:id",
+			"type": "detail",
+			"title": "Portfolio template",
+			"config": {
+				"register": "learniq",
+				"schema": "portfolio-template",
+				"_note": "eportfolio: a teacher-authored structure (sections[]/criteria[], mirroring LearningPlanTemplate.sections + Rubric.criteria combined) a course-bound Portfolio can be instantiated from. Body leads with the template data 8-wide (name/kind/description/rubricId; sections[] renders as-is via the generic 'data' widget, no content.fields allowlist needed) plus a Related panel resolving the optional Rubric. lifecycleActions renders activate/archive/reactivate declaratively. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "pt-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardList"
+					},
+					{
+						"id": "pt-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "pt-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "pt-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "PortfolioDetail",
+			"route": "/eportfolio/portfolios/:id",
+			"type": "detail",
+			"title": "Portfolio",
+			"config": {
+				"register": "learniq",
+				"schema": "portfolio",
+				"_note": "eportfolio: the container a learner curates evidence into. kind discriminates personal (draft/active/archived only) from course-bound (adds submitted/graded). Body leads with the portfolio data 8-wide (kind/templateId/courseId/curriculumPlanId/title/dueAt/gradeValue/gradeEntryId) plus a Related panel resolving the LearnerProfile/PortfolioTemplate/Course/CurriculumPlan/GradeEntry. Its PortfolioEntry rows render as a related-index — the portfolio's evidence dossier. lifecycleActions renders activate/submit/grade/archive/reactivate declaratively (submit is gated server-side by PortfolioSubmissionGuard). PortfolioBuilder.vue and PortfolioReviewView.vue (custom views, linked from here) are the learner's/teacher's respective working surfaces for entry curation and grading. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "portfolio-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Briefcase"
+					},
+					{
+						"id": "portfolio-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "portfolio-entries",
+						"type": "object-list",
+						"title": "Evidence entries",
+						"content": {
+							"register": "learniq",
+							"schema": "portfolio-entry",
+							"filter": {
+								"portfolioId": "@objectId"
+							},
+							"sort": {
+								"field": "title",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "evidenceKind",
+									"label": "Evidence kind"
+								},
+								{
+									"key": "sectionId",
+									"label": "Section"
+								}
+							],
+							"rowRoute": "PortfolioEntryDetail",
+							"viewAllRoute": "PortfolioEntries",
+							"viewAllQuery": {
+								"portfolioId": "@objectId"
+							},
+							"emptyText": "No evidence entries yet.",
+							"allowCreate": false
+						},
+						"icon": "FileDocument"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "portfolio-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "portfolio-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "portfolio-entries",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": true
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "PortfolioEntryDetail",
+			"route": "/eportfolio/entries/:id",
+			"type": "detail",
+			"title": "Portfolio entry",
+			"config": {
+				"register": "learniq",
+				"schema": "portfolio-entry",
+				"_note": "eportfolio: one evidence item — references, never copies, exactly one existing object per evidenceKind. No lifecycle of its own (mirrors SelfAssessment). Body leads with the entry data 8-wide (evidenceKind + whichever per-kind reference field is set + reflectionText/sectionId/criterionId/competencyId) plus a Related panel resolving the parent Portfolio and the referenced Submission/WerkprocesAssessment/ExternalTrainingRecord/Credential/Competency. No lifecycleActions. Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "pe-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "FileDocument"
+					},
+					{
+						"id": "pe-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "pe-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "pe-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ExternalAssessorDetail",
+			"route": "/eportfolio/external-assessors/:id",
+			"type": "detail",
+			"title": "External assessor",
+			"config": {
+				"register": "learniq",
+				"schema": "external-assessor",
+				"_note": "eportfolio: a non-BPV external assessor's own identity anchor — a plain reference/identity object with no lifecycle (ADR-046: a person with no Nextcloud account by definition; active alone gates whether the portal identity is usable), structurally identical to Praktijkopleider. Body leads with contact data 8-wide plus a Related panel showing the PortfolioShare grants naming this assessor. No lifecycleActions. Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "ea-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Account"
+					},
+					{
+						"id": "ea-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "ea-shares",
+						"type": "object-list",
+						"title": "Portfolio shares",
+						"content": {
+							"register": "learniq",
+							"schema": "portfolio-share",
+							"filter": {
+								"sharedWithExternalAssessorId": "@objectId"
+							},
+							"sort": {
+								"field": "expiresAt",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "portfolioId",
+									"label": "Portfolio"
+								},
+								{
+									"key": "expiresAt",
+									"label": "Expires"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Lifecycle"
+								}
+							],
+							"rowRoute": "PortfolioShareDetail",
+							"viewAllRoute": "PortfolioShares",
+							"viewAllQuery": {
+								"sharedWithExternalAssessorId": "@objectId"
+							},
+							"emptyText": "No portfolio shares found.",
+							"allowCreate": false
+						},
+						"icon": "HandshakeOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "ea-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "ea-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "ea-shares",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": true
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "PortfolioShareDetail",
+			"route": "/eportfolio/shares/:id",
+			"type": "detail",
+			"title": "Portfolio share",
+			"config": {
+				"register": "learniq",
+				"schema": "portfolio-share",
+				"_note": "eportfolio: a single, revocable, read-only grant of a learner's Portfolio (or a selection of its PortfolioEntry rows) to a teacher/praktijkopleider/external-assessor. Append-only audit trail (lifecycle: draft -> active -> revoked). Body leads with the grant data 8-wide (sharedWithKind + whichever per-kind recipient field is set, entryIds, expiresAt, sharedBy) plus a Related panel resolving the Portfolio/Praktijkopleider/ExternalAssessor. lifecycleActions renders grant/revoke declaratively — grant is gated server-side by PortfolioShareGrantHandler's self-grant guard, and on success creates the native NC Files share for sharedWithKind=teacher. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "ps-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "HandshakeOutline"
+					},
+					{
+						"id": "ps-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "ps-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "ps-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "PortfolioBuilder",
+			"route": "/eportfolio/portfolios/:id/build",
+			"type": "custom",
+			"title": "Build portfolio",
+			"component": "PortfolioBuilder",
+			"_note": "eportfolio: the learner's evidence-picker surface — assembles a Portfolio's PortfolioEntry rows by referencing an existing Submission/WerkprocesAssessment/ExternalTrainingRecord/Credential/NC file or writing a free-text reflection, never by typing a raw UUID. Drives the `submit` transition once every PortfolioTemplate-required section has evidence; surfaces PortfolioSubmissionGuard's refusal inline. No manifest declarative page can render a cross-schema evidence picker, mirrors MarkSubmissionView's existing precedent for the same reason."
+		},
+		{
+			"id": "PortfolioReviewView",
+			"route": "/eportfolio/portfolios/:id/review",
+			"type": "custom",
+			"title": "Review portfolio",
+			"component": "PortfolioReviewView",
+			"_note": "eportfolio: the read-only review surface for a shared or owned Portfolio's entries (resolving and displaying the referenced Submission/WerkprocesAssessment/ExternalTrainingRecord/Credential/NC file per entry), plus — for the grading teacher of a course-bound Portfolio in submitted state only — a gradeValue entry field and the `grade` transition. No manifest declarative page can render cross-schema entry resolution, mirrors MarkSubmissionView's existing precedent for the same reason."
+		},
+		{
+			"id": "PointRules",
+			"route": "/engagement/point-rules",
+			"type": "index",
+			"title": "Point rules",
+			"config": {
+				"register": "learniq",
+				"schema": "point-rule"
+			}
+		},
+		{
+			"id": "PointRuleDetail",
+			"route": "/engagement/point-rules/:id",
+			"type": "detail",
+			"title": "Point rule",
+			"config": {
+				"register": "learniq",
+				"schema": "point-rule",
+				"_note": "engagement-gamification: a PointRule is a declarative event -> points config (kind, points, optional cohort/course scope) — a config/rule archetype, mirroring AttendanceThreshold. Body leads with the rule definition (8-wide) and a Related panel resolving the optional scope Cohort/Course. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for rule-change history.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "pr-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Star"
+					},
+					{
+						"id": "pr-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "pr-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "pr-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "EngagementLevels",
+			"route": "/engagement/levels",
+			"type": "index",
+			"title": "Engagement levels",
+			"config": {
+				"register": "learniq",
+				"schema": "engagement-level"
+			}
+		},
+		{
+			"id": "EngagementLevelDetail",
+			"route": "/engagement/levels/:id",
+			"type": "detail",
+			"title": "Engagement level",
+			"config": {
+				"register": "learniq",
+				"schema": "engagement-level",
+				"_note": "engagement-gamification: an EngagementLevel is a standalone, independently editable threshold row (name, order, minPoints, icon) — no lifecycle, mirroring AttendanceThreshold's row-per-rule editability rather than a buried array. Body leads with the level data (8-wide); no cross-object references to resolve, so the Related panel is omitted. Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "el-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Trophy"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "el-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "Leaderboards",
+			"route": "/engagement/leaderboards",
+			"type": "index",
+			"title": "Leaderboards",
+			"config": {
+				"register": "learniq",
+				"schema": "leaderboard"
+			}
+		},
+		{
+			"id": "LeaderboardDetail",
+			"route": "/engagement/leaderboards/:id",
+			"type": "detail",
+			"title": "Leaderboard",
+			"config": {
+				"register": "learniq",
+				"schema": "leaderboard",
+				"_note": "engagement-gamification: a Leaderboard is the opt-in policy row scoping a ranked view to one Cohort or Course (draft -> active -> archived; default OFF -- see design.md). Body leads with the policy data (8-wide) and a Related panel resolving the scoped Cohort/Course. No ranking data lives on this object -- LeaderboardController computes it live. Sidebar keeps metadata + audit-trail for activation history.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "lb-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ChartBar"
+					},
+					{
+						"id": "lb-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "lb-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "lb-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "PointAwards",
+			"route": "/engagement/awards",
+			"type": "index",
+			"title": "Point awards",
+			"config": {
+				"register": "learniq",
+				"schema": "point-award",
+				"readOnly": true
+			}
+		},
+		{
+			"id": "PointAwardDetail",
+			"route": "/engagement/awards/:id",
+			"type": "detail",
+			"title": "Point award",
+			"config": {
+				"register": "learniq",
+				"schema": "point-award",
+				"readOnly": true,
+				"_note": "engagement-gamification: a PointAward is an append-only ledger row (learner, rule, points, source) -- an immutable evidence archetype, mirroring AttendanceFlag/AssessmentResult. Body leads with the award data (8-wide) and a Related panel resolving the learner's PointRule. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "pa-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "CheckCircleOutline"
+					},
+					{
+						"id": "pa-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "pa-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "pa-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "LearnerEngagements",
+			"route": "/engagement/learner-engagement",
+			"type": "index",
+			"title": "Learner engagement",
+			"config": {
+				"register": "learniq",
+				"schema": "learner-engagement",
+				"readOnly": true
+			}
+		},
+		{
+			"id": "LearnerEngagementDetail",
+			"route": "/engagement/learner-engagement/:id",
+			"type": "detail",
+			"title": "Learner engagement",
+			"config": {
+				"register": "learniq",
+				"schema": "learner-engagement",
+				"readOnly": true,
+				"_note": "engagement-gamification: LearnerEngagement is the derived per-learner roll-up (totalPoints, levelId, streak days) -- an aggregate-result archetype, mirroring FinalGrade. x-property-rbac restricts reads to admin + the learner's own self-match, so a non-admin caller only ever sees their own row here regardless of the index filter. Body leads with the roll-up data (8-wide) and a Related panel resolving the learner's EngagementLevel. Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "le-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ChartLine"
+					},
+					{
+						"id": "le-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "le-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "le-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "LeaderboardView",
+			"route": "/engagement/leaderboard",
+			"type": "custom",
+			"title": "Leaderboard",
+			"component": "LeaderboardView",
+			"_note": "engagement-gamification (story-required custom view, mirrors BsaRiskDashboard's status as the sole custom-UI exception): renders LeaderboardController's ranked response for a cohort with an active Leaderboard, with an inline opt-out toggle wired to the existing preferences-api. No manifest declarative page can render this — the ranking is computed live by a narrow authorizing controller, not a raw OR object list (see design.md 'Why the RBAC gap forces a controller')."
+		},
+		{
+			"id": "EvaluationCampaigns",
+			"route": "/course-evaluation/campaigns",
+			"type": "index",
+			"title": "Evaluation campaigns",
+			"config": {
+				"register": "learniq",
+				"schema": "evaluation-campaign"
+			}
+		},
+		{
+			"id": "EvaluationCampaignDetail",
+			"route": "/course-evaluation/campaigns/:id",
+			"type": "detail",
+			"title": "Evaluation campaign",
+			"config": {
+				"register": "learniq",
+				"schema": "evaluation-campaign",
+				"_note": "course-evaluation: an EvaluationCampaign scopes which Course(s)/Cohort(s) a vakevaluatie evaluates, its academic period, instrument, and a fixed fully-anonymous policy. Body leads with the campaign data (8-wide) and a Related panel resolving the scoped Course(s)/Cohort(s). A read-only responses preview shows submitted CourseEvaluationResponses in scope (anonymous by schema shape -- no learner-identifying field exists to display). lifecycleActions exposes draft -> open -> closed -> archived; opening provisions EvaluationInvitations server-side (EvaluationInvitationProvisioningHandler). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "campaign-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardList"
+					},
+					{
+						"id": "campaign-responses",
+						"type": "object-list",
+						"title": "Responses",
+						"content": {
+							"register": "learniq",
+							"schema": "course-evaluation-response",
+							"filter": {
+								"campaignId": "@object.id"
+							},
+							"sort": {
+								"field": "submittedAt",
+								"dir": "desc"
+							},
+							"limit": 20,
+							"columns": [
+								{
+									"key": "courseId",
+									"label": "Course"
+								},
+								{
+									"key": "overallScore",
+									"label": "Overall score"
+								},
+								{
+									"key": "submittedAt",
+									"label": "Submitted at"
+								}
+							],
+							"rowRoute": "CourseEvaluationResponseDetail",
+							"viewAllRoute": "CourseEvaluationResponses",
+							"viewAllQuery": {
+								"campaignId": "@object.id"
+							},
+							"emptyText": "No responses submitted yet.",
+							"allowCreate": false
+						},
+						"icon": "MessageTextOutline"
+					},
+					{
+						"id": "campaign-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "campaign-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "campaign-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "campaign-responses",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": true
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "CourseEvaluationResponses",
+			"route": "/course-evaluation/responses",
+			"type": "index",
+			"title": "Evaluation responses",
+			"config": {
+				"register": "learniq",
+				"schema": "course-evaluation-response",
+				"readOnly": true
+			}
+		},
+		{
+			"id": "CourseEvaluationResponseDetail",
+			"route": "/course-evaluation/responses/:id",
+			"type": "detail",
+			"title": "Evaluation response",
+			"config": {
+				"register": "learniq",
+				"schema": "course-evaluation-response",
+				"readOnly": true,
+				"_note": "course-evaluation: an anonymous course-evaluation response -- appendOnly, anonymous by SCHEMA SHAPE (no learnerId/submittedBy property exists anywhere on this object; design.md Decision 2). readOnly:true -- no edit/delete affordance and no lifecycleActions block, matching AssessmentResult's own appendOnly-evidence pattern; the guarded submit transition happens server-side (CourseEvaluationEligibilityGuard), not through this administrative view. Body leads with the response data (8-wide, includes answers[]) and a Related panel resolving the campaign/course/cohort. Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "resp-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "MessageTextOutline"
+					},
+					{
+						"id": "resp-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "resp-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "resp-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ImprovementActions",
+			"route": "/course-evaluation/improvement-actions",
+			"type": "index",
+			"title": "Improvement actions",
+			"config": {
+				"register": "learniq",
+				"schema": "improvement-action"
+			}
+		},
+		{
+			"id": "ImprovementActionDetail",
+			"route": "/course-evaluation/improvement-actions/:id",
+			"type": "detail",
+			"title": "Improvement action",
+			"config": {
+				"register": "learniq",
+				"schema": "improvement-action",
+				"_note": "course-evaluation: closes the evaluation cycle -- an opleidingscommissie/vaksectie reviewer's findings and a recorded action against a campaign/course's results. Purely declarative CRUD, no PHP guard. Body leads with the action data (8-wide) and a Related panel resolving the campaign/course. lifecycleActions exposes planned -> in-progress -> done|dropped. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "ia-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardCheckOutline"
+					},
+					{
+						"id": "ia-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "ia-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "ia-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ImprovementActionCreate",
+			"route": "/course-evaluation/improvement-actions/new",
+			"type": "detail",
+			"title": "New improvement action",
+			"config": {
+				"register": "learniq",
+				"schema": "improvement-action",
+				"_note": "course-evaluation: a dedicated no-id detail route so CnDetailPage's isCreateMode (ADR-062) opens an empty create form pre-filled from ?campaignId=&courseId= query params (CnDetailPage.createPrefill, filtered to the schema's own properties) -- reached from CourseQualityReport.vue's 'Draft improvement action' link. Vue Router 4 ranks this static 'new' segment above ImprovementActionDetail's dynamic :id segment regardless of declaration order."
+			}
+		},
+		{
+			"id": "CourseQualityReport",
+			"route": "/course-evaluation/quality-report",
+			"type": "custom",
+			"title": "Course quality report",
+			"component": "CourseQualityReport",
+			"_note": "course-evaluation: the one genuine custom-view exception for this capability (mirrors GroupTrendHeatmap/LeaderboardView's precedent) -- a coordinator/opleidingscommissie view of a course's CourseQualityScore trend over time, response rate, and raw free-text answers, with a link to draft an ImprovementAction. Own in-page Course (and optional teacher) picker, since the manifest router only auto-binds :route params (not ?query=) to props -- reached via the Course evaluation menu with no id required."
+		},
+		{
+			"id": "ProgressLanding",
+			"route": "/progress-overview",
+			"type": "dashboard",
+			"title": "Progress",
+			"_note": "ADR-044 §4 cards-collapse. This page exists so the group above it is ONE top-level entry instead of a long flat child list: relocating a group into another DISSOLVES it (buildManifest applyMenuRelocations discards the group's own label), which produced a 33-item undifferentiated list — the exact failure ADR-097 Decision 6 names. Each former leaf is a card here, keeping its label, with a description wherever the label is ambiguous out of context.",
+			"config": {
+				"allowEdit": false,
+				"widgets": [
+					{
+						"id": "nav-card-grid",
+						"type": "nav-card-grid",
+						"content": {
+							"entries": [
+								{
+									"id": "BpvPlacementsMenu",
+									"label": "Placements",
+									"route": "BpvPlacements",
+									"order": 10,
+									"icon": "BriefcaseOutline",
+									"description": "Work placements at an employer"
+								},
+								{
+									"id": "PraktijkovereenkomstenMenu",
+									"label": "Praktijkovereenkomsten",
+									"route": "Praktijkovereenkomsten",
+									"order": 20,
+									"icon": "FileOutline",
+									"description": "Placement agreements (POK)"
+								},
+								{
+									"id": "WerkprocesAssessmentsMenu",
+									"label": "Werkproces assessments",
+									"route": "WerkprocesAssessments",
+									"order": 30,
+									"icon": "Check",
+									"description": "Assessments against work-process criteria"
+								},
+								{
+									"id": "BpvVisitReportsMenu",
+									"label": "Visit reports",
+									"route": "BpvVisitReports",
+									"order": 40,
+									"icon": "ChartBoxOutline",
+									"description": "Reports from workplace visits"
+								},
+								{
+									"id": "PraktijkopleidersMenu",
+									"label": "Praktijkopleiders",
+									"route": "Praktijkopleiders",
+									"order": 50,
+									"icon": "AccountBox",
+									"description": "Workplace trainers at the employer"
+								},
+								{
+									"id": "PortfoliosMenu",
+									"label": "Portfolios",
+									"route": "Portfolios",
+									"order": 60,
+									"icon": "BriefcaseOutline"
+								},
+								{
+									"id": "PortfolioTemplatesMenu",
+									"label": "Portfolio templates",
+									"route": "PortfolioTemplates",
+									"order": 70,
+									"icon": "FileReplaceOutline"
+								},
+								{
+									"id": "PortfolioEntriesMenu",
+									"label": "Portfolio entries",
+									"route": "PortfolioEntries",
+									"order": 80,
+									"icon": "BriefcaseOutline"
+								},
+								{
+									"id": "PortfolioSharesMenu",
+									"label": "Portfolio shares",
+									"route": "PortfolioShares",
+									"order": 90,
+									"icon": "BriefcaseOutline"
+								},
+								{
+									"id": "ExternalAssessorsMenu",
+									"label": "External assessors",
+									"route": "ExternalAssessors",
+									"order": 100,
+									"icon": "AccountBox",
+									"description": "Assessors outside the organisation"
+								},
+								{
+									"id": "EvaluationCampaignsMenu",
+									"label": "Evaluation campaigns",
+									"route": "EvaluationCampaigns",
+									"order": 110,
+									"icon": "ClipboardOutline",
+									"description": "Course-evaluation campaigns"
+								},
+								{
+									"id": "CourseQualityReportMenu",
+									"label": "Quality report",
+									"route": "CourseQualityReport",
+									"order": 120,
+									"icon": "ChartBoxOutline",
+									"description": "Course-quality scores"
+								},
+								{
+									"id": "CourseEvaluationResponsesMenu",
+									"label": "Responses",
+									"route": "CourseEvaluationResponses",
+									"order": 130,
+									"icon": "CommentOutline",
+									"description": "Course-evaluation responses"
+								},
+								{
+									"id": "ImprovementActionsMenu",
+									"label": "Improvement actions",
+									"route": "ImprovementActions",
+									"order": 140,
+									"icon": "Check",
+									"description": "Actions raised from evaluations"
+								},
+								{
+									"id": "LeaderboardViewMenu",
+									"label": "Leaderboard",
+									"route": "LeaderboardView",
+									"order": 150,
+									"icon": "AccountArrowRightOutline",
+									"description": "The live engagement leaderboard"
+								},
+								{
+									"id": "PointRulesMenu",
+									"label": "Point rules",
+									"route": "PointRules",
+									"order": 160,
+									"icon": "Eye",
+									"description": "How engagement points are earned"
+								},
+								{
+									"id": "EngagementLevelsMenu",
+									"label": "Levels",
+									"route": "EngagementLevels",
+									"order": 170,
+									"icon": "ClipboardOutline",
+									"description": "Engagement levels and thresholds"
+								},
+								{
+									"id": "LeaderboardsMenu",
+									"label": "Leaderboards (config)",
+									"route": "Leaderboards",
+									"order": 180,
+									"icon": "AccountArrowRightOutline",
+									"description": "Leaderboard definitions"
+								},
+								{
+									"id": "PointAwardsMenu",
+									"label": "Point awards",
+									"route": "PointAwards",
+									"order": 190,
+									"icon": "History",
+									"description": "Points awarded to learners"
+								},
+								{
+									"id": "LearnerEngagementsMenu",
+									"label": "Learner engagement",
+									"route": "LearnerEngagements",
+									"order": 200,
+									"icon": "ChartLine",
+									"description": "Per-learner engagement records"
+								},
+								{
+									"id": "GroupTrendHeatmapMenu",
+									"label": "Group trend heat map",
+									"route": "GroupTrendHeatmap",
+									"order": 210,
+									"icon": "AccountGroupOutline",
+									"description": "Progress trends across a group"
+								},
+								{
+									"id": "LessonCompletionsMenu",
+									"label": "Lesson completions",
+									"route": "LessonCompletions",
+									"order": 220,
+									"icon": "Check"
+								},
+								{
+									"id": "EngagementScoresMenu",
+									"label": "Engagement scores",
+									"route": "EngagementScores",
+									"order": 230,
+									"icon": "ChartLine"
+								},
+								{
+									"id": "EngagementRiskThresholdsMenu",
+									"label": "Engagement thresholds",
+									"route": "EngagementRiskThresholds",
+									"order": 240,
+									"icon": "Eye",
+									"description": "Thresholds that raise a risk flag"
+								},
+								{
+									"id": "EngagementRiskFlagsMenu",
+									"label": "Engagement flags",
+									"route": "EngagementRiskFlags",
+									"order": 250,
+									"icon": "Lock",
+									"description": "Raised engagement-risk flags"
+								},
+								{
+									"id": "SkillsGapDashboardMenu",
+									"label": "Skills gap dashboard",
+									"route": "SkillsGapDashboard",
+									"order": 260,
+									"icon": "ViewDashboardOutline"
+								},
+								{
+									"id": "CompetencyFrameworksMenu",
+									"label": "Frameworks",
+									"route": "CompetencyFrameworks",
+									"order": 270,
+									"icon": "Folder",
+									"description": "Competency frameworks"
+								},
+								{
+									"id": "CompetenciesMenu",
+									"label": "Competencies",
+									"route": "Competencies",
+									"order": 280,
+									"icon": "MedalOutline"
+								},
+								{
+									"id": "CompetencyAttainmentsMenu",
+									"label": "Attainment",
+									"route": "CompetencyAttainments",
+									"order": 290,
+									"icon": "BriefcaseOutline",
+									"description": "Competencies a learner has attained"
+								},
+								{
+									"id": "BsaRiskDashboardMenu",
+									"label": "Risk dashboard",
+									"route": "BsaRiskDashboard",
+									"order": 300,
+									"icon": "ViewDashboardOutline",
+									"description": "Study-progress risk overview"
+								},
+								{
+									"id": "BsaTrajectoriesMenu",
+									"label": "Trajectories",
+									"route": "BsaTrajectories",
+									"order": 310,
+									"icon": "BriefcaseOutline",
+									"description": "Study-progress trajectories"
+								},
+								{
+									"id": "BsaWarningsMenu",
+									"label": "Warnings",
+									"route": "BsaWarnings",
+									"order": 320,
+									"icon": "Lock",
+									"description": "Study-progress warnings"
+								},
+								{
+									"id": "BsaDecisionsMenu",
+									"label": "Decisions",
+									"route": "BsaDecisions",
+									"order": 330,
+									"icon": "Gavel",
+									"description": "Formal study-progress decisions"
+								}
+							]
+						}
+					}
+				],
+				"layout": [
+					{
+						"id": 1,
+						"widgetId": "nav-card-grid",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 8
+					}
+				]
+			}
+		}
+	]
+}

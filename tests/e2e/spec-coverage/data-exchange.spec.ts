@@ -27,14 +27,12 @@
  */
 import { test, expect } from '../fixtures'
 
-const EXCHANGE_REJECTIONS_INDEX_URL = '/index.php/apps/scholiq/data-exchange/rejections'
-const EXCHANGE_ERROR_CODES_INDEX_URL = '/index.php/apps/scholiq/data-exchange/error-codes'
+const EXCHANGE_REJECTIONS_INDEX_URL =
+	'/index.php/apps/learniq/data-exchange/rejections'
+const EXCHANGE_ERROR_CODES_INDEX_URL =
+	'/index.php/apps/learniq/data-exchange/error-codes'
 const EXCHANGE_REJECTION_DETAIL_URL =
-	// ⚠️ scholiq#267 — still the HASH form, which the history-mode router
-	// resolves to NO route, so this test passes without the app rendering.
-	// Needs a seeded ExchangeRejection fixture before it can be converted
-	// (a bogus id makes the object store console.error on the 404).
-	'/index.php/apps/scholiq/#/data-exchange/rejections/00000000-0000-0000-0000-000000000000'
+	'/index.php/apps/learniq/data-exchange/rejections/00000000-0000-0000-0000-000000000000'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise
@@ -65,14 +63,15 @@ function assertNoFatalErrors(errors: string[]): void {
 }
 
 test.describe('duo-afkeurmelding-correction — declarative index pages', () => {
-
 	// @e2e openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-admin-deep-links-from-a-rejection-to-the-offending-object
-	test('ExchangeRejections index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('ExchangeRejections index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(EXCHANGE_REJECTIONS_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -80,12 +79,14 @@ test.describe('duo-afkeurmelding-correction — declarative index pages', () => 
 		assertNoFatalErrors(errors)
 	})
 
-	test('ExchangeErrorCodes index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('ExchangeErrorCodes index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(EXCHANGE_ERROR_CODES_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -95,10 +96,11 @@ test.describe('duo-afkeurmelding-correction — declarative index pages', () => 
 })
 
 test.describe('duo-afkeurmelding-correction — detail page resolves (manifest wiring)', () => {
-
 	// @e2e openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-admin-deep-links-from-a-rejection-to-the-offending-object
 	// @e2e openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-resubmit-creates-exactly-one-scoped-job-and-stamps-the-link
-	test('ExchangeRejectionDetail route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
+	test('ExchangeRejectionDetail route resolves the registered component, not a blank/404 shell', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		// A non-existent id is enough to prove the ROUTE resolves the declarative
@@ -110,7 +112,7 @@ test.describe('duo-afkeurmelding-correction — detail page resolves (manifest w
 		// file header).
 		await page.goto(EXCHANGE_REJECTION_DETAIL_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)

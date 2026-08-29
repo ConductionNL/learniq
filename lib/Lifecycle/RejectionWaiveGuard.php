@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Rejection Waive Guard
+ * Learniq Rejection Waive Guard
  *
  * Lifecycle guard for the ExchangeRejection schema's `waive` transition
  * (`open|corrected` → `waived`). Mirrors PupilVoiceGuard's mandatory-reason
@@ -17,7 +17,7 @@
  * rationale as PupilVoiceGuard's hoorrecht gate).
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -34,7 +34,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -57,127 +57,122 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.4
  * @spec openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-waiving-without-a-reason-is-refused
  */
-class RejectionWaiveGuard
-{
+class RejectionWaiveGuard {
 
-    /**
-     * Groups whose members may waive a rejection.
-     *
-     * @var string[]
-     */
-    private const AUTHORISED_GROUPS = [
-        'admin',
-        'coordinator',
-    ];
+	/**
+	 * Groups whose members may waive a rejection.
+	 *
+	 * @var string[]
+	 */
+	private const AUTHORISED_GROUPS = [
+		'admin',
+		'coordinator',
+	];
 
-    /**
-     * Constructor.
-     *
-     * @param IGroupManager   $groupManager NC group manager to resolve the acting user's role groups.
-     * @param IUserManager    $userManager  User manager to resolve the acting user object for membership checks.
-     * @param LoggerInterface $logger       PSR logger for guard rejections.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly IGroupManager $groupManager,
-        private readonly IUserManager $userManager,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param IGroupManager $groupManager NC group manager to resolve the acting user's role groups.
+	 * @param IUserManager $userManager User manager to resolve the acting user object for membership checks.
+	 * @param LoggerInterface $logger PSR logger for guard rejections.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly IGroupManager $groupManager,
+		private readonly IUserManager $userManager,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Assert the waive preconditions and stamp waivedBy/waivedAt.
-     *
-     * Called by OpenRegister's lifecycle engine before executing the
-     * `open|corrected → waived` waive transition. Returns true to allow the
-     * transition (and writes `waivedBy`/`waivedAt` into the payload), false to
-     * block it.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's
-     *                                               lifecycle engine. Expected
-     *                                               keys:
-     *                                               - 'object'  : the
-     *                                               ExchangeRejection data array
-     *                                               - 'actor'   : NC user ID of
-     *                                               the requester
-     *                                               - 'payload' : mutable array;
-     *                                               waiveReason is read from
-     *                                               here, waivedBy/waivedAt are
-     *                                               written here
-     *
-     * @return bool True when the transition is allowed; false blocks it.
-     *
-     * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.4
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $rejection   = $transitionContext['object'] ?? [];
-        $rejectionId = $rejection['id'] ?? ($rejection['uuid'] ?? '?');
-        $actor       = (string) ($transitionContext['actor'] ?? '');
+	/**
+	 * Assert the waive preconditions and stamp waivedBy/waivedAt.
+	 *
+	 * Called by OpenRegister's lifecycle engine before executing the
+	 * `open|corrected → waived` waive transition. Returns true to allow the
+	 * transition (and writes `waivedBy`/`waivedAt` into the payload), false to
+	 * block it.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's
+	 *                                               lifecycle engine. Expected
+	 *                                               keys:
+	 *                                               - 'object'  : the
+	 *                                               ExchangeRejection data array
+	 *                                               - 'actor'   : NC user ID of
+	 *                                               the requester
+	 *                                               - 'payload' : mutable array;
+	 *                                               waiveReason is read from
+	 *                                               here, waivedBy/waivedAt are
+	 *                                               written here
+	 *
+	 * @return bool True when the transition is allowed; false blocks it.
+	 *
+	 * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.4
+	 */
+	public function check(array &$transitionContext): bool {
+		$rejection = $transitionContext['object'] ?? [];
+		$rejectionId = $rejection['id'] ?? ($rejection['uuid'] ?? '?');
+		$actor = (string)($transitionContext['actor'] ?? '');
 
-        if ($actor === '') {
-            $this->logger->warning(
-                '[RejectionWaiveGuard] No actor in transitionContext — denying waive of {id}.',
-                ['id' => $rejectionId]
-            );
-            return false;
-        }
+		if ($actor === '') {
+			$this->logger->warning(
+				'[RejectionWaiveGuard] No actor in transitionContext — denying waive of {id}.',
+				['id' => $rejectionId]
+			);
+			return false;
+		}
 
-        if ($this->actorIsAuthorised(actor: $actor) === false) {
-            $this->logger->info(
-                '[RejectionWaiveGuard] Actor {a} is not in an authorised group — denying waive of {id}.',
-                ['a' => $actor, 'id' => $rejectionId]
-            );
-            return false;
-        }
+		if ($this->actorIsAuthorised(actor: $actor) === false) {
+			$this->logger->info(
+				'[RejectionWaiveGuard] Actor {a} is not in an authorised group — denying waive of {id}.',
+				['a' => $actor, 'id' => $rejectionId]
+			);
+			return false;
+		}
 
-        $payload = $transitionContext['payload'] ?? [];
-        if (is_array($payload) === false) {
-            $payload = [];
-        }
+		$payload = $transitionContext['payload'] ?? [];
+		if (is_array($payload) === false) {
+			$payload = [];
+		}
 
-        $waiveReason = $payload['waiveReason'] ?? null;
+		$waiveReason = $payload['waiveReason'] ?? null;
 
-        if (is_string($waiveReason) === false || trim($waiveReason) === '') {
-            $this->logger->info(
-                '[RejectionWaiveGuard] ExchangeRejection {id}: waiveReason is empty — denying waive.',
-                ['id' => $rejectionId]
-            );
-            return false;
-        }
+		if (is_string($waiveReason) === false || trim($waiveReason) === '') {
+			$this->logger->info(
+				'[RejectionWaiveGuard] ExchangeRejection {id}: waiveReason is empty — denying waive.',
+				['id' => $rejectionId]
+			);
+			return false;
+		}
 
-        // Stamp waivedBy/waivedAt server-side — never trust a caller-supplied
-        // identity/timestamp for this compliance-sensitive field (mirrors
-        // MunicipalityFeedbackGuard's recordedBy/receivedAt stamping).
-        $payload['waivedBy'] = $actor;
-        $payload['waivedAt'] = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+		// Stamp waivedBy/waivedAt server-side — never trust a caller-supplied
+		// identity/timestamp for this compliance-sensitive field (mirrors
+		// MunicipalityFeedbackGuard's recordedBy/receivedAt stamping).
+		$payload['waivedBy'] = $actor;
+		$payload['waivedAt'] = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 
-        $transitionContext['payload'] = $payload;
+		$transitionContext['payload'] = $payload;
 
-        return true;
+		return true;
+	}//end check()
 
-    }//end check()
+	/**
+	 * Whether the acting user is in one of the authorised groups.
+	 *
+	 * @param string $actor NC user ID of the requester.
+	 *
+	 * @return bool True when the user is in admin / coordinator.
+	 *
+	 * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.4
+	 */
+	private function actorIsAuthorised(string $actor): bool {
+		$user = $this->userManager->get($actor);
+		if ($user === null) {
+			return false;
+		}
 
-    /**
-     * Whether the acting user is in one of the authorised groups.
-     *
-     * @param string $actor NC user ID of the requester.
-     *
-     * @return bool True when the user is in admin / coordinator.
-     *
-     * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.4
-     */
-    private function actorIsAuthorised(string $actor): bool
-    {
-        $user = $this->userManager->get($actor);
-        if ($user === null) {
-            return false;
-        }
+		$actorGroups = $this->groupManager->getUserGroupIds($user);
 
-        $actorGroups = $this->groupManager->getUserGroupIds($user);
-
-        return count(array_intersect($actorGroups, self::AUTHORISED_GROUPS)) > 0;
-
-    }//end actorIsAuthorised()
+		return count(array_intersect($actorGroups, self::AUTHORISED_GROUPS)) > 0;
+	}//end actorIsAuthorised()
 }//end class

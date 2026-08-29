@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Peer Review Controller
+ * Learniq Peer Review Controller
  *
  * One action: `allocate`. Delegates to `PeerReviewAllocationService`, the
  * genuine batch-matching business logic OpenRegister's generic object API
@@ -14,7 +14,7 @@
  * methods (design.md "Reviewer Allocation").
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -31,12 +31,13 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\AppInfo\Application;
-use OCA\Scholiq\PeerReview\PeerReviewAllocationService;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -50,156 +51,159 @@ use OCP\IUserSession;
  *
  * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
  */
-class PeerReviewController extends Controller
-{
+class PeerReviewController extends Controller {
 
-    private const SCHOLIQ_REGISTER  = 'scholiq';
-    private const ASSIGNMENT_SCHEMA = 'assignment';
-    private const SESSION_SCHEMA    = 'session';
-    private const COHORT_SCHEMA     = 'cohort';
+	private const LEARNIQ_REGISTER = 'learniq';
+	private const ASSIGNMENT_SCHEMA = 'assignment';
+	private const SESSION_SCHEMA = 'session';
+	private const COHORT_SCHEMA = 'cohort';
 
-    /**
-     * Constructor.
-     *
-     * @param IRequest                    $request           HTTP request.
-     * @param IUserSession                $userSession       Current user session.
-     * @param IGroupManager               $groupManager      Group manager (admin check).
-     * @param ObjectService               $objectService     OR object query/persistence.
-     * @param PeerReviewAllocationService $allocationService Reviewer allocation logic.
-     */
-    public function __construct(
-        IRequest $request,
-        private readonly IUserSession $userSession,
-        private readonly IGroupManager $groupManager,
-        private readonly ObjectService $objectService,
-        private readonly PeerReviewAllocationService $allocationService,
-    ) {
-        parent::__construct(appName: Application::APP_ID, request: $request);
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param IRequest $request HTTP request.
+	 * @param IUserSession $userSession Current user session.
+	 * @param IGroupManager $groupManager Group manager (admin check).
+	 * @param ObjectService $objectService OR object query/persistence.
+	 * @param PeerReviewAllocationService $allocationService Reviewer allocation logic.
+	 */
+	public function __construct(
+		IRequest $request,
+		private readonly IUserSession $userSession,
+		private readonly IGroupManager $groupManager,
+		private readonly ObjectService $objectService,
+		private readonly PeerReviewAllocationService $allocationService,
+	) {
+		parent::__construct(appName: Application::APP_ID, request: $request);
+	}//end __construct()
 
-    /**
-     * Allocate PeerReview rows for an Assignment's Submissions.
-     *
-     * @param string $assignmentId UUID of the Assignment.
-     *
-     * @return JSONResponse The allocation summary, or an error/denial response.
-     *
-     * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-round-robin-allocates-the-configured-reviewer-count-while-excluding-self
-     */
-    #[NoAdminRequired]
-    public function allocate(string $assignmentId=''): JSONResponse
-    {
-        $user = $this->userSession->getUser();
-        if ($user === null) {
-            return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
-        }
+	/**
+	 * Allocate PeerReview rows for an Assignment's Submissions.
+	 *
+	 * @param string $assignmentId UUID of the Assignment.
+	 *
+	 * @return JSONResponse The allocation summary, or an error/denial response.
+	 *
+	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-round-robin-allocates-the-configured-reviewer-count-while-excluding-self
+	 */
+	#[NoAdminRequired]
+	public function allocate(string $assignmentId = ''): JSONResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
 
-        if ($assignmentId === '') {
-            return new JSONResponse(data: ['error' => 'assignmentId is required'], statusCode: Http::STATUS_BAD_REQUEST);
-        }
+		if ($assignmentId === '') {
+			return new JSONResponse(data: ['error' => 'assignmentId is required'], statusCode: Http::STATUS_BAD_REQUEST);
+		}
 
-        $assignment = $this->fetchObject(id: $assignmentId, schema: self::ASSIGNMENT_SCHEMA);
-        if ($assignment === null) {
-            return new JSONResponse(data: ['error' => 'Assignment not found'], statusCode: Http::STATUS_NOT_FOUND);
-        }
+		$assignment = $this->fetchObject(id: $assignmentId, schema: self::ASSIGNMENT_SCHEMA);
+		if ($assignment === null) {
+			return new JSONResponse(data: ['error' => 'Assignment not found'], statusCode: Http::STATUS_NOT_FOUND);
+		}
 
-        if ($this->canAllocate(user: $user, assignment: $assignment) === false) {
-            return new JSONResponse(data: ['error' => 'Not authorized'], statusCode: Http::STATUS_FORBIDDEN);
-        }
+		if ($this->canAllocate(user: $user, assignment: $assignment) === false) {
+			return new JSONResponse(data: ['error' => 'Not authorized'], statusCode: Http::STATUS_FORBIDDEN);
+		}
 
-        $result = $this->allocationService->allocate(assignmentId: $assignmentId);
+		$result = $this->allocationService->allocate(assignmentId: $assignmentId);
 
-        return new JSONResponse(data: ['result' => $result]);
-    }//end allocate()
+		return new JSONResponse(data: ['result' => $result]);
+	}//end allocate()
 
-    /**
-     * True when the caller is admin, or a listed teacher on the Assignment's own
-     * Cohort (direct `cohortId`, or via `sessionId` -> `Session.cohortId`).
-     *
-     * @param IUser               $user       The authenticated caller.
-     * @param array<string,mixed> $assignment The Assignment data array.
-     *
-     * @return bool
-     *
-     * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
-     */
-    private function canAllocate(IUser $user, array $assignment): bool
-    {
-        if ($this->groupManager->isAdmin($user->getUID()) === true) {
-            return true;
-        }
+	/**
+	 * True when the caller is admin, or a listed teacher on the Assignment's own
+	 * Cohort (direct `cohortId`, or via `sessionId` -> `Session.cohortId`).
+	 *
+	 * @param IUser $user The authenticated caller.
+	 * @param array<string,mixed> $assignment The Assignment data array.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
+	 */
+	private function canAllocate(IUser $user, array $assignment): bool {
+		if ($this->groupManager->isAdmin($user->getUID()) === true) {
+			return true;
+		}
 
-        $cohortId = $assignment['cohortId'] ?? null;
-        if (is_string($cohortId) === false || $cohortId === '') {
-            $cohortId = $this->resolveCohortIdViaSession(assignment: $assignment);
-        }
+		$cohortId = $assignment['cohortId'] ?? null;
+		if (is_string($cohortId) === false || $cohortId === '') {
+			$cohortId = $this->resolveCohortIdViaSession(assignment: $assignment);
+		}
 
-        if ($cohortId === null || $cohortId === '') {
-            return false;
-        }
+		if ($cohortId === null || $cohortId === '') {
+			return false;
+		}
 
-        $cohort = $this->fetchObject(id: $cohortId, schema: self::COHORT_SCHEMA);
-        if ($cohort === null) {
-            return false;
-        }
+		$cohort = $this->fetchObject(id: $cohortId, schema: self::COHORT_SCHEMA);
+		if ($cohort === null) {
+			return false;
+		}
 
-        $teacherIds = $cohort['teacherIds'] ?? [];
-        if (is_array($teacherIds) === false) {
-            return false;
-        }
+		$teacherIds = $cohort['teacherIds'] ?? [];
+		if (is_array($teacherIds) === false) {
+			return false;
+		}
 
-        return in_array($user->getUID(), $teacherIds, true) === true;
-    }//end canAllocate()
+		return in_array($user->getUID(), $teacherIds, true) === true;
+	}//end canAllocate()
 
-    /**
-     * Resolve a Cohort id via the Assignment's `sessionId` -> `Session.cohortId`,
-     * used when the Assignment has no direct `cohortId`.
-     *
-     * @param array<string,mixed> $assignment The Assignment data array.
-     *
-     * @return string|null
-     */
-    private function resolveCohortIdViaSession(array $assignment): ?string
-    {
-        $sessionId = $assignment['sessionId'] ?? null;
-        if (is_string($sessionId) === false || $sessionId === '') {
-            return null;
-        }
+	/**
+	 * Resolve a Cohort id via the Assignment's `sessionId` -> `Session.cohortId`,
+	 * used when the Assignment has no direct `cohortId`.
+	 *
+	 * @param array<string,mixed> $assignment The Assignment data array.
+	 *
+	 * @return string|null
+	 */
+	private function resolveCohortIdViaSession(array $assignment): ?string {
+		$sessionId = $assignment['sessionId'] ?? null;
+		if (is_string($sessionId) === false || $sessionId === '') {
+			return null;
+		}
 
-        $session = $this->fetchObject(id: $sessionId, schema: self::SESSION_SCHEMA);
-        if ($session === null) {
-            return null;
-        }
+		$session = $this->fetchObject(id: $sessionId, schema: self::SESSION_SCHEMA);
+		if ($session === null) {
+			return null;
+		}
 
-        $cohortId = $session['cohortId'] ?? null;
-        if (is_string($cohortId) === false || $cohortId === '') {
-            return null;
-        }
+		$cohortId = $session['cohortId'] ?? null;
+		if (is_string($cohortId) === false || $cohortId === '') {
+			return null;
+		}
 
-        return $cohortId;
-    }//end resolveCohortIdViaSession()
+		return $cohortId;
+	}//end resolveCohortIdViaSession()
 
-    /**
-     * Fetch an object by id/schema, normalising the OpenRegister entity to an
-     * array.
-     *
-     * @param string $id     UUID of the object.
-     * @param string $schema Schema slug.
-     *
-     * @return array<string,mixed>|null
-     */
-    private function fetchObject(string $id, string $schema): ?array
-    {
-        $obj = $this->objectService->find(
-            id: $id,
-            register: self::SCHOLIQ_REGISTER,
-            schema: $schema
-        );
+	/**
+	 * Fetch an object by id/schema, normalising the OpenRegister entity to an
+	 * array.
+	 *
+	 * @param string $id UUID of the object.
+	 * @param string $schema Schema slug.
+	 *
+	 * @return array<string,mixed>|null Null when no such object exists.
+	 */
+	private function fetchObject(string $id, string $schema): ?array {
+		// ObjectService::find() THROWS DoesNotExistException for an unknown id —
+		// it does not return null — so without this catch the `=== null` check
+		// below was dead code and an unknown id escaped as a 500 instead of the
+		// 404 this resolver's nullable contract promises the caller.
+		try {
+			$obj = $this->objectService->find(
+				id: $id,
+				register: self::LEARNIQ_REGISTER,
+				schema: $schema
+			);
+		} catch (DoesNotExistException $e) {
+			return null;
+		}
 
-        if ($obj === null) {
-            return null;
-        }
+		if ($obj === null) {
+			return null;
+		}
 
-        return $obj->jsonSerialize();
-    }//end fetchObject()
+		return $obj->jsonSerialize();
+	}//end fetchObject()
 }//end class

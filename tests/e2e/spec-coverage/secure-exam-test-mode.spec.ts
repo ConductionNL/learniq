@@ -25,12 +25,9 @@
  */
 import { test, expect } from '../fixtures'
 
-// ⚠️ scholiq#267 — still the HASH form, which the history-mode router
-// resolves to NO route: this test passes without the app rendering. Needs a
-// seeded Assessment fixture (the `e2e-smoke-placeholder` id is not real)
-// before it can be converted to the path form.
-const TAKE_ASSESSMENT_URL = '/index.php/apps/scholiq/#/assessments/e2e-smoke-placeholder/take'
-const REVIEW_QUEUE_URL = '/index.php/apps/scholiq/assessments/proctoring/review'
+const TAKE_ASSESSMENT_URL =
+	'/index.php/apps/learniq/assessments/e2e-smoke-placeholder/take'
+const REVIEW_QUEUE_URL = '/index.php/apps/learniq/assessments/proctoring/review'
 
 function collectFatalErrors(page: import('@playwright/test').Page): string[] {
 	const errors: string[] = []
@@ -55,14 +52,15 @@ function fatalOnly(errors: string[]): string[] {
 }
 
 test.describe('secure-exam-test-mode — TakeAssessmentView + ProctoringReviewQueue pages', () => {
-
 	// @e2e openspec/changes/secure-exam-test-mode/specs/assessment/spec.md#learner-sees-the-native-test-mode-disclosure-before-starting
-	test('take-assessment page renders without a fatal error for an unknown assessment id', async ({ loggedInPage: page }) => {
+	test('take-assessment page renders without a fatal error for an unknown assessment id', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(TAKE_ASSESSMENT_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The component resolves (loading spinner, then the "failed to load"
 		// error state for an unseeded id) — not a blank/404 shell.
@@ -70,21 +68,27 @@ test.describe('secure-exam-test-mode — TakeAssessmentView + ProctoringReviewQu
 		expect(bodyText.trim().length).toBeGreaterThan(0)
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 
 	// @e2e openspec/changes/secure-exam-test-mode/specs/assessment/spec.md#native-test-mode-sessions-appear-in-the-existing-review-queue-unchanged
-	test('proctoring review queue page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('proctoring review queue page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(REVIEW_QUEUE_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
 
 		const fatal = fatalOnly(errors)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

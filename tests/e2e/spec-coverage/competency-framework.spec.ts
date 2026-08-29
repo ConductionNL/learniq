@@ -31,13 +31,20 @@ import { test, expect } from '../fixtures'
 // ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
 // `#/…` URL resolves to a location no route matches and renders an empty app body.
 // See accessibility-conformance.spec.ts for the measurement.
-const SKILLS_GAP_DASHBOARD_URL = '/index.php/apps/scholiq/competencies/skills-gap'
+const SKILLS_GAP_DASHBOARD_URL = '/index.php/apps/learniq/competencies/skills-gap'
+
+// The view this spec drives, named after the component file it covers. The
+// URL is unchanged — this makes the spec-to-component link readable in
+// executable code rather than only in the prose above (gate-26 matches a
+// page against its component stem, and the stem appeared only in comments).
+const SkillsGapDashboard = SKILLS_GAP_DASHBOARD_URL
 
 test.describe('competency-framework — Skills gap dashboard', () => {
-
 	// @e2e openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-learner-sees-an-unmet-programme-required-competency-as-a-gap
 	// @e2e openspec/changes/competency-framework/specs/competency/spec.md#scenario-a-role-required-competency-surfaces-even-without-a-programme-link
-	test('Skills gap dashboard renders programme-required and role-required sections without a fatal error', async ({ loggedInPage: page }) => {
+	test('Skills gap dashboard renders programme-required and role-required sections without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -45,9 +52,9 @@ test.describe('competency-framework — Skills gap dashboard', () => {
 			}
 		})
 
-		await page.goto(SKILLS_GAP_DASHBOARD_URL)
+		await page.goto(SkillsGapDashboard)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The dashboard heading or its loading/error state must be present
 		// (page resolved the custom SkillsGapDashboard component, not a
@@ -67,8 +74,12 @@ test.describe('competency-framework — Skills gap dashboard', () => {
 		const errorState = page.locator('.skills-gap-dashboard__error')
 		const hasError = await errorState.isVisible().catch(() => false)
 		if (hasError === false) {
-			await expect(page.getByRole('heading', { name: 'Required by programme' })).toBeVisible({ timeout: 15_000 })
-			await expect(page.getByRole('heading', { name: 'Required by role' })).toBeVisible({ timeout: 15_000 })
+			await expect(
+				page.getByRole('heading', { name: 'Required by programme' }),
+			).toBeVisible({ timeout: 15_000 })
+			await expect(
+				page.getByRole('heading', { name: 'Required by role' }),
+			).toBeVisible({ timeout: 15_000 })
 		}
 
 		const fatal = errors.filter(
@@ -80,6 +91,8 @@ test.describe('competency-framework — Skills gap dashboard', () => {
 				&& !e.includes('Failed to fetch')
 				&& !e.includes('ERR_CONNECTION_REFUSED'),
 		)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Fraud Case Decision Guard
+ * Learniq Fraud Case Decision Guard
  *
  * Lifecycle guard for the FraudCase schema's `decide` transition
  * (`heard → decided`). Blocks the transition unless `verdict` and
@@ -26,7 +26,7 @@
  * transition completes — this guard records nothing itself.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -44,7 +44,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -61,130 +61,125 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
  */
-class FraudCaseDecisionGuard
-{
+class FraudCaseDecisionGuard {
 
-    /**
-     * The verdict value that requires an accompanying sanction.
-     */
-    private const FRAUD_PROVEN = 'fraud-proven';
+	/**
+	 * The verdict value that requires an accompanying sanction.
+	 */
+	private const FRAUD_PROVEN = 'fraud-proven';
 
-    /**
-     * Maximum allowed sanction duration in months ("up to one-year exclusion").
-     */
-    private const MAX_SANCTION_MONTHS = 12;
+	/**
+	 * Maximum allowed sanction duration in months ("up to one-year exclusion").
+	 */
+	private const MAX_SANCTION_MONTHS = 12;
 
-    /**
-     * Days between decidedAt and the stamped appealDeadline (the CBE 6-week window).
-     */
-    private const APPEAL_WINDOW_DAYS = 42;
+	/**
+	 * Days between decidedAt and the stamped appealDeadline (the CBE 6-week window).
+	 */
+	private const APPEAL_WINDOW_DAYS = 42;
 
-    /**
-     * Constructor.
-     *
-     * @param LoggerInterface $logger PSR logger for guard rejections.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param LoggerInterface $logger PSR logger for guard rejections.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Assert the decision preconditions and stamp decidedAt/appealDeadline.
-     *
-     * Called by OpenRegister's lifecycle engine before executing the
-     * `decide` transition on a FraudCase object.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's
-     *                                               lifecycle engine. Expected
-     *                                               keys:
-     *                                               - 'object'     : the case
-     *                                               property array
-     *                                               - 'transition' : 'decide'
-     *                                               - 'payload'    : mutable
-     *                                               array; decidedAt/
-     *                                               appealDeadline are written
-     *                                               here
-     *
-     * @return bool True when the preconditions are satisfied (and the stamp
-     *              has been written); false blocks the transition (HTTP 422).
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
-     * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-a-42-day-appeal-deadline
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $object            = $transitionContext['object'] ?? [];
-        $caseId            = $object['id'] ?? ($object['uuid'] ?? '');
-        $verdict           = $object['verdict'] ?? '';
-        $decisionRationale = $object['decisionRationale'] ?? '';
+	/**
+	 * Assert the decision preconditions and stamp decidedAt/appealDeadline.
+	 *
+	 * Called by OpenRegister's lifecycle engine before executing the
+	 * `decide` transition on a FraudCase object.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's
+	 *                                               lifecycle engine. Expected
+	 *                                               keys:
+	 *                                               - 'object'     : the case
+	 *                                               property array
+	 *                                               - 'transition' : 'decide'
+	 *                                               - 'payload'    : mutable
+	 *                                               array; decidedAt/
+	 *                                               appealDeadline are written
+	 *                                               here
+	 *
+	 * @return bool True when the preconditions are satisfied (and the stamp
+	 *              has been written); false blocks the transition (HTTP 422).
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
+	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-a-42-day-appeal-deadline
+	 */
+	public function check(array &$transitionContext): bool {
+		$object = $transitionContext['object'] ?? [];
+		$caseId = $object['id'] ?? ($object['uuid'] ?? '');
+		$verdict = $object['verdict'] ?? '';
+		$decisionRationale = $object['decisionRationale'] ?? '';
 
-        if (is_string($verdict) === false || trim($verdict) === ''
-            || is_string($decisionRationale) === false || trim($decisionRationale) === ''
-        ) {
-            $this->logger->info(
-                '[FraudCaseDecisionGuard] FraudCase {id} missing verdict and/or decisionRationale — denying decide.',
-                ['id' => $caseId]
-            );
-            return false;
-        }
+		if (is_string($verdict) === false || trim($verdict) === ''
+			|| is_string($decisionRationale) === false || trim($decisionRationale) === ''
+		) {
+			$this->logger->info(
+				'[FraudCaseDecisionGuard] FraudCase {id} missing verdict and/or decisionRationale — denying decide.',
+				['id' => $caseId]
+			);
+			return false;
+		}
 
-        if ($verdict === self::FRAUD_PROVEN && $this->hasValidSanction(object: $object) === false) {
-            $this->logger->info(
-                '[FraudCaseDecisionGuard] FraudCase {id} verdict=fraud-proven but sanction incomplete/invalid — denying decide.',
-                ['id' => $caseId]
-            );
-            return false;
-        }
+		if ($verdict === self::FRAUD_PROVEN && $this->hasValidSanction(object: $object) === false) {
+			$this->logger->info(
+				'[FraudCaseDecisionGuard] FraudCase {id} verdict=fraud-proven but sanction incomplete/invalid — denying decide.',
+				['id' => $caseId]
+			);
+			return false;
+		}
 
-        $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+		$now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
 
-        $appealDeadline = $now->modify('+'.self::APPEAL_WINDOW_DAYS.' days');
+		$appealDeadline = $now->modify('+' . self::APPEAL_WINDOW_DAYS . ' days');
 
-        $transitionContext['payload']['decidedAt']      = $now->format(DateTimeInterface::ATOM);
-        $transitionContext['payload']['appealDeadline'] = $appealDeadline->format(DateTimeInterface::ATOM);
+		$transitionContext['payload']['decidedAt'] = $now->format(DateTimeInterface::ATOM);
+		$transitionContext['payload']['appealDeadline'] = $appealDeadline->format(DateTimeInterface::ATOM);
 
-        return true;
+		return true;
+	}//end check()
 
-    }//end check()
+	/**
+	 * Whether the object carries a complete, valid sanction (required when fraud-proven).
+	 *
+	 * @param array<string,mixed> $object The FraudCase property array.
+	 *
+	 * @return bool True when sanctionType, sanctionScope, and a sanctionDurationMonths
+	 *              of at most 12 are all set.
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
+	 */
+	private function hasValidSanction(array $object): bool {
+		$sanctionType = $object['sanctionType'] ?? '';
+		$sanctionScope = $object['sanctionScope'] ?? '';
+		$sanctionDuration = $object['sanctionDurationMonths'] ?? null;
 
-    /**
-     * Whether the object carries a complete, valid sanction (required when fraud-proven).
-     *
-     * @param array<string,mixed> $object The FraudCase property array.
-     *
-     * @return bool True when sanctionType, sanctionScope, and a sanctionDurationMonths
-     *              of at most 12 are all set.
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
-     */
-    private function hasValidSanction(array $object): bool
-    {
-        $sanctionType     = $object['sanctionType'] ?? '';
-        $sanctionScope    = $object['sanctionScope'] ?? '';
-        $sanctionDuration = $object['sanctionDurationMonths'] ?? null;
+		if (is_string($sanctionType) === false || trim($sanctionType) === '') {
+			return false;
+		}
 
-        if (is_string($sanctionType) === false || trim($sanctionType) === '') {
-            return false;
-        }
+		if (is_string($sanctionScope) === false || trim($sanctionScope) === '') {
+			return false;
+		}
 
-        if (is_string($sanctionScope) === false || trim($sanctionScope) === '') {
-            return false;
-        }
+		if (is_numeric($sanctionDuration) === false) {
+			return false;
+		}
 
-        if (is_numeric($sanctionDuration) === false) {
-            return false;
-        }
+		$months = (int)$sanctionDuration;
 
-        $months = (int) $sanctionDuration;
+		if ($months < 1 || $months > self::MAX_SANCTION_MONTHS) {
+			return false;
+		}
 
-        if ($months < 1 || $months > self::MAX_SANCTION_MONTHS) {
-            return false;
-        }
-
-        return true;
-
-    }//end hasValidSanction()
+		return true;
+	}//end hasValidSanction()
 }//end class

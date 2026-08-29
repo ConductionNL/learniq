@@ -21,29 +21,37 @@
 	<div class="learning-record-import">
 		<header class="learning-record-import__header">
 			<h2 class="learning-record-import__heading">
-				{{ t('scholiq', 'Import prior learning record') }}
+				{{ t('learniq', 'Import prior learning record') }}
 			</h2>
 			<p class="learning-record-import__intro">
-				{{ t('scholiq', 'Upload the applicant\'s exported Scholiq learning record, or a bare ELM/Europass credential set. Every record found in the bundle is reported — nothing is silently lost. This is evidence for your own decision, not an automatic write.') }}
+				{{
+					t(
+						'learniq',
+						"Upload the applicant's exported Learniq learning record, or a bare ELM/Europass credential set. Every record found in the bundle is reported — nothing is silently lost. This is evidence for your own decision, not an automatic write.",
+					)
+				}}
 			</p>
 		</header>
 
 		<!-- Upload form -->
 		<div v-if="!report" class="learning-record-import__upload">
 			<label class="learning-record-import__label" for="lri-source-format">
-				{{ t('scholiq', 'Bundle format') }}
+				{{ t('learniq', 'Bundle format') }}
 			</label>
-			<select id="lri-source-format" v-model="sourceFormat" class="learning-record-import__select">
+			<select
+				id="lri-source-format"
+				v-model="sourceFormat"
+				class="learning-record-import__select">
 				<option value="scholiq-learning-record">
-					{{ t('scholiq', 'Scholiq learning record export') }}
+					{{ t('learniq', 'Learniq learning record export') }}
 				</option>
 				<option value="elm-europass">
-					{{ t('scholiq', 'Bare ELM / Europass credential set') }}
+					{{ t('learniq', 'Bare ELM / Europass credential set') }}
 				</option>
 			</select>
 
 			<label class="learning-record-import__label" for="lri-file">
-				{{ t('scholiq', 'Bundle file') }}
+				{{ t('learniq', 'Bundle file') }}
 			</label>
 			<input
 				id="lri-file"
@@ -52,10 +60,10 @@
 				type="file"
 				accept=".json"
 				:disabled="uploading"
-				@change="onFileSelected">
+				@change="onFileSelected" />
 
 			<p v-if="selectedFileName" class="learning-record-import__selected">
-				{{ t('scholiq', 'Selected: {name}', { name: selectedFileName }) }}
+				{{ t('learniq', 'Selected: {name}', { name: selectedFileName }) }}
 			</p>
 
 			<button
@@ -63,7 +71,11 @@
 				:disabled="uploading || !selectedFile"
 				@click="uploadBundle">
 				<span v-if="uploading" class="icon-loading" aria-hidden="true" />
-				{{ uploading ? t('scholiq', 'Uploading…') : t('scholiq', 'Upload and parse') }}
+				{{
+					uploading
+						? t('learniq', 'Uploading…')
+						: t('learniq', 'Upload and parse')
+				}}
 			</button>
 
 			<p v-if="uploadError" role="alert" class="learning-record-import__error">
@@ -87,18 +99,23 @@
 
 			<!-- Outcome filter -->
 			<div class="learning-record-import__filter">
-				<label class="learning-record-import__label" for="lri-outcome-filter">
-					{{ t('scholiq', 'Filter by outcome') }}
+				<label
+					class="learning-record-import__label"
+					for="lri-outcome-filter">
+					{{ t('learniq', 'Filter by outcome') }}
 				</label>
-				<select id="lri-outcome-filter" v-model="outcomeFilter" class="learning-record-import__select">
+				<select
+					id="lri-outcome-filter"
+					v-model="outcomeFilter"
+					class="learning-record-import__select">
 					<option value="all">
-						{{ t('scholiq', 'All records') }}
+						{{ t('learniq', 'All records') }}
 					</option>
 					<option value="recognized">
-						{{ t('scholiq', 'Recognized') }}
+						{{ t('learniq', 'Recognized') }}
 					</option>
 					<option value="unrecognized">
-						{{ t('scholiq', 'Unrecognized') }}
+						{{ t('learniq', 'Unrecognized') }}
 					</option>
 				</select>
 			</div>
@@ -107,10 +124,10 @@
 			<table class="learning-record-import__table">
 				<thead>
 					<tr>
-						<th>{{ t('scholiq', 'Title') }}</th>
-						<th>{{ t('scholiq', 'Source schema') }}</th>
-						<th>{{ t('scholiq', 'Outcome') }}</th>
-						<th>{{ t('scholiq', 'Reason') }}</th>
+						<th scope="col">{{ t('learniq', 'Title') }}</th>
+						<th scope="col">{{ t('learniq', 'Source schema') }}</th>
+						<th scope="col">{{ t('learniq', 'Outcome') }}</th>
+						<th scope="col">{{ t('learniq', 'Reason') }}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -118,7 +135,8 @@
 						<td>{{ entry.sourceTitle }}</td>
 						<td>{{ entry.sourceSchema || '—' }}</td>
 						<td>
-							<span :class="`learning-record-import__badge learning-record-import__badge--${entry.outcome}`">
+							<span
+								:class="`learning-record-import__badge learning-record-import__badge--${entry.outcome}`">
 								{{ entry.outcome }}
 							</span>
 						</td>
@@ -126,14 +144,14 @@
 					</tr>
 					<tr v-if="filteredEntries.length === 0">
 						<td colspan="4" class="learning-record-import__empty">
-							{{ t('scholiq', 'No records match this filter.') }}
+							{{ t('learniq', 'No records match this filter.') }}
 						</td>
 					</tr>
 				</tbody>
 			</table>
 
 			<button class="button-vue" @click="reset">
-				{{ t('scholiq', 'Upload another bundle') }}
+				{{ t('learniq', 'Upload another bundle') }}
 			</button>
 		</div>
 	</div>
@@ -162,6 +180,7 @@ export default {
 		 * The Application UUID this import is evidence for, from the route.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		applicationId() {
 			return this.$route?.params?.applicationId ?? ''
@@ -171,24 +190,44 @@ export default {
 		 * Human-readable verification summary line.
 		 *
 		 * @return {string} Localised summary text.
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
 		 */
 		verificationLabel() {
 			if (!this.report) return ''
 			const labels = {
-				verified: this.t('scholiq', 'Verified — the signing tenant is recognised by this school.'),
-				unverifiable: this.t('scholiq', 'Unverifiable — a well-formed bundle from a system this school does not recognise. This is expected, not an error.'),
-				invalid: this.t('scholiq', 'Signature invalid — this bundle may have been tampered with.'),
+				verified: this.t(
+					'learniq',
+					'Verified — the signing tenant is recognised by this school.',
+				),
+
+				unverifiable: this.t(
+					'learniq',
+					'Unverifiable — a well-formed bundle from a system this school does not recognise. This is expected, not an error.',
+				),
+
+				invalid: this.t(
+					'learniq',
+					'Signature invalid — this bundle may have been tampered with.',
+				),
 			}
-			return labels[this.report.verificationStatus] ?? this.t('scholiq', 'Could not be parsed.')
+			return (
+				labels[this.report.verificationStatus]
+				?? this.t('learniq', 'Could not be parsed.')
+			)
 		},
 
 		/**
 		 * CSS modifier matching the verification severity.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		verificationSeverity() {
-			const map = { verified: 'success', unverifiable: 'warning', invalid: 'error' }
+			const map = {
+				verified: 'success',
+				unverifiable: 'warning',
+				invalid: 'error',
+			}
 			return map[this.report?.verificationStatus] ?? 'error'
 		},
 
@@ -196,6 +235,7 @@ export default {
 		 * Report entries filtered by the selected outcome.
 		 *
 		 * @return {Array<object>} Filtered entries.
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		filteredEntries() {
 			const entries = this.report?.entries ?? []
@@ -210,6 +250,7 @@ export default {
 		 *
 		 * @param {Event} event The change event.
 		 * @return {void}
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		onFileSelected(event) {
 			const file = event.target.files?.[0] ?? null
@@ -235,7 +276,9 @@ export default {
 			formData.append('sourceFormat', this.sourceFormat)
 
 			try {
-				const url = generateUrl(`/apps/scholiq/api/applications/${this.applicationId}/learning-record-imports`)
+				const url = generateUrl(
+					`/apps/learniq/api/applications/${this.applicationId}/learning-record-imports`,
+				)
 				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -252,7 +295,10 @@ export default {
 
 				this.report = json
 			} catch (err) {
-				this.uploadError = this.t('scholiq', 'Failed to upload the bundle. Please try again.')
+				this.uploadError = this.t(
+					'learniq',
+					'Failed to upload the bundle. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[LearningRecordImportView] uploadBundle error', err)
 			} finally {
@@ -264,6 +310,7 @@ export default {
 		 * Reset the view to upload another bundle.
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-a-coordinator-can-upload-another-institution-s-record-as-evidence-during-application-intake
 		 */
 		reset() {
 			this.report = null
@@ -283,7 +330,8 @@ export default {
 .learning-record-import {
 	max-width: 960px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .learning-record-import__heading {

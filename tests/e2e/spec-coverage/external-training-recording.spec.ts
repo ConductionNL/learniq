@@ -17,12 +17,13 @@
  */
 import { test, expect } from '../fixtures'
 
-const RECORDS_URL = '/index.php/apps/scholiq/compliance/external-training'
+const RECORDS_URL = '/index.php/apps/learniq/compliance/external-training'
 
 test.describe('external-training-recording — records index page', () => {
-
 	// @e2e openspec/specs/external-training-recording/spec.md#learner-self-reports-a-conference-with-a-certificate
-	test('records index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('records index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -32,13 +33,13 @@ test.describe('external-training-recording — records index page', () => {
 
 		await page.goto(RECORDS_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The page must render content (index page or an NcEmptyContent), not blank.
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
 
-		// No Scholiq-originated fatal JS error (filter unrelated app/resource noise).
+		// No Learniq-originated fatal JS error (filter unrelated app/resource noise).
 		const fatal = errors.filter(
 			(e) =>
 				!e.includes('favicon')
@@ -48,6 +49,8 @@ test.describe('external-training-recording — records index page', () => {
 				&& !e.includes('Failed to fetch')
 				&& !e.includes('ERR_CONNECTION_REFUSED'),
 		)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

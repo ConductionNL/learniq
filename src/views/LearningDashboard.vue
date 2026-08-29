@@ -17,60 +17,54 @@
  @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 -->
 <template>
-	<div class="scholiq-domain-dashboard">
-		<CnDashboardPage
-			:title="pageTitle"
-			:widgets="widgets"
-			:layout="layout">
-			<template #widget-kpi-courses>
-				<KpiCoursesWidget />
-			</template>
+	<div class="learniq-domain-dashboard">
+		<CnDashboardPage :title="pageTitle" :widgets="widgets" :layout="layout">
 			<template #widget-manage-courses>
 				<ManageListWidget
 					schema="Course"
-					:schema-label="t('scholiq', 'course')"
+					:schemaLabel="t('learniq', 'course')"
 					:columns="['name', 'lifecycle', 'lessonCount']"
-					index-route="/courses"
+					indexRoute="/courses"
 					:limit="6" />
 			</template>
 			<template #widget-manage-curriculum>
 				<ManageListWidget
 					schema="Programme"
-					:schema-label="t('scholiq', 'programme')"
+					:schemaLabel="t('learniq', 'programme')"
 					:columns="['name', 'lifecycle']"
-					index-route="/curriculum/programmes"
+					indexRoute="/curriculum/programmes"
 					:limit="6" />
 			</template>
 			<template #widget-manage-assignments>
 				<ManageListWidget
 					schema="Assignment"
-					:schema-label="t('scholiq', 'assignment')"
+					:schemaLabel="t('learniq', 'assignment')"
 					:columns="['name', 'dueDate', 'lifecycle']"
-					index-route="/assignments"
+					indexRoute="/assignments"
 					:limit="6" />
 			</template>
 			<template #widget-manage-assessments>
 				<ManageListWidget
 					schema="Assessment"
-					:schema-label="t('scholiq', 'assessment')"
+					:schemaLabel="t('learniq', 'assessment')"
 					:columns="['name', 'lifecycle']"
-					index-route="/assessments"
+					indexRoute="/assessments"
 					:limit="6" />
 			</template>
 			<template #widget-manage-learning-plans>
 				<ManageListWidget
 					schema="learning-plan"
-					:schema-label="t('scholiq', 'learning plan')"
+					:schemaLabel="t('learniq', 'learning plan')"
 					:columns="['name', 'lifecycle']"
-					index-route="/learning-plans"
+					indexRoute="/learning-plans"
 					:limit="6" />
 			</template>
 			<template #widget-manage-grades>
 				<ManageListWidget
 					schema="grade-entry"
-					:schema-label="t('scholiq', 'grade')"
+					:schemaLabel="t('learniq', 'grade')"
 					:columns="['name', 'lifecycle']"
-					index-route="/grades/entries"
+					indexRoute="/grades/entries"
 					:limit="6" />
 			</template>
 		</CnDashboardPage>
@@ -79,7 +73,6 @@
 
 <script>
 import { CnDashboardPage } from '@conduction/nextcloud-vue'
-import KpiCoursesWidget from './widgets/KpiCoursesWidget.vue'
 import ManageListWidget from './widgets/ManageListWidget.vue'
 
 export default {
@@ -87,7 +80,6 @@ export default {
 
 	components: {
 		CnDashboardPage,
-		KpiCoursesWidget,
 		ManageListWidget,
 	},
 
@@ -96,25 +88,69 @@ export default {
 		 * The dashboard page title.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 		 */
 		pageTitle() {
-			return this.t('scholiq', 'Learning')
+			return this.t('learniq', 'Learning')
 		},
 
 		/**
 		 * The CnDashboardPage `widgets` declaration.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 		 */
 		widgets() {
 			return [
-				{ id: 'kpi-courses', title: this.t('scholiq', 'Courses'), type: 'custom' },
-				{ id: 'manage-courses', title: this.t('scholiq', 'Courses'), type: 'custom' },
-				{ id: 'manage-curriculum', title: this.t('scholiq', 'Curriculum'), type: 'custom' },
-				{ id: 'manage-assignments', title: this.t('scholiq', 'Assignments'), type: 'custom' },
-				{ id: 'manage-assessments', title: this.t('scholiq', 'Assessments'), type: 'custom' },
-				{ id: 'manage-learning-plans', title: this.t('scholiq', 'Learning plans'), type: 'custom' },
-				{ id: 'manage-grades', title: this.t('scholiq', 'Grades'), type: 'custom' },
+				{
+					id: 'kpi-courses',
+					title: this.t('learniq', 'Courses'),
+					// Declared, not written: `type: 'stat'` resolves to the shared
+					// CnStatWidget, which counts server-side. The wrapper it
+					// replaces did its own fetch and answered
+					// `catch { this.count = 0 }`.
+					type: 'stat',
+					content: {
+						label: this.t('learniq', 'Courses'),
+						variant: 'primary',
+						clickRoute: { path: '/courses' },
+						source: {
+							register: 'learniq',
+							schema: 'course',
+							metric: 'count',
+						},
+					},
+				},
+				{
+					id: 'manage-courses',
+					title: this.t('learniq', 'Courses'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-curriculum',
+					title: this.t('learniq', 'Curriculum'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-assignments',
+					title: this.t('learniq', 'Assignments'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-assessments',
+					title: this.t('learniq', 'Assessments'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-learning-plans',
+					title: this.t('learniq', 'Learning plans'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-grades',
+					title: this.t('learniq', 'Grades'),
+					type: 'custom',
+				},
 			]
 		},
 
@@ -122,16 +158,67 @@ export default {
 		 * The CnDashboardPage `layout` declaration (12-column grid).
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-learning-domain-dashboard
 		 */
 		layout() {
 			return [
-				{ id: 1, widgetId: 'kpi-courses', gridX: 0, gridY: 0, gridWidth: 3, gridHeight: 2, showTitle: false },
-				{ id: 2, widgetId: 'manage-courses', gridX: 0, gridY: 2, gridWidth: 6, gridHeight: 4 },
-				{ id: 3, widgetId: 'manage-curriculum', gridX: 6, gridY: 2, gridWidth: 6, gridHeight: 4 },
-				{ id: 4, widgetId: 'manage-assignments', gridX: 0, gridY: 6, gridWidth: 6, gridHeight: 4 },
-				{ id: 5, widgetId: 'manage-assessments', gridX: 6, gridY: 6, gridWidth: 6, gridHeight: 4 },
-				{ id: 6, widgetId: 'manage-learning-plans', gridX: 0, gridY: 10, gridWidth: 6, gridHeight: 4 },
-				{ id: 7, widgetId: 'manage-grades', gridX: 6, gridY: 10, gridWidth: 6, gridHeight: 4 },
+				{
+					id: 1,
+					widgetId: 'kpi-courses',
+					gridX: 0,
+					gridY: 0,
+					gridWidth: 3,
+					gridHeight: 2,
+					showTitle: false,
+				},
+				{
+					id: 2,
+					widgetId: 'manage-courses',
+					gridX: 0,
+					gridY: 2,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 3,
+					widgetId: 'manage-curriculum',
+					gridX: 6,
+					gridY: 2,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 4,
+					widgetId: 'manage-assignments',
+					gridX: 0,
+					gridY: 6,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 5,
+					widgetId: 'manage-assessments',
+					gridX: 6,
+					gridY: 6,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 6,
+					widgetId: 'manage-learning-plans',
+					gridX: 0,
+					gridY: 10,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 7,
+					widgetId: 'manage-grades',
+					gridX: 6,
+					gridY: 10,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
 			]
 		},
 	},

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Enrolment Prerequisite Listener
+ * Learniq Enrolment Prerequisite Listener
  *
  * Closes the "prerequisite hole": openspec/specs/enrolment/spec.md has required
  * "Validate prerequisites before persistence" since 2026-05-11, but no code ever
@@ -37,7 +37,7 @@
  * read failure must never brick all enrolment.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -54,11 +54,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -73,229 +73,219 @@ use Throwable;
  *
  * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
  */
-class EnrolmentPrerequisiteListener implements IEventListener
-{
+class EnrolmentPrerequisiteListener implements IEventListener {
 
-    private const SCHOLIQ_REGISTER = 'scholiq';
-    private const ENROLMENT_SCHEMA = 'enrolment';
-    private const COURSE_SCHEMA    = 'course';
-    private const COMPLETED_STATE  = 'completed';
+	private const LEARNIQ_REGISTER = 'learniq';
+	private const ENROLMENT_SCHEMA = 'enrolment';
+	private const COURSE_SCHEMA = 'course';
+	private const COMPLETED_STATE = 'completed';
 
-    /**
-     * The spec rejection message template — `%s` is the failing prerequisite
-     * course's display name (falling back to its UUID when unresolvable).
-     *
-     * @var string
-     */
-    public const REJECTION_MESSAGE_TEMPLATE = 'You must complete the prerequisite course "%s" before enrolling in this course.';
+	/**
+	 * The spec rejection message template — `%s` is the failing prerequisite
+	 * course's display name (falling back to its UUID when unresolvable).
+	 *
+	 * @var string
+	 */
+	public const REJECTION_MESSAGE_TEMPLATE = 'You must complete the prerequisite course "%s" before enrolling in this course.';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService          $objectService  OR object access service.
-     * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
-     * @param LoggerInterface        $logger         PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly ListenerSchemaResolver $schemaResolver,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access service.
+	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an OR object-creating event, filtering to the `enrolment` schema.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
-     */
-    public function handle(Event $event): void
-    {
-        if ($event instanceof ObjectCreatingEvent === false) {
-            return;
-        }
+	/**
+	 * Handle an OR object-creating event, filtering to the `enrolment` schema.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
+	 */
+	public function handle(Event $event): void {
+		if ($event instanceof ObjectCreatingEvent === false) {
+			return;
+		}
 
-        try {
-            $this->evaluate(event: $event);
-        } catch (Throwable $exception) {
-            // Fail soft on infrastructure errors: the prerequisite rule must
-            // never break the OR write path for unrelated objects (deliberate
-            // — see class docblock).
-            $this->logger->warning(
-                '[EnrolmentPrerequisiteListener] Prerequisite check failed: {msg}',
-                ['msg' => $exception->getMessage()]
-            );
-        }
+		try {
+			$this->evaluate(event: $event);
+		} catch (Throwable $exception) {
+			// Fail soft on infrastructure errors: the prerequisite rule must
+			// never break the OR write path for unrelated objects (deliberate
+			// — see class docblock).
+			$this->logger->warning(
+				'[EnrolmentPrerequisiteListener] Prerequisite check failed: {msg}',
+				['msg' => $exception->getMessage()]
+			);
+		}
 
-    }//end handle()
+	}//end handle()
 
-    /**
-     * Filter to `enrolment` creations, resolve the target Course, and reject
-     * on the first unmet prerequisite (if any). Split out of handle() to
-     * keep both methods under the cyclomatic-complexity threshold.
-     *
-     * @param ObjectCreatingEvent $event The event to evaluate.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
-     */
-    private function evaluate(ObjectCreatingEvent $event): void
-    {
-        $entity = $event->getObject();
-        if ($this->schemaResolver->registerSlug(entity: $entity) !== self::SCHOLIQ_REGISTER
-            || $this->schemaResolver->schemaSlug(entity: $entity) !== self::ENROLMENT_SCHEMA
-        ) {
-            return;
-        }
+	/**
+	 * Filter to `enrolment` creations, resolve the target Course, and reject
+	 * on the first unmet prerequisite (if any). Split out of handle() to
+	 * keep both methods under the cyclomatic-complexity threshold.
+	 *
+	 * @param ObjectCreatingEvent $event The event to evaluate.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#requirement-validate-prerequisites-before-persistence
+	 */
+	private function evaluate(ObjectCreatingEvent $event): void {
+		$entity = $event->getObject();
+		if ($this->schemaResolver->registerSlug(entity: $entity) !== self::LEARNIQ_REGISTER
+			|| $this->schemaResolver->schemaSlug(entity: $entity) !== self::ENROLMENT_SCHEMA
+		) {
+			return;
+		}
 
-        $payload   = $entity->jsonSerialize();
-        $courseId  = (string) ($payload['courseId'] ?? '');
-        $learnerId = (string) ($payload['learnerId'] ?? '');
-        if ($courseId === '' || $learnerId === '') {
-            // No course/learner reference — nothing this listener can check;
-            // OR's own `required` validation handles a missing field.
-            return;
-        }
+		$payload = $entity->jsonSerialize();
+		$courseId = (string)($payload['courseId'] ?? '');
+		$learnerId = (string)($payload['learnerId'] ?? '');
+		if ($courseId === '' || $learnerId === '') {
+			// No course/learner reference — nothing this listener can check;
+			// OR's own `required` validation handles a missing field.
+			return;
+		}
 
-        $tenantId = (string) ($payload['tenant_id'] ?? '');
+		$tenantId = (string)($payload['tenant_id'] ?? '');
 
-        $course = $this->resolveObject(id: $courseId, schema: self::COURSE_SCHEMA);
-        if ($course === null) {
-            // Unresolvable course — an infrastructure/data-integrity
-            // condition, not an unmet prerequisite. Fail open (OR's own
-            // $ref/required validation is responsible for a genuinely
-            // missing courseId).
-            return;
-        }
+		$course = $this->resolveObject(id: $courseId, schema: self::COURSE_SCHEMA);
+		if ($course === null) {
+			// Unresolvable course — an infrastructure/data-integrity
+			// condition, not an unmet prerequisite. Fail open (OR's own
+			// $ref/required validation is responsible for a genuinely
+			// missing courseId).
+			return;
+		}
 
-        $prereqIds = ($course['prerequisiteCourseIds'] ?? []);
-        if (is_array($prereqIds) === false || $prereqIds === []) {
-            return;
-        }
+		$prereqIds = ($course['prerequisiteCourseIds'] ?? []);
+		if (is_array($prereqIds) === false || $prereqIds === []) {
+			return;
+		}
 
-        $unmet = $this->findUnmetPrerequisite(prereqIds: $prereqIds, learnerId: $learnerId, tenantId: $tenantId);
-        if ($unmet !== null) {
-            $this->rejectForUnmetPrerequisite(event: $event, prereqCourseId: $unmet);
-        }
+		$unmet = $this->findUnmetPrerequisite(prereqIds: $prereqIds, learnerId: $learnerId, tenantId: $tenantId);
+		if ($unmet !== null) {
+			$this->rejectForUnmetPrerequisite(event: $event, prereqCourseId: $unmet);
+		}
 
-    }//end evaluate()
+	}//end evaluate()
 
-    /**
-     * Return the first prerequisite course UUID the learner has NOT
-     * completed, or null when every listed prerequisite is met.
-     *
-     * @param array<int, mixed> $prereqIds Candidate prerequisite Course UUIDs.
-     * @param string            $learnerId NC user ID of the enrolling learner.
-     * @param string            $tenantId  Tenant scope for the lookup ('' when unknown).
-     *
-     * @return string|null
-     */
-    private function findUnmetPrerequisite(array $prereqIds, string $learnerId, string $tenantId): ?string
-    {
-        foreach ($prereqIds as $prereqCourseId) {
-            if (is_string($prereqCourseId) === false || $prereqCourseId === '') {
-                continue;
-            }
+	/**
+	 * Return the first prerequisite course UUID the learner has NOT
+	 * completed, or null when every listed prerequisite is met.
+	 *
+	 * @param array<int, mixed> $prereqIds Candidate prerequisite Course UUIDs.
+	 * @param string $learnerId NC user ID of the enrolling learner.
+	 * @param string $tenantId Tenant scope for the lookup ('' when unknown).
+	 *
+	 * @return string|null
+	 */
+	private function findUnmetPrerequisite(array $prereqIds, string $learnerId, string $tenantId): ?string {
+		foreach ($prereqIds as $prereqCourseId) {
+			if (is_string($prereqCourseId) === false || $prereqCourseId === '') {
+				continue;
+			}
 
-            if ($this->learnerHasCompleted(learnerId: $learnerId, courseId: $prereqCourseId, tenantId: $tenantId) === false) {
-                return $prereqCourseId;
-            }
-        }
+			if ($this->learnerHasCompleted(learnerId: $learnerId, courseId: $prereqCourseId, tenantId: $tenantId) === false) {
+				return $prereqCourseId;
+			}
+		}
 
-        return null;
+		return null;
+	}//end findUnmetPrerequisite()
 
-    }//end findUnmetPrerequisite()
+	/**
+	 * Whether the learner already holds a `completed` Enrolment for the
+	 * given course.
+	 *
+	 * @param string $learnerId NC user ID of the enrolling learner.
+	 * @param string $courseId UUID of the prerequisite Course.
+	 * @param string $tenantId Tenant scope for the lookup ('' when unknown).
+	 *
+	 * @return bool
+	 */
+	private function learnerHasCompleted(string $learnerId, string $courseId, string $tenantId): bool {
+		$filters = [
+			'learnerId' => $learnerId,
+			'courseId' => $courseId,
+			'lifecycle' => self::COMPLETED_STATE,
+		];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
 
-    /**
-     * Whether the learner already holds a `completed` Enrolment for the
-     * given course.
-     *
-     * @param string $learnerId NC user ID of the enrolling learner.
-     * @param string $courseId  UUID of the prerequisite Course.
-     * @param string $tenantId  Tenant scope for the lookup ('' when unknown).
-     *
-     * @return bool
-     */
-    private function learnerHasCompleted(string $learnerId, string $courseId, string $tenantId): bool
-    {
-        $filters = [
-            'learnerId' => $learnerId,
-            'courseId'  => $courseId,
-            'lifecycle' => self::COMPLETED_STATE,
-        ];
-        if ($tenantId !== '') {
-            $filters['tenant_id'] = $tenantId;
-        }
+		$completed = $this->objectService->findAll(
+			[
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => self::ENROLMENT_SCHEMA,
+				'filters' => $filters,
+				'limit' => 1,
+			]
+		);
 
-        $completed = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::ENROLMENT_SCHEMA,
-                'filters'  => $filters,
-                'limit'    => 1,
-            ]
-        );
+		return empty($completed) === false;
+	}//end learnerHasCompleted()
 
-        return empty($completed) === false;
+	/**
+	 * Reject the creating Enrolment for an unmet prerequisite, naming the
+	 * failing course.
+	 *
+	 * @param ObjectCreatingEvent $event The event to stop.
+	 * @param string $prereqCourseId UUID of the unmet prerequisite Course.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#scenario-block-enrolment-when-prerequisites-are-unmet
+	 */
+	private function rejectForUnmetPrerequisite(ObjectCreatingEvent $event, string $prereqCourseId): void {
+		$prereqCourseName = $prereqCourseId;
+		$prereqCourse = $this->resolveObject(id: $prereqCourseId, schema: self::COURSE_SCHEMA);
+		if ($prereqCourse !== null && is_string($prereqCourse['name'] ?? null) === true && $prereqCourse['name'] !== '') {
+			$prereqCourseName = $prereqCourse['name'];
+		}
 
-    }//end learnerHasCompleted()
+		$event->setErrors(
+			[
+				'message' => sprintf(self::REJECTION_MESSAGE_TEMPLATE, $prereqCourseName),
+				'prerequisiteCourseId' => $prereqCourseId,
+			]
+		);
+		$event->stopPropagation();
 
-    /**
-     * Reject the creating Enrolment for an unmet prerequisite, naming the
-     * failing course.
-     *
-     * @param ObjectCreatingEvent $event          The event to stop.
-     * @param string              $prereqCourseId UUID of the unmet prerequisite Course.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/adaptive-release-and-prerequisites/specs/enrolment/spec.md#scenario-block-enrolment-when-prerequisites-are-unmet
-     */
-    private function rejectForUnmetPrerequisite(ObjectCreatingEvent $event, string $prereqCourseId): void
-    {
-        $prereqCourseName = $prereqCourseId;
-        $prereqCourse     = $this->resolveObject(id: $prereqCourseId, schema: self::COURSE_SCHEMA);
-        if ($prereqCourse !== null && is_string($prereqCourse['name'] ?? null) === true && $prereqCourse['name'] !== '') {
-            $prereqCourseName = $prereqCourse['name'];
-        }
+		$this->logger->info(
+			'[EnrolmentPrerequisiteListener] Blocked enrolment — unmet prerequisite course {course}',
+			['course' => $prereqCourseName]
+		);
 
-        $event->setErrors(
-            [
-                'message'              => sprintf(self::REJECTION_MESSAGE_TEMPLATE, $prereqCourseName),
-                'prerequisiteCourseId' => $prereqCourseId,
-            ]
-        );
-        $event->stopPropagation();
+	}//end rejectForUnmetPrerequisite()
 
-        $this->logger->info(
-            '[EnrolmentPrerequisiteListener] Blocked enrolment — unmet prerequisite course {course}',
-            ['course' => $prereqCourseName]
-        );
+	/**
+	 * Resolve a learniq-register object by id, returning it as a plain array.
+	 *
+	 * @param string $id UUID of the object.
+	 * @param string $schema Schema slug.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function resolveObject(string $id, string $schema): ?array {
+		$object = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+		if ($object === null) {
+			return null;
+		}
 
-    }//end rejectForUnmetPrerequisite()
-
-    /**
-     * Resolve a scholiq-register object by id, returning it as a plain array.
-     *
-     * @param string $id     UUID of the object.
-     * @param string $schema Schema slug.
-     *
-     * @return array<string, mixed>|null
-     */
-    private function resolveObject(string $id, string $schema): ?array
-    {
-        $object = $this->objectService->find(id: $id, register: self::SCHOLIQ_REGISTER, schema: $schema);
-        if ($object === null) {
-            return null;
-        }
-
-        return $object->jsonSerialize();
-
-    }//end resolveObject()
+		return $object->jsonSerialize();
+	}//end resolveObject()
 }//end class

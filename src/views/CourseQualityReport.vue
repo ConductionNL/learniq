@@ -24,9 +24,14 @@
 <template>
 	<div class="course-quality-report">
 		<header class="course-quality-report__header">
-			<h2>{{ t('scholiq', 'Course quality report') }}</h2>
+			<h2>{{ t('learniq', 'Course quality report') }}</h2>
 			<p class="course-quality-report__subtitle">
-				{{ t('scholiq', 'Vakevaluatie results over time, per course and teacher.') }}
+				{{
+					t(
+						'learniq',
+						'Vakevaluatie results over time, per course and teacher.',
+					)
+				}}
 			</p>
 		</header>
 
@@ -34,63 +39,77 @@
 
 		<template v-else>
 			<div class="course-quality-report__field">
-				<label for="cqr-course">{{ t('scholiq', 'Course') }}</label>
-				<NcSelect id="cqr-course"
+				<label for="cqr-course">{{ t('learniq', 'Course') }}</label>
+				<NcSelect
+					id="cqr-course"
 					v-model="selectedCourseId"
 					:options="courseOptions"
 					:reduce="(o) => o.id"
 					label="label"
-					:input-label="t('scholiq', 'Course')"
-					:aria-label-combobox="t('scholiq', 'Course')"
+					:inputLabel="t('learniq', 'Course')"
+					:aria-label-combobox="t('learniq', 'Course')"
 					@update:modelValue="onCourseChange" />
 			</div>
 
 			<div v-if="selectedCourseId" class="course-quality-report__field">
-				<label for="cqr-teacher">{{ t('scholiq', 'Teacher (optional)') }}</label>
-				<NcSelect id="cqr-teacher"
+				<label for="cqr-teacher">{{
+					t('learniq', 'Teacher (optional)')
+				}}</label>
+				<NcSelect
+					id="cqr-teacher"
 					v-model="selectedTeacherId"
 					:options="teacherOptions"
 					:reduce="(o) => o.id"
 					label="label"
-					:input-label="t('scholiq', 'Teacher')"
-					:aria-label-combobox="t('scholiq', 'Teacher')"
+					:inputLabel="t('learniq', 'Teacher')"
+					:aria-label-combobox="t('learniq', 'Teacher')"
 					@update:modelValue="onTeacherChange" />
 			</div>
 
 			<NcLoadingIcon v-if="loadingReport" :size="32" />
 
 			<template v-else-if="selectedCourseId">
-				<NcEmptyContent v-if="trendRows.length === 0"
-					:name="t('scholiq', 'No evaluation results yet')"
-					:description="t('scholiq', 'No CourseQualityScore rows exist yet for this course/teacher — results appear once responses are submitted.')" />
+				<NcEmptyContent
+					v-if="trendRows.length === 0"
+					:name="t('learniq', 'No evaluation results yet')"
+					:description="
+						t(
+							'learniq',
+							'No CourseQualityScore rows exist yet for this course/teacher — results appear once responses are submitted.',
+						)
+					" />
 
 				<template v-else>
 					<section class="course-quality-report__section">
-						<h3>{{ t('scholiq', 'Score trend') }}</h3>
+						<h3>{{ t('learniq', 'Score trend') }}</h3>
 						<table class="course-quality-report__table">
 							<thead>
 								<tr>
 									<th scope="col">
-										{{ t('scholiq', 'Period') }}
+										{{ t('learniq', 'Period') }}
 									</th>
 									<th scope="col">
-										{{ t('scholiq', 'Average score') }}
+										{{ t('learniq', 'Average score') }}
 									</th>
 									<th scope="col">
-										{{ t('scholiq', 'Responses') }}
+										{{ t('learniq', 'Responses') }}
 									</th>
 									<th scope="col">
-										{{ t('scholiq', 'Invitations') }}
+										{{ t('learniq', 'Invitations') }}
 									</th>
 									<th scope="col">
-										{{ t('scholiq', 'Response rate') }}
+										{{ t('learniq', 'Response rate') }}
 									</th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr v-for="row in trendRows" :key="row.id ?? (row.academicYear + row.period)">
+								<tr
+									v-for="row in trendRows"
+									:key="row.id ?? row.academicYear + row.period">
 									<td>{{ row.academicYear }} {{ row.period }}</td>
-									<td>{{ formatScore(row.averageOverallScore) }}</td>
+									<td>
+										{{ formatScore(row.averageOverallScore) }}
+									</td>
 									<td>{{ row.responseCount ?? 0 }}</td>
 									<td>{{ row.invitationCount ?? 0 }}</td>
 									<td>{{ formatRate(row.responseRate) }}</td>
@@ -100,19 +119,23 @@
 					</section>
 
 					<section class="course-quality-report__section">
-						<h3>{{ t('scholiq', 'Free-text answers') }}</h3>
-						<ul v-if="freeTextAnswers.length > 0" class="course-quality-report__answers">
-							<li v-for="(answer, index) in freeTextAnswers" :key="index">
+						<h3>{{ t('learniq', 'Free-text answers') }}</h3>
+						<ul
+							v-if="freeTextAnswers.length > 0"
+							class="course-quality-report__answers">
+							<li
+								v-for="(answer, index) in freeTextAnswers"
+								:key="index">
 								{{ answer }}
 							</li>
 						</ul>
 						<p v-else class="course-quality-report__empty-text">
-							{{ t('scholiq', 'No free-text answers submitted yet.') }}
+							{{ t('learniq', 'No free-text answers submitted yet.') }}
 						</p>
 					</section>
 
 					<NcButton variant="secondary" @click="draftImprovementAction">
-						{{ t('scholiq', 'Draft improvement action') }}
+						{{ t('learniq', 'Draft improvement action') }}
 					</NcButton>
 				</template>
 			</template>
@@ -152,9 +175,13 @@ export default {
 		 * Course picker options.
 		 *
 		 * @return {Array<{id: string, label: string}>}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		courseOptions() {
-			return this.courses.map((c) => ({ id: c.id ?? c.uuid, label: c.name ?? c.title ?? c.id }))
+			return this.courses.map((c) => ({
+				id: c.id ?? c.uuid,
+				label: c.name ?? c.title ?? c.id,
+			}))
 		},
 
 		/**
@@ -163,10 +190,15 @@ export default {
 		 * rows — plus an "All teachers" (course-level, teacherId:null) option.
 		 *
 		 * @return {Array<{id: string, label: string}>}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		teacherOptions() {
-			const ids = new Set(this.scores.map((s) => s.teacherId).filter((id) => !!id))
-			const options = [{ id: '', label: this.t('scholiq', 'All teachers (course-level)') }]
+			const ids = new Set(
+				this.scores.map((s) => s.teacherId).filter((id) => !!id),
+			)
+			const options = [
+				{ id: '', label: this.t('learniq', 'All teachers (course-level)') },
+			]
 			for (const id of ids) {
 				options.push({ id, label: id })
 			}
@@ -185,7 +217,11 @@ export default {
 			return this.scores
 				.filter((s) => (s.teacherId ?? null) === teacherId)
 				.slice()
-				.sort((a, b) => `${a.academicYear}${a.period}`.localeCompare(`${b.academicYear}${b.period}`))
+				.sort((a, b) =>
+					`${a.academicYear}${a.period}`.localeCompare(
+						`${b.academicYear}${b.period}`,
+					),
+				)
 		},
 
 		/**
@@ -200,7 +236,8 @@ export default {
 			const teacherId = this.selectedTeacherId || null
 			const answers = []
 			for (const response of this.responses) {
-				if (teacherId !== null && (response.teacherId ?? null) !== teacherId) continue
+				if (teacherId !== null && (response.teacherId ?? null) !== teacherId)
+					continue
 				for (const answer of response.answers ?? []) {
 					if (answer.textValue) answers.push(answer.textValue)
 				}
@@ -217,11 +254,18 @@ export default {
 		 * can always change the campaign in the create form itself.
 		 *
 		 * @return {object|null}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		latestCampaignForCourse() {
 			const matches = this.campaigns
-				.filter((c) => Array.isArray(c.courseIds) && c.courseIds.includes(this.selectedCourseId))
-				.sort((a, b) => String(b.closesAt ?? '').localeCompare(String(a.closesAt ?? '')))
+				.filter(
+					(c) =>
+						Array.isArray(c.courseIds)
+						&& c.courseIds.includes(this.selectedCourseId),
+				)
+				.sort((a, b) =>
+					String(b.closesAt ?? '').localeCompare(String(a.closesAt ?? '')),
+				)
 			return matches[0] ?? null
 		},
 	},
@@ -237,24 +281,48 @@ export default {
 		 * API — no new schema.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		async loadCourses() {
 			this.loadingCourses = true
 			try {
 				const [coursesResp, campaignsResp] = await Promise.all([
-					fetch(generateUrl('/apps/openregister/api/objects/scholiq/Course?limit=500'), {
-						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-					}),
-					fetch(generateUrl('/apps/openregister/api/objects/scholiq/evaluation-campaign?limit=200'), {
-						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-					}),
+					fetch(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/Course?_limit=500',
+						),
+						{
+							headers: {
+								'OCS-APIREQUEST': 'true',
+								Accept: 'application/json',
+							},
+						},
+					),
+					fetch(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/evaluation-campaign?_limit=200',
+						),
+						{
+							headers: {
+								'OCS-APIREQUEST': 'true',
+								Accept: 'application/json',
+							},
+						},
+					),
 				])
 
 				const coursesJson = coursesResp.ok ? await coursesResp.json() : {}
-				const campaignsJson = campaignsResp.ok ? await campaignsResp.json() : {}
+				const campaignsJson = campaignsResp.ok
+					? await campaignsResp.json()
+					: {}
 
-				this.courses = coursesJson.results ?? coursesJson.objects ?? coursesJson ?? []
-				this.campaigns = campaignsJson.results ?? campaignsJson.objects ?? campaignsJson ?? []
+				this.courses =
+					coursesJson.results ?? coursesJson.objects ?? coursesJson ?? []
+				this.campaigns =
+					campaignsJson.results
+					?? campaignsJson.objects
+					?? campaignsJson
+					?? []
 			} catch (err) {
 				// eslint-disable-next-line no-console
 				console.error('[CourseQualityReport] loadCourses error', err)
@@ -268,6 +336,7 @@ export default {
 		 * this course's CourseQualityScore rows and CourseEvaluationResponses.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		async onCourseChange() {
 			this.selectedTeacherId = ''
@@ -303,19 +372,42 @@ export default {
 			try {
 				const courseId = encodeURIComponent(this.selectedCourseId)
 				const [scoresResp, responsesResp] = await Promise.all([
-					fetch(generateUrl(`/apps/openregister/api/objects/scholiq/course-quality-score?courseId=${courseId}&limit=100`), {
-						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-					}),
-					fetch(generateUrl(`/apps/openregister/api/objects/scholiq/course-evaluation-response?courseId=${courseId}&limit=200`), {
-						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-					}),
+					fetch(
+						generateUrl(
+							`/apps/openregister/api/objects/learniq/course-quality-score?courseId=${courseId}&_limit=100`,
+						),
+						{
+							headers: {
+								'OCS-APIREQUEST': 'true',
+								Accept: 'application/json',
+							},
+						},
+					),
+					fetch(
+						generateUrl(
+							`/apps/openregister/api/objects/learniq/course-evaluation-response?courseId=${courseId}&_limit=200`,
+						),
+						{
+							headers: {
+								'OCS-APIREQUEST': 'true',
+								Accept: 'application/json',
+							},
+						},
+					),
 				])
 
 				const scoresJson = scoresResp.ok ? await scoresResp.json() : {}
-				const responsesJson = responsesResp.ok ? await responsesResp.json() : {}
+				const responsesJson = responsesResp.ok
+					? await responsesResp.json()
+					: {}
 
-				this.scores = scoresJson.results ?? scoresJson.objects ?? scoresJson ?? []
-				this.responses = responsesJson.results ?? responsesJson.objects ?? responsesJson ?? []
+				this.scores =
+					scoresJson.results ?? scoresJson.objects ?? scoresJson ?? []
+				this.responses =
+					responsesJson.results
+					?? responsesJson.objects
+					?? responsesJson
+					?? []
 			} catch (err) {
 				// eslint-disable-next-line no-console
 				console.error('[CourseQualityReport] loadReport error', err)
@@ -331,6 +423,7 @@ export default {
 		 * to the schema's own properties (ADR-062).
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		draftImprovementAction() {
 			const query = { courseId: this.selectedCourseId }
@@ -346,9 +439,12 @@ export default {
 		 *
 		 * @param {number|null} value Average overall score.
 		 * @return {string}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		formatScore(value) {
-			return value === null || value === undefined ? '—' : Number(value).toFixed(1)
+			return value === null || value === undefined
+				? '—'
+				: Number(value).toFixed(1)
 		},
 
 		/**
@@ -356,9 +452,12 @@ export default {
 		 *
 		 * @param {number|null} value Response rate (0-1).
 		 * @return {string}
+		 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#scenario-a-coordinator-opens-the-course-quality-report-and-sees-the-score-trend
 		 */
 		formatRate(value) {
-			return value === null || value === undefined ? '—' : `${Math.round(Number(value) * 100)}%`
+			return value === null || value === undefined
+				? '—'
+				: `${Math.round(Number(value) * 100)}%`
 		},
 	},
 }
@@ -368,7 +467,8 @@ export default {
 .course-quality-report {
 	max-width: 900px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .course-quality-report__header {
@@ -404,7 +504,8 @@ export default {
 .course-quality-report__table th,
 .course-quality-report__table td {
 	border: 1px solid var(--color-border);
-	padding: calc(var(--default-grid-baseline, 8px) / 2) var(--default-grid-baseline, 8px);
+	padding: calc(var(--default-grid-baseline, 8px) / 2)
+		var(--default-grid-baseline, 8px);
 	text-align: left;
 }
 

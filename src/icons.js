@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (C) 2026 Conduction B.V.
 //
-// Icon registry for scholiq (ADR-077 semantic icon vocabulary).
+// Icon registry for learniq (ADR-077 semantic icon vocabulary).
 //
 // CnAppNav, CnIcon, CnIndexPage / CnDetailPage headers and empty states resolve
 // an `icon` by PascalCase name through the registry that `registerIcons()`
@@ -56,9 +56,9 @@ import ChartLine from 'vue-material-design-icons/ChartLine.vue'
 import ChartLineVariant from 'vue-material-design-icons/ChartLineVariant.vue'
 import ChatOutline from 'vue-material-design-icons/ChatOutline.vue'
 import Check from 'vue-material-design-icons/Check.vue'
+import CheckboxMarkedOutline from 'vue-material-design-icons/CheckboxMarkedOutline.vue'
 import CheckCircleOutline from 'vue-material-design-icons/CheckCircleOutline.vue'
 import CheckDecagramOutline from 'vue-material-design-icons/CheckDecagramOutline.vue'
-import CheckboxMarkedOutline from 'vue-material-design-icons/CheckboxMarkedOutline.vue'
 import ClipboardCheckOutline from 'vue-material-design-icons/ClipboardCheckOutline.vue'
 import ClipboardEditOutline from 'vue-material-design-icons/ClipboardEditOutline.vue'
 import ClipboardList from 'vue-material-design-icons/ClipboardList.vue'
@@ -115,13 +115,15 @@ import MapOutline from 'vue-material-design-icons/MapOutline.vue'
 import MedalOutline from 'vue-material-design-icons/MedalOutline.vue'
 import MessageAlertOutline from 'vue-material-design-icons/MessageAlertOutline.vue'
 import MessageTextOutline from 'vue-material-design-icons/MessageTextOutline.vue'
-import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
 import NotebookOutline from 'vue-material-design-icons/NotebookOutline.vue'
+import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
 import OfficeBuilding from 'vue-material-design-icons/OfficeBuilding.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
+import Package from 'vue-material-design-icons/Package.vue'
 import PackageVariant from 'vue-material-design-icons/PackageVariant.vue'
 import Pen from 'vue-material-design-icons/Pen.vue'
 import Percent from 'vue-material-design-icons/Percent.vue'
+import Phone from 'vue-material-design-icons/Phone.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import PodiumGold from 'vue-material-design-icons/PodiumGold.vue'
 import RobotOutline from 'vue-material-design-icons/RobotOutline.vue'
@@ -260,9 +262,11 @@ export default {
 	NotebookOutline,
 	OfficeBuilding,
 	OpenInNew,
+	Package,
 	PackageVariant,
 	Pen,
 	Percent,
+	Phone,
 	Plus,
 	PodiumGold,
 	RobotOutline,

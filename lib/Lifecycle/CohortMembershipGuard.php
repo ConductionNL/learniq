@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Cohort Membership Guard
+ * Learniq Cohort Membership Guard
  *
  * Lifecycle guard for the Cohort schema's `activate` transition. Enforces that a
  * Cohort has at least one learner assigned before it can be activated. Also verifies
@@ -10,10 +10,10 @@
  * Legitimate PHP per ADR-031: "Lifecycle guard — business rule that must run before
  * a state transition and cannot be expressed as a schema declaration."
  * Referenced from the Cohort schema's x-openregister-lifecycle.transitions.activate.requires
- * in scholiq_register.json.
+ * in learniq_register.json.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2024 Conduction B.V.
@@ -30,7 +30,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use Psr\Log\LoggerInterface;
 
@@ -44,49 +44,47 @@ use Psr\Log\LoggerInterface;
  * separate event listener or manual admin action. The guard focuses on the
  * pre-condition check only, keeping it a single-method ADR-031 exception.
  */
-class CohortMembershipGuard
-{
-    /**
-     * Constructor.
-     *
-     * @param LoggerInterface $logger PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+class CohortMembershipGuard {
+	/**
+	 * Constructor.
+	 *
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point.
-     *
-     * Called by OpenRegister's lifecycle engine before executing the `activate`
-     * transition on a Cohort object. Returns true only when the Cohort has at
-     * least one learner assigned in learnerIds.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the Cohort data array
-     *                                               - 'transition' : 'activate'
-     *                                               - 'from'       : 'planned'
-     *                                               - 'to'         : 'active'
-     *
-     * @return bool True if the Cohort has at least one learner; false blocks the transition.
-     *
-     * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-13
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $object     = $transitionContext['object'] ?? [];
-        $learnerIds = $object['learnerIds'] ?? [];
+	/**
+	 * OR lifecycle guard entry-point.
+	 *
+	 * Called by OpenRegister's lifecycle engine before executing the `activate`
+	 * transition on a Cohort object. Returns true only when the Cohort has at
+	 * least one learner assigned in learnerIds.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the Cohort data array
+	 *                                               - 'transition' : 'activate'
+	 *                                               - 'from'       : 'planned'
+	 *                                               - 'to'         : 'active'
+	 *
+	 * @return bool True if the Cohort has at least one learner; false blocks the transition.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-13
+	 */
+	public function check(array &$transitionContext): bool {
+		$object = $transitionContext['object'] ?? [];
+		$learnerIds = $object['learnerIds'] ?? [];
 
-        if (empty($learnerIds) === true) {
-            $this->logger->info(
-                '[CohortMembershipGuard] Cohort has no learners assigned; blocking activate transition.'
-            );
-            return false;
-        }
+		if (empty($learnerIds) === true) {
+			$this->logger->info(
+				'[CohortMembershipGuard] Cohort has no learners assigned; blocking activate transition.'
+			);
+			return false;
+		}
 
-        return true;
-    }//end check()
+		return true;
+	}//end check()
 }//end class

@@ -19,12 +19,12 @@
   as ExamCaseDossierView's own documented limit).
 
   Talks only to OpenRegister's REST API:
-    - GET  /api/objects/scholiq/peer-review/:id
-    - GET  /api/objects/scholiq/Assignment/:id
-    - GET  /api/objects/scholiq/Rubric/:id
-    - GET  /api/objects/scholiq/Submission/:id (only when anonymity is not double-blind)
-    - PUT  /api/objects/scholiq/peer-review/:id
-    - POST /api/objects/scholiq/peer-review/:id/transition/submit
+    - GET  /api/objects/learniq/peer-review/:id
+    - GET  /api/objects/learniq/Assignment/:id
+    - GET  /api/objects/learniq/Rubric/:id
+    - GET  /api/objects/learniq/Submission/:id (only when anonymity is not double-blind)
+    - PUT  /api/objects/learniq/peer-review/:id
+    - POST /api/objects/learniq/peer-review/:id/transition/submit
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView.
@@ -39,9 +39,12 @@
 <template>
 	<div class="peer-review-marking-view">
 		<!-- Loading -->
-		<div v-if="loading" class="peer-review-marking-view__loading" aria-live="polite">
+		<div
+			v-if="loading"
+			class="peer-review-marking-view__loading"
+			aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading peer review...') }}</span>
+			<span>{{ t('learniq', 'Loading peer review...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -51,37 +54,65 @@
 		</div>
 
 		<!-- Submitted confirmation -->
-		<div v-else-if="submitted"
+		<div
+			v-else-if="submitted"
 			class="peer-review-marking-view__confirmation"
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('scholiq', 'Peer review submitted') }}</h2>
-			<p>{{ t('scholiq', 'Score: {score} / {max}', { score: computedScore, max: assignment.maxPoints || '?' }) }}</p>
+			<h2>{{ t('learniq', 'Peer review submitted') }}</h2>
+			<p>
+				{{
+					t('learniq', 'Score: {score} / {max}', {
+						score: computedScore,
+						max: assignment.maxPoints || '?',
+					})
+				}}
+			</p>
 		</div>
 
 		<!-- Marking form -->
 		<template v-else-if="peerReview">
 			<header class="peer-review-marking-view__header">
-				<h2>{{ t('scholiq', 'Complete peer review') }}</h2>
+				<h2>{{ t('learniq', 'Complete peer review') }}</h2>
 				<p class="peer-review-marking-view__meta">
-					{{ t('scholiq', 'Assignment: {title}', { title: assignment.title || '' }) }}
+					{{
+						t('learniq', 'Assignment: {title}', {
+							title: assignment.title || '',
+						})
+					}}
 				</p>
 				<!--
 					Anonymity Enforcement: the reviewed learner's identity is never
 					rendered when peerReviewAnonymity is double-blind (UI convention).
 				-->
-				<p v-if="!isDoubleBlind && submissionLearnerIds.length > 0"
+				<p
+					v-if="!isDoubleBlind && submissionLearnerIds.length > 0"
 					class="peer-review-marking-view__learners">
-					{{ t('scholiq', 'Reviewing work by: {ids}', { ids: submissionLearnerIds.join(', ') }) }}
+					{{
+						t('learniq', 'Reviewing work by: {ids}', {
+							ids: submissionLearnerIds.join(', '),
+						})
+					}}
 				</p>
-				<p v-else-if="isDoubleBlind" class="peer-review-marking-view__anonymity-note">
-					{{ t('scholiq', 'Double-blind review — the author\'s identity is withheld.') }}
+				<p
+					v-else-if="isDoubleBlind"
+					class="peer-review-marking-view__anonymity-note">
+					{{
+						t(
+							'learniq',
+							"Double-blind review — the author's identity is withheld.",
+						)
+					}}
 				</p>
 			</header>
 
-			<section v-if="rubric && rubric.criteria && rubric.criteria.length > 0" class="peer-review-marking-view__rubric">
-				<h3>{{ t('scholiq', 'Rubric: {name}', { name: rubric.name || '' }) }}</h3>
+			<section
+				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
+				class="peer-review-marking-view__rubric">
+				<h3>
+					{{ t('learniq', 'Rubric: {name}', { name: rubric.name || '' }) }}
+				</h3>
 
 				<div
 					v-for="criterion in rubric.criteria"
@@ -90,7 +121,11 @@
 					<h4 class="peer-review-marking-view__criterion-label">
 						{{ criterion.label }}
 						<span class="peer-review-marking-view__criterion-weight">
-							{{ t('scholiq', '(weight: {w})', { w: criterion.weight }) }}
+							{{
+								t('learniq', '(weight: {w})', {
+									w: criterion.weight,
+								})
+							}}
 						</span>
 					</h4>
 					<div class="peer-review-marking-view__levels">
@@ -102,28 +137,44 @@
 								type="radio"
 								:name="criterion.criterionId"
 								:value="level.levelId"
-								:checked="getSelectedLevel(criterion.criterionId) === level.levelId"
+								:checked="
+									getSelectedLevel(criterion.criterionId)
+									=== level.levelId
+								"
 								:disabled="saving"
-								@change="selectLevel(criterion, level)">
-							<span class="peer-review-marking-view__level-label">{{ level.label }}</span>
+								@change="selectLevel(criterion, level)" />
+							<span class="peer-review-marking-view__level-label">{{
+								level.label
+							}}</span>
 							<span class="peer-review-marking-view__level-points">
-								{{ t('scholiq', '{pts} pts', { pts: level.points }) }}
+								{{
+									t('learniq', '{pts} pts', { pts: level.points })
+								}}
 							</span>
 						</label>
 					</div>
 				</div>
 
 				<div class="peer-review-marking-view__score-total">
-					<strong>{{ t('scholiq', 'Score: {score} / {max}', { score: computedScore, max: assignment.maxPoints || '?' }) }}</strong>
+					<strong>{{
+						t('learniq', 'Score: {score} / {max}', {
+							score: computedScore,
+							max: assignment.maxPoints || '?',
+						})
+					}}</strong>
 				</div>
 			</section>
 
 			<section class="peer-review-marking-view__comments">
-				<h3>{{ t('scholiq', 'Comments for the author') }}</h3>
+				<h3 id="peer-review-comments-label">
+					{{ t('learniq', 'Comments for the author') }}
+				</h3>
 				<textarea
+					id="peer-review-comments"
 					v-model="comments"
 					class="peer-review-marking-view__comments-input"
-					:placeholder="t('scholiq', 'Write feedback for the author...')"
+					aria-labelledby="peer-review-comments-label"
+					:placeholder="t('learniq', 'Write feedback for the author...')"
 					:disabled="saving"
 					rows="5" />
 			</section>
@@ -134,10 +185,13 @@
 					:disabled="saving || !canSubmit"
 					@click="saveAndSubmit">
 					<span v-if="saving" class="icon-loading" aria-hidden="true" />
-					{{ t('scholiq', 'Submit peer review') }}
+					{{ t('learniq', 'Submit peer review') }}
 				</button>
 			</div>
-			<p v-if="saveError" role="alert" class="peer-review-marking-view__save-error">
+			<p
+				v-if="saveError"
+				role="alert"
+				class="peer-review-marking-view__save-error">
 				{{ saveError }}
 			</p>
 		</template>
@@ -158,6 +212,7 @@ export default {
 			type: String,
 			required: true,
 		},
+
 		/**
 		 * PeerReview UUID injected by vue-router from :id param.
 		 */
@@ -198,6 +253,7 @@ export default {
 		 * Sum of points for all selected criterion levels.
 		 *
 		 * @return {number}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		computedScore() {
 			return Object.values(this.selectedLevels).reduce(
@@ -220,12 +276,19 @@ export default {
 		 * the server enforces this via RubricScoresCompletionGuard regardless).
 		 *
 		 * @return {boolean}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		canSubmit() {
-			if (!this.rubric || !this.rubric.criteria || this.rubric.criteria.length === 0) {
+			if (
+				!this.rubric
+				|| !this.rubric.criteria
+				|| this.rubric.criteria.length === 0
+			) {
 				return true
 			}
-			return this.rubric.criteria.every((c) => this.selectedLevels[c.criterionId] != null)
+			return this.rubric.criteria.every(
+				(c) => this.selectedLevels[c.criterionId] != null,
+			)
 		},
 	},
 
@@ -237,6 +300,7 @@ export default {
 			 *
 			 * @param {string} newId New PeerReview UUID
 			 * @return {void}
+			 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 			 */
 			handler(newId) {
 				if (newId) {
@@ -253,6 +317,7 @@ export default {
 		 *
 		 * @param {string} peerReviewId PeerReview UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async loadData(peerReviewId) {
 			this.loading = true
@@ -260,7 +325,9 @@ export default {
 
 			try {
 				await this.loadPeerReview(peerReviewId)
-				await this.loadAssignment(this.peerReview.assignmentId ?? this.assignmentId)
+				await this.loadAssignment(
+					this.peerReview.assignmentId ?? this.assignmentId,
+				)
 
 				if (this.assignment.rubricId) {
 					await this.loadRubric(this.assignment.rubricId)
@@ -279,7 +346,10 @@ export default {
 				}
 				this.comments = this.peerReview.comments ?? ''
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load peer review. Please try again.')
+				this.error = this.t(
+					'learniq',
+					'Failed to load peer review. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[PeerReviewMarkingView] loadData error', err)
 			} finally {
@@ -292,10 +362,11 @@ export default {
 		 *
 		 * @param {string} peerReviewId PeerReview UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async loadPeerReview(peerReviewId) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/peer-review/${peerReviewId}`,
+				`/apps/openregister/api/objects/learniq/peer-review/${peerReviewId}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -312,9 +383,12 @@ export default {
 		 *
 		 * @param {string} assignmentId Assignment UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async loadAssignment(assignmentId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Assignment/${assignmentId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/Assignment/${assignmentId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -330,9 +404,12 @@ export default {
 		 *
 		 * @param {string} rubricId Rubric UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async loadRubric(rubricId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Rubric/${rubricId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/Rubric/${rubricId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -350,9 +427,12 @@ export default {
 		 *
 		 * @param {string} submissionId Submission UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async loadSubmissionLearnerIds(submissionId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Submission/${submissionId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/Submission/${submissionId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -380,11 +460,15 @@ export default {
 		 * @param {object} criterion Rubric criterion object
 		 * @param {object} level     Selected level object
 		 * @return {void}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		selectLevel(criterion, level) {
 			this.selectedLevels = {
 				...this.selectedLevels,
-				[criterion.criterionId]: { levelId: level.levelId, points: level.points },
+				[criterion.criterionId]: {
+					levelId: level.levelId,
+					points: level.points,
+				},
 			}
 		},
 
@@ -392,6 +476,7 @@ export default {
 		 * Build the rubricScores array from current selections.
 		 *
 		 * @return {Array<{criterionId: string, levelId: string, points: number}>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		buildRubricScores() {
 			return Object.entries(this.selectedLevels).map(([criterionId, sel]) => ({
@@ -406,6 +491,7 @@ export default {
 		 * dispatch the `submit` lifecycle transition.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
 		 */
 		async saveAndSubmit() {
 			if (!this.peerReview) {
@@ -419,7 +505,7 @@ export default {
 
 			try {
 				const updateUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/peer-review/${this.id}`,
+					`/apps/openregister/api/objects/learniq/peer-review/${this.id}`,
 				)
 				const updateResp = await fetch(updateUrl, {
 					method: 'PUT',
@@ -439,7 +525,7 @@ export default {
 				}
 
 				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/peer-review/${this.id}/transition/submit`,
+					`/apps/openregister/api/objects/learniq/peer-review/${this.id}/transition/submit`,
 				)
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',
@@ -456,7 +542,10 @@ export default {
 
 				this.submitted = true
 			} catch (err) {
-				this.saveError = this.t('scholiq', 'Failed to save peer review. Please try again.')
+				this.saveError = this.t(
+					'learniq',
+					'Failed to save peer review. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[PeerReviewMarkingView] saveAndSubmit error', err)
 			} finally {
@@ -471,7 +560,8 @@ export default {
 .peer-review-marking-view {
 	max-width: 860px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .peer-review-marking-view__loading,

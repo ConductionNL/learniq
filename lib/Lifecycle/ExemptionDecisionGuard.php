@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Exemption Decision Guard
+ * Learniq Exemption Decision Guard
  *
  * Lifecycle guard for the ExemptionCase schema's `grant`/`reject` transitions
  * (`in-assessment → granted|rejected`). Blocks either transition unless the
@@ -20,7 +20,7 @@
  * transition completes — this guard records nothing itself.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -37,7 +37,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use Psr\Log\LoggerInterface;
 
@@ -49,59 +49,56 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
  */
-class ExemptionDecisionGuard
-{
-    /**
-     * Constructor.
-     *
-     * @param LoggerInterface $logger PSR logger for guard rejections.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+class ExemptionDecisionGuard {
+	/**
+	 * Constructor.
+	 *
+	 * @param LoggerInterface $logger PSR logger for guard rejections.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Assert the decisionRationale + policyReference precondition.
-     *
-     * Called by OpenRegister's lifecycle engine before executing the
-     * `grant`/`reject` transition on an ExemptionCase object.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's
-     *                                               lifecycle engine. Expected
-     *                                               keys:
-     *                                               - 'object'     : the case
-     *                                               property array (includes
-     *                                               any fields submitted
-     *                                               alongside the transition)
-     *                                               - 'transition' : 'grant'
-     *                                               or 'reject'
-     *
-     * @return bool True when both fields are set; false blocks the transition
-     *              (HTTP 422).
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $object            = $transitionContext['object'] ?? [];
-        $caseId            = $object['id'] ?? ($object['uuid'] ?? '');
-        $decisionRationale = $object['decisionRationale'] ?? '';
-        $policyReference   = $object['policyReference'] ?? '';
+	/**
+	 * Assert the decisionRationale + policyReference precondition.
+	 *
+	 * Called by OpenRegister's lifecycle engine before executing the
+	 * `grant`/`reject` transition on an ExemptionCase object.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's
+	 *                                               lifecycle engine. Expected
+	 *                                               keys:
+	 *                                               - 'object'     : the case
+	 *                                               property array (includes
+	 *                                               any fields submitted
+	 *                                               alongside the transition)
+	 *                                               - 'transition' : 'grant'
+	 *                                               or 'reject'
+	 *
+	 * @return bool True when both fields are set; false blocks the transition
+	 *              (HTTP 422).
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-exemptioncase-decisions-require-a-rationale-and-policy-reference
+	 */
+	public function check(array &$transitionContext): bool {
+		$object = $transitionContext['object'] ?? [];
+		$caseId = $object['id'] ?? ($object['uuid'] ?? '');
+		$decisionRationale = $object['decisionRationale'] ?? '';
+		$policyReference = $object['policyReference'] ?? '';
 
-        if (is_string($decisionRationale) === false || trim($decisionRationale) === ''
-            || is_string($policyReference) === false || trim($policyReference) === ''
-        ) {
-            $this->logger->info(
-                '[ExemptionDecisionGuard] ExemptionCase {id} missing decisionRationale and/or policyReference — denying grant/reject.',
-                ['id' => $caseId]
-            );
-            return false;
-        }
+		if (is_string($decisionRationale) === false || trim($decisionRationale) === ''
+			|| is_string($policyReference) === false || trim($policyReference) === ''
+		) {
+			$this->logger->info(
+				'[ExemptionDecisionGuard] ExemptionCase {id} missing decisionRationale and/or policyReference — denying grant/reject.',
+				['id' => $caseId]
+			);
+			return false;
+		}
 
-        return true;
-
-    }//end check()
+		return true;
+	}//end check()
 }//end class

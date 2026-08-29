@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq PokActivationGuard unit tests.
+ * Learniq PokActivationGuard unit tests.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Lifecycle
+ * @package  OCA\Learniq\Tests\Unit\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,127 +21,118 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Lifecycle;
+namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Lifecycle\PokActivationGuard;
+use OCA\Learniq\Lifecycle\PokActivationGuard;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
  * Tests for the PokActivationGuard lifecycle guard (pending-signatures → active).
  */
-class PokActivationGuardTest extends TestCase
-{
+class PokActivationGuardTest extends TestCase {
 
-    /**
-     * Build a guard whose ObjectService::findAll() returns the given PokSignature rows.
-     *
-     * @param array<int, array<string, mixed>> $signatures Rows to return for any pok-signature query.
-     *
-     * @return PokActivationGuard
-     */
-    private function makeGuard(array $signatures): PokActivationGuard
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('findAll')->willReturnCallback(
-            function (array $config) use ($signatures) {
-                if ($config['schema'] === 'pok-signature') {
-                    return $signatures;
-                }
+	/**
+	 * Build a guard whose ObjectService::findAll() returns the given PokSignature rows.
+	 *
+	 * @param array<int, array<string, mixed>> $signatures Rows to return for any pok-signature query.
+	 *
+	 * @return PokActivationGuard
+	 */
+	private function makeGuard(array $signatures): PokActivationGuard {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config) use ($signatures) {
+				if ($config['schema'] === 'pok-signature') {
+					return $signatures;
+				}
 
-                return [];
-            }
-        );
+				return [];
+			}
+		);
 
-        return new PokActivationGuard($objectService, $this->createMock(LoggerInterface::class));
+		return new PokActivationGuard($objectService, $this->createMock(LoggerInterface::class));
+	}//end makeGuard()
 
-    }//end makeGuard()
+	/**
+	 * Build the transitionContext for a Praktijkovereenkomst.
+	 *
+	 * @param int $version POK version.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function pokContext(int $version = 1): array {
+		return ['object' => ['id' => 'pok-1', 'version' => $version, 'tenant_id' => 'tenant-a']];
+	}//end pokContext()
 
-    /**
-     * Build the transitionContext for a Praktijkovereenkomst.
-     *
-     * @param int $version POK version.
-     *
-     * @return array<string, mixed>
-     */
-    private function pokContext(int $version=1): array
-    {
-        return ['object' => ['id' => 'pok-1', 'version' => $version, 'tenant_id' => 'tenant-a']];
+	/**
+	 * All three roles signed → activation allowed.
+	 *
+	 * @return void
+	 */
+	public function testAllThreeRolesSignedAllowsActivation(): void {
+		$signatures = [
+			['signerRole' => 'student'],
+			['signerRole' => 'school'],
+			['signerRole' => 'praktijkopleider'],
+		];
 
-    }//end pokContext()
+		$context = $this->pokContext();
+		$this->assertTrue($this->makeGuard($signatures)->check($context));
 
-    /**
-     * All three roles signed → activation allowed.
-     *
-     * @return void
-     */
-    public function testAllThreeRolesSignedAllowsActivation(): void
-    {
-        $signatures = [
-            ['signerRole' => 'student'],
-            ['signerRole' => 'school'],
-            ['signerRole' => 'praktijkopleider'],
-        ];
+	}//end testAllThreeRolesSignedAllowsActivation()
 
-        $context = $this->pokContext();
-        $this->assertTrue($this->makeGuard($signatures)->check($context));
+	/**
+	 * Zero, one, or two of three roles signed → activation blocked.
+	 *
+	 * @return void
+	 */
+	public function testIncompleteSignaturesBlockActivation(): void {
+		$cases = [
+			[],
+			[['signerRole' => 'student']],
+			[['signerRole' => 'student'], ['signerRole' => 'school']],
+		];
 
-    }//end testAllThreeRolesSignedAllowsActivation()
+		foreach ($cases as $signatures) {
+			$context = $this->pokContext();
+			$this->assertFalse($this->makeGuard($signatures)->check($context));
+		}
 
-    /**
-     * Zero, one, or two of three roles signed → activation blocked.
-     *
-     * @return void
-     */
-    public function testIncompleteSignaturesBlockActivation(): void
-    {
-        $cases = [
-            [],
-            [['signerRole' => 'student']],
-            [['signerRole' => 'student'], ['signerRole' => 'school']],
-        ];
+	}//end testIncompleteSignaturesBlockActivation()
 
-        foreach ($cases as $signatures) {
-            $context = $this->pokContext();
-            $this->assertFalse($this->makeGuard($signatures)->check($context));
-        }
+	/**
+	 * A duplicate signerRole (e.g. two student signatures) still counts as one distinct role —
+	 * two duplicated roles is NOT the same as three distinct roles, so activation stays blocked.
+	 *
+	 * @return void
+	 */
+	public function testDuplicateRoleStillCountsAsOneDistinctRole(): void {
+		$signatures = [
+			['signerRole' => 'student'],
+			['signerRole' => 'student'],
+			['signerRole' => 'school'],
+		];
 
-    }//end testIncompleteSignaturesBlockActivation()
+		$context = $this->pokContext();
+		$this->assertFalse($this->makeGuard($signatures)->check($context));
 
-    /**
-     * A duplicate signerRole (e.g. two student signatures) still counts as one distinct role —
-     * two duplicated roles is NOT the same as three distinct roles, so activation stays blocked.
-     *
-     * @return void
-     */
-    public function testDuplicateRoleStillCountsAsOneDistinctRole(): void
-    {
-        $signatures = [
-            ['signerRole' => 'student'],
-            ['signerRole' => 'student'],
-            ['signerRole' => 'school'],
-        ];
+	}//end testDuplicateRoleStillCountsAsOneDistinctRole()
 
-        $context = $this->pokContext();
-        $this->assertFalse($this->makeGuard($signatures)->check($context));
+	/**
+	 * A missing object id fails closed without querying.
+	 *
+	 * @return void
+	 */
+	public function testMissingIdFailsClosedWithoutQuerying(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects($this->never())->method('findAll');
 
-    }//end testDuplicateRoleStillCountsAsOneDistinctRole()
+		$guard = new PokActivationGuard($objectService, $this->createMock(LoggerInterface::class));
+		$context = ['object' => ['version' => 1]];
 
-    /**
-     * A missing object id fails closed without querying.
-     *
-     * @return void
-     */
-    public function testMissingIdFailsClosedWithoutQuerying(): void
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->expects($this->never())->method('findAll');
+		$this->assertFalse($guard->check($context));
 
-        $guard   = new PokActivationGuard($objectService, $this->createMock(LoggerInterface::class));
-        $context = ['object' => ['version' => 1]];
-
-        $this->assertFalse($guard->check($context));
-
-    }//end testMissingIdFailsClosedWithoutQuerying()
+	}//end testMissingIdFailsClosedWithoutQuerying()
 }//end class

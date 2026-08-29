@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Scholiq BPV Leerbedrijf Verification Handler
+ * Learniq BPV Leerbedrijf Verification Handler
  *
  * IEventListener for BpvPlacement lifecycle → `sbb-verification-pending`
- * (the OR ObjectTransitionedEvent with register=scholiq, schema=bpv-placement,
+ * (the OR ObjectTransitionedEvent with register=learniq, schema=bpv-placement,
  * to=sbb-verification-pending — the coordinator-triggered `checkLeerbedrijf`
  * self-transition action).
  *
@@ -14,7 +14,7 @@
  *    No provider configured (null/empty, class missing, or the resolved
  *    service does not implement ProvidesLeerbedrijfVerification) → no-op.
  *    The placement simply stays in `sbb-verification-pending`; no exception
- *    is thrown (Scholiq works standalone without an SBB adapter — the SBB
+ *    is thrown (Learniq works standalone without an SBB adapter — the SBB
  *    OpenConnector adapter itself is explicit cross-repo follow-up work).
  * 2. Call verify() with the placement's leerbedrijfKvkNumber.
  * 3. Write the result (`status`, `erkenningNumber`, `verifiedAt`, `expiresAt`,
@@ -29,7 +29,7 @@
  * adapter's job).
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -46,11 +46,11 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Bpv\ProvidesLeerbedrijfVerification;
+use OCA\Learniq\Bpv\ProvidesLeerbedrijfVerification;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Container\ContainerInterface;
@@ -67,181 +67,176 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
  */
-class BpvLeerbedrijfVerificationHandler implements IEventListener
-{
+class BpvLeerbedrijfVerificationHandler implements IEventListener {
 
-    private const SCHOLIQ_REGISTER = 'scholiq';
-    private const PLACEMENT_SCHEMA = 'bpv-placement';
-    private const TARGET_STATE     = 'sbb-verification-pending';
+	private const LEARNIQ_REGISTER = 'learniq';
+	private const PLACEMENT_SCHEMA = 'bpv-placement';
+	private const TARGET_STATE = 'sbb-verification-pending';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService      $objectService OR object access service.
-     * @param ContainerInterface $container     DI container used to resolve the configured
-     *                                          ProvidesLeerbedrijfVerification adapter by FQCN.
-     * @param LoggerInterface    $logger        PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly ContainerInterface $container,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access service.
+	 * @param ContainerInterface $container DI container used to resolve the configured
+	 *                                      ProvidesLeerbedrijfVerification adapter by FQCN.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly ContainerInterface $container,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an ObjectTransitionedEvent.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
-     */
-    public function handle(Event $event): void
-    {
-        if (($event instanceof ObjectTransitionedEvent) === false) {
-            return;
-        }
+	/**
+	 * Handle an ObjectTransitionedEvent.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 */
+	public function handle(Event $event): void {
+		if (($event instanceof ObjectTransitionedEvent) === false) {
+			return;
+		}
 
-        if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
-            return;
-        }
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+			return;
+		}
 
-        if ($event->getSchema() !== self::PLACEMENT_SCHEMA) {
-            return;
-        }
+		if ($event->getSchema() !== self::PLACEMENT_SCHEMA) {
+			return;
+		}
 
-        if ($event->getTo() !== self::TARGET_STATE) {
-            return;
-        }
+		if ($event->getTo() !== self::TARGET_STATE) {
+			return;
+		}
 
-        $this->runVerification(event: $event);
+		$this->runVerification(event: $event);
 
-    }//end handle()
+	}//end handle()
 
-    /**
-     * Resolve the configured provider (if any), verify, and persist the result.
-     *
-     * @param ObjectTransitionedEvent $event The sbb-verification-pending transition event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
-     */
-    private function runVerification(ObjectTransitionedEvent $event): void
-    {
-        $placement   = $event->getObject()->jsonSerialize();
-        $placementId = $placement['id'] ?? ($placement['uuid'] ?? '');
+	/**
+	 * Resolve the configured provider (if any), verify, and persist the result.
+	 *
+	 * @param ObjectTransitionedEvent $event The sbb-verification-pending transition event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 */
+	private function runVerification(ObjectTransitionedEvent $event): void {
+		$placement = $event->getObject()->jsonSerialize();
+		$placementId = $placement['id'] ?? ($placement['uuid'] ?? '');
 
-        if ($placementId === '') {
-            $this->logger->error('[BpvLeerbedrijfVerificationHandler] BpvPlacement has no id — cannot verify.');
-            return;
-        }
+		if ($placementId === '') {
+			$this->logger->error('[BpvLeerbedrijfVerificationHandler] BpvPlacement has no id — cannot verify.');
+			return;
+		}
 
-        $verification = $placement['leerbedrijfVerification'] ?? [];
-        if (is_array($verification) === false) {
-            $verification = [];
-        }
+		$verification = $placement['trainingCompanyVerification'] ?? [];
+		if (is_array($verification) === false) {
+			$verification = [];
+		}
 
-        $providerClass = $verification['provider'] ?? null;
-        $kvkNumber     = $placement['leerbedrijfKvkNumber'] ?? '';
+		$providerClass = $verification['provider'] ?? null;
+		$kvkNumber = $placement['trainingCompanyKvkNumber'] ?? '';
 
-        $provider = $this->resolveProvider(providerClass: $providerClass);
+		$provider = $this->resolveProvider(providerClass: $providerClass);
 
-        if ($provider === null) {
-            $this->logger->info(
-                '[BpvLeerbedrijfVerificationHandler] No leerbedrijfVerification.provider configured for '
-                .'BpvPlacement {id} — leaving verification unresolved; the placement cannot confirm until '
-                .'a provider is configured. Scholiq ships no bundled SBB adapter by design.',
-                ['id' => $placementId]
-            );
-            return;
-        }
+		if ($provider === null) {
+			$this->logger->info(
+				'[BpvLeerbedrijfVerificationHandler] No leerbedrijfVerification.provider configured for '
+				. 'BpvPlacement {id} — leaving verification unresolved; the placement cannot confirm until '
+				. 'a provider is configured. Learniq ships no bundled SBB adapter by design.',
+				['id' => $placementId]
+			);
+			return;
+		}
 
-        if ($kvkNumber === '') {
-            $this->logger->warning(
-                '[BpvLeerbedrijfVerificationHandler] BpvPlacement {id} has no leerbedrijfKvkNumber — cannot verify.',
-                ['id' => $placementId]
-            );
-            return;
-        }
+		if ($kvkNumber === '') {
+			$this->logger->warning(
+				'[BpvLeerbedrijfVerificationHandler] BpvPlacement {id} has no leerbedrijfKvkNumber — cannot verify.',
+				['id' => $placementId]
+			);
+			return;
+		}
 
-        try {
-            $result = $provider->verify($kvkNumber);
-        } catch (\Throwable $e) {
-            $this->logger->error(
-                '[BpvLeerbedrijfVerificationHandler] Provider call failed for BpvPlacement {id}: {msg}',
-                ['id' => $placementId, 'msg' => $e->getMessage()]
-            );
-            return;
-        }
+		try {
+			$result = $provider->verify($kvkNumber);
+		} catch (\Throwable $e) {
+			$this->logger->error(
+				'[BpvLeerbedrijfVerificationHandler] Provider call failed for BpvPlacement {id}: {msg}',
+				['id' => $placementId, 'msg' => $e->getMessage()]
+			);
+			return;
+		}
 
-        $updatedVerification = array_merge(
-            $verification,
-            [
-                'status'          => $result['status'],
-                'erkenningNumber' => $result['erkenningNumber'],
-                'verifiedAt'      => date('c'),
-                'expiresAt'       => $result['expiresAt'],
-                'raw'             => $result['raw'],
-            ]
-        );
+		$updatedVerification = array_merge(
+			$verification,
+			[
+				'status' => $result['status'],
+				'erkenningNumber' => $result['erkenningNumber'],
+				'verifiedAt' => date('c'),
+				'expiresAt' => $result['expiresAt'],
+				'raw' => $result['raw'],
+			]
+		);
 
-        $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::PLACEMENT_SCHEMA,
-            object: array_merge($placement, ['leerbedrijfVerification' => $updatedVerification])
-        );
+		$this->objectService->saveObject(
+			register: self::LEARNIQ_REGISTER,
+			schema: self::PLACEMENT_SCHEMA,
+			object: array_merge($placement, ['trainingCompanyVerification' => $updatedVerification])
+		);
 
-        $this->logger->info(
-            '[BpvLeerbedrijfVerificationHandler] BpvPlacement {id} leerbedrijfVerification.status → {status}.',
-            ['id' => $placementId, 'status' => $updatedVerification['status']]
-        );
+		$this->logger->info(
+			'[BpvLeerbedrijfVerificationHandler] BpvPlacement {id} leerbedrijfVerification.status → {status}.',
+			['id' => $placementId, 'status' => $updatedVerification['status']]
+		);
 
-    }//end runVerification()
+	}//end runVerification()
 
-    /**
-     * Resolve the configured provider FQCN through the DI container.
-     *
-     * Fails closed (returns null, never throws) when no provider is configured, the class
-     * does not exist, the container cannot build it, or the resolved service does not
-     * implement ProvidesLeerbedrijfVerification.
-     *
-     * @param mixed $providerClass The `leerbedrijfVerification.provider` config value.
-     *
-     * @return ProvidesLeerbedrijfVerification|null The resolved adapter, or null.
-     *
-     * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
-     */
-    private function resolveProvider(mixed $providerClass): ?ProvidesLeerbedrijfVerification
-    {
-        if (is_string($providerClass) === false || $providerClass === '') {
-            return null;
-        }
+	/**
+	 * Resolve the configured provider FQCN through the DI container.
+	 *
+	 * Fails closed (returns null, never throws) when no provider is configured, the class
+	 * does not exist, the container cannot build it, or the resolved service does not
+	 * implement ProvidesLeerbedrijfVerification.
+	 *
+	 * @param mixed $providerClass The `leerbedrijfVerification.provider` config value.
+	 *
+	 * @return ProvidesLeerbedrijfVerification|null The resolved adapter, or null.
+	 *
+	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 */
+	private function resolveProvider(mixed $providerClass): ?ProvidesLeerbedrijfVerification {
+		if (is_string($providerClass) === false || $providerClass === '') {
+			return null;
+		}
 
-        try {
-            $service = $this->container->get($providerClass);
-        } catch (\Throwable $e) {
-            $this->logger->warning(
-                '[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" could not be resolved: {msg}',
-                ['class' => $providerClass, 'msg' => $e->getMessage()]
-            );
-            return null;
-        }
+		try {
+			$service = $this->container->get($providerClass);
+		} catch (\Throwable $e) {
+			$this->logger->warning(
+				'[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" could not be resolved: {msg}',
+				['class' => $providerClass, 'msg' => $e->getMessage()]
+			);
+			return null;
+		}
 
-        if (($service instanceof ProvidesLeerbedrijfVerification) === false) {
-            $this->logger->warning(
-                '[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" does not implement '
-                .'ProvidesLeerbedrijfVerification.',
-                ['class' => $providerClass]
-            );
-            return null;
-        }
+		if (($service instanceof ProvidesLeerbedrijfVerification) === false) {
+			$this->logger->warning(
+				'[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" does not implement '
+				. 'ProvidesLeerbedrijfVerification.',
+				['class' => $providerClass]
+			);
+			return null;
+		}
 
-        return $service;
-
-    }//end resolveProvider()
+		return $service;
+	}//end resolveProvider()
 }//end class

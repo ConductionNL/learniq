@@ -20,29 +20,44 @@
  @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 -->
 <template>
-	<NcDialog :open="true"
+	<NcDialog
+		:open="true"
 		:name="dialogTitle"
-		@update:open="v => { if (!v) $emit('close') }">
+		@update:open="
+			(v) => {
+				if (!v) $emit('close')
+			}
+		">
 		<div class="compose-report-period">
 			<NcLoadingIcon v-if="loading" :size="32" />
 
 			<template v-else-if="period">
 				<dl class="compose-report-period__summary">
-					<dt>{{ t('scholiq', 'Academic year') }}</dt>
+					<dt>{{ t('learniq', 'Academic year') }}</dt>
 					<dd>{{ period.academicYear || '—' }}</dd>
-					<dt>{{ t('scholiq', 'Period code') }}</dt>
+					<dt>{{ t('learniq', 'Period code') }}</dt>
 					<dd>{{ period.periodCode || '—' }}</dd>
-					<dt>{{ t('scholiq', 'Subjects in scope') }}</dt>
+					<dt>{{ t('learniq', 'Subjects in scope') }}</dt>
 					<dd>{{ (period.curriculumPlanIds || []).length }}</dd>
-					<dt>{{ t('scholiq', 'Cohorts in scope') }}</dt>
+					<dt>{{ t('learniq', 'Cohorts in scope') }}</dt>
 					<dd>{{ (period.cohortIds || []).length }}</dd>
 				</dl>
 
 				<NcNoteCard v-if="!isLocked" type="warning">
-					{{ t('scholiq', 'This report period is not yet locked — composition is blocked until the lock date has passed. A mentor/admin can still compose manually once locked.') }}
+					{{
+						t(
+							'learniq',
+							'This report period is not yet locked — composition is blocked until the lock date has passed. A mentor/admin can still compose manually once locked.',
+						)
+					}}
 				</NcNoteCard>
 				<NcNoteCard v-else type="success">
-					{{ t('scholiq', 'This report period is locked. Composing will create one draft report card per learner in scope.') }}
+					{{
+						t(
+							'learniq',
+							'This report period is locked. Composing will create one draft report card per learner in scope.',
+						)
+					}}
 				</NcNoteCard>
 
 				<NcNoteCard v-if="error" type="error">
@@ -51,18 +66,23 @@
 			</template>
 
 			<NcNoteCard v-else type="error">
-				{{ t('scholiq', 'Could not load this report period.') }}
+				{{ t('learniq', 'Could not load this report period.') }}
 			</NcNoteCard>
 		</div>
 
 		<template #actions>
 			<NcButton @click="$emit('close')">
-				{{ t('scholiq', 'Cancel') }}
+				{{ t('learniq', 'Cancel') }}
 			</NcButton>
-			<NcButton variant="primary"
+			<NcButton
+				variant="primary"
 				:disabled="!period || !isLocked || composing"
 				@click="compose">
-				{{ composing ? t('scholiq', 'Composing…') : t('scholiq', 'Compose report cards') }}
+				{{
+					composing
+						? t('learniq', 'Composing…')
+						: t('learniq', 'Compose report cards')
+				}}
 			</NcButton>
 		</template>
 	</NcDialog>
@@ -103,23 +123,65 @@ export default {
 
 	computed: {
 		/**
-		 * Materialised `isLocked` calculation, read directly off the fetched
-		 * ReportPeriod — mirrors ReportPeriodComposeGuard's own read.
+		 * Whether this period is locked, and therefore composable.
+		 *
+		 * ⚠️ READING `isLocked` ALONE DISABLED THIS BUTTON FOREVER. The field is
+		 * a declared `x-openregister-calculations` entry with `materialise:
+		 * true`, and it IS computed — the create response carries
+		 * `isLocked: true` for a past lockDate. It is simply never returned
+		 * again: measured on a live instance, both the single-object GET and
+		 * the list endpoint omit it entirely. So `period.isLocked` was
+		 * `undefined` on every fetch, `=== true` was always false, and Compose
+		 * could not be clicked no matter how long ago the period locked.
+		 *
+		 * ReportPeriodComposeGuard already carries the same fallback and says
+		 * why — it mirrors the declared expression exactly (`lockDate` set AND
+		 * `lockDate` < now). The two sides now agree instead of one of them
+		 * trusting a field that does not survive a read.
+		 *
+		 * Kept preferring the materialised value: when OpenRegister does start
+		 * projecting it, that becomes the single source and this stops
+		 * recomputing.
+		 *
+		 * The requirement defines locked as "`lockDate` is set AND has passed
+		 * `@now`" and mandates that the GUARDS read `isLocked` directly — it
+		 * says nothing about this dialog, which is why reading the same field
+		 * here, with no fallback, went unnoticed.
 		 *
 		 * @return {boolean}
+		 * @spec openspec/specs/report-card/spec.md#requirement-lock-date-is-enforced-by-a-materialised-calculation-and-guards-not-an-automatic-transition
 		 */
 		isLocked() {
-			return !!(this.period && this.period.isLocked === true)
+			if (!this.period) {
+				return false
+			}
+
+			if (this.period.isLocked === true) {
+				return true
+			}
+
+			const lockDate = this.period.lockDate
+
+			if (lockDate === null || lockDate === undefined || lockDate === '') {
+				return false
+			}
+
+			const lockedAt = Date.parse(lockDate)
+
+			return Number.isNaN(lockedAt) === false && lockedAt < Date.now()
 		},
 
 		/**
 		 * Dialog title.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 		 */
 		dialogTitle() {
-			if (!this.period) return t('scholiq', 'Compose report period')
-			return t('scholiq', 'Compose "{name}"', { name: this.period.name || this.period.periodCode || '' })
+			if (!this.period) return t('learniq', 'Compose report period')
+			return t('learniq', 'Compose "{name}"', {
+				name: this.period.name || this.period.periodCode || '',
+			})
 		},
 	},
 
@@ -134,13 +196,14 @@ export default {
 		 * Load the ReportPeriod being composed.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 		 */
 		async loadPeriod() {
 			this.loading = true
 			this.error = ''
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/report-period/{id}',
+					'/apps/openregister/api/objects/learniq/report-period/{id}',
 					{ id: this.reportPeriodId },
 				)
 				const response = await axios.get(url)
@@ -167,7 +230,7 @@ export default {
 			this.error = ''
 			try {
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/report-period/{id}',
+					'/apps/openregister/api/objects/learniq/report-period/{id}',
 					{ id: this.reportPeriodId },
 				)
 				await axios.put(url, { lifecycle: 'composed' })
@@ -175,7 +238,10 @@ export default {
 				this.$emit('close')
 			} catch (e) {
 				console.error('[ComposeReportPeriodModal] compose failed', e)
-				this.error = t('scholiq', 'Could not compose report cards. Please try again.')
+				this.error = t(
+					'learniq',
+					'Could not compose report cards. Please try again.',
+				)
 			} finally {
 				this.composing = false
 			}

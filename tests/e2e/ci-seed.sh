@@ -3,19 +3,19 @@
 # SPDX-License-Identifier: EUPL-1.2
 # Copyright (C) 2026 Conduction B.V.
 #
-# Provision Scholiq's OpenRegister register + schemas + example dataset on a
+# Provision Learniq's OpenRegister register + schemas + example dataset on a
 # freshly installed Nextcloud, for the shared `E2E Tests (Playwright)` CI job.
 #
 # Wired up as the workflow's `playwright-seed-command`. That step runs AFTER
 # `php -S` is up and with cwd set to the Nextcloud server root, so this is
 # invoked as:
 #
-#     playwright-seed-command: 'bash apps/scholiq/tests/e2e/ci-seed.sh'
+#     playwright-seed-command: 'bash apps/learniq/tests/e2e/ci-seed.sh'
 #
 # WHY THIS IS NEEDED
 # ------------------
-# `occ app:enable scholiq` runs a post-migration repair step that is supposed
-# to import `lib/Settings/scholiq_register.json` into OpenRegister. Three
+# `occ app:enable learniq` runs a post-migration repair step that is supposed
+# to import `lib/Settings/learniq_register.json` into OpenRegister. Three
 # things make that unreliable as the sole fresh-install path, and ALL THREE
 # fail silently:
 #
@@ -79,14 +79,14 @@ USER_PASS="${ADMIN_PASSWORD:-${NC_ADMIN_PASS:-admin}}"
 echo "[ci-seed] target:   ${BASE}"
 echo "[ci-seed] app root: ${APP_ROOT}"
 
-# ── 1. Force-import the Scholiq configuration ────────────────────────────────
+# ── 1. Force-import the Learniq configuration ────────────────────────────────
 # `settings#load` (POST /api/settings/load) calls
 # `SettingsService::loadConfiguration(force: true)` — the forced path that
 # defeats the version guard described above. It is
 # `#[AuthorizedAdminSetting(AdminSettings::class)]`, so it needs a real admin
 # identity; basic auth supplies one, and NC's CSRF check passes because a
 # cookie-less request carries no session to forge against.
-IMPORT_URL="${BASE}/index.php/apps/scholiq/api/settings/load"
+IMPORT_URL="${BASE}/index.php/apps/learniq/api/settings/load"
 echo "[ci-seed] POST ${IMPORT_URL}"
 
 IMPORT_BODY="$(mktemp)"
@@ -104,7 +104,7 @@ echo "[ci-seed] import HTTP ${IMPORT_CODE}"
 head -c 2000 "$IMPORT_BODY"; echo
 
 if [ "$IMPORT_CODE" != "200" ]; then
-	echo "::error::Scholiq configuration import failed (HTTP ${IMPORT_CODE}). The e2e suite cannot render any index page without the register."
+	echo "::error::Learniq configuration import failed (HTTP ${IMPORT_CODE}). The e2e suite cannot render any index page without the register."
 	exit 1
 fi
 
@@ -130,7 +130,7 @@ print(str(body.get('message', ''))[:400])
 " "$IMPORT_BODY" 2>/dev/null | head -1 || true)"
 
 if [ "$IMPORT_OK" != "true" ]; then
-	echo "::warning::The Scholiq settings/load import returned HTTP 200 but did NOT report success. Falling back to the per-schema repair path below; the register/schema verification remains the gate."
+	echo "::warning::The Learniq settings/load import returned HTTP 200 but did NOT report success. Falling back to the per-schema repair path below; the register/schema verification remains the gate."
 fi
 
 # ── 2. Seed the example dataset (and repair a partial import) ────────────────
@@ -142,7 +142,10 @@ fi
 # Exit codes are meaningful and NOT all failures:
 #   0 — register imported essentially completely AND objects seeded
 #   2 — partial import; seeded what was possible (specs fall back to smoke checks)
-#   1 — Nextcloud unreachable  ← the only genuinely fatal one
+#   1 — the seeder gave up  ← fatal, but NOT self-describing: node also exits
+#       1 on any uncaught exception, so this code means "unreachable OR the
+#       seeder crashed". The handler below probes the instance to tell them
+#       apart rather than assuming the first.
 SEED_STATUS="none"
 set +e
 NC_ADMIN_USER="$USER_NAME" NC_ADMIN_PASS="$USER_PASS" \
@@ -153,8 +156,29 @@ set -e
 case "$SEED_RC" in
 	0) SEED_STATUS="full" ;;
 	2) SEED_STATUS="partial"
-	   echo "::warning::Scholiq example-data seed reported a PARTIAL register import (openregister#1487). Index-page row-count assertions will be skipped." ;;
-	*) echo "::error::Scholiq example-data seed failed (exit ${SEED_RC}) — Nextcloud unreachable at ${BASE}."
+	   echo "::warning::Learniq example-data seed reported a PARTIAL register import (openregister#1487). Index-page row-count assertions will be skipped." ;;
+	*) # DO NOT ASSERT A CAUSE THIS BRANCH HAS NOT ESTABLISHED.
+	   #
+	   # This used to say "Nextcloud unreachable at $BASE" for every exit code
+	   # that is not 0 or 2. Exit 1 is what the seeder returns when it decides
+	   # the instance is unreachable — and it is equally what node returns for
+	   # ANY uncaught exception, so a crash was being reported as an outage.
+	   #
+	   # Observed on 2026-08-27 (learniq#661): the seeder reached the instance,
+	   # logged "Nextcloud 34.0.3 at http://localhost:8080 — OK", imported 118
+	   # schemas and linked 118/118 — and then died inside node's bundled HTTP
+	   # client with `AssertionError: assert(!this.paused)` at `Parser.finish`
+	   # (undici, node v24.19.0). The job reported "Nextcloud unreachable" about
+	   # a server that had just answered a hundred and eighteen requests, which
+	   # sends the next reader looking for a networking fault that is not there.
+	   #
+	   # So ask the instance directly before naming it. The probe costs one
+	   # request on a path that is already failing.
+	   if curl -fsS -m 10 -o /dev/null "${BASE}/status.php" 2>/dev/null; then
+	       echo "::error::Learniq example-data seed failed (exit ${SEED_RC}), but Nextcloud at ${BASE} IS reachable — status.php answered just now. The seeder itself failed; read its output above rather than looking for a networking fault. A node AssertionError from undici here is a known intermittent crash in the HTTP client, and a re-run usually clears it."
+	   else
+	       echo "::error::Learniq example-data seed failed (exit ${SEED_RC}) and Nextcloud at ${BASE} did not answer status.php — the instance really is unreachable."
+	   fi
 	   exit 1 ;;
 esac
 echo "[ci-seed] seed status: ${SEED_STATUS}"
@@ -172,7 +196,7 @@ required = {
     # openregister#1487 can drop long-tail schemas, and a gate that fails on
     # those would be failing for a defect in a different repo. These six are
     # the ones whose absence means the import did not happen at all.
-    'registers': ['scholiq'],
+    'registers': ['learniq'],
     'schemas': ['course', 'lesson', 'cohort', 'learner-profile', 'enrolment', 'credential'],
 }[kind]
 with open(path) as fh:
@@ -189,7 +213,7 @@ missing = [s for s in required if s not in slugs]
 print(f'[ci-seed] {kind}: {len(slugs)} present')
 if missing:
     print(f'[ci-seed] {kind} present: {sorted(s for s in slugs if s)}')
-    print(f'::error::Scholiq {kind} missing after import: {missing}')
+    print(f'::error::Learniq {kind} missing after import: {missing}')
     sys.exit(1)
 print(f'[ci-seed] {kind} OK ({len(required)} required slugs present)')
 PY
@@ -205,7 +229,7 @@ curl -sS -u "${USER_NAME}:${USER_PASS}" -H 'OCS-APIRequest: true' \
 	"${BASE}/index.php/apps/openregister/api/schemas?_limit=1000" -o "$SCH_BODY"
 verify "$SCH_BODY" schemas
 
-echo "[ci-seed] Scholiq register + core schemas provisioned."
+echo "[ci-seed] Learniq register + core schemas provisioned."
 
 # ── 3b. Floor gate on the seeded dataset ─────────────────────────────────────
 # index-pages.spec.ts derives its "this index page must show ≥1 row" set from
@@ -260,8 +284,8 @@ echo "[ci-seed] wrote ${APP_ROOT}/.e2e-state/ci-seeded (${SEED_STATUS})"
 # Failures are ignored on purpose: this is a warm-up, not a gate. The real
 # checks are above and below.
 for path in \
-	"/index.php/apps/scholiq/" \
-	"/index.php/apps/scholiq/api/settings" \
+	"/index.php/apps/learniq/" \
+	"/index.php/apps/learniq/api/settings" \
 	"/index.php/apps/openregister/api/registers?_limit=1" \
 	"/index.php/apps/openregister/api/schemas?_limit=1"
 do
@@ -275,8 +299,8 @@ done
 # assert it is actually JavaScript.
 #
 # Do NOT hardcode the URL. Nextcloud serves an app's assets from whichever apps
-# directory it was installed into — `/apps/scholiq/js/...` on the CI runner,
-# `/custom_apps/scholiq/js/...` in the docker dev images — and asking for the
+# directory it was installed into — `/apps/learniq/js/...` on the CI runner,
+# `/custom_apps/learniq/js/...` in the docker dev images — and asking for the
 # wrong one does not 404. It returns **HTTP 200 with `text/html`**: the NC error
 # page, served through index.php. A status-code check therefore reports success
 # while fetching a 40 KB HTML page instead of a multi-MB bundle.
@@ -285,13 +309,13 @@ done
 # response content type.
 APP_HTML="$(mktemp)"
 curl -sS -u "${USER_NAME}:${USER_PASS}" -H 'OCS-APIRequest: true' \
-	"${BASE}/index.php/apps/scholiq/" -o "$APP_HTML" || true
+	"${BASE}/index.php/apps/learniq/" -o "$APP_HTML" || true
 
 # `|| true` is load-bearing: grep exits 1 when it matches nothing, and under
 # `set -euo pipefail` that aborts the script right here — so the case the gate
 # below exists to explain (no bundle) would die with a bare non-zero exit and
 # none of the diagnosis. Let it fall through to the gate instead.
-BUNDLE_SRC="$(grep -oE 'src="[^"]*scholiq-main[^"]*"' "$APP_HTML" \
+BUNDLE_SRC="$(grep -oE 'src="[^"]*learniq-main[^"]*"' "$APP_HTML" \
 	| head -1 | sed 's/^src="//; s/"$//' || true)"
 
 if [ -n "$BUNDLE_SRC" ]; then
@@ -300,7 +324,7 @@ if [ -n "$BUNDLE_SRC" ]; then
 		-u "${USER_NAME}:${USER_PASS}" "${BASE}${BUNDLE_SRC}" || echo '000 - 0')"
 	echo "[ci-seed] warm bundle ${BUNDLE_SRC} -> ${BUNDLE_INFO}"
 else
-	echo "[ci-seed] could not locate the scholiq-main bundle src in the rendered app page."
+	echo "[ci-seed] could not locate the learniq-main bundle src in the rendered app page."
 	BUNDLE_INFO=""
 fi
 
@@ -311,18 +335,87 @@ fi
 # bundle is absent, Nextcloud does not 404. It serves its HTML error page with
 # **HTTP 200 and Content-Type text/html**, so `npm run build` producing nothing
 # looks, to every status-code check in the pipeline, exactly like success.
+#
+# The content type alone is NOT enough, and this is the second half of the same
+# trap. A TRUNCATED bundle — `npm run build` exiting 0 after webpack wrote an
+# empty chunk, an artifact that uploaded before the write finished — still
+# serves as `application/javascript`, with HTTP 200, at zero bytes. Content
+# type says "JavaScript", the status says "fine", and the SPA mounts nothing.
+# So the size is gated too. The real bundle measured 11,688,751 bytes
+# (run 30889902343); the floor is 1 MB, two orders of magnitude below that and
+# far above anything a truncation would leave behind.
+BUNDLE_MIN_BYTES=1048576
 if [ "${GITHUB_ACTIONS:-}" = "true" ] || [ "${CI:-}" = "true" ]; then
-	case "$BUNDLE_INFO" in
-		*javascript*)
-			echo "[ci-seed] bundle verified as JavaScript."
-			;;
+	BUNDLE_TYPE="$(printf '%s' "$BUNDLE_INFO" | awk '{print $2}')"
+	BUNDLE_BYTES="$(printf '%s' "$BUNDLE_INFO" | awk '{print $3}')"
+	case "$BUNDLE_TYPE" in
+		*javascript*) ;;
 		*)
-			echo "::error::The Scholiq frontend bundle did not serve as JavaScript (got: ${BUNDLE_INFO:-<not found>})."
+			echo "::error::The Learniq frontend bundle did not serve as JavaScript (got: ${BUNDLE_INFO:-<not found>})."
 			echo "::error::The SPA cannot mount, so every UI spec would fail on a selector timeout with a misleading cause."
 			echo "::error::Check the 'Build app frontend' step — a missing bundle returns HTTP 200 text/html, not 404."
 			exit 1
 			;;
 	esac
+	if [ "${BUNDLE_BYTES:-0}" -lt "$BUNDLE_MIN_BYTES" ]; then
+		echo "::error::The Learniq frontend bundle served as JavaScript but is only ${BUNDLE_BYTES:-0} bytes (floor ${BUNDLE_MIN_BYTES})."
+		echo "::error::A truncated bundle keeps the JavaScript content type and the HTTP 200, so the type check above cannot see it."
+		echo "::error::The SPA would mount nothing and every UI spec would fail on a selector timeout with a misleading cause."
+		exit 1
+	fi
+	echo "[ci-seed] bundle verified as JavaScript, ${BUNDLE_BYTES} bytes (floor ${BUNDLE_MIN_BYTES})."
 fi
 
 echo "[ci-seed] done."
+
+# ── Settle the demo-data decision ────────────────────────────────────────────
+# 🔴 OR THE SETUP WIZARD MASKS EVERY CLICK. ADR-111 added an OPTIONAL
+# `demo-data` step, and CnAppRoot opens the non-gating wizard as a full modal
+# mask while ANY optional step that is not info/summary is reported not-done —
+# in every fresh browser context, so once per spec.
+#
+# Measured on this app's development at the ADR-111 merge: clicks failed with
+# "locator resolved to <button ...> - attempting click action", the call log
+# naming <ol class="cn-wizard-dialog__progress"> as the interceptor. The element
+# was found; the click never landed.
+#
+# SKIPPED, not installed: recording the decision is what closes the wizard.
+# Installing would push the app's whole demo dataset into every list the suite
+# asserts on. `demo-data-setup-step.spec.ts` exercises the install deliberately.
+#
+# Uses the workflow's own exported credentials rather than this script's, so it
+# does not depend on where in the file it sits.
+#
+# Tolerant on purpose: an app whose wizard has no demo-data step answers 400
+# here, and that is not a seeding failure.
+DEMO_BASE="${BASE_URL:-${NEXTCLOUD_URL:-http://localhost:8080}}"
+DEMO_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 300 \
+	-u "${ADMIN_USER:-admin}:${ADMIN_PASSWORD:-admin}" -X POST \
+	-H 'Content-Type: application/json' -H 'OCS-APIRequest: true' --data '{}' \
+	"${DEMO_BASE}/index.php/apps/learniq/api/setup/action/skip-demo-data" || echo 000)"
+echo "[ci-seed] POST setup/action/skip-demo-data -> HTTP ${DEMO_CODE}"
+
+# ── Settle the first-visit walkthrough ───────────────────────────────────────
+# 🔴 OR THE TOUR DIMS EVERY CLICK. The walkthrough opens on a fresh profile as a
+# modal with a full-page dim inside role="dialog", in EVERY new browser context
+# — so once per spec, not once per suite.
+#
+# Measured on this fleet at the walkthrough merge: clicks resolved their button
+# and never landed, the Playwright call log naming the interceptor as
+#   <div class="cn-walkthrough__dim cn-walkthrough__dim--full">
+# learniq lost 7 specs and portaliq 2 to exactly this.
+#
+# Marks the tour SEEN rather than disabling it: the manifest declares
+# `walkthrough.version: 1` and `completionConfigKey:
+# walkthrough_completed_version`, so storing that version is the same thing a
+# real operator does by finishing (or dismissing) the tour once.
+#
+# Tolerant on purpose: an app with no walkthrough answers 400/404 here, and
+# that is not a seeding failure.
+WT_BASE="${BASE_URL:-${NEXTCLOUD_URL:-http://localhost:8080}}"
+WT_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 60 \
+	-u "${ADMIN_USER:-admin}:${ADMIN_PASSWORD:-admin}" -X PUT \
+	-H 'Content-Type: application/json' -H 'OCS-APIRequest: true' \
+	--data '{"value":"1"}' \
+	"${WT_BASE}/index.php/apps/learniq/api/preferences/walkthrough_completed_version" || echo 000)"
+echo "[ci-seed] PUT preferences/walkthrough_completed_version -> HTTP ${WT_CODE}"

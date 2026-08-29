@@ -14,12 +14,11 @@ namespace OCA\OpenRegister\Db;
 /**
  * Stub for AuditTrailMapper.
  */
-abstract class AuditTrailMapper
-{
-    /**
-     * @param array<string,mixed> $filters
-     * @param array<string,mixed> $sort
-     * @return array<int,mixed>
-     */
-    abstract public function findAll(array $filters=[], array $sort=[]): array;
+abstract class AuditTrailMapper {
+	/**
+	 * @param array<string,mixed> $filters
+	 * @param array<string,mixed> $sort
+	 * @return array<int,mixed>
+	 */
+	abstract public function findAll(array $filters = [], array $sort = []): array;
 }//end class

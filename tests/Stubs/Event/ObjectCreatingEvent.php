@@ -23,71 +23,64 @@ use Psr\EventDispatcher\StoppableEventInterface;
 /**
  * Stub for ObjectCreatingEvent.
  */
-class ObjectCreatingEvent extends Event implements StoppableEventInterface
-{
-    /**
-     * @var ObjectEntity
-     */
-    private ObjectEntity $object;
+class ObjectCreatingEvent extends Event implements StoppableEventInterface {
+	/**
+	 * @var ObjectEntity
+	 */
+	private ObjectEntity $object;
 
-    /**
-     * @var bool
-     */
-    private bool $propagationStopped = false;
+	/**
+	 * @var bool
+	 */
+	private bool $propagationStopped = false;
 
-    /**
-     * @var array<string, mixed>
-     */
-    private array $errors = [];
+	/**
+	 * @var array<string, mixed>
+	 */
+	private array $errors = [];
 
-    /**
-     * @param ObjectEntity $object The object entity being created.
-     */
-    public function __construct(ObjectEntity $object)
-    {
-        parent::__construct();
-        $this->object = $object;
-    }//end __construct()
+	/**
+	 * @param ObjectEntity $object The object entity being created.
+	 */
+	public function __construct(ObjectEntity $object) {
+		parent::__construct();
+		$this->object = $object;
+	}//end __construct()
 
-    /**
-     * @return ObjectEntity
-     */
-    public function getObject(): ObjectEntity
-    {
-        return $this->object;
-    }//end getObject()
+	/**
+	 * @return ObjectEntity
+	 */
+	public function getObject(): ObjectEntity {
+		return $this->object;
+	}//end getObject()
 
-    /**
-     * @return bool
-     */
-    public function isPropagationStopped(): bool
-    {
-        return $this->propagationStopped;
-    }//end isPropagationStopped()
+	/**
+	 * @return bool
+	 */
+	public function isPropagationStopped(): bool {
+		return $this->propagationStopped;
+	}//end isPropagationStopped()
 
-    /**
-     * @return void
-     */
-    public function stopPropagation(): void
-    {
-        $this->propagationStopped = true;
-    }//end stopPropagation()
+	/**
+	 * @return void
+	 */
+	public function stopPropagation(): void {
+		$this->propagationStopped = true;
+	}//end stopPropagation()
 
-    /**
-     * @param array<string, mixed> $errors The error details.
-     *
-     * @return void
-     */
-    public function setErrors(array $errors): void
-    {
-        $this->errors = $errors;
-    }//end setErrors()
+	/**
+	 * @param array<string, mixed> $errors The error details.
+	 *
+	 * @return void
+	 */
+	public function setErrors(array $errors): void {
+		$this->errors = $errors;
+	}//end setErrors()
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function getErrors(): array
-    {
-        return $this->errors;
-    }//end getErrors()
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function getErrors(): array {
+		return $this->errors;
+	}//end getErrors()
 }//end class

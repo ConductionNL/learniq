@@ -19,32 +19,39 @@
 	<div class="my-timetable">
 		<div class="my-timetable__header">
 			<h2 class="my-timetable__title">
-				{{ t('scholiq', 'My timetable') }}
+				{{ t('learniq', 'My timetable') }}
 			</h2>
 			<div class="my-timetable__controls">
-				<NcButton variant="tertiary"
-					:aria-label="t('scholiq', 'Previous week')"
+				<NcButton
+					variant="tertiary"
+					:aria-label="t('learniq', 'Previous week')"
 					:disabled="loading"
 					@click="shiftWeek(-1)">
 					‹
 				</NcButton>
 				<span class="my-timetable__range">{{ rangeLabel }}</span>
-				<NcButton variant="tertiary"
-					:aria-label="t('scholiq', 'Next week')"
+				<NcButton
+					variant="tertiary"
+					:aria-label="t('learniq', 'Next week')"
 					:disabled="loading"
 					@click="shiftWeek(1)">
 					›
 				</NcButton>
-				<div class="my-timetable__toggle" role="group" :aria-label="t('scholiq', 'View mode')">
-					<NcButton :variant="mode === 'today' ? 'primary' : 'secondary'"
+				<div
+					class="my-timetable__toggle"
+					role="group"
+					:aria-label="t('learniq', 'View mode')">
+					<NcButton
+						:variant="mode === 'today' ? 'primary' : 'secondary'"
 						:disabled="loading"
 						@click="setMode('today')">
-						{{ t('scholiq', 'Today') }}
+						{{ t('learniq', 'Today') }}
 					</NcButton>
-					<NcButton :variant="mode === 'week' ? 'primary' : 'secondary'"
+					<NcButton
+						:variant="mode === 'week' ? 'primary' : 'secondary'"
 						:disabled="loading"
 						@click="setMode('week')">
-						{{ t('scholiq', 'Week') }}
+						{{ t('learniq', 'Week') }}
 					</NcButton>
 				</div>
 			</div>
@@ -52,39 +59,59 @@
 
 		<NcLoadingIcon v-if="loading" :size="44" class="my-timetable__loading" />
 
-		<NcEmptyContent v-else-if="error"
-			:name="t('scholiq', 'Could not load your timetable')"
+		<NcEmptyContent
+			v-else-if="error"
+			:name="t('learniq', 'Could not load your timetable')"
 			:description="error">
 			<template #icon>
 				<span class="icon-error" />
 			</template>
 		</NcEmptyContent>
 
-		<section v-if="!loading && !error && changes.length > 0" class="my-timetable__changes" aria-live="polite">
+		<section
+			v-if="!loading && !error && changes.length > 0"
+			class="my-timetable__changes"
+			aria-live="polite">
 			<h3 class="my-timetable__changes-title">
-				{{ t('scholiq', "Today's changes") }}
+				{{ t('learniq', "Today's changes") }}
 			</h3>
 			<ul class="my-timetable__changes-list">
-				<li v-for="session in changes" :key="'change-' + session.id" class="my-timetable__change">
-					<span class="my-timetable__change-name">{{ session.title || t('scholiq', 'Untitled session') }}</span>
-					<span class="my-timetable__change-badge" :class="'my-timetable__change-badge--' + session.lifecycle">
+				<li
+					v-for="session in changes"
+					:key="'change-' + session.id"
+					class="my-timetable__change">
+					<span class="my-timetable__change-name">{{
+						session.title || t('learniq', 'Untitled session')
+					}}</span>
+					<span
+						class="my-timetable__change-badge"
+						:class="'my-timetable__change-badge--' + session.lifecycle">
 						{{ statusLabel(session) }}
 					</span>
-					<span v-if="session.changeReason" class="my-timetable__change-reason">{{ session.changeReason }}</span>
+					<span
+						v-if="session.changeReason"
+						class="my-timetable__change-reason"
+						>{{ session.changeReason }}</span
+					>
 				</li>
 			</ul>
 		</section>
 
-		<NcEmptyContent v-if="!loading && !error && sessions.length === 0"
-			:name="t('scholiq', 'No sessions')"
+		<NcEmptyContent
+			v-if="!loading && !error && sessions.length === 0"
+			:name="t('learniq', 'No sessions')"
 			:description="emptyDescription">
 			<template #icon>
 				<span class="icon-calendar" />
 			</template>
 		</NcEmptyContent>
 
-		<div v-if="!loading && !error && sessions.length > 0" class="my-timetable__grid" :class="{ 'my-timetable__grid--single': mode === 'today' }">
-			<section v-for="day in visibleDays"
+		<div
+			v-if="!loading && !error && sessions.length > 0"
+			class="my-timetable__grid"
+			:class="{ 'my-timetable__grid--single': mode === 'today' }">
+			<section
+				v-for="day in visibleDays"
 				:key="day.iso"
 				class="my-timetable__day"
 				:class="{ 'my-timetable__day--today': day.isToday }">
@@ -94,40 +121,66 @@
 				</header>
 				<ul class="my-timetable__sessions">
 					<li v-if="day.sessions.length === 0" class="my-timetable__none">
-						{{ t('scholiq', 'No sessions') }}
+						{{ t('learniq', 'No sessions') }}
 					</li>
-					<li v-for="session in day.sessions"
+					<li
+						v-for="session in day.sessions"
 						:key="session.id"
 						class="my-timetable__session"
-						:class="{ 'my-timetable__session--cancelled': session.lifecycle === 'cancelled' }">
-						<div tabindex="0"
+						:class="{
+							'my-timetable__session--cancelled':
+								session.lifecycle === 'cancelled',
+						}">
+						<div
+							tabindex="0"
 							role="button"
 							class="my-timetable__session-main"
 							:aria-label="sessionAria(session)"
 							@click="openSession(session)"
 							@keyup.enter="openSession(session)">
-							<span class="my-timetable__session-time">{{ timeRange(session) }}</span>
-							<span class="my-timetable__session-name">{{ session.title || t('scholiq', 'Untitled session') }}</span>
-							<span v-if="session.room" class="my-timetable__session-loc">{{ session.room.name }}</span>
-							<span v-else-if="session.location" class="my-timetable__session-loc">{{ session.location }}</span>
-							<span v-if="session.lifecycle && session.lifecycle !== 'scheduled'"
+							<span class="my-timetable__session-time">{{
+								timeRange(session)
+							}}</span>
+							<span class="my-timetable__session-name">{{
+								session.title || t('learniq', 'Untitled session')
+							}}</span>
+							<span
+								v-if="session.room"
+								class="my-timetable__session-loc"
+								>{{ session.room.name }}</span
+							>
+							<span
+								v-else-if="session.location"
+								class="my-timetable__session-loc"
+								>{{ session.location }}</span
+							>
+							<span
+								v-if="
+									session.lifecycle
+									&& session.lifecycle !== 'scheduled'
+								"
 								class="my-timetable__session-badge"
-								:class="'my-timetable__session-badge--' + session.lifecycle">
+								:class="
+									'my-timetable__session-badge--'
+									+ session.lifecycle
+								">
 								{{ statusLabel(session) }}
 							</span>
 						</div>
-						<NcButton class="my-timetable__session-manage"
+						<NcButton
+							class="my-timetable__session-manage"
 							variant="tertiary"
-							:aria-label="t('scholiq', 'Manage this session')"
+							:aria-label="t('learniq', 'Manage this session')"
 							@click="manage(session)">
-							{{ t('scholiq', 'Manage') }}
+							{{ t('learniq', 'Manage') }}
 						</NcButton>
 					</li>
 				</ul>
 			</section>
 		</div>
 
-		<SubstitutionModal v-if="managingSession"
+		<SubstitutionModal
+			v-if="managingSession"
 			:session="managingSession"
 			@close="managingSession = null"
 			@changed="onChanged" />
@@ -136,8 +189,8 @@
 
 <script>
 import { NcButton, NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
-import { fetchMyTimetable } from '../api/timetable.js'
 import SubstitutionModal from '../dialogs/SubstitutionModal.vue'
+import { fetchMyTimetable } from '../api/timetable.js'
 
 /**
  * Compute the Monday (00:00, local) of the week containing `date`.
@@ -162,6 +215,7 @@ export default {
 		NcLoadingIcon,
 		SubstitutionModal,
 	},
+
 	data() {
 		return {
 			loading: true,
@@ -177,6 +231,7 @@ export default {
 			managingSession: null,
 		}
 	},
+
 	computed: {
 		/**
 		 * Exclusive end of the current week (next Monday 00:00).
@@ -189,6 +244,7 @@ export default {
 			end.setDate(end.getDate() + 7)
 			return end
 		},
+
 		/**
 		 * The seven day-buckets of the current week, each with its sessions.
 		 *
@@ -206,18 +262,26 @@ export default {
 				next.setDate(next.getDate() + 1)
 				const daySessions = this.sessions.filter((s) => {
 					const ts = Date.parse(s.startsAt)
-					return !Number.isNaN(ts) && ts >= day.getTime() && ts < next.getTime()
+					return (
+						!Number.isNaN(ts)
+						&& ts >= day.getTime()
+						&& ts < next.getTime()
+					)
 				})
 				out.push({
 					iso: day.toISOString().slice(0, 10),
 					weekday: day.toLocaleDateString(undefined, { weekday: 'short' }),
-					dateLabel: day.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }),
+					dateLabel: day.toLocaleDateString(undefined, {
+						day: 'numeric',
+						month: 'short',
+					}),
 					isToday: day.getTime() === today.getTime(),
 					sessions: daySessions,
 				})
 			}
 			return out
 		},
+
 		/**
 		 * Days rendered given the today/week toggle.
 		 *
@@ -231,6 +295,7 @@ export default {
 			}
 			return this.days
 		},
+
 		/**
 		 * Human-readable label for the viewed range.
 		 *
@@ -241,9 +306,13 @@ export default {
 			const opts = { day: 'numeric', month: 'short' }
 			const last = new Date(this.weekEnd)
 			last.setDate(last.getDate() - 1)
-			return this.weekStart.toLocaleDateString(undefined, opts)
-				+ ' – ' + last.toLocaleDateString(undefined, opts)
+			return (
+				this.weekStart.toLocaleDateString(undefined, opts)
+				+ ' – '
+				+ last.toLocaleDateString(undefined, opts)
+			)
 		},
+
 		/**
 		 * Empty-state description — distinguishes "no cohorts" from "no sessions this week".
 		 *
@@ -252,10 +321,14 @@ export default {
 		 */
 		emptyDescription() {
 			return this.mode === 'today'
-				? t('scholiq', 'You have no sessions scheduled for today.')
-				: t('scholiq', 'You have no sessions scheduled for this week. If you are not enrolled in or teaching any cohort, your timetable stays empty.')
+				? t('learniq', 'You have no sessions scheduled for today.')
+				: t(
+						'learniq',
+						'You have no sessions scheduled for this week. If you are not enrolled in or teaching any cohort, your timetable stays empty.',
+					)
 		},
 	},
+
 	watch: {
 		/**
 		 * Reload the timetable whenever the viewed week changes.
@@ -268,9 +341,11 @@ export default {
 			this.load()
 		},
 	},
+
 	mounted() {
 		this.load()
 	},
+
 	methods: {
 		t,
 		/**
@@ -283,17 +358,24 @@ export default {
 			this.loading = true
 			this.error = ''
 			try {
-				const result = await fetchMyTimetable(this.weekStart.toISOString(), this.weekEnd.toISOString())
+				const result = await fetchMyTimetable(
+					this.weekStart.toISOString(),
+					this.weekEnd.toISOString(),
+				)
 				this.sessions = result.sessions
 				this.changes = result.changes
 			} catch (e) {
-				this.error = t('scholiq', 'The timetable service is unavailable. Please try again later.')
+				this.error = t(
+					'learniq',
+					'The timetable service is unavailable. Please try again later.',
+				)
 				this.sessions = []
 				this.changes = []
 			} finally {
 				this.loading = false
 			}
 		},
+
 		/**
 		 * Move the viewed week by `delta` weeks.
 		 *
@@ -304,9 +386,10 @@ export default {
 		 */
 		shiftWeek(delta) {
 			const next = new Date(this.weekStart)
-			next.setDate(next.getDate() + (delta * 7))
+			next.setDate(next.getDate() + delta * 7)
 			this.weekStart = next
 		},
+
 		/**
 		 * Switch the today/week toggle.
 		 *
@@ -322,6 +405,7 @@ export default {
 				this.weekStart = mondayOf(new Date())
 			}
 		},
+
 		/**
 		 * Deep-link to the session detail page.
 		 *
@@ -335,9 +419,12 @@ export default {
 				return
 			}
 			if (this.$router) {
-				this.$router.push({ name: 'SessionDetail', params: { id: session.id } }).catch(() => {})
+				this.$router
+					.push({ name: 'SessionDetail', params: { id: session.id } })
+					.catch(() => {})
 			}
 		},
+
 		/**
 		 * Format a session's time range for display.
 		 *
@@ -354,6 +441,7 @@ export default {
 			}
 			return start
 		},
+
 		/**
 		 * Format an ISO timestamp as a local `HH:MM` time.
 		 *
@@ -370,8 +458,12 @@ export default {
 			if (Number.isNaN(ts)) {
 				return ''
 			}
-			return new Date(ts).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+			return new Date(ts).toLocaleTimeString(undefined, {
+				hour: '2-digit',
+				minute: '2-digit',
+			})
 		},
+
 		/**
 		 * Accessible label for a session block.
 		 *
@@ -381,12 +473,16 @@ export default {
 		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 		 */
 		sessionAria(session) {
-			const parts = [session.title || t('scholiq', 'Untitled session'), this.timeRange(session)]
+			const parts = [
+				session.title || t('learniq', 'Untitled session'),
+				this.timeRange(session),
+			]
 			if (session.location) {
 				parts.push(session.location)
 			}
 			return parts.filter(Boolean).join(', ')
 		},
+
 		/**
 		 * Human-readable lifecycle/substitution status label for a session.
 		 *
@@ -397,13 +493,16 @@ export default {
 		 */
 		statusLabel(session) {
 			if (session.lifecycle === 'cancelled') {
-				return t('scholiq', 'Cancelled')
+				return t('learniq', 'Cancelled')
 			}
 			if (session.substituteTeacherId) {
-				return t('scholiq', 'Substitute: {id}', { id: session.substituteTeacherId })
+				return t('learniq', 'Substitute: {id}', {
+					id: session.substituteTeacherId,
+				})
 			}
 			return session.lifecycle || ''
 		},
+
 		/**
 		 * Open SubstitutionModal for a session (cancel / assign substitute).
 		 *
@@ -415,6 +514,7 @@ export default {
 		manage(session) {
 			this.managingSession = session
 		},
+
 		/**
 		 * Reload the timetable after a substitution/cancellation change.
 		 *

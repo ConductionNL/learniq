@@ -27,17 +27,25 @@
 	<div class="admissions-review-board">
 		<header class="admissions-review-board__header">
 			<h2 class="admissions-review-board__title">
-				{{ t('scholiq', 'Admissions review board') }}
+				{{ t('learniq', 'Admissions review board') }}
 			</h2>
 			<p class="admissions-review-board__subtitle">
-				{{ t('scholiq', 'Applications that have completed intake and are ready for a placement decision, with their round\'s deadline, kind, and remaining capacity.') }}
+				{{
+					t(
+						'learniq',
+						"Applications that have completed intake and are ready for a placement decision, with their round's deadline, kind, and remaining capacity.",
+					)
+				}}
 			</p>
 		</header>
 
 		<!-- Loading -->
-		<div v-if="loading" class="admissions-review-board__loading" aria-live="polite">
+		<div
+			v-if="loading"
+			class="admissions-review-board__loading"
+			aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading pending applications...') }}</span>
+			<span>{{ t('learniq', 'Loading pending applications...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -47,9 +55,19 @@
 		</div>
 
 		<!-- Empty -->
-		<div v-else-if="pendingApplications.length === 0" class="admissions-review-board__empty" role="status">
+		<div
+			v-else-if="pendingApplications.length === 0"
+			class="admissions-review-board__empty"
+			role="status">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<p>{{ t('scholiq', 'No applications are currently awaiting a decision.') }}</p>
+			<p>
+				{{
+					t(
+						'learniq',
+						'No applications are currently awaiting a decision.',
+					)
+				}}
+			</p>
 		</div>
 
 		<!-- Application list -->
@@ -66,13 +84,27 @@
 						{{ roundKindLabel(application) }}
 					</span>
 					<span class="admissions-review-board__deadline">
-						{{ t('scholiq', 'Deadline: {deadline}', { deadline: formatDate(roundFor(application) && roundFor(application).applicationDeadline) }) }}
+						{{
+							t('learniq', 'Deadline: {deadline}', {
+								deadline: formatDate(
+									/**
+									 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
+									 */
+									roundFor(application)
+										&& roundFor(application).applicationDeadline,
+								),
+							})
+						}}
 					</span>
 					<span class="admissions-review-board__capacity">
 						{{ capacityLabel(application) }}
 					</span>
 					<span class="admissions-review-board__submitted">
-						{{ t('scholiq', 'Submitted {when}', { when: formatDate(application.submittedAt) }) }}
+						{{
+							t('learniq', 'Submitted {when}', {
+								when: formatDate(application.submittedAt),
+							})
+						}}
 					</span>
 				</div>
 
@@ -80,7 +112,7 @@
 					<a
 						class="button-vue button-vue--vue-primary"
 						:href="decisionHref(application)">
-						{{ t('scholiq', 'Record decision') }}
+						{{ t('learniq', 'Record decision') }}
 					</a>
 				</div>
 			</li>
@@ -115,7 +147,9 @@ export default {
 		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		pendingApplications() {
-			return this.applications.filter((a) => a.lifecycle === 'intake-completed')
+			return this.applications.filter(
+				(a) => a.lifecycle === 'intake-completed',
+			)
 		},
 	},
 
@@ -136,24 +170,54 @@ export default {
 
 			try {
 				const [applicationsResp, roundsResp] = await Promise.all([
-					fetch(generateUrl('/apps/openregister/api/objects/scholiq/Application?limit=200'), {
-						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-					}),
-					fetch(generateUrl('/apps/openregister/api/objects/scholiq/admissions-round?limit=200'), {
-						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-					}),
+					fetch(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/Application?_limit=200',
+						),
+						{
+							headers: {
+								'OCS-APIREQUEST': 'true',
+								Accept: 'application/json',
+							},
+						},
+					),
+					fetch(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/admissions-round?_limit=200',
+						),
+						{
+							headers: {
+								'OCS-APIREQUEST': 'true',
+								Accept: 'application/json',
+							},
+						},
+					),
 				])
 
-				if (!applicationsResp.ok) throw new Error(`Application fetch failed: ${applicationsResp.status}`)
-				if (!roundsResp.ok) throw new Error(`AdmissionsRound fetch failed: ${roundsResp.status}`)
+				if (!applicationsResp.ok)
+					throw new Error(
+						`Application fetch failed: ${applicationsResp.status}`,
+					)
+				if (!roundsResp.ok)
+					throw new Error(
+						`AdmissionsRound fetch failed: ${roundsResp.status}`,
+					)
 
 				const applicationsJson = await applicationsResp.json()
 				const roundsJson = await roundsResp.json()
 
-				this.applications = applicationsJson.results ?? applicationsJson.objects ?? applicationsJson ?? []
-				this.rounds = roundsJson.results ?? roundsJson.objects ?? roundsJson ?? []
+				this.applications =
+					applicationsJson.results
+					?? applicationsJson.objects
+					?? applicationsJson
+					?? []
+				this.rounds =
+					roundsJson.results ?? roundsJson.objects ?? roundsJson ?? []
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load pending applications. Please try again.')
+				this.error = this.t(
+					'learniq',
+					'Failed to load pending applications. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[AdmissionsReviewBoard] loadData error', err)
 			} finally {
@@ -177,6 +241,7 @@ export default {
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		applicantName(application) {
 			const given = application.applicantGivenName || ''
@@ -189,15 +254,20 @@ export default {
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		roundKindLabel(application) {
 			const round = this.roundFor(application)
-			if (!round) return this.t('scholiq', 'Unknown round')
+			if (!round) return this.t('learniq', 'Unknown round')
 
 			const labels = {
-				'mbo-toelatingsrecht': this.t('scholiq', 'MBO toelatingsrecht'),
-				'vo-schooladvies-doorstroomtoets': this.t('scholiq', 'VO schooladvies/doorstroomtoets'),
-				generic: this.t('scholiq', 'Generic'),
+				'mbo-toelatingsrecht': this.t('learniq', 'MBO toelatingsrecht'),
+				'vo-schooladvies-doorstroomtoets': this.t(
+					'learniq',
+					'VO schooladvies/doorstroomtoets',
+				),
+
+				generic: this.t('learniq', 'Generic'),
 			}
 			return labels[round.kind] || round.kind || ''
 		},
@@ -213,16 +283,21 @@ export default {
 		capacityLabel(application) {
 			const round = this.roundFor(application)
 			if (!round || round.capacity === null || round.capacity === undefined) {
-				return this.t('scholiq', 'Capacity: uncapped')
+				return this.t('learniq', 'Capacity: uncapped')
 			}
 
 			const placedCount = this.applications.filter((a) => {
-				return a.admissionsRoundId === (round.id || round.uuid)
+				return (
+					a.admissionsRoundId === (round.id || round.uuid)
 					&& (a.lifecycle === 'placed' || a.lifecycle === 'converted')
+				)
 			}).length
 
 			const remaining = Math.max(0, round.capacity - placedCount)
-			return this.t('scholiq', '{remaining} of {capacity} seat(s) remaining', { remaining, capacity: round.capacity })
+			return this.t('learniq', '{remaining} of {capacity} seat(s) remaining', {
+				remaining,
+				capacity: round.capacity,
+			})
 		},
 
 		/**
@@ -230,6 +305,7 @@ export default {
 		 *
 		 * @param {object} application Application object
 		 * @return {string}
+		 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#scenario-a-coordinator-reviews-pending-applications-on-the-review-board
 		 */
 		decisionHref(application) {
 			const id = application.id || application.uuid
@@ -241,9 +317,10 @@ export default {
 		 *
 		 * @param {string|null} dt ISO date(-time) string
 		 * @return {string}
+		 * @spec exclude Generic Intl.DateTimeFormat wrapper with a raw-string fallback; no admissions-domain behaviour, just locale-aware date rendering shared by any field on this page.
 		 */
 		formatDate(dt) {
-			if (!dt) return this.t('scholiq', 'not set')
+			if (!dt) return this.t('learniq', 'not set')
 			try {
 				return new Intl.DateTimeFormat(navigator.language, {
 					year: 'numeric',
@@ -262,7 +339,8 @@ export default {
 .admissions-review-board {
 	max-width: 960px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .admissions-review-board__header {
@@ -300,7 +378,8 @@ export default {
 	justify-content: space-between;
 	gap: calc(var(--default-grid-baseline, 8px) * 2);
 	margin-bottom: var(--default-grid-baseline, 8px);
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 	border: 1px solid var(--color-border);
 	border-left: 4px solid var(--color-primary-element);
 	border-radius: var(--border-radius, 4px);

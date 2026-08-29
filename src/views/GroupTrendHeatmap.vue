@@ -28,17 +28,22 @@
 	<div class="group-trend-heatmap">
 		<header class="group-trend-heatmap__header">
 			<h2 class="group-trend-heatmap__title">
-				{{ t('scholiq', 'Group trend heat map') }}
+				{{ t('learniq', 'Group trend heat map') }}
 			</h2>
 			<p class="group-trend-heatmap__subtitle">
-				{{ t('scholiq', 'Average published grade per cohort and grading period, sourced from existing grade data.') }}
+				{{
+					t(
+						'learniq',
+						'Average published grade per cohort and grading period, sourced from existing grade data.',
+					)
+				}}
 			</p>
 		</header>
 
 		<!-- Loading -->
 		<div v-if="loading" class="group-trend-heatmap__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading grade trends...') }}</span>
+			<span>{{ t('learniq', 'Loading grade trends...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -48,9 +53,19 @@
 		</div>
 
 		<!-- Empty -->
-		<div v-else-if="cohortRows.length === 0" class="group-trend-heatmap__empty" role="status">
+		<div
+			v-else-if="cohortRows.length === 0"
+			class="group-trend-heatmap__empty"
+			role="status">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<p>{{ t('scholiq', 'No published grade entries found yet — the heat map will fill in as cohorts are graded.') }}</p>
+			<p>
+				{{
+					t(
+						'learniq',
+						'No published grade entries found yet — the heat map will fill in as cohorts are graded.',
+					)
+				}}
+			</p>
 		</div>
 
 		<!-- Heat map grid -->
@@ -59,10 +74,10 @@
 				<thead>
 					<tr>
 						<th scope="col">
-							{{ t('scholiq', 'Cohort') }}
+							{{ t('learniq', 'Cohort') }}
 						</th>
 						<th v-for="period in periods" :key="period" scope="col">
-							{{ t('scholiq', 'Period {period}', { period }) }}
+							{{ t('learniq', 'Period {period}', { period }) }}
 						</th>
 					</tr>
 				</thead>
@@ -79,7 +94,9 @@
 							<span v-if="row.averagesByPeriod[period] !== undefined">
 								{{ formatAverage(row.averagesByPeriod[period]) }}
 							</span>
-							<span v-else class="group-trend-heatmap__cell-empty">—</span>
+							<span v-else class="group-trend-heatmap__cell-empty"
+								>—</span
+							>
 						</td>
 					</tr>
 				</tbody>
@@ -114,7 +131,9 @@ export default {
 		 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
 		 */
 		periods() {
-			const set = new Set(this.gradeEntries.map((e) => e.period).filter(Boolean))
+			const set = new Set(
+				this.gradeEntries.map((e) => e.period).filter(Boolean),
+			)
 			return Array.from(set).sort()
 		},
 
@@ -125,6 +144,7 @@ export default {
 		 * wrong for e.g. a 0-100 scale).
 		 *
 		 * @return {{min: number, max: number}}
+		 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
 		 */
 		valueRange() {
 			const values = []
@@ -156,7 +176,8 @@ export default {
 				const cohortId = entry.cohortId
 				const period = entry.period
 				const value = entry.value
-				if (!cohortId || !period || value === null || value === undefined) continue
+				if (!cohortId || !period || value === null || value === undefined)
+					continue
 
 				if (!byCohort[cohortId]) {
 					byCohort[cohortId] = {}
@@ -168,18 +189,21 @@ export default {
 				byCohort[cohortId][period].count += 1
 			}
 
-			return Object.keys(byCohort).map((cohortId) => {
-				const averagesByPeriod = {}
-				for (const period of Object.keys(byCohort[cohortId])) {
-					const { sum, count } = byCohort[cohortId][period]
-					averagesByPeriod[period] = count > 0 ? sum / count : undefined
-				}
-				return {
-					cohortId,
-					cohortName: cohortNameById[cohortId] ?? cohortId,
-					averagesByPeriod,
-				}
-			}).sort((a, b) => a.cohortName.localeCompare(b.cohortName))
+			return Object.keys(byCohort)
+				.map((cohortId) => {
+					const averagesByPeriod = {}
+					for (const period of Object.keys(byCohort[cohortId])) {
+						const { sum, count } = byCohort[cohortId][period]
+						averagesByPeriod[period] =
+							count > 0 ? sum / count : undefined
+					}
+					return {
+						cohortId,
+						cohortName: cohortNameById[cohortId] ?? cohortId,
+						averagesByPeriod,
+					}
+				})
+				.sort((a, b) => a.cohortName.localeCompare(b.cohortName))
 		},
 	},
 
@@ -201,25 +225,51 @@ export default {
 
 			try {
 				const [cohortsResp, entriesResp] = await Promise.all([
-					fetch(generateUrl('/apps/openregister/api/objects/scholiq/Cohort?limit=200'), {
-						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-					}),
-					fetch(generateUrl('/apps/openregister/api/objects/scholiq/grade-entry?limit=500&lifecycle=published'), {
-						headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-					}),
+					fetch(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/Cohort?_limit=200',
+						),
+						{
+							headers: {
+								'OCS-APIREQUEST': 'true',
+								Accept: 'application/json',
+							},
+						},
+					),
+					fetch(
+						generateUrl(
+							'/apps/openregister/api/objects/learniq/grade-entry?_limit=500&lifecycle=published',
+						),
+						{
+							headers: {
+								'OCS-APIREQUEST': 'true',
+								Accept: 'application/json',
+							},
+						},
+					),
 				])
 
-				if (!cohortsResp.ok) throw new Error(`Cohort fetch failed: ${cohortsResp.status}`)
-				if (!entriesResp.ok) throw new Error(`GradeEntry fetch failed: ${entriesResp.status}`)
+				if (!cohortsResp.ok)
+					throw new Error(`Cohort fetch failed: ${cohortsResp.status}`)
+				if (!entriesResp.ok)
+					throw new Error(`GradeEntry fetch failed: ${entriesResp.status}`)
 
 				const cohortsJson = await cohortsResp.json()
 				const entriesJson = await entriesResp.json()
 
-				this.cohorts = cohortsJson.results ?? cohortsJson.objects ?? cohortsJson ?? []
-				this.gradeEntries = (entriesJson.results ?? entriesJson.objects ?? entriesJson ?? [])
-					.filter((e) => e.lifecycle === 'published' && !!e.cohortId)
+				this.cohorts =
+					cohortsJson.results ?? cohortsJson.objects ?? cohortsJson ?? []
+				this.gradeEntries = (
+					entriesJson.results
+					?? entriesJson.objects
+					?? entriesJson
+					?? []
+				).filter((e) => e.lifecycle === 'published' && !!e.cohortId)
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load grade trend data. Please try again.')
+				this.error = this.t(
+					'learniq',
+					'Failed to load grade trend data. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[GroupTrendHeatmap] loadData error', err)
 			} finally {
@@ -232,6 +282,7 @@ export default {
 		 *
 		 * @param {number} value Average value.
 		 * @return {string}
+		 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
 		 */
 		formatAverage(value) {
 			return Number(value).toFixed(1)
@@ -242,6 +293,7 @@ export default {
 		 *
 		 * @param {number|undefined} value Cell average, or undefined for an empty cell.
 		 * @return {string}
+		 * @spec openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
 		 */
 		cellClass(value) {
 			if (value === undefined) return ''
@@ -260,7 +312,8 @@ export default {
 .group-trend-heatmap {
 	max-width: 1100px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .group-trend-heatmap__header {
@@ -299,7 +352,8 @@ export default {
 .group-trend-heatmap__table th,
 .group-trend-heatmap__table td {
 	border: 1px solid var(--color-border);
-	padding: calc(var(--default-grid-baseline, 8px) / 2) var(--default-grid-baseline, 8px);
+	padding: calc(var(--default-grid-baseline, 8px) / 2)
+		var(--default-grid-baseline, 8px);
 	text-align: center;
 }
 

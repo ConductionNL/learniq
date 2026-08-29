@@ -1,36 +1,41 @@
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (C) 2026 Conduction B.V.
 
-import { createApp, h } from 'vue'
-import { createRouter, createWebHistory } from 'vue-router'
-import { translate as t, translatePlural as n, loadTranslations } from '@nextcloud/l10n'
-import { generateUrl } from '@nextcloud/router'
-import { loadState } from '@nextcloud/initial-state'
 import {
+	buildManifest,
 	CnPageRenderer,
 	defaultPageTypes,
-	registerIcons,
-	registerTranslations,
-	buildManifest,
+	installIntegrationRegistry,
 	registerBuiltinDashboardWidgets,
+	registerBuiltinIntegrations,
+	registerIcons,
+	registerLeafIntegrations,
+	registerTranslations,
 } from '@conduction/nextcloud-vue'
-import pinia from './pinia.js'
+import { loadState } from '@nextcloud/initial-state'
+import {
+	loadTranslations,
+	translatePlural as n,
+	translate as t,
+} from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
+import { createApp, h } from 'vue'
+import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
+import appIcons from './icons.js'
 import bundledManifest from './manifest.json'
 import menuLayout from './menu-layout.json'
+import pinia from './pinia.js'
 import registry from './registry.js'
-import appIcons from './icons.js'
 
 // Library CSS — must be explicit import (webpack tree-shakes side-effect imports from aliased packages)
 import '@conduction/nextcloud-vue/css/index.css'
-
 // gridstack is a REQUIRED peer of @conduction/nextcloud-vue that no consumer
 // declares; it used to resolve by accident from a hoisted node_modules outside
 // the repo. Its stylesheet is the silent half: v12 sizes items with
 // `width: var(--gs-column-width)`, so without the CSS every dashboard item
 // renders 0 px wide with no console error at all.
 import 'gridstack/dist/gridstack.min.css'
-
 // Global (unscoped) app styles
 import './assets/app.css'
 
@@ -58,6 +63,28 @@ import './assets/app.css'
 //      the app-local copy did not have (`form: null`).
 registerBuiltinDashboardWidgets()
 
+// Integration registry (ADR-019). learniq's manifest declares THREE
+// `type: "integration"` widgets — `cohort-talk` ("Class space") on
+// CohortDetail, `session-talk` ("Join call") and `sess-files` ("Session
+// materials") on SessionDetail — and nothing ever registered a provider for
+// them to resolve against.
+//
+// That failure is silent by design. CnDetailPage.resolveIntegrationWidget()
+// returns null when the integration is not registered, and its own docblock
+// says what happens next: "the grid section simply renders nothing extra". No
+// error, no placeholder, no gap in the layout — three declared widgets just
+// were not there, on every page load since they were declared.
+//
+// Note this is NOT the "Talk is not installed" path. A registered talk leaf
+// whose backing app is absent renders CnTalkCard's degraded surface, title and
+// all; an UNREGISTERED one renders nothing whatsoever. talk-classroom-spaces
+// e2e asserted the former and got the latter, and read as a Talk problem.
+//
+// Same three calls, same order, as decidiq's main.js.
+installIntegrationRegistry()
+registerBuiltinIntegrations()
+registerLeafIntegrations()
+
 // Register library-side icon set + lib translations once at bootstrap.
 registerIcons(appIcons)
 try {
@@ -65,18 +92,24 @@ try {
 } catch (e) {
 	// Non-fatal — lib translations fall back to English source.
 	// eslint-disable-next-line no-console
-	console.warn('[scholiq] registerTranslations failed; falling back to English', e)
+	console.warn('[learniq] registerTranslations failed; falling back to English', e)
 }
 
 // Fire-and-forget translation load. Some Nextcloud installs only allow the
 // JS/CSS allowlist through Apache — /custom_apps/<app>/l10n/<locale>.json
 // 404s in those environments. Wrapping mount in the callback means silent
 // boot failure. Strings fall back to their English source on miss.
+/**
+ *
+ */
 function tryLoadTranslations() {
 	try {
-		const result = loadTranslations('scholiq', () => {})
+		const result = loadTranslations('learniq', () => {})
 		if (result && typeof result.then === 'function') {
-			result.then(() => {}, () => {})
+			result.then(
+				() => {},
+				() => {},
+			)
 		}
 	} catch {
 		// no-op
@@ -116,16 +149,17 @@ function routesFromManifest(manifest) {
 // PageController; absent runtime would (by lib fail-safe) hide every
 // role-gated menu item. Defaults to the least-privileged role on miss.
 // The set of dashboard views the signed-in user may see (resolved server-side
-// from `scholiq-{role}` group membership; admins get all three, everyone gets
-// 'student'). Exposed as per-role booleans so each dashboard menu item's
+// by DashboardRoleService from NC's admin group and the unprefixed
+// role-backing groups; admins get all three, everyone gets 'student').
+// Exposed as per-role booleans so each dashboard menu item's
 // `visibleIf` can gate on a scalar `eq: true` (the predicate grammar has no
 // array-contains operator).
-const dashboardRoles = loadState('scholiq', 'dashboardRoles', ['student']) || []
+const dashboardRoles = loadState('learniq', 'dashboardRoles', ['student']) || []
 bundledManifest.runtime = {
 	...(bundledManifest.runtime || {}),
 	user: {
 		...(bundledManifest.runtime?.user || {}),
-		primaryRole: loadState('scholiq', 'primaryRole', 'learner'),
+		primaryRole: loadState('learniq', 'primaryRole', 'learner'),
 		canAdminDashboard: dashboardRoles.includes('admin'),
 		canTeachDashboard: dashboardRoles.includes('teacher'),
 		canLearnDashboard: dashboardRoles.includes('student'),
@@ -135,12 +169,21 @@ bundledManifest.runtime = {
 // Collect the app's manifest.d/*.json fragments — require.context is resolved
 // by this app's own webpack build, so it stays app-local — then hand the base
 // manifest, fragments, and menu-layout to the shared pipeline (ADR-037 / ADR-044).
+// `require.context` is a WEBPACK build-time API, not CommonJS `require`: the
+// bundler rewrites this call at compile time and no `require` exists at
+// runtime. eslint's browser globals therefore report `no-undef` correctly —
+// the code is right and the linter is right. Scoped to this one identifier so
+// a genuinely undefined name elsewhere in the file still fails.
+/* global require */
 const fragmentCtx = require.context('./manifest.d/', false, /\.json$/)
-const fragments = fragmentCtx.keys().sort().map((key) => fragmentCtx(key))
+const fragments = fragmentCtx
+	.keys()
+	.sort()
+	.map((key) => fragmentCtx(key))
 const mergedManifest = buildManifest(bundledManifest, fragments, menuLayout)
 
 const router = createRouter({
-	history: createWebHistory(generateUrl('/apps/scholiq')),
+	history: createWebHistory(generateUrl('/apps/learniq')),
 	routes: routesFromManifest(mergedManifest),
 })
 
@@ -155,11 +198,12 @@ const pageTypesProp = { ...defaultPageTypes }
 const registryProp = { ...registry }
 
 const app = createApp({
-	render: () => h(App, {
-		manifest: mergedManifest,
-		registry: registryProp,
-		pageTypes: pageTypesProp,
-	}),
+	render: () =>
+		h(App, {
+			manifest: mergedManifest,
+			registry: registryProp,
+			pageTypes: pageTypesProp,
+		}),
 })
 
 app.use(pinia)
@@ -169,7 +213,7 @@ app.use(router)
 // one app instance, so this must be applied to `app`, not to an import.
 app.mixin({ methods: { t, n } })
 
-// ⚠️ Mount host: `#scholiq-app`, NOT `#content`.
+// ⚠️ Mount host: `#learniq-app`, NOT `#content`.
 //
 // Vue 2's `$mount(sel)` REPLACED the matched element; Vue 3's `mount(sel)`
 // renders INSIDE it. templates/index.php used to declare its own
@@ -179,4 +223,4 @@ app.mixin({ methods: { t, n } })
 // render inside core's wrapper and inherit its layout. Renaming the host
 // element is the fix — reasoning about which of two identically-ided divs
 // `mount()` picks is not.
-app.mount('#scholiq-app')
+app.mount('#learniq-app')

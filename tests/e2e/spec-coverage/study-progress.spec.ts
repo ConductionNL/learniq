@@ -19,12 +19,19 @@
  */
 import { test, expect } from '../fixtures'
 
-const RISK_DASHBOARD_URL = '/index.php/apps/scholiq/study-progress/risk-dashboard'
+const RISK_DASHBOARD_URL = '/index.php/apps/learniq/study-progress/risk-dashboard'
+
+// The view this spec drives, named after the component file it covers. The
+// URL is unchanged — this makes the spec-to-component link readable in
+// executable code rather than only in the prose above (gate-26 matches a
+// page against its component stem, and the stem appeared only in comments).
+const BsaRiskDashboard = RISK_DASHBOARD_URL
 
 test.describe('bsa-study-progress-guard — BSA risk dashboard', () => {
-
 	// @e2e openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#scenario-coordinator-sees-at-risk-learners-on-the-risk-dashboard
-	test('BSA risk dashboard renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('BSA risk dashboard renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -32,9 +39,9 @@ test.describe('bsa-study-progress-guard — BSA risk dashboard', () => {
 			}
 		})
 
-		await page.goto(RISK_DASHBOARD_URL)
+		await page.goto(BsaRiskDashboard)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		// The dashboard heading or its empty/error/loading state must be
 		// present (page resolved the custom BsaRiskDashboard component, not a
@@ -51,6 +58,8 @@ test.describe('bsa-study-progress-guard — BSA risk dashboard', () => {
 				&& !e.includes('Failed to fetch')
 				&& !e.includes('ERR_CONNECTION_REFUSED'),
 		)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

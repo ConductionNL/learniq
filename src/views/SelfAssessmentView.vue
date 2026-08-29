@@ -19,12 +19,12 @@
   MarkSubmissionView.
 
   Talks only to OpenRegister's REST API:
-    - GET  /api/objects/scholiq/Submission/:id
-    - GET  /api/objects/scholiq/Assignment/:id
-    - GET  /api/objects/scholiq/Rubric/:id
-    - GET  /api/objects/scholiq/self-assessment?submissionId=:id&learnerId=:uid
-    - POST/PUT /api/objects/scholiq/self-assessment
-    - POST /api/objects/scholiq/self-assessment/:id/transition/submit
+    - GET  /api/objects/learniq/Submission/:id
+    - GET  /api/objects/learniq/Assignment/:id
+    - GET  /api/objects/learniq/Rubric/:id
+    - GET  /api/objects/learniq/self-assessment?submissionId=:id&learnerId=:uid
+    - POST/PUT /api/objects/learniq/self-assessment
+    - POST /api/objects/learniq/self-assessment/:id/transition/submit
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView / PeerReviewMarkingView.
@@ -41,7 +41,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="self-assessment-view__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('scholiq', 'Loading self-assessment...') }}</span>
+			<span>{{ t('learniq', 'Loading self-assessment...') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -51,26 +51,42 @@
 		</div>
 
 		<!-- Submitted confirmation -->
-		<div v-else-if="submitted"
+		<div
+			v-else-if="submitted"
 			class="self-assessment-view__confirmation"
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('scholiq', 'Self-assessment submitted') }}</h2>
-			<p>{{ t('scholiq', 'Score: {score} / {max}', { score: computedScore, max: assignment.maxPoints || '?' }) }}</p>
+			<h2>{{ t('learniq', 'Self-assessment submitted') }}</h2>
+			<p>
+				{{
+					t('learniq', 'Score: {score} / {max}', {
+						score: computedScore,
+						max: assignment.maxPoints || '?',
+					})
+				}}
+			</p>
 		</div>
 
 		<!-- Marking form -->
 		<template v-else-if="submission">
 			<header class="self-assessment-view__header">
-				<h2>{{ t('scholiq', 'Self-assessment') }}</h2>
+				<h2>{{ t('learniq', 'Self-assessment') }}</h2>
 				<p class="self-assessment-view__meta">
-					{{ t('scholiq', 'Assignment: {title}', { title: assignment.title || '' }) }}
+					{{
+						t('learniq', 'Assignment: {title}', {
+							title: assignment.title || '',
+						})
+					}}
 				</p>
 			</header>
 
-			<section v-if="rubric && rubric.criteria && rubric.criteria.length > 0" class="self-assessment-view__rubric">
-				<h3>{{ t('scholiq', 'Rubric: {name}', { name: rubric.name || '' }) }}</h3>
+			<section
+				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
+				class="self-assessment-view__rubric">
+				<h3>
+					{{ t('learniq', 'Rubric: {name}', { name: rubric.name || '' }) }}
+				</h3>
 
 				<div
 					v-for="criterion in rubric.criteria"
@@ -79,7 +95,11 @@
 					<h4 class="self-assessment-view__criterion-label">
 						{{ criterion.label }}
 						<span class="self-assessment-view__criterion-weight">
-							{{ t('scholiq', '(weight: {w})', { w: criterion.weight }) }}
+							{{
+								t('learniq', '(weight: {w})', {
+									w: criterion.weight,
+								})
+							}}
 						</span>
 					</h4>
 					<div class="self-assessment-view__levels">
@@ -91,28 +111,44 @@
 								type="radio"
 								:name="criterion.criterionId"
 								:value="level.levelId"
-								:checked="getSelectedLevel(criterion.criterionId) === level.levelId"
+								:checked="
+									getSelectedLevel(criterion.criterionId)
+									=== level.levelId
+								"
 								:disabled="saving"
-								@change="selectLevel(criterion, level)">
-							<span class="self-assessment-view__level-label">{{ level.label }}</span>
+								@change="selectLevel(criterion, level)" />
+							<span class="self-assessment-view__level-label">{{
+								level.label
+							}}</span>
 							<span class="self-assessment-view__level-points">
-								{{ t('scholiq', '{pts} pts', { pts: level.points }) }}
+								{{
+									t('learniq', '{pts} pts', { pts: level.points })
+								}}
 							</span>
 						</label>
 					</div>
 				</div>
 
 				<div class="self-assessment-view__score-total">
-					<strong>{{ t('scholiq', 'Score: {score} / {max}', { score: computedScore, max: assignment.maxPoints || '?' }) }}</strong>
+					<strong>{{
+						t('learniq', 'Score: {score} / {max}', {
+							score: computedScore,
+							max: assignment.maxPoints || '?',
+						})
+					}}</strong>
 				</div>
 			</section>
 
 			<section class="self-assessment-view__comments">
-				<h3>{{ t('scholiq', 'Your reflection') }}</h3>
+				<h3 id="self-assessment-comments-label">
+					{{ t('learniq', 'Your reflection') }}
+				</h3>
 				<textarea
+					id="self-assessment-comments"
 					v-model="comments"
 					class="self-assessment-view__comments-input"
-					:placeholder="t('scholiq', 'Reflect on your own work...')"
+					aria-labelledby="self-assessment-comments-label"
+					:placeholder="t('learniq', 'Reflect on your own work...')"
 					:disabled="saving"
 					rows="5" />
 			</section>
@@ -123,10 +159,13 @@
 					:disabled="saving || !canSubmit"
 					@click="saveAndSubmit">
 					<span v-if="saving" class="icon-loading" aria-hidden="true" />
-					{{ t('scholiq', 'Submit self-assessment') }}
+					{{ t('learniq', 'Submit self-assessment') }}
 				</button>
 			</div>
-			<p v-if="saveError" role="alert" class="self-assessment-view__save-error">
+			<p
+				v-if="saveError"
+				role="alert"
+				class="self-assessment-view__save-error">
 				{{ saveError }}
 			</p>
 		</template>
@@ -134,8 +173,8 @@
 </template>
 
 <script>
-import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
+import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'SelfAssessmentView',
@@ -148,6 +187,7 @@ export default {
 			type: String,
 			required: true,
 		},
+
 		/**
 		 * Submission UUID injected by vue-router from :id param.
 		 */
@@ -188,6 +228,7 @@ export default {
 		 * Sum of points for all selected criterion levels.
 		 *
 		 * @return {number}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		computedScore() {
 			return Object.values(this.selectedLevels).reduce(
@@ -201,12 +242,19 @@ export default {
 		 * the server enforces this via RubricScoresCompletionGuard regardless).
 		 *
 		 * @return {boolean}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		canSubmit() {
-			if (!this.rubric || !this.rubric.criteria || this.rubric.criteria.length === 0) {
+			if (
+				!this.rubric
+				|| !this.rubric.criteria
+				|| this.rubric.criteria.length === 0
+			) {
 				return true
 			}
-			return this.rubric.criteria.every((c) => this.selectedLevels[c.criterionId] != null)
+			return this.rubric.criteria.every(
+				(c) => this.selectedLevels[c.criterionId] != null,
+			)
 		},
 
 		/**
@@ -214,6 +262,7 @@ export default {
 		 * Submission has already been submitted.
 		 *
 		 * @return {string} 'before-submission' or 'after-submission'
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		timing() {
 			return this.submission && this.submission.lifecycle === 'draft'
@@ -230,6 +279,7 @@ export default {
 			 *
 			 * @param {string} newId New Submission UUID
 			 * @return {void}
+			 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 			 */
 			handler(newId) {
 				if (newId) {
@@ -246,6 +296,7 @@ export default {
 		 *
 		 * @param {string} submissionId Submission UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadData(submissionId) {
 			this.loading = true
@@ -253,7 +304,9 @@ export default {
 
 			try {
 				await this.loadSubmission(submissionId)
-				await this.loadAssignment(this.submission.assignmentId ?? this.assignmentId)
+				await this.loadAssignment(
+					this.submission.assignmentId ?? this.assignmentId,
+				)
 
 				if (this.assignment.rubricId) {
 					await this.loadRubric(this.assignment.rubricId)
@@ -272,7 +325,10 @@ export default {
 					this.comments = this.selfAssessment.comments ?? ''
 				}
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load self-assessment. Please try again.')
+				this.error = this.t(
+					'learniq',
+					'Failed to load self-assessment. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[SelfAssessmentView] loadData error', err)
 			} finally {
@@ -285,9 +341,12 @@ export default {
 		 *
 		 * @param {string} submissionId Submission UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadSubmission(submissionId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Submission/${submissionId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/Submission/${submissionId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -303,9 +362,12 @@ export default {
 		 *
 		 * @param {string} assignmentId Assignment UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadAssignment(assignmentId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Assignment/${assignmentId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/Assignment/${assignmentId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -321,9 +383,12 @@ export default {
 		 *
 		 * @param {string} rubricId Rubric UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadRubric(rubricId) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/Rubric/${rubricId}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/Rubric/${rubricId}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -341,11 +406,12 @@ export default {
 		 *
 		 * @param {string} submissionId Submission UUID
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadExistingSelfAssessment(submissionId) {
 			const uid = getCurrentUser()?.uid ?? ''
 			const url = generateUrl(
-				`/apps/openregister/api/objects/scholiq/self-assessment?filters[submissionId]=${submissionId}&filters[learnerId]=${uid}&limit=1`,
+				`/apps/openregister/api/objects/learniq/self-assessment?filters[submissionId]=${submissionId}&filters[learnerId]=${uid}&_limit=1`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
@@ -354,7 +420,8 @@ export default {
 				return
 			}
 			const json = await resp.json()
-			const results = json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
+			const results =
+				json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
 			this.selfAssessment = results.length > 0 ? results[0] : null
 		},
 
@@ -374,11 +441,15 @@ export default {
 		 * @param {object} criterion Rubric criterion object
 		 * @param {object} level     Selected level object
 		 * @return {void}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		selectLevel(criterion, level) {
 			this.selectedLevels = {
 				...this.selectedLevels,
-				[criterion.criterionId]: { levelId: level.levelId, points: level.points },
+				[criterion.criterionId]: {
+					levelId: level.levelId,
+					points: level.points,
+				},
 			}
 		},
 
@@ -386,6 +457,7 @@ export default {
 		 * Build the rubricScores array from current selections.
 		 *
 		 * @return {Array<{criterionId: string, levelId: string, points: number}>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		buildRubricScores() {
 			return Object.entries(this.selectedLevels).map(([criterionId, sel]) => ({
@@ -401,6 +473,7 @@ export default {
 		 * GradeEntry — grade authority stays with the teacher.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async saveAndSubmit() {
 			if (!this.submission) {
@@ -427,8 +500,12 @@ export default {
 
 				const isUpdate = this.selfAssessment != null
 				const saveUrl = isUpdate
-					? generateUrl(`/apps/openregister/api/objects/scholiq/self-assessment/${this.selfAssessment.id}`)
-					: generateUrl('/apps/openregister/api/objects/scholiq/self-assessment')
+					? generateUrl(
+							`/apps/openregister/api/objects/learniq/self-assessment/${this.selfAssessment.id}`,
+						)
+					: generateUrl(
+							'/apps/openregister/api/objects/learniq/self-assessment',
+						)
 
 				const saveResp = await fetch(saveUrl, {
 					method: isUpdate ? 'PUT' : 'POST',
@@ -437,7 +514,11 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify(isUpdate ? { ...payload, id: this.selfAssessment.id } : payload),
+					body: JSON.stringify(
+						isUpdate
+							? { ...payload, id: this.selfAssessment.id }
+							: payload,
+					),
 				})
 				if (!saveResp.ok) {
 					throw new Error(`SelfAssessment save failed: ${saveResp.status}`)
@@ -452,7 +533,7 @@ export default {
 				}
 
 				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/scholiq/self-assessment/${selfAssessmentId}/transition/submit`,
+					`/apps/openregister/api/objects/learniq/self-assessment/${selfAssessmentId}/transition/submit`,
 				)
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',
@@ -469,7 +550,10 @@ export default {
 
 				this.submitted = true
 			} catch (err) {
-				this.saveError = this.t('scholiq', 'Failed to save self-assessment. Please try again.')
+				this.saveError = this.t(
+					'learniq',
+					'Failed to save self-assessment. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[SelfAssessmentView] saveAndSubmit error', err)
 			} finally {
@@ -484,7 +568,8 @@ export default {
 .self-assessment-view {
 	max-width: 860px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .self-assessment-view__loading,

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Learning Record Export Service
+ * Learniq Learning Record Export Service
  *
  * OR lifecycle guard for `LearningRecordExport`'s `generate` transition.
  * Reads `LearningRecordAggregationService::compose()`'s live composition,
@@ -21,10 +21,10 @@
  *
  * Legitimate PHP per ADR-031 "Lifecycle guard" — referenced from
  * `LearningRecordExport`'s `x-openregister-lifecycle.transitions.generate
- * .requires` in scholiq_register.json.
+ * .requires` in learniq_register.json.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -41,15 +41,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\Files\IRootFolder;
-use OCP\Files\NotFoundException;
-use Psr\Log\LoggerInterface;
 
 /**
  * Guards `LearningRecordExport`'s `generate` transition and assembles the
@@ -57,494 +54,473 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/portable-learning-record/tasks.md#task-2-3
  */
-class LearningRecordExportService
-{
+class LearningRecordExportService {
 
-    private const SCHOLIQ_REGISTER = 'scholiq';
+	private const LEARNIQ_REGISTER = 'learniq';
 
-    /**
-     * Schemas whose per-item timestamp is unambiguous enough to apply
-     * periodFrom/periodTo narrowing against — mapped to the field name
-     * holding that timestamp. Every other composed collection (Enrolment,
-     * FinalGrade, CompetencyAttainment, Portfolio/PortfolioEntry,
-     * BpvPlacement, the LessonCompletion per-course summary) is a
-     * container/roll-up with no single comparable "when this evidence
-     * happened" instant, so period narrowing is deliberately NOT applied to
-     * those — they are always `included`, never silently dropped for lack
-     * of a date to compare.
-     */
-    private const PERIOD_FIELD_BY_SCHEMA = [
-        'credential'               => 'issuedAt',
-        'external-training-record' => 'completedAt',
-        'werkproces-assessment'    => 'assessedAt',
-        'report-card'              => 'composedAt',
-    ];
+	/**
+	 * Schemas whose per-item timestamp is unambiguous enough to apply
+	 * periodFrom/periodTo narrowing against — mapped to the field name
+	 * holding that timestamp. Every other composed collection (Enrolment,
+	 * FinalGrade, CompetencyAttainment, Portfolio/PortfolioEntry,
+	 * BpvPlacement, the LessonCompletion per-course summary) is a
+	 * container/roll-up with no single comparable "when this evidence
+	 * happened" instant, so period narrowing is deliberately NOT applied to
+	 * those — they are always `included`, never silently dropped for lack
+	 * of a date to compare.
+	 */
+	private const PERIOD_FIELD_BY_SCHEMA = [
+		'credential' => 'issuedAt',
+		'external-training-record' => 'completedAt',
+		'werkproces-assessment' => 'assessedAt',
+		'report-card' => 'composedAt',
+	];
 
-    /**
-     * Staff professional-judgment schemas explicitly OUT of
-     * LearningRecordAggregationService's scope. Reported in coverageReport[]
-     * as `omitted` (never included) whenever a row exists for the learner
-     * within the requested period, so the exclusion boundary is visible, not
-     * silent — design.md "What the learner controls vs. what stays
-     * institutional".
-     */
-    private const EXCLUDED_SCHEMA_DATE_FIELD = [
-        'dossier-note'       => 'date',
-        'behaviour-incident' => 'occurredAt',
-        'wellbeing-check-in' => 'submittedAt',
-    ];
+	/**
+	 * Staff professional-judgment schemas explicitly OUT of
+	 * LearningRecordAggregationService's scope. Reported in coverageReport[]
+	 * as `omitted` (never included) whenever a row exists for the learner
+	 * within the requested period, so the exclusion boundary is visible, not
+	 * silent — design.md "What the learner controls vs. what stays
+	 * institutional".
+	 */
+	private const EXCLUDED_SCHEMA_DATE_FIELD = [
+		'dossier-note' => 'date',
+		'behaviour-incident' => 'occurredAt',
+		'wellbeing-check-in' => 'submittedAt',
+	];
 
-    /**
-     * Constructor.
-     *
-     * @param LearningRecordAggregationService   $aggregationService Cross-schema composition.
-     * @param LearningRecordExportSigningService $signingService     Bundle canonicalisation + signing.
-     * @param ObjectService                      $objectService      OR object read service (excluded-schema lookups).
-     * @param IRootFolder                        $rootFolder         NC root folder for writing the signed bundle.
-     * @param LoggerInterface                    $logger             PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly LearningRecordAggregationService $aggregationService,
-        private readonly LearningRecordExportSigningService $signingService,
-        private readonly ObjectService $objectService,
-        private readonly IRootFolder $rootFolder,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param LearningRecordAggregationService $aggregationService Cross-schema composition.
+	 * @param LearningRecordExportSigningService $signingService Bundle canonicalisation + signing.
+	 * @param ObjectService $objectService OR object read service (excluded-schema lookups).
+	 * @param LearningRecordBundleWriter $bundleWriter nc:files writer for the signed bundle.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly LearningRecordAggregationService $aggregationService,
+		private readonly LearningRecordExportSigningService $signingService,
+		private readonly ObjectService $objectService,
+		private readonly LearningRecordBundleWriter $bundleWriter,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point for `LearningRecordExport`'s `generate`
-     * transition.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the LearningRecordExport data array
-     *                                               - 'transition' : 'generate'
-     *                                               - 'from'       : 'requested'
-     *                                               - 'to'         : 'generated'
-     *
-     * @return bool True when the bundle was assembled and signed; false blocks the transition.
-     *
-     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
-     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-generation-fails-closed-and-blocks-the-transition-on-error
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $object = &$transitionContext['object'];
+	/**
+	 * OR lifecycle guard entry-point for `LearningRecordExport`'s `generate`
+	 * transition.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the LearningRecordExport data array
+	 *                                               - 'transition' : 'generate'
+	 *                                               - 'from'       : 'requested'
+	 *                                               - 'to'         : 'generated'
+	 *
+	 * @return bool True when the bundle was assembled and signed; false blocks the transition.
+	 *
+	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
+	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-generation-fails-closed-and-blocks-the-transition-on-error
+	 */
+	public function check(array &$transitionContext): bool {
+		$object = &$transitionContext['object'];
 
-        $learnerRef  = (string) ($object['learnerRef'] ?? '');
-        $learnerId   = (string) ($object['learnerId'] ?? '');
-        $requestedBy = (string) ($object['requestedBy'] ?? '');
-        $tenantId    = (string) ($object['tenant_id'] ?? '');
-        $periodFrom  = $object['periodFrom'] ?? null;
-        $periodTo    = $object['periodTo'] ?? null;
+		$learnerRef = (string)($object['learnerRef'] ?? '');
+		$learnerId = (string)($object['learnerId'] ?? '');
+		$requestedBy = (string)($object['requestedBy'] ?? '');
+		$tenantId = (string)($object['tenant_id'] ?? '');
+		$periodFrom = $object['periodFrom'] ?? null;
+		$periodTo = $object['periodTo'] ?? null;
 
-        if ($learnerRef === '' || $tenantId === '') {
-            $object['errorMessage'] = 'Missing learnerRef or tenant_id — cannot compose a record to export.';
-            return false;
-        }
+		if ($learnerRef === '' || $tenantId === '') {
+			$object['errorMessage'] = 'Missing learnerRef or tenant_id — cannot compose a record to export.';
+			return false;
+		}
 
-        $composition = $this->aggregationService->compose(learnerRef: $learnerRef);
+		$composition = $this->aggregationService->compose(learnerRef: $learnerRef);
 
-        $coverageReport = [];
-        $scholiqNative  = [];
+		$walked = $this->walkComposition(composition: $composition, periodFrom: $periodFrom, periodTo: $periodTo);
+		$coverageReport = $walked['coverageReport'];
+		$scholiqNative = $walked['scholiqNative'];
 
-        foreach ($composition as $collectionKey => $rows) {
-            $schema = $this->schemaForCollectionKey(key: $collectionKey);
+		// Name the staff professional-judgment records that fall within the
+		// requested scope but are deliberately never included — visible, not
+		// silent, per design.md.
+		foreach ($this->findExcludedRowsInScope(learnerId: $learnerId, periodFrom: $periodFrom, periodTo: $periodTo) as $excludedEntry) {
+			$coverageReport[] = $excludedEntry;
+		}
 
-            if ($collectionKey === 'lessonCompletions') {
-                // Already a per-course summary — always `summarized`, never
-                // period-filtered (the summary spans the whole enrolment).
-                foreach ($rows as $row) {
-                    $coverageReport[] = [
-                        'sourceSchema' => 'lesson-completion',
-                        'sourceId'     => (string) ($row['courseId'] ?? ''),
-                        'sourceTitle'  => 'Lesson completions — course '.($row['courseId'] ?? 'unknown'),
-                        'outcome'      => 'summarized',
-                        'reason'       => 'Summarized per course (count + percentage) — the raw per-lesson log is never exported.',
-                    ];
-                }
+		$elm = $this->buildElmSection(credentials: $scholiqNative['credentials'] ?? []);
 
-                $scholiqNative[$collectionKey] = $rows;
-                continue;
-            }
+		$issuerDid = $this->signingService->resolveIssuerDid(tenantId: $tenantId);
+		if ($issuerDid === null) {
+			$object['errorMessage'] = 'No signing key configured for this tenant — an admin must generate one before an export can be signed.';
+			return false;
+		}
 
-            $dateField    = self::PERIOD_FIELD_BY_SCHEMA[$schema] ?? null;
-            $includedRows = [];
-            foreach ($rows as $row) {
-                $inPeriod = $this->isWithinPeriod(row: $row, dateField: $dateField, periodFrom: $periodFrom, periodTo: $periodTo);
+		$generatedAt = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 
-                if ($inPeriod === false) {
-                    $coverageReport[] = [
-                        'sourceSchema' => $schema,
-                        'sourceId'     => (string) ($row['id'] ?? ($row['uuid'] ?? '')),
-                        'sourceTitle'  => $this->resolveSourceTitle(schema: $schema, row: $row),
-                        'outcome'      => 'omitted',
-                        'reason'       => 'Outside the requested export period.',
-                    ];
-                    continue;
-                }
+		$bundle = [
+			'bundleType' => 'scholiq-learning-record',
+			'issuerDid' => $issuerDid,
+			'generatedAt' => $generatedAt,
+			'learnerRef' => $learnerRef,
+			'periodFrom' => $periodFrom,
+			'periodTo' => $periodTo,
+			'elm' => $elm,
+			'scholiqNative' => $scholiqNative,
+		];
 
-                $includedRows[]   = $row;
-                $coverageReport[] = [
-                    'sourceSchema' => $schema,
-                    'sourceId'     => (string) ($row['id'] ?? ($row['uuid'] ?? '')),
-                    'sourceTitle'  => $this->resolveSourceTitle(schema: $schema, row: $row),
-                    'outcome'      => 'included',
-                    'reason'       => null,
-                ];
-            }//end foreach
+		$jws = $this->signingService->sign(bundle: $bundle, tenantId: $tenantId);
+		if ($jws === null) {
+			$object['errorMessage'] = 'Signing the export bundle failed.';
+			return false;
+		}
 
-            $scholiqNative[$collectionKey] = $includedRows;
-        }//end foreach
+		// The stored/downloadable artifact is fully self-contained: the
+		// signed payload PLUS its own proof, so a third party can verify it
+		// without calling Learniq. Mirrors Credential.openbadges3Payload
+		// embedding its own `proof` block after signing (CredentialSigningService
+		// ::check()) — the signing input itself never includes `proof`.
+		$signedBundle = $bundle;
+		$signedBundle['proof'] = [
+			'type' => 'DataIntegrityProof',
+			'cryptosuite' => 'rsa-signature-2025',
+			'created' => $generatedAt,
+			'verificationMethod' => $issuerDid,
+			'proofPurpose' => 'assertionMethod',
+			'jws' => $jws,
+		];
 
-        // Name the staff professional-judgment records that fall within the
-        // requested scope but are deliberately never included — visible, not
-        // silent, per design.md.
-        foreach ($this->findExcludedRowsInScope(learnerId: $learnerId, periodFrom: $periodFrom, periodTo: $periodTo) as $excludedEntry) {
-            $coverageReport[] = $excludedEntry;
-        }
+		$exportId = (string)($object['id'] ?? ($object['uuid'] ?? bin2hex(random_bytes(8))));
 
-        $elm = $this->buildElmSection(credentials: $scholiqNative['credentials'] ?? []);
+		$ownerUid = $requestedBy;
+		if ($learnerId !== '') {
+			$ownerUid = $learnerId;
+		}
 
-        $issuerDid = $this->signingService->resolveIssuerDid(tenantId: $tenantId);
-        if ($issuerDid === null) {
-            $object['errorMessage'] = 'No signing key configured for this tenant — an admin must generate one before an export can be signed.';
-            return false;
-        }
+		$bundleRef = $this->bundleWriter->write(
+			bundle: $signedBundle,
+			ownerUid: $ownerUid,
+			tenantId: $tenantId,
+			exportId: $exportId
+		);
+		if ($bundleRef === null) {
+			$object['errorMessage'] = 'Could not store the signed bundle.';
+			return false;
+		}
 
-        $generatedAt = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+		$object['coverageReport'] = $coverageReport;
+		$object['bundleRef'] = $bundleRef;
+		$object['bundleSignature'] = $jws;
+		$object['issuerDid'] = $issuerDid;
+		$object['generatedAt'] = $generatedAt;
+		$object['errorMessage'] = null;
 
-        $bundle = [
-            'bundleType'    => 'scholiq-learning-record',
-            'issuerDid'     => $issuerDid,
-            'generatedAt'   => $generatedAt,
-            'learnerRef'    => $learnerRef,
-            'periodFrom'    => $periodFrom,
-            'periodTo'      => $periodTo,
-            'elm'           => $elm,
-            'scholiqNative' => $scholiqNative,
-        ];
+		return true;
+	}//end check()
 
-        $jws = $this->signingService->sign(bundle: $bundle, tenantId: $tenantId);
-        if ($jws === null) {
-            $object['errorMessage'] = 'Signing the export bundle failed.';
-            return false;
-        }
+	/**
+	 * Walk the composed collections, deciding per row whether it is exported,
+	 * and record every row's outcome in the coverage report.
+	 *
+	 * Nothing is ever dropped silently: a row excluded by the period filter
+	 * still produces an `omitted` coverage entry naming it.
+	 *
+	 * @param array<string,array<int,array<string,mixed>>> $composition `LearningRecordAggregationService::compose()` result.
+	 * @param mixed $periodFrom Requested period start (inclusive), or null.
+	 * @param mixed $periodTo Requested period end (inclusive), or null.
+	 *
+	 * @return array{coverageReport: array<int,array<string,mixed>>, scholiqNative: array<string,array<int,array<string,mixed>>>}
+	 *
+	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
+	 */
+	private function walkComposition(array $composition, mixed $periodFrom, mixed $periodTo): array {
+		$coverageReport = [];
+		$scholiqNative = [];
 
-        // The stored/downloadable artifact is fully self-contained: the
-        // signed payload PLUS its own proof, so a third party can verify it
-        // without calling Scholiq. Mirrors Credential.openbadges3Payload
-        // embedding its own `proof` block after signing (CredentialSigningService
-        // ::check()) — the signing input itself never includes `proof`.
-        $signedBundle          = $bundle;
-        $signedBundle['proof'] = [
-            'type'               => 'DataIntegrityProof',
-            'cryptosuite'        => 'rsa-signature-2025',
-            'created'            => $generatedAt,
-            'verificationMethod' => $issuerDid,
-            'proofPurpose'       => 'assertionMethod',
-            'jws'                => $jws,
-        ];
+		foreach ($composition as $collectionKey => $rows) {
+			if ($collectionKey === 'lessonCompletions') {
+				// Already a per-course summary — always `summarized`, never
+				// period-filtered (the summary spans the whole enrolment).
+				foreach ($rows as $row) {
+					$coverageReport[] = $this->lessonCompletionCoverageEntry(row: $row);
+				}
 
-        $exportId = (string) ($object['id'] ?? ($object['uuid'] ?? bin2hex(random_bytes(8))));
+				$scholiqNative[$collectionKey] = $rows;
+				continue;
+			}
 
-        $ownerUid = $requestedBy;
-        if ($learnerId !== '') {
-            $ownerUid = $learnerId;
-        }
+			$schema = $this->schemaForCollectionKey(key: $collectionKey);
+			$dateField = self::PERIOD_FIELD_BY_SCHEMA[$schema] ?? null;
+			$includedRows = [];
 
-        $bundleRef = $this->writeBundleToFiles(bundle: $signedBundle, ownerUid: $ownerUid, tenantId: $tenantId, exportId: $exportId);
-        if ($bundleRef === null) {
-            $object['errorMessage'] = 'Could not store the signed bundle.';
-            return false;
-        }
+			foreach ($rows as $row) {
+				$inPeriod = $this->isWithinPeriod(
+					row: $row,
+					dateField: $dateField,
+					periodFrom: $periodFrom,
+					periodTo: $periodTo
+				);
 
-        $object['coverageReport']  = $coverageReport;
-        $object['bundleRef']       = $bundleRef;
-        $object['bundleSignature'] = $jws;
-        $object['issuerDid']       = $issuerDid;
-        $object['generatedAt']     = $generatedAt;
-        $object['errorMessage']    = null;
+				if ($inPeriod === true) {
+					$includedRows[] = $row;
+				}
 
-        return true;
-    }//end check()
+				$coverageReport[] = $this->rowCoverageEntry(schema: $schema, row: $row, included: $inPeriod);
+			}
 
-    /**
-     * Map an aggregation collection key back to its OpenRegister schema slug.
-     *
-     * @param string $key Collection key from `LearningRecordAggregationService::compose()`.
-     *
-     * @return string Schema slug.
-     */
-    private function schemaForCollectionKey(string $key): string
-    {
-        return match ($key) {
-            'enrolments' => 'enrolment',
-            'finalGrades' => 'final-grade',
-            'competencyAttainments' => 'competency-attainment',
-            'credentials' => 'credential',
-            'portfolios' => 'portfolio',
-            'portfolioEntries' => 'portfolio-entry',
-            'externalTrainingRecords' => 'external-training-record',
-            'bpvPlacements' => 'bpv-placement',
-            'werkprocesAssessments' => 'werkproces-assessment',
-            'reportCards' => 'report-card',
-            default => $key,
-        };
-    }//end schemaForCollectionKey()
+			$scholiqNative[$collectionKey] = $includedRows;
+		}//end foreach
 
-    /**
-     * Whether a row falls within the requested export period.
-     *
-     * A row with no comparable date field for its schema (`$dateField` is
-     * null) is always in scope — period narrowing is only applied to
-     * schemas carrying one unambiguous per-item timestamp (see
-     * `PERIOD_FIELD_BY_SCHEMA`). A row whose own date field is null (e.g. an
-     * unassessed WerkprocesAssessment) is likewise kept in scope rather than
-     * guessed at.
-     *
-     * @param array<string,mixed> $row        The source row.
-     * @param string|null         $dateField  Field name holding this schema's comparable date, or null.
-     * @param string|null         $periodFrom Requested period start (inclusive), or null.
-     * @param string|null         $periodTo   Requested period end (inclusive), or null.
-     *
-     * @return bool
-     */
-    private function isWithinPeriod(array $row, ?string $dateField, ?string $periodFrom, ?string $periodTo): bool
-    {
-        if ($dateField === null || ($periodFrom === null && $periodTo === null)) {
-            return true;
-        }
+		return [
+			'coverageReport' => $coverageReport,
+			'scholiqNative' => $scholiqNative,
+		];
+	}//end walkComposition()
 
-        $value = $row[$dateField] ?? null;
-        if (is_string($value) === false || $value === '') {
-            return true;
-        }
+	/**
+	 * Build the coverage entry for one lesson-completion summary row.
+	 *
+	 * @param array<string,mixed> $row The per-course lesson-completion summary.
+	 *
+	 * @return array<string,mixed> Coverage-report entry.
+	 *
+	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
+	 */
+	private function lessonCompletionCoverageEntry(array $row): array {
+		return [
+			'sourceSchema' => 'lesson-completion',
+			'sourceId' => (string)($row['courseId'] ?? ''),
+			'sourceTitle' => 'Lesson completions — course ' . ($row['courseId'] ?? 'unknown'),
+			'outcome' => 'summarized',
+			'reason' => 'Summarized per course (count + percentage) — the raw per-lesson log is never exported.',
+		];
+	}//end lessonCompletionCoverageEntry()
 
-        try {
-            $date = new DateTimeImmutable($value);
-        } catch (\Exception) {
-            return true;
-        }
+	/**
+	 * Build the coverage entry for one source row.
+	 *
+	 * @param string $schema Schema slug the row belongs to.
+	 * @param array<string,mixed> $row The source row.
+	 * @param bool $included Whether the row made it into the bundle.
+	 *
+	 * @return array<string,mixed> Coverage-report entry.
+	 *
+	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
+	 */
+	private function rowCoverageEntry(string $schema, array $row, bool $included): array {
+		$outcome = 'omitted';
+		$reason = 'Outside the requested export period.';
+		if ($included === true) {
+			$outcome = 'included';
+			$reason = null;
+		}
 
-        if ($periodFrom !== null) {
-            try {
-                if ($date < new DateTimeImmutable((string) $periodFrom)) {
-                    return false;
-                }
-            } catch (\Exception) {
-                // Unparseable bound — do not exclude on it.
-            }
-        }
+		return [
+			'sourceSchema' => $schema,
+			'sourceId' => (string)($row['id'] ?? ($row['uuid'] ?? '')),
+			'sourceTitle' => $this->resolveSourceTitle(schema: $schema, row: $row),
+			'outcome' => $outcome,
+			'reason' => $reason,
+		];
+	}//end rowCoverageEntry()
 
-        if ($periodTo !== null) {
-            try {
-                if ($date > new DateTimeImmutable((string) $periodTo)) {
-                    return false;
-                }
-            } catch (\Exception) {
-                // Unparseable bound — do not exclude on it.
-            }
-        }
+	/**
+	 * Map an aggregation collection key back to its OpenRegister schema slug.
+	 *
+	 * @param string $key Collection key from `LearningRecordAggregationService::compose()`.
+	 *
+	 * @return string Schema slug.
+	 */
+	private function schemaForCollectionKey(string $key): string {
+		return match ($key) {
+			'enrolments' => 'enrolment',
+			'finalGrades' => 'final-grade',
+			'competencyAttainments' => 'competency-attainment',
+			'credentials' => 'credential',
+			'portfolios' => 'portfolio',
+			'portfolioEntries' => 'portfolio-entry',
+			'externalTrainingRecords' => 'external-training-record',
+			'bpvPlacements' => 'bpv-placement',
+			'werkprocesAssessments' => 'werkproces-assessment',
+			'reportCards' => 'report-card',
+			default => $key,
+		};
+	}//end schemaForCollectionKey()
 
-        return true;
-    }//end isWithinPeriod()
+	/**
+	 * Whether a row falls within the requested export period.
+	 *
+	 * A row with no comparable date field for its schema (`$dateField` is
+	 * null) is always in scope — period narrowing is only applied to
+	 * schemas carrying one unambiguous per-item timestamp (see
+	 * `PERIOD_FIELD_BY_SCHEMA`). A row whose own date field is null (e.g. an
+	 * unassessed WerkprocesAssessment) is likewise kept in scope rather than
+	 * guessed at.
+	 *
+	 * @param array<string,mixed> $row The source row.
+	 * @param string|null $dateField Field name holding this schema's comparable date, or null.
+	 * @param string|null $periodFrom Requested period start (inclusive), or null.
+	 * @param string|null $periodTo Requested period end (inclusive), or null.
+	 *
+	 * @return bool
+	 */
+	private function isWithinPeriod(array $row, ?string $dateField, ?string $periodFrom, ?string $periodTo): bool {
+		if ($dateField === null || ($periodFrom === null && $periodTo === null)) {
+			return true;
+		}
 
-    /**
-     * Resolve a human-readable label for a coverage-report entry, per schema.
-     *
-     * @param string              $schema Schema slug.
-     * @param array<string,mixed> $row    The source row.
-     *
-     * @return string
-     */
-    private function resolveSourceTitle(string $schema, array $row): string
-    {
-        return match ($schema) {
-            'credential' => 'Credential ('.($row['kind'] ?? 'unknown').')',
-            'final-grade' => 'Final grade',
-            'competency-attainment' => 'Competency attainment',
-            'portfolio', 'portfolio-entry', 'external-training-record' => (string) ($row['title'] ?? $schema),
-            'bpv-placement' => (string) ($row['leerbedrijfName'] ?? 'BPV placement'),
-            'werkproces-assessment' => (string) ($row['werkprocesLabel'] ?? 'Werkproces assessment'),
-            'enrolment' => 'Course enrolment',
-            'report-card' => 'Report card',
-            'dossier-note' => 'Dossier note',
-            'behaviour-incident' => 'Behaviour incident',
-            'wellbeing-check-in' => 'Wellbeing check-in',
-            default => $schema,
-        };
-    }//end resolveSourceTitle()
+		// An absent or unparseable row date keeps the row in scope rather than
+		// guessing at it.
+		$date = $this->parseDate(value: ($row[$dateField] ?? null));
+		if ($date === null) {
+			return true;
+		}
 
-    /**
-     * Build the ELM/Europass-shaped section: per in-scope Credential,
-     * `edciPayload` when non-empty else `openbadges3Payload`, verbatim — the
-     * identical fallback `WalletOfferDelegationService::buildOfferRequest()`
-     * already uses. Never re-signs or re-derives a credential payload.
-     *
-     * @param array<int,array<string,mixed>> $credentials In-scope Credential rows.
-     *
-     * @return array<int,array<string,mixed>>
-     *
-     * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-export-never-bypasses-or-duplicates-the-eudi-wallet-push
-     */
-    private function buildElmSection(array $credentials): array
-    {
-        $elm = [];
-        foreach ($credentials as $credential) {
-            $payload = $credential['edciPayload'] ?? null;
-            if (empty($payload) === true) {
-                $payload = $credential['openbadges3Payload'] ?? null;
-            }
+		// An unparseable bound is likewise never a reason to exclude a row.
+		$from = $this->parseDate(value: $periodFrom);
+		if ($from !== null && $date < $from) {
+			return false;
+		}
 
-            if (empty($payload) === true) {
-                continue;
-            }
+		$to = $this->parseDate(value: $periodTo);
 
-            $elm[] = [
-                'credentialId' => $credential['id'] ?? ($credential['uuid'] ?? null),
-                'kind'         => $credential['kind'] ?? null,
-                'payload'      => $payload,
-            ];
-        }
+		return ($to === null || $date <= $to);
+	}//end isWithinPeriod()
 
-        return $elm;
-    }//end buildElmSection()
+	/**
+	 * Parse a value into a date, or null when it is absent or unusable.
+	 *
+	 * Both the row dates and the period bounds route through this: everywhere
+	 * `isWithinPeriod()` uses it, "no usable date" means "do not narrow on it",
+	 * so a null return is always the permissive answer.
+	 *
+	 * @param mixed $value Candidate date value (expected to be an ISO-8601 string).
+	 *
+	 * @return DateTimeImmutable|null Parsed date, or null when not a parseable non-empty string.
+	 */
+	private function parseDate(mixed $value): ?DateTimeImmutable {
+		if (is_string($value) === false || $value === '') {
+			return null;
+		}
 
-    /**
-     * Find DossierNote/BehaviourIncident/WellbeingCheckIn rows for this
-     * learner that fall within the requested period (or, when no period is
-     * requested, unconditionally — the honest-coverage default), producing
-     * one `omitted` coverageReport entry each. Never included in the bundle.
-     *
-     * @param string      $learnerId  Nextcloud user id of the learner.
-     * @param string|null $periodFrom Requested period start (inclusive), or null.
-     * @param string|null $periodTo   Requested period end (inclusive), or null.
-     *
-     * @return array<int,array<string,mixed>> coverageReport-shaped entries.
-     */
-    private function findExcludedRowsInScope(string $learnerId, ?string $periodFrom, ?string $periodTo): array
-    {
-        if ($learnerId === '') {
-            return [];
-        }
+		try {
+			return new DateTimeImmutable($value);
+		} catch (\Exception) {
+			return null;
+		}
+	}//end parseDate()
 
-        $entries = [];
-        foreach (self::EXCLUDED_SCHEMA_DATE_FIELD as $schema => $dateField) {
-            $rows = $this->objectService->findAll(
-                [
-                    'register' => self::SCHOLIQ_REGISTER,
-                    'schema'   => $schema,
-                    'filters'  => ['learnerId' => $learnerId],
-                ]
-            );
+	/**
+	 * Resolve a human-readable label for a coverage-report entry, per schema.
+	 *
+	 * @param string $schema Schema slug.
+	 * @param array<string,mixed> $row The source row.
+	 *
+	 * @return string
+	 */
+	private function resolveSourceTitle(string $schema, array $row): string {
+		return match ($schema) {
+			'credential' => 'Credential (' . ($row['kind'] ?? 'unknown') . ')',
+			'final-grade' => 'Final grade',
+			'competency-attainment' => 'Competency attainment',
+			'portfolio', 'portfolio-entry', 'external-training-record' => (string)($row['title'] ?? $schema),
+			'bpv-placement' => (string)($row['trainingCompanyName'] ?? 'BPV placement'),
+			'werkproces-assessment' => (string)($row['werkprocesLabel'] ?? 'Werkproces assessment'),
+			'enrolment' => 'Course enrolment',
+			'report-card' => 'Report card',
+			'dossier-note' => 'Dossier note',
+			'behaviour-incident' => 'Behaviour incident',
+			'wellbeing-check-in' => 'Wellbeing check-in',
+			default => $schema,
+		};
+	}//end resolveSourceTitle()
 
-            foreach ($rows as $row) {
-                $data = [];
-                if (is_array($row) === true) {
-                    $data = $row;
-                } else if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-                    $data = (array) $row->jsonSerialize();
-                }
+	/**
+	 * Build the ELM/Europass-shaped section: per in-scope Credential,
+	 * `edciPayload` when non-empty else `openbadges3Payload`, verbatim — the
+	 * identical fallback `WalletOfferDelegationService::buildOfferRequest()`
+	 * already uses. Never re-signs or re-derives a credential payload.
+	 *
+	 * @param array<int,array<string,mixed>> $credentials In-scope Credential rows.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 *
+	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#requirement-export-never-bypasses-or-duplicates-the-eudi-wallet-push
+	 */
+	private function buildElmSection(array $credentials): array {
+		$elm = [];
+		foreach ($credentials as $credential) {
+			$payload = $credential['edciPayload'] ?? null;
+			if (empty($payload) === true) {
+				$payload = $credential['openbadges3Payload'] ?? null;
+			}
 
-                if ($this->isWithinPeriod(row: $data, dateField: $dateField, periodFrom: $periodFrom, periodTo: $periodTo) === false) {
-                    continue;
-                }
+			if (empty($payload) === true) {
+				continue;
+			}
 
-                $entries[] = [
-                    'sourceSchema' => $schema,
-                    'sourceId'     => (string) ($data['id'] ?? ($data['uuid'] ?? '')),
-                    'sourceTitle'  => $this->resolveSourceTitle(schema: $schema, row: $data),
-                    'outcome'      => 'omitted',
-                    'reason'       => 'staff professional-judgment record, not learner-portable evidence',
-                ];
-            }
-        }//end foreach
+			$elm[] = [
+				'credentialId' => $credential['id'] ?? ($credential['uuid'] ?? null),
+				'kind' => $credential['kind'] ?? null,
+				'payload' => $payload,
+			];
+		}
 
-        return $entries;
-    }//end findExcludedRowsInScope()
+		return $elm;
+	}//end buildElmSection()
 
-    /**
-     * Write the signed bundle JSON to the owner's nc:files home, mirroring
-     * `CoursePackageImportService::writeBytesToFiles()`'s destination
-     * convention (`Scholiq/{tenant}/...`) — this app does not store file
-     * bytes anywhere other than nc:files.
-     *
-     * @param array<string,mixed> $bundle   The signed bundle (bundle itself, not the JWS).
-     * @param string              $ownerUid Nextcloud user id who will own the file.
-     * @param string              $tenantId Tenant UUID, used to namespace the destination folder.
-     * @param string              $exportId LearningRecordExport UUID, used as the filename.
-     *
-     * @return string|null The nc:files path, or null on failure.
-     */
-    private function writeBundleToFiles(array $bundle, string $ownerUid, string $tenantId, string $exportId): ?string
-    {
-        if ($ownerUid === '') {
-            return null;
-        }
+	/**
+	 * Find DossierNote/BehaviourIncident/WellbeingCheckIn rows for this
+	 * learner that fall within the requested period (or, when no period is
+	 * requested, unconditionally — the honest-coverage default), producing
+	 * one `omitted` coverageReport entry each. Never included in the bundle.
+	 *
+	 * @param string $learnerId Nextcloud user id of the learner.
+	 * @param string|null $periodFrom Requested period start (inclusive), or null.
+	 * @param string|null $periodTo Requested period end (inclusive), or null.
+	 *
+	 * @return array<int,array<string,mixed>> coverageReport-shaped entries.
+	 */
+	private function findExcludedRowsInScope(string $learnerId, ?string $periodFrom, ?string $periodTo): array {
+		if ($learnerId === '') {
+			return [];
+		}
 
-        $encoded = json_encode($bundle, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-        if ($encoded === false) {
-            return null;
-        }
+		$entries = [];
+		foreach (self::EXCLUDED_SCHEMA_DATE_FIELD as $schema => $dateField) {
+			$rows = $this->objectService->findAll(
+				[
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => $schema,
+					'filters' => ['learnerId' => $learnerId],
+				]
+			);
 
-        try {
-            $tenantSegment = 'default';
-            if ($tenantId !== '') {
-                $tenantSegment = $tenantId;
-            }
+			foreach ($rows as $row) {
+				$data = [];
+				if (is_array($row) === true) {
+					$data = $row;
+				} elseif (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
+					$data = (array)$row->jsonSerialize();
+				}
 
-            $ncBaseDir = 'Scholiq/'.$tenantSegment.'/learning-record-exports';
-            $ncPath    = $ncBaseDir.'/'.$exportId.'.json';
+				if ($this->isWithinPeriod(row: $data, dateField: $dateField, periodFrom: $periodFrom, periodTo: $periodTo) === false) {
+					continue;
+				}
 
-            $userFolder = $this->rootFolder->getUserFolder($ownerUid);
-            $this->ensureFolder(userFolder: $userFolder, path: $ncBaseDir);
+				$entries[] = [
+					'sourceSchema' => $schema,
+					'sourceId' => (string)($data['id'] ?? ($data['uuid'] ?? '')),
+					'sourceTitle' => $this->resolveSourceTitle(schema: $schema, row: $data),
+					'outcome' => 'omitted',
+					'reason' => 'staff professional-judgment record, not learner-portable evidence',
+				];
+			}
+		}//end foreach
 
-            if ($userFolder->nodeExists($ncPath) === true) {
-                $existingNode = $userFolder->get($ncPath);
-                if ($existingNode instanceof \OCP\Files\File) {
-                    $existingNode->putContent($encoded);
-                }
-            } else {
-                $userFolder->newFile($ncPath, $encoded);
-            }
-
-            return '/'.$ncPath;
-        } catch (\Throwable $e) {
-            $this->logger->warning(
-                '[LearningRecordExportService] Could not write signed bundle for export {id}: {msg}',
-                ['id' => $exportId, 'msg' => $e->getMessage()]
-            );
-            return null;
-        }//end try
-    }//end writeBundleToFiles()
-
-    /**
-     * Ensure a nested nc:files folder path exists under the given folder.
-     *
-     * @param \OCP\Files\Folder $userFolder The root user folder.
-     * @param string            $path       Slash-separated relative path to ensure.
-     *
-     * @return void
-     */
-    private function ensureFolder(\OCP\Files\Folder $userFolder, string $path): void
-    {
-        $segments = array_filter(explode('/', $path));
-        $current  = '';
-        foreach ($segments as $segment) {
-            if ($current === '') {
-                $current = $segment;
-            } else {
-                $current = $current.'/'.$segment;
-            }
-
-            try {
-                $userFolder->get($current);
-            } catch (NotFoundException $e) {
-                $userFolder->newFolder($current);
-            }
-        }
-    }//end ensureFolder()
+		return $entries;
+	}//end findExcludedRowsInScope()
 }//end class

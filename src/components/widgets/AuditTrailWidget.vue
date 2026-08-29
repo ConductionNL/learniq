@@ -7,7 +7,7 @@
 		v-if="resolvedRegister && resolvedSchema && resolvedObjectId"
 		:register="resolvedRegister"
 		:schema="resolvedSchema"
-		:object-id="resolvedObjectId"
+		:objectId="resolvedObjectId"
 		:title="resolvedTitle" />
 </template>
 
@@ -30,6 +30,7 @@ export default {
 		cnObjectContext: { default: null },
 		cnDetailObjectContext: { default: null },
 	},
+
 	props: {
 		/** Object context spread as props by CnWidgetGrid (slot path). */
 		register: { type: String, default: '' },
@@ -39,30 +40,41 @@ export default {
 		content: { type: Object, default: () => ({}) },
 		title: { type: String, default: '' },
 	},
+
 	computed: {
 		/**
 		 * The resolved object-context bag from inject (either shape) or {}.
+		 *
 		 * @spec exclude presentational widget adapter — no behavioural spec; pure prop/inject resolution.
 		 */
 		ctx() {
-			const inj = this.cnObjectContext && (this.cnObjectContext.value || this.cnObjectContext)
-			const holder = this.cnDetailObjectContext && this.cnDetailObjectContext.value
+			const inj =
+				this.cnObjectContext
+				&& (this.cnObjectContext.value || this.cnObjectContext)
+			const holder =
+				this.cnDetailObjectContext && this.cnDetailObjectContext.value
 			return inj || holder || {}
 		},
+
 		/** @spec exclude presentational widget adapter — derives objectId from props/inject/content. */
 		resolvedObjectId() {
 			return this.objectId || this.ctx.objectId || this.content.objectId || ''
 		},
+
 		/** @spec exclude presentational widget adapter — derives register from props/inject/content. */
 		resolvedRegister() {
 			return this.register || this.ctx.register || this.content.register || ''
 		},
+
 		/** @spec exclude presentational widget adapter — derives schema slug from props/inject/content. */
 		resolvedSchema() {
 			const s = this.schema || this.ctx.schema || this.content.schema || ''
 			// The context may carry the schema as an object; CnAuditTrailCard wants a slug.
-			return typeof s === 'string' ? s : (s && (s.slug || s.name || s.id)) || ''
+			return typeof s === 'string'
+				? s
+				: (s && (s.slug || s.name || s.id)) || ''
 		},
+
 		/** @spec exclude presentational widget adapter — optional card title passthrough. */
 		resolvedTitle() {
 			return this.title || this.content.title || ''

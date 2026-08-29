@@ -42,24 +42,34 @@
 
 <template>
 	<div class="regulation-detail">
-		<NcLoadingIcon v-if="loading" :size="44" class="regulation-detail__loading" />
+		<NcLoadingIcon
+			v-if="loading"
+			:size="44"
+			class="regulation-detail__loading" />
 
-		<NcEmptyContent v-else-if="notFound"
-			:name="t('scholiq', 'Regulation not found')"
-			:description="t('scholiq', 'No regulation matches this link. It may have been removed or the link is out of date.')">
+		<NcEmptyContent
+			v-else-if="notFound"
+			:name="t('learniq', 'Regulation not found')"
+			:description="
+				t(
+					'learniq',
+					'No regulation matches this link. It may have been removed or the link is out of date.',
+				)
+			">
 			<template #icon>
 				<span class="icon-error" />
 			</template>
 		</NcEmptyContent>
 
-		<CnDetailPage v-else
-			:title="t('scholiq', 'Regulation')"
+		<CnDetailPage
+			v-else
+			:title="t('learniq', 'Regulation')"
 			:widgets="widgets"
 			:layout="layout"
 			:sidebar="sidebar"
-			:lifecycle-actions="lifecycleActions"
-			:object-type="schema"
-			:object-id="objectId"
+			:lifecycleActions="lifecycleActions"
+			:objectType="schema"
+			:objectId="objectId"
 			:register="register"
 			:schema="schema" />
 	</div>
@@ -69,7 +79,7 @@
 import { CnDetailPage, useObjectStore } from '@conduction/nextcloud-vue'
 import { NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
 
-const REGISTER = 'scholiq'
+const REGISTER = 'learniq'
 const SCHEMA = 'Regulation'
 const OBJECT_TYPE = `${REGISTER}-${SCHEMA}`
 
@@ -82,22 +92,41 @@ export default {
 		NcLoadingIcon,
 	},
 
+	/**
+	 * @spec openspec/specs/realtime-updates/spec.md
+	 */
+	provide() {
+		return {
+			cnDetailObjectContext: this.detailObjectContext,
+		}
+	},
+
+	// CnPageRenderer forwards every `config.*` key (register, schema, title, …)
+	// as an individual prop — this component only declares the ones it
+	// actually consumes (widgets/layout/sidebar/lifecycleActions) and takes
+	// register/schema as fixed constants, so the rest must not fall through
+	// onto the root <div> as raw DOM attributes.
+	inheritAttrs: false,
+
 	props: {
 		/** `config.widgets` forwarded by CnPageRenderer (grid widget defs). */
 		widgets: {
 			type: Array,
 			default: () => [],
 		},
+
 		/** `config.layout` forwarded by CnPageRenderer (12-col grid layout). */
 		layout: {
 			type: Array,
 			default: () => [],
 		},
+
 		/** `config.sidebar` forwarded by CnPageRenderer (tabs incl. audit trail). */
 		sidebar: {
 			type: [Boolean, Object],
 			default: () => ({ enabled: false }),
 		},
+
 		/** `config.lifecycleActions` forwarded by CnPageRenderer. */
 		lifecycleActions: {
 			type: Object,
@@ -135,22 +164,12 @@ export default {
 		}
 	},
 
-	provide() {
-		return {
-			cnDetailObjectContext: this.detailObjectContext,
-		}
-	},
-
-	// CnPageRenderer forwards every `config.*` key (register, schema, title, …)
-	// as an individual prop — this component only declares the ones it
-	// actually consumes (widgets/layout/sidebar/lifecycleActions) and takes
-	// register/schema as fixed constants, so the rest must not fall through
-	// onto the root <div> as raw DOM attributes.
-	inheritAttrs: false,
-
 	watch: {
 		'$route.params.slug': {
 			immediate: true,
+			/**
+			 * @spec openspec/specs/realtime-updates/spec.md
+			 */
 			handler() {
 				this.resolve()
 			},
@@ -190,7 +209,10 @@ export default {
 			}
 			// The push event key is or-object-{uuid} — prefer the uuid over
 			// a numeric id when both are present.
-			const uuid = (object['@self'] && object['@self'].uuid) ?? object.uuid ?? this.objectId
+			const uuid =
+				(object['@self'] && object['@self'].uuid)
+				?? object.uuid
+				?? this.objectId
 			if (!uuid) {
 				this.releaseLiveSubscription()
 				return
@@ -223,9 +245,16 @@ export default {
 				// Bridge: event → plugin refetch → objects[type][uuid] cache →
 				// detailObjectContext (which descendants render from).
 				this.liveUnwatch = this.$watch(
-					() => (typeof store.getObject === 'function' ? store.getObject(OBJECT_TYPE, uuid) : null),
+					() =>
+						typeof store.getObject === 'function'
+							? store.getObject(OBJECT_TYPE, uuid)
+							: null,
 					(fresh) => {
-						if (fresh && this.liveKey === key && this.detailObjectContext.value) {
+						if (
+							fresh
+							&& this.liveKey === key
+							&& this.detailObjectContext.value
+						) {
 							this.detailObjectContext.value = {
 								...this.detailObjectContext.value,
 								objectData: fresh,
@@ -240,7 +269,10 @@ export default {
 				this.liveHandle = null
 				this.liveKey = ''
 				// eslint-disable-next-line no-console
-				console.warn('[RegulationDetailPage] live subscription failed:', e?.message ?? e)
+				console.warn(
+					'[RegulationDetailPage] live subscription failed:',
+					e?.message ?? e,
+				)
 			}
 		},
 
@@ -299,16 +331,19 @@ export default {
 			// Schema fetch runs alongside the object lookup — CnObjectDataWidget
 			// (the "data" grid widget) needs it for field labels/order, same as
 			// CnPageRenderer's loadDetailObject does for a `type:"detail"` page.
-			const schemaPromise = typeof store.fetchSchema === 'function'
-				? store.fetchSchema(OBJECT_TYPE).catch(() => null)
-				: Promise.resolve(null)
+			const schemaPromise =
+				typeof store.fetchSchema === 'function'
+					? store.fetchSchema(OBJECT_TYPE).catch(() => null)
+					: Promise.resolve(null)
 
 			let object = null
 
 			// 1) OpenRegister's native id/uuid/@self.slug/@self.uri matcher —
 			//    covers links built from the OR-generated slug ("reg-avg").
 			if (typeof store.fetchObject === 'function') {
-				object = await store.fetchObject(OBJECT_TYPE, param).catch(() => null)
+				object = await store
+					.fetchObject(OBJECT_TYPE, param)
+					.catch(() => null)
 			}
 
 			// 2) Fall back to the schema's own `slug` business-key property —
@@ -316,8 +351,11 @@ export default {
 			//    schema properties, so a business-key link ("AVG") needs an
 			//    explicit filtered lookup.
 			if (!object && typeof store.fetchCollection === 'function') {
-				const results = await store.fetchCollection(OBJECT_TYPE, { slug: param, _limit: 1 }).catch(() => [])
-				object = Array.isArray(results) && results.length > 0 ? results[0] : null
+				const results = await store
+					.fetchCollection(OBJECT_TYPE, { slug: param, _limit: 1 })
+					.catch(() => [])
+				object =
+					Array.isArray(results) && results.length > 0 ? results[0] : null
 			}
 
 			if (!object) {
@@ -330,11 +368,17 @@ export default {
 			const schema = await schemaPromise
 
 			const realId = object.id ?? (object['@self'] && object['@self'].id)
-			this.objectId = realId !== undefined && realId !== null ? String(realId) : ''
+			this.objectId =
+				realId !== undefined && realId !== null ? String(realId) : ''
 
 			this.detailObjectContext.value = {
 				objectData: object,
-				schema: schema || (typeof store.getSchema === 'function' && store.getSchema(OBJECT_TYPE)) || null,
+				schema:
+					schema
+					|| (typeof store.getSchema === 'function'
+						&& store.getSchema(OBJECT_TYPE))
+					|| null,
+
 				objectType: OBJECT_TYPE,
 				objectId: this.objectId,
 				register: REGISTER,

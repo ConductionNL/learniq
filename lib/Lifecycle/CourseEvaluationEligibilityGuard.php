@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Course Evaluation Eligibility Guard
+ * Learniq Course Evaluation Eligibility Guard
  *
  * Lifecycle guard for the CourseEvaluationResponse schema's `submit` transition
  * (`draft → submitted`). Enforces that the caller holds an eligible, not-yet-
@@ -21,10 +21,10 @@
  * targeted reminders — the crux mechanism").
  *
  * Referenced from CourseEvaluationResponse's
- * x-openregister-lifecycle.transitions.submit.requires in scholiq_register.json.
+ * x-openregister-lifecycle.transitions.submit.requires in learniq_register.json.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -41,7 +41,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserSession;
@@ -56,108 +56,105 @@ use Psr\Log\LoggerInterface;
  * matching invitation, or an already-responded invitation all block the
  * transition.
  */
-class CourseEvaluationEligibilityGuard
-{
+class CourseEvaluationEligibilityGuard {
 
-    /**
-     * OR register slug for Scholiq objects.
-     */
-    private const SCHOLIQ_REGISTER = 'scholiq';
+	/**
+	 * OR register slug for Learniq objects.
+	 */
+	private const LEARNIQ_REGISTER = 'learniq';
 
-    /**
-     * OR schema slug for EvaluationInvitation.
-     */
-    private const EVALUATION_INVITATION_SCHEMA = 'evaluation-invitation';
+	/**
+	 * OR schema slug for EvaluationInvitation.
+	 */
+	private const EVALUATION_INVITATION_SCHEMA = 'evaluation-invitation';
 
-    /**
-     * Constructor.
-     *
-     * @param IUserSession    $userSession   Current NC user session (server-resolved caller identity).
-     * @param ObjectService   $objectService OR object access service.
-     * @param LoggerInterface $logger        PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly IUserSession $userSession,
-        private readonly ObjectService $objectService,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param IUserSession $userSession Current NC user session (server-resolved caller identity).
+	 * @param ObjectService $objectService OR object access service.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly IUserSession $userSession,
+		private readonly ObjectService $objectService,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point.
-     *
-     * Called by OpenRegister's lifecycle engine before executing the `submit`
-     * transition on a CourseEvaluationResponse object. Resolves the caller's
-     * NC user id from the session (never from the request payload, and never
-     * from the CourseEvaluationResponse object itself — it has no identity
-     * field to read from) and passes only when that user holds an eligible,
-     * not-yet-responded EvaluationInvitation for the response's campaignId.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the CourseEvaluationResponse data array
-     *                                               - 'transition' : 'submit'
-     *                                               - 'from'       : 'draft'
-     *                                               - 'to'         : 'submitted'
-     *
-     * @return bool True if the caller may submit this response; false blocks the transition.
-     *
-     * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
-     * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $object     = $transitionContext['object'] ?? [];
-        $campaignId = $object['campaignId'] ?? '';
+	/**
+	 * OR lifecycle guard entry-point.
+	 *
+	 * Called by OpenRegister's lifecycle engine before executing the `submit`
+	 * transition on a CourseEvaluationResponse object. Resolves the caller's
+	 * NC user id from the session (never from the request payload, and never
+	 * from the CourseEvaluationResponse object itself — it has no identity
+	 * field to read from) and passes only when that user holds an eligible,
+	 * not-yet-responded EvaluationInvitation for the response's campaignId.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the CourseEvaluationResponse data array
+	 *                                               - 'transition' : 'submit'
+	 *                                               - 'from'       : 'draft'
+	 *                                               - 'to'         : 'submitted'
+	 *
+	 * @return bool True if the caller may submit this response; false blocks the transition.
+	 *
+	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
+	 */
+	public function check(array &$transitionContext): bool {
+		$object = $transitionContext['object'] ?? [];
+		$campaignId = $object['campaignId'] ?? '';
 
-        if ($campaignId === '') {
-            $this->logger->warning(
-                '[CourseEvaluationEligibilityGuard] CourseEvaluationResponse has no campaignId; blocking submit.'
-            );
-            return false;
-        }
+		if ($campaignId === '') {
+			$this->logger->warning(
+				'[CourseEvaluationEligibilityGuard] CourseEvaluationResponse has no campaignId; blocking submit.'
+			);
+			return false;
+		}
 
-        $user = $this->userSession->getUser();
+		$user = $this->userSession->getUser();
 
-        if ($user === null) {
-            $this->logger->info(
-                '[CourseEvaluationEligibilityGuard] No authenticated user in session; blocking submit.'
-            );
-            return false;
-        }
+		if ($user === null) {
+			$this->logger->info(
+				'[CourseEvaluationEligibilityGuard] No authenticated user in session; blocking submit.'
+			);
+			return false;
+		}
 
-        $callerUid = $user->getUID();
-        $tenantId  = $object['tenant_id'] ?? '';
+		$callerUid = $user->getUID();
+		$tenantId = $object['tenant_id'] ?? '';
 
-        $filters = [
-            'campaignId'   => $campaignId,
-            'learnerId'    => $callerUid,
-            'hasResponded' => false,
-        ];
-        if ($tenantId !== '') {
-            $filters['tenant_id'] = $tenantId;
-        }
+		$filters = [
+			'campaignId' => $campaignId,
+			'learnerId' => $callerUid,
+			'hasResponded' => false,
+		];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
 
-        $invitations = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::EVALUATION_INVITATION_SCHEMA,
-                'filters'  => $filters,
-                'limit'    => 1,
-            ]
-        );
+		$invitations = $this->objectService->findAll(
+			[
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => self::EVALUATION_INVITATION_SCHEMA,
+				'filters' => $filters,
+				'limit' => 1,
+			]
+		);
 
-        if (empty($invitations) === true) {
-            $this->logger->info(
-                '[CourseEvaluationEligibilityGuard] Caller {caller} has no eligible EvaluationInvitation for '
-                .'campaign {campaignId} (no invitation, or already responded); blocking submit (fail closed).',
-                ['caller' => $callerUid, 'campaignId' => $campaignId]
-            );
-            return false;
-        }
+		if (empty($invitations) === true) {
+			$this->logger->info(
+				'[CourseEvaluationEligibilityGuard] Caller {caller} has no eligible EvaluationInvitation for '
+				. 'campaign {campaignId} (no invitation, or already responded); blocking submit (fail closed).',
+				['caller' => $callerUid, 'campaignId' => $campaignId]
+			);
+			return false;
+		}
 
-        return true;
-
-    }//end check()
+		return true;
+	}//end check()
 }//end class

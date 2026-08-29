@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Fraud Case Invalidation Guard
+ * Learniq Fraud Case Invalidation Guard
  *
  * Lifecycle guard for the GradeEntry schema's `invalidate` transition
  * (`concept → invalidated`). Allows the transition only when the GradeEntry's
@@ -15,7 +15,7 @@
  * a cross-schema read guard, the mirror image of `FraudCaseBlockGuard`.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -32,7 +32,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -47,97 +47,92 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
  */
-class FraudCaseInvalidationGuard
-{
+class FraudCaseInvalidationGuard {
 
-    private const SCHOLIQ_REGISTER  = 'scholiq';
-    private const FRAUD_CASE_SCHEMA = 'fraud-case';
+	private const LEARNIQ_REGISTER = 'learniq';
+	private const FRAUD_CASE_SCHEMA = 'fraud-case';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService   $objectService OR object access service.
-     * @param LoggerInterface $logger        PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access service.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Allow the `invalidate` transition only when the linked FraudCase is decided fraud-proven.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the GradeEntry data array
-     *                                               - 'transition' : 'invalidate'
-     *
-     * @return bool True if the transition is allowed; false blocks it (HTTP 422).
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $entry       = $transitionContext['object'] ?? [];
-        $entryId     = $entry['id'] ?? ($entry['uuid'] ?? '');
-        $fraudCaseId = $entry['fraudCaseId'] ?? null;
+	/**
+	 * Allow the `invalidate` transition only when the linked FraudCase is decided fraud-proven.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the GradeEntry data array
+	 *                                               - 'transition' : 'invalidate'
+	 *
+	 * @return bool True if the transition is allowed; false blocks it (HTTP 422).
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
+	 */
+	public function check(array &$transitionContext): bool {
+		$entry = $transitionContext['object'] ?? [];
+		$entryId = $entry['id'] ?? ($entry['uuid'] ?? '');
+		$fraudCaseId = $entry['fraudCaseId'] ?? null;
 
-        if ($fraudCaseId === null || $fraudCaseId === '') {
-            $this->logger->info(
-                '[FraudCaseInvalidationGuard] GradeEntry {id} has no fraudCaseId — denying invalidate.',
-                ['id' => $entryId]
-            );
-            return false;
-        }
+		if ($fraudCaseId === null || $fraudCaseId === '') {
+			$this->logger->info(
+				'[FraudCaseInvalidationGuard] GradeEntry {id} has no fraudCaseId — denying invalidate.',
+				['id' => $entryId]
+			);
+			return false;
+		}
 
-        $fraudCase = $this->fetchFraudCase(fraudCaseId: (string) $fraudCaseId);
+		$fraudCase = $this->fetchFraudCase(fraudCaseId: (string)$fraudCaseId);
 
-        if ($fraudCase === null) {
-            $this->logger->warning(
-                '[FraudCaseInvalidationGuard] GradeEntry {id} links FraudCase {caseId} which was not found — denying invalidate (fail closed).',
-                ['id' => $entryId, 'caseId' => $fraudCaseId]
-            );
-            return false;
-        }
+		if ($fraudCase === null) {
+			$this->logger->warning(
+				'[FraudCaseInvalidationGuard] GradeEntry {id} links FraudCase {caseId} which was not found — denying invalidate (fail closed).',
+				['id' => $entryId, 'caseId' => $fraudCaseId]
+			);
+			return false;
+		}
 
-        $lifecycle = $fraudCase['lifecycle'] ?? '';
-        $verdict   = $fraudCase['verdict'] ?? '';
+		$lifecycle = $fraudCase['lifecycle'] ?? '';
+		$verdict = $fraudCase['verdict'] ?? '';
 
-        if ($lifecycle !== 'decided' || $verdict !== 'fraud-proven') {
-            $this->logger->info(
-                '[FraudCaseInvalidationGuard] GradeEntry {id} linked FraudCase {caseId} is not decided '
-                .'fraud-proven ({state}/{verdict}) — denying invalidate.',
-                ['id' => $entryId, 'caseId' => $fraudCaseId, 'state' => $lifecycle, 'verdict' => $verdict]
-            );
-            return false;
-        }
+		if ($lifecycle !== 'decided' || $verdict !== 'fraud-proven') {
+			$this->logger->info(
+				'[FraudCaseInvalidationGuard] GradeEntry {id} linked FraudCase {caseId} is not decided '
+				. 'fraud-proven ({state}/{verdict}) — denying invalidate.',
+				['id' => $entryId, 'caseId' => $fraudCaseId, 'state' => $lifecycle, 'verdict' => $verdict]
+			);
+			return false;
+		}
 
-        return true;
+		return true;
+	}//end check()
 
-    }//end check()
+	/**
+	 * Fetch the linked FraudCase by id.
+	 *
+	 * @param string $fraudCaseId UUID of the FraudCase.
+	 *
+	 * @return array<string,mixed>|null The FraudCase data array, or null if not found.
+	 */
+	private function fetchFraudCase(string $fraudCaseId): ?array {
+		$obj = $this->objectService->find(
+			id: $fraudCaseId,
+			register: self::LEARNIQ_REGISTER,
+			schema: self::FRAUD_CASE_SCHEMA
+		);
 
-    /**
-     * Fetch the linked FraudCase by id.
-     *
-     * @param string $fraudCaseId UUID of the FraudCase.
-     *
-     * @return array<string,mixed>|null The FraudCase data array, or null if not found.
-     */
-    private function fetchFraudCase(string $fraudCaseId): ?array
-    {
-        $obj = $this->objectService->find(
-            id: $fraudCaseId,
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::FRAUD_CASE_SCHEMA
-        );
+		if ($obj === null) {
+			return null;
+		}
 
-        if ($obj === null) {
-            return null;
-        }
-
-        return $obj->jsonSerialize();
-
-    }//end fetchFraudCase()
+		return $obj->jsonSerialize();
+	}//end fetchFraudCase()
 }//end class

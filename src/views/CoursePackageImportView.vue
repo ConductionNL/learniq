@@ -22,17 +22,22 @@
 	<div class="course-package-import">
 		<header class="course-package-import__header">
 			<h2 class="course-package-import__heading">
-				{{ t('scholiq', 'Import course package') }}
+				{{ t('learniq', 'Import course package') }}
 			</h2>
 			<p class="course-package-import__intro">
-				{{ t('scholiq', 'Upload an IMS Common Cartridge 1.3 (.imscc/.zip) or Moodle backup (.mbz) package. Every resource in the package is reported — imported, degraded, or dropped — nothing is silently lost.') }}
+				{{
+					t(
+						'learniq',
+						'Upload an IMS Common Cartridge 1.3 (.imscc/.zip) or Moodle backup (.mbz) package. Every resource in the package is reported — imported, degraded, or dropped — nothing is silently lost.',
+					)
+				}}
 			</p>
 		</header>
 
 		<!-- Upload form -->
 		<div v-if="!report" class="course-package-import__upload">
 			<label class="course-package-import__label" for="course-package-file">
-				{{ t('scholiq', 'Course package file') }}
+				{{ t('learniq', 'Course package file') }}
 			</label>
 			<input
 				id="course-package-file"
@@ -41,10 +46,10 @@
 				type="file"
 				accept=".imscc,.zip,.mbz"
 				:disabled="uploading"
-				@change="onFileSelected">
+				@change="onFileSelected" />
 
 			<p v-if="selectedFileName" class="course-package-import__selected">
-				{{ t('scholiq', 'Selected: {name}', { name: selectedFileName }) }}
+				{{ t('learniq', 'Selected: {name}', { name: selectedFileName }) }}
 			</p>
 
 			<button
@@ -52,7 +57,11 @@
 				:disabled="uploading || !selectedFile"
 				@click="uploadPackage">
 				<span v-if="uploading" class="icon-loading" aria-hidden="true" />
-				{{ uploading ? t('scholiq', 'Importing…') : t('scholiq', 'Import package') }}
+				{{
+					uploading
+						? t('learniq', 'Importing…')
+						: t('learniq', 'Import package')
+				}}
 			</button>
 
 			<p v-if="uploadError" role="alert" class="course-package-import__error">
@@ -73,29 +82,50 @@
 					{{ report.errorMessage }}
 				</p>
 				<ul v-else class="course-package-import__counts">
-					<li>{{ t('scholiq', '{n} imported', { n: report.resourcesImported }) }}</li>
-					<li>{{ t('scholiq', '{n} degraded', { n: report.resourcesDegraded }) }}</li>
-					<li>{{ t('scholiq', '{n} dropped', { n: report.resourcesDropped }) }}</li>
+					<li>
+						{{
+							t('learniq', '{n} imported', {
+								n: report.resourcesImported,
+							})
+						}}
+					</li>
+					<li>
+						{{
+							t('learniq', '{n} degraded', {
+								n: report.resourcesDegraded,
+							})
+						}}
+					</li>
+					<li>
+						{{
+							t('learniq', '{n} dropped', {
+								n: report.resourcesDropped,
+							})
+						}}
+					</li>
 				</ul>
 			</div>
 
 			<!-- Outcome filter -->
 			<div class="course-package-import__filter">
 				<label class="course-package-import__label" for="outcome-filter">
-					{{ t('scholiq', 'Filter by outcome') }}
+					{{ t('learniq', 'Filter by outcome') }}
 				</label>
-				<select id="outcome-filter" v-model="outcomeFilter" class="course-package-import__select">
+				<select
+					id="outcome-filter"
+					v-model="outcomeFilter"
+					class="course-package-import__select">
 					<option value="all">
-						{{ t('scholiq', 'All resources') }}
+						{{ t('learniq', 'All resources') }}
 					</option>
 					<option value="imported">
-						{{ t('scholiq', 'Imported') }}
+						{{ t('learniq', 'Imported') }}
 					</option>
 					<option value="degraded">
-						{{ t('scholiq', 'Degraded') }}
+						{{ t('learniq', 'Degraded') }}
 					</option>
 					<option value="dropped">
-						{{ t('scholiq', 'Dropped') }}
+						{{ t('learniq', 'Dropped') }}
 					</option>
 				</select>
 			</div>
@@ -104,11 +134,11 @@
 			<table class="course-package-import__table">
 				<thead>
 					<tr>
-						<th>{{ t('scholiq', 'Title') }}</th>
-						<th>{{ t('scholiq', 'Resource type') }}</th>
-						<th>{{ t('scholiq', 'Outcome') }}</th>
-						<th>{{ t('scholiq', 'Target') }}</th>
-						<th>{{ t('scholiq', 'Reason') }}</th>
+						<th scope="col">{{ t('learniq', 'Title') }}</th>
+						<th scope="col">{{ t('learniq', 'Resource type') }}</th>
+						<th scope="col">{{ t('learniq', 'Outcome') }}</th>
+						<th scope="col">{{ t('learniq', 'Target') }}</th>
+						<th scope="col">{{ t('learniq', 'Reason') }}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -116,7 +146,8 @@
 						<td>{{ entry.title }}</td>
 						<td>{{ entry.resourceType }}</td>
 						<td>
-							<span :class="`course-package-import__badge course-package-import__badge--${entry.outcome}`">
+							<span
+								:class="`course-package-import__badge course-package-import__badge--${entry.outcome}`">
 								{{ entry.outcome }}
 							</span>
 						</td>
@@ -125,14 +156,14 @@
 					</tr>
 					<tr v-if="filteredEntries.length === 0">
 						<td colspan="5" class="course-package-import__empty">
-							{{ t('scholiq', 'No resources match this filter.') }}
+							{{ t('learniq', 'No resources match this filter.') }}
 						</td>
 					</tr>
 				</tbody>
 			</table>
 
 			<button class="button-vue" @click="reset">
-				{{ t('scholiq', 'Import another package') }}
+				{{ t('learniq', 'Import another package') }}
 			</button>
 		</div>
 	</div>
@@ -160,14 +191,23 @@ export default {
 		 * Human-readable lifecycle summary line.
 		 *
 		 * @return {string} Localised summary text.
+		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		lifecycleLabel() {
 			if (!this.report) return ''
 			const labels = {
-				succeeded: this.t('scholiq', 'Import succeeded — every resource was imported.'),
-				partial: this.t('scholiq', 'Import completed with some resources degraded or dropped.'),
-				failed: this.t('scholiq', 'Import failed.'),
-				running: this.t('scholiq', 'Import in progress…'),
+				succeeded: this.t(
+					'learniq',
+					'Import succeeded — every resource was imported.',
+				),
+
+				partial: this.t(
+					'learniq',
+					'Import completed with some resources degraded or dropped.',
+				),
+
+				failed: this.t('learniq', 'Import failed.'),
+				running: this.t('learniq', 'Import in progress…'),
 			}
 			return labels[this.report.lifecycle] ?? this.report.lifecycle
 		},
@@ -176,6 +216,7 @@ export default {
 		 * Report entries filtered by the selected outcome.
 		 *
 		 * @return {Array<object>} Filtered entries.
+		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		filteredEntries() {
 			const entries = this.report?.entries ?? []
@@ -215,7 +256,9 @@ export default {
 			formData.append('file', this.selectedFile)
 
 			try {
-				const url = generateUrl('/apps/scholiq/api/course-management/course-package-import')
+				const url = generateUrl(
+					'/apps/learniq/api/course-management/course-package-import',
+				)
 				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -232,7 +275,10 @@ export default {
 
 				this.report = json
 			} catch (err) {
-				this.uploadError = this.t('scholiq', 'Failed to import the package. Please try again.')
+				this.uploadError = this.t(
+					'learniq',
+					'Failed to import the package. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[CoursePackageImportView] uploadPackage error', err)
 			} finally {
@@ -244,6 +290,7 @@ export default {
 		 * Reset the view to upload another package.
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
 		 */
 		reset() {
 			this.report = null
@@ -263,7 +310,8 @@ export default {
 .course-package-import {
 	max-width: 960px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .course-package-import__heading {

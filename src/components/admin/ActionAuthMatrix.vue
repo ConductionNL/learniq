@@ -1,48 +1,59 @@
 <!-- SPDX-License-Identifier: EUPL-1.2 -->
 <template>
-	<div class="scholiq-admin__section" data-testid="admin-action-auth-section">
-		<h3>{{ t('scholiq', 'Action authorization') }}</h3>
-		<p class="scholiq-admin__hint">
-			{{ t('scholiq', 'Decide which Nextcloud groups may invoke each Scholiq action (ADR-023). Admins always pass. Every action defaults to admin-only — tick a group to broaden it.') }}
+	<div class="learniq-admin__section" data-testid="admin-action-auth-section">
+		<h3>{{ t('learniq', 'Action authorization') }}</h3>
+		<p class="learniq-admin__hint">
+			{{
+				t(
+					'learniq',
+					'Decide which Nextcloud groups may invoke each Learniq action (ADR-023). Admins always pass. Every action defaults to admin-only — tick a group to broaden it.',
+				)
+			}}
 		</p>
 
-		<div v-if="error" class="scholiq-admin__action-error" role="alert">
+		<div v-if="error" class="learniq-admin__action-error" role="alert">
 			{{ error }}
 		</div>
 
-		<p v-if="loading" class="scholiq-admin__hint">
-			{{ t('scholiq', 'Loading action matrix…') }}
+		<p v-if="loading" class="learniq-admin__hint">
+			{{ t('learniq', 'Loading action matrix…') }}
 		</p>
 
-		<div v-else class="scholiq-admin__matrix-wrapper">
-			<table class="scholiq-admin__matrix">
+		<div v-else class="learniq-admin__matrix-wrapper">
+			<table class="learniq-admin__matrix">
 				<thead>
 					<tr>
 						<th scope="col">
-							{{ t('scholiq', 'Action') }}
+							{{ t('learniq', 'Action') }}
 						</th>
 						<th
 							v-for="group in displayGroups"
 							:key="group"
 							scope="col"
-							class="scholiq-admin__matrix-group">
+							class="learniq-admin__matrix-group">
 							{{ group }}
 						</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr v-for="action in actions" :key="action">
-						<th scope="row" class="scholiq-admin__matrix-action">
+						<th scope="row" class="learniq-admin__matrix-action">
 							{{ action }}
 						</th>
 						<td
 							v-for="group in displayGroups"
 							:key="`${action}-${group}`"
-							class="scholiq-admin__matrix-cell">
+							class="learniq-admin__matrix-cell">
 							<NcCheckboxRadioSwitch
-								:checked="isChecked(action, group)"
+								:modelValue="isChecked(action, group)"
 								:disabled="group === 'admin'"
-								:aria-label="t('scholiq', 'Allow group {group} to perform {action}', { group, action })"
+								:aria-label="
+									t(
+										'learniq',
+										'Allow group {group} to perform {action}',
+										{ group, action },
+									)
+								"
 								@update:checked="toggle(action, group, $event)" />
 						</td>
 					</tr>
@@ -50,13 +61,17 @@
 			</table>
 		</div>
 
-		<div class="scholiq-admin__matrix-actions">
+		<div class="learniq-admin__matrix-actions">
 			<NcButton
 				variant="primary"
 				data-testid="admin-action-matrix-save"
 				:disabled="loading || saving"
 				@click="save">
-				{{ saving ? t('scholiq', 'Saving…') : t('scholiq', 'Save action matrix') }}
+				{{
+					saving
+						? t('learniq', 'Saving…')
+						: t('learniq', 'Save action matrix')
+				}}
 			</NcButton>
 		</div>
 	</div>
@@ -101,7 +116,7 @@ export default {
 		// `admin` is always shown first as a disabled, always-on column.
 		/** @spec openspec/architecture/adr-023-action-authorization.md */
 		displayGroups() {
-			const rest = this.groups.filter(g => g !== 'admin')
+			const rest = this.groups.filter((g) => g !== 'admin')
 			return ['admin', ...rest]
 		},
 	},
@@ -117,29 +132,39 @@ export default {
 			this.loading = true
 			this.error = ''
 			try {
-				const response = await fetch(generateUrl('/apps/scholiq/api/admin/action-matrix'), {
-					headers: { 'Content-Type': 'application/json' },
-				})
+				const response = await fetch(
+					generateUrl('/apps/learniq/api/admin/action-matrix'),
+					{
+						headers: { 'Content-Type': 'application/json' },
+					},
+				)
 				const data = await response.json()
 				this.actions = Array.isArray(data.actions) ? data.actions : []
 				this.groups = Array.isArray(data.groups) ? data.groups : []
 				// Clone the matrix into a plain editable map keyed by action.
 				const next = {}
-				const source = data.matrix && typeof data.matrix === 'object' ? data.matrix : {}
+				const source =
+					data.matrix && typeof data.matrix === 'object' ? data.matrix : {}
 				for (const action of this.actions) {
-					const allowed = Array.isArray(source[action]) ? source[action] : []
+					const allowed = Array.isArray(source[action])
+						? source[action]
+						: []
 					next[action] = [...allowed]
 				}
 				this.matrix = next
 			} catch (e) {
 				console.error('Failed to load action matrix', e)
-				this.error = t('scholiq', 'Failed to load the action matrix.')
+				this.error = t('learniq', 'Failed to load the action matrix.')
 			} finally {
 				this.loading = false
 			}
 		},
 
-		/** @spec openspec/architecture/adr-023-action-authorization.md */
+		/**
+		 * @param action
+		 * @param group
+		 * @spec openspec/architecture/adr-023-action-authorization.md
+		 */
 		isChecked(action, group) {
 			// Admins always pass regardless of the stored list.
 			if (group === 'admin') {
@@ -149,13 +174,20 @@ export default {
 			return allowed.includes(group)
 		},
 
-		/** @spec openspec/architecture/adr-023-action-authorization.md */
+		/**
+		 * @param action
+		 * @param group
+		 * @param checked
+		 * @spec openspec/architecture/adr-023-action-authorization.md
+		 */
 		toggle(action, group, checked) {
 			// The admin column is fixed and never persisted as a toggle.
 			if (group === 'admin') {
 				return
 			}
-			const allowed = Array.isArray(this.matrix[action]) ? [...this.matrix[action]] : []
+			const allowed = Array.isArray(this.matrix[action])
+				? [...this.matrix[action]]
+				: []
 			const index = allowed.indexOf(group)
 			if (checked === true && index === -1) {
 				allowed.push(group)
@@ -173,26 +205,34 @@ export default {
 				// stored posture stays admin-inclusive and human-readable.
 				const payload = {}
 				for (const action of this.actions) {
-					const extra = (this.matrix[action] || []).filter(g => g !== 'admin')
+					const extra = (this.matrix[action] || []).filter(
+						(g) => g !== 'admin',
+					)
 					payload[action] = ['admin', ...extra]
 				}
-				const response = await fetch(generateUrl('/apps/scholiq/api/admin/action-matrix'), {
-					method: 'PUT',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ matrix: payload }),
-				})
+				const response = await fetch(
+					generateUrl('/apps/learniq/api/admin/action-matrix'),
+					{
+						method: 'PUT',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ matrix: payload }),
+					},
+				)
 				const data = await response.json()
-				const saved = data && data.matrix && typeof data.matrix === 'object' ? data.matrix : {}
+				const saved =
+					data && data.matrix && typeof data.matrix === 'object'
+						? data.matrix
+						: {}
 				const next = {}
 				for (const action of this.actions) {
 					const allowed = Array.isArray(saved[action]) ? saved[action] : []
 					next[action] = [...allowed]
 				}
 				this.matrix = next
-				showSuccess(t('scholiq', 'Action matrix saved.'))
+				showSuccess(t('learniq', 'Action matrix saved.'))
 			} catch (e) {
 				console.error('Failed to save action matrix', e)
-				showError(t('scholiq', 'Failed to save the action matrix.'))
+				showError(t('learniq', 'Failed to save the action matrix.'))
 			} finally {
 				this.saving = false
 			}
@@ -202,12 +242,12 @@ export default {
 </script>
 
 <style scoped>
-.scholiq-admin__hint {
+.learniq-admin__hint {
 	color: var(--color-text-maxcontrast);
 	margin-bottom: 16px;
 }
 
-.scholiq-admin__action-error {
+.learniq-admin__action-error {
 	background: var(--color-error);
 	color: var(--color-primary-element-text);
 	padding: 8px 12px;
@@ -215,39 +255,39 @@ export default {
 	margin-bottom: 16px;
 }
 
-.scholiq-admin__matrix-wrapper {
+.learniq-admin__matrix-wrapper {
 	overflow-x: auto;
 	margin-bottom: 16px;
 }
 
-.scholiq-admin__matrix {
+.learniq-admin__matrix {
 	border-collapse: collapse;
 	width: 100%;
 }
 
-.scholiq-admin__matrix th,
-.scholiq-admin__matrix td {
+.learniq-admin__matrix th,
+.learniq-admin__matrix td {
 	border: 1px solid var(--color-border);
 	padding: 6px 10px;
 	text-align: left;
 }
 
-.scholiq-admin__matrix-group {
+.learniq-admin__matrix-group {
 	text-align: center;
 	white-space: nowrap;
 }
 
-.scholiq-admin__matrix-action {
+.learniq-admin__matrix-action {
 	font-family: var(--font-face-monospace, monospace);
 	font-size: 0.85em;
 	white-space: nowrap;
 }
 
-.scholiq-admin__matrix-cell {
+.learniq-admin__matrix-cell {
 	text-align: center;
 }
 
-.scholiq-admin__matrix-actions {
+.learniq-admin__matrix-actions {
 	display: flex;
 	justify-content: flex-end;
 }

@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Scholiq Portfolio Share Grant Handler
+ * Learniq Portfolio Share Grant Handler
  *
  * Dual-role class for the PortfolioShare schema's `grant` transition
  * (draft → active):
  *
  * 1. Lifecycle guard (`check()`, referenced from the `grant` transition's
- *    `requires:` in scholiq_register.json): blocks the transition when
+ *    `requires:` in learniq_register.json): blocks the transition when
  *    `sharedBy` equals the resolved recipient identity for the share's
  *    `sharedWithKind` — a recipient must never be able to grant themselves
  *    access. `x-property-rbac`/`x-openregister-authorization` cannot express
@@ -16,7 +16,7 @@
  *    never a second property), so it is a PHP guard per ADR-031.
  * 2. IEventListener (`handle()`, registered against
  *    OCA\OpenRegister\Event\ObjectTransitionedEvent in
- *    OCA\Scholiq\AppInfo\Application, mirroring
+ *    OCA\Learniq\AppInfo\Application, mirroring
  *    WerkprocesGradeEmitHandler's event-listener shape): on
  *    PortfolioShare.active with `sharedWithKind: teacher`, resolves the NC
  *    file paths behind the shared portfolio's (or selected entries')
@@ -35,7 +35,7 @@
  * expressed as schema declarations.
  *
  * @category Lifecycle
- * @package  OCA\Scholiq\Lifecycle
+ * @package  OCA\Learniq\Lifecycle
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -52,7 +52,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Lifecycle;
+namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -73,310 +73,344 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
  * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
  */
-class PortfolioShareGrantHandler implements IEventListener
-{
+class PortfolioShareGrantHandler implements IEventListener {
 
-    private const SCHOLIQ_REGISTER = 'scholiq';
-    private const SHARE_SCHEMA     = 'portfolio-share';
-    private const PORTFOLIO_SCHEMA = 'portfolio';
-    private const ENTRY_SCHEMA     = 'portfolio-entry';
+	private const LEARNIQ_REGISTER = 'learniq';
+	private const SHARE_SCHEMA = 'portfolio-share';
+	private const PORTFOLIO_SCHEMA = 'portfolio';
+	private const ENTRY_SCHEMA = 'portfolio-entry';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService   $objectService OR object access service.
-     * @param IManager        $shareManager  NC share manager for the teacher-kind NC Files share.
-     * @param IRootFolder     $rootFolder    NC root folder for resolving attachmentRef paths to Nodes.
-     * @param LoggerInterface $logger        PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly IManager $shareManager,
-        private readonly IRootFolder $rootFolder,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access service.
+	 * @param IManager $shareManager NC share manager for the teacher-kind NC Files share.
+	 * @param IRootFolder $rootFolder NC root folder for resolving attachmentRef paths to Nodes.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly IManager $shareManager,
+		private readonly IRootFolder $rootFolder,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * OR lifecycle guard entry-point — blocks self-grant.
-     *
-     * Called by OpenRegister's lifecycle engine before executing the `grant`
-     * transition on a PortfolioShare object.
-     *
-     * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-     *                                               - 'object'     : the PortfolioShare data array
-     *                                               - 'transition' : 'grant'
-     *                                               - 'from'       : 'draft'
-     *                                               - 'to'         : 'active'
-     *
-     * @return bool True to allow the transition; false blocks it (HTTP 422 from OR engine).
-     *
-     * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
-     */
-    public function check(array &$transitionContext): bool
-    {
-        $share     = $transitionContext['object'] ?? [];
-        $shareId   = $share['id'] ?? ($share['uuid'] ?? '');
-        $sharedBy  = $share['sharedBy'] ?? '';
-        $recipient = $this->resolveRecipientIdentity(share: $share);
+	/**
+	 * OR lifecycle guard entry-point — blocks self-grant.
+	 *
+	 * Called by OpenRegister's lifecycle engine before executing the `grant`
+	 * transition on a PortfolioShare object.
+	 *
+	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
+	 *                                               - 'object'     : the PortfolioShare data array
+	 *                                               - 'transition' : 'grant'
+	 *                                               - 'from'       : 'draft'
+	 *                                               - 'to'         : 'active'
+	 *
+	 * @return bool True to allow the transition; false blocks it (HTTP 422 from OR engine).
+	 *
+	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+	 */
+	public function check(array &$transitionContext): bool {
+		$share = $transitionContext['object'] ?? [];
+		$shareId = $share['id'] ?? ($share['uuid'] ?? '');
+		$sharedBy = $share['sharedBy'] ?? '';
+		$recipient = $this->resolveRecipientIdentity(share: $share);
 
-        if ($recipient !== null && $recipient !== '' && $sharedBy !== '' && $sharedBy === $recipient) {
-            $this->logger->info(
-                '[PortfolioShareGrantHandler] PortfolioShare {id} names the same identity ({who}) as both '
-                .'sharedBy and the recipient; blocking grant.',
-                ['id' => $shareId, 'who' => $sharedBy]
-            );
-            return false;
-        }
+		if ($recipient !== null && $recipient !== '' && $sharedBy !== '' && $sharedBy === $recipient) {
+			$this->logger->info(
+				'[PortfolioShareGrantHandler] PortfolioShare {id} names the same identity ({who}) as both '
+				. 'sharedBy and the recipient; blocking grant.',
+				['id' => $shareId, 'who' => $sharedBy]
+			);
+			return false;
+		}
 
-        return true;
+		return true;
+	}//end check()
 
-    }//end check()
+	/**
+	 * Handle an ObjectTransitionedEvent.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+	 */
+	public function handle(Event $event): void {
+		if (($event instanceof ObjectTransitionedEvent) === false) {
+			return;
+		}
 
-    /**
-     * Handle an ObjectTransitionedEvent.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
-     */
-    public function handle(Event $event): void
-    {
-        if (($event instanceof ObjectTransitionedEvent) === false) {
-            return;
-        }
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+			return;
+		}
 
-        if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
-            return;
-        }
+		if ($event->getSchema() !== self::SHARE_SCHEMA) {
+			return;
+		}
 
-        if ($event->getSchema() !== self::SHARE_SCHEMA) {
-            return;
-        }
+		if ($event->getTo() !== 'active') {
+			return;
+		}
 
-        if ($event->getTo() !== 'active') {
-            return;
-        }
+		$share = $event->getObject()->jsonSerialize();
 
-        $share = $event->getObject()->jsonSerialize();
+		if (($share['sharedWithKind'] ?? '') !== 'teacher') {
+			// Praktijkopleider/external-assessor visibility is served declaratively
+			// by PortalContributionProvider — no NC Files action here.
+			return;
+		}
 
-        if (($share['sharedWithKind'] ?? '') !== 'teacher') {
-            // Praktijkopleider/external-assessor visibility is served declaratively
-            // by PortalContributionProvider — no NC Files action here.
-            return;
-        }
+		$this->createTeacherFileShare(share: $share);
 
-        $this->createTeacherFileShare(share: $share);
+	}//end handle()
 
-    }//end handle()
+	/**
+	 * Resolve the recipient identity string for a PortfolioShare's sharedWithKind.
+	 *
+	 * @param array<string,mixed> $share The PortfolioShare data.
+	 *
+	 * @return string|null The recipient identity (an NC uid for teacher; a domain-object UUID for
+	 *                     praktijkopleider/external-assessor), or null when unresolved.
+	 *
+	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+	 */
+	private function resolveRecipientIdentity(array $share): ?string {
+		$kind = $share['sharedWithKind'] ?? '';
 
-    /**
-     * Resolve the recipient identity string for a PortfolioShare's sharedWithKind.
-     *
-     * @param array<string,mixed> $share The PortfolioShare data.
-     *
-     * @return string|null The recipient identity (an NC uid for teacher; a domain-object UUID for
-     *                      praktijkopleider/external-assessor), or null when unresolved.
-     *
-     * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
-     */
-    private function resolveRecipientIdentity(array $share): ?string
-    {
-        $kind = $share['sharedWithKind'] ?? '';
+		if ($kind === 'teacher') {
+			return $share['sharedWithTeacherId'] ?? null;
+		}
 
-        if ($kind === 'teacher') {
-            return $share['sharedWithTeacherId'] ?? null;
-        }
+		if ($kind === 'praktijkopleider') {
+			return $share['sharedWithPracticalTrainerId'] ?? null;
+		}
 
-        if ($kind === 'praktijkopleider') {
-            return $share['sharedWithPraktijkopleiderId'] ?? null;
-        }
+		if ($kind === 'external-assessor') {
+			return $share['sharedWithExternalAssessorId'] ?? null;
+		}
 
-        if ($kind === 'external-assessor') {
-            return $share['sharedWithExternalAssessorId'] ?? null;
-        }
+		return null;
+	}//end resolveRecipientIdentity()
 
-        return null;
+	/**
+	 * Create a read-only NC Files share of the referenced attachments for the teacher recipient.
+	 *
+	 * @param array<string,mixed> $share The active PortfolioShare data.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-granting-a-teacher-share-creates-a-native-nc-files-share
+	 */
+	private function createTeacherFileShare(array $share): void {
+		$shareId = $share['id'] ?? ($share['uuid'] ?? '');
+		$portfolioId = $share['portfolioId'] ?? '';
+		$teacherId = $share['sharedWithTeacherId'] ?? '';
+		$entryIdFilter = $share['entryIds'] ?? null;
 
-    }//end resolveRecipientIdentity()
+		if ($portfolioId === '' || $teacherId === '') {
+			$this->logger->warning(
+				'[PortfolioShareGrantHandler] PortfolioShare {id} missing portfolioId/sharedWithTeacherId — '
+				. 'cannot create NC Files share.',
+				['id' => $shareId]
+			);
+			return;
+		}
 
-    /**
-     * Create a read-only NC Files share of the referenced attachments for the teacher recipient.
-     *
-     * @param array<string,mixed> $share The active PortfolioShare data.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-granting-a-teacher-share-creates-a-native-nc-files-share
-     */
-    private function createTeacherFileShare(array $share): void
-    {
-        $shareId       = $share['id'] ?? ($share['uuid'] ?? '');
-        $portfolioId   = $share['portfolioId'] ?? '';
-        $teacherId     = $share['sharedWithTeacherId'] ?? '';
-        $entryIdFilter = $share['entryIds'] ?? null;
+		$portfolio = $this->loadObject(schema: self::PORTFOLIO_SCHEMA, id: $portfolioId);
+		if ($portfolio === null) {
+			$this->logger->warning(
+				'[PortfolioShareGrantHandler] PortfolioShare {id} references Portfolio {pid} which could not '
+				. 'be resolved — cannot create NC Files share.',
+				['id' => $shareId, 'pid' => $portfolioId]
+			);
+			return;
+		}
 
-        if ($portfolioId === '' || $teacherId === '') {
-            $this->logger->warning(
-                '[PortfolioShareGrantHandler] PortfolioShare {id} missing portfolioId/sharedWithTeacherId — '
-                .'cannot create NC Files share.',
-                ['id' => $shareId]
-            );
-            return;
-        }
+		$ownerId = $portfolio['learnerId'] ?? '';
+		if ($ownerId === '') {
+			return;
+		}
 
-        $portfolio = $this->loadObject(schema: self::PORTFOLIO_SCHEMA, id: $portfolioId);
-        if ($portfolio === null) {
-            $this->logger->warning(
-                '[PortfolioShareGrantHandler] PortfolioShare {id} references Portfolio {pid} which could not '
-                .'be resolved — cannot create NC Files share.',
-                ['id' => $shareId, 'pid' => $portfolioId]
-            );
-            return;
-        }
+		$entries = $this->objectService->findAll(
+			[
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => self::ENTRY_SCHEMA,
+				'filters' => ['portfolioId' => $portfolioId],
+			]
+		);
 
-        $ownerId = $portfolio['learnerId'] ?? '';
-        if ($ownerId === '') {
-            return;
-        }
+		$shared = $this->shareEntryFiles(
+			entries: $entries,
+			ownerId: (string)$ownerId,
+			teacherId: (string)$teacherId,
+			entryIdFilter: $entryIdFilter
+		);
 
-        $entries = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::ENTRY_SCHEMA,
-                'filters'  => ['portfolioId' => $portfolioId],
-            ]
-        );
+		$this->logger->info(
+			'[PortfolioShareGrantHandler] PortfolioShare {id} granted — {n} file(s) shared with teacher {t}.',
+			['id' => $shareId, 'n' => $shared, 't' => $teacherId]
+		);
 
-        $shared = 0;
-        foreach ($entries as $entry) {
-            $entryData = $entry;
-            if (is_array($entry) === false) {
-                $entryData = $entry->jsonSerialize();
-            }
+	}//end createTeacherFileShare()
 
-            if (($entryData['evidenceKind'] ?? '') !== 'file') {
-                continue;
-            }
+	/**
+	 * Share every eligible entry's attachment with the teacher.
+	 *
+	 * @param array<int,mixed> $entries The Portfolio's entries.
+	 * @param string $ownerId The learner who owns the files.
+	 * @param string $teacherId The teacher being granted access.
+	 * @param mixed $entryIdFilter The share's entryIds restriction, when it has one.
+	 *
+	 * @return int How many files were shared.
+	 *
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+	 */
+	private function shareEntryFiles(array $entries, string $ownerId, string $teacherId, mixed $entryIdFilter): int {
+		$shared = 0;
 
-            $entryId = $entryData['id'] ?? ($entryData['uuid'] ?? '');
-            if (is_array($entryIdFilter) === true
-                && empty($entryIdFilter) === false
-                && in_array($entryId, $entryIdFilter, true) === false
-            ) {
-                continue;
-            }
+		foreach ($entries as $entry) {
+			$entryData = $entry;
+			if (is_array($entry) === false) {
+				$entryData = $entry->jsonSerialize();
+			}
 
-            $attachmentRef = $entryData['attachmentRef'] ?? '';
-            if ($attachmentRef === '') {
-                continue;
-            }
+			if ($this->entryIsShareable(entryData: $entryData, entryIdFilter: $entryIdFilter) === false) {
+				continue;
+			}
 
-            if ($this->shareAttachment(ownerId: $ownerId, teacherId: $teacherId, attachmentRef: $attachmentRef) === true) {
-                $shared++;
-            }
-        }//end foreach
+			$attachmentRef = ($entryData['attachmentRef'] ?? '');
+			if ($attachmentRef === '') {
+				continue;
+			}
 
-        $this->logger->info(
-            '[PortfolioShareGrantHandler] PortfolioShare {id} granted — {n} file(s) shared with teacher {t}.',
-            ['id' => $shareId, 'n' => $shared, 't' => $teacherId]
-        );
+			if ($this->shareAttachment(ownerId: $ownerId, teacherId: $teacherId, attachmentRef: $attachmentRef) === true) {
+				$shared++;
+			}
+		}//end foreach
 
-    }//end createTeacherFileShare()
+		return $shared;
+	}//end shareEntryFiles()
 
-    /**
-     * Resolve one attachmentRef to an NC Node under the owner's home and create a
-     * read-only user share targeting the teacher. Best-effort — an unresolvable
-     * attachmentRef (already-deleted file, foreign OR attachment id shape) is
-     * logged and skipped rather than failing the whole grant.
-     *
-     * @param string $ownerId       NC uid of the file owner (the portfolio's own learner).
-     * @param string $teacherId     NC uid of the recipient.
-     * @param string $attachmentRef nc:files path (relative to the owner's home) or OR attachment id.
-     *
-     * @return bool True when a share was created (or already existed for this recipient).
-     *
-     * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-granting-a-teacher-share-creates-a-native-nc-files-share
-     */
-    private function shareAttachment(string $ownerId, string $teacherId, string $attachmentRef): bool
-    {
-        try {
-            $userFolder = $this->rootFolder->getUserFolder($ownerId);
-            $node       = $userFolder->get($attachmentRef);
-        } catch (NotFoundException $e) {
-            $this->logger->warning(
-                '[PortfolioShareGrantHandler] Could not resolve attachmentRef "{ref}" under {owner}\'s home — '
-                .'skipping.',
-                ['ref' => $attachmentRef, 'owner' => $ownerId]
-            );
-            return false;
-        }
+	/**
+	 * Whether one Portfolio entry falls inside this share's grant.
+	 *
+	 * Only file evidence can be shared through NC Files at all. An `entryIds`
+	 * restriction narrows the grant further; an absent or empty one means the
+	 * share covers every file entry.
+	 *
+	 * @param array<string,mixed> $entryData One PortfolioEntry.
+	 * @param mixed $entryIdFilter The share's entryIds restriction, when it has one.
+	 *
+	 * @return bool True when this entry's file should be shared.
+	 *
+	 * @spec openspec/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+	 */
+	private function entryIsShareable(array $entryData, mixed $entryIdFilter): bool {
+		if (($entryData['evidenceKind'] ?? '') !== 'file') {
+			return false;
+		}
 
-        $existing = $this->shareManager->getSharesBy(userId: $ownerId, shareType: IShare::TYPE_USER, path: $node);
-        foreach ($existing as $existingShare) {
-            if ($existingShare->getSharedWith() === $teacherId) {
-                // Already shared with this recipient — nothing to do.
-                return true;
-            }
-        }
+		if (is_array($entryIdFilter) === false || empty($entryIdFilter) === true) {
+			return true;
+		}
 
-        try {
-            $share = $this->shareManager->newShare();
-            $share->setNode($node);
-            $share->setShareType(IShare::TYPE_USER);
-            $share->setSharedWith($teacherId);
-            $share->setSharedBy($ownerId);
-            $share->setPermissions(Constants::PERMISSION_READ);
-            $this->shareManager->createShare($share);
-            return true;
-        } catch (\Exception $e) {
-            $this->logger->warning(
-                '[PortfolioShareGrantHandler] Failed to create NC Files share of "{ref}" with {teacher}: {msg}',
-                ['ref' => $attachmentRef, 'teacher' => $teacherId, 'msg' => $e->getMessage()]
-            );
-            return false;
-        }
+		$entryId = ($entryData['id'] ?? ($entryData['uuid'] ?? ''));
 
-    }//end shareAttachment()
+		return in_array($entryId, $entryIdFilter, true);
+	}//end entryIsShareable()
 
-    /**
-     * Load a single OpenRegister object by id.
-     *
-     * @param string $schema Schema slug.
-     * @param string $id     Object UUID.
-     *
-     * @return array<string,mixed>|null The object data, or null when not found.
-     *
-     * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
-     */
-    private function loadObject(string $schema, string $id): ?array
-    {
-        if ($id === '') {
-            return null;
-        }
+	/**
+	 * Resolve one attachmentRef to an NC Node under the owner's home and create a
+	 * read-only user share targeting the teacher. Best-effort — an unresolvable
+	 * attachmentRef (already-deleted file, foreign OR attachment id shape) is
+	 * logged and skipped rather than failing the whole grant.
+	 *
+	 * @param string $ownerId NC uid of the file owner (the portfolio's own learner).
+	 * @param string $teacherId NC uid of the recipient.
+	 * @param string $attachmentRef nc:files path (relative to the owner's home) or OR attachment id.
+	 *
+	 * @return bool True when a share was created (or already existed for this recipient).
+	 *
+	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-granting-a-teacher-share-creates-a-native-nc-files-share
+	 */
+	private function shareAttachment(string $ownerId, string $teacherId, string $attachmentRef): bool {
+		try {
+			$userFolder = $this->rootFolder->getUserFolder($ownerId);
+			$node = $userFolder->get($attachmentRef);
+		} catch (NotFoundException $e) {
+			$this->logger->warning(
+				'[PortfolioShareGrantHandler] Could not resolve attachmentRef "{ref}" under {owner}\'s home — '
+				. 'skipping.',
+				['ref' => $attachmentRef, 'owner' => $ownerId]
+			);
+			return false;
+		}
 
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => $schema,
-                'filters'  => ['id' => $id],
-                'limit'    => 1,
-            ]
-        );
+		$existing = $this->shareManager->getSharesBy(userId: $ownerId, shareType: IShare::TYPE_USER, path: $node);
+		foreach ($existing as $existingShare) {
+			if ($existingShare->getSharedWith() === $teacherId) {
+				// Already shared with this recipient — nothing to do.
+				return true;
+			}
+		}
 
-        if (empty($results) === true) {
-            return null;
-        }
+		try {
+			$share = $this->shareManager->newShare();
+			$share->setNode($node);
+			$share->setShareType(IShare::TYPE_USER);
+			$share->setSharedWith($teacherId);
+			$share->setSharedBy($ownerId);
+			$share->setPermissions(Constants::PERMISSION_READ);
+			$this->shareManager->createShare($share);
+			return true;
+		} catch (\Exception $e) {
+			$this->logger->warning(
+				'[PortfolioShareGrantHandler] Failed to create NC Files share of "{ref}" with {teacher}: {msg}',
+				['ref' => $attachmentRef, 'teacher' => $teacherId, 'msg' => $e->getMessage()]
+			);
+			return false;
+		}
 
-        if (is_array($results[0]) === true) {
-            return $results[0];
-        }
+	}//end shareAttachment()
 
-        return $results[0]->jsonSerialize();
+	/**
+	 * Load a single OpenRegister object by id.
+	 *
+	 * @param string $schema Schema slug.
+	 * @param string $id Object UUID.
+	 *
+	 * @return array<string,mixed>|null The object data, or null when not found.
+	 *
+	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+	 */
+	private function loadObject(string $schema, string $id): ?array {
+		if ($id === '') {
+			return null;
+		}
 
-    }//end loadObject()
+		$results = $this->objectService->findAll(
+			[
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => $schema,
+				'filters' => ['id' => $id],
+				'limit' => 1,
+			]
+		);
+
+		if (empty($results) === true) {
+			return null;
+		}
+
+		if (is_array($results[0]) === true) {
+			return $results[0];
+		}
+
+		return $results[0]->jsonSerialize();
+	}//end loadObject()
 }//end class

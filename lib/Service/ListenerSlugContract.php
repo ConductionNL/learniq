@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Feature gate for scholiq's corrected listener schema matching.
+ * Feature gate for Learniq's corrected listener schema matching.
  *
- * Scholiq's OpenRegister listeners compared a schema **id** against a schema
+ * Learniq's OpenRegister listeners compared a schema **id** against a schema
  * **slug** literal, so their handler bodies had never run once. Correcting the
  * comparison is a small change, but it is not a behaviour-neutral one. The
  * listeners it wakes include:
@@ -36,10 +36,10 @@
  * openregister#2248 used for the sibling `ObjectTransitionedEvent` defect.
  *
  * Default: OFF. Enable per instance, only after reviewing each handler body:
- *   occ config:app:set scholiq listener_slug_contract --value=yes
+ *   occ config:app:set learniq listener_slug_contract --value=yes
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -54,43 +54,41 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
-use OCA\Scholiq\AppInfo\Application;
+use OCA\Learniq\AppInfo\Application;
 use OCP\IAppConfig;
 
 /**
  * Reports whether the corrected listener schema matching is enabled.
  */
-class ListenerSlugContract
-{
+class ListenerSlugContract {
 
-    /**
-     * The config key holding the flag.
-     *
-     * @var string
-     */
-    private const CONFIG_KEY = 'listener_slug_contract';
+	/**
+	 * The config key holding the flag.
+	 *
+	 * @var string
+	 */
+	private const CONFIG_KEY = 'listener_slug_contract';
 
-    /**
-     * Constructor.
-     *
-     * @param IAppConfig $appConfig Nextcloud app configuration.
-     *
-     * @return void
-     */
-    public function __construct(private readonly IAppConfig $appConfig)
-    {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param IAppConfig $appConfig Nextcloud app configuration.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly IAppConfig $appConfig,
+	) {
+	}//end __construct()
 
-    /**
-     * Whether the corrected slug comparison should be honoured.
-     *
-     * @return bool True when the contract is enabled for this instance.
-     */
-    public function isEnabled(): bool
-    {
-        return $this->appConfig->getValueBool(Application::APP_ID, self::CONFIG_KEY, false);
-
-    }//end isEnabled()
+	/**
+	 * Whether the corrected slug comparison should be honoured.
+	 *
+	 * @return bool True when the contract is enabled for this instance.
+	 */
+	public function isEnabled(): bool {
+		return $this->appConfig->getValueBool(Application::APP_ID, self::CONFIG_KEY, false);
+	}//end isEnabled()
 }//end class

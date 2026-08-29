@@ -3,7 +3,7 @@
 
 use OCP\Util;
 
-$appId = OCA\Scholiq\AppInfo\Application::APP_ID;
+$appId = OCA\Learniq\AppInfo\Application::APP_ID;
 Util::addScript($appId, $appId . '-main');
 ?>
 <?php
@@ -15,4 +15,4 @@ Util::addScript($appId, $appId . '-main');
 // `mount()` renders INSIDE the match, which would nest the whole app in core's
 // wrapper. A dedicated, uniquely-named host removes the ambiguity entirely.
 ?>
-<div id="scholiq-app"></div>
+<div id="learniq-app"></div>

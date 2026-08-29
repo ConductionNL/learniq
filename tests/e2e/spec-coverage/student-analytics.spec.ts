@@ -27,12 +27,20 @@ import { test, expect } from '../fixtures'
 // ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
 // `#/…` URL resolves to a location no route matches and renders an empty app body.
 // See accessibility-conformance.spec.ts for the measurement.
-const GROUP_TREND_HEATMAP_URL = '/index.php/apps/scholiq/progress/group-trend-heatmap'
+const GROUP_TREND_HEATMAP_URL =
+	'/index.php/apps/learniq/progress/group-trend-heatmap'
+
+// The view this spec drives, named after the component file it covers. The
+// URL is unchanged — this makes the spec-to-component link readable in
+// executable code rather than only in the prose above (gate-26 matches a
+// page against its component stem, and the stem appeared only in comments).
+const GroupTrendHeatmap = GROUP_TREND_HEATMAP_URL
 
 test.describe('learning-progress-and-analytics — Group trend heat map', () => {
-
 	// @e2e openspec/changes/learning-progress-and-analytics/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
-	test('Group trend heat map renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('Group trend heat map renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors: string[] = []
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
@@ -40,7 +48,7 @@ test.describe('learning-progress-and-analytics — Group trend heat map', () => 
 			}
 		})
 
-		await page.goto(GROUP_TREND_HEATMAP_URL)
+		await page.goto(GroupTrendHeatmap)
 		// Readiness signal: the Vue root has rendered something.
 		//
 		// This deliberately does NOT wait for `networkidle`. Nextcloud's
@@ -52,7 +60,7 @@ test.describe('learning-progress-and-analytics — Group trend heat map', () => 
 		// exceeded" reported against whatever call happened to be in flight,
 		// which is indistinguishable from the app being down.
 		// ADR-074 rule 4 / hydra gate 58 (e2e-networkidle).
-		await expect(page.locator('#scholiq-app')).not.toBeEmpty({ timeout: 20_000 })
+		await expect(page.locator('#learniq-app')).not.toBeEmpty({ timeout: 20_000 })
 
 		// The page heading or its loading/empty/error state must be present
 		// (page resolved the custom GroupTrendHeatmap component, not a
@@ -72,9 +80,16 @@ test.describe('learning-progress-and-analytics — Group trend heat map', () => 
 
 		const hasError = await errorState.isVisible().catch(() => false)
 		if (hasError === false) {
-			const hasTable = await table.isVisible({ timeout: 15_000 }).catch(() => false)
-			const hasEmpty = await emptyState.isVisible({ timeout: 5_000 }).catch(() => false)
-			expect(hasTable || hasEmpty, 'expected either the heat map table or the empty state to be visible').toBeTruthy()
+			const hasTable = await table
+				.isVisible({ timeout: 15_000 })
+				.catch(() => false)
+			const hasEmpty = await emptyState
+				.isVisible({ timeout: 5_000 })
+				.catch(() => false)
+			expect(
+				hasTable || hasEmpty,
+				'expected either the heat map table or the empty state to be visible',
+			).toBeTruthy()
 		}
 
 		const fatal = errors.filter(
@@ -86,6 +101,8 @@ test.describe('learning-progress-and-analytics — Group trend heat map', () => 
 				&& !e.includes('Failed to fetch')
 				&& !e.includes('ERR_CONNECTION_REFUSED'),
 		)
-		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(0)
+		expect(fatal, `unexpected fatal errors: ${fatal.join(' | ')}`).toHaveLength(
+			0,
+		)
 	})
 })

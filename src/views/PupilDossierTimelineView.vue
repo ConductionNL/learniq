@@ -40,55 +40,81 @@
 	<div class="pupil-dossier-timeline">
 		<header class="pupil-dossier-timeline__header">
 			<h2 class="pupil-dossier-timeline__title">
-				{{ t('scholiq', 'Pupil dossier timeline') }}
+				{{ t('learniq', 'Pupil dossier timeline') }}
 			</h2>
 			<p class="pupil-dossier-timeline__subtitle">
-				{{ t('scholiq', 'Notes, incidents, wellbeing check-ins, and the formal care chain for one learner, merged chronologically.') }}
+				{{
+					t(
+						'learniq',
+						'Notes, incidents, wellbeing check-ins, and the formal care chain for one learner, merged chronologically.',
+					)
+				}}
 			</p>
 		</header>
 
 		<!-- No learner selected: inline picker. -->
 		<div v-if="!learnerId" class="pupil-dossier-timeline__picker" role="form">
 			<label for="pupil-dossier-timeline-learner-id">
-				{{ t('scholiq', 'Learner ID') }}
+				{{ t('learniq', 'Learner ID') }}
 			</label>
 			<div class="pupil-dossier-timeline__picker-row">
 				<input
 					id="pupil-dossier-timeline-learner-id"
 					v-model="learnerIdInput"
 					type="text"
-					:placeholder="t('scholiq', 'Nextcloud user ID of the learner')"
-					@keyup.enter="openLearner">
+					:placeholder="t('learniq', 'Nextcloud user ID of the learner')"
+					@keyup.enter="openLearner" />
 				<button
 					type="button"
 					class="button-vue button-vue--vue-primary"
 					:disabled="!learnerIdInput"
 					@click="openLearner">
-					{{ t('scholiq', 'Open timeline') }}
+					{{ t('learniq', 'Open timeline') }}
 				</button>
 			</div>
 			<p class="pupil-dossier-timeline__picker-hint">
-				{{ t('scholiq', 'Usually opened from a learner\'s profile page ("Dossier timeline" tile) — this picker is a fallback for direct navigation.') }}
+				{{
+					t(
+						'learniq',
+						'Usually opened from a learner\'s profile page ("Dossier timeline" tile) — this picker is a fallback for direct navigation.',
+					)
+				}}
 			</p>
 		</div>
 
 		<template v-else>
 			<!-- Loading -->
-			<div v-if="loading" class="pupil-dossier-timeline__loading" aria-live="polite">
+			<div
+				v-if="loading"
+				class="pupil-dossier-timeline__loading"
+				aria-live="polite">
 				<span class="icon-loading" aria-hidden="true" />
-				<span>{{ t('scholiq', 'Loading dossier timeline...') }}</span>
+				<span>{{ t('learniq', 'Loading dossier timeline...') }}</span>
 			</div>
 
 			<!-- Error -->
-			<div v-else-if="error" class="pupil-dossier-timeline__error" role="alert">
+			<div
+				v-else-if="error"
+				class="pupil-dossier-timeline__error"
+				role="alert">
 				<span class="icon-error" aria-hidden="true" />
 				<p>{{ error }}</p>
 			</div>
 
 			<!-- Empty -->
-			<div v-else-if="entries.length === 0" class="pupil-dossier-timeline__empty" role="status">
+			<div
+				v-else-if="entries.length === 0"
+				class="pupil-dossier-timeline__empty"
+				role="status">
 				<span class="icon-checkmark" aria-hidden="true" />
-				<p>{{ t('scholiq', 'This learner has no dossier notes, incidents, check-ins, or care-chain records yet.') }}</p>
+				<p>
+					{{
+						t(
+							'learniq',
+							'This learner has no dossier notes, incidents, check-ins, or care-chain records yet.',
+						)
+					}}
+				</p>
 			</div>
 
 			<!-- Timeline -->
@@ -99,8 +125,15 @@
 					class="pupil-dossier-timeline__entry"
 					:class="'pupil-dossier-timeline__entry--' + entry.kind">
 					<div class="pupil-dossier-timeline__entry-meta">
-						<span class="pupil-dossier-timeline__entry-kind">{{ entry.kindLabel }}</span>
-						<span class="pupil-dossier-timeline__entry-date">{{ formatDate(entry.date) }}</span>
+						<span class="pupil-dossier-timeline__entry-kind">{{
+							entry.kindLabel
+						}}</span>
+						<span class="pupil-dossier-timeline__entry-date">{{
+							/**
+							 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
+							 */
+							formatDate(entry.date)
+						}}</span>
 					</div>
 					<div class="pupil-dossier-timeline__entry-body">
 						<router-link
@@ -109,8 +142,12 @@
 							class="pupil-dossier-timeline__entry-title">
 							{{ entry.title }}
 						</router-link>
-						<span v-else class="pupil-dossier-timeline__entry-title">{{ entry.title }}</span>
-						<p v-if="entry.summary" class="pupil-dossier-timeline__entry-summary">
+						<span v-else class="pupil-dossier-timeline__entry-title">{{
+							entry.title
+						}}</span>
+						<p
+							v-if="entry.summary"
+							class="pupil-dossier-timeline__entry-summary">
 							{{ entry.summary }}
 						</p>
 					</div>
@@ -147,9 +184,13 @@ export default {
 		 * (populated by LearnerProfileDetail's "Dossier timeline" KPI tile).
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		learnerId() {
-			return (this.$route && this.$route.query && this.$route.query.learnerId) || ''
+			return (
+				(this.$route && this.$route.query && this.$route.query.learnerId)
+				|| ''
+			)
 		},
 
 		/**
@@ -177,6 +218,9 @@ export default {
 	watch: {
 		learnerId: {
 			immediate: true,
+			/**
+			 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
+			 */
 			handler() {
 				if (this.learnerId) this.loadAll()
 			},
@@ -190,23 +234,37 @@ export default {
 		 * navigation without a pre-selected learner).
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		openLearner() {
 			const id = this.learnerIdInput.trim()
 			if (!id) return
-			this.$router.replace({ name: 'PupilDossierTimelineView', query: { learnerId: id } }).catch(() => {})
+			this.$router
+				.replace({
+					name: 'PupilDossierTimelineView',
+					query: { learnerId: id },
+				})
+				.catch(() => {})
 		},
 
 		/**
 		 * Fetch one schema's objects filtered by the given query string.
 		 *
-		 * @param {string} schema OpenRegister schema title (e.g. "DossierNote").
+		 * @param {string} schema OpenRegister schema SLUG (e.g. "dossier-note").
+		 *   The URL segment is the slug, NOT the schema title — passing the
+		 *   title ("DossierNote") resolves nothing and returns 404. Every
+		 *   declarative widget in `src/manifest.d/` already names the slug; this
+		 *   view is the only caller that builds the URL by hand, which is how it
+		 *   ended up being the only one that got it wrong.
 		 * @param {string} query Query string, WITHOUT the leading "?" (already
 		 *   `encodeURIComponent`-escaped by the caller).
 		 * @return {Promise<Array<object>>}
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		async fetchSchema(schema, query) {
-			const url = generateUrl(`/apps/openregister/api/objects/scholiq/${schema}?${query}`)
+			const url = generateUrl(
+				`/apps/openregister/api/objects/learniq/${schema}?${query}`,
+			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
@@ -227,16 +285,36 @@ export default {
 		async loadAll() {
 			this.loading = true
 			this.error = null
-			const learnerQuery = `learnerId=${encodeURIComponent(this.learnerId)}&limit=200`
+			const learnerQuery = `learnerId=${encodeURIComponent(this.learnerId)}&_limit=200`
 
+			// ⚠️ ADDRESS THE SCHEMA BY ITS SLUG, NEVER BY ITS TITLE.
+			//
+			// OpenRegister resolves a schema identifier by slugifying it and
+			// matching the slug, so `DossierNote` becomes `dossiernote`, which
+			// matches nothing — the declared slug is `dossier-note`. Every one
+			// of these five is multi-word, so every one of them 404'd, and
+			// loadAll() could never populate a timeline for any learner.
+			//
+			// Measured against a live instance:
+			//
+			//   .../objects/learniq/DossierNote        -> 404
+			//   .../objects/learniq/dossier-note       -> 200
+			//   .../objects/learniq/BehaviourIncident  -> 404
+			//   .../objects/learniq/behaviour-incident -> 200
+			//
+			// A single-word title hides this — `Course` slugifies to `course`
+			// and happens to resolve — which is why the same pattern reads as
+			// fine elsewhere in this app. ExamCaseDossierView carries the same
+			// warning after the same bug was found there.
 			try {
-				const [notes, incidents, checkIns, plans, requests] = await Promise.all([
-					this.fetchSchema('DossierNote', learnerQuery),
-					this.fetchSchema('BehaviourIncident', learnerQuery),
-					this.fetchSchema('WellbeingCheckIn', learnerQuery),
-					this.fetchSchema('LearningPlan', learnerQuery),
-					this.fetchSchema('SupportRequest', learnerQuery),
-				])
+				const [notes, incidents, checkIns, plans, requests] =
+					await Promise.all([
+						this.fetchSchema('dossier-note', learnerQuery),
+						this.fetchSchema('behaviour-incident', learnerQuery),
+						this.fetchSchema('wellbeing-check-in', learnerQuery),
+						this.fetchSchema('learning-plan', learnerQuery),
+						this.fetchSchema('support-request', learnerQuery),
+					])
 				this.notes = notes
 				this.incidents = incidents
 				this.checkIns = checkIns
@@ -245,13 +323,35 @@ export default {
 
 				const requestIds = new Set(requests.map((r) => r.id ?? r.uuid))
 				if (requestIds.size > 0) {
-					const allDeliberations = await this.fetchSchema('DeliberationRecord', 'limit=500')
-					this.deliberations = allDeliberations.filter((d) => requestIds.has(d.supportRequestId))
+					// `_limit`, not `limit`. OpenRegister treats a BARE control
+					// param as a property filter, so `limit=500` asks for records
+					// whose `limit` property equals 500 — of which there are none.
+					// That returns an empty list with HTTP 200: no error, no
+					// deliberations, and nothing to indicate why.
+					const allDeliberations = await this.fetchSchema(
+						'deliberation-record',
+						'_limit=500',
+					)
+					this.deliberations = allDeliberations.filter((d) =>
+						requestIds.has(d.supportRequestId),
+					)
 				} else {
 					this.deliberations = []
 				}
 			} catch (err) {
-				this.error = this.t('scholiq', 'Failed to load the dossier timeline. Please try again.')
+				// DELIBERATELY NOT GIVEN THE 404 BRANCH the other views get.
+				//
+				// Every call here is a LIST query (`fetchSchema(schema,
+				// learnerId=…&_limit=200)`), so a 404 does not mean "this learner
+				// has no dossier" — an empty result set says that, with HTTP 200.
+				// A 404 on a list means the SCHEMA did not resolve, which is a
+				// misconfigured register and exactly the kind of fault that must
+				// stay loud. Treating it as "not found" would report a broken
+				// environment as an empty timeline.
+				this.error = this.t(
+					'learniq',
+					'Failed to load the dossier timeline. Please try again.',
+				)
 				// eslint-disable-next-line no-console
 				console.error('[PupilDossierTimelineView] loadAll error', err)
 			} finally {
@@ -262,11 +362,12 @@ export default {
 		/**
 		 * @param {object} o DossierNote object.
 		 * @return {object} Normalised timeline entry.
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		normaliseNote(o) {
 			return {
 				kind: 'dossier-note',
-				kindLabel: this.t('scholiq', 'Dossier note'),
+				kindLabel: this.t('learniq', 'Dossier note'),
 				id: o.id ?? o.uuid,
 				date: o.date,
 				title: o.category,
@@ -278,14 +379,18 @@ export default {
 		/**
 		 * @param {object} o BehaviourIncident object.
 		 * @return {object} Normalised timeline entry.
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		normaliseIncident(o) {
 			return {
 				kind: 'behaviour-incident',
-				kindLabel: this.t('scholiq', 'Behaviour incident'),
+				kindLabel: this.t('learniq', 'Behaviour incident'),
 				id: o.id ?? o.uuid,
 				date: o.occurredAt,
-				title: this.t('scholiq', 'Incident ({severity})', { severity: o.severity }),
+				title: this.t('learniq', 'Incident ({severity})', {
+					severity: o.severity,
+				}),
+
 				summary: o.what,
 				route: 'BehaviourIncidentDetail',
 			}
@@ -294,14 +399,15 @@ export default {
 		/**
 		 * @param {object} o WellbeingCheckIn object.
 		 * @return {object} Normalised timeline entry.
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		normaliseCheckIn(o) {
 			return {
 				kind: 'wellbeing-check-in',
-				kindLabel: this.t('scholiq', 'Wellbeing check-in'),
+				kindLabel: this.t('learniq', 'Wellbeing check-in'),
 				id: o.id ?? o.uuid,
 				date: o.submittedAt,
-				title: this.t('scholiq', 'Mood: {mood}/5', { mood: o.moodScale }),
+				title: this.t('learniq', 'Mood: {mood}/5', { mood: o.moodScale }),
 				summary: o.comment,
 				route: 'WellbeingCheckInDetail',
 			}
@@ -310,11 +416,12 @@ export default {
 		/**
 		 * @param {object} o LearningPlan object.
 		 * @return {object} Normalised timeline entry.
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		normalisePlan(o) {
 			return {
 				kind: 'learning-plan',
-				kindLabel: this.t('scholiq', 'Learning plan'),
+				kindLabel: this.t('learniq', 'Learning plan'),
 				id: o.id ?? o.uuid,
 				date: o.created ?? o.startDate ?? o.nextReviewAt,
 				title: o.kind,
@@ -326,11 +433,12 @@ export default {
 		/**
 		 * @param {object} o SupportRequest object.
 		 * @return {object} Normalised timeline entry.
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		normaliseRequest(o) {
 			return {
 				kind: 'support-request',
-				kindLabel: this.t('scholiq', 'Support request'),
+				kindLabel: this.t('learniq', 'Support request'),
 				id: o.id ?? o.uuid,
 				date: o.created ?? o.submittedAt,
 				title: o.supportDomain,
@@ -342,11 +450,12 @@ export default {
 		/**
 		 * @param {object} o DeliberationRecord object.
 		 * @return {object} Normalised timeline entry.
+		 * @spec openspec/changes/pupil-dossier-notes/specs/pupil-dossier/spec.md#scenario-the-timeline-view-merges-notes-incidents-check-ins-and-the-care-chain
 		 */
 		normaliseDeliberation(o) {
 			return {
 				kind: 'deliberation-record',
-				kindLabel: this.t('scholiq', 'Deliberation record'),
+				kindLabel: this.t('learniq', 'Deliberation record'),
 				id: o.id ?? o.uuid,
 				date: o.recordedAt ?? o.scheduledAt,
 				title: o.outcome,
@@ -381,7 +490,8 @@ export default {
 .pupil-dossier-timeline {
 	max-width: 900px;
 	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px) calc(var(--default-grid-baseline, 8px) * 2);
+	padding: var(--default-grid-baseline, 8px)
+		calc(var(--default-grid-baseline, 8px) * 2);
 }
 
 .pupil-dossier-timeline__header {

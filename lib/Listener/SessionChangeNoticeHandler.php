@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Scholiq Session Change Notice Handler
+ * Learniq Session Change Notice Handler
  *
  * IEventListener for Session lifecycle -> `cancel` / `substitute-teacher` /
  * `substitute-teacher-in-progress` (the OR ObjectTransitionedEvent with
- * register=scholiq, schema=session, action in that set). Materialises
+ * register=learniq, schema=session, action in that set). Materialises
  * `affectedLearnerIds` / `affectedParentIds` / `changedAt` onto the Session so
  * the verified `x-openregister-notifications` dialect's `kind:field`
  * recipients can resolve them without a runtime join — mirrors
@@ -24,7 +24,7 @@
  *    NEVER touches `lifecycle`, `roomId`, `startsAt`, or `endsAt`.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -41,7 +41,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -60,197 +60,190 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-cancellation-or-substitution-notifies-affected-learners-and-parents
  */
-class SessionChangeNoticeHandler implements IEventListener
-{
+class SessionChangeNoticeHandler implements IEventListener {
 
-    private const SCHOLIQ_REGISTER       = 'scholiq';
-    private const SESSION_SCHEMA         = 'session';
-    private const COHORT_SCHEMA          = 'cohort';
-    private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
+	private const LEARNIQ_REGISTER = 'learniq';
+	private const SESSION_SCHEMA = 'session';
+	private const COHORT_SCHEMA = 'cohort';
+	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 
-    /**
-     * Transition action names this handler reacts to.
-     *
-     * @var string[]
-     */
-    private const WATCHED_ACTIONS = ['cancel', 'substitute-teacher', 'substitute-teacher-in-progress'];
+	/**
+	 * Transition action names this handler reacts to.
+	 *
+	 * @var string[]
+	 */
+	private const WATCHED_ACTIONS = ['cancel', 'substitute-teacher', 'substitute-teacher-in-progress'];
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService   $objectService OR object access service.
-     * @param LoggerInterface $logger        PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access service.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an ObjectTransitionedEvent.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
-     */
-    public function handle(Event $event): void
-    {
-        if (($event instanceof ObjectTransitionedEvent) === false) {
-            return;
-        }
+	/**
+	 * Handle an ObjectTransitionedEvent.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
+	 */
+	public function handle(Event $event): void {
+		if (($event instanceof ObjectTransitionedEvent) === false) {
+			return;
+		}
 
-        if ($event->getRegister() !== self::SCHOLIQ_REGISTER || $event->getSchema() !== self::SESSION_SCHEMA) {
-            return;
-        }
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER || $event->getSchema() !== self::SESSION_SCHEMA) {
+			return;
+		}
 
-        if (in_array($event->getAction(), self::WATCHED_ACTIONS, true) === false) {
-            return;
-        }
+		if (in_array($event->getAction(), self::WATCHED_ACTIONS, true) === false) {
+			return;
+		}
 
-        $this->materialiseAffected(session: $event->getObject()->jsonSerialize());
+		$this->materialiseAffected(session: $event->getObject()->jsonSerialize());
 
-    }//end handle()
+	}//end handle()
 
-    /**
-     * Resolve and persist affectedLearnerIds/affectedParentIds/changedAt onto the Session.
-     *
-     * @param array<string,mixed> $session The Session data after the transition.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
-     */
-    private function materialiseAffected(array $session): void
-    {
-        $sessionId = (string) ($session['id'] ?? ($session['uuid'] ?? ''));
-        if ($sessionId === '') {
-            $this->logger->warning('[SessionChangeNoticeHandler] Session has no id; aborting.');
-            return;
-        }
+	/**
+	 * Resolve and persist affectedLearnerIds/affectedParentIds/changedAt onto the Session.
+	 *
+	 * @param array<string,mixed> $session The Session data after the transition.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-cancelling-a-session-notifies-every-affected-learner-and-parent
+	 */
+	private function materialiseAffected(array $session): void {
+		$sessionId = (string)($session['id'] ?? ($session['uuid'] ?? ''));
+		if ($sessionId === '') {
+			$this->logger->warning('[SessionChangeNoticeHandler] Session has no id; aborting.');
+			return;
+		}
 
-        $cohortId = (string) ($session['cohortId'] ?? '');
-        $tenantId = (string) ($session['tenant_id'] ?? '');
+		$cohortId = (string)($session['cohortId'] ?? '');
+		$tenantId = (string)($session['tenant_id'] ?? '');
 
-        $learnerIds = $this->resolveCohortLearnerIds(cohortId: $cohortId, tenantId: $tenantId);
-        $parentIds  = $this->resolveParentIds(learnerIds: $learnerIds, tenantId: $tenantId);
+		$learnerIds = $this->resolveCohortLearnerIds(cohortId: $cohortId, tenantId: $tenantId);
+		$parentIds = $this->resolveParentIds(learnerIds: $learnerIds, tenantId: $tenantId);
 
-        $session['affectedLearnerIds'] = $learnerIds;
-        $session['affectedParentIds']  = $parentIds;
-        $session['changedAt']          = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+		$session['affectedLearnerIds'] = $learnerIds;
+		$session['affectedParentIds'] = $parentIds;
+		$session['changedAt'] = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 
-        $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::SESSION_SCHEMA,
-            object: $session
-        );
+		$this->objectService->saveObject(
+			register: self::LEARNIQ_REGISTER,
+			schema: self::SESSION_SCHEMA,
+			object: $session
+		);
 
-        $this->logger->info(
-            '[SessionChangeNoticeHandler] Session {id}: {l} affected learner(s), {p} affected parent(s).',
-            ['id' => $sessionId, 'l' => count($learnerIds), 'p' => count($parentIds)]
-        );
+		$this->logger->info(
+			'[SessionChangeNoticeHandler] Session {id}: {l} affected learner(s), {p} affected parent(s).',
+			['id' => $sessionId, 'l' => count($learnerIds), 'p' => count($parentIds)]
+		);
 
-    }//end materialiseAffected()
+	}//end materialiseAffected()
 
-    /**
-     * Resolve a Cohort's learnerIds.
-     *
-     * @param string $cohortId Cohort UUID.
-     * @param string $tenantId Tenant ID to enforce as a mandatory filter.
-     *
-     * @return array<int,string> The cohort's learner Nextcloud user ids.
-     */
-    private function resolveCohortLearnerIds(string $cohortId, string $tenantId): array
-    {
-        if ($cohortId === '') {
-            return [];
-        }
+	/**
+	 * Resolve a Cohort's learnerIds.
+	 *
+	 * @param string $cohortId Cohort UUID.
+	 * @param string $tenantId Tenant ID to enforce as a mandatory filter.
+	 *
+	 * @return array<int,string> The cohort's learner Nextcloud user ids.
+	 */
+	private function resolveCohortLearnerIds(string $cohortId, string $tenantId): array {
+		if ($cohortId === '') {
+			return [];
+		}
 
-        $filters = ['id' => $cohortId];
-        if ($tenantId !== '') {
-            $filters['tenant_id'] = $tenantId;
-        }
+		$filters = ['id' => $cohortId];
+		if ($tenantId !== '') {
+			$filters['tenant_id'] = $tenantId;
+		}
 
-        $results = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::COHORT_SCHEMA,
-                'filters'  => $filters,
-                'limit'    => 1,
-            ]
-        );
+		$results = $this->objectService->findAll(
+			[
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => self::COHORT_SCHEMA,
+				'filters' => $filters,
+				'limit' => 1,
+			]
+		);
 
-        if (empty($results) === true) {
-            return [];
-        }
+		if (empty($results) === true) {
+			return [];
+		}
 
-        $cohort = $results[0];
-        if (is_array($cohort) === false) {
-            $cohort = $cohort->jsonSerialize();
-        }
+		$cohort = $results[0];
+		if (is_array($cohort) === false) {
+			$cohort = $cohort->jsonSerialize();
+		}
 
-        $learnerIds = $cohort['learnerIds'] ?? [];
-        if (is_array($learnerIds) === false) {
-            return [];
-        }
+		$learnerIds = $cohort['learnerIds'] ?? [];
+		if (is_array($learnerIds) === false) {
+			return [];
+		}
 
-        return array_values(array_unique(array_filter($learnerIds, static fn ($id) => is_string($id) === true && $id !== '')));
+		return array_values(array_unique(array_filter($learnerIds, static fn ($id) => is_string($id) === true && $id !== '')));
+	}//end resolveCohortLearnerIds()
 
-    }//end resolveCohortLearnerIds()
+	/**
+	 * Resolve the deduplicated union of parentIds across every learner's LearnerProfile.
+	 *
+	 * @param array<int,string> $learnerIds Affected learner Nextcloud user ids.
+	 * @param string $tenantId Tenant ID to enforce as a mandatory filter.
+	 *
+	 * @return array<int,string> The deduplicated parent/guardian Nextcloud user ids.
+	 */
+	private function resolveParentIds(array $learnerIds, string $tenantId): array {
+		$parentIds = [];
 
-    /**
-     * Resolve the deduplicated union of parentIds across every learner's LearnerProfile.
-     *
-     * @param array<int,string> $learnerIds Affected learner Nextcloud user ids.
-     * @param string            $tenantId   Tenant ID to enforce as a mandatory filter.
-     *
-     * @return array<int,string> The deduplicated parent/guardian Nextcloud user ids.
-     */
-    private function resolveParentIds(array $learnerIds, string $tenantId): array
-    {
-        $parentIds = [];
+		foreach ($learnerIds as $learnerId) {
+			$filters = ['ncUserId' => $learnerId];
+			if ($tenantId !== '') {
+				$filters['tenant_id'] = $tenantId;
+			}
 
-        foreach ($learnerIds as $learnerId) {
-            $filters = ['ncUserId' => $learnerId];
-            if ($tenantId !== '') {
-                $filters['tenant_id'] = $tenantId;
-            }
+			$results = $this->objectService->findAll(
+				[
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNER_PROFILE_SCHEMA,
+					'filters' => $filters,
+					'limit' => 1,
+				]
+			);
 
-            $results = $this->objectService->findAll(
-                [
-                    'register' => self::SCHOLIQ_REGISTER,
-                    'schema'   => self::LEARNER_PROFILE_SCHEMA,
-                    'filters'  => $filters,
-                    'limit'    => 1,
-                ]
-            );
+			if (empty($results) === true) {
+				continue;
+			}
 
-            if (empty($results) === true) {
-                continue;
-            }
+			$profile = $results[0];
+			if (is_array($profile) === false) {
+				$profile = $profile->jsonSerialize();
+			}
 
-            $profile = $results[0];
-            if (is_array($profile) === false) {
-                $profile = $profile->jsonSerialize();
-            }
+			$profileParentIds = $profile['parentIds'] ?? [];
+			if (is_array($profileParentIds) === false) {
+				continue;
+			}
 
-            $profileParentIds = $profile['parentIds'] ?? [];
-            if (is_array($profileParentIds) === false) {
-                continue;
-            }
+			foreach ($profileParentIds as $parentId) {
+				if (is_string($parentId) === true && $parentId !== '') {
+					$parentIds[$parentId] = true;
+				}
+			}
+		}//end foreach
 
-            foreach ($profileParentIds as $parentId) {
-                if (is_string($parentId) === true && $parentId !== '') {
-                    $parentIds[$parentId] = true;
-                }
-            }
-        }//end foreach
-
-        return array_keys($parentIds);
-
-    }//end resolveParentIds()
+		return array_keys($parentIds);
+	}//end resolveParentIds()
 }//end class

@@ -31,9 +31,9 @@
  */
 import { test, expect } from '../fixtures'
 
-const PORTFOLIOS_INDEX_URL = '/index.php/apps/scholiq/eportfolio/portfolios'
-const PORTFOLIO_TEMPLATES_INDEX_URL = '/index.php/apps/scholiq/eportfolio/templates'
-const PORTFOLIO_ENTRIES_INDEX_URL = '/index.php/apps/scholiq/eportfolio/entries'
+const PORTFOLIOS_INDEX_URL = '/index.php/apps/learniq/eportfolio/portfolios'
+const PORTFOLIO_TEMPLATES_INDEX_URL = '/index.php/apps/learniq/eportfolio/templates'
+const PORTFOLIO_ENTRIES_INDEX_URL = '/index.php/apps/learniq/eportfolio/entries'
 
 /**
  * Collect console errors on a page, filtering out the same benign noise
@@ -64,15 +64,16 @@ function assertNoFatalErrors(errors: string[]): void {
 }
 
 test.describe('eportfolio — declarative index pages', () => {
-
 	// @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-learner-creates-a-personal-portfolio-that-is-never-submitted-for-grading
 	// @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-course-task-instantiates-a-course-bound-portfolio-from-a-template
-	test('Portfolios index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('Portfolios index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(PORTFOLIOS_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -80,12 +81,14 @@ test.describe('eportfolio — declarative index pages', () => {
 		assertNoFatalErrors(errors)
 	})
 
-	test('Portfolio templates index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('Portfolio templates index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(PORTFOLIO_TEMPLATES_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -95,12 +98,14 @@ test.describe('eportfolio — declarative index pages', () => {
 
 	// @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-learner-adds-an-existing-submission-as-portfolio-evidence
 	// @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-learner-adds-a-free-text-reflection-with-no-external-evidence
-	test('Portfolio entries index page renders without a fatal error', async ({ loggedInPage: page }) => {
+	test('Portfolio entries index page renders without a fatal error', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		await page.goto(PORTFOLIO_ENTRIES_INDEX_URL)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -110,10 +115,11 @@ test.describe('eportfolio — declarative index pages', () => {
 })
 
 test.describe('eportfolio — custom views resolve (registry.js wiring)', () => {
-
 	// @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-learner-builds-a-portfolio-using-the-evidence-picker-not-raw-uuid-entry
 	// @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-submission-succeeds-once-every-required-section-has-evidence
-	test('PortfolioBuilder route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
+	test('PortfolioBuilder route resolves the registered component, not a blank/404 shell', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
 		// A non-existent id is enough to prove the ROUTE resolves the registered
@@ -124,11 +130,11 @@ test.describe('eportfolio — custom views resolve (registry.js wiring)', () => 
 		// deferred to a dev-instance-seeded follow-up (out of scope for this
 		// gate-19 smoke pass, matching every other custom-view spec in this
 		// repo's coverage style).
-		// ⚠️ scholiq#267 — still the HASH form (no route resolves; this test
-		// passes without the app rendering). Needs a seeded Portfolio first.
-		await page.goto('/index.php/apps/scholiq/#/eportfolio/portfolios/00000000-0000-0000-0000-000000000000/build')
+		await page.goto(
+			'/index.php/apps/learniq/eportfolio/portfolios/00000000-0000-0000-0000-000000000000/build',
+		)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)
@@ -137,13 +143,16 @@ test.describe('eportfolio — custom views resolve (registry.js wiring)', () => 
 	})
 
 	// @e2e openspec/changes/eportfolio/specs/eportfolio/spec.md#scenario-a-teacher-reviews-and-grades-a-submitted-course-bound-portfolio
-	test('PortfolioReviewView route resolves the registered component, not a blank/404 shell', async ({ loggedInPage: page }) => {
+	test('PortfolioReviewView route resolves the registered component, not a blank/404 shell', async ({
+		loggedInPage: page,
+	}) => {
 		const errors = collectFatalErrors(page)
 
-		// ⚠️ scholiq#267 — still the HASH form. See the note above.
-		await page.goto('/index.php/apps/scholiq/#/eportfolio/portfolios/00000000-0000-0000-0000-000000000000/review')
+		await page.goto(
+			'/index.php/apps/learniq/eportfolio/portfolios/00000000-0000-0000-0000-000000000000/review',
+		)
 		await page.waitForSelector('body', { timeout: 15_000 })
-		await page.waitForLoadState('networkidle').catch(() => {})
+		await page.waitForLoadState('domcontentloaded')
 
 		const bodyText = await page.innerText('body')
 		expect(bodyText.trim().length).toBeGreaterThan(0)

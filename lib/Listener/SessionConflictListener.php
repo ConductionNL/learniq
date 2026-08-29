@@ -1,18 +1,18 @@
 <?php
 
 /**
- * Scholiq Session Conflict Listener
+ * Learniq Session Conflict Listener
  *
  * IEventListener for Session create/update (OR's `ObjectCreatedEvent` and
- * `ObjectUpdatedEvent`, filtered to register=scholiq, schema=session).
+ * `ObjectUpdatedEvent`, filtered to register=learniq, schema=session).
  * Delegates the actual pairwise overlap scan to
- * {@see \OCA\Scholiq\Timetabling\TimetableConflictDetector} — this class'
+ * {@see \OCA\Learniq\Timetabling\TimetableConflictDetector} — this class'
  * only responsibility is filtering the incoming OR event to the right
  * schema and invoking the detector for the single changed Session, per the
  * timetabling spec's "Detection MUST run as an OR-event-driven scan (on
  * Session create/update...)" requirement.
  *
- * ObjectUpdatedEvent has no prior scholiq listener precedent (verified: every
+ * ObjectUpdatedEvent has no prior learniq listener precedent (verified: every
  * other event-driven listener in this app's lib/AppInfo/Application.php
  * registers against `ObjectCreatedEvent`, `ObjectCreatingEvent`, or
  * `ObjectTransitionedEvent` only) — it is, however, a real, already-shipped
@@ -26,7 +26,7 @@
  * not here.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -43,12 +43,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
-use OCA\Scholiq\Service\ListenerSchemaResolver;
-use OCA\Scholiq\Timetabling\TimetableConflictDetector;
+use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Timetabling\TimetableConflictDetector;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 
@@ -59,52 +59,55 @@ use OCP\EventDispatcher\IEventListener;
  *
  * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-conflict-detection-flags-double-bookings-and-capacity-overruns-without-resolving-them
  */
-class SessionConflictListener implements IEventListener
-{
+class SessionConflictListener implements IEventListener {
 
-    private const SCHOLIQ_REGISTER = 'scholiq';
-    private const SESSION_SCHEMA   = 'session';
+	private const LEARNIQ_REGISTER = 'learniq';
+	private const SESSION_SCHEMA = 'session';
 
-    /**
-     * Constructor.
-     *
-     * @param TimetableConflictDetector $detector       The pairwise overlap scan engine.
-     * @param ListenerSchemaResolver    $schemaResolver Resolves the entity's register/schema ids to slugs.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly TimetableConflictDetector $detector,
-        private readonly ListenerSchemaResolver $schemaResolver,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param TimetableConflictDetector $detector The pairwise overlap scan engine.
+	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly TimetableConflictDetector $detector,
+		private readonly ListenerSchemaResolver $schemaResolver,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an ObjectCreatedEvent or ObjectUpdatedEvent.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
-     */
-    public function handle(Event $event): void
-    {
-        if ($event instanceof ObjectCreatedEvent === true) {
-            $object = $event->getObject();
-        } else if ($event instanceof ObjectUpdatedEvent === true) {
-            $object = $event->getObject();
-        } else {
-            return;
-        }
+	/**
+	 * Handle an ObjectCreatedEvent or ObjectUpdatedEvent.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-two-sessions-imported-for-the-same-room-at-overlapping-times-are-flagged-not-auto-moved
+	 */
+	public function handle(Event $event): void {
+		$object = null;
+		if ($event instanceof ObjectCreatedEvent === true) {
+			$object = $event->getObject();
+		}
 
-        if ($this->schemaResolver->registerSlug(entity: $object) !== self::SCHOLIQ_REGISTER
-            || $this->schemaResolver->schemaSlug(entity: $object) !== self::SESSION_SCHEMA
-        ) {
-            return;
-        }
+		if ($event instanceof ObjectUpdatedEvent === true) {
+			$object = $event->getObject();
+		}
 
-        $this->detector->scan([$object->jsonSerialize()]);
+		if ($object === null) {
+			return;
+		}
 
-    }//end handle()
+		if ($this->schemaResolver->registerSlug(entity: $object) !== self::LEARNIQ_REGISTER
+			|| $this->schemaResolver->schemaSlug(entity: $object) !== self::SESSION_SCHEMA
+		) {
+			return;
+		}
+
+		$this->detector->scan([$object->jsonSerialize()]);
+
+	}//end handle()
 }//end class

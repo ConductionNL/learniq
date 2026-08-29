@@ -21,29 +21,30 @@
 		:rows="rows"
 		:columns="cnColumns"
 		:loading="loading"
-		hide-header
+		hideHeader
 		borderless
-		fill-height
-		row-key="id"
-		:empty-text="t('scholiq', 'No items found')"
-		:row-click-route="rowClickRoute">
+		fillHeight
+		rowKey="id"
+		:emptyText="t('learniq', 'No items found')"
+		:rowClickRoute="rowClickRoute">
 		<template #footer>
-			<a class="cn-data-table__view-all"
+			<a
+				class="cn-data-table__view-all"
 				role="button"
 				tabindex="0"
 				@click.prevent="navigate"
 				@keydown.enter.prevent="navigate"
 				@keydown.space.prevent="navigate">
-				+ {{ t('scholiq', 'New') }} {{ schemaLabel }}
+				+ {{ t('learniq', 'New') }} {{ schemaLabel }}
 			</a>
 		</template>
 	</CnDataTable>
 </template>
 
 <script>
+import { CnDataTable } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { CnDataTable } from '@conduction/nextcloud-vue'
 
 export default {
 	name: 'ManageListWidget',
@@ -58,41 +59,52 @@ export default {
 			type: String,
 			required: true,
 		},
+
 		/** Human-readable schema label for the "+ New" button */
 		schemaLabel: {
 			type: String,
 			default: '',
 		},
+
 		/** Fields to display per item; first field is used as the item title */
 		columns: {
 			type: Array,
 			default: () => ['name', 'lifecycle'],
 		},
+
 		/** Router path for the index/new page */
 		indexRoute: {
 			type: String,
 			required: true,
 		},
+
 		/** Maximum number of items to show */
 		limit: {
 			type: Number,
 			default: 5,
 		},
+
 		/** Additional OR filter params */
 		filter: {
 			type: Object,
 			default: () => ({}),
 		},
-		/** OR relation fields to resolve server-side (passed as `_extend`), e.g.
-		 *  ['learnerId', 'courseId'] so a resolver can read the related object. */
+
+		/**
+		 * OR relation fields to resolve server-side (passed as `_extend`), e.g.
+		 *  ['learnerId', 'courseId'] so a resolver can read the related object.
+		 */
 		extend: {
 			type: Array,
 			default: () => [],
 		},
-		/** Optional (item) => string used to compute the first column's display
+
+		/**
+		 * Optional (item) => string used to compute the first column's display
 		 *  label, for schemas without a plain `name` field (e.g. a learner-profile
 		 *  shown as "givenName familyName", an enrolment as "learner → course").
-		 *  Falls back to the raw field value when not provided. */
+		 *  Falls back to the raw field value when not provided.
+		 */
 		nameResolver: {
 			type: Function,
 			default: null,
@@ -144,9 +156,12 @@ export default {
 				key,
 				// Name column stays regular weight (matches the reference design);
 				// only the trailing status/value column is muted + right-aligned.
-				cellClass: i === 0
-					? ''
-					: (i === cols.length - 1 ? 'cn-cell--muted cn-cell--end' : 'cn-cell--muted'),
+				cellClass:
+					i === 0
+						? ''
+						: i === cols.length - 1
+							? 'cn-cell--muted cn-cell--end'
+							: 'cn-cell--muted',
 			}))
 		},
 	},
@@ -165,12 +180,18 @@ export default {
 		async fetchItems() {
 			this.loading = true
 			try {
-				const params = new URLSearchParams({ _limit: String(this.limit), ...this.filter })
+				const params = new URLSearchParams({
+					_limit: String(this.limit),
+					...this.filter,
+				})
 				if (this.extend.length) {
 					params.set('_extend', this.extend.join(','))
 				}
 				const url = generateUrl(
-					'/apps/openregister/api/objects/scholiq/' + this.schema + '?' + params.toString(),
+					'/apps/openregister/api/objects/learniq/'
+						+ this.schema
+						+ '?'
+						+ params.toString(),
 				)
 				const response = await axios.get(url)
 				const data = response.data ?? {}

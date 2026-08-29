@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq QTI Choice Order Resolver
+ * Learniq QTI Choice Order Resolver
  *
  * Stateless helper: parses a choice-type Item's QTI 3.0 `qtiBody` for its
  * `choiceInteraction`'s `simpleChoice` identifiers and, when asked, returns
@@ -17,7 +17,7 @@
  * — parsing/permuting QTI XML is not expressible as a schema declaration.
  *
  * @category Service
- * @package  OCA\Scholiq\Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -34,7 +34,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Service;
+namespace OCA\Learniq\Service;
 
 use DOMDocument;
 use DOMElement;
@@ -45,165 +45,154 @@ use DOMNodeList;
  *
  * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
  */
-class QtiChoiceOrderResolver
-{
-    /**
-     * Resolve a permuted answer-option order for a choice-type Item.
-     *
-     * @param array<string,mixed> $item Item data (interactionType, qtiBody).
-     *
-     * @return array<int,string>|null Permuted identifier list, or null for
-     *                                non-choice items or an unparseable/empty body.
-     *
-     * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
-     */
-    public function resolveOrder(array $item): ?array
-    {
-        if (($item['interactionType'] ?? null) !== 'choice') {
-            return null;
-        }
+class QtiChoiceOrderResolver {
+	/**
+	 * Resolve a permuted answer-option order for a choice-type Item.
+	 *
+	 * @param array<string,mixed> $item Item data (interactionType, qtiBody).
+	 *
+	 * @return array<int,string>|null Permuted identifier list, or null for
+	 *                                non-choice items or an unparseable/empty body.
+	 *
+	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
+	 */
+	public function resolveOrder(array $item): ?array {
+		if (($item['interactionType'] ?? null) !== 'choice') {
+			return null;
+		}
 
-        $qtiBody = $item['qtiBody'] ?? '';
-        if (is_string($qtiBody) === false || trim($qtiBody) === '') {
-            return null;
-        }
+		$qtiBody = $item['qtiBody'] ?? '';
+		if (is_string($qtiBody) === false || trim($qtiBody) === '') {
+			return null;
+		}
 
-        $doc = $this->parseQtiBody(qtiBody: $qtiBody);
-        if ($doc === null) {
-            return null;
-        }
+		$doc = $this->parseQtiBody(qtiBody: $qtiBody);
+		if ($doc === null) {
+			return null;
+		}
 
-        $choiceNodes = $doc->getElementsByTagName('simpleChoice');
-        if ($choiceNodes->length === 0) {
-            return null;
-        }
+		$choiceNodes = $doc->getElementsByTagName('simpleChoice');
+		if ($choiceNodes->length === 0) {
+			return null;
+		}
 
-        $classified = $this->classifyChoices(choiceNodes: $choiceNodes);
-        if (empty($classified['declaredOrder']) === true) {
-            return null;
-        }
+		$classified = $this->classifyChoices(choiceNodes: $choiceNodes);
+		if (empty($classified['declaredOrder']) === true) {
+			return null;
+		}
 
-        return $this->assembleOptionOrder(classified: $classified);
+		return $this->assembleOptionOrder(classified: $classified);
+	}//end resolveOrder()
 
-    }//end resolveOrder()
+	/**
+	 * Parse a QTI 3.0 item body XML string, suppressing libxml warnings for
+	 * a malformed body (returns null instead).
+	 *
+	 * @param string $qtiBody Raw QTI 3.0 XML body.
+	 *
+	 * @return DOMDocument|null
+	 */
+	private function parseQtiBody(string $qtiBody): ?DOMDocument {
+		$previousSetting = libxml_use_internal_errors(true);
+		$doc = new DOMDocument();
+		$loaded = $doc->loadXML($qtiBody);
+		libxml_clear_errors();
+		libxml_use_internal_errors($previousSetting);
 
-    /**
-     * Parse a QTI 3.0 item body XML string, suppressing libxml warnings for
-     * a malformed body (returns null instead).
-     *
-     * @param string $qtiBody Raw QTI 3.0 XML body.
-     *
-     * @return DOMDocument|null
-     */
-    private function parseQtiBody(string $qtiBody): ?DOMDocument
-    {
-        $previousSetting = libxml_use_internal_errors(true);
-        $doc    = new DOMDocument();
-        $loaded = $doc->loadXML($qtiBody);
-        libxml_clear_errors();
-        libxml_use_internal_errors($previousSetting);
+		if ($loaded === false) {
+			return null;
+		}
 
-        if ($loaded === false) {
-            return null;
-        }
+		return $doc;
+	}//end parseQtiBody()
 
-        return $doc;
+	/**
+	 * Classify each declared `simpleChoice` by its QTI `fixed` attribute.
+	 *
+	 * `DOMNodeList` is not a templated class in the PHP 8.3 stubs Psalm ships, so
+	 * the element type cannot be given as a template argument. The loop below
+	 * narrows each node with an `instanceof DOMElement` guard instead, which both
+	 * analysers understand and which is also correct at runtime — a `DOMNodeList`
+	 * may legitimately yield comment or text nodes.
+	 *
+	 * @param DOMNodeList $choiceNodes The item's simpleChoice `DOMElement` nodes, in declared order.
+	 *
+	 * @return array{declaredOrder: array<int,string>, fixedByIndex: array<int,string>, movableIds: array<int,string>}
+	 */
+	private function classifyChoices(DOMNodeList $choiceNodes): array {
+		$declaredOrder = [];
+		$fixedByIndex = [];
+		$movableIds = [];
 
-    }//end parseQtiBody()
+		foreach ($choiceNodes as $index => $choiceNode) {
+			if (($choiceNode instanceof DOMElement) === false) {
+				continue;
+			}
 
-    /**
-     * Classify each declared `simpleChoice` by its QTI `fixed` attribute.
-     *
-     * `DOMNodeList` is not a templated class in the PHP 8.3 stubs Psalm ships, so
-     * the element type cannot be given as a template argument. The loop below
-     * narrows each node with an `instanceof DOMElement` guard instead, which both
-     * analysers understand and which is also correct at runtime — a `DOMNodeList`
-     * may legitimately yield comment or text nodes.
-     *
-     * @param DOMNodeList $choiceNodes The item's simpleChoice `DOMElement` nodes, in declared order.
-     *
-     * @return array{declaredOrder: array<int,string>, fixedByIndex: array<int,string>, movableIds: array<int,string>}
-     */
-    private function classifyChoices(DOMNodeList $choiceNodes): array
-    {
-        $declaredOrder = [];
-        $fixedByIndex  = [];
-        $movableIds    = [];
+			$identifier = $choiceNode->getAttribute('identifier');
+			if ($identifier === '') {
+				continue;
+			}
 
-        foreach ($choiceNodes as $index => $choiceNode) {
-            if (($choiceNode instanceof DOMElement) === false) {
-                continue;
-            }
+			$declaredOrder[$index] = $identifier;
 
-            $identifier = $choiceNode->getAttribute('identifier');
-            if ($identifier === '') {
-                continue;
-            }
+			if (strtolower($choiceNode->getAttribute('fixed')) === 'true') {
+				$fixedByIndex[$index] = $identifier;
+				continue;
+			}
 
-            $declaredOrder[$index] = $identifier;
+			$movableIds[] = $identifier;
+		}//end foreach
 
-            if (strtolower($choiceNode->getAttribute('fixed')) === 'true') {
-                $fixedByIndex[$index] = $identifier;
-                continue;
-            }
+		return ['declaredOrder' => $declaredOrder, 'fixedByIndex' => $fixedByIndex, 'movableIds' => $movableIds];
+	}//end classifyChoices()
 
-            $movableIds[] = $identifier;
-        }//end foreach
+	/**
+	 * Assemble the final option order: fixed choices keep their declared
+	 * index; the remaining (movable) identifiers are shuffled into the gaps.
+	 *
+	 * @param array<string,mixed> $classified classifyChoices()'s {declaredOrder, fixedByIndex, movableIds} result.
+	 *
+	 * @return array<int,string>
+	 */
+	private function assembleOptionOrder(array $classified): array {
+		$shuffledMovable = $this->secureShuffle(items: $classified['movableIds']);
 
-        return ['declaredOrder' => $declaredOrder, 'fixedByIndex' => $fixedByIndex, 'movableIds' => $movableIds];
+		$result = [];
+		$cursor = 0;
+		foreach ($classified['declaredOrder'] as $index => $identifier) {
+			if (isset($classified['fixedByIndex'][$index]) === true) {
+				// A fixed choice's identifier is unchanged from its declared
+				// position — declaredOrder[$index] already IS that identifier.
+				$result[] = $identifier;
+				continue;
+			}
 
-    }//end classifyChoices()
+			$result[] = $shuffledMovable[$cursor];
+			$cursor++;
+		}
 
-    /**
-     * Assemble the final option order: fixed choices keep their declared
-     * index; the remaining (movable) identifiers are shuffled into the gaps.
-     *
-     * @param array<string,mixed> $classified classifyChoices()'s {declaredOrder, fixedByIndex, movableIds} result.
-     *
-     * @return array<int,string>
-     */
-    private function assembleOptionOrder(array $classified): array
-    {
-        $shuffledMovable = $this->secureShuffle(items: $classified['movableIds']);
+		return $result;
+	}//end assembleOptionOrder()
 
-        $result = [];
-        $cursor = 0;
-        foreach ($classified['declaredOrder'] as $index => $identifier) {
-            if (isset($classified['fixedByIndex'][$index]) === true) {
-                // A fixed choice's identifier is unchanged from its declared
-                // position — declaredOrder[$index] already IS that identifier.
-                $result[] = $identifier;
-                continue;
-            }
+	/**
+	 * Fisher-Yates shuffle using `random_int()` (cryptographically-strong,
+	 * unlike Mersenne-Twister-backed `shuffle()`/`array_rand()`) — no seed
+	 * is persisted, matching AssessmentDrawResolver's own shuffle posture.
+	 *
+	 * @param array<int,mixed> $items Items to permute.
+	 *
+	 * @return array<int,mixed> A new, permuted, re-indexed array.
+	 */
+	private function secureShuffle(array $items): array {
+		$items = array_values($items);
+		$count = count($items);
 
-            $result[] = $shuffledMovable[$cursor];
-            $cursor++;
-        }
+		for ($i = ($count - 1); $i > 0; $i--) {
+			$swapIndex = random_int(0, $i);
+			[$items[$i], $items[$swapIndex]] = [$items[$swapIndex], $items[$i]];
+		}
 
-        return $result;
-
-    }//end assembleOptionOrder()
-
-    /**
-     * Fisher-Yates shuffle using `random_int()` (cryptographically-strong,
-     * unlike Mersenne-Twister-backed `shuffle()`/`array_rand()`) — no seed
-     * is persisted, matching AssessmentDrawResolver's own shuffle posture.
-     *
-     * @param array<int,mixed> $items Items to permute.
-     *
-     * @return array<int,mixed> A new, permuted, re-indexed array.
-     */
-    private function secureShuffle(array $items): array
-    {
-        $items = array_values($items);
-        $count = count($items);
-
-        for ($i = ($count - 1); $i > 0; $i--) {
-            $swapIndex = random_int(0, $i);
-            [$items[$i], $items[$swapIndex]] = [$items[$swapIndex], $items[$i]];
-        }
-
-        return $items;
-
-    }//end secureShuffle()
+		return $items;
+	}//end secureShuffle()
 }//end class

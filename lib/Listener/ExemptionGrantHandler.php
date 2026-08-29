@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq Exemption Grant Handler
+ * Learniq Exemption Grant Handler
  *
  * Listens for OpenRegister's ObjectTransitionedEvent and, when an
  * ExemptionCase transitions to `granted`, creates a GradeEntry
@@ -18,7 +18,7 @@
  * declarations. Same cross-schema-side-effect shape as `ExcuseApprovalHandler`.
  *
  * @category Listener
- * @package  OCA\Scholiq\Listener
+ * @package  OCA\Learniq\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -35,7 +35,7 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Listener;
+namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -51,133 +51,130 @@ use Psr\Log\LoggerInterface;
  * @implements IEventListener<Event>
  * @spec       openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
  */
-class ExemptionGrantHandler implements IEventListener
-{
+class ExemptionGrantHandler implements IEventListener {
 
-    private const SCHOLIQ_REGISTER      = 'scholiq';
-    private const EXEMPTION_CASE_SCHEMA = 'exemption-case';
-    private const GRADE_ENTRY_SCHEMA    = 'grade-entry';
+	private const LEARNIQ_REGISTER = 'learniq';
+	private const EXEMPTION_CASE_SCHEMA = 'exemption-case';
+	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
 
-    /**
-     * Constructor.
-     *
-     * @param ObjectService    $objectService    OR object access service.
-     * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `publish` transition.
-     * @param LoggerInterface  $logger           PSR logger.
-     *
-     * @return void
-     */
-    public function __construct(
-        private readonly ObjectService $objectService,
-        private readonly TransitionEngine $transitionEngine,
-        private readonly LoggerInterface $logger,
-    ) {
-    }//end __construct()
+	/**
+	 * Constructor.
+	 *
+	 * @param ObjectService $objectService OR object access service.
+	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `publish` transition.
+	 * @param LoggerInterface $logger PSR logger.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ObjectService $objectService,
+		private readonly TransitionEngine $transitionEngine,
+		private readonly LoggerInterface $logger,
+	) {
+	}//end __construct()
 
-    /**
-     * Handle an ObjectTransitionedEvent.
-     *
-     * @param Event $event The dispatched event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
-     */
-    public function handle(Event $event): void
-    {
-        if (($event instanceof ObjectTransitionedEvent) === false) {
-            return;
-        }
+	/**
+	 * Handle an ObjectTransitionedEvent.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
+	 */
+	public function handle(Event $event): void {
+		if (($event instanceof ObjectTransitionedEvent) === false) {
+			return;
+		}
 
-        if ($event->getRegister() !== self::SCHOLIQ_REGISTER) {
-            return;
-        }
+		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {
+			return;
+		}
 
-        if ($event->getSchema() !== self::EXEMPTION_CASE_SCHEMA
-            || $event->getTo() !== 'granted'
-        ) {
-            return;
-        }
+		if ($event->getSchema() !== self::EXEMPTION_CASE_SCHEMA
+			|| $event->getTo() !== 'granted'
+		) {
+			return;
+		}
 
-        $this->createAndPublishGradeEntry(event: $event);
+		$this->createAndPublishGradeEntry(event: $event);
 
-    }//end handle()
+	}//end handle()
 
-    /**
-     * Create the exemption GradeEntry and drive it through the existing publish transition.
-     *
-     * @param ObjectTransitionedEvent $event The ExemptionCase-granted transition event.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
-     */
-    private function createAndPublishGradeEntry(ObjectTransitionedEvent $event): void
-    {
-        $case   = $event->getObject()->jsonSerialize();
-        $caseId = $case['id'] ?? ($case['uuid'] ?? '');
+	/**
+	 * Create the exemption GradeEntry and drive it through the existing publish transition.
+	 *
+	 * @param ObjectTransitionedEvent $event The ExemptionCase-granted transition event.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-granted-exemption-feeds-grading-through-the-existing-publish-path
+	 */
+	private function createAndPublishGradeEntry(ObjectTransitionedEvent $event): void {
+		$case = $event->getObject()->jsonSerialize();
+		$caseId = $case['id'] ?? ($case['uuid'] ?? '');
 
-        $learnerId        = $case['learnerId'] ?? '';
-        $curriculumPlanId = $case['curriculumPlanId'] ?? '';
-        $componentId      = $case['componentId'] ?? '';
-        $tenantId         = $case['tenant_id'] ?? '';
+		$learnerId = $case['learnerId'] ?? '';
+		$curriculumPlanId = $case['curriculumPlanId'] ?? '';
+		$componentId = $case['componentId'] ?? '';
+		$tenantId = $case['tenant_id'] ?? '';
 
-        if ($learnerId === '' || $curriculumPlanId === '' || $componentId === '') {
-            $this->logger->warning(
-                '[ExemptionGrantHandler] ExemptionCase {id} missing learnerId/curriculumPlanId/componentId — skipping.',
-                ['id' => $caseId]
-            );
-            return;
-        }
+		if ($learnerId === '' || $curriculumPlanId === '' || $componentId === '') {
+			$this->logger->warning(
+				'[ExemptionGrantHandler] ExemptionCase {id} missing learnerId/curriculumPlanId/componentId — skipping.',
+				['id' => $caseId]
+			);
+			return;
+		}
 
-        $gradeEntry = [
-            'learnerId'        => $learnerId,
-            'curriculumPlanId' => $curriculumPlanId,
-            'componentId'      => $componentId,
-            'sourceKind'       => 'exemption',
-            'exemptionCaseId'  => $caseId,
-            'value'            => null,
-            'gradeScaleId'     => $case['gradeScaleId'] ?? '',
-            'grader'           => $case['decidedBy'] ?? 'examboard',
-            'gradedAt'         => (new DateTimeImmutable())->format(\DATE_ATOM),
-            'tenant_id'        => $tenantId,
-            'lifecycle'        => 'concept',
-        ];
+		$gradeEntry = [
+			'learnerId' => $learnerId,
+			'curriculumPlanId' => $curriculumPlanId,
+			'componentId' => $componentId,
+			'sourceKind' => 'exemption',
+			'exemptionCaseId' => $caseId,
+			'value' => null,
+			'gradeScaleId' => $case['gradeScaleId'] ?? '',
+			'grader' => $case['decidedBy'] ?? 'examboard',
+			'gradedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
+			'tenant_id' => $tenantId,
+			'lifecycle' => 'concept',
+		];
 
-        $saved = $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::GRADE_ENTRY_SCHEMA,
-            object: $gradeEntry
-        );
+		$saved = $this->objectService->saveObject(
+			register: self::LEARNIQ_REGISTER,
+			schema: self::GRADE_ENTRY_SCHEMA,
+			object: $gradeEntry
+		);
 
-        $savedData = $saved->jsonSerialize();
+		$savedData = $saved->jsonSerialize();
 
-        $gradeEntryId = $savedData['id'] ?? ($savedData['uuid'] ?? null);
+		$gradeEntryId = $savedData['id'] ?? ($savedData['uuid'] ?? null);
 
-        if ($gradeEntryId === null) {
-            $this->logger->warning(
-                '[ExemptionGrantHandler] ExemptionCase {id} — created GradeEntry has no id; not publishing.',
-                ['id' => $caseId]
-            );
-            return;
-        }
+		if ($gradeEntryId === null) {
+			$this->logger->warning(
+				'[ExemptionGrantHandler] ExemptionCase {id} — created GradeEntry has no id; not publishing.',
+				['id' => $caseId]
+			);
+			return;
+		}
 
-        // Drive the *existing* publish transition — not a raw field write — so
-        // OR's lifecycle engine fires the gradePublished notification and audit
-        // trail exactly as it would for any other published entry.
-        $this->transitionEngine->transition((string) $gradeEntryId, 'publish');
+		// Drive the *existing* publish transition — not a raw field write — so
+		// OR's lifecycle engine fires the gradePublished notification and audit
+		// trail exactly as it would for any other published entry.
+		$this->transitionEngine->transition((string)$gradeEntryId, 'publish');
 
-        // Back-link the case to the GradeEntry it produced.
-        $this->objectService->saveObject(
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::EXEMPTION_CASE_SCHEMA,
-            object: array_merge($case, ['resultingGradeEntryId' => $gradeEntryId])
-        );
+		// Back-link the case to the GradeEntry it produced.
+		$this->objectService->saveObject(
+			register: self::LEARNIQ_REGISTER,
+			schema: self::EXEMPTION_CASE_SCHEMA,
+			object: array_merge($case, ['resultingGradeEntryId' => $gradeEntryId])
+		);
 
-        $this->logger->info(
-            '[ExemptionGrantHandler] ExemptionCase {id} granted — created and published GradeEntry {gradeEntryId}.',
-            ['id' => $caseId, 'gradeEntryId' => $gradeEntryId]
-        );
+		$this->logger->info(
+			'[ExemptionGrantHandler] ExemptionCase {id} granted — created and published GradeEntry {gradeEntryId}.',
+			['id' => $caseId, 'gradeEntryId' => $gradeEntryId]
+		);
 
-    }//end createAndPublishGradeEntry()
+	}//end createAndPublishGradeEntry()
 }//end class

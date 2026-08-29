@@ -1,24 +1,25 @@
 <?php
 
 /**
- * Scholiq Payment Transaction Controller
+ * Learniq Payment Transaction Controller
  *
  * Two thin, opaque delegation endpoints for the payments capability:
  *
  * - initiate(orderId): outbound. Resolves the Order, computes the remaining
  *   balance server-side (never trusts a client-supplied amount), creates a
  *   `pending` PaymentTransaction, and delegates to OpenConnector's
- *   (not-yet-built) mollie-stripe-payment-adapter using the exact
- *   IClientService + IURLGenerator::getAbsoluteURL() + IAppConfig
- *   bearer-token shape LtiToolPlacementController::callOpenConnectorLaunch()
- *   and DataExchangeRunHandler::callOpenConnector() already establish, under
- *   the existing scholiq.openconnector_api_token config key — a fourth
+ *   (not-yet-built) mollie-stripe-payment-adapter via
+ *   `PaymentInitiationClient`, which uses the exact IClientService +
+ *   IURLGenerator::getAbsoluteURL() + IAppConfig bearer-token shape
+ *   LtiToolPlacementController::callOpenConnectorLaunch() and
+ *   DataExchangeRunHandler::callOpenConnector() already establish, under
+ *   the existing learniq.openconnector_api_token config key — a fourth
  *   instance of this established pattern, not a new one
  *   (WalletOfferDelegationService explicitly reuses the same shape too).
- * - callback(): inbound. The FIRST OpenConnector-to-scholiq call in this
- *   codebase (every existing callOpenConnector* call is scholiq-initiated).
+ * - callback(): inbound. The FIRST OpenConnector-to-learniq call in this
+ *   codebase (every existing callOpenConnector* call is learniq-initiated).
  *   Authenticates the caller via a SEPARATE, narrowly-scoped
- *   scholiq.openconnector_callback_token — never the outbound token reused in
+ *   learniq.openconnector_callback_token — never the outbound token reused in
  *   reverse (design.md's explicit requirement) — then drives the matching
  *   PaymentTransaction's lifecycle transition. The concrete inbound-auth
  *   mechanism is provisional: OpenConnector's actual mollie-stripe adapter
@@ -38,7 +39,7 @@
  * to fix here.
  *
  * @category Controller
- * @package  OCA\Scholiq\Controller
+ * @package  OCA\Learniq\Controller
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -56,22 +57,22 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Controller;
+namespace OCA\Learniq\Controller;
 
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\AppInfo\Application;
+use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\PaymentInitiationClient;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IRequest;
-use OCP\IURLGenerator;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -81,435 +82,420 @@ use Throwable;
  *
  * @spec openspec/changes/school-payments/specs/payments/spec.md#requirement-payment-initiation-and-status-delegate-entirely-to-openconnector-scholiq-implements-no-psp-wire-protocol
  */
-class PaymentTransactionController extends Controller
-{
+class PaymentTransactionController extends Controller {
 
-    private const SCHOLIQ_REGISTER = 'scholiq';
-    private const ORDER_SCHEMA     = 'order';
-    private const PAYMENT_TRANSACTION_SCHEMA = 'payment-transaction';
+	private const LEARNIQ_REGISTER = 'learniq';
+	private const ORDER_SCHEMA = 'order';
+	private const PAYMENT_TRANSACTION_SCHEMA = 'payment-transaction';
 
-    private const ORDER_STATE_OPEN           = 'open';
-    private const ORDER_STATE_PARTIALLY_PAID = 'partially-paid';
+	private const ORDER_STATE_OPEN = 'open';
+	private const ORDER_STATE_PARTIALLY_PAID = 'partially-paid';
 
-    /**
-     * Floating-point comparison tolerance for currency amounts (half a cent).
-     *
-     * @var float
-     */
-    private const AMOUNT_EPSILON = 0.005;
+	/**
+	 * Floating-point comparison tolerance for currency amounts (half a cent).
+	 *
+	 * @var float
+	 */
+	private const AMOUNT_EPSILON = 0.005;
 
-    private const PSP_PROVIDERS = ['mollie', 'stripe'];
+	private const PSP_PROVIDERS = ['mollie', 'stripe'];
 
-    private const CALLBACK_STATUS_TO_ACTION = [
-        'succeeded' => 'succeed',
-        'failed'    => 'fail',
-        'expired'   => 'expire',
-        'cancelled' => 'cancel',
-        'refunded'  => 'refund',
-    ];
+	private const CALLBACK_STATUS_TO_ACTION = [
+		'succeeded' => 'succeed',
+		'failed' => 'fail',
+		'expired' => 'expire',
+		'cancelled' => 'cancel',
+		'refunded' => 'refund',
+	];
 
-    /**
-     * ASSUMED OpenConnector REST endpoint for PSP launch-initiation
-     * (mirrors LtiToolPlacementController::OPENCONNECTOR_LAUNCH_PATH's
-     * "documented assumption" convention). OpenConnector's own
-     * mollie-stripe-payment-adapter does not exist yet at HEAD (see
-     * proposal.md "Why") — this constant names the path that adapter would
-     * need to expose, following the same path-shape convention as the
-     * existing lti/deployments and sources endpoints. Update once the real
-     * endpoint lands.
-     *
-     * Assumed request body: {orderId, amount, currency, pspProvider,
-     * callbackReference} where callbackReference is this PaymentTransaction's
-     * own scholiq-side id, echoed back on the callback() call.
-     * Assumed response body: {checkoutUrl: string, pspPaymentId?: string}.
-     *
-     * @var string
-     */
-    private const OPENCONNECTOR_INITIATE_PATH = '/apps/openconnector/api/payments/initiate';
+	/**
+	 * App-config key for the INBOUND callback shared secret. Deliberately
+	 * separate from OPENCONNECTOR_TOKEN_KEY — design.md requires callback()
+	 * to use its own documented authentication mechanism, not the outbound
+	 * token reused in reverse (a shared bearer token used bidirectionally
+	 * would let anything holding it forge either side's calls).
+	 *
+	 * @var string
+	 */
+	private const OPENCONNECTOR_CALLBACK_TOKEN_KEY = 'openconnector_callback_token';
 
-    /**
-     * App-config key for the outbound OpenConnector API token. Same key
-     * LtiToolPlacementController/DataExchangeRunHandler already use.
-     *
-     * @var string
-     */
-    private const OPENCONNECTOR_TOKEN_KEY = 'openconnector_api_token';
+	/**
+	 * Constructor.
+	 *
+	 * @param IRequest $request The current request.
+	 * @param IUserSession $userSession NC user session.
+	 * @param ObjectService $objectService OR object access service.
+	 * @param TransitionEngine $transitionEngine OR lifecycle engine.
+	 * @param PaymentInitiationClient $initiationClient OpenConnector PSP initiation transport.
+	 * @param IAppConfig $appConfig NC app config for the callback token lookup.
+	 * @param LoggerInterface $logger PSR logger.
+	 */
+	public function __construct(
+		IRequest $request,
+		private readonly IUserSession $userSession,
+		private readonly ObjectService $objectService,
+		private readonly TransitionEngine $transitionEngine,
+		private readonly PaymentInitiationClient $initiationClient,
+		private readonly IAppConfig $appConfig,
+		private readonly LoggerInterface $logger,
+	) {
+		parent::__construct(appName: Application::APP_ID, request: $request);
 
-    /**
-     * App-config key for the INBOUND callback shared secret. Deliberately
-     * separate from OPENCONNECTOR_TOKEN_KEY — design.md requires callback()
-     * to use its own documented authentication mechanism, not the outbound
-     * token reused in reverse (a shared bearer token used bidirectionally
-     * would let anything holding it forge either side's calls).
-     *
-     * @var string
-     */
-    private const OPENCONNECTOR_CALLBACK_TOKEN_KEY = 'openconnector_callback_token';
+	}//end __construct()
 
-    /**
-     * Constructor.
-     *
-     * @param IRequest         $request          The current request.
-     * @param IUserSession     $userSession      NC user session.
-     * @param ObjectService    $objectService    OR object access service.
-     * @param TransitionEngine $transitionEngine OR lifecycle engine.
-     * @param IClientService   $clientService    NC HTTP client factory.
-     * @param IURLGenerator    $urlGenerator     NC URL generator for internal requests.
-     * @param IAppConfig       $appConfig        NC app config for token lookup.
-     * @param LoggerInterface  $logger           PSR logger.
-     */
-    public function __construct(
-        IRequest $request,
-        private readonly IUserSession $userSession,
-        private readonly ObjectService $objectService,
-        private readonly TransitionEngine $transitionEngine,
-        private readonly IClientService $clientService,
-        private readonly IURLGenerator $urlGenerator,
-        private readonly IAppConfig $appConfig,
-        private readonly LoggerInterface $logger,
-    ) {
-        parent::__construct(appName: Application::APP_ID, request: $request);
+	/**
+	 * Initiate payment for an open/partially-paid Order.
+	 *
+	 * Computes the amount owed server-side from the Order's own totalAmount
+	 * minus already-succeeded PaymentTransactions — never from a client
+	 * payload — creates a `pending` PaymentTransaction, and delegates to
+	 * OpenConnector. On success the PaymentTransaction moves to
+	 * `awaiting-redirect` and OpenConnector's opaque checkout reference is
+	 * forwarded to the frontend unmodified (no PSP-specific field is
+	 * inspected). On failure the PaymentTransaction moves to `failed` and a
+	 * 502 is returned.
+	 *
+	 * @param string $orderId UUID of the Order to pay.
+	 * @param string $pspProvider Which PSP to route through ("mollie" or "stripe").
+	 *
+	 * @return JSONResponse The opaque checkout reference, or an error.
+	 *
+	 * @spec openspec/changes/school-payments/tasks.md#task-3.5
+	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-initiating-payment-delegates-to-openconnector-and-returns-an-opaque-checkout-reference
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function initiate(string $orderId, string $pspProvider = ''): JSONResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
 
-    }//end __construct()
+		if (in_array($pspProvider, self::PSP_PROVIDERS, true) === false) {
+			return new JSONResponse(
+				data: ['error' => 'pspProvider must be one of: ' . implode(', ', self::PSP_PROVIDERS)],
+				statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
 
-    /**
-     * Initiate payment for an open/partially-paid Order.
-     *
-     * Computes the amount owed server-side from the Order's own totalAmount
-     * minus already-succeeded PaymentTransactions — never from a client
-     * payload — creates a `pending` PaymentTransaction, and delegates to
-     * OpenConnector. On success the PaymentTransaction moves to
-     * `awaiting-redirect` and OpenConnector's opaque checkout reference is
-     * forwarded to the frontend unmodified (no PSP-specific field is
-     * inspected). On failure the PaymentTransaction moves to `failed` and a
-     * 502 is returned.
-     *
-     * @param string $orderId     UUID of the Order to pay.
-     * @param string $pspProvider Which PSP to route through ("mollie" or "stripe").
-     *
-     * @return JSONResponse The opaque checkout reference, or an error.
-     *
-     * @spec openspec/changes/school-payments/tasks.md#task-3.5
-     * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-initiating-payment-delegates-to-openconnector-and-returns-an-opaque-checkout-reference
-     */
-    #[NoAdminRequired]
-    #[NoCSRFRequired]
-    public function initiate(string $orderId, string $pspProvider=''): JSONResponse
-    {
-        $user = $this->userSession->getUser();
-        if ($user === null) {
-            return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
-        }
+		$order = $this->resolveOrder(orderId: $orderId);
+		if ($order === null) {
+			return new JSONResponse(data: ['error' => 'Order not found'], statusCode: Http::STATUS_NOT_FOUND);
+		}
 
-        if (in_array($pspProvider, self::PSP_PROVIDERS, true) === false) {
-            return new JSONResponse(
-                data: ['error' => 'pspProvider must be one of: '.implode(', ', self::PSP_PROVIDERS)],
-                statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
-            );
-        }
+		$orderLifecycle = $order['lifecycle'] ?? '';
+		if ($orderLifecycle !== self::ORDER_STATE_OPEN && $orderLifecycle !== self::ORDER_STATE_PARTIALLY_PAID) {
+			return new JSONResponse(
+				data: ['error' => 'Order is not open for payment'],
+				statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
 
-        $order = $this->resolveOrder(orderId: $orderId);
-        if ($order === null) {
-            return new JSONResponse(data: ['error' => 'Order not found'], statusCode: Http::STATUS_NOT_FOUND);
-        }
+		$totalAmount = (float)($order['totalAmount'] ?? 0);
+		$alreadySucceeded = $this->sumSucceededTransactions(orderId: $orderId);
+		$remaining = $totalAmount - $alreadySucceeded;
 
-        $orderLifecycle = $order['lifecycle'] ?? '';
-        if ($orderLifecycle !== self::ORDER_STATE_OPEN && $orderLifecycle !== self::ORDER_STATE_PARTIALLY_PAID) {
-            return new JSONResponse(
-                data: ['error' => 'Order is not open for payment'],
-                statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
-            );
-        }
+		if ($remaining <= self::AMOUNT_EPSILON) {
+			return new JSONResponse(
+				data: ['error' => 'Order is already fully paid'],
+				statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
 
-        $totalAmount      = (float) ($order['totalAmount'] ?? 0);
-        $alreadySucceeded = $this->sumSucceededTransactions(orderId: $orderId);
-        $remaining        = $totalAmount - $alreadySucceeded;
+		$transactionId = $this->createPendingTransaction(
+			orderId: $orderId,
+			pspProvider: $pspProvider,
+			amount: $remaining,
+			currency: (string)($order['currency'] ?? 'EUR'),
+			initiatedBy: $user->getUID()
+		);
 
-        if ($remaining <= self::AMOUNT_EPSILON) {
-            return new JSONResponse(
-                data: ['error' => 'Order is already fully paid'],
-                statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
-            );
-        }
+		if ($transactionId === null) {
+			// The helper has already logged which of the two failure shapes
+			// it hit; both mean "no PaymentTransaction exists", so both get
+			// the same envelope.
+			return new JSONResponse(
+				data: ['error' => 'Failed to create PaymentTransaction'],
+				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
+			);
+		}
 
-        $now = new DateTimeImmutable();
+		$launchResponse = $this->initiationClient->initiate(
+			paymentTransactionId: $transactionId,
+			orderId: $orderId,
+			amount: $remaining,
+			currency: (string)($order['currency'] ?? 'EUR'),
+			pspProvider: $pspProvider
+		);
 
-        $saved = $this->objectService->saveObject(
-            object: [
-                'orderId'     => $orderId,
-                'pspProvider' => $pspProvider,
-                'amount'      => $remaining,
-                'currency'    => (string) ($order['currency'] ?? 'EUR'),
-                'initiatedBy' => $user->getUID(),
-                'initiatedAt' => $now->format(DATE_ATOM),
-            ],
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::PAYMENT_TRANSACTION_SCHEMA
-        );
+		if ($launchResponse === null) {
+			$this->transitionEngine->transition($transactionId, 'fail');
+			return new JSONResponse(
+				data: ['error' => 'OpenConnector payment-initiation failed or is unavailable'],
+				statusCode: Http::STATUS_BAD_GATEWAY
+			);
+		}
 
-        $savedData = $saved->jsonSerialize();
+		$this->transitionEngine->transition($transactionId, 'initiate');
 
-        $transactionId = $savedData['id'] ?? ($savedData['uuid'] ?? null);
+		// Forward the response as-is (LtiToolPlacementController's D5 rule) —
+		// Learniq MUST NOT parse any PSP-specific claim from it.
+		$launchResponse['paymentTransactionId'] = $transactionId;
 
-        if ($transactionId === null) {
-            $this->logger->error('[PaymentTransactionController] PaymentTransaction creation returned no id — cannot proceed.');
-            return new JSONResponse(
-                data: ['error' => 'Failed to create PaymentTransaction'],
-                statusCode: Http::STATUS_INTERNAL_SERVER_ERROR
-            );
-        }
+		return new JSONResponse(data: $launchResponse);
+	}//end initiate()
 
-        $transactionId = (string) $transactionId;
+	/**
+	 * Create the `pending` PaymentTransaction row for one initiation attempt.
+	 *
+	 * Extracted from initiate() so the two ways this step can fail live
+	 * together, and so initiate() stays inside phpmd's complexity and length
+	 * budgets.
+	 *
+	 * WHY THE SAVE IS GUARDED. `ObjectService::saveObject()` documents
+	 * `@throws Exception If there is an error during save`, and resolving the
+	 * `learniq` register / `paymentTransaction` schema slug raises
+	 * DoesNotExistException on an install that never received them. Uncaught,
+	 * that answered the payer with a framework HTTP 500 carrying a stack
+	 * trace, and left no PaymentTransaction row — from the outside
+	 * indistinguishable from a PSP that simply never responded.
+	 *
+	 * WHY EVERY FAILURE IS A 500 AND NOT A 4xx. Every field written here is
+	 * computed SERVER-SIDE: the Order is already resolved, `$pspProvider` is
+	 * checked against PSP_PROVIDERS by the caller, and `$amount` is derived
+	 * from the Order's own totals. No caller-supplied value reaches schema
+	 * validation, so any failure at this point is a fault on our side.
+	 *
+	 * @param string $orderId UUID of the Order being paid.
+	 * @param string $pspProvider Validated PSP routing key.
+	 * @param float $amount Server-computed amount still owed.
+	 * @param string $currency ISO currency code taken from the Order.
+	 * @param string $initiatedBy UID of the acting user.
+	 *
+	 * @return string|null The new PaymentTransaction id, or null when the row
+	 *                     could not be created (already logged).
+	 *
+	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-initiating-payment-delegates-to-openconnector-and-returns-an-opaque-checkout-reference
+	 */
+	private function createPendingTransaction(
+		string $orderId,
+		string $pspProvider,
+		float $amount,
+		string $currency,
+		string $initiatedBy,
+	): ?string {
+		$now = new DateTimeImmutable();
 
-        $launchResponse = $this->callOpenConnectorInitiate(
-            paymentTransactionId: $transactionId,
-            orderId: $orderId,
-            amount: $remaining,
-            currency: (string) ($order['currency'] ?? 'EUR'),
-            pspProvider: $pspProvider
-        );
+		try {
+			$saved = $this->objectService->saveObject(
+				object: [
+					'orderId' => $orderId,
+					'pspProvider' => $pspProvider,
+					'amount' => $amount,
+					'currency' => $currency,
+					'initiatedBy' => $initiatedBy,
+					'initiatedAt' => $now->format(DATE_ATOM),
+				],
+				register: self::LEARNIQ_REGISTER,
+				schema: self::PAYMENT_TRANSACTION_SCHEMA
+			);
+		} catch (\Throwable $saveFailure) {
+			$this->logger->error(
+				'[PaymentTransactionController] PaymentTransaction creation failed for order '
+				. $orderId . ': ' . $saveFailure->getMessage(),
+				['exception' => $saveFailure]
+			);
+			return null;
+		}//end try
 
-        if ($launchResponse === null) {
-            $this->transitionEngine->transition($transactionId, 'fail');
-            return new JSONResponse(
-                data: ['error' => 'OpenConnector payment-initiation failed or is unavailable'],
-                statusCode: Http::STATUS_BAD_GATEWAY
-            );
-        }
+		$savedData = $saved->jsonSerialize();
 
-        $this->transitionEngine->transition($transactionId, 'initiate');
+		$transactionId = $savedData['id'] ?? ($savedData['uuid'] ?? null);
 
-        // Forward the response as-is (LtiToolPlacementController's D5 rule) —
-        // Scholiq MUST NOT parse any PSP-specific claim from it.
-        $launchResponse['paymentTransactionId'] = $transactionId;
+		if ($transactionId === null) {
+			$this->logger->error('[PaymentTransactionController] PaymentTransaction creation returned no id — cannot proceed.');
+			return null;
+		}
 
-        return new JSONResponse(data: $launchResponse);
+		return (string)$transactionId;
+	}//end createPendingTransaction()
 
-    }//end initiate()
+	/**
+	 * Receive a status update from OpenConnector's PSP adapter.
+	 *
+	 * Authenticates the caller via the dedicated
+	 * learniq.openconnector_callback_token (never the outbound token reused
+	 * in reverse), then drives the matching PaymentTransaction's lifecycle
+	 * transition. Does not persist pspPaymentId/completedAt — see this
+	 * class's own docblock "KNOWN GAP" note.
+	 *
+	 * RATE LIMIT, and why it is generous: this is a payment provider's
+	 * callback — a machine caller with its own signature, retrying on its own
+	 * schedule. Dropping a payment notification is a worse failure than
+	 * absorbing a burst, and the drop lands on the provider's side where we
+	 * would never see it. Hence 300/60 rather than the usual anonymous
+	 * ceiling.
+	 *
+	 * @return JSONResponse Empty success body, or an error.
+	 *
+	 * @spec openspec/changes/school-payments/tasks.md#task-3.5
+	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-an-inbound-status-callback-updates-the-paymenttransaction-and-rolls-up-to-the-order
+	 */
+	#[PublicPage]
+	#[NoCSRFRequired]
+	#[AnonRateLimit(limit: 300, period: 60)]
+	public function callback(): JSONResponse {
+		if ($this->isAuthenticCallback() === false) {
+			return new JSONResponse(data: ['error' => 'Not authorized'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
 
-    /**
-     * Receive a status update from OpenConnector's PSP adapter.
-     *
-     * Authenticates the caller via the dedicated
-     * scholiq.openconnector_callback_token (never the outbound token reused
-     * in reverse), then drives the matching PaymentTransaction's lifecycle
-     * transition. Does not persist pspPaymentId/completedAt — see this
-     * class's own docblock "KNOWN GAP" note.
-     *
-     * @return JSONResponse Empty success body, or an error.
-     *
-     * @spec openspec/changes/school-payments/tasks.md#task-3.5
-     * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-an-inbound-status-callback-updates-the-paymenttransaction-and-rolls-up-to-the-order
-     */
-    #[PublicPage]
-    #[NoCSRFRequired]
-    public function callback(): JSONResponse
-    {
-        if ($this->isAuthenticCallback() === false) {
-            return new JSONResponse(data: ['error' => 'Not authorized'], statusCode: Http::STATUS_UNAUTHORIZED);
-        }
+		$paymentTransactionId = (string)$this->request->getParam('paymentTransactionId', '');
+		$status = (string)$this->request->getParam('status', '');
 
-        $paymentTransactionId = (string) $this->request->getParam('paymentTransactionId', '');
-        $status = (string) $this->request->getParam('status', '');
+		if ($paymentTransactionId === '' || $status === '') {
+			return new JSONResponse(
+				data: ['error' => 'paymentTransactionId and status are required'],
+				statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
 
-        if ($paymentTransactionId === '' || $status === '') {
-            return new JSONResponse(
-                data: ['error' => 'paymentTransactionId and status are required'],
-                statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
-            );
-        }
+		if (array_key_exists($status, self::CALLBACK_STATUS_TO_ACTION) === false) {
+			return new JSONResponse(
+				data: ['error' => 'Unknown status: ' . $status],
+				statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
 
-        if (array_key_exists($status, self::CALLBACK_STATUS_TO_ACTION) === false) {
-            return new JSONResponse(
-                data: ['error' => 'Unknown status: '.$status],
-                statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
-            );
-        }
+		$transaction = $this->objectService->find(
+			id: $paymentTransactionId,
+			register: self::LEARNIQ_REGISTER,
+			schema: self::PAYMENT_TRANSACTION_SCHEMA
+		);
 
-        $transaction = $this->objectService->find(
-            id: $paymentTransactionId,
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::PAYMENT_TRANSACTION_SCHEMA
-        );
+		if ($transaction === null) {
+			return new JSONResponse(data: ['error' => 'PaymentTransaction not found'], statusCode: Http::STATUS_NOT_FOUND);
+		}
 
-        if ($transaction === null) {
-            return new JSONResponse(data: ['error' => 'PaymentTransaction not found'], statusCode: Http::STATUS_NOT_FOUND);
-        }
+		$action = self::CALLBACK_STATUS_TO_ACTION[$status];
 
-        $action = self::CALLBACK_STATUS_TO_ACTION[$status];
+		try {
+			$this->transitionEngine->transition($paymentTransactionId, $action);
+		} catch (Throwable $exception) {
+			$this->logger->warning(
+				'[PaymentTransactionController] callback() could not apply transition {action} to PaymentTransaction {id}: {msg}',
+				['action' => $action, 'id' => $paymentTransactionId, 'msg' => $exception->getMessage()]
+			);
+			return new JSONResponse(
+				data: ['error' => 'Transition not allowed from current state'],
+				statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
+			);
+		}
 
-        try {
-            $this->transitionEngine->transition($paymentTransactionId, $action);
-        } catch (Throwable $exception) {
-            $this->logger->warning(
-                '[PaymentTransactionController] callback() could not apply transition {action} to PaymentTransaction {id}: {msg}',
-                ['action' => $action, 'id' => $paymentTransactionId, 'msg' => $exception->getMessage()]
-            );
-            return new JSONResponse(
-                data: ['error' => 'Transition not allowed from current state'],
-                statusCode: Http::STATUS_UNPROCESSABLE_ENTITY
-            );
-        }
+		return new JSONResponse(data: []);
+	}//end callback()
 
-        return new JSONResponse(data: []);
+	/**
+	 * Authenticate an inbound callback() call against the dedicated
+	 * callback shared secret.
+	 *
+	 * @return bool True when the Authorization header matches the configured
+	 *              learniq.openconnector_callback_token.
+	 */
+	private function isAuthenticCallback(): bool {
+		$expectedToken = $this->appConfig->getValueString(
+			app: Application::APP_ID,
+			key: self::OPENCONNECTOR_CALLBACK_TOKEN_KEY,
+			default: ''
+		);
 
-    }//end callback()
+		if ($expectedToken === '') {
+			$this->logger->warning(
+				'[PaymentTransactionController] No callback token configured'
+				. ' (learniq.openconnector_callback_token) — refusing every callback until one is set.'
+			);
+			return false;
+		}
 
-    /**
-     * Authenticate an inbound callback() call against the dedicated
-     * callback shared secret.
-     *
-     * @return bool True when the Authorization header matches the configured
-     *              scholiq.openconnector_callback_token.
-     */
-    private function isAuthenticCallback(): bool
-    {
-        $expectedToken = $this->appConfig->getValueString(
-            app: Application::APP_ID,
-            key: self::OPENCONNECTOR_CALLBACK_TOKEN_KEY,
-            default: ''
-        );
+		$authHeader = (string)$this->request->getHeader('Authorization');
 
-        if ($expectedToken === '') {
-            $this->logger->warning(
-                '[PaymentTransactionController] No callback token configured'
-                .' (scholiq.openconnector_callback_token) — refusing every callback until one is set.'
-            );
-            return false;
-        }
+		return hash_equals('Bearer ' . $expectedToken, $authHeader);
+	}//end isAuthenticCallback()
 
-        $authHeader = (string) $this->request->getHeader('Authorization');
+	/**
+	 * Resolve an Order by UUID.
+	 *
+	 * @param string $orderId UUID of the Order.
+	 *
+	 * @return array<string,mixed>|null The Order data, or null if not found.
+	 */
+	private function resolveOrder(string $orderId): ?array {
+		// ObjectService::find() THROWS for an unknown id — it does not return
+		// null — so without this catch the `=== null` check below was dead code
+		// and an unknown orderId escaped initiate() as a 500 with a stack trace,
+		// reaching a non-admin caller.
+		//
+		// Throwable rather than DoesNotExistException, for two reasons. It is
+		// the broader guarantee: nothing from this lookup can reach the caller
+		// as an untranslated framework 500. And naming DoesNotExistException
+		// here — as an import, an inline FQCN, or an instanceof — pushes this
+		// class from 12 to 13 collaborators, breaching phpmd's
+		// CouplingBetweenObjects ceiling; all three spellings were measured at
+		// 13. Throwable is already a dependency of this class, so it costs
+		// nothing.
+		//
+		// The cause is logged rather than swallowed, so a genuine fault (a DB
+		// outage, say) is still diagnosable even though the caller sees the
+		// same 404 as a missing order.
+		try {
+			$object = $this->objectService->find(
+				id: $orderId,
+				register: self::LEARNIQ_REGISTER,
+				schema: self::ORDER_SCHEMA
+			);
+		} catch (Throwable $e) {
+			$this->logger->warning(
+				'Order lookup failed for {orderId}: {message}',
+				['orderId' => $orderId, 'message' => $e->getMessage(), 'exception' => $e]
+			);
 
-        return hash_equals('Bearer '.$expectedToken, $authHeader);
+			return null;
+		}
 
-    }//end isAuthenticCallback()
+		if ($object === null) {
+			return null;
+		}
 
-    /**
-     * Resolve an Order by UUID.
-     *
-     * @param string $orderId UUID of the Order.
-     *
-     * @return array<string,mixed>|null The Order data, or null if not found.
-     */
-    private function resolveOrder(string $orderId): ?array
-    {
-        $object = $this->objectService->find(
-            id: $orderId,
-            register: self::SCHOLIQ_REGISTER,
-            schema: self::ORDER_SCHEMA
-        );
+		return $object->jsonSerialize();
+	}//end resolveOrder()
 
-        if ($object === null) {
-            return null;
-        }
+	/**
+	 * Sum every `succeeded` PaymentTransaction.amount for the given Order.
+	 *
+	 * @param string $orderId UUID of the Order.
+	 *
+	 * @return float The sum of succeeded amounts.
+	 */
+	private function sumSucceededTransactions(string $orderId): float {
+		$transactions = $this->objectService->findAll(
+			[
+				'register' => self::LEARNIQ_REGISTER,
+				'schema' => self::PAYMENT_TRANSACTION_SCHEMA,
+				'filters' => [
+					'orderId' => $orderId,
+					'lifecycle' => 'succeeded',
+				],
+			]
+		);
 
-        return $object->jsonSerialize();
+		$sum = 0.0;
+		foreach ($transactions as $transaction) {
+			if (is_array($transaction) === false) {
+				$transaction = $transaction->jsonSerialize();
+			}
 
-    }//end resolveOrder()
+			$sum += (float)($transaction['amount'] ?? 0);
+		}
 
-    /**
-     * Sum every `succeeded` PaymentTransaction.amount for the given Order.
-     *
-     * @param string $orderId UUID of the Order.
-     *
-     * @return float The sum of succeeded amounts.
-     */
-    private function sumSucceededTransactions(string $orderId): float
-    {
-        $transactions = $this->objectService->findAll(
-            [
-                'register' => self::SCHOLIQ_REGISTER,
-                'schema'   => self::PAYMENT_TRANSACTION_SCHEMA,
-                'filters'  => [
-                    'orderId'   => $orderId,
-                    'lifecycle' => 'succeeded',
-                ],
-            ]
-        );
-
-        $sum = 0.0;
-        foreach ($transactions as $transaction) {
-            if (is_array($transaction) === false) {
-                $transaction = $transaction->jsonSerialize();
-            }
-
-            $sum += (float) ($transaction['amount'] ?? 0);
-        }
-
-        return $sum;
-
-    }//end sumSucceededTransactions()
-
-    /**
-     * Call OpenConnector's (assumed, see {@see self::OPENCONNECTOR_INITIATE_PATH})
-     * PSP launch-initiation endpoint.
-     *
-     * @param string $paymentTransactionId UUID of the newly-created PaymentTransaction —
-     *                                     sent as the callback reference.
-     * @param string $orderId              UUID of the Order being paid.
-     * @param float  $amount               Amount to charge.
-     * @param string $currency             ISO 4217 currency code.
-     * @param string $pspProvider          "mollie" or "stripe".
-     *
-     * @return array<string,mixed>|null The opaque launch response, or null on failure.
-     *
-     * @spec openspec/changes/school-payments/tasks.md#task-3.5
-     */
-    private function callOpenConnectorInitiate(
-        string $paymentTransactionId,
-        string $orderId,
-        float $amount,
-        string $currency,
-        string $pspProvider
-    ): ?array {
-        $url = $this->urlGenerator->getAbsoluteURL('/index.php'.self::OPENCONNECTOR_INITIATE_PATH);
-
-        $apiToken = $this->appConfig->getValueString(
-            app: Application::APP_ID,
-            key: self::OPENCONNECTOR_TOKEN_KEY,
-            default: ''
-        );
-
-        $requestOptions = [
-            'json'    => [
-                'orderId'           => $orderId,
-                'amount'            => $amount,
-                'currency'          => $currency,
-                'pspProvider'       => $pspProvider,
-                'callbackReference' => $paymentTransactionId,
-            ],
-            'timeout' => 30,
-        ];
-
-        if ($apiToken !== '') {
-            $requestOptions['headers'] = [
-                'Authorization' => 'Bearer '.$apiToken,
-            ];
-        } else {
-            $this->logger->warning(
-                '[PaymentTransactionController] No OpenConnector API token configured ('
-                .'scholiq.openconnector_api_token); the initiate call may fail with 401/403.'
-            );
-        }
-
-        try {
-            $client   = $this->clientService->newClient();
-            $response = $client->post($url, $requestOptions);
-
-            $body = json_decode($response->getBody(), true);
-            if (is_array($body) === false) {
-                $this->logger->error('[PaymentTransactionController] OpenConnector returned non-JSON for initiate.');
-                return null;
-            }
-
-            return $body;
-        } catch (Throwable $exception) {
-            $this->logger->error(
-                '[PaymentTransactionController] OpenConnector initiate call failed: {msg}',
-                ['msg' => $exception->getMessage()]
-            );
-            return null;
-        }//end try
-
-    }//end callOpenConnectorInitiate()
+		return $sum;
+	}//end sumSucceededTransactions()
 }//end class

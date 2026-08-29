@@ -17,56 +17,41 @@
  @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-people-domain-dashboard
 -->
 <template>
-	<div class="scholiq-domain-dashboard">
-		<CnDashboardPage
-			:title="pageTitle"
-			:widgets="widgets"
-			:layout="layout">
-			<template #widget-kpi-learners>
-				<KpiLearnersWidget />
-			</template>
-			<template #widget-kpi-active-enrolments>
-				<KpiActiveEnrolmentsWidget />
-			</template>
-			<template #widget-kpi-cohorts>
-				<KpiCohortsWidget />
-			</template>
-			<template #widget-kpi-open-flags>
-				<KpiOpenFlagsWidget />
-			</template>
+	<div class="learniq-domain-dashboard">
+		<CnDashboardPage :title="pageTitle" :widgets="widgets" :layout="layout">
 			<template #widget-manage-learners>
 				<ManageListWidget
 					schema="learner-profile"
-					:schema-label="t('scholiq', 'learner')"
+					:schemaLabel="t('learniq', 'learner')"
 					:columns="['name']"
-					:name-resolver="learnerName"
-					index-route="/learner-profiles"
+					:nameResolver="learnerName"
+					indexRoute="/learner-profiles"
 					:limit="6" />
 			</template>
 			<template #widget-manage-enrolments>
 				<ManageListWidget
 					schema="Enrolment"
-					:schema-label="t('scholiq', 'enrolment')"
+					:schemaLabel="t('learniq', 'enrolment')"
 					:columns="['name']"
 					:extend="['learnerId', 'courseId']"
-					:name-resolver="enrolmentName"
-					index-route="/enrolments"
+					:nameResolver="enrolmentName"
+					indexRoute="/enrolments"
 					:limit="6" />
 			</template>
 			<template #widget-manage-attendance>
 				<ManageListWidget
 					schema="attendance-record"
-					:schema-label="t('scholiq', 'attendance record')"
+					:schemaLabel="t('learniq', 'attendance record')"
 					:columns="['name', 'lifecycle']"
-					index-route="/attendance/records"
+					indexRoute="/attendance/records"
 					:limit="6" />
 			</template>
 			<template #widget-manage-credentials>
 				<ManageListWidget
 					schema="Credential"
-					:schema-label="t('scholiq', 'credential')"
+					:schemaLabel="t('learniq', 'credential')"
 					:columns="['name', 'lifecycle']"
-					index-route="/credentials"
+					indexRoute="/credentials"
 					:limit="6" />
 			</template>
 		</CnDashboardPage>
@@ -75,10 +60,6 @@
 
 <script>
 import { CnDashboardPage } from '@conduction/nextcloud-vue'
-import KpiLearnersWidget from './widgets/KpiLearnersWidget.vue'
-import KpiActiveEnrolmentsWidget from './widgets/KpiActiveEnrolmentsWidget.vue'
-import KpiCohortsWidget from './widgets/KpiCohortsWidget.vue'
-import KpiOpenFlagsWidget from './widgets/KpiOpenFlagsWidget.vue'
 import ManageListWidget from './widgets/ManageListWidget.vue'
 
 export default {
@@ -86,10 +67,6 @@ export default {
 
 	components: {
 		CnDashboardPage,
-		KpiLearnersWidget,
-		KpiActiveEnrolmentsWidget,
-		KpiCohortsWidget,
-		KpiOpenFlagsWidget,
 		ManageListWidget,
 	},
 
@@ -98,26 +75,111 @@ export default {
 		 * The dashboard page title.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-people-domain-dashboard
 		 */
 		pageTitle() {
-			return this.t('scholiq', 'People')
+			return this.t('learniq', 'People')
 		},
 
 		/**
 		 * The CnDashboardPage `widgets` declaration.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-people-domain-dashboard
 		 */
 		widgets() {
 			return [
-				{ id: 'kpi-learners', title: this.t('scholiq', 'Learners'), type: 'custom' },
-				{ id: 'kpi-active-enrolments', title: this.t('scholiq', 'Active enrolments'), type: 'custom' },
-				{ id: 'kpi-cohorts', title: this.t('scholiq', 'Cohorts'), type: 'custom' },
-				{ id: 'kpi-open-flags', title: this.t('scholiq', 'Open attendance flags'), type: 'custom' },
-				{ id: 'manage-learners', title: this.t('scholiq', 'Learners'), type: 'custom' },
-				{ id: 'manage-enrolments', title: this.t('scholiq', 'Enrolments'), type: 'custom' },
-				{ id: 'manage-attendance', title: this.t('scholiq', 'Attendance'), type: 'custom' },
-				{ id: 'manage-credentials', title: this.t('scholiq', 'Credentials'), type: 'custom' },
+				// KPI tiles are declared, not written. `type: 'stat'` resolves to
+				// the shared CnStatWidget through the dashboard widget registry,
+				// which counts server-side via the OpenRegister aggregation API.
+				// The wrappers these replace each re-implemented the fetch and
+				// answered `catch { this.count = 0 }`, so a dashboard whose
+				// backend was down showed four confident zeroes.
+				//
+				// `schema` is the OpenRegister SLUG. It resolves by lower(slug),
+				// so a multi-word title would 404 while a single-word one works
+				// by coincidence.
+				{
+					id: 'kpi-learners',
+					title: this.t('learniq', 'Learners'),
+					type: 'stat',
+					content: {
+						label: this.t('learniq', 'Learners'),
+						variant: 'success',
+						clickRoute: { path: '/learner-profiles' },
+						source: {
+							register: 'learniq',
+							schema: 'learner-profile',
+							metric: 'count',
+						},
+					},
+				},
+				{
+					id: 'kpi-active-enrolments',
+					title: this.t('learniq', 'Active enrolments'),
+					type: 'stat',
+					content: {
+						label: this.t('learniq', 'Active enrolments'),
+						variant: 'primary',
+						clickRoute: { path: '/enrolments' },
+						source: {
+							register: 'learniq',
+							schema: 'enrolment',
+							metric: 'count',
+							filter: { lifecycle: 'active' },
+						},
+					},
+				},
+				{
+					id: 'kpi-cohorts',
+					title: this.t('learniq', 'Cohorts'),
+					type: 'stat',
+					content: {
+						label: this.t('learniq', 'Cohorts'),
+						clickRoute: { path: '/cohorts' },
+						source: {
+							register: 'learniq',
+							schema: 'cohort',
+							metric: 'count',
+						},
+					},
+				},
+				{
+					id: 'kpi-open-flags',
+					title: this.t('learniq', 'Open attendance flags'),
+					type: 'stat',
+					content: {
+						label: this.t('learniq', 'Open attendance flags'),
+						variant: 'warning',
+						clickRoute: { path: '/attendance/flags' },
+						source: {
+							register: 'learniq',
+							schema: 'attendance-flag',
+							metric: 'count',
+							filter: { lifecycle: 'open' },
+						},
+					},
+				},
+				{
+					id: 'manage-learners',
+					title: this.t('learniq', 'Learners'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-enrolments',
+					title: this.t('learniq', 'Enrolments'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-attendance',
+					title: this.t('learniq', 'Attendance'),
+					type: 'custom',
+				},
+				{
+					id: 'manage-credentials',
+					title: this.t('learniq', 'Credentials'),
+					type: 'custom',
+				},
 			]
 		},
 
@@ -125,17 +187,78 @@ export default {
 		 * The CnDashboardPage `layout` declaration (12-column grid).
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-people-domain-dashboard
 		 */
 		layout() {
 			return [
-				{ id: 1, widgetId: 'kpi-learners', gridX: 0, gridY: 0, gridWidth: 3, gridHeight: 2, showTitle: false },
-				{ id: 2, widgetId: 'kpi-active-enrolments', gridX: 3, gridY: 0, gridWidth: 3, gridHeight: 2, showTitle: false },
-				{ id: 3, widgetId: 'kpi-cohorts', gridX: 6, gridY: 0, gridWidth: 3, gridHeight: 2, showTitle: false },
-				{ id: 4, widgetId: 'kpi-open-flags', gridX: 9, gridY: 0, gridWidth: 3, gridHeight: 2, showTitle: false },
-				{ id: 5, widgetId: 'manage-learners', gridX: 0, gridY: 2, gridWidth: 6, gridHeight: 4 },
-				{ id: 6, widgetId: 'manage-enrolments', gridX: 6, gridY: 2, gridWidth: 6, gridHeight: 4 },
-				{ id: 7, widgetId: 'manage-attendance', gridX: 0, gridY: 6, gridWidth: 6, gridHeight: 4 },
-				{ id: 8, widgetId: 'manage-credentials', gridX: 6, gridY: 6, gridWidth: 6, gridHeight: 4 },
+				{
+					id: 1,
+					widgetId: 'kpi-learners',
+					gridX: 0,
+					gridY: 0,
+					gridWidth: 3,
+					gridHeight: 2,
+					showTitle: false,
+				},
+				{
+					id: 2,
+					widgetId: 'kpi-active-enrolments',
+					gridX: 3,
+					gridY: 0,
+					gridWidth: 3,
+					gridHeight: 2,
+					showTitle: false,
+				},
+				{
+					id: 3,
+					widgetId: 'kpi-cohorts',
+					gridX: 6,
+					gridY: 0,
+					gridWidth: 3,
+					gridHeight: 2,
+					showTitle: false,
+				},
+				{
+					id: 4,
+					widgetId: 'kpi-open-flags',
+					gridX: 9,
+					gridY: 0,
+					gridWidth: 3,
+					gridHeight: 2,
+					showTitle: false,
+				},
+				{
+					id: 5,
+					widgetId: 'manage-learners',
+					gridX: 0,
+					gridY: 2,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 6,
+					widgetId: 'manage-enrolments',
+					gridX: 6,
+					gridY: 2,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 7,
+					widgetId: 'manage-attendance',
+					gridX: 0,
+					gridY: 6,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
+				{
+					id: 8,
+					widgetId: 'manage-credentials',
+					gridX: 6,
+					gridY: 6,
+					gridWidth: 6,
+					gridHeight: 4,
+				},
 			]
 		},
 	},
@@ -150,7 +273,10 @@ export default {
 		 * @spec exclude Presentation-only helper composing a display label from object fields; no behavioural spec requirement.
 		 */
 		learnerName(item) {
-			const full = [item.givenName, item.familyName].filter(Boolean).join(' ').trim()
+			const full = [item.givenName, item.familyName]
+				.filter(Boolean)
+				.join(' ')
+				.trim()
 			return full || item.ncUserId || item['@self']?.name || item.id
 		},
 
@@ -164,9 +290,10 @@ export default {
 		 * @spec exclude Presentation-only helper composing a "learner → course" label from resolved relations; no behavioural spec requirement.
 		 */
 		enrolmentName(item) {
-			const resolve = (rel) => (rel && typeof rel === 'object'
-				? (rel.name || rel['@self']?.name || rel.id)
-				: rel)
+			const resolve = (rel) =>
+				rel && typeof rel === 'object'
+					? rel.name || rel['@self']?.name || rel.id
+					: rel
 			const learner = resolve(item.learnerId) || '?'
 			const course = resolve(item.courseId) || '?'
 			return `${learner} → ${course}`

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Scholiq ExemptionGrantHandler unit tests.
+ * Learniq ExemptionGrantHandler unit tests.
  *
  * Covers: ExemptionCase → granted creates a GradeEntry (sourceKind: exemption,
  * value: null, exemptionCaseId set), drives it through the *existing* publish
@@ -9,7 +9,7 @@
  * resultingGradeEntryId, and ignores unrelated events/transitions.
  *
  * @category Tests
- * @package  OCA\Scholiq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Listener
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -26,14 +26,14 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Scholiq\Listener\ExemptionGrantHandler;
-use OCA\Scholiq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Listener\ExemptionGrantHandler;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -41,251 +41,239 @@ use Psr\Log\NullLogger;
 /**
  * Tests for ExemptionGrantHandler::handle() on ExemptionCase → granted.
  */
-class ExemptionGrantHandlerTest extends TestCase
-{
+class ExemptionGrantHandlerTest extends TestCase {
 
-    /**
-     * Recorded saveObject() calls.
-     *
-     * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
-     */
-    private array $savedObjects = [];
+	/**
+	 * Recorded saveObject() calls.
+	 *
+	 * @var array<int, array{register: string, schema: string, object: array<string, mixed>}>
+	 */
+	private array $savedObjects = [];
 
-    /**
-     * Recorded transition() calls.
-     *
-     * @var array<int, array{objectId: string, action: string}>
-     */
-    private array $transitions = [];
+	/**
+	 * Recorded transition() calls.
+	 *
+	 * @var array<int, array{objectId: string, action: string}>
+	 */
+	private array $transitions = [];
 
-    /**
-     * Reset capture buffers before each test.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->savedObjects = [];
-        $this->transitions  = [];
+	/**
+	 * Reset capture buffers before each test.
+	 *
+	 * @return void
+	 */
+	protected function setUp(): void {
+		parent::setUp();
+		$this->savedObjects = [];
+		$this->transitions = [];
 
-    }//end setUp()
+	}//end setUp()
 
-    /**
-     * Build a handler with stubbed collaborators.
-     *
-     * @param array<string,mixed>|ObjectEntity $savedGradeEntry What ObjectService::saveObject() returns for
-     *                                                          the grade-entry save. An array is wrapped in a
-     *                                                          real ObjectEntity, matching OpenRegister's
-     *                                                          non-nullable `saveObject(): ObjectEntity`.
-     *
-     * @return ExemptionGrantHandler
-     */
-    private function makeHandler(array | ObjectEntity $savedGradeEntry): ExemptionGrantHandler
-    {
-        $objectService = $this->createMock(ObjectService::class);
-        $objectService->method('saveObject')->willReturnCallback(
-            function (array | ObjectEntity $object, ?array $extend=[], $register=null, $schema=null) use ($savedGradeEntry): ObjectEntity {
-                $data                 = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
-                $this->savedObjects[] = [
-                    'register' => (string) $register,
-                    'schema'   => (string) $schema,
-                    'object'   => $data,
-                ];
-                if ((string) $schema === 'grade-entry') {
-                    if ($savedGradeEntry instanceof ObjectEntity) {
-                        return $savedGradeEntry;
-                    }
+	/**
+	 * Build a handler with stubbed collaborators.
+	 *
+	 * @param array<string,mixed>|ObjectEntity $savedGradeEntry What ObjectService::saveObject() returns for
+	 *                                                          the grade-entry save. An array is wrapped in a
+	 *                                                          real ObjectEntity, matching OpenRegister's
+	 *                                                          non-nullable `saveObject(): ObjectEntity`.
+	 *
+	 * @return ExemptionGrantHandler
+	 */
+	private function makeHandler(array|ObjectEntity $savedGradeEntry): ExemptionGrantHandler {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('saveObject')->willReturnCallback(
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use ($savedGradeEntry): ObjectEntity {
+				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+				$this->savedObjects[] = [
+					'register' => (string)$register,
+					'schema' => (string)$schema,
+					'object' => $data,
+				];
+				if ((string)$schema === 'grade-entry') {
+					if ($savedGradeEntry instanceof ObjectEntity) {
+						return $savedGradeEntry;
+					}
 
-                    return OrEntityFactory::make($savedGradeEntry, 'grade-entry');
-                }
+					return OrEntityFactory::make($savedGradeEntry, 'grade-entry');
+				}
 
-                return OrEntityFactory::make($data, (string) $schema, (string) $register);
-            }
-        );
+				return OrEntityFactory::make($data, (string)$schema, (string)$register);
+			}
+		);
 
-        $transitionEngine = $this->createMock(TransitionEngine::class);
-        $transitionEngine->method('transition')->willReturnCallback(
-            function (string $objectId, string $action): ObjectEntity {
-                $this->transitions[] = ['objectId' => $objectId, 'action' => $action];
-                return OrEntityFactory::make(['id' => $objectId], 'grade-entry');
-            }
-        );
+		$transitionEngine = $this->createMock(TransitionEngine::class);
+		$transitionEngine->method('transition')->willReturnCallback(
+			function (string $objectId, string $action): ObjectEntity {
+				$this->transitions[] = ['objectId' => $objectId, 'action' => $action];
+				return OrEntityFactory::make(['id' => $objectId], 'grade-entry');
+			}
+		);
 
-        return new ExemptionGrantHandler($objectService, $transitionEngine, new NullLogger());
+		return new ExemptionGrantHandler($objectService, $transitionEngine, new NullLogger());
+	}//end makeHandler()
 
-    }//end makeHandler()
+	/**
+	 * Build a mocked ObjectTransitionedEvent for an ExemptionCase → granted transition.
+	 *
+	 * @param array<string, mixed> $caseData The ExemptionCase's jsonSerialize() payload.
+	 *
+	 * @return ObjectTransitionedEvent
+	 */
+	private function makeEvent(array $caseData): ObjectTransitionedEvent {
+		$objectEntity = $this->createMock(ObjectEntity::class);
+		$objectEntity->method('jsonSerialize')->willReturn($caseData);
 
-    /**
-     * Build a mocked ObjectTransitionedEvent for an ExemptionCase → granted transition.
-     *
-     * @param array<string, mixed> $caseData The ExemptionCase's jsonSerialize() payload.
-     *
-     * @return ObjectTransitionedEvent
-     */
-    private function makeEvent(array $caseData): ObjectTransitionedEvent
-    {
-        $objectEntity = $this->createMock(ObjectEntity::class);
-        $objectEntity->method('jsonSerialize')->willReturn($caseData);
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getObject')->willReturn($objectEntity);
+		$event->method('getRegister')->willReturn('learniq');
+		$event->method('getSchema')->willReturn('exemption-case');
+		$event->method('getTo')->willReturn('granted');
+		$event->method('getFrom')->willReturn('in-assessment');
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getObject')->willReturn($objectEntity);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('exemption-case');
-        $event->method('getTo')->willReturn('granted');
-        $event->method('getFrom')->willReturn('in-assessment');
+		return $event;
+	}//end makeEvent()
 
-        return $event;
+	/**
+	 * A granted ExemptionCase creates a GradeEntry (sourceKind: exemption, value: null,
+	 * exemptionCaseId set) and drives it through the existing publish transition, then
+	 * back-links resultingGradeEntryId onto the case.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#scenario-granting-an-exemption-creates-and-publishes-a-gradeentry
+	 */
+	public function testGrantedCaseCreatesAndPublishesGradeEntry(): void {
+		$handler = $this->makeHandler(savedGradeEntry: ['id' => 'entry-1', 'sourceKind' => 'exemption']);
 
-    }//end makeEvent()
+		$case = [
+			'id' => 'case-1',
+			'learnerId' => 'learner-1',
+			'curriculumPlanId' => 'plan-1',
+			'componentId' => 'comp-a',
+			'tenant_id' => 'tenant-a',
+			'decidedBy' => 'board-member-1',
+			'lifecycle' => 'granted',
+		];
 
-    /**
-     * A granted ExemptionCase creates a GradeEntry (sourceKind: exemption, value: null,
-     * exemptionCaseId set) and drives it through the existing publish transition, then
-     * back-links resultingGradeEntryId onto the case.
-     *
-     * @return void
-     *
-     * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#scenario-granting-an-exemption-creates-and-publishes-a-gradeentry
-     */
-    public function testGrantedCaseCreatesAndPublishesGradeEntry(): void
-    {
-        $handler = $this->makeHandler(savedGradeEntry: ['id' => 'entry-1', 'sourceKind' => 'exemption']);
+		$handler->handle($this->makeEvent($case));
 
-        $case = [
-            'id'                => 'case-1',
-            'learnerId'         => 'learner-1',
-            'curriculumPlanId'  => 'plan-1',
-            'componentId'       => 'comp-a',
-            'tenant_id'         => 'tenant-a',
-            'decidedBy'         => 'board-member-1',
-            'lifecycle'         => 'granted',
-        ];
+		$gradeEntrySaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'grade-entry'));
+		self::assertCount(1, $gradeEntrySaves);
+		self::assertSame('exemption', $gradeEntrySaves[0]['object']['sourceKind']);
+		self::assertNull($gradeEntrySaves[0]['object']['value']);
+		self::assertSame('case-1', $gradeEntrySaves[0]['object']['exemptionCaseId']);
+		self::assertSame('learner-1', $gradeEntrySaves[0]['object']['learnerId']);
+		self::assertSame('plan-1', $gradeEntrySaves[0]['object']['curriculumPlanId']);
+		self::assertSame('comp-a', $gradeEntrySaves[0]['object']['componentId']);
+		// Newly-created concept entry — the *existing* publish transition drives it forward.
+		self::assertSame('concept', $gradeEntrySaves[0]['object']['lifecycle']);
 
-        $handler->handle($this->makeEvent($case));
+		self::assertCount(1, $this->transitions);
+		self::assertSame('entry-1', $this->transitions[0]['objectId']);
+		self::assertSame('publish', $this->transitions[0]['action']);
 
-        $gradeEntrySaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'grade-entry'));
-        self::assertCount(1, $gradeEntrySaves);
-        self::assertSame('exemption', $gradeEntrySaves[0]['object']['sourceKind']);
-        self::assertNull($gradeEntrySaves[0]['object']['value']);
-        self::assertSame('case-1', $gradeEntrySaves[0]['object']['exemptionCaseId']);
-        self::assertSame('learner-1', $gradeEntrySaves[0]['object']['learnerId']);
-        self::assertSame('plan-1', $gradeEntrySaves[0]['object']['curriculumPlanId']);
-        self::assertSame('comp-a', $gradeEntrySaves[0]['object']['componentId']);
-        // Newly-created concept entry — the *existing* publish transition drives it forward.
-        self::assertSame('concept', $gradeEntrySaves[0]['object']['lifecycle']);
+		$caseSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'exemption-case'));
+		self::assertCount(1, $caseSaves);
+		self::assertSame('entry-1', $caseSaves[0]['object']['resultingGradeEntryId']);
 
-        self::assertCount(1, $this->transitions);
-        self::assertSame('entry-1', $this->transitions[0]['objectId']);
-        self::assertSame('publish', $this->transitions[0]['action']);
+	}//end testGrantedCaseCreatesAndPublishesGradeEntry()
 
-        $caseSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'exemption-case'));
-        self::assertCount(1, $caseSaves);
-        self::assertSame('entry-1', $caseSaves[0]['object']['resultingGradeEntryId']);
+	/**
+	 * A GradeEntry save that returns an ObjectEntity (not a plain array) is handled identically.
+	 *
+	 * @return void
+	 */
+	public function testHandlesObjectEntityReturnFromSaveObject(): void {
+		$entity = OrEntityFactory::make(['id' => 'entry-2'], 'grade-entry');
 
-    }//end testGrantedCaseCreatesAndPublishesGradeEntry()
+		$handler = $this->makeHandler(savedGradeEntry: $entity);
 
-    /**
-     * A GradeEntry save that returns an ObjectEntity (not a plain array) is handled identically.
-     *
-     * @return void
-     */
-    public function testHandlesObjectEntityReturnFromSaveObject(): void
-    {
-        $entity = OrEntityFactory::make(['id' => 'entry-2'], 'grade-entry');
+		$case = [
+			'id' => 'case-2',
+			'learnerId' => 'learner-2',
+			'curriculumPlanId' => 'plan-2',
+			'componentId' => 'comp-b',
+			'tenant_id' => 'tenant-a',
+			'lifecycle' => 'granted',
+		];
 
-        $handler = $this->makeHandler(savedGradeEntry: $entity);
+		$handler->handle($this->makeEvent($case));
 
-        $case = [
-            'id'               => 'case-2',
-            'learnerId'        => 'learner-2',
-            'curriculumPlanId' => 'plan-2',
-            'componentId'      => 'comp-b',
-            'tenant_id'        => 'tenant-a',
-            'lifecycle'        => 'granted',
-        ];
+		self::assertCount(1, $this->transitions);
+		self::assertSame('entry-2', $this->transitions[0]['objectId']);
+		self::assertSame('publish', $this->transitions[0]['action']);
 
-        $handler->handle($this->makeEvent($case));
+	}//end testHandlesObjectEntityReturnFromSaveObject()
 
-        self::assertCount(1, $this->transitions);
-        self::assertSame('entry-2', $this->transitions[0]['objectId']);
-        self::assertSame('publish', $this->transitions[0]['action']);
+	/**
+	 * Missing learnerId/curriculumPlanId/componentId is skipped — no GradeEntry created.
+	 *
+	 * @return void
+	 */
+	public function testMissingRequiredFieldsSkips(): void {
+		$handler = $this->makeHandler(savedGradeEntry: ['id' => 'entry-3']);
 
-    }//end testHandlesObjectEntityReturnFromSaveObject()
+		$case = ['id' => 'case-3', 'lifecycle' => 'granted'];
 
-    /**
-     * Missing learnerId/curriculumPlanId/componentId is skipped — no GradeEntry created.
-     *
-     * @return void
-     */
-    public function testMissingRequiredFieldsSkips(): void
-    {
-        $handler = $this->makeHandler(savedGradeEntry: ['id' => 'entry-3']);
+		$handler->handle($this->makeEvent($case));
 
-        $case = ['id' => 'case-3', 'lifecycle' => 'granted'];
+		self::assertCount(0, $this->savedObjects);
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($this->makeEvent($case));
+	}//end testMissingRequiredFieldsSkips()
 
-        self::assertCount(0, $this->savedObjects);
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A non-ExemptionCase event (wrong schema) is ignored.
+	 *
+	 * @return void
+	 */
+	public function testWrongSchemaIgnored(): void {
+		$handler = $this->makeHandler(savedGradeEntry: ['id' => 'entry-4']);
 
-    }//end testMissingRequiredFieldsSkips()
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getRegister')->willReturn('learniq');
+		$event->method('getSchema')->willReturn('fraud-case');
+		$event->method('getTo')->willReturn('granted');
 
-    /**
-     * A non-ExemptionCase event (wrong schema) is ignored.
-     *
-     * @return void
-     */
-    public function testWrongSchemaIgnored(): void
-    {
-        $handler = $this->makeHandler(savedGradeEntry: ['id' => 'entry-4']);
+		$handler->handle($event);
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('fraud-case');
-        $event->method('getTo')->willReturn('granted');
+		self::assertCount(0, $this->savedObjects);
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($event);
+	}//end testWrongSchemaIgnored()
 
-        self::assertCount(0, $this->savedObjects);
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A transition to a state other than `granted` is ignored.
+	 *
+	 * @return void
+	 */
+	public function testWrongTargetStateIgnored(): void {
+		$handler = $this->makeHandler(savedGradeEntry: ['id' => 'entry-5']);
 
-    }//end testWrongSchemaIgnored()
+		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event->method('getRegister')->willReturn('learniq');
+		$event->method('getSchema')->willReturn('exemption-case');
+		$event->method('getTo')->willReturn('rejected');
 
-    /**
-     * A transition to a state other than `granted` is ignored.
-     *
-     * @return void
-     */
-    public function testWrongTargetStateIgnored(): void
-    {
-        $handler = $this->makeHandler(savedGradeEntry: ['id' => 'entry-5']);
+		$handler->handle($event);
 
-        $event = $this->createMock(ObjectTransitionedEvent::class);
-        $event->method('getRegister')->willReturn('scholiq');
-        $event->method('getSchema')->willReturn('exemption-case');
-        $event->method('getTo')->willReturn('rejected');
+		self::assertCount(0, $this->savedObjects);
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($event);
+	}//end testWrongTargetStateIgnored()
 
-        self::assertCount(0, $this->savedObjects);
-        self::assertCount(0, $this->transitions);
+	/**
+	 * A non-ObjectTransitionedEvent is ignored.
+	 *
+	 * @return void
+	 */
+	public function testNonMatchingEventTypeIgnored(): void {
+		$handler = $this->makeHandler(savedGradeEntry: ['id' => 'entry-6']);
 
-    }//end testWrongTargetStateIgnored()
+		$handler->handle($this->createMock(Event::class));
 
-    /**
-     * A non-ObjectTransitionedEvent is ignored.
-     *
-     * @return void
-     */
-    public function testNonMatchingEventTypeIgnored(): void
-    {
-        $handler = $this->makeHandler(savedGradeEntry: ['id' => 'entry-6']);
+		self::assertCount(0, $this->savedObjects);
+		self::assertCount(0, $this->transitions);
 
-        $handler->handle($this->createMock(Event::class));
-
-        self::assertCount(0, $this->savedObjects);
-        self::assertCount(0, $this->transitions);
-
-    }//end testNonMatchingEventTypeIgnored()
+	}//end testNonMatchingEventTypeIgnored()
 }//end class
