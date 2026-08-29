@@ -8,7 +8,7 @@ OC.L10N.register(
         "Click Features & roadmap in the menu": "Klik op Features & roadmap in het menu",
         "Open School-year rollover from the menu.": "Open School-year rollover via het menu.",
         "Click School-year rollover in the menu": "Klik op School-year rollover in het menu",
-        "Flows automate the repetitive parts of this app. Have a look — you do not have to build one now.": "Flows automatiseren het repeterende werk in deze app. Kijk gerust rond — je hoeft er nu geen te maken.",
+        "Flows automate the repetitive parts of this app. Have a look, though you do not have to build one now.": "Flows automatiseren het repeterende werk in deze app. Kijk gerust rond, je hoeft er nu geen te maken.",
         "Open Flows from the menu": "Open Flows via het menu",
         "My learning record": "Mijn leerdossier",
         "Everything you have earned, everywhere in Learniq — composed live, read-only. Nothing here can be edited or deleted from this page.": "Alles wat je hebt behaald, overal in Learniq — live samengesteld, alleen-lezen. Hier kan niets worden bewerkt of verwijderd.",
