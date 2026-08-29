@@ -56,6 +56,7 @@ import DashboardAdmin from './views/DashboardAdmin.vue'
 import DashboardStudent from './views/DashboardStudent.vue'
 import DashboardTeacher from './views/DashboardTeacher.vue'
 import ExamCaseDossierView from './views/ExamCaseDossierView.vue'
+import FlowDetailSidebar from './views/flows/FlowDetailSidebar.vue'
 import GradeImpactDetail from './views/GradeImpactDetail.vue'
 // groepsplan: the one genuine new custom view this change adds — resolves
 // each GroupPlanSubgroup member learner's active LearningPlan (if any); the
@@ -166,6 +167,12 @@ const PANEL_WIDGET_META = {
 }
 
 export default {
+	// --- Flows (ADR-110 Decision 4). Only the SIDEBAR is an app component;
+	//     the list and the canvas are the shared `flows` / `flow-detail`
+	//     manifest page types. CnFlowSidebar has to mount in the NC app
+	//     sidebar for the canvas to keep full width. ---
+	FlowDetailSidebar: page(FlowDetailSidebar),
+
 	AdmissionsReviewBoard: page(AdmissionsReviewBoard),
 	BookConferenceSlotsView: page(BookConferenceSlotsView),
 	BsaRiskDashboard: page(BsaRiskDashboard),
