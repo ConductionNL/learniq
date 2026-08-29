@@ -1,326 +1,358 @@
 {
-	"$schema": "https://github.com/ConductionNL/nextcloud-vue/raw/main/src/schemas/app-manifest-v2.schema.json",
-		"walkthrough": {
-			"enabled": true,
-			"version": 1,
-			"completionConfigKey": "walkthrough_completed_version",
-			"tours": [
-				{
-					"id": "learniq:getting-started",
-					"title": "Getting started",
-					"trigger": "first-visit",
-					"steps": [
-						{
-							"id": "welcome",
-							"placement": "center",
-							"title": "Welcome to Learniq",
-							"body": "A short tour of the main screens. It takes under a minute, and you can close it at any point and pick it up again from the help menu.",
-							"target": {
-								"kind": "page",
-								"ref": "FeaturesRoadmap"
-							},
-							"advanceOn": {
-								"type": "manual"
-							}
-						},
-						{
-							"id": "go-featuresroadmap",
-							"placement": "right",
-							"body": "Open Features & roadmap from the menu.",
-							"task": "Click Features & roadmap in the menu",
-							"target": {
-								"kind": "nav-item",
-								"ref": "FeaturesRoadmap"
-							},
-							"advanceOn": {
-								"type": "route-match",
-								"route": "FeaturesRoadmap"
-							}
-						},
-						{
-							"id": "go-rolloverwizard",
-							"placement": "right",
-							"body": "Open School-year rollover from the menu.",
-							"task": "Click School-year rollover in the menu",
-							"target": {
-								"kind": "nav-item",
-								"ref": "RolloverWizard"
-							},
-							"advanceOn": {
-								"type": "route-match",
-								"route": "RolloverWizard"
-							}
-						},
-						{
-							"id": "go-flows",
-							"placement": "right",
-							"body": "Flows automate the repetitive parts of this app. Have a look, though you do not have to build one now.",
-							"task": "Open Flows from the menu",
-							"target": {
-								"kind": "nav-item",
-								"ref": "Flows"
-							},
-							"advanceOn": {
-								"type": "route-match",
-								"route": "Flows"
-							},
-							"allowManualNext": true
-						}
-					]
-				}
-			]
-		},
-	"version": "0.1.0",
-	"dependencies": [
-		"openregister",
-		{
-			"id": "openconnector",
-			"required": false,
-			"name": "OpenConnector"
-		}
-	],
-	"observability": {
-		"health": {
-			"statusCodePolicy": "adr006",
-			"checks": [
-				{
-					"id": "database",
-					"type": "database",
-					"severity": "critical"
-				},
-				{
-					"id": "or",
-					"type": "orAvailable",
-					"severity": "critical"
-				},
-				{
-					"id": "launchpad",
-					"type": "appEnabled",
-					"app": "launchpad",
-					"severity": "degraded"
-				}
-			]
-		},
-		"metrics": [
-			{
-				"name": "learniq_courses_total",
-				"type": "gauge",
-				"help": "Number of Course objects in the Learniq register.",
-				"source": {
-					"kind": "objectCount",
-					"register": "learniq",
-					"schema": "course"
-				}
-			},
-			{
-				"name": "learniq_enrolments_total",
-				"type": "gauge",
-				"help": "Number of Enrolment objects in the Learniq register.",
-				"source": {
-					"kind": "objectCount",
-					"register": "learniq",
-					"schema": "enrolment"
-				}
-			},
-			{
-				"name": "learniq_learner_profiles_total",
-				"type": "gauge",
-				"help": "Number of LearnerProfile objects in the Learniq register.",
-				"source": {
-					"kind": "objectCount",
-					"register": "learniq",
-					"schema": "learner-profile"
-				}
-			}
-		]
-	},
-	"deepLinks": [
-		{
-			"registerSlug": "learniq",
-			"schemaSlug": "course",
-			"urlTemplate": "/apps/learniq/#/courses/{uuid}",
-			"displayName": "Course"
-		},
-		{
-			"registerSlug": "learniq",
-			"schemaSlug": "enrolment",
-			"urlTemplate": "/apps/learniq/#/enrolments/{uuid}",
-			"displayName": "Enrolment"
-		},
-		{
-			"registerSlug": "learniq",
-			"schemaSlug": "learner-profile",
-			"urlTemplate": "/apps/learniq/#/learner-profiles/{uuid}",
-			"displayName": "Learner"
-		},
-		{
-			"registerSlug": "learniq",
-			"schemaSlug": "credential",
-			"urlTemplate": "/apps/learniq/#/credentials/{uuid}",
-			"displayName": "Credential"
-		},
-		{
-			"registerSlug": "learniq",
-			"schemaSlug": "support-request",
-			"urlTemplate": "/apps/learniq/#/support-requests/{uuid}",
-			"displayName": "Support request"
-		}
-	],
-	"menu": [
-		{
-			"id": "Documentation",
-			"label": "Documentation",
-			"icon": "BookOpenVariantOutline",
-			"href": "https://learniq.conduction.nl",
-			"section": "footer",
-			"order": 90
-		},
-		{
-			"id": "FeaturesRoadmapMenu",
-			"label": "Features & roadmap",
-			"icon": "MapMarkerPath",
-			"route": "FeaturesRoadmap",
-			"section": "footer",
-			"order": 100
-		},
-		{
-			"id": "XapiStatementsMenu",
-			"label": "xAPI statements",
-			"icon": "History",
-			"route": "XapiStatements",
-			"section": "settings",
-			"order": 94
-		},
-		{
-			"id": "Rollover",
-			"label": "School-year rollover",
-			"icon": "History",
-			"route": "RolloverWizard",
-			"order": 46,
-			"visibleIf": {
-				"user.primaryRole": {
-					"in": ["admin"]
-				}
-			}
-		},
-		{
-			"id": "FlowsMenu",
-			"label": "Flows",
-			"icon": "Sitemap",
-			"route": "Flows",
-			"section": "settings",
-			"order": 96
-		}
-	],
-	"pages": [
-		{
-			"id": "FeaturesRoadmap",
-			"route": "/features-roadmap",
-			"type": "roadmap",
-			"title": "Features & roadmap",
-			"config": {
-				"documentationUrl": "https://learniq.conduction.nl"
-			}
-		},
-		{
-			"id": "XapiStatements",
-			"route": "/xapi-statements",
-			"type": "index",
-			"title": "xAPI statements",
-			"config": {
-				"register": "learniq",
-				"schema": "xapi-statement",
-				"readOnly": true
-			}
-		},
-		{
-			"id": "XapiStatementDetail",
-			"route": "/xapi-statements/:id",
-			"type": "detail",
-			"title": "xAPI statement",
-			"config": {
-				"register": "learniq",
-				"schema": "xapi-statement",
-				"readOnly": true,
-				"_note": "An xAPI Statement is an immutable learning-experience event (actor, verb, object, result, context, timestamp, authority) — a log/technical archetype. Body leads with the statement data including the full actor/verb/object/result JSON (wide, 12-col, single column for readability) and a Related panel resolving the linked course/lesson. NO comms leaves, NO child rosters — an xAPI statement is a write-once event. Sidebar keeps metadata + audit-trail.",
-				"widgets": [
-					{
-						"id": "xapi-data",
-						"type": "data",
-						"title": "Data",
-						"content": {
-							"columns": 1
-						},
-						"icon": "Timeline"
-					},
-					{
-						"id": "xapi-related",
-						"type": "related",
-						"title": "Related",
-						"icon": "LinkVariant"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "xapi-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 8,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "2",
-						"widgetId": "xapi-related",
-						"gridX": 8,
-						"gridY": 0,
-						"gridWidth": 4,
-						"gridHeight": 5,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
-								{
-									"type": "audit"
-								}
-							]
-						}
-					]
-				}
-			}
-		},
-		{
-			"id": "RolloverWizard",
-			"route": "/structure/rollover",
-			"type": "custom",
-			"title": "School-year rollover",
-			"component": "RolloverWizard",
-			"_note": "Mapping editor for the jaarovergang (school-year-rollover): the \"custom view only where a manifest page cannot render it\" exception. Proposes a leerjaar-increment default mapping, runs the mandatory side-effect-free preview gate, and triggers the idempotent server-side execution (RolloverExecutionHandler) by transitioning the RolloverPlan to executing."
-		},
-		{
-			"id": "Flows",
-			"route": "/flows",
-			"type": "index",
-			"title": "Flows",
-			"config": { "entitySource": "flows", "app": "learniq" },
-			"_note": "ADR-110 Decision 4: a flow is app-specific, so the authoring surface lives here rather than behind a deep link to another app's list. An ordinary index over the named `flows` source (config.entitySource) rather than the deprecated `flows` page type, reading OpenRegister's one native flow store (ADR-065), scoped to this app by config.app."
-		},
-		{
-			"id": "FlowDetail",
-			"route": "/flows/:id",
-			"type": "flow",
-			"title": "Flow",
-			"config": { "app": "learniq" },
-			"_note": "The shared CnFlowDetail canvas over the same single engine. Controls render in the NC app sidebar so the canvas keeps full width."
-		}
-	]
+  "$schema": "https://github.com/ConductionNL/nextcloud-vue/raw/main/src/schemas/app-manifest-v2.schema.json",
+  "setup": {
+    "version": 1,
+    "completionConfigKey": "setup_completed_version",
+    "steps": [
+      {
+        "id": "welcome",
+        "type": "info",
+        "title": "Welcome",
+        "body": "A short setup to get this app ready. Nothing here is required; you can close it and come back later."
+      },
+      {
+        "id": "demo-data",
+        "type": "run-action",
+        "action": "install-demo-data",
+        "title": "Demo data (optional)",
+        "required": false,
+        "body": "Load a small example dataset so the lists, detail pages and dashboards show a working product straight away. The data is obviously sample data, it is safe to run more than once, and it can be removed afterwards. Skip this on a production install."
+      },
+      {
+        "id": "done",
+        "type": "summary",
+        "title": "All set"
+      }
+    ]
+  },
+  "version": "0.1.0",
+  "dependencies": [
+    "openregister",
+    {
+      "id": "openconnector",
+      "required": false,
+      "name": "OpenConnector"
+    }
+  ],
+  "observability": {
+    "health": {
+      "statusCodePolicy": "adr006",
+      "checks": [
+        {
+          "id": "database",
+          "type": "database",
+          "severity": "critical"
+        },
+        {
+          "id": "or",
+          "type": "orAvailable",
+          "severity": "critical"
+        },
+        {
+          "id": "launchpad",
+          "type": "appEnabled",
+          "app": "launchpad",
+          "severity": "degraded"
+        }
+      ]
+    },
+    "metrics": [
+      {
+        "name": "learniq_courses_total",
+        "type": "gauge",
+        "help": "Number of Course objects in the Learniq register.",
+        "source": {
+          "kind": "objectCount",
+          "register": "learniq",
+          "schema": "course"
+        }
+      },
+      {
+        "name": "learniq_enrolments_total",
+        "type": "gauge",
+        "help": "Number of Enrolment objects in the Learniq register.",
+        "source": {
+          "kind": "objectCount",
+          "register": "learniq",
+          "schema": "enrolment"
+        }
+      },
+      {
+        "name": "learniq_learner_profiles_total",
+        "type": "gauge",
+        "help": "Number of LearnerProfile objects in the Learniq register.",
+        "source": {
+          "kind": "objectCount",
+          "register": "learniq",
+          "schema": "learner-profile"
+        }
+      }
+    ]
+  },
+  "deepLinks": [
+    {
+      "registerSlug": "learniq",
+      "schemaSlug": "course",
+      "urlTemplate": "/apps/learniq/#/courses/{uuid}",
+      "displayName": "Course"
+    },
+    {
+      "registerSlug": "learniq",
+      "schemaSlug": "enrolment",
+      "urlTemplate": "/apps/learniq/#/enrolments/{uuid}",
+      "displayName": "Enrolment"
+    },
+    {
+      "registerSlug": "learniq",
+      "schemaSlug": "learner-profile",
+      "urlTemplate": "/apps/learniq/#/learner-profiles/{uuid}",
+      "displayName": "Learner"
+    },
+    {
+      "registerSlug": "learniq",
+      "schemaSlug": "credential",
+      "urlTemplate": "/apps/learniq/#/credentials/{uuid}",
+      "displayName": "Credential"
+    },
+    {
+      "registerSlug": "learniq",
+      "schemaSlug": "support-request",
+      "urlTemplate": "/apps/learniq/#/support-requests/{uuid}",
+      "displayName": "Support request"
+    }
+  ],
+  "menu": [
+    {
+      "id": "Documentation",
+      "label": "Documentation",
+      "icon": "BookOpenVariantOutline",
+      "href": "https://learniq.conduction.nl",
+      "section": "footer",
+      "order": 90
+    },
+    {
+      "id": "FeaturesRoadmapMenu",
+      "label": "Features & roadmap",
+      "icon": "MapMarkerPath",
+      "route": "FeaturesRoadmap",
+      "section": "footer",
+      "order": 100
+    },
+    {
+      "id": "XapiStatementsMenu",
+      "label": "xAPI statements",
+      "icon": "History",
+      "route": "XapiStatements",
+      "section": "settings",
+      "order": 94
+    },
+    {
+      "id": "Rollover",
+      "label": "School-year rollover",
+      "icon": "History",
+      "route": "RolloverWizard",
+      "order": 46,
+      "visibleIf": {
+        "user.primaryRole": {
+          "in": [
+            "admin"
+          ]
+        }
+      }
+    },
+    {
+      "id": "FlowsMenu",
+      "label": "Flows",
+      "icon": "Sitemap",
+      "route": "Flows",
+      "section": "settings",
+      "order": 96
+    }
+  ],
+  "pages": [
+    {
+      "id": "FeaturesRoadmap",
+      "route": "/features-roadmap",
+      "type": "roadmap",
+      "title": "Features & roadmap",
+      "config": {
+        "documentationUrl": "https://learniq.conduction.nl"
+      }
+    },
+    {
+      "id": "XapiStatements",
+      "route": "/xapi-statements",
+      "type": "index",
+      "title": "xAPI statements",
+      "config": {
+        "register": "learniq",
+        "schema": "xapi-statement",
+        "readOnly": true
+      }
+    },
+    {
+      "id": "XapiStatementDetail",
+      "route": "/xapi-statements/:id",
+      "type": "detail",
+      "title": "xAPI statement",
+      "config": {
+        "register": "learniq",
+        "schema": "xapi-statement",
+        "readOnly": true,
+        "_note": "An xAPI Statement is an immutable learning-experience event (actor, verb, object, result, context, timestamp, authority) — a log/technical archetype. Body leads with the statement data including the full actor/verb/object/result JSON (wide, 12-col, single column for readability) and a Related panel resolving the linked course/lesson. NO comms leaves, NO child rosters — an xAPI statement is a write-once event. Sidebar keeps metadata + audit-trail.",
+        "widgets": [
+          {
+            "id": "xapi-data",
+            "type": "data",
+            "title": "Data",
+            "content": {
+              "columns": 1
+            },
+            "icon": "Timeline"
+          },
+          {
+            "id": "xapi-related",
+            "type": "related",
+            "title": "Related",
+            "icon": "LinkVariant"
+          }
+        ],
+        "layout": [
+          {
+            "id": "1",
+            "widgetId": "xapi-data",
+            "gridX": 0,
+            "gridY": 0,
+            "gridWidth": 8,
+            "gridHeight": 5,
+            "showTitle": false
+          },
+          {
+            "id": "2",
+            "widgetId": "xapi-related",
+            "gridX": 8,
+            "gridY": 0,
+            "gridWidth": 4,
+            "gridHeight": 5,
+            "showTitle": false
+          }
+        ],
+        "sidebar": {
+          "enabled": true,
+          "showMetadata": true,
+          "tabs": [
+            {
+              "id": "audit",
+              "label": "History",
+              "icon": "History",
+              "widgets": [
+                {
+                  "type": "audit"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "RolloverWizard",
+      "route": "/structure/rollover",
+      "type": "custom",
+      "title": "School-year rollover",
+      "component": "RolloverWizard",
+      "_note": "Mapping editor for the jaarovergang (school-year-rollover): the \"custom view only where a manifest page cannot render it\" exception. Proposes a leerjaar-increment default mapping, runs the mandatory side-effect-free preview gate, and triggers the idempotent server-side execution (RolloverExecutionHandler) by transitioning the RolloverPlan to executing."
+    },
+    {
+      "id": "Flows",
+      "route": "/flows",
+      "type": "index",
+      "title": "Flows",
+      "config": {
+        "entitySource": "flows",
+        "app": "learniq"
+      },
+      "_note": "ADR-110 Decision 4: a flow is app-specific, so the authoring surface lives here rather than behind a deep link to another app's list. An ordinary index over the named `flows` source (config.entitySource) rather than the deprecated `flows` page type, reading OpenRegister's one native flow store (ADR-065), scoped to this app by config.app."
+    },
+    {
+      "id": "FlowDetail",
+      "route": "/flows/:id",
+      "type": "flow",
+      "title": "Flow",
+      "config": {
+        "app": "learniq"
+      },
+      "_note": "The shared CnFlowDetail canvas over the same single engine. Controls render in the NC app sidebar so the canvas keeps full width."
+    }
+  ],
+  "walkthrough": {
+    "enabled": true,
+    "version": 1,
+    "completionConfigKey": "walkthrough_completed_version",
+    "tours": [
+      {
+        "id": "learniq:getting-started",
+        "title": "Getting started",
+        "trigger": "first-visit",
+        "steps": [
+          {
+            "id": "welcome",
+            "placement": "center",
+            "title": "Welcome to Learniq",
+            "body": "A short tour of the main screens. It takes under a minute, and you can close it at any point and pick it up again from the help menu.",
+            "target": {
+              "kind": "page",
+              "ref": "FeaturesRoadmap"
+            },
+            "advanceOn": {
+              "type": "manual"
+            }
+          },
+          {
+            "id": "go-featuresroadmap",
+            "placement": "right",
+            "body": "Open Features & roadmap from the menu.",
+            "task": "Click Features & roadmap in the menu",
+            "target": {
+              "kind": "nav-item",
+              "ref": "FeaturesRoadmap"
+            },
+            "advanceOn": {
+              "type": "route-match",
+              "route": "FeaturesRoadmap"
+            }
+          },
+          {
+            "id": "go-rolloverwizard",
+            "placement": "right",
+            "body": "Open School-year rollover from the menu.",
+            "task": "Click School-year rollover in the menu",
+            "target": {
+              "kind": "nav-item",
+              "ref": "RolloverWizard"
+            },
+            "advanceOn": {
+              "type": "route-match",
+              "route": "RolloverWizard"
+            }
+          },
+          {
+            "id": "go-flows",
+            "placement": "right",
+            "body": "Flows automate the repetitive parts of this app. Have a look, though you do not have to build one now.",
+            "task": "Open Flows from the menu",
+            "target": {
+              "kind": "nav-item",
+              "ref": "Flows"
+            },
+            "advanceOn": {
+              "type": "route-match",
+              "route": "Flows"
+            },
+            "allowManualNext": true
+          }
+        ]
+      }
+    ]
+  }
 }
