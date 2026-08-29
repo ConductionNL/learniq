@@ -394,3 +394,28 @@ DEMO_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 300 \
 	-H 'Content-Type: application/json' -H 'OCS-APIRequest: true' --data '{}' \
 	"${DEMO_BASE}/index.php/apps/learniq/api/setup/action/skip-demo-data" || echo 000)"
 echo "[ci-seed] POST setup/action/skip-demo-data -> HTTP ${DEMO_CODE}"
+
+# ── Settle the first-visit walkthrough ───────────────────────────────────────
+# 🔴 OR THE TOUR DIMS EVERY CLICK. The walkthrough opens on a fresh profile as a
+# modal with a full-page dim inside role="dialog", in EVERY new browser context
+# — so once per spec, not once per suite.
+#
+# Measured on this fleet at the walkthrough merge: clicks resolved their button
+# and never landed, the Playwright call log naming the interceptor as
+#   <div class="cn-walkthrough__dim cn-walkthrough__dim--full">
+# learniq lost 7 specs and portaliq 2 to exactly this.
+#
+# Marks the tour SEEN rather than disabling it: the manifest declares
+# `walkthrough.version: 1` and `completionConfigKey:
+# walkthrough_completed_version`, so storing that version is the same thing a
+# real operator does by finishing (or dismissing) the tour once.
+#
+# Tolerant on purpose: an app with no walkthrough answers 400/404 here, and
+# that is not a seeding failure.
+WT_BASE="${BASE_URL:-${NEXTCLOUD_URL:-http://localhost:8080}}"
+WT_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 60 \
+	-u "${ADMIN_USER:-admin}:${ADMIN_PASSWORD:-admin}" -X PUT \
+	-H 'Content-Type: application/json' -H 'OCS-APIRequest: true' \
+	--data '{"value":"1"}' \
+	"${WT_BASE}/index.php/apps/learniq/api/preferences/walkthrough_completed_version" || echo 000)"
+echo "[ci-seed] PUT preferences/walkthrough_completed_version -> HTTP ${WT_CODE}"
