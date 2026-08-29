@@ -148,7 +148,10 @@ async function globalSetup(): Promise<void> {
 		try {
 			await page.evaluate(() => {
 				try {
-					window.localStorage.setItem('cn-walkthrough-seen:learniq', '999.0.0')
+					window.localStorage.setItem(
+						'cn-walkthrough-seen:learniq',
+						'999.0.0',
+					)
 				} catch (e) {
 					// localStorage unavailable — specs fall back to dismissing by hand.
 				}
