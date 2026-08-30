@@ -73,9 +73,6 @@
 			<template #widget-my-mandatory-training>
 				<MyMandatoryTrainingWidget />
 			</template>
-			<template #widget-kpi-points-level>
-				<KpiPointsLevelWidget />
-			</template>
 		</CnDashboardPage>
 	</div>
 </template>
@@ -83,7 +80,6 @@
 <script>
 import { CnDashboardPage } from '@conduction/nextcloud-vue'
 import { loadState } from '@nextcloud/initial-state'
-import KpiPointsLevelWidget from './widgets/KpiPointsLevelWidget.vue'
 import ManageCohortsWidget from './widgets/ManageCohortsWidget.vue'
 import ManageCoursesWidget from './widgets/ManageCoursesWidget.vue'
 import ManageListWidget from './widgets/ManageListWidget.vue'
@@ -102,7 +98,6 @@ export default {
 		ManageProgrammesWidget,
 		ManageListWidget,
 		MyMandatoryTrainingWidget,
-		KpiPointsLevelWidget,
 	},
 
 	props: {
@@ -513,7 +508,7 @@ export default {
 		 * other learners' records.
 		 *
 		 * @return {{widgets: Array<object>, layout: Array<object>}}
-		 * @spec openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+		 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 		 */
 		studentConfig() {
 			return {
@@ -525,10 +520,31 @@ export default {
 					},
 					// engagement-gamification: the learner's own points/level/streak KPI —
 					// always visible regardless of any Leaderboard/opt-out state.
+					//
+					// Declared, not written. This was the last bespoke KPI tile in the
+					// app: it could not be a plain `source` aggregation because it needs
+					// a JOIN across learner-engagement and engagement-level, and a
+					// two-call frontend could not make that join succeed or fail as one
+					// — a silent level-lookup failure rendered as "has points, no level",
+					// indistinguishable from a learner who has not reached one.
+					// /api/engagement/me serves the joined record, so the tile is config.
 					{
 						id: 'kpi-points-level',
 						title: this.t('learniq', 'My points'),
-						type: 'custom',
+						type: 'stat',
+						content: {
+							label: this.t('learniq', 'My points'),
+							variant: 'primary',
+							endpointSource: {
+								url: '/apps/learniq/api/engagement/me',
+							},
+
+							valueField: 'totalPoints',
+							// The server composes this line: a caption template resolves a
+							// missing token to '', which would leave a learner with no level
+							// showing an orphan separator.
+							caption: '{summary}',
+						},
 					},
 				],
 

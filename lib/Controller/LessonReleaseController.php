@@ -6,7 +6,7 @@
  * Computes, per request, whether a Lesson or Assessment is available to the
  * calling learner right now — a genuine per-(item, learner) gate decision
  * (adaptive release / drip scheduling), not a pass-through CRUD read.
- * Delegates all evaluation logic to {@see \OCA\Learniq\Release\LessonReleaseEvaluator}.
+ * Delegates all evaluation logic to {@see \OCA\Learniq\Service\LessonReleaseEvaluator}.
  *
  * @category Controller
  * @package  OCA\Learniq\Controller
@@ -31,7 +31,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Release\LessonReleaseEvaluator;
+use OCA\Learniq\Service\LessonReleaseEvaluator;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;

@@ -4,8 +4,8 @@
  * Gate-19 e2e coverage — engagement spec UI scenarios.
  *
  * Covers (UI-observable surface):
- *   @e2e openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
- *   @e2e openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
+ *   @e2e openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+ *   @e2e openspec/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
  *
  * The point-award trigger/idempotency mechanics, the streak/level evaluator,
  * and the leaderboard opt-in/opt-out authorization gates are all
@@ -40,18 +40,23 @@ function fatalErrors(errors: string[]): string[] {
 }
 
 test.describe('engagement-gamification — points/level widget and leaderboard', () => {
-	// @e2e openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+	// @e2e openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 	// @e2e engagement::a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 	//
 	// The discriminating assertion is `toContain('My points')`. That string is
-	// the KpiPointsLevelWidget's own title (src/views/widgets/
-	// KpiPointsLevelWidget.vue:20, declared as a dashboard widget slot in
-	// LearniqDashboards.vue:290) — it is NOT a manifest menu label, so it
-	// cannot be satisfied by the app nav alone. Drop the widget from the
-	// student dashboard and this test goes red, which is what the scenario's
-	// THEN ("their points/level KPI widget renders") asks for. The widget's
-	// rendered totalPoints/levelId VALUES are not asserted — that half is
-	// reported as a remaining gap rather than claimed here.
+	// the tile's own label, declared as the `kpi-points-level` widget in
+	// LearniqDashboards.vue's studentConfig() — it is NOT a manifest menu
+	// label, so it cannot be satisfied by the app nav alone. Drop the widget
+	// from the student dashboard and this test goes red, which is what the
+	// scenario's THEN ("their points/level KPI widget renders") asks for.
+	//
+	// The tile's VALUE is now asserted too. It previously could not be: the
+	// bespoke component fetched twice and swallowed the level lookup, so
+	// "rendered" and "rendered something true" were different questions. It
+	// is now a `type: 'stat'` tile bound to /api/engagement/me, which either
+	// answers or reports an error — so a tile still showing the placeholder
+	// dash means the endpoint did not answer, and that is a failure rather
+	// than an unmeasured gap.
 	test('student dashboard renders the points/level KPI widget without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
@@ -72,13 +77,30 @@ test.describe('engagement-gamification — points/level widget and leaderboard',
 		expect(bodyText.trim().length).toBeGreaterThan(0)
 		expect(bodyText).toContain('My points')
 
+		// The tile resolved to a real figure. A learner with no engagement row
+		// yet legitimately reads 0, so this asserts a NUMBER rather than a
+		// non-zero one — the failure it must catch is the placeholder dash the
+		// tile shows while unresolved, and the error state it shows when the
+		// endpoint fails.
+		const tile = page
+			.locator('.cn-stat-widget', { hasText: 'My points' })
+			.first()
+		await expect(tile).toBeVisible({ timeout: 15_000 })
+		await expect(tile).not.toContainText('—')
+		// Match "contains a digit" rather than a full numeric shape: the tile
+		// declares no `format`, so CnStatWidget runs the value through
+		// `Intl.NumberFormat(undefined, …)` and the RUNNER's locale picks the
+		// group separator — several use a non-breaking space, which an
+		// anchored [\d.,]+ pattern would reject for a correct number.
+		await expect(tile.locator('.cn-stat-widget__value')).toHaveText(/\d/)
+
 		expect(
 			fatalErrors(errors),
 			`unexpected fatal errors: ${fatalErrors(errors).join(' | ')}`,
 		).toHaveLength(0)
 	})
 
-	// @e2e openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
+	// @e2e openspec/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
 	test('LeaderboardView renders without a fatal error', async ({
 		loggedInPage: page,
 	}) => {
@@ -105,7 +127,7 @@ test.describe('engagement-gamification — points/level widget and leaderboard',
 		).toHaveLength(0)
 	})
 
-	// @e2e openspec/changes/engagement-gamification/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
+	// @e2e openspec/specs/engagement/spec.md#scenario-a-cohort-member-opens-an-active-leaderboard-and-can-opt-out-from-within-it
 	test('LeaderboardView surfaces the opt-out toggle when an active leaderboard exists', async ({
 		loggedInPage: page,
 	}) => {

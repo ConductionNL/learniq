@@ -37,7 +37,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Payments\OrderTotalEvaluator;
+use OCA\Learniq\Service\OrderTotalEvaluator;
 use Psr\Log\LoggerInterface;
 
 /**
