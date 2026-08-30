@@ -1,0 +1,1685 @@
+{
+	"_meta": {
+		"spdx-license": "EUPL-1.2",
+		"spdx-copyright": "2026 Conduction B.V.",
+		"change": "manifest-fragment-split",
+		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
+		"description": "GroupPeople. Also carries the former people-dashboard.json content (GroupPeople.route + the PeopleDashboard page)."
+	},
+	"menu": [
+		{
+			"id": "GroupPeople",
+			"label": "People",
+			"icon": "AccountMultipleOutline",
+			"route": "PeopleDashboard",
+			"order": 20,
+			"children": [
+				{
+					"id": "LearnerProfilesMenu",
+					"label": "Learners",
+					"icon": "AccountBox",
+					"route": "LearnerProfiles",
+					"order": 10
+				},
+				{
+					"id": "Enrolments",
+					"label": "Enrolments",
+					"icon": "AccountGroup",
+					"route": "Enrolments",
+					"order": 20
+				},
+				{
+					"id": "Attendance",
+					"label": "Attendance",
+					"icon": "Calendar",
+					"route": "AttendanceRecords",
+					"order": 30
+				},
+				{
+					"id": "Credentials",
+					"label": "Credentials",
+					"icon": "Check",
+					"route": "Credentials",
+					"order": 40
+				}
+			]
+		}
+	],
+	"pages": [
+		{
+			"id": "Enrolments",
+			"route": "/enrolments",
+			"type": "index",
+			"title": "Enrolments",
+			"config": {
+				"register": "learniq",
+				"schema": "Enrolment"
+			}
+		},
+		{
+			"id": "Credentials",
+			"route": "/credentials",
+			"type": "index",
+			"title": "Credentials",
+			"config": {
+				"register": "learniq",
+				"schema": "Credential"
+			}
+		},
+		{
+			"id": "EnrolmentDetail",
+			"route": "/enrolments/:id",
+			"type": "detail",
+			"title": "Enrolment",
+			"_note": "An Enrolment links one learner to one course (learnerId, courseId, cohortId, mandatory flag, dueDate, source, manager, regulation) — the education enrolment/participation archetype. Body leads with enrolment metadata 8-wide with a Related panel resolving learner + course + cohort. The enrolment's academic footprint is surfaced as related-index tables filtered by learnerId + courseId: Grade entries, Submissions and Attendance records — the progress a coordinator checks on this enrolment. No email/calendar: the Enrolment schema declares no linkedTypes; learner correspondence belongs on the Learner profile, not on a join record (HARD RULE 1). Sidebar keeps metadata + audit-trail (enrolment source/mandate changes are compliance-relevant).",
+			"config": {
+				"register": "learniq",
+				"schema": "Enrolment",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "enrol-data",
+						"type": "data",
+						"title": "Enrolment",
+						"content": {
+							"columns": 2,
+							"include": [
+								"learnerId",
+								"learnerRef",
+								"courseId",
+								"cohortId",
+								"managerId"
+							]
+						},
+						"icon": "AccountGroup"
+					},
+					{
+						"id": "enrol-details2",
+						"type": "data",
+						"title": "Progress & logistics",
+						"icon": "ChartLine",
+						"content": {
+							"columns": 2,
+							"include": [
+								"mandatory",
+								"dueDate",
+								"source",
+								"reason",
+								"regulationSlug",
+								"bulkJobId"
+							]
+						}
+					},
+					{
+						"id": "enrol-kpis-grade-entries",
+						"type": "stats-block",
+						"title": "Grade entries",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Grade entries",
+									"register": "learniq",
+									"schema": "grade-entry",
+									"metric": "count",
+									"filter": {
+										"learnerId": "@object.learnerId",
+										"courseId": "@object.courseId"
+									},
+									"route": "GradeEntries"
+								}
+							]
+						}
+					},
+					{
+						"id": "enrol-kpis-attendance-records",
+						"type": "stats-block",
+						"title": "Attendance records",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Attendance records",
+									"register": "learniq",
+									"schema": "attendance-record",
+									"metric": "count",
+									"filter": {
+										"learnerId": "@object.learnerId",
+										"courseId": "@object.courseId"
+									},
+									"route": "AttendanceRecords"
+								}
+							]
+						}
+					},
+					{
+						"id": "enrol-grades",
+						"type": "object-list",
+						"title": "Grade entries",
+						"content": {
+							"register": "learniq",
+							"schema": "grade-entry",
+							"filter": {
+								"learnerId": "@object.learnerId",
+								"courseId": "@object.courseId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "componentId",
+									"label": "Component ID"
+								},
+								{
+									"key": "sourceKind",
+									"label": "Source Kind"
+								},
+								{
+									"key": "value",
+									"label": "Value"
+								},
+								{
+									"key": "period",
+									"label": "Period"
+								},
+								{
+									"key": "gradedAt",
+									"label": "Graded At"
+								}
+							],
+							"rowRoute": "GradeEntryDetail",
+							"viewAllRoute": "GradeEntries",
+							"viewAllQuery": {
+								"learnerId": "@object.learnerId",
+								"courseId": "@object.courseId"
+							},
+							"emptyText": "No grade entries found.",
+							"allowCreate": false
+						},
+						"icon": "Percent"
+					},
+					{
+						"id": "enrol-submissions",
+						"type": "object-list",
+						"title": "Submissions",
+						"content": {
+							"register": "learniq",
+							"schema": "Submission",
+							"filter": {
+								"learnerIds": "@object.learnerId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "assignmentId",
+									"label": "Assignment ID"
+								},
+								{
+									"key": "submittedAt",
+									"label": "Submitted At"
+								},
+								{
+									"key": "proposedGrade",
+									"label": "Proposed Grade"
+								}
+							],
+							"rowRoute": "SubmissionDetail",
+							"viewAllRoute": "Submissions",
+							"viewAllQuery": {
+								"learnerIds": "@object.learnerId"
+							},
+							"emptyText": "No submissions found.",
+							"allowCreate": false
+						},
+						"icon": "FileDocument"
+					},
+					{
+						"id": "enrol-attendance",
+						"type": "object-list",
+						"title": "Attendance",
+						"content": {
+							"register": "learniq",
+							"schema": "attendance-record",
+							"filter": {
+								"learnerId": "@object.learnerId",
+								"courseId": "@object.courseId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "sessionId",
+									"label": "Session ID"
+								},
+								{
+									"key": "status",
+									"label": "Status"
+								},
+								{
+									"key": "minutesAttended",
+									"label": "Minutes Attended"
+								},
+								{
+									"key": "markedAt",
+									"label": "Marked At"
+								}
+							],
+							"rowRoute": "AttendanceRecordDetail",
+							"viewAllRoute": "AttendanceRecords",
+							"viewAllQuery": {
+								"learnerId": "@object.learnerId",
+								"courseId": "@object.courseId"
+							},
+							"emptyText": "No attendance found.",
+							"allowCreate": false
+						},
+						"icon": "CheckCircleOutline"
+					},
+					{
+						"id": "enrol-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "enrol-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2-1",
+						"widgetId": "enrol-kpis-grade-entries",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "2-2",
+						"widgetId": "enrol-kpis-attendance-records",
+						"gridX": 8,
+						"gridY": 2,
+						"gridWidth": 4,
+						"gridHeight": 3,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "enrol-details2",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 8,
+						"gridHeight": 4,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "enrol-related",
+						"gridX": 8,
+						"gridY": 5,
+						"gridWidth": 4,
+						"gridHeight": 4,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "enrol-grades",
+						"gridX": 0,
+						"gridY": 9,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "6",
+						"widgetId": "enrol-submissions",
+						"gridX": 6,
+						"gridY": 9,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "7",
+						"widgetId": "enrol-attendance",
+						"gridX": 0,
+						"gridY": 14,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "BulkEnrol",
+			"route": "/enrolments/bulk",
+			"type": "custom",
+			"title": "Bulk Enrol",
+			"component": "CnWizardDialog",
+			"_note": "Mounts CnWizardDialog from @conduction/nextcloud-vue for the multi-step bulk-enrol flow (audience picker → course/section → confirm + batch progress)."
+		},
+		{
+			"id": "CredentialDetail",
+			"route": "/credentials/:id",
+			"type": "detail",
+			"title": "Credential",
+			"_note": "A Credential is an issued certificate/badge (learner, course, kind, issued/expires, issuer DID, signature, OpenBadges3 + EDCI payloads, verification URL, revocation reason) — the education document/attestation archetype. Body leads with issuance metadata 8-wide + a Related panel resolving learner + course + issuing enrolment. The signed badge artefacts render as a Files leaf (a credential IS a downloadable/verifiable document). No email/calendar: a credential is a sealed award, not correspondence (HARD RULE 1). Sidebar keeps metadata + audit-trail — issuance and revocation events are the credential's legal record.",
+			"config": {
+				"register": "learniq",
+				"schema": "Credential",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "cred-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Trophy"
+					},
+					{
+						"id": "cred-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "cred-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Badge & certificate files",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "cred-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "cred-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "cred-files",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "CredentialVerify",
+			"route": "/credentials/:id/verify",
+			"type": "detail",
+			"title": "Verify Credential",
+			"_note": "Public verification view of a Credential (mode:public) — a third party checking authenticity, NOT an internal editor. Deliberately minimal: a single full-width Data block showing only the verifiable claims (kind, learner, course, issued/expires, issuer DID, revocation status) plus a Files leaf for the signed badge artefact. No related-index, no comms, no audit sidebar — a public verifier must see the assertion and its signature and nothing about internal relations or history (HARD RULE 1, minimal-surface). Sidebar disabled: this is an anonymous proof page.",
+			"config": {
+				"register": "learniq",
+				"schema": "Credential",
+				"mode": "public",
+				"id": "@route.id",
+				"widgets": [
+					{
+						"id": "credv-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Trophy"
+					},
+					{
+						"id": "credv-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Signed badge",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "credv-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "credv-files",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": false
+				}
+			}
+		},
+		{
+			"id": "AttendanceRecords",
+			"route": "/attendance/records",
+			"type": "index",
+			"title": "Attendance records",
+			"config": {
+				"register": "learniq",
+				"schema": "attendance-record"
+			}
+		},
+		{
+			"id": "AttendanceRecordDetail",
+			"route": "/attendance/records/:id",
+			"type": "detail",
+			"title": "Attendance record",
+			"config": {
+				"register": "learniq",
+				"schema": "attendance-record",
+				"_note": "An Attendance Record is a single presence mark (status, minutes attended, marked by/at, reason, linked excuse) for a learner in a session. Body leads with the record data (8-wide) and a Related panel resolving session, learner, cohort and any linked excuse request. Supporting evidence renders as a Files leaf. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail as the mark-change audit.",
+				"widgets": [
+					{
+						"id": "att-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "CheckCircleOutline"
+					},
+					{
+						"id": "att-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "att-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Evidence",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "att-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "att-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "att-files",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ExcuseRequests",
+			"route": "/attendance/excuses",
+			"type": "index",
+			"title": "Excuse requests",
+			"config": {
+				"register": "learniq",
+				"schema": "excuse-request"
+			}
+		},
+		{
+			"id": "ExcuseRequestDetail",
+			"route": "/attendance/excuses/:id",
+			"type": "detail",
+			"title": "Excuse request",
+			"config": {
+				"register": "learniq",
+				"schema": "excuse-request",
+				"_note": "An Excuse Request is an absence justification (date range, reason kind, attachment, submitter auth level, decision) — a request/case archetype. Body leads with the request data including reason and decision (8-wide), a Related panel resolving learner and submitter, and the supporting attachment as a wide Files leaf (the evidence). Attendance records covered by this excuse render as a related-index. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "exc-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "MessageTextOutline"
+					},
+					{
+						"id": "exc-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Covered records",
+									"register": "learniq",
+									"schema": "attendance-record",
+									"metric": "count",
+									"filter": {
+										"excuseRequestId": "@objectId"
+									},
+									"route": "AttendanceRecords"
+								}
+							]
+						}
+					},
+					{
+						"id": "exc-att",
+						"type": "object-list",
+						"title": "Covered records",
+						"content": {
+							"register": "learniq",
+							"schema": "attendance-record",
+							"filter": {
+								"excuseRequestId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "sessionId",
+									"label": "Session ID"
+								},
+								{
+									"key": "status",
+									"label": "Status"
+								},
+								{
+									"key": "markedAt",
+									"label": "Marked At"
+								}
+							],
+							"rowRoute": "AttendanceRecordDetail",
+							"viewAllRoute": "AttendanceRecords",
+							"viewAllQuery": {
+								"excuseRequestId": "@objectId"
+							},
+							"emptyText": "No covered records found.",
+							"allowCreate": false
+						},
+						"icon": "CheckCircleOutline"
+					},
+					{
+						"id": "exc-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "exc-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Supporting evidence",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "exc-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "exc-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "exc-att",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "exc-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "exc-files",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "AttendanceThresholds",
+			"route": "/attendance/thresholds",
+			"type": "index",
+			"title": "Attendance thresholds",
+			"config": {
+				"register": "learniq",
+				"schema": "attendance-threshold"
+			}
+		},
+		{
+			"id": "AttendanceThresholdDetail",
+			"route": "/attendance/thresholds/:id",
+			"type": "detail",
+			"title": "Attendance threshold",
+			"config": {
+				"register": "learniq",
+				"schema": "attendance-threshold",
+				"_note": "An Attendance Threshold is a rule (kind, scope, window, metric, limit, on-cross action) that triggers early-warning flags — a config/rule archetype. Body leads with the rule definition (8-wide) and a Related panel resolving the scoped cohort. The Attendance flags this rule has raised render as a wide related-index so a mentor sees its effect. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail for rule-change history.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "thr-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Gauge"
+					},
+					{
+						"id": "thr-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Raised flags",
+									"register": "learniq",
+									"schema": "attendance-flag",
+									"metric": "count",
+									"filter": {
+										"attendanceThresholdId": "@objectId"
+									},
+									"route": "AttendanceFlags"
+								}
+							]
+						}
+					},
+					{
+						"id": "thr-flags",
+						"type": "object-list",
+						"title": "Raised flags",
+						"content": {
+							"register": "learniq",
+							"schema": "attendance-flag",
+							"filter": {
+								"attendanceThresholdId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "cohortId",
+									"label": "Cohort ID"
+								},
+								{
+									"key": "metricValue",
+									"label": "Metric Value"
+								},
+								{
+									"key": "windowEnd",
+									"label": "Window End"
+								}
+							],
+							"rowRoute": "AttendanceFlagDetail",
+							"viewAllRoute": "AttendanceFlags",
+							"viewAllQuery": {
+								"attendanceThresholdId": "@objectId"
+							},
+							"emptyText": "No raised flags found.",
+							"allowCreate": false
+						},
+						"icon": "AlertCircleOutline"
+					},
+					{
+						"id": "thr-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "thr-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "thr-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "thr-flags",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "thr-related",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "AttendanceFlags",
+			"route": "/attendance/flags",
+			"type": "index",
+			"title": "Attendance flags",
+			"config": {
+				"register": "learniq",
+				"schema": "attendance-flag",
+				"readOnly": true
+			}
+		},
+		{
+			"id": "AttendanceFlagDetail",
+			"route": "/attendance/flags/:id",
+			"type": "detail",
+			"title": "Attendance flag",
+			"config": {
+				"register": "learniq",
+				"schema": "attendance-flag",
+				"readOnly": true,
+				"_note": "An Attendance Flag is a raised early-warning (learner, threshold, window, metric value, breaching records, mentor) — an alert/case archetype. Body leads with the flag data including the metric value (8-wide), a metric KPI stat, and a Related panel resolving learner, threshold, cohort, mentor and any data-exchange job. The breaching Attendance records render as a related-index (the evidence). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"widgets": [
+					{
+						"id": "flag-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AlertCircleOutline"
+					},
+					{
+						"id": "flag-recs",
+						"type": "object-list",
+						"title": "Attendance records",
+						"content": {
+							"register": "learniq",
+							"schema": "attendance-record",
+							"filter": {
+								"learnerId": "@object.learnerId",
+								"cohortId": "@object.cohortId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "sessionId",
+									"label": "Session ID"
+								},
+								{
+									"key": "status",
+									"label": "Status"
+								},
+								{
+									"key": "minutesAttended",
+									"label": "Minutes Attended"
+								},
+								{
+									"key": "markedAt",
+									"label": "Marked At"
+								}
+							],
+							"rowRoute": "AttendanceRecordDetail",
+							"viewAllRoute": "AttendanceRecords",
+							"viewAllQuery": {
+								"learnerId": "@object.learnerId",
+								"cohortId": "@object.cohortId"
+							},
+							"emptyText": "No attendance records found.",
+							"allowCreate": false
+						},
+						"icon": "CheckCircleOutline"
+					},
+					{
+						"id": "flag-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "flag-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "flag-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "flag-recs",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "SubmitExcuseModal",
+			"route": "/attendance/excuses/submit",
+			"type": "custom",
+			"title": "Submit excuse",
+			"component": "CnRichSubmitDialog",
+			"_note": "Mounts CnRichSubmitDialog from @conduction/nextcloud-vue for excuse submission (file attachment + reason taxonomy)."
+		},
+		{
+			"id": "LearnerProfiles",
+			"route": "/learner-profiles",
+			"type": "index",
+			"title": "Learners",
+			"config": {
+				"register": "learniq",
+				"schema": "learner-profile"
+			}
+		},
+		{
+			"id": "LearnerProfileDetail",
+			"route": "/learner-profiles/:id",
+			"type": "detail",
+			"title": "Learner",
+			"config": {
+				"register": "learniq",
+				"schema": "learner-profile",
+				"_note": "A Learner Profile is the person record — the STUDENT hub. What a mentor lands here to see is this learner's whole footprint, each its own object-list scoped by learnerId: Enrolments (the courses they take), Final grades (outcomes/results), Attendance (presence), Learning plans (support/OPP), and Credentials (diplomas/badges earned) — paired 6+6 below the profile Data block (8-wide) and a Related panel resolving parents + manager. A stats-block KPI panel counts enrolments/attendance/credentials at a glance. No lifecycleActions: LearnerProfile uses a states model (active/merged/deleted via merge/delete transitions), not a linear `lifecycle` enum, so status changes are handled by dedicated flows, not a generic transition menu. No comms leaves on the body: LearnerProfile declares no linkedTypes (HARD RULE 1). The audit trail lives as the single sidebar tab (the built-in audit widget), not a body widget (HARD RULE 4).",
+				"widgets": [
+					{
+						"id": "lprof-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountBoxOutline"
+					},
+					{
+						"id": "lprof-kpis-enrolments",
+						"type": "stats-block",
+						"title": "Enrolments",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Enrolments",
+									"register": "learniq",
+									"schema": "enrolment",
+									"metric": "count",
+									"filter": {
+										"learnerId": "@objectId"
+									},
+									"route": "Enrolments"
+								}
+							]
+						}
+					},
+					{
+						"id": "lprof-kpis-attendance-records",
+						"type": "stats-block",
+						"title": "Attendance records",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Attendance records",
+									"register": "learniq",
+									"schema": "attendance-record",
+									"metric": "count",
+									"filter": {
+										"learnerId": "@objectId"
+									},
+									"route": "AttendanceRecords"
+								}
+							]
+						}
+					},
+					{
+						"id": "lprof-kpis-credentials",
+						"type": "stats-block",
+						"title": "Credentials",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Credentials",
+									"register": "learniq",
+									"schema": "credential",
+									"metric": "count",
+									"filter": {
+										"learnerId": "@objectId"
+									},
+									"route": "Credentials"
+								}
+							]
+						}
+					},
+					{
+						"id": "lprof-kpis-dossier-timeline",
+						"type": "stats-block",
+						"title": "Dossier timeline",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Dossier notes",
+									"register": "learniq",
+									"schema": "dossier-note",
+									"metric": "count",
+									"filter": {
+										"learnerId": "@objectId"
+									},
+									"route": {
+										"name": "PupilDossierTimelineView",
+										"query": {
+											"learnerId": "@objectId"
+										}
+									}
+								}
+							]
+						},
+						"_note": "pupil-dossier-notes: this KPI's route is the only token-resolved (@objectId) deep link from a detail page to another named route this manifest dialect supports (stats-block entry.route, resolved by CnStatsBlockWidget) — clicking it opens PupilDossierTimelineView pre-scoped to this learner. open-page/navigate header actions were considered but do NOT carry the current object id (verified against actionsDispatcher.js at HEAD)."
+					},
+					{
+						"id": "lprof-enrol",
+						"type": "object-list",
+						"title": "Enrolments",
+						"content": {
+							"register": "learniq",
+							"schema": "Enrolment",
+							"filter": {
+								"learnerId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "courseId",
+									"label": "Course ID"
+								},
+								{
+									"key": "cohortId",
+									"label": "Cohort ID"
+								},
+								{
+									"key": "mandatory",
+									"label": "Mandatory"
+								},
+								{
+									"key": "dueDate",
+									"label": "Due Date"
+								}
+							],
+							"rowRoute": "EnrolmentDetail",
+							"viewAllRoute": "Enrolments",
+							"viewAllQuery": {
+								"learnerId": "@objectId"
+							},
+							"emptyText": "No enrolments found."
+						},
+						"icon": "AccountGroup"
+					},
+					{
+						"id": "lprof-plans",
+						"type": "object-list",
+						"title": "Learning plans",
+						"content": {
+							"register": "learniq",
+							"schema": "learning-plan",
+							"filter": {
+								"learnerId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "kind",
+									"label": "Kind"
+								},
+								{
+									"key": "period",
+									"label": "Period"
+								},
+								{
+									"key": "nextReviewAt",
+									"label": "Next Review At"
+								}
+							],
+							"rowRoute": "LearningPlanDetail",
+							"viewAllRoute": "LearningPlans",
+							"viewAllQuery": {
+								"learnerId": "@objectId"
+							},
+							"emptyText": "No learning plans found."
+						},
+						"icon": "NoteTextOutline"
+					},
+					{
+						"id": "lprof-finals",
+						"type": "object-list",
+						"title": "Final grades",
+						"content": {
+							"register": "learniq",
+							"schema": "final-grade",
+							"filter": {
+								"learnerId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "courseId",
+									"label": "Course ID"
+								},
+								{
+									"key": "value",
+									"label": "Value"
+								},
+								{
+									"key": "passed",
+									"label": "Passed"
+								}
+							],
+							"rowRoute": "FinalGradeDetail",
+							"viewAllRoute": "FinalGrades",
+							"viewAllQuery": {
+								"learnerId": "@objectId"
+							},
+							"emptyText": "No final grades found.",
+							"allowCreate": false
+						},
+						"icon": "Trophy"
+					},
+					{
+						"id": "lprof-attendance",
+						"type": "object-list",
+						"title": "Attendance",
+						"content": {
+							"register": "learniq",
+							"schema": "attendance-record",
+							"filter": {
+								"learnerId": "@objectId"
+							},
+							"sort": {
+								"field": "markedAt",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "sessionId",
+									"label": "Session ID"
+								},
+								{
+									"key": "status",
+									"label": "Status"
+								},
+								{
+									"key": "minutesAttended",
+									"label": "Minutes Attended"
+								},
+								{
+									"key": "markedAt",
+									"label": "Marked At"
+								}
+							],
+							"rowRoute": "AttendanceRecordDetail",
+							"viewAllRoute": "AttendanceRecords",
+							"viewAllQuery": {
+								"learnerId": "@objectId"
+							},
+							"emptyText": "No attendance found.",
+							"allowCreate": false
+						},
+						"icon": "CheckCircleOutline"
+					},
+					{
+						"id": "lprof-credentials",
+						"type": "object-list",
+						"title": "Credentials",
+						"content": {
+							"register": "learniq",
+							"schema": "credential",
+							"filter": {
+								"learnerId": "@objectId"
+							},
+							"sort": {
+								"field": "issuedAt",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "kind",
+									"label": "Kind"
+								},
+								{
+									"key": "courseId",
+									"label": "Course ID"
+								},
+								{
+									"key": "issuedAt",
+									"label": "Issued At"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "CredentialDetail",
+							"viewAllRoute": "Credentials",
+							"viewAllQuery": {
+								"learnerId": "@objectId"
+							},
+							"emptyText": "No credentials found.",
+							"allowCreate": false
+						},
+						"icon": "Trophy"
+					},
+					{
+						"id": "lprof-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "lprof-dossier-notes",
+						"type": "object-list",
+						"title": "Dossier notes",
+						"content": {
+							"register": "learniq",
+							"schema": "dossier-note",
+							"filter": {
+								"learnerId": "@objectId"
+							},
+							"sort": {
+								"field": "date",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "date",
+									"label": "Date"
+								},
+								{
+									"key": "category",
+									"label": "Category"
+								},
+								{
+									"key": "confidentiality",
+									"label": "Confidentiality"
+								}
+							],
+							"rowRoute": "DossierNoteDetail",
+							"viewAllRoute": "DossierNotes",
+							"viewAllQuery": {
+								"learnerId": "@objectId"
+							},
+							"emptyText": "No dossier notes found."
+						},
+						"icon": "NoteTextOutline"
+					},
+					{
+						"id": "lprof-behaviour-incidents",
+						"type": "object-list",
+						"title": "Behaviour incidents",
+						"content": {
+							"register": "learniq",
+							"schema": "behaviour-incident",
+							"filter": {
+								"learnerId": "@objectId"
+							},
+							"sort": {
+								"field": "occurredAt",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "occurredAt",
+									"label": "Occurred At"
+								},
+								{
+									"key": "severity",
+									"label": "Severity"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "BehaviourIncidentDetail",
+							"viewAllRoute": "BehaviourIncidents",
+							"viewAllQuery": {
+								"learnerId": "@objectId"
+							},
+							"emptyText": "No behaviour incidents found."
+						},
+						"icon": "AlertCircleOutline"
+					},
+					{
+						"id": "lprof-wellbeing-checkins",
+						"type": "object-list",
+						"title": "Wellbeing check-ins",
+						"content": {
+							"register": "learniq",
+							"schema": "wellbeing-check-in",
+							"filter": {
+								"learnerId": "@objectId"
+							},
+							"sort": {
+								"field": "submittedAt",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "submittedAt",
+									"label": "Submitted At"
+								},
+								{
+									"key": "moodScale",
+									"label": "Mood"
+								}
+							],
+							"rowRoute": "WellbeingCheckInDetail",
+							"viewAllRoute": "WellbeingCheckIns",
+							"viewAllQuery": {
+								"learnerId": "@objectId"
+							},
+							"emptyText": "No wellbeing check-ins found."
+						},
+						"icon": "Heart"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "lprof-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2-1",
+						"widgetId": "lprof-kpis-enrolments",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "2-2",
+						"widgetId": "lprof-kpis-attendance-records",
+						"gridX": 8,
+						"gridY": 2,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "2-3",
+						"widgetId": "lprof-kpis-credentials",
+						"gridX": 8,
+						"gridY": 4,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "lprof-enrol",
+						"gridX": 0,
+						"gridY": 6,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "lprof-plans",
+						"gridX": 6,
+						"gridY": 6,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "lprof-finals",
+						"gridX": 0,
+						"gridY": 11,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "6",
+						"widgetId": "lprof-attendance",
+						"gridX": 6,
+						"gridY": 11,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "7",
+						"widgetId": "lprof-credentials",
+						"gridX": 0,
+						"gridY": 16,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "8",
+						"widgetId": "lprof-related",
+						"gridX": 6,
+						"gridY": 16,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "9",
+						"widgetId": "lprof-kpis-dossier-timeline",
+						"gridX": 0,
+						"gridY": 21,
+						"gridWidth": 4,
+						"gridHeight": 2,
+						"showTitle": false
+					},
+					{
+						"id": "10",
+						"widgetId": "lprof-dossier-notes",
+						"gridX": 0,
+						"gridY": 23,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "11",
+						"widgetId": "lprof-behaviour-incidents",
+						"gridX": 6,
+						"gridY": 23,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "12",
+						"widgetId": "lprof-wellbeing-checkins",
+						"gridX": 0,
+						"gridY": 28,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "PeopleDashboard",
+			"route": "/people",
+			"type": "custom",
+			"title": "People",
+			"component": "PeopleDashboard",
+			"config": {
+				"register": "learniq"
+			},
+			"_note": "nav-restructure-dashboards: GroupPeople's navigable landing dashboard — a bespoke domain overview with no generic index/detail/dashboard analogue. The nav icon + group association live on the GroupPeople menu entry (base manifest + this fragment's menu route), not on the page (icon/group are not valid v2 page props)."
+		}
+	]
+}

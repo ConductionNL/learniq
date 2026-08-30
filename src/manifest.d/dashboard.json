@@ -1,0 +1,722 @@
+{
+	"_meta": {
+		"spdx-license": "EUPL-1.2",
+		"spdx-copyright": "2026 Conduction B.V.",
+		"change": "manifest-fragment-split",
+		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
+		"description": "GroupInsight (dashboards + accessibility/AI-disclosure + the still-nested Compliance leaf) — see design.md Decision 2: assigned here whole because 3 of its 4 already-relocated children are Dashboard-flavoured and Decision 1 forbids splitting one node's children across files."
+	},
+	"menu": [
+		{
+			"id": "Dashboard",
+			"label": "Dashboard",
+			"icon": "ViewDashboardOutline",
+			"route": "Dashboard",
+			"order": 1
+		},
+		{
+			"id": "GroupInsight",
+			"label": "Insight",
+			"icon": "BriefcaseOutline",
+			"order": 30,
+			"children": [
+				{
+					"id": "DashboardAdmin",
+					"label": "Administration",
+					"icon": "ShieldAccountOutline",
+					"route": "DashboardAdmin",
+					"order": 5,
+					"visibleIf": {
+						"user.canAdminDashboard": {
+							"eq": true
+						}
+					}
+				},
+				{
+					"id": "DashboardTeacher",
+					"label": "Teaching",
+					"icon": "Home",
+					"route": "DashboardTeacher",
+					"order": 6,
+					"visibleIf": {
+						"user.canTeachDashboard": {
+							"eq": true
+						}
+					}
+				},
+				{
+					"id": "DashboardStudent",
+					"label": "Learner",
+					"icon": "SchoolOutline",
+					"route": "DashboardStudent",
+					"order": 7,
+					"visibleIf": {
+						"user.canLearnDashboard": {
+							"eq": true
+						}
+					}
+				},
+				{
+					"id": "Compliance",
+					"label": "Overview",
+					"icon": "ClipboardCheckOutline",
+					"route": "Compliance",
+					"order": 30,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": ["compliance-officer", "hr", "admin"]
+						}
+					}
+				},
+				{
+					"id": "Accessibility",
+					"label": "Accessibility",
+					"icon": "InformationOutline",
+					"route": "AccessibilityStatement",
+					"order": 40
+				},
+				{
+					"id": "AccessibilityLimitationsMenu",
+					"label": "Accessibility limitations",
+					"icon": "HumanWheelchair",
+					"route": "AccessibilityLimitations",
+					"order": 41,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": ["compliance-officer", "admin"]
+						}
+					}
+				},
+				{
+					"id": "AiProcessingDisclosureMenu",
+					"label": "AI processing disclosure",
+					"icon": "Lock",
+					"route": "AiProcessingDisclosure",
+					"order": 42,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": ["admin", "compliance-officer"]
+						}
+					}
+				},
+				{
+					"id": "AccessibilityFeedbacksMenu",
+					"label": "Accessibility feedback",
+					"icon": "CommentOutline",
+					"route": "AccessibilityFeedbacks",
+					"order": 43,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": ["compliance-officer", "admin"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"pages": [
+		{
+			"id": "Dashboard",
+			"route": "/",
+			"type": "custom",
+			"title": "Dashboards",
+			"component": "LearniqDashboards",
+			"_note": "Landing dashboard (ADR-009 §6): LearniqDashboards with no role prop resolves to the user's default view (initial state dashboardRole). The three explicit per-role pages below back the group-gated Administration/Teaching/My learning menu items — the in-page role switcher was removed."
+		},
+		{
+			"id": "DashboardAdmin",
+			"route": "/dashboards/admin",
+			"type": "custom",
+			"title": "Administration",
+			"component": "DashboardAdmin",
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardAdmin renders LearniqDashboards in its admin view. Backs the group-gated Administration menu item (visibleIf user.canAdminDashboard)."
+		},
+		{
+			"id": "DashboardTeacher",
+			"route": "/dashboards/teaching",
+			"type": "custom",
+			"title": "Teaching",
+			"component": "DashboardTeacher",
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardTeacher renders LearniqDashboards in its teacher view. Backs the group-gated Teaching menu item (visibleIf user.canTeachDashboard)."
+		},
+		{
+			"id": "DashboardStudent",
+			"route": "/dashboards/my-learning",
+			"type": "custom",
+			"title": "My learning",
+			"component": "DashboardStudent",
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardStudent renders LearniqDashboards in its student view. Backs the group-gated My learning menu item (visibleIf user.canLearnDashboard)."
+		},
+		{
+			"id": "Compliance",
+			"route": "/compliance",
+			"type": "custom",
+			"title": "Compliance",
+			"component": "LearniqCompliance",
+			"_note": "Compliance overview surface (regulation coverage, attestations); officer/hr gated; no generic lib index/detail analogue."
+		},
+		{
+			"id": "AiProcessingDisclosure",
+			"route": "/ai-processing-disclosure",
+			"type": "custom",
+			"title": "AI processing disclosure",
+			"component": "LearniqAiProcessingDisclosure",
+			"_note": "sovereign-ai-guarantee: the AI-processing locality disclosure surface a school hands to its DPO, mirrors LearniqAccessibilityStatement's exact shape (no generic lib index/detail analogue, no :id route param, singleton disclosure page). Composes AiProcessingDisclosureController's server-side read (Hermiq agentaifeature register + scholiq-ai-features AVG carrier + AiLocalityClassifier/SovereigntyPolicyService verdict) with an inline SovereigntyPolicy editor. Gated to admin/compliance-officer via the AiProcessingDisclosure nav entry's visibleIf (unlike Accessibility, which is open to every authenticated user)."
+		},
+		{
+			"id": "AccessibilityStatement",
+			"route": "/accessibility",
+			"type": "custom",
+			"title": "Accessibility statement",
+			"component": "LearniqAccessibilityStatement",
+			"_note": "accessibility-conformance-statement: the toegankelijkheidsverklaring disclosure surface, mirrors LearniqCompliance's role as a purpose-built read surface over cross-schema data (the published AccessibilityStatement plus its linked AccessibilityLimitation rows). No generic lib index/detail analogue: no :id route param, this is a singleton disclosure page. Reachable by every authenticated user (no visibleIf role gate on its Accessibility nav entry) - hosts the persistent 'Report an accessibility problem' entry point that opens AccessibilityFeedbackCreate."
+		},
+		{
+			"id": "AccessibilityLimitations",
+			"route": "/accessibility/limitations",
+			"type": "index",
+			"title": "Accessibility limitations",
+			"config": {
+				"register": "learniq",
+				"schema": "accessibility-limitation",
+				"_note": "accessibility-conformance-statement: the known-limitations register index, compliance-officer/admin authoring surface (gated via the Accessibility limitations nav entry's visibleIf). Generic declarative index - no bespoke UI."
+			}
+		},
+		{
+			"id": "AccessibilityLimitationDetail",
+			"route": "/accessibility/limitations/:id",
+			"type": "detail",
+			"title": "Accessibility limitation",
+			"config": {
+				"register": "learniq",
+				"schema": "accessibility-limitation",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "al-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AlertCircleOutline"
+					},
+					{
+						"id": "al-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "al-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "al-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "AccessibilityFeedbacks",
+			"route": "/accessibility/feedback",
+			"type": "index",
+			"title": "Accessibility feedback",
+			"config": {
+				"register": "learniq",
+				"schema": "accessibility-feedback",
+				"_note": "accessibility-conformance-statement: the triage log of user-submitted AccessibilityFeedback, compliance-officer/admin surface (gated via the Accessibility feedback nav entry's visibleIf). Creation itself stays open to any authenticated user via AccessibilityFeedbackCreate, reached from the AccessibilityStatement page's 'Report an accessibility problem' entry point, not from this index."
+			}
+		},
+		{
+			"id": "AccessibilityFeedbackDetail",
+			"route": "/accessibility/feedback/:id",
+			"type": "detail",
+			"title": "Accessibility feedback",
+			"config": {
+				"register": "learniq",
+				"schema": "accessibility-feedback",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "af-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "MessageTextOutline"
+					},
+					{
+						"id": "af-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "af-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "af-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "AccessibilityFeedbackCreate",
+			"route": "/accessibility/feedback/new",
+			"type": "detail",
+			"title": "Report an accessibility problem",
+			"config": {
+				"register": "learniq",
+				"schema": "accessibility-feedback",
+				"_note": "accessibility-conformance-statement: a dedicated no-id detail route so CnDetailPage's isCreateMode (ADR-062) opens an empty create form - the same pattern as course-evaluation's ImprovementActionCreate. Reached from LearniqAccessibilityStatement.vue's persistent 'Report an accessibility problem' entry point. Creation is open to any authenticated user (AccessibilityFeedback carries no x-openregister-authorization.create restriction) - the opposite RBAC posture from the statement/limitation authoring pages above, deliberately (design.md Decision 3). Vue Router 4 ranks this static 'new' segment above AccessibilityFeedbackDetail's dynamic :id segment regardless of declaration order."
+			}
+		},
+		{
+			"id": "Regulations",
+			"route": "/compliance/regulations",
+			"type": "index",
+			"title": "Regulations",
+			"config": {
+				"register": "learniq",
+				"schema": "Regulation"
+			}
+		},
+		{
+			"id": "RegulationDetail",
+			"route": "/compliance/regulations/:slug",
+			"type": "custom",
+			"component": "RegulationDetailPage",
+			"title": "Regulation",
+			"_note": "A Regulation is a compliance rule (applicability criteria, audience scope, annual-renewal + cycle, RAG thresholds) that mandatory courses map to via regulationSlug — the config/rule archetype. Body leads with the rule definition 8-wide + a Related panel. Its compliance footprint is shown as related-index tables of the records that cite this regulation's slug: Attestations (proof-of-completion) and External training records, plus the mandatory Courses bound to it — what a compliance officer audits. No comms/files: a regulation is a policy definition, not a document or conversation (HARD RULES 1-2); attestations carry the evidence. Sidebar keeps metadata + audit-trail (threshold/renewal changes are auditable policy edits). type:\"custom\" (not \"detail\") because the route is business-slug-keyed (/compliance/regulations/AVG) and OpenRegister's generic single-object lookup only matches id/uuid/@self.slug/@self.uri, not the schema's own `slug` property — RegulationDetailPage.vue resolves the object itself (native match, falling back to a slug-filtered collection lookup) before mounting CnDetailPage with this config's widgets/layout/sidebar, and shows an explicit loading/not-found state instead of the null-objectData crash the generic detail dispatch hit on both link forms.",
+			"config": {
+				"register": "learniq",
+				"schema": "Regulation",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "reg-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "Gavel"
+					},
+					{
+						"id": "reg-kpis",
+						"type": "stats-block",
+						"title": "Overview",
+						"icon": "ChartBar",
+						"content": {
+							"entries": [
+								{
+									"title": "Attestations",
+									"register": "learniq",
+									"schema": "attestation",
+									"metric": "count",
+									"filter": {
+										"regulationSlug": "@object.slug"
+									},
+									"route": "Attestations"
+								},
+								{
+									"title": "External training",
+									"register": "learniq",
+									"schema": "external-training-record",
+									"metric": "count",
+									"filter": {
+										"regulationSlug": "@object.slug"
+									},
+									"route": "ExternalTrainingRecords"
+								},
+								{
+									"title": "Mandatory courses",
+									"register": "learniq",
+									"schema": "course",
+									"metric": "count",
+									"filter": {
+										"regulationSlug": "@object.slug"
+									},
+									"route": "Courses"
+								}
+							]
+						}
+					},
+					{
+						"id": "reg-attestations",
+						"type": "object-list",
+						"title": "Attestations",
+						"content": {
+							"register": "learniq",
+							"schema": "Attestation",
+							"filter": {
+								"regulationSlug": "@object.slug"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "courseId",
+									"label": "Course ID"
+								},
+								{
+									"key": "score",
+									"label": "Score"
+								}
+							],
+							"rowRoute": "AttestationDetail",
+							"viewAllRoute": "Attestations",
+							"viewAllQuery": {
+								"regulationSlug": "@object.slug"
+							},
+							"emptyText": "No attestations found.",
+							"allowCreate": false
+						},
+						"icon": "FileSign"
+					},
+					{
+						"id": "reg-external",
+						"type": "object-list",
+						"title": "External training",
+						"content": {
+							"register": "learniq",
+							"schema": "external-training-record",
+							"filter": {
+								"regulationSlug": "@object.slug"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "provider",
+									"label": "Provider"
+								},
+								{
+									"key": "completedAt",
+									"label": "Completed At"
+								},
+								{
+									"key": "validUntil",
+									"label": "Valid Until"
+								}
+							],
+							"rowRoute": "ExternalTrainingRecordDetail",
+							"viewAllRoute": "ExternalTrainingRecords",
+							"viewAllQuery": {
+								"regulationSlug": "@object.slug"
+							},
+							"emptyText": "No external training found.",
+							"allowCreate": false
+						},
+						"icon": "School"
+					},
+					{
+						"id": "reg-courses",
+						"type": "object-list",
+						"title": "Mandatory courses",
+						"content": {
+							"register": "learniq",
+							"schema": "Course",
+							"filter": {
+								"regulationSlug": "@object.slug"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "code",
+									"label": "Code"
+								},
+								{
+									"key": "name",
+									"label": "Name"
+								},
+								{
+									"key": "level",
+									"label": "Level"
+								},
+								{
+									"key": "mandatoryTraining",
+									"label": "Mandatory Training"
+								}
+							],
+							"rowRoute": "CourseDetail",
+							"viewAllRoute": "Courses",
+							"viewAllQuery": {
+								"regulationSlug": "@object.slug"
+							},
+							"emptyText": "No mandatory courses found."
+						},
+						"icon": "School"
+					},
+					{
+						"id": "reg-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "reg-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "reg-kpis",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "reg-attestations",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "reg-external",
+						"gridX": 6,
+						"gridY": 5,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "reg-courses",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "6",
+						"widgetId": "reg-related",
+						"gridX": 6,
+						"gridY": 10,
+						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "Attestations",
+			"route": "/compliance/attestations",
+			"type": "index",
+			"title": "Attestations",
+			"config": {
+				"register": "learniq",
+				"schema": "Attestation",
+				"readOnly": true
+			}
+		},
+		{
+			"id": "AttestationDetail",
+			"route": "/compliance/attestations/:id",
+			"type": "detail",
+			"title": "Attestation",
+			"_note": "An Attestation is an immutable proof-of-completion record (learner, course/lesson, regulation, score, signature, signing key, actor IP, xAPI statement) — the education document/record archetype, read-only. Body leads with the attestation fields 8-wide + a Related panel resolving learner + course + lesson + regulation. Signed evidence renders as a Files leaf below (the attestation IS a signed document a compliance officer downloads). No email/calendar: an attestation is a sealed record, not a conversation (HARD RULE 1). Sidebar keeps metadata + audit-trail — the tamper-evidence trail is the whole point of an attestation.",
+			"config": {
+				"register": "learniq",
+				"schema": "Attestation",
+				"readOnly": true,
+				"widgets": [
+					{
+						"id": "att-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "FileSign"
+					},
+					{
+						"id": "att-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "att-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Signed evidence",
+						"icon": "FolderOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "att-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "att-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "att-files",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "AuditPackExport",
+			"route": "/compliance/export",
+			"type": "custom",
+			"title": "Export audit pack",
+			"component": "CnExportWizard",
+			"_note": "Mounts CnExportWizard from @conduction/nextcloud-vue for the compliance audit-pack export (regulation + date-range + server-side bundle)."
+		}
+	]
+}

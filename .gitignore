@@ -3,6 +3,13 @@ docusaurus/node_modules/
 docusaurus/build/
 docusaurus/.docusaurus/
 docusaurus/.cache-loader/
+# Docusaurus documentation site (docs/ — journeydoc / ADR-030)
+/docs/node_modules/
+/docs/build/
+/docs/.docusaurus/
+/docs/.cache-loader/
+# Generated translation files — scaffold committed; exclude generated build artefacts only
+/docs/i18n/nl/docusaurus-plugin-content-docs/current/.cache-loader/
 node_modules/
 .npm/
 
@@ -32,16 +39,39 @@ vendor/
 composer.phar
 .phpunit.result.cache
 
-# Build artifacts
-dist/
-js/
-css/
+# Build artifacts (root-level only — leading slash prevents matching
+# nested directories like docusaurus/src/css/)
+/dist/
+/js/
+/css/
 *.tsbuildinfo
 
 # Coverage
 coverage/
 .nyc_output/
 
+# Playwright
+/test-results/
+/playwright-report/
+test-results/
+playwright-report/
+.playwright/
+# e2e provisioning state (seed markers). Deliberately NOT under test-results/ —
+# Playwright deletes every project outputDir at the start of a run.
+/.e2e-state/
+
 # Misc
 *.bak
 .cache/
+.phpunit.cache
+
+# SBOM is generated per run and published as the sbom-<app> workflow artifact
+# and a stable-release asset — never stored in the repo (hydra sbom-generation
+# spec; ConductionNL/.github#572).
+sbom.cdx.json
+bom-php.cdx.json
+bom-npm.cdx.json
+
+# Agent/test scratch and tool caches — generated, never source.
+# Added by the 2026-08-25 fleet hygiene sweep (ADR-100 Decision 2).
+.stale/
