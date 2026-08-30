@@ -3,7 +3,7 @@
 
 use OCP\Util;
 
-$appId = OCA\Scholiq\AppInfo\Application::APP_ID;
+$appId = OCA\Learniq\AppInfo\Application::APP_ID;
 Util::addScript($appId, $appId . '-settings');
 ?>
-<div id="scholiq-settings" data-version="<?php p($_['version'] ?? ''); ?>"></div>
+<div id="learniq-settings"></div>

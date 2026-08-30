@@ -1,17 +1,24 @@
 <?php
-// SPDX-License-Identifier: EUPL-1.2
 
 /**
- * Scholiq Admin Settings
+ * Learniq Admin Settings (AppHost stub)
  *
- * Provides the admin settings form for the Scholiq application.
+ * One-line subclass of the OpenRegister AppHost {@see GenericAdminSettings}
+ * (ADR-040). The class name must physically exist in Learniq's namespace
+ * because info.xml `<settings><admin>` loads it by class name AND Learniq's
+ * domain controllers (KeyAdminController, ActionMatrixController,
+ * AuditPackExportController, SettingsController) reference it in
+ * `#[AuthorizedAdminSetting(AdminSettings::class)]`. The generic provides the
+ * IDelegatedSettings form (section `learniq`, priority 10).
  *
  * @category Settings
- * @package  OCA\Scholiq\Settings
+ * @package  OCA\Learniq\Settings
  *
- * @author    Conduction Development Team <dev@conductio.nl>
+ * @author    Conduction Development Team <info@conduction.nl>
  * @copyright 2024 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *
@@ -20,61 +27,12 @@
 
 declare(strict_types=1);
 
-namespace OCA\Scholiq\Settings;
+namespace OCA\Learniq\Settings;
 
-use OCA\Scholiq\AppInfo\Application;
-use OCP\App\IAppManager;
-use OCP\AppFramework\Http\TemplateResponse;
-use OCP\Settings\ISettings;
+use OCA\OpenRegister\AppHost\Settings\GenericAdminSettings;
 
 /**
- * Provides the admin settings form for the Scholiq application.
+ * AppHost stub for Learniq's admin settings panel.
  */
-class AdminSettings implements ISettings
-{
-    /**
-     * Constructor.
-     *
-     * @param IAppManager $appManager The app manager.
-     */
-    public function __construct(
-        private readonly IAppManager $appManager,
-    ) {
-    }//end __construct()
-
-    /**
-     * Get the settings form template.
-     *
-     * @return TemplateResponse
-     */
-    public function getForm(): TemplateResponse
-    {
-        $version = $this->appManager->getAppVersion(appId: Application::APP_ID);
-
-        return new TemplateResponse(
-            Application::APP_ID,
-            'settings/admin',
-            ['version' => $version]
-        );
-    }//end getForm()
-
-    /**
-     * Get the section ID this settings page belongs to.
-     *
-     * @return string
-     */
-    public function getSection(): string
-    {
-        return 'scholiq';
-    }//end getSection()
-
-    /**
-     * Get the priority for ordering within the section.
-     *
-     * @return int
-     */
-    public function getPriority(): int
-    {
-        return 10;
-    }//end getPriority()
+class AdminSettings extends GenericAdminSettings {
 }//end class
