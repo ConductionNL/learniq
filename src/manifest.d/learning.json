@@ -300,7 +300,7 @@
 								{
 									"title": "Assessments",
 									"register": "learniq",
-									"schema": "assessment",
+									"schema": "exam",
 									"metric": "count",
 									"filter": {
 										"courseId": "@objectId"

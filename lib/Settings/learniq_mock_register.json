@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -639,7 +639,7 @@
         "x-openregister-seed": []
       },
       "Application": {
-        "slug": "application",
+        "slug": "admission",
         "icon": "AccountPlusOutline",
         "version": "0.1.0",
         "title": "Application",
@@ -1036,7 +1036,7 @@
           "reviewIntervalMonths": 12,
           "nextReviewAt": "2027-06-14"
         },
-        "slug": "assessment",
+        "slug": "exam",
         "icon": "ClipboardCheckOutline",
         "version": "0.2.0",
         "title": "Assessment",

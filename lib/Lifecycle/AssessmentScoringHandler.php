@@ -113,7 +113,7 @@ class AssessmentScoringHandler {
 		$assessments = $this->objectService->findAll(
 			[
 				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'assessment',
+				'schema' => 'exam',
 				// H1: scope Assessment lookup to the same tenant.
 				'filters' => $this->tenantScoped(filters: ['uuid' => $assessmentId], tenantId: $tenantId),
 				'limit' => 1,
