@@ -68,7 +68,7 @@ class LessonReleaseEvaluator {
 	 *
 	 * @var string
 	 */
-	public const ASSESSMENT_SCHEMA = 'assessment';
+	public const ASSESSMENT_SCHEMA = 'exam';
 
 	private const LESSON_SCHEMA = 'lesson';
 	private const XAPI_SCHEMA = 'xapi-statement';
