@@ -182,8 +182,35 @@ const fragments = fragmentCtx
 	.map((key) => fragmentCtx(key))
 const mergedManifest = buildManifest(bundledManifest, fragments, menuLayout)
 
+/**
+ * The router base for THIS page load.
+ *
+ * ⚠️ `generateUrl('/apps/learniq')` alone is not enough. Nextcloud serves the
+ * app under BOTH `/apps/learniq/...` and `/index.php/apps/learniq/...`, but
+ * `generateUrl()` returns only the form the instance is configured for. A
+ * visitor arriving on the other form — a bookmark, an emailed deep link, an
+ * integration that hardcodes `/index.php` — has a pathname the router cannot
+ * strip its base from. No route matches, the catch-all takes over, and they
+ * land on the dashboard with no error at all: the deep link is silently
+ * swallowed.
+ *
+ * Measured on a live instance: `/apps/learniq/courses` resolves to Courses,
+ * while `/index.php/apps/learniq/courses` resolved to the dashboard. Every
+ * route behaved the same way, so this was not one broken page but every deep
+ * link in that URL form.
+ *
+ * Deriving the base from the pathname makes both forms resolve, because the
+ * base then always matches the URL the visitor actually arrived on.
+ *
+ * @return {string} The base path vue-router should strip from the URL.
+ */
+function routerBase() {
+	const match = window.location.pathname.match(/^(.*\/apps\/learniq)(?:\/|$)/)
+	return match ? match[1] : generateUrl('/apps/learniq')
+}
+
 const router = createRouter({
-	history: createWebHistory(generateUrl('/apps/learniq')),
+	history: createWebHistory(routerBase()),
 	routes: routesFromManifest(mergedManifest),
 })
 
