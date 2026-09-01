@@ -122,7 +122,7 @@ class LessonReleaseController extends Controller {
 	 * caller, resolve their own Enrolment (if any), and evaluate.
 	 *
 	 * @param string $itemId UUID of the Lesson or Assessment.
-	 * @param string $itemSchema 'lesson' or 'assessment'.
+	 * @param string $itemSchema 'lesson' or 'exam'.
 	 *
 	 * @return JSONResponse
 	 */

@@ -114,7 +114,7 @@ class LessonReleaseEvaluator {
 	 * Returns the first unmet reason found, or `available: true`.
 	 *
 	 * @param array<string, mixed> $item The Lesson or Assessment row (as returned by ObjectService).
-	 * @param string $itemSchema 'lesson' or 'assessment'.
+	 * @param string $itemSchema 'lesson' or 'exam'.
 	 * @param string $learnerId NC user ID of the requesting learner.
 	 * @param array<string, mixed> $enrolment The learner's own Enrolment row for the item's course, or `[]`
 	 *                                        when none is resolvable (e.g. an admin/teacher previewing
