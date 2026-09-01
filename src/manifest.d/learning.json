@@ -534,7 +534,7 @@
 						"title": "Tests & assessments",
 						"content": {
 							"register": "learniq",
-							"schema": "Assessment",
+							"schema": "exam",
 							"filter": {
 								"courseId": "@objectId"
 							},
@@ -3536,7 +3536,7 @@
 			"title": "Assessments",
 			"config": {
 				"register": "learniq",
-				"schema": "Assessment"
+				"schema": "exam"
 			}
 		},
 		{
@@ -3546,7 +3546,7 @@
 			"title": "Assessment",
 			"config": {
 				"register": "learniq",
-				"schema": "Assessment",
+				"schema": "exam",
 				"_note": "An Assessment is a configured test (item refs, scoring scheme, pass mark, time limit, attempts, proctoring, availability window) tied to a course/session/cohort. Body leads with the assessment configuration (8-wide) and a Related panel resolving course/session and grade-entry component. Learner attempts render as a wide Results related-index, with an attempts KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
 					"field": "lifecycle"

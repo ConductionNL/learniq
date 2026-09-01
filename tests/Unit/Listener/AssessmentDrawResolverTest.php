@@ -205,7 +205,7 @@ class AssessmentDrawResolverTest extends TestCase {
 	 */
 	public function testRandomDrawDrawsConfiguredCountFromFilteredPool(): void {
 		$this->seed(
-			'assessment',
+			'exam',
 			[
 				'id' => 'assessment-1',
 				'uuid' => 'assessment-1',
@@ -302,7 +302,7 @@ class AssessmentDrawResolverTest extends TestCase {
 	 */
 	public function testDrawnSetNeverIncludesTwoItemsFromTheSameVariantGroup(): void {
 		$this->seed(
-			'assessment',
+			'exam',
 			[
 				'id' => 'assessment-1',
 				'uuid' => 'assessment-1',
@@ -355,7 +355,7 @@ class AssessmentDrawResolverTest extends TestCase {
 	 */
 	public function testShuffleItemOrderProducesVaryingPresentationOrder(): void {
 		$this->seed(
-			'assessment',
+			'exam',
 			[
 				'id' => 'assessment-1',
 				'uuid' => 'assessment-1',
@@ -439,7 +439,7 @@ class AssessmentDrawResolverTest extends TestCase {
 			. '</choiceInteraction></itemBody></assessmentItem>';
 
 		$this->seed(
-			'assessment',
+			'exam',
 			[
 				'id' => 'assessment-1',
 				'uuid' => 'assessment-1',
@@ -508,7 +508,7 @@ class AssessmentDrawResolverTest extends TestCase {
 	 */
 	public function testFailsClosedWhenPoolCannotSupplyDrawCount(): void {
 		$this->seed(
-			'assessment',
+			'exam',
 			[
 				'id' => 'assessment-1',
 				'uuid' => 'assessment-1',
@@ -549,7 +549,7 @@ class AssessmentDrawResolverTest extends TestCase {
 	 */
 	public function testClientSuppliedDrawnItemRefsIsOverwritten(): void {
 		$this->seed(
-			'assessment',
+			'exam',
 			[
 				'id' => 'assessment-1',
 				'uuid' => 'assessment-1',
