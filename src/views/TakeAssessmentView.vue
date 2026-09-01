@@ -545,7 +545,7 @@ export default {
 		 */
 		async loadAssessment(id) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/Assessment/${id}`,
+				`/apps/openregister/api/objects/learniq/exam/${id}`,
 			)
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
