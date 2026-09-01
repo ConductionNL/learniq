@@ -222,10 +222,16 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		const rotateBtn = page
 			.locator('button')
 			.filter({ hasText: /Rotate signing key/i })
-		await expect(rotateBtn)
-			.toBeVisible()
+		await expect(rotateBtn).toBeVisible()
 
-			// Intercept the POST to settings/load (the observed rotation endpoint)
+		// Intercept the POST to settings/load (the observed rotation endpoint).
+		//
+		// This used to be chained onto the expect() above, which threw
+		// "expect(...).toBeVisible(...).waitForRequest is not a function":
+		// toBeVisible() resolves a Promise, and waitForRequest is a PAGE method.
+		// The waiter is also armed BEFORE the click on purpose, because a request
+		// started by the click cannot be caught by a waiter created after it.
+		const rotation = page
 			.waitForRequest(
 				(req) =>
 					req.url().includes('/api/settings') && req.method() === 'POST',
@@ -234,6 +240,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 			.catch(() => null)
 
 		await rotateBtn.click()
+		await rotation
 
 		// Wait briefly for any response/notification
 		await page.waitForTimeout(2_000)
