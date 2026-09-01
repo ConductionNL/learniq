@@ -520,7 +520,7 @@ class PortalContributionProviderTest extends TestCase {
 				'coreTaskCode',
 				'werkprocesCode',
 				'werkprocesLabel',
-				'exam',
+				'assessment',
 				'notes',
 			],
 			$assessment['fields']

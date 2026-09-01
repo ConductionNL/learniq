@@ -506,7 +506,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 				'isAvailable' => false,
 				'availableAfterDays' => 1,
 			],
-			itemSchema: 'assessment',
+			itemSchema: 'exam',
 			learnerId: 'learner-1',
 			enrolment: $this->enrolmentCreatedAt((new DateTimeImmutable('-10 days'))->format(DATE_ATOM))
 		);
@@ -533,7 +533,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 				'isAvailable' => true,
 				'availableAfterDays' => 7,
 			],
-			itemSchema: 'assessment',
+			itemSchema: 'exam',
 			learnerId: 'learner-1',
 			enrolment: $this->enrolmentCreatedAt((new DateTimeImmutable('-3 days'))->format(DATE_ATOM))
 		);
@@ -558,7 +558,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 				'isAvailable' => true,
 				'availableAfterDays' => 7,
 			],
-			itemSchema: 'assessment',
+			itemSchema: 'exam',
 			learnerId: 'learner-1',
 			enrolment: $this->enrolmentCreatedAt((new DateTimeImmutable('-10 days'))->format(DATE_ATOM))
 		);
