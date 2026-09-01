@@ -8,26 +8,42 @@
 // test runner, no extra framework dependency; see package.json's
 // `test:js-unit` script).
 
-import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { test } from 'node:test'
 import { compareByOrder } from '../../src/utils/courseOrder.js'
 
 test('explicit order values sort ascending', () => {
-	const rows = [{ id: 'b', order: 2 }, { id: 'a', order: 1 }, { id: 'c', order: 3 }]
+	const rows = [
+		{ id: 'b', order: 2 },
+		{ id: 'a', order: 1 },
+		{ id: 'c', order: 3 },
+	]
 	rows.sort(compareByOrder)
-	assert.deepEqual(rows.map((r) => r.id), ['a', 'b', 'c'])
+	assert.deepEqual(
+		rows.map((r) => r.id),
+		['a', 'b', 'c'],
+	)
 })
 
 test('a null-order row sorts after every row with an explicit order — not first, not an error', () => {
-	const rows = [{ id: 'null-order', order: null }, { id: 'first', order: 1 }]
+	const rows = [
+		{ id: 'null-order', order: null },
+		{ id: 'first', order: 1 },
+	]
 	rows.sort(compareByOrder)
-	assert.deepEqual(rows.map((r) => r.id), ['first', 'null-order'])
+	assert.deepEqual(
+		rows.map((r) => r.id),
+		['first', 'null-order'],
+	)
 })
 
 test('an undefined-order row sorts after every row with an explicit order', () => {
 	const rows = [{ id: 'no-order-field' }, { id: 'first', order: 1 }]
 	rows.sort(compareByOrder)
-	assert.deepEqual(rows.map((r) => r.id), ['first', 'no-order-field'])
+	assert.deepEqual(
+		rows.map((r) => r.id),
+		['first', 'no-order-field'],
+	)
 })
 
 test('two null-order rows are stable (comparator returns 0, no reordering forced)', () => {

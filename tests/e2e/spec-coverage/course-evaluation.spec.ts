@@ -21,7 +21,7 @@
  *
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
-import { test, expect } from '../fixtures'
+import { expect, test } from '../fixtures.ts'
 
 // ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
 // `#/…` URL resolves to a location no route matches and renders an empty app body.

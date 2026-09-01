@@ -42,8 +42,10 @@
  *
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
-import { test, expect } from '../fixtures'
-import { requireFixture } from '../seeded'
+import type { Page } from '@playwright/test'
+
+import { expect, test } from '../fixtures.ts'
+import { requireFixture } from '../seeded.ts'
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
@@ -68,11 +70,7 @@ const ENROLMENT_LIST_API =
  * @param url     The OpenRegister object-list API URL.
  * @param matches Predicate a candidate row must satisfy.
  */
-async function findRow(
-	page: import('@playwright/test').Page,
-	url: string,
-	matches: (_row: any) => boolean,
-) {
+async function findRow(page: Page, url: string, matches: (_row: any) => boolean) {
 	const resp = await page.request.get(url, {
 		headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 	})
@@ -91,7 +89,7 @@ async function findRow(
 	return rows.find(matches) ?? null
 }
 
-function collectFatalErrors(page: import('@playwright/test').Page): string[] {
+function collectFatalErrors(page: Page): string[] {
 	const errors: string[] = []
 	page.on('console', (msg) => {
 		if (msg.type() === 'error') errors.push(msg.text())
@@ -142,7 +140,7 @@ const TALK_CARD_BODY = '.cn-talk-card__list, .cn-talk-card__empty'
  * @param page  The Playwright page.
  * @param route In-app route path, e.g. `/sessions/<id>`.
  */
-async function openRoute(page: import('@playwright/test').Page, route: string) {
+async function openRoute(page: Page, route: string) {
 	await page.goto(`/index.php/apps/learniq${route}`, {
 		waitUntil: 'domcontentloaded',
 	})
@@ -185,9 +183,7 @@ async function openRoute(page: import('@playwright/test').Page, route: string) {
  * @param page The Playwright page (used for its authenticated request context).
  * @return true when the capabilities payload advertises `spreed`.
  */
-async function isTalkInstalled(
-	page: import('@playwright/test').Page,
-): Promise<boolean> {
+async function isTalkInstalled(page: Page): Promise<boolean> {
 	const resp = await page.request.get(
 		'/ocs/v2.php/cloud/capabilities?format=json',
 		{ headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' } },
@@ -227,10 +223,7 @@ async function isTalkInstalled(
  * @param page          The Playwright page, already on the detail route.
  * @param talkInstalled Whether `spreed` is installed on this instance.
  */
-async function expectTalkWidget(
-	page: import('@playwright/test').Page,
-	talkInstalled: boolean,
-) {
+async function expectTalkWidget(page: Page, talkInstalled: boolean) {
 	await expect(page.locator(TALK_CARD_BODY).first()).toBeVisible({
 		timeout: 15_000,
 	})

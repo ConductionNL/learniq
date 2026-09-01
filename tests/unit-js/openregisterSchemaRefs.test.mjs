@@ -76,7 +76,8 @@ function registerSlugs() {
 	)
 	const slugs = new Set()
 	for (const schema of Object.values(register.components.schemas)) {
-		if (schema && typeof schema.slug === 'string') slugs.add(schema.slug.toLowerCase())
+		if (schema && typeof schema.slug === 'string')
+			slugs.add(schema.slug.toLowerCase())
 	}
 	return slugs
 }
@@ -131,6 +132,12 @@ test('a multi-word title is rejected by the same rule the guard applies', () => 
 	// "simplify" the check into a case-insensitive title comparison.
 	const slugs = registerSlugs()
 	assert.ok(slugs.has('behaviour-incident'), 'slug should be present')
-	assert.ok(!slugs.has('behaviourincident'), 'the lowercased TITLE must not resolve')
-	assert.ok(slugs.has('course'), 'a single-word title lowercases onto its own slug')
+	assert.ok(
+		!slugs.has('behaviourincident'),
+		'the lowercased TITLE must not resolve',
+	)
+	assert.ok(
+		slugs.has('course'),
+		'a single-word title lowercases onto its own slug',
+	)
 })

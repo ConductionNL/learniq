@@ -2,7 +2,7 @@ import { chromium } from '@playwright/test'
 import { execFileSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
-import { baseUrl } from './base-url'
+import { baseUrl } from './base-url.ts'
 
 /** Repo root — `tests/e2e/` is two levels down. */
 const APP_ROOT = path.resolve(__dirname, '..', '..')
@@ -152,7 +152,7 @@ async function globalSetup(): Promise<void> {
 						'cn-walkthrough-seen:learniq',
 						'999.0.0',
 					)
-				} catch (e) {
+				} catch {
 					// localStorage unavailable — specs fall back to dismissing by hand.
 				}
 			})

@@ -32,7 +32,9 @@
  * registered component (not a blank/404/error shell), which is what
  * registry.js registration + manifest wiring exists to guarantee.
  */
-import { test, expect } from '../fixtures'
+import type { Page } from '@playwright/test'
+
+import { expect, test } from '../fixtures.ts'
 
 // ⚠️ NO `#` — the router is HISTORY mode (`createWebHistory` in src/main.js), so a
 // `#/…` URL resolves to a location no route matches and renders an empty app body.
@@ -51,7 +53,7 @@ const APPLICATIONS_INDEX_URL = '/index.php/apps/learniq/admissions/applications'
  * every other spec-coverage spec in this repo filters (favicon/font/network
  * blips unrelated to app logic).
  */
-function collectFatalErrors(page: import('@playwright/test').Page): string[] {
+function collectFatalErrors(page: Page): string[] {
 	const errors: string[] = []
 	page.on('console', (msg) => {
 		if (msg.type() === 'error') {

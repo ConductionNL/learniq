@@ -1,3 +1,5 @@
+import type { Page } from '@playwright/test'
+
 /*
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  * SPDX-License-Identifier: EUPL-1.2
@@ -34,7 +36,7 @@
  *
  * @spec exclude ADR-042/ADR-111 setup contract; no per-app behavioural spec.
  */
-import { test, expect, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 const BASE = '/apps/learniq'
 
@@ -50,12 +52,12 @@ async function api(
 				method,
 				headers: {
 					'Content-Type': 'application/json',
-					// eslint-disable-next-line no-undef
+
 					requesttoken: (window as any).OC?.requestToken || '',
 					'OCS-APIREQUEST': 'true',
 				},
 			})
-			let json: any = null
+			let json: any
 			try {
 				json = await res.json()
 			} catch {

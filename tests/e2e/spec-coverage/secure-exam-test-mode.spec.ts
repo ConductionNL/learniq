@@ -23,13 +23,15 @@
  *
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
-import { test, expect } from '../fixtures'
+import type { Page } from '@playwright/test'
+
+import { expect, test } from '../fixtures.ts'
 
 const TAKE_ASSESSMENT_URL =
 	'/index.php/apps/learniq/assessments/e2e-smoke-placeholder/take'
 const REVIEW_QUEUE_URL = '/index.php/apps/learniq/assessments/proctoring/review'
 
-function collectFatalErrors(page: import('@playwright/test').Page): string[] {
+function collectFatalErrors(page: Page): string[] {
 	const errors: string[] = []
 	page.on('console', (msg) => {
 		if (msg.type() === 'error') {
