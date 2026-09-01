@@ -24,8 +24,10 @@
  * link renders for a seeded intensief-subgroup member; the test is SKIPPED
  * (not failed) when the seeded dev instance carries no matching fixtures yet.
  */
-import { test, expect } from '../fixtures'
-import { requireFixture } from '../seeded'
+import type { Page } from '@playwright/test'
+
+import { expect, test } from '../fixtures.ts'
+import { requireFixture } from '../seeded.ts'
 
 // ⚠️ NO `#` — the router is HISTORY mode, not hash mode. Fixed fleet-wide in
 // #610; this note records what it cost HERE.
@@ -72,7 +74,7 @@ const GROUP_PLAN_SUBGROUP_LIST_API =
  *
  * @param page The Playwright page under test.
  */
-function collectFatalErrors(page: import('@playwright/test').Page): string[] {
+function collectFatalErrors(page: Page): string[] {
 	const errors: string[] = []
 	page.on('console', (msg) => {
 		if (msg.type() === 'error') {
@@ -106,7 +108,7 @@ function assertNoFatalErrors(errors: string[]): void {
  *
  * @param page The Playwright page (used for its authenticated request context).
  */
-async function findIntensiefSubgroup(page: import('@playwright/test').Page) {
+async function findIntensiefSubgroup(page: Page) {
 	const resp = await page.request.get(GROUP_PLAN_SUBGROUP_LIST_API, {
 		headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 	})

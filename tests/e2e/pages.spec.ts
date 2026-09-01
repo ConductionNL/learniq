@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures'
+import { expect, test } from './fixtures.ts'
 
 /**
  * Page-level smoke tests — navigate to every manifest route and assert that:

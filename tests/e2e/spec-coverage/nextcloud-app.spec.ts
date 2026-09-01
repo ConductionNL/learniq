@@ -1,3 +1,4 @@
+import { apiUrl } from '../base-url.ts'
 /**
  * SPDX-License-Identifier: EUPL-1.2
  *
@@ -17,8 +18,7 @@
  * All tests use the admin session provided by the global setup.
  * REST calls are REST-for-setup only; assertions are DOM-based.
  */
-import { test, expect } from '../fixtures'
-import { apiUrl } from '../base-url'
+import { expect, test } from '../fixtures.ts'
 
 // Two fixes in these constants, both of which made the target unreachable:
 //
@@ -222,10 +222,10 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 		const rotateBtn = page
 			.locator('button')
 			.filter({ hasText: /Rotate signing key/i })
-		await expect(rotateBtn).toBeVisible()
+		await expect(rotateBtn)
+			.toBeVisible()
 
-		// Intercept the POST to settings/load (the observed rotation endpoint)
-		const rotateRequest = page
+			// Intercept the POST to settings/load (the observed rotation endpoint)
 			.waitForRequest(
 				(req) =>
 					req.url().includes('/api/settings') && req.method() === 'POST',

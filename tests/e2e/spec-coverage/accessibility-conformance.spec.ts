@@ -28,8 +28,10 @@
  * cannot both hold. A real row satisfies both AND raises the bar from "the
  * component mounted" to "the component rendered this record's values".
  */
-import { test, expect } from '../fixtures'
-import { createObject, seededTenantId } from '../or-api'
+import type { Page } from '@playwright/test'
+
+import { expect, test } from '../fixtures.ts'
+import { createObject, seededTenantId } from '../or-api.ts'
 
 // ⚠️ NO `#` — the router is HISTORY mode, not hash mode.
 //
@@ -60,7 +62,7 @@ const FEEDBACK_CREATE_URL = '/index.php/apps/learniq/accessibility/feedback/new'
  * every other spec-coverage spec in this repo filters (favicon/font/network
  * blips unrelated to app logic).
  */
-function collectFatalErrors(page: import('@playwright/test').Page): string[] {
+function collectFatalErrors(page: Page): string[] {
 	const errors: string[] = []
 	page.on('console', (msg) => {
 		if (msg.type() === 'error') {
