@@ -4594,7 +4594,7 @@
       },
       "Competency": {
         "slug": "competency",
-        "icon": "TargetVariant",
+        "icon": "MedalOutline",
         "version": "0.1.0",
         "title": "Competency",
         "description": "A recursive node in a CompetencyFramework's taxonomy (kerntaak → werkproces, leerlijn → kerndoel, or any other two-or-more-level hierarchy) via parentId, mirroring Course.parentCourseId. A leaf Competency (isLeaf: true, childCount == 0) IS the learning outcome — no separate LearningOutcome schema exists. Lifecycle: draft → published → archived.",
@@ -5646,7 +5646,7 @@
       },
       "Course": {
         "slug": "course",
-        "icon": "FolderOutline",
+        "icon": "BookOpenPageVariantOutline",
         "version": "0.3.0",
         "title": "Course",
         "description": "A course or training program (Schema.org Course). Lifecycle: draft → published → archived.",
