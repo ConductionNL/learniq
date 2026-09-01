@@ -90,7 +90,7 @@ class CoursePackageRoundTripTest extends TestCase {
 					'course' => [],
 					'lesson' => [['id' => 'lesson-source', 'name' => 'Introduction', 'order' => 1, 'contentType' => 'text', 'contentRef' => 'material-source', 'courseId' => 'course-source']],
 					'material' => [['id' => 'material-source', 'title' => 'Syllabus', 'kind' => 'document', 'fileRef' => '/Scholiq/materials/syllabus.pdf', 'courseId' => 'course-source']],
-					'assessment' => [],
+					'exam' => [],
 					'assignment' => [['id' => 'assignment-source', 'title' => 'Essay', 'rubricId' => 'rubric-source', 'courseId' => 'course-source']],
 					'lti-tool-placement' => [],
 					default => [],

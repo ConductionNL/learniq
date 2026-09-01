@@ -69,7 +69,7 @@ class AdmissionsDecisionGuard {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ADMISSIONS_ROUND_SCHEMA = 'admissions-round';
-	private const APPLICATION_SCHEMA = 'application';
+	private const APPLICATION_SCHEMA = 'admission';
 
 	/**
 	 * The shared low->high schooladvies/doorstroomtoets ordinal (design.md

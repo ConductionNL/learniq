@@ -54,7 +54,7 @@ class LessonReleaseController extends Controller {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const LESSON_SCHEMA = 'lesson';
-	private const ASSESSMENT_SCHEMA = 'assessment';
+	private const ASSESSMENT_SCHEMA = 'exam';
 	private const ENROLMENT_SCHEMA = 'enrolment';
 
 	/**
@@ -122,7 +122,7 @@ class LessonReleaseController extends Controller {
 	 * caller, resolve their own Enrolment (if any), and evaluate.
 	 *
 	 * @param string $itemId UUID of the Lesson or Assessment.
-	 * @param string $itemSchema 'lesson' or 'assessment'.
+	 * @param string $itemSchema 'lesson' or 'exam'.
 	 *
 	 * @return JSONResponse
 	 */

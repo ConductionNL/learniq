@@ -84,7 +84,7 @@
 						"title": "Applications",
 						"content": {
 							"register": "learniq",
-							"schema": "application",
+							"schema": "admission",
 							"filter": {
 								"admissionsRoundId": "@objectId"
 							},
@@ -157,7 +157,7 @@
 			"title": "Applications",
 			"config": {
 				"register": "learniq",
-				"schema": "application"
+				"schema": "admission"
 			}
 		},
 		{
@@ -167,7 +167,7 @@
 			"title": "Application",
 			"config": {
 				"register": "learniq",
-				"schema": "application",
+				"schema": "admission",
 				"_note": "admissions-and-subject-choice: an Application is the aanmelding a coordinator scores through an intake conversation to a placed/waitlisted/rejected decision, gated by AdmissionsDecisionGuard. Body leads with applicant/guardian/decision data (8-wide) and a Related panel resolving the AdmissionsRound and Programme applied for. lifecycleActions expose submit/scheduleIntake/completeIntake/place/waitlist/reject/withdraw as buttons. Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
 					"field": "lifecycle"

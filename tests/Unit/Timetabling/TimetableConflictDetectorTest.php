@@ -62,7 +62,7 @@ class TimetableConflictDetectorTest extends TestCase {
 	private array $fixtures = [
 		'cohort' => [],
 		'room' => [],
-		'assessment' => [],
+		'exam' => [],
 		'timetable-conflict' => [],
 	];
 
@@ -73,7 +73,7 @@ class TimetableConflictDetectorTest extends TestCase {
 		parent::setUp();
 		$this->objectService = $this->createMock(ObjectService::class);
 		$this->saves = [];
-		$this->fixtures = ['cohort' => [], 'room' => [], 'assessment' => [], 'timetable-conflict' => []];
+		$this->fixtures = ['cohort' => [], 'room' => [], 'exam' => [], 'timetable-conflict' => []];
 
 	}//end setUp()
 
@@ -101,7 +101,7 @@ class TimetableConflictDetectorTest extends TestCase {
 					return array_values(array_filter($rows, static fn (array $r): bool => ($r['id'] ?? null) === ($filters['id'] ?? null)));
 				}
 
-				if ($schema === 'assessment') {
+				if ($schema === 'exam') {
 					return array_values(array_filter($rows, static fn (array $r): bool => ($r['sessionId'] ?? null) === ($filters['sessionId'] ?? null)));
 				}
 
@@ -285,7 +285,7 @@ class TimetableConflictDetectorTest extends TestCase {
 		// 34-learner cohort against a capacity:30 room.
 		$this->fixtures['cohort'] = [['id' => 'cohort-exam', 'teacherIds' => [], 'learnerIds' => array_map(static fn (int $n): string => "l{$n}", range(1, 34))]];
 		$this->fixtures['room'] = [['id' => 'room-small', 'capacity' => 30]];
-		$this->fixtures['assessment'] = [['id' => 'assess-1', 'sessionId' => 's-exam']];
+		$this->fixtures['exam'] = [['id' => 'assess-1', 'sessionId' => 's-exam']];
 
 		$this->detector()->scan([$session]);
 
@@ -311,7 +311,7 @@ class TimetableConflictDetectorTest extends TestCase {
 		];
 		$this->fixtures['cohort'] = [['id' => 'cohort-exam', 'teacherIds' => [], 'learnerIds' => ['l1', 'l2']]];
 		$this->fixtures['room'] = [['id' => 'room-big', 'capacity' => 30]];
-		$this->fixtures['assessment'] = [['id' => 'assess-1', 'sessionId' => 's-exam']];
+		$this->fixtures['exam'] = [['id' => 'assess-1', 'sessionId' => 's-exam']];
 
 		$this->detector()->scan([$session]);
 
@@ -328,7 +328,7 @@ class TimetableConflictDetectorTest extends TestCase {
 	public function testExamClashAccompaniesUnderlyingOverlapKind(): void {
 		[$a, $b] = $this->overlappingPair(['cohortId' => 'cohort-x'], ['cohortId' => 'cohort-x']);
 		$this->fixtures['cohort'] = [['id' => 'cohort-x', 'teacherIds' => [], 'learnerIds' => []]];
-		$this->fixtures['assessment'] = [['id' => 'assess-1', 'sessionId' => 's-a']];
+		$this->fixtures['exam'] = [['id' => 'assess-1', 'sessionId' => 's-a']];
 
 		$this->detector()->scan([$a, $b]);
 

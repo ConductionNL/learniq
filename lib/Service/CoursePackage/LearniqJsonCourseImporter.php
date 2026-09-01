@@ -318,7 +318,7 @@ class LearniqJsonCourseImporter {
 		foreach ((array)($tree['assessments'] ?? []) as $assessment) {
 			$assessment = (array)$assessment;
 			$assessmentId = $this->objectWriter->create(
-				schema: 'assessment',
+				schema: 'exam',
 				object: [
 					'title' => $assessment['title'] ?? '',
 					'courseId' => $courseId,
