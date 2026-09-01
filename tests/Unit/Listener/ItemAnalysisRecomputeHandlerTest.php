@@ -256,7 +256,7 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 	 * @return void
 	 */
 	public function testRecomputeFiresOnGradedTransitionAndUpsertsRows(): void {
-		$this->seed('assessment', ['id' => 'assessment-1', 'uuid' => 'assessment-1', 'tenant_id' => 'tenant-a']);
+		$this->seed('exam', ['id' => 'assessment-1', 'uuid' => 'assessment-1', 'tenant_id' => 'tenant-a']);
 		$this->seedGradedResult('result-1', ['item-1', 'item-2']);
 
 		$statistics = [
@@ -295,7 +295,7 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 	 * @return void
 	 */
 	public function testUpsertUpdatesExistingRowNotDuplicates(): void {
-		$this->seed('assessment', ['id' => 'assessment-1', 'uuid' => 'assessment-1', 'tenant_id' => 'tenant-a']);
+		$this->seed('exam', ['id' => 'assessment-1', 'uuid' => 'assessment-1', 'tenant_id' => 'tenant-a']);
 		$this->seed(
 			'item-statistics',
 			['id' => 'stat-1', 'itemId' => 'item-1', 'assessmentId' => 'assessment-1', 'sampleSize' => 10, 'insufficientData' => true, 'tenant_id' => 'tenant-a']
@@ -331,7 +331,7 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 	 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#scenario-a-low-discrimination-item-opens-a-flag-for-the-exam-board-without-altering-the-item
 	 */
 	public function testTooDifficultyOpensDedupedFlagWithoutMutatingItem(): void {
-		$this->seed('assessment', ['id' => 'assessment-1', 'uuid' => 'assessment-1', 'tenant_id' => 'tenant-a']);
+		$this->seed('exam', ['id' => 'assessment-1', 'uuid' => 'assessment-1', 'tenant_id' => 'tenant-a']);
 		$this->seed('item', ['id' => 'item-1', 'uuid' => 'item-1', 'tenant_id' => 'tenant-a', 'title' => 'Original title']);
 		$this->seedGradedResult('result-1', ['item-1']);
 
@@ -374,7 +374,7 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 	 * @return void
 	 */
 	public function testNegativeCorrelationOpensNegativeDiscriminationFlag(): void {
-		$this->seed('assessment', ['id' => 'assessment-1', 'uuid' => 'assessment-1', 'tenant_id' => 'tenant-a']);
+		$this->seed('exam', ['id' => 'assessment-1', 'uuid' => 'assessment-1', 'tenant_id' => 'tenant-a']);
 		$this->seed('item', ['id' => 'item-1', 'uuid' => 'item-1', 'tenant_id' => 'tenant-a']);
 		$this->seedGradedResult('result-1', ['item-1']);
 
@@ -400,7 +400,7 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 	 * @return void
 	 */
 	public function testInsufficientDataNeverOpensAFlag(): void {
-		$this->seed('assessment', ['id' => 'assessment-1', 'uuid' => 'assessment-1', 'tenant_id' => 'tenant-a']);
+		$this->seed('exam', ['id' => 'assessment-1', 'uuid' => 'assessment-1', 'tenant_id' => 'tenant-a']);
 		$this->seed('item', ['id' => 'item-1', 'uuid' => 'item-1', 'tenant_id' => 'tenant-a']);
 		$this->seedGradedResult('result-1', ['item-1']);
 

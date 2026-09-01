@@ -382,7 +382,7 @@ async function seedObjects(presentSlugs) {
 	if (id(a1)) { for (const ln of ['demo-learner-1', 'demo-learner-2']) await seed('submission', { field: 'assignmentId', value: id(a1) }, { assignmentId: id(a1), learnerIds: [ln], attachmentRefs: [`demo://sub/${ln}`], submittedAt: '2026-09-30', tenant_id: TENANT }) }
 	// Assessment + Item + Result
 	const item = await seed('item', { field: 'title', value: 'Demo MC item' }, { name: 'Demo MC item', title: 'Demo MC item', interactionType: 'choice', qtiBody: '<qti-assessment-item/>', correctResponse: { value: 'A' }, maxScore: 1, tenant_id: TENANT })
-	const assess = await seed('assessment', { field: 'title', value: 'Demo quiz' }, { title: 'Demo quiz', scoringScheme: 'points', maxAttempts: 1, keepScore: 'last', tenant_id: TENANT, ...(id(item) ? { itemRefs: [{ itemId: id(item), points: 1 }] } : {}), ...(id(courseRoot) ? { courseId: id(courseRoot) } : {}) })
+	const assess = await seed('exam', { field: 'title', value: 'Demo quiz' }, { title: 'Demo quiz', scoringScheme: 'points', maxAttempts: 1, keepScore: 'last', tenant_id: TENANT, ...(id(item) ? { itemRefs: [{ itemId: id(item), points: 1 }] } : {}), ...(id(courseRoot) ? { courseId: id(courseRoot) } : {}) })
 	if (id(assess)) await seed('assessment-result', { field: 'assessmentId', value: id(assess) }, { assessmentId: id(assess), learnerId: 'demo-learner-1', attemptNumber: 1, responses: [], startedAt: '2026-09-15T10:00:00Z', submittedAt: '2026-09-15T10:30:00Z', tenant_id: TENANT })
 	// GradeScale + GradeEntries + FinalGrade.
 	// GradeScale.kind, GradeEntry.curriculumPlanId/gradeScaleId and
