@@ -447,7 +447,25 @@ OC.L10N.register(
         "Approval failed. Are you listed as a parent for this learner?": "Zatwierdzenie nie powiodło się. Czy jesteś wymieniony jako rodzic tego ucznia?",
         "Rejection failed. Please try again.": "Odrzucenie nie powiodło się. Spróbuj ponownie.",
         "No job ID in URL.": "Brak ID zadania w URL.",
-        "Failed to load job. Please try again.": "Nie udało się załadować zadania. Spróbuj ponownie."
+        "Failed to load job. Please try again.": "Nie udało się załadować zadania. Spróbuj ponownie.",
+        "Reports": "Raporty",
+        "Pick a report to open it.": "Wybierz raport, aby go otworzyć.",
+        "Date": "Data",
+        "Entries": "Wpisy",
+        "Study progress risk": "Ryzyko postępów w nauce",
+        "Engagement flags": "Sygnały zaangażowania",
+        "Group trends": "Trendy grup",
+        "Skills gaps": "Luki kompetencyjne",
+        "Item statistics": "Statystyki pozycji",
+        "Course quality": "Jakość kursu",
+        "Workplace visits": "Wizyty w miejscu praktyk",
+        "Which students are at risk of falling short of the binding study advice.": "Którzy studenci są zagrożeni niespełnieniem wiążącej opinii o studiach.",
+        "The flags the engagement thresholds have raised, and against whom.": "Sygnały wywołane przez progi zaangażowania i wobec kogo.",
+        "How groups are moving over time, as a heatmap.": "Jak grupy zmieniają się w czasie, jako mapa cieplna.",
+        "Where competences fall short of what a course expects.": "Gdzie kompetencje nie spełniają oczekiwań kursu.",
+        "How each assessment item performed, question by question.": "Jak wypadła każda pozycja oceny, pytanie po pytaniu.",
+        "What course evaluations said, per course.": "Co powiedziały ewaluacje kursów, według kursu.",
+        "What was found on placement visits.": "Co stwierdzono podczas wizyt w miejscu praktyk."
     },
     "nplurals=2; plural=(n != 1);"
 )

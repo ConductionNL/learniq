@@ -447,7 +447,25 @@ OC.L10N.register(
         "Approval failed. Are you listed as a parent for this learner?": "Falha na aprovação. Está listado como encarregado deste estudante?",
         "Rejection failed. Please try again.": "Falha na rejeição. Por favor, tente novamente.",
         "No job ID in URL.": "Nenhum ID de trabalho no URL.",
-        "Failed to load job. Please try again.": "Falha ao carregar o trabalho. Por favor, tente novamente."
+        "Failed to load job. Please try again.": "Falha ao carregar o trabalho. Por favor, tente novamente.",
+        "Reports": "Relatórios",
+        "Pick a report to open it.": "Escolha um relatório para o abrir.",
+        "Date": "Data",
+        "Entries": "Entradas",
+        "Study progress risk": "Risco de progresso académico",
+        "Engagement flags": "Sinalizações de envolvimento",
+        "Group trends": "Tendências de grupo",
+        "Skills gaps": "Lacunas de competências",
+        "Item statistics": "Estatísticas por item",
+        "Course quality": "Qualidade do curso",
+        "Workplace visits": "Visitas ao local de trabalho",
+        "Which students are at risk of falling short of the binding study advice.": "Que estudantes correm risco de não cumprir o parecer vinculativo de estudos.",
+        "The flags the engagement thresholds have raised, and against whom.": "As sinalizações que os limiares de envolvimento levantaram, e sobre quem.",
+        "How groups are moving over time, as a heatmap.": "Como os grupos evoluem ao longo do tempo, em mapa de calor.",
+        "Where competences fall short of what a course expects.": "Onde as competências ficam aquém do que um curso espera.",
+        "How each assessment item performed, question by question.": "Como se comportou cada item de avaliação, pergunta a pergunta.",
+        "What course evaluations said, per course.": "O que disseram as avaliações de curso, por curso.",
+        "What was found on placement visits.": "O que foi encontrado nas visitas ao local de trabalho."
     },
     "nplurals=2; plural=(n != 1);"
 )

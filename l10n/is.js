@@ -447,7 +447,25 @@ OC.L10N.register(
         "Approval failed. Are you listed as a parent for this learner?": "Samþykki mistókst. Ertu skráður sem foreldri þessa nemanda?",
         "Rejection failed. Please try again.": "Synjun mistókst. Vinsamlegast reyndu aftur.",
         "No job ID in URL.": "Ekkert verksauðkenni í vefslóð.",
-        "Failed to load job. Please try again.": "Tókst ekki að hlaða verk. Vinsamlegast reyndu aftur."
+        "Failed to load job. Please try again.": "Tókst ekki að hlaða verk. Vinsamlegast reyndu aftur.",
+        "Reports": "Skýrslur",
+        "Pick a report to open it.": "Veldu skýrslu til að opna hana.",
+        "Date": "Dagsetning",
+        "Entries": "Færslur",
+        "Study progress risk": "Áhætta í námsframvindu",
+        "Engagement flags": "Þátttökumerki",
+        "Group trends": "Hópaþróun",
+        "Skills gaps": "Færnigöt",
+        "Item statistics": "Atriðatölfræði",
+        "Course quality": "Gæði námskeiðs",
+        "Workplace visits": "Vinnustaðaheimsóknir",
+        "Which students are at risk of falling short of the binding study advice.": "Hvaða nemendur eiga á hættu að ná ekki bindandi námsráðgjöf.",
+        "The flags the engagement thresholds have raised, and against whom.": "Merkin sem þátttökuþröskuldarnir hafa vakið og gegn hverjum.",
+        "How groups are moving over time, as a heatmap.": "Hvernig hópar hreyfast með tímanum, sem hitakort.",
+        "Where competences fall short of what a course expects.": "Hvar færni nær ekki því sem námskeið gerir ráð fyrir.",
+        "How each assessment item performed, question by question.": "Hvernig hvert matsatriði stóð sig, spurningu fyrir spurningu.",
+        "What course evaluations said, per course.": "Hvað námskeiðsmat sagði, eftir námskeiði.",
+        "What was found on placement visits.": "Hvað fannst í vinnustaðaheimsóknum."
     },
     "nplurals=2; plural=(n != 1);"
 )

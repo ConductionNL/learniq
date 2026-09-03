@@ -446,7 +446,25 @@
         "Approval failed. Are you listed as a parent for this learner?": "A jóváhagyás sikertelen. Szülőként van-e feltüntetve ennél a tanulónál?",
         "Rejection failed. Please try again.": "Az elutasítás sikertelen. Kérjük, próbálja újra.",
         "No job ID in URL.": "Nincs feladatazonosító az URL-ben.",
-        "Failed to load job. Please try again.": "A feladat betöltése sikertelen. Kérjük, próbálja újra."
+        "Failed to load job. Please try again.": "A feladat betöltése sikertelen. Kérjük, próbálja újra.",
+        "Reports": "Jelentések",
+        "Pick a report to open it.": "Válasszon egy jelentést a megnyitáshoz.",
+        "Date": "Dátum",
+        "Entries": "Bejegyzések",
+        "Study progress risk": "Tanulmányi előrehaladási kockázat",
+        "Engagement flags": "Bevonódási jelzések",
+        "Group trends": "Csoporttrendek",
+        "Skills gaps": "Kompetenciahiányok",
+        "Item statistics": "Itemstatisztikák",
+        "Course quality": "Kurzus minősége",
+        "Workplace visits": "Munkahelyi látogatások",
+        "Which students are at risk of falling short of the binding study advice.": "Mely hallgatók kockáztatják, hogy nem teljesítik a kötelező tanulmányi tanácsot.",
+        "The flags the engagement thresholds have raised, and against whom.": "A bevonódási küszöbök által kiváltott jelzések, és kikre vonatkoznak.",
+        "How groups are moving over time, as a heatmap.": "Hogyan mozognak a csoportok az idő során, hőtérképként.",
+        "Where competences fall short of what a course expects.": "Hol maradnak el a kompetenciák attól, amit egy kurzus elvár.",
+        "How each assessment item performed, question by question.": "Hogyan teljesített minden értékelési elem, kérdésről kérdésre.",
+        "What course evaluations said, per course.": "Mit mondtak a kurzusértékelések, kurzusonként.",
+        "What was found on placement visits.": "Mit találtak a munkahelyi látogatásokon."
     },
     "plurals": null
 }

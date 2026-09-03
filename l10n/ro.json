@@ -446,7 +446,25 @@
         "Approval failed. Are you listed as a parent for this learner?": "Aprobarea a eșuat. Sunteți listat ca părinte pentru acest cursant?",
         "Rejection failed. Please try again.": "Respingerea a eșuat. Vă rugăm să încercați din nou.",
         "No job ID in URL.": "Nu există ID de job în URL.",
-        "Failed to load job. Please try again.": "Încărcarea jobului a eșuat. Vă rugăm să încercați din nou."
+        "Failed to load job. Please try again.": "Încărcarea jobului a eșuat. Vă rugăm să încercați din nou.",
+        "Reports": "Rapoarte",
+        "Pick a report to open it.": "Alegeți un raport pentru a-l deschide.",
+        "Date": "Dată",
+        "Entries": "Intrări",
+        "Study progress risk": "Risc privind progresul studiilor",
+        "Engagement flags": "Semnale de implicare",
+        "Group trends": "Tendințe de grup",
+        "Skills gaps": "Lacune de competențe",
+        "Item statistics": "Statistici pe itemi",
+        "Course quality": "Calitatea cursului",
+        "Workplace visits": "Vizite la locul de muncă",
+        "Which students are at risk of falling short of the binding study advice.": "Care studenți riscă să nu atingă avizul obligatoriu de studii.",
+        "The flags the engagement thresholds have raised, and against whom.": "Semnalele ridicate de pragurile de implicare și împotriva cui.",
+        "How groups are moving over time, as a heatmap.": "Cum evoluează grupurile în timp, ca hartă termică.",
+        "Where competences fall short of what a course expects.": "Unde competențele nu ating ceea ce așteaptă un curs.",
+        "How each assessment item performed, question by question.": "Cum s-a comportat fiecare item de evaluare, întrebare cu întrebare.",
+        "What course evaluations said, per course.": "Ce au spus evaluările cursurilor, pe curs.",
+        "What was found on placement visits.": "Ce s-a constatat la vizitele la locul de muncă."
     },
     "plurals": null
 }

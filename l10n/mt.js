@@ -447,7 +447,25 @@ OC.L10N.register(
         "Approval failed. Are you listed as a parent for this learner?": "L-approvazzjoni falliet. Inti elenkat bħala ġenitur ta' dan l-istudent?",
         "Rejection failed. Please try again.": "Ir-rifjut falliet. Jekk jogħġbok erġa' pprova.",
         "No job ID in URL.": "L-ebda ID tax-xogħol fl-URL.",
-        "Failed to load job. Please try again.": "Falliment fil-tagħbija tax-xogħol. Jekk jogħġbok erġa' pprova."
+        "Failed to load job. Please try again.": "Falliment fil-tagħbija tax-xogħol. Jekk jogħġbok erġa' pprova.",
+        "Reports": "Rapporti",
+        "Pick a report to open it.": "Agħżel rapport biex tiftħu.",
+        "Date": "Data",
+        "Entries": "Entrati",
+        "Study progress risk": "Riskju tal-progress tal-istudju",
+        "Engagement flags": "Bnadar tal-involviment",
+        "Group trends": "Xejriet tal-gruppi",
+        "Skills gaps": "Nuqqasijiet fil-ħiliet",
+        "Item statistics": "Statistika tal-oġġetti",
+        "Course quality": "Kwalità tal-kors",
+        "Workplace visits": "Żjarat fuq il-post tax-xogħol",
+        "Which students are at risk of falling short of the binding study advice.": "Liema studenti huma f'riskju li ma jilħqux il-parir tal-istudju vinkolanti.",
+        "The flags the engagement thresholds have raised, and against whom.": "Il-bnadar li qajmu l-limiti tal-involviment, u kontra min.",
+        "How groups are moving over time, as a heatmap.": "Kif il-gruppi qed jimxu maż-żmien, bħala mappa tas-sħana.",
+        "Where competences fall short of what a course expects.": "Fejn il-kompetenzi jaqgħu lura minn dak li jistenna kors.",
+        "How each assessment item performed, question by question.": "Kif mar kull oġġett ta' valutazzjoni, mistoqsija b'mistoqsija.",
+        "What course evaluations said, per course.": "X'qalu l-evalwazzjonijiet tal-kors, kull kors.",
+        "What was found on placement visits.": "X'instab fiż-żjarat fuq il-post tax-xogħol."
     },
     "nplurals=2; plural=(n != 1);"
 )

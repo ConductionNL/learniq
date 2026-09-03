@@ -446,7 +446,25 @@
         "Approval failed. Are you listed as a parent for this learner?": "Godkjenning mislyktes. Er du oppført som forelder for denne eleven?",
         "Rejection failed. Please try again.": "Avvisning mislyktes. Prøv igjen.",
         "No job ID in URL.": "Ingen jobb-ID i URL.",
-        "Failed to load job. Please try again.": "Kunne ikke laste jobb. Prøv igjen."
+        "Failed to load job. Please try again.": "Kunne ikke laste jobb. Prøv igjen.",
+        "Reports": "Rapporter",
+        "Pick a report to open it.": "Velg en rapport for å åpne den.",
+        "Date": "Dato",
+        "Entries": "Oppføringer",
+        "Study progress risk": "Risiko for studieframgang",
+        "Engagement flags": "Engasjementsflagg",
+        "Group trends": "Gruppetrender",
+        "Skills gaps": "Kompetansehull",
+        "Item statistics": "Oppgavestatistikk",
+        "Course quality": "Kurskvalitet",
+        "Workplace visits": "Arbeidsplassbesøk",
+        "Which students are at risk of falling short of the binding study advice.": "Hvilke studenter risikerer å ikke nå det bindende studierådet.",
+        "The flags the engagement thresholds have raised, and against whom.": "Flaggene engasjementsterskler har reist, og mot hvem.",
+        "How groups are moving over time, as a heatmap.": "Hvordan grupper beveger seg over tid, som et varmekart.",
+        "Where competences fall short of what a course expects.": "Hvor kompetanser ligger under det et kurs forventer.",
+        "How each assessment item performed, question by question.": "Hvordan hvert vurderingselement presterte, spørsmål for spørsmål.",
+        "What course evaluations said, per course.": "Hva kursevalueringene sa, per kurs.",
+        "What was found on placement visits.": "Hva som ble funnet ved arbeidsplassbesøk."
     },
     "plurals": null
 }
