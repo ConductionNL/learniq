@@ -446,7 +446,25 @@
         "Approval failed. Are you listed as a parent for this learner?": "Αποτυχία έγκρισης. Είστε εγγεγραμμένος(-η) ως γονέας αυτού του εκπαιδευόμενου;",
         "Rejection failed. Please try again.": "Αποτυχία απόρριψης. Παρακαλώ δοκιμάστε ξανά.",
         "No job ID in URL.": "Δεν υπάρχει αναγνωριστικό εργασίας στη διεύθυνση URL.",
-        "Failed to load job. Please try again.": "Αποτυχία φόρτωσης εργασίας. Παρακαλώ δοκιμάστε ξανά."
+        "Failed to load job. Please try again.": "Αποτυχία φόρτωσης εργασίας. Παρακαλώ δοκιμάστε ξανά.",
+        "Reports": "Αναφορές",
+        "Pick a report to open it.": "Επιλέξτε μια αναφορά για να την ανοίξετε.",
+        "Date": "Ημερομηνία",
+        "Entries": "Καταχωρίσεις",
+        "Study progress risk": "Κίνδυνος προόδου σπουδών",
+        "Engagement flags": "Ενδείξεις εμπλοκής",
+        "Group trends": "Τάσεις ομάδων",
+        "Skills gaps": "Κενά δεξιοτήτων",
+        "Item statistics": "Στατιστικά ανά ερώτημα",
+        "Course quality": "Ποιότητα μαθήματος",
+        "Workplace visits": "Επισκέψεις στον χώρο εργασίας",
+        "Which students are at risk of falling short of the binding study advice.": "Ποιοι φοιτητές κινδυνεύουν να μην πληρούν τη δεσμευτική συμβουλή σπουδών.",
+        "The flags the engagement thresholds have raised, and against whom.": "Οι ενδείξεις που ενεργοποίησαν τα όρια εμπλοκής, και για ποιον.",
+        "How groups are moving over time, as a heatmap.": "Πώς κινούνται οι ομάδες με τον χρόνο, ως θερμικός χάρτης.",
+        "Where competences fall short of what a course expects.": "Πού οι ικανότητες υπολείπονται όσων απαιτεί ένα μάθημα.",
+        "How each assessment item performed, question by question.": "Πώς απέδωσε κάθε ερώτημα αξιολόγησης, ερώτηση προς ερώτηση.",
+        "What course evaluations said, per course.": "Τι είπαν οι αξιολογήσεις μαθημάτων, ανά μάθημα.",
+        "What was found on placement visits.": "Τι διαπιστώθηκε στις επισκέψεις στον χώρο εργασίας."
     },
     "plurals": null
 }

@@ -131,6 +131,14 @@
       "order": 90
     },
     {
+      "id": "ReportsMenu",
+      "label": "Reports",
+      "icon": "ChartBoxOutline",
+      "route": "Reports",
+      "section": "footer",
+      "order": 95
+    },
+    {
       "id": "FeaturesRoadmapMenu",
       "label": "Features & roadmap",
       "icon": "MapMarkerPath",
@@ -170,6 +178,79 @@
     }
   ],
   "pages": [
+    {
+      "id": "Reports",
+      "_note": "ADR-112 / ADR-114 Decision 3. NOTHING here is invented and nothing is relocated: all seven pages already existed as routes with NO menu entry at all, reachable only by someone who already knew the URL. Carding them GIVES an entry point rather than moving one. Two neighbouring orphans are deliberately NOT carded, because a gate finding is a question rather than an instruction: AuditPackExport (/compliance/export) BUILDS an export, and EngagementRiskThresholds (/progress/engagement-thresholds) CONFIGURES the thresholds that produce the flags. Both are things you do, not readings, and ADR-097 keeps work in the main navigation. The report periods, report cards, conference reports and course-package import reports already have menu entries and stay there: ADR-112 forbids a report being BOTH a card and an entry, not being an entry.",
+      "route": "/reports",
+      "type": "reports",
+      "title": "Reports",
+      "config": {
+        "description": "Pick a report to open it.",
+        "categories": {
+          "progress": "Progress and risk",
+          "quality": "Quality and assessment",
+          "placements": "Placements"
+        },
+        "cards": [
+          {
+            "id": "BsaRiskDashboard",
+            "label": "Study progress risk",
+            "description": "Which students are at risk of falling short of the binding study advice.",
+            "icon": "AlertOutline",
+            "category": "progress",
+            "route": "BsaRiskDashboard"
+          },
+          {
+            "id": "EngagementRiskFlags",
+            "label": "Engagement flags",
+            "description": "The flags the engagement thresholds have raised, and against whom.",
+            "icon": "AlertOutline",
+            "category": "progress",
+            "route": "EngagementRiskFlags"
+          },
+          {
+            "id": "GroupTrendHeatmap",
+            "label": "Group trends",
+            "description": "How groups are moving over time, as a heatmap.",
+            "icon": "TrendingUp",
+            "category": "progress",
+            "route": "GroupTrendHeatmap"
+          },
+          {
+            "id": "SkillsGapDashboard",
+            "label": "Skills gaps",
+            "description": "Where competences fall short of what a course expects.",
+            "icon": "ChartBar",
+            "category": "progress",
+            "route": "SkillsGapDashboard"
+          },
+          {
+            "id": "ItemStatisticsList",
+            "label": "Item statistics",
+            "description": "How each assessment item performed, question by question.",
+            "icon": "ClipboardCheckOutline",
+            "category": "quality",
+            "route": "ItemStatisticsList"
+          },
+          {
+            "id": "CourseQualityReport",
+            "label": "Course quality",
+            "description": "What course evaluations said, per course.",
+            "icon": "SchoolOutline",
+            "category": "quality",
+            "route": "CourseQualityReport"
+          },
+          {
+            "id": "BpvVisitReports",
+            "label": "Workplace visits",
+            "description": "What was found on placement visits.",
+            "icon": "BriefcaseOutline",
+            "category": "placements",
+            "route": "BpvVisitReports"
+          }
+        ]
+      }
+    },
     {
       "id": "FeaturesRoadmap",
       "route": "/features-roadmap",

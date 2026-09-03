@@ -447,7 +447,25 @@ OC.L10N.register(
         "Approval failed. Are you listed as a parent for this learner?": "Approvazione non riuscita. Sei registrato come genitore di questo studente?",
         "Rejection failed. Please try again.": "Rifiuto non riuscito. Riprova.",
         "No job ID in URL.": "Nessun ID lavoro nell'URL.",
-        "Failed to load job. Please try again.": "Caricamento lavoro non riuscito. Riprova."
+        "Failed to load job. Please try again.": "Caricamento lavoro non riuscito. Riprova.",
+        "Reports": "Report",
+        "Pick a report to open it.": "Scegli un report per aprirlo.",
+        "Date": "Data",
+        "Entries": "Voci",
+        "Study progress risk": "Rischio di avanzamento negli studi",
+        "Engagement flags": "Segnalazioni di coinvolgimento",
+        "Group trends": "Tendenze di gruppo",
+        "Skills gaps": "Lacune di competenze",
+        "Item statistics": "Statistiche per item",
+        "Course quality": "Qualità del corso",
+        "Workplace visits": "Visite in azienda",
+        "Which students are at risk of falling short of the binding study advice.": "Quali studenti rischiano di non raggiungere il parere vincolante sugli studi.",
+        "The flags the engagement thresholds have raised, and against whom.": "Le segnalazioni generate dalle soglie di coinvolgimento, e su chi.",
+        "How groups are moving over time, as a heatmap.": "Come si muovono i gruppi nel tempo, come mappa di calore.",
+        "Where competences fall short of what a course expects.": "Dove le competenze non raggiungono ciò che un corso richiede.",
+        "How each assessment item performed, question by question.": "Come si è comportato ogni item di valutazione, domanda per domanda.",
+        "What course evaluations said, per course.": "Cosa hanno detto le valutazioni, per corso.",
+        "What was found on placement visits.": "Cosa è emerso dalle visite in azienda."
     },
     "nplurals=2; plural=(n != 1);"
 )

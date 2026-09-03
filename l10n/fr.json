@@ -446,7 +446,25 @@
         "Approval failed. Are you listed as a parent for this learner?": "Échec de l'approbation. Êtes-vous enregistré comme parent pour cet apprenant ?",
         "Rejection failed. Please try again.": "Échec du rejet. Veuillez réessayer.",
         "No job ID in URL.": "Aucun ID de tâche dans l'URL.",
-        "Failed to load job. Please try again.": "Échec du chargement de la tâche. Veuillez réessayer."
+        "Failed to load job. Please try again.": "Échec du chargement de la tâche. Veuillez réessayer.",
+        "Reports": "Rapports",
+        "Pick a report to open it.": "Choisissez un rapport pour l'ouvrir.",
+        "Date": "Date",
+        "Entries": "Entrées",
+        "Study progress risk": "Risque de progression des études",
+        "Engagement flags": "Signaux d'engagement",
+        "Group trends": "Tendances de groupe",
+        "Skills gaps": "Écarts de compétences",
+        "Item statistics": "Statistiques par item",
+        "Course quality": "Qualité des cours",
+        "Workplace visits": "Visites en entreprise",
+        "Which students are at risk of falling short of the binding study advice.": "Quels étudiants risquent de ne pas atteindre l'avis d'orientation contraignant.",
+        "The flags the engagement thresholds have raised, and against whom.": "Les signaux déclenchés par les seuils d'engagement, et pour qui.",
+        "How groups are moving over time, as a heatmap.": "L'évolution des groupes dans le temps, sous forme de carte thermique.",
+        "Where competences fall short of what a course expects.": "Là où les compétences n'atteignent pas ce qu'un cours attend.",
+        "How each assessment item performed, question by question.": "Le comportement de chaque item d'évaluation, question par question.",
+        "What course evaluations said, per course.": "Ce qu'ont dit les évaluations, par cours.",
+        "What was found on placement visits.": "Ce qui a été constaté lors des visites en entreprise."
     },
     "plurals": null
 }

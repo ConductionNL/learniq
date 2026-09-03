@@ -447,7 +447,25 @@ OC.L10N.register(
         "Approval failed. Are you listed as a parent for this learner?": "Ошибка одобрения. Вы указаны как родитель этого учащегося?",
         "Rejection failed. Please try again.": "Ошибка отклонения. Повторите попытку.",
         "No job ID in URL.": "Идентификатор задания не найден в URL.",
-        "Failed to load job. Please try again.": "Не удалось загрузить задание. Повторите попытку."
+        "Failed to load job. Please try again.": "Не удалось загрузить задание. Повторите попытку.",
+        "Reports": "Отчёты",
+        "Pick a report to open it.": "Выберите отчёт, чтобы открыть его.",
+        "Date": "Дата",
+        "Entries": "Записи",
+        "Study progress risk": "Риск учебного прогресса",
+        "Engagement flags": "Сигналы вовлечённости",
+        "Group trends": "Тенденции групп",
+        "Skills gaps": "Пробелы в навыках",
+        "Item statistics": "Статистика по заданиям",
+        "Course quality": "Качество курса",
+        "Workplace visits": "Посещения рабочего места",
+        "Which students are at risk of falling short of the binding study advice.": "Какие студенты рискуют не достичь обязательного учебного совета.",
+        "The flags the engagement thresholds have raised, and against whom.": "Сигналы, поднятые порогами вовлечённости, и в отношении кого.",
+        "How groups are moving over time, as a heatmap.": "Как группы движутся во времени, в виде тепловой карты.",
+        "Where competences fall short of what a course expects.": "Где компетенции не достигают того, что ожидает курс.",
+        "How each assessment item performed, question by question.": "Как показало себя каждое задание оценивания, вопрос за вопросом.",
+        "What course evaluations said, per course.": "Что сказали оценки курсов, по курсу.",
+        "What was found on placement visits.": "Что выявлено при посещениях рабочего места."
     },
     "nplurals=2; plural=(n != 1);"
 )

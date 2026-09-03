@@ -447,7 +447,25 @@ OC.L10N.register(
         "Approval failed. Are you listed as a parent for this learner?": "Patvirtinimas nepavyko. Ar esate nurodytas kaip šio mokinio tėvas?",
         "Rejection failed. Please try again.": "Atmetimas nepavyko. Bandykite dar kartą.",
         "No job ID in URL.": "URL nėra užduoties ID.",
-        "Failed to load job. Please try again.": "Nepavyko įkelti užduoties. Bandykite dar kartą."
+        "Failed to load job. Please try again.": "Nepavyko įkelti užduoties. Bandykite dar kartą.",
+        "Reports": "Ataskaitos",
+        "Pick a report to open it.": "Pasirinkite ataskaitą, kad ją atidarytumėte.",
+        "Date": "Data",
+        "Entries": "Įrašai",
+        "Study progress risk": "Studijų pažangos rizika",
+        "Engagement flags": "Įsitraukimo žymos",
+        "Group trends": "Grupių tendencijos",
+        "Skills gaps": "Įgūdžių spragos",
+        "Item statistics": "Klausimų statistika",
+        "Course quality": "Kurso kokybė",
+        "Workplace visits": "Darbo vietos vizitai",
+        "Which students are at risk of falling short of the binding study advice.": "Kuriems studentams gresia neįvykdyti privalomo studijų patarimo.",
+        "The flags the engagement thresholds have raised, and against whom.": "Žymos, kurias iškėlė įsitraukimo slenksčiai, ir kam.",
+        "How groups are moving over time, as a heatmap.": "Kaip grupės kinta laikui bėgant, kaip šilumos žemėlapis.",
+        "Where competences fall short of what a course expects.": "Kur kompetencijos neatitinka to, ko tikisi kursas.",
+        "How each assessment item performed, question by question.": "Kaip pasirodė kiekvienas vertinimo klausimas, klausimas po klausimo.",
+        "What course evaluations said, per course.": "Ką pasakė kursų vertinimai, pagal kursą.",
+        "What was found on placement visits.": "Kas nustatyta darbo vietos vizitų metu."
     },
     "nplurals=2; plural=(n != 1);"
 )

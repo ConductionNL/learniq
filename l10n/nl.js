@@ -1390,7 +1390,21 @@ OC.L10N.register(
         "Open School-year rollover from the menu.": "Open School-year rollover via het menu.",
         "Click School-year rollover in the menu": "Klik op School-year rollover in het menu",
         "Flows automate the repetitive parts of this app. Have a look, though you do not have to build one now.": "Flows automatiseren het repeterende werk in deze app. Kijk gerust rond, je hoeft er nu geen te maken.",
-        "Open Flows from the menu": "Open Flows via het menu"
+        "Open Flows from the menu": "Open Flows via het menu",
+        "Reports": "Rapporten",
+        "Pick a report to open it.": "Kies een rapport om het te openen.",
+        "Study progress risk": "Studievoortgangsrisico",
+        "Group trends": "Groepstrends",
+        "Skills gaps": "Competentiehiaten",
+        "Course quality": "Cursuskwaliteit",
+        "Workplace visits": "Werkplekbezoeken",
+        "Which students are at risk of falling short of the binding study advice.": "Welke studenten dreigen het bindend studieadvies niet te halen.",
+        "The flags the engagement thresholds have raised, and against whom.": "De signalen die de betrokkenheidsdrempels hebben opgeleverd, en bij wie.",
+        "How groups are moving over time, as a heatmap.": "Hoe groepen zich in de tijd ontwikkelen, als heatmap.",
+        "Where competences fall short of what a course expects.": "Waar competenties achterblijven bij wat een cursus verwacht.",
+        "How each assessment item performed, question by question.": "Hoe elk toetsitem het deed, vraag voor vraag.",
+        "What course evaluations said, per course.": "Wat cursusevaluaties zeiden, per cursus.",
+        "What was found on placement visits.": "Wat er bij werkplekbezoeken is aangetroffen."
     },
     "nplurals=2; plural=(n != 1);"
 )

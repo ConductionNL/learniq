@@ -447,7 +447,25 @@ OC.L10N.register(
         "Approval failed. Are you listed as a parent for this learner?": "Kinnitamine ebaõnnestus. Kas olete selle õppija vanemana registreeritud?",
         "Rejection failed. Please try again.": "Tagasilükkamine ebaõnnestus. Palun proovige uuesti.",
         "No job ID in URL.": "URL-is pole töö ID-d.",
-        "Failed to load job. Please try again.": "Töö laadimine ebaõnnestus. Palun proovige uuesti."
+        "Failed to load job. Please try again.": "Töö laadimine ebaõnnestus. Palun proovige uuesti.",
+        "Reports": "Aruanded",
+        "Pick a report to open it.": "Vali aruanne, et see avada.",
+        "Date": "Kuupäev",
+        "Entries": "Kirjed",
+        "Study progress risk": "Õpingute edenemise risk",
+        "Engagement flags": "Kaasatuse märguanded",
+        "Group trends": "Rühmade suundumused",
+        "Skills gaps": "Oskuste lüngad",
+        "Item statistics": "Küsimuste statistika",
+        "Course quality": "Kursuse kvaliteet",
+        "Workplace visits": "Töökoha külastused",
+        "Which students are at risk of falling short of the binding study advice.": "Millised üliõpilased võivad siduva õppenõuande täitmata jätta.",
+        "The flags the engagement thresholds have raised, and against whom.": "Märguanded, mille kaasatuse lävendid on tõstatanud, ja kelle kohta.",
+        "How groups are moving over time, as a heatmap.": "Kuidas rühmad ajas liiguvad, soojuskaardina.",
+        "Where competences fall short of what a course expects.": "Kus pädevused jäävad alla selle, mida kursus ootab.",
+        "How each assessment item performed, question by question.": "Kuidas iga hindamisküsimus toimis, küsimus küsimuse haaval.",
+        "What course evaluations said, per course.": "Mida kursuse hinnangud ütlesid, kursuste kaupa.",
+        "What was found on placement visits.": "Mida leiti töökoha külastustel."
     },
     "nplurals=2; plural=(n != 1);"
 )

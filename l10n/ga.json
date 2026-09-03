@@ -446,7 +446,25 @@
         "Approval failed. Are you listed as a parent for this learner?": "Theip ar cheadú. An bhfuil tú liostáilte mar thuismitheoir don fhoghlaimeoir seo?",
         "Rejection failed. Please try again.": "Theip ar dhiúltú. Déan iarracht arís.",
         "No job ID in URL.": "Níl aon ID poist san URL.",
-        "Failed to load job. Please try again.": "Theip ar luchtú poist. Déan iarracht arís."
+        "Failed to load job. Please try again.": "Theip ar luchtú poist. Déan iarracht arís.",
+        "Reports": "Tuairiscí",
+        "Pick a report to open it.": "Roghnaigh tuairisc chun í a oscailt.",
+        "Date": "Dáta",
+        "Entries": "Iontrálacha",
+        "Study progress risk": "Riosca dul chun cinn staidéir",
+        "Engagement flags": "Bratacha rannpháirtíochta",
+        "Group trends": "Treochtaí grúpa",
+        "Skills gaps": "Bearnaí scileanna",
+        "Item statistics": "Staitisticí míre",
+        "Course quality": "Cáilíocht cúrsa",
+        "Workplace visits": "Cuairteanna ar an ionad oibre",
+        "Which students are at risk of falling short of the binding study advice.": "Cé na mic léinn atá i mbaol gan an chomhairle staidéir cheangailteach a bhaint amach.",
+        "The flags the engagement thresholds have raised, and against whom.": "Na bratacha a d'ardaigh na tairseacha rannpháirtíochta, agus in aghaidh cé.",
+        "How groups are moving over time, as a heatmap.": "Conas atá grúpaí ag bogadh thar am, mar léarscáil teasa.",
+        "Where competences fall short of what a course expects.": "Nuair a thiteann inniúlachtaí gann ar a bhfuil ag teastáil ó chúrsa.",
+        "How each assessment item performed, question by question.": "Conas a d'fheidhmigh gach mír mheasúnaithe, ceist ar cheist.",
+        "What course evaluations said, per course.": "Cad a dúirt meastóireachtaí cúrsa, in aghaidh an chúrsa.",
+        "What was found on placement visits.": "Cad a fuarthas ar chuairteanna ar an ionad oibre."
     },
     "plurals": null
 }
