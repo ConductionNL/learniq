@@ -173,7 +173,9 @@ jobs:
     # with an empty `before` SHA; the shared workflow's diff-scoped gates have
     # nothing to compare against. Skipping it means the FIRST push to a new
     # branch does not produce a run that looks green because it ran nothing.
-    if: github.event_name != 'push' || github.event.created != true
+    if: >-
+      (github.event_name != 'push' || github.event.created != true)
+      && (github.event_name != 'pull_request' || github.head_ref != 'development')
     uses: ConductionNL/.github/.github/workflows/quality.yml@main
     with:
       app-name: learniq
