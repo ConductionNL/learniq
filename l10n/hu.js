@@ -465,7 +465,9 @@ OC.L10N.register(
         "Where competences fall short of what a course expects.": "Hol maradnak el a kompetenciák attól, amit egy kurzus elvár.",
         "How each assessment item performed, question by question.": "Hogyan teljesített minden értékelési elem, kérdésről kérdésre.",
         "What course evaluations said, per course.": "Mit mondtak a kurzusértékelések, kurzusonként.",
-        "What was found on placement visits.": "Mit találtak a munkahelyi látogatásokon."
+        "What was found on placement visits.": "Mit találtak a munkahelyi látogatásokon.",
+        "Store": "Áruház",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Telepítsen más szervezetek által közzétett nyilvántartásokat, sémákat és folyamatokat."
     },
     "nplurals=2; plural=(n != 1);"
 )

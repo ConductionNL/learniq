@@ -465,7 +465,9 @@ OC.L10N.register(
         "Where competences fall short of what a course expects.": "Kur kompetences atpaliek no tā, ko kurss sagaida.",
         "How each assessment item performed, question by question.": "Kā katrs vērtēšanas vienums darbojās, jautājumu pa jautājumam.",
         "What course evaluations said, per course.": "Ko teica kursu novērtējumi, pa kursiem.",
-        "What was found on placement visits.": "Kas tika konstatēts darba vietas apmeklējumos."
+        "What was found on placement visits.": "Kas tika konstatēts darba vietas apmeklējumos.",
+        "Store": "Veikals",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Instalējiet reģistrus, shēmas un plūsmas, ko publicējušas citas organizācijas."
     },
     "nplurals=2; plural=(n != 1);"
 )

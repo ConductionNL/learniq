@@ -464,7 +464,9 @@
         "Where competences fall short of what a course expects.": "Yetkinliklerin bir kursun beklediğinin gerisinde kaldığı yerler.",
         "How each assessment item performed, question by question.": "Her değerlendirme maddesinin nasıl performans gösterdiği, soru soru.",
         "What course evaluations said, per course.": "Kurs değerlendirmelerinin ne dediği, kurs bazında.",
-        "What was found on placement visits.": "İşyeri ziyaretlerinde ne bulunduğu."
+        "What was found on placement visits.": "İşyeri ziyaretlerinde ne bulunduğu.",
+        "Store": "Mağaza",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Diğer kuruluşların yayımladığı kayıtları, şemaları ve akışları yükleyin."
     },
     "plurals": null
 }

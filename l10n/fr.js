@@ -465,7 +465,9 @@ OC.L10N.register(
         "Where competences fall short of what a course expects.": "Là où les compétences n'atteignent pas ce qu'un cours attend.",
         "How each assessment item performed, question by question.": "Le comportement de chaque item d'évaluation, question par question.",
         "What course evaluations said, per course.": "Ce qu'ont dit les évaluations, par cours.",
-        "What was found on placement visits.": "Ce qui a été constaté lors des visites en entreprise."
+        "What was found on placement visits.": "Ce qui a été constaté lors des visites en entreprise.",
+        "Store": "Boutique",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installez des registres, schémas et flux publiés par d'autres organisations."
     },
     "nplurals=2; plural=(n != 1);"
 )

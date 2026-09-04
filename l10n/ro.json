@@ -464,7 +464,9 @@
         "Where competences fall short of what a course expects.": "Unde competențele nu ating ceea ce așteaptă un curs.",
         "How each assessment item performed, question by question.": "Cum s-a comportat fiecare item de evaluare, întrebare cu întrebare.",
         "What course evaluations said, per course.": "Ce au spus evaluările cursurilor, pe curs.",
-        "What was found on placement visits.": "Ce s-a constatat la vizitele la locul de muncă."
+        "What was found on placement visits.": "Ce s-a constatat la vizitele la locul de muncă.",
+        "Store": "Magazin",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Instalați registre, scheme și fluxuri publicate de alte organizații."
     },
     "plurals": null
 }

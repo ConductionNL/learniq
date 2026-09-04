@@ -465,7 +465,9 @@ OC.L10N.register(
         "Where competences fall short of what a course expects.": "Fejn il-kompetenzi jaqgħu lura minn dak li jistenna kors.",
         "How each assessment item performed, question by question.": "Kif mar kull oġġett ta' valutazzjoni, mistoqsija b'mistoqsija.",
         "What course evaluations said, per course.": "X'qalu l-evalwazzjonijiet tal-kors, kull kors.",
-        "What was found on placement visits.": "X'instab fiż-żjarat fuq il-post tax-xogħol."
+        "What was found on placement visits.": "X'instab fiż-żjarat fuq il-post tax-xogħol.",
+        "Store": "Ħanut",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installa reġistri, skemi u flussi ppubblikati minn organizzazzjonijiet oħra."
     },
     "nplurals=2; plural=(n != 1);"
 )
