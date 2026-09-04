@@ -465,7 +465,9 @@ OC.L10N.register(
         "Where competences fall short of what a course expects.": "Hvar færni nær ekki því sem námskeið gerir ráð fyrir.",
         "How each assessment item performed, question by question.": "Hvernig hvert matsatriði stóð sig, spurningu fyrir spurningu.",
         "What course evaluations said, per course.": "Hvað námskeiðsmat sagði, eftir námskeiði.",
-        "What was found on placement visits.": "Hvað fannst í vinnustaðaheimsóknum."
+        "What was found on placement visits.": "Hvað fannst í vinnustaðaheimsóknum.",
+        "Store": "Verslun",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Settu upp skrár, skemu og flæði sem aðrar stofnanir hafa birt."
     },
     "nplurals=2; plural=(n != 1);"
 )

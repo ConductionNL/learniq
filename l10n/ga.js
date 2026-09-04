@@ -465,7 +465,9 @@ OC.L10N.register(
         "Where competences fall short of what a course expects.": "Nuair a thiteann inniúlachtaí gann ar a bhfuil ag teastáil ó chúrsa.",
         "How each assessment item performed, question by question.": "Conas a d'fheidhmigh gach mír mheasúnaithe, ceist ar cheist.",
         "What course evaluations said, per course.": "Cad a dúirt meastóireachtaí cúrsa, in aghaidh an chúrsa.",
-        "What was found on placement visits.": "Cad a fuarthas ar chuairteanna ar an ionad oibre."
+        "What was found on placement visits.": "Cad a fuarthas ar chuairteanna ar an ionad oibre.",
+        "Store": "Siopa",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Suiteáil cláir, scéimeanna agus sruthanna a d'fhoilsigh eagraíochtaí eile."
     },
     "nplurals=2; plural=(n != 1);"
 )

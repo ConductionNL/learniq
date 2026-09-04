@@ -121,6 +121,14 @@
       "displayName": "Support request"
     }
   ],
+  "store": {
+    "_note": "Configuration exchange, not rows. A configuration set carries the registers, schemas, objects, views, flows, sources and mappings that make one way of working hold together. There is deliberately NO `installable` allowlist: a set exists to introduce schemas the instance does not have YET, so listing schemas this app already owns would refuse exactly the sets worth installing. The trust boundary for a bundle is its publisher, enforced by the engine's source allowlist and trusted-key check. \u26a0\ufe0f An EMPTY `installable` means install NOTHING, not install anything \u2014 omitting the key and declaring an empty list are different things.",
+    "types": [
+      "openregister.configset",
+      "openregister.flows"
+    ],
+    "localRegister": "learniq"
+  },
   "menu": [
     {
       "id": "Documentation",
@@ -129,6 +137,14 @@
       "href": "https://learniq.conduction.nl",
       "section": "footer",
       "order": 90
+    },
+    {
+      "id": "StoreMenu",
+      "label": "Store",
+      "icon": "StoreOutline",
+      "route": "Store",
+      "section": "footer",
+      "order": 92
     },
     {
       "id": "ReportsMenu",
@@ -178,6 +194,18 @@
     }
   ],
   "pages": [
+    {
+      "id": "Store",
+      "route": "/store",
+      "type": "store",
+      "title": "Store",
+      "config": {
+        "app": "learniq",
+        "title": "Store",
+        "description": "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them."
+      },
+      "_note": "ADR-114 Decision 4 / ADR-080. Declarative: openregister hosts the store plane, so this app writes NO store controller. With no registry configured the page renders the app's built-in items and makes NO network call."
+    },
     {
       "id": "Reports",
       "_note": "ADR-112 / ADR-114 Decision 3. NOTHING here is invented and nothing is relocated: all seven pages already existed as routes with NO menu entry at all, reachable only by someone who already knew the URL. Carding them GIVES an entry point rather than moving one. Two neighbouring orphans are deliberately NOT carded, because a gate finding is a question rather than an instruction: AuditPackExport (/compliance/export) BUILDS an export, and EngagementRiskThresholds (/progress/engagement-thresholds) CONFIGURES the thresholds that produce the flags. Both are things you do, not readings, and ADR-097 keeps work in the main navigation. The report periods, report cards, conference reports and course-package import reports already have menu entries and stay there: ADR-112 forbids a report being BOTH a card and an entry, not being an entry.",

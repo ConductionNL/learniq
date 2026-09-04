@@ -464,7 +464,9 @@
         "Where competences fall short of what a course expects.": "Gdzie kompetencje nie spełniają oczekiwań kursu.",
         "How each assessment item performed, question by question.": "Jak wypadła każda pozycja oceny, pytanie po pytaniu.",
         "What course evaluations said, per course.": "Co powiedziały ewaluacje kursów, według kursu.",
-        "What was found on placement visits.": "Co stwierdzono podczas wizyt w miejscu praktyk."
+        "What was found on placement visits.": "Co stwierdzono podczas wizyt w miejscu praktyk.",
+        "Store": "Sklep",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Zainstaluj rejestry, schematy i przepływy opublikowane przez inne organizacje."
     },
     "plurals": null
 }

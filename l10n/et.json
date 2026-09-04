@@ -464,7 +464,9 @@
         "Where competences fall short of what a course expects.": "Kus pädevused jäävad alla selle, mida kursus ootab.",
         "How each assessment item performed, question by question.": "Kuidas iga hindamisküsimus toimis, küsimus küsimuse haaval.",
         "What course evaluations said, per course.": "Mida kursuse hinnangud ütlesid, kursuste kaupa.",
-        "What was found on placement visits.": "Mida leiti töökoha külastustel."
+        "What was found on placement visits.": "Mida leiti töökoha külastustel.",
+        "Store": "Pood",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Paigalda registrid, skeemid ja voog, mille teised organisatsioonid on avaldanud."
     },
     "plurals": null
 }

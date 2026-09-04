@@ -464,7 +464,9 @@
         "Where competences fall short of what a course expects.": "Kur kompetencijos neatitinka to, ko tikisi kursas.",
         "How each assessment item performed, question by question.": "Kaip pasirodė kiekvienas vertinimo klausimas, klausimas po klausimo.",
         "What course evaluations said, per course.": "Ką pasakė kursų vertinimai, pagal kursą.",
-        "What was found on placement visits.": "Kas nustatyta darbo vietos vizitų metu."
+        "What was found on placement visits.": "Kas nustatyta darbo vietos vizitų metu.",
+        "Store": "Parduotuvė",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Įdiekite registrus, schemas ir srautus, kuriuos paskelbė kitos organizacijos."
     },
     "plurals": null
 }

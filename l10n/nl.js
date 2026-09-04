@@ -1404,7 +1404,9 @@ OC.L10N.register(
         "Where competences fall short of what a course expects.": "Waar competenties achterblijven bij wat een cursus verwacht.",
         "How each assessment item performed, question by question.": "Hoe elk toetsitem het deed, vraag voor vraag.",
         "What course evaluations said, per course.": "Wat cursusevaluaties zeiden, per cursus.",
-        "What was found on placement visits.": "Wat er bij werkplekbezoeken is aangetroffen."
+        "What was found on placement visits.": "Wat er bij werkplekbezoeken is aangetroffen.",
+        "Store": "Store",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installeer registers, schema's en flows die andere organisaties hebben gepubliceerd."
     },
     "nplurals=2; plural=(n != 1);"
 )

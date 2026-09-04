@@ -465,7 +465,9 @@ OC.L10N.register(
         "Where competences fall short of what a course expects.": "Hvor kompetencer ligger under det, et kursus forventer.",
         "How each assessment item performed, question by question.": "Hvordan hvert vurderingsitem klarede sig, spørgsmål for spørgsmål.",
         "What course evaluations said, per course.": "Hvad kursusevalueringerne sagde, pr. kursus.",
-        "What was found on placement visits.": "Hvad der blev fundet ved praktikbesøg."
+        "What was found on placement visits.": "Hvad der blev fundet ved praktikbesøg.",
+        "Store": "Butik",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installer registre, skemaer og flows, som andre organisationer har udgivet."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -138,6 +138,7 @@ import Sitemap from 'vue-material-design-icons/Sitemap.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import Star from 'vue-material-design-icons/Star.vue'
 import StarOutline from 'vue-material-design-icons/StarOutline.vue'
+import StoreOutline from 'vue-material-design-icons/StoreOutline.vue'
 import SwapHorizontal from 'vue-material-design-icons/SwapHorizontal.vue'
 import Table from 'vue-material-design-icons/Table.vue'
 import TableClock from 'vue-material-design-icons/TableClock.vue'
@@ -281,6 +282,7 @@ export default {
 	SitemapOutline,
 	Star,
 	StarOutline,
+	StoreOutline,
 	SwapHorizontal,
 	Table,
 	TableClock,
