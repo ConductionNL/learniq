@@ -166,8 +166,25 @@ test.describe('app chrome (ADR-114)', () => {
 		await page.goto(`${APP_BASE}/reports`)
 		const main = page.locator('main, .app-content').first()
 		await expect(main).toBeVisible({ timeout: 30_000 })
-		await expect(main.getByText('Audit pack', { exact: false })).toHaveCount(0)
-		await expect(main.getByText('threshold', { exact: false })).toHaveCount(0)
+
+		// LIVENESS CONTROL: the seven carded reports ARE here, so the two
+		// absences below are decisions rather than a page that never rendered.
+		await expect(main.locator('a[href*="/apps/learniq/"]')).not.toHaveCount(0)
+
+		// 🔴 ASSERT THE LINK, NOT THE WORD. This used to search the page for the
+		// text "threshold" and found it in a neighbouring card's description —
+		// "The flags the engagement thresholds have raised, and against whom" —
+		// which is correct prose about a DIFFERENT report. A substring cannot
+		// tell "the thresholds page is carded" from "a card mentions them"; the
+		// card's own target can.
+		await expect(
+			main.locator('a[href*="/progress/engagement-thresholds"]'),
+			'EngagementRiskThresholds is carded — it configures, so it belongs in the menu',
+		).toHaveCount(0)
+		await expect(
+			main.locator('a[href*="/compliance/export"]'),
+			'AuditPackExport is carded — it builds an export, so it belongs in the menu',
+		).toHaveCount(0)
 	})
 
 	test('Store opens the hosted store surface, which this app writes no backend for', async ({
