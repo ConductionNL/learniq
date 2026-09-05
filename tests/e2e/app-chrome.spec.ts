@@ -134,6 +134,10 @@ test.describe('app chrome (ADR-114)', () => {
 	test('every carded route resolves, because the card is its only entry point', async ({
 		page,
 	}) => {
+		// Seven real navigations in one test, each mounting a report over the
+		// register. The default budget does not cover that.
+		test.slow()
+
 		// All seven had NO menu entry — reachable only by someone who already
 		// knew the URL. A card pointing at a route that does not resolve would
 		// leave them as unreachable as before, while looking fixed.
@@ -146,12 +150,24 @@ test.describe('app chrome (ADR-114)', () => {
 			'/course-evaluation/quality-report',
 			'/bpv/visit-reports',
 		]) {
-			await page.goto(`${APP_BASE}${path}`)
+			// 🔴 `domcontentloaded`, NOT the default `load`. Nextcloud's
+			// notification poll keeps the network busy, so waiting for the load
+			// event waits for something that does not settle: this timed out on
+			// the FOURTH route with `page.goto: Test timeout of 40000ms
+			// exceeded — navigating to …/competencies/skills-gap, waiting until
+			// "load"`, which reads as a broken route rather than a wait that
+			// cannot finish. The SPA mounts after DOM ready, and the two
+			// assertions below are what prove the mount.
+			await page.goto(`${APP_BASE}${path}`, {
+				waitUntil: 'domcontentloaded',
+			})
 			await expect(page).toHaveURL(
 				new RegExp(`${escapeRegExp(path)}(\\?|$)`),
 				{ timeout: 15_000 },
 			)
-			await expect(page.locator('[data-testid="cn-nav"]')).toBeVisible()
+			await expect(page.locator('[data-testid="cn-nav"]')).toBeVisible({
+				timeout: 15_000,
+			})
 		}
 	})
 
