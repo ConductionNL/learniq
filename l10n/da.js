@@ -447,7 +447,27 @@ OC.L10N.register(
         "Approval failed. Are you listed as a parent for this learner?": "Godkendelse mislykkedes. Er du registreret som forælder til denne elev?",
         "Rejection failed. Please try again.": "Afvisning mislykkedes. Prøv igen.",
         "No job ID in URL.": "Intet job-ID i URL.",
-        "Failed to load job. Please try again.": "Kunne ikke indlæse job. Prøv igen."
+        "Failed to load job. Please try again.": "Kunne ikke indlæse job. Prøv igen.",
+        "Reports": "Rapporter",
+        "Pick a report to open it.": "Vælg en rapport for at åbne den.",
+        "Date": "Dato",
+        "Entries": "Poster",
+        "Study progress risk": "Risiko for studieforløb",
+        "Engagement flags": "Engagementsflag",
+        "Group trends": "Gruppetendenser",
+        "Skills gaps": "Kompetencehuller",
+        "Item statistics": "Itemstatistik",
+        "Course quality": "Kursuskvalitet",
+        "Workplace visits": "Praktikbesøg",
+        "Which students are at risk of falling short of the binding study advice.": "Hvilke studerende risikerer ikke at nå det bindende studieråd.",
+        "The flags the engagement thresholds have raised, and against whom.": "De flag, engagementstærsklerne har rejst, og mod hvem.",
+        "How groups are moving over time, as a heatmap.": "Hvordan grupper bevæger sig over tid, som et varmekort.",
+        "Where competences fall short of what a course expects.": "Hvor kompetencer ligger under det, et kursus forventer.",
+        "How each assessment item performed, question by question.": "Hvordan hvert vurderingsitem klarede sig, spørgsmål for spørgsmål.",
+        "What course evaluations said, per course.": "Hvad kursusevalueringerne sagde, pr. kursus.",
+        "What was found on placement visits.": "Hvad der blev fundet ved praktikbesøg.",
+        "Store": "Butik",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installer registre, skemaer og flows, som andre organisationer har udgivet."
     },
     "nplurals=2; plural=(n != 1);"
 )

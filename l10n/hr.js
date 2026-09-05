@@ -447,7 +447,27 @@ OC.L10N.register(
         "Approval failed. Are you listed as a parent for this learner?": "Odobravanje nije uspjelo. Jeste li navedeni kao roditelj za ovog učenika?",
         "Rejection failed. Please try again.": "Odbijanje nije uspjelo. Pokušajte ponovo.",
         "No job ID in URL.": "Nema ID-a posla u URL-u.",
-        "Failed to load job. Please try again.": "Neuspješno učitavanje posla. Pokušajte ponovo."
+        "Failed to load job. Please try again.": "Neuspješno učitavanje posla. Pokušajte ponovo.",
+        "Reports": "Izvješća",
+        "Pick a report to open it.": "Odaberite izvješće da ga otvorite.",
+        "Date": "Datum",
+        "Entries": "Unosi",
+        "Study progress risk": "Rizik napretka studija",
+        "Engagement flags": "Oznake angažmana",
+        "Group trends": "Trendovi skupina",
+        "Skills gaps": "Praznine u vještinama",
+        "Item statistics": "Statistika po stavkama",
+        "Course quality": "Kvaliteta tečaja",
+        "Workplace visits": "Posjeti radnom mjestu",
+        "Which students are at risk of falling short of the binding study advice.": "Koji su studenti u riziku da ne ispune obvezujući studijski savjet.",
+        "The flags the engagement thresholds have raised, and against whom.": "Oznake koje su pragovi angažmana podigli i protiv koga.",
+        "How groups are moving over time, as a heatmap.": "Kako se skupine kreću kroz vrijeme, kao toplinska karta.",
+        "Where competences fall short of what a course expects.": "Gdje kompetencije zaostaju za onim što tečaj očekuje.",
+        "How each assessment item performed, question by question.": "Kako se svaka stavka procjene ponašala, pitanje po pitanje.",
+        "What course evaluations said, per course.": "Što su rekle evaluacije tečaja, po tečaju.",
+        "What was found on placement visits.": "Što je utvrđeno tijekom posjeta radnom mjestu.",
+        "Store": "Trgovina",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Instalirajte registre, sheme i tokove koje su objavile druge organizacije."
     },
     "nplurals=2; plural=(n != 1);"
 )

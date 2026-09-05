@@ -16,7 +16,7 @@
  *
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
-import { test, expect } from '../fixtures'
+import { expect, test } from '../fixtures.ts'
 
 const WIZARD_URL = '/index.php/apps/learniq/structure/rollover'
 

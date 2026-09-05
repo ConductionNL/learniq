@@ -319,7 +319,7 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 
 		$this->seed('assessment-result', ['id' => 'ar-1', 'assessmentId' => 'assess-1']);
 		$this->seed(
-			'assessment',
+			'exam',
 			[
 				'id' => 'assess-1',
 				'competencyIds' => ['comp-2'],

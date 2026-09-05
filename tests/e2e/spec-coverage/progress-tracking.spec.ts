@@ -23,8 +23,10 @@
  * Lesson of that contentType, mirroring the PHPUnit integration suite's own
  * markTestSkipped convention for environment-dependent fixtures.
  */
-import { test, expect } from '../fixtures'
-import { requireFixture } from '../seeded'
+import type { Page } from '@playwright/test'
+
+import { expect, test } from '../fixtures.ts'
+import { requireFixture } from '../seeded.ts'
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
@@ -43,10 +45,7 @@ const LESSON_LIST_API =
  * @param page    The Playwright page (used for its authenticated request context).
  * @param matches Predicate a candidate Lesson row must satisfy.
  */
-async function findLesson(
-	page: import('@playwright/test').Page,
-	matches: (_lesson: any) => boolean,
-) {
+async function findLesson(page: Page, matches: (_lesson: any) => boolean) {
 	const resp = await page.request.get(LESSON_LIST_API, {
 		headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 	})
@@ -86,8 +85,11 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 			(l) =>
 				l.contentType === 'text'
 				&& l.lifecycle === 'published'
-				&& (l.releaseConditions == null || l.releaseConditions.length === 0)
-				&& l.availableAfterDays == null,
+				&& (l.releaseConditions === null
+					|| l.releaseConditions === undefined
+					|| l.releaseConditions.length === 0)
+				&& (l.availableAfterDays === null
+					|| l.availableAfterDays === undefined),
 		)
 		const courseId = courseIdOf(lesson)
 		requireFixture(
@@ -162,8 +164,11 @@ test.describe('learning-progress-and-analytics — Lesson manual-completion acti
 			(l) =>
 				l.contentType === 'cmi5'
 				&& l.lifecycle === 'published'
-				&& (l.releaseConditions == null || l.releaseConditions.length === 0)
-				&& l.availableAfterDays == null,
+				&& (l.releaseConditions === null
+					|| l.releaseConditions === undefined
+					|| l.releaseConditions.length === 0)
+				&& (l.availableAfterDays === null
+					|| l.availableAfterDays === undefined),
 		)
 		const courseId = courseIdOf(lesson)
 		requireFixture(

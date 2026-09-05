@@ -19,7 +19,7 @@
  *
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
-import { test, expect } from '../fixtures'
+import { expect, test } from '../fixtures.ts'
 
 // A syntactically valid but non-existent Order UUID — the panel's own
 // "order not found" error state is expected and non-fatal; this test

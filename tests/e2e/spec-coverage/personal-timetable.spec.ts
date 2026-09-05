@@ -16,7 +16,7 @@
  * deploying an unbuilt frontend to the shared dev instance is prohibited.
  * Unskip and seed on an isolated instance to activate.
  */
-import { test, expect } from '../fixtures'
+import { expect, test } from '../fixtures.ts'
 
 const TIMETABLE_URL = '/index.php/apps/learniq/my-timetable'
 

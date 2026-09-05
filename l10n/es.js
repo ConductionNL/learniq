@@ -447,7 +447,27 @@ OC.L10N.register(
         "Approval failed. Are you listed as a parent for this learner?": "Error en la aprobación. ¿Está usted registrado como padre/madre de este estudiante?",
         "Rejection failed. Please try again.": "Error en el rechazo. Por favor, inténtelo de nuevo.",
         "No job ID in URL.": "No hay ID de trabajo en la URL.",
-        "Failed to load job. Please try again.": "Error al cargar el trabajo. Por favor, inténtelo de nuevo."
+        "Failed to load job. Please try again.": "Error al cargar el trabajo. Por favor, inténtelo de nuevo.",
+        "Reports": "Informes",
+        "Pick a report to open it.": "Elija un informe para abrirlo.",
+        "Date": "Fecha",
+        "Entries": "Entradas",
+        "Study progress risk": "Riesgo de progreso académico",
+        "Engagement flags": "Señales de participación",
+        "Group trends": "Tendencias de grupo",
+        "Skills gaps": "Brechas de competencias",
+        "Item statistics": "Estadísticas por ítem",
+        "Course quality": "Calidad del curso",
+        "Workplace visits": "Visitas al centro de trabajo",
+        "Which students are at risk of falling short of the binding study advice.": "Qué estudiantes corren riesgo de no alcanzar el dictamen vinculante de estudios.",
+        "The flags the engagement thresholds have raised, and against whom.": "Las señales que han activado los umbrales de participación, y sobre quién.",
+        "How groups are moving over time, as a heatmap.": "Cómo evolucionan los grupos con el tiempo, como mapa de calor.",
+        "Where competences fall short of what a course expects.": "Dónde las competencias no llegan a lo que espera un curso.",
+        "How each assessment item performed, question by question.": "Cómo funcionó cada ítem de evaluación, pregunta a pregunta.",
+        "What course evaluations said, per course.": "Qué dijeron las evaluaciones, por curso.",
+        "What was found on placement visits.": "Qué se encontró en las visitas al centro de trabajo.",
+        "Store": "Tienda",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Instale registros, esquemas y flujos publicados por otras organizaciones."
     },
     "nplurals=2; plural=(n != 1);"
 )

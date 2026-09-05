@@ -447,7 +447,27 @@ OC.L10N.register(
         "Approval failed. Are you listed as a parent for this learner?": "Onay başarısız. Bu öğrenci için ebeveyn olarak listelenmiş misiniz?",
         "Rejection failed. Please try again.": "Red başarısız. Lütfen tekrar deneyin.",
         "No job ID in URL.": "URL'de iş kimliği yok.",
-        "Failed to load job. Please try again.": "İş yüklenemedi. Lütfen tekrar deneyin."
+        "Failed to load job. Please try again.": "İş yüklenemedi. Lütfen tekrar deneyin.",
+        "Reports": "Raporlar",
+        "Pick a report to open it.": "Açmak için bir rapor seçin.",
+        "Date": "Tarih",
+        "Entries": "Kayıtlar",
+        "Study progress risk": "Öğrenim ilerlemesi riski",
+        "Engagement flags": "Katılım işaretleri",
+        "Group trends": "Grup eğilimleri",
+        "Skills gaps": "Beceri boşlukları",
+        "Item statistics": "Madde istatistikleri",
+        "Course quality": "Kurs kalitesi",
+        "Workplace visits": "İşyeri ziyaretleri",
+        "Which students are at risk of falling short of the binding study advice.": "Hangi öğrencilerin bağlayıcı öğrenim tavsiyesini karşılayamama riski taşıdığı.",
+        "The flags the engagement thresholds have raised, and against whom.": "Katılım eşiklerinin oluşturduğu işaretler ve kime karşı.",
+        "How groups are moving over time, as a heatmap.": "Grupların zaman içinde nasıl hareket ettiği, ısı haritası olarak.",
+        "Where competences fall short of what a course expects.": "Yetkinliklerin bir kursun beklediğinin gerisinde kaldığı yerler.",
+        "How each assessment item performed, question by question.": "Her değerlendirme maddesinin nasıl performans gösterdiği, soru soru.",
+        "What course evaluations said, per course.": "Kurs değerlendirmelerinin ne dediği, kurs bazında.",
+        "What was found on placement visits.": "İşyeri ziyaretlerinde ne bulunduğu.",
+        "Store": "Mağaza",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Diğer kuruluşların yayımladığı kayıtları, şemaları ve akışları yükleyin."
     },
     "nplurals=2; plural=(n != 1);"
 )

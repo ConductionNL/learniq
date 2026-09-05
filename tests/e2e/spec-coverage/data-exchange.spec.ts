@@ -25,7 +25,9 @@
  * dev-instance-seeded follow-up, consistent with every other custom-view/
  * listener-created-schema spec's coverage style in this repo.
  */
-import { test, expect } from '../fixtures'
+import type { Page } from '@playwright/test'
+
+import { expect, test } from '../fixtures.ts'
 
 const EXCHANGE_REJECTIONS_INDEX_URL =
 	'/index.php/apps/learniq/data-exchange/rejections'
@@ -39,7 +41,7 @@ const EXCHANGE_REJECTION_DETAIL_URL =
  * every other spec-coverage spec in this repo filters (favicon/font/network
  * blips unrelated to app logic).
  */
-function collectFatalErrors(page: import('@playwright/test').Page): string[] {
+function collectFatalErrors(page: Page): string[] {
 	const errors: string[] = []
 	page.on('console', (msg) => {
 		if (msg.type() === 'error') {

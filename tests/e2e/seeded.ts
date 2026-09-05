@@ -27,7 +27,7 @@
  */
 import * as fs from 'fs'
 import * as path from 'path'
-import { test, expect } from './fixtures'
+import { expect, test } from './fixtures.ts'
 
 /**
  * True once the seeder has actually populated the register.
