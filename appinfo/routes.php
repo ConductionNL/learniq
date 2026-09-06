@@ -33,6 +33,7 @@ return [
         // First-time setup wizard (ADR-042) - the standard CnSetupWizard contract.
         ['name' => 'setup#status',    'url' => '/api/setup/status',            'verb' => 'GET'],
         ['name' => 'setup#runAction', 'url' => '/api/setup/action/{actionId}', 'verb' => 'POST', 'requirements' => ['actionId' => '[a-z0-9\\-]+']],
+        ['name' => 'setup#saveConfig', 'url' => '/api/setup/config',           'verb' => 'POST'],
         ['name' => 'page#index',     'url' => '/',            'verb' => 'GET'],
         // ADR-024 §4 — manifest endpoint (bundled blob).
         ['name' => 'page#manifest',  'url' => '/api/manifest', 'verb' => 'GET'],

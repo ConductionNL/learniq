@@ -47,8 +47,10 @@
  *
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
-import { test, expect } from '../fixtures'
-import { requireFixture } from '../seeded'
+import type { Page } from '@playwright/test'
+
+import { expect, test } from '../fixtures.ts'
+import { requireFixture } from '../seeded.ts'
 
 /**
  * Whether a ReportPeriod is locked.
@@ -101,11 +103,7 @@ const GRADE_ENTRY_LIST_API =
  * @param url     The OpenRegister object-list API URL.
  * @param matches Predicate a candidate row must satisfy.
  */
-async function findRow(
-	page: import('@playwright/test').Page,
-	url: string,
-	matches: (_row: any) => boolean,
-) {
+async function findRow(page: Page, url: string, matches: (_row: any) => boolean) {
 	const resp = await page.request.get(url, {
 		headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 	})
@@ -116,7 +114,7 @@ async function findRow(
 	return rows.find(matches) ?? null
 }
 
-function collectFatalErrors(page: import('@playwright/test').Page): string[] {
+function collectFatalErrors(page: Page): string[] {
 	const errors: string[] = []
 	page.on('console', (msg) => {
 		if (msg.type() === 'error') errors.push(msg.text())
@@ -136,7 +134,7 @@ function fatalOnly(errors: string[]): string[] {
 	)
 }
 
-async function openRoute(page: import('@playwright/test').Page, route: string) {
+async function openRoute(page: Page, route: string) {
 	// ⚠️ NO `#` — the router is HISTORY mode, not hash mode. Fixed fleet-wide in
 	// #610; this note records what it cost HERE.
 	//

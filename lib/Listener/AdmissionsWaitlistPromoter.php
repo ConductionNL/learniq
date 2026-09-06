@@ -61,7 +61,7 @@ use Psr\Log\LoggerInterface;
 class AdmissionsWaitlistPromoter implements IEventListener {
 
 	private const LEARNIQ_REGISTER = 'learniq';
-	private const APPLICATION_SCHEMA = 'application';
+	private const APPLICATION_SCHEMA = 'admission';
 
 	/**
 	 * Target states that free a placed seat.

@@ -61,8 +61,7 @@
 
 import { defineConfig, devices } from '@playwright/test'
 import * as path from 'path'
-
-import { baseUrl } from './base-url'
+import { baseUrl } from './base-url.ts'
 
 /** Repo root — `tests/e2e/` is two levels down. */
 const APP_ROOT = path.resolve(__dirname, '..', '..')

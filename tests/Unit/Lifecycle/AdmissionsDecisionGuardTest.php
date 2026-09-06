@@ -88,7 +88,7 @@ class AdmissionsDecisionGuardTest extends TestCase {
 	private function wireApplicationCounts(array $placed, array $converted): void {
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($placed, $converted) {
-				if (($config['schema'] ?? '') !== 'application') {
+				if (($config['schema'] ?? '') !== 'admission') {
 					return [];
 				}
 

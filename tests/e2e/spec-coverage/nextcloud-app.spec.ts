@@ -1,3 +1,4 @@
+import { apiUrl } from '../base-url.ts'
 /**
  * SPDX-License-Identifier: EUPL-1.2
  *
@@ -17,8 +18,7 @@
  * All tests use the admin session provided by the global setup.
  * REST calls are REST-for-setup only; assertions are DOM-based.
  */
-import { test, expect } from '../fixtures'
-import { apiUrl } from '../base-url'
+import { expect, test } from '../fixtures.ts'
 
 // Two fixes in these constants, both of which made the target unreachable:
 //
@@ -224,8 +224,17 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 			.filter({ hasText: /Rotate signing key/i })
 		await expect(rotateBtn).toBeVisible()
 
-		// Intercept the POST to settings/load (the observed rotation endpoint)
-		const rotateRequest = page
+		// Arm the request wait BEFORE the click, and await it after.
+		//
+		// This was chained onto the assertion: `expect(btn).toBeVisible()
+		// .waitForRequest(...)`. `expect().toBeVisible()` resolves to undefined,
+		// not to the page, so the chain threw
+		// `TypeError: expect(...).toBeVisible(...).waitForRequest is not a
+		// function` and the test died before ever clicking Rotate.
+		//
+		// waitForRequest also has to be armed before the action that triggers
+		// the request, or it waits for one that has already gone.
+		const rotationRequest = page
 			.waitForRequest(
 				(req) =>
 					req.url().includes('/api/settings') && req.method() === 'POST',
@@ -234,6 +243,7 @@ test.describe('nextcloud-app — Settings API and admin settings UI', () => {
 			.catch(() => null)
 
 		await rotateBtn.click()
+		await rotationRequest
 
 		// Wait briefly for any response/notification
 		await page.waitForTimeout(2_000)

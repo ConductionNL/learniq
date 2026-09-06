@@ -31,7 +31,9 @@
  *
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
-import { test, expect } from '../fixtures'
+import type { Page } from '@playwright/test'
+
+import { expect, test } from '../fixtures.ts'
 
 const TAKE_ASSESSMENT_URL =
 	'/index.php/apps/learniq/assessments/e2e-smoke-placeholder/take'
@@ -44,7 +46,7 @@ const ITEM_ANALYSIS_URL =
 const ITEM_STATISTICS_URL = '/index.php/apps/learniq/assessments/item-statistics'
 const ASSESSMENT_RELIABILITY_URL = '/index.php/apps/learniq/assessments/reliability'
 
-function collectFatalErrors(page: import('@playwright/test').Page): string[] {
+function collectFatalErrors(page: Page): string[] {
 	const errors: string[] = []
 	page.on('console', (msg) => {
 		if (msg.type() === 'error') {
@@ -67,7 +69,7 @@ function fatalOnly(errors: string[]): string[] {
 }
 
 async function assertRendersWithoutFatalError(
-	page: import('@playwright/test').Page,
+	page: Page,
 	url: string,
 ): Promise<void> {
 	const errors = collectFatalErrors(page)

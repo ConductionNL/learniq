@@ -77,7 +77,7 @@ class CoursePackageExportServiceTest extends TestCase {
 					'course' => [],
 					'lesson' => [['id' => 'lesson-1', 'name' => 'Intro', 'courseId' => 'course-1']],
 					'material' => [['id' => 'material-1', 'title' => 'Slides', 'kind' => 'document', 'fileRef' => '/Scholiq/materials/slides.pdf', 'courseId' => 'course-1']],
-					'assessment' => [['id' => 'assessment-1', 'title' => 'Midterm', 'itemRefs' => ['item-1'], 'courseId' => 'course-1']],
+					'exam' => [['id' => 'assessment-1', 'title' => 'Midterm', 'itemRefs' => ['item-1'], 'courseId' => 'course-1']],
 					'assignment' => [['id' => 'assignment-1', 'title' => 'Essay', 'rubricId' => 'rubric-1', 'courseId' => 'course-1']],
 					'lti-tool-placement' => [],
 					default => [],

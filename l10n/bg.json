@@ -446,7 +446,27 @@
         "Approval failed. Are you listed as a parent for this learner?": "Одобряването не бе успешно. Вписани ли сте като родител за този обучаем?",
         "Rejection failed. Please try again.": "Отхвърлянето не бе успешно. Моля, опитайте отново.",
         "No job ID in URL.": "Няма ID на задание в URL.",
-        "Failed to load job. Please try again.": "Неуспешно зареждане на заданието. Моля, опитайте отново."
+        "Failed to load job. Please try again.": "Неуспешно зареждане на заданието. Моля, опитайте отново.",
+        "Reports": "Отчети",
+        "Pick a report to open it.": "Изберете отчет, за да го отворите.",
+        "Date": "Дата",
+        "Entries": "Записи",
+        "Study progress risk": "Риск за учебния напредък",
+        "Engagement flags": "Сигнали за ангажираност",
+        "Group trends": "Групови тенденции",
+        "Skills gaps": "Пропуски в уменията",
+        "Item statistics": "Статистики по въпроси",
+        "Course quality": "Качество на курса",
+        "Workplace visits": "Посещения на работното място",
+        "Which students are at risk of falling short of the binding study advice.": "Кои студенти рискуват да не постигнат обвързващия учебен съвет.",
+        "The flags the engagement thresholds have raised, and against whom.": "Сигналите, които праговете за ангажираност са вдигнали, и срещу кого.",
+        "How groups are moving over time, as a heatmap.": "Как групите се движат във времето, като топлинна карта.",
+        "Where competences fall short of what a course expects.": "Къде уменията изостават от това, което курсът очаква.",
+        "How each assessment item performed, question by question.": "Как се е представил всеки въпрос от оценяването, въпрос по въпрос.",
+        "What course evaluations said, per course.": "Какво казаха оценките на курсовете, по курс.",
+        "What was found on placement visits.": "Какво е установено при посещенията на работното място.",
+        "Store": "Магазин",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Инсталирайте регистри, схеми и потоци, публикувани от други организации."
     },
     "plurals": null
 }

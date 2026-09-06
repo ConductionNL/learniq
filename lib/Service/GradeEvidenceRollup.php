@@ -48,7 +48,7 @@ class GradeEvidenceRollup {
 	private const SUBMISSION_SCHEMA = 'submission';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
 	private const ASSESSMENT_RESULT_SCHEMA = 'assessment-result';
-	private const ASSESSMENT_SCHEMA = 'assessment';
+	private const ASSESSMENT_SCHEMA = 'exam';
 
 	/**
 	 * Constructor.

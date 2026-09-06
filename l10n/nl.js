@@ -1,6 +1,14 @@
 OC.L10N.register(
     "learniq",
     {
+        "Load example data?": "Voorbeeldgegevens laden?",
+        "Example data fills the lists, detail pages and dashboards so you can see the app working straight away. Pick \"None\" on a production install.": "Voorbeeldgegevens vullen de lijsten, detailpagina’s en dashboards, zodat je de app meteen ziet werken. Kies \"Geen\" op een productieomgeving.",
+        "Load the example data": "Laad de voorbeeldgegevens",
+        "Loads what you picked. The data is obviously sample data, it is safe to run more than once, and you can delete it afterwards.": "Laadt wat je koos. De gegevens zijn herkenbaar voorbeeldgegevens, je kunt dit meer dan een keer uitvoeren en je kunt ze daarna verwijderen.",
+        "None, I will set this up myself": "Geen, ik richt dit zelf in",
+        "Nothing is imported. You start with an empty app and add your own data.": "Er wordt niets geïmporteerd. Je begint met een lege app en voegt zelf gegevens toe.",
+        "Example data": "Voorbeeldgegevens",
+        "Sample values for every schema this app supplies, generated from the schemas themselves. It shows the lists, detail pages and dashboards working rather than telling a story. Safe to run more than once, and you can delete it afterwards.": "Voorbeeldwaarden voor elk schema dat deze app levert, gegenereerd uit de schema’s zelf. Het laat de lijsten, detailpagina’s en dashboards werkend zien in plaats van een verhaal te vertellen. Veilig om vaker uit te voeren, en je kunt het daarna verwijderen.",
         "Welcome": "Welkom",
         "A short setup to get this app ready. Nothing here is required; you can close it and come back later.": "Een korte installatie om deze app klaar te zetten. Niets hiervan is verplicht; je kunt dit sluiten en later terugkomen.",
         "Demo data (optional)": "Demovoorbeelddata (optioneel)",
@@ -1390,7 +1398,23 @@ OC.L10N.register(
         "Open School-year rollover from the menu.": "Open School-year rollover via het menu.",
         "Click School-year rollover in the menu": "Klik op School-year rollover in het menu",
         "Flows automate the repetitive parts of this app. Have a look, though you do not have to build one now.": "Flows automatiseren het repeterende werk in deze app. Kijk gerust rond, je hoeft er nu geen te maken.",
-        "Open Flows from the menu": "Open Flows via het menu"
+        "Open Flows from the menu": "Open Flows via het menu",
+        "Reports": "Rapporten",
+        "Pick a report to open it.": "Kies een rapport om het te openen.",
+        "Study progress risk": "Studievoortgangsrisico",
+        "Group trends": "Groepstrends",
+        "Skills gaps": "Competentiehiaten",
+        "Course quality": "Cursuskwaliteit",
+        "Workplace visits": "Werkplekbezoeken",
+        "Which students are at risk of falling short of the binding study advice.": "Welke studenten dreigen het bindend studieadvies niet te halen.",
+        "The flags the engagement thresholds have raised, and against whom.": "De signalen die de betrokkenheidsdrempels hebben opgeleverd, en bij wie.",
+        "How groups are moving over time, as a heatmap.": "Hoe groepen zich in de tijd ontwikkelen, als heatmap.",
+        "Where competences fall short of what a course expects.": "Waar competenties achterblijven bij wat een cursus verwacht.",
+        "How each assessment item performed, question by question.": "Hoe elk toetsitem het deed, vraag voor vraag.",
+        "What course evaluations said, per course.": "Wat cursusevaluaties zeiden, per cursus.",
+        "What was found on placement visits.": "Wat er bij werkplekbezoeken is aangetroffen.",
+        "Store": "Store",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installeer registers, schema's en flows die andere organisaties hebben gepubliceerd."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -264,7 +264,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#scenario-an-assessment-is-unavailable-until-a-minimum-score-on-a-prior-assessment-is-met
 	 */
 	public function testUnmetAssessmentMinScoreConditionBlocks(): void {
-		$this->seed('assessment', ['id' => 'assessment-a', 'title' => 'Quiz A']);
+		$this->seed('exam', ['id' => 'assessment-a', 'title' => 'Quiz A']);
 		$this->seed(
 			'assessment-result',
 			[
@@ -308,7 +308,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 * @spec openspec/changes/adaptive-release-and-prerequisites/specs/assessment/spec.md#scenario-an-assessment-unlocks-once-the-learner-meets-the-minimum-score-on-the-prior-assessment
 	 */
 	public function testMetAssessmentMinScoreConditionIsAvailable(): void {
-		$this->seed('assessment', ['id' => 'assessment-a', 'title' => 'Quiz A']);
+		$this->seed('exam', ['id' => 'assessment-a', 'title' => 'Quiz A']);
 		$this->seed(
 			'assessment-result',
 			[
@@ -352,7 +352,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	 * @return void
 	 */
 	public function testBestOfMultipleAttemptsIsUsed(): void {
-		$this->seed('assessment', ['id' => 'assessment-a', 'title' => 'Quiz A']);
+		$this->seed('exam', ['id' => 'assessment-a', 'title' => 'Quiz A']);
 		$this->seed(
 			'assessment-result',
 			[
@@ -506,7 +506,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 				'isAvailable' => false,
 				'availableAfterDays' => 1,
 			],
-			itemSchema: 'assessment',
+			itemSchema: 'exam',
 			learnerId: 'learner-1',
 			enrolment: $this->enrolmentCreatedAt((new DateTimeImmutable('-10 days'))->format(DATE_ATOM))
 		);
@@ -533,7 +533,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 				'isAvailable' => true,
 				'availableAfterDays' => 7,
 			],
-			itemSchema: 'assessment',
+			itemSchema: 'exam',
 			learnerId: 'learner-1',
 			enrolment: $this->enrolmentCreatedAt((new DateTimeImmutable('-3 days'))->format(DATE_ATOM))
 		);
@@ -558,7 +558,7 @@ class LessonReleaseEvaluatorTest extends TestCase {
 				'isAvailable' => true,
 				'availableAfterDays' => 7,
 			],
-			itemSchema: 'assessment',
+			itemSchema: 'exam',
 			learnerId: 'learner-1',
 			enrolment: $this->enrolmentCreatedAt((new DateTimeImmutable('-10 days'))->format(DATE_ATOM))
 		);

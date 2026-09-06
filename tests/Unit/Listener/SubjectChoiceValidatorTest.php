@@ -317,7 +317,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getRegister')->willReturn('learniq');
-		$event->method('getSchema')->willReturn('application');
+		$event->method('getSchema')->willReturn('admission');
 		$event->method('getTo')->willReturn('submitted');
 
 		$handler->handle($event);

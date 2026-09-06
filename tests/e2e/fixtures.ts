@@ -1,4 +1,6 @@
-import { test as base, Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+
+import { test as base } from '@playwright/test'
 
 /**
  * Navigate to the app and verify the session is active.

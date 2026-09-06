@@ -114,7 +114,7 @@ class ItemAnalysisServiceTest extends TestCase {
 	 * @return void
 	 */
 	private function seedAssessment(): void {
-		$this->seed('assessment', ['id' => 'assessment-1', 'uuid' => 'assessment-1', 'tenant_id' => 'tenant-a']);
+		$this->seed('exam', ['id' => 'assessment-1', 'uuid' => 'assessment-1', 'tenant_id' => 'tenant-a']);
 
 	}//end seedAssessment()
 
@@ -435,7 +435,7 @@ class ItemAnalysisServiceTest extends TestCase {
 	 */
 	public function testItemAnalysisConfigOverridesMinimumSampleSize(): void {
 		$this->seed(
-			'assessment',
+			'exam',
 			[
 				'id' => 'assessment-1',
 				'uuid' => 'assessment-1',

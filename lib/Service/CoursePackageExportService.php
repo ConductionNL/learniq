@@ -203,7 +203,7 @@ class CoursePackageExportService {
 		$childCourses = $this->findAllArrays(schema: 'course', filters: ['parentCourseId' => $courseId]);
 		$lessons = $this->findAllArrays(schema: 'lesson', filters: ['courseId' => $courseId]);
 		$rawMaterials = $this->findAllArrays(schema: 'material', filters: ['courseId' => $courseId]);
-		$assessments = $this->findAllArrays(schema: 'assessment', filters: ['courseId' => $courseId]);
+		$assessments = $this->findAllArrays(schema: 'exam', filters: ['courseId' => $courseId]);
 		$assignments = $this->findAllArrays(schema: 'assignment', filters: ['courseId' => $courseId]);
 		$ltiPlacements = $this->findAllArrays(schema: 'lti-tool-placement', filters: ['courseId' => $courseId]);
 

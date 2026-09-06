@@ -447,7 +447,27 @@ OC.L10N.register(
         "Approval failed. Are you listed as a parent for this learner?": "Miratimi dështoi. A jeni të listuar si prind për këtë nxënës?",
         "Rejection failed. Please try again.": "Refuzimi dështoi. Ju lutemi provoni përsëri.",
         "No job ID in URL.": "Nuk ka ID pune në URL.",
-        "Failed to load job. Please try again.": "Ngarkimi i punës dështoi. Ju lutemi provoni përsëri."
+        "Failed to load job. Please try again.": "Ngarkimi i punës dështoi. Ju lutemi provoni përsëri.",
+        "Reports": "Raportet",
+        "Pick a report to open it.": "Zgjidhni një raport për ta hapur.",
+        "Date": "Data",
+        "Entries": "Regjistrime",
+        "Study progress risk": "Rreziku i progresit të studimit",
+        "Engagement flags": "Sinjalet e angazhimit",
+        "Group trends": "Trendet e grupeve",
+        "Skills gaps": "Boshllëqet e aftësive",
+        "Item statistics": "Statistikat e pyetjeve",
+        "Course quality": "Cilësia e kursit",
+        "Workplace visits": "Vizitat në vendin e punës",
+        "Which students are at risk of falling short of the binding study advice.": "Cilët studentë rrezikojnë të mos përmbushin këshillën detyruese të studimit.",
+        "The flags the engagement thresholds have raised, and against whom.": "Sinjalet që kanë ngritur pragjet e angazhimit dhe kundër kujt.",
+        "How groups are moving over time, as a heatmap.": "Si lëvizin grupet me kalimin e kohës, si hartë nxehtësie.",
+        "Where competences fall short of what a course expects.": "Ku kompetencat mbeten pas asaj që pret një kurs.",
+        "How each assessment item performed, question by question.": "Si u paraqit çdo pyetje vlerësimi, pyetje pas pyetjeje.",
+        "What course evaluations said, per course.": "Çfarë thanë vlerësimet e kursit, sipas kursit.",
+        "What was found on placement visits.": "Çfarë u gjet gjatë vizitave në vendin e punës.",
+        "Store": "Dyqani",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Instaloni regjistra, skema dhe rrjedha të publikuara nga organizata të tjera."
     },
     "nplurals=2; plural=(n != 1);"
 )

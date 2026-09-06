@@ -119,7 +119,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 		$transitionEngine->method('transition')->willReturnCallback(
 			function (string $objectId, string $action): ObjectEntity {
 				$this->transitions[] = ['objectId' => $objectId, 'action' => $action];
-				return OrEntityFactory::make(['id' => $objectId], 'application');
+				return OrEntityFactory::make(['id' => $objectId], 'admission');
 			}
 		);
 
@@ -140,7 +140,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
 		$event->method('getRegister')->willReturn('learniq');
-		$event->method('getSchema')->willReturn('application');
+		$event->method('getSchema')->willReturn('admission');
 		$event->method('getTo')->willReturn('placed');
 		$event->method('getFrom')->willReturn('intake-completed');
 
@@ -183,7 +183,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 			self::assertSame('admission', $save['object']['source']);
 		}
 
-		$applicationSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'application'));
+		$applicationSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'admission'));
 		self::assertCount(1, $applicationSaves);
 		self::assertSame('profile-1', $applicationSaves[0]['object']['convertedLearnerProfileId']);
 		self::assertCount(3, $applicationSaves[0]['object']['convertedEnrolmentIds']);
@@ -212,7 +212,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 
 		$writtenSchemas = array_unique(array_column($this->savedObjects, 'schema'));
 		sort($writtenSchemas);
-		self::assertSame(['application', 'enrolment', 'learner-profile'], $writtenSchemas);
+		self::assertSame(['admission', 'enrolment', 'learner-profile'], $writtenSchemas);
 
 	}//end testNoUnexpectedSideEffectSchemasWritten()
 
@@ -279,7 +279,7 @@ class ApplicationConversionHandlerTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getRegister')->willReturn('learniq');
-		$event->method('getSchema')->willReturn('application');
+		$event->method('getSchema')->willReturn('admission');
 		$event->method('getTo')->willReturn('rejected');
 
 		$handler->handle($event);

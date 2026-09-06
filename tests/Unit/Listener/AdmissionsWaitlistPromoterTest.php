@@ -67,7 +67,7 @@ class AdmissionsWaitlistPromoterTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($waitlisted) {
-				if (($config['schema'] ?? '') === 'application' && ($config['filters']['lifecycle'] ?? '') === 'waitlisted') {
+				if (($config['schema'] ?? '') === 'admission' && ($config['filters']['lifecycle'] ?? '') === 'waitlisted') {
 					return $waitlisted;
 				}
 
@@ -79,7 +79,7 @@ class AdmissionsWaitlistPromoterTest extends TestCase {
 		$transitionEngine->method('transition')->willReturnCallback(
 			function (string $objectId, string $action): ObjectEntity {
 				$this->transitions[] = ['objectId' => $objectId, 'action' => $action];
-				return OrEntityFactory::make(['id' => $objectId], 'application');
+				return OrEntityFactory::make(['id' => $objectId], 'admission');
 			}
 		);
 
@@ -101,7 +101,7 @@ class AdmissionsWaitlistPromoterTest extends TestCase {
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($objectEntity);
 		$event->method('getRegister')->willReturn('learniq');
-		$event->method('getSchema')->willReturn('application');
+		$event->method('getSchema')->willReturn('admission');
 		$event->method('getFrom')->willReturn('placed');
 		$event->method('getTo')->willReturn($to);
 
@@ -179,7 +179,7 @@ class AdmissionsWaitlistPromoterTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getRegister')->willReturn('learniq');
-		$event->method('getSchema')->willReturn('application');
+		$event->method('getSchema')->willReturn('admission');
 		$event->method('getFrom')->willReturn('intake-completed');
 		$event->method('getTo')->willReturn('rejected');
 
@@ -199,7 +199,7 @@ class AdmissionsWaitlistPromoterTest extends TestCase {
 
 		$event = $this->createMock(ObjectTransitionedEvent::class);
 		$event->method('getRegister')->willReturn('learniq');
-		$event->method('getSchema')->willReturn('application');
+		$event->method('getSchema')->willReturn('admission');
 		$event->method('getFrom')->willReturn('placed');
 		$event->method('getTo')->willReturn('converted');
 

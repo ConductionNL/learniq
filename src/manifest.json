@@ -12,11 +12,21 @@
       },
       {
         "id": "demo-data",
-        "type": "run-action",
-        "action": "install-demo-data",
-        "title": "Demo data (optional)",
+        "type": "choice",
+        "display": "cards",
+        "optionsSource": "datasets",
+        "configKey": "demo_dataset",
+        "title": "Load example data?",
         "required": false,
-        "body": "Load a small example dataset so the lists, detail pages and dashboards show a working product straight away. The data is obviously sample data, it is safe to run more than once, and it can be removed afterwards. Skip this on a production install."
+        "body": "Example data fills the lists, detail pages and dashboards so you can see the app working straight away. Pick \"None\" on a production install."
+      },
+      {
+        "id": "load-demo-data",
+        "type": "run-action",
+        "action": "load-demo-data",
+        "title": "Load the example data",
+        "required": false,
+        "body": "Loads what you picked. The data is obviously sample data, it is safe to run more than once, and you can delete it afterwards."
       },
       {
         "id": "done",
@@ -121,6 +131,14 @@
       "displayName": "Support request"
     }
   ],
+  "store": {
+    "_note": "Configuration exchange, not rows. A configuration set carries the registers, schemas, objects, views, flows, sources and mappings that make one way of working hold together. There is deliberately NO `installable` allowlist: a set exists to introduce schemas the instance does not have YET, so listing schemas this app already owns would refuse exactly the sets worth installing. The trust boundary for a bundle is its publisher, enforced by the engine's source allowlist and trusted-key check. \u26a0\ufe0f An EMPTY `installable` means install NOTHING, not install anything \u2014 omitting the key and declaring an empty list are different things.",
+    "types": [
+      "openregister.configset",
+      "openregister.flows"
+    ],
+    "localRegister": "learniq"
+  },
   "menu": [
     {
       "id": "Documentation",
@@ -129,6 +147,22 @@
       "href": "https://learniq.conduction.nl",
       "section": "footer",
       "order": 90
+    },
+    {
+      "id": "StoreMenu",
+      "label": "Store",
+      "icon": "StoreOutline",
+      "route": "Store",
+      "section": "footer",
+      "order": 92
+    },
+    {
+      "id": "ReportsMenu",
+      "label": "Reports",
+      "icon": "ChartBoxOutline",
+      "route": "Reports",
+      "section": "footer",
+      "order": 95
     },
     {
       "id": "FeaturesRoadmapMenu",
@@ -170,6 +204,91 @@
     }
   ],
   "pages": [
+    {
+      "id": "Store",
+      "route": "/store",
+      "type": "store",
+      "title": "Store",
+      "config": {
+        "app": "learniq",
+        "title": "Store",
+        "description": "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them."
+      },
+      "_note": "ADR-114 Decision 4 / ADR-080. Declarative: openregister hosts the store plane, so this app writes NO store controller. With no registry configured the page renders the app's built-in items and makes NO network call."
+    },
+    {
+      "id": "Reports",
+      "_note": "ADR-112 / ADR-114 Decision 3. NOTHING here is invented and nothing is relocated: all seven pages already existed as routes with NO menu entry at all, reachable only by someone who already knew the URL. Carding them GIVES an entry point rather than moving one. Two neighbouring orphans are deliberately NOT carded, because a gate finding is a question rather than an instruction: AuditPackExport (/compliance/export) BUILDS an export, and EngagementRiskThresholds (/progress/engagement-thresholds) CONFIGURES the thresholds that produce the flags. Both are things you do, not readings, and ADR-097 keeps work in the main navigation. The report periods, report cards, conference reports and course-package import reports already have menu entries and stay there: ADR-112 forbids a report being BOTH a card and an entry, not being an entry.",
+      "route": "/reports",
+      "type": "reports",
+      "title": "Reports",
+      "config": {
+        "description": "Pick a report to open it.",
+        "categories": {
+          "progress": "Progress and risk",
+          "quality": "Quality and assessment",
+          "placements": "Placements"
+        },
+        "cards": [
+          {
+            "id": "BsaRiskDashboard",
+            "label": "Study progress risk",
+            "description": "Which students are at risk of falling short of the binding study advice.",
+            "icon": "AlertOutline",
+            "category": "progress",
+            "route": "BsaRiskDashboard"
+          },
+          {
+            "id": "EngagementRiskFlags",
+            "label": "Engagement flags",
+            "description": "The flags the engagement thresholds have raised, and against whom.",
+            "icon": "AlertOutline",
+            "category": "progress",
+            "route": "EngagementRiskFlags"
+          },
+          {
+            "id": "GroupTrendHeatmap",
+            "label": "Group trends",
+            "description": "How groups are moving over time, as a heatmap.",
+            "icon": "TrendingUp",
+            "category": "progress",
+            "route": "GroupTrendHeatmap"
+          },
+          {
+            "id": "SkillsGapDashboard",
+            "label": "Skills gaps",
+            "description": "Where competences fall short of what a course expects.",
+            "icon": "ChartBar",
+            "category": "progress",
+            "route": "SkillsGapDashboard"
+          },
+          {
+            "id": "ItemStatisticsList",
+            "label": "Item statistics",
+            "description": "How each assessment item performed, question by question.",
+            "icon": "ClipboardCheckOutline",
+            "category": "quality",
+            "route": "ItemStatisticsList"
+          },
+          {
+            "id": "CourseQualityReport",
+            "label": "Course quality",
+            "description": "What course evaluations said, per course.",
+            "icon": "SchoolOutline",
+            "category": "quality",
+            "route": "CourseQualityReport"
+          },
+          {
+            "id": "BpvVisitReports",
+            "label": "Workplace visits",
+            "description": "What was found on placement visits.",
+            "icon": "BriefcaseOutline",
+            "category": "placements",
+            "route": "BpvVisitReports"
+          }
+        ]
+      }
+    },
     {
       "id": "FeaturesRoadmap",
       "route": "/features-roadmap",
