@@ -446,7 +446,27 @@
         "Approval failed. Are you listed as a parent for this learner?": "Hyväksyminen epäonnistui. Oletko kirjattu tämän oppijan vanhemmaksi?",
         "Rejection failed. Please try again.": "Hylkääminen epäonnistui. Yritä uudelleen.",
         "No job ID in URL.": "URL-osoitteessa ei ole tehtävätunnusta.",
-        "Failed to load job. Please try again.": "Tehtävän lataaminen epäonnistui. Yritä uudelleen."
+        "Failed to load job. Please try again.": "Tehtävän lataaminen epäonnistui. Yritä uudelleen.",
+        "Reports": "Raportit",
+        "Pick a report to open it.": "Valitse raportti avataksesi sen.",
+        "Date": "Päivämäärä",
+        "Entries": "Merkinnät",
+        "Study progress risk": "Opintojen etenemisriski",
+        "Engagement flags": "Sitoutumisen merkinnät",
+        "Group trends": "Ryhmätrendit",
+        "Skills gaps": "Osaamisvajeet",
+        "Item statistics": "Osioiden tilastot",
+        "Course quality": "Kurssin laatu",
+        "Workplace visits": "Työpaikkakäynnit",
+        "Which students are at risk of falling short of the binding study advice.": "Ketkä opiskelijat ovat vaarassa jäädä sitovan opintosuosituksen alle.",
+        "The flags the engagement thresholds have raised, and against whom.": "Sitoutumisrajojen nostamat merkinnät ja keitä ne koskevat.",
+        "How groups are moving over time, as a heatmap.": "Miten ryhmät kehittyvät ajan myötä, lämpökarttana.",
+        "Where competences fall short of what a course expects.": "Missä osaaminen jää alle sen, mitä kurssi odottaa.",
+        "How each assessment item performed, question by question.": "Miten kukin arviointiosio toimi, kysymys kysymykseltä.",
+        "What course evaluations said, per course.": "Mitä kurssiarvioinnit kertoivat, kursseittain.",
+        "What was found on placement visits.": "Mitä työpaikkakäynneillä havaittiin.",
+        "Store": "Kauppa",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Asenna muiden organisaatioiden julkaisemia rekistereitä, skeemoja ja vuokaavioita."
     },
     "plurals": null
 }

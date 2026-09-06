@@ -229,7 +229,7 @@ class LessonReleaseControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testAdminViewCallerIsTreatedAsStaff(): void {
-		$this->seed('assessment', ['id' => 'assessment-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']);
+		$this->seed('exam', ['id' => 'assessment-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']);
 		$this->signInAs('admin-1', views: ['admin', 'teacher', 'student']);
 
 		$controller = $this->controller();

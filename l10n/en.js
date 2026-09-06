@@ -949,7 +949,24 @@ OC.L10N.register(
         "Compliance": "Compliance",
         "My learning": "My learning",
         "Administration": "Administration",
-        "Teaching": "Teaching"
+        "Teaching": "Teaching",
+        "Reports": "Reports",
+        "Pick a report to open it.": "Pick a report to open it.",
+        "Date": "Date",
+        "Entries": "Entries",
+        "Study progress risk": "Study progress risk",
+        "Group trends": "Group trends",
+        "Skills gaps": "Skills gaps",
+        "Item statistics": "Item statistics",
+        "Course quality": "Course quality",
+        "Workplace visits": "Workplace visits",
+        "Which students are at risk of falling short of the binding study advice.": "Which students are at risk of falling short of the binding study advice.",
+        "The flags the engagement thresholds have raised, and against whom.": "The flags the engagement thresholds have raised, and against whom.",
+        "How groups are moving over time, as a heatmap.": "How groups are moving over time, as a heatmap.",
+        "Where competences fall short of what a course expects.": "Where competences fall short of what a course expects.",
+        "How each assessment item performed, question by question.": "How each assessment item performed, question by question.",
+        "What course evaluations said, per course.": "What course evaluations said, per course.",
+        "What was found on placement visits.": "What was found on placement visits."
     },
     "nplurals=2; plural=(n != 1);"
 )

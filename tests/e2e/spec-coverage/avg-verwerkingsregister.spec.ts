@@ -14,7 +14,7 @@
  * All tests use the admin session provided by the global setup. REST calls are
  * setup-only; assertions are DOM-based.
  */
-import { test, expect } from '../fixtures'
+import { expect, test } from '../fixtures.ts'
 
 // `/index.php/` prefix is load-bearing on CI (a bare `php -S` does not rewrite
 // pretty URLs and `server/apps/learniq/` exists without an index.php), and the

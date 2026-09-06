@@ -28,20 +28,23 @@
  *       reachable from this task.
  * Unskip and seed on an isolated instance to activate.
  */
-import { test, expect } from '../fixtures'
+import { expect, test } from '../fixtures.ts'
 
-const PEER_REVIEW_MARKING_URL = (assignmentId: string, peerReviewId: string) =>
-	`/index.php/apps/learniq/assignments/${assignmentId}/peer-reviews/${peerReviewId}/mark`
+function PEER_REVIEW_MARKING_URL(assignmentId: string, peerReviewId: string) {
+	return `/index.php/apps/learniq/assignments/${assignmentId}/peer-reviews/${peerReviewId}/mark`
+}
 
 // The view this spec drives, named after the component file it covers. The
 // URL builder is unchanged — this makes the spec-to-component link readable in
 // executable code rather than only in the prose above (gate-26 matches a
 // page against its component stem, and the stem appeared only in comments).
 const MarkSubmissionView = PEER_REVIEW_MARKING_URL
-const SELF_ASSESSMENT_URL = (assignmentId: string, submissionId: string) =>
-	`/index.php/apps/learniq/assignments/${assignmentId}/submissions/${submissionId}/self-assessment`
-const SUBMISSION_DETAIL_URL = (assignmentId: string, submissionId: string) =>
-	`/index.php/apps/learniq/assignments/${assignmentId}/submissions/${submissionId}`
+function SELF_ASSESSMENT_URL(assignmentId: string, submissionId: string) {
+	return `/index.php/apps/learniq/assignments/${assignmentId}/submissions/${submissionId}/self-assessment`
+}
+function SUBMISSION_DETAIL_URL(assignmentId: string, submissionId: string) {
+	return `/index.php/apps/learniq/assignments/${assignmentId}/submissions/${submissionId}`
+}
 
 test.describe('peer-and-self-assessment — reviewer/learner/author flows (live run deferred)', () => {
 	// Reason recorded as an annotation, not only in the header above: the

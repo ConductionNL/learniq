@@ -29,7 +29,9 @@
  * blank/404/error shell), which is what registry.js registration + manifest
  * wiring exists to guarantee.
  */
-import { test, expect } from '../fixtures'
+import type { Page } from '@playwright/test'
+
+import { expect, test } from '../fixtures.ts'
 
 const PORTFOLIOS_INDEX_URL = '/index.php/apps/learniq/eportfolio/portfolios'
 const PORTFOLIO_TEMPLATES_INDEX_URL = '/index.php/apps/learniq/eportfolio/templates'
@@ -40,7 +42,7 @@ const PORTFOLIO_ENTRIES_INDEX_URL = '/index.php/apps/learniq/eportfolio/entries'
  * every other spec-coverage spec in this repo filters (favicon/font/network
  * blips unrelated to app logic).
  */
-function collectFatalErrors(page: import('@playwright/test').Page): string[] {
+function collectFatalErrors(page: Page): string[] {
 	const errors: string[] = []
 	page.on('console', (msg) => {
 		if (msg.type() === 'error') {

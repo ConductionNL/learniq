@@ -447,7 +447,27 @@ OC.L10N.register(
         "Approval failed. Are you listed as a parent for this learner?": "Apstiprināšana neizdevās. Vai esat norādīts kā šī studenta vecāks?",
         "Rejection failed. Please try again.": "Noraidīšana neizdevās. Lūdzu, mēģiniet vēlreiz.",
         "No job ID in URL.": "URL nav darba ID.",
-        "Failed to load job. Please try again.": "Neizdevās ielādēt darbu. Lūdzu, mēģiniet vēlreiz."
+        "Failed to load job. Please try again.": "Neizdevās ielādēt darbu. Lūdzu, mēģiniet vēlreiz.",
+        "Reports": "Pārskati",
+        "Pick a report to open it.": "Izvēlieties pārskatu, lai to atvērtu.",
+        "Date": "Datums",
+        "Entries": "Ieraksti",
+        "Study progress risk": "Studiju progresa risks",
+        "Engagement flags": "Iesaistes brīdinājumi",
+        "Group trends": "Grupu tendences",
+        "Skills gaps": "Prasmju trūkumi",
+        "Item statistics": "Vienumu statistika",
+        "Course quality": "Kursa kvalitāte",
+        "Workplace visits": "Darba vietas apmeklējumi",
+        "Which students are at risk of falling short of the binding study advice.": "Kuriem studentiem ir risks neizpildīt saistošo studiju ieteikumu.",
+        "The flags the engagement thresholds have raised, and against whom.": "Brīdinājumi, ko iesaistes sliekšņi ir izraisījuši, un pret ko.",
+        "How groups are moving over time, as a heatmap.": "Kā grupas mainās laika gaitā, kā siltuma karte.",
+        "Where competences fall short of what a course expects.": "Kur kompetences atpaliek no tā, ko kurss sagaida.",
+        "How each assessment item performed, question by question.": "Kā katrs vērtēšanas vienums darbojās, jautājumu pa jautājumam.",
+        "What course evaluations said, per course.": "Ko teica kursu novērtējumi, pa kursiem.",
+        "What was found on placement visits.": "Kas tika konstatēts darba vietas apmeklējumos.",
+        "Store": "Veikals",
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Instalējiet reģistrus, shēmas un plūsmas, ko publicējušas citas organizācijas."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -29,8 +29,10 @@
  *
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
-import { test, expect } from '../fixtures'
-import { requireFixture } from '../seeded'
+import type { Page } from '@playwright/test'
+
+import { expect, test } from '../fixtures.ts'
+import { requireFixture } from '../seeded.ts'
 
 // `/index.php/` prefix is load-bearing on CI — a bare `php -S` does not rewrite
 // pretty URLs, and `server/apps/openregister/` exists without an index.php, so
@@ -58,7 +60,7 @@ const COURSE_LIST_API =
  *
  * @param page The Playwright page (used for its authenticated request context).
  */
-async function findTopLevelCourse(page: import('@playwright/test').Page) {
+async function findTopLevelCourse(page: Page) {
 	const resp = await page.request.get(COURSE_LIST_API, {
 		headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 	})
@@ -69,7 +71,7 @@ async function findTopLevelCourse(page: import('@playwright/test').Page) {
 	return courses.find((c: any) => !c.parentCourseId) ?? null
 }
 
-function collectFatalErrors(page: import('@playwright/test').Page): string[] {
+function collectFatalErrors(page: Page): string[] {
 	const errors: string[] = []
 	page.on('console', (msg) => {
 		if (msg.type() === 'error') errors.push(msg.text())
@@ -89,10 +91,7 @@ function fatalOnly(errors: string[]): string[] {
 	)
 }
 
-async function openCourseBuilder(
-	page: import('@playwright/test').Page,
-	courseId: string,
-) {
+async function openCourseBuilder(page: Page, courseId: string) {
 	// ⚠️ NO `#` — the router is HISTORY mode, not hash mode.
 	//
 	// src/main.js builds it with `createWebHistory(generateUrl('/apps/learniq'))`.

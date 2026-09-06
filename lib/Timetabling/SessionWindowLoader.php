@@ -51,7 +51,7 @@ class SessionWindowLoader {
 	private const SESSION_SCHEMA = 'session';
 	private const COHORT_SCHEMA = 'cohort';
 	private const ROOM_SCHEMA = 'room';
-	private const ASSESSMENT_SCHEMA = 'assessment';
+	private const ASSESSMENT_SCHEMA = 'exam';
 	private const TIMETABLE_CONFLICT_SCHEMA = 'timetable-conflict';
 
 	/**

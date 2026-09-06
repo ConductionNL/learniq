@@ -27,8 +27,10 @@
  *
  * Assertions are DOM-based; the admin session comes from the global setup.
  */
-import { test, expect } from '../fixtures'
-import { requireFixture } from '../seeded'
+import type { Page } from '@playwright/test'
+
+import { expect, test } from '../fixtures.ts'
+import { requireFixture } from '../seeded.ts'
 
 // `/index.php/` prefix is load-bearing on CI. The shared workflow serves
 // Nextcloud with a bare `php -S` and no router script, so pretty URLs are not
@@ -52,10 +54,7 @@ const LESSON_LIST_API =
  * @param page    The Playwright page (used for its authenticated request context).
  * @param matches Predicate a candidate Lesson row must satisfy.
  */
-async function findLesson(
-	page: import('@playwright/test').Page,
-	matches: (_lesson: any) => boolean,
-) {
+async function findLesson(page: Page, matches: (_lesson: any) => boolean) {
 	const resp = await page.request.get(LESSON_LIST_API, {
 		headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 	})
@@ -66,7 +65,7 @@ async function findLesson(
 	return lessons.find(matches) ?? null
 }
 
-function collectFatalErrors(page: import('@playwright/test').Page): string[] {
+function collectFatalErrors(page: Page): string[] {
 	const errors: string[] = []
 	page.on('console', (msg) => {
 		if (msg.type() === 'error') errors.push(msg.text())
@@ -86,11 +85,7 @@ function fatalOnly(errors: string[]): string[] {
 	)
 }
 
-async function openLessonPlayer(
-	page: import('@playwright/test').Page,
-	courseId: string,
-	lessonId: string,
-) {
+async function openLessonPlayer(page: Page, courseId: string, lessonId: string) {
 	// ⚠️ NO `#` — HISTORY mode router. With the hash this resolved to
 	// `/#/courses/…/play`, matched no declared route, and the catch-all
 	// redirected to the DASHBOARD, so every assertion here was made against the
@@ -189,8 +184,11 @@ test.describe('adaptive-release-and-prerequisites — LessonPlayer release-gate 
 			(l) =>
 				l.contentType === 'text'
 				&& l.lifecycle === 'published'
-				&& (l.releaseConditions == null || l.releaseConditions.length === 0)
-				&& l.availableAfterDays == null,
+				&& (l.releaseConditions === null
+					|| l.releaseConditions === undefined
+					|| l.releaseConditions.length === 0)
+				&& (l.availableAfterDays === null
+					|| l.availableAfterDays === undefined),
 		)
 		requireFixture(lesson, 'a published, ungated contentType=text Lesson')
 
