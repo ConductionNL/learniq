@@ -85,25 +85,44 @@ export async function openAndExpectSchemaLoads(
 		return normalise(segment) === wanted
 	}
 
-	// 20s, not 30s. CI runs these under tests/e2e/playwright.config.ts, whose
-	// per-test budget is 40s. A 30s wait here plus a 20s visibility wait in the
-	// caller exceeds that, and the test then dies on the budget with a bare
-	// timeout instead of on the assertion that would have named the cause.
-	const responsePromise = page.waitForResponse(
-		(response) => matches(response.url()),
-		{ timeout: 20_000 },
-	)
+	// Collect, then assert. This used to race `waitForResponse` against a fixed
+	// window, which made the result a function of machine load rather than of
+	// the app: the same three spec files scored 10 of 12 at load average 4 and
+	// 5 of 12 at load average 22, on identical code. Collecting every matching
+	// response from navigation onward and polling the collection afterwards
+	// asks "did this surface read its schema" instead of "did it read it
+	// within N seconds of my listener attaching".
+	const seen: Array<{ status: number; body: () => Promise<unknown> }> = []
+	page.on('response', (response) => {
+		if (matches(response.url())) {
+			seen.push({
+				status: response.status(),
+				body: () => response.json().catch(() => null),
+			})
+		}
+	})
 
 	await page.goto(url, { waitUntil: 'domcontentloaded' })
 
-	const response = await responsePromise
+	// CI budgets 40s per test under tests/e2e/playwright.config.ts, so this
+	// leaves room for the navigation above and an assertion in the caller.
+	await expect
+		.poll(() => seen.length, {
+			timeout: 25_000,
+			message:
+				`${route} never requested ${prefix}${schema}. The page still paints `
+				+ 'an empty list, so nothing else in the suite would notice.',
+		})
+		.toBeGreaterThan(0)
+
+	const first = seen[0]
 	expect(
-		response.status(),
-		`${prefix}${schema} answered ${response.status()} — the surface at ${route} `
+		first.status,
+		`${prefix}${schema} answered ${first.status} — the surface at ${route} `
 			+ 'cannot read its own schema, so it renders an empty state that looks fine.',
 	).toBeLessThan(400)
 
-	return await response.json().catch(() => null)
+	return await first.body()
 }
 
 /**

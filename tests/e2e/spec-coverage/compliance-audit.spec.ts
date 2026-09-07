@@ -46,27 +46,13 @@ test.describe('compliance-audit — attestations and regulations', () => {
 
 	// @e2e openspec/specs/compliance-audit/spec.md#verified-classroom-training-turns-coverage-green
 	//
-	// SUSPECTED DEFECT, not a flaky test. Kept as fixme so the assertion stays
-	// visible instead of being deleted or shipped red.
-	//
-	// This page renders fine, which is why the existing
-	// external-training-recording.spec.ts passes: that spec only asserts the
-	// body is non-empty. This assertion is stronger — it waits for the page to
-	// actually read its own schema — and it has never once passed, including a
-	// run where 12 of 13 health samples taken DURING the run returned 200.
-	//
-	// It is not the backend. Measured directly against the same instance:
-	//   GET /api/schemas/external-training-record?register=learniq  -> 200
-	//   GET /api/objects/learniq/external-training-record?_limit=1  -> 200
-	// It is not the matcher either: the matcher normalises case and dashes, and
-	// the four sibling assertions in this file use it and pass.
-	//
-	// So the surface appears to paint an empty list without ever fetching,
-	// which is the exact failure this helper exists to catch. Confirming the
-	// mechanism needs a browser session on an instance that stays up; the
-	// shared dev instance cycled through occ upgrades throughout this work and
-	// no probe survived one. Unskip once that page's request list is captured.
-	test.fixme('the external-training index reads its schema', async ({
+	// This one failed every run against the old race-a-fixed-window helper and
+	// looked like a real defect: a page painting an empty list without ever
+	// fetching. It was not. It is simply the slowest of these surfaces to issue
+	// its object call, so it lost the race first and lost it consistently,
+	// which reads exactly like determinism. Under the collect-then-assert
+	// helper it passes. Worth remembering before calling a slow surface broken.
+	test('the external-training index reads its schema', async ({
 		loggedInPage: page,
 	}) => {
 		await openAndExpectSchemaLoads(
