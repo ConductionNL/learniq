@@ -21,7 +21,10 @@
 					"order": 10,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "administration-manager"]
+							"in": [
+								"admin",
+								"administration-manager"
+							]
 						}
 					}
 				},
@@ -33,7 +36,10 @@
 					"order": 20,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "administration-manager"]
+							"in": [
+								"admin",
+								"administration-manager"
+							]
 						}
 					}
 				},
@@ -45,7 +51,10 @@
 					"order": 30,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "administration-manager"]
+							"in": [
+								"admin",
+								"administration-manager"
+							]
 						}
 					}
 				},
@@ -57,11 +66,22 @@
 					"order": 40,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "administration-manager"]
+							"in": [
+								"admin",
+								"administration-manager"
+							]
 						}
 					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [

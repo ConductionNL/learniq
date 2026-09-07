@@ -64,7 +64,11 @@
 					"order": 30,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["compliance-officer", "hr", "admin"]
+							"in": [
+								"compliance-officer",
+								"hr",
+								"admin"
+							]
 						}
 					}
 				},
@@ -73,7 +77,15 @@
 					"label": "Accessibility",
 					"icon": "InformationOutline",
 					"route": "AccessibilityStatement",
-					"order": 40
+					"order": 40,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"compliance-officer",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "AccessibilityLimitationsMenu",
@@ -83,7 +95,10 @@
 					"order": 41,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["compliance-officer", "admin"]
+							"in": [
+								"compliance-officer",
+								"admin"
+							]
 						}
 					}
 				},
@@ -95,7 +110,10 @@
 					"order": 42,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "compliance-officer"]
+							"in": [
+								"admin",
+								"compliance-officer"
+							]
 						}
 					}
 				},
@@ -107,11 +125,25 @@
 					"order": 43,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["compliance-officer", "admin"]
+							"in": [
+								"compliance-officer",
+								"admin"
+							]
 						}
 					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"team-lead",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [

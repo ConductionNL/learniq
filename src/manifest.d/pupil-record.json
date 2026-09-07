@@ -18,23 +18,59 @@
 					"label": "Dossier notes",
 					"icon": "CommentOutline",
 					"route": "DossierNotes",
-					"order": 60
+					"order": 60,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "BehaviourIncidentsMenu",
 					"label": "Behaviour incidents",
 					"icon": "AlertOutline",
 					"route": "BehaviourIncidents",
-					"order": 61
+					"order": 61,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "WellbeingCheckInsMenu",
 					"label": "Wellbeing check-ins",
 					"icon": "BriefcaseOutline",
 					"route": "WellbeingCheckIns",
-					"order": 62
+					"order": 62,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"admin"
+							]
+						}
+					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [

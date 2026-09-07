@@ -21,7 +21,11 @@
 					"order": 70,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["guardian", "learner", "admin"]
+							"in": [
+								"guardian",
+								"learner",
+								"admin"
+							]
 						}
 					}
 				},
@@ -30,14 +34,34 @@
 					"label": "Conference rounds",
 					"icon": "Calendar",
 					"route": "ConferenceRounds",
-					"order": 71
+					"order": 71,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "TeacherAvailabilitiesMenu",
 					"label": "Teacher availability",
 					"icon": "Calendar",
 					"route": "TeacherAvailabilities",
-					"order": 72
+					"order": 72,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "ConferenceScheduleBoardMenu",
@@ -47,7 +71,11 @@
 					"order": 73,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "team-lead", "administration-manager"]
+							"in": [
+								"admin",
+								"team-lead",
+								"administration-manager"
+							]
 						}
 					}
 				},
@@ -56,9 +84,31 @@
 					"label": "Conference reports",
 					"icon": "ChartBoxOutline",
 					"route": "ConferenceReports",
-					"order": 74
+					"order": 74,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"administration-manager",
+						"admin",
+						"guardian",
+						"learner"
+					]
+				}
+			}
 		}
 	],
 	"pages": [

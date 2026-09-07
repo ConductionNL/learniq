@@ -19,121 +19,298 @@
 					"label": "Courses",
 					"icon": "BookOpenPageVariantOutline",
 					"route": "Courses",
-					"order": 10
+					"order": 10,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "CoursePackageImportMenu",
 					"label": "Import course package",
 					"icon": "DatabaseImportOutline",
 					"route": "CoursePackageImportView",
-					"order": 11
+					"order": 11,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "CoursePackageExportMenu",
 					"label": "Export course package",
 					"icon": "DatabaseExportOutline",
 					"route": "CoursePackageExport",
-					"order": 12
+					"order": 12,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "CoursePackageImportReportsMenu",
 					"label": "Course package import reports",
 					"icon": "DatabaseImportOutline",
 					"route": "CoursePackageImportReports",
-					"order": 13
+					"order": 13,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "Curriculum",
 					"label": "Curriculum",
 					"icon": "BriefcaseOutline",
 					"route": "Programmes",
-					"order": 20
+					"order": 20,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "CourseTemplatesMenu",
 					"label": "Course templates",
 					"icon": "FileReplaceOutline",
 					"route": "CourseTemplates",
-					"order": 22
+					"order": 22,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "LearningPlans",
 					"label": "Learning plans",
 					"icon": "SchoolOutline",
 					"route": "LearningPlans",
-					"order": 30
+					"order": 30,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "GroupPlans",
 					"label": "Group plans",
 					"icon": "AccountGroupOutline",
 					"route": "GroupPlans",
-					"order": 32
+					"order": 32,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "SupportRequests",
 					"label": "Support requests",
 					"icon": "CommentOutline",
 					"route": "SupportRequests",
-					"order": 35
+					"order": 35,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "Assignments",
 					"label": "Assignments",
 					"icon": "ClipboardTextOutline",
 					"route": "Assignments",
-					"order": 40
+					"order": 40,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "SubjectChoicesMenu",
 					"label": "Subject choices",
 					"icon": "Check",
 					"route": "SubjectChoices",
-					"order": 45
+					"order": 45,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "SubjectChoicePickerMenu",
 					"label": "Pick electives",
 					"icon": "Check",
 					"route": "SubjectChoicePicker",
-					"order": 46
+					"order": 46,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"learner",
+								"guardian",
+								"coordinator",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "Assessments",
 					"label": "Assessments",
 					"icon": "ClipboardOutline",
 					"route": "Assessments",
-					"order": 50
+					"order": 50,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "Grades",
 					"label": "Grades",
 					"icon": "Gauge",
 					"route": "GradeEntries",
-					"order": 60
+					"order": 60,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "ReportPeriodsMenu",
 					"label": "Report periods",
 					"icon": "ChartBoxOutline",
 					"route": "ReportPeriods",
-					"order": 62
+					"order": 62,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "ReportCardsMenu",
 					"label": "Report cards",
 					"icon": "ChartBoxOutline",
 					"route": "ReportCards",
-					"order": 64
+					"order": 64,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "LtiToolPlacementsMenu",
 					"label": "LTI tools",
 					"icon": "OpenInNew",
 					"route": "LtiToolPlacements",
-					"order": 65
+					"order": 65,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"admin"
+							]
+						}
+					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		},
 		{
 			"id": "GroupTimetabling",
@@ -146,7 +323,17 @@
 					"label": "Rooms",
 					"icon": "OfficeBuilding",
 					"route": "Rooms",
-					"order": 70
+					"order": 70,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "TimetableConflictQueueMenu",
@@ -156,7 +343,10 @@
 					"order": 71,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin", "coordinator"]
+							"in": [
+								"admin",
+								"coordinator"
+							]
 						}
 					}
 				},
@@ -165,9 +355,28 @@
 					"label": "Exam accommodations",
 					"icon": "ClipboardTextOutline",
 					"route": "ExamAccommodations",
-					"order": 72
+					"order": 72,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [
@@ -771,7 +980,17 @@
 								"resourcesDropped",
 								"errorMessage"
 							],
-							"overrides": { "importedBy": { "editable": false }, "importedAt": { "editable": false }, "lifecycle": { "editable": false } }
+							"overrides": {
+								"importedBy": {
+									"editable": false
+								},
+								"importedAt": {
+									"editable": false
+								},
+								"lifecycle": {
+									"editable": false
+								}
+							}
 						}
 					},
 					{
@@ -781,7 +1000,9 @@
 						"icon": "TableColumn",
 						"content": {
 							"columns": 1,
-							"include": ["entries"]
+							"include": [
+								"entries"
+							]
 						}
 					}
 				],

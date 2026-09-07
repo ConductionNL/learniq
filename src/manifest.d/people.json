@@ -19,30 +19,85 @@
 					"label": "Learners",
 					"icon": "AccountBox",
 					"route": "LearnerProfiles",
-					"order": 10
+					"order": 10,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"hr",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "Enrolments",
 					"label": "Enrolments",
 					"icon": "AccountGroup",
 					"route": "Enrolments",
-					"order": 20
+					"order": 20,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"hr",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "Attendance",
 					"label": "Attendance",
 					"icon": "Calendar",
 					"route": "AttendanceRecords",
-					"order": 30
+					"order": 30,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"hr",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "Credentials",
 					"label": "Credentials",
 					"icon": "Check",
 					"route": "Credentials",
-					"order": 40
+					"order": 40,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"hr",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"hr",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [

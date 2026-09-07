@@ -18,30 +18,80 @@
 					"label": "Risk dashboard",
 					"icon": "ViewDashboardOutline",
 					"route": "BsaRiskDashboard",
-					"order": 610
+					"order": 610,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"team-lead",
+								"compliance-officer",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "BsaTrajectoriesMenu",
 					"label": "Trajectories",
 					"icon": "BriefcaseOutline",
 					"route": "BsaTrajectories",
-					"order": 620
+					"order": 620,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"team-lead",
+								"compliance-officer",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "BsaWarningsMenu",
 					"label": "Warnings",
 					"icon": "Lock",
 					"route": "BsaWarnings",
-					"order": 630
+					"order": 630,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"team-lead",
+								"compliance-officer",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "BsaDecisionsMenu",
 					"label": "Decisions",
 					"icon": "Gavel",
 					"route": "BsaDecisions",
-					"order": 640
+					"order": 640,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"team-lead",
+								"compliance-officer",
+								"admin"
+							]
+						}
+					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"coordinator",
+						"team-lead",
+						"compliance-officer",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [
