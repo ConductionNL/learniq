@@ -18,23 +18,59 @@
 					"label": "Review board",
 					"icon": "CommentOutline",
 					"route": "AdmissionsReviewBoard",
-					"order": 50
+					"order": 50,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "ApplicationsMenu",
 					"label": "Applications",
 					"icon": "ApplicationOutline",
 					"route": "Applications",
-					"order": 51
+					"order": 51,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "AdmissionsRoundsMenu",
 					"label": "Admissions rounds",
 					"icon": "Calendar",
 					"route": "AdmissionsRounds",
-					"order": 52
+					"order": 52,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"coordinator",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [

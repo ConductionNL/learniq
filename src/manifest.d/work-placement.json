@@ -18,37 +18,97 @@
 					"label": "Placements",
 					"icon": "BriefcaseOutline",
 					"route": "BpvPlacements",
-					"order": 710
+					"order": 710,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "PraktijkovereenkomstenMenu",
 					"label": "Praktijkovereenkomsten",
 					"icon": "FileOutline",
 					"route": "Praktijkovereenkomsten",
-					"order": 720
+					"order": 720,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "WerkprocesAssessmentsMenu",
 					"label": "Werkproces assessments",
 					"icon": "Check",
 					"route": "WerkprocesAssessments",
-					"order": 730
+					"order": 730,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "BpvVisitReportsMenu",
 					"label": "Visit reports",
 					"icon": "ChartBoxOutline",
 					"route": "BpvVisitReports",
-					"order": 740
+					"order": 740,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "PraktijkopleidersMenu",
 					"label": "Praktijkopleiders",
 					"icon": "AccountBox",
 					"route": "Praktijkopleiders",
-					"order": 750
+					"order": 750,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [

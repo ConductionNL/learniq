@@ -12,7 +12,16 @@
 			"label": "Compliance",
 			"icon": "ClipboardCheckOutline",
 			"order": 27,
-			"route": "ComplianceLanding"
+			"route": "ComplianceLanding",
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"compliance-officer",
+						"hr",
+						"admin"
+					]
+				}
+			}
 		},
 		{
 			"id": "ExternalTraining",

@@ -132,7 +132,7 @@
     }
   ],
   "store": {
-    "_note": "Configuration exchange, not rows. A configuration set carries the registers, schemas, objects, views, flows, sources and mappings that make one way of working hold together. There is deliberately NO `installable` allowlist: a set exists to introduce schemas the instance does not have YET, so listing schemas this app already owns would refuse exactly the sets worth installing. The trust boundary for a bundle is its publisher, enforced by the engine's source allowlist and trusted-key check. \u26a0\ufe0f An EMPTY `installable` means install NOTHING, not install anything \u2014 omitting the key and declaring an empty list are different things.",
+    "_note": "Configuration exchange, not rows. A configuration set carries the registers, schemas, objects, views, flows, sources and mappings that make one way of working hold together. There is deliberately NO `installable` allowlist: a set exists to introduce schemas the instance does not have YET, so listing schemas this app already owns would refuse exactly the sets worth installing. The trust boundary for a bundle is its publisher, enforced by the engine's source allowlist and trusted-key check. ⚠️ An EMPTY `installable` means install NOTHING, not install anything — omitting the key and declaring an empty list are different things.",
     "types": [
       "openregister.configset",
       "openregister.flows"
@@ -154,7 +154,15 @@
       "icon": "StoreOutline",
       "route": "Store",
       "section": "footer",
-      "order": 92
+      "order": 92,
+      "visibleIf": {
+        "user.primaryRole": {
+          "in": [
+            "administration-manager",
+            "admin"
+          ]
+        }
+      }
     },
     {
       "id": "ReportsMenu",
@@ -162,7 +170,18 @@
       "icon": "ChartBoxOutline",
       "route": "Reports",
       "section": "footer",
-      "order": 95
+      "order": 95,
+      "visibleIf": {
+        "user.primaryRole": {
+          "in": [
+            "instructor",
+            "coordinator",
+            "team-lead",
+            "administration-manager",
+            "admin"
+          ]
+        }
+      }
     },
     {
       "id": "FeaturesRoadmapMenu",
@@ -170,7 +189,14 @@
       "icon": "MapMarkerPath",
       "route": "FeaturesRoadmap",
       "section": "footer",
-      "order": 100
+      "order": 100,
+      "visibleIf": {
+        "user.primaryRole": {
+          "in": [
+            "admin"
+          ]
+        }
+      }
     },
     {
       "id": "XapiStatementsMenu",
@@ -178,7 +204,14 @@
       "icon": "History",
       "route": "XapiStatements",
       "section": "settings",
-      "order": 94
+      "order": 94,
+      "visibleIf": {
+        "user.primaryRole": {
+          "in": [
+            "admin"
+          ]
+        }
+      }
     },
     {
       "id": "Rollover",
@@ -200,7 +233,14 @@
       "icon": "Sitemap",
       "route": "Flows",
       "section": "settings",
-      "order": 96
+      "order": 96,
+      "visibleIf": {
+        "user.primaryRole": {
+          "in": [
+            "admin"
+          ]
+        }
+      }
     }
   ],
   "pages": [
