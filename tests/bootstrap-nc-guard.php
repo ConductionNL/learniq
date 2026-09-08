@@ -32,6 +32,18 @@ if (function_exists('learniq_nc_base_is_safe_to_load') === false) {
 	 * genuinely installed AND its config directory is writable — the two
 	 * conditions base.php itself exits on.
 	 *
+	 * The `installed` check is also what keeps memory bounded. base.php from
+	 * a source tree that was never installed still declares `OC` and builds
+	 * `\OC::$server` before it gives up. That server cannot be undone
+	 * (`OC::$server` is a typed static), so from then on every
+	 * `\OC::$server->get()` in the code under test hits a container that
+	 * knows none of this app's registrations and autowires from scratch;
+	 * constructor cycles then recurse until memory runs out (19 GB on one
+	 * openregister test, 2026-09-08). The decision therefore has to be made
+	 * BEFORE base.php is loaded, and config/config.php is the only cheap
+	 * signal. `$CONFIG` is read in this function's own scope so it never
+	 * leaks into the global scope of the test process.
+	 *
 	 * @param string $ncRoot Absolute path to the candidate Nextcloud root.
 	 *
 	 * @return bool True when base.php can be loaded without risking exit().

@@ -35,8 +35,34 @@ $loader->register(true);
 // NC runtime, so skipping it is always safe.
 require_once __DIR__ . '/bootstrap-nc-guard.php';
 
-if (learniq_nc_base_is_safe_to_load(__DIR__ . '/../../..') === true) {
-	include_once __DIR__ . '/../../../lib/base.php';
+$learniqNcRoot = __DIR__ . '/../../..';
+if (learniq_nc_base_is_safe_to_load($learniqNcRoot) === true) {
+	try {
+		include_once $learniqNcRoot . '/lib/base.php';
+	} catch (\Throwable $e) {
+		// The root passed the guard but base.php still failed. `OC::$server`
+		// is a typed static that now holds a half-built container, which
+		// cannot be undone, and every `\OC::$server->get()` in the code under
+		// test would autowire from scratch until memory runs out. Stop here.
+		fwrite(
+			STDERR,
+			sprintf(
+				"[learniq/tests/bootstrap-unit] Nextcloud root at %s could not be initialised (%s).\n"
+				. "  A half-booted server cannot be undone, so the run stops here rather than pretending to be pure-unit.\n"
+				. "  Fix the instance, or run the suite from a checkout that is not under a Nextcloud root.\n",
+				$learniqNcRoot,
+				$e->getMessage()
+			)
+		);
+		exit(1);
+	}
+} elseif (is_file($learniqNcRoot . '/lib/base.php') === true) {
+	fwrite(
+		STDERR,
+		'[learniq/tests/bootstrap-unit] Nextcloud tree at ' . $learniqNcRoot
+		. " is not installed (config/config.php lacks installed => true) or its config/ is not writable;\n"
+		. "  skipping lib/base.php and running in pure-unit mode.\n"
+	);
 }
 
 // Register Test\ namespace for NC test classes.
