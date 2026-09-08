@@ -140,37 +140,30 @@ final class FleetAppId
 
 
     /**
-     * Build an app-scoped path WITHOUT an injected app manager.
+     * Build an app-scoped path, falling back to the canonical id on a miss.
      *
-     * The eight call sites in this app hold these paths as class constants and
-     * none of them inject IAppManager. Threading the dependency through all of
-     * them — constructors, DI wiring and their tests — is a large change for a
-     * shim that gets deleted once beta and main carry the new ids, so this
-     * resolves the manager from the server container instead.
+     * This used to resolve the app manager from the server container, because
+     * none of the six call sites injected one. That is a lookup a unit test
+     * cannot control, and outside a booted Nextcloud it autowires from scratch,
+     * so the manager is now handed in and every caller injects it. The callers
+     * are all DI-built services, so the dependency costs them a constructor
+     * argument and nothing else.
      *
-     * The lookup is guarded: `\OCP\Server::get()` returns null when no
-     * container is up (unit tests, CLI bootstraps), and an unguarded call there
-     * turns a resolvable path into a fatal. When the manager is unavailable the
-     * canonical (new) id is used, which is the correct guess for any instance
-     * running current code.
+     * Differs from {@see self::appPath()} only in what a miss means. Here an
+     * absent app yields the canonical (new) id, which is the right guess for
+     * any instance running current code and keeps the return type a plain
+     * string; appPath() returns null so the caller can decline to build a URL
+     * for an app that is not there.
      *
-     * @param string $canonical Canonical (new) app name, e.g. 'integriq'.
-     * @param string $suffix    Path after the app segment, no leading slash.
+     * @param IAppManager $appManager The Nextcloud app manager.
+     * @param string      $canonical  Canonical (new) app name, e.g. 'integriq'.
+     * @param string      $suffix     Path after the app segment, no leading slash.
      *
      * @return string The app-scoped path.
      */
-    public static function path(string $canonical, string $suffix = ''): string
+    public static function path(IAppManager $appManager, string $canonical, string $suffix = ''): string
     {
-        $id = $canonical;
-
-        try {
-            $appManager = \OCP\Server::get(IAppManager::class);
-            if ($appManager !== null) {
-                $id = (self::resolve(appManager: $appManager, canonical: $canonical) ?? $canonical);
-            }
-        } catch (Throwable $e) {
-            // No container reachable — fall through with the canonical id.
-        }
+        $id = (self::resolve(appManager: $appManager, canonical: $canonical) ?? $canonical);
 
         $path = '/apps/'.$id;
         if ($suffix !== '') {

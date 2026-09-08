@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Service\WalletRevocationPropagationService;
+use OCP\App\IAppManager;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use OCP\Http\Client\IResponse;
@@ -89,6 +90,7 @@ class WalletRevocationPropagationServiceTest extends TestCase {
 			clientService: $this->clientService,
 			urlGenerator: $this->urlGenerator,
 			appConfig: $this->appConfig,
+			appManager: $this->createMock(IAppManager::class),
 			logger: new NullLogger()
 		);
 	}//end service()
