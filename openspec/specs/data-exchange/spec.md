@@ -83,7 +83,7 @@ per-item shape MUST be documented as `{recordId, errorCode, errorMessage, field?
 - **THEN** every record — whether field-mapped, pass-through, or dossier-composed (leerplicht/swv) — carries
   a `_scholiqRecordId` equal to the source object's own `id`
 
-<!-- @e2e exclude Payload-construction logic in DataExchangeRunHandler::buildPayload(); verified by PHPUnit DataExchangeRunHandlerTest::testBuildPayloadStampsCorrelationId (both profile-present and pass-through paths); no DOM surface — the payload never reaches the browser. -->
+<!-- @e2e exclude Payload-construction logic in DataExchangeRunHandler::buildPayload(); verified by PHPUnit DataExchangeRunHandlerTest::testBuildPayloadStampsCorrelationIdWithProfile and ::testBuildPayloadStampsCorrelationIdWithoutProfile; no DOM surface — the payload never reaches the browser. -->
 
 ### Requirement: Delegate wire protocols to OpenConnector
 
