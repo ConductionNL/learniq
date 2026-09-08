@@ -60,6 +60,7 @@ use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\App\IAppManager;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Http\Client\IClientService;
@@ -74,6 +75,15 @@ use Psr\Log\LoggerInterface;
  * @implements IEventListener<Event>
  *
  * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-timetable-import-delegates-the-wire-protocol-to-openconnector-via-dataexchangejob
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) One over the threshold since
+ * IAppManager was injected. The handler builds an OpenConnector URL, and the id
+ * that app answers to moves with the fleet rename, so the path has to be
+ * resolved against the running instance. It used to reach into the global
+ * server for the manager, which is a hidden dependency no test can control and,
+ * outside a booted Nextcloud, an autowire from scratch. Naming it as a
+ * dependency is the fix; hiding it behind a facade to satisfy the count would
+ * put it straight back out of sight.
  */
 class TimetableImportHandler implements IEventListener {
 
@@ -110,6 +120,9 @@ class TimetableImportHandler implements IEventListener {
 	 * @param IClientService $clientService NC HTTP client factory.
 	 * @param IURLGenerator $urlGenerator NC URL generator for internal requests.
 	 * @param IAppConfig $appConfig NC app config for token lookup.
+	 * @param IAppManager $appManager NC app manager. Resolving the fleet app id
+	 *                                needs it, and it arrives as a dependency now
+	 *                                rather than out of the global server.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -122,6 +135,7 @@ class TimetableImportHandler implements IEventListener {
 		private readonly IClientService $clientService,
 		private readonly IURLGenerator $urlGenerator,
 		private readonly IAppConfig $appConfig,
+		private readonly IAppManager $appManager,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -428,7 +442,7 @@ class TimetableImportHandler implements IEventListener {
 	 * @return array<string,mixed>|null Response data, or null on failure.
 	 */
 	private function callOpenConnector(array $payload): ?array {
-		$path = FleetAppId::path('integriq', sprintf(self::OPENCONNECTOR_RUN_PATH, self::TARGET));
+		$path = FleetAppId::path($this->appManager, 'integriq', sprintf(self::OPENCONNECTOR_RUN_PATH, self::TARGET));
 		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . $path);
 
 		$apiToken = $this->appConfig->getValueString(
