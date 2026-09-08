@@ -54,13 +54,33 @@ require_once __DIR__ . '/bootstrap-nc-guard.php';
 if (!defined('OC_CONSOLE')) {
 	$learniqNcRoot = __DIR__ . '/../../..';
 	if (learniq_nc_base_is_safe_to_load($learniqNcRoot) === true) {
-		require_once $learniqNcRoot . '/lib/base.php';
+		try {
+			require_once $learniqNcRoot . '/lib/base.php';
+		} catch (\Throwable $e) {
+			// The root passed the guard but base.php still failed (unreachable
+			// database, broken app, ...). There is no way back to pure-unit
+			// mode from here: `OC::$server` is a typed static that already
+			// holds a half-built container, and every `\OC::$server->get()`
+			// in the code under test would autowire from scratch until memory
+			// runs out. Stop the run and say what to do instead.
+			fwrite(
+				STDERR,
+				sprintf(
+					"[learniq/tests/bootstrap] Nextcloud root at %s could not be initialised (%s).\n"
+					. "  A half-booted server cannot be undone, so the run stops here rather than pretending to be pure-unit.\n"
+					. "  Fix the instance, or run the suite from a checkout that is not under a Nextcloud root.\n",
+					$learniqNcRoot,
+					$e->getMessage()
+				)
+			);
+			exit(1);
+		}
 	} elseif (is_file($learniqNcRoot . '/lib/base.php') === true) {
 		fwrite(
 			STDERR,
-			'[learniq/tests/bootstrap] Nextcloud root found at ' . $learniqNcRoot
-			. " but it is not usable (not installed, or config/ not writable).\n"
-			. "  Skipping the NC bootstrap and running on Composer autoload + tests/Stubs/ only.\n"
+			'[learniq/tests/bootstrap] Nextcloud tree at ' . $learniqNcRoot
+			. " is not installed (config/config.php lacks installed => true) or its config/ is not writable;\n"
+			. "  skipping lib/base.php and running in pure-unit mode (Composer autoload + tests/Stubs/ only).\n"
 			. "  Loading base.php anyway would exit() and silently truncate this suite to zero tests.\n"
 		);
 	}
