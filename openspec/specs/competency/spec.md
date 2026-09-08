@@ -122,7 +122,7 @@ design.md) — `Item.competencyIds` is authoring/analytics metadata here, not ye
 
 #### Scenario: Evidence with no declared competency alignment leaves attainment untouched
 
-<!-- @e2e exclude Negative-path backend behaviour; no DOM surface — covered by PHPUnit CompetencyAttainmentRollupHandlerTest::testNoAlignmentIsNoOp referenced in tasks.md. -->
+<!-- @e2e exclude Negative-path backend behaviour; no DOM surface — covered by PHPUnit CompetencyAttainmentRollupHandlerTest::testUnalignedAssignmentEvidenceIsNoOp. -->
 
 - **GIVEN** a `GradeEntry` whose source `Assignment`/`Assessment` has `competencyIds: []`
 - **WHEN** that `GradeEntry` publishes

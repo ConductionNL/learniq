@@ -89,7 +89,7 @@ capability's own mechanism.
 
 #### Scenario: An Entitlement referencing a voluntary FeeItem can never activate
 
-<!-- @e2e exclude Lifecycle-transition guard is backend logic verified by PHPUnit FeeItemVoluntaryEntitlementGuardTest::testVoluntaryFeeItemBlocksGrant; no scholiq DOM surface for the guard itself. -->
+<!-- @e2e exclude Lifecycle-transition guard is backend logic verified by PHPUnit FeeItemVoluntaryEntitlementGuardTest::testVoluntaryFeeItemBlocksGrantRegardlessOfOrderStatus; no scholiq DOM surface for the guard itself. -->
 
 - **GIVEN** an `Entitlement` in `pending` state whose `feeItemId` references a `FeeItem` with
   `voluntary: true`
@@ -118,7 +118,7 @@ available from `active` (e.g. on `Order` refund) with no additional guard.
 
 #### Scenario: Entitlement activates once its Order is fully paid
 
-<!-- @e2e exclude Lifecycle-transition guard is backend logic verified by PHPUnit EntitlementOrderPaidGuardTest::testGrantSucceedsOnPaidOrder. -->
+<!-- @e2e exclude Lifecycle-transition guard is backend logic verified by PHPUnit EntitlementOrderPaidGuardTest::testPaidOrderAllowsGrant. -->
 
 - **GIVEN** a `pending` `Entitlement` for a non-voluntary `FeeItem` whose `Order` has just transitioned to
   `paid`
@@ -127,7 +127,7 @@ available from `active` (e.g. on `Order` refund) with no additional guard.
 
 #### Scenario: Entitlement cannot activate while its Order is only partially paid
 
-<!-- @e2e exclude PHPUnit EntitlementOrderPaidGuardTest::testGrantRefusedOnPartiallyPaidOrder. -->
+<!-- @e2e exclude PHPUnit EntitlementOrderPaidGuardTest::testNonPaidOrderRefusesGrant, which loops over partially-paid, open, draft, cancelled and refunded. -->
 
 - **GIVEN** a `pending` `Entitlement` whose `Order` is `partially-paid`
 - **WHEN** the `grant` transition is attempted
@@ -135,7 +135,7 @@ available from `active` (e.g. on `Order` refund) with no additional guard.
 
 #### Scenario: A refunded Order revokes its Entitlement
 
-<!-- @e2e exclude PHPUnit EntitlementOrderPaidGuardTest::testRevokeOnRefund, or a PaymentTransactionStatusHandler test asserting the cascade. -->
+<!-- @e2e exclude PHPUnit PaymentTransactionStatusHandlerTest::testRefundRevokesOrderAndActiveEntitlements. The cascade lives in the handler, not in EntitlementOrderPaidGuard, which only guards the grant. -->
 
 - **GIVEN** an `active` `Entitlement` whose `Order` transitions `paid → refunded`
 - **WHEN** the refund transition completes

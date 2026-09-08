@@ -133,7 +133,7 @@ this check (ADR-022: reuse the existing threshold/`calculatedChange` machinery).
 
 #### Scenario: A stale statement fires the review-due reminder
 
-<!-- @e2e exclude Calculation + calculatedChange notification trigger is backend/lifecycle logic verified by PHPUnit AccessibilityStatementReviewTest and the register-validation suite; no DOM surface for a declared calculation firing. -->
+<!-- @e2e exclude The reviewOverdue calculation and its calculatedChange trigger are DECLARED in the register schema (5 occurrences in lib/Settings/learniq_register.json) and, per ADR-022, run on OpenRegister's own machinery with no scholiq TimedJob to test. There is no AccessibilityStatementReviewTest and never was; AccessibilityStatementPublishGuardTest covers publishing, a different concern. Structure is checked by tests/validate-register.js; the FIRING is NOT YET VERIFIED by any test. -->
 
 - **GIVEN** a `published` `AccessibilityStatement` with `lastReviewedAt` more than 365 days in the past
 - **WHEN** the `reviewOverdue` calculation recomputes

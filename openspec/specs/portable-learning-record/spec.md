@@ -196,7 +196,7 @@ unrecognised `sourceFormat` or unparseable file MUST produce `errorMessage` and 
 
 #### Scenario: An unrecognisable file fails closed without partial data
 
-<!-- @e2e exclude Negative-path backend parsing behaviour; verified by PHPUnit LearningRecordImportServiceTest::testUnparseableFileSetsErrorMessage; no DOM surface beyond the already-tested upload flow's error state. -->
+<!-- @e2e exclude Negative-path backend parsing behaviour; verified by PHPUnit LearningRecordImportServiceTest::testUnparseableFileSetsErrorMessageAndBlocks; no DOM surface beyond the already-tested upload flow's error state. -->
 
 - **GIVEN** an uploaded file that is not valid JSON
 - **WHEN** `LearningRecordImportService` attempts to parse it
