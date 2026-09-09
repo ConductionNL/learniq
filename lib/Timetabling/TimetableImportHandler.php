@@ -104,6 +104,23 @@ class TimetableImportHandler implements IEventListener {
 	/**
 	 * Path AFTER the app segment; the segment is resolved at call time.
 	 *
+	 * 🔴 THE SEGMENT IS RIGHT AND THE ROUTE IS NOT. Resolving the app name
+	 * through FleetAppId closed the half of this that a name-based check can
+	 * see, and it is worth being explicit that it closed only that half.
+	 *
+	 * Verified 2026-09-09 against integriq `development` a5e43d8: there is no
+	 * `api/sources/{id}/run` under either namespace. That app's entire
+	 * `sources#` surface is `test`, `logs`, `tripCircuitBreaker` and
+	 * `resetCircuitBreaker`; the run-shaped routes it does publish are
+	 * `jobs#run`, `synchronizations#run` and `flows#run`. A source is READ BY a
+	 * synchronization there, it is not a thing you run. The docblock above
+	 * always said this path was an assumption rather than a verified contract.
+	 *
+	 * So this call still 404s, now on every instance rather than half of them,
+	 * and the fix is a run endpoint or a switch to `synchronizations#run` —
+	 * not another edit to the name. Same route, same conclusion, recorded at
+	 * {@see \OCA\Learniq\Listener\DataExchangeRunHandler}.
+	 *
 	 * @var string
 	 */
 	private const OPENCONNECTOR_RUN_PATH = 'api/sources/%s/run';
