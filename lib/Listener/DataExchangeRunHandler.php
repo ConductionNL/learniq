@@ -120,6 +120,15 @@ class DataExchangeRunHandler implements IEventListener {
 	 * app segment through FleetAppId and still asks for `api/sources/%s/run`.
 	 * Its lookup is now correct and its target still is not.
 	 *
+	 * @stale-fleet-app-id exclude integriq publishes no run route for a source
+	 * under either name. Re-verified 2026-09-10 against integriq `development`:
+	 * its whole sources table is `sources#test` (POST /api/sources/test/{id}),
+	 * `sources#logs` and the two circuit-breaker actions, and
+	 * `git log -S "sources#run"` over the full 3,960-commit history returns
+	 * nothing. A source is READ BY a synchronization there; it is not a thing you
+	 * run. Correcting the app segment alone turns a path that 404s on half the
+	 * fleet into one that 404s on all of it, on a diff that reads as a fix.
+	 *
 	 * @var string
 	 */
 	private const OPENCONNECTOR_RUN_PATH = '/apps/openconnector/api/sources/%s/run';
