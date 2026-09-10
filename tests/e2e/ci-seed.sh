@@ -258,6 +258,40 @@ if [ "$SEEDED_COUNT" -lt "$MIN_SEEDED_SCHEMAS" ]; then
 	exit 1
 fi
 
+# ── 3c. One record answers to the business key `AVG` ─────────────────────────
+# /compliance/regulations/:slug is a BUSINESS-key route, and RegulationDetailPage
+# tries OpenRegister's native single-object matcher first. That matcher compares
+# the identifier against four columns — _id, _uuid, _slug, _uri — and _slug is
+# fed by `@self.slug ?? data.slug`. Regulation's own required property is called
+# `slug`, so a regulation lands with `_slug: "AVG"` whether or not anyone meant
+# it to, and TWO writers that disagree about the record's identity leave two
+# rows answering to the same identifier.
+#
+# The failure that produces is not a 404. It is HTTP 500
+# (MultipleObjectsReturnedException), surfacing as a console error the page
+# recovers from — its slug-filtered fallback still finds a row and renders it —
+# so the only thing that ever noticed was one visual spec's fatal-error
+# assertion, four minutes and two hundred tests away from the seeding that
+# caused it. Measured on run 34468461118.
+#
+# So ask here, where the answer names the cause. A 500 is a hard failure: the
+# register import and this seeder disagree about the record's identity and
+# every subsequent import adds another copy. Anything else is a warning — a
+# missing record is already covered by the row-count floor above.
+AVG_URL="${BASE}/index.php/apps/openregister/api/objects/learniq/Regulation/AVG"
+AVG_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 60 \
+	-u "${USER_NAME}:${USER_PASS}" -H 'OCS-APIRequest: true' "$AVG_URL" || echo 000)"
+echo "[ci-seed] GET objects/learniq/Regulation/AVG -> HTTP ${AVG_CODE}"
+if [ "$AVG_CODE" = "500" ]; then
+	echo "::error::More than one Regulation answers to the identifier 'AVG', so the business-slug lookup is ambiguous (MultipleObjectsReturnedException)."
+	echo "::error::OpenRegister matches an identifier against _id/_uuid/_slug/_uri, and _slug comes from '@self.slug ?? data.slug'. Every writer of this record must name it the same way."
+	echo "::error::Check that lib/Settings/learniq_register.json's AVG regulation and this seeder both carry '@self.slug: AVG' — an @self.slug that differs from the data slug makes the register import fail to recognise its own row and insert another on every pass."
+	exit 1
+fi
+if [ "$AVG_CODE" != "200" ]; then
+	echo "::warning::The AVG regulation did not resolve by its business slug (HTTP ${AVG_CODE}). The regulation detail spec falls back to a filtered lookup, so this is not fatal here."
+fi
+
 # Record the outcome for global-setup.ts, which would otherwise repeat the whole
 # seed (several minutes of redundant existence checks) inside the Playwright run.
 #
