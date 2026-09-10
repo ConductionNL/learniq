@@ -226,27 +226,21 @@ async function importRegister() {
 	log(`register declares ${schemaNames.length} schemas`)
 
 	// Try the configurations import endpoints (these vary by OR build).
+	//
+	// BOTH USED TO FIRE, ALWAYS, and importing the same register twice creates
+	// a SECOND copy of every object it declares. That is what made
+	// `Regulation detail, resolved by business slug` fail: the register
+	// declares one regulation (`reg-avg`, data property `slug: "AVG"`), two
+	// existed, and resolving the identifier `AVG` raised
+	// MultipleObjectsReturnedException, which the API answers as a bare 500.
+	//
+	// The per-configuration route is the one that misbehaves here: it answers
+	// 500 and still leaves rows behind, so its debris outlives its own failure.
+	// The bare route answers 200 and reports what it imported. So the bare one
+	// goes FIRST and the other is only a fallback for a build that lacks it,
+	// which is the compatibility this dance existed for in the first place.
 	const beforeImport = await existingSchemaSlugs()
-	// (a) create a Configuration entity, then import into it
-	const cfg = await api(
-		'POST',
-		'/index.php/apps/openregister/api/configurations',
-		{
-			title: 'learniq-seed',
-			type: REGISTER_SLUG,
-		},
-	)
-	if (cfg.ok && cfg.json?.id) {
-		const imp = await api(
-			'POST',
-			`/index.php/apps/openregister/api/configurations/${cfg.json.id}/import`,
-			{ json: registerJson },
-		)
-		log(
-			`configurations/${cfg.json.id}/import → status ${imp.status}${imp.json?.message ? ` (${imp.json.message})` : ''}`,
-		)
-	}
-	// (b) bare configurations/import
+	// (a) bare configurations/import
 	const imp2 = await api(
 		'POST',
 		'/index.php/apps/openregister/api/configurations/import',
@@ -255,6 +249,28 @@ async function importRegister() {
 	log(
 		`configurations/import → status ${imp2.status}${imp2.json?.message ? ` (${imp2.json.message})` : ''}`,
 	)
+	// (b) only if the bare route is not on this build: create a Configuration
+	// entity and import into it.
+	if (imp2.ok !== true) {
+		const cfg = await api(
+			'POST',
+			'/index.php/apps/openregister/api/configurations',
+			{
+				title: 'learniq-seed',
+				type: REGISTER_SLUG,
+			},
+		)
+		if (cfg.ok && cfg.json?.id) {
+			const imp = await api(
+				'POST',
+				`/index.php/apps/openregister/api/configurations/${cfg.json.id}/import`,
+				{ json: registerJson },
+			)
+			log(
+				`configurations/${cfg.json.id}/import → status ${imp.status}${imp.json?.message ? ` (${imp.json.message})` : ''}`,
+			)
+		}
+	}
 	if (imp2.json?.imported?.schemas) {
 		log(
 			`  imported schemas: ${imp2.json.imported.schemas.map((s) => s.slug).join(', ') || '(none)'}`,
@@ -409,6 +425,9 @@ async function importRegister() {
 // ── 3. Seed example objects ──────────────────────────────────────────────────
 // Each entry: schemaSlug, a stable "marker" field+value to dedupe on, and the object body.
 
+/** Business identifiers seeded through a `slug` marker, as [schemaSlug, value]. */
+const SEEDED_IDENTIFIERS = []
+
 async function objectExists(slug, markerField, markerValue) {
 	const r = await api(
 		'GET',
@@ -474,6 +493,9 @@ async function seedObjects(presentSlugs) {
 		if (!presentSlugs.has(slug)) {
 			return null
 		}
+		// Remember the ones the application can resolve by name, so the run can
+		// say afterwards whether any of them became ambiguous.
+		if (marker.field === 'slug') SEEDED_IDENTIFIERS.push([slug, marker.value])
 		const existing = await objectExists(slug, marker.field, marker.value)
 		if (existing) {
 			counts[slug] = (counts[slug] ?? 0) + 1
@@ -1458,6 +1480,44 @@ function writeSeededManifest(counts, schemasByName) {
 	}
 }
 
+/**
+ * Say, at seed time, which business identifiers resolve to more than one row.
+ *
+ * An ambiguous identifier does not announce itself. OpenRegister answers the
+ * detail route with a bare 500 and the sentence "An unexpected server error
+ * occurred. Please try again.", which names nothing and advises a retry that
+ * cannot work (ConductionNL/openregister#3590). The first time it happened
+ * here it surfaced as a visual test failing on a console error, and the cause
+ * took a stack trace out of a CI log to find.
+ *
+ * So the seeder asks directly. Every identifier it seeded through a `slug`
+ * marker gets probed the way the application resolves it; a 5xx means two or
+ * more rows answer to that name. This only reports, because deleting rows to
+ * repair a seed is a bigger decision than a seeder should take on its own.
+ */
+async function reportAmbiguousIdentifiers() {
+	const ambiguous = []
+	for (const [schemaSlug, value] of SEEDED_IDENTIFIERS) {
+		const r = await api(
+			'GET',
+			`/index.php/apps/openregister/api/objects/${REGISTER_SLUG}/${schemaSlug}/${encodeURIComponent(value)}`,
+			undefined,
+			{ raw: true },
+		)
+		if (r.status >= 500) ambiguous.push(`${schemaSlug}/${value}`)
+	}
+	if (ambiguous.length > 0) {
+		warn(
+			`${ambiguous.length} business identifier(s) resolve to more than one object, so their detail routes will answer 500: `
+				+ `${ambiguous.join(', ')}. Importing the same register twice is the usual cause.`,
+		)
+		return
+	}
+	log(
+		`${SEEDED_IDENTIFIERS.length} business identifier(s) each resolve to exactly one object`,
+	)
+}
+
 async function main() {
 	if (!(await pingNc())) process.exit(1)
 	const { presentSlugs } = await importRegister()
@@ -1472,6 +1532,7 @@ async function main() {
 	log(
 		`seeded/verified ${total} objects across ${Object.keys(counts).length} schemas: ${JSON.stringify(counts)}`,
 	)
+	await reportAmbiguousIdentifiers()
 	writeSeededManifest(counts, loadRegister().components?.schemas ?? {})
 	if (presentSlugs.size < FULL_IMPORT_THRESHOLD) {
 		warn(
