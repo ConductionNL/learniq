@@ -137,6 +137,17 @@ class LtiToolPlacementController extends Controller {
 	 * mapping below change together, and the segment gets resolved at call time
 	 * in the same change.
 	 *
+	 * @stale-fleet-app-id exclude integriq publishes no such route under either
+	 * name. Re-verified 2026-09-10 against integriq `development`: its LTI table
+	 * is `/api/lti/{deployment}/{login,launch,token,ags/*,nrps/*}`, and
+	 * `git log -S "lti/deployments"` over the full 3,960-commit history returns
+	 * nothing, so the `deployments` segment has never existed. The nearest
+	 * published leg, `lti#launch`, is a #[PublicPage] browser redirect that
+	 * consumes an id_token and answers 302; this class posts a Bearer-token JSON
+	 * body and expects JSON back. Repointing swaps a clean 404 for a 400 from a
+	 * public rate-limited endpoint. The wrapper described above has to ship in
+	 * integriq first, and this constant moves with the request mapping when it does.
+	 *
 	 * @var string
 	 */
 	private const OPENCONNECTOR_LAUNCH_PATH = '/apps/openconnector/api/lti/deployments/%s/launch';
