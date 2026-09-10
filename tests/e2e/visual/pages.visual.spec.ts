@@ -371,10 +371,17 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 				'RegulationDetailPage',
 			)
 			const errors = collectFatalErrors(page)
-			// `AVG` is seeded by tests/e2e/seed-example-data.mjs. Resolving a REAL
-			// slug is what distinguishes "the route mounted the component" from
-			// "the component resolved this record" — the not-found branch renders a
-			// different subtree entirely.
+			// `AVG` is shipped by lib/Settings/learniq_register.json and named
+			// again by tests/e2e/seed-example-data.mjs. Both carry the SAME
+			// `@self.slug`, and that matters: OpenRegister matches a single-object
+			// identifier against _id/_uuid/_slug/_uri, and `_slug` is fed by
+			// `@self.slug ?? data.slug`, so two writers that disagree leave two
+			// rows answering to `AVG` and this lookup answers 500 rather than
+			// resolving. ci-seed.sh gates on it.
+			//
+			// Resolving a REAL slug is what distinguishes "the route mounted the
+			// component" from "the component resolved this record" — the not-found
+			// branch renders a different subtree entirely.
 			await openPage(page, '/compliance/regulations/AVG', '.regulation-detail')
 			await expect(page.getByText(/Regulation not found/i)).toHaveCount(0)
 			assertNoFatalErrors(errors)
