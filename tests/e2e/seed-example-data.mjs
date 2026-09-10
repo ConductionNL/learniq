@@ -416,7 +416,39 @@ async function objectExists(slug, markerField, markerValue) {
 	)
 	const items =
 		r.json?.results ?? r.json?.data ?? (Array.isArray(r.json) ? r.json : [])
-	return items.length > 0 ? items[0] : null
+	if (items.length > 0) return items[0]
+
+	// The property filter above does not see an object the REGISTER IMPORT
+	// created, because that object carries its own `@self.slug` (`reg-avg`) and
+	// the filter asks about the data property (`slug: "AVG"`). Both objects are
+	// then reachable as the business identifier `AVG`, and the app's own detail
+	// route resolves exactly that way — so a second create makes the route
+	// ambiguous, and OpenRegister answers the ambiguity with a bare 500.
+	//
+	// That is what happened to `Regulation detail, resolved by business slug`:
+	// the register import seeded `reg-avg`, this seeder could not see it, made
+	// a second `AVG (demo)`, and the detail page 500'd.
+	//
+	// So ask the way the application asks, and only when the marker IS the
+	// identifier. A 500 here means the row is already duplicated; creating a
+	// third would be the one thing that cannot help.
+	if (markerField !== 'slug') return null
+	const byIdentifier = await api(
+		'GET',
+		`/index.php/apps/openregister/api/objects/${REGISTER_SLUG}/${slug}/${encodeURIComponent(markerValue)}`,
+		undefined,
+		{ raw: true },
+	)
+	if (byIdentifier.status === 200 && byIdentifier.json) {
+		return byIdentifier.json?.data ?? byIdentifier.json
+	}
+	if (byIdentifier.status >= 500) {
+		log(
+			`identifier "${slug}/${markerValue}" is already ambiguous (HTTP ${byIdentifier.status}) — not creating another`,
+		)
+		return { ambiguous: true }
+	}
+	return null
 }
 
 async function createObject(slug, body) {
