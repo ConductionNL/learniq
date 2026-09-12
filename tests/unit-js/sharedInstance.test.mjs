@@ -19,7 +19,7 @@
 // ever met.
 
 import assert from 'node:assert/strict'
-import { test } from 'node:test'
+import { afterEach, beforeEach, test } from 'node:test'
 import {
 	APP_ID,
 	assertInstancePermitted,
@@ -31,6 +31,28 @@ import {
 
 /** An environment with neither flag set. */
 const NONE = {}
+
+/*
+ * The guard exempts CI, and a unit runner runs ON CI. So without this, the
+ * three refusal cases below pass on a laptop and fail on every runner:
+ * measured here, `CI=true node --test` gave 3 failed, 7 passed. A test whose
+ * verdict depends on where it runs is worse than no test.
+ */
+const savedEnv = {}
+
+beforeEach(() => {
+	savedEnv.CI = process.env.CI
+	savedEnv.GITHUB_ACTIONS = process.env.GITHUB_ACTIONS
+	delete process.env.CI
+	delete process.env.GITHUB_ACTIONS
+})
+
+afterEach(() => {
+	if (savedEnv.CI === undefined) delete process.env.CI
+	else process.env.CI = savedEnv.CI
+	if (savedEnv.GITHUB_ACTIONS === undefined) delete process.env.GITHUB_ACTIONS
+	else process.env.GITHUB_ACTIONS = savedEnv.GITHUB_ACTIONS
+})
 
 test(`${APP_ID} guard folds every loopback spelling onto localhost`, () => {
 	assert.equal(normaliseOrigin('http://127.0.0.1:8080'), 'http://localhost:8080')
