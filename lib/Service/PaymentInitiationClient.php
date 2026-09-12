@@ -34,6 +34,7 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Support\FleetAppId;
+use OCP\App\IAppManager;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
@@ -88,12 +89,16 @@ class PaymentInitiationClient {
 	 * @param IClientService $clientService NC HTTP client factory.
 	 * @param IURLGenerator $urlGenerator NC URL generator for internal requests.
 	 * @param IAppConfig $appConfig NC app config for token lookup.
+	 * @param IAppManager $appManager NC app manager. Resolving the fleet app id
+	 *                                needs it, and it arrives as a dependency now
+	 *                                rather than out of the global server.
 	 * @param LoggerInterface $logger PSR logger.
 	 */
 	public function __construct(
 		private readonly IClientService $clientService,
 		private readonly IURLGenerator $urlGenerator,
 		private readonly IAppConfig $appConfig,
+		private readonly IAppManager $appManager,
 		private readonly LoggerInterface $logger,
 	) {
 
@@ -122,7 +127,7 @@ class PaymentInitiationClient {
 		string $pspProvider,
 	): ?array {
 		$url = $this->urlGenerator->getAbsoluteURL(
-			'/index.php' . FleetAppId::path('integriq', self::OPENCONNECTOR_INITIATE_PATH)
+			'/index.php' . FleetAppId::path($this->appManager, 'integriq', self::OPENCONNECTOR_INITIATE_PATH)
 		);
 
 		$apiToken = $this->appConfig->getValueString(

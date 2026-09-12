@@ -53,6 +53,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Support\FleetAppId;
+use OCP\App\IAppManager;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
@@ -108,6 +109,9 @@ class WalletRevocationPropagationService {
 	 * @param IClientService $clientService NC HTTP client factory.
 	 * @param IURLGenerator $urlGenerator NC URL generator for internal requests.
 	 * @param IAppConfig $appConfig NC app config for token lookup.
+	 * @param IAppManager $appManager NC app manager. Resolving the fleet app id
+	 *                                needs it, and it arrives as a dependency now
+	 *                                rather than out of the global server.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -116,6 +120,7 @@ class WalletRevocationPropagationService {
 		private readonly IClientService $clientService,
 		private readonly IURLGenerator $urlGenerator,
 		private readonly IAppConfig $appConfig,
+		private readonly IAppManager $appManager,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -190,7 +195,7 @@ class WalletRevocationPropagationService {
 	 * @return bool True when openconnector confirmed the revocation (or it was already revoked).
 	 */
 	private function callOpenConnectorRevoke(string $attestationRef): bool {
-		$path = FleetAppId::path('integriq', sprintf(self::OPENCONNECTOR_REVOKE_PATH, rawurlencode($attestationRef)));
+		$path = FleetAppId::path($this->appManager, 'integriq', sprintf(self::OPENCONNECTOR_REVOKE_PATH, rawurlencode($attestationRef)));
 		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . $path);
 
 		$apiToken = $this->appConfig->getValueString(

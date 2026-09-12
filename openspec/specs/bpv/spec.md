@@ -90,7 +90,7 @@ idiom) — the former emitting the `GradeEntry` as before, the latter creating o
 
 #### Scenario: An assessment whose kwalificatiedossier code has no matching Competency still confirms normally
 
-<!-- @e2e exclude Backend fallback/no-op behaviour; no scholiq DOM surface — covered by PHPUnit CompetencyAttainmentRollupHandlerTest::testUnresolvedCompetencyIsNoOp referenced in tasks.md. -->
+<!-- @e2e exclude Backend fallback/no-op behaviour; no scholiq DOM surface — covered by PHPUnit CompetencyAttainmentRollupHandlerTest::testUnresolvedWerkprocesCompetencyIsNoOp. -->
 
 - **GIVEN** a `WerkprocesAssessment` whose `werkprocesCode` does not match any `Competency.code` in the
   taxonomy (`competencyId` remains `null`)

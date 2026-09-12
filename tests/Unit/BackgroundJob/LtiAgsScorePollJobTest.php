@@ -38,6 +38,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\BackgroundJob\LtiAgsScorePollJob;
 use OCA\Learniq\Service\LtiAgsPullClient;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -214,6 +215,7 @@ class LtiAgsScorePollJobTest extends TestCase {
 			clientService: $this->clientService,
 			urlGenerator: $this->urlGenerator,
 			appConfig: $this->appConfig,
+			appManager: $this->createMock(IAppManager::class),
 			logger: new NullLogger()
 		);
 
@@ -358,6 +360,7 @@ class LtiAgsScorePollJobTest extends TestCase {
 				clientService: $this->clientService,
 				urlGenerator: $this->urlGenerator,
 				appConfig: $this->appConfig,
+				appManager: $this->createMock(IAppManager::class),
 				logger: new NullLogger()
 			),
 			appConfig: $this->appConfig,

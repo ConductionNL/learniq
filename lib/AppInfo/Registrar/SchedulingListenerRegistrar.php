@@ -162,6 +162,28 @@ class SchedulingListenerRegistrar {
 	 * the optional openconnector app, mirroring
 	 * `procest\AppInfo\Application::registerDecisionListeners()`.
 	 *
+	 * 🔴 DO NOT "FIX" THE NAMESPACE HERE. The connector app renamed its PSR-4
+	 * root from `OCA\OpenConnector` to `OCA\Integriq`, and across the fleet
+	 * that rename really did take cross-app bindings dark: the lookup answers
+	 * false instead of erroring, so the integration just stops. This site looks
+	 * exactly like one of those and is not one.
+	 *
+	 * Verified 2026-09-09 against integriq `development` a5e43d8. `lib/Event/`
+	 * holds DeliveryConcludedEvent, DeliveryRequestedEvent and
+	 * SynchronizationDeletionGuardedEvent, and the string "WalletOffer" does
+	 * not occur anywhere in that repository. The class exists under NEITHER
+	 * name — not `OCA\Integriq\Event\WalletOfferConcludedEvent` and not the
+	 * one below. Repointing would change the diff and change nothing else,
+	 * while reading to the next person as a fix that had been applied.
+	 *
+	 * Adding the current spelling alongside the old one was considered and
+	 * rejected for the same reason: a two-entry list is a claim that one of
+	 * them resolves somewhere, and neither does. What is missing is upstream —
+	 * the connector app dispatches no wallet-claim signal at all
+	 * ({@see \OCA\Learniq\Listener\WalletOfferConcludedListener}) — so this
+	 * guard is correct as written until that signal ships, and it is the SIGNAL
+	 * this waits on, not a name.
+	 *
 	 * @param IRegistrationContext $context Registration context.
 	 *
 	 * @return void
@@ -169,10 +191,20 @@ class SchedulingListenerRegistrar {
 	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
 	 */
 	private function registerWalletOfferConcludedListener(IRegistrationContext $context): void {
+		// @stale-fleet-app-id exclude the class exists under NEITHER name. Re-verified
+		// 2026-09-10: `git log -S WalletOfferConcludedEvent` over integriq's full
+		// 3,960-commit history, which spans the whole openconnector era, returns
+		// nothing, and the string does not occur anywhere in the repo today. What is
+		// missing is the upstream signal, not the name. See the docblock above.
 		if (class_exists('\\OCA\\OpenConnector\\Event\\WalletOfferConcludedEvent') === false) {
 			return;
 		}
 
+		// @stale-fleet-app-id exclude same binding as the guard above, and the same
+		// evidence: integriq dispatches no wallet-claim event under either spelling,
+		// confirmed 2026-09-10 by git log -S over its full history. A dual-spelling
+		// list was rejected on purpose, because it would claim one of the two
+		// resolves somewhere and neither does.
 		$context->registerEventListener(
 			event: 'OCA\OpenConnector\Event\WalletOfferConcludedEvent',
 			listener: WalletOfferConcludedListener::class

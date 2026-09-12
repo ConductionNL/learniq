@@ -12,7 +12,18 @@
 			"label": "Progress",
 			"icon": "TrendingUp",
 			"order": 25,
-			"route": "ProgressLanding"
+			"route": "ProgressLanding",
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"team-lead",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		},
 		{
 			"id": "GroupCompetency",
@@ -25,30 +36,81 @@
 					"label": "Skills gap dashboard",
 					"icon": "ViewDashboardOutline",
 					"route": "SkillsGapDashboard",
-					"order": 110
+					"order": 110,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "CompetencyFrameworksMenu",
 					"label": "Frameworks",
 					"icon": "Folder",
 					"route": "CompetencyFrameworks",
-					"order": 120
+					"order": 120,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "CompetenciesMenu",
 					"label": "Competencies",
 					"icon": "MedalOutline",
 					"route": "Competencies",
-					"order": 130
+					"order": 130,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "CompetencyAttainmentsMenu",
 					"label": "Attainment",
 					"icon": "BriefcaseOutline",
 					"route": "CompetencyAttainments",
-					"order": 140
+					"order": 140,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		},
 		{
 			"id": "GroupStudentAnalytics",
@@ -76,14 +138,36 @@
 					"label": "Lesson completions",
 					"icon": "Check",
 					"route": "LessonCompletions",
-					"order": 220
+					"order": 220,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "EngagementScoresMenu",
 					"label": "Engagement scores",
 					"icon": "ChartLine",
 					"route": "EngagementScores",
-					"order": 230
+					"order": 230,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "EngagementRiskThresholdsMenu",
@@ -105,9 +189,31 @@
 					"label": "Engagement flags",
 					"icon": "Lock",
 					"route": "EngagementRiskFlags",
-					"order": 250
+					"order": 250,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"team-lead",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		},
 		{
 			"id": "GroupEngagement",
@@ -120,7 +226,18 @@
 					"label": "Leaderboard",
 					"icon": "AccountArrowRightOutline",
 					"route": "LeaderboardView",
-					"order": 310
+					"order": 310,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "PointRulesMenu",
@@ -187,9 +304,31 @@
 					"label": "Learner engagement",
 					"icon": "ChartLine",
 					"route": "LearnerEngagements",
-					"order": 360
+					"order": 360,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"team-lead",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		},
 		{
 			"id": "GroupCourseEvaluation",
@@ -202,14 +341,36 @@
 					"label": "Evaluation campaigns",
 					"icon": "ClipboardOutline",
 					"route": "EvaluationCampaigns",
-					"order": 410
+					"order": 410,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "CourseQualityReportMenu",
 					"label": "Quality report",
 					"icon": "ChartBoxOutline",
 					"route": "CourseQualityReport",
-					"order": 420
+					"order": 420,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "CourseEvaluationResponsesMenu",
@@ -232,9 +393,31 @@
 					"label": "Improvement actions",
 					"icon": "Check",
 					"route": "ImprovementActions",
-					"order": 440
+					"order": 440,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"team-lead",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		},
 		{
 			"id": "GroupPortfolio",
@@ -247,37 +430,97 @@
 					"label": "Portfolios",
 					"icon": "BriefcaseOutline",
 					"route": "Portfolios",
-					"order": 510
+					"order": 510,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "PortfolioTemplatesMenu",
 					"label": "Portfolio templates",
 					"icon": "FileReplaceOutline",
 					"route": "PortfolioTemplates",
-					"order": 520
+					"order": 520,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "PortfolioEntriesMenu",
 					"label": "Portfolio entries",
 					"icon": "BriefcaseOutline",
 					"route": "PortfolioEntries",
-					"order": 530
+					"order": 530,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "PortfolioSharesMenu",
 					"label": "Portfolio shares",
 					"icon": "BriefcaseOutline",
 					"route": "PortfolioShares",
-					"order": 540
+					"order": 540,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "ExternalAssessorsMenu",
 					"label": "External assessors",
 					"icon": "AccountBox",
 					"route": "ExternalAssessors",
-					"order": 550
+					"order": 550,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [

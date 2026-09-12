@@ -60,6 +60,7 @@ use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\App\IAppManager;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Http\Client\IClientService;
@@ -74,6 +75,15 @@ use Psr\Log\LoggerInterface;
  * @implements IEventListener<Event>
  *
  * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-timetable-import-delegates-the-wire-protocol-to-openconnector-via-dataexchangejob
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) One over the threshold since
+ * IAppManager was injected. The handler builds an OpenConnector URL, and the id
+ * that app answers to moves with the fleet rename, so the path has to be
+ * resolved against the running instance. It used to reach into the global
+ * server for the manager, which is a hidden dependency no test can control and,
+ * outside a booted Nextcloud, an autowire from scratch. Naming it as a
+ * dependency is the fix; hiding it behind a facade to satisfy the count would
+ * put it straight back out of sight.
  */
 class TimetableImportHandler implements IEventListener {
 
@@ -94,6 +104,23 @@ class TimetableImportHandler implements IEventListener {
 	/**
 	 * Path AFTER the app segment; the segment is resolved at call time.
 	 *
+	 * 🔴 THE SEGMENT IS RIGHT AND THE ROUTE IS NOT. Resolving the app name
+	 * through FleetAppId closed the half of this that a name-based check can
+	 * see, and it is worth being explicit that it closed only that half.
+	 *
+	 * Verified 2026-09-09 against integriq `development` a5e43d8: there is no
+	 * `api/sources/{id}/run` under either namespace. That app's entire
+	 * `sources#` surface is `test`, `logs`, `tripCircuitBreaker` and
+	 * `resetCircuitBreaker`; the run-shaped routes it does publish are
+	 * `jobs#run`, `synchronizations#run` and `flows#run`. A source is READ BY a
+	 * synchronization there, it is not a thing you run. The docblock above
+	 * always said this path was an assumption rather than a verified contract.
+	 *
+	 * So this call still 404s, now on every instance rather than half of them,
+	 * and the fix is a run endpoint or a switch to `synchronizations#run` —
+	 * not another edit to the name. Same route, same conclusion, recorded at
+	 * {@see \OCA\Learniq\Listener\DataExchangeRunHandler}.
+	 *
 	 * @var string
 	 */
 	private const OPENCONNECTOR_RUN_PATH = 'api/sources/%s/run';
@@ -110,6 +137,9 @@ class TimetableImportHandler implements IEventListener {
 	 * @param IClientService $clientService NC HTTP client factory.
 	 * @param IURLGenerator $urlGenerator NC URL generator for internal requests.
 	 * @param IAppConfig $appConfig NC app config for token lookup.
+	 * @param IAppManager $appManager NC app manager. Resolving the fleet app id
+	 *                                needs it, and it arrives as a dependency now
+	 *                                rather than out of the global server.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -122,6 +152,7 @@ class TimetableImportHandler implements IEventListener {
 		private readonly IClientService $clientService,
 		private readonly IURLGenerator $urlGenerator,
 		private readonly IAppConfig $appConfig,
+		private readonly IAppManager $appManager,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -428,7 +459,7 @@ class TimetableImportHandler implements IEventListener {
 	 * @return array<string,mixed>|null Response data, or null on failure.
 	 */
 	private function callOpenConnector(array $payload): ?array {
-		$path = FleetAppId::path('integriq', sprintf(self::OPENCONNECTOR_RUN_PATH, self::TARGET));
+		$path = FleetAppId::path($this->appManager, 'integriq', sprintf(self::OPENCONNECTOR_RUN_PATH, self::TARGET));
 		$url = $this->urlGenerator->getAbsoluteURL('/index.php' . $path);
 
 		$apiToken = $this->appConfig->getValueString(

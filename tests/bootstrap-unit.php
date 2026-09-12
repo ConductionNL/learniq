@@ -35,8 +35,42 @@ $loader->register(true);
 // NC runtime, so skipping it is always safe.
 require_once __DIR__ . '/bootstrap-nc-guard.php';
 
-if (learniq_nc_base_is_safe_to_load(__DIR__ . '/../../..') === true) {
-	include_once __DIR__ . '/../../../lib/base.php';
+$learniqNcRoot = __DIR__ . '/../../..';
+if (learniq_nc_base_is_safe_to_load($learniqNcRoot) === true) {
+	try {
+		include_once $learniqNcRoot . '/lib/base.php';
+	} catch (\Throwable $e) {
+		// The tree IS installed, so the dangerous case this guard exists for
+		// (loading a bare source tree) did not happen. base.php still failed
+		// part-way.
+		//
+		// This does NOT abort. `OC::$server` is a typed static, so a half-built
+		// container cannot be unset, and aborting was tried: it turned all six
+		// PHPUnit legs red on a suite that passes (humaniq, 2026-09-08). The
+		// runaway this guard exists for needs an autowiring lookup to reach the
+		// poisoned container, this app has none in lib, and phpunit.xml's 2G cap
+		// bounds one anyway.
+		//
+		// So: say plainly that the container is unreliable, and let the pure unit
+		// tests run. A container-bound test failing loudly is the intended outcome.
+		fwrite(
+			STDERR,
+			sprintf(
+				"[learniq/tests/bootstrap-unit] Nextcloud at %s could not finish booting (%s).\n"
+				. "  \\OC::\$server now holds a HALF-BUILT container and cannot be unset. Pure unit tests\n"
+				. "  continue; anything resolving a service from that container is UNVERIFIED by this run.\n",
+				$learniqNcRoot,
+				$e->getMessage()
+			)
+		);
+	}
+} elseif (is_file($learniqNcRoot . '/lib/base.php') === true) {
+	fwrite(
+		STDERR,
+		'[learniq/tests/bootstrap-unit] Nextcloud tree at ' . $learniqNcRoot
+		. " is not installed (config/config.php lacks installed => true) or its config/ is not writable;\n"
+		. "  skipping lib/base.php and running in pure-unit mode.\n"
+	);
 }
 
 // Register Test\ namespace for NC test classes.

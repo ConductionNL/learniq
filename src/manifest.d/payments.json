@@ -18,7 +18,15 @@
 					"label": "Orders",
 					"icon": "ClipboardListOutline",
 					"route": "Orders",
-					"order": 10
+					"order": 10,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				},
 				{
 					"id": "FeeItemsMenu",
@@ -28,7 +36,9 @@
 					"order": 20,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin"]
+							"in": [
+								"admin"
+							]
 						}
 					}
 				},
@@ -40,7 +50,9 @@
 					"order": 30,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin"]
+							"in": [
+								"admin"
+							]
 						}
 					}
 				},
@@ -52,7 +64,9 @@
 					"order": 40,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin"]
+							"in": [
+								"admin"
+							]
 						}
 					}
 				},
@@ -64,11 +78,21 @@
 					"order": 50,
 					"visibleIf": {
 						"user.primaryRole": {
-							"in": ["admin"]
+							"in": [
+								"admin"
+							]
 						}
 					}
 				}
-			]
+			],
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [

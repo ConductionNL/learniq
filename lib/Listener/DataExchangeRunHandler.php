@@ -90,15 +90,44 @@ class DataExchangeRunHandler implements IEventListener {
 	 * If this endpoint path changes in OpenConnector, update the constant.
 	 */
 	/**
-	 * NOT resolved across the fleet rename — see ConductionNL/.github#580.
+	 * 🔴 THIS ENDPOINT DOES NOT EXIST, AND RESOLVING THE APP NAME WILL NOT MAKE
+	 * IT EXIST. Do not "fix" the `openconnector` segment here.
 	 *
-	 * This app is `integriq` on development and `openconnector` on beta/main,
-	 * so this path 404s on half the fleet. The other six call sites in this app
-	 * now resolve the segment at call time via Support\FleetAppId, but this
-	 * class sits exactly at the CouplingBetweenObjects ceiling (12 of 13) and
-	 * referencing one more type — imported or fully qualified, phpmd counts
-	 * both — tips it over. Fixing it properly means reducing this class's
-	 * dependencies first, which is a separate change.
+	 * Two separate things are wrong with this constant and only the first one
+	 * looks like the fleet rename:
+	 *
+	 *   1. The app segment is the old id, so the path 404s on any instance that
+	 *      has renamed. That half is real and Support\FleetAppId exists for it.
+	 *   2. `api/sources/{id}/run` is not a route the connector app publishes,
+	 *      under either name. Verified 2026-09-09 against integriq
+	 *      `development` a5e43d8: its whole `sources#` surface is `test`,
+	 *      `logs`, `tripCircuitBreaker` and `resetCircuitBreaker`, and every
+	 *      run-shaped route it does publish belongs to something else —
+	 *      `jobs#run` (`/api/jobs/run/{id}`), `synchronizations#run`
+	 *      (`/api/synchronizations/{id}/run`) and `flows#run`
+	 *      (`/api/flows/{id}/run`). A source is READ BY a synchronization
+	 *      there; it is not a thing you run. The docblock above was always
+	 *      explicit that this path was an assumption, and the assumption is
+	 *      wrong.
+	 *
+	 * Correcting (1) alone converts a path that 404s on half the fleet into one
+	 * that 404s on all of it, while producing a diff that reads to the next
+	 * person as a fix already applied. That is the worse outcome, so the name
+	 * stays stale on purpose until the endpoint is designed.
+	 *
+	 * ⚠️ {@see \OCA\Learniq\Timetabling\TimetableImportHandler} already made
+	 * exactly that repoint against the same non-existent route: it resolves the
+	 * app segment through FleetAppId and still asks for `api/sources/%s/run`.
+	 * Its lookup is now correct and its target still is not.
+	 *
+	 * @stale-fleet-app-id exclude integriq publishes no run route for a source
+	 * under either name. Re-verified 2026-09-10 against integriq `development`:
+	 * its whole sources table is `sources#test` (POST /api/sources/test/{id}),
+	 * `sources#logs` and the two circuit-breaker actions, and
+	 * `git log -S "sources#run"` over the full 3,960-commit history returns
+	 * nothing. A source is READ BY a synchronization there; it is not a thing you
+	 * run. Correcting the app segment alone turns a path that 404s on half the
+	 * fleet into one that 404s on all of it, on a diff that reads as a fix.
 	 *
 	 * @var string
 	 */

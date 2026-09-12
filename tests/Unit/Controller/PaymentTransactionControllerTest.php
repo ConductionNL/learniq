@@ -34,6 +34,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\PaymentTransactionController;
 use OCA\Learniq\Service\PaymentInitiationClient;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -130,6 +131,7 @@ class PaymentTransactionControllerTest extends TestCase {
 			clientService: $this->clientService,
 			urlGenerator: $this->urlGenerator,
 			appConfig: $this->appConfig,
+			appManager: $this->createMock(IAppManager::class),
 			logger: new NullLogger()
 		);
 

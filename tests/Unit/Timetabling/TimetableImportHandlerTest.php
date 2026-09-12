@@ -36,6 +36,7 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Timetabling\TimetableConflictDetector;
 use OCA\Learniq\Timetabling\TimetableImportHandler;
 use OCA\Learniq\Timetabling\TimetableRecordMapper;
+use OCP\App\IAppManager;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
 use OCP\IURLGenerator;
@@ -129,6 +130,7 @@ class TimetableImportHandlerTest extends TestCase {
 			$this->createMock(IClientService::class),
 			$this->createMock(IURLGenerator::class),
 			$this->createMock(IAppConfig::class),
+			$this->createMock(IAppManager::class),
 			new NullLogger()
 		);
 

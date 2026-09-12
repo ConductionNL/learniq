@@ -112,15 +112,41 @@ class LtiToolPlacementController extends Controller {
 	 * @var string
 	 */
 	/**
-	 * NOT resolved across the fleet rename — see ConductionNL/.github#580.
+	 * 🔴 THIS ENDPOINT DOES NOT EXIST, AND RESOLVING THE APP NAME WILL NOT MAKE
+	 * IT EXIST. Do not "fix" the `openconnector` segment here.
 	 *
-	 * This app is `integriq` on development and `openconnector` on beta/main,
-	 * so this path 404s on half the fleet. The other six call sites in this app
-	 * now resolve the segment at call time via Support\FleetAppId, but this
-	 * class sits exactly at the CouplingBetweenObjects ceiling (12 of 13) and
-	 * referencing one more type — imported or fully qualified, phpmd counts
-	 * both — tips it over. Fixing it properly means reducing this class's
-	 * dependencies first, which is a separate change.
+	 * The stale app id is real — the connector app is `integriq` now, so this
+	 * path 404s on any instance that has renamed, and Support\FleetAppId exists
+	 * for exactly that. It is not the reason this call fails, and correcting it
+	 * alone would make things WORSE rather than better.
+	 *
+	 * Verified 2026-09-09 against integriq `development` a5e43d8. There is no
+	 * `api/lti/deployments/{id}/launch`. What that app publishes is
+	 * `api/lti/{deployment}/launch`, and it is not this endpoint wearing a
+	 * different path: it is a `#[PublicPage]`, rate-limited, browser-facing LTI
+	 * leg that consumes an `id_token` plus a `state` cookie from an OIDC
+	 * redirect and answers with a 302. This class posts
+	 * `{"subject", "messageType"}` with a Bearer token and expects
+	 * `{"formActionUrl", "idToken"}` back. Different contract, different actor,
+	 * different response type.
+	 *
+	 * So repointing the segment would replace a clean 404 with a 400 "Missing
+	 * id_token" from a public rate-limited endpoint, on a diff that reads as a
+	 * fix. The wrapper described in the docblock above still has to ship in the
+	 * other repo first; when it does, this constant AND the request/response
+	 * mapping below change together, and the segment gets resolved at call time
+	 * in the same change.
+	 *
+	 * @stale-fleet-app-id exclude integriq publishes no such route under either
+	 * name. Re-verified 2026-09-10 against integriq `development`: its LTI table
+	 * is `/api/lti/{deployment}/{login,launch,token,ags/*,nrps/*}`, and
+	 * `git log -S "lti/deployments"` over the full 3,960-commit history returns
+	 * nothing, so the `deployments` segment has never existed. The nearest
+	 * published leg, `lti#launch`, is a #[PublicPage] browser redirect that
+	 * consumes an id_token and answers 302; this class posts a Bearer-token JSON
+	 * body and expects JSON back. Repointing swaps a clean 404 for a 400 from a
+	 * public rate-limited endpoint. The wrapper described above has to ship in
+	 * integriq first, and this constant moves with the request mapping when it does.
 	 *
 	 * @var string
 	 */

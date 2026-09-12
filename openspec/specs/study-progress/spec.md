@@ -130,7 +130,7 @@ only evidence.
 
 #### Scenario: An appealed decision records its outcome as evidence
 
-<!-- @e2e exclude Appeal sub-lifecycle transitions are backend lifecycle logic verified by PHPUnit BsaDecisionGuardTest::testAppealUpheldAndOverturnedTransitions. -->
+<!-- @e2e exclude Appeal sub-lifecycle transitions are DECLARED in the register schema (appealed/upheld/overturned are lifecycle states of bsadecision) and carry no guard, so there is no behavioural assertion anywhere: BsaDecisionGuardTest covers the negative-decision warning rules only. NOT YET VERIFIED by any test. -->
 
 - **GIVEN** a `decided` `BsaDecision`
 - **WHEN** the learner appeals and the institution's appeal body upholds or overturns the decision

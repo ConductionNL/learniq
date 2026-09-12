@@ -314,7 +314,7 @@
                 "@self": {
                     "register": "learniq",
                     "schema": "regulation",
-                    "slug": "reg-avg"
+                    "slug": "AVG"
                 },
                 "slug": "AVG",
                 "name": "AVG / GDPR",

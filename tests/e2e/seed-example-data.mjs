@@ -940,11 +940,27 @@ async function seedObjects(presentSlugs) {
 	// `audienceScope` (Regulation) and `issuerDid`/`signature`/`openbadges3Payload`
 	// (Credential) are required; Credential.learnerId is `format: uuid`, so the
 	// LearnerProfile UUID is used rather than the NC user id.
+	// ⚠️ `@self.slug` IS NOT DECORATION HERE, AND IT MUST EQUAL THE BUSINESS SLUG.
+	// Regulation declares a data property literally called `slug` (the business
+	// key, "AVG"), and OpenRegister's SaveObject reads
+	// `@self.slug ?? data.slug` into the object's METADATA `_slug` — one of the
+	// four columns `/api/objects/<register>/<schema>/<identifier>` matches an
+	// identifier against (_id, _uuid, _slug, _uri). So a regulation posted
+	// WITHOUT `@self` still lands with `_slug: "AVG"`, and any second writer
+	// that disagrees about the identity adds a SECOND row answering to `AVG` —
+	// which turns the detail lookup into an HTTP 500
+	// (MultipleObjectsReturnedException), not a 404. Measured: run
+	// 34468461118, `Error fetching learniq-Regulation/AVG: 500`.
+	//
+	// lib/Settings/learniq_register.json ships the same two identities on its
+	// own AVG regulation, so both writers now name the record the same way and
+	// whichever runs first is the one the other finds.
 	for (const slug of ['AVG', 'NIS2'])
 		await seed(
 			'regulation',
 			{ field: 'slug', value: slug },
 			{
+				'@self': { slug },
 				slug,
 				name: `${slug} (demo)`,
 				audienceScope: 'all-employees',
