@@ -34,8 +34,16 @@
  *      never disagree about which instance they are talking to.
  */
 
+import { assertInstancePermitted } from './shared-instance.ts'
+
 /**
  * Resolve the base URL of the Nextcloud instance under test.
+ *
+ * The resolved target passes through `assertInstancePermitted`, so a run that
+ * lands on the shared development instance without naming it in
+ * `LEARNIQ_E2E_ALLOW_SHARED_INSTANCE` (or the fleet-wide
+ * `E2E_ALLOW_SHARED_INSTANCE`) stops here with an explanation. See
+ * `tests/e2e/shared-instance.ts`.
  *
  * @throws {Error} when no target environment variable is set.
  * @return {string} The base URL, without a trailing slash.
@@ -52,7 +60,7 @@ export function baseUrl(): string {
 	for (const name of candidates) {
 		const value = process.env[name]
 		if (value && value.trim() !== '') {
-			return value.trim().replace(/\/+$/, '')
+			return assertInstancePermitted(value.trim().replace(/\/+$/, ''))
 		}
 	}
 
