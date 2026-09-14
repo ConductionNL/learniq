@@ -80,8 +80,8 @@ class ServiceOverrideRegistrar {
 				return new SettingsController(
 					request: $c->get('OCP\\IRequest'),
 					settingsService: $c->get(SettingsService::class),
-					// adopt-connection-registry: a save sends integriq the
-					// recorded connection outcomes. Without this argument the
+					// A save sends integriq the recorded connection outcomes
+					// (adopt-connection-registry). Without this argument the
 					// controller would build with no reporter and send nothing.
 					connectionReports: $c->get(ConnectionReportService::class)
 				);

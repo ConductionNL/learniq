@@ -284,7 +284,11 @@ class ConnectionsDeclarationTest extends TestCase {
 		$calls = [
 			'data-exchange' => ['lib/Listener/DataExchangeRunHandler.php', "'/apps/openconnector/api/sources/%s/run'", 'api/sources/[target]/run'],
 			'timetable' => ['lib/Timetabling/TimetableImportHandler.php', "'api/sources/%s/run'", 'api/sources/timetable-import/run'],
-			'lti' => ['lib/Controller/LtiToolPlacementController.php', "'/apps/openconnector/api/lti/deployments/%s/launch'", 'api/lti/deployments/[id]/launch'],
+			'lti' => [
+				'lib/Controller/LtiToolPlacementController.php',
+				"'/apps/openconnector/api/lti/deployments/%s/launch'",
+				'api/lti/deployments/[id]/launch',
+			],
 			'payment' => ['lib/Service/PaymentInitiationClient.php', "'api/payments/initiate'", 'api/payments/initiate'],
 		];
 

@@ -151,11 +151,41 @@ class WalletOfferConnectionObservationTest extends TestCase {
 		$offer = json_encode(['credentialOfferUri' => 'https://integriq.example/index.php/apps/integriq/api/eudi/credential-offers/offer-uuid-1']);
 
 		return [
-			'the offer reached integriq' => ['token-abc', static fn (self $test): IResponse => $test->response(body: (string)$offer), true, 'configured', 'The last wallet offer reached integriq.'],
-			'no token is set' => ['', static fn (self $test): ?IResponse => null, false, 'unconfigured', 'No integriq API token is set, so the last wallet offer was not sent.'],
-			'the call threw' => ['token-abc', static fn (self $test): Exception => new Exception('Client error: 401 Unauthorized'), false, 'error', 'The last wallet offer to integriq failed: Client error: 401 Unauthorized'],
-			'the answer was not JSON' => ['token-abc', static fn (self $test): IResponse => $test->response(body: '<html>'), false, 'error', 'Integriq answered the last wallet offer without JSON.'],
-			'the answer had no offer' => ['token-abc', static fn (self $test): IResponse => $test->response(body: '{"offerUrl": "x"}'), false, 'error', 'Integriq answered the last wallet offer without a usable offer reference.'],
+			'the offer reached integriq' => [
+				'token-abc',
+				static fn (self $test): IResponse => $test->response(body: (string)$offer),
+				true,
+				'configured',
+				'The last wallet offer reached integriq.',
+			],
+			'no token is set' => [
+				'',
+				static fn (self $test): ?IResponse => null,
+				false,
+				'unconfigured',
+				'No integriq API token is set, so the last wallet offer was not sent.',
+			],
+			'the call threw' => [
+				'token-abc',
+				static fn (self $test): Exception => new Exception('Client error: 401 Unauthorized'),
+				false,
+				'error',
+				'The last wallet offer to integriq failed: Client error: 401 Unauthorized',
+			],
+			'the answer was not JSON' => [
+				'token-abc',
+				static fn (self $test): IResponse => $test->response(body: '<html>'),
+				false,
+				'error',
+				'Integriq answered the last wallet offer without JSON.',
+			],
+			'the answer had no offer' => [
+				'token-abc',
+				static fn (self $test): IResponse => $test->response(body: '{"offerUrl": "x"}'),
+				false,
+				'error',
+				'Integriq answered the last wallet offer without a usable offer reference.',
+			],
 		];
 	}//end outcomes()
 
