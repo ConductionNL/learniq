@@ -15,7 +15,9 @@
  @spec openspec/changes/relocate-dataexchange-remove-assistant/specs/data-exchange/spec.md#requirement-data-exchange-management-is-reached-from-the-admin-settings-page
 -->
 <template>
+	<!-- The id is the anchor lib/Settings/connections.json links to (adopt-connection-registry). -->
 	<NcSettingsSection
+		id="section-data-exchange"
 		:name="t('learniq', 'Data exchange')"
 		:description="
 			t(
