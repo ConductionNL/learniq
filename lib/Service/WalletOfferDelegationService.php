@@ -123,6 +123,9 @@ class WalletOfferDelegationService {
 	 *                                needs it, and it arrives as a dependency now
 	 *                                rather than out of the global server.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param ConnectionReportService|null $connectionReports Records what each offer met, for
+	 *                                                        integriq's connection registry
+	 *                                                        (adopt-connection-registry).
 	 *
 	 * @return void
 	 */
@@ -132,6 +135,7 @@ class WalletOfferDelegationService {
 		private readonly IAppConfig $appConfig,
 		private readonly IAppManager $appManager,
 		private readonly LoggerInterface $logger,
+		private readonly ?ConnectionReportService $connectionReports = null,
 	) {
 	}//end __construct()
 
@@ -173,8 +177,11 @@ class WalletOfferDelegationService {
 		$attestationRef = $this->extractOfferUuid(response: $result);
 		if ($attestationRef === null) {
 			$object['walletOfferError'] = 'OpenConnector returned no usable credentialOfferUri for the wallet offer.';
+			$this->observeConnection(status: 'error', reason: 'Integriq answered the last wallet offer without a usable offer reference.');
 			return false;
 		}
+
+		$this->observeConnection(status: 'configured', reason: 'The last wallet offer reached integriq.');
 
 		$object['walletOfferStatus'] = 'offered';
 		$object['walletOfferedAt'] = gmdate('c');
@@ -296,6 +303,7 @@ class WalletOfferDelegationService {
 				'[WalletOfferDelegationService] No OpenConnector API token configured ('
 				. 'learniq.openconnector_api_token); the wallet offer call will fail with 401.'
 			);
+			$this->observeConnection(status: 'unconfigured', reason: 'No integriq API token is set, so the last wallet offer was not sent.');
 			return null;
 		}
 
@@ -314,6 +322,7 @@ class WalletOfferDelegationService {
 			$body = json_decode($response->getBody(), true);
 			if (is_array($body) === false) {
 				$this->logger->error('[WalletOfferDelegationService] OpenConnector returned non-JSON for createOffer.');
+				$this->observeConnection(status: 'error', reason: 'Integriq answered the last wallet offer without JSON.');
 				return null;
 			}
 
@@ -323,7 +332,25 @@ class WalletOfferDelegationService {
 				'[WalletOfferDelegationService] OpenConnector createOffer call failed: {msg}',
 				['msg' => $exception->getMessage()]
 			);
+			$this->observeConnection(status: 'error', reason: 'The last wallet offer to integriq failed: ' . $exception->getMessage());
 			return null;
 		}//end try
 	}//end callOpenConnectorCreateOffer()
+
+	/**
+	 * Record what this offer met on the EUDI wallet connection.
+	 *
+	 * Only records. The report to integriq goes out from the daily job or a
+	 * settings save, never from inside this lifecycle guard.
+	 *
+	 * @param string $status configured, unconfigured or error.
+	 * @param string $reason What the offer met.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
+	 */
+	private function observeConnection(string $status, string $reason): void {
+		$this->connectionReports?->observe(key: ConnectionReportService::WALLET_KEY, status: $status, reason: $reason);
+	}//end observeConnection()
 }//end class

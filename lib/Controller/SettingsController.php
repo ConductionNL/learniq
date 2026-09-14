@@ -22,6 +22,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\ConnectionReportService;
 use OCA\Learniq\Service\SettingsService;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
@@ -48,12 +49,14 @@ class SettingsController extends Controller {
 	 *
 	 * @param IRequest $request The request object
 	 * @param SettingsService $settingsService The settings service
+	 * @param ConnectionReportService|null $connectionReports Sends integriq the recorded connection outcomes after a save
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		private SettingsService $settingsService,
+		private ?ConnectionReportService $connectionReports = null,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -92,14 +95,22 @@ class SettingsController extends Controller {
 	 * `src/views/LearniqSettings.vue::saveDefaultRegister()`) keep the exact
 	 * response shape they parse today.
 	 *
+	 * After the write it sends integriq the recorded connection outcomes, so an
+	 * admin who saves sees the latest one on the Integrations page
+	 * (adopt-connection-registry). That never throws, and does nothing
+	 * without integriq.
+	 *
 	 * @return JSONResponse The `{success, config}` envelope carrying the refreshed settings map.
 	 *
 	 * @spec openspec/specs/apphost-adoption/spec.md#scenario-settings-endpoints-parity
+	 * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function update(): JSONResponse {
 		$data = $this->request->getParams();
 		$config = $this->settingsService->updateSettings($data);
+
+		$this->connectionReports?->reportObservations();
 
 		return new JSONResponse(
 			[

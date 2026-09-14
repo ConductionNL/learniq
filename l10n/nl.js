@@ -1414,7 +1414,20 @@ OC.L10N.register(
         "What course evaluations said, per course.": "Wat cursusevaluaties zeiden, per cursus.",
         "What was found on placement visits.": "Wat er bij werkplekbezoeken is aangetroffen.",
         "Store": "Store",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installeer registers, schema's en flows die andere organisaties hebben gepubliceerd."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installeer registers, schema's en flows die andere organisaties hebben gepubliceerd.",
+        "Add integration": "Integratie toevoegen",
+        "All connections": "Alle koppelingen",
+        "Configured": "Geconfigureerd",
+        "Connection": "Koppeling",
+        "Error": "Fout",
+        "Integrations": "Integraties",
+        "Last checked": "Laatst gecontroleerd",
+        "Limited": "Beperkt",
+        "Not available": "Niet beschikbaar",
+        "Not configured": "Niet geconfigureerd",
+        "Open settings": "Instellingen openen",
+        "Simulated": "Gesimuleerd",
+        "Status message": "Statusmelding"
     },
     "nplurals=2; plural=(n != 1);"
 )

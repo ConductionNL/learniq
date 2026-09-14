@@ -117,6 +117,10 @@ Vrij en open source onder de EUPL-1.2-licentie.
             learniq.lti_ags_subscription_id (see docs/ARCHITECTURE.md).
         -->
         <job>OCA\Learniq\BackgroundJob\LtiAgsScorePollJob</job>
+        <!-- adopt-connection-registry: once a day, sends integriq the outcome
+             of the last EUDI wallet offer. Sends nothing when integriq is not
+             installed. -->
+        <job>OCA\Learniq\BackgroundJob\ConnectionReportJob</job>
     </background-jobs>
 
     <repair-steps>
