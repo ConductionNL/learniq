@@ -32,6 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use DateTimeZone;
 use OCA\Learniq\AppInfo\Application;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -148,7 +149,7 @@ class ConnectionReportService {
 					[
 						'status' => $status,
 						'reason' => $reason,
-						'since' => $this->timeFactory->getDateTime('now', new \DateTimeZone('UTC'))->format('Y-m-d H:i'),
+						'since' => $this->timeFactory->getDateTime('now', new DateTimeZone('UTC'))->format('Y-m-d H:i'),
 					],
 					JSON_THROW_ON_ERROR
 				),
