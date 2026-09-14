@@ -126,6 +126,7 @@ import Percent from 'vue-material-design-icons/Percent.vue'
 import Phone from 'vue-material-design-icons/Phone.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import PodiumGold from 'vue-material-design-icons/PodiumGold.vue'
+import PowerPlugOutline from 'vue-material-design-icons/PowerPlugOutline.vue'
 import RobotOutline from 'vue-material-design-icons/RobotOutline.vue'
 import ScaleBalance from 'vue-material-design-icons/ScaleBalance.vue'
 import School from 'vue-material-design-icons/School.vue'
@@ -270,6 +271,7 @@ export default {
 	Phone,
 	Plus,
 	PodiumGold,
+	PowerPlugOutline,
 	RobotOutline,
 	ScaleBalance,
 	School,
