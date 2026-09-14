@@ -19,9 +19,9 @@
 - [x] 3.1 Add `lib/Service/ConnectionReportService.php`.
 - [x] 3.2 Record the wallet offer outcome in `WalletOfferDelegationService`.
 - [x] 3.3 Add `lib/BackgroundJob/ConnectionReportJob.php` and register it in `appinfo/info.xml`.
-- [x] 3.4 Report from `SettingsController::update()`.
+- [x] 3.4 Report from `SettingsController::update()`, and pass the reporter in the controller's factory in `ServiceOverrideRegistrar`.
 - [x] 3.5 Add the integriq event stub to `tests/Stubs`, `tests/bootstrap.php` and `psalm.xml`.
-- [x] 3.6 Cover it in `ConnectionReportServiceTest`, `ConnectionReportJobTest`, `WalletOfferDelegationServiceTest` and `SettingsControllerConnectionReportTest`.
+- [x] 3.6 Cover it in `ConnectionReportServiceTest`, `ConnectionReportJobTest`, `WalletOfferConnectionObservationTest` and `SettingsControllerConnectionReportTest`.
 
 ## 4. End to end
 

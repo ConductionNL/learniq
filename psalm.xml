@@ -33,6 +33,11 @@
              container. Real classes live in openregister/lib/Service/. -->
         <file name="tests/Stubs/Service/TenantKeyService.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/TalkLinkService.php" preloadClasses="true" />
+        <!-- Integriq's connection-registry event (adopt-connection-registry).
+             ConnectionReportService names it by string behind class_exists
+             (ADR-041). Declaration-only stub, so psalm sees the constructor the
+             service builds instead of reading the guarded branch as dead. -->
+        <file name="tests/Stubs/Integriq/Event/ConnectionStatusReportedEvent.php" preloadClasses="true" />
     </stubs>
     <issueHandlers>
         <UndefinedDocblockClass errorLevel="suppress"/>

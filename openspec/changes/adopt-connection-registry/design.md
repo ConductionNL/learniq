@@ -47,7 +47,7 @@ The same status and reason again change nothing, so a batch of offers costs one 
 ## D3. When it reports
 
 - `ConnectionReportJob`, a `TimedJob` once a day. It sends again each day, so a report integriq refused before its first sync lands on the next run.
-- `SettingsController::update()`, after the save, so an admin sees the latest outcome without waiting a day.
+- `SettingsController::update()`, after the save, so an admin sees the latest outcome without waiting a day. Learniq builds this controller in its own factory (`ServiceOverrideRegistrar`), which passes the reporter.
 
 The event is named by string constant and built only when the class exists (ADR-041). Without integriq nothing is sent or logged, and the observation is kept. A listener that throws is caught and logged, and never reaches the save.
 

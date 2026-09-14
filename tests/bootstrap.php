@@ -140,3 +140,12 @@ require_once __DIR__ . '/Stubs/DoctrineParameterType.php';
 if (interface_exists(\OC\Hooks\Emitter::class) === false) {
 	require_once __DIR__ . '/Stubs/Hooks/Emitter.php';
 }
+
+// Integriq's connection-registry event (adopt-connection-registry).
+// ConnectionReportService sends it by string class name behind class_exists
+// (ADR-041), so learniq stays installable without integriq. The stub mirrors
+// hydra connection-registry design D6 verbatim and loads only when integriq's
+// real class is absent.
+if (class_exists('\\OCA\\Integriq\\Event\\ConnectionStatusReportedEvent') === false) {
+	require_once __DIR__ . '/Stubs/Integriq/Event/ConnectionStatusReportedEvent.php';
+}
