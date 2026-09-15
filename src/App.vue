@@ -37,7 +37,6 @@
 		:manifest="manifest"
 		:registry="registry"
 		:pageTypes="pageTypes"
-		:formatters="connectionFormatters"
 		:customComponents="headerActionHandlers"
 		appId="learniq"
 		:translate="translateForApp">
@@ -52,7 +51,7 @@ import { CnAppRoot } from '@conduction/nextcloud-vue'
 import { translate as ncT } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import LearniqNotificationSettings from './views/LearniqNotificationSettings.vue'
-import { createConnectionFormatters, createConnectionHandlers } from './utils/connectionRegistry.js'
+import { createConnectionHandlers } from './utils/connectionRegistry.js'
 
 export default {
 	name: 'App',
@@ -96,13 +95,6 @@ export default {
 
 	data() {
 		return {
-			/**
-			 * connectionStatus + connectionSettingsLabel for the Integrations
-			 * page (adopt-connection-registry). nextcloud-vue 2.37.0 ships
-			 * neither as a built-in, so CnAppRoot merges these over its own.
-			 */
-			connectionFormatters: createConnectionFormatters((source) => ncT('learniq', source)),
-
 			/**
 			 * Header-action handlers resolved by name. CnIndexPage looks a
 			 * `headerActions[].handler` name up in `customComponents` only, not
