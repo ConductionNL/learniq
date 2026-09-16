@@ -28,6 +28,8 @@
 // schema couldn't be imported.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { request as httpRequest } from 'node:http'
+import { request as httpsRequest } from 'node:https'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -65,6 +67,52 @@ function warn(...a) {
 	console.warn('[seed]', ...a)
 }
 
+/**
+ * One HTTP exchange over node:http, with the whole body buffered.
+ *
+ * Not `fetch`. Node's fetch is undici, and on CI it crashed this seeder twice
+ * in a row at the same point, right after "register declares 118 schemas"
+ * (runs 35064736268 and 35068598601), with
+ * `AssertionError: assert(!this.paused) at Parser.finish (undici)` raised from
+ * the socket's `end` handler. That assertion is thrown outside any promise
+ * this script awaits, so no try/catch here can turn it into a status: the
+ * process dies and the whole E2E job is refused at "Seed test data". node:http
+ * uses Node's own parser and reports a dropped connection as an `error` event,
+ * which lands in the catch below as status 0 like any other network failure.
+ *
+ * @param {string} method HTTP method.
+ * @param {string} url Absolute URL.
+ * @param {Record<string, string>} headers Request headers.
+ * @param {string | undefined} payload Request body.
+ * @return {Promise<{ status: number, text: string }>} The status and body.
+ */
+function httpExchange(method, url, headers, payload) {
+	return new Promise((resolve, reject) => {
+		const target = new URL(url)
+		const send = target.protocol === 'https:' ? httpsRequest : httpRequest
+		const allHeaders = { ...headers }
+		if (payload !== undefined) {
+			allHeaders['Content-Length'] = String(Buffer.byteLength(payload))
+		}
+		const req = send(target, { method, headers: allHeaders }, (res) => {
+			const chunks = []
+			res.on('data', (chunk) => chunks.push(chunk))
+			res.on('end', () =>
+				resolve({
+					status: res.statusCode ?? 0,
+					text: Buffer.concat(chunks).toString('utf8'),
+				}),
+			)
+			res.on('error', reject)
+		})
+		req.on('error', reject)
+		if (payload !== undefined) {
+			req.write(payload)
+		}
+		req.end()
+	})
+}
+
 async function api(method, path, body, { raw = false } = {}) {
 	const headers = {
 		Authorization: AUTH,
@@ -78,11 +126,12 @@ async function api(method, path, body, { raw = false } = {}) {
 	}
 	let res
 	try {
-		res = await fetch(`${BASE}${path}`, { method, headers, body: payload })
+		res = await httpExchange(method, `${BASE}${path}`, headers, payload)
 	} catch (e) {
 		return { ok: false, status: 0, err: String(e), json: null }
 	}
-	const text = await res.text()
+	res.ok = res.status >= 200 && res.status < 300
+	const text = res.text
 	let json = null
 	try {
 		json = text ? JSON.parse(text) : null
