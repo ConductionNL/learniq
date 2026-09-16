@@ -17,11 +17,14 @@ import path from 'node:path'
 import { describe, test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import {
-	CONNECTION_STATUS_LABELS,
-	createConnectionFormatters,
 	createConnectionHandlers,
 	INTEGRIQ_CONNECTIONS_PATH,
 } from '../../src/utils/connectionRegistry.js'
+
+// The built-ins translate through @nextcloud/l10n, which reads the browser
+// session on import. Plain node has no window, so lend it the global scope.
+globalThis.window ??= globalThis
+const { BUILT_IN_FORMATTERS } = await import('@conduction/nextcloud-vue/src/utils/builtInFormatters.js')
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const readJson = (relative) => JSON.parse(fs.readFileSync(path.join(ROOT, relative), 'utf8'))
@@ -29,44 +32,20 @@ const fragment = readJson('src/manifest.d/connection-registry.json')
 const page = fragment.pages.find((p) => p.id === 'ConnectionRegistry')
 const menu = fragment.menu.find((m) => m.id === 'ConnectionRegistryMenu')
 
-/** A translator that marks what it translated, so a missing call shows. */
-const translate = (source) => `t:${source}`
+const appShell = () => fs.readFileSync(path.join(ROOT, 'src/App.vue'), 'utf8')
 
 describe('connection formatters', () => {
-	const formatters = createConnectionFormatters(translate)
-
-	test('labels all six statuses, limited included', () => {
-		assert.deepEqual(
-			Object.keys(CONNECTION_STATUS_LABELS).sort(),
-			['configured', 'error', 'limited', 'simulated', 'unavailable', 'unconfigured'],
-		)
-		assert.equal(formatters.connectionStatus('limited'), 't:Limited')
-		assert.equal(formatters.connectionStatus('unconfigured'), 't:Not configured')
-		assert.equal(formatters.connectionStatus('unavailable'), 't:Not available')
-		assert.equal(formatters.connectionStatus('simulated'), 't:Simulated')
-		assert.equal(formatters.connectionStatus('configured'), 't:Configured')
-		assert.equal(formatters.connectionStatus('error'), 't:Error')
+	test('labels a switched-off connection through the nextcloud-vue built-in', () => {
+		// CnAppRoot lets an app formatter win over a built-in, so a local copy
+		// passed to the shell would shadow the library's labels.
+		assert.doesNotMatch(appShell(), /:formatters=/, 'App.vue passes its own formatters')
+		assert.equal(BUILT_IN_FORMATTERS.connectionStatus('disabled'), 'Switched off')
 	})
 
-	test('renders an unknown status as itself and a missing one as empty', () => {
-		assert.equal(formatters.connectionStatus('degraded'), 'degraded')
-		assert.equal(formatters.connectionStatus('toString'), 'toString')
-		assert.equal(formatters.connectionStatus(null), '')
-		assert.equal(formatters.connectionStatus(undefined), '')
-	})
-
-	test('offers Open settings only when the row has a settings link', () => {
-		assert.equal(formatters.connectionSettingsLabel('/settings/admin/learniq#section-data-exchange'), 't:Open settings')
-		assert.equal(formatters.connectionSettingsLabel(''), '')
-		assert.equal(formatters.connectionSettingsLabel(undefined), '')
-	})
-
-	test('ships an English and a Dutch label for every string the page shows', () => {
+	test('ships an English and a Dutch label for every string the page itself declares', () => {
 		const en = readJson('l10n/en.json').translations
 		const nl = readJson('l10n/nl.json').translations
 		const labels = [
-			...Object.values(CONNECTION_STATUS_LABELS),
-			'Open settings',
 			page.title,
 			page.config.headerActions[0].label,
 			page.config.folderSidebar.allLabel,
@@ -76,7 +55,6 @@ describe('connection formatters', () => {
 			assert.equal(en[label], label, `en: ${label}`)
 			assert.ok(nl[label], `nl: ${label}`)
 		}
-		assert.equal(nl.Limited, 'Beperkt')
 	})
 })
 
@@ -113,12 +91,11 @@ describe('the Integrations page declaration', () => {
 	})
 
 	test('names only formatters, handlers and icons that exist', () => {
-		const formatters = createConnectionFormatters(translate)
 		const handlers = createConnectionHandlers({ generateUrl: (p) => p, assign: () => {} })
 		const icons = fs.readFileSync(path.join(ROOT, 'src/icons.js'), 'utf8')
 
 		for (const column of page.config.columns.filter((c) => c.formatter)) {
-			assert.equal(typeof formatters[column.formatter], 'function', column.formatter)
+			assert.equal(typeof BUILT_IN_FORMATTERS[column.formatter], 'function', column.formatter)
 		}
 		for (const action of page.config.headerActions) {
 			assert.equal(typeof handlers[action.handler], 'function', action.handler)
@@ -128,10 +105,8 @@ describe('the Integrations page declaration', () => {
 		}
 	})
 
-	test('wires the formatters and the handler into the app shell', () => {
-		const app = fs.readFileSync(path.join(ROOT, 'src/App.vue'), 'utf8')
-		assert.match(app, /:formatters="connectionFormatters"/)
-		assert.match(app, /:customComponents="headerActionHandlers"/)
+	test('wires the handler into the app shell', () => {
+		assert.match(appShell(), /:customComponents="headerActionHandlers"/)
 	})
 
 	test('takes an id and a route no other page uses', () => {
