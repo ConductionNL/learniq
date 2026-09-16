@@ -19,7 +19,8 @@
  * Where Add integration lands: integriq's Connections overview, preset to this
  * app and opening the link-a-source dialog (hydra connection-registry D9).
  */
-export const INTEGRIQ_CONNECTIONS_PATH = '/apps/integriq/connections?app=learniq&link=1'
+export const INTEGRIQ_CONNECTIONS_PATH =
+	'/apps/integriq/connections?app=learniq&link=1'
 
 /**
  * Build the Add integration header-action handler.
