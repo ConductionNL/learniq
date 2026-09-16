@@ -40,6 +40,7 @@ use ReflectionProperty;
  * Unit tests for the connection report a settings save sends.
  *
  * @covers \OCA\Learniq\Controller\SettingsController
+ * @uses   \OCA\Learniq\AppInfo\Registrar\ServiceOverrideRegistrar
  */
 class SettingsControllerConnectionReportTest extends TestCase {
 
