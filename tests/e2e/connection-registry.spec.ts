@@ -29,7 +29,8 @@ import type { APIRequestContext, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 /** Integriq's objects endpoint for learniq's connection rows. */
-const CONNECTIONS_API = '/index.php/apps/openregister/api/objects/integriq/app_connection?app=learniq&_limit=50'
+const CONNECTIONS_API =
+	'/index.php/apps/openregister/api/objects/integriq/app_connection?app=learniq&_limit=50'
 
 /** The declared keys and titles, in declared order. */
 const DECLARED = [
@@ -49,8 +50,12 @@ const DECLARED = [
  * @param request An admin request context.
  * @return The rows by key.
  */
-async function rowsByKey(request: APIRequestContext): Promise<Record<string, Record<string, unknown>>> {
-	const res = await request.get(CONNECTIONS_API, { headers: { Accept: 'application/json' } })
+async function rowsByKey(
+	request: APIRequestContext,
+): Promise<Record<string, Record<string, unknown>>> {
+	const res = await request.get(CONNECTIONS_API, {
+		headers: { Accept: 'application/json' },
+	})
 	expect(res.ok(), `list integriq/app_connection -> ${res.status()}`).toBeTruthy()
 	const body = await res.json()
 	const byKey: Record<string, Record<string, unknown>> = {}
@@ -68,30 +73,44 @@ async function rowsByKey(request: APIRequestContext): Promise<Record<string, Rec
  * @param page The Playwright page.
  */
 async function openIntegrations(page: Page): Promise<void> {
-	await page.goto('/index.php/apps/learniq/settings/integrations?app=learniq', { timeout: 60_000 })
+	await page.goto('/index.php/apps/learniq/settings/integrations?app=learniq', {
+		timeout: 60_000,
+	})
 	await expect(page.locator('.cn-index-page')).toBeVisible({ timeout: 30_000 })
 }
 
 test.describe('Integrations over the connection registry', () => {
-	test('lists the eight declared connections, all of them learniq\'s', async ({ loggedInPage: page }) => {
+	test("lists the eight declared connections, all of them learniq's", async ({
+		loggedInPage: page,
+	}) => {
 		const byKey = await rowsByKey(page.request)
 		expect(Object.keys(byKey).sort()).toEqual(DECLARED.map((d) => d.key).sort())
 
 		await openIntegrations(page)
 		for (const { title } of DECLARED) {
-			await expect(page.getByRole('row', { name: new RegExp(`^${title}\\b`, 'i') })).toHaveCount(1)
+			await expect(
+				page.getByRole('row', { name: new RegExp(`^${title}\\b`, 'i') }),
+			).toHaveCount(1)
 		}
 	})
 
-	test('says data exchange cannot run, and why', async ({ loggedInPage: page }) => {
+	test('says data exchange cannot run, and why', async ({
+		loggedInPage: page,
+	}) => {
 		const dataExchange = (await rowsByKey(page.request))['data-exchange']
 
 		expect(dataExchange?.status).toBe('unavailable')
-		expect(String(dataExchange?.statusMessage)).toContain('api/sources/[target]/run')
-		expect(dataExchange?.settingsUrl).toBe('/settings/admin/learniq#section-data-exchange')
+		expect(String(dataExchange?.statusMessage)).toContain(
+			'api/sources/[target]/run',
+		)
+		expect(dataExchange?.settingsUrl).toBe(
+			'/settings/admin/learniq#section-data-exchange',
+		)
 	})
 
-	test('sends Add integration to integriq instead of offering a form', async ({ loggedInPage: page }) => {
+	test('sends Add integration to integriq instead of offering a form', async ({
+		loggedInPage: page,
+	}) => {
 		await openIntegrations(page)
 
 		// No generic Add button: a row nothing declared has nothing to check.
@@ -101,8 +120,14 @@ test.describe('Integrations over the connection registry', () => {
 		// catalogues this change ships, and nothing forces the E2E locale.
 		await page.locator('[data-testid="cn-actions"] button').first().click()
 		await Promise.all([
-			page.waitForURL(/\/apps\/integriq\/connections\?app=learniq&link=1$/, { timeout: 30_000 }),
-			page.getByRole('menuitem', { name: /Add integration|Integratie toevoegen/i }).click(),
+			page.waitForURL(/\/apps\/integriq\/connections\?app=learniq&link=1$/, {
+				timeout: 30_000,
+			}),
+			page
+				.getByRole('menuitem', {
+					name: /Add integration|Integratie toevoegen/i,
+				})
+				.click(),
 		])
 	})
 })
