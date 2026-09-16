@@ -44,6 +44,7 @@ use Psr\Log\NullLogger;
  * Tests for the connection observation in WalletOfferDelegationService::check().
  *
  * @covers \OCA\Learniq\Service\WalletOfferDelegationService
+ * @uses   \OCA\Learniq\Support\FleetAppId
  */
 class WalletOfferConnectionObservationTest extends TestCase {
 
