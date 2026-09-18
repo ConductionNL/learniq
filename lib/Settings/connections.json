@@ -1,0 +1,71 @@
+{
+    "app": "learniq",
+    "connections": [
+        {
+            "key": "data-exchange",
+            "title": "Data exchange",
+            "description": "Aanleveringen and imports with DUO/BRON, OSO, the municipality and ELO systems.",
+            "order": 10,
+            "settingsUrl": "/settings/admin/learniq#section-data-exchange",
+            "available": false,
+            "unavailableMessage": "A job run calls api/sources/[target]/run on integriq. Integriq has no such endpoint, so every run fails."
+        },
+        {
+            "key": "timetable",
+            "title": "Timetable import",
+            "description": "Lessons imported from Zermelo, Untis or Xedule as a data-exchange job.",
+            "order": 20,
+            "settingsUrl": "/settings/admin/learniq#section-data-exchange",
+            "available": false,
+            "unavailableMessage": "The import calls api/sources/timetable-import/run on integriq. Integriq has no such endpoint, so no lesson arrives."
+        },
+        {
+            "key": "lti",
+            "title": "LTI tools",
+            "description": "Opening an external learning tool from a course, and pulling its grades back.",
+            "order": 30,
+            "available": false,
+            "unavailableMessage": "A launch calls api/lti/deployments/[id]/launch on integriq. Integriq has no such endpoint, so no tool opens. Grades only come back from a tool that opened."
+        },
+        {
+            "key": "eudi-wallet",
+            "title": "EUDI wallet",
+            "description": "Offering an issued credential to a learner's EUDI wallet, and revoking that offer.",
+            "order": 40,
+            "requiredConfig": ["openconnector_api_token"],
+            "unconfiguredMessage": "No integriq API token is set, so no credential reaches a wallet. Set it with occ config:app:set learniq openconnector_api_token."
+        },
+        {
+            "key": "payment",
+            "title": "Payment provider",
+            "description": "Starting an online payment for an order, with the provider each payment names.",
+            "order": 50,
+            "available": false,
+            "unavailableMessage": "Starting a payment calls api/payments/initiate on integriq. Integriq has no such endpoint, so no payment starts. This row covers every provider."
+        },
+        {
+            "key": "sbb",
+            "title": "SBB leerbedrijf check",
+            "description": "Checking that the employer of a work placement is an erkend leerbedrijf in the SBB register.",
+            "order": 60,
+            "available": false,
+            "unavailableMessage": "No verification provider ships in learniq or integriq. A work placement cannot confirm its leerbedrijf until one does."
+        },
+        {
+            "key": "proctoring",
+            "title": "Proctoring",
+            "description": "Online supervision of an exam by an outside proctoring service.",
+            "order": 70,
+            "available": false,
+            "unavailableMessage": "Learniq defines the provider interface only. No provider ships, and nothing calls it."
+        },
+        {
+            "key": "plagiarism",
+            "title": "Plagiarism check",
+            "description": "Checking a submitted assignment with an outside plagiarism service.",
+            "order": 80,
+            "available": false,
+            "unavailableMessage": "Learniq defines the provider interface only. No provider ships, and nothing calls it."
+        }
+    ]
+}

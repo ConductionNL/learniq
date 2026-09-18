@@ -965,7 +965,20 @@
         "Where competences fall short of what a course expects.": "Where competences fall short of what a course expects.",
         "How each assessment item performed, question by question.": "How each assessment item performed, question by question.",
         "What course evaluations said, per course.": "What course evaluations said, per course.",
-        "What was found on placement visits.": "What was found on placement visits."
+        "What was found on placement visits.": "What was found on placement visits.",
+        "Add integration": "Add integration",
+        "All connections": "All connections",
+        "Configured": "Configured",
+        "Connection": "Connection",
+        "Error": "Error",
+        "Integrations": "Integrations",
+        "Last checked": "Last checked",
+        "Limited": "Limited",
+        "Not available": "Not available",
+        "Not configured": "Not configured",
+        "Open settings": "Open settings",
+        "Simulated": "Simulated",
+        "Status message": "Status message"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -1,0 +1,95 @@
+{
+	"$schema": "https://github.com/ConductionNL/nextcloud-vue/raw/main/src/schemas/app-manifest-v2.schema.json",
+	"_meta": {
+		"spdx-license": "EUPL-1.2",
+		"spdx-copyright": "2026 Conduction B.V.",
+		"change": "adopt-connection-registry",
+		"description": "The Integrations page (hydra connection-registry D8, hydra#667 and hydra#673). The rows are integriq's app_connection objects, synced from lib/Settings/connections.json; integriq works out each status. The app=learniq preset is the menu entry's query (ADR-097 decision 5), which the index page merges into the fetch as a bare filter key. The menu entry is gated to admins like every other settings-foldout entry, and to an installed integriq. showAdd is false because a row nothing declared has nothing to check (D9). Add integration leaves for integriq's overview through the openIntegriqConnections handler, because a header action's navigate only pushes a route inside this app."
+	},
+	"menu": [
+		{
+			"id": "ConnectionRegistryMenu",
+			"label": "Integrations",
+			"icon": "PowerPlugOutline",
+			"route": "ConnectionRegistry",
+			"query": {
+				"app": "learniq"
+			},
+			"section": "settings",
+			"order": 97,
+			"visibleIf": {
+				"appInstalled": "integriq",
+				"user.primaryRole": {
+					"in": [
+						"admin"
+					]
+				}
+			}
+		}
+	],
+	"pages": [
+		{
+			"id": "ConnectionRegistry",
+			"route": "/settings/integrations",
+			"type": "index",
+			"title": "Integrations",
+			"requiresApp": {
+				"id": "integriq",
+				"name": "Integriq"
+			},
+			"config": {
+				"register": "integriq",
+				"schema": "app_connection",
+				"showViewAction": false,
+				"showAdd": false,
+				"headerActions": [
+					{
+						"id": "add-integration",
+						"label": "Add integration",
+						"icon": "PowerPlugOutline",
+						"handler": "openIntegriqConnections"
+					}
+				],
+				"defaultSort": {
+					"field": "order",
+					"direction": "asc"
+				},
+				"columns": [
+					{
+						"key": "title",
+						"label": "Connection"
+					},
+					{
+						"key": "status",
+						"label": "Status",
+						"formatter": "connectionStatus"
+					},
+					{
+						"key": "statusMessage",
+						"label": "Status message",
+						"sortable": false
+					},
+					{
+						"key": "checkedAt",
+						"label": "Last checked"
+					},
+					{
+						"key": "settingsUrl",
+						"label": "Settings",
+						"sortable": false,
+						"formatter": "connectionSettingsLabel",
+						"widget": "link",
+						"widgetProps": {
+							"href": "{settingsUrl}"
+						}
+					}
+				],
+				"folderSidebar": {
+					"source": "field",
+					"field": "status",
+					"allLabel": "All connections"
+				}
+			}
+		}
+	]
+}
