@@ -4372,6 +4372,20 @@
 	],
 	"pending": [
 		{
+			"id": "q-declarations-actually-run",
+			"area": "compliance",
+			"name": "Have the figures and the reminders run by themselves, with no report to start.",
+			"status": "pending",
+			"note": "Seventeen of our yes ratings rest on x-openregister-calculations, x-openregister-notifications, appendOnly or x-property-rbac declared in lib/Settings/learniq_register.json, including the live coverage percentage and every certificate-expiry warning. Reading this repository shows the declaration, not that the installed Open Register executes it. Settling this needs a live instance, and until someone drives one those are readings of a declaration rather than of behaviour.",
+			"learniq": "unknown",
+			"moodle": "unknown",
+			"moodle-workplace": "unknown",
+			"ilias": "unknown",
+			"totara": "unknown",
+			"chamilo": "unknown",
+			"ispring-learn": "unknown"
+		},
+		{
 			"id": "q-evidence-log-immutable",
 			"area": "compliance",
 			"name": "Show an auditor that the evidence log itself cannot be rewritten.",
