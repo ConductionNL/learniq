@@ -36,8 +36,9 @@
 			"name": "ILIAS",
 			"vendor": "ILIAS open source e-Learning e.V.",
 			"columnAddedOn": "2026-09-24",
-			"evidenceGrade": "vendor-docs",
-			"note": "GPL, free self-host, strong European public-sector footing. A public demo at demo.ilias.de carries teacher, learner and supervisor accounts, so it is drivable. Nobody drove it in this pass."
+			"evidenceGrade": "driven",
+			"note": "Driven on demo.ilias.de, ILIAS 10.11, as the published teacher account benno. A sandbox category, course, study programme and test were created and their settings screens read. No admin account is published and the administration area silently redirects, so every rating that lives there stays unknown. docu.ilias.de is login gated, so there is essentially no usable vendor-docs evidence.",
+			"readOn": "2026-09-24"
 		},
 		{
 			"key": "totara",
@@ -52,8 +53,9 @@
 			"name": "Chamilo",
 			"vendor": "Chamilo Association",
 			"columnAddedOn": "2026-09-24",
-			"evidenceGrade": "vendor-docs",
-			"note": "GPLv3+, the lightest of the open LMSs to self-host, with a free public campus at campus.chamilo.org. Its published standards list is close to ours, which is why it is here. Nobody drove it in this pass."
+			"evidenceGrade": "docs-only",
+			"note": "Read from source on chamilo/chamilo-lms master, the 3.0 line released 2026-09-09, plus docs.chamilo.org. The free campus was NOT registered on: its Terms require each account to be registered by the person it belongs to and ban automated scanning, so a bot-created teacher account would breach both. Two rows are driven unauthenticated (the shop and the language menu). A human who registers themselves could convert most of these to driven in an hour. Note that LTI, xAPI and cmi5, plagiarism and proctoring are all PLUGINS, so any given instance may have them off.",
+			"readOn": "2026-09-24"
 		},
 		{
 			"key": "ispring-learn",
@@ -185,10 +187,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "partial",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "no",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "No regulation register object; the nearest thing is one Study Programme per rule, Repository > Add New Object > Organisation > Study Programme.",
+				"chamilo": "Full tree grep of chamilo-lms for compliance and regulation returns zero hits; nothing models a rule or obligation. Nearest is Career/Promotion, which only groups sessions."
+			}
 		},
 		{
 			"id": "comp-course-bound-to-rule",
@@ -206,10 +212,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "no",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Study Programme > Content holds courses as required nodes; Assignments scores members on Points Required / Points Current. Mechanism observed, the add was not performed.",
+				"chamilo": "No rule entity exists to bind a course to."
+			}
 		},
 		{
 			"id": "comp-bulk-enrol-audience",
@@ -227,10 +237,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "yes",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "yes",
-			"chamilo": "unknown",
-			"ispring-learn": "yes"
+			"chamilo": "yes",
+			"ispring-learn": "yes",
+			"evidence": {
+				"ilias": "Study Programme > Assignments > Membership Automation > Add Source, org-unit and role driven; Course > Members > Look Up Users for bulk add.",
+				"chamilo": "User groups (classes) and sessions, with add_users_to_session.php, add_students_to_session.php and session_user_import.php."
+			}
 		},
 		{
 			"id": "comp-deadline-per-enrolment",
@@ -248,10 +262,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "yes",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "yes",
-			"chamilo": "unknown",
-			"ispring-learn": "yes"
+			"chamilo": "partial",
+			"ispring-learn": "yes",
+			"evidence": {
+				"ilias": "Study Programme > Settings > General, processing time determined individually or expiring at a fixed date. Admin side seen, learner-facing display not verified.",
+				"chamilo": "Session.duration counts days per user, plus accessEndDate and displayEndDate. It is a session setting and the learner-facing countdown was not verified."
+			}
 		},
 		{
 			"id": "comp-live-coverage-percent",
@@ -269,10 +287,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "partial",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "partial",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Course > Learning Progress > Summary has an average percentage per user and a status legend, and the programme Assignments table filters on status, but there is no single share-of-staff-currently-valid figure per rule.",
+				"chamilo": "globalReporting views and the certificate-expirations endpoint give live per-course completion and expiring counts. Nothing aggregates by rule."
+			}
 		},
 		{
 			"id": "comp-own-rag-thresholds",
@@ -290,10 +312,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "no",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "no",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Read the whole Study Programme settings form and the whole Course > Learning Progress > Settings form; neither offers a red or amber threshold. Global admin settings were unreachable.",
+				"chamilo": "The only threshold anywhere is a Days ahead horizon, default 30, in GradebookCertificateExpirationsView.vue."
+			}
 		},
 		{
 			"id": "comp-signed-attestation",
@@ -313,8 +339,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "partial",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: No read-and-understood confirmation was looked for.",
+				"chamilo": "Terms acceptance is logged and the ExerciseSignature plugin captures a handwritten signature on an exam, but there is no read-and-understood attestation attached to a completion."
+			}
 		},
 		{
 			"id": "comp-attestation-immutable",
@@ -374,10 +404,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "partial",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "partial",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Course > Settings > Determination of Status Passed > Only Manual by Tutors lets a tutor record a pass with no activity, and an Individual Assessment object exists, but there is no external-training record carrying provider, date and evidence.",
+				"chamilo": "A teacher can add a manual gradebook evaluation, assign a skill by hand, or file documents with validity dates. There is no external-training record type."
+			}
 		},
 		{
 			"id": "comp-external-needs-verifier",
@@ -437,10 +471,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "partial",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "partial"
+			"chamilo": "partial",
+			"ispring-learn": "partial",
+			"evidence": {
+				"ilias": "Study Programme > Assignments > Export Assignments, plus an Export tab on course and test. Data exports, not one evidence bundle with the certificates inside.",
+				"chamilo": "export_certificates.php, attendance export and gradebook PDF and XLS exports: several separate exports, no single auditor pack."
+			}
 		},
 		{
 			"id": "comp-audit-pack-tamper-report",
@@ -544,8 +582,12 @@
 			"moodle-workplace": "partial",
 			"ilias": "unknown",
 			"totara": "partial",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "no",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: The supervisor accounts were never used, so the cross-programme view was not opened.",
+				"chamilo": "No rules register exists, so there is nothing to put on one page."
+			}
 		},
 		{
 			"id": "comp-renewal-cycle-months",
@@ -563,10 +605,14 @@
 			"learniq": "yes",
 			"moodle": "no",
 			"moodle-workplace": "yes",
-			"ilias": "unknown",
+			"ilias": "partial",
 			"totara": "yes",
-			"chamilo": "unknown",
-			"ispring-learn": "yes"
+			"chamilo": "partial",
+			"ispring-learn": "yes",
+			"evidence": {
+				"ilias": "Study Programme > Settings > Validity of achieved Qualifications > Expiry > expires individually reveals Days after completion. The cycle is real but expressed in days, and it lives on the qualification rather than the certificate.",
+				"chamilo": "GradebookCategory.certificateValidityPeriod is days the certificate stays valid after attribution. A real cycle, in days, per gradebook category rather than per rule."
+			}
 		},
 		{
 			"id": "comp-overdue-visible-to-learner",
@@ -608,7 +654,11 @@
 			"ilias": "yes",
 			"totara": "unknown",
 			"chamilo": "yes",
-			"ispring-learn": "yes"
+			"ispring-learn": "yes",
+			"evidence": {
+				"ilias": "A Certificate subtab exists under Settings on Course, Test and Study Programme, with an Active checkbox and a DATE_COMPLETED placeholder.",
+				"chamilo": "certificate.lib.php generate() on reaching the gradebook minimum score, with the add_gradebook_certificates cron."
+			}
 		},
 		{
 			"id": "cred-open-badges-3",
@@ -626,10 +676,14 @@
 			"learniq": "yes",
 			"moodle": "partial",
 			"moodle-workplace": "unknown",
-			"ilias": "partial",
+			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "partial",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: The Open Badges version could not be established: docu.ilias.de is login gated and the GitHub Badge component named no version.",
+				"chamilo": "skills/assertion.php, class.php and issuer.php emit hosted assertions in the Open Badges 1.x and 2.0 style, with no @context. Nothing OB 3.0 or Verifiable Credentials."
+			}
 		},
 		{
 			"id": "cred-cryptographic-signature",
@@ -670,8 +724,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: A unique certificate id placeholder exists, but no public verification endpoint was found and none was hunted for.",
+				"chamilo": "certificate.lib.php publishes a public certificate URL plus a QR image, gated by certificate.allow_public_certificates."
+			}
 		},
 		{
 			"id": "cred-expiry-countdown",
@@ -689,10 +747,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "yes",
-			"ilias": "unknown",
+			"ilias": "partial",
 			"totara": "yes",
-			"chamilo": "unknown",
-			"ispring-learn": "yes"
+			"chamilo": "yes",
+			"ispring-learn": "yes",
+			"evidence": {
+				"ilias": "The certificate document carries no validity date at all. The Study Programme qualification expires and offers an e-mail reminder restart, but no days-left countdown was seen.",
+				"chamilo": "GradebookCertificateExpirationsProvider returns daysUntilExpiry and expired or expiring status; the view renders expiry date and counts, with reminder mails."
+			}
 		},
 		{
 			"id": "cred-tiered-expiry-warning",
@@ -733,8 +795,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "partial",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: Not looked for.",
+				"chamilo": "Certificate::deleteCertificate() exists and expiry can be updated, but GradebookCertificate has no revoked flag and no reason field."
+			}
 		},
 		{
 			"id": "cred-holder-only-visibility",
@@ -880,8 +946,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "yes"
+			"chamilo": "yes",
+			"ispring-learn": "yes",
+			"evidence": {
+				"ilias": "Course > Settings > Certificate is a full template editor: predefined layouts plus Custom, background image, page format and margins, and XHTML text with about fifteen placeholders. No PDF was actually rendered.",
+				"chamilo": "Editable HTML template with substitution tags, PDF export, plus the CustomCertificate plugin."
+			}
 		},
 		{
 			"id": "cred-badge-maps-to-skill",
@@ -920,10 +990,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Main navigation > Achievements expands to Competences, Learning Progress, Badges and Certificates.",
+				"chamilo": "MyCertificatesView.vue and my_certificates.php, with a separate badges view."
+			}
 		},
 		{
 			"id": "cont-build-course-from-modules",
@@ -941,10 +1015,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Inside a course you can add Learning Module ILIAS, Content Page, Folder, Item Group and Learning Sequence; Settings controls content arrangement and display.",
+				"chamilo": "Learning paths with categories and sections, and reordering."
+			}
 		},
 		{
 			"id": "cont-draft-before-publish",
@@ -962,10 +1040,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "A new course shows an Offline badge; Settings > Availability > Online publishes it, and until then only course administrators have access.",
+				"chamilo": "ResourceLink carries VISIBILITY_DRAFT, PENDING and PUBLISHED, defaulting to DRAFT."
+			}
 		},
 		{
 			"id": "cont-reusable-course-template",
@@ -1025,10 +1107,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "partial",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "SCORM and HTML learning modules import, and ILIAS imports its own XML export, but nothing in the object catalogue offers Common Cartridge.",
+				"chamilo": "CourseCopy/CommonCartridge/Import including Cc1p3Convert.php and a quiz converter, so CC 1.1 and 1.3 import."
+			}
 		},
 		{
 			"id": "cont-import-moodle-backup",
@@ -1088,10 +1174,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Export tab on the course, and also on test and study programme.",
+				"chamilo": "Matching CommonCartridge/Export with CcManifest and CcVersion13, plus native backup and ScormExport."
+			}
 		},
 		{
 			"id": "cont-play-scorm-package",
@@ -1111,8 +1201,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "partial",
-			"ispring-learn": "yes"
+			"chamilo": "yes",
+			"ispring-learn": "yes",
+			"evidence": {
+				"ilias": "Learning Module SCORM, new_type=sahs, is in the Add New Object catalogue inside a course.",
+				"chamilo": "LpScormImport.vue, scormRuntimeApi.js and ScormApi.php give a SCORM 1.2 runtime. No package was actually played."
+			}
 		},
 		{
 			"id": "cont-launch-cmi5-au",
@@ -1172,10 +1266,14 @@
 			"learniq": "no",
 			"moodle": "yes",
 			"moodle-workplace": "unknown",
-			"ilias": "yes",
+			"ilias": "partial",
 			"totara": "unknown",
 			"chamilo": "yes",
-			"ispring-learn": "unknown"
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "An LTI Consumer object type, new_type=lti, can be dropped into a course. Whether it speaks LTI 1.3 rather than 1.1 could not be confirmed, and the version is what this row asks about.",
+				"chamilo": "The ImsLti plugin ships jwks.php, token.php, ags2.php, nrps2.php and Deep Linking in LtiBundle, so LTI 1.3 Advantage rather than only 1.1. It is a plugin and may be off on any instance."
+			}
 		},
 		{
 			"id": "cont-lti-grades-come-back",
@@ -1235,10 +1333,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "partial",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Course > Settings > Content Display Options > Timings View, alongside Sessions View with scheduled Session objects.",
+				"chamilo": "ResourceLink has start_visibility_at and end_visibility_at on every resource, but no teacher-facing form to set them was found."
+			}
 		},
 		{
 			"id": "cont-require-a-course-first",
@@ -1256,10 +1358,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Course > Settings > Preconditions subtab.",
+				"chamilo": "Resource sequences with course and session requirements, plus learning-path item prerequisites."
+			}
 		},
 		{
 			"id": "cont-course-in-two-languages",
@@ -1340,10 +1446,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Group object type inside a course, and Course > Members > Memberships in Groups.",
+				"chamilo": "Portal user groups (classes), sessions, and in-course groups."
+			}
 		},
 		{
 			"id": "enr-cohort-gets-a-talk-room",
@@ -1384,8 +1494,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Course > Learning Progress > Summary, average percentage per user, plus personal learning progress per user.",
+				"chamilo": "lp_report.php, lp_stats.php and GlobalReportingTrackingView.vue."
+			}
 		},
 		{
 			"id": "enr-withdraw-with-reason",
@@ -1445,10 +1559,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "partial",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Course > Settings > Limited Number of Members, with a waiting list members can be admitted from. The waiting-list setting was seen; the registration-procedure radio group was not opened.",
+				"chamilo": "Learners self-subscribe from the catalogue and BuyCourses orders can need admin validation, but no application-and-approval workflow for joining was found. The weakest of the non-unknown ratings."
+			}
 		},
 		{
 			"id": "enr-review-board-decides",
@@ -1658,7 +1776,11 @@
 			"ilias": "yes",
 			"totara": "unknown",
 			"chamilo": "yes",
-			"ispring-learn": "unknown"
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Test > Questions has Add from Pool and Add from Other Test, and Question Pool for Tests is its own object type.",
+				"chamilo": "question_pool.php, ExerciseQuestionBankView.vue and admin/QuestionBank.vue."
+			}
 		},
 		{
 			"id": "ass-import-qti-package",
@@ -1676,10 +1798,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "yes",
+			"ilias": "unknown",
 			"totara": "unknown",
 			"chamilo": "yes",
-			"ispring-learn": "unknown"
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: The question-pool creation screen was never opened.",
+				"chamilo": "main/exercise/qti2.php for import, with export under exercise/export/qti2."
+			}
 		},
 		{
 			"id": "ass-export-qti-package",
@@ -1781,10 +1907,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Test has a Manual Scoring tab for the open items only, a Scoring and Results settings subtab and a maximum available points readout, so closed items score themselves.",
+				"chamilo": "exercise_result.class.php scores closed question types on submit."
+			}
 		},
 		{
 			"id": "ass-take-test-in-app",
@@ -1846,8 +1976,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: The test had no participants, so no results screen existed to open.",
+				"chamilo": "question_stats.php and stats.php report per-question success, and the bank carries a difficulty attribute."
+			}
 		},
 		{
 			"id": "ass-test-reliability-alpha",
@@ -1867,8 +2001,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "no",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: Same: an empty test hides the statistics screens a populated one shows.",
+				"chamilo": "Repo-wide search for cronbach returns zero hits; no reliability statistic anywhere."
+			}
 		},
 		{
 			"id": "ass-flag-bad-item",
@@ -1907,10 +2045,14 @@
 			"learniq": "no",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "partial",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "partial",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Test > Settings > Exam View runs tests in kiosk mode and asks for a suitable browser such as Safe Exam Browser. That is lockdown rather than proctoring, and no proctoring integration appears in core.",
+				"chamilo": "The ExerciseMonitoring plugin takes webcam snapshots and an ID-card photo during a test. No proctoring service integration exists."
+			}
 		},
 		{
 			"id": "ass-review-proctoring-flags",
@@ -1949,10 +2091,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "no",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Test > Settings > Limit Duration of Test states that a feature for granting extra time appears under Participants. Extra time is per participant; a separate room is not modelled.",
+				"chamilo": "No extra-time concept in the codebase; the time limit belongs to the exercise, not to a learner's enrolment."
+			}
 		},
 		{
 			"id": "ass-handle-an-exemption",
@@ -2033,10 +2179,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Exercise, new_type=exc, is creatable inside a course.",
+				"chamilo": "Student publications with description and due date."
+			}
 		},
 		{
 			"id": "asg-hand-in-a-file",
@@ -2119,8 +2269,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "partial",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: No Exercise assignment was ever opened.",
+				"chamilo": "The assignment rubric is a free-text string consumed by an AI grader, plus a console-only import command. Weighted criteria as a first-class object exist only in peer assessment."
+			}
 		},
 		{
 			"id": "asg-rubric-must-be-complete",
@@ -2161,8 +2315,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: Same.",
+				"chamilo": "CPeerAssessment with criteria, corrections, separate submission and correction windows and a cap on corrections per student."
+			}
 		},
 		{
 			"id": "asg-allocate-reviewers",
@@ -2204,7 +2362,11 @@
 			"ilias": "unknown",
 			"totara": "unknown",
 			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: Same.",
+				"chamilo": "not checked: Self-assessment returns zero hits, but Chamilo may name it self-evaluation or autoevaluacion in exercise feedback modes or the portfolio, and those spellings were not checked."
+			}
 		},
 		{
 			"id": "asg-feedback-summary",
@@ -2245,8 +2407,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: Same.",
+				"chamilo": "Compilatio integration on assignments. Needs a paid Compilatio account and no other provider ships."
+			}
 		},
 		{
 			"id": "asg-mark-feeds-the-gradebook",
@@ -2285,10 +2451,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Test > Settings > Grading System defines your own mark schema.",
+				"chamilo": "gradebook_scoring_system.php custom score-display ranges, plus 3.0 customisable grading modes."
+			}
 		},
 		{
 			"id": "grd-concept-then-published",
@@ -2369,10 +2539,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "partial",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Course > Learning Progress gives a summary grid and a per-participant view, but on an empty course only Personal, Summary and Settings appeared and no learners by components matrix was seen.",
+				"chamilo": "gradebook_flatview.php is a learners by components grid, exportable."
+			}
 		},
 		{
 			"id": "grd-compose-a-report-card",
@@ -2392,8 +2566,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "partial",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: Not looked for.",
+				"chamilo": "Printable flat view, display summary and certificate reports, but no per-term report-card composer."
+			}
 		},
 		{
 			"id": "grd-lock-the-term",
@@ -2495,10 +2673,14 @@
 			"learniq": "yes",
 			"moodle": "yes",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "partial",
 			"totara": "yes",
 			"chamilo": "yes",
-			"ispring-learn": "unknown"
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Course > Settings > Competences activates competence management and assignment, and Achievements > Competences exists. Loading an external framework is an admin action that was unreachable.",
+				"chamilo": "The Skills framework with Skill, SkillLevelProfile, SkillProfile, SkillRelGradebook, CSV import and a skills wheel; outcomes assessed through gradebook links."
+			}
 		},
 		{
 			"id": "grd-competency-rolls-up",
@@ -2980,8 +3162,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: Session objects exist but none was opened.",
+				"chamilo": "Attendance module with sheets and a tablet mode."
+			}
 		},
 		{
 			"id": "att-learner-submits-an-excuse",
@@ -3104,10 +3290,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "partial",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "partial",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Session, new_type=sess, is creatable inside a course and Settings offers a Sessions View. The session form was not opened, so time, room and teacher fields are unverified.",
+				"chamilo": "Attendance calendar entries and agenda events carry date, time, course and teacher. No room or location resource was found, only virtual rooms via plugins."
+			}
 		},
 		{
 			"id": "att-book-a-room",
@@ -3230,10 +3420,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "partial",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Course > Settings offers a calendar block on the Contents tab and a personal calendar exists, but it was not opened.",
+				"chamilo": "Personal agenda aggregating the user's own courses and sessions."
+			}
 		},
 		{
 			"id": "att-timetable-in-my-calendar",
@@ -3295,8 +3489,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "partial",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: Not looked for.",
+				"chamilo": "The student boss or DRH relation links a supervisor to specific learners with scoped reports. It is an HR construct reused as a parent role and the isolation was not verified live."
+			}
 		},
 		{
 			"id": "gua-plan-a-conference-round",
@@ -3461,10 +3659,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Portfolio Template, new_type=prtt, is creatable in a course, and Personal Workspace sits in the main navigation where personal portfolios live.",
+				"chamilo": "Portfolio module with comment threads and visibility controls."
+			}
 		},
 		{
 			"id": "gua-portfolio-references-never-copies",
@@ -3839,10 +4041,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "yes",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "partial",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "Every object carries a Permissions tab with per-role, per-operation settings.",
+				"chamilo": "Permission and PermissionRelRole entities with fixtures and a frontend permissions helper, but no admin screen to re-map permissions to roles was found, so it reads as seeded rather than configurable."
+			}
 		},
 		{
 			"id": "gov-change-permissions-yourself",
@@ -3904,8 +4110,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: Needs the administration area, which no published demo account can reach.",
+				"chamilo": "Multi-URL portals with AccessUrl manage, users, courses and user-group controllers."
+			}
 		},
 		{
 			"id": "gov-log-who-read-what",
@@ -3925,8 +4135,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "no",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: Not looked for.",
+				"chamilo": "Every LOG_ audit constant was enumerated: all are create, update, delete or subscribe events apart from LOG_WIKI_ACCESS. No record of who opened a learner's file."
+			}
 		},
 		{
 			"id": "gov-record-of-processing",
@@ -4261,8 +4475,12 @@
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "yes",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "not checked: No shop or payment object appeared in the catalogue, but the admin area and plugins were not searched.",
+				"chamilo": "DRIVEN, unauthenticated: the campus header Shop renders live priced products with a checkout path."
+			}
 		},
 		{
 			"id": "gov-never-gate-school-on-payment",
@@ -4364,10 +4582,14 @@
 			"learniq": "yes",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
-			"ilias": "unknown",
+			"ilias": "partial",
 			"totara": "unknown",
-			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"chamilo": "partial",
+			"ispring-learn": "unknown",
+			"evidence": {
+				"ilias": "The release_10 lang tree lists ilias_nl.lang among about 35 language files, but the demo does not offer Dutch and forcing lang=nl left the UI in English. Completeness unverified. Docs evidence, not driven.",
+				"chamilo": "DRIVEN: Nederlands is in the campus language menu. Measured from source, messages.nl.po has 734 of 13,855 strings untranslated, so parts fall back to English."
+			}
 		}
 	],
 	"pending": [
