@@ -2967,15 +2967,15 @@
 			"area": "attendance",
 			"name": "Take the register for a lesson.",
 			"built": {
-				"state": "built",
-				"evidence": "lib/Settings/learniq_register.json components.schemas.AttendanceRecord, one per session per learner",
+				"state": "building",
+				"evidence": "lib/Settings/learniq_register.json components.schemas.AttendanceRecord holds the fact, but src/manifest.d/people.json ships only a flat index and detail, with no per-session roster screen",
 				"owner": "ConductionNL/learniq"
 			},
 			"provider": "self",
 			"providerHow": "read: the logic is in this repository, at the path in built.evidence",
 			"feature": "attendance",
 			"featureConfidence": "high",
-			"learniq": "yes",
+			"learniq": "partial",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
@@ -3913,7 +3913,7 @@
 			"name": "Log who read a learner's record, not only who changed it.",
 			"built": {
 				"state": "built",
-				"evidence": "lib/Settings/learniq_register.json x-openregister-processing.logReads true on the personal-data schemas",
+				"evidence": "lib/Settings/learniq_register.json x-openregister-processing.logReads is true on 13 schemas including LearnerProfile, DossierNote, BehaviourIncident and AttendanceRecord",
 				"owner": "ConductionNL/learniq"
 			},
 			"provider": "openregister",
@@ -3933,15 +3933,15 @@
 			"area": "governance",
 			"name": "Keep the GDPR record of processing up to date by itself.",
 			"built": {
-				"state": "built",
-				"evidence": "lib/Settings/learniq_register.json x-openregister-processing blocks declare doelbinding, rechtsgrond and dataCategories per schema; lib/Service/VerwerkingsregisterCsvBuilder.php",
+				"state": "building",
+				"evidence": "lib/Settings/learniq_register.json only 14 of 118 schemas carry an x-openregister-processing block, so the record covers the sensitive schemas and not the whole data model",
 				"owner": "ConductionNL/learniq"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
 			"feature": "avg-verwerkingsregister",
 			"featureConfidence": "medium",
-			"learniq": "yes",
+			"learniq": "partial",
 			"moodle": "unknown",
 			"moodle-workplace": "unknown",
 			"ilias": "unknown",
