@@ -20,16 +20,18 @@
 			"name": "Moodle LMS",
 			"vendor": "Moodle Pty Ltd",
 			"columnAddedOn": "2026-09-24",
-			"evidenceGrade": "vendor-docs",
-			"note": "The free GPL-3.0 core, self-hostable. Drivable end to end through moodle.org/demo and docs.moodle.org, but nobody drove it in this pass. Rated no only where the vendor documents a capability as Workplace-only."
+			"evidenceGrade": "docs-only",
+			"note": "The free GPL-3.0 core, self-hostable. Drivable end to end through moodle.org/demo and docs.moodle.org, but nobody drove it in this pass. Rated no only where the vendor documents a capability as Workplace-only.",
+			"unknownReason": "not covered by the Moodle vendor documentation read on 2026-09-23; nobody drove an instance"
 		},
 		{
 			"key": "moodle-workplace",
 			"name": "Moodle Workplace",
 			"vendor": "Moodle Pty Ltd",
 			"columnAddedOn": "2026-09-24",
-			"evidenceGrade": "vendor-docs",
-			"note": "The paid distribution, sold only through certified partners. No free tier and no public sandbox, so documentation is the ceiling of what anyone can check without buying it."
+			"evidenceGrade": "docs-only",
+			"note": "The paid distribution, sold only through certified partners. No free tier and no public sandbox, so documentation is the ceiling of what anyone can check without buying it.",
+			"unknownReason": "not covered by the Moodle Workplace documentation read on 2026-09-23; the product is partner gated and nobody drove it"
 		},
 		{
 			"key": "ilias",
@@ -38,15 +40,17 @@
 			"columnAddedOn": "2026-09-24",
 			"evidenceGrade": "driven",
 			"note": "Driven on demo.ilias.de, ILIAS 10.11, as the published teacher account benno. A sandbox category, course, study programme and test were created and their settings screens read. No admin account is published and the administration area silently redirects, so every rating that lives there stays unknown. docu.ilias.de is login gated, so there is essentially no usable vendor-docs evidence.",
-			"readOn": "2026-09-24"
+			"readOn": "2026-09-24",
+			"unknownReason": "outside the 55 rows the 2026-09-24 drive on demo.ilias.de covered, or behind the administration area no published account reaches"
 		},
 		{
 			"key": "totara",
 			"name": "Totara",
 			"vendor": "Totara Learning Solutions",
 			"columnAddedOn": "2026-09-24",
-			"evidenceGrade": "vendor-docs",
-			"note": "A GPLv3 Moodle fork built for corporate and government compliance. Code access needs a subscription and there is no public demo, so documentation is the ceiling. This is the column where the evidence is thinnest relative to the threat."
+			"evidenceGrade": "docs-only",
+			"note": "A GPLv3 Moodle fork built for corporate and government compliance. Code access needs a subscription and there is no public demo, so documentation is the ceiling. This is the column where the evidence is thinnest relative to the threat.",
+			"unknownReason": "not covered by the Totara documentation read on 2026-09-23; the code needs a subscription and nobody drove it"
 		},
 		{
 			"key": "chamilo",
@@ -55,15 +59,17 @@
 			"columnAddedOn": "2026-09-24",
 			"evidenceGrade": "docs-only",
 			"note": "Read from source on chamilo/chamilo-lms master, the 3.0 line released 2026-09-09, plus docs.chamilo.org. The free campus was NOT registered on: its Terms require each account to be registered by the person it belongs to and ban automated scanning, so a bot-created teacher account would breach both. Two rows are driven unauthenticated (the shop and the language menu). A human who registers themselves could convert most of these to driven in an hour. Note that LTI, xAPI and cmi5, plagiarism and proctoring are all PLUGINS, so any given instance may have them off.",
-			"readOn": "2026-09-24"
+			"readOn": "2026-09-24",
+			"unknownReason": "not settled from the chamilo-lms 3.0 source tree and vendor docs read on 2026-09-24; the campus Terms forbid a bot-registered account"
 		},
 		{
 			"key": "ispring-learn",
 			"name": "iSpring Learn",
 			"vendor": "iSpring Solutions",
 			"columnAddedOn": "2026-09-24",
-			"evidenceGrade": "vendor-docs",
-			"note": "Proprietary per-seat SaaS, no self-host, non-EU vendor. Included because its marketing targets our exact wedge: certificate expiry and renewal notifications. A 30-day trial makes it partly drivable."
+			"evidenceGrade": "docs-only",
+			"note": "Proprietary per-seat SaaS, no self-host, non-EU vendor. Included because its marketing targets our exact wedge: certificate expiry and renewal notifications. A 30-day trial makes it partly drivable.",
+			"unknownReason": "not covered by the iSpring Learn documentation read on 2026-09-23; the trial was not taken"
 		}
 	],
 	"areas": [
@@ -278,7 +284,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Regulation.x-openregister-calculations.coveragePercent, materialised server side",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -353,7 +359,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Attestation.appendOnly true, HMAC signature plus signingKeyId",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -487,7 +493,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Service/AuditPackBuilder.php builds signature-verification.txt from the HMAC chain check",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -508,7 +514,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Enrolment.x-openregister-notifications.overdue, recipients managerId plus the hr group",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -529,7 +535,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Enrolment.x-openregister-notifications.dueReminder",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -621,7 +627,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Enrolment.x-openregister-calculations isOverdue, daysRemaining, ragStatus",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -738,7 +744,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Credential.x-openregister-calculations.daysUntilExpiry and .expiryStatus",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -763,7 +769,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Credential calculations isExpiringIn90Days, isExpiringIn30Days; notifications.expiringSoon",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -784,7 +790,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Credential.x-openregister-lifecycle.transitions.revoke, properties.revocationReason",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -809,7 +815,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Credential.x-property-rbac.read, learnerId eq $userId or role admin",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -830,7 +836,7 @@
 			"built": {
 				"state": "building",
 				"evidence": "lib/Service/WalletOfferDelegationService.php delegates to openconnector; no adapter ships in this repo",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/integriq"
 			},
 			"provider": "integriq",
 			"providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -851,7 +857,7 @@
 			"built": {
 				"state": "building",
 				"evidence": "lib/Service/WalletRevocationPropagationService.php, same unwired openconnector dependency",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/integriq"
 			},
 			"provider": "integriq",
 			"providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -935,7 +941,7 @@
 			"built": {
 				"state": "building",
 				"evidence": "lib/Settings/learniq_register.json Course.properties.certificateTemplate holds an nc:files path; no renderer in lib/ consumes it",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/filinq"
 			},
 			"provider": "filinq",
 			"providerHow": "read: this repository posts to Filinq and does not render the document itself",
@@ -1031,7 +1037,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Course.x-openregister-lifecycle draft, published, archived; lib/Lifecycle/CoursePublishGuard.php",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -1257,7 +1263,7 @@
 			"built": {
 				"state": "none",
 				"evidence": "The placement model and lib/Controller/LtiToolPlacementController.php exist, but lib/Settings/connections.json marks lti unavailable: a launch calls api/lti/deployments/[id]/launch on integriq, which has no such endpoint, so no tool opens",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/integriq"
 			},
 			"provider": "integriq",
 			"providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -1282,7 +1288,7 @@
 			"built": {
 				"state": "none",
 				"evidence": "lib/BackgroundJob/LtiAgsScorePollJob.php no-ops without a subscription id, and lib/Settings/connections.json notes grades only come back from a tool that opened, which none does",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/integriq"
 			},
 			"provider": "integriq",
 			"providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -1483,7 +1489,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Enrolment.x-openregister-calculations completedLessonCount and totalPublishedLessonCount, property progressPercent",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -1508,7 +1514,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Enrolment.properties.reason set on withdrawal and failure transitions",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -1944,7 +1950,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json AssessmentResult.appendOnly true",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -2467,7 +2473,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json GradeEntry starts as concept and is published by the teacher",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -2622,7 +2628,7 @@
 			"built": {
 				"state": "building",
 				"evidence": "lib/Service/ReportCardPdfDelegationService.php posts to filinq, which is a proposed endpoint and is not installed by default",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/filinq"
 			},
 			"provider": "filinq",
 			"providerHow": "read: this repository posts to Filinq and does not render the document itself",
@@ -2878,7 +2884,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json LearningPlan is versioned; a material revision creates a new version",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -3260,7 +3266,7 @@
 			"built": {
 				"state": "none",
 				"evidence": "lib/Lifecycle/AttendanceFlagReportGuard.php gates the transition, but it rides the data-exchange path that lib/Settings/connections.json marks unavailable, so nothing is sent",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/integriq"
 			},
 			"provider": "integriq",
 			"providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -3369,7 +3375,7 @@
 			"built": {
 				"state": "none",
 				"evidence": "lib/Timetabling/TimetableImportHandler.php exists, and lib/Settings/connections.json marks timetable unavailable: the import calls api/sources/timetable-import/run on integriq, which has no such endpoint, so no lesson arrives",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/integriq"
 			},
 			"provider": "integriq",
 			"providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -3478,7 +3484,7 @@
 			"built": {
 				"state": "building",
 				"evidence": "openspec/specs/portal-identity/spec.md and lib/Portal/PortalContributionProvider.php define the seam; the portal itself ships in portaliq",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/portaliq"
 			},
 			"provider": "portaliq",
 			"providerHow": "read: this repository contributes to the portal, which ships in Portaliq",
@@ -3801,7 +3807,7 @@
 			"built": {
 				"state": "none",
 				"evidence": "lib/Bpv/ProvidesLeerbedrijfVerification.php is an interface; lib/Settings/connections.json states no verification provider ships in learniq or integriq, so a placement cannot confirm its leerbedrijf",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/integriq"
 			},
 			"provider": "integriq",
 			"providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -4078,7 +4084,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Credential.x-property-rbac.read is one of many per-property rules",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -4099,7 +4105,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json every schema carries tenant_id for multi-tenant isolation",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -4124,7 +4130,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json x-openregister-processing.logReads is true on 13 schemas including LearnerProfile, DossierNote, BehaviourIncident and AttendanceRecord",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -4149,7 +4155,7 @@
 			"built": {
 				"state": "building",
 				"evidence": "lib/Settings/learniq_register.json only 14 of 118 schemas carry an x-openregister-processing block, so the record covers the sensitive schemas and not the whole data model",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -4191,7 +4197,7 @@
 			"built": {
 				"state": "building",
 				"evidence": "lib/Settings/learniq_register.json x-openregister-processing.subjectIdFields maps learnerId; the per-subject endpoint ships in openregister, not here",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -4212,7 +4218,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json x-openregister-processing.reviewIntervalMonths and .nextReviewAt",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/openregister"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -4359,7 +4365,7 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Controller/AiProcessingDisclosureController.php degrades gracefully when hermiq is absent",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/hermiq"
 			},
 			"provider": "hermiq",
 			"providerHow": "read: the AI work is delegated to Hermiq and the app degrades when it is absent",
@@ -4380,7 +4386,7 @@
 			"built": {
 				"state": "none",
 				"evidence": "The job and mapping models ship, but lib/Settings/connections.json marks data-exchange unavailable: a run calls api/sources/[target]/run on integriq, which has no such endpoint, so every run fails",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/integriq"
 			},
 			"provider": "integriq",
 			"providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
@@ -4464,7 +4470,7 @@
 			"built": {
 				"state": "building",
 				"evidence": "FeeItem, Order and OrderLine record the charge, but lib/Settings/connections.json marks payment unavailable: initiating calls api/payments/initiate on integriq, which has no such endpoint, so no payment starts",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/integriq"
 			},
 			"provider": "integriq",
 			"providerHow": "read: the call site is in this repository and the adapter belongs to Integriq",
