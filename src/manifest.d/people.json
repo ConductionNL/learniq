@@ -170,7 +170,7 @@
 			"title": "Locations",
 			"config": {
 				"register": "learniq",
-				"schema": "Location"
+				"schema": "Vestiging"
 			}
 		},
 		{
@@ -710,7 +710,7 @@
 			"_note": "A Location is a vestiging/onderwijslocatie reference-data record (schoolId, vestigingscode, onderwijslocatiecode, address) with no lifecycle — same shape as Room. Body leads with the location data 8-wide with a Related panel resolving its School and the Cohorts running there. No email/calendar/files (HARD RULE 1). Sidebar keeps metadata + audit-trail.",
 			"config": {
 				"register": "learniq",
-				"schema": "Location",
+				"schema": "Vestiging",
 				"widgets": [
 					{
 						"id": "location-data",

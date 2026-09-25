@@ -4965,7 +4965,7 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uuid",
-                        "$ref": "Location",
+                        "$ref": "Vestiging",
                         "default": null,
                         "description": "UUID of the Location (vestiging/onderwijslocatie) this cohort/groep runs at. Single reference, never an array: enforces DUO's one-groep-per-location rule at the data-model level (legal-po-2026-09-25.md). Additive and nullable; existing cohorts default to null until backfilled.",
                         "title": "Location ID"
@@ -5484,8 +5484,8 @@
                     }
                 ]
             },
-            "Location": {
-                "slug": "location",
+            "Vestiging": {
+                "slug": "vestiging",
                 "icon": "MapMarker",
                 "version": "0.1.0",
                 "title": "Location",

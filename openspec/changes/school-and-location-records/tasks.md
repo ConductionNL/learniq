@@ -4,10 +4,10 @@
 
 ### Task 1: Add the `School` and `Location` schemas
 - **spec_ref**: `openspec/changes/school-and-location-records/specs/school-structure/spec.md#requirement-school-and-location-are-persisted-as-openregister-records`, `#requirement-school-declares-a-brin-and-a-pedagogical-concept`, `#requirement-location-declares-vestigingscode-and-an-independent-onderwijslocatiecode`
-- **files**: `lib/Settings/learniq_register.json` (new `School`, `Location` schemas under `components.schemas`; register `info.version` bump; seed data per design.md)
+- **files**: `lib/Settings/learniq_register.json` (new `School`, `Vestiging` schemas under `components.schemas`; register `info.version` bump; seed data per design.md)
 - **acceptance_criteria**:
   - GIVEN the register WHEN `School` is read THEN it declares `brin` (pattern-validated), `name`, `pedagogicalConcept` (enum, default `regular`), no lifecycle
-  - GIVEN the register WHEN `Location` is read THEN it declares `schoolId` ($ref School), `vestigingscode` (required), `onderwijslocatiecode` (nullable, independent), `name`, `street`/`postalCode`/`city`
+  - GIVEN the register WHEN `Vestiging` (schema key/slug; user-facing title "Location", per design.md Decision 4) is read THEN it declares `schoolId` ($ref School), `vestigingscode` (required), `onderwijslocatiecode` (nullable, independent), `name`, `street`/`postalCode`/`city`
   - GIVEN the seed data WHEN read THEN two `School` and three `Location` seeds exist matching design.md's Seed Data section, including one Location with an independent `onderwijslocatiecode`
 - [x] Implement
 - [x] Test

@@ -3,7 +3,7 @@
 ## ADDED Requirements
 
 ### Requirement: School and Location are persisted as OpenRegister records
-The system MUST persist `School` (BRIN, name, pedagogical concept) and `Location` (vestigingscode, onderwijslocatiecode, address, `schoolId` reference) as OpenRegister objects, each a plain resource-metadata schema with no lifecycle — the same shape as `Room` (see "Room is persisted as a bookable resource"). No bestuur/board entity is introduced this round (decision D2); `School` is the top-level record.
+The system MUST persist `School` (BRIN, name, pedagogical concept) and `Location` (vestigingscode, onderwijslocatiecode, address, `schoolId` reference) as OpenRegister objects, each a plain resource-metadata schema with no lifecycle. The `Location` schema's internal key/slug is `Vestiging` (`location` is already claimed by `shillinq` on the shared OpenRegister; see design.md Decision 4); this requirement uses "Location" throughout for the user-facing concept, matching the page title and menu label. — the same shape as `Room` (see "Room is persisted as a bookable resource"). No bestuur/board entity is introduced this round (decision D2); `School` is the top-level record.
 
 #### Scenario: A school and its locations are recorded
 - **GIVEN** the `School` and `Location` schemas are registered

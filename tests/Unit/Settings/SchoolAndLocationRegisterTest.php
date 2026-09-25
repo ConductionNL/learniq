@@ -85,16 +85,19 @@ class SchoolAndLocationRegisterTest extends TestCase {
 	}//end testSchoolIsAPlainResourceMetadataSchema()
 
 	/**
-	 * `Location` declares `schoolId` ($ref School), a required
+	 * `Vestiging` is the schema key/slug: "location" is already claimed by
+	 * shillinq on the shared OpenRegister (gate-106 cross-app-schema-slug),
+	 * so user-facing copy still says "Location" but the internal identifier
+	 * moved. It declares `schoolId` ($ref School), a required
 	 * `vestigingscode`, and an `onderwijslocatiecode` that is independent
-	 * and nullable — a vestiging MAY have more than one onderwijslocatie.
+	 * and nullable: a vestiging MAY have more than one onderwijslocatie.
 	 *
 	 * @return void
 	 */
 	public function testLocationDeclaresIndependentOnderwijslocatiecode(): void {
-		$schema = $this->config['components']['schemas']['Location'];
+		$schema = $this->config['components']['schemas']['Vestiging'];
 
-		self::assertSame('location', $schema['slug']);
+		self::assertSame('vestiging', $schema['slug']);
 		self::assertArrayNotHasKey('x-openregister-lifecycle', $schema);
 		self::assertSame(['schoolId', 'vestigingscode', 'name', 'tenant_id'], $schema['required']);
 
@@ -127,7 +130,7 @@ class SchoolAndLocationRegisterTest extends TestCase {
 		$locationId = $cohort['properties']['locationId'];
 		self::assertSame('string', $locationId['type']);
 		self::assertTrue($locationId['nullable']);
-		self::assertSame('Location', $locationId['$ref']);
+		self::assertSame('Vestiging', $locationId['$ref']);
 		self::assertNull($locationId['default']);
 
 		// Purely additive: the existing required list is untouched.
@@ -146,7 +149,7 @@ class SchoolAndLocationRegisterTest extends TestCase {
 		$schoolSeeds = $this->config['components']['schemas']['School']['x-openregister-seed'];
 		self::assertCount(2, $schoolSeeds);
 
-		$locationSeeds = $this->config['components']['schemas']['Location']['x-openregister-seed'];
+		$locationSeeds = $this->config['components']['schemas']['Vestiging']['x-openregister-seed'];
 		self::assertCount(3, $locationSeeds);
 
 		$withOnderwijslocatie = array_values(array_filter(
