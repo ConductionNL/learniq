@@ -4068,7 +4068,11 @@
                         "familyName",
                         "birthDate",
                         "eduPersonAffiliation",
-                        "parentIds"
+                        "parentIds",
+                        "address",
+                        "emergencyContacts",
+                        "medicalConditions",
+                        "allergies"
                     ],
                     "backend": "scholiq.learner-administration",
                     "retentionReference": "not declared (LearnerProfile carries no x-openregister-archival annotation; align with the school's selectielijst onderwijs)",
@@ -4183,6 +4187,112 @@
                             "format": "uuid"
                         },
                         "title": "Guardian Refs"
+                    },
+                    "hasParentalAuthority": {
+                        "type": "boolean",
+                        "nullable": true,
+                        "description": "Whether this profile holds legal parental authority (gezag) over the child/children it is linked to as a guardian. Meaningful only on a profile carrying the 'parent' role (G-new-12/finding 2.4); null/unset on a learner's own profile. A single flag per guardian profile — it does not yet vary per linked child, a documented limitation for blended-family cases where gezag differs child by child.",
+                        "default": null,
+                        "title": "Has Parental Authority (Gezag)"
+                    },
+                    "address": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "Home address (finding 2.1/G-new-12). Free-form Dutch address fields; no postcode-API lookup or validation is performed.",
+                        "default": null,
+                        "properties": {
+                            "street": {
+                                "type": "string",
+                                "nullable": true,
+                                "title": "Street"
+                            },
+                            "houseNumber": {
+                                "type": "string",
+                                "nullable": true,
+                                "title": "House Number"
+                            },
+                            "postalCode": {
+                                "type": "string",
+                                "nullable": true,
+                                "title": "Postal Code"
+                            },
+                            "city": {
+                                "type": "string",
+                                "nullable": true,
+                                "title": "City"
+                            },
+                            "country": {
+                                "type": "string",
+                                "nullable": true,
+                                "default": "NL",
+                                "title": "Country"
+                            }
+                        },
+                        "title": "Address"
+                    },
+                    "emergencyContacts": {
+                        "type": "array",
+                        "description": "Emergency contacts to reach when no guardian in guardianRefs is reachable, e.g. a grandparent or neighbour with no Scholiq identity of their own (finding G-new-12). Ordered by priority; the first entry is called first.",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "name",
+                                "phone"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "title": "Name"
+                                },
+                                "relationship": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "description": "Free-text relationship to the learner, e.g. 'grandparent' or 'neighbour'.",
+                                    "title": "Relationship"
+                                },
+                                "phone": {
+                                    "type": "string",
+                                    "title": "Phone"
+                                },
+                                "priority": {
+                                    "type": "integer",
+                                    "nullable": true,
+                                    "description": "Call order; 1 is called first. Null entries sort last.",
+                                    "title": "Priority"
+                                }
+                            },
+                            "title": "Emergency Contact Entry"
+                        },
+                        "default": [],
+                        "title": "Emergency Contacts"
+                    },
+                    "medicalConditions": {
+                        "type": "array",
+                        "nullable": true,
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Free-text medical conditions relevant to the school's duty of care (finding G-new-12), distinct from a FirstAidIncident, which records a single dated event rather than a standing condition.",
+                        "default": null,
+                        "title": "Medical Conditions"
+                    },
+                    "allergies": {
+                        "type": "array",
+                        "nullable": true,
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Free-text allergies relevant to the school's duty of care (finding G-new-12).",
+                        "default": null,
+                        "title": "Allergies"
+                    },
+                    "medicalConsentDate": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date",
+                        "description": "Date a guardian last confirmed medicalConditions/allergies as accurate. School policy expects this refreshed yearly (finding G-new-12); no automatic expiry or reminder is built by this change — a stale date is a visual signal for staff to re-ask, not an enforced gate.",
+                        "default": null,
+                        "title": "Medical Consent Date"
                     },
                     "managerId": {
                         "type": "string",
@@ -4994,6 +5104,17 @@
                         "description": "Academic or training year in YYYY or YYYY-YYYY format.",
                         "example": "2025-2026",
                         "title": "Academic Year"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "teaching",
+                            "care",
+                            "plusklas"
+                        ],
+                        "default": "teaching",
+                        "description": "Whether this is an ordinary teaching cohort, or a standing care/plusklas subgroup (finding 1.14) — a group that persists across periods rather than living inside a single GroupPlan's ephemeral instructieniveau subgroups (GroupPlanSubgroup). 'care' covers e.g. a remedial or sublesgroep; 'plusklas' covers gifted-education pull-out groups.",
+                        "title": "Cohort Kind"
                     },
                     "lifecycle": {
                         "type": "string",
@@ -13314,6 +13435,235 @@
                         "subject": {
                             "nl": "Er is een gedragsincident geregistreerd",
                             "en": "A behaviour incident was recorded"
+                        }
+                    }
+                },
+                "x-openregister-seed": [],
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "compliance-officers"
+                    ],
+                    "create": [
+                        "instructors",
+                        "compliance-officers"
+                    ],
+                    "update": [
+                        "instructors",
+                        "compliance-officers"
+                    ]
+                }
+            },
+            "FirstAidIncident": {
+                "x-openregister-processing": {
+                    "code": "scholiq-first-aid-incidents",
+                    "naam": "First aid incidents (EHBO-registraties)",
+                    "doelbinding": "Record a first-aid or medical incident involving a learner — separate from a standing MedicalConditions/allergies record on LearnerProfile — and its follow-up handling, as part of the school's duty of care (finding G-new-15).",
+                    "rechtsgrond": "public-task",
+                    "grondslagSource": "Regulation.slug",
+                    "dataCategories": [
+                        "learnerId",
+                        "reportedBy",
+                        "whatHappened",
+                        "treatmentGiven",
+                        "notifiedGuardian",
+                        "followUpActions"
+                    ],
+                    "backend": "scholiq.first-aid-incidents",
+                    "retentionReference": "not declared (FirstAidIncident carries no x-openregister-archival annotation; align with the school's selectielijst onderwijs)",
+                    "lifecycle": "draft",
+                    "logReads": true,
+                    "attribution": {
+                        "default": "scholiq-first-aid-incidents"
+                    },
+                    "subjectIdFields": {
+                        "learnerId": "learnerId"
+                    },
+                    "ownerUserId": "admin",
+                    "reviewIntervalMonths": 12,
+                    "nextReviewAt": "2027-06-14"
+                },
+                "slug": "first-aid-incident",
+                "icon": "MedicalBag",
+                "version": "0.1.0",
+                "title": "FirstAidIncident",
+                "description": "A single dated first-aid or medical incident involving a learner (finding G-new-15) — what happened, the treatment given, whether a guardian was notified, and an append-only follow-up log — kept separate from LearnerProfile.medicalConditions/allergies, which describe standing conditions rather than a dated event. appendOnly: true (ADR-008); own lifecycle open -> in-handling -> resolved, mirroring BehaviourIncident.",
+                "type": "object",
+                "appendOnly": true,
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": true
+                },
+                "required": [
+                    "learnerId",
+                    "reportedBy",
+                    "occurredAt",
+                    "whatHappened",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "learnerId": {
+                        "type": "string",
+                        "description": "Nextcloud user ID of the learner this first-aid incident concerns.",
+                        "title": "Learner ID"
+                    },
+                    "reportedBy": {
+                        "type": "string",
+                        "description": "Nextcloud user ID of the staff member who administered first aid / reported this incident.",
+                        "title": "Reported By"
+                    },
+                    "occurredAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "ISO 8601 timestamp the incident occurred.",
+                        "title": "Occurred At"
+                    },
+                    "whatHappened": {
+                        "type": "string",
+                        "description": "Free-text description of what happened (injury/illness).",
+                        "title": "What Happened"
+                    },
+                    "treatmentGiven": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Free-text description of the first aid or treatment given, if any. Null when the incident is recorded but no treatment was administered.",
+                        "default": null,
+                        "title": "Treatment Given"
+                    },
+                    "notifiedGuardian": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Whether a guardian was notified of this incident.",
+                        "title": "Guardian Notified"
+                    },
+                    "notifiedGuardianAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "description": "ISO 8601 timestamp the guardian was notified. Null until notifiedGuardian is set true.",
+                        "default": null,
+                        "title": "Guardian Notified At"
+                    },
+                    "followUpActions": {
+                        "type": "array",
+                        "description": "Append-only log of the school's follow-up handling for this incident (a check-in the next day, a referral to a doctor, a return-to-play decision). Each addition MUST be a new audited version of the appendOnly incident (ADR-008) — never an in-place edit of a prior entry. Same shape as BehaviourIncident.followUpActions.",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "recordedBy",
+                                "recordedAt",
+                                "action"
+                            ],
+                            "properties": {
+                                "recordedBy": {
+                                    "type": "string",
+                                    "description": "Nextcloud user ID of the staff member who recorded this follow-up action.",
+                                    "title": "Recorded By"
+                                },
+                                "recordedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "ISO 8601 timestamp when this follow-up action was recorded.",
+                                    "title": "Recorded At"
+                                },
+                                "action": {
+                                    "type": "string",
+                                    "description": "Free-text description of the follow-up action taken.",
+                                    "title": "Action"
+                                }
+                            },
+                            "title": "Follow-Up Action Entry"
+                        },
+                        "default": [],
+                        "title": "Follow-Up Actions"
+                    },
+                    "resolution": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "How the incident was resolved. Set on the resolve transition. Null until resolved.",
+                        "default": null,
+                        "title": "Resolution"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenant isolation.",
+                        "title": "Tenant ID"
+                    },
+                    "lifecycle": {
+                        "type": "string",
+                        "enum": [
+                            "open",
+                            "in-handling",
+                            "resolved"
+                        ],
+                        "default": "open",
+                        "description": "First-aid-incident lifecycle state.",
+                        "title": "Lifecycle State"
+                    }
+                },
+                "x-openregister-lifecycle": {
+                    "property": "lifecycle",
+                    "initial": "open",
+                    "transitions": {
+                        "startHandling": {
+                            "from": "open",
+                            "to": "in-handling"
+                        },
+                        "resolve": {
+                            "from": [
+                                "open",
+                                "in-handling"
+                            ],
+                            "to": "resolved"
+                        }
+                    }
+                },
+                "x-property-rbac": {
+                    "_comment": "Read restricted to admin/mentor/coordinator/the incident's own reportedBy — same tightest-common-floor rationale as BehaviourIncident/DossierNote (design.md Decision 1).",
+                    "read": {
+                        "anyOf": [
+                            {
+                                "role": "admin"
+                            },
+                            {
+                                "role": "mentor"
+                            },
+                            {
+                                "role": "coordinator"
+                            },
+                            {
+                                "match": {
+                                    "field": "reportedBy",
+                                    "operator": "eq",
+                                    "value": "$userId"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "x-openregister-notifications": {
+                    "incidentRecorded": {
+                        "trigger": {
+                            "type": "created"
+                        },
+                        "enabled": true,
+                        "channels": [
+                            "nc-notification"
+                        ],
+                        "recipients": [
+                            {
+                                "kind": "groups",
+                                "groups": [
+                                    "mentor",
+                                    "coordinator"
+                                ]
+                            }
+                        ],
+                        "subject": {
+                            "nl": "Er is een EHBO-incident geregistreerd",
+                            "en": "A first-aid incident was recorded"
                         }
                     }
                 },

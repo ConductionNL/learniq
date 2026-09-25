@@ -1160,8 +1160,44 @@
 			"config": {
 				"register": "learniq",
 				"schema": "learner-profile",
-				"_note": "A Learner Profile is the person record — the STUDENT hub. What a mentor lands here to see is this learner's whole footprint, each its own object-list scoped by learnerId: Enrolments (the courses they take), Final grades (outcomes/results), Attendance (presence), Learning plans (support/OPP), and Credentials (diplomas/badges earned) — paired 6+6 below the profile Data block (8-wide) and a Related panel resolving parents + manager. A stats-block KPI panel counts enrolments/attendance/credentials at a glance. No lifecycleActions: LearnerProfile uses a states model (active/merged/deleted via merge/delete transitions), not a linear `lifecycle` enum, so status changes are handled by dedicated flows, not a generic transition menu. No comms leaves on the body: LearnerProfile declares no linkedTypes (HARD RULE 1). The audit trail lives as the single sidebar tab (the built-in audit widget), not a body widget (HARD RULE 4).",
+				"_note": "A Learner Profile is the person record — the STUDENT hub. learner-record-extras (finding 2.1/pupil-card-anatomy.md) replaced the single scrolling Data block with a top-of-page `lprof-tabs` widget (Identity / Address & contact / Guardians / Medical / First aid), so guardians — previously the `related` widget buried at layout slot 8, resolving only after a long scroll — are now one click away instead of a dash at the bottom. Each tabbed child is declared here as an ordinary widget with NO layout entry of its own (CnTabsWidget resolves them by id from this widgets array, not from layout; a widget with both would render twice). Below the tabs: KPI tiles, then Enrolments (the courses they take), Final grades (outcomes/results), Attendance (presence), Learning plans (support/OPP), and Credentials (diplomas/badges earned), each its own object-list scoped by learnerId — paired 6+6. No lifecycleActions: LearnerProfile uses a states model (active/merged/deleted via merge/delete transitions), not a linear `lifecycle` enum, so status changes are handled by dedicated flows, not a generic transition menu. No comms leaves on the body: LearnerProfile declares no linkedTypes (HARD RULE 1). The audit trail lives as the single sidebar tab (the built-in audit widget), not a body widget (HARD RULE 4).",
 				"widgets": [
+					{
+						"id": "lprof-tabs",
+						"type": "tabs",
+						"title": "Learner",
+						"icon": "AccountBoxOutline",
+						"content": {
+							"ariaLabel": "Learner profile sections",
+							"tabs": [
+								{
+									"widgetId": "lprof-data",
+									"label": "Identity",
+									"icon": "AccountBoxOutline"
+								},
+								{
+									"widgetId": "lprof-data-address",
+									"label": "Address & contact",
+									"icon": "MapMarkerOutline"
+								},
+								{
+									"widgetId": "lprof-related",
+									"label": "Guardians",
+									"icon": "AccountMultipleOutline"
+								},
+								{
+									"widgetId": "lprof-data-medical",
+									"label": "Medical",
+									"icon": "MedicalBag"
+								},
+								{
+									"widgetId": "lprof-first-aid",
+									"label": "First aid",
+									"icon": "Bandage"
+								}
+							]
+						}
+					},
 					{
 						"id": "lprof-data",
 						"type": "data",
@@ -1170,6 +1206,72 @@
 							"columns": 2
 						},
 						"icon": "AccountBoxOutline"
+					},
+					{
+						"id": "lprof-data-address",
+						"type": "data",
+						"title": "Address & contact",
+						"content": {
+							"columns": 2,
+							"include": [
+								"address",
+								"emergencyContacts"
+							]
+						},
+						"icon": "MapMarkerOutline"
+					},
+					{
+						"id": "lprof-data-medical",
+						"type": "data",
+						"title": "Medical",
+						"content": {
+							"columns": 2,
+							"include": [
+								"medicalConditions",
+								"allergies",
+								"medicalConsentDate",
+								"hasParentalAuthority"
+							]
+						},
+						"icon": "MedicalBag"
+					},
+					{
+						"id": "lprof-first-aid",
+						"type": "object-list",
+						"title": "First aid incidents",
+						"content": {
+							"register": "learniq",
+							"schema": "first-aid-incident",
+							"filter": {
+								"learnerId": "@objectId"
+							},
+							"sort": {
+								"field": "occurredAt",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "occurredAt",
+									"label": "Occurred At"
+								},
+								{
+									"key": "whatHappened",
+									"label": "What Happened"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "FirstAidIncidentDetail",
+							"viewAllRoute": "FirstAidIncidents",
+							"viewAllQuery": {
+								"learnerId": "@objectId"
+							},
+							"emptyText": "No first aid incidents found."
+						},
+						"icon": "Bandage"
 					},
 					{
 						"id": "lprof-kpis-enrolments",
@@ -1582,7 +1684,7 @@
 				"layout": [
 					{
 						"id": "1",
-						"widgetId": "lprof-data",
+						"widgetId": "lprof-tabs",
 						"gridX": 0,
 						"gridY": 0,
 						"gridWidth": 8,
@@ -1656,15 +1758,6 @@
 						"id": "7",
 						"widgetId": "lprof-credentials",
 						"gridX": 0,
-						"gridY": 16,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "8",
-						"widgetId": "lprof-related",
-						"gridX": 6,
 						"gridY": 16,
 						"gridWidth": 6,
 						"gridHeight": 5,

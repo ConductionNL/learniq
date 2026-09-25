@@ -60,6 +60,22 @@
 							]
 						}
 					}
+				},
+				{
+					"id": "FirstAidIncidentsMenu",
+					"label": "First aid incidents",
+					"icon": "Bandage",
+					"route": "FirstAidIncidents",
+					"order": 63,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"admin"
+							]
+						}
+					}
 				}
 			],
 			"visibleIf": {
@@ -280,6 +296,83 @@
 						"gridY": 0,
 						"gridWidth": 4,
 						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "FirstAidIncidents",
+			"route": "/pupil-dossier/first-aid",
+			"type": "index",
+			"title": "First aid incidents",
+			"config": {
+				"register": "learniq",
+				"schema": "first-aid-incident"
+			}
+		},
+		{
+			"id": "FirstAidIncidentDetail",
+			"route": "/pupil-dossier/first-aid/:id",
+			"type": "detail",
+			"title": "First aid incident",
+			"config": {
+				"register": "learniq",
+				"schema": "first-aid-incident",
+				"_note": "learner-record-extras (finding G-new-15): a FirstAidIncident is a single dated first-aid/medical event — what happened, treatment given, whether a guardian was notified — kept separate from LearnerProfile.medicalConditions/allergies (standing conditions, not events). appendOnly: true; own lifecycle open -> in-handling -> resolved, mirroring BehaviourIncidentDetail. Body leads with the incident data (8-wide) and a Related panel. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "fa-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "MedicalBag"
+					},
+					{
+						"id": "fa-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "fa-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "fa-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6,
 						"showTitle": false
 					}
 				],
