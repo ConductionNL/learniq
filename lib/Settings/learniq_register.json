@@ -15716,7 +15716,7 @@
                     },
                     "target": {
                         "type": "string",
-                        "description": "Named OpenConnector connection: bron-rod | oso | leerplicht | surfconext | hr | swv | timetable-import | or a custom name. This is a reference to an OpenConnector source/target configuration — Scholiq implements no wire protocol. 'timetable-import' (direction:import) resolves a Zermelo/Untis/Xedule-generated timetable into Session upserts, per timetabling-and-substitution.",
+                        "description": "Named OpenConnector connection: bron-rod | oso | leerplicht | surfconext | hr | swv | timetable-import | lvs-results | or a custom name. This is a reference to an OpenConnector source/target configuration — Scholiq implements no wire protocol. 'timetable-import' (direction:import) resolves a Zermelo/Untis/Xedule-generated timetable into Session upserts, per timetabling-and-substitution. 'lvs-results' (direction:import) resolves a UWLR-carried Cito/IEP/Boom/Dia normed result into an LvsResult, per lvs-import-contract.",
                         "title": "OpenConnector Target"
                     },
                     "direction": {
@@ -16093,6 +16093,64 @@
                         "validationProfile": null,
                         "active": true,
                         "lifecycle": "active"
+                    },
+                    {
+                        "name": "LVS results import (Cito/IEP/Boom/Dia via UWLR)",
+                        "target": "lvs-results",
+                        "direction": "import",
+                        "sourceSchema": "assessment-result",
+                        "targetSchema": "UWLR:ToetsResultaat",
+                        "fieldMappings": [
+                            {
+                                "scholiqField": "provider",
+                                "targetField": "leverancier",
+                                "transform": null
+                            },
+                            {
+                                "scholiqField": "instrument",
+                                "targetField": "toetsnaam",
+                                "transform": null
+                            },
+                            {
+                                "scholiqField": "moment",
+                                "targetField": "meetmoment",
+                                "transform": null
+                            },
+                            {
+                                "scholiqField": "takenAt",
+                                "targetField": "afnameDatum",
+                                "transform": "date-iso8601"
+                            },
+                            {
+                                "scholiqField": "rawScore",
+                                "targetField": "ruweScore",
+                                "transform": null
+                            },
+                            {
+                                "scholiqField": "vaardigheidsscore",
+                                "targetField": "vaardigheidsscore",
+                                "transform": null
+                            },
+                            {
+                                "scholiqField": "niveau",
+                                "targetField": "niveau",
+                                "transform": null
+                            },
+                            {
+                                "scholiqField": "referentieniveau",
+                                "targetField": "referentieniveau",
+                                "transform": null
+                            },
+                            {
+                                "scholiqField": "dle",
+                                "targetField": "dle",
+                                "transform": null
+                            }
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active",
+                        "_comment": "direction:import, same convention as the Zermelo/Untis/Xedule seeds above: scholiqField names the LvsResult-side field, targetField names the incoming UWLR record's field. sourceSchema is 'assessment-result' per findings.md#6.5's own framing (the LVS result is conceptually an assessment result) even though the created object is LvsResult, not AssessmentResult — assessmentResultId links the two only when an in-app Assessment counterpart exists."
                     }
                 ]
             },
@@ -16153,7 +16211,7 @@
                     },
                     "target": {
                         "type": "string",
-                        "description": "Named OpenConnector connection (e.g. 'bron-rod', 'oso', 'leerplicht', 'surfconext', 'hr', 'swv', 'ooapi-catalog', 'timetable-import'). 'swv' routes a zorgvraag/TLV-chain dossier (learning-plan's SupportRequest) to the regional samenwerkingsverband (openconnector#753). 'ooapi-catalog' syncs a published/archived Course, Programme, or Cohort to the OOAPI 5.0 course catalog hosted by opencatalogi, per the course-management publication contract (course → course, program → program, offering → offering; see openspec/changes/delegate-ooapi-to-opencatalogi/design.md). 'timetable-import' (direction:import) hands a generated-timetable pull to the OpenConnector Zermelo/Untis/Xedule source configuration; TimetableImportHandler resolves the response via the matching DataMappingProfile into idempotent Session upserts keyed by externalRef, then triggers TimetableConflictDetector's batch scan (timetabling-and-substitution). Scholiq implements no Edukoppeling/StUF/OSO-XML/Digikoppeling/SAML/OOAPI/Zermelo/Untis/Xedule wire code — all protocol logic lives in OpenConnector.",
+                        "description": "Named OpenConnector connection (e.g. 'bron-rod', 'oso', 'leerplicht', 'surfconext', 'hr', 'swv', 'ooapi-catalog', 'timetable-import', 'lvs-results'). 'swv' routes a zorgvraag/TLV-chain dossier (learning-plan's SupportRequest) to the regional samenwerkingsverband (openconnector#753). 'ooapi-catalog' syncs a published/archived Course, Programme, or Cohort to the OOAPI 5.0 course catalog hosted by opencatalogi, per the course-management publication contract (course → course, program → program, offering → offering; see openspec/changes/delegate-ooapi-to-opencatalogi/design.md). 'timetable-import' (direction:import) hands a generated-timetable pull to the OpenConnector Zermelo/Untis/Xedule source configuration; TimetableImportHandler resolves the response via the matching DataMappingProfile into idempotent Session upserts keyed by externalRef, then triggers TimetableConflictDetector's batch scan (timetabling-and-substitution). 'lvs-results' (direction:import) hands a UWLR-carried Cito/IEP/Boom/Dia normed-result pull to the OpenConnector source configuration; the matching DataMappingProfile maps the incoming record onto LvsResult, which lands as 'imported' and awaits coordinator verification (lvs-import-contract). Scholiq implements no Edukoppeling/StUF/OSO-XML/Digikoppeling/SAML/OOAPI/UWLR/Zermelo/Untis/Xedule wire code — all protocol logic lives in OpenConnector.",
                         "title": "OpenConnector Target"
                     },
                     "mappingProfileId": {
@@ -16463,6 +16521,168 @@
                     }
                 },
                 "x-openregister-seed": []
+            },
+            "LvsResult": {
+                "slug": "lvs-result",
+                "icon": "ChartBellCurve",
+                "version": "0.1.0",
+                "title": "LvsResult",
+                "description": "A normed LVS (leerlingvolgsysteem) test result imported via UWLR from Cito, IEP, Boom, or Dia, linked to an AssessmentResult when the school also ran the same toets as an in-app Assessment. Append-only — an imported result is immutable evidence. Starts as `imported` and is not trusted as report-card/trend input until a coordinator confirms it via the `verify` transition (lvs-import-contract).",
+                "type": "object",
+                "appendOnly": true,
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": true
+                },
+                "required": [
+                    "provider",
+                    "instrument",
+                    "moment",
+                    "learnerId",
+                    "dataExchangeJobId",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "provider": {
+                        "type": "string",
+                        "enum": [
+                            "cito",
+                            "iep",
+                            "boom",
+                            "dia"
+                        ],
+                        "description": "The LVS test-suite supplier that produced this result.",
+                        "title": "Provider"
+                    },
+                    "instrument": {
+                        "type": "string",
+                        "description": "Free-text name of the toets/instrument, e.g. 'Cito Rekenen-Wiskunde M6'.",
+                        "title": "Instrument"
+                    },
+                    "moment": {
+                        "type": "string",
+                        "description": "The LVS meetmoment code (e.g. 'M6', 'E3') — LVS suites identify a result by measurement moment, not a bare calendar date.",
+                        "title": "Meetmoment"
+                    },
+                    "takenAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date",
+                        "default": null,
+                        "description": "Calendar date the test was administered, when supplied by the source.",
+                        "title": "Taken At"
+                    },
+                    "rawScore": {
+                        "type": "number",
+                        "nullable": true,
+                        "default": null,
+                        "description": "Raw score, when the provider publishes one. Optional — vaardigheidsscore is the normed equivalent every one of the four suites publishes.",
+                        "title": "Raw Score"
+                    },
+                    "vaardigheidsscore": {
+                        "type": "number",
+                        "nullable": true,
+                        "default": null,
+                        "description": "IRT-normed vaardigheidsscore, the comparable-across-moments score every one of the four suites publishes.",
+                        "title": "Vaardigheidsscore"
+                    },
+                    "niveau": {
+                        "type": "string",
+                        "nullable": true,
+                        "default": null,
+                        "description": "Provider-specific level or percentile band for this result.",
+                        "title": "Niveau"
+                    },
+                    "referentieniveau": {
+                        "type": "string",
+                        "nullable": true,
+                        "default": null,
+                        "description": "The PO/VO referentiekader band (e.g. '1F', '2F', '1S'), only populated where the toets maps to one.",
+                        "title": "Referentieniveau"
+                    },
+                    "dle": {
+                        "type": "number",
+                        "nullable": true,
+                        "default": null,
+                        "description": "Didactische leeftijd (DLE), when the provider or a derived calculation supplies it. Input for the DLE/leerrendement report scales (trend-and-export-reporting).",
+                        "title": "DLE"
+                    },
+                    "learnerId": {
+                        "type": "string",
+                        "description": "Nextcloud user ID of the learner this result belongs to.",
+                        "title": "Learner ID"
+                    },
+                    "assessmentResultId": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uuid",
+                        "$ref": "AssessmentResult",
+                        "default": null,
+                        "description": "UUID of the matching in-app AssessmentResult, when the school also ran the same toets as an Assessment. Null in the common case where the LVS toets has no learniq-side counterpart.",
+                        "title": "Assessment Result ID"
+                    },
+                    "dataExchangeJobId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "DataExchangeJob",
+                        "description": "UUID of the DataExchangeJob (target: lvs-results) that imported this result.",
+                        "title": "Data Exchange Job ID"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenancy isolation.",
+                        "title": "Tenant ID"
+                    },
+                    "lifecycle": {
+                        "type": "string",
+                        "enum": [
+                            "imported",
+                            "verified",
+                            "archived"
+                        ],
+                        "default": "imported",
+                        "description": "Lifecycle state. Managed by OR's lifecycle engine.",
+                        "title": "Lifecycle State"
+                    }
+                },
+                "x-openregister-lifecycle": {
+                    "property": "lifecycle",
+                    "initial": "imported",
+                    "transitions": {
+                        "verify": {
+                            "from": "imported",
+                            "to": "verified",
+                            "requires": "OCA\\Learniq\\Lifecycle\\LvsResultVerifyGuard",
+                            "description": "An admin/coordinator confirms an imported LVS result before it is trusted as report-card/trend input."
+                        },
+                        "archive": {
+                            "from": [
+                                "imported",
+                                "verified"
+                            ],
+                            "to": "archived"
+                        }
+                    }
+                },
+                "x-property-rbac": {
+                    "_comment": "Mirrors AssessmentResult's read restriction — normed test results are learner PII. Learner sees own results; admins see all.",
+                    "read": {
+                        "anyOf": [
+                            {
+                                "role": "admin"
+                            },
+                            {
+                                "match": {
+                                    "field": "learnerId",
+                                    "operator": "eq",
+                                    "value": "$userId"
+                                }
+                            }
+                        ]
+                    }
+                }
             },
             "ExchangeRejection": {
                 "slug": "exchange-rejection",
