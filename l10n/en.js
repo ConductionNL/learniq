@@ -979,7 +979,11 @@ OC.L10N.register(
         "Not configured": "Not configured",
         "Open settings": "Open settings",
         "Simulated": "Simulated",
-        "Status message": "Status message"
+        "Status message": "Status message",
+        "Payment Request Sent At": "Payment Request Sent At",
+        "When staff last recorded sending a payment request for this order to the payer, or null if none was sent (payment-request-ux). Set via the generic object-edit form — no bespoke controller, per ADR-022.": "When staff last recorded sending a payment request for this order to the payer, or null if none was sent (payment-request-ux). Set via the generic object-edit form — no bespoke controller, per ADR-022.",
+        "Payment Request Sent By": "Payment Request Sent By",
+        "Nextcloud user id of the staff member who last recorded sending a payment request, or null if none was sent.": "Nextcloud user id of the staff member who last recorded sending a payment request, or null if none was sent."
     },
     "nplurals=2; plural=(n != 1);"
 )

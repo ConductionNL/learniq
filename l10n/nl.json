@@ -1427,7 +1427,11 @@
         "Open settings": "Instellingen openen",
         "Simulated": "Gesimuleerd",
         "Status message": "Statusmelding",
-        "A payment request was sent on {date}.": "Er is op {date} een betaalverzoek verstuurd."
+        "A payment request was sent on {date}.": "Er is op {date} een betaalverzoek verstuurd.",
+        "Payment Request Sent At": "Betaalverzoek verstuurd op",
+        "When staff last recorded sending a payment request for this order to the payer, or null if none was sent (payment-request-ux). Set via the generic object-edit form — no bespoke controller, per ADR-022.": "Wanneer medewerkers voor het laatst hebben vastgelegd dat een betaalverzoek voor deze order naar de betaler is verstuurd, of null als er nog geen is verstuurd. Ingesteld via het generieke bewerkformulier, geen aparte controller, conform ADR-022.",
+        "Payment Request Sent By": "Betaalverzoek verstuurd door",
+        "Nextcloud user id of the staff member who last recorded sending a payment request, or null if none was sent.": "Nextcloud-gebruikers-ID van de medewerker die voor het laatst heeft vastgelegd dat een betaalverzoek is verstuurd, of null als er nog geen is verstuurd."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
