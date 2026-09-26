@@ -112,6 +112,12 @@ import PeopleDashboard from './views/PeopleDashboard.vue'
 // surface — the two named custom views the eportfolio spec permits.
 import PortfolioBuilder from './views/PortfolioBuilder.vue'
 import PortfolioReviewView from './views/PortfolioReviewView.vue'
+// privacy-governance-surfaces (P-new-6/P-new-7): the board-facing privacy
+// governance dashboard — mirrors LearniqAiProcessingDisclosure's singleton,
+// no-:id-route shape. Composes PrivacyGovernanceController's server-side
+// read (rbac-declare-groups member counts, best-effort 2FA adoption,
+// DataExchangeJob partner-approval counts).
+import PrivacyGovernanceDashboard from './views/PrivacyGovernanceDashboard.vue'
 import ProctoringReviewQueue from './views/ProctoringReviewQueue.vue'
 // pupil-dossier-notes: the one genuine new custom view this change adds —
 // the chronological DossierNote/BehaviourIncident/WellbeingCheckIn +
@@ -214,6 +220,7 @@ export default {
 	LearniqCompliance: page(LearniqCompliance),
 	LearniqDashboards: page(LearniqDashboards),
 	LearniqLearnerHome: page(LearniqLearnerHome),
+	PrivacyGovernanceDashboard: page(PrivacyGovernanceDashboard),
 	SelfAssessmentView: page(SelfAssessmentView),
 	SkillsGapDashboard: page(SkillsGapDashboard),
 	SubjectChoicePicker: page(SubjectChoicePicker),
