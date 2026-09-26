@@ -319,6 +319,40 @@
 			"order": 28,
 			"children": [
 				{
+					"id": "SessionsTodayMenu",
+					"label": "Today's sessions",
+					"icon": "Calendar",
+					"route": "SessionsToday",
+					"order": 60,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "SessionsThisWeekMenu",
+					"label": "This week's sessions",
+					"icon": "Calendar",
+					"route": "SessionsThisWeek",
+					"order": 61,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "RoomsMenu",
 					"label": "Rooms",
 					"icon": "OfficeBuilding",
@@ -2167,6 +2201,38 @@
 			"config": {
 				"register": "learniq",
 				"schema": "Session"
+			}
+		},
+		{
+			"id": "SessionsToday",
+			"route": "/sessions/today",
+			"type": "index",
+			"title": "Today's sessions",
+			"config": {
+				"register": "learniq",
+				"schema": "Session",
+				"filter": {
+					"startsAt": {
+						"gte": "@today",
+						"lt": "@today+1d"
+					}
+				}
+			}
+		},
+		{
+			"id": "SessionsThisWeek",
+			"route": "/sessions/week",
+			"type": "index",
+			"title": "This week's sessions",
+			"config": {
+				"register": "learniq",
+				"schema": "Session",
+				"filter": {
+					"startsAt": {
+						"gte": "@today",
+						"lt": "@today+7d"
+					}
+				}
 			}
 		},
 		{
