@@ -15716,7 +15716,7 @@
                     },
                     "target": {
                         "type": "string",
-                        "description": "Named OpenConnector connection: bron-rod | oso | leerplicht | surfconext | hr | swv | timetable-import | or a custom name. This is a reference to an OpenConnector source/target configuration — Scholiq implements no wire protocol. 'timetable-import' (direction:import) resolves a Zermelo/Untis/Xedule-generated timetable into Session upserts, per timetabling-and-substitution.",
+                        "description": "Named OpenConnector connection: bron-rod | oso | leerplicht | surfconext | hr | swv | timetable-import | uwlr | edu-v | basispoort | entree-content | or a custom name. This is a reference to an OpenConnector source/target configuration — Scholiq implements no wire protocol. 'timetable-import' (direction:import) resolves a Zermelo/Untis/Xedule-generated timetable into Session upserts, per timetabling-and-substitution. 'uwlr'/'edu-v' export pupil/group/teacher data carrying eckId; 'uwlr' (direction:import) also lands generic results onto LvsResult. 'basispoort'/'entree-content' (direction:sync) are the PO/VO SSO-plus-export hand-offs to method/publisher content, per uwlr-eduv-basispoort-contract.",
                         "title": "OpenConnector Target"
                     },
                     "direction": {
@@ -16093,6 +16093,149 @@
                         "validationProfile": null,
                         "active": true,
                         "lifecycle": "active"
+                    },
+                    {
+                        "name": "UWLR pupil export",
+                        "target": "uwlr",
+                        "direction": "export",
+                        "sourceSchema": "learner-profile",
+                        "targetSchema": "UWLR:Leerling",
+                        "fieldMappings": [
+                            {"scholiqField": "eckId", "targetField": "leerlingEckId", "transform": null},
+                            {"scholiqField": "givenName", "targetField": "voornamen", "transform": null},
+                            {"scholiqField": "familyName", "targetField": "achternaam", "transform": null},
+                            {"scholiqField": "birthDate", "targetField": "geboortedatum", "transform": "date-iso8601"},
+                            {"scholiqField": "schoolId", "targetField": "brinNummer", "transform": null}
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active"
+                    },
+                    {
+                        "name": "UWLR group export",
+                        "target": "uwlr",
+                        "direction": "export",
+                        "sourceSchema": "cohort",
+                        "targetSchema": "UWLR:Groep",
+                        "fieldMappings": [
+                            {"scholiqField": "name", "targetField": "groepsnaam", "transform": null},
+                            {"scholiqField": "academicYear", "targetField": "schooljaar", "transform": null},
+                            {"scholiqField": "period", "targetField": "periode", "transform": null}
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active"
+                    },
+                    {
+                        "name": "UWLR teacher export",
+                        "target": "uwlr",
+                        "direction": "export",
+                        "sourceSchema": "learner-profile",
+                        "targetSchema": "UWLR:Onderwijsmedewerker",
+                        "fieldMappings": [
+                            {"scholiqField": "eckId", "targetField": "medewerkerEckId", "transform": null},
+                            {"scholiqField": "givenName", "targetField": "voornamen", "transform": null},
+                            {"scholiqField": "familyName", "targetField": "achternaam", "transform": null},
+                            {"scholiqField": "department", "targetField": "functiecode", "transform": null}
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active",
+                        "_comment": "sourceSchema is learner-profile: teaching staff are LearnerProfile rows carrying roles: ['instructor'], same schema pupils use (register has no separate Staff schema)."
+                    },
+                    {
+                        "name": "UWLR results import (generic data services)",
+                        "target": "uwlr",
+                        "direction": "import",
+                        "sourceSchema": "lvs-result",
+                        "targetSchema": "UWLR:Onderwijsresultaten",
+                        "fieldMappings": [
+                            {"scholiqField": "provider", "targetField": "leverancier", "transform": null},
+                            {"scholiqField": "instrument", "targetField": "toetsnaam", "transform": null},
+                            {"scholiqField": "vaardigheidsscore", "targetField": "vaardigheidsscore", "transform": null}
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active",
+                        "_comment": "Deliberately reuses LvsResult (lvs-import-contract) as the landing shape for UWLR's generic 'results back' capability (M3-integrations.md row I4/I8 both name UWLR as the SAME transport LVS toetsresultaten travel over) rather than inventing a second, competing results schema. sourceSchema names a string convention only — DataMappingProfile does not $ref-enforce it, so this seed is valid regardless of which PR (this one or lvs-import-contract) merges first; it is inert until LvsResult exists."
+                    },
+                    {
+                        "name": "Edu-V Onderwijsdeelnemers data service export",
+                        "target": "edu-v",
+                        "direction": "export",
+                        "sourceSchema": "learner-profile",
+                        "targetSchema": "EduV:Onderwijsdeelnemers",
+                        "fieldMappings": [
+                            {"scholiqField": "eckId", "targetField": "eckId", "transform": null},
+                            {"scholiqField": "givenName", "targetField": "voornamen", "transform": null},
+                            {"scholiqField": "familyName", "targetField": "achternaam", "transform": null},
+                            {"scholiqField": "birthDate", "targetField": "geboortedatum", "transform": "date-iso8601"}
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active",
+                        "_comment": "Edu-V is a distinct named connection from UWLR (M3-integrations.md I4: qualified per data service, per product, e.g. Onderwijsdeelnemers/Onderwijsmedewerkers/Consentmanagement) even where the carried fields overlap with the UWLR pupil export above."
+                    },
+                    {
+                        "name": "Edu-V Onderwijsgroepen data service export",
+                        "target": "edu-v",
+                        "direction": "export",
+                        "sourceSchema": "cohort",
+                        "targetSchema": "EduV:Onderwijsgroepen",
+                        "fieldMappings": [
+                            {"scholiqField": "name", "targetField": "groepsnaam", "transform": null},
+                            {"scholiqField": "academicYear", "targetField": "schooljaar", "transform": null}
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active"
+                    },
+                    {
+                        "name": "Edu-V Onderwijsmedewerkers data service export",
+                        "target": "edu-v",
+                        "direction": "export",
+                        "sourceSchema": "learner-profile",
+                        "targetSchema": "EduV:Onderwijsmedewerkers",
+                        "fieldMappings": [
+                            {"scholiqField": "eckId", "targetField": "eckId", "transform": null},
+                            {"scholiqField": "givenName", "targetField": "voornamen", "transform": null},
+                            {"scholiqField": "familyName", "targetField": "achternaam", "transform": null}
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active"
+                    },
+                    {
+                        "name": "Basispoort SSO and pupil/group/staff export (PO)",
+                        "target": "basispoort",
+                        "direction": "sync",
+                        "sourceSchema": "learner-profile",
+                        "targetSchema": "Basispoort:Leerling",
+                        "fieldMappings": [
+                            {"scholiqField": "eckId", "targetField": "eckId", "transform": null},
+                            {"scholiqField": "givenName", "targetField": "voornamen", "transform": null},
+                            {"scholiqField": "familyName", "targetField": "achternaam", "transform": null},
+                            {"scholiqField": "schoolId", "targetField": "brinNummer", "transform": null}
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active",
+                        "_comment": "direction: sync — Basispoort is a combined SSO + pupil/group/staff/BRIN export hand-off (parnassys#13.4,5.5), not a one-way export. PO-only per M3-integrations.md I6 (VO uses Edu-V/UWLR directly, see the entree-content seed below)."
+                    },
+                    {
+                        "name": "Entree content SSO hand-off (VO)",
+                        "target": "entree-content",
+                        "direction": "sync",
+                        "sourceSchema": "learner-profile",
+                        "targetSchema": "Entree:MethodeToegang",
+                        "fieldMappings": [
+                            {"scholiqField": "eckId", "targetField": "eckId", "transform": null},
+                            {"scholiqField": "roles", "targetField": "rol", "transform": null}
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active",
+                        "_comment": "VO's Basispoort-equivalent: method/publisher content access handed off via Entree rather than Basispoort (M3-integrations.md I6 — Basispoort is PO-only; VO uses Edu-V/UWLR directly). Distinct target from entree-surfconext-sso-contract's own federated LOGIN concern (that change is user authentication into learniq itself; this seed is learniq handing off to a THIRD-PARTY method/publisher site, matching D3's job-type-owns-mapping pattern)."
                     }
                 ]
             },
@@ -16153,7 +16296,7 @@
                     },
                     "target": {
                         "type": "string",
-                        "description": "Named OpenConnector connection (e.g. 'bron-rod', 'oso', 'leerplicht', 'surfconext', 'hr', 'swv', 'ooapi-catalog', 'timetable-import'). 'swv' routes a zorgvraag/TLV-chain dossier (learning-plan's SupportRequest) to the regional samenwerkingsverband (openconnector#753). 'ooapi-catalog' syncs a published/archived Course, Programme, or Cohort to the OOAPI 5.0 course catalog hosted by opencatalogi, per the course-management publication contract (course → course, program → program, offering → offering; see openspec/changes/delegate-ooapi-to-opencatalogi/design.md). 'timetable-import' (direction:import) hands a generated-timetable pull to the OpenConnector Zermelo/Untis/Xedule source configuration; TimetableImportHandler resolves the response via the matching DataMappingProfile into idempotent Session upserts keyed by externalRef, then triggers TimetableConflictDetector's batch scan (timetabling-and-substitution). Scholiq implements no Edukoppeling/StUF/OSO-XML/Digikoppeling/SAML/OOAPI/Zermelo/Untis/Xedule wire code — all protocol logic lives in OpenConnector.",
+                        "description": "Named OpenConnector connection (e.g. 'bron-rod', 'oso', 'leerplicht', 'surfconext', 'hr', 'swv', 'ooapi-catalog', 'timetable-import', 'uwlr', 'edu-v', 'basispoort', 'entree-content'). 'swv' routes a zorgvraag/TLV-chain dossier (learning-plan's SupportRequest) to the regional samenwerkingsverband (openconnector#753). 'ooapi-catalog' syncs a published/archived Course, Programme, or Cohort to the OOAPI 5.0 course catalog hosted by opencatalogi, per the course-management publication contract (course → course, program → program, offering → offering; see openspec/changes/delegate-ooapi-to-opencatalogi/design.md). 'timetable-import' (direction:import) hands a generated-timetable pull to the OpenConnector Zermelo/Untis/Xedule source configuration; TimetableImportHandler resolves the response via the matching DataMappingProfile into idempotent Session upserts keyed by externalRef, then triggers TimetableConflictDetector's batch scan (timetabling-and-substitution). 'uwlr' (direction:export) sends pupil/group/teacher data carrying eckId to publishers/test suppliers, and (direction:import) receives generic results back (deliberately mapped onto LvsResult, see the lvs-results target, rather than a second results schema). 'edu-v' (direction:export) sends the same kind of pupil/group/teacher data through Edu-V's qualified-per-data-service afsprakenstelsel instead of/alongside UWLR. 'basispoort' (direction:sync) is the PO-only SSO-plus-export hand-off to method/publisher content; 'entree-content' (direction:sync) is VO's Entree-based equivalent (uwlr-eduv-basispoort-contract) — both are distinct from 'surfconext', which is learniq's OWN federated login concern, not a hand-off to a third party. Scholiq implements no Edukoppeling/StUF/OSO-XML/Digikoppeling/SAML/OOAPI/UWLR/Edu-V/Basispoort/Entree/Zermelo/Untis/Xedule wire code — all protocol logic lives in OpenConnector.",
                         "title": "OpenConnector Target"
                     },
                     "mappingProfileId": {
