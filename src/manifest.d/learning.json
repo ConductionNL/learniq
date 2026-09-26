@@ -2141,7 +2141,7 @@
 						"id": "2-4",
 						"widgetId": "coh-notes",
 						"gridX": 0,
-						"gridY": 5,
+						"gridY": 6,
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false
@@ -2150,7 +2150,7 @@
 						"id": "2-5",
 						"widgetId": "coh-sessions-today",
 						"gridX": 0,
-						"gridY": 8,
+						"gridY": 9,
 						"gridWidth": 12,
 						"gridHeight": 4,
 						"showTitle": false
@@ -2159,7 +2159,7 @@
 						"id": "3",
 						"widgetId": "coh-sessions",
 						"gridX": 0,
-						"gridY": 12,
+						"gridY": 13,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2168,7 +2168,7 @@
 						"id": "4",
 						"widgetId": "coh-enrol",
 						"gridX": 6,
-						"gridY": 12,
+						"gridY": 13,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2177,7 +2177,7 @@
 						"id": "5",
 						"widgetId": "coh-flags",
 						"gridX": 0,
-						"gridY": 17,
+						"gridY": 18,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2186,7 +2186,7 @@
 						"id": "6",
 						"widgetId": "coh-related",
 						"gridX": 6,
-						"gridY": 17,
+						"gridY": 18,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2195,7 +2195,7 @@
 						"id": "7",
 						"widgetId": "cohort-talk",
 						"gridX": 0,
-						"gridY": 22,
+						"gridY": 23,
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
