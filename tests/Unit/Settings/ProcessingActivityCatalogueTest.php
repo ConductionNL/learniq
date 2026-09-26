@@ -5,10 +5,11 @@
  * added to `learniq_register.json` by the `avg-verwerkingsregister` change.
  *
  * Learniq is a THIN CONSUMER of OpenRegister's platform processing-activity
- * register (OR-PA-1..9): it declares its ten processing activities (seven
- * from the original catalogue plus the three pupil-dossier-notes activities
- * — scholiq-pupil-dossier-notes, scholiq-behaviour-incidents,
- * scholiq-wellbeing-checkins) as `x-openregister-processing` catalogue
+ * register (OR-PA-1..9): it declares its eleven processing activities (seven
+ * from the original catalogue, the three pupil-dossier-notes activities —
+ * scholiq-pupil-dossier-notes, scholiq-behaviour-incidents,
+ * scholiq-wellbeing-checkins — plus scholiq-first-aid-incidents added by the
+ * `learner-record-extras` change) as `x-openregister-processing` catalogue
  * annotations and opts the carrying schemas into OpenRegister's per-access
  * read-logging. The ProcessingActivity entity, validation, lifecycle,
  * versioning, review-due notifications, the aggregate Art. 30 export, and
@@ -16,7 +17,7 @@
  * export service, controller, schema, or template.
  *
  * These tests assert:
- *   - the ten activities are declared with the required catalogue fields;
+ *   - the eleven activities are declared with the required catalogue fields;
  *   - each annotation opts the schema into read-logging and attributes to its
  *     own activity code (resolvable by OpenRegister's ProcessingLogService);
  *   - owner/review fields are present so OR-PA-1 review notifications fire,
@@ -74,6 +75,7 @@ class ProcessingActivityCatalogueTest extends TestCase {
 		'DossierNote' => 'scholiq-pupil-dossier-notes',
 		'BehaviourIncident' => 'scholiq-behaviour-incidents',
 		'WellbeingCheckIn' => 'scholiq-wellbeing-checkins',
+		'FirstAidIncident' => 'scholiq-first-aid-incidents',
 	];
 
 	/**
@@ -93,7 +95,7 @@ class ProcessingActivityCatalogueTest extends TestCase {
 	}//end setUp()
 
 	/**
-	 * The ten activities are declared, each on its carrying schema, with the
+	 * The eleven activities are declared, each on its carrying schema, with the
 	 * required Art. 30 catalogue fields and its own attribution code.
 	 *
 	 * @return void
@@ -117,7 +119,7 @@ class ProcessingActivityCatalogueTest extends TestCase {
 			$codes[] = $processing['code'];
 		}
 
-		$this->assertCount(10, array_unique($codes), 'Exactly ten distinct activity codes expected');
+		$this->assertCount(11, array_unique($codes), 'Exactly eleven distinct activity codes expected');
 
 	}//end testTenActivitiesDeclaredWithCatalogueFields()
 

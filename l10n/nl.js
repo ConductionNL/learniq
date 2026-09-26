@@ -1427,7 +1427,16 @@ OC.L10N.register(
         "Not configured": "Niet geconfigureerd",
         "Open settings": "Instellingen openen",
         "Simulated": "Gesimuleerd",
-        "Status message": "Statusmelding"
+        "Status message": "Statusmelding",
+        "Address & contact": "Adres & contact",
+        "First aid": "EHBO",
+        "First aid incident": "EHBO-incident",
+        "First aid incidents": "EHBO-incidenten",
+        "Guardians": "Ouders/verzorgers",
+        "Identity": "Identiteit",
+        "Medical": "Medisch",
+        "No first aid incidents found.": "Geen EHBO-incidenten gevonden.",
+        "What Happened": "Wat is er gebeurd"
     },
     "nplurals=2; plural=(n != 1);"
 )
