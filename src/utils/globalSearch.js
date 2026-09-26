@@ -56,7 +56,8 @@ export function buildGlobalSearchRequests(term, options = {}) {
 	if (!trimmed) {
 		return []
 	}
-	const limit = Number.isFinite(options.limit) && options.limit > 0 ? options.limit : 8
+	const limit =
+		Number.isFinite(options.limit) && options.limit > 0 ? options.limit : 8
 	return [
 		{
 			kind: 'people',
@@ -81,7 +82,7 @@ export function buildGlobalSearchRequests(term, options = {}) {
  *
  * @param {string[]|null|undefined} roles The profile's `roles` array.
  * @return {'learner'|'staff'}
- * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-search-results-are-grouped-by-kind
+ * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
  */
 export function classifyPersonKind(roles) {
 	if (!Array.isArray(roles) || roles.length === 0) {
@@ -112,9 +113,12 @@ export function personResultLabel(item) {
  * @param {object[]} learnerProfileResults Raw `learner-profile` search hits.
  * @param {object[]} cohortResults Raw `cohort` search hits.
  * @return {{learners: object[], staff: object[], cohorts: object[]}}
- * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-search-results-are-grouped-by-kind
+ * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
  */
-export function groupGlobalSearchResults(learnerProfileResults = [], cohortResults = []) {
+export function groupGlobalSearchResults(
+	learnerProfileResults = [],
+	cohortResults = [],
+) {
 	const learners = []
 	const staff = []
 	for (const item of learnerProfileResults) {

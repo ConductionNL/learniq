@@ -112,6 +112,7 @@ export default {
 		/**
 		 * @return {boolean} True when the current results have at least one row
 		 *  in any group.
+		 * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
 		 */
 		hasResults() {
 			return (
@@ -131,6 +132,7 @@ export default {
 		 * Debounced input handler.
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
 		 */
 		onInput() {
 			clearTimeout(this.debounceTimer)
@@ -141,6 +143,7 @@ export default {
 		 * Clear the query and any shown results.
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
 		 */
 		clear() {
 			this.query = ''
@@ -152,6 +155,7 @@ export default {
 		 * Run the two per-kind OpenRegister searches and group the results.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
 		 */
 		async runSearch() {
 			const requests = buildGlobalSearchRequests(this.query)
@@ -177,7 +181,8 @@ export default {
 				const peopleIndex = requests.findIndex((r) => r.kind === 'people')
 				const cohortsIndex = requests.findIndex((r) => r.kind === 'cohorts')
 				const peopleResults = peopleIndex >= 0 ? responses[peopleIndex] : []
-				const cohortResults = cohortsIndex >= 0 ? responses[cohortsIndex] : []
+				const cohortResults =
+					cohortsIndex >= 0 ? responses[cohortsIndex] : []
 				this.results = groupGlobalSearchResults(peopleResults, cohortResults)
 				this.hasSearched = true
 			} finally {
@@ -193,6 +198,7 @@ export default {
 		 * @param {{register: string, schema: string, params: object}} req One
 		 *  descriptor from `buildGlobalSearchRequests`.
 		 * @return {Promise<object[]>}
+		 * @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-query-builder-splits-one-search-term-into-per-kind-openregister-requests
 		 */
 		async fetchOne(req) {
 			try {
