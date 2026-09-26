@@ -37,6 +37,7 @@
 		:manifest="manifest"
 		:registry="registry"
 		:pageTypes="pageTypes"
+		:customComponents="headerActionHandlers"
 		appId="learniq"
 		:translate="translateForApp">
 		<template #user-settings>
@@ -48,7 +49,9 @@
 <script>
 import { CnAppRoot } from '@conduction/nextcloud-vue'
 import { translate as ncT } from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
 import LearniqNotificationSettings from './views/LearniqNotificationSettings.vue'
+import { createConnectionHandlers } from './utils/connectionRegistry.js'
 
 export default {
 	name: 'App',
@@ -88,6 +91,21 @@ export default {
 			type: Object,
 			default: null,
 		},
+	},
+
+	data() {
+		return {
+			/**
+			 * Header-action handlers resolved by name. CnIndexPage looks a
+			 * `headerActions[].handler` name up in `customComponents` only, not
+			 * in `registry`, so the Integrations page's Add integration handler
+			 * has to travel through that prop.
+			 */
+			headerActionHandlers: createConnectionHandlers({
+				generateUrl,
+				assign: (url) => window.location.assign(url),
+			}),
+		}
 	},
 
 	methods: {

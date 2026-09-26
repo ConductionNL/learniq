@@ -205,12 +205,15 @@ jobs:
       # `development` carries ObjectCreatedEvent/ObjectTransitionedEvent + the
       # IMcpToolProvider interface the LearniqToolProvider tests need.
       #
-      # openconnector is deliberately NOT installed here. It is a SOFT
-      # dependency in src/manifest.json: scholiq proxies to it only for the LTI
-      # 1.3 launch (LtiToolPlacementController) and PSP payment initiation
-      # (PaymentTransactionController). Nothing else in the app touches it, so
-      # its absence must degrade those two features, not block the shell.
-      additional-apps: '[{"repo":"ConductionNL/openregister","app":"openregister","ref":"development"}]'
+      # openconnector (now integriq) is a SOFT dependency in src/manifest.json:
+      # its absence must degrade the features that call it, not block the shell.
+      #
+      # integriq IS installed here since adopt-connection-registry: the
+      # Integrations page reads integriq's `app_connection` rows, and without
+      # them tests/e2e/connection-registry.spec.ts fails on every run. `app` is
+      # `integriq`, verified in its appinfo/info.xml on `development` on
+      # 2026-09-14. The shell's own specs do not depend on its absence.
+      additional-apps: '[{"repo":"ConductionNL/openregister","app":"openregister","ref":"development"},{"repo":"ConductionNL/integriq","app":"integriq","ref":"development"}]'
       enable-sbom: true
 
       # ── E2E browser tests (Playwright) ───────────────────────────────────
