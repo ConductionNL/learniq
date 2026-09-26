@@ -13,6 +13,7 @@
 // vue-material-design-icons.
 
 import Account from 'vue-material-design-icons/Account.vue'
+import AccountAlertOutline from 'vue-material-design-icons/AccountAlertOutline.vue'
 import AccountArrowRightOutline from 'vue-material-design-icons/AccountArrowRightOutline.vue'
 import AccountBox from 'vue-material-design-icons/AccountBox.vue'
 import AccountBoxOutline from 'vue-material-design-icons/AccountBoxOutline.vue'
@@ -158,6 +159,7 @@ import Web from 'vue-material-design-icons/Web.vue'
 
 export default {
 	Account,
+	AccountAlertOutline,
 	AccountArrowRightOutline,
 	AccountBox,
 	AccountBoxOutline,

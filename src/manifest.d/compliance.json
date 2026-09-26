@@ -135,6 +135,82 @@
 			}
 		},
 		{
+			"id": "DataSubjectRequests",
+			"route": "/compliance/data-subject-requests",
+			"type": "index",
+			"title": "Correction & deletion requests",
+			"config": {
+				"register": "learniq",
+				"schema": "data-subject-request"
+			}
+		},
+		{
+			"id": "DataSubjectRequestDetail",
+			"route": "/compliance/data-subject-requests/:id",
+			"type": "detail",
+			"title": "Correction & deletion request",
+			"config": {
+				"register": "learniq",
+				"schema": "data-subject-request",
+				"_note": "privacy-governance-surfaces: a staff-logged AVG correction or deletion request. Body leads with the request data (kind, learner, description, requested/decided dates); no Related/Files leaves — the audit trail IS the point of the record. Sidebar keeps metadata + the append-only auditTrail as History, same shape as ExternalTrainingRecordDetail's own audit sidebar.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "dsr-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountAlertOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "dsr-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "PartnerApprovalJobs",
+			"route": "/compliance/partner-approvals",
+			"type": "index",
+			"title": "Partner integration approvals",
+			"config": {
+				"register": "learniq",
+				"schema": "data-exchange-job",
+				"filter": {
+					"requiresPartnerApproval": true
+				},
+				"_note": "privacy-governance-surfaces P-new-7 (\"Koppelingsgegevens inzien\"): the small consent-register index placement.md calls for — every DataExchangeJob target that opted into standing partner approval, with its partnerApprovalStatus and dataSharedFields visible at a glance. Approving/rejecting is done by editing the job's own partnerApprovalStatus field via the generic detail page (DataExchangeJobDetail, data-exchange.json), not a bespoke action here."
+			}
+		},
+		{
 			"id": "ComplianceLanding",
 			"route": "/compliance-overview",
 			"type": "dashboard",
@@ -216,6 +292,30 @@
 									"order": 90,
 									"icon": "FlagVariantOutline",
 									"description": "Assessment items flagged for revision"
+								},
+								{
+									"id": "DataSubjectRequestsCard",
+									"label": "Correction & deletion requests",
+									"route": "DataSubjectRequests",
+									"order": 45,
+									"icon": "AccountAlertOutline",
+									"description": "AVG correction and deletion requests, tracked to completion"
+								},
+								{
+									"id": "PartnerApprovalJobsCard",
+									"label": "Partner integration approvals",
+									"route": "PartnerApprovalJobs",
+									"order": 46,
+									"icon": "HandshakeOutline",
+									"description": "Data-exchange partners awaiting or holding school approval"
+								},
+								{
+									"id": "PrivacyGovernanceDashboardCard",
+									"label": "Privacy governance",
+									"route": "PrivacyGovernanceDashboard",
+									"order": 47,
+									"icon": "ShieldCheckOutline",
+									"description": "Board-level view: groups, 2FA adoption, partner approvals"
 								}
 							]
 						}

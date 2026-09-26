@@ -164,6 +164,13 @@ return [
         // Controller: AiProcessingDisclosureController (slug: aiProcessingDisclosure).
         ['name' => 'aiProcessingDisclosure#index', 'url' => '/api/ai-processing-disclosure', 'verb' => 'GET'],
 
+        // Privacy governance dashboard — read-only composition of the eight
+        // rbac-declare-groups group ids' member counts, best-effort 2FA
+        // adoption across those members, and DataExchangeJob counts by
+        // partner-approval status (privacy-governance-surfaces, P-new-6/
+        // P-new-7). Controller: PrivacyGovernanceController (slug: privacyGovernance).
+        ['name' => 'privacyGovernance#overview', 'url' => '/api/privacy-governance/overview', 'verb' => 'GET'],
+
         // Payment transaction — outbound initiate delegates to OpenConnector's
         // (not-yet-built) PSP adapter; #[NoAdminRequired] + #[NoCSRFRequired]
         // (any authenticated payer). Inbound callback receives OpenConnector's

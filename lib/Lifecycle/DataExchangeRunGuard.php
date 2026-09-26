@@ -21,6 +21,16 @@
  * For all other targets the guard returns true unconditionally — the job
  * may proceed directly from `queued` to `running`.
  *
+ * privacy-governance-surfaces adds a second, independent condition: a job
+ * whose target `requiresPartnerApproval` (a standing, school-approved
+ * partner-link requirement, opt-in per target — P-new-7, mirrors
+ * ParnasSys's "Beoordeel koppelverzoek") cannot reach `running` while its
+ * `partnerApprovalStatus` is not `approved`. This check is independent of
+ * the OSO/SWV gate above — a job may be subject to either, both, or
+ * neither. `requiresPartnerApproval` defaults to `false` on every existing
+ * and new job, so this condition never blocks a target that was not opted
+ * in.
+ *
  * Referenced from DataExchangeJob.x-openregister-lifecycle.transitions.run.requires.
  * OR resolves guards by fully-qualified class name from the schema — no
  * Application.php registration needed.
@@ -54,7 +64,11 @@ namespace OCA\Learniq\Lifecycle;
  *
  * Blocks OSO-format-dossier jobs (oso, swv) from jumping directly to
  * `running`; they must first pass through `pending-parent-review` and be
- * approved via `approveDossier`.
+ * approved via `approveDossier`. Also blocks a job whose target opted into
+ * standing partner approval (privacy-governance-surfaces) while that
+ * approval is not yet granted.
+ *
+ * @spec openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-standing-partner-approval-before-it-runs
  */
 class DataExchangeRunGuard {
 
@@ -99,6 +113,16 @@ class DataExchangeRunGuard {
 		// They must first enter pending-parent-review via the pendingParentReview
 		// transition, and then proceed via approveDossier → running.
 		if (in_array($target, self::GATED_TARGETS, true) === true && $from === 'queued') {
+			return false;
+		}
+
+		// Privacy-governance-surfaces: independent partner-approval condition.
+		// Only consulted when the target opted in (requiresPartnerApproval:
+		// true); every existing/new job defaults to false, so this is a pure
+		// addition, never a narrowing of previously-passing behaviour.
+		$needsApproval = $object['requiresPartnerApproval'] ?? false;
+		$approvalStatus = $object['partnerApprovalStatus'] ?? 'not-required';
+		if ($needsApproval === true && $approvalStatus !== 'approved') {
 			return false;
 		}
 
