@@ -275,7 +275,12 @@
 
 				<NcEmptyContent
 					v-else-if="!cmi5.available"
-					:name="t('learniq', 'cmi5 playback is not yet available for this lesson')"
+					:name="
+						t(
+							'learniq',
+							'cmi5 playback is not yet available for this lesson',
+						)
+					"
 					:description="
 						t(
 							'learniq',
@@ -301,7 +306,9 @@
 					</template>
 				</NcEmptyContent>
 
-				<div v-else-if="cmi5.launchUrl" class="lesson-player__cmi5-frame-wrap">
+				<div
+					v-else-if="cmi5.launchUrl"
+					class="lesson-player__cmi5-frame-wrap">
 					<iframe
 						class="lesson-player__cmi5-frame"
 						:src="cmi5.launchUrl"
@@ -663,7 +670,11 @@ export default {
 	 * @spec openspec/changes/lesson-player-runtime/design.md#decision-1-scorm12runtimejs-is-a-factory-returning-a-plain-object-not-a-class-instance-mutating-window-itself
 	 */
 	beforeUnmount() {
-		if (this.scorm12Api && typeof window !== 'undefined' && window.API === this.scorm12Api) {
+		if (
+			this.scorm12Api
+			&& typeof window !== 'undefined'
+			&& window.API === this.scorm12Api
+		) {
 			delete window.API
 		}
 	},
@@ -1193,7 +1204,9 @@ export default {
 		async postXapiStatement(statement) {
 			try {
 				const res = await fetch(
-					generateUrl('/apps/openregister/api/objects/learniq/xapi-statement'),
+					generateUrl(
+						'/apps/openregister/api/objects/learniq/xapi-statement',
+					),
 					{
 						method: 'POST',
 						headers: {
@@ -1241,7 +1254,11 @@ export default {
 			this.cmi5.error = ''
 			try {
 				const res = await fetch(
-					generateUrl('/apps/learniq/api/lessons/' + this.lessonId + '/cmi5-launch'),
+					generateUrl(
+						'/apps/learniq/api/lessons/'
+							+ this.lessonId
+							+ '/cmi5-launch',
+					),
 					{
 						method: 'POST',
 						headers: { requesttoken: window.OC?.requestToken ?? '' },
@@ -1255,12 +1272,19 @@ export default {
 				if (!res.ok) {
 					throw new Error(
 						body?.error
-							|| this.t('learniq', 'Failed to start the cmi5 package (HTTP {status})', {
-								status: res.status,
-							}),
+							|| this.t(
+								'learniq',
+								'Failed to start the cmi5 package (HTTP {status})',
+								{
+									status: res.status,
+								},
+							),
 					)
 				}
-				this.cmi5.launchUrl = buildCmi5LaunchUrl(this.lesson.contentRef, body)
+				this.cmi5.launchUrl = buildCmi5LaunchUrl(
+					this.lesson.contentRef,
+					body,
+				)
 			} catch (e) {
 				this.cmi5.error = e?.message ?? String(e)
 			} finally {

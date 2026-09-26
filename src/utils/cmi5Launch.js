@@ -45,8 +45,19 @@ export function buildCmi5LaunchUrl(auLaunchUrl, launch) {
 	if (!auLaunchUrl) {
 		throw new Error('buildCmi5LaunchUrl: auLaunchUrl is required')
 	}
-	for (const field of ['endpoint', 'fetchUrl', 'actor', 'activityId', 'registration']) {
-		if (!launch || launch[field] === undefined || launch[field] === null || launch[field] === '') {
+	for (const field of [
+		'endpoint',
+		'fetchUrl',
+		'actor',
+		'activityId',
+		'registration',
+	]) {
+		if (
+			!launch
+			|| launch[field] === undefined
+			|| launch[field] === null
+			|| launch[field] === ''
+		) {
 			throw new Error(`buildCmi5LaunchUrl: launch.${field} is required`)
 		}
 	}

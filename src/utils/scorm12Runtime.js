@@ -60,9 +60,16 @@ const ERROR_NOT_INITIALIZED = '301'
  * @return {object} An xAPI statement object matching the XapiStatement schema's required fields.
  * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
  */
-export function buildScorm12CompletionStatement({ lessonStatus, scoreRaw = null, actorAccountName, activityId }) {
+export function buildScorm12CompletionStatement({
+	lessonStatus,
+	scoreRaw = null,
+	actorAccountName,
+	activityId,
+}) {
 	if (!TERMINAL_STATUSES.includes(lessonStatus)) {
-		throw new Error(`buildScorm12CompletionStatement: "${lessonStatus}" is not a terminal SCORM 1.2 lesson_status`)
+		throw new Error(
+			`buildScorm12CompletionStatement: "${lessonStatus}" is not a terminal SCORM 1.2 lesson_status`,
+		)
 	}
 	const now = new Date().toISOString()
 	const result = {
@@ -86,7 +93,8 @@ export function buildScorm12CompletionStatement({ lessonStatus, scoreRaw = null,
 			id: activityId,
 			definition: {
 				extensions: {
-					'https://learniq.conduction.nl/xapi/extensions/scorm-lesson-status': lessonStatus,
+					'https://learniq.conduction.nl/xapi/extensions/scorm-lesson-status':
+						lessonStatus,
 				},
 			},
 		},
@@ -111,7 +119,11 @@ export function buildScorm12CompletionStatement({ lessonStatus, scoreRaw = null,
  * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
  */
 export function createScorm12Api(options = {}) {
-	const { onCompletion = () => {}, actorAccountName = '', activityId = '' } = options
+	const {
+		onCompletion = () => {},
+		actorAccountName = '',
+		activityId = '',
+	} = options
 
 	/** @type {Map<string, string>} */
 	const cmi = new Map([
@@ -155,6 +167,7 @@ export function createScorm12Api(options = {}) {
 	return {
 		/**
 		 * @return {string} `"true"` on success, `"false"` if already initialized.
+		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
 		 */
 		LMSInitialize() {
 			if (initialized) {
@@ -168,6 +181,7 @@ export function createScorm12Api(options = {}) {
 
 		/**
 		 * @return {string} `"true"` on success, `"false"` if never initialized.
+		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
 		 */
 		LMSFinish() {
 			if (!initialized) {
@@ -183,6 +197,7 @@ export function createScorm12Api(options = {}) {
 		/**
 		 * @param {string} key A dotted CMI element name.
 		 * @return {string} The stored value, or `""` if unset/not initialized.
+		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
 		 */
 		LMSGetValue(key) {
 			if (!initialized) {
@@ -197,6 +212,7 @@ export function createScorm12Api(options = {}) {
 		 * @param {string} key A dotted CMI element name.
 		 * @param {string} value The value to store.
 		 * @return {string} `"true"` on success, `"false"` if not initialized.
+		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
 		 */
 		LMSSetValue(key, value) {
 			if (!initialized || finished) {
@@ -217,6 +233,7 @@ export function createScorm12Api(options = {}) {
 		 *  completion (onCompletion), matching this app's existing
 		 *  xAPI-sourced-progress convention rather than a parallel CMI-data
 		 *  persistence path.
+		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
 		 */
 		LMSCommit() {
 			if (!initialized) {
@@ -229,6 +246,7 @@ export function createScorm12Api(options = {}) {
 
 		/**
 		 * @return {string} The last error code.
+		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
 		 */
 		LMSGetLastError() {
 			return lastError
@@ -237,21 +255,23 @@ export function createScorm12Api(options = {}) {
 		/**
 		 * @param {string} errorCode An error code.
 		 * @return {string} A human-readable description.
+		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
 		 */
 		LMSGetErrorString(errorCode) {
 			switch (errorCode) {
-			case ERROR_NONE:
-				return 'No error'
-			case ERROR_NOT_INITIALIZED:
-				return 'Not initialized'
-			default:
-				return 'General error'
+				case ERROR_NONE:
+					return 'No error'
+				case ERROR_NOT_INITIALIZED:
+					return 'Not initialized'
+				default:
+					return 'General error'
 			}
 		},
 
 		/**
 		 * @param {string} errorCode An error code.
 		 * @return {string} Diagnostic text (unused by this shim beyond the error string).
+		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
 		 */
 		LMSGetDiagnostic(errorCode) {
 			return this.LMSGetErrorString(errorCode)
