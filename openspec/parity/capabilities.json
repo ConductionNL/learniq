@@ -551,7 +551,8 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Enrolment.x-openregister-notifications.dueReminder",
-				"owner": "ConductionNL/openregister"
+				"owner": "ConductionNL/openregister",
+				"readOn": "2026-09-26"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -559,7 +560,7 @@
 			"featureConfidence": "medium",
 			"learniq": "yes",
 			"moodle": "unknown",
-			"moodle-workplace": "yes",
+			"moodle-workplace": "partial",
 			"ilias": "unknown",
 			"totara": "yes",
 			"chamilo": "unknown",
@@ -808,7 +809,8 @@
 			"built": {
 				"state": "built",
 				"evidence": "lib/Settings/learniq_register.json Credential calculations isExpiringIn90Days, isExpiringIn30Days; notifications.expiringSoon",
-				"owner": "ConductionNL/openregister"
+				"owner": "ConductionNL/openregister",
+				"readOn": "2026-09-26"
 			},
 			"provider": "openregister",
 			"providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -820,7 +822,7 @@
 			"ilias": "unknown",
 			"totara": "unknown",
 			"chamilo": "unknown",
-			"ispring-learn": "yes",
+			"ispring-learn": "partial",
 			"evidence": {
 				"ispring-learn": "https://ispringhelpdocs.com/ispring-learn/certificates-62864346.html: \"Expiring Certificates that will expire soon. The default setting is 30 days before the expiration date.\" and \"choose the number of days before the certificate expires that this status will be shown.\" (one threshold, in an admin report; see the contested list)"
 			}
@@ -1266,7 +1268,8 @@
 			"built": {
 				"state": "none",
 				"evidence": "lib/Service/Cmi5LaunchTokenService.php isEnabled() returns false and mintLaunchToken() returns an empty string",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/learniq",
+				"readOn": "2026-09-26"
 			},
 			"provider": "self",
 			"providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1278,7 +1281,7 @@
 			"ilias": "partial",
 			"totara": "unknown",
 			"chamilo": "partial",
-			"ispring-learn": "yes",
+			"ispring-learn": "no",
 			"evidence": {
 				"chamilo": "competitor_features#32090: \"Standards imports: QTI, Aiken, xAPI cmi5, LTI. Complies with QTI, LTI, xAPI/cmi5 and Aiken import formats.\" (a plugin, so partial)",
 				"ilias": "https://iliastutorials.com/extend-ilias-xapi-cmi5/: \"A Learning Record Store (LRS) is a prerequisite for the use of xAPI/cmi5 objects.\" and \"the ILIAS xAPI proxy, which is always required when using cmi5 content\" (a core object, but only with an external LRS, hence partial)",
@@ -1292,7 +1295,8 @@
 			"built": {
 				"state": "building",
 				"evidence": "lib/Settings/learniq_register.json components.schemas.XapiStatement and src/manifest.json XapiStatements exist, but nothing outside the app can post a statement",
-				"owner": "ConductionNL/learniq"
+				"owner": "ConductionNL/learniq",
+				"readOn": "2026-09-26"
 			},
 			"provider": "self",
 			"providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -1304,7 +1308,7 @@
 			"ilias": "partial",
 			"totara": "unknown",
 			"chamilo": "partial",
-			"ispring-learn": "yes",
+			"ispring-learn": "no",
 			"evidence": {
 				"moodle": "competitor_features#27319: \"xAPI/Tin Can. Experience API support for detailed learning analytics\"",
 				"chamilo": "competitor_features#32090: \"Complies with QTI, LTI, xAPI/cmi5 and Aiken import formats.\" (xAPI via the cmi5 plugin, so partial)",
