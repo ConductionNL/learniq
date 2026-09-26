@@ -3534,10 +3534,19 @@
 			"config": {
 				"register": "learniq",
 				"schema": "item-bank",
-				"_note": "An Item Bank is a reusable pool of assessment questions grouped by subject. Body leads with the bank metadata (8-wide) and a Related panel. The constituent Items render as a wide related-index (the bank's actual content), with a total-items KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"_note": "An Item Bank is a reusable pool of assessment questions grouped by subject. Body leads with the bank metadata (8-wide) and a Related panel. The constituent Items render as a wide related-index (the bank's actual content), with a total-items KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. assessment-completeness (finding 6.3): headerActions adds a QTI export trigger for the already-built, unit-tested QtiExportController/qti-export route — the id is `export-qti`, not `export`, because a bare `export` header-action id is dropped at render time to avoid shadowing the built-in.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"headerActions": [
+					{
+						"id": "export-qti",
+						"label": "Export QTI package",
+						"icon": "PackageDown",
+						"type": "navigate",
+						"target": "/apps/learniq/api/assessment/qti-export?itemBankId=@objectId"
+					}
+				],
 				"widgets": [
 					{
 						"id": "ibank-data",
@@ -3850,6 +3859,45 @@
 						"type": "related",
 						"title": "Related",
 						"icon": "LinkVariant"
+					},
+					{
+						"id": "ass-accommodations",
+						"type": "object-list",
+						"title": "Exam accommodations",
+						"content": {
+							"register": "learniq",
+							"schema": "exam-accommodation",
+							"filter": {
+								"assessmentId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "accommodationKind",
+									"label": "Kind"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "ExamAccommodationDetail",
+							"viewAllRoute": "ExamAccommodations",
+							"viewAllQuery": {
+								"assessmentId": "@objectId"
+							},
+							"emptyText": "No accommodations found for this assessment.",
+							"allowCreate": false
+						},
+						"icon": "AccountHeartOutline"
 					}
 				],
 				"layout": [
@@ -3886,6 +3934,15 @@
 						"gridX": 6,
 						"gridY": 5,
 						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "ass-accommodations",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
 					}

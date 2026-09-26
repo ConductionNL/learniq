@@ -978,7 +978,17 @@
         "Not configured": "Not configured",
         "Open settings": "Open settings",
         "Simulated": "Simulated",
-        "Status message": "Status message"
+        "Status message": "Status message",
+        "Plagiarism Check Status": "Plagiarism Check Status",
+        "Status of a plagiarism check for this submission (finding 6.11). Set to 'pending' when a provider check is submitted (OCA\\Learniq\\Plagiarism\\ProvidesPlagiarismCheck::submitForCheck()), 'completed' once a score is available. No built-in provider ships with learniq — this is the data-model landing spot only.": "Status of a plagiarism check for this submission (finding 6.11). Set to 'pending' when a provider check is submitted (OCA\\Learniq\\Plagiarism\\ProvidesPlagiarismCheck::submitForCheck()), 'completed' once a score is available. No built-in provider ships with learniq — this is the data-model landing spot only.",
+        "Plagiarism Similarity Score": "Plagiarism Similarity Score",
+        "Similarity score in [0.0, 1.0] as returned by ProvidesPlagiarismCheck::getSimilarityScore(). Null until plagiarismStatus is 'completed'.": "Similarity score in [0.0, 1.0] as returned by ProvidesPlagiarismCheck::getSimilarityScore(). Null until plagiarismStatus is 'completed'.",
+        "Plagiarism Checked At": "Plagiarism Checked At",
+        "Timestamp the plagiarism check completed. Null until plagiarismStatus is 'completed'.": "Timestamp the plagiarism check completed. Null until plagiarismStatus is 'completed'.",
+        "Method Name": "Method Name",
+        "The teaching method this mark came from (e.g. 'Wereld in Getallen', 'Snappet'), set when sourceKind=method-test (finding 6.6). Null for every other sourceKind.": "The teaching method this mark came from (e.g. 'Wereld in Getallen', 'Snappet'), set when sourceKind=method-test (finding 6.6). Null for every other sourceKind.",
+        "Method Block": "Method Block",
+        "The method's block/unit this mark covers (e.g. 'blok 3'), set when sourceKind=method-test. Null for every other sourceKind.": "The method's block/unit this mark covers (e.g. 'blok 3'), set when sourceKind=method-test. Null for every other sourceKind."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
