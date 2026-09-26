@@ -16524,7 +16524,7 @@
             },
             "LvsResult": {
                 "slug": "lvs-result",
-                "icon": "ChartBellCurve",
+                "icon": "ChartBoxOutline",
                 "version": "0.1.0",
                 "title": "LvsResult",
                 "description": "A normed LVS (leerlingvolgsysteem) test result imported via UWLR from Cito, IEP, Boom, or Dia, linked to an AssessmentResult when the school also ran the same toets as an in-app Assessment. Append-only — an imported result is immutable evidence. Starts as `imported` and is not trusted as report-card/trend input until a coordinator confirms it via the `verify` transition (lvs-import-contract).",
