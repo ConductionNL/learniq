@@ -1828,6 +1828,16 @@
 			}
 		},
 		{
+			"id": "SubjectTeacherAssignments",
+			"route": "/subject-teacher-assignments",
+			"type": "index",
+			"title": "Subject teacher assignments",
+			"config": {
+				"register": "learniq",
+				"schema": "SubjectTeacherAssignment"
+			}
+		},
+		{
 			"id": "CohortDetail",
 			"route": "/cohorts/:id",
 			"type": "detail",
@@ -2037,6 +2047,40 @@
 						"icon": "AlertCircleOutline"
 					},
 					{
+						"id": "coh-subject-teachers",
+						"type": "object-list",
+						"title": "Subject teachers",
+						"content": {
+							"register": "learniq",
+							"schema": "SubjectTeacherAssignment",
+							"filter": {
+								"cohortId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "courseId",
+									"label": "Course ID"
+								},
+								{
+									"key": "teacherId",
+									"label": "Teacher ID"
+								}
+							],
+							"rowRoute": "SubjectTeacherAssignmentDetail",
+							"viewAllRoute": "SubjectTeacherAssignments",
+							"viewAllQuery": {
+								"cohortId": "@objectId"
+							},
+							"emptyText": "No subject teacher assignments found."
+						},
+						"icon": "AccountSchoolOutline"
+					},
+					{
 						"id": "coh-related",
 						"type": "related",
 						"title": "Related",
@@ -2125,10 +2169,83 @@
 					},
 					{
 						"id": "7",
-						"widgetId": "cohort-talk",
+						"widgetId": "coh-subject-teachers",
 						"gridX": 0,
 						"gridY": 16,
 						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "8",
+						"widgetId": "cohort-talk",
+						"gridX": 0,
+						"gridY": 21,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "SubjectTeacherAssignmentDetail",
+			"route": "/subject-teacher-assignments/:id",
+			"type": "detail",
+			"title": "Subject teacher assignment",
+			"_note": "A SubjectTeacherAssignment is a class x subject teacher join (cohortId, courseId, teacherId), distinct from Cohort.teacherIds — for VO/MBO/HE where a class has a different teacher per subject. Plain resource-metadata object, no lifecycle. Body leads with the assignment data 8-wide with a Related panel resolving Cohort and Course. No email/calendar/files (HARD RULE 1). Sidebar keeps metadata + audit-trail.",
+			"config": {
+				"register": "learniq",
+				"schema": "SubjectTeacherAssignment",
+				"widgets": [
+					{
+						"id": "sta-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountSchoolOutline"
+					},
+					{
+						"id": "sta-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "sta-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "sta-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
 						"gridHeight": 5,
 						"showTitle": false
 					}

@@ -1427,7 +1427,26 @@ OC.L10N.register(
         "Not configured": "Niet geconfigureerd",
         "Open settings": "Instellingen openen",
         "Simulated": "Gesimuleerd",
-        "Status message": "Statusmelding"
+        "Status message": "Statusmelding",
+        "Duo-partner role and working days per teacher, additive alongside the existing teacherIds (unchanged). A cohort with a single teacher and no duo-partner does not need to set this.": "Duo-partnerrol en werkdagen per leerkracht, aanvullend naast de bestaande teacherIds (ongewijzigd). Een cohort met een enkele leerkracht en geen duo-partner hoeft dit niet in te vullen.",
+        "Free-text qualifications, e.g. 'bevoegdheid groep 1-2' or 'BHV'.": "Vrije-tekst bevoegdheden, bijvoorbeeld 'bevoegdheid groep 1-2' of 'BHV'.",
+        "Nextcloud user ID of the assigned teacher.": "Nextcloud-gebruikers-ID van de toegewezen leerkracht.",
+        "Nextcloud user ID of the staff member.": "Nextcloud-gebruikers-ID van het personeelslid.",
+        "Nextcloud user ID of the teacher assigned to this subject within this cohort.": "Nextcloud-gebruikers-ID van de leerkracht die dit vak geeft binnen dit cohort.",
+        "Qualifications": "Bevoegdheden",
+        "Roles": "Rollen",
+        "Roles this staff member holds at the school.": "Rollen die dit personeelslid op school vervult.",
+        "Staff": "Personeel",
+        "SubjectTeacherAssignment": "Vakleerkrachttoewijzing",
+        "Teacher Assignments": "Leerkrachttoewijzingen",
+        "This staff member's usual weekly working days. A plain weekly pattern, not a structured calendar (see TeacherAvailability for per-ConferenceRound slots).": "De gebruikelijke werkdagen van dit personeelslid per week. Een eenvoudig weekpatroon, geen gestructureerde agenda (zie TeacherAvailability voor tijdsloten per oudergesprekkenronde).",
+        "UUID of the Cohort (class) this assignment applies to.": "UUID van het Cohort (klas) waarop deze toewijzing van toepassing is.",
+        "UUID of the Course (subject) this assignment applies to.": "UUID van het Course (vak) waarop deze toewijzing van toepassing is.",
+        "Weekdays this teacher covers this cohort.": "Weekdagen waarop deze leerkracht dit cohort begeleidt.",
+        "Whether this teacher is the primary teacher or a duo-partner sharing the cohort.": "Of deze leerkracht de hoofdleerkracht is of een duo-partner die het cohort deelt.",
+        "Working Days": "Werkdagen",
+        "Subject teacher assignments": "Vakleerkrachttoewijzingen",
+        "Subject teachers": "Vakleerkrachten"
     },
     "nplurals=2; plural=(n != 1);"
 )
