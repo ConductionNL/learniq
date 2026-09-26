@@ -115,4 +115,67 @@ class DataExchangeRunGuardTest extends TestCase {
 		self::assertFalse((new DataExchangeRunGuard())->check($context));
 
 	}//end testSwvTargetInQueuedIsBlocked()
+
+	/**
+	 * funding-and-teldatum-checks: a job whose target opted into a teldatum
+	 * pre-flight check, and whose check is still pending, cannot run —
+	 * independent of the OSO/SWV gate (this target is not one of those).
+	 *
+	 * @return void
+	 * @spec openspec/changes/funding-and-teldatum-checks/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-a-confirmed-teldatum-pre-flight-check-before-it-runs
+	 */
+	public function testTeldatumCheckPendingBlocksRun(): void {
+		$context = [
+			'object' => [
+				'id' => 'job-5',
+				'target' => 'bron-rod',
+				'requiresTeldatumCheck' => true,
+				'teldatumCheckStatus' => 'pending',
+			],
+			'from' => 'queued',
+		];
+
+		self::assertFalse((new DataExchangeRunGuard())->check($context));
+
+	}//end testTeldatumCheckPendingBlocksRun()
+
+	/**
+	 * Confirmation unblocks the run transition for the same teldatum-gated
+	 * target.
+	 *
+	 * @return void
+	 * @spec openspec/changes/funding-and-teldatum-checks/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-a-confirmed-teldatum-pre-flight-check-before-it-runs
+	 */
+	public function testTeldatumCheckConfirmedAllowsRun(): void {
+		$context = [
+			'object' => [
+				'id' => 'job-6',
+				'target' => 'bron-rod',
+				'requiresTeldatumCheck' => true,
+				'teldatumCheckStatus' => 'confirmed',
+			],
+			'from' => 'queued',
+		];
+
+		self::assertTrue((new DataExchangeRunGuard())->check($context));
+
+	}//end testTeldatumCheckConfirmedAllowsRun()
+
+	/**
+	 * A job that never opted into a teldatum check (the default shape — no
+	 * requiresTeldatumCheck/teldatumCheckStatus keys at all) is completely
+	 * unaffected by this condition.
+	 *
+	 * @return void
+	 * @spec openspec/changes/funding-and-teldatum-checks/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-a-confirmed-teldatum-pre-flight-check-before-it-runs
+	 */
+	public function testJobWithNoTeldatumCheckFieldsIsUnaffected(): void {
+		$context = [
+			'object' => ['id' => 'job-7', 'target' => 'leerplicht'],
+			'from' => 'queued',
+		];
+
+		self::assertTrue((new DataExchangeRunGuard())->check($context));
+
+	}//end testJobWithNoTeldatumCheckFieldsIsUnaffected()
 }//end class
