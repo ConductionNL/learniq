@@ -167,11 +167,7 @@ class CohortGroupProvisioningHandler implements IEventListener {
 		$groupId = self::GROUP_ID_PREFIX . $cohortId;
 
 		try {
-			if ($this->groupManager->groupExists($groupId) === true) {
-				$group = $this->groupManager->get($groupId);
-			} else {
-				$group = $this->groupManager->createGroup($groupId);
-			}
+			$group = $this->createOrGetGroup(groupId: $groupId);
 		} catch (Throwable $e) {
 			$this->logger->warning(
 				'[CohortGroupProvisioningHandler] Failed to create/resolve NC group {gid} for Cohort {id}: {msg}',
@@ -236,39 +232,8 @@ class CohortGroupProvisioningHandler implements IEventListener {
 			return;
 		}
 
-		$cohort = $this->findCohort(cohortId: $cohortId);
-		if ($cohort === null) {
-			$this->logger->debug(
-				'[CohortGroupProvisioningHandler] Cohort {id} not found — skipping membership sync for learner {learner}.',
-				['id' => $cohortId, 'learner' => $learnerId]
-			);
-			return;
-		}
-
-		$groupId = $cohort['ncGroupId'] ?? null;
-		if (is_string($groupId) === false || $groupId === '') {
-			$this->logger->debug(
-				'[CohortGroupProvisioningHandler] Cohort {id} has no ncGroupId yet — skipping membership sync for learner {learner}.',
-				['id' => $cohortId, 'learner' => $learnerId]
-			);
-			return;
-		}
-
-		try {
-			$group = $this->groupManager->get($groupId);
-		} catch (Throwable $e) {
-			$this->logger->warning(
-				'[CohortGroupProvisioningHandler] Failed to resolve NC group {gid}: {msg}',
-				['gid' => $groupId, 'msg' => $e->getMessage()]
-			);
-			return;
-		}
-
+		$group = $this->resolveProvisionedGroup(cohortId: $cohortId, learnerId: $learnerId);
 		if ($group === null) {
-			$this->logger->warning(
-				'[CohortGroupProvisioningHandler] NC group {gid} (Cohort {id}) no longer exists — skipping membership sync.',
-				['gid' => $groupId, 'id' => $cohortId]
-			);
 			return;
 		}
 
@@ -281,14 +246,83 @@ class CohortGroupProvisioningHandler implements IEventListener {
 			return;
 		}
 
+		$this->applyMembership(group: $group, user: $user, add: $add, cohortId: $cohortId, learnerId: $learnerId);
+
+	}//end syncMembership()
+
+	/**
+	 * Resolve a Cohort's already-provisioned Nextcloud group, or null when the
+	 * Cohort/group cannot be resolved for any reason (not found, not yet
+	 * provisioned, or the group has since vanished). Every no-op path logs.
+	 *
+	 * @param string $cohortId Cohort UUID.
+	 * @param string $learnerId Learner id, for log context only.
+	 *
+	 * @return object|null The `IGroup`, or null.
+	 */
+	private function resolveProvisionedGroup(string $cohortId, string $learnerId): ?object {
+		$cohort = $this->findCohort(cohortId: $cohortId);
+		if ($cohort === null) {
+			$this->logger->debug(
+				'[CohortGroupProvisioningHandler] Cohort {id} not found — skipping membership sync for learner {learner}.',
+				['id' => $cohortId, 'learner' => $learnerId]
+			);
+			return null;
+		}
+
+		$groupId = $cohort['ncGroupId'] ?? null;
+		if (is_string($groupId) === false || $groupId === '') {
+			$this->logger->debug(
+				'[CohortGroupProvisioningHandler] Cohort {id} has no ncGroupId yet — skipping membership sync for learner {learner}.',
+				['id' => $cohortId, 'learner' => $learnerId]
+			);
+			return null;
+		}
+
+		try {
+			$group = $this->groupManager->get($groupId);
+		} catch (Throwable $e) {
+			$this->logger->warning(
+				'[CohortGroupProvisioningHandler] Failed to resolve NC group {gid}: {msg}',
+				['gid' => $groupId, 'msg' => $e->getMessage()]
+			);
+			return null;
+		}
+
+		if ($group === null) {
+			$this->logger->warning(
+				'[CohortGroupProvisioningHandler] NC group {gid} (Cohort {id}) no longer exists — skipping membership sync.',
+				['gid' => $groupId, 'id' => $cohortId]
+			);
+		}
+
+		return $group;
+
+	}//end resolveProvisionedGroup()
+
+	/**
+	 * Add or remove a resolved user from a resolved group, and log the result.
+	 *
+	 * @param object $group The `IGroup` to update.
+	 * @param object $user The `IUser` to add or remove.
+	 * @param bool $add True to add, false to remove.
+	 * @param string $cohortId Cohort UUID, for log context.
+	 * @param string $learnerId Learner id, for log context.
+	 *
+	 * @return void
+	 */
+	private function applyMembership(object $group, object $user, bool $add, string $cohortId, string $learnerId): void {
+		$actionLabel = 'Removed';
+		$prepositionLabel = 'from';
+
 		if ($add === true) {
 			$group->addUser($user);
 			$actionLabel = 'Added';
 			$prepositionLabel = 'to';
-		} else {
+		}
+
+		if ($add === false) {
 			$group->removeUser($user);
-			$actionLabel = 'Removed';
-			$prepositionLabel = 'from';
 		}
 
 		$this->logger->info(
@@ -297,12 +331,28 @@ class CohortGroupProvisioningHandler implements IEventListener {
 				'action' => $actionLabel,
 				'learner' => $learnerId,
 				'prep' => $prepositionLabel,
-				'gid' => $groupId,
+				'gid' => $group->getGID(),
 				'id' => $cohortId,
 			]
 		);
 
-	}//end syncMembership()
+	}//end applyMembership()
+
+	/**
+	 * Resolve an existing NC group by id, or create it when it does not exist yet.
+	 *
+	 * @param string $groupId The deterministic NC group id.
+	 *
+	 * @return object|null The `IGroup`, or null when creation failed.
+	 */
+	private function createOrGetGroup(string $groupId): ?object {
+		if ($this->groupManager->groupExists($groupId) === true) {
+			return $this->groupManager->get($groupId);
+		}
+
+		return $this->groupManager->createGroup($groupId);
+
+	}//end createOrGetGroup()
 
 	/**
 	 * Look up a Cohort by id.
