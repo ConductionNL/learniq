@@ -430,25 +430,104 @@ class PortalContributionProvider {
 		return [
 			'label' => 'Learniq',
 			'collections' => array_merge(
+				[$this->parentChildrenCollection()],
 				$this->parentResultCollections(childJoin: $childJoin),
 				$this->parentWelfareCollections(childJoin: $childJoin)
 			),
-			// No parent create action yet. A guardian reporting an absence for
-			// a child would supply the child `learnerRef` in the create body,
-			// but portaliq's writer only server-stamps the scope field
-			// (`submittedByRef` = the guardian) — it does NOT verify that a
-			// client-supplied cross-reference (`learnerRef`) is one of the
-			// guardian's own children. Shipping it would be a write IDOR (a
-			// guardian filing an excuse on another child's record). Parent
-			// READS are safe (the reverse `via` join verifies the child set per
-			// row); the create waits on portaliq validating create-body
-			// cross-refs against the subject's reverse-join set. Tracked as a
-			// portaliq writer follow-up; re-add here once that lands.
-			'actions' => [],
+			// Portal-contribution-guardian-audiences: portaliq's writer
+			// cross-reference guard (portaliq#607, merged 2026-09-18) now
+			// validates that a client-supplied cross-reference declared via
+			// `via` resolves inside the subject's own scope — exactly the
+			// guard this action's create was waiting on. `submittedByRef`
+			// (never `learnerRef`) is the server-stamped scope field; the
+			// guardian-supplied `learnerRef` in the create body names WHICH
+			// child, validated against $childJoin the same way every parent
+			// read collection above already is.
+			'actions' => $this->parentActions(childJoin: $childJoin),
 			'notifications' => [],
 		];
 
 	}//end parentContribution()
+
+	/**
+	 * The guardian's per-child, per-guardian-group directory, with current
+	 * beeldmateriaal consent state.
+	 *
+	 * Matches `learner-profile` DIRECTLY (no `via`) by `guardianRefs` (array)
+	 * containing the guardian's own `subjectRef` — the same array-containment
+	 * match `studentActivityCollections()`'s `Submission.learnerRefs` already
+	 * uses; there is no cross-object hop here, since `guardianRefs` lives on
+	 * the very schema being read. `guardianRefs` is itself exposed so a
+	 * guardian can see the full co-guardian group sharing a child (the
+	 * "per-group" audience D1 names alongside "per-child").
+	 *
+	 * @return array<string, mixed> The parentChildren collection.
+	 *
+	 * @spec openspec/changes/portal-contribution-guardian-audiences/specs/portal-contribution/spec.md#requirement-the-parent-audience-exposes-per-child-and-per-guardian-group-directory-data-req-pcon-006
+	 */
+	private function parentChildrenCollection(): array {
+		return [
+			'id' => 'parentChildren',
+			'register' => self::REGISTER,
+			'schema' => 'learner-profile',
+			'scopeField' => 'guardianRefs',
+			'scopeClaim' => 'guardianRef',
+			'label' => 'My children',
+			'listable' => true,
+			'minTrust' => 'substantial',
+			'fields' => [
+				'givenName',
+				'familyName',
+				'guardianRefs',
+				'beeldmateriaalConsent',
+				'beeldmateriaalConsentReviewDueAt',
+			],
+		];
+
+	}//end parentChildrenCollection()
+
+	/**
+	 * The guardian's create-actions — report a child's absence.
+	 *
+	 * Mirrors `studentActions()`'s `createExcuseRequest`, scoped through the
+	 * same reverse `via` join every parent read collection uses. The
+	 * guardian's create body supplies `learnerRef` (which child); portaliq's
+	 * writer (portaliq#607) validates that value resolves inside the
+	 * `via`-derived scope before the write is accepted. `scopeField` is
+	 * `submittedByRef` — never `learnerRef` — so the writer stamps the
+	 * guardian's own UUID into the field that identifies WHO filed the
+	 * excuse, not the field that identifies the child.
+	 *
+	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
+	 *
+	 * @return array<int, array<string, mixed>> Parent create-actions.
+	 *
+	 * @spec openspec/changes/portal-contribution-guardian-audiences/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
+	 */
+	private function parentActions(array $childJoin): array {
+		return [
+			[
+				'id' => 'createExcuseRequest',
+				'type' => 'create',
+				'label' => "Report a child's absence",
+				'register' => self::REGISTER,
+				'schema' => 'excuse-request',
+				'scopeField' => 'submittedByRef',
+				'scopeClaim' => 'guardianRef',
+				'via' => $childJoin,
+				'minTrust' => 'substantial',
+				'fields' => [
+					'learnerRef',
+					'dateFrom',
+					'dateTo',
+					'reason',
+					'reasonKind',
+					'attachmentRef',
+				],
+			],
+		];
+
+	}//end parentActions()
 
 	/**
 	 * The guardian's result collections — the child's grades and attendance.
@@ -472,6 +551,7 @@ class PortalContributionProvider {
 				'scopeField' => 'learnerRef',
 				'scopeClaim' => 'guardianRef',
 				'via' => $childJoin,
+				'groupByField' => 'learnerRef',
 				'label' => "My child's grades",
 				'listable' => true,
 				'minTrust' => 'substantial',
@@ -493,6 +573,7 @@ class PortalContributionProvider {
 				'scopeField' => 'learnerRef',
 				'scopeClaim' => 'guardianRef',
 				'via' => $childJoin,
+				'groupByField' => 'learnerRef',
 				'label' => "My child's attendance",
 				'listable' => true,
 				'minTrust' => 'substantial',
@@ -532,6 +613,7 @@ class PortalContributionProvider {
 				'scopeField' => 'learnerRef',
 				'scopeClaim' => 'guardianRef',
 				'via' => $childJoin,
+				'groupByField' => 'learnerRef',
 				'label' => "My child's absence excuses",
 				'listable' => true,
 				'minTrust' => 'substantial',
@@ -553,6 +635,7 @@ class PortalContributionProvider {
 				'scopeField' => 'learnerRef',
 				'scopeClaim' => 'guardianRef',
 				'via' => $childJoin,
+				'groupByField' => 'learnerRef',
 				'label' => "My child's report cards",
 				'listable' => true,
 				'minTrust' => 'substantial',
