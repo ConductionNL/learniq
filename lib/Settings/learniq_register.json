@@ -15716,7 +15716,7 @@
                     },
                     "target": {
                         "type": "string",
-                        "description": "Named OpenConnector connection: bron-rod | oso | leerplicht | surfconext | hr | swv | timetable-import | or a custom name. This is a reference to an OpenConnector source/target configuration — Scholiq implements no wire protocol. 'timetable-import' (direction:import) resolves a Zermelo/Untis/Xedule-generated timetable into Session upserts, per timetabling-and-substitution.",
+                        "description": "Named OpenConnector connection: bron-rod | oso | leerplicht | surfconext | hr | swv | timetable-import | or a custom name. This is a reference to an OpenConnector source/target configuration — Scholiq implements no wire protocol. 'timetable-import' (direction:import) resolves a Zermelo/Untis/Xedule-generated timetable into Session upserts, per timetabling-and-substitution. 'oso' with direction:import resolves an incoming overstapdossier into an OsoImportDossier held for coordinator review, per oso-inbound-contract.",
                         "title": "OpenConnector Target"
                     },
                     "direction": {
@@ -16093,6 +16093,34 @@
                         "validationProfile": null,
                         "active": true,
                         "lifecycle": "active"
+                    },
+                    {
+                        "name": "OSO overstapdossier import",
+                        "target": "oso",
+                        "direction": "import",
+                        "sourceSchema": "oso-import-dossier",
+                        "targetSchema": "OSO:TransferDossier",
+                        "fieldMappings": [
+                            {
+                                "scholiqField": "learnerEckId",
+                                "targetField": "leerlingEckId",
+                                "transform": null
+                            },
+                            {
+                                "scholiqField": "sourceSchoolBrin",
+                                "targetField": "brinNummer",
+                                "transform": null
+                            },
+                            {
+                                "scholiqField": "receivedAt",
+                                "targetField": "verzendDatum",
+                                "transform": "date-iso8601"
+                            }
+                        ],
+                        "validationProfile": "oso-transfer-v3",
+                        "active": true,
+                        "lifecycle": "active",
+                        "_comment": "direction:import, same convention as the timetable-import seeds above: scholiqField names the OsoImportDossier-side field, targetField names the incoming OSO XML record's field. The dossier's own draftProfile/categories/attachmentRefs are composed by the import handler from the full incoming record, not by this flat fieldMappings list — mirrors how the leerplicht/swv EXPORT composers in DataExchangePayloadBuilder go beyond flat mapping for a nested payload shape (oso-inbound-contract)."
                     }
                 ]
             },
@@ -16153,7 +16181,7 @@
                     },
                     "target": {
                         "type": "string",
-                        "description": "Named OpenConnector connection (e.g. 'bron-rod', 'oso', 'leerplicht', 'surfconext', 'hr', 'swv', 'ooapi-catalog', 'timetable-import'). 'swv' routes a zorgvraag/TLV-chain dossier (learning-plan's SupportRequest) to the regional samenwerkingsverband (openconnector#753). 'ooapi-catalog' syncs a published/archived Course, Programme, or Cohort to the OOAPI 5.0 course catalog hosted by opencatalogi, per the course-management publication contract (course → course, program → program, offering → offering; see openspec/changes/delegate-ooapi-to-opencatalogi/design.md). 'timetable-import' (direction:import) hands a generated-timetable pull to the OpenConnector Zermelo/Untis/Xedule source configuration; TimetableImportHandler resolves the response via the matching DataMappingProfile into idempotent Session upserts keyed by externalRef, then triggers TimetableConflictDetector's batch scan (timetabling-and-substitution). Scholiq implements no Edukoppeling/StUF/OSO-XML/Digikoppeling/SAML/OOAPI/Zermelo/Untis/Xedule wire code — all protocol logic lives in OpenConnector.",
+                        "description": "Named OpenConnector connection (e.g. 'bron-rod', 'oso', 'leerplicht', 'surfconext', 'hr', 'swv', 'ooapi-catalog', 'timetable-import'). 'swv' routes a zorgvraag/TLV-chain dossier (learning-plan's SupportRequest) to the regional samenwerkingsverband (openconnector#753). 'ooapi-catalog' syncs a published/archived Course, Programme, or Cohort to the OOAPI 5.0 course catalog hosted by opencatalogi, per the course-management publication contract (course → course, program → program, offering → offering; see openspec/changes/delegate-ooapi-to-opencatalogi/design.md). 'timetable-import' (direction:import) hands a generated-timetable pull to the OpenConnector Zermelo/Untis/Xedule source configuration; TimetableImportHandler resolves the response via the matching DataMappingProfile into idempotent Session upserts keyed by externalRef, then triggers TimetableConflictDetector's batch scan (timetabling-and-substitution). 'oso' with direction:import receives an incoming PO→VO overstapdossier; the matching DataMappingProfile resolves it into an OsoImportDossier held for coordinator review before acceptance (oso-inbound-contract) — the existing direction:export path (OsoDossierReviewGuard's parent-review gate) is unchanged. Scholiq implements no Edukoppeling/StUF/OSO-XML/Digikoppeling/SAML/OOAPI/Zermelo/Untis/Xedule wire code — all protocol logic lives in OpenConnector.",
                         "title": "OpenConnector Target"
                     },
                     "mappingProfileId": {
@@ -16463,6 +16491,184 @@
                     }
                 },
                 "x-openregister-seed": []
+            },
+            "OsoImportDossier": {
+                "slug": "oso-import-dossier",
+                "icon": "FileImportOutline",
+                "version": "0.1.0",
+                "title": "OsoImportDossier",
+                "description": "A received OSO (Overstapservice Onderwijs) overstapdossier, held for coordinator review before acceptance. Evidence-only, mirroring LearningRecordImport's posture: draftProfile is a snapshot of proposed LearnerProfile fields, NEVER a live LearnerProfile — a coordinator who accepts completes the real LearnerProfile through the existing object UI. No wire protocol lives here; the OSO XML receive/parse itself is integriq-adapter-oso's concern (oso-inbound-contract).",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": true
+                },
+                "required": [
+                    "dataExchangeJobId",
+                    "sourceSchoolBrin",
+                    "receivedAt",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "dataExchangeJobId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "$ref": "DataExchangeJob",
+                        "description": "UUID of the DataExchangeJob (target: oso, direction: import) that received this dossier.",
+                        "title": "Data Exchange Job ID"
+                    },
+                    "sourceSchoolBrin": {
+                        "type": "string",
+                        "description": "BRIN number of the sending school.",
+                        "title": "Source School BRIN"
+                    },
+                    "learnerEckId": {
+                        "type": "string",
+                        "nullable": true,
+                        "default": null,
+                        "description": "ECK iD of the transferring learner, when present in the dossier.",
+                        "title": "Learner ECK iD"
+                    },
+                    "receivedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "ISO 8601 timestamp the dossier was received.",
+                        "title": "Received At"
+                    },
+                    "categories": {
+                        "type": "array",
+                        "default": [],
+                        "description": "One row per Besluit-style gegevensblok the dossier carries. The category enum is illustrative, non-authoritative starter data (mirrors ExchangeErrorCode's own catalogue disclaimer) — the authoritative Besluit uitwisseling category list is a legal-review follow-up.",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "category",
+                                "included"
+                            ],
+                            "properties": {
+                                "category": {
+                                    "type": "string",
+                                    "enum": [
+                                        "basisgegevens",
+                                        "onderwijskundig-rapport",
+                                        "uitstroomgegevens",
+                                        "toetsgegevens",
+                                        "verzuimgegevens",
+                                        "zorggegevens"
+                                    ],
+                                    "title": "Category",
+                                    "description": "Illustrative gegevensblok name; not the authoritative Besluit list."
+                                },
+                                "included": {
+                                    "type": "boolean",
+                                    "title": "Included",
+                                    "description": "Whether the sending school included this data block in the dossier."
+                                },
+                                "data": {
+                                    "type": "object",
+                                    "nullable": true,
+                                    "default": null,
+                                    "title": "Data",
+                                    "description": "The raw data block content, when included."
+                                }
+                            }
+                        },
+                        "title": "Categories"
+                    },
+                    "draftProfile": {
+                        "type": "object",
+                        "nullable": true,
+                        "default": null,
+                        "description": "Snapshot of proposed LearnerProfile fields (givenName, familyName, birthDate, eckId, schoolId). NEVER a live LearnerProfile — a coordinator who accepts this dossier creates or completes the real LearnerProfile through the existing object UI; no auto-materialisation listener exists in this register.",
+                        "title": "Draft Profile"
+                    },
+                    "attachmentRefs": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": [],
+                        "description": "nc:files paths to attachments (e.g. the onderwijskundig-rapport PDF), mirroring PortfolioEntry.attachmentRef/Material.fileRef naming.",
+                        "title": "Attachment References"
+                    },
+                    "rejectionReason": {
+                        "type": "string",
+                        "nullable": true,
+                        "default": null,
+                        "description": "Free-text reason recorded when the dossier is rejected. Required (enforced by OsoImportRejectGuard) for the reject transition to succeed.",
+                        "title": "Rejection Reason"
+                    },
+                    "reviewedBy": {
+                        "type": "string",
+                        "nullable": true,
+                        "default": null,
+                        "description": "Nextcloud user ID of the admin/coordinator who accepted or rejected this dossier. Stamped server-side, never trusts a caller-supplied value.",
+                        "title": "Reviewed By"
+                    },
+                    "reviewedAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "default": null,
+                        "description": "ISO 8601 timestamp the dossier was accepted or rejected. Stamped server-side.",
+                        "title": "Reviewed At"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenancy isolation.",
+                        "title": "Tenant ID"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "received",
+                            "under-review",
+                            "accepted",
+                            "rejected"
+                        ],
+                        "default": "received",
+                        "description": "Lifecycle state. Managed by OR's lifecycle engine.",
+                        "title": "Status"
+                    }
+                },
+                "x-openregister-lifecycle": {
+                    "property": "status",
+                    "initial": "received",
+                    "transitions": {
+                        "startReview": {
+                            "from": "received",
+                            "to": "under-review",
+                            "description": "A coordinator begins reviewing the received dossier's categories and attachments."
+                        },
+                        "accept": {
+                            "from": "under-review",
+                            "to": "accepted",
+                            "requires": "OCA\\Learniq\\Lifecycle\\OsoImportAcceptGuard",
+                            "description": "An admin/coordinator accepts the dossier; they then complete the real LearnerProfile through the existing object UI."
+                        },
+                        "reject": {
+                            "from": "under-review",
+                            "to": "rejected",
+                            "requires": "OCA\\Learniq\\Lifecycle\\OsoImportRejectGuard",
+                            "description": "An admin/coordinator rejects the dossier with a mandatory rejectionReason."
+                        }
+                    }
+                },
+                "x-property-rbac": {
+                    "_comment": "Internal intake review — no LearnerProfile exists for this learner in this tenant until accepted, so there is no learner-self-read case (unlike LvsResult/AssessmentResult).",
+                    "read": {
+                        "anyOf": [
+                            {
+                                "role": "admin"
+                            },
+                            {
+                                "role": "coordinator"
+                            }
+                        ]
+                    }
+                }
             },
             "ExchangeRejection": {
                 "slug": "exchange-rejection",
