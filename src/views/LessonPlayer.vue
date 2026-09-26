@@ -237,6 +237,78 @@
 				</p>
 			</section>
 
+			<section v-else-if="isScorm12Lesson" class="lesson-player__scorm">
+				<div
+					v-if="scorm12.loading"
+					class="lesson-player__loading"
+					aria-live="polite">
+					<span class="icon-loading" aria-hidden="true" />
+					<span>{{ t('learniq', 'Loading SCORM package…') }}</span>
+				</div>
+
+				<NcEmptyContent
+					v-else-if="scorm12.error"
+					:name="t('learniq', 'Could not load the SCORM package')"
+					:description="scorm12.error">
+					<template #icon>
+						<AlertCircleOutline />
+					</template>
+				</NcEmptyContent>
+
+				<div v-else class="lesson-player__scorm-frame-wrap">
+					<iframe
+						v-if="scorm12.apiMounted"
+						class="lesson-player__scorm-frame"
+						:src="scorm12.contentUrl"
+						:title="t('learniq', 'SCORM package')" />
+				</div>
+			</section>
+
+			<section v-else-if="isCmi5Lesson" class="lesson-player__cmi5">
+				<div
+					v-if="cmi5.launching"
+					class="lesson-player__loading"
+					aria-live="polite">
+					<span class="icon-loading" aria-hidden="true" />
+					<span>{{ t('learniq', 'Starting cmi5 package…') }}</span>
+				</div>
+
+				<NcEmptyContent
+					v-else-if="!cmi5.available"
+					:name="t('learniq', 'cmi5 playback is not yet available for this lesson')"
+					:description="
+						t(
+							'learniq',
+							'The cmi5 launch service for this lesson has not been enabled yet. Try again later.',
+						)
+					">
+					<template #icon>
+						<AlertCircleOutline />
+					</template>
+				</NcEmptyContent>
+
+				<NcEmptyContent
+					v-else-if="cmi5.error"
+					:name="t('learniq', 'Could not start the cmi5 package')"
+					:description="cmi5.error">
+					<template #icon>
+						<AlertCircleOutline />
+					</template>
+					<template #action>
+						<NcButton variant="secondary" @click="launchCmi5">
+							{{ t('learniq', 'Try again') }}
+						</NcButton>
+					</template>
+				</NcEmptyContent>
+
+				<div v-else-if="cmi5.launchUrl" class="lesson-player__cmi5-frame-wrap">
+					<iframe
+						class="lesson-player__cmi5-frame"
+						:src="cmi5.launchUrl"
+						:title="t('learniq', 'cmi5 package')" />
+				</div>
+			</section>
+
 			<section v-else class="lesson-player__placeholder">
 				<NcEmptyContent
 					:name="t('learniq', 'Lesson content not available')"
@@ -289,6 +361,8 @@ import AlertCircleOutline from 'vue-material-design-icons/AlertCircleOutline.vue
 import ApplicationOutline from 'vue-material-design-icons/ApplicationOutline.vue'
 import BookOpenPageVariantOutline from 'vue-material-design-icons/BookOpenPageVariantOutline.vue'
 import LockOutline from 'vue-material-design-icons/LockOutline.vue'
+import { buildCmi5LaunchUrl } from '../utils/cmi5Launch.js'
+import { createScorm12Api } from '../utils/scorm12Runtime.js'
 
 // learning-progress-and-analytics: contentTypes that do NOT emit xAPI
 // statements and therefore need the learner self-serve manual-completion
@@ -368,6 +442,33 @@ export default {
 			// so launch state cannot be a single shared object the way the
 			// whole-lesson contentType='lti' branch uses.
 			blockLtiState: {},
+
+			// lesson-player-runtime (finding 5.6): SCORM 1.2 runtime state
+			// (contentType === 'scorm12'). `apiMounted` gates rendering the
+			// iframe only after window.API is assigned, so the SCO's own
+			// findAPI() walk never races an unmounted shim.
+			scorm12: {
+				loading: true,
+				error: '',
+				contentUrl: '',
+				apiMounted: false,
+				completed: false,
+			},
+
+			// SCORM API shim instance, kept off `data` (Vue reactivity does not
+			// need to track its internal Map) so it can be assigned to/deleted
+			// from `window.API` directly in mounted/unmount hooks.
+			scorm12Api: null,
+
+			// cmi5 launch state (contentType === 'cmi5'). Degrades gracefully
+			// (empty state, not a crash) while the sibling cmi5-xapi-lrs-ingest
+			// change's launch-token endpoint does not exist yet.
+			cmi5: {
+				launching: false,
+				available: true,
+				error: '',
+				launchUrl: '',
+			},
 		}
 	},
 
@@ -405,6 +506,28 @@ export default {
 		 */
 		isLtiLesson() {
 			return this.lesson?.contentType === 'lti'
+		},
+
+		/**
+		 * True when this lesson's content is a SCORM 1.2 package
+		 * (lesson-player-runtime, finding 5.6).
+		 *
+		 * @return {boolean}
+		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
+		 */
+		isScorm12Lesson() {
+			return this.lesson?.contentType === 'scorm12'
+		},
+
+		/**
+		 * True when this lesson's content is a cmi5 package
+		 * (lesson-player-runtime, finding 5.6).
+		 *
+		 * @return {boolean}
+		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
+		 */
+		isCmi5Lesson() {
+			return this.lesson?.contentType === 'cmi5'
 		},
 
 		/**
@@ -520,6 +643,28 @@ export default {
 			// block to its "unavailable" state rather than blocking the
 			// whole lesson from rendering.
 			await this.loadBlockReferences()
+		}
+
+		if (this.isScorm12Lesson) {
+			this.initScorm12()
+		}
+
+		if (this.isCmi5Lesson) {
+			await this.launchCmi5()
+		}
+	},
+
+	/**
+	 * Clear the SCORM API shim off `window` so a learner navigating between
+	 * two SCORM lessons in the same SPA session never leaves a stale global
+	 * behind (design.md Decision 1).
+	 *
+	 * @return {void}
+	 * @spec openspec/changes/lesson-player-runtime/design.md#decision-1-scorm12runtimejs-is-a-factory-returning-a-plain-object-not-a-class-instance-mutating-window-itself
+	 */
+	beforeUnmount() {
+		if (this.scorm12Api && typeof window !== 'undefined' && window.API === this.scorm12Api) {
+			delete window.API
 		}
 	},
 
@@ -977,6 +1122,153 @@ export default {
 		},
 
 		/**
+		 * Resolve `Lesson.contentRef` (an nc:files path, per the schema's own
+		 * description) into a URL the browser can load in an iframe.
+		 *
+		 * No backend controller resolves this path today (grepped
+		 * `lib/Controller/*.php` and `appinfo/routes.php`: zero hits) — this
+		 * calls OpenRegister's existing generic per-object files download
+		 * route as the best-evidenced integration point
+		 * (design.md Decision 4). Isolated in its own method exactly so a
+		 * wrong guess here costs one method, not the SCORM/cmi5 runtime logic.
+		 *
+		 * @return {string}
+		 * @spec openspec/changes/lesson-player-runtime/design.md#decision-4-content-url-resolution--openregisters-generic-object-files-endpoint-documented-as-unverified
+		 */
+		resolveContentUrl() {
+			const contentRef = this.lesson?.contentRef ?? ''
+			return generateUrl(
+				'/apps/openregister/api/objects/learniq/lesson/'
+					+ this.lessonId
+					+ '/files/download?path='
+					+ encodeURIComponent(contentRef),
+			)
+		},
+
+		/**
+		 * Mount the SCORM 1.2 `window.API` shim and reveal the content iframe.
+		 * Called once, from `mounted()`, when `isScorm12Lesson`.
+		 *
+		 * @return {void}
+		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
+		 */
+		initScorm12() {
+			if (!this.lesson?.contentRef) {
+				this.scorm12.loading = false
+				this.scorm12.error = this.t(
+					'learniq',
+					'This lesson has no SCORM package configured.',
+				)
+				return
+			}
+
+			const currentUser = getCurrentUser()
+			this.scorm12Api = createScorm12Api({
+				actorAccountName: currentUser?.uid ?? '',
+				activityId: generateUrl('/apps/learniq/lessons/' + this.lessonId),
+				onCompletion: (statement) => {
+					this.scorm12.completed = true
+					this.postXapiStatement(statement)
+				},
+			})
+			window.API = this.scorm12Api
+
+			this.scorm12.contentUrl = this.resolveContentUrl()
+			this.scorm12.apiMounted = true
+			this.scorm12.loading = false
+		},
+
+		/**
+		 * POST an xAPI statement via the existing generic OpenRegister
+		 * object-create endpoint for `xapi-statement`. `xapi-statement` create
+		 * is admin-only pending the sibling `cmi5-xapi-lrs-ingest` change
+		 * (its task 4.1) — a non-admin learner's POST will 403 until that
+		 * lands. Failure is caught and logged, never surfaced as a blocking
+		 * error over the lesson content itself (proposal Risk 2).
+		 *
+		 * @param {object} statement An xAPI statement object.
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
+		 */
+		async postXapiStatement(statement) {
+			try {
+				const res = await fetch(
+					generateUrl('/apps/openregister/api/objects/learniq/xapi-statement'),
+					{
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							requesttoken: window.OC?.requestToken ?? '',
+						},
+						body: JSON.stringify({
+							...statement,
+							lessonId: this.lessonId,
+							courseId: this.courseId,
+						}),
+					},
+				)
+				if (!res.ok) {
+					// eslint-disable-next-line no-console
+					console.warn(
+						'[LessonPlayer] xAPI statement POST failed (HTTP '
+							+ res.status
+							+ ') — expected until the cmi5-xapi-lrs-ingest change relaxes xapi-statement authorization.',
+					)
+				}
+			} catch (e) {
+				// eslint-disable-next-line no-console
+				console.warn('[LessonPlayer] xAPI statement POST failed', e)
+			}
+		},
+
+		/**
+		 * Request a cmi5 launch token and open the AU in an iframe. The
+		 * launch-token endpoint this calls belongs to the sibling, still-open
+		 * `cmi5-xapi-lrs-ingest` change — a 404/503 here is expected until
+		 * that change ships, and renders the "not yet available" empty state
+		 * rather than a crash.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-cmi5-lesson-gracefully-degrades-until-the-sibling-ingest-change-ships
+		 */
+		async launchCmi5() {
+			if (!this.lesson?.contentRef) {
+				this.cmi5.available = false
+				return
+			}
+
+			this.cmi5.launching = true
+			this.cmi5.error = ''
+			try {
+				const res = await fetch(
+					generateUrl('/apps/learniq/api/lessons/' + this.lessonId + '/cmi5-launch'),
+					{
+						method: 'POST',
+						headers: { requesttoken: window.OC?.requestToken ?? '' },
+					},
+				)
+				if (res.status === 404 || res.status === 503) {
+					this.cmi5.available = false
+					return
+				}
+				const body = await res.json().catch(() => ({}))
+				if (!res.ok) {
+					throw new Error(
+						body?.error
+							|| this.t('learniq', 'Failed to start the cmi5 package (HTTP {status})', {
+								status: res.status,
+							}),
+					)
+				}
+				this.cmi5.launchUrl = buildCmi5LaunchUrl(this.lesson.contentRef, body)
+			} catch (e) {
+				this.cmi5.error = e?.message ?? String(e)
+			} finally {
+				this.cmi5.launching = false
+			}
+		},
+
+		/**
 		 * Auto-submit an opaque LTI launch response as a real POST — an
 		 * id_token cannot be delivered via a GET navigation. New tab for
 		 * launchMode='resource-link', the in-page frame for 'deep-linking'.
@@ -1053,6 +1345,19 @@ export default {
 }
 
 .lesson-player__lti-frame {
+	width: 100%;
+	min-height: 480px;
+	border: none;
+}
+
+.lesson-player__scorm-frame-wrap,
+.lesson-player__cmi5-frame-wrap {
+	width: 100%;
+	min-height: 480px;
+}
+
+.lesson-player__scorm-frame,
+.lesson-player__cmi5-frame {
 	width: 100%;
 	min-height: 480px;
 	border: none;
