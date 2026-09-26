@@ -25,6 +25,7 @@ import AccountMultipleOutline from 'vue-material-design-icons/AccountMultipleOut
 import AccountOutline from 'vue-material-design-icons/AccountOutline.vue'
 import AccountPlusOutline from 'vue-material-design-icons/AccountPlusOutline.vue'
 import AccountSchoolOutline from 'vue-material-design-icons/AccountSchoolOutline.vue'
+import AccountSupervisorOutline from 'vue-material-design-icons/AccountSupervisorOutline.vue'
 import AccountSwitchOutline from 'vue-material-design-icons/AccountSwitchOutline.vue'
 import AccountTieOutline from 'vue-material-design-icons/AccountTieOutline.vue'
 import AlertCircleOutline from 'vue-material-design-icons/AlertCircleOutline.vue'
@@ -170,6 +171,7 @@ export default {
 	AccountOutline,
 	AccountPlusOutline,
 	AccountSchoolOutline,
+	AccountSupervisorOutline,
 	AccountSwitchOutline,
 	AccountTieOutline,
 	AlertCircleOutline,

@@ -57,6 +57,54 @@
 					}
 				},
 				{
+					"id": "DashboardMentorMenu",
+					"label": "Mentor",
+					"icon": "AccountHeartOutline",
+					"route": "DashboardTeacher",
+					"order": 8,
+					"_note": "role-dashboards: routes to the SAME DashboardTeacher page as Teaching — a role-appropriate entry point (finding 12.1's discoverability gap), not a distinct dashboard. 'instructor' is this fleet's mentor-shaped role; no separate mentor NC group exists in rbac-declare-groups. Content differentiation is explicit follow-up code work, see design.md Trade-offs.",
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "DashboardIbMenu",
+					"label": "IB-er",
+					"icon": "AccountSupervisorOutline",
+					"route": "DashboardTeacher",
+					"order": 9,
+					"_note": "role-dashboards: routes to the SAME DashboardTeacher page — 'coordinator' is this fleet's IB-er (intern begeleider)-shaped role. See DashboardMentorMenu's note.",
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "DashboardDirectorMenu",
+					"label": "Director",
+					"icon": "AccountTieOutline",
+					"route": "DashboardTeacher",
+					"order": 10,
+					"_note": "role-dashboards: routes to the SAME DashboardTeacher page — 'administration-manager' is this fleet's director-shaped role. See DashboardMentorMenu's note.",
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "Compliance",
 					"label": "Overview",
 					"icon": "ClipboardCheckOutline",
