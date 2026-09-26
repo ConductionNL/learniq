@@ -178,7 +178,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 		}
 
 		$metricValue = $threshold['checkedMetricValue'] ?? '';
-		if ($metricValue === '' || $metricValue === null) {
+		if ($metricValue === '') {
 			$metricValue = $threshold['unexcusedLesuren'] ?? 0;
 		}
 
