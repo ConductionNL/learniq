@@ -29556,6 +29556,93 @@
         "courseId": "00000000-0000-4000-8000-000000000002",
         "lessonId": "00000000-0000-4000-8000-000000000002",
         "verified_actor_id": "Voorbeeld Verified Actor Id 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "compliance",
+          "slug": "compliance-compliance-1-1"
+        },
+        "privacyconvenantSigned": false,
+        "privacyconvenantSignedAt": "2026-03-01T09:00:00+00:00",
+        "verwerkersovereenkomstUrl": "Voorbeeld Verwerkersovereenkomsturl 1",
+        "privacybijsluiterUrl": "Voorbeeld Privacybijsluiterurl 1",
+        "privacybijsluiterVersion": "Voorbeeld Privacybijsluiterversion 1",
+        "lastReviewedAt": "2026-03-01T09:00:00+00:00",
+        "lastReviewedBy": "Voorbeeld Lastreviewedby 1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "compliance",
+          "slug": "compliance-compliance-2-2"
+        },
+        "privacyconvenantSigned": false,
+        "privacyconvenantSignedAt": "2026-03-02T09:00:00+00:00",
+        "verwerkersovereenkomstUrl": "Voorbeeld Verwerkersovereenkomsturl 2",
+        "privacybijsluiterUrl": "Voorbeeld Privacybijsluiterurl 2",
+        "privacybijsluiterVersion": "Voorbeeld Privacybijsluiterversion 2",
+        "lastReviewedAt": "2026-03-02T09:00:00+00:00",
+        "lastReviewedBy": "Voorbeeld Lastreviewedby 2"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "compliance",
+          "slug": "compliance-compliance-3-3"
+        },
+        "privacyconvenantSigned": false,
+        "privacyconvenantSignedAt": "2026-03-03T09:00:00+00:00",
+        "verwerkersovereenkomstUrl": "Voorbeeld Verwerkersovereenkomsturl 3",
+        "privacybijsluiterUrl": "Voorbeeld Privacybijsluiterurl 3",
+        "privacybijsluiterVersion": "Voorbeeld Privacybijsluiterversion 3",
+        "lastReviewedAt": "2026-03-03T09:00:00+00:00",
+        "lastReviewedBy": "Voorbeeld Lastreviewedby 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "data-subject-request",
+          "slug": "data-subject-request-datasubjectrequest-1-1"
+        },
+        "kind": "correction",
+        "learnerId": "Voorbeeld Learnerid 1",
+        "submittedBy": "Voorbeeld Submittedby 1",
+        "requestedAt": "2026-03-01T09:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "description": "Voorbeeld Description 1",
+        "decidedAt": "2026-03-01T09:00:00+00:00",
+        "auditTrail": []
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "data-subject-request",
+          "slug": "data-subject-request-datasubjectrequest-2-2"
+        },
+        "kind": "deletion",
+        "learnerId": "Voorbeeld Learnerid 2",
+        "submittedBy": "Voorbeeld Submittedby 2",
+        "requestedAt": "2026-03-02T09:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "description": "Voorbeeld Description 2",
+        "decidedAt": "2026-03-02T09:00:00+00:00",
+        "auditTrail": []
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "data-subject-request",
+          "slug": "data-subject-request-datasubjectrequest-3-3"
+        },
+        "kind": "correction",
+        "learnerId": "Voorbeeld Learnerid 3",
+        "submittedBy": "Voorbeeld Submittedby 3",
+        "requestedAt": "2026-03-03T09:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "description": "Voorbeeld Description 3",
+        "decidedAt": "2026-03-03T09:00:00+00:00",
+        "auditTrail": []
       }
     ]
   }

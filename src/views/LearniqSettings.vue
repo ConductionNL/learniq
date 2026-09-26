@@ -852,6 +852,7 @@ export default {
 		 * Navigate to the full DataSubjectRequests index page.
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#requirement-staff-can-log-and-track-a-correction-or-deletion-request
 		 */
 		openDataSubjectRequests() {
 			window.location.href =

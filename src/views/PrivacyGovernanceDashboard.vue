@@ -48,9 +48,9 @@
 				<table class="privacy-governance-dashboard__table">
 					<thead>
 						<tr>
-							<th>{{ t('learniq', 'Group') }}</th>
-							<th>{{ t('learniq', 'Provisioned') }}</th>
-							<th>{{ t('learniq', 'Members') }}</th>
+							<th scope="col">{{ t('learniq', 'Group') }}</th>
+							<th scope="col">{{ t('learniq', 'Provisioned') }}</th>
+							<th scope="col">{{ t('learniq', 'Members') }}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -131,6 +131,12 @@ export default {
 		}
 	},
 
+	/**
+	 * Load the overview payload as soon as the page mounts.
+	 *
+	 * @return {Promise<void>}
+	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#requirement-a-board-facing-dashboard-composes-group-2fa-and-integration-approval-state
+	 */
 	async mounted() {
 		await this.loadOverview()
 		this.loading = false
@@ -143,6 +149,7 @@ export default {
 		 *
 		 * @param {number|null} value The count, or null when unknown.
 		 * @return {string} The rendered value.
+		 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-two-factor-adoption-degrades-to-unknown-rather-than-a-fabricated-zero
 		 */
 		formatCount(value) {
 			if (value === null || value === undefined) {
@@ -196,6 +203,7 @@ export default {
 		 * Navigate to the partner-approval index page.
 		 *
 		 * @return {void}
+		 * @spec openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-standing-partner-approval-before-it-runs
 		 */
 		openPartnerApprovals() {
 			this.$router.push({ name: 'PartnerApprovalJobs' })

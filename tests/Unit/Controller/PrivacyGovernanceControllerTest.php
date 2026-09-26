@@ -113,6 +113,34 @@ class PrivacyGovernanceControllerTest extends TestCase {
 	}//end testProvisionedGroupReportsMemberCount()
 
 	/**
+	 * `IGroup::count()` is typed `int|bool` — when it returns `false` (Nextcloud
+	 * could not resolve the count), the controller MUST still report `null`
+	 * ("unknown"), never a fabricated `0` or the literal `false`.
+	 *
+	 * @return void
+	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 */
+	public function testProvisionedGroupWithUncountableMembersReportsNull(): void {
+		$group = $this->createMock(IGroup::class);
+		$group->method('count')->willReturn(false);
+		$group->method('getUsers')->willReturn([]);
+
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('get')->willReturn($group);
+
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn([]);
+
+		$controller = $this->buildController(groupManager: $groupManager, objectService: $objectService);
+		$data = $controller->overview()->getData();
+
+		$instructors = current(array_filter($data['groups'], static fn ($row) => $row['id'] === 'instructors'));
+		self::assertTrue($instructors['provisioned']);
+		self::assertNull($instructors['memberCount']);
+
+	}//end testProvisionedGroupWithUncountableMembersReportsNull()
+
+	/**
 	 * Two-factor adoption is counted only across the governance groups'
 	 * members, and only a user with at least one enabled provider counts.
 	 *
@@ -216,6 +244,39 @@ class PrivacyGovernanceControllerTest extends TestCase {
 		self::assertSame(0, $data['dataExchange']['rejected']);
 
 	}//end testDataExchangeJobCountsGroupedByApprovalStatus()
+
+	/**
+	 * `ObjectService::findAll()` may hand back OpenRegister entity objects
+	 * rather than plain arrays; the controller MUST normalise a
+	 * `jsonSerialize()`-carrying object the same way it already handles a
+	 * plain array, mirroring `AiProcessingDisclosureController::fetchHermiqFeatures()`'s
+	 * own normalisation.
+	 *
+	 * @return void
+	 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#scenario-a-compliance-officer-opens-the-privacy-governance-dashboard
+	 */
+	public function testDataExchangeJobCountsNormaliseJsonSerializableObjects(): void {
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('get')->willReturn(null);
+
+		$job = new class {
+			/**
+			 * @return array<string, mixed>
+			 */
+			public function jsonSerialize(): array {
+				return ['requiresPartnerApproval' => true, 'partnerApprovalStatus' => 'approved'];
+			}
+		};
+
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn([$job]);
+
+		$controller = $this->buildController(groupManager: $groupManager, objectService: $objectService);
+		$data = $controller->overview()->getData();
+
+		self::assertSame(1, $data['dataExchange']['approved']);
+
+	}//end testDataExchangeJobCountsNormaliseJsonSerializableObjects()
 
 	/**
 	 * A DataExchangeJob read failure degrades to unknown counts rather than

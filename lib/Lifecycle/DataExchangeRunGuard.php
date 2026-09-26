@@ -68,7 +68,7 @@ namespace OCA\Learniq\Lifecycle;
  * standing partner approval (privacy-governance-surfaces) while that
  * approval is not yet granted.
  *
- * @spec openspec/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-standing-partner-approval-before-it-runs
+ * @spec openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-standing-partner-approval-before-it-runs
  */
 class DataExchangeRunGuard {
 
