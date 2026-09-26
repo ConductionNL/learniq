@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#requirement-schooladvies-tracks-a-po-groep-8-advies-from-voorlopig-through-definitief-to-verzonden-naar-rod
+ * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#requirement-persist-schooladvies-domain-objects-in-openregister
  */
 
 declare(strict_types=1);
