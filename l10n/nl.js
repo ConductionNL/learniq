@@ -1447,7 +1447,9 @@ OC.L10N.register(
         "Standing ReportCardTemplate assignment for this group (report-card-templates change), mirroring ParnasSys's per-leerjaar report setting. Read by ReportCardComposer at ReportPeriod.compose time to decide which sections a composed ReportCard carries. Null means composition falls back to the pre-existing fixed shape (subjectGrades[]/attendanceSummary/mentorComment).": "Vast rapportsjabloon voor deze groep. ReportCardComposer leest dit veld bij het samenstellen van rapporten om te bepalen welke onderdelen worden gevuld. Leeg betekent dat de bestaande vaste opbouw wordt gebruikt.",
         "Test Kind": "Soort toets",
         "Test Kind Section Map": "Koppeling toetssoort en onderdeel",
-        "The section kind this test kind's results belong on.": "Het onderdeel waar de resultaten van dit soort toets bij horen."
+        "The section kind this test kind's results belong on.": "Het onderdeel waar de resultaten van dit soort toets bij horen.",
+        "Report card templates": "Rapportsjablonen",
+        "Report card template": "Rapportsjabloon"
     },
     "nplurals=2; plural=(n != 1);"
 )

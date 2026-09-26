@@ -999,7 +999,9 @@ OC.L10N.register(
         "Standing ReportCardTemplate assignment for this group (report-card-templates change), mirroring ParnasSys's per-leerjaar report setting. Read by ReportCardComposer at ReportPeriod.compose time to decide which sections a composed ReportCard carries. Null means composition falls back to the pre-existing fixed shape (subjectGrades[]/attendanceSummary/mentorComment).": "Standing ReportCardTemplate assignment for this group (report-card-templates change), mirroring ParnasSys's per-leerjaar report setting. Read by ReportCardComposer at ReportPeriod.compose time to decide which sections a composed ReportCard carries. Null means composition falls back to the pre-existing fixed shape (subjectGrades[]/attendanceSummary/mentorComment).",
         "Test Kind": "Test Kind",
         "Test Kind Section Map": "Test Kind Section Map",
-        "The section kind this test kind's results belong on.": "The section kind this test kind's results belong on."
+        "The section kind this test kind's results belong on.": "The section kind this test kind's results belong on.",
+        "Report card templates": "Report card templates",
+        "Report card template": "Report card template"
     },
     "nplurals=2; plural=(n != 1);"
 )
