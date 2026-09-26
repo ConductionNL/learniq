@@ -1004,7 +1004,17 @@ OC.L10N.register(
         "Location ID": "Location ID",
         "UUID of the Location (vestiging/onderwijslocatie) this cohort/groep runs at. Single reference, never an array: enforces DUO's one-groep-per-location rule at the data-model level (legal-po-2026-09-25.md). Additive and nullable; existing cohorts default to null until backfilled.": "UUID of the Location (vestiging/onderwijslocatie) this cohort/groep runs at. Single reference, never an array: enforces DUO's one-groep-per-location rule at the data-model level (legal-po-2026-09-25.md). Additive and nullable; existing cohorts default to null until backfilled.",
         "Schools": "Schools",
-        "Locations": "Locations"
+        "Locations": "Locations",
+        "Inschrijving Date": "Inschrijving Date",
+        "ISO date the pupil was enrolled (inschrijving) at this location. Additive and nullable; existing rows read null until backfilled.": "ISO date the pupil was enrolled (inschrijving) at this location. Additive and nullable; existing rows read null until backfilled.",
+        "Volgnummer": "Volgnummer",
+        "DUO volgnummer for this inschrijving. Additive and nullable.": "DUO volgnummer for this inschrijving. Additive and nullable.",
+        "Enrolment Location ID": "Enrolment Location ID",
+        "UUID of the Vestiging (displayed as Location) this inschrijving is registered at. Independent of any Cohort.locationId the pupil is later grouped into: an Enrolment can exist before a Cohort assignment does. Additive and nullable.": "UUID of the Vestiging (displayed as Location) this inschrijving is registered at. Independent of any Cohort.locationId the pupil is later grouped into: an Enrolment can exist before a Cohort assignment does. Additive and nullable.",
+        "Destination School ID": "Destination School ID",
+        "UUID of the destination School this pupil is leaving to, captured alongside the withdraw transition and the existing free-text reason. Additive and nullable.": "UUID of the destination School this pupil is leaving to, captured alongside the withdraw transition and the existing free-text reason. Additive and nullable.",
+        "Leerjaar": "Leerjaar",
+        "Leerjaar for this pupil within their Cohort (1 to 8, covering PO and VO). Declared per Enrolment, not parsed from Cohort.name, so a combination group (e.g. 'Groep 5/6') is one Cohort whose member enrolments carry leerjaar 5 or 6 independently.": "Leerjaar for this pupil within their Cohort (1 to 8, covering PO and VO). Declared per Enrolment, not parsed from Cohort.name, so a combination group (e.g. 'Groep 5/6') is one Cohort whose member enrolments carry leerjaar 5 or 6 independently."
     },
     "nplurals=2; plural=(n != 1);"
 )

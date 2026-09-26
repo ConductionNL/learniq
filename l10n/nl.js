@@ -1451,7 +1451,17 @@ OC.L10N.register(
         "Location ID": "Locatie-ID",
         "UUID of the Location (vestiging/onderwijslocatie) this cohort/groep runs at. Single reference, never an array: enforces DUO's one-groep-per-location rule at the data-model level (legal-po-2026-09-25.md). Additive and nullable; existing cohorts default to null until backfilled.": "UUID van de Location (vestiging/onderwijslocatie) waar deze cohort/groep les krijgt. Een enkele verwijzing, nooit een lijst: dit legt de DUO-regel van een groep per locatie vast in het datamodel. Aanvullend en optioneel; bestaande cohorts blijven leeg tot een coordinator ze aanvult.",
         "Schools": "Scholen",
-        "Locations": "Locaties"
+        "Locations": "Locaties",
+        "Inschrijving Date": "Inschrijvingsdatum",
+        "ISO date the pupil was enrolled (inschrijving) at this location. Additive and nullable; existing rows read null until backfilled.": "ISO-datum waarop de leerling is ingeschreven op deze locatie. Aanvullend en optioneel; bestaande rijen blijven leeg tot ze zijn aangevuld.",
+        "Volgnummer": "Volgnummer",
+        "DUO volgnummer for this inschrijving. Additive and nullable.": "DUO-volgnummer voor deze inschrijving. Aanvullend en optioneel.",
+        "Enrolment Location ID": "Inschrijving locatie-ID",
+        "UUID of the Vestiging (displayed as Location) this inschrijving is registered at. Independent of any Cohort.locationId the pupil is later grouped into: an Enrolment can exist before a Cohort assignment does. Additive and nullable.": "UUID van de Vestiging (weergegeven als Location) waar deze inschrijving is geregistreerd. Onafhankelijk van een eventuele Cohort.locationId waarin de leerling later wordt ingedeeld: een inschrijving kan bestaan voordat er een cohort-indeling is. Aanvullend en optioneel.",
+        "Destination School ID": "Bestemmingsschool-ID",
+        "UUID of the destination School this pupil is leaving to, captured alongside the withdraw transition and the existing free-text reason. Additive and nullable.": "UUID van de bestemmingsschool waar deze leerling naartoe gaat, vastgelegd samen met de uitschrijving en de bestaande vrije-tekst reden. Aanvullend en optioneel.",
+        "Leerjaar": "Leerjaar",
+        "Leerjaar for this pupil within their Cohort (1 to 8, covering PO and VO). Declared per Enrolment, not parsed from Cohort.name, so a combination group (e.g. 'Groep 5/6') is one Cohort whose member enrolments carry leerjaar 5 or 6 independently.": "Leerjaar van deze leerling binnen het cohort (1 tot 8, voor PO en VO). Vastgelegd per inschrijving, niet afgeleid uit de cohortnaam, zodat een combinatiegroep (bijvoorbeeld 'Groep 5/6') een cohort blijft waarvan de leerlingen elk hun eigen leerjaar dragen."
     },
     "nplurals=2; plural=(n != 1);"
 )
