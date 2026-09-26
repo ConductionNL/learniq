@@ -979,7 +979,8 @@ OC.L10N.register(
         "Not configured": "Not configured",
         "Open settings": "Open settings",
         "Simulated": "Simulated",
-        "Status message": "Status message"
+        "Status message": "Status message",
+        "Import & export": "Import & export"
     },
     "nplurals=2; plural=(n != 1);"
 )

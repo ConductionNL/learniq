@@ -1426,7 +1426,8 @@
         "Not configured": "Niet geconfigureerd",
         "Open settings": "Instellingen openen",
         "Simulated": "Gesimuleerd",
-        "Status message": "Statusmelding"
+        "Status message": "Statusmelding",
+        "Import & export": "Import en export"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

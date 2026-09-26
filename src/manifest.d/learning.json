@@ -1824,7 +1824,20 @@
 			"title": "Cohorts",
 			"config": {
 				"register": "learniq",
-				"schema": "Cohort"
+				"schema": "Cohort",
+				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly so the platform's built-in mass import/export/copy/delete is a documented capability of this index, not an implicit default (findings 12.6/14.7).",
+				"columns": [
+					"name",
+					"period",
+					"academicYear",
+					"lifecycle"
+				],
+				"actionToggles": {
+					"showMassImport": true,
+					"showMassExport": true,
+					"showMassCopy": true,
+					"showMassDelete": true
+				}
 			}
 		},
 		{
@@ -6509,7 +6522,20 @@
 			"title": "Report cards",
 			"config": {
 				"register": "learniq",
-				"schema": "report-card"
+				"schema": "report-card",
+				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly, see Cohorts' note.",
+				"columns": [
+					"learnerId",
+					"cohortId",
+					"lifecycle",
+					"composedAt"
+				],
+				"actionToggles": {
+					"showMassImport": true,
+					"showMassExport": true,
+					"showMassCopy": true,
+					"showMassDelete": true
+				}
 			}
 		},
 		{
