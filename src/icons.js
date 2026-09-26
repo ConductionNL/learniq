@@ -64,6 +64,7 @@ import ClipboardEditOutline from 'vue-material-design-icons/ClipboardEditOutline
 import ClipboardList from 'vue-material-design-icons/ClipboardList.vue'
 import ClipboardListOutline from 'vue-material-design-icons/ClipboardListOutline.vue'
 import ClipboardOutline from 'vue-material-design-icons/ClipboardOutline.vue'
+import ClipboardTextClockOutline from 'vue-material-design-icons/ClipboardTextClockOutline.vue'
 import ClipboardTextOutline from 'vue-material-design-icons/ClipboardTextOutline.vue'
 import CloseCircleOutline from 'vue-material-design-icons/CloseCircleOutline.vue'
 import CommentOutline from 'vue-material-design-icons/CommentOutline.vue'
@@ -78,6 +79,7 @@ import Earth from 'vue-material-design-icons/Earth.vue'
 import EmoticonOutline from 'vue-material-design-icons/EmoticonOutline.vue'
 import ExportVariant from 'vue-material-design-icons/ExportVariant.vue'
 import Eye from 'vue-material-design-icons/Eye.vue'
+import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
 import FileCertificateOutline from 'vue-material-design-icons/FileCertificateOutline.vue'
 import FileChartOutline from 'vue-material-design-icons/FileChartOutline.vue'
 import FileDocument from 'vue-material-design-icons/FileDocument.vue'
@@ -209,6 +211,7 @@ export default {
 	ClipboardList,
 	ClipboardListOutline,
 	ClipboardOutline,
+	ClipboardTextClockOutline,
 	ClipboardTextOutline,
 	CloseCircleOutline,
 	CommentOutline,
@@ -223,6 +226,7 @@ export default {
 	EmoticonOutline,
 	ExportVariant,
 	Eye,
+	EyeOutline,
 	FileCertificateOutline,
 	FileChartOutline,
 	FileDocument,
