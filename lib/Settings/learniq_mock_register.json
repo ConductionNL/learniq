@@ -29556,6 +29556,75 @@
         "courseId": "00000000-0000-4000-8000-000000000002",
         "lessonId": "00000000-0000-4000-8000-000000000002",
         "verified_actor_id": "Voorbeeld Verified Actor Id 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "staff",
+          "slug": "staff-staff-1-1"
+        },
+        "ncUserId": "Voorbeeld Ncuserid 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "roles": [],
+        "qualifications": [],
+        "workingDays": []
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "staff",
+          "slug": "staff-staff-2-2"
+        },
+        "ncUserId": "Voorbeeld Ncuserid 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "roles": [],
+        "qualifications": [],
+        "workingDays": []
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "staff",
+          "slug": "staff-staff-3-3"
+        },
+        "ncUserId": "Voorbeeld Ncuserid 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "roles": [],
+        "qualifications": [],
+        "workingDays": []
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "subjectteacherassignment",
+          "slug": "subjectteacherassignment-subjectteacherassignment-1-1"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "courseId": "00000000-0000-4000-8000-000000000000",
+        "teacherId": "Voorbeeld Teacherid 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "subjectteacherassignment",
+          "slug": "subjectteacherassignment-subjectteacherassignment-2-2"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000001",
+        "courseId": "00000000-0000-4000-8000-000000000001",
+        "teacherId": "Voorbeeld Teacherid 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "subjectteacherassignment",
+          "slug": "subjectteacherassignment-subjectteacherassignment-3-3"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000002",
+        "courseId": "00000000-0000-4000-8000-000000000002",
+        "teacherId": "Voorbeeld Teacherid 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002"
       }
     ]
   }

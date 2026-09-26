@@ -85,6 +85,22 @@
 							]
 						}
 					}
+				},
+				{
+					"id": "Staff",
+					"label": "Staff",
+					"icon": "AccountTieOutline",
+					"route": "Staff",
+					"order": 50,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
 			],
 			"visibleIf": {
@@ -119,6 +135,16 @@
 			"config": {
 				"register": "learniq",
 				"schema": "Credential"
+			}
+		},
+		{
+			"id": "Staff",
+			"route": "/staff",
+			"type": "index",
+			"title": "Staff",
+			"config": {
+				"register": "learniq",
+				"schema": "Staff"
 			}
 		},
 		{
@@ -583,6 +609,70 @@
 				],
 				"sidebar": {
 					"enabled": false
+				}
+			}
+		},
+		{
+			"id": "StaffDetail",
+			"route": "/staff/:id",
+			"type": "detail",
+			"title": "Staff",
+			"_note": "A Staff record is reference data (ncUserId, roles, qualifications, workingDays) with no lifecycle, same shape as Room. Body leads with the staff data 8-wide with a Related panel resolving Cohorts and SubjectTeacherAssignments this person is named on. No email/calendar/files (HARD RULE 1: reference data, not correspondence). Sidebar keeps metadata + audit-trail.",
+			"config": {
+				"register": "learniq",
+				"schema": "Staff",
+				"widgets": [
+					{
+						"id": "staff-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountTieOutline"
+					},
+					{
+						"id": "staff-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "staff-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "staff-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
 				}
 			}
 		},
