@@ -1426,7 +1426,13 @@
         "Not configured": "Niet geconfigureerd",
         "Open settings": "Instellingen openen",
         "Simulated": "Gesimuleerd",
-        "Status message": "Statusmelding"
+        "Status message": "Statusmelding",
+        "Derived: Nextcloud user id of the admin who last created or updated this record, supplied by the writing client at create/update time, mirroring SovereigntyPolicy.setBy.": "Afgeleid: Nextcloud-gebruikers-ID van de beheerder die dit record voor het laatst heeft aangemaakt of bijgewerkt, meegegeven door de schrijvende client bij aanmaken/bijwerken.",
+        "Derived: timestamp this record was last created or updated, mirroring SovereigntyPolicy.setAt.": "Afgeleid: tijdstip waarop dit record voor het laatst is aangemaakt of bijgewerkt.",
+        "LearniqSettings": "App-instellingen",
+        "Segment": "Segment",
+        "The education/training segment this instance serves. Defaults to corporate, the no-behaviour-change default matching every existing customer's undifferentiated build.": "Het onderwijs- of opleidingssegment waarvoor deze omgeving is ingericht. Standaard corporate, de instelling zonder gedragswijziging die overeenkomt met de huidige, ongedifferentieerde inrichting.",
+        "App settings": "App-instellingen"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
