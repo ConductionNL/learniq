@@ -15716,7 +15716,7 @@
                     },
                     "target": {
                         "type": "string",
-                        "description": "Named OpenConnector connection: bron-rod | oso | leerplicht | surfconext | hr | swv | timetable-import | or a custom name. This is a reference to an OpenConnector source/target configuration — Scholiq implements no wire protocol. 'timetable-import' (direction:import) resolves a Zermelo/Untis/Xedule-generated timetable into Session upserts, per timetabling-and-substitution.",
+                        "description": "Named OpenConnector connection: bron-rod | oso | leerplicht | surfconext | hr | swv | timetable-import | migration-import | or a custom name. This is a reference to an OpenConnector source/target configuration — Scholiq implements no wire protocol. 'timetable-import' (direction:import) resolves a Zermelo/Untis/Xedule/TimeEdit-generated timetable into Session upserts, per timetabling-and-substitution. 'migration-import' (direction:import) resolves a one-time ParnasSys/ESIS/Magister/SOMtoday SIS-migration pull into LearnerProfile, per data-mapping-profile-presets.",
                         "title": "OpenConnector Target"
                     },
                     "direction": {
@@ -16093,6 +16093,94 @@
                         "validationProfile": null,
                         "active": true,
                         "lifecycle": "active"
+                    },
+                    {
+                        "name": "TimeEdit timetable import",
+                        "target": "timetable-import",
+                        "direction": "import",
+                        "sourceSchema": "session",
+                        "targetSchema": "TimeEdit:Activity",
+                        "fieldMappings": [
+                            {"scholiqField": "externalRef", "targetField": "activityId", "transform": null},
+                            {"scholiqField": "cohortId", "targetField": "resourceGroup", "transform": null},
+                            {"scholiqField": "title", "targetField": "activityTitle", "transform": null},
+                            {"scholiqField": "startsAt", "targetField": "beginTime", "transform": "date-iso8601"},
+                            {"scholiqField": "endsAt", "targetField": "endTime", "transform": "date-iso8601"},
+                            {"scholiqField": "location", "targetField": "roomName", "transform": null}
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active",
+                        "_comment": "Fourth rostering-import preset alongside Zermelo/Untis/Xedule above, same target/direction/sourceSchema shape (data-mapping-profile-presets, finding 11.7)."
+                    },
+                    {
+                        "name": "ParnasSys migration import",
+                        "target": "migration-import",
+                        "direction": "import",
+                        "sourceSchema": "learner-profile",
+                        "targetSchema": "ParnasSys:Leerling",
+                        "fieldMappings": [
+                            {"scholiqField": "eckId", "targetField": "eckId", "transform": null},
+                            {"scholiqField": "givenName", "targetField": "voornamen", "transform": null},
+                            {"scholiqField": "familyName", "targetField": "achternaam", "transform": null},
+                            {"scholiqField": "birthDate", "targetField": "geboortedatum", "transform": "date-iso8601"},
+                            {"scholiqField": "schoolId", "targetField": "brinNummer", "transform": null}
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active",
+                        "_comment": "One-time SIS-migration import (finding 13.15), not a recurring sync — mirrors the bron-rod export seed's field set in reverse."
+                    },
+                    {
+                        "name": "ESIS migration import",
+                        "target": "migration-import",
+                        "direction": "import",
+                        "sourceSchema": "learner-profile",
+                        "targetSchema": "ESIS:Leerling",
+                        "fieldMappings": [
+                            {"scholiqField": "eckId", "targetField": "eckId", "transform": null},
+                            {"scholiqField": "givenName", "targetField": "voornamen", "transform": null},
+                            {"scholiqField": "familyName", "targetField": "achternaam", "transform": null},
+                            {"scholiqField": "birthDate", "targetField": "geboortedatum", "transform": "date-iso8601"},
+                            {"scholiqField": "schoolId", "targetField": "brinNummer", "transform": null}
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active"
+                    },
+                    {
+                        "name": "Magister migration import",
+                        "target": "migration-import",
+                        "direction": "import",
+                        "sourceSchema": "learner-profile",
+                        "targetSchema": "Magister:Leerling",
+                        "fieldMappings": [
+                            {"scholiqField": "eckId", "targetField": "eckId", "transform": null},
+                            {"scholiqField": "givenName", "targetField": "voornamen", "transform": null},
+                            {"scholiqField": "familyName", "targetField": "achternaam", "transform": null},
+                            {"scholiqField": "birthDate", "targetField": "geboortedatum", "transform": "date-iso8601"},
+                            {"scholiqField": "schoolId", "targetField": "brinNummer", "transform": null}
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active"
+                    },
+                    {
+                        "name": "SOMtoday migration import",
+                        "target": "migration-import",
+                        "direction": "import",
+                        "sourceSchema": "learner-profile",
+                        "targetSchema": "Somtoday:Leerling",
+                        "fieldMappings": [
+                            {"scholiqField": "eckId", "targetField": "eckId", "transform": null},
+                            {"scholiqField": "givenName", "targetField": "voornamen", "transform": null},
+                            {"scholiqField": "familyName", "targetField": "achternaam", "transform": null},
+                            {"scholiqField": "birthDate", "targetField": "geboortedatum", "transform": "date-iso8601"},
+                            {"scholiqField": "schoolId", "targetField": "brinNummer", "transform": null}
+                        ],
+                        "validationProfile": null,
+                        "active": true,
+                        "lifecycle": "active"
                     }
                 ]
             },
@@ -16153,7 +16241,7 @@
                     },
                     "target": {
                         "type": "string",
-                        "description": "Named OpenConnector connection (e.g. 'bron-rod', 'oso', 'leerplicht', 'surfconext', 'hr', 'swv', 'ooapi-catalog', 'timetable-import'). 'swv' routes a zorgvraag/TLV-chain dossier (learning-plan's SupportRequest) to the regional samenwerkingsverband (openconnector#753). 'ooapi-catalog' syncs a published/archived Course, Programme, or Cohort to the OOAPI 5.0 course catalog hosted by opencatalogi, per the course-management publication contract (course → course, program → program, offering → offering; see openspec/changes/delegate-ooapi-to-opencatalogi/design.md). 'timetable-import' (direction:import) hands a generated-timetable pull to the OpenConnector Zermelo/Untis/Xedule source configuration; TimetableImportHandler resolves the response via the matching DataMappingProfile into idempotent Session upserts keyed by externalRef, then triggers TimetableConflictDetector's batch scan (timetabling-and-substitution). Scholiq implements no Edukoppeling/StUF/OSO-XML/Digikoppeling/SAML/OOAPI/Zermelo/Untis/Xedule wire code — all protocol logic lives in OpenConnector.",
+                        "description": "Named OpenConnector connection (e.g. 'bron-rod', 'oso', 'leerplicht', 'surfconext', 'hr', 'swv', 'ooapi-catalog', 'timetable-import', 'migration-import'). 'swv' routes a zorgvraag/TLV-chain dossier (learning-plan's SupportRequest) to the regional samenwerkingsverband (openconnector#753). 'ooapi-catalog' syncs a published/archived Course, Programme, or Cohort to the OOAPI 5.0 course catalog hosted by opencatalogi, per the course-management publication contract (course → course, program → program, offering → offering; see openspec/changes/delegate-ooapi-to-opencatalogi/design.md). 'timetable-import' (direction:import) hands a generated-timetable pull to the OpenConnector Zermelo/Untis/Xedule/TimeEdit source configuration; TimetableImportHandler resolves the response via the matching DataMappingProfile into idempotent Session upserts keyed by externalRef, then triggers TimetableConflictDetector's batch scan (timetabling-and-substitution). 'migration-import' (direction:import) hands a one-time ParnasSys/ESIS/Magister/SOMtoday SIS-migration pull to the OpenConnector source configuration; the matching DataMappingProfile resolves the incoming record onto LearnerProfile (data-mapping-profile-presets). Scholiq implements no Edukoppeling/StUF/OSO-XML/Digikoppeling/SAML/OOAPI/Zermelo/Untis/Xedule/TimeEdit wire code — all protocol logic lives in OpenConnector.",
                         "title": "OpenConnector Target"
                     },
                     "mappingProfileId": {
