@@ -29556,6 +29556,51 @@
         "courseId": "00000000-0000-4000-8000-000000000002",
         "lessonId": "00000000-0000-4000-8000-000000000002",
         "verified_actor_id": "Voorbeeld Verified Actor Id 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "sso-attribute-mapping",
+          "slug": "sso-attribute-mapping-ssoattributemapping-1-1"
+        },
+        "provider": "saml",
+        "externalAttribute": "Voorbeeld Externalattribute 1",
+        "learniqField": "eckId",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "externalValue": "Voorbeeld Externalvalue 1",
+        "roleValue": "Voorbeeld Rolevalue 1",
+        "active": true,
+        "lifecycle": "draft"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "sso-attribute-mapping",
+          "slug": "sso-attribute-mapping-ssoattributemapping-2-2"
+        },
+        "provider": "oidc",
+        "externalAttribute": "Voorbeeld Externalattribute 2",
+        "learniqField": "schoolId",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "externalValue": "Voorbeeld Externalvalue 2",
+        "roleValue": "Voorbeeld Rolevalue 2",
+        "active": true,
+        "lifecycle": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "sso-attribute-mapping",
+          "slug": "sso-attribute-mapping-ssoattributemapping-3-3"
+        },
+        "provider": "saml",
+        "externalAttribute": "Voorbeeld Externalattribute 3",
+        "learniqField": "givenName",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "externalValue": "Voorbeeld Externalvalue 3",
+        "roleValue": "Voorbeeld Rolevalue 3",
+        "active": true,
+        "lifecycle": "archived"
       }
     ]
   }
