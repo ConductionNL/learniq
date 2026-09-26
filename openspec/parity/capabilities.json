@@ -6406,21 +6406,29 @@
       "name": "Roll compliance status up from team to department to directorate.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
-      "learniq": "unknown",
+      "built": {
+        "state": "partial",
+        "evidence": "src/views/LearniqCompliance.vue:106",
+        "owner": "ConductionNL/openregister",
+        "reachedOn": "/enrolments (as manager); /compliance"
+      },
+      "provider": "openregister",
+      "providerHow": "OpenRegister's per-row rbac gives the manager their reports' enrolments; the roll-up itself is not built.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/course/classes/reportbuilder/datasource/participants.php:129 (joins the course completion entity) + public/reportbuilder/classes/local/entities/user.php:398 (department user field) + public/reportbuilder/classes/local/aggregation/percent.php; a custom report can group course completion by the flat user department field with a percent aggregation. There is no team, department, directorate hierarchy to roll up through and no compliance dashboard with upcoming deadlines or expired qualifications (that is Moodle Workplace, not the core tree). Custom reports are on by default, public/admin/settings/subsystems.php:65.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/OrgUnit/classes/Positions/Authorities/class.ilOrgUnitAuthority.php:31 (SCOPE_SUBSEQUENT_ORGUS, lang orgu scope_2 'Same and Subsequent Organisational Units') + components/ILIAS/MyStaff/classes/ListCourses/class.ilMStListCoursesTableGUI.php:152 (learning progress filter) and :186 (org unit filter) + components/ILIAS/MyStaff/classes/ListCourses/class.ilMStListCourses.php:219. A superior position with scope over subsequent org units sees every staff member below in the Staff > Course Memberships list with learning progress status and an org unit filter, and Staff > Certificates lists issued certificates. What is missing: no aggregate per department (no certification percentage, no counts of upcoming or expired qualifications), and the org unit filter matches one unit exactly, not its subtree.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: public/main/my_space/company_reports.php:10 (report for a student boss or admin: course, man hours, certificate, completed paths per user) + src/CoreBundle/Entity/UserRelUser.php:84-85 (HR manager and boss relations) + public/main/inc/lib/usermanager.lib.php:4633; a superior sees completion and certificates for the people assigned to them, and an HR manager for theirs. The boss relation is one level and there is no department or directorate hierarchy to aggregate through, and no compliance percentage or expiry dashboard per unit. Searched public/main for department, directorate: only course form fields.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/department-progress-22610943.html; Department Progress report \"contains data on the training of the departments\" with Trained percentage and Overdue counts, and \"the administrator will see the departments they manage and their sub-departments\". Certificates report (https://ispringhelpdocs.com/ispring-learn/certificates-62864346.html) shows Certified percent, Expiring and Expired and can be filtered \"by departments, groups, and courses\"."
       },
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "partial",
       "totara": "unknown",
       "chamilo": "partial",
-      "ispring-learn": "unknown",
+      "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail LMS tender 2026, requirement 84950/84951: compliance dashboard per department with certification percentage, upcoming deadlines and expired qualifications, aggregated to director level."
     },
     {
@@ -6429,21 +6437,29 @@
       "name": "Assign mandatory training automatically from job and role data in the HR system.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "lib/Settings/learniq_register.json:3331",
+        "owner": "ConductionNL/integriq",
+        "reachedOn": "nothing"
+      },
+      "provider": "integriq",
+      "providerHow": "An HR feed would come through integriq's data exchange, which connections.json marks unavailable; no assignment rule exists on the learniq side.",
+      "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/enrol/database/lib.php:325 sync_enrolments + public/enrol/database/settings.php:73 (remote enrolment table); an external database enrolment plugin can enrol people from a table the HR system fills, and enrol/ldap does the same from directory groups. Both are shipped but disabled by default (public/lib/db/install.php:121 enables only manual, guest, self, cohort). There is no rule that maps a job or role to mandatory training; the HR side must already compute the course list. No AFAS connector.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/StudyProgramme/classes/model/AutoMemberships/class.ilStudyProgrammeAutoMembershipSource.php:28-31 (sources role, grp, crs, orgu) + components/ILIAS/StudyProgramme/classes/class.ilObjStudyProgrammeAutoMembershipsGUI.php:38 (Membership Automation tab) + components/ILIAS/StudyProgramme/classes/class.ilStudyProgrammeAppEventListener.php:116-138 (assignUser and assignUserToPosition events trigger assignment) + components/ILIAS/soap/classes/class.ilSoapUserAdministration.php:138 (importUsers with role assignment). A study programme assigns and removes learners automatically when they get a role or an org unit position, so assignment follows role and job data inside ILIAS. The HR side is not linked: no HR connector ships, the role and position data has to arrive through LDAP/SAML/OIDC role mapping, SOAP or XML user import, or the org unit import.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: src/CoreBundle/Command/AzureSyncUsergroupsCommand.php:18 (app:azure-sync-usergroups copies Entra ID groups into classes) + public/main/inc/lib/usergroup.lib.php:1150 subscribe_courses_to_usergroup (members of a class are enrolled in its courses) + src/CoreBundle/Controller/Scim/UserCollectionController.php:23 (SCIM user provisioning) + public/main/admin/ldap_synchro.php; group membership coming from the identity system can drive course enrolment. Azure, SCIM and LDAP are all off by default (config/authentication.dist.yaml:61, :84, :132), the SCIM endpoint covers users only, and there is no rule that maps a job or role to mandatory training. No AFAS connector.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/automatic-assignment-of-standalone-content-items-128353502.html; \"any new employee in a group or department in the LMS will be automatically enrolled in a particular learning content item\". Job-title conditions are documented only for development plans (https://ispringhelpdocs.com/ispring-learn/conditions-154699382.html: \"You can choose a job title, department, department with subdepartments, or group\"). HR data arrives via Microsoft Entra ID user sync (https://ispringhelpdocs.com/ispring-learn/microsoft-entra-id-100866653.html) or BambooHR; no AFAS connector documented."
       },
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "partial",
       "totara": "unknown",
       "chamilo": "partial",
-      "ispring-learn": "unknown",
+      "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84953: automated link with AFAS, staff, function and role data used to assign and monitor learning and compliance obligations."
     },
     {
@@ -6452,21 +6468,29 @@
       "name": "Record an exemption from a mandatory training, with the reason.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
-      "learniq": "unknown",
+      "built": {
+        "state": "partial",
+        "evidence": "lib/Lifecycle/ExemptionDecisionGuard.php:47",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/exam-board/exemptions"
+      },
+      "provider": "self",
+      "providerHow": "learniq's ExemptionCase lifecycle and guard handle the school exemption; the compliance side has none.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/completion/criteria/completion_criteria_role.php:38 (course completion marked by a role) + public/completion/classes/external.php:149 override_activity_completion_status + public/grade/edit/tree/grade_form.php:88 (excluded grade); a teacher or manager can mark someone complete or exclude a grade, which stands in for an exemption. Searched public/ for exempt, exemption: only quiz access rule and data privacy strings. No exemption record and no reason field.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/StudyProgramme/classes/class.ilObjStudyProgrammeMembersGUI.php:45-46 and :971-974 (mark_relevant / unmark_relevant) + components/ILIAS/StudyProgramme/classes/model/Assignments/class.ilPRGProgress.php:405 (markNotRelevant) and :364 (markAccredited). A programme administrator can unmark a node as relevant for a member or mark it accredited, which exempts the person from that part. Missing: no reason field; markNotRelevant only stores date and acting user (searched StudyProgramme/classes/model/Assignments for reason and comment, no hits).",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: Searched translations/messages.pot and public/main, src for exempt, exemption, dispens: no hits. Nearest are src/CourseBundle/Entity/CAttendanceSheet.php:22 (absent but justified, for one attendance date) and the Justification plugin (public/plugin/Justification/README.md), where users upload proof documents with an expiry, Not installed on a fresh 3.0.1 install (a drive showed all 50 free plugins read Not installed). Neither records that a person is exempt from a mandatory training with a reason.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/editing-a-content-item-s-status-30409287.html; when a learner \"completed the content item as part of another course or taken it offline\", the admin can set Completed, Passed or Failed and must \"Specify the completion date and the reason for editing the status\". This is a reasoned manual completion, not a distinct exemption status; searched exempt, waive, excuse with no hits."
       },
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "partial",
       "totara": "unknown",
       "chamilo": "no",
-      "ispring-learn": "unknown",
+      "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84940: compliance processes with recertification, signals, and recording exceptions and exemptions."
     },
     {
@@ -6475,21 +6499,29 @@
       "name": "Bring existing certificates and their validity dates over from the old system.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
-      "learniq": "unknown",
+      "built": {
+        "state": "partial",
+        "evidence": "lib/Settings/learniq_register.json:445",
+        "owner": "ConductionNL/openregister",
+        "reachedOn": "/credentials (list import)"
+      },
+      "provider": "openregister",
+      "providerHow": "OpenRegister's generic object import on the index page carries the rows; learniq only supplies the schema with a migrated source value.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Searched public/admin/tool/uploaduser, uploadcourse and badges for timecompleted, dateissued, import: none take historic completions or awards. public/badges/classes/badge.php:441 sets the expiry from the moment of issue ($now), so a badge cannot be issued with an old start date. Nearest is course backup and restore with user data, Moodle to Moodle only. Marketplace plugins (tool_certificate, local_recompletion) are not shipped.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/StudyProgramme/classes/class.ilStudyProgrammeChangeExpireDateGUI.php:172-199 (changeExpireDate for selected progresses) + components/ILIAS/StudyProgramme/classes/class.ilObjStudyProgrammeMembersGUI.php:960 (mark_accredited) and :986 (change_expire_date). Only a manual workaround: an administrator marks members accredited and then sets a validity date for the selected rows, one date per batch. Searched components/ILIAS/soap/classes (no study programme or certificate write service) and components/ILIAS/Certificate/classes (import covers templates only, class.ilCertificateTemplateImportAction.php); there is no import of issued certificates with start and end dates.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: Searched translations/messages.pot for import with certificate: none; public/main/admin/user_import.php and course_user_import.php import users and enrolments only. Certificates are created by public/main/gradebook/lib/be/category.class.php:2137 generateUserCertificate at the moment the gradebook is met. The MigrationMoodle plugin (public/plugin/MigrationMoodle/plugin.php) migrates from a Moodle source only and is Not installed on a fresh 3.0.1 install (a drive showed all 50 free plugins read Not installed); it holds no certificate mapping.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-add-an-external-certificate-141561985.html; external certificates are added from the employee profile with issuer, number and \"Validity Period ... select the issue date, it can be in the past\" plus an expiration date. Entry is one certificate per profile; no bulk certificate import is documented (user import from Excel covers users only)."
       },
       "moodle": "no",
       "moodle-workplace": "unknown",
       "ilias": "partial",
       "totara": "unknown",
       "chamilo": "no",
-      "ispring-learn": "unknown",
+      "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84942: migrate mandatory certifications for at least 4000 staff with start and end dates from the previous system."
     },
     {
@@ -6498,14 +6530,22 @@
       "name": "Have an outside certifier update certificate status and evidence automatically.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "lib/Settings/connections.json:5",
+        "owner": "external",
+        "reachedOn": "nothing"
+      },
+      "provider": "external",
+      "providerHow": "It would need an outside certifier's API; learniq has no connector and integriq ships none.",
+      "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Searched lib/db/services.php for badge award or certificate write functions: badges only have read, enable, disable (public/lib/db/services.php:122-148); backpack integration (public/badges/backpacks.php) pushes badges out, not in. The nearest is the generic web service public/lib/db/services.php:483 core_completion_override_activity_completion_status, which a custom integration could call, but there is no certifier connector and no place to store the certifier's evidence.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/soap/classes/class.ilSoapLearningProgressAdministration.php:56,165,496 (deleteProgress, getProgressInfo, getLearningProgressChanges only). Searched components/ILIAS/soap/classes and components/ILIAS/Certificate/classes for a write of certificate or learning status from outside; the SOAP learning progress service reads or deletes progress but cannot set it, and certificates are only generated inside ILIAS. Nearest: an LTI consumer or cmi5/xAPI object receives a score from an external tool (components/ILIAS/LTIConsumer, components/ILIAS/CmiXapi), which is a learning activity result, not a certifier updating status and storing evidence.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: Searched src/ and public/main for certifier, certification provider, external certificate: none. The REST API (config/routes/api_platform.yaml:4) exposes no write endpoint for gradebook certificates, and public/plugin/ExternalNotificationConnect pushes notifications out. There is no inbound status update or evidence store for an outside certifier.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: not documented: searched the full iSpring LMS help space (946 pages via the Confluence API) for certifier, external certificate, issuer and integration pages; external certificates are entered by hand (https://ispringhelpdocs.com/ispring-learn/how-to-add-an-external-certificate-141561985.html) and no certifier feed is described."
       },
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -6521,21 +6561,29 @@
       "name": "Allow a test only within set times or with a password.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
-      "learniq": "unknown",
+      "built": {
+        "state": "partial",
+        "evidence": "lib/Settings/learniq_register.json:7956",
+        "owner": "ConductionNL/openregister",
+        "reachedOn": "/assessments/:id (settings form)"
+      },
+      "provider": "openregister",
+      "providerHow": "OpenRegister materialises isAvailable from the declared window; nothing in learniq enforces it on the take screen.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/quiz/mod_form.php:92 (open and close time) + :289 (require password) + :294 (subnet); enforced by public/mod/quiz/accessrule/openclosedate/rule.php:27 and public/mod/quiz/accessrule/password/rule.php:28. User and group overrides allow different windows per person.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Test/src/Settings/MainSettings/SettingsAccess.php:103 (tst_starting_time), :117 (tst_ending_time), :149-155 (tst_password), :207-215 (IP range) + components/ILIAS/Test/src/Presentation/class.TestScreenGUI.php:81 (ilTestPasswordChecker) and :248-258 (start blocked before starting time, after ending time). Confirmed on the lab drive: test settings show Starting Time, Finishing Time, Test Password and IP Range.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: public/main/exercise/exercise.class.php:2321 (activate start date check) + :2333 start_time picker, enforced in is_visible at :7052; a test can be limited to a start and end time. Searched public/main/exercise for password: no hits, so a test cannot require a password. Sessions add access dates around a whole course.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/enrollments-16187447.html; \"In the Parameters step, you can set up the learning start date and time, and specify the due date\", and \"you can select the Restrict access after due date option. In this case, learners won't be able to take the course after the due date expires.\" The window is set per enrollment; a quiz password is not documented (password hits are all sign-in pages)."
       },
       "moodle": "yes",
       "moodle-workplace": "unknown",
       "ilias": "yes",
       "totara": "unknown",
       "chamilo": "partial",
-      "ispring-learn": "unknown",
+      "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84943: a test can only be taken in specific time slots or under conditions such as a password."
     },
     {
@@ -6544,21 +6592,29 @@
       "name": "Let a line manager see each team member's test answers.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "lib/Settings/learniq_register.json:8202",
+        "owner": "ConductionNL/openregister",
+        "reachedOn": "nothing"
+      },
+      "provider": "openregister",
+      "providerHow": "OpenRegister's x-property-rbac decides who reads a result, and the declared rule excludes managers.",
+      "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/quiz/classes/quiz_attempt.php:593 is_review_allowed (needs mod/quiz:viewreports, limited to shared groups in separate groups mode) + public/mod/quiz/review.php:72; a line manager given a non-editing teacher role in the course, with the team as a group, sees each member's answers. There is no line-manager relation that grants this: the parent or mentor role in user context does not reach quiz review, and it must be set up course by course.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Test/classes/class.ilTestAccess.php:122-143 (checkParticipantsResultsAccess grants results to an org unit position holding OP_ACCESS_RESULTS) + components/ILIAS/Test/classes/class.ilTestParticipantAccessFilter.php:88 (the participant list is filtered to the staff the position covers) + components/ILIAS/Test/src/Participants/ParticipantTable.php:507-513; lang orgu org_op_access_results 'Access Results'. A superior whose org unit position has Access Results on the test sees the Results tab for the employees under them, down to each pass and answer. It needs position permissions activated for tests in Administration > Organisational Units, and the superior needs read on the test.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: public/main/exercise/exercise_show.php:48-50 (a student boss may open the attempt when UserManager::userIsBossOfStudent is true, public/main/inc/lib/usermanager.lib.php:5433) + :102-103 (HR manager and boss allowed) + public/main/my_space/myStudents.php:2202 (link to the attempt from the learner's report); the superior opens each team member's test attempt with the given answers.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/quiz-and-role-play-details-22611264.html; the report shows \"how a user replied to each question: the selected answer option, the number of points gained\". Supervisors get a My Team dashboard with progress only (https://ispringhelpdocs.com/ispring-learn/supervisor-dashboard-48332990.html); the detailed Answer Breakdown can be scheduled so \"supervisors and those responsible for training will automatically receive the report\" (https://ispringhelpdocs.com/ispring-learn/answer-breakdown-22612743.html)."
       },
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "yes",
       "totara": "unknown",
       "chamilo": "yes",
-      "ispring-learn": "unknown",
+      "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84945: test results down to detail level for the manager, including the individual answers per employee."
     },
     {
@@ -6567,21 +6623,29 @@
       "name": "Make a part of a learning path mandatory for one person and optional for another.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
-      "learniq": "unknown",
+      "built": {
+        "state": "partial",
+        "evidence": "lib/Settings/learniq_register.json:2414",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/enrolments (enrolment form); learner home widget"
+      },
+      "provider": "self",
+      "providerHow": "learniq's Enrolment schema carries the per-person flag; paths have no per-person layer.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/admin/tool/lp/editplan.php + public/competency/classes/api.php:2505 create_plan and :3353 add_competency_to_plan; each person can have an individual learning plan with its own set of competencies linked to courses. There is no learning path object with mandatory and optional parts, and course completion criteria are the same for everyone in the course. Programs are Moodle Workplace, not core.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/StudyProgramme/classes/class.ilObjStudyProgrammeIndividualPlanGUI.php:139 (manage) and :204-235 (updateStatus sets a node not relevant or relevant per assignment) and :262 (updateRequiredPoints per person). The individual plan of one member sets each part of the programme relevant or not relevant, and changes the points required, without touching other members, so a part is mandatory for one person and dropped for another. Org unit superiors can do this with the Edit Individual Plan position permission (lang orgu org_op_edit_individual_plan).",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: public/main/lp/lp_subscribe_users.php:75 (CLpRelUser repository) + src/CourseBundle/Entity/CLpRelUser.php + public/main/lp/lp_subscribe_users_to_category.php; a learning path or path category can be opened to named users only, so each person gets a different set of parts, and src/CoreBundle/Entity/Sequence.php adds prerequisites. There is no mandatory versus optional flag per part per person.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/learner-progress-17304145.html; reports separate \"mandatory content items that have been assigned by the administrator\" from items \"that the user added from the Catalog\", so the same item can be mandatory for one person and self-chosen for another. Within a learning track, required versus optional parts per person are not documented (https://ispringhelpdocs.com/ispring-learn/course-completion-order-17302424.html only covers required content order)."
       },
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "yes",
       "totara": "unknown",
       "chamilo": "partial",
-      "ispring-learn": "unknown",
+      "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84949: a learning path with mandatory and optional parts, set individually per employee."
     },
     {
@@ -6590,21 +6654,29 @@
       "name": "Feed learning and compliance data to a BI tool or data lake.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "lib/Settings/connections.json:5",
+        "owner": "ConductionNL/openregister",
+        "reachedOn": "web service only; list export"
+      },
+      "provider": "openregister",
+      "providerHow": "OpenRegister's object API and export serve the data; learniq adds no BI feed.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/db/services.php:3106 core_reportbuilder_retrieve_report (a BI tool can pull any custom report over REST) + public/admin/tool/log/store/database/settings.php:38 (log store that writes all events to an external database); both are shipped, web services and the database log store are off by default. Custom reports can also be scheduled as file exports. No ready-made Power BI or data lake connector.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/soap/classes/class.ilSoapLearningProgressAdministration.php:496 (getLearningProgressChanges since a timestamp) and :165 (getProgressInfo) + components/ILIAS/soap/classes/class.ilSoapTestAdministration.php:556 (getTestResults). A BI tool can pull learning progress changes and test results over the SOAP web service, and tables export to CSV/Excel. Missing: no push feed, no data lake or BI connector, no OData or reporting API; searched components/ILIAS for 'powerbi', 'odata', 'data lake' and only unrelated test fixtures match.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: config/routes/api_platform.yaml:4 (REST API under /api) + src/CoreBundle/Entity/TrackEExercise.php:29 and src/CoreBundle/Entity/CourseRelUser.php:32 (#[ApiResource]); test results and enrolments can be pulled as JSON, and public/main/my_space/index.php:19 exports reports to CSV. src/CoreBundle/Settings/WebServiceSettingsSchema.php:25 web services on by default. No ready-made BI or data lake push, and no API resource for gradebook certificates or course progress totals.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/rest-api-10684924.html; \"The REST API provides access to most iSpring LMS functions\"; webhooks send event notifications (https://ispringhelpdocs.com/ispring-learn/webhook-62863671.html); reports export to CSV and XLSX (https://ispringhelpdocs.com/ispring-learn/exporting-reports-to-csv-and-xlsx-22610922.html). No Power BI or data lake connector is documented."
       },
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "partial",
       "totara": "unknown",
       "chamilo": "partial",
-      "ispring-learn": "unknown",
+      "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84956: automated link with a data lake or BI solution such as Power BI."
     },
     {
@@ -6613,21 +6685,29 @@
       "name": "Offer an outside training provider's catalogue inside the platform.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "lib/Settings/connections.json:23",
+        "owner": "ConductionNL/integriq",
+        "reachedOn": "nothing"
+      },
+      "provider": "integriq",
+      "providerHow": "Launching outside courses would ride integriq's LTI adapter, which has no launch endpoint.",
+      "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/lti/contentitem.php + public/mod/lti/locallib.php:117 (LTI Deep Linking); a teacher adds an external tool and picks items from the provider's own catalogue into a course. Learners do not browse the provider's catalogue inside Moodle, and there is no catalogue import or content marketplace in core.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/RemoteCourse/classes/class.ilObjRemoteCourseGUI.php (ECS Course object, lang obj_rcrs 'ECS Course', rcrs_call 'Call ECS Course') + components/ILIAS/LTIConsumer (ILIAS as LTI Consumer, confirmed on the lab drive under Administration > LTI). Courses published by other institutions on an ECS (eCampus Server) network appear as ECS Course objects in the repository and link out to the provider, and single external tools embed through LTI. Missing: only providers that join an ECS network appear; no connector to a commercial provider catalogue.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: public/plugin/ImsLti/form.php (LTI tool with Content-Item selection) + src/LtiBundle/Controller/CourseController.php:131 (ContentItemSelectionRequest); a teacher can pick items from an outside provider's tool into a course. The LtiBundle routes are switched off in favour of the plugin (CourseController.php:33), and the ImsLti plugin is Not installed on a fresh 3.0.1 install (a drive showed all 50 free plugins read Not installed). Learners cannot browse an outside catalogue inside Chamilo.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/course-marketplaces-100862390.html; Services > Course Marketplaces offers Go1 (\"thousands of courses from over 250 providers\", https://ispringhelpdocs.com/ispring-learn/go1-92995627.html), LinkedIn Learning and Udemy, whose courses are added under Learning Content > Course Library > Course Marketplaces."
       },
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "partial",
       "totara": "unknown",
       "chamilo": "partial",
-      "ispring-learn": "unknown",
+      "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84955 and Grafisch Lyceum Rotterdam requirement 206638: external providers' courses offered inside the LMS."
     },
     {
@@ -6636,21 +6716,29 @@
       "name": "Sign in with SURFconext, Entree or your Microsoft account.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "appinfo/info.xml:28",
+        "owner": "nextcloud",
+        "reachedOn": "Nextcloud login page (with user_saml/user_oidc installed)"
+      },
+      "provider": "nextcloud",
+      "providerHow": "Nextcloud's user_saml or user_oidc app performs the SAML/OIDC login; learniq inherits the session.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/classes/oauth2/service/microsoft.php (Microsoft issuer template) + public/lib/classes/oauth2/service/custom.php + public/auth/oauth2/classes/auth.php:412 complete_login; Microsoft sign-in is a preset, SURFconext works as a custom OpenID Connect issuer, and public/auth/shibboleth/auth.php:207 covers SAML federations such as SURFconext or Entree via a Shibboleth service provider. Both auth plugins ship disabled by default (public/lib/db/install.php:120 default auth is email). No SAML plugin in core beyond Shibboleth; auth_saml2 is a marketplace plugin.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Saml/classes/class.ilSamlSettingsGUI.php:791 (new identity provider form, metadata import) and components/ILIAS/Saml/classes/class.ilAuthProviderSaml.php + components/ILIAS/OpenIdConnect/classes/class.ilAuthProviderOpenIdConnect.php:69-102 (OIDC authentication) + components/ILIAS/AuthShibboleth. SURFconext and Entree federate over SAML, Microsoft Entra ID over SAML or OpenID Connect, and ILIAS ships both as login providers configured under Administration > Authentication.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: config/authentication.dist.yaml:7 (generic OAuth2/OpenID Connect provider) + :60 (Azure) + src/CoreBundle/Controller/OAuth2/AzureProviderController.php + src/CoreBundle/Controller/OAuth2/GenericProviderController.php; Microsoft sign-in is a built-in provider and SURFconext works through the generic OpenID Connect provider. All are off by default and set in a config file. Searched src and config for saml: no SAML support, so Entree (SAML) is only reachable through a proxy.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/saml-2-0-authorization-17301854.html; \"iSpring LMS allows you to use SAML 2.0 to enable single sign-on\"; Microsoft sign-in via https://ispringhelpdocs.com/ispring-learn/how-to-configure-sso-with-ms-entra-id-48335034.html. SURFconext and Entree are not named; a generic SAML 2.0 IdP is supported, and \"Multiple standards do not work at the same time\" (https://ispringhelpdocs.com/ispring-learn/single-sign-on-17301851.html)."
       },
       "moodle": "yes",
       "moodle-workplace": "unknown",
       "ilias": "yes",
       "totara": "unknown",
       "chamilo": "yes",
-      "ispring-learn": "unknown",
+      "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). Grafisch Lyceum Rotterdam LMS tender 2026, requirement 206602: single sign-on based on Azure, SURFconext or Entree."
     },
     {
@@ -6659,14 +6747,22 @@
       "name": "Stop one person changing data that has already been approved.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
-      "learniq": "unknown",
+      "built": {
+        "state": "partial",
+        "evidence": "lib/Lifecycle/ReportPeriodLockGuard.php:6",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/report-periods, /report-cards, /grades/entries (lifecycle actions)"
+      },
+      "provider": "self",
+      "providerHow": "learniq's lifecycle guards enforce the lock; no dual control is built.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/grade/edit/tree/grade_form.php:99 (lock a grade) + public/lib/db/access.php:1799 moodle/grade:lock and :1808 moodle/grade:unlock; approved grades can be locked, and marking workflow gates release. Any single user holding grade:unlock can unlock and change it, so there is no second approver.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/IndividualAssessment/classes/Members/class.ilIndividualAssessmentMember.php:178 (isFinalized) + components/ILIAS/IndividualAssessment/classes/AccessControl/class.ilIndividualAssessmentAccessHandler.php:227 (amend_grading permission); lang iass_finalize_user_qst 'No changes possible thereafter' and iass_changed_by 'Changed after finalization'. A finalised individual assessment record is locked, and only a role holding the separate Amend Grading permission can change it, which is logged. Missing: no second approver, the same person can finalise alone, and other objects (test scoring, exercise marks) have no such lock.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: public/main/gradebook/index.php:60-67 (teacher locks an assessment; the message says only the platform administrator can unlock it) + :69-78 (unlock only when api_is_platform_admin); a teacher cannot change a locked grade alone. The administrator can still unlock and change it alone, and locking is off by default (src/CoreBundle/Settings/GradebookSettingsSchema.php:30).",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: not documented: searched four-eyes, approv, lock and dual approval across the 946-page help space; approvals exist only for catalog enrolment requests (https://ispringhelpdocs.com/ispring-learn/how-to-approve-a-request-48333685.html)."
       },
       "moodle": "partial",
       "moodle-workplace": "unknown",
@@ -6682,14 +6778,22 @@
       "name": "Send a learner to a different next step depending on how they did.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
-      "learniq": "unknown",
+      "built": {
+        "state": "partial",
+        "evidence": "lib/Service/LessonReleaseEvaluator.php:357",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/courses/:courseId/lessons/:lessonId/play"
+      },
+      "provider": "self",
+      "providerHow": "learniq's LessonReleaseEvaluator and LessonReleaseController decide release per learner at request time.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/lesson/pagetypes/multichoice.php:186 (jump depends on correct or wrong answer) + public/mod/lesson/locallib.php:2450 jumpto_is_correct; a lesson sends the learner to different pages per answer. Also public/availability/condition/grade/classes/condition.php:29 opens the next activity only when a grade range is reached.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Course/classes/Objectives/class.ilLOEditorGUI.php:391-394 (learning objectives with a placement test, 'Learning material is recommended on the basis of a participant's individual results') + components/ILIAS/Conditions/classes/class.ilConditionHandler.php:79-87 (preconditions passed, failed, result_range_percentage) and components/ILIAS/Conditions/classes/class.ilConditionHandlerGUI.php:191 + components/ILIAS/LearningModule/classes/class.ilObjContentObjectGUI.php:722 (Restrict Forward Navigation until page questions are answered correctly). A course in objective mode routes each learner to the material of the objectives they did not master, preconditions open a different next object depending on a pass, a fail or a score range, and a learning module holds the learner on a page until its questions are right.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: public/main/exercise/exercise_submit_modal.php:221-244 (adaptive destinations: next question or failure destination per answer) + public/main/exercise/answer.class.php:42 new_destination + src/CoreBundle/State/Exercise/ExerciseRuntimeResultProvider.php:264 (CQuizDestinationResult); in direct feedback mode a test sends the learner to another question, path or resource depending on the answer. Learning path prerequisites (src/CoreBundle/Entity/Sequence.php) gate the next step on a score.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: not documented for the LMS: searched branching and adaptive in the 946-page help space with no hits; course completion order offers only Free or Restricted sequence (https://ispringhelpdocs.com/ispring-learn/course-completion-order-17302424.html: \"They can proceed to the next required content item only after they complete the previous\"), which is not performance based."
       },
       "moodle": "yes",
       "moodle-workplace": "unknown",
@@ -6705,21 +6809,29 @@
       "name": "See a course exactly as a learner sees it.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
-      "learniq": "unknown",
+      "built": {
+        "state": "partial",
+        "evidence": "src/views/LessonComposer.vue:483",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/courses/:courseId/lessons/:lessonId/compose > Preview"
+      },
+      "provider": "self",
+      "providerHow": "learniq's own composer and player views.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/course/switchrole.php:58 role_switch (Switch role to Student) + public/course/loginas.php:43 (log in as a specific learner); the teacher sees the course with student rights, and an admin can see it exactly as one named learner.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Container/MemberView/class.ilMemberViewGUI.php:58 ('Show Member View' action) + components/ILIAS/Container/MemberView/class.ilMemberViewSettings.php:133 (activate for a ref id) and :173-177 (member view is always enabled). A course or group administrator switches the container into member view and browses it with learner rights until closing it.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: assets/vue/components/StudentViewButton.vue:5 (Switch to student view) + src/CoreBundle/Controller/PlatformConfigurationController.php:91 + src/CoreBundle/Controller/CourseController.php:260; the teacher toggles to the learner view of the course, on by default (src/CoreBundle/Settings/CourseSettingsSchema.php:87). Admins also have login as for one named learner.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/previewing-pages-10685026.html; \"Before publishing a page and assigning it to your students, you'd rather look at it from a user perspective. Click on the Preview tab\". This covers pages; a full view-as-learner of the portal is not documented."
       },
       "moodle": "yes",
       "moodle-workplace": "unknown",
       "ilias": "yes",
       "totara": "unknown",
       "chamilo": "yes",
-      "ispring-learn": "unknown",
+      "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206630: teachers view the material and learning environment from the student's perspective."
     },
     {
@@ -6728,21 +6840,29 @@
       "name": "Let learners join a work group themselves, up to a set size.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "lib/Settings/learniq_register.json:6339",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "nothing"
+      },
+      "provider": "self",
+      "providerHow": "Would be a learniq group schema and flow; not built.",
+      "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/group/group_form.php:68 (group enrolment key places a self-enrolling learner in that group) + public/mod/choice/mod_form.php:67 (choice with limited answers per option); self-enrolment into a group works without a size limit, and a capped choice can stand in for sign-up but does not create group membership. Searched group/ and enrol/self for selfselect, maxmembers, groupsize: nothing. Marketplace mod_groupselect adds it, not shipped.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Group/classes/class.ilObjGroupGUI.php:1511 (registration type direct join) and :1571 (limit members, registration_max_members) and :612 + components/ILIAS/Group/classes/class.ilGroupRegistrationGUI.php:136-189 (join form checks the member limit, offers the waiting list). A group inside a course with direct registration and a maximum member count lets learners join themselves until the group is full.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: public/main/group/settings.php:176-178 (learners may self-register in groups) + src/CourseBundle/Entity/CGroup.php:82 maxStudent + public/main/inc/lib/groupmanager.lib.php:1806 is_self_registration_allowed and :1907 (only while members are below the maximum) + public/main/group/group_space.php:86 (subscribe link).",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/adding-a-training-to-the-catalog-35652478.html; learners \"select the desired session with seats available\" and \"You can only register for a session that still has some seats available\"; capacity is set per training (https://ispringhelpdocs.com/ispring-learn/creating-a-training-17302014.html: \"Specify the maximum number of participants allowed\"). Self-joining work groups inside a course is not documented."
       },
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "yes",
       "totara": "unknown",
       "chamilo": "yes",
-      "ispring-learn": "unknown",
+      "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206634: students enrol themselves in work groups within a course, with a maximum group size."
     },
     {
@@ -6751,21 +6871,29 @@
       "name": "Limit which file types and how large a hand-in may be.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "src/manifest.d/learning.json:3260",
+        "owner": "nextcloud",
+        "reachedOn": "nothing"
+      },
+      "provider": "nextcloud",
+      "providerHow": "Only Nextcloud's server-wide upload limit applies; the shared dialog supports an accept list but learniq passes none.",
+      "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/assign/submission/file/locallib.php:72 (maximum submission size) and :73 (accepted file types); set per assignment on the assignment form under File submissions.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Exercise/Assignment/class.ilExAssignmentEditorGUI.php:517-520 (Limit Uploads, Max Number of Files) + components/ILIAS/FileServices/classes/class.ilObjFileServicesGUI.php:234-255 (site wide positive and negative suffix lists). The teacher can only limit the number of files per assignment. Allowed file types are a site wide list an administrator keeps, and upload size is the server wide limit. Searched components/ILIAS/Exercise (Assignment, Submission) for suffix, mime, accept and size settings: none per assignment.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: assets/vue/components/assignments/AssignmentsForm.vue:121 (allowed file types per assignment) + src/CourseBundle/Entity/CStudentPublication.php:240 extensions, shown and checked in assets/vue/views/assignments/AssignmentSubmit.vue:182 and enforced server side for the mobile API in src/CoreBundle/State/Mobile/MobileAssignmentSubmissionProcessor.php:180. Searched assignments form and CStudentPublication for size: no per-assignment size limit; only the platform upload limit and course quota apply.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/submitting-assignment-10683790.html; \"The file attached to the completed assignment shouldn't exceed 500 MB.\" This is a fixed platform limit; a teacher-set file type list or size limit per assignment is not documented (https://ispringhelpdocs.com/ispring-learn/adding-assignment-10683778.html)."
       },
       "moodle": "yes",
       "moodle-workplace": "unknown",
       "ilias": "partial",
       "totara": "unknown",
       "chamilo": "partial",
-      "ispring-learn": "unknown",
+      "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206632: the teacher sets which file formats may be handed in, with a size limit."
     },
     {
@@ -6774,21 +6902,29 @@
       "name": "Run a survey or course evaluation.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
-      "learniq": "unknown",
+      "built": {
+        "state": "partial",
+        "evidence": "lib/Lifecycle/CourseEvaluationEligibilityGuard.php:108",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/course-evaluation/campaigns (staff); no learner answer page"
+      },
+      "provider": "self",
+      "providerHow": "learniq's evaluation schemas and handlers; Nextcloud Forms is only linked, not integrated.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/feedback/lib.php:83 feedback_add_instance + public/mod/feedback/edit.php + public/mod/feedback/manage_templates.php (reusable question templates) + public/mod/feedback/analysis.php; the feedback activity builds surveys and course evaluations, anonymous or named, with saved templates.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Survey/classes/class.ilObjSurveyGUI.php + components/ILIAS/Survey/Execution/class.ilSurveyExecutionGUI.php:30 + components/ILIAS/Survey/Evaluation/class.ilSurveyEvaluationGUI.php:30 + components/ILIAS/Survey/Mode (Standard, Feedback360, SelfEvaluation, IndividualFeedback) + components/ILIAS/SurveyQuestionPool. Surveys are a repository object with shared question pools, anonymous or personalised runs, reminders (class.ilSurveyCronNotification.php) and evaluation views, so a course evaluation is a standard survey placed in the course.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: public/main/survey/create_new_survey.php:237 (anonymous option) + public/main/survey/survey.lib.php:190 store_survey + public/main/survey/reporting.php; the survey tool builds course evaluations and surveys with many question types, invitations and reports.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-create-surveys-in-ispring-lms-128352655.html; create non-graded online quizzes \"to collect their views and feedback\", e.g. Likert scale, as standalone items or inside courses; responses are analysed in Answer Breakdown (https://ispringhelpdocs.com/ispring-learn/answer-breakdown-22612743.html)."
       },
       "moodle": "yes",
       "moodle-workplace": "unknown",
       "ilias": "yes",
       "totara": "unknown",
       "chamilo": "yes",
-      "ispring-learn": "unknown",
+      "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206641: create, change and use surveys and evaluations in a standardised way."
     },
     {
@@ -6797,21 +6933,29 @@
       "name": "Use the platform from a mobile app as well as the browser.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "package.json:1",
+        "owner": "nextcloud",
+        "reachedOn": "any page in a mobile browser"
+      },
+      "provider": "nextcloud",
+      "providerHow": "Nextcloud's responsive web interface is the only mobile surface.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/admin/tool/mobile/settings.php:39-45 (mobile web service, on by default on https sites) + public/lib/db/services.php (moodle_mobile_app service); the official Moodle app connects to this service. The app itself is a separate free product.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/UI/src/templates/default/Layout/tpl.standardpage.html:6 (responsive viewport; the UI framework layout adapts to small screens). The browser part works on phones. The app part is missing from the core tree: searched components/ILIAS for 'pegasus' and lang/ilias_en.lang for 'mobile app' with no hits; the separately maintained ILIAS Pegasus app is not shipped with ILIAS.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: src/CoreBundle/ApiResource/Mobile/MobileAssignmentSubmission.php:28 and src/CoreBundle/ApiResource/Mobile/MobilePushInstallation.php:25 (API for a mobile client: messages, assignment hand-in, push) + assets/vue/App.vue:458 (service worker for the browser); the server side for an app exists and the web UI is responsive. The app itself is not in the tree, so whether a released app uses this API cannot be settled from code.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://www.ispring.com/features; \"The free iSpring LMS mobile app for iOS and Android lets learners study anytime, anywhere\", \"even offline\"; pricing page: \"All plans include ... Mobile apps with offline learning support\" (https://www.ispring.com/pricing)."
       },
       "moodle": "yes",
       "moodle-workplace": "unknown",
       "ilias": "partial",
       "totara": "unknown",
       "chamilo": "partial",
-      "ispring-learn": "unknown",
+      "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206604: the LMS is reachable from any browser and also through an app."
     },
     {
@@ -6820,21 +6964,29 @@
       "name": "Meet WCAG 2.1 AA and show the evidence on request.",
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
-      "learniq": "unknown",
+      "built": {
+        "state": "partial",
+        "evidence": "lib/Lifecycle/AccessibilityStatementPublishGuard.php:133",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/accessibility; /accessibility/limitations"
+      },
+      "provider": "self",
+      "providerHow": "learniq's accessibility statement schemas and guard, with the nextcloud-vue components carrying most of the markup.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/tests/behat/behat_accessibility.php:48 run_axe_validation_for_tags with wcag2aa, wcag21aa, wcag22aa tags at :248-250, used by 63 feature files; plus the shipped Brickfield accessibility toolkit (admin/tool/brickfield) that checks course content. The tree shows automated axe testing, not a conformance claim; the accessibility statement and VPAT live on moodle.org docs, outside the tree.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: docs/development/accessibility.md:14 (guidelines based on EN 301 549, which refers to WCAG 2.1 A and AA) + docs/development/accessibility-process.md:33,77-84 (regular accessibility test cases run by community testers in the beta phase) + components/ILIAS/Accessibility/classes/class.ilAccessibilityControlConceptGUI.php (Accessibility Control Concept page in the footer, confirmed on the lab drive). ILIAS targets WCAG 2.1 AA and gives the operator a place to publish an accessibility statement. Missing: no conformance report or audit result ships in the tree, so the evidence on request has to come from the operator's own audit; the code cannot settle whether every screen meets AA.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: not checked: conformance cannot be settled from code. The tree has src/CoreBundle/Settings/DisplaySettingsSchema.php:57 (font resize) and an orphan string 'Public pages compliance to WAI' in translations/messages.pot, but no automated accessibility test (searched tests/ for axe, wcag: none) and no conformance statement.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-suite/accessibility-wcag-compliance-and-section-508-59870426.html; \"iSpring Suite creates courses in accordance with Web Content Accessibility Guidelines (WCAG) 2.2\" and \"You can download the Accessibility Conformance Report\". This covers authored courses in the separate iSpring Suite; no conformance statement for the iSpring LMS portal was found (searched WCAG, accessib, VPAT in the LMS help space)."
       },
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "partial",
       "totara": "unknown",
       "chamilo": "unknown",
-      "ispring-learn": "unknown",
+      "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206617: WCAG 2.1 level AA for interface, navigation and content, demonstrated on request."
     },
     {
@@ -6843,21 +6995,29 @@
       "name": "Keep classes and enrolments in step with the student administration system.",
       "origin": "featureRequest",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-61534",
-      "learniq": "unknown",
+      "built": {
+        "state": "partial",
+        "evidence": "lib/Settings/learniq_register.json:15717",
+        "owner": "ConductionNL/integriq",
+        "reachedOn": "nothing"
+      },
+      "provider": "integriq",
+      "providerHow": "Imports are meant to run through integriq sources, which do not exist yet.",
+      "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/enrol/database/lib.php:325 sync_enrolments + public/enrol/flatfile/lib.php:145 + public/enrol/imsenterprise/lib.php:39 + public/admin/tool/uploadcourse; classes and enrolments can be kept in step from an external database, a file or an IMS Enterprise XML feed, all shipped but disabled by default. No OneRoster or other rostering standard.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/WebServices/ECS/classes/Course/class.ilECSCmsCourseCommandQueueHandler.php and class.ilECSCmsCourseMemberCommandQueueHandler.php (courses and memberships created from a campus management system over ECS) + class.ilECSCourseMemberAssignment.php:60 + components/ILIAS/soap/classes/class.ilSoapCourseAdministration.php:35 (addCourse) and :132 (assignCourseMember); lang ecs_campus_connect_title 'CampusConnect Mappings', ecs_cms_tree_synchronize. Courses and enrolments can follow a student administration system, but only one that publishes to an ECS server (CampusConnect, German university campus systems) or through a custom SOAP sync script. No OneRoster or Dutch school administration connector ships.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: public/main/admin/usergroup_user_import.php + public/main/admin/course_user_import.php + public/main/admin/index.php:181 (CSV imports of classes and enrolments) + src/CoreBundle/Command/AzureSyncUsergroupsCommand.php:18 + src/CoreBundle/Controller/Scim/UserCollectionController.php:23 (SCIM, users only); classes and enrolments can be imported or synced from a directory. No OneRoster or other rostering standard (searched src and public/main for oneroster), and public/main/cron/import_csv.php:4 says it is not updated for 2.x.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/microsoft-entra-id-100866653.html; Services > User Synchronization > Microsoft Entra ID can \"synchronize users from Microsoft Entra ID (Azure AD) with groups in iSpring LMS\". Syncing from a student administration system or OneRoster is not documented."
       },
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "partial",
       "totara": "unknown",
       "chamilo": "partial",
-      "ispring-learn": "unknown",
+      "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-61534 (New Feature, Open, 22 votes): \"Implement IMS Global standard OneRoster\"; core has CSV/external-database enrolment but no rostering standard, so partial"
     },
     {
@@ -6866,14 +7026,22 @@
       "name": "Let two markers mark the same hand-in and agree one final grade.",
       "origin": "changelog",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-86006",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "src/views/MarkSubmissionView.vue:1",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "nothing"
+      },
+      "provider": "self",
+      "providerHow": "Would be a learniq marking workflow; not built.",
+      "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/assign/mod_form.php:246-248 (number of markers, up to ASSIGN_MULTIMARKING_MAX_MARKERS) + :255-278 (final grade manual, highest or average) + public/mod/assign/batchsetallocatedmarkerform.php:63; new in 5.2. Needs marking workflow and allocation on and only works with simple direct grading, not rubrics (hidden at :250).",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Test/src/Scoring/Manual/ConsecutiveScoringMode.php:24-27 (scoring modes by participant or by question, one scorer per result) + components/ILIAS/Exercise/Assignment/class.ilExAssignmentEditorGUI.php (one mark per member or team). Searched lang/ilias_en.lang for corrector, second marker, marker, correction, and components/ILIAS/Test and components/ILIAS/Exercise for corrector and second_correction: nothing allocates two markers or reconciles two marks. Nearest: exercise peer feedback and the test 'Scored Participant' flag, neither of which is double marking.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: src/CourseBundle/Entity/CStudentPublication.php:204 holds one qualificator_id per hand-in, so one marker's grade is stored. Searched translations/messages.pot for corrector, second marker, moderation: only videoconference moderator strings. Nearest is peer assessment (src/CourseBundle/Entity/CPeerAssessment.php), learners marking each other, not two teachers agreeing a grade.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: not documented: https://ispringhelpdocs.com/ispring-learn/grading-assignment-10683802.html shows each instructor grades an attempt (\"OTHER UNGRADED to view the assignments that other instructors need to check\"); no double marking or grade agreement step is described."
       },
       "moodle": "yes",
       "moodle-workplace": "unknown",
@@ -6889,21 +7057,29 @@
       "name": "Let a learner retake a finished course while the earlier completion stays on record.",
       "origin": "featureRequest",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-35335",
-      "learniq": "unknown",
+      "built": {
+        "state": "partial",
+        "evidence": "lib/Settings/learniq_register.json:2502",
+        "owner": "ConductionNL/openregister",
+        "reachedOn": "/enrolments"
+      },
+      "provider": "openregister",
+      "providerHow": "OpenRegister aggregate-refs compute progress, scoped to learner and course rather than to the enrolment.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/moodlelib.php:5245 (course reset deletes all completion data) + public/lib/completionlib.php:902 delete_all_completion_data; retaking means resetting completion for the whole course, which removes the earlier record. Searched public/ for recomplet, completion_history, archive completion: none. Issued badges survive a reset, which is the nearest record. Marketplace local_recompletion adds it, not shipped.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/StudyProgramme/classes/class.ilPrgRestartAssignmentsCronJob.php:134-138 (a restart creates a new assignment and marks the old one restarted, the old one stays) + components/ILIAS/Certificate/classes/User/class.ilUserCertificateRepository.php:84 and :99 (a new certificate deactivates, not deletes, the previous one, which keeps its valid_until). For a study programme with 'Restart obligatory' each cycle is a new assignment and the earlier completion and certificate stay on record. Missing for a plain course: learners cannot retake a completed course with a fresh status; the only reset is the learning objectives 'Reset Test Results' (lang crs_loc_settings_reset_enable), which deletes the earlier results. Whether a restarted programme requires the underlying courses to be done again was not settled from the code.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: src/CoreBundle/Command/ReinscriptionCheckCommand.php:23 (re-enrols a learner who validated all gradebooks into a new session) + src/CoreBundle/Command/SessionRepetitionCommand.php:26 (duplicates a session when it ends) + public/main/session/session_edit.php:175-206 (validity in days, days before reinscription); the learner retakes in a new session and the earlier session with its certificate stays on record. Works for sessions only, and both settings are off by default (src/CoreBundle/Settings/SessionSettingsSchema.php:79-80) and need the cron commands.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/course-enrollment-history-22615014.html; \"iSpring LMS maintains a history of all enrollments, including those that were canceled. No matter how many times the course was reassigned to a user, the Enrollment History report records each time that it is taken.\""
       },
       "moodle": "no",
       "moodle-workplace": "unknown",
       "ilias": "partial",
       "totara": "unknown",
       "chamilo": "yes",
-      "ispring-learn": "unknown",
+      "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-35335 (New Feature, Open, 36 votes): \"it is often necessary for students to retake courses they have already completed once, either on a fixed schedule (e.g. every year) ... At the moment this is often handled by creating multiple copies of courses for each ye"
     },
     {
@@ -6912,14 +7088,22 @@
       "name": "Merge two accounts that belong to the same person, keeping the results of both.",
       "origin": "featureRequest",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-24443",
-      "learniq": "unknown",
+      "built": {
+        "state": "partial",
+        "evidence": "lib/Settings/learniq_register.json:4229",
+        "owner": "ConductionNL/openregister",
+        "reachedOn": "/learner-profiles/:id (lifecycle action)"
+      },
+      "provider": "openregister",
+      "providerHow": "OpenRegister's lifecycle engine performs the state change; no learniq code moves the records.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Searched public/ for mergeuser, merge_user, mergeaccount outside vendored libs and tests: no hits. Nearest is public/admin/user/user_bulk.php:1 (bulk delete, suspend, cohort add), which has no merge action. Marketplace tool_mergeusers adds it, not shipped.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: Searched lang/ilias_en.lang for merge (hits only in the language administration) and components/ILIAS/User plus components/ILIAS/soap for mergeUser and merge_user: no hits. Accounts can be edited, deactivated or deleted in Administration > User Management, but two accounts and their results cannot be combined.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: assets/vue/views/admin/AdminStatisticsView.vue:146 (duplicated users report by name, email or extra field) and :937 (Unify button) + src/CoreBundle/Service/AdminStatistics/AdminStatisticsMaintenanceActionService.php:114 + src/CoreBundle/Helpers/UserMergeHelper.php:129 mergeUsersBatch, :626-636 (moves tracking, attempts, exercises to the kept account); results of both accounts are kept on one, the merged account is deleted.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: not documented: searched merge across the 946-page help space; the only hit is merging table cells (https://ispringhelpdocs.com/ispring-learn/table-62854899.html)."
       },
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -6935,14 +7119,22 @@
       "name": "Reissue every certificate already handed out after the template changes, in one action.",
       "origin": "changelog",
       "originUrl": "https://docs.moodle.org/501/en/Moodle_Workplace_release_notes",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "lib/Listener/CredentialIssuanceHandler.php:121",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "nothing"
+      },
+      "provider": "self",
+      "providerHow": "Would be a learniq bulk action over issued credentials; not built.",
+      "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Core has no certificate module (searched for certif directories and reissue, regenerate in badges/: nothing). Badges lock once awarded, public/badges/classes/badge.php:464 sets BADGE_STATUS_ACTIVE_LOCKED, and there is no bulk reissue. mod_customcert and tool_certificate are marketplace or Workplace plugins.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Certificate/classes/User/class.ilUserCertificateRepository.php:84-101 (each issued certificate stores its own certificate_content and template_values at issue time). Searched lang/ilias_en.lang certificate module and components/ILIAS/Certificate for regenerate, reissue and re-issue: no hits. A changed template only applies to certificates issued afterwards; there is no action to rebuild the ones already handed out.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: public/main/gradebook/gradebook_display_certificate.php:197-210 (generate_all_certificates for every learner in the course) + public/main/gradebook/lib/be/category.class.php:2137 generateUserCertificate with skipGenerationIfExists false, which rebuilds existing certificates through public/main/inc/lib/certificate.lib.php (generate on construct) with the current template. Per course or session gradebook, not platform-wide in one action.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: not documented: https://ispringhelpdocs.com/ispring-learn/certificate-templates-10684377.html lets you edit a template (\"change the title or upload a new PDF file\") but does not say whether issued certificates are regenerated; searched reissue and regenerate with no hits."
       },
       "moodle": "no",
       "moodle-workplace": "unknown",
@@ -6958,21 +7150,29 @@
       "name": "Let a learner mark their own attendance by scanning a code or opening a link.",
       "origin": "changelog",
       "originUrl": "https://totara.help/docs/digital-self-attendance",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "lib/Settings/learniq_register.json:13551",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "nothing"
+      },
+      "provider": "self",
+      "providerHow": "Would be a learniq session check-in flow; not built.",
+      "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Core has no attendance activity (public/mod lists no attendance). Nearest is public/mod/bigbluebuttonbn/classes/logger.php:42 (online meeting joins logged, with completion by minutes attended), for online sessions only, and the module ships hidden (public/mod/bigbluebuttonbn/db/install.php:32). Marketplace mod_attendance adds QR self-marking, not shipped.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Session/classes/class.ilEventParticipants.php:85 (setParticipated is set by the tutor on the participants tab) + components/ILIAS/Session/classes/class.ilSessionParticipantsTableGUI.php:127. Searched components/ILIAS/Session for qrcode, qr_code, checkin and check_in (no hits) and the sess lang module for self attendance: 'Declare Participation' (sess_reg_direct) is registration before the event, not attendance. Attendance is only marked by the session administrator.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: src/CoreBundle/Controller/AttendanceController.php:421 generateQrCode (teacher shows a QR code to the sheet) + :666 validateSelf (learner marks own presence) + assets/vue/views/attendance/AttendanceSheetList.vue:36-39 (Generate QR code) and :763 saveStudentOwnAttendance; learners open the link or scan and mark themselves present, with a signature pad option. Needs the course setting student_validate_own_attendance, off by default (src/CoreBundle/State/CourseSettings/CourseSettingsManager.php:148).",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/recording-attendance-35665646.html; \"The attendance for Microsoft Teams and Zoom meetings are populated automatically\", while \"For any training sessions other than Microsoft Teams and Zoom, you will need to manually record attendance.\" No QR or link self check-in for in-person sessions."
       },
       "moodle": "no",
       "moodle-workplace": "unknown",
       "ilias": "no",
       "totara": "unknown",
       "chamilo": "yes",
-      "ispring-learn": "unknown",
+      "ispring-learn": "partial",
       "note": "Demand-signal row added 2026-09-26 (changelog). totara changelog: https://totara.com/articles/whats-new-totara-version-20/ (Totara 20): \"Learners can now mark their own attendance using a secure link or QR code, whether they attend in person or online.\""
     },
     {
@@ -6981,21 +7181,29 @@
       "name": "Record a learner as late or excused, not only present or absent.",
       "origin": "changelog",
       "originUrl": "https://github.com/chamilo/chamilo-lms/releases/tag/v2.0.0",
-      "learniq": "unknown",
+      "built": {
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json:13551",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/attendance/records; /attendance/excuses"
+      },
+      "provider": "self",
+      "providerHow": "learniq's AttendanceRecord and ExcuseRequest schemas on OpenRegister, with the excuse approval handler.",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Core has no attendance activity (public/mod has no attendance module; grep for attendance finds only BigBlueButton minutes-attended completion in public/mod/bigbluebuttonbn/lang/en/bigbluebuttonbn.php:56). Marketplace mod_attendance has late and excused statuses, not shipped.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Session/classes/class.ilSessionParticipantsTableGUI.php:127-131 (Attended and Excused columns) + components/ILIAS/Session/classes/class.ilEventParticipants.php:85 (setParticipated) and :105 (setExcused). A session records attended and excused per participant. Missing: no late mark; searched the sess lang module and components/ILIAS/Session for late, none. Excused is only shown when registration is enabled for the session.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: src/CourseBundle/Entity/CAttendanceSheet.php:18-22 (absent, present, late under 15 minutes, late over 15 minutes, absent but justified) + assets/vue/services/attendanceService.js:3-9 (states with scores) + assets/vue/views/attendance/AttendanceSheetList.vue:417; the teacher picks one of five states per learner per date.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/training-results-17302124.html; \"Select learners and click Record Attendance. Choose Attended or Did not attend and click Save.\" Status reference (https://ispringhelpdocs.com/ispring-learn/content-statuses-in-reports-10684550.html) lists only Not invited, Missed, Attended."
       },
       "moodle": "no",
       "moodle-workplace": "unknown",
       "ilias": "partial",
       "totara": "unknown",
       "chamilo": "yes",
-      "ispring-learn": "unknown",
+      "ispring-learn": "no",
       "note": "Demand-signal row added 2026-09-26 (changelog). chamilo changelog: https://github.com/chamilo/chamilo-lms/releases/tag/v2.0.0 (2026-04-14): \"Attendance: Add multi-level attendance grading (present, absent, late, very late, justified absence)\""
     },
     {
@@ -7004,14 +7212,22 @@
       "name": "Let a learner report bullying or harassment confidentially.",
       "origin": "roadmap",
       "originUrl": "https://github.com/chamilo/chamilo-lms/issues/8373",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "src/manifest.d/pupil-record.json:230",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "nothing"
+      },
+      "provider": "self",
+      "providerHow": "Would be a learniq reporting flow; the pupil dossier is staff-facing.",
+      "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Workaround only: public/mod/feedback/mod_form.php:64 (anonymous feedback) lets a school set up a standing anonymous form whose answers only teachers or managers see. Searched public/ for harass, bullying, report concern: none. There is no case record, no routing to a confidant and no follow-up, so a generic survey abused for this.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: Searched lang/ilias_en.lang for harass, bully, report abuse, whistle and confidential (only RSS visibility hints match). No reporting channel for a learner exists. Nearest: an anonymous survey (components/ILIAS/Survey) or mail to a tutor, neither of which is a confidential report routed to a designated person.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: Workaround only: public/main/ticket/new_ticket.php with public/main/ticket/categories_add_user.php routes a ticket in a chosen category to named staff only, and public/main/survey/create_new_survey.php:237 offers anonymous surveys. Learners may not open tickets by default (src/CoreBundle/Settings/TicketSettingsSchema.php:20), a ticket names the reporter, and a survey has no case follow-up. Searched translations/messages.pot for harass, bullying: none; the feature is on the 3.1 roadmap (issue 8373).",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: not documented: searched harassment, bullying, report a concern, whistleblow across the 946-page help space with no hits."
       },
       "moodle": "partial",
       "moodle-workplace": "unknown",
@@ -7027,14 +7243,22 @@
       "name": "Scan every uploaded file for viruses before anyone else opens it.",
       "origin": "roadmap",
       "originUrl": "https://github.com/chamilo/chamilo-lms/issues/3818",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "lib/Settings/learniq_register.json:6589",
+        "owner": "nextcloud",
+        "reachedOn": "any upload (with files_antivirus installed)"
+      },
+      "provider": "nextcloud",
+      "providerHow": "Nextcloud's files_antivirus app scans files on upload; learniq relies on it being installed.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/antivirus/clamav/classes/scanner.php:66 scan_file, called for every upload from public/repository/upload/lib.php:197, public/webservice/upload.php:102 and public/h5p/ajax.php:93; infected files are deleted. The ClamAV plugin ships disabled and needs clamd or the clamscan binary on the server.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Init/classes/class.ilInitialisation.php:324 (ilVirusScannerPreProcessor registered on every file upload) + components/ILIAS/VirusScanner/classes/class.ilVirusScannerFactory.php:27-34 (ClamAV, Sophos, AntiVir, ICAP) + components/ILIAS/VirusScanner/classes/Setup/class.ilVirusScannerSetupConfig.php:25-29. Every upload passes the configured scanner before it is stored. The scanner is chosen at setup and defaults to none.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: Searched src/, public/main and config/ for clamav, antivirus, virus: no hits. Nearest is src/CoreBundle/Settings/DocumentSettingsSchema.php:24-26 (extension blacklist or whitelist for uploads) and src/CoreBundle/Command/FileIntegrityScanCommand.php:30, which checks the installed code tree, not uploads. Roadmap issue 3818 targets 3.1.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: not documented: searched virus, antivirus and malware across the 946-page help space with no hits."
       },
       "moodle": "yes",
       "moodle-workplace": "unknown",
@@ -7050,14 +7274,22 @@
       "name": "Mark one open question for every learner in turn before moving to the next.",
       "origin": "changelog",
       "originUrl": "https://www.ilias.de/en/download-ilias/",
-      "learniq": "unknown",
+      "built": {
+        "state": "partial",
+        "evidence": "lib/Lifecycle/AssessmentGradeGuard.php:46",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "nothing"
+      },
+      "provider": "self",
+      "providerHow": "learniq's grade guard expects manual scores, but no learniq view writes them.",
+      "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/quiz/report/grading/report.php:25-28 (manual grading report) and :78 slot parameter; the teacher picks one question and grades every learner's answer to it in turn, then the next question.",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Test/src/Scoring/Manual/ConsecutiveScoringMode.php:24-27 (ORIENTATION_USER, ORIENTATION_QUESTION, all at once or one by one) + components/ILIAS/Test/src/Presentation/TabsManager.php:453-457 (Scoring tab opens ConsecutiveScoringGUI); lang tst_man_scoring_by_qst 'Scoring by Question'. The ILIAS 11 Scoring tab lets the scorer take one question across all participants before moving to the next.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: public/main/exercise/pending.php lists attempts to correct, and public/main/exercise/exercise_show.php:25 (takes one attempt id) corrects one attempt at a time, all questions of one learner. Searched translations/messages.pot for by question: only 'Detailed report by question' (statistics, public/main/exercise/question_stats.php), not a marking screen. No question-by-question marking.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: not documented: essay answers appear in the Quizzes, Surveys, Role-Plays report with an Answered column (https://ispringhelpdocs.com/ispring-learn/quizzes-surveys-role-plays-35666849.html); no question-by-question manual marking view is described."
       },
       "moodle": "yes",
       "moodle-workplace": "unknown",
@@ -7073,21 +7305,29 @@
       "name": "Let a learner browse a catalogue and sign up for a course or a whole track.",
       "origin": "changelog",
       "originUrl": "https://totara.com/articles/whats-new-totara-version-20/",
-      "learniq": "unknown",
+      "built": {
+        "state": "none",
+        "evidence": "lib/Settings/learniq_register.json:2427",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "nothing"
+      },
+      "provider": "self",
+      "providerHow": "Would be a learniq learner catalogue and enrol action; not built.",
+      "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/course/index.php:19 (course category catalogue) + public/enrol/self/lib.php:211 enrol_page_hook and :174 enrol_self + public/enrol/index.php:103; learners browse categories and sign up for a course themselves where self enrolment is on. There is no track or program to sign up for as a whole (programs and certifications are Moodle Workplace, not core).",
         "moodle-workplace": "not checked: the wave 5 new-row reader did not reach this row",
         "ilias": "source read at ILIAS-eLearning/ILIAS v11.4: components/ILIAS/Course/classes/class.ilObjCourseAccess.php:220-223 (join and leave waiting list commands in the repository list) + components/ILIAS/Course/classes/class.ilCourseRegistrationGUI.php:225 (direct registration) + components/ILIAS/LearningSequence/classes/class.ilObjLearningSequenceAccess.php:38-55 (learner view and unparticipate). Learners browse the repository categories, open a course or a learning sequence and join or withdraw themselves. Study programmes are the exception: they are assigned by administrators or automation, not joined from the catalogue.",
         "totara": "not checked: the wave 5 new-row reader did not reach this row",
         "chamilo": "source read at chamilo/chamilo-lms v3.0.1: assets/vue/router/catalogue.js:2 (/catalogue) + assets/vue/views/course/CatalogueCourses.vue:72 (subscribe to a course) + assets/vue/views/course/CatalogueSessions.vue:58 and assets/vue/components/session/CatalogueSessionCard.vue:136 subscribeToSession; learners browse courses and sessions (a session bundles several courses as a track) and sign up. Session self sign-up needs allow_session_auto_subscription, off by default (src/CoreBundle/Settings/CatalogSettingsSchema.php:31); course sign-up depends on each course's visibility.",
-        "ispring-learn": "not checked: the wave 5 new-row reader did not reach this row"
+        "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/course-catalog-in-the-user-portal-17301982.html; learners open the Course Catalog and \"click on Add to My Courses\"; learning tracks can be catalogued too (https://ispringhelpdocs.com/ispring-learn/adding-a-learning-track-to-catalog-100870315.html: \"Course Authors can add not only courses but also learning tracks to iSpring LMS Catalog\")."
       },
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "yes",
       "totara": "unknown",
       "chamilo": "yes",
-      "ispring-learn": "unknown",
+      "ispring-learn": "yes",
       "note": "Demand-signal row added 2026-09-26 (changelog). totara changelog: https://totara.com/articles/whats-new-totara-version-20/ (Totara 20): \"Learners can now enrol to (and withdraw from) programs and certifications\" by browsing the catalogue themselves. Same row as the moodle-workplace candidate, second source."
     }
   ],
