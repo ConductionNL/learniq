@@ -64,10 +64,15 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	private const DATA_EXCHANGE_JOB_SCHEMA = 'data-exchange-job';
 
 	/**
-	 * The transition name used by OR when a calculatedChange crossing fires.
-	 * OR emits ObjectTransitionedEvent with `to = 'threshold-crossed'` for this case.
+	 * The guarded manual transition action that records a real per-learner
+	 * crossing (attendance-threshold-calculation). Corrected from an earlier
+	 * `to = 'threshold-crossed'` state check: no such state (or any automatic
+	 * calculatedChange-to-transition bridge) exists in OpenRegister at HEAD —
+	 * `check-threshold` is a genuine `active` -> `active` self-loop, so the
+	 * transition's ACTION name is the only reliable discriminator, exactly
+	 * as `getTo()` would always read `active` for this transition.
 	 */
-	private const THRESHOLD_CROSSED_TO = 'threshold-crossed';
+	private const CHECK_THRESHOLD_ACTION = 'check-threshold';
 
 	/**
 	 * Constructor.
@@ -105,9 +110,10 @@ class AttendanceFlagCreationHandler implements IEventListener {
 			return;
 		}
 
-		// OR fires threshold-crossed as the `to` state when a calculatedChange
-		// notification with trigger.calculatedChange fires. Filter to this marker.
-		if ($event->getTo() !== self::THRESHOLD_CROSSED_TO) {
+		// The guarded manual check-threshold transition is the only path that
+		// can supply the per-learner crossing detail this handler needs (see
+		// AttendanceThresholdCrossingGuard and design.md Decision 2/3).
+		if ($event->getAction() !== self::CHECK_THRESHOLD_ACTION) {
 			return;
 		}
 
@@ -116,95 +122,115 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	}//end handle()
 
 	/**
-	 * Create the AttendanceFlag for the crossing.
+	 * Create the AttendanceFlag for the crossing. The check-threshold
+	 * transition's `inputs` are merged onto the object before this event
+	 * fires, so the per-learner crossing detail lives on the object itself
+	 * (see extractCrossingDetail()) — there is no separate event context.
 	 *
-	 * The event context contains the threshold object and, in the transition
-	 * context, the `learnerId` and window/metric values that triggered the cross.
-	 *
-	 * @param ObjectTransitionedEvent $event The threshold-crossed event.
+	 * @param ObjectTransitionedEvent $event The check-threshold transition event.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
+	 * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-records-a-real-per-learner-crossing-and-creates-an-attendanceflag
 	 */
 	private function createFlag(ObjectTransitionedEvent $event): void {
 		$threshold = $event->getObject()->jsonSerialize();
-		$thresholdId = $threshold['id'] ?? '';
-		if ($thresholdId === '') {
-			$thresholdId = $threshold['uuid'] ?? '';
-		}
+		$detail = $this->extractCrossingDetail(threshold: $threshold);
 
-		$cohortId = $threshold['cohortId'] ?? null;
-		$onCross = $threshold['onCross'] ?? [];
-
-		// The transition context carries the per-learner crossing details.
-		// getContext() is declared non-nullable, so no null-coalesce is needed.
-		$context = $event->getContext();
-		$learnerId = $context['learnerId'] ?? '';
-		if ($learnerId === '') {
-			$learnerId = $threshold['learnerId'] ?? '';
-		}
-
-		$defaultWindowStart = date('Y-m-d', strtotime('-4 weeks'));
-		$windowStart = $context['windowStart'] ?? $defaultWindowStart;
-		$windowEnd = $context['windowEnd'] ?? date('Y-m-d');
-
-		$metricValue = $context['metricValue'] ?? '';
-		if ($metricValue === '') {
-			$metricValue = $threshold['unexcusedLesuren'] ?? 0;
-		}
-
-		$breachingIds = $context['breachingRecordIds'] ?? [];
-		$tenantId = $threshold['tenant_id'] ?? '';
-
-		if ($learnerId === '' || $thresholdId === '') {
+		if ($detail['learnerId'] === '' || $detail['thresholdId'] === '') {
 			$this->logger->warning(
 				'[AttendanceFlagCreationHandler] Threshold {id}: crossing event missing learnerId — skipping.',
-				['id' => $thresholdId]
+				['id' => $detail['thresholdId']]
 			);
 			return;
 		}
 
 		$duplicate = $this->flagAlreadyExists(
-			learnerId: $learnerId,
-			thresholdId: $thresholdId,
-			windowStart: $windowStart
+			learnerId: $detail['learnerId'],
+			thresholdId: $detail['thresholdId'],
+			windowStart: $detail['windowStart']
 		);
 		if ($duplicate === true) {
 			return;
 		}
 
-		// Resolve mentor from LearnerProfile.managerId.
-		$mentorId = $this->resolveMentorId(learnerId: $learnerId);
+		$this->saveFlag(detail: $detail, onCross: $threshold['onCross'] ?? []);
+
+	}//end createFlag()
+
+	/**
+	 * Extract the per-learner crossing detail from a (possibly `checked*`-
+	 * input-merged) AttendanceThreshold payload.
+	 *
+	 * @param array<string,mixed> $threshold The AttendanceThreshold data after the transition.
+	 *
+	 * @return array{thresholdId:string,cohortId:mixed,learnerId:string,windowStart:string,windowEnd:string,metricValue:mixed,breachingIds:mixed,tenantId:string}
+	 */
+	private function extractCrossingDetail(array $threshold): array {
+		$thresholdId = $threshold['id'] ?? '';
+		if ($thresholdId === '') {
+			$thresholdId = $threshold['uuid'] ?? '';
+		}
+
+		$learnerId = $threshold['checkedLearnerId'] ?? '';
+		if ($learnerId === '') {
+			$learnerId = $threshold['learnerId'] ?? '';
+		}
+
+		$metricValue = $threshold['checkedMetricValue'] ?? '';
+		if ($metricValue === '') {
+			$metricValue = $threshold['unexcusedLesuren'] ?? 0;
+		}
+
+		return [
+			'thresholdId' => $thresholdId,
+			'cohortId' => $threshold['cohortId'] ?? null,
+			'learnerId' => $learnerId,
+			'windowStart' => $threshold['checkedWindowStart'] ?? date('Y-m-d', strtotime('-4 weeks')),
+			'windowEnd' => $threshold['checkedWindowEnd'] ?? date('Y-m-d'),
+			'metricValue' => $metricValue,
+			'breachingIds' => $threshold['checkedBreachingRecordIds'] ?? [],
+			'tenantId' => $threshold['tenant_id'] ?? '',
+		];
+
+	}//end extractCrossingDetail()
+
+	/**
+	 * Build and save the AttendanceFlag, queuing a DataExchangeJob first when
+	 * the threshold's onCross.dataExchangeTarget is set.
+	 *
+	 * @param array<string,mixed> $detail Crossing detail from extractCrossingDetail().
+	 * @param array<string,mixed> $onCross The threshold's onCross configuration.
+	 *
+	 * @return void
+	 */
+	private function saveFlag(array $detail, array $onCross): void {
+		$mentorId = $this->resolveMentorId(learnerId: $detail['learnerId']);
 
 		$dataExchangeTarget = $onCross['dataExchangeTarget'] ?? null;
-
-		// Queue a DataExchangeJob for the configured target (e.g. 'leerplicht')
-		// when the threshold's onCross.dataExchangeTarget is set. The job is created
-		// first so its UUID can be set on the flag's dataExchangeJobId field.
 		$dataExchangeJobId = null;
 		if ($dataExchangeTarget !== null && $dataExchangeTarget !== '') {
 			$dataExchangeJobId = $this->queueDataExchangeJob(
 				target: $dataExchangeTarget,
-				learnerId: $learnerId,
-				windowStart: $windowStart,
-				windowEnd: $windowEnd,
-				tenantId: $tenantId
+				learnerId: $detail['learnerId'],
+				windowStart: $detail['windowStart'],
+				windowEnd: $detail['windowEnd'],
+				tenantId: $detail['tenantId']
 			);
 		}
 
 		$flag = [
-			'learnerId' => $learnerId,
-			'attendanceThresholdId' => $thresholdId,
-			'cohortId' => $cohortId,
-			'windowStart' => $windowStart,
-			'windowEnd' => $windowEnd,
-			'metricValue' => (float)$metricValue,
-			'breachingRecordIds' => $breachingIds,
+			'learnerId' => $detail['learnerId'],
+			'attendanceThresholdId' => $detail['thresholdId'],
+			'cohortId' => $detail['cohortId'],
+			'windowStart' => $detail['windowStart'],
+			'windowEnd' => $detail['windowEnd'],
+			'metricValue' => (float)$detail['metricValue'],
+			'breachingRecordIds' => $detail['breachingIds'],
 			'dataExchangeJobId' => $dataExchangeJobId,
 			'mentorId' => $mentorId,
 			'lifecycle' => 'open',
-			'tenant_id' => $tenantId,
+			'tenant_id' => $detail['tenantId'],
 		];
 
 		$this->objectService->saveObject(
@@ -216,15 +242,15 @@ class AttendanceFlagCreationHandler implements IEventListener {
 		$this->logger->info(
 			'[AttendanceFlagCreationHandler] Created AttendanceFlag for learner {l}, threshold {t}, metric {m}, window {ws}–{we}.',
 			[
-				'l' => $learnerId,
-				't' => $thresholdId,
-				'm' => $metricValue,
-				'ws' => $windowStart,
-				'we' => $windowEnd,
+				'l' => $detail['learnerId'],
+				't' => $detail['thresholdId'],
+				'm' => $detail['metricValue'],
+				'ws' => $detail['windowStart'],
+				'we' => $detail['windowEnd'],
 			]
 		);
 
-	}//end createFlag()
+	}//end saveFlag()
 
 	/**
 	 * Idempotency check: whether an AttendanceFlag already exists for the same

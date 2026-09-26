@@ -1,5 +1,15 @@
 {
     "translations": {
+        "Last Checked Learner ID": "ID van laatst gecontroleerde leerling",
+        "Nextcloud user ID of the learner named in the most recent `check-threshold` transition. Transient — overwritten on every check. See attendance-threshold-calculation: OpenRegister's aggregation DSL cannot express a per-individual-learner figure on a shared threshold definition, so a caller (a manual admin/mentor action today; a future scheduled per-learner job is the natural long-term caller) supplies this value as a guarded transition input.": "Nextcloud-gebruikers-ID van de leerling die is opgegeven bij de meest recente `check-threshold`-overgang. Tijdelijk: wordt bij elke controle overschreven. Zie attendance-threshold-calculation: de aggregatietaal van OpenRegister kan geen waarde per individuele leerling uitdrukken op een gedeelde drempeldefinitie, dus een aanroeper (vandaag een handmatige actie van beheerder of mentor, op termijn een geplande taak per leerling) levert deze waarde aan als invoer bij een beveiligde overgang.",
+        "Last Checked Metric Value": "Laatst gecontroleerde meetwaarde",
+        "The externally-computed per-learner metric value (e.g. unexcused lesuren) submitted with the most recent `check-threshold` transition. Compared against `limit` by AttendanceThresholdCrossingGuard.": "De extern berekende meetwaarde per leerling (bijvoorbeeld ongeoorloofde lesuren), aangeleverd bij de meest recente `check-threshold`-overgang. Wordt door AttendanceThresholdCrossingGuard vergeleken met `limit`.",
+        "Last Checked Window Start": "Startdatum van laatst gecontroleerde periode",
+        "Start date of the measurement window for the most recent `check-threshold` transition.": "Startdatum van de meetperiode voor de meest recente `check-threshold`-overgang.",
+        "Last Checked Window End": "Einddatum van laatst gecontroleerde periode",
+        "End date of the measurement window for the most recent `check-threshold` transition.": "Einddatum van de meetperiode voor de meest recente `check-threshold`-overgang.",
+        "Last Checked Breaching Record IDs": "ID's van laatst gecontroleerde overschrijdende registraties",
+        "UUIDs of the AttendanceRecord rows that breach the threshold, submitted with the most recent `check-threshold` transition.": "UUID's van de AttendanceRecord-rijen die de drempel overschrijden, aangeleverd bij de meest recente `check-threshold`-overgang.",
         "Load example data?": "Voorbeeldgegevens laden?",
         "Example data fills the lists, detail pages and dashboards so you can see the app working straight away. Pick \"None\" on a production install.": "Voorbeeldgegevens vullen de lijsten, detailpagina’s en dashboards, zodat je de app meteen ziet werken. Kies \"Geen\" op een productieomgeving.",
         "Load the example data": "Laad de voorbeeldgegevens",
