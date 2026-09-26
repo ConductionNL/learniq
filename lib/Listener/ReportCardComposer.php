@@ -45,6 +45,9 @@
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-subject-with-no-matching-period-component-contributes-no-row-not-an-error
+ * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
+ * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
+ * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
  */
 
 declare(strict_types=1);
@@ -54,6 +57,7 @@ namespace OCA\Learniq\Listener;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\AttendanceWindowAggregator;
+use OCA\Learniq\Service\ReportCardTemplateSectionResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -85,6 +89,9 @@ class ReportCardComposer implements IEventListener {
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param AttendanceWindowAggregator $attendance Resolves window Sessions and aggregates attendance.
+	 * @param ReportCardTemplateSectionResolver $templateSections Resolves a template's declared
+	 *                                                            sections and gates population by
+	 *                                                            them (report-card-templates change).
 	 *
 	 * @return void
 	 */
@@ -93,6 +100,7 @@ class ReportCardComposer implements IEventListener {
 		private readonly ITimeFactory $timeFactory,
 		private readonly LoggerInterface $logger,
 		private readonly AttendanceWindowAggregator $attendance,
+		private readonly ReportCardTemplateSectionResolver $templateSections,
 	) {
 	}//end __construct()
 
@@ -154,7 +162,7 @@ class ReportCardComposer implements IEventListener {
 
 		$qualifyingPlanIds = $this->qualifyingCurriculumPlanIds(curriculumPlanIds: $curriculumPlanIds, periodCode: $periodCode);
 
-		[$learnerCohortMap, $learnerIds] = $this->resolveLearnersByCohort(cohortIds: $cohortIds);
+		[$learnerCohortMap, $learnerIds, $cohortTemplateMap] = $this->resolveLearnersByCohort(cohortIds: $cohortIds);
 
 		$sessionIds = [];
 		if ($attendanceIncluded === true) {
@@ -164,13 +172,21 @@ class ReportCardComposer implements IEventListener {
 		$createdCount = 0;
 
 		foreach ($learnerIds as $learnerId) {
-			$subjectGrades = $this->buildSubjectGrades(
-				learnerId: $learnerId,
-				curriculumPlanIds: $qualifyingPlanIds,
-				periodCode: $periodCode
-			);
+			$cohortId = $learnerCohortMap[$learnerId] ?? null;
+			$templateId = $cohortTemplateMap[$cohortId] ?? null;
+			$sectionKinds = $this->templateSections->resolveSectionKinds(rawTemplateId: $templateId);
+
+			$subjectGrades = [];
+			if ($this->templateSections->sectionEnabled(kind: 'grades', sectionKinds: $sectionKinds) === true) {
+				$subjectGrades = $this->buildSubjectGrades(
+					learnerId: $learnerId,
+					curriculumPlanIds: $qualifyingPlanIds,
+					periodCode: $periodCode
+				);
+			}
+
 			$attendanceSummary = null;
-			if ($attendanceIncluded === true) {
+			if ($this->templateSections->attendanceSectionEnabled(attendanceIncluded: $attendanceIncluded, sectionKinds: $sectionKinds) === true) {
 				$attendanceSummary = $this->attendance->buildAttendanceSummary(learnerId: $learnerId, sessionIds: $sessionIds);
 			}
 
@@ -178,7 +194,8 @@ class ReportCardComposer implements IEventListener {
 				'learnerId' => $learnerId,
 				'learnerRef' => $this->resolveLearnerRef(learnerId: $learnerId),
 				'reportPeriodId' => $periodId,
-				'cohortId' => $learnerCohortMap[$learnerId] ?? null,
+				'cohortId' => $cohortId,
+				'templateId' => $templateId,
 				'subjectGrades' => $subjectGrades,
 				'attendanceSummary' => $attendanceSummary,
 				'mentorComment' => null,
@@ -246,10 +263,15 @@ class ReportCardComposer implements IEventListener {
 
 		$qualifyingPlanIds = $this->qualifyingCurriculumPlanIds(curriculumPlanIds: $curriculumPlanIds, periodCode: $periodCode);
 
-		$subjectGrades = $this->buildSubjectGrades(learnerId: $learnerId, curriculumPlanIds: $qualifyingPlanIds, periodCode: $periodCode);
+		$sectionKinds = $this->templateSections->resolveSectionKinds(rawTemplateId: $card['templateId'] ?? null);
+
+		$subjectGrades = [];
+		if ($this->templateSections->sectionEnabled(kind: 'grades', sectionKinds: $sectionKinds) === true) {
+			$subjectGrades = $this->buildSubjectGrades(learnerId: $learnerId, curriculumPlanIds: $qualifyingPlanIds, periodCode: $periodCode);
+		}
 
 		$attendanceSummary = null;
-		if ($attendanceIncluded === true) {
+		if ($this->templateSections->attendanceSectionEnabled(attendanceIncluded: $attendanceIncluded, sectionKinds: $sectionKinds) === true) {
 			$cohortIds = $this->stringList(value: $periodData['cohortIds'] ?? []);
 			$sessionIds = $this->attendance->fetchWindowSessionIds(cohortIds: $cohortIds, startDate: $startDate, endDate: $endDate);
 			$attendanceSummary = $this->attendance->buildAttendanceSummary(learnerId: $learnerId, sessionIds: $sessionIds);
@@ -308,16 +330,21 @@ class ReportCardComposer implements IEventListener {
 	}//end qualifyingCurriculumPlanIds()
 
 	/**
-	 * Resolve every learner in `cohortIds[] -> Cohort.learnerIds`, and a
+	 * Resolve every learner in `cohortIds[] -> Cohort.learnerIds`, a
 	 * learnerId => cohortId map (first cohort a learner is found in wins,
-	 * denormalised onto the composed ReportCard).
+	 * denormalised onto the composed ReportCard), and a cohortId =>
+	 * reportCardTemplateId map (report-card-templates change) so the caller
+	 * can look up each learner's assigned template without a second Cohort
+	 * fetch.
 	 *
 	 * @param array<int,string> $cohortIds ReportPeriod.cohortIds.
 	 *
-	 * @return array{0:array<string,string>,1:array<int,string>} [learnerId => cohortId map, unique learnerIds list].
+	 * @return array{0:array<string,string>,1:array<int,string>,2:array<string,string|null>}
+	 *         [learnerId => cohortId map, unique learnerIds list, cohortId => reportCardTemplateId map].
 	 */
 	private function resolveLearnersByCohort(array $cohortIds): array {
 		$learnerCohortMap = [];
+		$cohortTemplateMap = [];
 
 		foreach ($cohortIds as $cohortId) {
 			$cohort = $this->objectService->find(id: $cohortId, register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA);
@@ -328,6 +355,8 @@ class ReportCardComposer implements IEventListener {
 			$cohortData = $this->normalise(row: $cohort);
 			$learnerIds = $this->stringList(value: $cohortData['learnerIds'] ?? []);
 
+			$cohortTemplateMap[$cohortId] = $cohortData['reportCardTemplateId'] ?? null;
+
 			foreach ($learnerIds as $learnerId) {
 				if (isset($learnerCohortMap[$learnerId]) === false) {
 					$learnerCohortMap[$learnerId] = $cohortId;
@@ -335,7 +364,7 @@ class ReportCardComposer implements IEventListener {
 			}
 		}//end foreach
 
-		return [$learnerCohortMap, array_keys($learnerCohortMap)];
+		return [$learnerCohortMap, array_keys($learnerCohortMap), $cohortTemplateMap];
 	}//end resolveLearnersByCohort()
 
 	/**

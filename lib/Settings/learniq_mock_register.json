@@ -23531,7 +23531,8 @@
           "Voorbeeld Learnerids 1"
         ],
         "ncGroupId": "Voorbeeld Ncgroupid 1",
-        "lifecycle": "planned"
+        "lifecycle": "planned",
+        "reportCardTemplateId": "00000000-0000-4000-8000-0000000000f1"
       },
       {
         "@self": {
@@ -28417,7 +28418,8 @@
         "docudeskRequestedAt": "2026-03-01T09:00:00+00:00",
         "docudeskDocumentRef": "Voorbeeld Docudeskdocumentref 1",
         "docudeskRenderError": "Voorbeeld Docudeskrendererror 1",
-        "lifecycle": "draft"
+        "lifecycle": "draft",
+        "templateId": "00000000-0000-4000-8000-0000000000f1"
       },
       {
         "@self": {
@@ -29556,6 +29558,104 @@
         "courseId": "00000000-0000-4000-8000-000000000002",
         "lessonId": "00000000-0000-4000-8000-000000000002",
         "verified_actor_id": "Voorbeeld Verified Actor Id 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "ReportCardTemplate",
+          "slug": "reportcardtemplate-basisschool-huisstijl-1"
+        },
+        "name": "Basisschool huisstijl rapport",
+        "slug": "huisstijl-groep-6",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "description": "Standaardsjabloon in de huisstijl van de school, met een trapjesschaal en een sectie waarin de leerling zelf iets vertelt.",
+        "sections": [
+          {
+            "kind": "grades",
+            "label": "Cijfers",
+            "order": 1,
+            "scale": "steps"
+          },
+          {
+            "kind": "narrative",
+            "label": "Verhaal van de leerkracht",
+            "order": 2,
+            "scale": "text"
+          },
+          {
+            "kind": "pupil-voice",
+            "label": "Dit vertel ik zelf",
+            "order": 3,
+            "scale": "text"
+          }
+        ],
+        "testKindSectionMap": [
+          {
+            "testKind": "cito-rekenen-groep-6",
+            "sectionKind": "lvs-results"
+          }
+        ],
+        "lifecycle": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "ReportCardTemplate",
+          "slug": "reportcardtemplate-vo-cijferlijst-2"
+        },
+        "name": "VO cijferlijst",
+        "slug": "vo-cijferlijst",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "description": "Compacte cijferlijst voor voortgezet onderwijs: cijfers en aanwezigheid, geen verhalend gedeelte.",
+        "sections": [
+          {
+            "kind": "grades",
+            "label": "Cijfers",
+            "order": 1,
+            "scale": "grades-1-10"
+          },
+          {
+            "kind": "attendance",
+            "label": "Aanwezigheid",
+            "order": 2,
+            "scale": "text"
+          }
+        ],
+        "testKindSectionMap": [],
+        "lifecycle": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "ReportCardTemplate",
+          "slug": "reportcardtemplate-kleuterrapport-3"
+        },
+        "name": "Kleuterrapport groep 1-2",
+        "slug": "kleuterrapport-groep-1-2",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "description": "Rapport voor de kleutergroepen: sociaal-emotionele ontwikkeling met smileys, een verhalend gedeelte en een portfolio-sectie. Nog niet actief.",
+        "sections": [
+          {
+            "kind": "social-emotional",
+            "label": "Sociaal-emotionele ontwikkeling",
+            "order": 1,
+            "scale": "smileys"
+          },
+          {
+            "kind": "narrative",
+            "label": "Verhaal van de leerkracht",
+            "order": 2,
+            "scale": "text"
+          },
+          {
+            "kind": "portfolio",
+            "label": "Werk van dit kind",
+            "order": 3,
+            "scale": "text"
+          }
+        ],
+        "testKindSectionMap": [],
+        "lifecycle": "archived"
       }
     ]
   }
