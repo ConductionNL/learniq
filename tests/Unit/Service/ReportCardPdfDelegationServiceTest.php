@@ -43,6 +43,7 @@ use OCP\IAppConfig;
 use OCP\IURLGenerator;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use RuntimeException;
 
 /**
  * Tests for ReportCardPdfDelegationService::check().
@@ -374,4 +375,138 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 		self::assertSame('report-card', $capturedOptions['json']['templateSlug']);
 
 	}//end testRenderSendsDefaultSlugWithoutTemplate()
+
+	/**
+	 * A ReportCard whose `templateId` does not resolve to any
+	 * ReportCardTemplate (deleted, or never existed) falls back to the
+	 * default `templateSlug`, not an error (report-card-templates change).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
+	 */
+	public function testFallsBackToDefaultSlugWhenTemplateNotFound(): void {
+		// 'template-missing' is deliberately absent from $this->templates.
+		$this->appConfig->method('getValueString')->willReturn('token-abc');
+
+		$response = $this->createMock(IResponse::class);
+		$response->method('getBody')->willReturn(json_encode(['documentRef' => 'doc-uuid-4']));
+
+		$capturedOptions = null;
+		$client = $this->createMock(IClient::class);
+		$client->method('post')->willReturnCallback(
+			function (string $url, array $options) use (&$capturedOptions, $response): IResponse {
+				$capturedOptions = $options;
+				return $response;
+			}
+		);
+		$this->clientService->method('newClient')->willReturn($client);
+
+		$context = [
+			'object' => [
+				'id' => 'card-7',
+				'templateId' => 'template-missing',
+				'subjectGrades' => [],
+				'mentorComment' => null,
+			],
+			'transition' => 'renderToPdf',
+			'from' => 'finalised',
+			'to' => 'finalised',
+		];
+
+		$result = $this->service()->check($context);
+
+		self::assertTrue($result);
+		self::assertSame('report-card', $capturedOptions['json']['templateSlug']);
+
+	}//end testFallsBackToDefaultSlugWhenTemplateNotFound()
+
+	/**
+	 * A resolved ReportCardTemplate with no (or an empty) `slug` falls back
+	 * to the default `templateSlug` rather than sending an empty string
+	 * (report-card-templates change).
+	 *
+	 * @return void
+	 */
+	public function testFallsBackToDefaultSlugWhenTemplateHasNoSlug(): void {
+		$this->templates['template-no-slug'] = ['id' => 'template-no-slug'];
+		$this->appConfig->method('getValueString')->willReturn('token-abc');
+
+		$response = $this->createMock(IResponse::class);
+		$response->method('getBody')->willReturn(json_encode(['documentRef' => 'doc-uuid-5']));
+
+		$capturedOptions = null;
+		$client = $this->createMock(IClient::class);
+		$client->method('post')->willReturnCallback(
+			function (string $url, array $options) use (&$capturedOptions, $response): IResponse {
+				$capturedOptions = $options;
+				return $response;
+			}
+		);
+		$this->clientService->method('newClient')->willReturn($client);
+
+		$context = [
+			'object' => [
+				'id' => 'card-8',
+				'templateId' => 'template-no-slug',
+				'subjectGrades' => [],
+				'mentorComment' => null,
+			],
+			'transition' => 'renderToPdf',
+			'from' => 'finalised',
+			'to' => 'finalised',
+		];
+
+		$result = $this->service()->check($context);
+
+		self::assertTrue($result);
+		self::assertSame('report-card', $capturedOptions['json']['templateSlug']);
+
+	}//end testFallsBackToDefaultSlugWhenTemplateHasNoSlug()
+
+	/**
+	 * A thrown exception while resolving the ReportCardTemplate is caught
+	 * and falls back to the default `templateSlug` — the docudesk render
+	 * still proceeds, mirroring this service's overall fail-soft contract
+	 * (report-card-templates change).
+	 *
+	 * @return void
+	 */
+	public function testFallsBackToDefaultSlugWhenTemplateLookupThrows(): void {
+		$this->objectService = $this->createMock(ObjectService::class);
+		$this->objectService->method('find')->willThrowException(new RuntimeException('object store unavailable'));
+
+		$this->appConfig->method('getValueString')->willReturn('token-abc');
+
+		$response = $this->createMock(IResponse::class);
+		$response->method('getBody')->willReturn(json_encode(['documentRef' => 'doc-uuid-6']));
+
+		$capturedOptions = null;
+		$client = $this->createMock(IClient::class);
+		$client->method('post')->willReturnCallback(
+			function (string $url, array $options) use (&$capturedOptions, $response): IResponse {
+				$capturedOptions = $options;
+				return $response;
+			}
+		);
+		$this->clientService->method('newClient')->willReturn($client);
+
+		$context = [
+			'object' => [
+				'id' => 'card-9',
+				'templateId' => 'template-throws',
+				'subjectGrades' => [],
+				'mentorComment' => null,
+			],
+			'transition' => 'renderToPdf',
+			'from' => 'finalised',
+			'to' => 'finalised',
+		];
+
+		$result = $this->service()->check($context);
+
+		self::assertTrue($result);
+		self::assertSame('report-card', $capturedOptions['json']['templateSlug']);
+
+	}//end testFallsBackToDefaultSlugWhenTemplateLookupThrows()
 }//end class

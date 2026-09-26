@@ -73,6 +73,25 @@ class ReportCardTemplateSectionResolverTest extends TestCase {
 	}//end testUnresolvableTemplateFallsBackToNull()
 
 	/**
+	 * A resolvable template whose `sections` value is not an array (a
+	 * malformed row) falls back to null, the same as an unresolvable
+	 * template — never a TypeError.
+	 *
+	 * @return void
+	 */
+	public function testNonArraySectionsFallsBackToNull(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturn(
+			OrEntityFactory::make(['id' => 'template-2', 'sections' => 'not-an-array'], 'report-card-template')
+		);
+
+		$resolver = new ReportCardTemplateSectionResolver($objectService, new NullLogger());
+
+		self::assertNull($resolver->resolveSectionKinds(rawTemplateId: 'template-2'));
+
+	}//end testNonArraySectionsFallsBackToNull()
+
+	/**
 	 * A resolvable template's declared section kinds are extracted, in
 	 * declaration order, ignoring malformed entries.
 	 *

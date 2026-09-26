@@ -439,6 +439,158 @@ class ReportCardComposerTest extends TestCase {
 	}//end testRecomposeOverwritesExistingCardInPlace()
 
 	/**
+	 * Recomposing a card that carries a `templateId` limits population to
+	 * exactly the sections the template declares — the same gating
+	 * `composeForPeriod()` applies, exercised on the `recomposeCard()` path
+	 * (report-card-templates change).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
+	 */
+	public function testRecomposeWithTemplateLimitsPopulatedSections(): void {
+		$composer = $this->makeTemplateAwareRecomposer();
+
+		$card = [
+			'id' => 'card-existing-2',
+			'learnerId' => 'learner-1',
+			'reportPeriodId' => 'period-1',
+			'templateId' => 'template-1',
+			'lifecycle' => 'draft',
+			'subjectGrades' => [],
+			'attendanceSummary' => null,
+		];
+
+		$composer->handle($this->makeEvent($card, 'report-card', 'recompose', 'draft'));
+
+		$cardSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'report-card'));
+		self::assertCount(1, $cardSaves);
+		self::assertSame('card-existing-2', $cardSaves[0]['object']['id']);
+		// The template declares only 'narrative' — 'grades' and 'attendance' stay empty on recompose too.
+		self::assertSame([], $cardSaves[0]['object']['subjectGrades']);
+		self::assertNull($cardSaves[0]['object']['attendanceSummary']);
+
+	}//end testRecomposeWithTemplateLimitsPopulatedSections()
+
+	/**
+	 * Build a composer whose `find()`/`findAll()`/`saveObject()` resolve a
+	 * governing ReportPeriod (`attendanceIncluded: true`), a Cohort's
+	 * curriculum plan, a `report-card-template` named `template-1`
+	 * (declaring only the `narrative` section), and an attendance window —
+	 * everything {@see self::testRecomposeWithTemplateLimitsPopulatedSections()}
+	 * needs, extracted so that test method stays a plain arrange/act/assert.
+	 *
+	 * @return ReportCardComposer
+	 */
+	private function makeTemplateAwareRecomposer(): ReportCardComposer {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('find')->willReturnCallback([$this, 'resolveTemplateAwareFixture']);
+		$objectService->method('findAll')->willReturnCallback([$this, 'resolveTemplateAwareFindAllFixture']);
+		$objectService->method('saveObject')->willReturnCallback(
+			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+				$data = $object;
+				if ($object instanceof ObjectEntity) {
+					$data = $object->jsonSerialize();
+				}
+
+				$this->savedObjects[] = [
+					'register' => (string)$register,
+					'schema' => (string)$schema,
+					'object' => $data,
+				];
+				return OrEntityFactory::make($data, (string)$schema, (string)$register);
+			}
+		);
+
+		$timeFactory = $this->createMock(ITimeFactory::class);
+		$timeFactory->method('getDateTime')->willReturn(new DateTime('2026-07-13T09:00:00+00:00'));
+
+		return new ReportCardComposer(
+			$objectService,
+			$timeFactory,
+			new NullLogger(),
+			new AttendanceWindowAggregator($objectService),
+			new ReportCardTemplateSectionResolver($objectService, new NullLogger())
+		);
+
+	}//end makeTemplateAwareRecomposer()
+
+	/**
+	 * `find()` fixture for {@see self::makeTemplateAwareRecomposer()}.
+	 *
+	 * @param int|string $id Object id.
+	 * @param array<string,mixed>|null $_extend Unused extend list.
+	 * @param bool $files Unused files flag.
+	 * @param mixed $register Unused register.
+	 * @param mixed $schema Schema being resolved.
+	 *
+	 * @return ObjectEntity|null
+	 */
+	public function resolveTemplateAwareFixture(int|string $id, ?array $_extend, bool $files, $register, $schema): ?ObjectEntity {
+		if ($schema === 'curriculum-plan') {
+			return OrEntityFactory::make(
+				['id' => 'plan-bio', 'components' => [['componentId' => 'c1', 'period' => '1', 'weight' => 1, 'kind' => 'assessment']]],
+				'curriculum-plan'
+			);
+		}
+
+		if ($schema === 'report-period') {
+			return OrEntityFactory::make(
+				[
+					'id' => 'period-1',
+					'periodCode' => '1',
+					'curriculumPlanIds' => ['plan-bio'],
+					'cohortIds' => ['cohort-a'],
+					'attendanceIncluded' => true,
+					'startDate' => '2026-01-01',
+					'endDate' => '2026-01-31',
+				],
+				'report-period'
+			);
+		}
+
+		if ($schema === 'report-card-template' && $id === 'template-1') {
+			return OrEntityFactory::make(
+				[
+					'id' => 'template-1',
+					'slug' => 'narrative-only',
+					'sections' => [['kind' => 'narrative', 'order' => 1, 'scale' => 'text']],
+				],
+				'report-card-template'
+			);
+		}
+
+		return null;
+	}//end resolveTemplateAwareFixture()
+
+	/**
+	 * `findAll()` fixture for {@see self::makeTemplateAwareRecomposer()}.
+	 *
+	 * @param array<string,mixed> $config Query config, keyed by 'schema'/'filters'.
+	 *
+	 * @return array<int,mixed>
+	 */
+	public function resolveTemplateAwareFindAllFixture(array $config): array {
+		if ($config['schema'] === 'final-grade') {
+			return [['learnerId' => 'learner-1', 'curriculumPlanId' => 'plan-bio', 'passed' => true, 'breakdown' => ['periods' => ['1' => 9.0]]]];
+		}
+
+		if ($config['schema'] === 'grade-entry') {
+			return [['id' => 'entry-9']];
+		}
+
+		if ($config['schema'] === 'session') {
+			return [['id' => 'session-1', 'cohortId' => 'cohort-a']];
+		}
+
+		if ($config['schema'] === 'attendance-record') {
+			return [['learnerId' => 'learner-1', 'sessionId' => 'session-1', 'status' => 'present']];
+		}
+
+		return [];
+	}//end resolveTemplateAwareFindAllFixture()
+
+	/**
 	 * A Cohort with no `reportCardTemplateId` composes exactly the
 	 * pre-existing fixed shape (report-card-templates change: fallback
 	 * path) — `templateId` is null and every field composes unchanged.
