@@ -29556,6 +29556,84 @@
         "courseId": "00000000-0000-4000-8000-000000000002",
         "lessonId": "00000000-0000-4000-8000-000000000002",
         "verified_actor_id": "Voorbeeld Verified Actor Id 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "school",
+          "slug": "school-voorbeeld-name-1-1"
+        },
+        "brin": "01AB",
+        "name": "Voorbeeld Name 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "pedagogicalConcept": "regular"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "school",
+          "slug": "school-voorbeeld-name-2-2"
+        },
+        "brin": "12BC",
+        "name": "Voorbeeld Name 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "pedagogicalConcept": "montessori"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "school",
+          "slug": "school-voorbeeld-name-3-3"
+        },
+        "brin": "23CD",
+        "name": "Voorbeeld Name 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "pedagogicalConcept": "dalton"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "vestiging",
+          "slug": "vestiging-voorbeeld-name-1-1"
+        },
+        "schoolId": "00000000-0000-4000-8000-000000000000",
+        "vestigingscode": "Voorbeeld Vestigingscode 1",
+        "name": "Voorbeeld Name 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "onderwijslocatiecode": "Voorbeeld Onderwijslocatiecode 1",
+        "street": "Voorbeeld Street 1",
+        "postalCode": "Voorbeeld Postalcode 1",
+        "city": "Voorbeeld City 1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "vestiging",
+          "slug": "vestiging-voorbeeld-name-2-2"
+        },
+        "schoolId": "00000000-0000-4000-8000-000000000001",
+        "vestigingscode": "Voorbeeld Vestigingscode 2",
+        "name": "Voorbeeld Name 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "onderwijslocatiecode": "Voorbeeld Onderwijslocatiecode 2",
+        "street": "Voorbeeld Street 2",
+        "postalCode": "Voorbeeld Postalcode 2",
+        "city": "Voorbeeld City 2"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "vestiging",
+          "slug": "vestiging-voorbeeld-name-3-3"
+        },
+        "schoolId": "00000000-0000-4000-8000-000000000002",
+        "vestigingscode": "Voorbeeld Vestigingscode 3",
+        "name": "Voorbeeld Name 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "onderwijslocatiecode": "Voorbeeld Onderwijslocatiecode 3",
+        "street": "Voorbeeld Street 3",
+        "postalCode": "Voorbeeld Postalcode 3",
+        "city": "Voorbeeld City 3"
       }
     ]
   }
