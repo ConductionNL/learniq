@@ -979,7 +979,13 @@ OC.L10N.register(
         "Not configured": "Not configured",
         "Open settings": "Open settings",
         "Simulated": "Simulated",
-        "Status message": "Status message"
+        "Status message": "Status message",
+        "Derived: Nextcloud user id of the admin who last created or updated this record, supplied by the writing client at create/update time, mirroring SovereigntyPolicy.setBy.": "Derived: Nextcloud user id of the admin who last created or updated this record, supplied by the writing client at create/update time, mirroring SovereigntyPolicy.setBy.",
+        "Derived: timestamp this record was last created or updated, mirroring SovereigntyPolicy.setAt.": "Derived: timestamp this record was last created or updated, mirroring SovereigntyPolicy.setAt.",
+        "LearniqSettings": "LearniqSettings",
+        "Segment": "Segment",
+        "The education/training segment this instance serves. Defaults to corporate, the no-behaviour-change default matching every existing customer's undifferentiated build.": "The education/training segment this instance serves. Defaults to corporate, the no-behaviour-change default matching every existing customer's undifferentiated build.",
+        "App settings": "App settings"
     },
     "nplurals=2; plural=(n != 1);"
 )
