@@ -4071,7 +4071,7 @@
                         "parentIds"
                     ],
                     "backend": "scholiq.learner-administration",
-                    "retentionReference": "not declared (LearnerProfile carries no x-openregister-archival annotation; align with the school's selectielijst onderwijs)",
+                    "retentionReference": "declared: x-openregister-archival.retention.default = P5Y (statutory-field-completeness, finding 2.9) — see the schema-level annotation below",
                     "lifecycle": "draft",
                     "logReads": true,
                     "attribution": {
@@ -4184,6 +4184,64 @@
                         },
                         "title": "Guardian Refs"
                     },
+                    "ageYears": {
+                        "type": "integer",
+                        "nullable": true,
+                        "materialise": true,
+                        "description": "Learner's current age in whole years, calculated from birthDate (finding 2.11). Null when birthDate is unset. Recalculated on read/write per OpenRegister's computed-fields materialisation, so it never goes stale the way a manually-set flag would the day after a birthday.",
+                        "expression": {
+                            "dateDiff": {
+                                "from": {
+                                    "prop": "@self.birthDate"
+                                },
+                                "to": "now",
+                                "unit": "years"
+                            }
+                        },
+                        "title": "Age (Years)"
+                    },
+                    "hasPartialSelfServiceRights": {
+                        "type": "boolean",
+                        "nullable": true,
+                        "materialise": true,
+                        "description": "True once the learner has reached 12 years old (finding 2.11) — the age Dutch AVG practice treats as the start of a minor's own co-decision rights over their data. Null when birthDate/ageYears is unset. Data-model only: no portal action reads this yet (a separate, code-kind change's responsibility).",
+                        "expression": {
+                            "gte": [
+                                {
+                                    "dateDiff": {
+                                        "from": {
+                                            "prop": "@self.birthDate"
+                                        },
+                                        "to": "now",
+                                        "unit": "years"
+                                    }
+                                },
+                                12
+                            ]
+                        },
+                        "title": "Has Partial Self-Service Rights (12+)"
+                    },
+                    "hasFullSelfServiceRights": {
+                        "type": "boolean",
+                        "nullable": true,
+                        "materialise": true,
+                        "description": "True once the learner has reached 16 years old (finding 2.11) — the age this finding's competitor evidence (osiris: \"Vanaf 18 jaar...\"; progress: majority-based) treats as full self-service autonomy in this domain. Null when birthDate/ageYears is unset. Data-model only: no portal action reads this yet.",
+                        "expression": {
+                            "gte": [
+                                {
+                                    "dateDiff": {
+                                        "from": {
+                                            "prop": "@self.birthDate"
+                                        },
+                                        "to": "now",
+                                        "unit": "years"
+                                    }
+                                },
+                                16
+                            ]
+                        },
+                        "title": "Has Full Self-Service Rights (16+)"
+                    },
                     "managerId": {
                         "type": "string",
                         "nullable": true,
@@ -4237,6 +4295,13 @@
                             "description": "Soft-deletes the profile on offboarding. Purge after retention class expires."
                         }
                     }
+                },
+                "x-openregister-archival": {
+                    "retention": {
+                        "default": "P5Y"
+                    },
+                    "category": "Leerlingdossier — retained 5 years after uitschrijving pending privacy-officer confirmation against the school's own selectielijst onderwijs (finding 2.9; statutory-field-completeness design.md Decision 3)",
+                    "action": "destroy"
                 },
                 "x-property-rbac": {
                     "_comment": "WF1 (wave-12): learner-profile contains personal data (parentIds, department, etc.). Learner sees own profile; admins see all.",
@@ -8054,6 +8119,21 @@
                         "type": "string",
                         "description": "Nextcloud user ID of the learner taking the assessment.",
                         "title": "Learner ID"
+                    },
+                    "referentieniveau": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "1F",
+                            "1S",
+                            "2F",
+                            "2S",
+                            "3F",
+                            "3S"
+                        ],
+                        "default": null,
+                        "description": "The Dutch statutory referentieniveau achieved on this attempt (finding 6.8). Tracking per pupil over time is satisfied by querying a learner's AssessmentResult history — no separate mechanism is needed.",
+                        "title": "Referentieniveau"
                     },
                     "attemptNumber": {
                         "type": "integer",
@@ -13069,6 +13149,13 @@
                         ]
                     }
                 },
+                "x-openregister-archival": {
+                    "retention": {
+                        "default": "P2Y"
+                    },
+                    "category": "Everyday pupil-dossier note — the shortest retention band of the three pupil-dossier schemas, distinct from the formal OPP/zorgvraag track; pending privacy-officer confirmation (finding 2.9; statutory-field-completeness design.md Decision 3)",
+                    "action": "destroy"
+                },
                 "x-openregister-seed": [],
                 "authorization": {
                     "read": [
@@ -13317,6 +13404,13 @@
                         }
                     }
                 },
+                "x-openregister-archival": {
+                    "retention": {
+                        "default": "P2Y"
+                    },
+                    "category": "Everyday pupil-dossier incident — same short retention band as DossierNote/WellbeingCheckIn; pending privacy-officer confirmation (finding 2.9; statutory-field-completeness design.md Decision 3)",
+                    "action": "destroy"
+                },
                 "x-openregister-seed": [],
                 "authorization": {
                     "read": [
@@ -13457,6 +13551,13 @@
                         }
                     }
                 },
+                "x-openregister-archival": {
+                    "retention": {
+                        "default": "P2Y"
+                    },
+                    "category": "Everyday pupil-dossier check-in — same short retention band as DossierNote/BehaviourIncident; pending privacy-officer confirmation (finding 2.9; statutory-field-completeness design.md Decision 3)",
+                    "action": "destroy"
+                },
                 "x-openregister-seed": [],
                 "authorization": {
                     "read": [
@@ -13487,7 +13588,7 @@
                         "reason"
                     ],
                     "backend": "scholiq.attendance",
-                    "retentionReference": "not declared (AttendanceRecord carries no x-openregister-archival annotation; align with the school's selectielijst onderwijs)",
+                    "retentionReference": "declared: x-openregister-archival.retention.default = P5Y (statutory-field-completeness, finding 2.9) — see the schema-level annotation below",
                     "lifecycle": "draft",
                     "logReads": true,
                     "attribution": {
@@ -13672,6 +13773,13 @@
                         "mode": "relatedObject",
                         "field": "sessionId"
                     }
+                },
+                "x-openregister-archival": {
+                    "retention": {
+                        "default": "P5Y"
+                    },
+                    "category": "Leerplicht/verzuim dossier — retained on the same horizon as the LearnerProfile it evidences, pending privacy-officer confirmation (finding 2.9; statutory-field-completeness design.md Decision 3)",
+                    "action": "destroy"
                 },
                 "x-openregister-seed": [],
                 "authorization": {
@@ -14218,6 +14326,17 @@
                         "description": "UUID of the AttendanceThreshold that was crossed.",
                         "title": "Attendance Threshold ID"
                     },
+                    "flagKind": {
+                        "type": "string",
+                        "enum": [
+                            "signal-verzuim",
+                            "langdurig-relatief-verzuim",
+                            "thuiszitter"
+                        ],
+                        "default": "signal-verzuim",
+                        "description": "Which statutory concern this flag represents (finding 4.9). SWV notification, where applicable, reuses the existing dataExchangeJobId field rather than a new one.",
+                        "title": "Flag Kind"
+                    },
                     "cohortId": {
                         "type": "string",
                         "nullable": true,
@@ -14427,6 +14546,13 @@
                             }
                         }
                     }
+                },
+                "x-openregister-archival": {
+                    "retention": {
+                        "default": "P3Y"
+                    },
+                    "category": "Verzuim-escalatie dossier — retained shorter than the full leerlingdossier but longer than a routine attendance mark, given its evidentiary role in a leerplichtambtenaar report; pending privacy-officer confirmation (finding 2.9; statutory-field-completeness design.md Decision 3)",
+                    "action": "destroy"
                 },
                 "x-openregister-seed": [],
                 "authorization": {

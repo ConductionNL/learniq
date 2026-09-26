@@ -978,7 +978,17 @@
         "Not configured": "Not configured",
         "Open settings": "Open settings",
         "Simulated": "Simulated",
-        "Status message": "Status message"
+        "Status message": "Status message",
+        "Age (Years)": "Age (Years)",
+        "Learner's current age in whole years, calculated from birthDate (finding 2.11). Null when birthDate is unset. Recalculated on read/write per OpenRegister's computed-fields materialisation, so it never goes stale the way a manually-set flag would the day after a birthday.": "Learner's current age in whole years, calculated from birthDate (finding 2.11). Null when birthDate is unset. Recalculated on read/write per OpenRegister's computed-fields materialisation, so it never goes stale the way a manually-set flag would the day after a birthday.",
+        "Has Partial Self-Service Rights (12+)": "Has Partial Self-Service Rights (12+)",
+        "True once the learner has reached 12 years old (finding 2.11) — the age Dutch AVG practice treats as the start of a minor's own co-decision rights over their data. Null when birthDate/ageYears is unset. Data-model only: no portal action reads this yet (a separate, code-kind change's responsibility).": "True once the learner has reached 12 years old (finding 2.11) — the age Dutch AVG practice treats as the start of a minor's own co-decision rights over their data. Null when birthDate/ageYears is unset. Data-model only: no portal action reads this yet (a separate, code-kind change's responsibility).",
+        "Has Full Self-Service Rights (16+)": "Has Full Self-Service Rights (16+)",
+        "True once the learner has reached 16 years old (finding 2.11) — the age this finding's competitor evidence (osiris: \"Vanaf 18 jaar...\"; progress: majority-based) treats as full self-service autonomy in this domain. Null when birthDate/ageYears is unset. Data-model only: no portal action reads this yet.": "True once the learner has reached 16 years old (finding 2.11) — the age this finding's competitor evidence (osiris: \"Vanaf 18 jaar...\"; progress: majority-based) treats as full self-service autonomy in this domain. Null when birthDate/ageYears is unset. Data-model only: no portal action reads this yet.",
+        "Referentieniveau": "Referentieniveau",
+        "The Dutch statutory referentieniveau achieved on this attempt (finding 6.8). Tracking per pupil over time is satisfied by querying a learner's AssessmentResult history — no separate mechanism is needed.": "The Dutch statutory referentieniveau achieved on this attempt (finding 6.8). Tracking per pupil over time is satisfied by querying a learner's AssessmentResult history — no separate mechanism is needed.",
+        "Flag Kind": "Flag Kind",
+        "Which statutory concern this flag represents (finding 4.9). SWV notification, where applicable, reuses the existing dataExchangeJobId field rather than a new one.": "Which statutory concern this flag represents (finding 4.9). SWV notification, where applicable, reuses the existing dataExchangeJobId field rather than a new one."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
