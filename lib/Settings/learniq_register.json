@@ -4204,27 +4204,32 @@
                             "street": {
                                 "type": "string",
                                 "nullable": true,
+                                "description": "Street name, without the house number.",
                                 "title": "Street"
                             },
                             "houseNumber": {
                                 "type": "string",
                                 "nullable": true,
+                                "description": "House number, including any suffix (e.g. '12A').",
                                 "title": "House Number"
                             },
                             "postalCode": {
                                 "type": "string",
                                 "nullable": true,
+                                "description": "Postal code, e.g. '1234 AB'.",
                                 "title": "Postal Code"
                             },
                             "city": {
                                 "type": "string",
                                 "nullable": true,
+                                "description": "City or town name.",
                                 "title": "City"
                             },
                             "country": {
                                 "type": "string",
                                 "nullable": true,
                                 "default": "NL",
+                                "description": "ISO 3166-1 alpha-2 country code. Defaults to 'NL'.",
                                 "title": "Country"
                             }
                         },
@@ -4242,6 +4247,7 @@
                             "properties": {
                                 "name": {
                                     "type": "string",
+                                    "description": "Full name of the emergency contact.",
                                     "title": "Name"
                                 },
                                 "relationship": {
@@ -4252,6 +4258,7 @@
                                 },
                                 "phone": {
                                     "type": "string",
+                                    "description": "Phone number to reach this contact on.",
                                     "title": "Phone"
                                 },
                                 "priority": {
