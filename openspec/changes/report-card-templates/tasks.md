@@ -12,8 +12,8 @@
     for violating `minItems: 1`
   - GIVEN the register is loaded WHEN `Cohort.reportCardTemplateId` and `ReportCard.templateId`
     are inspected THEN both are nullable `$ref: ReportCardTemplate` properties
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 2: Seed ReportCardTemplate mock data, and wire two existing mock rows to it
 - **spec_ref**: `openspec/changes/report-card-templates/design.md#seed-data`
@@ -22,8 +22,8 @@
   - GIVEN a fresh install WHEN `DemoDataService` loads seed data THEN 3 `ReportCardTemplate`
     objects exist, one `Cohort` mock row has `reportCardTemplateId` set, and one `ReportCard` mock
     row has a matching `templateId`
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 3: ReportCardComposer stamps templateId and limits sections to the assigned template
 - **spec_ref**: `openspec/changes/report-card-templates/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob`
@@ -36,8 +36,8 @@
     has `templateId: null` and composes the pre-change fixed shape unchanged
   - GIVEN the two pre-existing composer regression scenarios (one ReportCard per learner; a
     subject with no matching period component) THEN both still pass unmodified
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 4: ReportCardPdfDelegationService resolves and sends the assigned template's slug
 - **spec_ref**: `openspec/changes/report-card-templates/specs/report-card/spec.md#requirement-docudesk-pdf-rendering-is-fail-soft-non-blocking-and-its-contract-is-explicitly-proposed`
@@ -48,8 +48,8 @@
   - GIVEN a `ReportCard` with `templateId: null` WHEN `renderToPdf` runs THEN `templateSlug` is the
     literal `"report-card"`, unchanged
   - GIVEN the two pre-existing fail-soft regression scenarios THEN both still pass unmodified
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 5: Declare ReportCardTemplate index+detail manifest pages
 - **spec_ref**: `openspec/changes/report-card-templates/specs/report-card/spec.md#requirement-a-reportcardtemplate-is-assigned-per-group-per-period`
@@ -58,8 +58,8 @@
   - GIVEN the manifest is built WHEN the app navigates to the new pages THEN
     `ReportCardTemplateIndex`/`ReportCardTemplateDetail` list and edit `sections[]`,
     `testKindSectionMap[]`, and `lifecycle`, and `CohortDetail` exposes `reportCardTemplateId`
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ### Task 6: Add ReportCardTemplateRegisterTest
 - **spec_ref**: `openspec/changes/report-card-templates/specs/report-card/spec.md#requirement-a-template-maps-an-imported-test-kind-to-a-report-section-per-group`
@@ -68,8 +68,8 @@
   - GIVEN the register JSON WHEN parsed THEN `ReportCardTemplate`'s schema block, `x-openregister`
     block, and `sections[]`/`testKindSectionMap[]` shapes are well-formed and `minItems: 1` is
     present on `sections`
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ## Quality checklist
 

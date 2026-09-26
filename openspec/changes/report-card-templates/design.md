@@ -6,12 +6,18 @@
 `archived`, with `reactivate` back to `active`), no relations required to exist before it. `Cohort` gains one nullable `$ref` property
 (`reportCardTemplateId`) so a group's assigned template is discoverable without a join table.
 `ReportCard` gains one nullable `$ref` property (`templateId`), stamped by `ReportCardComposer` at
-compose time from the learner's cohort. Two existing PHP classes change behaviour, no new PHP
-classes are introduced:
+compose time from the learner's cohort. Two existing PHP classes change behaviour, and one new,
+narrow service is extracted (discovered during implementation, when adding the gating logic
+directly to `ReportCardComposer` pushed its `phpmd` `ExcessiveClassComplexity` metric over this
+repo's threshold of 50):
 
 - `ReportCardComposer` (`lib/Listener/ReportCardComposer.php`) reads `Cohort.reportCardTemplateId`
-  → `ReportCardTemplate.sections[]` and limits what it populates to the declared section kinds,
-  falling back to the current fixed shape when unset.
+  and calls the new resolver below to decide what to populate, falling back to the current fixed
+  shape when unset.
+- `ReportCardTemplateSectionResolver` (`lib/Service/ReportCardTemplateSectionResolver.php`, new)
+  resolves a `ReportCardTemplate.sections[].kind` list and gates section population by it. Extracted
+  from `ReportCardComposer` the same way `AttendanceWindowAggregator` already carries the attendance
+  half of composition — one cohesive responsibility per class, constructor-injected.
 - `ReportCardPdfDelegationService` (`lib/Service/ReportCardPdfDelegationService.php`) resolves
   `ReportCard.templateId` → `ReportCardTemplate.slug` for the outbound `templateSlug` field, falling
   back to the existing `'report-card'` literal when unset.
@@ -79,14 +85,17 @@ lib/
     learniq_mock_register.json   (MODIFIED — seed ReportCardTemplate objects; Cohort/ReportCard seed rows gain the new fields)
   Listener/
     ReportCardComposer.php       (MODIFIED — template-driven section population)
+    ReportCardTemplateSectionResolver.php (NEW — extracted section-gating logic, see Architecture Overview)
   Service/
     ReportCardPdfDelegationService.php (MODIFIED — template-slug resolution)
 src/
   manifest.json                  (MODIFIED — ReportCardTemplate index+detail pages)
 tests/
   Unit/
-    Listener/ReportCardComposerTest.php            (MODIFIED — template + fallback scenarios)
-    Service/ReportCardPdfDelegationServiceTest.php (MODIFIED — templateSlug scenarios)
+    Listener/ReportCardComposerTest.php                     (MODIFIED — template + fallback scenarios)
+    Service/ReportCardPdfDelegationServiceTest.php          (MODIFIED — templateSlug scenarios)
+    Service/ReportCardTemplateSectionResolverTest.php       (NEW — direct unit coverage of the extracted resolver)
+    Settings/ReportCardTemplateRegisterTest.php             (NEW — schema shape assertions)
 ```
 
 ## Declarative-vs-imperative decision (ADR-031)
