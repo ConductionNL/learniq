@@ -29556,6 +29556,36 @@
         "courseId": "00000000-0000-4000-8000-000000000002",
         "lessonId": "00000000-0000-4000-8000-000000000002",
         "verified_actor_id": "Voorbeeld Verified Actor Id 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "learniqsettings",
+          "slug": "learniqsettings-learniqsettings-1-1"
+        },
+        "segment": "po",
+        "setBy": "Voorbeeld Setby 1",
+        "setAt": "2026-03-01T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "learniqsettings",
+          "slug": "learniqsettings-learniqsettings-2-2"
+        },
+        "segment": "vo",
+        "setBy": "Voorbeeld Setby 2",
+        "setAt": "2026-03-02T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "learniqsettings",
+          "slug": "learniqsettings-learniqsettings-3-3"
+        },
+        "segment": "mbo",
+        "setBy": "Voorbeeld Setby 3",
+        "setAt": "2026-03-03T09:00:00+00:00"
       }
     ]
   }
