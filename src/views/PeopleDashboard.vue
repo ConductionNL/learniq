@@ -14,11 +14,18 @@
  One component, exactly one CnDashboardPage: never referenced as a widget slot
  on another dashboard (avoids the dashboard-in-dashboard antipattern).
 
+ global-search (finding G-new-1) adds a full-width fast-finder widget above
+ the KPI row — see GlobalSearchWidget.vue and src/utils/globalSearch.js.
+
  @spec openspec/changes/nav-restructure-dashboards/specs/dashboard/spec.md#requirement-people-domain-dashboard
+ @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
 -->
 <template>
 	<div class="learniq-domain-dashboard">
 		<CnDashboardPage :title="pageTitle" :widgets="widgets" :layout="layout">
+			<template #widget-global-search>
+				<GlobalSearchWidget />
+			</template>
 			<template #widget-manage-learners>
 				<ManageListWidget
 					schema="learner-profile"
@@ -60,6 +67,7 @@
 
 <script>
 import { CnDashboardPage } from '@conduction/nextcloud-vue'
+import GlobalSearchWidget from './widgets/GlobalSearchWidget.vue'
 import ManageListWidget from './widgets/ManageListWidget.vue'
 
 export default {
@@ -67,6 +75,7 @@ export default {
 
 	components: {
 		CnDashboardPage,
+		GlobalSearchWidget,
 		ManageListWidget,
 	},
 
@@ -89,6 +98,16 @@ export default {
 		 */
 		widgets() {
 			return [
+				// global-search (finding G-new-1): a full-width fast-finder above
+				// the KPI row. Query-building/classification lives in
+				// src/utils/globalSearch.js (unit-tested); this `type: 'custom'`
+				// widget slot only mounts GlobalSearchWidget, same mechanism the
+				// four `manage-*` widgets below already use.
+				{
+					id: 'global-search',
+					title: this.t('learniq', 'Search'),
+					type: 'custom',
+				},
 				// KPI tiles are declared, not written. `type: 'stat'` resolves to
 				// the shared CnStatWidget through the dashboard widget registry,
 				// which counts server-side via the OpenRegister aggregation API.
@@ -192,10 +211,19 @@ export default {
 		layout() {
 			return [
 				{
+					id: 0,
+					widgetId: 'global-search',
+					gridX: 0,
+					gridY: 0,
+					gridWidth: 12,
+					gridHeight: 2,
+					showTitle: false,
+				},
+				{
 					id: 1,
 					widgetId: 'kpi-learners',
 					gridX: 0,
-					gridY: 0,
+					gridY: 2,
 					gridWidth: 3,
 					gridHeight: 2,
 					showTitle: false,
@@ -204,7 +232,7 @@ export default {
 					id: 2,
 					widgetId: 'kpi-active-enrolments',
 					gridX: 3,
-					gridY: 0,
+					gridY: 2,
 					gridWidth: 3,
 					gridHeight: 2,
 					showTitle: false,
@@ -213,7 +241,7 @@ export default {
 					id: 3,
 					widgetId: 'kpi-cohorts',
 					gridX: 6,
-					gridY: 0,
+					gridY: 2,
 					gridWidth: 3,
 					gridHeight: 2,
 					showTitle: false,
@@ -222,7 +250,7 @@ export default {
 					id: 4,
 					widgetId: 'kpi-open-flags',
 					gridX: 9,
-					gridY: 0,
+					gridY: 2,
 					gridWidth: 3,
 					gridHeight: 2,
 					showTitle: false,
@@ -231,7 +259,7 @@ export default {
 					id: 5,
 					widgetId: 'manage-learners',
 					gridX: 0,
-					gridY: 2,
+					gridY: 4,
 					gridWidth: 6,
 					gridHeight: 4,
 				},
@@ -239,7 +267,7 @@ export default {
 					id: 6,
 					widgetId: 'manage-enrolments',
 					gridX: 6,
-					gridY: 2,
+					gridY: 4,
 					gridWidth: 6,
 					gridHeight: 4,
 				},
@@ -247,7 +275,7 @@ export default {
 					id: 7,
 					widgetId: 'manage-attendance',
 					gridX: 0,
-					gridY: 6,
+					gridY: 8,
 					gridWidth: 6,
 					gridHeight: 4,
 				},
@@ -255,7 +283,7 @@ export default {
 					id: 8,
 					widgetId: 'manage-credentials',
 					gridX: 6,
-					gridY: 6,
+					gridY: 8,
 					gridWidth: 6,
 					gridHeight: 4,
 				},
