@@ -29556,6 +29556,67 @@
         "courseId": "00000000-0000-4000-8000-000000000002",
         "lessonId": "00000000-0000-4000-8000-000000000002",
         "verified_actor_id": "Voorbeeld Verified Actor Id 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "SchoolAdvies",
+          "slug": "schooladvies-groep-8-leerling-1"
+        },
+        "learnerId": "learner-007",
+        "academicYear": "2025-2026",
+        "voorlopigAdviesLevel": "vmbo-gt",
+        "voorlopigAdviesDate": "2026-01-20",
+        "voorlopigDeadline": "2026-01-31",
+        "doorstroomtoetsResultLevel": "havo",
+        "doorstroomtoetsResultDate": "2026-02-15",
+        "definitiefAdviesLevel": "havo",
+        "definitiefAdviesDate": "2026-03-10",
+        "definitiefDeadline": "2026-03-15",
+        "heroverwegingMotivation": null,
+        "dataExchangeJobId": null,
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "definitief"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "SchoolAdvies",
+          "slug": "schooladvies-groep-8-leerling-2"
+        },
+        "learnerId": "learner-008",
+        "academicYear": "2025-2026",
+        "voorlopigAdviesLevel": "havo",
+        "voorlopigAdviesDate": "2026-01-22",
+        "voorlopigDeadline": "2026-01-31",
+        "doorstroomtoetsResultLevel": "havo",
+        "doorstroomtoetsResultDate": "2026-02-15",
+        "definitiefAdviesLevel": "havo",
+        "definitiefAdviesDate": "2026-03-08",
+        "definitiefDeadline": "2026-03-15",
+        "heroverwegingMotivation": null,
+        "dataExchangeJobId": "00000000-0000-4000-8000-0000000000aa",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "verzonden-naar-rod"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "SchoolAdvies",
+          "slug": "schooladvies-groep-8-leerling-3"
+        },
+        "learnerId": "learner-009",
+        "academicYear": "2025-2026",
+        "voorlopigAdviesLevel": "vmbo-kb",
+        "voorlopigAdviesDate": "2026-01-18",
+        "voorlopigDeadline": "2026-01-31",
+        "doorstroomtoetsResultDate": null,
+        "definitiefAdviesDate": null,
+        "definitiefDeadline": "2026-03-15",
+        "heroverwegingMotivation": null,
+        "dataExchangeJobId": null,
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "voorlopig"
       }
     ]
   }

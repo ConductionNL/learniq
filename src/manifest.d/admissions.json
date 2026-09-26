@@ -60,6 +60,22 @@
 							]
 						}
 					}
+				},
+				{
+					"id": "SchoolAdviezenMenu",
+					"label": "School advies",
+					"icon": "SignDirection",
+					"route": "SchoolAdviezen",
+					"order": 53,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
 			],
 			"visibleIf": {
@@ -289,6 +305,87 @@
 			"title": "Admissions review board",
 			"component": "AdmissionsReviewBoard",
 			"_note": "admissions-and-subject-choice (task 5.2): the one genuine custom-view exception for admissions -- a coordinator's queue of Applications in intake-completed needing a decision, cross-referencing each Application against its round's deadline, kind, and remaining capacity (a join a generic list widget cannot express), with a link to record the decision. Every other Application/AdmissionsRound screen is a declarative manifest index/detail page."
+		},
+		{
+			"id": "SchoolAdviezen",
+			"route": "/admissions/schooladviezen",
+			"type": "index",
+			"title": "School advies",
+			"config": {
+				"register": "learniq",
+				"schema": "school-advies",
+				"columns": [
+					"learnerId",
+					"academicYear",
+					"voorlopigAdviesLevel",
+					"definitiefAdviesLevel",
+					"lifecycle"
+				]
+			}
+		},
+		{
+			"id": "SchoolAdviesDetail",
+			"route": "/admissions/schooladviezen/:id",
+			"type": "detail",
+			"title": "School advies",
+			"config": {
+				"register": "learniq",
+				"schema": "school-advies",
+				"_note": "po-schooladvies-flow: a groep-8 schooladvies moves voorlopig -> definitief (guarded by SchoolAdviesFinalizeGuard's heroverweging rule) -> verzonden-naar-rod (auto-queues a bron-rod DataExchangeJob). lifecycleActions expose vaststellenDefinitief/verzendenNaarRod as buttons. Distinct from ApplicationDetail, which is the receiving VO school's own intake side.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "school-advies-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "SignDirection"
+					},
+					{
+						"id": "school-advies-related",
+						"type": "related",
+						"title": "Related"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "school-advies-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 6
+					},
+					{
+						"id": "2",
+						"widgetId": "school-advies-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 6
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
 		}
 	]
 }

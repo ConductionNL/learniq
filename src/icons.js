@@ -135,6 +135,7 @@ import ShareVariant from 'vue-material-design-icons/ShareVariant.vue'
 import ShareVariantOutline from 'vue-material-design-icons/ShareVariantOutline.vue'
 import ShieldAccountOutline from 'vue-material-design-icons/ShieldAccountOutline.vue'
 import ShieldCheckOutline from 'vue-material-design-icons/ShieldCheckOutline.vue'
+import SignDirection from 'vue-material-design-icons/SignDirection.vue'
 import Sitemap from 'vue-material-design-icons/Sitemap.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import Star from 'vue-material-design-icons/Star.vue'
@@ -280,6 +281,7 @@ export default {
 	ShareVariantOutline,
 	ShieldAccountOutline,
 	ShieldCheckOutline,
+	SignDirection,
 	Sitemap,
 	SitemapOutline,
 	Star,

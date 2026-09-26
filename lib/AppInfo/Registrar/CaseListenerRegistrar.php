@@ -41,6 +41,7 @@ use OCA\Learniq\Listener\CompetencyAttainmentRollupHandler;
 use OCA\Learniq\Listener\DataExchangeRunHandler;
 use OCA\Learniq\Listener\FraudCaseDecisionHandler;
 use OCA\Learniq\Listener\RejectionMappingHandler;
+use OCA\Learniq\Listener\SchoolAdviesSendToRodHandler;
 use OCA\Learniq\Listener\SupportRequestSubmitHandler;
 use OCA\Learniq\Timetabling\TimetableImportHandler;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
@@ -107,6 +108,18 @@ class CaseListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: SupportRequestSubmitHandler::class
+		);
+
+		// ADR-031 legitimate exception (po-schooladvies-flow): SchoolAdvies
+		// `verzendenNaarRod` transition → auto-queue the bron-rod DataExchangeJob
+		// bridge. Mirrors SupportRequestSubmitHandler's shape exactly, minus the
+		// SWV-specific pending-parent-review advance (bron-rod is not one of
+		// DataExchangeRunHandler's gated targets). Creates a DataExchangeJob
+		// (target: bron-rod, scope.schema: school-advies) in `queued` and stamps
+		// the job id back onto the SchoolAdvies.
+		$context->registerEventListener(
+			event: ObjectTransitionedEvent::class,
+			listener: SchoolAdviesSendToRodHandler::class
 		);
 
 		// ADR-031 legitimate exception (timetabling-and-substitution):
