@@ -979,7 +979,10 @@ OC.L10N.register(
         "Not configured": "Not configured",
         "Open settings": "Open settings",
         "Simulated": "Simulated",
-        "Status message": "Status message"
+        "Status message": "Status message",
+        "Mentor": "Mentor",
+        "IB-er": "IB-er",
+        "Director": "Director"
     },
     "nplurals=2; plural=(n != 1);"
 )

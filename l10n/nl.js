@@ -1427,7 +1427,10 @@ OC.L10N.register(
         "Not configured": "Niet geconfigureerd",
         "Open settings": "Instellingen openen",
         "Simulated": "Gesimuleerd",
-        "Status message": "Statusmelding"
+        "Status message": "Statusmelding",
+        "Mentor": "Mentor",
+        "IB-er": "IB'er",
+        "Director": "Directeur"
     },
     "nplurals=2; plural=(n != 1);"
 )
