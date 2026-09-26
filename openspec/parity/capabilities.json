@@ -12,7 +12,6 @@
       "isSelf": true,
       "readOn": "2026-09-24",
       "columnAddedOn": "2026-09-24",
-      "evidenceGrade": "code",
       "note": "Rated by reading this repository at the branch head. Every rating carries a file path in built.evidence. The README and the app-store description were not used as evidence."
     },
     {
@@ -665,7 +664,7 @@
       "area": "compliance",
       "name": "Enrol a whole department in a mandatory course in one go.",
       "built": {
-        "state": "built",
+        "state": "building",
         "evidence": "src/manifest.d/people.json page BulkEnrol, a CnWizardDialog audience picker",
         "owner": "ConductionNL/learniq"
       },
@@ -673,7 +672,7 @@
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "compliance-coverage",
       "featureConfidence": "high",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "yes",
       "moodle-workplace": "yes",
       "ilias": "yes",
@@ -687,7 +686,8 @@
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Dynamic_rules_Configuration; condition \"User is in department\" with action \"Enrol users into a course\" (also \"Allocate users to programs\").",
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/enrolling-on-a-user-s-page-35664610.html; Enrolling on a User's Page: \"Click the Advanced Search button to select an entire department, group, or filter users by any of the profile fields.\"; same flow on https://ispringhelpdocs.com/ispring-learn/enrollments-16187447.html",
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/db/install.php:122 (cohort enrolment enabled by default) + public/enrol/cohort/lib.php:43 enrol_cohort_plugin + public/cohort/edit.php:31; a site or category cohort (a department) is synced into a course, and new cohort members are enrolled automatically. Reached on: course > Participants > Enrolment methods > Cohort sync."
-      }
+      },
+      "note": "Downgraded 2026-09-27 from built.state 'built' and learniq 'yes' (learniq#947): the BulkEnrol page names CnWizardDialog, which src/registry.js does not register, so /enrolments/bulk renders 'This page is empty'. The manifest page is there; the screen is not."
     },
     {
       "id": "comp-deadline-per-enrolment",
@@ -926,7 +926,7 @@
       "area": "compliance",
       "name": "Upload a spreadsheet of outside training for many people at once.",
       "built": {
-        "state": "built",
+        "state": "building",
         "evidence": "lib/Controller/ExternalTrainingController.php bulkRecord(), lib/Service/ExternalTrainingCsvBuilder.php",
         "owner": "ConductionNL/learniq"
       },
@@ -934,7 +934,7 @@
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "external-training",
       "featureConfidence": "high",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "no",
@@ -948,7 +948,8 @@
         "moodle-workplace": "not checked: read 2026-09-26: not documented: https://docs.moodle.org/502/en/Migrations_Configuration supports CSV only for \"departments and positions\"; no bulk upload of outside training records found in Workplace docs.",
         "totara": "read 2026-09-26: https://totara.help/docs/upload-course-completions; CSV import of historical completion records, and \"if a course doesn't exist in the system, the platform can automatically generate evidence items in the Record of Learning\" with Create evidence enabled.",
         "ispring-learn": "not checked: read 2026-09-26: not documented: searched all 946 iSpring LMS help pages (Confluence space ispringlearn, fetched 2026-09-26) for external certificate import, bulk, Excel; external certificates are added one at a time from the employee profile (https://ispringhelpdocs.com/ispring-learn/how-to-add-an-external-certificate-141561985.html)"
-      }
+      },
+      "note": "Downgraded 2026-09-27 from built.state 'built' and learniq 'yes' (learniq#952): POST /api/external-training/bulk exists (appinfo/routes.php:82) but nothing in src/ calls /api/external-training/, so no page offers the bulk upload."
     },
     {
       "id": "comp-audit-pack-export",
@@ -6413,7 +6414,7 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "partial",
+        "state": "building",
         "evidence": "src/views/LearniqCompliance.vue:106",
         "owner": "ConductionNL/openregister",
         "reachedOn": "/enrolments (as manager); /compliance"
@@ -6435,7 +6436,7 @@
       "totara": "yes",
       "chamilo": "partial",
       "ispring-learn": "yes",
-      "note": "Demand-signal row added 2026-09-26 (tender). ProRail LMS tender 2026, requirement 84950/84951: compliance dashboard per department with certification percentage, upcoming deadlines and expired qualifications, aggregated to director level."
+      "note": "Demand-signal row added 2026-09-26 (tender). ProRail LMS tender 2026, requirement 84950/84951: compliance dashboard per department with certification percentage, upcoming deadlines and expired qualifications, aggregated to director level. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
     },
     {
       "id": "comp-assign-from-hr-roles",
@@ -6475,7 +6476,7 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "partial",
+        "state": "building",
         "evidence": "lib/Lifecycle/ExemptionDecisionGuard.php:47",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/exam-board/exemptions"
@@ -6497,7 +6498,7 @@
       "totara": "unknown",
       "chamilo": "no",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84940: compliance processes with recertification, signals, and recording exceptions and exemptions."
+      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84940: compliance processes with recertification, signals, and recording exceptions and exemptions. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
     },
     {
       "id": "cred-migrate-with-validity",
@@ -6506,7 +6507,7 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "partial",
+        "state": "building",
         "evidence": "lib/Settings/learniq_register.json:445",
         "owner": "ConductionNL/openregister",
         "reachedOn": "/credentials (list import)"
@@ -6528,7 +6529,7 @@
       "totara": "yes",
       "chamilo": "no",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84942: migrate mandatory certifications for at least 4000 staff with start and end dates from the previous system."
+      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84942: migrate mandatory certifications for at least 4000 staff with start and end dates from the previous system. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
     },
     {
       "id": "cred-outside-certifier-updates",
@@ -6568,7 +6569,7 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "partial",
+        "state": "building",
         "evidence": "lib/Settings/learniq_register.json:7956",
         "owner": "ConductionNL/openregister",
         "reachedOn": "/assessments/:id (settings form)"
@@ -6590,7 +6591,7 @@
       "totara": "yes",
       "chamilo": "partial",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84943: a test can only be taken in specific time slots or under conditions such as a password."
+      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84943: a test can only be taken in specific time slots or under conditions such as a password. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
     },
     {
       "id": "ass-manager-sees-answers",
@@ -6630,7 +6631,7 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "partial",
+        "state": "building",
         "evidence": "lib/Settings/learniq_register.json:2414",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/enrolments (enrolment form); learner home widget"
@@ -6652,7 +6653,7 @@
       "totara": "partial",
       "chamilo": "partial",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84949: a learning path with mandatory and optional parts, set individually per employee."
+      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84949: a learning path with mandatory and optional parts, set individually per employee. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
     },
     {
       "id": "gov-feed-bi-tool",
@@ -6754,7 +6755,7 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "partial",
+        "state": "building",
         "evidence": "lib/Lifecycle/ReportPeriodLockGuard.php:6",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/report-periods, /report-cards, /grades/entries (lifecycle actions)"
@@ -6776,7 +6777,7 @@
       "totara": "partial",
       "chamilo": "partial",
       "ispring-learn": "unknown",
-      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206600: authorisations applied, four-eyes principle supported, approved data cannot be changed by one user."
+      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206600: authorisations applied, four-eyes principle supported, approved data cannot be changed by one user. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
     },
     {
       "id": "cont-adaptive-next-step",
@@ -6785,7 +6786,7 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "partial",
+        "state": "building",
         "evidence": "lib/Service/LessonReleaseEvaluator.php:357",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/courses/:courseId/lessons/:lessonId/play"
@@ -6807,7 +6808,7 @@
       "totara": "yes",
       "chamilo": "yes",
       "ispring-learn": "unknown",
-      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206628: adaptivity, learners are led automatically to the next part when they complete a question or component correctly. Also on the ILIAS roadmap."
+      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206628: adaptivity, learners are led automatically to the next part when they complete a question or component correctly. Also on the ILIAS roadmap. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
     },
     {
       "id": "cont-preview-as-learner",
@@ -6816,7 +6817,7 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "partial",
+        "state": "building",
         "evidence": "src/views/LessonComposer.vue:483",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/courses/:courseId/lessons/:lessonId/compose > Preview"
@@ -6838,7 +6839,7 @@
       "totara": "yes",
       "chamilo": "yes",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206630: teachers view the material and learning environment from the student's perspective."
+      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206630: teachers view the material and learning environment from the student's perspective. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
     },
     {
       "id": "enr-self-join-group-with-cap",
@@ -6909,7 +6910,7 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "partial",
+        "state": "building",
         "evidence": "lib/Lifecycle/CourseEvaluationEligibilityGuard.php:108",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/course-evaluation/campaigns (staff); no learner answer page"
@@ -6931,7 +6932,7 @@
       "totara": "yes",
       "chamilo": "yes",
       "ispring-learn": "yes",
-      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206641: create, change and use surveys and evaluations in a standardised way."
+      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206641: create, change and use surveys and evaluations in a standardised way. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
     },
     {
       "id": "gov-mobile-app",
@@ -6941,7 +6942,7 @@
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
         "state": "none",
-        "evidence": "package.json:1",
+        "evidence": "searched src/, lib/, appinfo/ and package.json at fbeee384 for capacitor, cordova, react-native, serviceWorker, service-worker, webmanifest and 'mobile app': no hits, so learniq ships no app and no installable web app; the responsive Nextcloud web interface is the only mobile surface",
         "owner": "nextcloud",
         "reachedOn": "any page in a mobile browser"
       },
@@ -6962,7 +6963,7 @@
       "totara": "yes",
       "chamilo": "partial",
       "ispring-learn": "yes",
-      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206604: the LMS is reachable from any browser and also through an app."
+      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206604: the LMS is reachable from any browser and also through an app. built.evidence was 'package.json:1', a line-1 citation that pointed at nothing; replaced 2026-09-27 with the named search."
     },
     {
       "id": "gov-wcag-aa",
@@ -6971,7 +6972,7 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "partial",
+        "state": "building",
         "evidence": "lib/Lifecycle/AccessibilityStatementPublishGuard.php:133",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/accessibility; /accessibility/limitations"
@@ -6993,7 +6994,7 @@
       "totara": "yes",
       "chamilo": "unknown",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206617: WCAG 2.1 level AA for interface, navigation and content, demonstrated on request."
+      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206617: WCAG 2.1 level AA for interface, navigation and content, demonstrated on request. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
     },
     {
       "id": "enr-sync-classes-from-school-admin",
@@ -7002,7 +7003,7 @@
       "origin": "featureRequest",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-61534",
       "built": {
-        "state": "partial",
+        "state": "building",
         "evidence": "lib/Settings/learniq_register.json:15717",
         "owner": "ConductionNL/integriq",
         "reachedOn": "nothing"
@@ -7024,7 +7025,7 @@
       "totara": "partial",
       "chamilo": "partial",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-61534 (New Feature, Open, 22 votes): \"Implement IMS Global standard OneRoster\"; core has CSV/external-database enrolment but no rostering standard, so partial"
+      "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-61534 (New Feature, Open, 22 votes): \"Implement IMS Global standard OneRoster\"; core has CSV/external-database enrolment but no rostering standard, so partial built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
     },
     {
       "id": "asg-two-markers-agree-a-grade",
@@ -7034,7 +7035,7 @@
       "originUrl": "https://moodle.atlassian.net/browse/MDL-86006",
       "built": {
         "state": "none",
-        "evidence": "src/views/MarkSubmissionView.vue:1",
+        "evidence": "searched src/ and lib/ at fbeee384 for second marker, secondMarker, double mark, agreed grade, markers and moderat: no marking hits (only a table-prefix variable at lib/Repair/RenameDutchColumns.php:247 and a 'moderate' enum value at lib/Settings/learniq_register.json:22214), so nothing allocates a second marker or reconciles two marks",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing"
       },
@@ -7055,7 +7056,7 @@
       "totara": "partial",
       "chamilo": "no",
       "ispring-learn": "unknown",
-      "note": "Demand-signal row added 2026-09-26 (changelog). moodle changelog: https://moodledev.io/general/releases/5.2 : Moodle 5.2 (20 April 2026) \"Assignment Marking Workflows - Phase 1: Support multiple markers and grade calculations (MDL-86006)\"; MDL-86006: \"There can be between 1 and 5 markers allocated to a student submission\""
+      "note": "Demand-signal row added 2026-09-26 (changelog). moodle changelog: https://moodledev.io/general/releases/5.2 : Moodle 5.2 (20 April 2026) \"Assignment Marking Workflows - Phase 1: Support multiple markers and grade calculations (MDL-86006)\"; MDL-86006: \"There can be between 1 and 5 markers allocated to a student submission\" built.evidence was 'src/views/MarkSubmissionView.vue:1', a line-1 citation; replaced 2026-09-27 with the named search."
     },
     {
       "id": "comp-retake-keeps-old-completion",
@@ -7064,7 +7065,7 @@
       "origin": "featureRequest",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-35335",
       "built": {
-        "state": "partial",
+        "state": "building",
         "evidence": "lib/Settings/learniq_register.json:2502",
         "owner": "ConductionNL/openregister",
         "reachedOn": "/enrolments"
@@ -7086,7 +7087,7 @@
       "totara": "yes",
       "chamilo": "yes",
       "ispring-learn": "yes",
-      "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-35335 (New Feature, Open, 36 votes): \"it is often necessary for students to retake courses they have already completed once, either on a fixed schedule (e.g. every year) ... At the moment this is often handled by creating multiple copies of courses for each ye"
+      "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-35335 (New Feature, Open, 36 votes): \"it is often necessary for students to retake courses they have already completed once, either on a fixed schedule (e.g. every year) ... At the moment this is often handled by creating multiple copies of courses for each ye built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
     },
     {
       "id": "gov-merge-duplicate-accounts",
@@ -7095,7 +7096,7 @@
       "origin": "featureRequest",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-24443",
       "built": {
-        "state": "partial",
+        "state": "building",
         "evidence": "lib/Settings/learniq_register.json:4229",
         "owner": "ConductionNL/openregister",
         "reachedOn": "/learner-profiles/:id (lifecycle action)"
@@ -7117,7 +7118,7 @@
       "totara": "unknown",
       "chamilo": "yes",
       "ispring-learn": "unknown",
-      "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-24443 (New Feature, Open, 87 votes): \"Merge Users: Add functionality to Moodle that allows site admins to merge two user profiles.\" (core lacks it; a contributed plugin fills it)"
+      "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-24443 (New Feature, Open, 87 votes): \"Merge Users: Add functionality to Moodle that allows site admins to merge two user profiles.\" (core lacks it; a contributed plugin fills it) built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
     },
     {
       "id": "cred-reissue-all-from-new-template",
@@ -7281,7 +7282,7 @@
       "origin": "changelog",
       "originUrl": "https://www.ilias.de/en/download-ilias/",
       "built": {
-        "state": "partial",
+        "state": "building",
         "evidence": "lib/Lifecycle/AssessmentGradeGuard.php:46",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing"
@@ -7303,7 +7304,7 @@
       "totara": "partial",
       "chamilo": "no",
       "ispring-learn": "unknown",
-      "note": "Demand-signal row added 2026-09-26 (changelog). ilias changelog: https://www.ilias.de/en/download-ilias/ : ILIAS 11 (v11.0, May 2026) redesigned Scoring tab allows marking on a \"participant-by-participant basis or on a question-by-question basis\""
+      "note": "Demand-signal row added 2026-09-26 (changelog). ilias changelog: https://www.ilias.de/en/download-ilias/ : ILIAS 11 (v11.0, May 2026) redesigned Scoring tab allows marking on a \"participant-by-participant basis or on a question-by-question basis\" built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
     },
     {
       "id": "enr-sign-up-from-catalogue",
