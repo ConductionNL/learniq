@@ -13271,7 +13271,7 @@
             },
             "Trajectory": {
                 "slug": "trajectory",
-                "icon": "MapMarkerPathOutline",
+                "icon": "MapMarkerPath",
                 "version": "0.1.0",
                 "title": "Trajectory",
                 "description": "A bovenschoolse-voorziening placement (OPDC, rebound, or a school-defined equivalent), care-and-support-index change. Extends SupportRequest's pattern (nullable back-reference) rather than duplicating it, and mirrors sera's documented traject-status lifecycle exactly.",
