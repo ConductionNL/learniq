@@ -4980,7 +4980,8 @@
                             "properties": {
                                 "teacherId": {
                                     "type": "string",
-                                    "description": "Nextcloud user ID of the assigned teacher."
+                                    "description": "Nextcloud user ID of the assigned teacher.",
+                                    "title": "Teacher ID"
                                 },
                                 "role": {
                                     "type": "string",
@@ -4988,7 +4989,8 @@
                                         "primary",
                                         "duo-partner"
                                     ],
-                                    "description": "Whether this teacher is the primary teacher or a duo-partner sharing the cohort."
+                                    "description": "Whether this teacher is the primary teacher or a duo-partner sharing the cohort.",
+                                    "title": "Role"
                                 },
                                 "days": {
                                     "type": "array",
@@ -5003,7 +5005,8 @@
                                         ]
                                     },
                                     "default": [],
-                                    "description": "Weekdays this teacher covers this cohort."
+                                    "description": "Weekdays this teacher covers this cohort.",
+                                    "title": "Days"
                                 }
                             }
                         },

@@ -1446,7 +1446,10 @@ OC.L10N.register(
         "Whether this teacher is the primary teacher or a duo-partner sharing the cohort.": "Of deze leerkracht de hoofdleerkracht is of een duo-partner die het cohort deelt.",
         "Working Days": "Werkdagen",
         "Subject teacher assignments": "Vakleerkrachttoewijzingen",
-        "Subject teachers": "Vakleerkrachten"
+        "Subject teachers": "Vakleerkrachten",
+        "No subject teacher assignments found.": "Geen vakleerkrachttoewijzingen gevonden.",
+        "Subject teacher assignment": "Vakleerkrachttoewijzing",
+        "Teacher ID": "Leerkracht-ID"
     },
     "nplurals=2; plural=(n != 1);"
 )

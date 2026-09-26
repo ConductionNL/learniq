@@ -998,7 +998,10 @@ OC.L10N.register(
         "Whether this teacher is the primary teacher or a duo-partner sharing the cohort.": "Whether this teacher is the primary teacher or a duo-partner sharing the cohort.",
         "Working Days": "Working Days",
         "Subject teacher assignments": "Subject teacher assignments",
-        "Subject teachers": "Subject teachers"
+        "Subject teachers": "Subject teachers",
+        "No subject teacher assignments found.": "No subject teacher assignments found.",
+        "Subject teacher assignment": "Subject teacher assignment",
+        "Teacher ID": "Teacher ID"
     },
     "nplurals=2; plural=(n != 1);"
 )
