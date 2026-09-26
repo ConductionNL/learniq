@@ -67,7 +67,7 @@ namespace OCA\Learniq\Lifecycle;
  * teldatum pre-flight check (funding-and-teldatum-checks) while that check is
  * not yet confirmed.
  *
- * @spec openspec/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-a-confirmed-teldatum-pre-flight-check-before-it-runs
+ * @spec openspec/changes/funding-and-teldatum-checks/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-a-confirmed-teldatum-pre-flight-check-before-it-runs
  */
 class DataExchangeRunGuard {
 

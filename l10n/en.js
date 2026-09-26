@@ -979,7 +979,19 @@ OC.L10N.register(
         "Not configured": "Not configured",
         "Open settings": "Open settings",
         "Simulated": "Simulated",
-        "Status message": "Status message"
+        "Status message": "Status message",
+        "Funding Weight Code": "Funding Weight Code",
+        "The NOAT/CUMI/NNCA culturele-achtergrond classification feeding the ROD/bekostiging funding weging (funding-and-teldatum-checks P-new-13), or null while unclassified.": "The NOAT/CUMI/NNCA culturele-achtergrond classification feeding the ROD/bekostiging funding weging (funding-and-teldatum-checks P-new-13), or null while unclassified.",
+        "Requires Teldatum Check": "Requires Teldatum Check",
+        "Whether this job requires a school-confirmed teldatum pre-flight check (1 February / 1 October pupil count) before it may run (funding-and-teldatum-checks P-new-12). Defaults to false so no existing target is newly blocked.": "Whether this job requires a school-confirmed teldatum pre-flight check (1 February / 1 October pupil count) before it may run (funding-and-teldatum-checks P-new-12). Defaults to false so no existing target is newly blocked.",
+        "Teldatum Check Status": "Teldatum Check Status",
+        "Confirmation state of the pre-flight teldatum check. Only consulted by DataExchangeRunGuard when requiresTeldatumCheck is true. A human attestation, not a computed count comparison.": "Confirmation state of the pre-flight teldatum check. Only consulted by DataExchangeRunGuard when requiresTeldatumCheck is true. A human attestation, not a computed count comparison.",
+        "Teldatum Check Date": "Teldatum Check Date",
+        "The DUO count date (1 February or 1 October) this job’s numbers are being verified against, or null while not applicable.": "The DUO count date (1 February or 1 October) this job’s numbers are being verified against, or null while not applicable.",
+        "Teldatum Checked By": "Teldatum Checked By",
+        "Nextcloud user id of the staff member who confirmed the teldatum check, or null while pending.": "Nextcloud user id of the staff member who confirmed the teldatum check, or null while pending.",
+        "Teldatum Checked At": "Teldatum Checked At",
+        "When the teldatum check was confirmed, or null while pending.": "When the teldatum check was confirmed, or null while pending."
     },
     "nplurals=2; plural=(n != 1);"
 )

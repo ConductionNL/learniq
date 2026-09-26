@@ -1427,7 +1427,19 @@ OC.L10N.register(
         "Not configured": "Niet geconfigureerd",
         "Open settings": "Instellingen openen",
         "Simulated": "Gesimuleerd",
-        "Status message": "Statusmelding"
+        "Status message": "Statusmelding",
+        "Funding Weight Code": "Bekostigingswegingscode",
+        "The NOAT/CUMI/NNCA culturele-achtergrond classification feeding the ROD/bekostiging funding weging (funding-and-teldatum-checks P-new-13), or null while unclassified.": "De NOAT/CUMI/NNCA-classificatie culturele achtergrond die de ROD/bekostigingsweging voedt (funding-and-teldatum-checks P-new-13), of null zolang niet geclassificeerd.",
+        "Requires Teldatum Check": "Vereist teldatumcontrole",
+        "Whether this job requires a school-confirmed teldatum pre-flight check (1 February / 1 October pupil count) before it may run (funding-and-teldatum-checks P-new-12). Defaults to false so no existing target is newly blocked.": "Of deze taak een door de school bevestigde teldatumcontrole (leerlingentelling van 1 februari / 1 oktober) vereist voordat deze mag draaien (funding-and-teldatum-checks P-new-12). Standaard onwaar, zodat geen bestaand doel opnieuw wordt geblokkeerd.",
+        "Teldatum Check Status": "Status teldatumcontrole",
+        "Confirmation state of the pre-flight teldatum check. Only consulted by DataExchangeRunGuard when requiresTeldatumCheck is true. A human attestation, not a computed count comparison.": "Bevestigingsstatus van de teldatumcontrole. Wordt alleen geraadpleegd door DataExchangeRunGuard wanneer requiresTeldatumCheck waar is. Een menselijke verklaring, geen berekende telvergelijking.",
+        "Teldatum Check Date": "Datum teldatumcontrole",
+        "The DUO count date (1 February or 1 October) this job’s numbers are being verified against, or null while not applicable.": "De DUO-teldatum (1 februari of 1 oktober) waartegen de cijfers van deze taak worden geverifieerd, of null indien niet van toepassing.",
+        "Teldatum Checked By": "Teldatumcontrole uitgevoerd door",
+        "Nextcloud user id of the staff member who confirmed the teldatum check, or null while pending.": "Nextcloud-gebruikers-ID van de medewerker die de teldatumcontrole heeft bevestigd, of null in afwachting.",
+        "Teldatum Checked At": "Teldatumcontrole uitgevoerd op",
+        "When the teldatum check was confirmed, or null while pending.": "Wanneer de teldatumcontrole is bevestigd, of null in afwachting."
     },
     "nplurals=2; plural=(n != 1);"
 )
