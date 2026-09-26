@@ -287,6 +287,22 @@
 					}
 				},
 				{
+					"id": "ReportCardTemplatesMenu",
+					"label": "Report card templates",
+					"icon": "FileDocumentEditOutline",
+					"route": "ReportCardTemplates",
+					"order": 66,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "LtiToolPlacementsMenu",
 					"label": "LTI tools",
 					"icon": "OpenInNew",
@@ -6558,6 +6574,83 @@
 						"gridY": 0,
 						"gridWidth": 4,
 						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ReportCardTemplates",
+			"route": "/report-cards/templates",
+			"type": "index",
+			"title": "Report card templates",
+			"config": {
+				"register": "learniq",
+				"schema": "report-card-template"
+			}
+		},
+		{
+			"id": "ReportCardTemplateDetail",
+			"route": "/report-cards/templates/:id",
+			"type": "detail",
+			"title": "Report card template",
+			"config": {
+				"register": "learniq",
+				"schema": "report-card-template",
+				"_note": "report-card-templates: a ReportCardTemplate declares an ordered sections[] array (grades/lvs-results/attendance/social-emotional/narrative/pupil-voice/portfolio, each with a scale from the shared library) and a per-group testKindSectionMap[], a config/template archetype mirroring CourseTemplateDetail's shape exactly. Body leads with the template definition (8-wide, sections[]/testKindSectionMap[] render via the generic data widget's nested-array support) and a Related panel resolving the Cohorts assigned this template (Cohort.reportCardTemplateId). Assignment itself happens on CohortDetail, not here, this page only defines the template. No comms leaves (no linkedTypes): a template is a definition, not a correspondence thread. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "rctpl-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "FileDocumentEditOutline"
+					},
+					{
+						"id": "rctpl-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "rctpl-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "rctpl-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
 						"showTitle": false
 					}
 				],

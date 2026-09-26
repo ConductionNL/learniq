@@ -35,6 +35,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Listener\ReportCardComposer;
 use OCA\Learniq\Service\AttendanceWindowAggregator;
+use OCA\Learniq\Service\ReportCardTemplateSectionResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
@@ -71,6 +72,7 @@ class ReportCardComposerTest extends TestCase {
 	 * @param array<int,array<string,mixed>> $sessions Session rows (any cohort).
 	 * @param array<int,array<string,mixed>> $attendance AttendanceRecord rows (any learner).
 	 * @param array<string,array<string,mixed>> $learnerProfiles learnerId => LearnerProfile data.
+	 * @param array<string,array<string,mixed>> $templates templateId => ReportCardTemplate data (report-card-templates change).
 	 *
 	 * @return ReportCardComposer
 	 */
@@ -82,17 +84,22 @@ class ReportCardComposerTest extends TestCase {
 		array $sessions = [],
 		array $attendance = [],
 		array $learnerProfiles = [],
+		array $templates = [],
 	): ReportCardComposer {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($cohorts, $plans): ?ObjectEntity {
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($cohorts, $plans, $templates): ?ObjectEntity {
 				if ($schema === 'cohort' && isset($cohorts[$id]) === true) {
 					return OrEntityFactory::make($cohorts[$id], 'cohort');
 				}
 
 				if ($schema === 'curriculum-plan' && isset($plans[$id]) === true) {
 					return OrEntityFactory::make($plans[$id], 'curriculum-plan');
+				}
+
+				if ($schema === 'report-card-template' && isset($templates[$id]) === true) {
+					return OrEntityFactory::make($templates[$id], 'report-card-template');
 				}
 
 				return null;
@@ -151,7 +158,8 @@ class ReportCardComposerTest extends TestCase {
 			$objectService,
 			$timeFactory,
 			new NullLogger(),
-			new AttendanceWindowAggregator($objectService)
+			new AttendanceWindowAggregator($objectService),
+			new ReportCardTemplateSectionResolver($objectService, new NullLogger())
 		);
 
 	}//end makeComposer()
@@ -405,7 +413,8 @@ class ReportCardComposerTest extends TestCase {
 			$objectService,
 			$timeFactory,
 			new NullLogger(),
-			new AttendanceWindowAggregator($objectService)
+			new AttendanceWindowAggregator($objectService),
+			new ReportCardTemplateSectionResolver($objectService, new NullLogger())
 		);
 
 		$card = [
@@ -428,4 +437,114 @@ class ReportCardComposerTest extends TestCase {
 		self::assertNotEmpty($cardSaves[0]['object']['composedAt']);
 
 	}//end testRecomposeOverwritesExistingCardInPlace()
+
+	/**
+	 * A Cohort with no `reportCardTemplateId` composes exactly the
+	 * pre-existing fixed shape (report-card-templates change: fallback
+	 * path) — `templateId` is null and every field composes unchanged.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
+	 */
+	public function testComposeWithoutTemplateFallsBackToFixedShape(): void {
+		$composer = $this->makeComposer(
+			cohorts: [
+				'cohort-a' => ['id' => 'cohort-a', 'learnerIds' => ['learner-1']],
+			],
+			plans: [
+				'plan-bio' => ['id' => 'plan-bio', 'components' => [['componentId' => 'c1', 'period' => '1', 'weight' => 1, 'kind' => 'assessment']]],
+			],
+			finalGrades: [
+				'learner-1|plan-bio' => ['learnerId' => 'learner-1', 'curriculumPlanId' => 'plan-bio', 'passed' => true, 'breakdown' => ['periods' => ['1' => 8.0]]],
+			],
+			gradeEntries: [
+				'learner-1|plan-bio|1' => [['id' => 'entry-1']],
+			],
+		);
+
+		$period = [
+			'id' => 'period-1',
+			'periodCode' => '1',
+			'curriculumPlanIds' => ['plan-bio'],
+			'cohortIds' => ['cohort-a'],
+			'attendanceIncluded' => false,
+			'tenant_id' => 'tenant-a',
+		];
+
+		$composer->handle($this->makeEvent($period, 'report-period', 'compose', 'composed'));
+
+		$cardSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'report-card'));
+		self::assertCount(1, $cardSaves);
+		self::assertNull($cardSaves[0]['object']['templateId']);
+		self::assertCount(1, $cardSaves[0]['object']['subjectGrades']);
+		self::assertSame('plan-bio', $cardSaves[0]['object']['subjectGrades'][0]['curriculumPlanId']);
+
+	}//end testComposeWithoutTemplateFallsBackToFixedShape()
+
+	/**
+	 * A Cohort with `reportCardTemplateId` set stamps `templateId` on the
+	 * composed ReportCard and limits population to exactly the sections
+	 * the template declares (report-card-templates change).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-cohorts-assigned-template-determines-its-report-cards-sections
+	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
+	 */
+	public function testComposeWithTemplateLimitsPopulatedSections(): void {
+		$composer = $this->makeComposer(
+			cohorts: [
+				'cohort-a' => ['id' => 'cohort-a', 'learnerIds' => ['learner-1'], 'reportCardTemplateId' => 'template-1'],
+			],
+			plans: [
+				'plan-bio' => ['id' => 'plan-bio', 'components' => [['componentId' => 'c1', 'period' => '1', 'weight' => 1, 'kind' => 'assessment']]],
+			],
+			finalGrades: [
+				'learner-1|plan-bio' => ['learnerId' => 'learner-1', 'curriculumPlanId' => 'plan-bio', 'passed' => true, 'breakdown' => ['periods' => ['1' => 8.0]]],
+			],
+			gradeEntries: [
+				'learner-1|plan-bio|1' => [['id' => 'entry-1']],
+			],
+			sessions: [
+				['id' => 'session-1', 'cohortId' => 'cohort-a'],
+			],
+			attendance: [
+				['learnerId' => 'learner-1', 'sessionId' => 'session-1', 'status' => 'present'],
+			],
+			templates: [
+				'template-1' => [
+					'id' => 'template-1',
+					'name' => 'Narrative-only template',
+					'slug' => 'narrative-only',
+					'sections' => [
+						['kind' => 'narrative', 'order' => 1, 'scale' => 'text'],
+					],
+				],
+			],
+		);
+
+		$period = [
+			'id' => 'period-1',
+			'periodCode' => '1',
+			'curriculumPlanIds' => ['plan-bio'],
+			'cohortIds' => ['cohort-a'],
+			'attendanceIncluded' => true,
+			'startDate' => '2026-01-01',
+			'endDate' => '2026-01-31',
+			'tenant_id' => 'tenant-a',
+		];
+
+		$composer->handle($this->makeEvent($period, 'report-period', 'compose', 'composed'));
+
+		$cardSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'report-card'));
+		self::assertCount(1, $cardSaves);
+		$card = $cardSaves[0]['object'];
+
+		self::assertSame('template-1', $card['templateId']);
+		// The template declares only 'narrative' — 'grades' and 'attendance' are NOT populated.
+		self::assertSame([], $card['subjectGrades']);
+		self::assertNull($card['attendanceSummary']);
+
+	}//end testComposeWithTemplateLimitsPopulatedSections()
 }//end class

@@ -1427,7 +1427,27 @@ OC.L10N.register(
         "Not configured": "Niet geconfigureerd",
         "Open settings": "Instellingen openen",
         "Simulated": "Gesimuleerd",
-        "Status message": "Statusmelding"
+        "Status message": "Statusmelding",
+        "Display label for this section, e.g. 'Sociaal-emotionele ontwikkeling'. Null falls back to a generic label per kind.": "Weergavelabel voor dit onderdeel, bijvoorbeeld 'Sociaal-emotionele ontwikkeling'. Leeg valt terug op een standaardlabel per soort.",
+        "Display order among sibling sections on the composed report card.": "Volgorde tussen de onderdelen op het samengestelde rapport.",
+        "Docudesk Template Slug": "Docudesk-sjabloonslug",
+        "Free-text identifier for an imported test kind, e.g. 'cito-rekenen-groep-6'.": "Vrije tekst voor het soort geïmporteerde toets, bijvoorbeeld 'cito-rekenen-groep-6'.",
+        "Human-readable template name, e.g. 'Basisschool huisstijl rapport'.": "Leesbare sjabloonnaam, bijvoorbeeld 'Basisschool huisstijl rapport'.",
+        "Machine-readable template slug, sent as docudesk's templateSlug by ReportCardPdfDelegationService for any ReportCard assigned this template (report-card spec's docudesk delegation requirement). Distinct from this schema's own OpenRegister slug ('report-card-template'). This is the school's chosen document-layout identifier, e.g. 'huisstijl-groep-6'.": "Machineleesbare sjabloonslug, verstuurd als templateSlug naar Docudesk door ReportCardPdfDelegationService voor elk rapport met dit sjabloon. Dit is niet dezelfde slug als de OpenRegister-schemaslug ('report-card-template'), maar de eigen documentlay-outnaam van de school, bijvoorbeeld 'huisstijl-groep-6'.",
+        "Ordered, typed sections this template composes. A ReportCardTemplate with zero sections is invalid and cannot be saved (report-card spec scenario 'A template with no sections fails schema validation on save').": "Geordende, getypeerde onderdelen waaruit dit sjabloon is opgebouwd. Een rapportsjabloon zonder onderdelen is ongeldig en kan niet worden opgeslagen.",
+        "Per-group mapping of an imported methodetoets/LVS test kind to the section it belongs on, mirroring Easyrapport ('De leerkracht bepaalt welke toets bij welk rapportonderdeel hoort') and ParnasSys's structure settings. Declared now so the tier-B lvs-import-contract change does not require a further schema revision to slot in; no LVS data source exists yet to populate matches.": "Koppeling per groep van een geïmporteerde methodetoets of LVS-toets aan het bijbehorende rapportonderdeel. De leerkracht bepaalt welke toets bij welk onderdeel hoort. Er is nog geen LVS-gegevensbron om deze koppeling te vullen.",
+        "Report Card Template ID": "Rapportsjabloon-ID",
+        "ReportCardTemplate": "ReportCardTemplate",
+        "ReportCardTemplate this report card was composed against, stamped by ReportCardComposer from the learner's Cohort.reportCardTemplateId at compose time (report-card-templates change). Null when the cohort had no template assigned. The card then carries the pre-existing fixed shape (subjectGrades[]/attendanceSummary/mentorComment) and ReportCardPdfDelegationService sends the default 'report-card' docudesk templateSlug.": "Het rapportsjabloon waartegen dit rapport is samengesteld, gezet door ReportCardComposer op basis van de groep van de leerling. Leeg wanneer de groep geen sjabloon heeft. Het rapport gebruikt dan de bestaande vaste opbouw en Docudesk krijgt de standaard templateSlug 'report-card'.",
+        "Scale drawn from the shared scale library (Easyrapport: 'Trapjes, Bolletjes, Smileys, Cijfers, Tekst, Cito-niveau, Percentages'; 'percentages' folded into grades-1-10-shaped numeric display). 'steps' = trapjes, 'dots' = bolletjes, 'grades-1-10' = cijfers.": "Schaal uit de gedeelde schaalbibliotheek: trapjes, bolletjes, smileys, cijfers, tekst, Cito-niveau of percentages.",
+        "Section Kind": "Onderdeelsoort",
+        "Section Scale": "Schaal van onderdeel",
+        "Section kind. 'grades' maps to ReportCard.subjectGrades[], 'attendance' to ReportCard.attendanceSummary, 'narrative' to ReportCard.mentorComment (all pre-existing fields); 'lvs-results', 'social-emotional', 'pupil-voice' and 'portfolio' have no automated data source yet (lvs-results depends on the tier-B lvs-import-contract change) and are populated as mentor-edited free text when declared.": "Soort onderdeel: cijfers, LVS-resultaten, aanwezigheid, sociaal-emotioneel, verhalend, stem van de leerling, of portfolio.",
+        "Sections": "Onderdelen",
+        "Standing ReportCardTemplate assignment for this group (report-card-templates change), mirroring ParnasSys's per-leerjaar report setting. Read by ReportCardComposer at ReportPeriod.compose time to decide which sections a composed ReportCard carries. Null means composition falls back to the pre-existing fixed shape (subjectGrades[]/attendanceSummary/mentorComment).": "Vast rapportsjabloon voor deze groep. ReportCardComposer leest dit veld bij het samenstellen van rapporten om te bepalen welke onderdelen worden gevuld. Leeg betekent dat de bestaande vaste opbouw wordt gebruikt.",
+        "Test Kind": "Soort toets",
+        "Test Kind Section Map": "Koppeling toetssoort en onderdeel",
+        "The section kind this test kind's results belong on.": "Het onderdeel waar de resultaten van dit soort toets bij horen."
     },
     "nplurals=2; plural=(n != 1);"
 )

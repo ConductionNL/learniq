@@ -24,6 +24,8 @@
  *
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
+ * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
+ * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
  */
 
 declare(strict_types=1);
@@ -31,6 +33,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Service\ReportCardPdfDelegationService;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -67,6 +71,22 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 	private IAppConfig $appConfig;
 
 	/**
+	 * OpenRegister object-access mock, resolves a ReportCard's assigned
+	 * ReportCardTemplate by id (report-card-templates change).
+	 *
+	 * @var ObjectService&\PHPUnit\Framework\MockObject\MockObject
+	 */
+	private ObjectService $objectService;
+
+	/**
+	 * templateId => ReportCardTemplate data, read by {@see self::service()}'s
+	 * $objectService `find()` stub.
+	 *
+	 * @var array<string,array<string,mixed>>
+	 */
+	private array $templates = [];
+
+	/**
 	 * @return void
 	 */
 	protected function setUp(): void {
@@ -74,9 +94,21 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 		$this->clientService = $this->createMock(IClientService::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->objectService = $this->createMock(ObjectService::class);
+		$this->templates = [];
 
 		$this->urlGenerator->method('getAbsoluteURL')->willReturnCallback(
 			static fn (string $path): string => 'https://learniq.example' . $path
+		);
+
+		$this->objectService->method('find')->willReturnCallback(
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+				if ($schema === 'report-card-template' && isset($this->templates[$id]) === true) {
+					return OrEntityFactory::make($this->templates[$id], 'report-card-template');
+				}
+
+				return null;
+			}
 		);
 
 	}//end setUp()
@@ -92,6 +124,7 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 			urlGenerator: $this->urlGenerator,
 			appConfig: $this->appConfig,
 			appManager: $this->createMock(IAppManager::class),
+			objectService: $this->objectService,
 			logger: new NullLogger()
 		);
 
@@ -252,4 +285,93 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 		self::assertNotEmpty($context['object']['docudeskRenderError']);
 
 	}//end testMalformedResponseIsFailSoft()
+
+	/**
+	 * A ReportCard with a `templateId` resolving to a `ReportCardTemplate`
+	 * sends that template's own `slug` as `templateSlug`, not the literal
+	 * default (report-card-templates change).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
+	 */
+	public function testRenderSendsAssignedTemplateSlug(): void {
+		$this->templates['template-1'] = ['id' => 'template-1', 'slug' => 'huisstijl-groep-6'];
+		$this->appConfig->method('getValueString')->willReturn('token-abc');
+
+		$response = $this->createMock(IResponse::class);
+		$response->method('getBody')->willReturn(json_encode(['documentRef' => 'doc-uuid-2']));
+
+		$capturedOptions = null;
+		$client = $this->createMock(IClient::class);
+		$client->method('post')->willReturnCallback(
+			function (string $url, array $options) use (&$capturedOptions, $response): IResponse {
+				$capturedOptions = $options;
+				return $response;
+			}
+		);
+		$this->clientService->method('newClient')->willReturn($client);
+
+		$context = [
+			'object' => [
+				'id' => 'card-5',
+				'templateId' => 'template-1',
+				'subjectGrades' => [],
+				'mentorComment' => null,
+			],
+			'transition' => 'renderToPdf',
+			'from' => 'finalised',
+			'to' => 'finalised',
+		];
+
+		$result = $this->service()->check($context);
+
+		self::assertTrue($result);
+		self::assertSame('huisstijl-groep-6', $capturedOptions['json']['templateSlug']);
+
+	}//end testRenderSendsAssignedTemplateSlug()
+
+	/**
+	 * A ReportCard with no `templateId` keeps sending the literal default
+	 * `'report-card'` templateSlug, unchanged (report-card-templates
+	 * change: fallback path).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
+	 */
+	public function testRenderSendsDefaultSlugWithoutTemplate(): void {
+		$this->appConfig->method('getValueString')->willReturn('token-abc');
+
+		$response = $this->createMock(IResponse::class);
+		$response->method('getBody')->willReturn(json_encode(['documentRef' => 'doc-uuid-3']));
+
+		$capturedOptions = null;
+		$client = $this->createMock(IClient::class);
+		$client->method('post')->willReturnCallback(
+			function (string $url, array $options) use (&$capturedOptions, $response): IResponse {
+				$capturedOptions = $options;
+				return $response;
+			}
+		);
+		$this->clientService->method('newClient')->willReturn($client);
+
+		$context = [
+			'object' => [
+				'id' => 'card-6',
+				'templateId' => null,
+				'subjectGrades' => [],
+				'mentorComment' => null,
+			],
+			'transition' => 'renderToPdf',
+			'from' => 'finalised',
+			'to' => 'finalised',
+		];
+
+		$result = $this->service()->check($context);
+
+		self::assertTrue($result);
+		self::assertSame('report-card', $capturedOptions['json']['templateSlug']);
+
+	}//end testRenderSendsDefaultSlugWithoutTemplate()
 }//end class
