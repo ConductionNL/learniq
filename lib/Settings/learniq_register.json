@@ -6649,6 +6649,34 @@
                         "description": "Sum of rubricScores[].points as entered by the teacher. Null before marking. Reduced by Assignment.latePenaltyPercent when isLate is true to yield effectiveGrade.",
                         "title": "Proposed Grade"
                     },
+                    "plagiarismStatus": {
+                        "type": "string",
+                        "enum": [
+                            "not-requested",
+                            "pending",
+                            "completed"
+                        ],
+                        "default": "not-requested",
+                        "description": "Status of a plagiarism check for this submission (finding 6.11). Set to 'pending' when a provider check is submitted (OCA\\Learniq\\Plagiarism\\ProvidesPlagiarismCheck::submitForCheck()), 'completed' once a score is available. No built-in provider ships with learniq — this is the data-model landing spot only.",
+                        "title": "Plagiarism Check Status"
+                    },
+                    "plagiarismScore": {
+                        "type": "number",
+                        "nullable": true,
+                        "minimum": 0,
+                        "maximum": 1,
+                        "default": null,
+                        "description": "Similarity score in [0.0, 1.0] as returned by ProvidesPlagiarismCheck::getSimilarityScore(). Null until plagiarismStatus is 'completed'.",
+                        "title": "Plagiarism Similarity Score"
+                    },
+                    "plagiarismCheckedAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "default": null,
+                        "description": "Timestamp the plagiarism check completed. Null until plagiarismStatus is 'completed'.",
+                        "title": "Plagiarism Checked At"
+                    },
                     "lifecycle": {
                         "type": "string",
                         "description": "Submission lifecycle state. Managed by OR lifecycle engine.",
@@ -8981,9 +9009,24 @@
                             "manual",
                             "exemption",
                             "lti-ags",
-                            "portfolio"
+                            "portfolio",
+                            "method-test"
                         ],
                         "title": "Source Kind"
+                    },
+                    "methodName": {
+                        "type": "string",
+                        "nullable": true,
+                        "default": null,
+                        "description": "The teaching method this mark came from (e.g. 'Wereld in Getallen', 'Snappet'), set when sourceKind=method-test (finding 6.6). Null for every other sourceKind.",
+                        "title": "Method Name"
+                    },
+                    "methodBlock": {
+                        "type": "string",
+                        "nullable": true,
+                        "default": null,
+                        "description": "The method's block/unit this mark covers (e.g. 'blok 3'), set when sourceKind=method-test. Null for every other sourceKind.",
+                        "title": "Method Block"
                     },
                     "submissionId": {
                         "type": "string",
