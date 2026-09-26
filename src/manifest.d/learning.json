@@ -1850,6 +1850,56 @@
 						"icon": "AccountGroup"
 					},
 					{
+						"id": "coh-notes",
+						"type": "data",
+						"title": "Notes",
+						"content": {
+							"columns": 1,
+							"include": [
+								"notes"
+							]
+						},
+						"icon": "NoteTextOutline"
+					},
+					{
+						"id": "coh-sessions-today",
+						"type": "object-list",
+						"title": "Today's sessions",
+						"content": {
+							"register": "learniq",
+							"schema": "Session",
+							"filter": {
+								"cohortId": "@objectId",
+								"startsAt": {
+									"gte": "@today",
+									"lt": "@today+1d"
+								}
+							},
+							"sort": {
+								"field": "startsAt",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "startsAt",
+									"label": "Starts At"
+								},
+								{
+									"key": "endsAt",
+									"label": "Ends At"
+								}
+							],
+							"rowRoute": "SessionDetail",
+							"emptyText": "No sessions scheduled for today."
+						},
+						"icon": "Calendar"
+					},
+					{
 						"id": "coh-kpis-sessions",
 						"type": "stats-block",
 						"title": "Sessions",
@@ -2088,10 +2138,28 @@
 						"showTitle": false
 					},
 					{
+						"id": "2-4",
+						"widgetId": "coh-notes",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					},
+					{
+						"id": "2-5",
+						"widgetId": "coh-sessions-today",
+						"gridX": 0,
+						"gridY": 8,
+						"gridWidth": 12,
+						"gridHeight": 4,
+						"showTitle": false
+					},
+					{
 						"id": "3",
 						"widgetId": "coh-sessions",
 						"gridX": 0,
-						"gridY": 6,
+						"gridY": 12,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2100,7 +2168,7 @@
 						"id": "4",
 						"widgetId": "coh-enrol",
 						"gridX": 6,
-						"gridY": 6,
+						"gridY": 12,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2109,7 +2177,7 @@
 						"id": "5",
 						"widgetId": "coh-flags",
 						"gridX": 0,
-						"gridY": 11,
+						"gridY": 17,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2118,7 +2186,7 @@
 						"id": "6",
 						"widgetId": "coh-related",
 						"gridX": 6,
-						"gridY": 11,
+						"gridY": 17,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2127,7 +2195,7 @@
 						"id": "7",
 						"widgetId": "cohort-talk",
 						"gridX": 0,
-						"gridY": 16,
+						"gridY": 22,
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false

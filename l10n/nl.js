@@ -1427,7 +1427,10 @@ OC.L10N.register(
         "Not configured": "Niet geconfigureerd",
         "Open settings": "Instellingen openen",
         "Simulated": "Gesimuleerd",
-        "Status message": "Statusmelding"
+        "Status message": "Statusmelding",
+        "No sessions scheduled for today.": "Geen sessies gepland voor vandaag.",
+        "Notes": "Notities",
+        "Today's sessions": "Sessies van vandaag"
     },
     "nplurals=2; plural=(n != 1);"
 )

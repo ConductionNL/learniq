@@ -979,7 +979,10 @@ OC.L10N.register(
         "Not configured": "Not configured",
         "Open settings": "Open settings",
         "Simulated": "Simulated",
-        "Status message": "Status message"
+        "Status message": "Status message",
+        "No sessions scheduled for today.": "No sessions scheduled for today.",
+        "Notes": "Notes",
+        "Today's sessions": "Today's sessions"
     },
     "nplurals=2; plural=(n != 1);"
 )
