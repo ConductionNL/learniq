@@ -34,6 +34,7 @@ namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\Learniq\Lifecycle\PortfolioShareGrantHandler;
+use OCA\Learniq\Listener\CohortGroupProvisioningHandler;
 use OCA\Learniq\Listener\CohortTalkMembershipHandler;
 use OCA\Learniq\Listener\ConferenceScheduleGenerator;
 use OCA\Learniq\Listener\CourseEvaluationResponseSubmittedHandler;
@@ -119,6 +120,20 @@ class CollaborationListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: CohortTalkMembershipHandler::class
+		);
+
+		// ADR-031 legitimate exception (cohort-group-provisioning): Cohort
+		// `activate` -> real Nextcloud group provisioning bridge
+		// (OCP\IGroupManager), writing the provisioned group id back onto
+		// Cohort.ncGroupId (previously a field nothing populated —
+		// CohortMembershipGuard's own docblock deferred this to "a separate
+		// event listener"), plus the Enrolment activate/withdraw membership
+		// sync that keeps that group in step afterwards. Mirrors
+		// CohortTalkMembershipHandler's shape exactly, for NC groups instead
+		// of Talk conversations.
+		$context->registerEventListener(
+			event: ObjectTransitionedEvent::class,
+			listener: CohortGroupProvisioningHandler::class
 		);
 
 		// ADR-031 legitimate exception (peer-and-self-assessment): PeerReview
