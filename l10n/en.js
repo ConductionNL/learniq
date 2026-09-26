@@ -979,7 +979,23 @@ OC.L10N.register(
         "Not configured": "Not configured",
         "Open settings": "Open settings",
         "Simulated": "Simulated",
-        "Status message": "Status message"
+        "Status message": "Status message",
+        "First day of the holiday (inclusive).": "First day of the holiday (inclusive).",
+        "Free-text reason for the study day, e.g. 'Studiedag team'.": "Free-text reason for the study day, e.g. 'Studiedag team'.",
+        "Holiday End Date": "Holiday End Date",
+        "Holiday Name": "Holiday Name",
+        "Holiday Start Date": "Holiday Start Date",
+        "Holiday name, e.g. 'Herfstvakantie'.": "Holiday name, e.g. 'Herfstvakantie'.",
+        "Holidays": "Holidays",
+        "Individual study/PD days within this ReportPeriod's window. Additive; data only this round.": "Individual study/PD days within this ReportPeriod's window. Additive; data only this round.",
+        "Last day of the holiday (inclusive).": "Last day of the holiday (inclusive).",
+        "Named holiday date ranges within this ReportPeriod's window. Additive; data only this round, not yet consumed by any attendance/urentelling calculation.": "Named holiday date ranges within this ReportPeriod's window. Additive; data only this round, not yet consumed by any attendance/urentelling calculation.",
+        "Study Day Date": "Study Day Date",
+        "Study Day Description": "Study Day Description",
+        "Study Days": "Study Days",
+        "The study/PD day date.": "The study/PD day date.",
+        "Today's sessions": "Today's sessions",
+        "This week's sessions": "This week's sessions"
     },
     "nplurals=2; plural=(n != 1);"
 )
