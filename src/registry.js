@@ -10,6 +10,23 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  */
 
+// registry-component-fix: eight shared @conduction/nextcloud-vue components
+// that 14 type:"custom" manifest pages already name by their exact export
+// string (learniq-defect-triage.md, entry 1) but that this registry never
+// registered, so CnPageRenderer.resolveCustomComponent() found nothing and
+// mounted an empty page body. The manifest's `component` strings already
+// match these export names verbatim — no manifest edit needed, only this
+// registration.
+import {
+	CnDataMatrix,
+	CnExportWizard,
+	CnRelationshipGraph,
+	CnRichSubmitDialog,
+	CnSignatureCapture,
+	CnStructuredDocReview,
+	CnTimelineView,
+	CnWizardDialog,
+} from '@conduction/nextcloud-vue'
 import AuditTrailWidget from './components/widgets/AuditTrailWidget.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
@@ -173,6 +190,19 @@ export default {
 	//     CnFlowSidebar has to mount in the NC app sidebar for the canvas
 	//     to keep full width. ---
 	FlowDetailSidebar: page(FlowDetailSidebar),
+
+	// --- Shared @conduction/nextcloud-vue components named directly by
+	//     type:"custom" manifest pages (registry-component-fix; see the
+	//     import comment above). Keyed by the component's own export name,
+	//     matching each page's `component` string verbatim. ---
+	CnDataMatrix: page(CnDataMatrix),
+	CnExportWizard: page(CnExportWizard),
+	CnRelationshipGraph: page(CnRelationshipGraph),
+	CnRichSubmitDialog: page(CnRichSubmitDialog),
+	CnSignatureCapture: page(CnSignatureCapture),
+	CnStructuredDocReview: page(CnStructuredDocReview),
+	CnTimelineView: page(CnTimelineView),
+	CnWizardDialog: page(CnWizardDialog),
 
 	AdmissionsReviewBoard: page(AdmissionsReviewBoard),
 	BookConferenceSlotsView: page(BookConferenceSlotsView),
