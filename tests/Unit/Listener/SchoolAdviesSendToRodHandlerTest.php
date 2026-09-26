@@ -195,4 +195,43 @@ class SchoolAdviesSendToRodHandlerTest extends TestCase {
 		self::assertCount(0, $this->savedObjects);
 
 	}//end testIgnoresTransitionsNotTargetingVerzondenNaarRod()
+
+	/**
+	 * A SchoolAdvies with no learnerId is skipped defensively — no job is queued.
+	 *
+	 * @return void
+	 */
+	public function testDoesNothingWhenSchoolAdviesHasNoLearnerId(): void {
+		$adviesData = ['id' => 'advies-3', 'tenant_id' => 'tenant-a'];
+
+		$handler = $this->makeHandler(savedJobId: 'job-uuid-3');
+		$handler->handle($this->makeEvent($adviesData));
+
+		self::assertCount(0, $this->savedObjects);
+
+	}//end testDoesNothingWhenSchoolAdviesHasNoLearnerId()
+
+	/**
+	 * When the DataExchangeJob save returns no resolvable id, the handler
+	 * logs and stops without touching the SchoolAdvies.
+	 *
+	 * @return void
+	 */
+	public function testStopsWithoutStampingWhenJobSaveReturnsNoId(): void {
+		$adviesData = [
+			'id' => 'advies-4',
+			'learnerId' => 'learner-010',
+			'tenant_id' => 'tenant-a',
+		];
+
+		$handler = $this->makeHandler(savedJobId: null, existingSchoolAdvies: $adviesData);
+		$handler->handle($this->makeEvent($adviesData));
+
+		$jobSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'data-exchange-job'));
+		self::assertCount(1, $jobSaves);
+
+		$adviesSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'school-advies'));
+		self::assertCount(0, $adviesSaves);
+
+	}//end testStopsWithoutStampingWhenJobSaveReturnsNoId()
 }//end class
