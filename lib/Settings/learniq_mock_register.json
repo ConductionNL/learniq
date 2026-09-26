@@ -29556,6 +29556,69 @@
         "courseId": "00000000-0000-4000-8000-000000000002",
         "lessonId": "00000000-0000-4000-8000-000000000002",
         "verified_actor_id": "Voorbeeld Verified Actor Id 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lvs-result",
+          "slug": "lvs-result-lvsresult-1-1"
+        },
+        "provider": "cito",
+        "instrument": "Voorbeeld Instrument 1",
+        "moment": "Voorbeeld Moment 1",
+        "learnerId": "Voorbeeld Learnerid 1",
+        "dataExchangeJobId": "00000000-0000-4000-8000-000000000000",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "takenAt": "2026-03-01",
+        "rawScore": 1.0,
+        "vaardigheidsscore": 1.0,
+        "niveau": "Voorbeeld Niveau 1",
+        "referentieniveau": "Voorbeeld Referentieniveau 1",
+        "dle": 1.0,
+        "assessmentResultId": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "imported"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lvs-result",
+          "slug": "lvs-result-lvsresult-2-2"
+        },
+        "provider": "iep",
+        "instrument": "Voorbeeld Instrument 2",
+        "moment": "Voorbeeld Moment 2",
+        "learnerId": "Voorbeeld Learnerid 2",
+        "dataExchangeJobId": "00000000-0000-4000-8000-000000000001",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "takenAt": "2026-03-02",
+        "rawScore": 2.0,
+        "vaardigheidsscore": 2.0,
+        "niveau": "Voorbeeld Niveau 2",
+        "referentieniveau": "Voorbeeld Referentieniveau 2",
+        "dle": 2.0,
+        "assessmentResultId": "00000000-0000-4000-8000-000000000001",
+        "lifecycle": "verified"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lvs-result",
+          "slug": "lvs-result-lvsresult-3-3"
+        },
+        "provider": "boom",
+        "instrument": "Voorbeeld Instrument 3",
+        "moment": "Voorbeeld Moment 3",
+        "learnerId": "Voorbeeld Learnerid 3",
+        "dataExchangeJobId": "00000000-0000-4000-8000-000000000002",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "takenAt": "2026-03-03",
+        "rawScore": 3.0,
+        "vaardigheidsscore": 3.0,
+        "niveau": "Voorbeeld Niveau 3",
+        "referentieniveau": "Voorbeeld Referentieniveau 3",
+        "dle": 3.0,
+        "assessmentResultId": "00000000-0000-4000-8000-000000000002",
+        "lifecycle": "archived"
       }
     ]
   }
