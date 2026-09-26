@@ -1427,7 +1427,9 @@ OC.L10N.register(
         "Not configured": "Niet geconfigureerd",
         "Open settings": "Instellingen openen",
         "Simulated": "Gesimuleerd",
-        "Status message": "Statusmelding"
+        "Status message": "Statusmelding",
+        "Export QTI package": "QTI-pakket exporteren",
+        "No accommodations found for this assessment.": "Geen examenvoorzieningen gevonden voor deze toets."
     },
     "nplurals=2; plural=(n != 1);"
 )

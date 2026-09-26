@@ -120,6 +120,7 @@ import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
 import OfficeBuilding from 'vue-material-design-icons/OfficeBuilding.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import Package from 'vue-material-design-icons/Package.vue'
+import PackageDown from 'vue-material-design-icons/PackageDown.vue'
 import PackageVariant from 'vue-material-design-icons/PackageVariant.vue'
 import Pen from 'vue-material-design-icons/Pen.vue'
 import Percent from 'vue-material-design-icons/Percent.vue'
@@ -265,6 +266,7 @@ export default {
 	OfficeBuilding,
 	OpenInNew,
 	Package,
+	PackageDown,
 	PackageVariant,
 	Pen,
 	Percent,
