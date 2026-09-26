@@ -593,7 +593,20 @@
 			"title": "Attendance records",
 			"config": {
 				"register": "learniq",
-				"schema": "attendance-record"
+				"schema": "attendance-record",
+				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly so the platform's built-in mass import/export/copy/delete (CnIndexPage showMass*) is a documented capability of this index, not an implicit default (findings 12.6/14.7).",
+				"columns": [
+					"learnerId",
+					"cohortId",
+					"status",
+					"markedAt"
+				],
+				"actionToggles": {
+					"showMassImport": true,
+					"showMassExport": true,
+					"showMassCopy": true,
+					"showMassDelete": true
+				}
 			}
 		},
 		{
@@ -1149,7 +1162,20 @@
 			"title": "Learners",
 			"config": {
 				"register": "learniq",
-				"schema": "learner-profile"
+				"schema": "learner-profile",
+				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly, see AttendanceRecords' note.",
+				"columns": [
+					"givenName",
+					"familyName",
+					"ncUserId",
+					"schoolId"
+				],
+				"actionToggles": {
+					"showMassImport": true,
+					"showMassExport": true,
+					"showMassCopy": true,
+					"showMassDelete": true
+				}
 			}
 		},
 		{

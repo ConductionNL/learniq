@@ -1427,7 +1427,8 @@ OC.L10N.register(
         "Not configured": "Niet geconfigureerd",
         "Open settings": "Instellingen openen",
         "Simulated": "Gesimuleerd",
-        "Status message": "Statusmelding"
+        "Status message": "Statusmelding",
+        "Import & export": "Import en export"
     },
     "nplurals=2; plural=(n != 1);"
 )
