@@ -101,7 +101,11 @@
         },
         "nullReasons": {}
       },
-      "readHow": "Source read at the tag named in sourceTag (learniq code read at 0b3c8977), then the lab instance in market-intelligence learniq/moodle booted and driven as admin on 2026-09-26."
+      "readHow": "Source read at the tag named in sourceTag (learniq code read at 0b3c8977), then the lab instance in market-intelligence learniq/moodle booted and driven as admin on 2026-09-26.",
+      "readVersion": {
+        "tag": "v5.2.3",
+        "version": "5.2.3 (Build: 20260914)"
+      }
     },
     {
       "key": "moodle-workplace",
@@ -279,7 +283,11 @@
           "tenders": "5 substring hits in intelligence.tenders on 2026-09-26, all noise (for example 'BI Speciliast'); no tender names ILIAS"
         }
       },
-      "readHow": "Source read at the tag named in sourceTag (learniq code read at 0b3c8977), then the lab instance in market-intelligence learniq/ilias booted and driven as admin on 2026-09-26."
+      "readHow": "Source read at the tag named in sourceTag (learniq code read at 0b3c8977), then the lab instance in market-intelligence learniq/ilias booted and driven as admin on 2026-09-26.",
+      "readVersion": {
+        "tag": "v11.4",
+        "version": "11.4 (2026-09-03)"
+      }
     },
     {
       "key": "totara",
@@ -443,7 +451,11 @@
           "tenders": "0 tenders in intelligence.tenders mention Chamilo (query 2026-09-26)"
         }
       },
-      "readHow": "Source read at the tag named in sourceTag (learniq code read at 0b3c8977), then the lab instance in market-intelligence learniq/chamilo booted and driven as admin on 2026-09-26."
+      "readHow": "Source read at the tag named in sourceTag (learniq code read at 0b3c8977), then the lab instance in market-intelligence learniq/chamilo booted and driven as admin on 2026-09-26.",
+      "readVersion": {
+        "tag": "v3.0.1",
+        "version": "3.0.1 (released 2026-09-19)"
+      }
     },
     {
       "key": "ispring-learn",
