@@ -22,7 +22,8 @@
 			"columnAddedOn": "2026-09-24",
 			"evidenceGrade": "docs-only",
 			"note": "The free GPL-3.0 core, self-hostable. Drivable end to end through moodle.org/demo and docs.moodle.org, but nobody drove it in this pass. Rated no only where the vendor documents a capability as Workplace-only.",
-			"unknownReason": "not covered by the Moodle vendor documentation read on 2026-09-23; nobody drove an instance"
+			"unknownReason": "not covered by the Moodle vendor documentation read on 2026-09-23; nobody drove an instance",
+			"readOn": "2026-09-26"
 		},
 		{
 			"key": "moodle-workplace",
@@ -31,7 +32,8 @@
 			"columnAddedOn": "2026-09-24",
 			"evidenceGrade": "docs-only",
 			"note": "The paid distribution, sold only through certified partners. No free tier and no public sandbox, so documentation is the ceiling of what anyone can check without buying it.",
-			"unknownReason": "not covered by the Moodle Workplace documentation read on 2026-09-23; the product is partner gated and nobody drove it"
+			"unknownReason": "not covered by the Moodle Workplace documentation read on 2026-09-23; the product is partner gated and nobody drove it",
+			"readOn": "2026-09-26"
 		},
 		{
 			"key": "ilias",
@@ -40,7 +42,7 @@
 			"columnAddedOn": "2026-09-24",
 			"evidenceGrade": "driven",
 			"note": "Driven on demo.ilias.de, ILIAS 10.11, as the published teacher account benno. A sandbox category, course, study programme and test were created and their settings screens read. No admin account is published and the administration area silently redirects, so every rating that lives there stays unknown. docu.ilias.de is login gated, so there is essentially no usable vendor-docs evidence.",
-			"readOn": "2026-09-24",
+			"readOn": "2026-09-26",
 			"unknownReason": "outside the 55 rows the 2026-09-24 drive on demo.ilias.de covered, or behind the administration area no published account reaches"
 		},
 		{
@@ -50,7 +52,8 @@
 			"columnAddedOn": "2026-09-24",
 			"evidenceGrade": "docs-only",
 			"note": "A GPLv3 Moodle fork built for corporate and government compliance. Code access needs a subscription and there is no public demo, so documentation is the ceiling. This is the column where the evidence is thinnest relative to the threat.",
-			"unknownReason": "not covered by the Totara documentation read on 2026-09-23; the code needs a subscription and nobody drove it"
+			"unknownReason": "not covered by the Totara documentation read on 2026-09-23; the code needs a subscription and nobody drove it",
+			"readOn": "2026-09-26"
 		},
 		{
 			"key": "chamilo",
@@ -69,7 +72,8 @@
 			"columnAddedOn": "2026-09-24",
 			"evidenceGrade": "docs-only",
 			"note": "Proprietary per-seat SaaS, no self-host, non-EU vendor. Included because its marketing targets our exact wedge: certificate expiry and renewal notifications. A 30-day trial makes it partly drivable.",
-			"unknownReason": "not covered by the iSpring Learn documentation read on 2026-09-23; the trial was not taken"
+			"unknownReason": "not covered by the iSpring Learn documentation read on 2026-09-23; the trial was not taken",
+			"readOn": "2026-09-26"
 		}
 	],
 	"areas": [
@@ -250,7 +254,9 @@
 			"evidence": {
 				"ilias": "Study Programme > Assignments > Membership Automation > Add Source, org-unit and role driven; Course > Members > Look Up Users for bulk add.",
 				"chamilo": "User groups (classes) and sessions, with add_users_to_session.php, add_students_to_session.php and session_user_import.php.",
-				"totara": "competitor_features#32155: \"Audience-based personalised learning paths. Dynamic audience rules deliver personalised learning and development paths per audience.\""
+				"totara": "competitor_features#32155: \"Audience-based personalised learning paths. Dynamic audience rules deliver personalised learning and development paths per audience.\"",
+				"moodle-workplace": "https://docs.moodle.org/405/en/Dynamic_rules: conditions \"User is in department\" and \"User has position\", action \"Allocate users to programs\"; https://moodle.com/news/make-mandatory-staff-training-stress-free-with-moodle-workplace/: \"dynamic rules can be used to enrol learners in courses based on a profile field, job title, or department\"",
+				"ispring-learn": "https://ispringhelpdocs.com/ispring-learn/enrollments-16187447.html: \"Click the Advanced Search button to select an entire department or group, or filter users by any of the profile fields.\" and \"assign the Rules of Effective Negotiating course to the entire Sales department.\""
 			}
 		},
 		{
@@ -276,7 +282,9 @@
 			"evidence": {
 				"ilias": "Study Programme > Settings > General, processing time determined individually or expiring at a fixed date. Admin side seen, learner-facing display not verified.",
 				"chamilo": "Session.duration counts days per user, plus accessEndDate and displayEndDate. It is a session setting and the learner-facing countdown was not verified.",
-				"ispring-learn": "competitor_features#27803: \"Learning tracks. Multi-step learning paths with prerequisites and deadlines\""
+				"ispring-learn": "competitor_features#27803: \"Learning tracks. Multi-step learning paths with prerequisites and deadlines\"",
+				"moodle-workplace": "https://docs.moodle.org/405/en/Programs: \"Due date: Date when the user is expected to have completed the program\"; https://docs.moodle.org/502/en/Programs: \"Depending on the Show days left until the program is due setting, a reminder badge is shown next to the Due date.\"",
+				"totara": "https://totara.help/docs/program-due-dates-1: \"The due date for users enrolled in the program (via any of the assignment types) must be set using a fixed completion date, or using a time relative to one of the following events\" and \"Users' actual due dates may differ from the assignment due date for various reasons\" (learner-facing display not stated on the page)"
 			}
 		},
 		{
@@ -529,7 +537,12 @@
 			"ilias": "unknown",
 			"totara": "yes",
 			"chamilo": "unknown",
-			"ispring-learn": "unknown"
+			"ispring-learn": "unknown",
+			"evidence": {
+				"moodle": "https://docs.moodle.org/405/en/Dynamic_rules: the \"Program overdue\" and \"Certification overdue\" conditions and the manager notification belong to Dynamic rules, which the page marks \"This feature is part of Moodle Workplace™, which is available through Moodle Certified Partners and Service Providers only.\" Moodle LMS core has no programs, certifications or dynamic rules.",
+				"moodle-workplace": "https://docs.moodle.org/405/en/Dynamic_rules: condition \"Program overdue\" (Due date on or after <datetime>), Notification action \"Send to\" Matching users, Department lead, Manager; \"Notifications will be sent directly to the user and their direct department lead(s) or manager(s), respectively.\"",
+				"totara": "https://totara.help/docs/program-and-certification-notification-triggers: \"Notifications can be triggered to send to a user or their manager before, on, or after the program's overall due date.\""
+			}
 		},
 		{
 			"id": "comp-learner-reminded-before-due",
@@ -550,7 +563,12 @@
 			"ilias": "unknown",
 			"totara": "yes",
 			"chamilo": "unknown",
-			"ispring-learn": "yes"
+			"ispring-learn": "yes",
+			"evidence": {
+				"moodle-workplace": "https://docs.moodle.org/405/en/Dynamic_rules: the conditions table lists \"Program overdue\" and \"Certification overdue\" but no due-soon condition; https://docs.moodle.org/502/en/Programs: \"Depending on the Show days left until the program is due setting, a reminder badge is shown next to the Due date.\" (a days-left badge, not a notification sent before the due date; see the contested list)",
+				"totara": "https://totara.help/docs/program-and-certification-notification-triggers: \"Notifications can be triggered to send to a user or their manager before, on, or after the program's overall due date.\"",
+				"ispring-learn": "https://ispringhelpdocs.com/ispring-learn/course-notifications-10683431.html: \"Send your Learners several automatic reminders when the completion date of the course is approaching.\" and \"You can send out automated email reminders to Learners a couple of days, hours, or minutes before the due date.\""
+			}
 		},
 		{
 			"id": "comp-refresher-on-expiry",
@@ -574,7 +592,9 @@
 			"ispring-learn": "yes",
 			"evidence": {
 				"totara": "competitor_features#32154: \"Certifications with recurring assessments and automatic recertification cycles for regulated industries.\"",
-				"ispring-learn": "competitor_features#27805: \"Certification management. Auto-issue certificates with expiry dates and renewal tracking\" (renewal tracking is stated; the automatic refresher enrolment itself is not)"
+				"ispring-learn": "competitor_features#27805: \"Certification management. Auto-issue certificates with expiry dates and renewal tracking\" (renewal tracking is stated; the automatic refresher enrolment itself is not)",
+				"moodle": "https://docs.moodle.org/405/en/Certifications: certifications and recertification are documented only as Workplace: \"This feature is part of Moodle Workplace™, which is available through Moodle Certified Partners and Service Providers only.\"",
+				"moodle-workplace": "https://docs.moodle.org/502/en/Certifications_Configuration: \"When the recertification start date is reached for a certified user, the recertification program will be reset and will appear on the user's dashboard.\""
 			}
 		},
 		{
@@ -600,7 +620,8 @@
 			"evidence": {
 				"ilias": "not checked: The supervisor accounts were never used, so the cross-programme view was not opened.",
 				"chamilo": "No rules register exists, so there is nothing to put on one page.",
-				"totara": "competitor_features#32158: \"Customisable report templates and data exports. Report builder with customisable templates and friendly exports.\""
+				"totara": "competitor_features#32158: \"Customisable report templates and data exports. Report builder with customisable templates and friendly exports.\"",
+				"moodle-workplace": "https://docs.moodle.org/405/en/Dynamic_rules: rules are managed \"via Site administration > Dynamic rules\" and \"You can view the log of a rule via the View report option\", per rule (a rules list and a per-rule report, not a side-by-side coverage page, hence partial)"
 			}
 		},
 		{
@@ -627,7 +648,9 @@
 				"ilias": "Study Programme > Settings > Validity of achieved Qualifications > Expiry > expires individually reveals Days after completion. The cycle is real but expressed in days, and it lives on the qualification rather than the certificate.",
 				"chamilo": "GradebookCategory.certificateValidityPeriod is days the certificate stays valid after attribution. A real cycle, in days, per gradebook category rather than per rule.",
 				"totara": "competitor_features#32154: \"Certifications with recurring assessments and automatic recertification cycles for regulated industries.\"",
-				"ispring-learn": "competitor_features#27805: \"Auto-issue certificates with expiry dates and renewal tracking\""
+				"ispring-learn": "competitor_features#27805: \"Auto-issue certificates with expiry dates and renewal tracking\"",
+				"moodle": "https://docs.moodle.org/405/en/Certifications: expiry and recertification periods are certification settings, documented only as Workplace: \"This feature is part of Moodle Workplace™, which is available through Moodle Certified Partners and Service Providers only.\"",
+				"moodle-workplace": "https://docs.moodle.org/502/en/Certifications_Configuration: \"if you set the re-certification expiry date to \\\"After current certification completion 1 month\\\" and the user completes the certification on June 15th, the next expiry date will be set to July 15th.\""
 			}
 		},
 		{
@@ -774,7 +797,8 @@
 				"ilias": "The certificate document carries no validity date at all. The Study Programme qualification expires and offers an e-mail reminder restart, but no days-left countdown was seen.",
 				"chamilo": "GradebookCertificateExpirationsProvider returns daysUntilExpiry and expired or expiring status; the view renders expiry date and counts, with reminder mails.",
 				"totara": "competitor_features#32154: \"Certifications with recurring assessments and automatic recertification cycles\" (an expiring certification is stated; a days-left view is not)",
-				"ispring-learn": "competitor_features#27805: \"Auto-issue certificates with expiry dates and renewal tracking\""
+				"ispring-learn": "competitor_features#27805: \"Auto-issue certificates with expiry dates and renewal tracking\"",
+				"moodle-workplace": "https://docs.moodle.org/502/en/Certifications_Configuration: the certification users table shows \"Expiry date: Date when current certification expired (date or Never).\" with an Expired status; https://docs.moodle.org/502/en/Programs: \"Show days left until the program is due\" (an expiry date plus a days-left badge on the due date; a days-left count to expiry itself is not stated)"
 			}
 		},
 		{
@@ -796,7 +820,10 @@
 			"ilias": "unknown",
 			"totara": "unknown",
 			"chamilo": "unknown",
-			"ispring-learn": "yes"
+			"ispring-learn": "yes",
+			"evidence": {
+				"ispring-learn": "https://ispringhelpdocs.com/ispring-learn/certificates-62864346.html: \"Expiring Certificates that will expire soon. The default setting is 30 days before the expiration date.\" and \"choose the number of days before the certificate expires that this status will be shown.\" (one threshold, in an admin report; see the contested list)"
+			}
 		},
 		{
 			"id": "cred-revoke-with-reason",
@@ -971,7 +998,8 @@
 			"ispring-learn": "yes",
 			"evidence": {
 				"ilias": "Course > Settings > Certificate is a full template editor: predefined layouts plus Custom, background image, page format and margins, and XHTML text with about fifteen placeholders. No PDF was actually rendered.",
-				"chamilo": "Editable HTML template with substitution tags, PDF export, plus the CustomCertificate plugin."
+				"chamilo": "Editable HTML template with substitution tags, PDF export, plus the CustomCertificate plugin.",
+				"ispring-learn": "https://ispringhelpdocs.com/ispring-learn/certificate-templates-10684377.html: \"You can upload PDF and DOCX certificates which will be delivered to your learners after they successfully complete courses and learning tracks. Here you can add custom certificate templates, edit or remove it.\""
 			}
 		},
 		{
@@ -1227,7 +1255,8 @@
 			"evidence": {
 				"ilias": "Learning Module SCORM, new_type=sahs, is in the Add New Object catalogue inside a course.",
 				"chamilo": "LpScormImport.vue, scormRuntimeApi.js and ScormApi.php give a SCORM 1.2 runtime. No package was actually played.",
-				"moodle": "competitor_features#27311: \"SCORM Support. Import and track SCORM 1.2 and 2004 compliant learning packages\""
+				"moodle": "competitor_features#27311: \"SCORM Support. Import and track SCORM 1.2 and 2004 compliant learning packages\"",
+				"ispring-learn": "https://ispringhelpdocs.com/ispring-learn/uploading-content-from-computer-30411510.html: \"Supported types: SCORM 1.2/2004 packages\""
 			}
 		},
 		{
@@ -1251,7 +1280,9 @@
 			"chamilo": "partial",
 			"ispring-learn": "yes",
 			"evidence": {
-				"chamilo": "competitor_features#32090: \"Standards imports: QTI, Aiken, xAPI cmi5, LTI. Complies with QTI, LTI, xAPI/cmi5 and Aiken import formats.\" (a plugin, so partial)"
+				"chamilo": "competitor_features#32090: \"Standards imports: QTI, Aiken, xAPI cmi5, LTI. Complies with QTI, LTI, xAPI/cmi5 and Aiken import formats.\" (a plugin, so partial)",
+				"ilias": "https://iliastutorials.com/extend-ilias-xapi-cmi5/: \"A Learning Record Store (LRS) is a prerequisite for the use of xAPI/cmi5 objects.\" and \"the ILIAS xAPI proxy, which is always required when using cmi5 content\" (a core object, but only with an external LRS, hence partial)",
+				"ispring-learn": "https://ispringhelpdocs.com/ispring-learn/uploading-content-from-computer-30411510.html: \"Supported types: SCORM 1.2/2004 packages FLV videos MP4 videos MP3 audio reference documents (PDF, DOC, XLS) PowerPoint presentations offline packages of courses created with iSpring products\" lists no cmi5; cmi5 appears only as an iSpring Suite export target, https://ispringhelpdocs.com/ispring-suite/publishing-to-an-lms-59870105.html: \"select the standard that your LMS supports: SCORM 1.2, SCORM 2004, AICC, Experience API (Tin Can), or cmi5\" (see the contested list)"
 			}
 		},
 		{
@@ -1276,7 +1307,9 @@
 			"ispring-learn": "yes",
 			"evidence": {
 				"moodle": "competitor_features#27319: \"xAPI/Tin Can. Experience API support for detailed learning analytics\"",
-				"chamilo": "competitor_features#32090: \"Complies with QTI, LTI, xAPI/cmi5 and Aiken import formats.\" (xAPI via the cmi5 plugin, so partial)"
+				"chamilo": "competitor_features#32090: \"Complies with QTI, LTI, xAPI/cmi5 and Aiken import formats.\" (xAPI via the cmi5 plugin, so partial)",
+				"ilias": "https://docu.ilias.de/goto_docu_wiki_wpage_2921_1357.html: \"Since there will be no LRS in ILIAS itself, there are two possibilities: Data can be queried from the LRS\" or sent through the xAPI LRS proxy (statements live in an external LRS, hence partial)",
+				"ispring-learn": "https://ispringhelpdocs.com/ispring-learn/uploading-content-from-computer-30411510.html: the iSpring Learn upload types list SCORM 1.2/2004 and no xAPI package; xAPI appears only as an iSpring Suite export target, https://ispringhelpdocs.com/ispring-suite/publishing-to-an-lms-59870105.html: \"Experience API (aka Tin Can)\" (no LRS in iSpring Learn is documented; see the contested list)"
 			}
 		},
 		{
@@ -2715,7 +2748,8 @@
 			"evidence": {
 				"ilias": "Course > Settings > Competences activates competence management and assignment, and Achievements > Competences exists. Loading an external framework is an admin action that was unreachable.",
 				"chamilo": "The Skills framework with Skill, SkillLevelProfile, SkillProfile, SkillRelGradebook, CSV import and a skills wheel; outcomes assessed through gradebook links.",
-				"moodle": "competitor_features#27315: \"Competency Framework. Define competencies, learning plans, and evidence-based assessment\""
+				"moodle": "competitor_features#27315: \"Competency Framework. Define competencies, learning plans, and evidence-based assessment\"",
+				"totara": "https://totara.help/docs/set-up-competencies: \"Skill frameworks are hierarchical structures that allow you to organise your skills.\" and \"Skill scales enable you to define the criteria by which a skill can be measured.\" (Totara now calls competencies skills; achievement paths need Totara Perform)"
 			}
 		},
 		{
