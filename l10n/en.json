@@ -978,7 +978,20 @@
         "Not configured": "Not configured",
         "Open settings": "Open settings",
         "Simulated": "Simulated",
-        "Status message": "Status message"
+        "Status message": "Status message",
+        "SsoAttributeMapping": "SsoAttributeMapping",
+        "Provider": "Provider",
+        "Which Nextcloud auth app's attribute namespace this mapping applies to.": "Which Nextcloud auth app's attribute namespace this mapping applies to.",
+        "External Attribute": "External Attribute",
+        "The SAML attribute name or OIDC claim name carried by the authenticated user's attribute bag.": "The SAML attribute name or OIDC claim name carried by the authenticated user's attribute bag.",
+        "Learniq Field": "Learniq Field",
+        "Which LearnerProfile field this attribute maps to. 'role' accumulates into LearnerProfile.roles rather than overwriting a single field — see externalValue/roleValue.": "Which LearnerProfile field this attribute maps to. 'role' accumulates into LearnerProfile.roles rather than overwriting a single field — see externalValue/roleValue.",
+        "External Value": "External Value",
+        "Meaningful only when learniqField is 'role': the specific value externalAttribute must equal (e.g. 'docent') for this row's roleValue to apply. Null for a direct field mapping (eckId/schoolId/givenName/familyName), where the attribute's raw value is used as-is.": "Meaningful only when learniqField is 'role': the specific value externalAttribute must equal (e.g. 'docent') for this row's roleValue to apply. Null for a direct field mapping (eckId/schoolId/givenName/familyName), where the attribute's raw value is used as-is.",
+        "Role Value": "Role Value",
+        "Meaningful only when learniqField is 'role': the LearnerProfile.roles enum member (e.g. 'instructor') to add when externalAttribute equals externalValue.": "Meaningful only when learniqField is 'role': the LearnerProfile.roles enum member (e.g. 'instructor') to add when externalAttribute equals externalValue.",
+        "Whether this mapping is active. Inactive/archived mappings are excluded from SsoAttributeMappingApplier's lookup.": "Whether this mapping is active. Inactive/archived mappings are excluded from SsoAttributeMappingApplier's lookup.",
+        "Mapping lifecycle state, mirrors DataMappingProfile's own shape.": "Mapping lifecycle state, mirrors DataMappingProfile's own shape."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

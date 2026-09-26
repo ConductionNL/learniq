@@ -15689,6 +15689,112 @@
                     ]
                 }
             },
+            "SsoAttributeMapping": {
+                "slug": "sso-attribute-mapping",
+                "icon": "ShieldAccountOutline",
+                "version": "0.1.0",
+                "title": "SsoAttributeMapping",
+                "description": "Declares which SAML attribute or OIDC claim maps to which LearnerProfile field (or role), once Nextcloud's own user_saml/user_oidc apps have already authenticated the user. This capability does NOT build an IdP client or a SAML/OIDC handshake — see the identity-federation capability's Purpose. SsoAttributeMappingApplier reads active rows of this schema to compute a LearnerProfile field-update array from a raw attribute bag; no listener wires this to an actual Nextcloud login event in this change (entree-surfconext-sso-contract).",
+                "type": "object",
+                "x-openregister": {
+                    "active": true,
+                    "hardDelete": false,
+                    "searchable": true
+                },
+                "required": [
+                    "provider",
+                    "externalAttribute",
+                    "learniqField",
+                    "tenant_id"
+                ],
+                "properties": {
+                    "provider": {
+                        "type": "string",
+                        "enum": [
+                            "saml",
+                            "oidc"
+                        ],
+                        "description": "Which Nextcloud auth app's attribute namespace this mapping applies to.",
+                        "title": "Provider"
+                    },
+                    "externalAttribute": {
+                        "type": "string",
+                        "description": "The SAML attribute name or OIDC claim name carried by the authenticated user's attribute bag.",
+                        "title": "External Attribute"
+                    },
+                    "learniqField": {
+                        "type": "string",
+                        "enum": [
+                            "eckId",
+                            "schoolId",
+                            "givenName",
+                            "familyName",
+                            "role"
+                        ],
+                        "description": "Which LearnerProfile field this attribute maps to. 'role' accumulates into LearnerProfile.roles rather than overwriting a single field — see externalValue/roleValue.",
+                        "title": "Learniq Field"
+                    },
+                    "externalValue": {
+                        "type": "string",
+                        "nullable": true,
+                        "default": null,
+                        "description": "Meaningful only when learniqField is 'role': the specific value externalAttribute must equal (e.g. 'docent') for this row's roleValue to apply. Null for a direct field mapping (eckId/schoolId/givenName/familyName), where the attribute's raw value is used as-is.",
+                        "title": "External Value"
+                    },
+                    "roleValue": {
+                        "type": "string",
+                        "nullable": true,
+                        "default": null,
+                        "description": "Meaningful only when learniqField is 'role': the LearnerProfile.roles enum member (e.g. 'instructor') to add when externalAttribute equals externalValue.",
+                        "title": "Role Value"
+                    },
+                    "active": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Whether this mapping is active. Inactive/archived mappings are excluded from SsoAttributeMappingApplier's lookup.",
+                        "title": "Active"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenancy isolation.",
+                        "title": "Tenant ID"
+                    },
+                    "lifecycle": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "active",
+                            "archived"
+                        ],
+                        "default": "draft",
+                        "description": "Mapping lifecycle state, mirrors DataMappingProfile's own shape.",
+                        "title": "Lifecycle State"
+                    }
+                },
+                "x-openregister-lifecycle": {
+                    "property": "lifecycle",
+                    "initial": "draft",
+                    "transitions": {
+                        "activate": {
+                            "from": "draft",
+                            "to": "active"
+                        },
+                        "archive": {
+                            "from": [
+                                "draft",
+                                "active"
+                            ],
+                            "to": "archived"
+                        },
+                        "reactivate": {
+                            "from": "archived",
+                            "to": "active"
+                        }
+                    }
+                },
+                "x-openregister-seed": []
+            },
             "DataMappingProfile": {
                 "slug": "data-mapping-profile",
                 "icon": "MapOutline",

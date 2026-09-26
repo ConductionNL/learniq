@@ -1427,7 +1427,19 @@ OC.L10N.register(
         "Not configured": "Niet geconfigureerd",
         "Open settings": "Instellingen openen",
         "Simulated": "Gesimuleerd",
-        "Status message": "Statusmelding"
+        "Status message": "Statusmelding",
+        "SsoAttributeMapping": "SsoAttributeMapping",
+        "Which Nextcloud auth app's attribute namespace this mapping applies to.": "Op welk attribuutnamespace van de Nextcloud-authenticatie-app deze mapping van toepassing is.",
+        "External Attribute": "Extern attribuut",
+        "The SAML attribute name or OIDC claim name carried by the authenticated user's attribute bag.": "De naam van het SAML-attribuut of de OIDC-claim uit de attributenset van de geauthenticeerde gebruiker.",
+        "Learniq Field": "Learniq-veld",
+        "Which LearnerProfile field this attribute maps to. 'role' accumulates into LearnerProfile.roles rather than overwriting a single field — see externalValue/roleValue.": "Naar welk LearnerProfile-veld dit attribuut wordt gemapt. 'role' voegt toe aan LearnerProfile.roles in plaats van één veld te overschrijven — zie externalValue/roleValue.",
+        "External Value": "Externe waarde",
+        "Meaningful only when learniqField is 'role': the specific value externalAttribute must equal (e.g. 'docent') for this row's roleValue to apply. Null for a direct field mapping (eckId/schoolId/givenName/familyName), where the attribute's raw value is used as-is.": "Alleen relevant wanneer learniqField 'role' is: de specifieke waarde die externalAttribute moet hebben (bijv. 'docent') om de roleValue van deze rij toe te passen. Null bij een directe veldmapping (eckId/schoolId/givenName/familyName), waar de ruwe attribuutwaarde ongewijzigd wordt gebruikt.",
+        "Role Value": "Rolwaarde",
+        "Meaningful only when learniqField is 'role': the LearnerProfile.roles enum member (e.g. 'instructor') to add when externalAttribute equals externalValue.": "Alleen relevant wanneer learniqField 'role' is: het LearnerProfile.roles-enumlid (bijv. 'instructor') dat wordt toegevoegd wanneer externalAttribute gelijk is aan externalValue.",
+        "Whether this mapping is active. Inactive/archived mappings are excluded from SsoAttributeMappingApplier's lookup.": "Of deze mapping actief is. Inactieve/gearchiveerde mappings worden uitgesloten van de opzoeking door SsoAttributeMappingApplier.",
+        "Mapping lifecycle state, mirrors DataMappingProfile's own shape.": "Levenscyclusstatus van de mapping, naar analogie van DataMappingProfile's eigen vorm."
     },
     "nplurals=2; plural=(n != 1);"
 )
