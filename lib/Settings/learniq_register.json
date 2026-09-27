@@ -7374,6 +7374,12 @@
                             "to": "submitted",
                             "requires": "OCA\\Learniq\\Lifecycle\\SubmissionWindowGuard"
                         },
+                        "submitLate": {
+                            "from": "draft",
+                            "to": "late",
+                            "requires": "OCA\\Learniq\\Lifecycle\\SubmissionWindowGuard",
+                            "description": "Hand in after the deadline, when the assignment accepts late work. submit is refused after the deadline; a guard can not redirect the target state (learniq#983)."
+                        },
                         "return": {
                             "from": [
                                 "submitted",
