@@ -38,7 +38,7 @@ Stacked on `segment-wizard-choice` (uses the profiles directory, `SeedProfileSer
 - [x] All tasks checked off
 - [x] `openspec validate segment-example-datasets-po --strict` passes
 - [x] Diff-scoped checks green (contract test, content test, repointed tests, gate 108, gate 101, schema-l10n, check:specs, generator `--check`)
-- [ ] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates with `--base origin/development` run once before push
+- [x] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates with `--base origin/development` run once before push (inherited reds only; see the PR)
 
 ## Quality checklist
 - Tests: the contract test, the content test and six repointed register tests cover the set.
