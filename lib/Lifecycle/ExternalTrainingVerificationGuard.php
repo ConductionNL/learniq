@@ -37,9 +37,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use DateTimeImmutable;
-use DateTimeInterface;
-use DateTimeZone;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
@@ -55,12 +54,13 @@ use Psr\Log\LoggerInterface;
  *   3. The verifier is not the same person who submitted the record when the
  *      record was self-submitted by the learner (`verifiedBy != submittedBy`).
  *
- * On success it stamps `verifiedBy` and `verifiedAt` into the transition
- * payload so OR persists them on the verified record.
+ * `verifiedBy` and `verifiedAt` are stamped by StampTransitionActorAction,
+ * declared on the same transition: OpenRegister calls guards by value, so a
+ * guard can not write onto the object (learniq#983).
  *
  * @spec openspec/changes/external-training-recording/tasks.md
  */
-class ExternalTrainingVerificationGuard {
+class ExternalTrainingVerificationGuard implements LifecycleGuardInterface {
 	/**
 	 * Groups whose members may verify an external-training record.
 	 *
@@ -89,46 +89,36 @@ class ExternalTrainingVerificationGuard {
 	}//end __construct()
 
 	/**
-	 * Assert the verification preconditions and stamp the verifier.
+	 * Assert the verification preconditions.
 	 *
-	 * Called by OpenRegister's lifecycle engine before executing the
-	 * `submitted → verified` transition. Returns true to allow the transition
-	 * (and writes `verifiedBy`/`verifiedAt` into the payload), false to block
-	 * it with HTTP 422.
+	 * Called by OpenRegister's LifecycleValidationListener before the
+	 * `submitted → verified` transition is saved.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine. Expected
-	 *                                               keys:
-	 *                                               - 'object'     : the record
-	 *                                               property array
-	 *                                               - 'actor'      : NC user ID
-	 *                                               of the verifier
-	 *                                               - 'transition' : 'verify'
-	 *                                               - 'payload'    : mutable
-	 *                                               array; verifier fields are
-	 *                                               written here
+	 * @param array<string,mixed> $object The record as it would be saved (lifecycle at `verified`).
+	 * @param string              $action The transition action (`verify`).
+	 * @param string              $userId The verifier's uid, or '' without a session.
 	 *
-	 * @return bool True when the transition is allowed; false blocks it.
+	 * @return GuardResult Allow, or deny with what is missing.
 	 *
 	 * @spec openspec/changes/external-training-recording/tasks.md
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
-		$actor = (string)($transitionContext['actor'] ?? '');
+	public function check(array $object, string $action, string $userId): GuardResult {
 		$submittedBy = (string)($object['submittedBy'] ?? '');
 
-		if ($actor === '') {
-			$this->logger->warning('[ExternalTrainingVerificationGuard] No actor in transitionContext — denying verify.');
-			return false;
+		if ($userId === '') {
+			$this->logger->warning('[ExternalTrainingVerificationGuard] No session user — denying verify.');
+			return GuardResult::deny('Only a signed-in compliance officer, HR member or admin can verify outside training.');
 		}
 
 		// Step 1 — actor must be in a privileged verifier group.
-		if ($this->actorIsVerifier(actor: $actor) === false) {
+		if ($this->actorIsVerifier(actor: $userId) === false) {
 			$this->logger->info(
 				'[ExternalTrainingVerificationGuard] Actor is not in a verifier group — denying verify.',
-				['actor' => $actor]
+				['actor' => $userId]
 			);
-			return false;
+			return GuardResult::deny('Only a compliance officer, HR member or admin can verify outside training.');
 		}
 
 		// Step 2 — at least one evidence file attachment must be present.
@@ -137,24 +127,19 @@ class ExternalTrainingVerificationGuard {
 				'[ExternalTrainingVerificationGuard] No evidence attachment present — denying verify.',
 				['record' => ($object['id'] ?? '')]
 			);
-			return false;
+			return GuardResult::deny('The record needs at least one evidence attachment before it can be verified.');
 		}
 
 		// Step 3 — a learner self-submission may not be self-verified.
-		if ($submittedBy !== '' && $submittedBy === $actor) {
+		if ($submittedBy !== '' && $submittedBy === $userId) {
 			$this->logger->info(
 				'[ExternalTrainingVerificationGuard] Verifier equals submitter (self-verification) — denying verify.',
-				['actor' => $actor]
+				['actor' => $userId]
 			);
-			return false;
+			return GuardResult::deny('The person who submitted the record can not also verify it.');
 		}
 
-		// Stamp the verifier on the payload so OR persists it on the verified record.
-		$now = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-		$transitionContext['payload']['verifiedBy'] = $actor;
-		$transitionContext['payload']['verifiedAt'] = $now;
-
-		return true;
+		return GuardResult::allow();
 	}//end check()
 
 	/**

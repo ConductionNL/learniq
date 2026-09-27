@@ -42,14 +42,24 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\OpenRegister\Service\TenantKeyService;
 use Psr\Log\LoggerInterface;
 
 /**
  * Guards the BsaDecision `drafted -> decided` lifecycle transition.
+ *
+ * A negative decision needs an issued BsaWarning for the same learner,
+ * programme and academic year, and a rationale; every decision needs the
+ * tenant's HMAC signing key. The signing itself is TenantSignatureAction,
+ * declared on the same transition: OpenRegister calls guards by value, so a
+ * guard can not write onto the object (learniq#983).
+ *
+ * @spec openspec/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
  */
-class BsaDecisionGuard {
+class BsaDecisionGuard implements LifecycleGuardInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const BSA_WARNING_SCHEMA = 'bsa-warning';
@@ -82,39 +92,29 @@ class BsaDecisionGuard {
 	}//end __construct()
 
 	/**
-	 * Assert the negative-decision pre-conditions and compute the HMAC signature.
+	 * Assert the negative-decision pre-conditions and that a signing key is available.
 	 *
-	 * Called by OpenRegister's lifecycle engine before executing the
-	 * `drafted -> decided` transition on a BsaDecision object.
+	 * Called by OpenRegister's LifecycleValidationListener before the
+	 * `drafted -> decided` transition is saved.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine:
-	 *                                               - 'object'     : BsaDecision
-	 *                                               property array
-	 *                                               - 'transition' : 'decide'
-	 *                                               - 'from'       : 'drafted'
-	 *                                               - 'to'         : 'decided'
-	 *                                               - 'payload'    : mutable array;
-	 *                                               write signature
-	 *                                               fields here
+	 * @param array<string,mixed> $object The BsaDecision as it would be saved (lifecycle at `decided`).
+	 * @param string              $action The transition action (`decide`).
+	 * @param string              $userId The caller's uid, or '' without a session.
 	 *
-	 * @return bool True when pre-conditions are satisfied and signature has
-	 *              been computed; false blocks the transition with HTTP 422,
-	 *              naming the missing requirement in the log entry.
+	 * @return GuardResult Allow, or deny naming the missing requirement.
 	 *
 	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	public function check(array $object, string $action, string $userId): GuardResult {
 		$decisionType = $object['decisionType'] ?? '';
-		$tenantId = $object['tenant_id'] ?? '';
+		$tenantId = (string)($object['tenant_id'] ?? '');
 
-		$isNegative = in_array($decisionType, self::NEGATIVE_DECISION_TYPES, true);
-
-		if ($isNegative === true) {
-			$learnerId = $object['learnerId'] ?? '';
-			$programmeId = $object['programmeId'] ?? '';
-			$academicYear = $object['academicYear'] ?? '';
+		if (in_array($decisionType, self::NEGATIVE_DECISION_TYPES, true) === true) {
+			$learnerId = (string)($object['learnerId'] ?? '');
+			$programmeId = (string)($object['programmeId'] ?? '');
+			$academicYear = (string)($object['academicYear'] ?? '');
 
 			$hasWarning = $this->hasIssuedWarning(
 				learnerId: $learnerId,
@@ -128,7 +128,7 @@ class BsaDecisionGuard {
 					'BsaDecisionGuard: no issued BsaWarning found for learner {l}, programme {p}, year {y} — blocking negative decision.',
 					['l' => $learnerId, 'p' => $programmeId, 'y' => $academicYear]
 				);
-				return false;
+				return GuardResult::deny('A negative decision needs an issued warning for this learner, programme and academic year.');
 			}
 
 			$rationale = $object['rationale'] ?? '';
@@ -137,27 +137,19 @@ class BsaDecisionGuard {
 					'BsaDecisionGuard: rationale missing/empty — blocking negative decision.',
 					['learnerId' => $learnerId]
 				);
-				return false;
+				return GuardResult::deny('A negative decision needs a rationale.');
 			}
 		}//end if
 
-		$tenantKey = $this->tenantKeyService->getCurrentTenantKey($tenantId);
-
-		if ($tenantKey === '') {
+		if ($this->tenantKeyService->getCurrentTenantKey($tenantId) === '') {
 			$this->logger->error(
 				'BsaDecisionGuard: OR tenant key unavailable; refusing to decide without HMAC key',
 				['tenantId' => $tenantId]
 			);
-			return false;
+			return GuardResult::deny('No signing key is available for this organisation, so the decision can not be recorded.');
 		}
 
-		$canonicalPayload = $this->buildCanonicalPayload(object: $object);
-		$signature = hash_hmac('sha256', $canonicalPayload, $tenantKey);
-
-		$transitionContext['payload']['signature'] = $signature;
-		$transitionContext['payload']['signingKeyId'] = substr(hash('sha256', $tenantKey), 0, 16);
-
-		return true;
+		return GuardResult::allow();
 	}//end check()
 
 	/**
@@ -199,45 +191,4 @@ class BsaDecisionGuard {
 
 		return count($results) > 0;
 	}//end hasIssuedWarning()
-
-	/**
-	 * Build a canonical JSON string of the BsaDecision payload for HMAC input.
-	 *
-	 * Mirrors AttestationSigningGuard::buildCanonicalPayload() / BsaWarningSigningGuard's
-	 * recursive-ksort, signature-excluding canonicalisation.
-	 *
-	 * @param array<string,mixed> $object The BsaDecision property array.
-	 *
-	 * @return string Canonical JSON string.
-	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
-	 */
-	private function buildCanonicalPayload(array $object): string {
-		$excluded = ['signature', 'signingKeyId', 'lifecycle'];
-		$payload = array_diff_key($object, array_flip($excluded));
-
-		$payload = $this->deepKsort(data: $payload);
-
-		return (string)json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-	}//end buildCanonicalPayload()
-
-	/**
-	 * Recursively sort an array by keys at all nesting levels.
-	 *
-	 * @param array<string,mixed> $data The array to sort.
-	 *
-	 * @return array<string,mixed> The sorted array.
-	 */
-	private function deepKsort(array $data): array {
-		foreach ($data as &$value) {
-			if (is_array($value) === true) {
-				$value = $this->deepKsort(data: $value);
-			}
-		}//end foreach
-
-		unset($value);
-
-		ksort($data);
-		return $data;
-	}//end deepKsort()
 }//end class

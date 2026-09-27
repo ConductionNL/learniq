@@ -39,6 +39,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
@@ -46,9 +48,14 @@ use Psr\Log\LoggerInterface;
 /**
  * Guards the ExamAccommodation `approve` transition.
  *
+ * Only admin, compliance-officers and team-leads may approve. `approvedBy` is
+ * stamped by StampTransitionActorAction, declared on the same transition:
+ * OpenRegister calls guards by value, so a guard can not write onto the object
+ * (learniq#983).
+ *
  * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#requirement-exam-accommodations-are-recorded-as-approved-evidence-backed-entitlements
  */
-class ExamAccommodationApprovalGuard {
+class ExamAccommodationApprovalGuard implements LifecycleGuardInterface {
 
 	/**
 	 * NC groups whose members may approve an ExamAccommodation.
@@ -76,37 +83,32 @@ class ExamAccommodationApprovalGuard {
 	/**
 	 * OR lifecycle guard entry-point.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'  : the ExamAccommodation data array
-	 *                                               - 'actor'   : NC user ID of the requester
-	 *                                               - 'payload' : mutable array; approvedBy is stamped here
+	 * @param array<string,mixed> $object The ExamAccommodation as it would be saved (lifecycle at `approved`).
+	 * @param string              $action The transition action (`approve`).
+	 * @param string              $userId The caller's uid, or '' without a session.
 	 *
-	 * @return bool True when the transition is allowed; false blocks it.
+	 * @return GuardResult Allow, or deny when the caller may not approve.
 	 *
 	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-requests-an-accommodation-and-a-mentor-approves-it
 	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-cannot-self-approve-their-own-accommodation
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
-	public function check(array &$transitionContext): bool {
-		$actor = (string)($transitionContext['actor'] ?? '');
-
-		if ($actor === '') {
-			$this->logger->info('[ExamAccommodationApprovalGuard] No actor in transitionContext — denying approve.');
-			return false;
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($userId === '') {
+			$this->logger->info('[ExamAccommodationApprovalGuard] No session user — denying approve.');
+			return GuardResult::deny('Only a signed-in admin, compliance officer or team lead can approve an accommodation.');
 		}
 
-		if ($this->actorIsAuthorised(actor: $actor) === false) {
+		if ($this->actorIsAuthorised(actor: $userId) === false) {
 			$this->logger->info(
 				'[ExamAccommodationApprovalGuard] Actor {a} is not admin/compliance-officer/mentor — denying approve.',
-				['a' => $actor]
+				['a' => $userId]
 			);
-			return false;
+			return GuardResult::deny('Only an admin, compliance officer or team lead can approve an accommodation.');
 		}
 
-		// Stamp approvedBy server-side — never trust a caller-supplied value,
-		// mirroring MunicipalityFeedbackGuard's recordedBy stamping.
-		$transitionContext['payload']['approvedBy'] = $actor;
-
-		return true;
+		return GuardResult::allow();
 	}//end check()
 
 	/**

@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\CredentialWalletTransitionListener;
+use OCA\Learniq\Listener\MunicipalityFeedbackStampListener;
 use OCA\Learniq\Listener\ReportCardPdfTransitionListener;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
@@ -61,6 +62,13 @@ class LifecycleWriteListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: ReportCardPdfTransitionListener::class
+		);
+
+		// DataExchangeJob.recordMunicipalityFeedback (succeeded -> succeeded):
+		// stamps municipalityFeedback.recordedBy/receivedAt.
+		$context->registerEventListener(
+			event: ObjectTransitionedEvent::class,
+			listener: MunicipalityFeedbackStampListener::class
 		);
 	}//end register()
 }//end class

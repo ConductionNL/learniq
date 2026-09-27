@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Lifecycle\RejectionWaiveGuard;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -60,29 +61,46 @@ class RejectionWaiveGuardTest extends TestCase {
 		return new RejectionWaiveGuard($groupManager, $userManager, new NullLogger());
 	}//end makeGuard()
 
+
 	/**
-	 * A coordinator waiving with a non-empty reason is allowed, and
-	 * waivedBy/waivedAt are stamped server-side into the payload.
+	 * The rejection as the guard sees it on waive: status at `waived`, the
+	 * `waiveReason` input merged in by TransitionEngine.
+	 *
+	 * @param mixed $waiveReason The reason the caller sent, or null to leave it out.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function rejection(mixed $waiveReason): array {
+		$object = ['id' => 'rej-1', 'sourceKind' => 'enrolment', 'status' => 'waived'];
+		if ($waiveReason !== null) {
+			$object['waiveReason'] = $waiveReason;
+		}
+
+		return $object;
+	}//end rejection()
+
+	/**
+	 * OpenRegister's registry refuses a guard that does not implement its interface.
 	 *
 	 * @return void
 	 */
-	public function testCoordinatorWithReasonIsAllowedAndStamped(): void {
-		$guard = $this->makeGuard(['coordinators']);
-		$context = [
-			'object' => ['id' => 'rej-1', 'status' => 'open'],
-			'actor' => 'actor-1',
-			'payload' => ['waiveReason' => 'DUO-fout is een bekend platformprobleem, geen actie nodig.'],
-		];
+	public function testImplementsTheOpenRegisterGuardInterface(): void {
+		self::assertInstanceOf(LifecycleGuardInterface::class, $this->makeGuard([]));
 
-		self::assertTrue($guard->check($context));
-		self::assertSame('actor-1', $context['payload']['waivedBy']);
-		self::assertNotEmpty($context['payload']['waivedAt']);
-		self::assertSame(
-			'DUO-fout is een bekend platformprobleem, geen actie nodig.',
-			$context['payload']['waiveReason']
-		);
+	}//end testImplementsTheOpenRegisterGuardInterface()
 
-	}//end testCoordinatorWithReasonIsAllowedAndStamped()
+	/**
+	 * A coordinator waiving with a non-empty reason is allowed. waivedBy and
+	 * waivedAt are StampTransitionActorAction's write (learniq#983).
+	 *
+	 * @return void
+	 */
+	public function testCoordinatorWithReasonIsAllowed(): void {
+		$object = $this->rejection('DUO-fout is een bekend platformprobleem, geen actie nodig.');
+
+		self::assertTrue($this->makeGuard(['coordinators'])->check($object, 'waive', 'actor-1')->isAllowed());
+
+	}//end testCoordinatorWithReasonIsAllowed()
 
 	/**
 	 * An admin waiving with a reason is also allowed.
@@ -90,120 +108,72 @@ class RejectionWaiveGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testAdminWithReasonIsAllowed(): void {
-		$guard = $this->makeGuard(['admin']);
-		$context = [
-			'object' => ['id' => 'rej-1', 'status' => 'corrected'],
-			'actor' => 'actor-1',
-			'payload' => ['waiveReason' => 'Niet meer relevant.'],
-		];
-
-		self::assertTrue($guard->check($context));
+		self::assertTrue($this->makeGuard(['admin'])->check($this->rejection('Dubbele melding.'), 'waive', 'actor-1')->isAllowed());
 
 	}//end testAdminWithReasonIsAllowed()
 
 	/**
-	 * A caller-supplied waivedBy is overwritten with the actual actor.
-	 *
-	 * @return void
-	 */
-	public function testCallerSuppliedWaivedByIsOverwritten(): void {
-		$guard = $this->makeGuard(['coordinators']);
-		$context = [
-			'object' => ['id' => 'rej-1', 'status' => 'open'],
-			'actor' => 'actor-1',
-			'payload' => ['waiveReason' => 'Geldige reden.', 'waivedBy' => 'someone-else'],
-		];
-
-		self::assertTrue($guard->check($context));
-		self::assertSame('actor-1', $context['payload']['waivedBy']);
-
-	}//end testCallerSuppliedWaivedByIsOverwritten()
-
-	/**
-	 * Waiving with an empty waiveReason is refused.
+	 * An empty reason is refused.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-waiving-without-a-reason-is-refused
 	 */
 	public function testEmptyReasonRefused(): void {
-		$guard = $this->makeGuard(['coordinators']);
-		$context = [
-			'object' => ['id' => 'rej-1', 'status' => 'open'],
-			'actor' => 'actor-1',
-			'payload' => ['waiveReason' => ''],
-		];
+		$result = $this->makeGuard(['coordinators'])->check($this->rejection(''), 'waive', 'actor-1');
 
-		self::assertFalse($guard->check($context));
+		self::assertFalse($result->isAllowed());
+		self::assertNotSame('', (string)$result->getMessage());
 
 	}//end testEmptyReasonRefused()
 
 	/**
-	 * Waiving with a whitespace-only waiveReason is refused.
+	 * A whitespace-only reason is refused.
 	 *
 	 * @return void
 	 */
 	public function testWhitespaceOnlyReasonRefused(): void {
-		$guard = $this->makeGuard(['coordinators']);
-		$context = [
-			'object' => ['id' => 'rej-1', 'status' => 'open'],
-			'actor' => 'actor-1',
-			'payload' => ['waiveReason' => '   '],
-		];
-
-		self::assertFalse($guard->check($context));
+		self::assertFalse($this->makeGuard(['coordinators'])->check($this->rejection("  \n\t "), 'waive', 'actor-1')->isAllowed());
 
 	}//end testWhitespaceOnlyReasonRefused()
 
 	/**
-	 * Waiving with no waiveReason key at all is refused.
+	 * A missing reason is refused.
 	 *
 	 * @return void
 	 */
 	public function testMissingReasonRefused(): void {
-		$guard = $this->makeGuard(['coordinators']);
-		$context = [
-			'object' => ['id' => 'rej-1', 'status' => 'open'],
-			'actor' => 'actor-1',
-			'payload' => [],
-		];
-
-		self::assertFalse($guard->check($context));
+		self::assertFalse($this->makeGuard(['coordinators'])->check($this->rejection(null), 'waive', 'actor-1')->isAllowed());
 
 	}//end testMissingReasonRefused()
 
 	/**
-	 * A learner (no privileged group) is denied even with a valid reason.
+	 * A non-string reason is refused.
 	 *
 	 * @return void
+	 */
+	public function testNonStringReasonRefused(): void {
+		self::assertFalse($this->makeGuard(['coordinators'])->check($this->rejection(['x']), 'waive', 'actor-1')->isAllowed());
+
+	}//end testNonStringReasonRefused()
+
+	/**
+	 * A user outside admin/coordinators is denied even with a reason.
 	 *
-	 * @spec openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-a-non-authorised-user-cannot-resubmit-or-waive
+	 * @return void
 	 */
 	public function testUnauthorisedActorIsDenied(): void {
-		$guard = $this->makeGuard([]);
-		$context = [
-			'object' => ['id' => 'rej-1', 'status' => 'open'],
-			'actor' => 'actor-1',
-			'payload' => ['waiveReason' => 'Valid reason.'],
-		];
-
-		self::assertFalse($guard->check($context));
+		self::assertFalse($this->makeGuard(['teachers'])->check($this->rejection('Reden.'), 'waive', 'actor-1')->isAllowed());
 
 	}//end testUnauthorisedActorIsDenied()
 
 	/**
-	 * No actor in the transition context is denied.
+	 * No session user is denied.
 	 *
 	 * @return void
 	 */
 	public function testNoActorIsDenied(): void {
-		$guard = $this->makeGuard(['coordinators']);
-		$context = [
-			'object' => ['id' => 'rej-1', 'status' => 'open'],
-			'payload' => ['waiveReason' => 'Valid reason.'],
-		];
-
-		self::assertFalse($guard->check($context));
+		self::assertFalse($this->makeGuard(['admin'])->check($this->rejection('Reden.'), 'waive', '')->isAllowed());
 
 	}//end testNoActorIsDenied()
 }//end class

@@ -36,9 +36,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use DateTimeImmutable;
-use DateTimeInterface;
-use DateTimeZone;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
@@ -51,13 +50,19 @@ use Psr\Log\LoggerInterface;
  *   2. The job's `target` is `leerplicht` — municipalityFeedback (the MAS-route)
  *      only makes sense for a verzuimloket report to a municipality.
  *
- * On success it stamps `municipalityFeedback.recordedBy` (always the acting
- * user, never a caller-supplied value) and `municipalityFeedback.receivedAt`
- * (only when not already supplied) into the transition payload.
+ * `municipalityFeedback.recordedBy` (always the acting user) and
+ * `.receivedAt` (only when not supplied) are stamped by
+ * MunicipalityFeedbackStampListener after the save: OpenRegister calls guards
+ * by value, so a guard can not write (learniq#983).
+ *
+ * NOTE: this is a self-loop, and OpenRegister's LifecycleValidationListener
+ * returns before resolving a guard when the lifecycle value does not change,
+ * so today this check does not run (reported on learniq#983). It is kept as a
+ * guard so it runs the day OpenRegister guards self-loops.
  *
  * @spec openspec/changes/verzuim-report-composer/tasks.md#task-2.2
  */
-class MunicipalityFeedbackGuard {
+class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 
 	/**
 	 * The only DataExchangeJob target municipalityFeedback applies to.
@@ -93,40 +98,26 @@ class MunicipalityFeedbackGuard {
 	}//end __construct()
 
 	/**
-	 * Assert the recording preconditions and stamp the recorder.
+	 * Assert the recording preconditions.
 	 *
-	 * Called by OpenRegister's lifecycle engine before executing the
-	 * `succeeded → succeeded` recordMunicipalityFeedback transition. Returns
-	 * true to allow the transition (and writes `municipalityFeedback.recordedBy`
-	 * / `.receivedAt` into the payload), false to block it.
+	 * @param array<string,mixed> $object The DataExchangeJob as it would be saved (lifecycle stays `succeeded`).
+	 * @param string              $action The transition action (`recordMunicipalityFeedback`).
+	 * @param string              $userId The caller's uid, or '' without a session.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine. Expected
-	 *                                               keys:
-	 *                                               - 'object'     : the
-	 *                                               DataExchangeJob data array
-	 *                                               - 'actor'      : NC user ID
-	 *                                               of the requester
-	 *                                               - 'transition' :
-	 *                                               'recordMunicipalityFeedback'
-	 *                                               - 'payload'    : mutable
-	 *                                               array; municipalityFeedback
-	 *                                               fields are written here
-	 *
-	 * @return bool True when the transition is allowed; false blocks it.
+	 * @return GuardResult Allow, or deny when the caller or the job does not qualify.
 	 *
 	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-2.2
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
-		$actor = (string)($transitionContext['actor'] ?? '');
+	public function check(array $object, string $action, string $userId): GuardResult {
 		$target = (string)($object['target'] ?? '');
 
-		if ($actor === '') {
+		if ($userId === '') {
 			$this->logger->warning(
-				'[MunicipalityFeedbackGuard] No actor in transitionContext — denying recordMunicipalityFeedback.'
+				'[MunicipalityFeedbackGuard] No session user — denying recordMunicipalityFeedback.'
 			);
-			return false;
+			return GuardResult::deny('Only a signed-in admin or coordinator can record municipality feedback.');
 		}
 
 		if ($target !== self::LEERPLICHT_TARGET) {
@@ -134,33 +125,18 @@ class MunicipalityFeedbackGuard {
 				'[MunicipalityFeedbackGuard] Job {id} target is {t}, not leerplicht — denying recordMunicipalityFeedback.',
 				['id' => $object['id'] ?? '?', 't' => $target]
 			);
-			return false;
+			return GuardResult::deny('Municipality feedback can only be recorded on a leerplicht report.');
 		}
 
-		if ($this->actorIsAuthorised(actor: $actor) === false) {
+		if ($this->actorIsAuthorised(actor: $userId) === false) {
 			$this->logger->info(
 				'[MunicipalityFeedbackGuard] Actor {a} is not in an authorised group — denying recordMunicipalityFeedback.',
-				['a' => $actor]
+				['a' => $userId]
 			);
-			return false;
+			return GuardResult::deny('Only an admin or coordinator can record municipality feedback.');
 		}
 
-		// Stamp recordedBy/receivedAt server-side — never trust a caller-supplied
-		// identity/timestamp for this compliance-sensitive field (mirrors
-		// ExternalTrainingVerificationGuard's verifiedBy/verifiedAt stamping).
-		$payload = $transitionContext['payload']['municipalityFeedback'] ?? [];
-		if (is_array($payload) === false) {
-			$payload = [];
-		}
-
-		$payload['recordedBy'] = $actor;
-		if (empty($payload['receivedAt']) === true) {
-			$payload['receivedAt'] = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-		}
-
-		$transitionContext['payload']['municipalityFeedback'] = $payload;
-
-		return true;
+		return GuardResult::allow();
 	}//end check()
 
 	/**

@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Lifecycle\ExternalTrainingVerificationGuard;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -34,6 +35,9 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Tests for the ExternalTrainingVerificationGuard (submitted → verified).
+ *
+ * verifiedBy/verifiedAt are StampTransitionActorAction's write (learniq#983),
+ * see tests/Unit/Lifecycle/Action/StampTransitionActorActionTest.php.
  */
 class ExternalTrainingVerificationGuardTest extends TestCase {
 	/**
@@ -63,6 +67,11 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	/**
 	 * A record fixture with one evidence attachment present.
 	 *
+	 * The guard reads attachments from `@self.files` (or a `files` array). The
+	 * object OpenRegister's LifecycleValidationListener hands a guard is
+	 * ObjectEntity::getObject(), which carries neither, see
+	 * testRecordAsOpenRegisterHandsItHasNoEvidence().
+	 *
 	 * @param string $submittedBy The submitter user ID.
 	 *
 	 * @return array<string,mixed>
@@ -72,27 +81,30 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 			'id' => 'rec-1',
 			'learnerId' => 'learner-1',
 			'submittedBy' => $submittedBy,
+			'lifecycle' => 'verified',
 			'@self' => ['files' => [['name' => 'certificate.pdf']]],
 		];
 	}//end recordWithEvidence()
 
 	/**
-	 * Happy path: officer in a verifier group, evidence present, not self → true + stamp.
+	 * OpenRegister's registry refuses a guard that does not implement its interface.
 	 *
 	 * @return void
 	 */
-	public function testValidVerificationStampsVerifier(): void {
-		$guard = $this->makeGuard(['compliance-officers']);
-		$context = [
-			'object' => $this->recordWithEvidence(submittedBy: 'learner-1'),
-			'actor' => 'officer-1',
-			'payload' => [],
-		];
+	public function testImplementsTheOpenRegisterGuardInterface(): void {
+		$this->assertInstanceOf(LifecycleGuardInterface::class, $this->makeGuard([]));
+	}//end testImplementsTheOpenRegisterGuardInterface()
 
-		$this->assertTrue($guard->check($context));
-		$this->assertSame('officer-1', $context['payload']['verifiedBy']);
-		$this->assertArrayHasKey('verifiedAt', $context['payload']);
-	}//end testValidVerificationStampsVerifier()
+	/**
+	 * Happy path: officer in a verifier group, evidence present, not self → allowed.
+	 *
+	 * @return void
+	 */
+	public function testValidVerificationIsAllowed(): void {
+		$result = $this->makeGuard(['compliance-officers'])->check($this->recordWithEvidence(submittedBy: 'learner-1'), 'verify', 'officer-1');
+
+		$this->assertTrue($result->isAllowed());
+	}//end testValidVerificationIsAllowed()
 
 	/**
 	 * Actor not in any verifier group → denied.
@@ -100,15 +112,10 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNonVerifierGroupDenied(): void {
-		$guard = $this->makeGuard(['learner']);
-		$context = [
-			'object' => $this->recordWithEvidence(),
-			'actor' => 'pupil-1',
-			'payload' => [],
-		];
+		$result = $this->makeGuard(['learner'])->check($this->recordWithEvidence(), 'verify', 'pupil-1');
 
-		$this->assertFalse($guard->check($context));
-		$this->assertArrayNotHasKey('verifiedBy', $context['payload']);
+		$this->assertFalse($result->isAllowed());
+		$this->assertNotSame('', (string)$result->getMessage());
 	}//end testNonVerifierGroupDenied()
 
 	/**
@@ -117,15 +124,23 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNoEvidenceAttachmentDenied(): void {
-		$guard = $this->makeGuard(['hr']);
-		$context = [
-			'object' => ['id' => 'rec-2', 'learnerId' => 'learner-1', 'submittedBy' => 'learner-1'],
-			'actor' => 'hr-1',
-			'payload' => [],
-		];
+		$object = ['id' => 'rec-2', 'learnerId' => 'learner-1', 'submittedBy' => 'learner-1', 'lifecycle' => 'verified'];
 
-		$this->assertFalse($guard->check($context));
+		$this->assertFalse($this->makeGuard(['hr'])->check($object, 'verify', 'hr-1')->isAllowed());
 	}//end testNoEvidenceAttachmentDenied()
+
+	/**
+	 * The record as ObjectEntity::getObject() returns it has no `@self`, so the
+	 * evidence check refuses it. Pinned so the gap stays visible (learniq#983).
+	 *
+	 * @return void
+	 */
+	public function testRecordAsOpenRegisterHandsItHasNoEvidence(): void {
+		$object = $this->recordWithEvidence();
+		unset($object['@self']);
+
+		$this->assertFalse($this->makeGuard(['hr'])->check($object, 'verify', 'hr-1')->isAllowed());
+	}//end testRecordAsOpenRegisterHandsItHasNoEvidence()
 
 	/**
 	 * Self-verification (verifier == submitter) → denied.
@@ -133,14 +148,9 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testSelfVerificationDenied(): void {
-		$guard = $this->makeGuard(['admin']);
-		$context = [
-			'object' => $this->recordWithEvidence(submittedBy: 'officer-1'),
-			'actor' => 'officer-1',
-			'payload' => [],
-		];
+		$result = $this->makeGuard(['admin'])->check($this->recordWithEvidence(submittedBy: 'officer-1'), 'verify', 'officer-1');
 
-		$this->assertFalse($guard->check($context));
+		$this->assertFalse($result->isAllowed());
 	}//end testSelfVerificationDenied()
 
 	/**
@@ -149,10 +159,7 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testMissingActorDenied(): void {
-		$guard = $this->makeGuard(['admin']);
-		$context = ['object' => $this->recordWithEvidence(), 'actor' => '', 'payload' => []];
-
-		$this->assertFalse($guard->check($context));
+		$this->assertFalse($this->makeGuard(['admin'])->check($this->recordWithEvidence(), 'verify', '')->isAllowed());
 	}//end testMissingActorDenied()
 
 	/**
@@ -161,13 +168,8 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testAdminVerifiesOfficerSubmission(): void {
-		$guard = $this->makeGuard(['admin']);
-		$context = [
-			'object' => $this->recordWithEvidence(submittedBy: 'officer-2'),
-			'actor' => 'admin',
-			'payload' => [],
-		];
+		$result = $this->makeGuard(['admin'])->check($this->recordWithEvidence(submittedBy: 'officer-2'), 'verify', 'admin');
 
-		$this->assertTrue($guard->check($context));
+		$this->assertTrue($result->isAllowed());
 	}//end testAdminVerifiesOfficerSubmission()
 }//end class

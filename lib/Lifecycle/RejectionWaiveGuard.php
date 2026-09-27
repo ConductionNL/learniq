@@ -36,9 +36,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use DateTimeImmutable;
-use DateTimeInterface;
-use DateTimeZone;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
@@ -48,16 +47,26 @@ use Psr\Log\LoggerInterface;
  *
  * The transition proceeds only when BOTH of the following hold:
  *   1. The acting user is in one of the authorised groups (`admin`, `coordinators`).
- *   2. `transitionContext['payload']['waiveReason']` is a non-empty string.
+ *   2. `waiveReason` is a non-empty string. It arrives as a declared input
+ *      of the waive transition, merged into the object before the guard runs.
  *
- * On success it stamps `waivedBy` (always the acting user, never a
- * caller-supplied value) and `waivedAt` (server clock) into the transition
- * payload.
+ * `waivedBy` (always the acting user, never a caller-supplied value) and
+ * `waivedAt` (server clock) are stamped by StampTransitionActorAction, declared
+ * on the same transition: OpenRegister calls guards by value, so a guard can
+ * not write onto the object (learniq#983).
  *
  * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.4
  * @spec openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-waiving-without-a-reason-is-refused
  */
-class RejectionWaiveGuard {
+class RejectionWaiveGuard implements LifecycleGuardInterface {
+
+	/**
+	 * The transition inputs the caller sends that this guard reads; each is
+	 * declared in `inputs` on every transition naming this class.
+	 *
+	 * @var list<string>
+	 */
+	public const TRANSITION_INPUTS = ['waiveReason'];
 
 	/**
 	 * Groups whose members may waive a rejection.
@@ -86,74 +95,51 @@ class RejectionWaiveGuard {
 	}//end __construct()
 
 	/**
-	 * Assert the waive preconditions and stamp waivedBy/waivedAt.
+	 * Assert the waive preconditions.
 	 *
-	 * Called by OpenRegister's lifecycle engine before executing the
-	 * `open|corrected → waived` waive transition. Returns true to allow the
-	 * transition (and writes `waivedBy`/`waivedAt` into the payload), false to
-	 * block it.
+	 * Called by OpenRegister's LifecycleValidationListener before the
+	 * `open|corrected → waived` transition is saved.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine. Expected
-	 *                                               keys:
-	 *                                               - 'object'  : the
-	 *                                               ExchangeRejection data array
-	 *                                               - 'actor'   : NC user ID of
-	 *                                               the requester
-	 *                                               - 'payload' : mutable array;
-	 *                                               waiveReason is read from
-	 *                                               here, waivedBy/waivedAt are
-	 *                                               written here
+	 * @param array<string,mixed> $object The ExchangeRejection as it would be saved (status at `waived`, inputs merged).
+	 * @param string              $action The transition action (`waive`).
+	 * @param string              $userId The caller's uid, or '' without a session.
 	 *
-	 * @return bool True when the transition is allowed; false blocks it.
+	 * @return GuardResult Allow, or deny with what is missing.
 	 *
 	 * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.4
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
-	public function check(array &$transitionContext): bool {
-		$rejection = $transitionContext['object'] ?? [];
-		$rejectionId = $rejection['id'] ?? ($rejection['uuid'] ?? '?');
-		$actor = (string)($transitionContext['actor'] ?? '');
+	public function check(array $object, string $action, string $userId): GuardResult {
+		$rejectionId = $object['id'] ?? ($object['uuid'] ?? '?');
 
-		if ($actor === '') {
+		if ($userId === '') {
 			$this->logger->warning(
-				'[RejectionWaiveGuard] No actor in transitionContext — denying waive of {id}.',
+				'[RejectionWaiveGuard] No session user — denying waive of {id}.',
 				['id' => $rejectionId]
 			);
-			return false;
+			return GuardResult::deny('Only a signed-in admin or coordinator can waive a rejection.');
 		}
 
-		if ($this->actorIsAuthorised(actor: $actor) === false) {
+		if ($this->actorIsAuthorised(actor: $userId) === false) {
 			$this->logger->info(
 				'[RejectionWaiveGuard] Actor {a} is not in an authorised group — denying waive of {id}.',
-				['a' => $actor, 'id' => $rejectionId]
+				['a' => $userId, 'id' => $rejectionId]
 			);
-			return false;
+			return GuardResult::deny('Only an admin or coordinator can waive a rejection.');
 		}
 
-		$payload = $transitionContext['payload'] ?? [];
-		if (is_array($payload) === false) {
-			$payload = [];
-		}
-
-		$waiveReason = $payload['waiveReason'] ?? null;
+		$waiveReason = $object['waiveReason'] ?? null;
 
 		if (is_string($waiveReason) === false || trim($waiveReason) === '') {
 			$this->logger->info(
 				'[RejectionWaiveGuard] ExchangeRejection {id}: waiveReason is empty — denying waive.',
 				['id' => $rejectionId]
 			);
-			return false;
+			return GuardResult::deny('A rejection can only be waived with a reason.');
 		}
 
-		// Stamp waivedBy/waivedAt server-side — never trust a caller-supplied
-		// identity/timestamp for this compliance-sensitive field (mirrors
-		// MunicipalityFeedbackGuard's recordedBy/receivedAt stamping).
-		$payload['waivedBy'] = $actor;
-		$payload['waivedAt'] = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-
-		$transitionContext['payload'] = $payload;
-
-		return true;
+		return GuardResult::allow();
 	}//end check()
 
 	/**

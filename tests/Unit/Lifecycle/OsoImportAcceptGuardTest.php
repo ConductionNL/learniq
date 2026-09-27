@@ -22,6 +22,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Lifecycle\OsoImportAcceptGuard;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -58,63 +59,63 @@ class OsoImportAcceptGuardTest extends TestCase {
 	}//end makeGuard()
 
 	/**
-	 * A coordinator accepting a dossier is allowed, and reviewedBy/reviewedAt
-	 * are stamped server-side.
+	 * The dossier as the guard sees it on accept.
+	 *
+	 * @var array<string,mixed>
+	 */
+	private const DOSSIER = ['id' => 'dossier-1', 'status' => 'accepted'];
+
+	/**
+	 * OpenRegister's registry refuses a guard that does not implement its interface.
 	 *
 	 * @return void
 	 */
-	public function testCoordinatorIsAllowedAndStamped(): void {
-		$guard = $this->makeGuard(['coordinator']);
-		$context = [
-			'object' => ['id' => 'dossier-1'],
-			'actor' => 'actor-1',
-			'payload' => [],
-		];
+	public function testImplementsTheOpenRegisterGuardInterface(): void {
+		self::assertInstanceOf(LifecycleGuardInterface::class, $this->makeGuard([]));
 
-		self::assertTrue($guard->check($context));
-		self::assertSame('actor-1', $context['payload']['reviewedBy']);
-		self::assertNotEmpty($context['payload']['reviewedAt']);
-
-	}//end testCoordinatorIsAllowedAndStamped()
+	}//end testImplementsTheOpenRegisterGuardInterface()
 
 	/**
-	 * An admin may also accept.
+	 * A coordinator may accept. reviewedBy/reviewedAt are
+	 * StampTransitionActorAction's write (learniq#983).
+	 *
+	 * @return void
+	 */
+	public function testCoordinatorIsAllowed(): void {
+		self::assertTrue($this->makeGuard(['coordinator'])->check(self::DOSSIER, 'accept', 'actor-1')->isAllowed());
+
+	}//end testCoordinatorIsAllowed()
+
+	/**
+	 * An admin may accept.
 	 *
 	 * @return void
 	 */
 	public function testAdminIsAllowed(): void {
-		$guard = $this->makeGuard(['admin']);
-		$context = ['object' => ['id' => 'dossier-1'], 'actor' => 'actor-1', 'payload' => []];
-
-		self::assertTrue($guard->check($context));
+		self::assertTrue($this->makeGuard(['admin'])->check(self::DOSSIER, 'accept', 'actor-1')->isAllowed());
 
 	}//end testAdminIsAllowed()
 
 	/**
-	 * A learner (no privileged group) is denied.
+	 * A user outside admin/coordinator is denied.
 	 *
 	 * @return void
-	 *
-	 * @spec openspec/changes/oso-inbound-contract/specs/data-exchange/spec.md#scenario-a-non-admincoordinator-actor-cannot-accept-or-reject-an-osoimportdossier
 	 */
 	public function testUnauthorisedActorIsDenied(): void {
-		$guard = $this->makeGuard([]);
-		$context = ['object' => ['id' => 'dossier-1'], 'actor' => 'actor-1', 'payload' => []];
+		$result = $this->makeGuard([])->check(self::DOSSIER, 'accept', 'actor-1');
 
-		self::assertFalse($guard->check($context));
+		self::assertFalse($result->isAllowed());
+		self::assertNotSame('', (string)$result->getMessage());
 
 	}//end testUnauthorisedActorIsDenied()
 
 	/**
-	 * No actor in the transition context is denied.
+	 * No session user is denied.
 	 *
 	 * @return void
 	 */
 	public function testNoActorIsDenied(): void {
-		$guard = $this->makeGuard(['coordinator']);
-		$context = ['object' => ['id' => 'dossier-1'], 'payload' => []];
-
-		self::assertFalse($guard->check($context));
+		self::assertFalse($this->makeGuard(['coordinator'])->check(self::DOSSIER, 'accept', '')->isAllowed());
 
 	}//end testNoActorIsDenied()
 }//end class
