@@ -35,7 +35,7 @@ Stacked on `segment-wizard-choice` (#1028, itself on `segment-runtime-bridge` #1
 - [x] All tasks checked off
 - [x] `openspec validate segment-menu-gating --strict` passes
 - [x] Diff-scoped checks green (check:specs incl. menu-role-gates, node tests, gate 53/68/100/102/104/107 standalone)
-- [ ] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates with `--base origin/development` run once before push
+- [x] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates with `--base origin/development` run once before push (inherited reds only; see the PR)
 
 ## Quality checklist
 - Tests: `segmentMenuGates.test.mjs` (matrix with the library's own evaluator, plus negative validator runs), `setupSteps.test.mjs`.
