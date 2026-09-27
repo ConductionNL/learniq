@@ -1553,8 +1553,8 @@
       "area": "credentials",
       "name": "Export a certificate in the European Europass credential format.",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/learniq_register.json Credential.properties.edciPayload is declared and marked Phase 3; nothing in lib/ writes it",
+        "state": "specified",
+        "evidence": "lib/Settings/learniq_register.json Credential.properties.edciPayload is declared and marked Phase 3; nothing in lib/ writes it. Specified in openspec/changes/credentials-europass-edci-export/ (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -1930,8 +1930,8 @@
       "area": "content",
       "name": "Launch a cmi5 unit and have it send results back.",
       "built": {
-        "state": "none",
-        "evidence": "lib/Service/Cmi5LaunchTokenService.php isEnabled() returns false and mintLaunchToken() returns an empty string",
+        "state": "specified",
+        "evidence": "lib/Service/Cmi5LaunchTokenService.php isEnabled() returns false and mintLaunchToken() returns an empty string. Covered by openspec/changes/cmi5-xapi-lrs-ingest/ (0 of 19 tasks ticked; OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq",
         "readOn": "2026-09-26"
       },
@@ -1990,8 +1990,8 @@
       "area": "content",
       "name": "Drop an external tool into a lesson over LTI 1.3.",
       "built": {
-        "state": "none",
-        "evidence": "The placement model and lib/Controller/LtiToolPlacementController.php exist, but lib/Settings/connections.json marks lti unavailable: a launch calls api/lti/deployments/[id]/launch on integriq, which has no such endpoint, so no tool opens",
+        "state": "specified",
+        "evidence": "The placement model and lib/Controller/LtiToolPlacementController.php exist, but lib/Settings/connections.json marks lti unavailable: a launch calls api/lti/deployments/[id]/launch on integriq, which has no such endpoint, so no tool opens. Specified in ConductionNL/integriq openspec/changes/connectors-lti-platform-launch/ (integriq#2207, 413357ec). Learniq's half: openspec/changes/content-lti-launch-through-integriq/. (OpenSpec pass 2026-09-27)",
         "owner": "ConductionNL/integriq"
       },
       "provider": "integriq",
@@ -2019,8 +2019,8 @@
       "area": "content",
       "name": "Let an external tool send its grade back into your gradebook.",
       "built": {
-        "state": "none",
-        "evidence": "lib/BackgroundJob/LtiAgsScorePollJob.php no-ops without a subscription id, and lib/Settings/connections.json notes grades only come back from a tool that opened, which none does",
+        "state": "specified",
+        "evidence": "lib/BackgroundJob/LtiAgsScorePollJob.php no-ops without a subscription id, and lib/Settings/connections.json notes grades only come back from a tool that opened, which none does. Specified in ConductionNL/integriq openspec/changes/connectors-lti-platform-launch/ (integriq#2207, 413357ec). Learniq's half: openspec/changes/content-lti-launch-through-integriq/. (OpenSpec pass 2026-09-27)",
         "owner": "ConductionNL/integriq"
       },
       "provider": "integriq",
@@ -4631,8 +4631,8 @@
       "area": "attendance",
       "name": "Report persistent absence onward to the authority.",
       "built": {
-        "state": "none",
-        "evidence": "lib/Lifecycle/AttendanceFlagReportGuard.php gates the transition, but it rides the data-exchange path that lib/Settings/connections.json marks unavailable, so nothing is sent",
+        "state": "specified",
+        "evidence": "lib/Lifecycle/AttendanceFlagReportGuard.php gates the transition, but it rides the data-exchange path that lib/Settings/connections.json marks unavailable, so nothing is sent. Specified in ConductionNL/integriq openspec/changes/connectors-data-exchange-dispatch/ (integriq#2207, 413357ec). Learniq's half is built under D7 and D25 by round 3 (r3-exchange), not specified here. (OpenSpec pass 2026-09-27)",
         "owner": "ConductionNL/integriq"
       },
       "provider": "integriq",
@@ -4776,8 +4776,8 @@
       "area": "attendance",
       "name": "Import a timetable from your scheduling software.",
       "built": {
-        "state": "none",
-        "evidence": "lib/Timetabling/TimetableImportHandler.php exists, and lib/Settings/connections.json marks timetable unavailable: the import calls api/sources/timetable-import/run on integriq, which has no such endpoint, so no lesson arrives",
+        "state": "specified",
+        "evidence": "lib/Timetabling/TimetableImportHandler.php exists, and lib/Settings/connections.json marks timetable unavailable: the import calls api/sources/timetable-import/run on integriq, which has no such endpoint, so no lesson arrives. Specified in ConductionNL/integriq openspec/changes/connectors-data-exchange-dispatch/ (integriq#2207, 413357ec). Learniq's half is built under D7 and D25 by round 3 (r3-exchange), not specified here. (OpenSpec pass 2026-09-27)",
         "owner": "ConductionNL/integriq"
       },
       "provider": "integriq",
@@ -6139,8 +6139,8 @@
       "area": "governance",
       "name": "Push learner data to a national register or another system.",
       "built": {
-        "state": "none",
-        "evidence": "The job and mapping models ship, but lib/Settings/connections.json marks data-exchange unavailable: a run calls api/sources/[target]/run on integriq, which has no such endpoint, so every run fails",
+        "state": "specified",
+        "evidence": "The job and mapping models ship, but lib/Settings/connections.json marks data-exchange unavailable: a run calls api/sources/[target]/run on integriq, which has no such endpoint, so every run fails. Specified in ConductionNL/integriq openspec/changes/connectors-data-exchange-dispatch/ (integriq#2207, 413357ec). Learniq's half is built under D7 and D25 by round 3 (r3-exchange), not specified here. (OpenSpec pass 2026-09-27)",
         "owner": "ConductionNL/integriq"
       },
       "provider": "integriq",
@@ -6555,7 +6555,7 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "none",
+        "state": "decided-no",
         "evidence": "lib/Settings/connections.json:5",
         "owner": "external",
         "reachedOn": "nothing"
@@ -6577,7 +6577,7 @@
       "totara": "unknown",
       "chamilo": "no",
       "ispring-learn": "unknown",
-      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84957: automated link with an external certification provider that updates certification statuses and stores the evidence."
+      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84957: automated link with an external certification provider that updates certification statuses and stores the evidence. Decided no (OpenSpec pass 2026-09-27): Owner external: the updates come from an outside certifier's own system, outside the fleet, per the pass addendum."
     },
     {
       "id": "ass-test-window-or-password",
@@ -6710,8 +6710,8 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/connections.json:23",
+        "state": "specified",
+        "evidence": "lib/Settings/connections.json:23. Specified in ConductionNL/integriq openspec/changes/connectors-course-marketplace/ (integriq#2207, 413357ec). Learniq's half: openspec/changes/enrolment-catalogue-self-signup/. (OpenSpec pass 2026-09-27)",
         "owner": "ConductionNL/integriq",
         "reachedOn": "nothing"
       },
@@ -6741,9 +6741,9 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "none",
+        "state": "decided-no",
         "evidence": "appinfo/info.xml:28",
-        "owner": "nextcloud",
+        "owner": "nextcloud/server",
         "reachedOn": "Nextcloud login page (with user_saml/user_oidc installed)"
       },
       "provider": "nextcloud",
@@ -6763,7 +6763,7 @@
       "totara": "partial",
       "chamilo": "yes",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (tender). Grafisch Lyceum Rotterdam LMS tender 2026, requirement 206602: single sign-on based on Azure, SURFconext or Entree."
+      "note": "Demand-signal row added 2026-09-26 (tender). Grafisch Lyceum Rotterdam LMS tender 2026, requirement 206602: single sign-on based on Azure, SURFconext or Entree. Decided no (OpenSpec pass 2026-09-27): Owner nextcloud/server (was nextcloud): SURFconext login runs through Nextcloud's user_saml or user_oidc app, a platform capability."
     },
     {
       "id": "gov-four-eyes-on-approved-data",
@@ -6865,8 +6865,8 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/learniq_register.json:6339",
+        "state": "specified",
+        "evidence": "lib/Settings/learniq_register.json:6339. Specified in openspec/changes/enrolment-self-join-work-group/ (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing"
       },
@@ -6896,9 +6896,9 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "none",
+        "state": "decided-no",
         "evidence": "src/views/SubmitWorkView.vue (the hand-in screen now renders, but Assignment has no allowed-types or size fields and nothing passes filesAccept or maxSizeMb)",
-        "owner": "nextcloud",
+        "owner": "nextcloud/server",
         "reachedOn": "nothing"
       },
       "provider": "nextcloud",
@@ -6918,7 +6918,7 @@
       "totara": "yes",
       "chamilo": "partial",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206632: the teacher sets which file formats may be handed in, with a size limit."
+      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206632: the teacher sets which file formats may be handed in, with a size limit. Decided no (OpenSpec pass 2026-09-27): Owner nextcloud/server (was nextcloud): file type and size limits on an upload are a Nextcloud platform capability, so this row is decided no for learniq per the pass addendum."
     },
     {
       "id": "ass-run-a-survey",
@@ -6958,9 +6958,9 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "none",
+        "state": "decided-no",
         "evidence": "searched src/, lib/, appinfo/ and package.json at fbeee384 for capacitor, cordova, react-native, serviceWorker, service-worker, webmanifest and 'mobile app': no hits, so learniq ships no app and no installable web app; the responsive Nextcloud web interface is the only mobile surface",
-        "owner": "nextcloud",
+        "owner": "nextcloud/server",
         "reachedOn": "any page in a mobile browser"
       },
       "provider": "nextcloud",
@@ -6980,7 +6980,7 @@
       "totara": "yes",
       "chamilo": "partial",
       "ispring-learn": "yes",
-      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206604: the LMS is reachable from any browser and also through an app. built.evidence was 'package.json:1', a line-1 citation that pointed at nothing; replaced 2026-09-27 with the named search."
+      "note": "Demand-signal row added 2026-09-26 (tender). GLR requirement 206604: the LMS is reachable from any browser and also through an app. built.evidence was 'package.json:1', a line-1 citation that pointed at nothing; replaced 2026-09-27 with the named search. Decided no (OpenSpec pass 2026-09-27): Owner nextcloud/server (was nextcloud): the mobile surface is the Nextcloud apps and the responsive web interface; learniq ships no app of its own."
     },
     {
       "id": "gov-wcag-aa",
@@ -7051,8 +7051,8 @@
       "origin": "changelog",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-86006",
       "built": {
-        "state": "none",
-        "evidence": "searched src/ and lib/ at fbeee384 for second marker, secondMarker, double mark, agreed grade, markers and moderat: no marking hits (only a table-prefix variable at lib/Repair/RenameDutchColumns.php:247 and a 'moderate' enum value at lib/Settings/learniq_register.json:22214), so nothing allocates a second marker or reconciles two marks",
+        "state": "specified",
+        "evidence": "searched src/ and lib/ at fbeee384 for second marker, secondMarker, double mark, agreed grade, markers and moderat: no marking hits (only a table-prefix variable at lib/Repair/RenameDutchColumns.php:247 and a 'moderate' enum value at lib/Settings/learniq_register.json:22214), so nothing allocates a second marker or reconciles two marks. Specified in openspec/changes/assignments-double-marking/ (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing"
       },
@@ -7144,8 +7144,8 @@
       "origin": "changelog",
       "originUrl": "https://docs.moodle.org/501/en/Moodle_Workplace_release_notes",
       "built": {
-        "state": "none",
-        "evidence": "lib/Listener/CredentialIssuanceHandler.php:121",
+        "state": "specified",
+        "evidence": "lib/Listener/CredentialIssuanceHandler.php:121. Specified in openspec/changes/credentials-bulk-reissue/ (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing"
       },
@@ -7175,8 +7175,8 @@
       "origin": "changelog",
       "originUrl": "https://totara.help/docs/digital-self-attendance",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/learniq_register.json:13551",
+        "state": "specified",
+        "evidence": "lib/Settings/learniq_register.json:13551. Specified in openspec/changes/attendance-self-check-in/ (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing"
       },
@@ -7268,9 +7268,9 @@
       "origin": "roadmap",
       "originUrl": "https://github.com/chamilo/chamilo-lms/issues/3818",
       "built": {
-        "state": "none",
+        "state": "decided-no",
         "evidence": "lib/Settings/learniq_register.json:6589",
-        "owner": "nextcloud",
+        "owner": "nextcloud/server",
         "reachedOn": "any upload (with files_antivirus installed)"
       },
       "provider": "nextcloud",
@@ -7290,7 +7290,7 @@
       "totara": "yes",
       "chamilo": "no",
       "ispring-learn": "unknown",
-      "note": "Demand-signal row added 2026-09-26 (roadmap). chamilo roadmap: https://github.com/chamilo/chamilo-lms/issues/3818 (Feature request, open, milestone 3.1): \"Many institutions require any software they include to scan for viruses on uploaded files. ClamAV is an Open Source anti-virus that could be used for this.\""
+      "note": "Demand-signal row added 2026-09-26 (roadmap). chamilo roadmap: https://github.com/chamilo/chamilo-lms/issues/3818 (Feature request, open, milestone 3.1): \"Many institutions require any software they include to scan for viruses on uploaded files. ClamAV is an Open Source anti-virus that could be used for this.\" Decided no (OpenSpec pass 2026-09-27): Owner nextcloud/server (was nextcloud): virus scanning is the Nextcloud files_antivirus app on every upload, a platform capability."
     },
     {
       "id": "ass-mark-question-by-question",
@@ -7330,8 +7330,8 @@
       "origin": "changelog",
       "originUrl": "https://totara.com/articles/whats-new-totara-version-20/",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/learniq_register.json:2427",
+        "state": "specified",
+        "evidence": "lib/Settings/learniq_register.json:2427. Specified in openspec/changes/enrolment-catalogue-self-signup/ (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "nothing"
       },
