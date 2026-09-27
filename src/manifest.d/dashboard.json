@@ -792,8 +792,11 @@
 			"route": "/compliance/export",
 			"type": "custom",
 			"title": "Export audit pack",
-			"component": "CnExportWizard",
-			"_note": "Mounts CnExportWizard from @conduction/nextcloud-vue for the compliance audit-pack export (regulation + date-range + server-side bundle)."
+			"component": "ExportRequestView",
+			"_note": "Mounts ExportRequestView (learniq#947) with kind audit-pack: regulation and date range, downloads the ZIP from POST /api/compliance/audit/export.",
+			"config": {
+				"kind": "audit-pack"
+			}
 		}
 	]
 }
