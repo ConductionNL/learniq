@@ -75,10 +75,13 @@ class CohortGroupPagePolishRegisterTest extends TestCase {
 	 * @return void
 	 */
 	public function testSeedFixtureCarriesNotes(): void {
+		// Found by name, not by position: other changes seed Cohort too, so
+		// the index of this fixture is not this change's to pin.
 		$seeds = $this->config['components']['schemas']['Cohort']['x-openregister-seed'];
-		self::assertSame('Groep 7', $seeds[0]['name']);
-		self::assertNotNull($seeds[0]['notes']);
-		self::assertNotSame('', $seeds[0]['notes']);
+		$named = array_values(array_filter($seeds, static fn (array $seed): bool => ($seed['name'] ?? null) === 'Groep 7'));
+		self::assertCount(1, $named, 'Exactly one Cohort seed is named "Groep 7"');
+		self::assertNotNull($named[0]['notes']);
+		self::assertNotSame('', $named[0]['notes']);
 
 	}//end testSeedFixtureCarriesNotes()
 }//end class
