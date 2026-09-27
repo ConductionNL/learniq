@@ -110,6 +110,25 @@ abstract class ObjectService {
 	): ObjectEntity;
 
 	/**
+	 * Delete an object.
+	 *
+	 * @param string                   $uuid          Object uuid.
+	 * @param Register|string|int|null $register      Register context.
+	 * @param Schema|string|int|null   $schema        Schema context.
+	 * @param bool                     $_rbac         Apply RBAC.
+	 * @param bool                     $_multitenancy Apply multitenancy.
+	 *
+	 * @return bool
+	 */
+	abstract public function deleteObject(
+		string $uuid,
+		Register|string|int|null $register = null,
+		Schema|string|int|null $schema = null,
+		bool $_rbac = true,
+		bool $_multitenancy = true,
+	): bool;
+
+	/**
 	 * Run a callable as a named user, with that user's RBAC and multitenancy.
 	 *
 	 * Mirrors the real signature exactly: no return type.
