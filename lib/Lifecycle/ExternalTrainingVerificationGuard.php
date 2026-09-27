@@ -39,6 +39,7 @@ namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
+use OCA\OpenRegister\Service\FileService;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
@@ -80,11 +81,13 @@ class ExternalTrainingVerificationGuard implements LifecycleGuardInterface {
 	 * @param IUserManager $userManager User manager to resolve the acting
 	 *                                  user object for membership checks.
 	 * @param LoggerInterface $logger PSR logger for guard rejections.
+	 * @param FileService $fileService OR file service, lists the record's attached files.
 	 */
 	public function __construct(
 		private readonly IGroupManager $groupManager,
 		private readonly IUserManager $userManager,
 		private readonly LoggerInterface $logger,
+		private readonly FileService $fileService,
 	) {
 	}//end __construct()
 
@@ -163,24 +166,29 @@ class ExternalTrainingVerificationGuard implements LifecycleGuardInterface {
 	/**
 	 * Whether the record carries at least one OpenRegister file attachment.
 	 *
-	 * OR exposes attachments on the serialised object under `@self.files` (the
-	 * canonical attachment list) or a legacy `files` array. A non-empty list of
-	 * either satisfies the evidence precondition.
+	 * The object OpenRegister hands a guard is ObjectEntity::getObject(), which
+	 * carries no file list (no `@self`), so reading one off it always found
+	 * nothing and refused every verification (learniq#983). The files live in
+	 * the object's folder; FileService lists them. A lookup failure refuses.
 	 *
 	 * @param array<string,mixed> $object The record property array.
 	 *
 	 * @return bool True when one or more evidence attachments are present.
 	 */
 	private function hasEvidenceAttachment(array $object): bool {
-		$self = $object['@self'] ?? [];
-		if (is_array($self) === true && empty($self['files'] ?? []) === false) {
-			return true;
+		$recordId = (string)($object['id'] ?? ($object['uuid'] ?? ''));
+		if ($recordId === '') {
+			return false;
 		}
 
-		if (empty($object['files'] ?? []) === false && is_array($object['files']) === true) {
-			return true;
+		try {
+			return count($this->fileService->getFiles(object: $recordId)) > 0;
+		} catch (\Throwable $e) {
+			$this->logger->warning(
+				'[ExternalTrainingVerificationGuard] Could not list the files of record {id}: {msg}',
+				['id' => $recordId, 'msg' => $e->getMessage()]
+			);
+			return false;
 		}
-
-		return false;
 	}//end hasEvidenceAttachment()
 }//end class

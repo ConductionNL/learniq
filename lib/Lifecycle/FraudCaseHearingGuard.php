@@ -56,6 +56,14 @@ class FraudCaseHearingGuard implements LifecycleGuardInterface {
 	 * @var string
 	 */
 	private const DENIAL = 'A hearing date is needed to schedule the hearing.';
+
+	/**
+	 * Keys the caller sends with the transition that this guard reads; each is a
+	 * declared `inputs` entry on the transition (tests/Unit/Register/LifecycleTransitionInputsTest.php).
+	 *
+	 * @var list<string>
+	 */
+	public const TRANSITION_INPUTS = ['hearingDate'];
 	/**
 	 * Constructor.
 	 *

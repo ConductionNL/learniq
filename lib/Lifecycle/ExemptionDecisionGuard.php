@@ -59,6 +59,14 @@ class ExemptionDecisionGuard implements LifecycleGuardInterface {
 	 * @var string
 	 */
 	private const DENIAL = 'A decision on an exemption needs a rationale and a policy reference.';
+
+	/**
+	 * Keys the caller sends with the transition that this guard reads; each is a
+	 * declared `inputs` entry on the transition (tests/Unit/Register/LifecycleTransitionInputsTest.php).
+	 *
+	 * @var list<string>
+	 */
+	public const TRANSITION_INPUTS = ['decisionRationale', 'policyReference'];
 	/**
 	 * Constructor.
 	 *

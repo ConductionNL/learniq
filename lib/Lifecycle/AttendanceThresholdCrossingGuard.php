@@ -62,6 +62,14 @@ class AttendanceThresholdCrossingGuard implements LifecycleGuardInterface {
 	 * @var string
 	 */
 	private const DENIAL = 'The checked learner has not reached the limit of this attendance threshold.';
+
+	/**
+	 * Keys the caller sends with the transition that this guard reads; each is a
+	 * declared `inputs` entry on the transition (tests/Unit/Register/LifecycleTransitionInputsTest.php).
+	 *
+	 * @var list<string>
+	 */
+	public const TRANSITION_INPUTS = ['checkedLearnerId', 'checkedMetricValue'];
 	/**
 	 * Constructor.
 	 *
