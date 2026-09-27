@@ -50,6 +50,8 @@
  *
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
+ * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
+ * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
  */
 
 declare(strict_types=1);
@@ -57,6 +59,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Support\FleetAppId;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
@@ -102,11 +105,25 @@ class ReportCardPdfDelegationService {
 	private const DOCUDESK_TOKEN_KEY = 'docudesk_api_token';
 
 	/**
-	 * Template slug requested for a report-card render.
+	 * Default template slug requested for a report-card render, sent
+	 * whenever the ReportCard has no ReportCardTemplate assigned
+	 * (report-card-templates change). Unchanged fallback behaviour.
 	 *
 	 * @var string
 	 */
 	private const TEMPLATE_SLUG = 'report-card';
+
+	/**
+	 * Register/schema for resolving a ReportCard's assigned ReportCardTemplate.
+	 *
+	 * @var string
+	 */
+	private const LEARNIQ_REGISTER = 'learniq';
+
+	/**
+	 * @var string
+	 */
+	private const REPORT_CARD_TEMPLATE_SCHEMA = 'report-card-template';
 
 	/**
 	 * Constructor.
@@ -117,6 +134,9 @@ class ReportCardPdfDelegationService {
 	 * @param IAppManager $appManager NC app manager. Resolving the fleet app id
 	 *                                needs it, and it arrives as a dependency now
 	 *                                rather than out of the global server.
+	 * @param ObjectService $objectService OR object access service — resolves a ReportCard's
+	 *                                     assigned ReportCardTemplate by `templateId`
+	 *                                     (report-card-templates change).
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -126,6 +146,7 @@ class ReportCardPdfDelegationService {
 		private readonly IURLGenerator $urlGenerator,
 		private readonly IAppConfig $appConfig,
 		private readonly IAppManager $appManager,
+		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -219,7 +240,7 @@ class ReportCardPdfDelegationService {
 			'subjectGrades' => $reportCard['subjectGrades'] ?? [],
 			'mentorComment' => $reportCard['mentorComment'] ?? null,
 			'attendanceSummary' => $reportCard['attendanceSummary'] ?? null,
-			'templateSlug' => self::TEMPLATE_SLUG,
+			'templateSlug' => $this->resolveTemplateSlug(reportCard: $reportCard),
 		];
 
 		$requestOptions = [
@@ -240,4 +261,51 @@ class ReportCardPdfDelegationService {
 
 		return $body;
 	}//end callDocudeskRender()
+
+	/**
+	 * Resolve the `templateSlug` to send docudesk: the assigned
+	 * `ReportCardTemplate.slug` when `ReportCard.templateId` is set and
+	 * resolvable, otherwise the pre-existing default `'report-card'`
+	 * literal (report-card-templates change).
+	 *
+	 * @param array<string,mixed> $reportCard The ReportCard data array.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
+	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
+	 */
+	private function resolveTemplateSlug(array $reportCard): string {
+		$templateId = $reportCard['templateId'] ?? null;
+		if ($templateId === null || $templateId === '') {
+			return self::TEMPLATE_SLUG;
+		}
+
+		try {
+			$template = $this->objectService->find(
+				id: (string)$templateId,
+				register: self::LEARNIQ_REGISTER,
+				schema: self::REPORT_CARD_TEMPLATE_SCHEMA
+			);
+		} catch (Throwable $exception) {
+			$this->logger->warning(
+				'[ReportCardPdfDelegationService] Could not resolve ReportCardTemplate {template}: {msg} — falling back to the default templateSlug.',
+				['template' => $templateId, 'msg' => $exception->getMessage()]
+			);
+			return self::TEMPLATE_SLUG;
+		}
+
+		if ($template === null) {
+			return self::TEMPLATE_SLUG;
+		}
+
+		$templateData = $template->jsonSerialize();
+		$slug = (string)($templateData['slug'] ?? '');
+
+		if ($slug === '') {
+			return self::TEMPLATE_SLUG;
+		}
+
+		return $slug;
+	}//end resolveTemplateSlug()
 }//end class

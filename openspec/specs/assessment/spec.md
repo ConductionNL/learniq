@@ -531,7 +531,7 @@ The system SHALL compute `AssessmentReliability.cronbachAlpha` for an `Assessmen
      covered by ItemAnalysisServiceTest (PHPUnit), the threshold gate has no DOM surface. -->
 
 ### Requirement: A quality-threshold breach opens an ItemRevisionFlag routed to the exam board
-The system SHALL create an append-only `ItemRevisionFlag` (`open` lifecycle state) when an `ItemStatistics`
+The system SHALL create an `ItemRevisionFlag` (`open` lifecycle state) when an `ItemStatistics`
 computation with `insufficientData: false` crosses a configured quality threshold (too-difficult, too-easy,
 low-discrimination, or negative-discrimination), referencing the item and the triggering
 `ItemStatistics`, unless an `open` flag for the same `(itemId, reason)` already exists. `ItemRevisionFlag`

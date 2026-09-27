@@ -140,4 +140,51 @@ class EnrolmentProgressEvaluatorTest extends TestCase {
 		self::assertSame(100, $result['progressPercent']);
 
 	}//end testFullCompletion()
+
+	/**
+	 * A retake counts only the completions of this enrolment: a row tied to
+	 * an earlier enrolment never counts, a row with no enrolment counts only
+	 * when it was completed after this enrolment started, and a lesson counts
+	 * once (learniq#945).
+	 *
+	 * @return void
+	 */
+	public function testARetakeCountsOnlyThisEnrolmentsCompletions(): void {
+		$rows = [
+			['id' => 'c1', 'lessonId' => 'l1', 'enrolmentId' => 'enrol-1', 'completedAt' => '2026-03-01T10:00:00+00:00'],
+			['id' => 'c2', 'lessonId' => 'l2', 'enrolmentId' => 'enrol-1', 'completedAt' => '2026-03-02T10:00:00+00:00'],
+			['id' => 'c3', 'lessonId' => 'l3', 'completedAt' => '2026-03-03T10:00:00+00:00'],
+			['id' => 'c4', 'lessonId' => 'l1', 'enrolmentId' => 'enrol-2', 'completedAt' => '2027-03-01T10:00:00+00:00'],
+			['id' => 'c5', 'lessonId' => 'l2', 'completedAt' => '2027-03-02T10:00:00+00:00'],
+			['id' => 'c6', 'lessonId' => 'l1', 'completedAt' => '2027-03-03T10:00:00+00:00'],
+		];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			static function (array $config) use ($rows) {
+				if ($config['schema'] === 'lesson-completion') {
+					return $rows;
+				}
+
+				return array_fill(0, 4, ['id' => 'lesson']);
+			}
+		);
+		$evaluator = new EnrolmentProgressEvaluator($objectService);
+
+		$fresh = $evaluator->evaluate(
+			learnerId: 'learner-1',
+			courseId: 'course-1',
+			enrolment: ['id' => 'enrol-3', '@self' => ['created' => '2028-01-01T00:00:00+00:00']]
+		);
+		self::assertSame(0, $fresh['completedLessonCount'], 'a brand-new enrolment starts at zero');
+		self::assertSame(0, $fresh['progressPercent']);
+
+		$retake = $evaluator->evaluate(
+			learnerId: 'learner-1',
+			courseId: 'course-1',
+			enrolment: ['id' => 'enrol-2', '@self' => ['created' => '2027-01-01T00:00:00+00:00']]
+		);
+		self::assertSame(2, $retake['completedLessonCount'], 'l1 (tied, and again untied) and l2 (untied, after start)');
+		self::assertSame(50, $retake['progressPercent']);
+
+	}//end testARetakeCountsOnlyThisEnrolmentsCompletions()
 }//end class
