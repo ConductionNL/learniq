@@ -266,29 +266,47 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 			$lines[] = trim($description);
 		}
 
-		$trail = ($row['auditTrail'] ?? []);
-		if (is_array($trail) === true && $trail !== []) {
+		$history = self::historyLines(trail: ($row['auditTrail'] ?? []));
+		if ($history !== []) {
 			$lines[] = '';
 			$lines[] = 'History:';
-			foreach ($trail as $entry) {
-				if (is_array($entry) === false) {
-					continue;
-				}
-
-				$line = '- ' . (string)($entry['recordedAt'] ?? '') . ' ' . (string)($entry['recordedBy'] ?? '')
-					. ': ' . (string)($entry['action'] ?? '');
-				$note = ($entry['note'] ?? null);
-				if (is_string($note) === true && $note !== '') {
-					$line .= ' (' . $note . ')';
-				}
-
-				$lines[] = $line;
-			}
+			array_push($lines, ...$history);
 		}
 
 		// OpenRegister caps notes at 4000 characters.
 		return mb_substr(implode("\n", $lines), 0, 4000);
 	}//end notesFor()
+
+	/**
+	 * One line per audit trail entry: when, who, what, and the note if any.
+	 *
+	 * @param mixed $trail The learniq `auditTrail` value.
+	 *
+	 * @return array<int, string>
+	 */
+	private static function historyLines(mixed $trail): array {
+		if (is_array($trail) === false) {
+			return [];
+		}
+
+		$lines = [];
+		foreach ($trail as $entry) {
+			if (is_array($entry) === false) {
+				continue;
+			}
+
+			$line = '- ' . (string)($entry['recordedAt'] ?? '') . ' ' . (string)($entry['recordedBy'] ?? '')
+				. ': ' . (string)($entry['action'] ?? '');
+			$note = ($entry['note'] ?? null);
+			if (is_string($note) === true && $note !== '') {
+				$line .= ' (' . $note . ')';
+			}
+
+			$lines[] = $line;
+		}
+
+		return $lines;
+	}//end historyLines()
 
 	/**
 	 * Source uuids that already have a case, read from the marker line.
