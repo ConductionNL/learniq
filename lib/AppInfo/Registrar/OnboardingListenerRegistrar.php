@@ -32,13 +32,14 @@ namespace OCA\Learniq\AppInfo\Registrar;
 use OCA\Learniq\Listener\LessonOnboardingFileListener;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\Files\Events\Node\NodeCreatedEvent;
+use OCP\Files\Events\Node\NodeRenamedEvent;
 
 /**
  * Wires the lesson onboarding file listener.
  */
 class OnboardingListenerRegistrar {
 	/**
-	 * Register the NodeCreatedEvent listener.
+	 * Register the NodeCreatedEvent and NodeRenamedEvent listener.
 	 *
 	 * @param IRegistrationContext $context Nextcloud registration context.
 	 *
@@ -51,6 +52,8 @@ class OnboardingListenerRegistrar {
 		// event, so no schema declaration can express it. The listener only
 		// records the file; the teacher confirms before anything is read (D17).
 		$context->registerEventListener(NodeCreatedEvent::class, LessonOnboardingFileListener::class);
+		// A file moved into the folder from elsewhere in the teacher's files.
+		$context->registerEventListener(NodeRenamedEvent::class, LessonOnboardingFileListener::class);
 
 	}//end register()
 }//end class

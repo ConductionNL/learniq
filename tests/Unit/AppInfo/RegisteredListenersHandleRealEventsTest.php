@@ -38,6 +38,7 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Files\Events\Node\NodeCreatedEvent;
+use OCP\Files\Events\Node\NodeRenamedEvent;
 use OCP\Files\File;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -226,6 +227,7 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 			ObjectTransitionedEvent::class => new ObjectTransitionedEvent($entity, 'minimal', 'draft', 'active', 'alice', 'learniq', 'minimal'),
 			// A Nextcloud Files event (office-file-lesson-onboarding): the node is a file double.
 			NodeCreatedEvent::class => new NodeCreatedEvent($this->createStub(File::class)),
+			NodeRenamedEvent::class => new NodeRenamedEvent($this->createStub(File::class), $this->createStub(File::class)),
 			default => null,
 		};
 	}//end event()

@@ -4,7 +4,7 @@
  * Learniq Lesson Onboarding File Listener
  *
  * Notices a Word or PowerPoint file that lands directly in a teacher's lesson
- * onboarding folder and records it as a `LessonOnboardingFile` row in state
+ * onboarding folder (created there, or moved in from elsewhere) and records it as a `LessonOnboardingFile` row in state
  * `detected` (office-file-lesson-onboarding). The row's declared notification
  * tells the teacher; nothing else happens until the teacher confirms the file
  * on the review page (decision D17). The file's content is never opened here.
@@ -42,7 +42,9 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\Files\Events\Node\NodeCreatedEvent;
+use OCP\Files\Events\Node\NodeRenamedEvent;
 use OCP\Files\File;
+use OCP\Files\Node;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -104,8 +106,11 @@ class LessonOnboardingFileListener implements IEventListener {
 	}//end formatOf()
 
 	/**
-	 * Handle a created node: record it when it is a Word or PowerPoint file
-	 * directly inside its owner's onboarding folder.
+	 * Handle a created node, or the target of a move: record it when it is a
+	 * Word or PowerPoint file directly inside its owner's onboarding folder. A
+	 * teacher who moves an existing file into the folder raises NodeRenamedEvent,
+	 * not NodeCreatedEvent; a rename inside the folder keeps the file id and is
+	 * skipped as already recorded.
 	 *
 	 * @param Event $event The event.
 	 *
@@ -114,11 +119,8 @@ class LessonOnboardingFileListener implements IEventListener {
 	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-a-teacher-drops-a-word-file-in-the-folder
 	 */
 	public function handle(Event $event): void {
-		if (($event instanceof NodeCreatedEvent) === false) {
-			return;
-		}
+		$node = self::nodeOf(event: $event);
 
-		$node = $event->getNode();
 		if (($node instanceof File) === false) {
 			return;
 		}
@@ -139,6 +141,27 @@ class LessonOnboardingFileListener implements IEventListener {
 			);
 		}
 	}//end handle()
+
+	/**
+	 * The node an event brings into a folder: the created node, or a move's target.
+	 *
+	 * @param Event $event The event.
+	 *
+	 * @return Node|null The node, or null for any other event.
+	 *
+	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-new-word-or-powerpoint-file-in-the-folder-is-detected-and-the-teacher-is-notified-and-nothing-is-read
+	 */
+	private static function nodeOf(Event $event): ?Node {
+		if ($event instanceof NodeCreatedEvent) {
+			return $event->getNode();
+		}
+
+		if ($event instanceof NodeRenamedEvent) {
+			return $event->getTarget();
+		}
+
+		return null;
+	}//end nodeOf()
 
 	/**
 	 * Record the file when its owner watches its parent folder and it is new.

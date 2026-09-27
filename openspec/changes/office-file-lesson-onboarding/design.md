@@ -57,7 +57,7 @@ None. One new OpenRegister schema and one enum value, imported by the existing r
 - Controllers: `LessonOnboardingController` (thin; ADR-022).
 - Services: `OnboardingFolderSetting` (`IConfig` user value `lesson_onboarding_folder_id`), `DocxLessonReader`,
   `PresentationLessonReader`, `LessonDraftBuilder`, `LessonOnboardingImporter`.
-- Listener: `LessonOnboardingFileListener` on `OCP\Files\Events\Node\NodeCreatedEvent`, registered through a new
+- Listener: `LessonOnboardingFileListener` on `OCP\Files\Events\Node\NodeCreatedEvent` and `NodeRenamedEvent` (a file moved into the folder), registered through a new
   `OnboardingListenerRegistrar` in `EventListenerWiring::registerAll()`.
 - OCP: `IRootFolder` (user folder, `getById`), `IConfig`, `IUserSession`, `IEventListener`.
 - OpenRegister: `ObjectService` (row create with `_rbac: false` in the listener, reads in the importer),

@@ -26,6 +26,7 @@ use OCA\Learniq\Service\LessonOnboarding\OnboardingFolderSetting;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\Files\Events\Node\NodeCreatedEvent;
+use OCP\Files\Events\Node\NodeRenamedEvent;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\IUser;
@@ -177,6 +178,23 @@ class LessonOnboardingFileListenerTest extends TestCase {
 		$this->assertSame('pptx', $format);
 
 	}//end testAPptxIsRecordedAsPptx()
+
+	/**
+	 * A file moved into the folder is recorded from the event's target.
+	 *
+	 * @return void
+	 */
+	public function testAFileMovedIntoTheFolderIsRecorded(): void {
+		$this->folderSetting->method('folderId')->willReturn(self::FOLDER_ID);
+		$this->objectService->method('findAll')->willReturn([]);
+		$this->objectService->expects($this->once())->method('saveObject')
+			->willReturn($this->createStub(\OCA\OpenRegister\Db\ObjectEntity::class));
+
+		$source = $this->file(name: 'Breuken.docx', parentId: 12);
+		$target = $this->file(name: 'Breuken.docx');
+		$this->listener->handle(new NodeRenamedEvent($source, $target));
+
+	}//end testAFileMovedIntoTheFolderIsRecorded()
 
 	/**
 	 * A docx in another folder of the same teacher is ignored.

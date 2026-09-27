@@ -22,7 +22,7 @@ By the end you have chosen an onboarding folder, dropped a file in it, and impor
 
 1. Open **Learning** and choose **Import course package**. Scroll to **Lessons from Word and PowerPoint**.
 2. Choose **Choose folder** and pick one folder in your own files, for example `Lessen inbox`. Learniq watches only that folder, and only files you put directly in it.
-3. Drop a `.docx` or `.pptx` file in the folder, from your computer, the desktop client or the Files app.
+3. Drop a `.docx` or `.pptx` file in the folder, from your computer, the desktop client or the Files app. Moving a file in from another folder works too.
 4. You get a notification: "New file in your lesson folder". Choose **Review** to open the import page. The file is now in the list under **Files waiting for you**.
 5. Check the file. A lesson is visible to everyone in the school, so a file with pupil names, marks or notes about a pupil does not belong in a lesson. If it does not fit, choose **Dismiss**.
 6. Pick the course and choose **Import as lesson draft**.

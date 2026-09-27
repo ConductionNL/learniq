@@ -30,7 +30,8 @@ set or the folder no longer exists.
 
 <!-- @e2e exclude A file event cannot be raised from a browser test without driving the shared instance; the listener is covered by LessonOnboardingFileListenerTest (testADocxInTheFolderIsRecordedForItsOwner, testAFileOutsideTheFolderIsIgnored, testAnotherTypeIsIgnoredBeforeAnyLookup, testAFileRecordedBeforeIsNotRecordedTwice, testAFailureNeverReachesTheUpload) and the notification shape by LessonOnboardingRegisterTest. -->
 
-The system MUST listen for `OCP\Files\Events\Node\NodeCreatedEvent`. For a file whose name ends in `.docx` or
+The system MUST listen for `OCP\Files\Events\Node\NodeCreatedEvent`, and for `NodeRenamedEvent` so a file moved
+into the folder counts too (its target node). For a file whose name ends in `.docx` or
 `.pptx` (case-insensitive) and whose parent folder is the onboarding folder of the file's owner, it MUST
 create one `LessonOnboardingFile` row in state `detected` carrying `teacherId` (the owner), `fileId`,
 `fileName`, `filePath`, `mimeType`, `format` (`docx` or `pptx`) and `detectedAt`. It MUST NOT open or read

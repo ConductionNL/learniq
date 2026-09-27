@@ -29,7 +29,7 @@ Plan assumption A6: the onboarding folder detects and notifies; extraction and l
 
 ### In Scope
 - A teacher chooses one onboarding folder in their own files (`PUT /api/lesson-onboarding/folder`), stored as a per-user setting.
-- A `NodeCreatedEvent` listener records every `.docx` or `.pptx` created directly in that folder as a `LessonOnboardingFile` row in state `detected`. It reads the file name and type only, never the content.
+- A `NodeCreatedEvent` and `NodeRenamedEvent` listener records every `.docx` or `.pptx` created in, or moved into, that folder as a `LessonOnboardingFile` row in state `detected`. It reads the file name and type only, never the content.
 - A declarative notification on that row tells the teacher, with a link to the import page.
 - A review section on the import page lists the teacher's detected files, with a course picker, an "Import as lesson draft" action and a "Dismiss" action, and says at the confirmation step that a lesson is visible to the whole school, so a file with pupil data does not belong there.
 - On confirmation (`POST /api/lesson-onboarding/files/{id}/import`): a docx becomes one `Lesson` draft (one `richText` block per heading section, each embedded image a `Material` plus a `media` block), a pptx becomes one `Lesson` draft (one `richText` block per visible slide, speaker notes as a `teacherNote` block), and the original file becomes a `Material` with its `fileRef`. The row moves to `imported` with the lesson id.
