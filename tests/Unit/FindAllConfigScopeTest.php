@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/findall-config-filters-sweep/specs/object-read-scope/spec.md
+ * @spec openspec/changes/findall-config-filters-sweep/specs/nextcloud-app/spec.md
  */
 
 declare(strict_types=1);
