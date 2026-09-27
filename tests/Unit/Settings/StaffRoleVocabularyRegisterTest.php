@@ -178,27 +178,67 @@ class StaffRoleVocabularyRegisterTest extends TestCase {
 	}//end testNoManifestGateNamesAFunctionTag()
 
 	/**
-	 * Every seed row uses only allowed tags, and one seed row exercises the
-	 * new function tags.
+	 * Every Staff row in the register seed and in every example set uses only
+	 * allowed tags, and the secondary school example set's vwo decaan exercises
+	 * the new function tags. The register carries no Staff seed rows since
+	 * segment-example-datasets-po; the demo row lives in the example set.
 	 *
 	 * @return void
 	 */
 	public function testSeedRowsUseAllowedTags(): void {
 		$schema = $this->config['components']['schemas']['Staff'];
 		$enum   = $schema['properties']['roles']['items']['enum'];
-		$seen   = [];
 
-		foreach ($schema['x-openregister-seed'] as $row) {
-			foreach ($row['roles'] as $role) {
-				self::assertContains($role, $enum, "Seed row {$row['ncUserId']} uses unknown tag '$role'.");
-				$seen[] = $role;
+		$rows = [];
+		foreach (($schema['x-openregister-seed'] ?? []) as $row) {
+			$rows['register ' . $row['ncUserId']] = $row;
+		}
+
+		$sets = glob(__DIR__ . '/../../../lib/Settings/profiles/*.json');
+		self::assertNotEmpty($sets);
+		foreach ($sets as $file) {
+			$set = json_decode((string)file_get_contents($file), true);
+			foreach (($set['x-openregister']['seedData']['objects']['staff'] ?? []) as $row) {
+				$rows[basename($file) . ' ' . $row['slug']] = $row;
 			}
 		}
 
-		self::assertNotSame([], array_intersect(self::FUNCTION_TAGS, $seen), 'No Staff seed row uses a function tag.');
-		self::assertSame('0.2.0', $schema['version']);
+		foreach ($rows as $where => $row) {
+			foreach ($row['roles'] as $role) {
+				self::assertContains($role, $enum, "Staff row $where uses unknown tag '$role'.");
+			}
+		}
+
+		$voStaff = $this->voStaff();
+		$bySlug  = array_column($voStaff, null, 'slug');
+		$decaan  = ($bySlug['vo-staff-033'] ?? null);
+		self::assertNotNull($decaan, 'The secondary school example set has no vo-staff-033 row.');
+		self::assertSame('vo-decaan-02', $decaan['ncUserId']);
+		self::assertContains('career-counsellor', $decaan['roles']);
+		self::assertContains('exam-secretary', $decaan['roles']);
+
+		$tagged = array_filter(
+			$voStaff,
+			static fn (array $row): bool => array_intersect(self::FUNCTION_TAGS, $row['roles']) !== []
+		);
+		self::assertGreaterThanOrEqual(1, count($tagged), 'No Staff row in the secondary school example set uses a function tag.');
+
+		self::assertTrue(version_compare($schema['version'], '0.2.0', '>='), 'Staff.version must be at least 0.2.0.');
 
 	}//end testSeedRowsUseAllowedTags()
+
+	/**
+	 * The Staff objects of the secondary school example set.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function voStaff(): array {
+		$path = __DIR__ . '/../../../lib/Settings/profiles/vo.json';
+		$set  = json_decode((string)file_get_contents($path), true);
+
+		return ($set['x-openregister']['seedData']['objects']['staff'] ?? []);
+
+	}//end voStaff()
 
 	/**
 	 * Collect every `visibleIf` value in a manifest tree.

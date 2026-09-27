@@ -25275,27 +25275,7 @@
                         "title": "Tenant ID"
                     }
                 },
-                "x-openregister-seed": [
-                    {
-                        "id": "00000000-0000-0000-0000-0000000e0003",
-                        "ncUserId": "staff-decaan-01",
-                        "roles": [
-                            "teacher",
-                            "career-counsellor",
-                            "exam-secretary"
-                        ],
-                        "qualifications": [
-                            "tweedegraads bevoegdheid economie",
-                            "LOB-coördinator"
-                        ],
-                        "workingDays": [
-                            "monday",
-                            "tuesday",
-                            "thursday"
-                        ],
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    }
-                ]
+                "x-openregister-seed": []
             },
             "SubjectTeacherAssignment": {
                 "slug": "subjectteacherassignment",

@@ -277,6 +277,7 @@ SUBJECT_TEACHER = {
 }
 DESK = "vo-verzuim-01"
 DECAAN = "vo-decaan-01"
+DECAAN_VWO = "vo-decaan-02"
 ZORG = "vo-zorgcoordinator-01"
 EXAMSEC = "vo-examensecretaris-01"
 TEAMLEIDER_OB = "vo-teamleider-01"
@@ -682,6 +683,12 @@ def build() -> dict:
         quals = [f"{graad} bevoegdheid {SUBJECTS[s][0].lower()}" for s in subjects if s not in ("WA", "WB", "NASK")]
         roles = ["teacher", "mentor"] if tid in mentors else ["teacher"]
         staff_rows.append((tid, tname, roles, quals, work))
+    # The vwo decaan, also deputy exam secretary, carries the function tags of
+    # staff-role-vocabulary-extension (a tag describes the job and grants no
+    # access). Appended after the teachers so no earlier staff uuid moves.
+    staff_rows.append((DECAAN_VWO, "Karin Beukendaal", ["teacher", "career-counsellor", "exam-secretary"],
+                       ["tweedegraads bevoegdheid economie", "LOB-coördinator", "plaatsvervangend examensecretaris"],
+                       ["monday", "tuesday", "thursday"]))
     staff_by_id = {}
     for nc, sname, roles, qual, work in staff_rows:
         staff_by_id[nc] = b.add("staff", {"name": sname, "ncUserId": nc, "roles": roles, "qualifications": qual,

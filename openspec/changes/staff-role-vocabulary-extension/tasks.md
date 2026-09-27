@@ -4,12 +4,12 @@
 
 ### Task 1: Extend Staff.roles with seven function tags and labels
 - **spec_ref**: `openspec/changes/staff-role-vocabulary-extension/specs/school-structure/spec.md#requirement-staff-roles-name-the-counsellor-and-exam-functions-a-school-staffs`, `#requirement-every-staff-role-has-a-readable-translated-label`, `#requirement-a-staff-role-tag-grants-no-access`
-- **files**: `lib/Settings/learniq_register.json` (`Staff.properties.roles`, `Staff.version`, `info.version`, `info.description` changelog sentence, one `x-openregister-seed` row), `lib/Settings/learniq_mock_register.json`
+- **files**: `lib/Settings/learniq_register.json` (`Staff.properties.roles`, `Staff.version`, `info.version`, `info.description` changelog sentence), `lib/Settings/learniq_mock_register.json`, `scripts/example-sets/vo.py` and `lib/Settings/profiles/vo.json` (one Staff row with function tags)
 - **acceptance_criteria**:
   - GIVEN `Staff.roles.items.enum` WHEN read THEN the original seven values are its first seven entries, in order, followed by the seven new ones
   - GIVEN `Staff.roles.items['x-enum-labels']` WHEN read THEN it has a non-empty label for every enum value and no extra keys
   - GIVEN the `roles` description WHEN read THEN it states that a tag grants no access
-  - GIVEN the seed and demo rows WHEN validated against the enum THEN every role value is allowed
+  - GIVEN the example set and demo rows WHEN validated against the enum THEN every role value is allowed
 - [x] Implement
 - [x] Test
 
@@ -26,7 +26,7 @@
 - **spec_ref**: all requirements in `specs/school-structure/spec.md` above
 - **files**: `tests/Unit/Settings/StaffRoleVocabularyRegisterTest.php` (new), `tests/Unit/Settings/SubjectAndTeacherAssignmentRegisterTest.php`
 - **acceptance_criteria**:
-  - GIVEN the new test WHEN run THEN it asserts the enum floor and order, the label map, the no-access description, that no `authorization` block names a tag-only value, and that seed rows use allowed values
+  - GIVEN the new test WHEN run THEN it asserts the enum floor and order, the label map, the no-access description, that no `authorization` block names a tag-only value, and that every Staff row in the register seed and the example sets uses allowed values, with the secondary school set's `vo-staff-033` carrying function tags
   - GIVEN the existing Staff test WHEN run THEN it asserts the original seven values as a floor, not the exact list
 - [x] Implement
 - [x] Test

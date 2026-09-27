@@ -16,7 +16,7 @@ Decision D18 (Ruben, 2026-09-27) settles the shape: counsellor-type functions ar
 Competitor evidence: round 1 finding 2.14 (staff record: roles, qualifications, availability; evidenced against gibbon, esis and sera). Gibbon, the one open-source competitor read line by line in round 1, models a person's function (`gibbonStaff`, job title) apart from the security role. That is the shape this change keeps: a descriptive function, separate from the RBAC vocabulary in `DashboardRoleService::GROUP_BACKED_ROLES`.
 
 ## Affected Projects
-- [x] Project: `learniq`: `lib/Settings/learniq_register.json` (`Staff.properties.roles.items` gains seven enum values and an `x-enum-labels` map; one new seed row; `Staff.version` and `info.version` bumped), `lib/Settings/learniq_mock_register.json` (one demo row carrying new tags), `l10n/en.json` and `l10n/nl.json` (label keys), `tests/Unit/Settings/SubjectAndTeacherAssignmentRegisterTest.php`, `tests/Unit/Settings/StaffRoleVocabularyRegisterTest.php` (new).
+- [x] Project: `learniq`: `lib/Settings/learniq_register.json` (`Staff.properties.roles.items` gains seven enum values and an `x-enum-labels` map; `Staff.version` and `info.version` bumped), `lib/Settings/learniq_mock_register.json` (one demo row carrying new tags), `scripts/example-sets/vo.py` and `lib/Settings/profiles/vo.json` (one Staff row with function tags), `l10n/en.json` and `l10n/nl.json` (label keys), `tests/Unit/Settings/SubjectAndTeacherAssignmentRegisterTest.php`, `tests/Unit/Settings/StaffRoleVocabularyRegisterTest.php` (new).
 
 ## Scope
 
@@ -24,7 +24,7 @@ Competitor evidence: round 1 finding 2.14 (staff record: roles, qualifications, 
 - Seven new `Staff.roles` enum values, appended after the existing seven so no stored value changes meaning: `career-counsellor`, `study-adviser`, `remedial-teacher`, `care-coordinator`, `exam-secretary`, `placement-coordinator`, `confidential-counsellor`.
 - An `x-enum-labels` map on `Staff.roles.items` for all fourteen values, with Dutch catalogue values in `l10n/nl.json`.
 - A property description that says, in plain words, that a tag describes the function and grants no access.
-- One seed row (a staff member tagged `career-counsellor` and `exam-secretary`) and one demo row with new tags.
+- One Staff row in the secondary school example set (a staff member tagged `career-counsellor` and `exam-secretary`) and one demo row with new tags. The register itself carries no Staff seed rows.
 
 ### Out of Scope
 - Any new security group, `authorization` block or `visibleIf` value. The confidential scope for the vertrouwenspersoon is change `confidential-counsellor-channel`; the `confidential-counsellor` tag added here is the staff-directory entry only (a school must publish who its vertrouwenspersoon is), and holding it grants nothing.
