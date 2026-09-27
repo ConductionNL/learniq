@@ -6614,14 +6614,14 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/learniq_register.json:8202",
-        "owner": "ConductionNL/openregister",
-        "reachedOn": "nothing"
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.AssessmentResult.authorization (read: learner, managerId, teacherIds) + lib/Service/AssessmentResultAudience.php",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/assessments/:assessmentId/results"
       },
-      "provider": "openregister",
-      "providerHow": "OpenRegister's x-property-rbac decides who reads a result, and the declared rule excludes managers.",
-      "learniq": "no",
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/quiz/classes/quiz_attempt.php:593 is_review_allowed (needs mod/quiz:viewreports, limited to shared groups in separate groups mode) + public/mod/quiz/review.php:72; a line manager given a non-editing teacher role in the course, with the team as a group, sees each member's answers. There is no line-manager relation that grants this: the parent or mentor role in user context does not reach quiz review, and it must be set up course by course.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Teams; the line manager sees certification, program and course status with links to progress reports, with no mention of quiz answers. Individual responses are in the core quiz reports for teachers (https://docs.moodle.org/502/en/Quiz_manual_grading_report). Workplace includes core per https://support.moodle.com/support/solutions/articles/80001074804-difference-between-moodle-workplace-and-moodle-lms: \"Moodle Workplace is built on Moodle LMS and contains all its features plus more\"; Workplace 5.2.3 is based on Moodle LMS 5.2.3 (https://docs.moodle.org/502/en/Moodle_Workplace_release_notes).",
@@ -6636,7 +6636,7 @@
       "totara": "partial",
       "chamilo": "yes",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84945: test results down to detail level for the manager, including the individual answers per employee."
+      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84945: test results down to detail level for the manager, including the individual answers per employee. Built 2026-09-27 (learniq#949): x-property-rbac was never read by OpenRegister, so results were readable by every signed-in user. The enforced authorization block now grants read to the learner, their manager (stamped from LearnerProfile.managerId) and the course's teachers (stamped from Cohort.teacherIds), responses included. Results created before this change carry no stamp, so only the learner and admins see those."
     },
     {
       "id": "enr-path-mandatory-per-person",

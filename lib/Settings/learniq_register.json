@@ -8191,6 +8191,24 @@
                         "x-notes": "Input only. AssessmentAttemptGateListener compares it with Assessment.accessCode on create and clears it through ObjectCreatingEvent::setModifiedData (learniq#946).",
                         "title": "Access code"
                     },
+                    "teacherIds": {
+                        "type": "array",
+                        "readOnly": true,
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Teachers of the course who may see and mark this attempt. Filled in by the server.",
+                        "x-notes": "Stamped on create by AssessmentResultAudience (run from AssessmentAttemptGateListener) from Cohort.teacherIds (the Assessment's cohort, or every cohort of its course); any client value is overwritten. Backs the authorization read/update match (learniq#949).",
+                        "title": "Teachers"
+                    },
+                    "managerId": {
+                        "type": "string",
+                        "nullable": true,
+                        "readOnly": true,
+                        "description": "Manager of the learner, who may see this attempt. Filled in by the server.",
+                        "x-notes": "Stamped on create by AssessmentResultAudience (run from AssessmentAttemptGateListener) from LearnerProfile.managerId; any client value is overwritten. Backs the authorization read match (learniq#949).",
+                        "title": "Manager"
+                    },
                     "gradeEntryId": {
                         "type": "string",
                         "nullable": true,
@@ -8233,8 +8251,51 @@
                         }
                     }
                 },
+                "authorization": {
+                    "read": [
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        },
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "managerId": "$userId"
+                            }
+                        },
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "teacherIds": {
+                                    "$contains": "$userId"
+                                }
+                            }
+                        }
+                    ],
+                    "create": [
+                        "authenticated"
+                    ],
+                    "update": [
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        },
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "teacherIds": {
+                                    "$contains": "$userId"
+                                }
+                            }
+                        }
+                    ]
+                },
                 "x-property-rbac": {
-                    "_comment": "WF1 (wave-12): assessment results contain responses and scores — student PII. Learner sees own results; admins see all.",
+                    "_comment": "Documentation only: OpenRegister does not read x-property-rbac; the authorization block above is what it enforces (learniq#949). Assessment results contain responses and scores, student PII. The learner, their manager and the course's teachers see a result; admins see all; peers do not.",
                     "read": {
                         "anyOf": [
                             {
@@ -8244,6 +8305,20 @@
                                 "match": {
                                     "field": "learnerId",
                                     "operator": "eq",
+                                    "value": "$userId"
+                                }
+                            },
+                            {
+                                "match": {
+                                    "field": "managerId",
+                                    "operator": "eq",
+                                    "value": "$userId"
+                                }
+                            },
+                            {
+                                "match": {
+                                    "field": "teacherIds",
+                                    "operator": "contains",
                                     "value": "$userId"
                                 }
                             }

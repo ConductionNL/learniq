@@ -476,7 +476,11 @@ OC.L10N.register(
         "This assessment is not available right now.": "Þetta próf er ekki í boði núna.",
         "The access code is not correct.": "Aðgangskóðinn er ekki réttur.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Valfrjáls kóði sem nemendur þurfa að slá inn til að hefja prófið, til dæmis til að takmarka það við fólkið í prófstofunni. Skildu eftir autt fyrir engan kóða.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Aðgangskóðinn sem var sleginn inn til að hefja þessa tilraun. Hann er athugaður og síðan hreinsaður, svo hann er aldrei geymdur."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Aðgangskóðinn sem var sleginn inn til að hefja þessa tilraun. Hann er athugaður og síðan hreinsaður, svo hann er aldrei geymdur.",
+        "Teachers": "Kennarar",
+        "Manager": "Yfirmaður",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Kennarar námskeiðsins sem mega sjá og meta þessa tilraun. Þjónninn fyllir út.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Yfirmaður nemandans, sem má sjá þessa tilraun. Þjónninn fyllir út."
     },
     "nplurals=2; plural=(n != 1);"
 )

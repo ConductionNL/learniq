@@ -475,7 +475,11 @@
         "This assessment is not available right now.": "Denne prøve er ikke tilgængelig lige nu.",
         "The access code is not correct.": "Adgangskoden er ikke korrekt.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Valgfri kode, som deltagere skal indtaste for at starte prøven, for eksempel for at begrænse den til personerne i eksamenslokalet. Lad feltet stå tomt for ingen kode.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Den adgangskode, der blev indtastet for at starte dette forsøg. Den kontrolleres og slettes derefter, så den gemmes aldrig."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Den adgangskode, der blev indtastet for at starte dette forsøg. Den kontrolleres og slettes derefter, så den gemmes aldrig.",
+        "Teachers": "Undervisere",
+        "Manager": "Leder",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Undervisere på kurset, der må se og bedømme dette forsøg. Udfyldes af serveren.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Deltagerens leder, der må se dette forsøg. Udfyldes af serveren."
     },
     "plurals": null
 }

@@ -476,7 +476,11 @@ OC.L10N.register(
         "This assessment is not available right now.": "Níl an measúnú seo ar fáil faoi láthair.",
         "The access code is not correct.": "Níl an cód rochtana ceart.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Cód roghnach a chaithfidh foghlaimeoirí a chur isteach chun an triail a thosú, mar shampla chun í a theorannú do na daoine sa seomra scrúdaithe. Fág folamh gan cód.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "An cód rochtana a cuireadh isteach chun an iarracht seo a thosú. Seiceáiltear é agus ansin glantar é, mar sin ní choinnítear riamh é."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "An cód rochtana a cuireadh isteach chun an iarracht seo a thosú. Seiceáiltear é agus ansin glantar é, mar sin ní choinnítear riamh é.",
+        "Teachers": "Múinteoirí",
+        "Manager": "Bainisteoir",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Múinteoirí an chúrsa ar féidir leo an iarracht seo a fheiceáil agus a mharcáil. Líonann an freastalaí é.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Bainisteoir an fhoghlaimeora, ar féidir leis an iarracht seo a fheiceáil. Líonann an freastalaí é."
     },
     "nplurals=2; plural=(n != 1);"
 )

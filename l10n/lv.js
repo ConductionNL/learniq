@@ -476,7 +476,11 @@ OC.L10N.register(
         "This assessment is not available right now.": "Šī pārbaude pašlaik nav pieejama.",
         "The access code is not correct.": "Piekļuves kods nav pareizs.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Neobligāts kods, kas izglītojamajiem jāievada, lai sāktu testu, piemēram, lai to ierobežotu ar eksāmena telpā esošajiem. Atstājiet tukšu, ja kods nav vajadzīgs.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Piekļuves kods, kas ievadīts šī mēģinājuma sākšanai. Tas tiek pārbaudīts un pēc tam dzēsts, tāpēc tas nekad netiek glabāts."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Piekļuves kods, kas ievadīts šī mēģinājuma sākšanai. Tas tiek pārbaudīts un pēc tam dzēsts, tāpēc tas nekad netiek glabāts.",
+        "Teachers": "Skolotāji",
+        "Manager": "Vadītājs",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Kursa skolotāji, kas drīkst redzēt un vērtēt šo mēģinājumu. Aizpilda serveris.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Izglītojamā vadītājs, kas drīkst redzēt šo mēģinājumu. Aizpilda serveris."
     },
     "nplurals=2; plural=(n != 1);"
 )

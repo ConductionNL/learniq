@@ -33,6 +33,7 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 use DateTime;
 use OCA\Learniq\Listener\AssessmentAttemptGateListener;
 use OCA\Learniq\Service\AssessmentAccessPolicy;
+use OCA\Learniq\Service\AssessmentResultAudience;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
@@ -65,6 +66,13 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 	 * @var array<int, array<string, mixed>>
 	 */
 	private array $findCalls = [];
+
+	/**
+	 * How many times the audience stamp ran.
+	 *
+	 * @var int
+	 */
+	private int $stamps = 0;
 
 	/**
 	 * Build the listener.
@@ -113,6 +121,13 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 		$time = $this->createMock(ITimeFactory::class);
 		$time->method('getDateTime')->willReturn(new DateTime(self::NOW));
 
+		$audience = $this->createMock(AssessmentResultAudience::class);
+		$audience->method('stamp')->willReturnCallback(
+			function (): void {
+				$this->stamps++;
+			}
+		);
+
 		return new AssessmentAttemptGateListener(
 			objectService: $objectService,
 			schemaResolver: $resolver,
@@ -120,6 +135,7 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 			groupManager: $groups,
 			timeFactory: $time,
 			policy: new AssessmentAccessPolicy(),
+			audience: $audience,
 			logger: new NullLogger(),
 		);
 	}//end makeListener()
@@ -158,6 +174,7 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 
 		$this->assertTrue($event->isPropagationStopped());
 		$this->assertStringContainsString('not open yet', (string)$event->getErrors()['message']);
+		$this->assertSame(0, $this->stamps, 'a refused attempt is not stamped');
 	}//end testAttemptBeforeWindowOpensIsRefused()
 
 	/**
@@ -191,6 +208,7 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 
 		$this->assertFalse($event->isPropagationStopped());
 		$this->assertSame(['id' => 'a1', 'schema' => 'exam', 'rbac' => false, 'render' => false], $this->findCalls[0]);
+		$this->assertSame(1, $this->stamps, 'an allowed attempt gets its read audience stamped');
 	}//end testAttemptInsideWindowIsAllowed()
 
 	/**
@@ -250,6 +268,7 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 		$this->makeListener(isAdmin: true)->handle($event);
 
 		$this->assertFalse($event->isPropagationStopped());
+		$this->assertSame(1, $this->stamps, 'an admin-created result is stamped too');
 	}//end testAdminBypassesTheGate()
 
 	/**
@@ -278,6 +297,7 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 
 		$this->assertFalse($event->isPropagationStopped());
 		$this->assertSame([], $this->findCalls);
+		$this->assertSame(0, $this->stamps);
 	}//end testOtherSchemaIsIgnored()
 
 	/**

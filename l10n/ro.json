@@ -475,7 +475,11 @@
         "This assessment is not available right now.": "Această evaluare nu este disponibilă acum.",
         "The access code is not correct.": "Codul de acces nu este corect.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Cod opțional pe care cursanții trebuie să îl introducă pentru a începe testul, de exemplu pentru a-l limita la persoanele din sala de examen. Lasă gol pentru niciun cod.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Codul de acces introdus pentru a începe această încercare. Este verificat și apoi șters, deci nu este păstrat niciodată."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Codul de acces introdus pentru a începe această încercare. Este verificat și apoi șters, deci nu este păstrat niciodată.",
+        "Teachers": "Profesori",
+        "Manager": "Manager",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Profesorii cursului care pot vedea și nota această încercare. Completat de server.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Managerul cursantului, care poate vedea această încercare. Completat de server."
     },
     "plurals": null
 }

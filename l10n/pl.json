@@ -475,7 +475,11 @@
         "This assessment is not available right now.": "Ten test nie jest teraz dostępny.",
         "The access code is not correct.": "Kod dostępu jest nieprawidłowy.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Opcjonalny kod, który uczący się muszą wpisać, aby rozpocząć test, na przykład aby ograniczyć go do osób obecnych w sali egzaminacyjnej. Pozostaw puste, jeśli kod nie jest potrzebny.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Kod dostępu wpisany przy rozpoczęciu tej próby. Jest sprawdzany, a następnie usuwany, więc nigdy nie jest przechowywany."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Kod dostępu wpisany przy rozpoczęciu tej próby. Jest sprawdzany, a następnie usuwany, więc nigdy nie jest przechowywany.",
+        "Teachers": "Nauczyciele",
+        "Manager": "Przełożony",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Nauczyciele kursu, którzy mogą zobaczyć i ocenić tę próbę. Wypełniane przez serwer.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Przełożony uczącego się, który może zobaczyć tę próbę. Wypełniane przez serwer."
     },
     "plurals": null
 }
