@@ -47,7 +47,7 @@
         },
         "title": "What kind of organisation is this?",
         "required": false,
-        "body": "Pick the one that fits best. You can change it later under App settings."
+        "body": "Pick the one that fits best. The app shows the menus that fit it. You can change it later under App settings."
       },
       {
         "id": "done",
