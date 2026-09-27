@@ -12,12 +12,14 @@ learniq PortalAssessmentController   verify assertion (401) -> audience student 
         v
    PortalAssessmentCatalogue   what this pupil may start (enrolment, published, not proctored,
         |                      LessonReleaseEvaluator, attempts left, attempt in progress)
-   PortalAttemptService        start / answer / submit, deadline via PortalAttemptClock,
-        |                      items via PortalItemPresenter
+   PortalAttemptService        start / answer / submit
+        |                      PortalAttemptCloser (deadline via PortalAttemptClock, auto hand-in)
+        |                      PortalAttemptPayload (items via PortalItemPresenter)
+        |                      PortalAnswerRules (drawn item, PortalAnswerShape)
    PortalResultReader          the release rule and the result payload
         |
-   PortalAttemptStore          reads: RBAC off, filtered by the pupil explicitly
-                               writes: ObjectService::runAs(pupil) -> saveObject / TransitionEngine
+   PortalAttemptReader         reads: RBAC off, filtered by the pupil explicitly
+   PortalAttemptWriter         writes: ObjectService::runAs(pupil) -> saveObject / TransitionEngine
                                  -> AssessmentAttemptGateListener (window, code, audience, portal stamp)
                                  -> AssessmentDrawResolver (drawnItemRefs)
                                  -> AssessmentResultIntegrityListener (immutability)
@@ -113,9 +115,10 @@ migration.md.
   `#[AnonRateLimit]`, `#[BruteForceProtection]`).
 - Services: `PortalAssertionVerifier` (`OCP\IConfig`), `PortalLearnerResolver`
   (`OCP\IUserManager`), `PortalAssessmentCatalogue`, `PortalAttemptService`, `PortalResultReader`,
-  `PortalAttemptStore` (OpenRegister `ObjectService`, `TransitionEngine`), `PortalAttemptClock`,
-  `PortalItemPresenter`, `PortalMessages` (`OCP\L10N\IFactory`), existing `LessonReleaseEvaluator`
-  and `AssessmentAccessPolicy`.
+  `PortalAttemptReader` and `PortalAttemptWriter` (OpenRegister `ObjectService`, `TransitionEngine`),
+  `PortalAttemptCloser`, `PortalAttemptPayload`, `PortalAnswerRules`, `PortalAnswerShape`,
+  `PortalAttemptClock`, `PortalItemPresenter`, `PortalMessages` (`OCP\L10N\IFactory`), existing
+  `LessonReleaseEvaluator` and `AssessmentAccessPolicy`.
 - Events/Hooks: existing listeners fire on the writes; the attempt gate gains
   `AssessmentResultPortalStamp`.
 
@@ -147,9 +150,14 @@ lib/Service/Portal/PortalLearner.php                   new
 lib/Service/Portal/PortalLearnerResolver.php           new
 lib/Service/Portal/PortalOutcome.php                   new
 lib/Service/Portal/PortalMessages.php                  new
-lib/Service/Portal/PortalAttemptStore.php              new
+lib/Service/Portal/PortalAttemptReader.php             new
+lib/Service/Portal/PortalAttemptWriter.php             new
+lib/Service/Portal/PortalAttemptCloser.php             new
+lib/Service/Portal/PortalAttemptPayload.php            new
 lib/Service/Portal/PortalAttemptClock.php              new
 lib/Service/Portal/PortalItemPresenter.php             new
+lib/Service/Portal/PortalAnswerShape.php               new
+lib/Service/Portal/PortalAnswerRules.php               new
 lib/Service/Portal/PortalAssessmentCatalogue.php       new
 lib/Service/Portal/PortalAttemptService.php            new
 lib/Service/Portal/PortalResultReader.php              new
@@ -161,6 +169,7 @@ lib/Settings/learniq_register.json                     AssessmentResult 0.2.0
 lib/Settings/learniq_mock_register.json                seeds carry learnerRef and a title
 appinfo/routes.php                                     five routes
 tests/Stubs/Service/ObjectService.php                  runAs() mirror
+tests/Support/PortalFakeRegister.php                   a register that answers like OpenRegister
 tests/Unit/...                                         a test class per new class
 docs/user-guide/user/06-grading.md                     a section on tests in the portal
 ```

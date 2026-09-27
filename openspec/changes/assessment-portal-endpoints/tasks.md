@@ -39,7 +39,7 @@
 
 ### Task 5: Present items without answers
 - **spec_ref**: `openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints`
-- **files**: `lib/Service/Portal/PortalItemPresenter.php`, `tests/Unit/Service/Portal/PortalItemPresenterTest.php`
+- **files**: `lib/Service/Portal/PortalItemPresenter.php`, `lib/Service/Portal/PortalAnswerShape.php`, `tests/Unit/Service/Portal/PortalItemPresenterTest.php`, `tests/Unit/Service/Portal/PortalAnswerShapeTest.php`
 - **acceptance_criteria**:
   - QTI 2.x and 3.0 items become `{itemId, type, prompt, points, choices?, sources?, targets?}` in the drawn option order
   - No correct response appears; answers are checked against the item's type and options
@@ -48,7 +48,7 @@
 
 ### Task 6: Catalogue and attempt service
 - **spec_ref**: `openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints`
-- **files**: `lib/Service/Portal/PortalAttemptStore.php`, `PortalAssessmentCatalogue.php`, `PortalAttemptService.php`, `PortalOutcome.php`, `tests/Stubs/Service/ObjectService.php`, tests
+- **files**: `lib/Service/Portal/PortalAttemptReader.php`, `PortalAttemptWriter.php`, `PortalAttemptCloser.php`, `PortalAttemptPayload.php`, `PortalAnswerRules.php`, `PortalAssessmentCatalogue.php`, `PortalAttemptService.php`, `PortalOutcome.php`, `tests/Stubs/Service/ObjectService.php`, `tests/Support/PortalFakeRegister.php`, tests
 - **acceptance_criteria**:
   - A test per rule: published, proctored, enrolment, tenant, window, attempts, code, resume, extra time, per-question save, item and shape checks, after hand-in, after the deadline, submit as the pupil
 - [x] Implement
