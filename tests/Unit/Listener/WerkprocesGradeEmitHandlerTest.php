@@ -71,15 +71,15 @@ class WerkprocesGradeEmitHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($placement, $curriculumPlan, $existingEntries) {
-				if ($config['schema'] === 'bpv-placement') {
+				if ($config['filters']['schema'] === 'bpv-placement') {
 					return ($placement === null) ? [] : [$placement];
 				}
 
-				if ($config['schema'] === 'curriculum-plan') {
+				if ($config['filters']['schema'] === 'curriculum-plan') {
 					return ($curriculumPlan === null) ? [] : [$curriculumPlan];
 				}
 
-				if ($config['schema'] === 'grade-entry') {
+				if ($config['filters']['schema'] === 'grade-entry') {
 					return $existingEntries;
 				}
 

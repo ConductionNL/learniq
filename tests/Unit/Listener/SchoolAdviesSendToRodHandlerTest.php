@@ -78,7 +78,7 @@ class SchoolAdviesSendToRodHandlerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($existingSchoolAdvies): array {
-				$schema = $config['schema'] ?? '';
+				$schema = $config['filters']['schema'] ?? '';
 
 				if ($schema === 'school-advies') {
 					return $existingSchoolAdvies === null ? [] : [$existingSchoolAdvies];

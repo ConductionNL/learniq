@@ -95,10 +95,12 @@ class CourseAuthoringRegisterTest extends TestCase {
 			$this->assertArrayHasKey('description', $itemProps[$field], "Lesson.blocks.items.$field MUST carry a description");
 		}
 
+		// The five course-authoring-ux types stay first and unchanged; later
+		// changes may append (office-file-lesson-onboarding adds teacherNote).
 		$this->assertSame(
 			['richText', 'media', 'quiz', 'assignment', 'ltiTool'],
-			$itemProps['type']['enum'] ?? null,
-			'Lesson.blocks.items.type MUST enumerate exactly the five block types'
+			array_slice(($itemProps['type']['enum'] ?? []), 0, 5),
+			'Lesson.blocks.items.type MUST keep the five course-authoring-ux block types'
 		);
 		$this->assertSame(['blockId', 'type', 'order'], $blocks['items']['required'] ?? null);
 

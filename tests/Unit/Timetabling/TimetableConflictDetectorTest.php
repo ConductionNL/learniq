@@ -86,8 +86,8 @@ class TimetableConflictDetectorTest extends TestCase {
 	private function detector(): TimetableConflictDetector {
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config): array {
-				$schema = $config['schema'] ?? '';
-				$filters = $config['filters'] ?? [];
+				$schema = $config['filters']['schema'] ?? '';
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				if ($schema === 'session') {
 					// The day-bucket sibling query — no additional sessions beyond

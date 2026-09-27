@@ -46,11 +46,11 @@ class EngagementScoreEvaluatorTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($statements, $lessons) {
-				if ($config['schema'] === 'xapi-statement') {
+				if ($config['filters']['schema'] === 'xapi-statement') {
 					return $statements;
 				}
 
-				if ($config['schema'] === 'lesson') {
+				if ($config['filters']['schema'] === 'lesson') {
 					return $lessons;
 				}
 

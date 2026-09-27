@@ -112,16 +112,16 @@ class DepartmentComplianceTest extends TestCase {
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config): array {
 				$hits = [];
-				foreach ($this->store[(string)($config['schema'] ?? '')] ?? [] as $row) {
+				foreach ($this->store[(string)($config['filters']['schema'] ?? '')] ?? [] as $row) {
 					$match = true;
-					foreach ($config['filters'] ?? [] as $field => $value) {
+					foreach (array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]) as $field => $value) {
 						if (($row[$field] ?? null) !== $value) {
 							$match = false;
 						}
 					}
 
 					if ($match === true) {
-						$hits[] = OrEntityFactory::make($row, (string)$config['schema']);
+						$hits[] = OrEntityFactory::make($row, (string)$config['filters']['schema']);
 					}
 				}
 

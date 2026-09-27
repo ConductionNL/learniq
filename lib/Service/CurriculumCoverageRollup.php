@@ -359,7 +359,16 @@ class CurriculumCoverageRollup {
 	 */
 	private function findRows(string $schema, array $filters): array {
 		$results = $this->objectService->findAll(
-			['register' => self::REGISTER, 'schema' => $schema, 'filters' => $filters, 'limit' => self::LIMIT],
+			[
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::REGISTER,
+						'schema' => $schema,
+					]
+				),
+				'limit' => self::LIMIT,
+			],
 			_rbac: false,
 			_multitenancy: false
 		);

@@ -103,9 +103,11 @@ class LearningRecordAggregationService {
 
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::REGISTER,
-				'schema' => self::SCHEMA_LEARNER_PROFILE,
-				'filters' => ['ncUserId' => $ncUserId],
+				'filters' => [
+					'register' => self::REGISTER,
+					'schema' => self::SCHEMA_LEARNER_PROFILE,
+					'ncUserId' => $ncUserId,
+				],
 				'limit' => 1,
 			]
 		);
@@ -196,9 +198,13 @@ class LearningRecordAggregationService {
 	private function findAll(string $schema, array $filters): array {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::REGISTER,
-				'schema' => $schema,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::REGISTER,
+						'schema' => $schema,
+					]
+				),
 			]
 		);
 

@@ -126,9 +126,11 @@ class AttendanceFlagReportGuard implements LifecycleGuardInterface {
 		// Fetch the DataExchangeJob to check its lifecycle state.
 		$jobs = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::DATA_EXCHANGE_JOB_SCHEMA,
-				'filters' => ['id' => (string)$dataExchangeJobId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::DATA_EXCHANGE_JOB_SCHEMA,
+					'id' => (string)$dataExchangeJobId,
+				],
 				'limit' => 1,
 			]
 		);

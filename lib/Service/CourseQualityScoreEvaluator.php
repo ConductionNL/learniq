@@ -133,9 +133,13 @@ class CourseQualityScoreEvaluator {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::COURSE_EVALUATION_RESPONSE_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::COURSE_EVALUATION_RESPONSE_SCHEMA,
+					]
+				),
 			]
 		);
 
@@ -163,9 +167,9 @@ class CourseQualityScoreEvaluator {
 	private function fetchInvitations(string $courseId, string $academicYear, string $period): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::EVALUATION_INVITATION_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::EVALUATION_INVITATION_SCHEMA,
 					'courseId' => $courseId,
 					'academicYear' => $academicYear,
 					'period' => $period,

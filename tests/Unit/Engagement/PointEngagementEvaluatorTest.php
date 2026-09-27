@@ -50,11 +50,11 @@ class PointEngagementEvaluatorTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($awards, $levels) {
-				if ($config['schema'] === 'point-award') {
+				if ($config['filters']['schema'] === 'point-award') {
 					return $awards;
 				}
 
-				if ($config['schema'] === 'engagement-level') {
+				if ($config['filters']['schema'] === 'engagement-level') {
 					return $levels;
 				}
 

@@ -165,9 +165,13 @@ class CourseEvaluationEligibilityGuard implements LifecycleGuardInterface {
 
 		$invitations = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::EVALUATION_INVITATION_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::EVALUATION_INVITATION_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);

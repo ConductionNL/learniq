@@ -145,9 +145,13 @@ class OsoDossierReviewGuard implements LifecycleGuardInterface {
 
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_PROFILE_SCHEMA,
-				'filters' => $profileFilters,
+				'filters' => array_merge(
+					$profileFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::LEARNER_PROFILE_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);

@@ -46,11 +46,11 @@ class EnrolmentProgressEvaluatorTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($completedCount, $publishedCount) {
-				if ($config['schema'] === 'lesson-completion') {
+				if ($config['filters']['schema'] === 'lesson-completion') {
 					return array_fill(0, $completedCount, ['id' => 'x']);
 				}
 
-				if ($config['schema'] === 'lesson') {
+				if ($config['filters']['schema'] === 'lesson') {
 					return array_fill(0, $publishedCount, ['id' => 'y']);
 				}
 
@@ -161,7 +161,7 @@ class EnrolmentProgressEvaluatorTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			static function (array $config) use ($rows) {
-				if ($config['schema'] === 'lesson-completion') {
+				if ($config['filters']['schema'] === 'lesson-completion') {
 					return $rows;
 				}
 

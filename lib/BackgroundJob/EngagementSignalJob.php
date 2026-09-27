@@ -201,9 +201,9 @@ class EngagementSignalJob extends ActorForwardedJob {
 	private function findExistingEngagementScore(string $learnerId, string $courseId): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ENGAGEMENT_SCORE_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ENGAGEMENT_SCORE_SCHEMA,
 					'learnerId' => $learnerId,
 					'courseId' => $courseId,
 				],
@@ -242,9 +242,9 @@ class EngagementSignalJob extends ActorForwardedJob {
 	): void {
 		$thresholds = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ENGAGEMENT_RISK_THRESHOLD_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ENGAGEMENT_RISK_THRESHOLD_SCHEMA,
 					'lifecycle' => 'active',
 				],
 			]
@@ -453,9 +453,9 @@ class EngagementSignalJob extends ActorForwardedJob {
 		foreach (self::OPEN_FLAG_STATES as $state) {
 			$existing = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::ENGAGEMENT_RISK_FLAG_SCHEMA,
 					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ENGAGEMENT_RISK_FLAG_SCHEMA,
 						'learnerId' => $learnerId,
 						'engagementRiskThresholdId' => $thresholdId,
 						'lifecycle' => $state,
