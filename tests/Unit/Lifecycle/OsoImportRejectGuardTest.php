@@ -22,6 +22,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Lifecycle\OsoImportRejectGuard;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -58,78 +59,97 @@ class OsoImportRejectGuardTest extends TestCase {
 	}//end makeGuard()
 
 	/**
-	 * A coordinator rejecting with a reason is allowed, and reviewedBy/
-	 * reviewedAt are stamped server-side.
+	 * The dossier as the guard sees it on reject: status at `rejected`, the
+	 * `rejectionReason` input merged in by TransitionEngine.
+	 *
+	 * @param mixed $reason The reason the caller sent, or null to leave it out.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function dossier(mixed $reason): array {
+		$object = ['id' => 'dossier-1', 'status' => 'rejected'];
+		if ($reason !== null) {
+			$object['rejectionReason'] = $reason;
+		}
+
+		return $object;
+	}//end dossier()
+
+	/**
+	 * OpenRegister's registry refuses a guard that does not implement its interface.
 	 *
 	 * @return void
 	 */
-	public function testCoordinatorWithReasonIsAllowedAndStamped(): void {
-		$guard = $this->makeGuard(['coordinator']);
-		$context = [
-			'object' => ['id' => 'dossier-1'],
-			'actor' => 'actor-1',
-			'payload' => ['rejectionReason' => 'BRIN does not match any known sending school.'],
-		];
+	public function testImplementsTheOpenRegisterGuardInterface(): void {
+		self::assertInstanceOf(LifecycleGuardInterface::class, $this->makeGuard([]));
 
-		self::assertTrue($guard->check($context));
-		self::assertSame('actor-1', $context['payload']['reviewedBy']);
-		self::assertNotEmpty($context['payload']['reviewedAt']);
-
-	}//end testCoordinatorWithReasonIsAllowedAndStamped()
+	}//end testImplementsTheOpenRegisterGuardInterface()
 
 	/**
-	 * Rejecting without a reason is refused.
+	 * A coordinator rejecting with a reason is allowed. reviewedBy/reviewedAt
+	 * are StampTransitionActorAction's write (learniq#983).
+	 *
+	 * @return void
+	 */
+	public function testCoordinatorWithReasonIsAllowed(): void {
+		$object = $this->dossier('BRIN does not match any known sending school.');
+
+		self::assertTrue($this->makeGuard(['coordinator'])->check($object, 'reject', 'actor-1')->isAllowed());
+
+	}//end testCoordinatorWithReasonIsAllowed()
+
+	/**
+	 * A missing reason is refused.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/oso-inbound-contract/specs/data-exchange/spec.md#scenario-rejecting-without-a-reason-is-refused
 	 */
-	public function testEmptyReasonRefused(): void {
-		$guard = $this->makeGuard(['coordinator']);
-		$context = ['object' => ['id' => 'dossier-1'], 'actor' => 'actor-1', 'payload' => []];
+	public function testMissingReasonRefused(): void {
+		$result = $this->makeGuard(['coordinator'])->check($this->dossier(null), 'reject', 'actor-1');
 
-		self::assertFalse($guard->check($context));
+		self::assertFalse($result->isAllowed());
+		self::assertNotSame('', (string)$result->getMessage());
+
+	}//end testMissingReasonRefused()
+
+	/**
+	 * An empty reason is refused.
+	 *
+	 * @return void
+	 */
+	public function testEmptyReasonRefused(): void {
+		self::assertFalse($this->makeGuard(['coordinator'])->check($this->dossier(''), 'reject', 'actor-1')->isAllowed());
 
 	}//end testEmptyReasonRefused()
 
 	/**
-	 * A whitespace-only reason is also refused.
+	 * A whitespace-only reason is refused.
 	 *
 	 * @return void
 	 */
 	public function testWhitespaceOnlyReasonRefused(): void {
-		$guard = $this->makeGuard(['coordinator']);
-		$context = ['object' => ['id' => 'dossier-1'], 'actor' => 'actor-1', 'payload' => ['rejectionReason' => '   ']];
-
-		self::assertFalse($guard->check($context));
+		self::assertFalse($this->makeGuard(['coordinator'])->check($this->dossier('   '), 'reject', 'actor-1')->isAllowed());
 
 	}//end testWhitespaceOnlyReasonRefused()
 
 	/**
-	 * A learner (no privileged group) is denied even with a valid reason.
+	 * A user outside admin/coordinator is denied even with a reason.
 	 *
 	 * @return void
-	 *
-	 * @spec openspec/changes/oso-inbound-contract/specs/data-exchange/spec.md#scenario-a-non-admincoordinator-actor-cannot-accept-or-reject-an-osoimportdossier
 	 */
 	public function testDeniesNonCoordinator(): void {
-		$guard = $this->makeGuard([]);
-		$context = ['object' => ['id' => 'dossier-1'], 'actor' => 'actor-1', 'payload' => ['rejectionReason' => 'Not clear.']];
-
-		self::assertFalse($guard->check($context));
+		self::assertFalse($this->makeGuard(['teacher'])->check($this->dossier('Not clear.'), 'reject', 'actor-1')->isAllowed());
 
 	}//end testDeniesNonCoordinator()
 
 	/**
-	 * No actor in the transition context is denied.
+	 * No session user is denied.
 	 *
 	 * @return void
 	 */
 	public function testNoActorIsDenied(): void {
-		$guard = $this->makeGuard(['coordinator']);
-		$context = ['object' => ['id' => 'dossier-1'], 'payload' => ['rejectionReason' => 'Not clear.']];
-
-		self::assertFalse($guard->check($context));
+		self::assertFalse($this->makeGuard(['coordinator'])->check($this->dossier('Not clear.'), 'reject', '')->isAllowed());
 
 	}//end testNoActorIsDenied()
 }//end class

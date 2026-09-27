@@ -26408,7 +26408,22 @@
                             "from": "under-review",
                             "to": "rejected",
                             "requires": "OCA\\Learniq\\Lifecycle\\OsoImportRejectGuard",
-                            "description": "An admin/coordinator rejects the dossier with a mandatory rejectionReason."
+                            "description": "An admin/coordinator rejects the dossier with a mandatory rejectionReason.",
+                            "inputs": [
+                                {
+                                    "field": "rejectionReason",
+                                    "required": true
+                                }
+                            ],
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction",
+                                    "actionParameters": {
+                                        "actorField": "reviewedBy",
+                                        "timeField": "reviewedAt"
+                                    }
+                                }
+                            ]
                         }
                     }
                 },

@@ -35,9 +35,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use DateTimeImmutable;
-use DateTimeInterface;
-use DateTimeZone;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
@@ -47,14 +46,25 @@ use Psr\Log\LoggerInterface;
  *
  * The transition proceeds only when BOTH of the following hold:
  *   1. The acting user is in one of the authorised groups (`admin`, `coordinator`).
- *   2. `transitionContext['payload']['rejectionReason']` is a non-empty string.
+ *   2. `rejectionReason` is a non-empty string. It arrives as a declared input
+ *      of the reject transition, merged into the object before the guard runs.
  *
- * On success it stamps `reviewedBy`/`reviewedAt` server-side.
+ * `reviewedBy`/`reviewedAt` are stamped by StampTransitionActorAction, declared
+ * on the same transition: OpenRegister calls guards by value, so a guard can
+ * not write onto the object (learniq#983).
  *
  * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
  * @spec openspec/changes/oso-inbound-contract/specs/data-exchange/spec.md#scenario-rejecting-without-a-reason-is-refused
  */
-class OsoImportRejectGuard {
+class OsoImportRejectGuard implements LifecycleGuardInterface {
+
+	/**
+	 * The transition inputs the caller sends that this guard reads; each is
+	 * declared in `inputs` on every transition naming this class.
+	 *
+	 * @var list<string>
+	 */
+	public const TRANSITION_INPUTS = ['rejectionReason'];
 
 	/**
 	 * Groups whose members may reject an OsoImportDossier.
@@ -83,66 +93,46 @@ class OsoImportRejectGuard {
 	}//end __construct()
 
 	/**
-	 * Assert the reject preconditions and stamp reviewedBy/reviewedAt.
+	 * Assert the reject preconditions.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine. Expected
-	 *                                               keys:
-	 *                                               - 'object'  : the
-	 *                                               OsoImportDossier data array
-	 *                                               - 'actor'   : NC user ID of
-	 *                                               the requester
-	 *                                               - 'payload' : mutable array;
-	 *                                               rejectionReason is read
-	 *                                               from here, reviewedBy/
-	 *                                               reviewedAt are written here
+	 * @param array<string,mixed> $object The OsoImportDossier as it would be saved (status at `rejected`, inputs merged).
+	 * @param string              $action The transition action (`reject`).
+	 * @param string              $userId The caller's uid, or '' without a session.
 	 *
-	 * @return bool True when the transition is allowed; false blocks it.
+	 * @return GuardResult Allow, or deny with what is missing.
 	 *
 	 * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
 	 */
-	public function check(array &$transitionContext): bool {
-		$dossier = $transitionContext['object'] ?? [];
-		$dossierId = $dossier['id'] ?? ($dossier['uuid'] ?? '?');
-		$actor = (string)($transitionContext['actor'] ?? '');
+	public function check(array $object, string $action, string $userId): GuardResult {
+		$dossierId = $object['id'] ?? ($object['uuid'] ?? '?');
 
-		if ($actor === '') {
+		if ($userId === '') {
 			$this->logger->warning(
-				'[OsoImportRejectGuard] No actor in transitionContext — denying reject of {id}.',
+				'[OsoImportRejectGuard] No session user — denying reject of {id}.',
 				['id' => $dossierId]
 			);
-			return false;
+			return GuardResult::deny('Only a signed-in admin or coordinator can reject a transfer dossier.');
 		}
 
-		if ($this->actorIsAuthorised(actor: $actor) === false) {
+		if ($this->actorIsAuthorised(actor: $userId) === false) {
 			$this->logger->info(
 				'[OsoImportRejectGuard] Actor {a} is not in an authorised group — denying reject of {id}.',
-				['a' => $actor, 'id' => $dossierId]
+				['a' => $userId, 'id' => $dossierId]
 			);
-			return false;
+			return GuardResult::deny('Only an admin or coordinator can reject a transfer dossier.');
 		}
 
-		$payload = $transitionContext['payload'] ?? [];
-		if (is_array($payload) === false) {
-			$payload = [];
-		}
-
-		$rejectionReason = $payload['rejectionReason'] ?? null;
+		$rejectionReason = $object['rejectionReason'] ?? null;
 
 		if (is_string($rejectionReason) === false || trim($rejectionReason) === '') {
 			$this->logger->info(
 				'[OsoImportRejectGuard] OsoImportDossier {id}: rejectionReason is empty — denying reject.',
 				['id' => $dossierId]
 			);
-			return false;
+			return GuardResult::deny('A transfer dossier can only be rejected with a reason.');
 		}
 
-		$payload['reviewedBy'] = $actor;
-		$payload['reviewedAt'] = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-
-		$transitionContext['payload'] = $payload;
-
-		return true;
+		return GuardResult::allow();
 	}//end check()
 
 	/**
