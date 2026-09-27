@@ -1564,7 +1564,11 @@ OC.L10N.register(
         "School advies": "School advies",
         "Attendance and compulsory education": "Attendance and compulsory education",
         "Which pupils crossed an attendance threshold, and what has to be reported.": "Which pupils crossed an attendance threshold, and what has to be reported.",
-        "The final grade per pupil and subject, as it was decided.": "The final grade per pupil and subject, as it was decided."
+        "The final grade per pupil and subject, as it was decided.": "The final grade per pupil and subject, as it was decided.",
+        "Years": "Years",
+        "Subject": "Subject",
+        "The years this goal is taught in. Use year levels such as groep 5, leerjaar 2 or jaar 1, or school years such as 2026-2027. Leave empty when the goal applies to every year, or to take the years of its parent goal.": "The years this goal is taught in. Use year levels such as groep 5, leerjaar 2 or jaar 1, or school years such as 2026-2027. Leave empty when the goal applies to every year, or to take the years of its parent goal.",
+        "The subject this goal belongs to. Leave empty for a goal that spans subjects, or to take the subject of its parent goal.": "The subject this goal belongs to. Leave empty for a goal that spans subjects, or to take the subject of its parent goal."
     },
     "nplurals=2; plural=(n != 1);"
 )
