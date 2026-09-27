@@ -145,6 +145,25 @@ class CoursePackageExportService {
 	public function exportScholiqJson(string $courseId, string $exportingUser): string {
 		$tree = $this->gatherCourseTree(courseId: $courseId, exportingUser: $exportingUser);
 
+		return (string)json_encode(
+			$this->toScholiqPayload(tree: $tree),
+			JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+		);
+	}//end exportScholiqJson()
+
+	/**
+	 * Turn a gathered course tree into the scholiq-native JSON payload that
+	 * `LearniqJsonCourseImporter` re-imports. Shared by the lossless export
+	 * and the share export (lesson-sharing-consent-gate), so both produce
+	 * the same shape.
+	 *
+	 * @param array<string, mixed> $tree Output of {@see gatherCourseTree()}.
+	 *
+	 * @return array<string, mixed> The payload, materials carrying `contentBase64`.
+	 *
+	 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-a-share-package-carries-no-school-bound-or-personal-fields
+	 */
+	public function toScholiqPayload(array $tree): array {
 		// Base64 the resolved bytes so the JSON tree is a single self-contained,
 		// lossless artefact — the round-trip target `CoursePackageImportService`
 		// can re-import without a second file-fetch pass.
@@ -160,7 +179,7 @@ class CoursePackageExportService {
 			$tree['materials']
 		);
 
-		$payload = [
+		return [
 			'schemaVersion' => '1.0',
 			'exportedAt' => gmdate('c'),
 			'course' => $tree['course'],
@@ -171,9 +190,7 @@ class CoursePackageExportService {
 			'rubrics' => $tree['rubrics'],
 			'ltiPlacements' => $tree['ltiPlacements'],
 		];
-
-		return (string)json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-	}//end exportScholiqJson()
+	}//end toScholiqPayload()
 
 	/**
 	 * Gather a Course's exportable object graph: the Course itself, child
@@ -192,7 +209,7 @@ class CoursePackageExportService {
 	 *
 	 * @spec openspec/changes/course-package-import-export/design.md#data-model
 	 */
-	private function gatherCourseTree(string $courseId, string $exportingUser): array {
+	public function gatherCourseTree(string $courseId, string $exportingUser): array {
 		$course = $this->objectService->find(id: $courseId, register: self::LEARNIQ_REGISTER, schema: 'course');
 		if ($course === null) {
 			throw new RuntimeException("Course '{$courseId}' not found.");

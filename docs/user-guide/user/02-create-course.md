@@ -72,6 +72,14 @@ content type is *Text*, compose the lesson body itself:
 Packaged content lessons (video, SCORM, cmi5, quiz, LTI) are unaffected — those still play through their
 existing content reference; only the *Text* content type composes its body from blocks.
 
+## Share a course outside the school
+
+Give the course a licence and an author first. Pick an open licence, such as CC BY-SA 4.0, if other schools may reuse it. Leave a lesson's licence empty to use the course licence.
+
+Open **Export course package** and turn on **Share outside the school**. Confirm the two statements: the package holds no pupil names, photos, work or other personal data, and the school may share everything in it. The download leaves out your school's own links, file paths and access codes.
+
+If sharing is refused, the page lists every reason, such as a missing author or a worksheet from a publisher's method. Your confirmation is recorded with your name, so your school leader can see what left the school.
+
 ## Reference
 
 - [Enrol students](./03-enrol-students.md), the natural next step.

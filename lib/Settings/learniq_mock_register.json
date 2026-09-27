@@ -30469,6 +30469,54 @@
         "dataExchangeJobId": null,
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "lifecycle": "voorlopig"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-share-consent",
+          "slug": "course-share-consent-courseshareconsent-1-1"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000000",
+        "purpose": "download",
+        "confirmedBy": "Voorbeeld Confirmedby 1",
+        "confirmedAt": "2026-03-01T09:00:00+00:00",
+        "noPupilData": true,
+        "rightsCleared": true,
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "courseName": "Voorbeeld Coursename 1",
+        "license": "Voorbeeld License 1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-share-consent",
+          "slug": "course-share-consent-courseshareconsent-2-2"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000001",
+        "purpose": "store",
+        "confirmedBy": "Voorbeeld Confirmedby 2",
+        "confirmedAt": "2026-03-02T09:00:00+00:00",
+        "noPupilData": false,
+        "rightsCleared": false,
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "courseName": "Voorbeeld Coursename 2",
+        "license": "Voorbeeld License 2"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-share-consent",
+          "slug": "course-share-consent-courseshareconsent-3-3"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000002",
+        "purpose": "download",
+        "confirmedBy": "Voorbeeld Confirmedby 3",
+        "confirmedAt": "2026-03-03T09:00:00+00:00",
+        "noPupilData": true,
+        "rightsCleared": true,
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "courseName": "Voorbeeld Coursename 3",
+        "license": "Voorbeeld License 3"
       }
     ]
   }
