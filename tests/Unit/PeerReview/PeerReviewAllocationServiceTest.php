@@ -44,6 +44,13 @@ class PeerReviewAllocationServiceTest extends TestCase {
 	private array $savedObjects = [];
 
 	/**
+	 * Recorded findAll() calls: config and RBAC flag.
+	 *
+	 * @var array<int, array{config: array<string, mixed>, rbac: bool}>
+	 */
+	private array $reads = [];
+
+	/**
 	 * Reset the capture buffer before each test.
 	 *
 	 * @return void
@@ -51,6 +58,7 @@ class PeerReviewAllocationServiceTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		$this->savedObjects = [];
+		$this->reads = [];
 	}//end setUp()
 
 	/**
@@ -75,13 +83,22 @@ class PeerReviewAllocationServiceTest extends TestCase {
 			}
 		);
 
+		// Answers the way OpenRegister does: register and schema are read ONLY
+		// from `filters` (ObjectService::prepareFindAllConfig()); passed at the
+		// top level they are inert and the read finds nothing.
 		$objectService->method('findAll')->willReturnCallback(
-			function (array $config) use ($submissions, $existingReviews) {
-				if (($config['filters']['schema'] ?? '') === 'submission') {
+			function (array $config = [], bool $_rbac = true) use ($submissions, $existingReviews) {
+				$this->reads[] = ['config' => $config, 'rbac' => $_rbac];
+				$filters = ($config['filters'] ?? []);
+				if (($filters['register'] ?? null) !== 'learniq') {
+					return [];
+				}
+
+				if (($filters['schema'] ?? '') === 'submission') {
 					return $submissions;
 				}
 
-				if (($config['filters']['schema'] ?? '') === 'peer-review') {
+				if (($filters['schema'] ?? '') === 'peer-review') {
 					return $existingReviews;
 				}
 
@@ -90,11 +107,12 @@ class PeerReviewAllocationServiceTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null) {
+			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true) {
 				$this->savedObjects[] = [
 					'register' => (string)$register,
 					'schema' => (string)$schema,
 					'object' => $object,
+					'rbac' => $_rbac,
 				];
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
 			}
@@ -110,11 +128,11 @@ class PeerReviewAllocationServiceTest extends TestCase {
 	 */
 	private function fiveSoloSubmissions(): array {
 		return [
-			['id' => 'sub-1', 'learnerIds' => ['learner-a'], 'submittedAt' => '2026-01-01T00:00:00+00:00', 'tenant_id' => 'tenant-1'],
-			['id' => 'sub-2', 'learnerIds' => ['learner-b'], 'submittedAt' => '2026-01-02T00:00:00+00:00', 'tenant_id' => 'tenant-1'],
-			['id' => 'sub-3', 'learnerIds' => ['learner-c'], 'submittedAt' => '2026-01-03T00:00:00+00:00', 'tenant_id' => 'tenant-1'],
-			['id' => 'sub-4', 'learnerIds' => ['learner-d'], 'submittedAt' => '2026-01-04T00:00:00+00:00', 'tenant_id' => 'tenant-1'],
-			['id' => 'sub-5', 'learnerIds' => ['learner-e'], 'submittedAt' => '2026-01-05T00:00:00+00:00', 'tenant_id' => 'tenant-1'],
+			['id' => 'sub-1', 'learnerIds' => ['learner-a'], 'submittedAt' => '2026-01-01T00:00:00+00:00', 'tenant_id' => 'tenant-1', 'lifecycle' => 'submitted'],
+			['id' => 'sub-2', 'learnerIds' => ['learner-b'], 'submittedAt' => '2026-01-02T00:00:00+00:00', 'tenant_id' => 'tenant-1', 'lifecycle' => 'submitted'],
+			['id' => 'sub-3', 'learnerIds' => ['learner-c'], 'submittedAt' => '2026-01-03T00:00:00+00:00', 'tenant_id' => 'tenant-1', 'lifecycle' => 'submitted'],
+			['id' => 'sub-4', 'learnerIds' => ['learner-d'], 'submittedAt' => '2026-01-04T00:00:00+00:00', 'tenant_id' => 'tenant-1', 'lifecycle' => 'submitted'],
+			['id' => 'sub-5', 'learnerIds' => ['learner-e'], 'submittedAt' => '2026-01-05T00:00:00+00:00', 'tenant_id' => 'tenant-1', 'lifecycle' => 'submitted'],
 		];
 	}//end fiveSoloSubmissions()
 
@@ -269,9 +287,9 @@ class PeerReviewAllocationServiceTest extends TestCase {
 			'peerReviewersPerSubmission' => 2,
 		];
 		$submissions = [
-			['id' => 'sub-group', 'learnerIds' => ['learner-a', 'learner-b'], 'submittedAt' => '2026-01-01T00:00:00+00:00', 'tenant_id' => 'tenant-1'],
-			['id' => 'sub-c', 'learnerIds' => ['learner-c'], 'submittedAt' => '2026-01-02T00:00:00+00:00', 'tenant_id' => 'tenant-1'],
-			['id' => 'sub-d', 'learnerIds' => ['learner-d'], 'submittedAt' => '2026-01-03T00:00:00+00:00', 'tenant_id' => 'tenant-1'],
+			['id' => 'sub-group', 'learnerIds' => ['learner-a', 'learner-b'], 'submittedAt' => '2026-01-01T00:00:00+00:00', 'tenant_id' => 'tenant-1', 'lifecycle' => 'submitted'],
+			['id' => 'sub-c', 'learnerIds' => ['learner-c'], 'submittedAt' => '2026-01-02T00:00:00+00:00', 'tenant_id' => 'tenant-1', 'lifecycle' => 'submitted'],
+			['id' => 'sub-d', 'learnerIds' => ['learner-d'], 'submittedAt' => '2026-01-03T00:00:00+00:00', 'tenant_id' => 'tenant-1', 'lifecycle' => 'submitted'],
 		];
 
 		$service = $this->makeService($assignment, $submissions);
@@ -288,4 +306,66 @@ class PeerReviewAllocationServiceTest extends TestCase {
 		self::assertNotContains('learner-a', $groupReviewers);
 		self::assertNotContains('learner-b', $groupReviewers);
 	}//end testGroupSubmissionExcludesEveryGroupMember()
+
+	/**
+	 * Every read names its schema under `filters`, and reads and writes run as
+	 * the system: the controller has already authorized the teacher, and
+	 * `instructors` may neither read nor create PeerReview rows.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
+	 */
+	public function testReadsNestTheSchemaAndRunAsTheSystem(): void {
+		$assignment = [
+			'id' => self::ASSIGNMENT_ID,
+			'peerReviewAllocationStrategy' => 'round-robin',
+			'peerReviewersPerSubmission' => 2,
+		];
+
+		$result = $this->makeService($assignment, $this->fiveSoloSubmissions())->allocate(self::ASSIGNMENT_ID);
+
+		self::assertSame(10, $result['createdCount']);
+		self::assertCount(2, $this->reads);
+		foreach ($this->reads as $read) {
+			self::assertArrayNotHasKey('register', $read['config']);
+			self::assertArrayNotHasKey('schema', $read['config']);
+			self::assertSame('learniq', $read['config']['filters']['register']);
+			self::assertSame(self::ASSIGNMENT_ID, $read['config']['filters']['assignmentId']);
+			self::assertGreaterThan(0, $read['config']['limit']);
+			self::assertFalse($read['rbac']);
+		}
+
+		foreach ($this->savedObjects as $saved) {
+			self::assertFalse($saved['rbac']);
+		}
+	}//end testReadsNestTheSchemaAndRunAsTheSystem()
+
+	/**
+	 * A draft is neither reviewed nor supplies a reviewer.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
+	 */
+	public function testDraftsAreNeitherReviewedNorReviewers(): void {
+		$assignment = [
+			'id' => self::ASSIGNMENT_ID,
+			'peerReviewAllocationStrategy' => 'round-robin',
+			'peerReviewersPerSubmission' => 2,
+		];
+		$submissions = $this->fiveSoloSubmissions();
+		$submissions[4]['lifecycle'] = 'draft';
+		$submissions[3]['lifecycle'] = 'late';
+		$submissions[2]['lifecycle'] = 'returned';
+
+		$result = $this->makeService($assignment, $submissions)->allocate(self::ASSIGNMENT_ID);
+
+		self::assertSame(4, $result['submissionsProcessed']);
+		self::assertSame(8, $result['createdCount']);
+		foreach ($this->savedObjects as $saved) {
+			self::assertNotSame('sub-5', $saved['object']['submissionId']);
+			self::assertNotSame('learner-e', $saved['object']['reviewerId']);
+		}
+	}//end testDraftsAreNeitherReviewedNorReviewers()
 }//end class

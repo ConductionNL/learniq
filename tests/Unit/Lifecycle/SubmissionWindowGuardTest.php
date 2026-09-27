@@ -204,6 +204,78 @@ class SubmissionWindowGuardTest extends TestCase {
 		);
 	}//end testMissingAssignmentOrMalformedDeadlineBlocks()
 	/**
+	 * A reopened Submission carrying a resubmission date.
+	 *
+	 * @param string $target The target lifecycle state.
+	 * @param string $offset A relative time for resubmissionDueAt.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function resubmission(string $target, string $offset): array {
+		return array_merge(
+			$this->submission($target),
+			['resubmissionDueAt' => (new \DateTimeImmutable($offset, new \DateTimeZone('UTC')))->format(DATE_ATOM)]
+		);
+	}//end resubmission()
+
+	/**
+	 * Work handed in again after the assignment deadline is on time while the
+	 * resubmission date has not passed, even when the assignment takes no late work.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
+	 */
+	public function testResubmissionAfterTheAssignmentDeadlineIsOnTime(): void {
+		$guard = $this->makeGuard($this->assignment('-3 days', false));
+
+		self::assertAllowed($guard->check($this->resubmission('submitted', '+2 days'), 'submit', 'alice'));
+		self::assertDenied($guard->check($this->submission('submitted'), 'submit', 'alice'));
+	}//end testResubmissionAfterTheAssignmentDeadlineIsOnTime()
+
+	/**
+	 * Once the resubmission date has passed, the late rules apply to it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
+	 */
+	public function testAPassedResubmissionDateFollowsTheLateRules(): void {
+		$lateOk = $this->makeGuard($this->assignment('-3 days', true));
+		$noLate = $this->makeGuard($this->assignment('-3 days', false));
+
+		self::assertDenied($lateOk->check($this->resubmission('submitted', '-1 hour'), 'submit', 'alice'));
+		self::assertAllowed($lateOk->check($this->resubmission('late', '-1 hour'), 'submitLate', 'alice'));
+		self::assertDenied($noLate->check($this->resubmission('late', '-1 hour'), 'submitLate', 'alice'));
+	}//end testAPassedResubmissionDateFollowsTheLateRules()
+
+	/**
+	 * Late hand-in is refused while the resubmission window is still open.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
+	 */
+	public function testSubmitLateIsRefusedInsideTheResubmissionWindow(): void {
+		$guard = $this->makeGuard($this->assignment('-3 days', true));
+
+		self::assertDenied($guard->check($this->resubmission('late', '+2 days'), 'submitLate', 'alice'));
+	}//end testSubmitLateIsRefusedInsideTheResubmissionWindow()
+
+	/**
+	 * A resubmission date does not let someone else hand in the work.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
+	 */
+	public function testAResubmissionDateDoesNotWidenWhoMayHandIn(): void {
+		$guard = $this->makeGuard($this->assignment('-3 days', false));
+
+		self::assertDenied($guard->check($this->resubmission('submitted', '+2 days'), 'submit', 'mallory'));
+	}//end testAResubmissionDateDoesNotWidenWhoMayHandIn()
+
+	/**
 	 * The register gives late hand-in its own guarded transition into `late`.
 	 *
 	 * @return void

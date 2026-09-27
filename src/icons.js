@@ -151,6 +151,7 @@ import StarOutline from 'vue-material-design-icons/StarOutline.vue'
 import StoreOutline from 'vue-material-design-icons/StoreOutline.vue'
 import SwapHorizontal from 'vue-material-design-icons/SwapHorizontal.vue'
 import Table from 'vue-material-design-icons/Table.vue'
+import TableCheck from 'vue-material-design-icons/TableCheck.vue'
 import TableClock from 'vue-material-design-icons/TableClock.vue'
 import TableColumn from 'vue-material-design-icons/TableColumn.vue'
 import Target from 'vue-material-design-icons/Target.vue'
@@ -305,6 +306,7 @@ export default {
 	StoreOutline,
 	SwapHorizontal,
 	Table,
+	TableCheck,
 	TableClock,
 	TableColumn,
 	Target,
