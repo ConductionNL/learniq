@@ -1,12 +1,14 @@
 ---
 slug: assignments
 title: Assignments & Submissions
-status: done
+status: in-progress
 feature_tier: must
 depends_on_adrs: [ADR-022, ADR-024, ADR-031]
 created: 2026-05-12
 updated: 2026-05-12
 profiles: [opdracht-vo, opdracht-he, werkstuk, portfolio-item]
+openspec_changes:
+  - learner-lookup-and-learnerrefs-fixes
 ---
 
 # Assignments & Submissions

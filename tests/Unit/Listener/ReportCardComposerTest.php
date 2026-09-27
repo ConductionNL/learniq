@@ -35,8 +35,10 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Listener\ReportCardComposer;
 use OCA\Learniq\Service\AttendanceWindowAggregator;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ReportCardTemplateSectionResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -71,7 +73,8 @@ class ReportCardComposerTest extends TestCase {
 	 * @param array<string,array<int,array<string,mixed>>> $gradeEntries "{learnerId}|{planId}|{period}" => published GradeEntry rows.
 	 * @param array<int,array<string,mixed>> $sessions Session rows (any cohort).
 	 * @param array<int,array<string,mixed>> $attendance AttendanceRecord rows (any learner).
-	 * @param array<string,array<string,mixed>> $learnerProfiles learnerId => LearnerProfile data.
+	 * @param array<int,array<string,mixed>> $learnerProfiles LearnerProfile rows, answered the way OpenRegister does (a filter
+	 *                                                        on a property LearnerProfile does not declare matches nothing).
 	 * @param array<string,array<string,mixed>> $templates templateId => ReportCardTemplate data (report-card-templates change).
 	 *
 	 * @return ReportCardComposer
@@ -130,9 +133,9 @@ class ReportCardComposerTest extends TestCase {
 				}
 
 				if ($config['filters']['schema'] === 'learner-profile') {
-					$learnerId = $config['filters']['learnerId'] ?? '';
-					$profile = $learnerProfiles[$learnerId] ?? null;
-					return $profile === null ? [] : [$profile];
+					$store = new RegisterFaithfulStore();
+					$store->rows['learner-profile'] = $learnerProfiles;
+					return $store->findAll($config);
 				}
 
 				return [];
@@ -159,7 +162,8 @@ class ReportCardComposerTest extends TestCase {
 			$timeFactory,
 			new NullLogger(),
 			new AttendanceWindowAggregator($objectService),
-			new ReportCardTemplateSectionResolver($objectService, new NullLogger())
+			new ReportCardTemplateSectionResolver($objectService, new NullLogger()),
+			new LearnerRefResolver($objectService)
 		);
 
 	}//end makeComposer()
@@ -262,6 +266,57 @@ class ReportCardComposerTest extends TestCase {
 		self::assertFalse($byLearner['learner-2']['subjectGrades'][0]['passed']);
 
 	}//end testComposeCreatesOneReportCardPerCohortLearnerWithQualifyingSubjectsOnly()
+
+	/**
+	 * Each card carries the learner's LearnerProfile UUID as learnerRef, found
+	 * on ncUserId. LearnerProfile has no learnerId property, so the old lookup
+	 * on learnerId matched nothing and no card ever reached the portal.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learner-lookup-and-learnerrefs-fixes/specs/report-card/spec.md#requirement-a-composed-report-card-carries-the-learners-profile-as-learnerref
+	 */
+	public function testComposeStampsTheLearnerRefFromTheProfileKeyedOnNcUserId(): void {
+		$composer = $this->makeComposer(
+			cohorts: [
+				'cohort-a' => ['id' => 'cohort-a', 'learnerIds' => ['learner-1', 'learner-2']],
+			],
+			plans: [
+				'plan-bio' => ['id' => 'plan-bio', 'components' => [['componentId' => 'c1', 'period' => '1', 'weight' => 1, 'kind' => 'assessment']]],
+			],
+			finalGrades: [
+				'learner-1|plan-bio' => ['learnerId' => 'learner-1', 'curriculumPlanId' => 'plan-bio', 'courseId' => 'course-1', 'passed' => true, 'breakdown' => ['periods' => ['1' => 7.5]]],
+				'learner-2|plan-bio' => ['learnerId' => 'learner-2', 'curriculumPlanId' => 'plan-bio', 'courseId' => 'course-1', 'passed' => true, 'breakdown' => ['periods' => ['1' => 6.5]]],
+			],
+			learnerProfiles: [
+				['id' => 'profile-1', 'ncUserId' => 'learner-1'],
+				['id' => 'profile-other', 'ncUserId' => 'learner-9'],
+			],
+		);
+
+		$period = [
+			'id' => 'period-1',
+			'periodCode' => '1',
+			'curriculumPlanIds' => ['plan-bio'],
+			'cohortIds' => ['cohort-a'],
+			'attendanceIncluded' => false,
+			'tenant_id' => 'tenant-a',
+		];
+
+		$composer->handle($this->makeEvent($period, 'report-period', 'compose', 'composed'));
+
+		$byLearner = [];
+		foreach ($this->savedObjects as $save) {
+			if ($save['schema'] === 'report-card') {
+				$byLearner[$save['object']['learnerId']] = $save['object'];
+			}
+		}
+
+		self::assertSame('profile-1', $byLearner['learner-1']['learnerRef']);
+		// No profile for learner-2: the card stays out of the portal.
+		self::assertNull($byLearner['learner-2']['learnerRef']);
+
+	}//end testComposeStampsTheLearnerRefFromTheProfileKeyedOnNcUserId()
 
 	/**
 	 * A subject whose CurriculumPlan has no component matching the period
@@ -414,7 +469,8 @@ class ReportCardComposerTest extends TestCase {
 			$timeFactory,
 			new NullLogger(),
 			new AttendanceWindowAggregator($objectService),
-			new ReportCardTemplateSectionResolver($objectService, new NullLogger())
+			new ReportCardTemplateSectionResolver($objectService, new NullLogger()),
+			new LearnerRefResolver($objectService)
 		);
 
 		$card = [
@@ -510,7 +566,8 @@ class ReportCardComposerTest extends TestCase {
 			$timeFactory,
 			new NullLogger(),
 			new AttendanceWindowAggregator($objectService),
-			new ReportCardTemplateSectionResolver($objectService, new NullLogger())
+			new ReportCardTemplateSectionResolver($objectService, new NullLogger()),
+			new LearnerRefResolver($objectService)
 		);
 
 	}//end makeTemplateAwareRecomposer()

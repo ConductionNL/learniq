@@ -39,6 +39,7 @@ use OCA\Learniq\Grading\GradeFormulaEvaluator;
 use OCA\Learniq\Grading\GradeVisibilityResolver;
 use OCA\Learniq\Listener\GradeRollupHandler;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -71,10 +72,12 @@ class GradeRollupHandlerTest extends TestCase {
 	 * @param array<string, mixed>|null $curriculumPlan Curriculum plan data returned by find().
 	 * @param array<int, string> $parentIds Parent user IDs returned for the learner profile.
 	 * @param DateTime $now The "now" the injected ITimeFactory reports.
+	 * @param RegisterFaithfulStore|null $profiles When set, LearnerProfile reads are answered the way
+	 *                                            OpenRegister answers them instead of by $parentIds.
 	 *
 	 * @return GradeRollupHandler
 	 */
-	private function makeHandler(?array $curriculumPlan, array $parentIds, DateTime $now): GradeRollupHandler {
+	private function makeHandler(?array $curriculumPlan, array $parentIds, DateTime $now, ?RegisterFaithfulStore $profiles = null): GradeRollupHandler {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
@@ -88,9 +91,13 @@ class GradeRollupHandlerTest extends TestCase {
 		);
 
 		$objectService->method('findAll')->willReturnCallback(
-			function (array $config) use ($parentIds) {
+			function (array $config, bool $_rbac = true) use ($parentIds, $profiles) {
 				if ($config['filters']['schema'] === 'final-grade') {
 					return [];
+				}
+
+				if ($config['filters']['schema'] === 'learner-profile' && $profiles !== null) {
+					return $profiles->findAll($config, $_rbac);
 				}
 
 				if ($config['filters']['schema'] === 'learner-profile') {
@@ -205,6 +212,48 @@ class GradeRollupHandlerTest extends TestCase {
 		}
 
 	}//end testNightPublishUnderNextSchoolDayPolicyResolvesAndStampsVisibleFrom()
+
+	/**
+	 * Parent notifications go to the parents on the learner's own profile,
+	 * found on ncUserId. LearnerProfile has no learnerId property, so the old
+	 * lookup on learnerId matched nothing and no parent was ever notified.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learner-lookup-and-learnerrefs-fixes/specs/grading/spec.md#requirement-parent-grade-notifications-find-the-learners-profile-on-ncuserid
+	 */
+	public function testParentNotificationsReachTheParentsOnTheLearnersOwnProfile(): void {
+		$now = new DateTime('2026-07-13 12:00:00', new DateTimeZone('Europe/Amsterdam'));
+		$store = new RegisterFaithfulStore();
+		$store->rows['learner-profile'] = [
+			['id' => 'profile-9', 'ncUserId' => 'learner-9', 'parentIds' => ['parent-9']],
+			['id' => 'profile-1', 'ncUserId' => 'learner-1', 'parentIds' => ['parent-1', 'parent-2']],
+		];
+
+		$handler = $this->makeHandler(curriculumPlan: ['id' => 'plan-1'], parentIds: [], now: $now, profiles: $store);
+		$handler->handle(
+			$this->makeEvent(
+				[
+					'id' => 'entry-1',
+					'learnerId' => 'learner-1',
+					'curriculumPlanId' => 'plan-1',
+					'tenant_id' => 'tenant-a',
+					'courseId' => 'course-1',
+					'lifecycle' => 'published',
+				]
+			)
+		);
+
+		$recipients = array_map(
+			static fn (array $save): string => $save['object']['recipient'],
+			array_values(array_filter($this->savedObjects, static fn (array $s): bool => $s['schema'] === 'grade-notification'))
+		);
+		self::assertSame(['parent-1', 'parent-2'], $recipients);
+
+		// The publisher may not read LearnerProfile; the lookup runs without RBAC.
+		self::assertFalse($store->reads[0]['rbac']);
+
+	}//end testParentNotificationsReachTheParentsOnTheLearnersOwnProfile()
 
 	/**
 	 * An explicit teacher override on the GradeEntry propagates unchanged to the persisted
