@@ -22,7 +22,7 @@
     - GET  /api/objects/learniq/external-training-record?filters[learnerId]=:learnerId
     - GET  /api/objects/learniq/Credential?filters[learnerId]=:learnerId
     - POST /api/objects/learniq/portfolio-entry
-    - POST /api/objects/learniq/Portfolio/:id/transition/submit
+    - POST /api/objects/:id/transition           ({ action: 'submit' })
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView.vue's existing shape.
@@ -295,6 +295,7 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'PortfolioBuilder',
@@ -740,9 +741,7 @@ export default {
 			this.submitError = null
 
 			try {
-				const url = generateUrl(
-					`/apps/openregister/api/objects/learniq/Portfolio/${this.id}/transition/submit`,
-				)
+				const url = generateUrl(objectTransitionUrl(this.id))
 				const resp = await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -750,7 +749,7 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({}),
+					body: JSON.stringify({ action: 'submit' }),
 				})
 				if (resp.status === 422) {
 					this.submitError = this.t(
