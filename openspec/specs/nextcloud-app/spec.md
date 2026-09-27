@@ -208,6 +208,22 @@ A schema that declares `x-openregister-lifecycle` transitions MUST NOT be `appen
 - **WHEN** a compliance officer fires `revoke`
 - **THEN** the credential lands in `revoked` instead of being refused as an update on an append-only schema
 
+### Requirement: A learner runs the transitions on their own rows
+A learner MUST be able to run the transitions a learner screen fires on a row that names them, and nobody else's. OpenRegister checks `update` for a transition and `create` without the object, so each schema grants `update` to `{"group": "authenticated", "match": {<person field>: "$userId", "lifecycle": <the states the learner acts in>}}` and, where the learner creates the row, `create` to `authenticated`. Because an open create lets anyone make a row in another learner's name (and then pass RBAC as its owner), the transition's `requires` guard MUST refuse any caller who is not the person on the row, administrators and system calls excepted. The person field is `reviewerId` on PeerReview (`submit` from `assigned`) and `learnerId` on SelfAssessment (`submit` from `draft`), Portfolio (`submit` from `draft` or `active`), LearningRecordExport (`generate` from `requested`; its guard, `LearningRecordExportService`, cannot run yet and is tracked in learniq#983), LearningRecordShare (`grant` and `revoke`) and ProctoringSession (`activate` and `end`). A share MUST be of an export of the same learner. A PortfolioEntry has no transition, so a pre-write veto MUST refuse a non-staff caller writing an entry that is not in their own name or not in their own portfolio. The staff transitions the learner's update grant would otherwise reach (Portfolio `activate` and `archive`, ProctoringSession `fail`) MUST carry a transition `authorization` list of the staff groups. A `requires` guard MUST implement OpenRegister's `LifecycleGuardInterface`, because OpenRegister refuses to run any other.
+
+#### Scenario: A reviewer submits the peer review they were allocated
+@e2e exclude Enforced by OpenRegister from the shipped register JSON and the guard; pinned by tests/Unit/Register/LearnerTransitionAccessTest.php (testPeerReviewSubmitIsTheReviewers).
+- **GIVEN** a PeerReview allocated by a team lead to learner A, in `assigned`
+- **WHEN** learner A fires `submit`
+- **THEN** the review moves to `submitted`
+- **AND** learner B firing `submit` on it is refused
+
+#### Scenario: A row made in someone else's name is refused at its transition
+@e2e exclude Guard behaviour with no UI of its own; pinned by tests/Unit/Register/LearnerTransitionAccessTest.php (testARowMadeInSomeoneElsesNameIsRefusedAtItsTransition).
+- **GIVEN** learner B created a LearningRecordShare naming learner A
+- **WHEN** learner B fires `grant`
+- **THEN** the guard refuses it
+
 ## Standards
 Nextcloud OCP (`IAppManager`, `IConfig`, `IUserSession`, `IRootFolder`, `IGroupManager`, `Calendar\IManager`, `Notification\IManager`, `Talk\IBroker`, `Activity\IManager`), NL Design System tokens, WCAG 2.1 AA.
 

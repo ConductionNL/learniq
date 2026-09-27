@@ -347,11 +347,14 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 	/**
 	 * Writes are not what `x-property-rbac` speaks to, so the 25 schemas that
 	 * fell through to the register cascade keep exactly the create and update
-	 * grants the cascade gave them, and nobody but an admin deletes.
+	 * grants the cascade gave them, and nobody but an admin deletes. The four
+	 * portfolio and learning-record schemas add the learner's own writes after
+	 * the staff grants (learniq#981), pinned in LearnerTransitionAccessTest.
 	 *
 	 * @return void
 	 */
 	public function testWritesKeepTheCascadeGrants(): void {
+		$learnerWrites = ['Portfolio', 'PortfolioEntry', 'LearningRecordExport', 'LearningRecordShare'];
 		$names = [
 			'LessonCompletion', 'Enrolment', 'RolloverPlan', 'TimetableConflict', 'ExamAccommodation',
 			'ItemStatistics', 'AssessmentReliability', 'ItemRevisionFlag', 'GradeEntry', 'FinalGrade',
@@ -362,8 +365,15 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 		$schemas = self::schemas();
 		foreach ($names as $name) {
 			$authorization = ($schemas[$name]['authorization'] ?? []);
-			$this->assertSame(self::CASCADE_WRITERS, ($authorization['create'] ?? null), $name . ' create');
-			$this->assertSame(self::CASCADE_WRITERS, ($authorization['update'] ?? null), $name . ' update');
+			$create = ($authorization['create'] ?? []);
+			$update = ($authorization['update'] ?? []);
+			if (in_array($name, $learnerWrites, true) === true) {
+				$create = array_slice($create, 0, count(self::CASCADE_WRITERS));
+				$update = array_slice($update, 0, count(self::CASCADE_WRITERS));
+			}
+
+			$this->assertSame(self::CASCADE_WRITERS, $create, $name . ' create');
+			$this->assertSame(self::CASCADE_WRITERS, $update, $name . ' update');
 			$this->assertArrayNotHasKey('delete', $authorization, $name . ' delete');
 		}
 	}//end testWritesKeepTheCascadeGrants()

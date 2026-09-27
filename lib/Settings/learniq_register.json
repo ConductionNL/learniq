@@ -7251,7 +7251,14 @@
                     ],
                     "update": [
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "reviewerId": "$userId",
+                                "lifecycle": "assigned"
+                            }
+                        }
                     ]
                 }
             },
@@ -7402,11 +7409,19 @@
                     ],
                     "create": [
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        "authenticated"
                     ],
                     "update": [
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId",
+                                "lifecycle": "draft"
+                            }
+                        }
                     ]
                 }
             },
@@ -9183,33 +9198,58 @@
                     "transitions": {
                         "activate": {
                             "from": "created",
-                            "to": "active"
+                            "to": "active",
+                            "requires": "OCA\\Learniq\\Lifecycle\\LearnerOwnRowGuard"
                         },
                         "end": {
                             "from": "active",
-                            "to": "ended"
+                            "to": "ended",
+                            "requires": "OCA\\Learniq\\Lifecycle\\LearnerOwnRowGuard"
                         },
                         "fail": {
                             "from": [
                                 "created",
                                 "active"
                             ],
-                            "to": "error"
+                            "to": "error",
+                            "authorization": [
+                                "instructors",
+                                "compliance-officers"
+                            ]
                         }
                     }
                 },
                 "authorization": {
                     "read": [
                         "instructors",
-                        "compliance-officers"
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
                     ],
                     "create": [
                         "instructors",
-                        "compliance-officers"
+                        "compliance-officers",
+                        "authenticated"
                     ],
                     "update": [
                         "instructors",
-                        "compliance-officers"
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId",
+                                "lifecycle": {
+                                    "$in": [
+                                        "created",
+                                        "active"
+                                    ]
+                                }
+                            }
+                        }
                     ]
                 }
             },
@@ -19762,7 +19802,13 @@
                     "transitions": {
                         "activate": {
                             "from": "draft",
-                            "to": "active"
+                            "to": "active",
+                            "authorization": [
+                                "instructors",
+                                "hr",
+                                "compliance-officers",
+                                "team-leads"
+                            ]
                         },
                         "submit": {
                             "from": [
@@ -19781,7 +19827,13 @@
                                 "active",
                                 "graded"
                             ],
-                            "to": "archived"
+                            "to": "archived",
+                            "authorization": [
+                                "instructors",
+                                "hr",
+                                "compliance-officers",
+                                "team-leads"
+                            ]
                         },
                         "reactivate": {
                             "from": "archived",
@@ -19810,7 +19862,19 @@
                         "instructors",
                         "hr",
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId",
+                                "lifecycle": {
+                                    "$in": [
+                                        "draft",
+                                        "active"
+                                    ]
+                                }
+                            }
+                        }
                     ]
                 },
                 "x-property-rbac": {
@@ -19988,7 +20052,8 @@
                         "instructors",
                         "hr",
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        "authenticated"
                     ],
                     "update": [
                         "instructors",
@@ -20371,13 +20436,21 @@
                         "instructors",
                         "hr",
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        "authenticated"
                     ],
                     "update": [
                         "instructors",
                         "hr",
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId",
+                                "lifecycle": "requested"
+                            }
+                        }
                     ]
                 },
                 "x-property-rbac": {
@@ -20519,11 +20592,13 @@
                     "transitions": {
                         "grant": {
                             "from": "draft",
-                            "to": "active"
+                            "to": "active",
+                            "requires": "OCA\\Learniq\\Lifecycle\\LearnerOwnRowGuard"
                         },
                         "revoke": {
                             "from": "active",
-                            "to": "revoked"
+                            "to": "revoked",
+                            "requires": "OCA\\Learniq\\Lifecycle\\LearnerOwnRowGuard"
                         }
                     }
                 },
@@ -20599,13 +20674,26 @@
                         "instructors",
                         "hr",
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        "authenticated"
                     ],
                     "update": [
                         "instructors",
                         "hr",
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId",
+                                "lifecycle": {
+                                    "$in": [
+                                        "draft",
+                                        "active"
+                                    ]
+                                }
+                            }
+                        }
                     ]
                 },
                 "x-property-rbac": {
