@@ -119,14 +119,10 @@ class RbacScopeKindsRegisterTest extends TestCase {
 		$literalGroups = array_values(array_filter($readEntries, 'is_string'));
 		$this->assertEqualsCanonicalizing(['instructors', 'compliance-officers'], $literalGroups, 'The pre-existing read floor MUST be unchanged');
 
-		// Exactly one CARE-TEAM entry. Other changes may add their own
-		// conditional entries (the author reading their own note), so the
-		// total number of conditional entries is not this change's to pin.
 		$conditionalEntries = array_values(array_filter($readEntries, 'is_array'));
-		$careTeamEntries    = array_values(array_filter($conditionalEntries, static fn (array $candidate): bool => array_key_exists('careTeamUserIds', ($candidate['match'] ?? []))));
-		$this->assertCount(1, $careTeamEntries, 'DossierNote.read MUST carry exactly one conditional care-team entry');
+		$this->assertCount(1, $conditionalEntries, 'DossierNote.read MUST carry exactly one conditional (care-team) entry');
 
-		$entry = $careTeamEntries[0];
+		$entry = $conditionalEntries[0];
 		$this->assertSame('authenticated', $entry['group'] ?? null);
 		$this->assertEqualsCanonicalizing(['careTeamUserIds'], array_keys($entry['match'] ?? []));
 		$this->assertEqualsCanonicalizing(['$contains'], array_keys($entry['match']['careTeamUserIds'] ?? []));
