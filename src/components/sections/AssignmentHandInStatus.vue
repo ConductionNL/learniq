@@ -111,6 +111,12 @@ export default {
 	},
 
 	watch: {
+		/**
+		 * Reload when the page moves to another assignment.
+		 *
+		 * @return {void}
+		 * @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+		 */
 		assignmentId() {
 			this.load()
 		},
