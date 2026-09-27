@@ -1427,7 +1427,26 @@ OC.L10N.register(
         "Not configured": "Niet geconfigureerd",
         "Open settings": "Instellingen openen",
         "Simulated": "Gesimuleerd",
-        "Status message": "Statusmelding"
+        "Status message": "Statusmelding",
+        "Audience Departments": "Doelgroepafdelingen",
+        "Audience Roles": "Doelgroeprollen",
+        "Audience scope for this regulation: all-employees covers every active learner, department covers the learners in audienceDepartments (and their sub-departments), role-specific and board cover the learners holding one of audienceRoles. A scope with an empty list covers nobody.": "Doelgroep van deze regeling: all-employees geldt voor elke actieve lerende, department voor de lerenden in audienceDepartments (en hun onderliggende afdelingen), role-specific en board voor de lerenden met een van de audienceRoles. Een doelgroep met een lege lijst geldt voor niemand.",
+        "Departments this regulation covers when audienceScope is department, written like LearnerProfile.department. A department also covers every department under it.": "Afdelingen waarvoor deze regeling geldt als audienceScope department is, geschreven zoals LearnerProfile.department. Een afdeling omvat ook elke afdeling eronder.",
+        "Learniq roles (as in LearnerProfile.roles) this regulation covers when audienceScope is role-specific or board.": "Learniq-rollen (zoals in LearnerProfile.roles) waarvoor deze regeling geldt als audienceScope role-specific of board is.",
+        "Organisational unit, written as a path from the top down with a slash between levels (for example Operations/Infra/Team A). Compliance rolls up along the path, from team to department to directorate, and a regulation scoped to a department covers the units under it.": "Organisatie-eenheid, geschreven als pad van boven naar beneden met een schuine streep tussen de niveaus (bijvoorbeeld Operations/Infra/Team A). Compliance telt op langs het pad, van team naar afdeling naar directie, en een regeling voor een afdeling geldt ook voor de eenheden eronder.",
+        "Compliance per department": "Compliance per afdeling",
+        "Loading compliance per department": "Compliance per afdeling laden",
+        "No learners yet": "Nog geen lerenden",
+        "Compliance per department appears once learner profiles exist.": "Compliance per afdeling verschijnt zodra er lerendenprofielen zijn.",
+        "Department": "Afdeling",
+        "Coverage": "Dekking",
+        "Due within 30 days": "Deadline binnen 30 dagen",
+        "Overdue": "Te laat",
+        "Expired credentials": "Verlopen certificaten",
+        "Compliance per department could not be loaded.": "Compliance per afdeling kon niet worden geladen.",
+        "No department": "Geen afdeling",
+        "No obligations": "Geen verplichtingen",
+        "{percent}% ({covered} of {total})": "{percent}% ({covered} van {total})"
     },
     "nplurals=2; plural=(n != 1);"
 )

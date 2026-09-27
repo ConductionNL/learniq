@@ -3336,8 +3336,24 @@
                             "role-specific",
                             "department"
                         ],
-                        "description": "Audience scope for this regulation.",
+                        "description": "Audience scope for this regulation: all-employees covers every active learner, department covers the learners in audienceDepartments (and their sub-departments), role-specific and board cover the learners holding one of audienceRoles. A scope with an empty list covers nobody.",
                         "title": "Audience Scope"
+                    },
+                    "audienceDepartments": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Departments this regulation covers when audienceScope is department, written like LearnerProfile.department. A department also covers every department under it.",
+                        "title": "Audience Departments"
+                    },
+                    "audienceRoles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Learniq roles (as in LearnerProfile.roles) this regulation covers when audienceScope is role-specific or board.",
+                        "title": "Audience Roles"
                     },
                     "requiresAnnualRenewal": {
                         "type": "boolean",
@@ -4193,7 +4209,7 @@
                     "department": {
                         "type": "string",
                         "nullable": true,
-                        "description": "Organisational department for grouping and reporting.",
+                        "description": "Organisational unit, written as a path from the top down with a slash between levels (for example Operations/Infra/Team A). Compliance rolls up along the path, from team to department to directorate, and a regulation scoped to a department covers the units under it.",
                         "title": "Department"
                     },
                     "mergedInto": {

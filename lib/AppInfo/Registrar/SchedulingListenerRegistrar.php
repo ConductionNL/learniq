@@ -38,6 +38,7 @@ use OCA\Learniq\Listener\AdmissionsWaitlistPromoter;
 use OCA\Learniq\Listener\ApplicationConversionHandler;
 use OCA\Learniq\Listener\EnrolmentPrerequisiteListener;
 use OCA\Learniq\Listener\PaymentTransactionStatusHandler;
+use OCA\Learniq\Listener\RegulationAssignmentHandler;
 use OCA\Learniq\Listener\SessionChangeNoticeHandler;
 use OCA\Learniq\Listener\SubjectChoiceEnrolmentBridge;
 use OCA\Learniq\Listener\SubjectChoiceValidator;
@@ -119,6 +120,15 @@ class SchedulingListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: SubjectChoiceEnrolmentBridge::class
+		);
+
+		// ADR-031 legitimate exception: Regulation `publish` -> mandatory
+		// Enrolments for the learners the regulation's audienceScope covers
+		// (department, role or everyone), via RegulationAssignmentService
+		// (learniq#951). Learners outside the scope get nothing.
+		$context->registerEventListener(
+			event: ObjectTransitionedEvent::class,
+			listener: RegulationAssignmentHandler::class
 		);
 
 		// ADR-031 legitimate exception (school-payments): PaymentTransaction
