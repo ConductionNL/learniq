@@ -60,7 +60,9 @@ class SubmissionResubmissionRegisterTest extends TestCase {
 		self::assertSame('string', $property['type']);
 		self::assertSame('date-time', $property['format']);
 		self::assertTrue($property['nullable']);
-		self::assertSame('0.3.0', $schema['version']);
+		// A floor, not an exact value: later changes bump Submission again
+		// (assignment-portal-wiring took it to 0.4.0).
+		self::assertTrue(version_compare((string)$schema['version'], '0.3.0', '>='), 'Submission version must be at least 0.3.0');
 	}//end testSubmissionCarriesTheResubmissionDate()
 
 	/**
