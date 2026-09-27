@@ -132,7 +132,7 @@ class RejectionResubmitGuardTest extends TestCase {
 	 */
 	public function testCoordinatorResubmitCreatesScopedJobAndStampsLink(): void {
 		$guard = $this->makeGuard(
-			['coordinator'],
+			['coordinators'],
 			['id' => 'job-orig', 'target' => 'bron-rod', 'mappingProfileId' => 'profile-1']
 		);
 
@@ -199,7 +199,7 @@ class RejectionResubmitGuardTest extends TestCase {
 	 */
 	public function testCallerSuppliedResubmittedJobIdIsOverwritten(): void {
 		$guard = $this->makeGuard(
-			['coordinator'],
+			['coordinators'],
 			['id' => 'job-orig', 'target' => 'bron-rod', 'mappingProfileId' => 'profile-1']
 		);
 
@@ -256,7 +256,7 @@ class RejectionResubmitGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNoActorIsDenied(): void {
-		$guard = $this->makeGuard(['coordinator'], ['id' => 'job-orig', 'target' => 'bron-rod']);
+		$guard = $this->makeGuard(['coordinators'], ['id' => 'job-orig', 'target' => 'bron-rod']);
 
 		$context = [
 			'object' => ['id' => 'rej-1', 'sourceKind' => 'learner-profile', 'learnerProfileId' => 'lp-1', 'dataExchangeJobId' => 'job-orig'],
@@ -274,7 +274,7 @@ class RejectionResubmitGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testUnresolvableOriginalJobIsDenied(): void {
-		$guard = $this->makeGuard(['coordinator'], null);
+		$guard = $this->makeGuard(['coordinators'], null);
 
 		$context = [
 			'object' => [
@@ -300,7 +300,7 @@ class RejectionResubmitGuardTest extends TestCase {
 	 */
 	public function testJobSaveFailureIsDenied(): void {
 		$guard = $this->makeGuard(
-			['coordinator'],
+			['coordinators'],
 			['id' => 'job-orig', 'target' => 'bron-rod'],
 			newJobId: null
 		);
@@ -327,7 +327,7 @@ class RejectionResubmitGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testUnsupportedSourceKindIsDenied(): void {
-		$guard = $this->makeGuard(['coordinator'], ['id' => 'job-orig', 'target' => 'bron-rod']);
+		$guard = $this->makeGuard(['coordinators'], ['id' => 'job-orig', 'target' => 'bron-rod']);
 
 		$context = [
 			'object' => [

@@ -94,13 +94,14 @@ component. There MUST be no PHP CRUD controllers.
 The system MUST persist `SupportRequest`, `TlvApplication`, and `DeliberationRecord` as OpenRegister
 objects with `x-openregister-lifecycle` (`SupportRequest`: draft → submitted → routed-to-swv →
 in-deliberation → decided → closed; `TlvApplication`: draft → submitted → under-review → decided
-(approved | rejected | conditional) → expired; `DeliberationRecord`: `appendOnly: true`, scheduled →
+(approved | rejected | conditional) → expired; `DeliberationRecord`: not `appendOnly`, scheduled →
 recorded), `x-openregister-relations` (`SupportRequest`↔learner/optional-`LearningPlan`/optional-
 `GroupPlanSubgroup`, `TlvApplication`↔`SupportRequest`, `DeliberationRecord`↔`SupportRequest`/
 `TlvApplication`), `x-openregister-calculations` (`TlvApplication.tlvExpiringSoon`), and
 `x-openregister-notifications` (`supportRequestRouted`, `tlvDecisionReceived`, `tlvExpiringSoon`,
-idempotency-keyed). `DeliberationRecord` MUST be `appendOnly: true` for audit (ADR-008), matching the
-existing `LearningPlanEvaluation`/`Signature` pattern. `SupportRequest` MUST additionally carry a nullable
+idempotency-keyed). `DeliberationRecord` MUST NOT be `appendOnly`, because Open Register refuses every update
+on an append-only schema and its `record` transition is one; the audit trail keeps each version (ADR-008,
+see the nextcloud-app requirement "A schema with lifecycle transitions is not append-only"). `SupportRequest` MUST additionally carry a nullable
 `originGroupPlanSubgroupId` ($ref `GroupPlanSubgroup`), alongside the existing nullable `learningPlanId`,
 recording that this zorgvraag was raised because a group-level differentiated approach proved insufficient
 for this learner — nullable and independent of `learningPlanId`, since a request may originate from a
@@ -111,7 +112,7 @@ for this learner — nullable and independent of `learningPlanId`, since a reque
 - **GIVEN** the learning-plan domain schemas are registered
 - **WHEN** a coordinator creates a `SupportRequest`, a `TlvApplication`, and records a `DeliberationRecord`
 - **THEN** all three are stored as OpenRegister objects carrying their declared lifecycle, relations,
-  calculations, and notification config, and `DeliberationRecord` is `appendOnly: true`
+  calculations, and notification config, and `DeliberationRecord` is not `appendOnly`
 
 #### Scenario: SupportRequest raised from a GroupPlanSubgroup carries its origin, independent of any LearningPlan link
 
@@ -198,19 +199,20 @@ crossings and `certification`'s renewal reminders (ADR-022) — NOT a PHP TimedJ
 - **THEN** a `tlvExpiringSoon` notification fires to the coordinator via the declared notification
   mechanism, idempotency-keyed, with no PHP TimedJob involved
 
-### Requirement: Deliberation records are structured and append-only
+### Requirement: Deliberation records are structured and corrected by a new record
 
 `DeliberationRecord` MUST capture role-tagged `attendees` (at minimum: parent, pupil, municipality,
 care-partner, school, swv-coordinator), a `scheduledAt`/`recordedAt`, an `outcome`/recommendation, and a
-link to the `SupportRequest`/`TlvApplication` it concerns. Once `recorded`, a `DeliberationRecord` MUST be
-immutable (`appendOnly: true`) — a correction requires a new record referencing the one it supersedes,
-mirroring `LearningPlanEvaluation`'s append-only pattern.
+link to the `SupportRequest`/`TlvApplication` it concerns. Once `recorded`, a correction to a
+`DeliberationRecord` MUST be a new record referencing the one it supersedes (`correctsId`), mirroring
+`LearningPlanEvaluation`. The schema is not `appendOnly`, because that would refuse the `record`
+transition itself; the audit trail keeps each version.
 
 #### Scenario: Deliberation round recorded as immutable
 
 - **GIVEN** a consultation round with parents, the municipality, and a care partner
 - **WHEN** the coordinator records the `DeliberationRecord` with attendees and an outcome
-- **THEN** the record is persisted `appendOnly: true`, and any later correction creates a new record
+- **THEN** the record is persisted and lands in `recorded`, and any later correction creates a new record
   referencing the original rather than mutating it
 
 ### Requirement: The pupil's own voice (hoorrecht) is a first-class, non-optional field
