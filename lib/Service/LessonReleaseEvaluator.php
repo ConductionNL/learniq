@@ -96,11 +96,13 @@ class LessonReleaseEvaluator {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
+	 * @param AssessmentAccessPolicy $accessPolicy Live availability-window rules.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
+		private readonly AssessmentAccessPolicy $accessPolicy = new AssessmentAccessPolicy(),
 	) {
 	}//end __construct()
 
@@ -132,7 +134,7 @@ class LessonReleaseEvaluator {
 		$now = new DateTimeImmutable();
 
 		if ($itemSchema === self::ASSESSMENT_SCHEMA) {
-			$windowReason = $this->evaluateAbsoluteWindow(item: $item);
+			$windowReason = $this->evaluateAbsoluteWindow(item: $item, now: $now);
 			if ($windowReason !== null) {
 				return [
 					'available' => false,
@@ -178,24 +180,23 @@ class LessonReleaseEvaluator {
 	}//end evaluate()
 
 	/**
-	 * Check the item's materialised absolute availability window
-	 * (`Assessment.isAvailable`). Absent for schemas that carry no such
-	 * field (e.g. `Lesson`) — treated as "no absolute window", not blocked.
+	 * Check the item's absolute availability window, evaluated live from
+	 * availableFrom/availableUntil by AssessmentAccessPolicy (the stored
+	 * `isAvailable` goes stale the moment the window opens or closes, so it is
+	 * only a fallback for a row with neither date).
 	 *
 	 * @param array<string, mixed> $item The Assessment row.
+	 * @param DateTimeInterface $now Evaluation instant.
 	 *
 	 * @return string|null A block reason, or null when the window is open/absent.
 	 */
-	private function evaluateAbsoluteWindow(array $item): ?string {
-		if (array_key_exists('isAvailable', $item) === false) {
+	private function evaluateAbsoluteWindow(array $item, DateTimeInterface $now): ?string {
+		$block = $this->accessPolicy->windowBlock(assessment: $item, now: $now);
+		if ($block === null) {
 			return null;
 		}
 
-		if ($item['isAvailable'] === false) {
-			return 'This assessment is outside its available window.';
-		}
-
-		return null;
+		return $block['message'];
 	}//end evaluateAbsoluteWindow()
 
 	/**
