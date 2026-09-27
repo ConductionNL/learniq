@@ -38,8 +38,8 @@ Stacked on `segment-example-datasets-po` (learniq #1031), which is stacked on `s
 ## Verification
 - [x] All tasks checked off
 - [x] `openspec validate segment-example-datasets-corporate --strict` passes
-- [ ] Diff-scoped checks green (contract test, content test, register tests, schema-l10n, l10n-js, check:register, generator `--check`)
-- [ ] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates run once before push (inherited reds only; see the PR)
+- [x] Diff-scoped checks green (contract test, content test, schema-l10n, l10n-js, check:register, check:specs, generator `--check`); the register tests carry 5 inherited reds that fail identically on the base
+- [x] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates run once before push (inherited reds only; see the PR)
 
 ## Quality checklist
 - Tests: the contract test and the content test cover the set.

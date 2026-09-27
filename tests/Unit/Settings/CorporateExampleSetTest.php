@@ -267,8 +267,18 @@ class CorporateExampleSetTest extends TestCase {
 		$enrolments   = self::by(self::of('enrolment'), 'uuid');
 		$courses      = self::by(self::of('course'), 'uuid');
 		$issuedFor    = self::groupBy(self::of('credential'), 'enrolmentId');
+		$cohorts      = self::by(self::of('cohort'), 'uuid');
+		$sessionsOf   = self::groupBy(self::of('session'), 'cohortId');
+		$presentAt    = [];
+		foreach (self::of('attendance-record') as $mark) {
+			if ($mark['status'] === 'present') {
+				$presentAt[$mark['sessionId']][] = $mark['learnerId'];
+			}
+		}
+
 		$renewals     = 0;
 		$openRenewals = 0;
+		$classroom    = 0;
 		foreach (self::of('credential') as $credential) {
 			$expires = ($credential['expiresAt'] ?? null);
 			$lapsed  = ($expires !== null && substr($expires, 0, 10) <= self::LAST_DAY);
@@ -291,9 +301,18 @@ class CorporateExampleSetTest extends TestCase {
 			$next = ($issuedFor[$renewal['uuid']] ?? []);
 			self::assertCount(1, $next, $credential['slug'] . ' was renewed once');
 			self::assertGreaterThan(new DateTimeImmutable($expires), new DateTimeImmutable($next[0]['issuedAt']), $credential['slug']);
+			if (isset($cohorts[$renewal['cohortId']]['courseId']) === true) {
+				// A classroom renewal: the new certificate is issued when the
+				// last session of the group the employee attended ends.
+				$last = end($sessionsOf[$renewal['cohortId']]);
+				self::assertEquals(new DateTimeImmutable($last['endsAt']), new DateTimeImmutable($next[0]['issuedAt']), $credential['slug']);
+				self::assertContains($renewal['learnerId'], ($presentAt[$last['uuid']] ?? []), $credential['slug'] . ' attended the day');
+				$classroom++;
+			}
 		}//end foreach
 
 		self::assertGreaterThan(150, $renewals);
+		self::assertGreaterThan(40, $classroom, 'BHV, VCA, NEN 3140 and forklift renewals ran in classroom groups');
 		self::assertGreaterThan(0, $openRenewals, 'the year ends with renewals still open, as a real one does');
 	}//end testAnExpiryOpensARenewalThatIssuesTheNextCredential()
 
