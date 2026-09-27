@@ -28,6 +28,7 @@ use OCA\Learniq\Listener\SessionConflictListener;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Event\ObjectDeletedEvent;
 use OCA\OpenRegister\Event\ObjectDeletingEvent;
 use OCA\OpenRegister\Event\ObjectEventSubscription;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -222,6 +223,7 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 			ObjectCreatingEvent::class => new ObjectCreatingEvent($entity),
 			ObjectUpdatingEvent::class => new ObjectUpdatingEvent($entity, $before),
 			ObjectDeletingEvent::class => new ObjectDeletingEvent($entity),
+			ObjectDeletedEvent::class => new ObjectDeletedEvent($entity),
 			ObjectCreatedEvent::class => new ObjectCreatedEvent($entity),
 			ObjectUpdatedEvent::class => new ObjectUpdatedEvent($entity, $before),
 			ObjectTransitionedEvent::class => new ObjectTransitionedEvent($entity, 'minimal', 'draft', 'active', 'alice', 'learniq', 'minimal'),

@@ -161,9 +161,9 @@ class GradeFormulaEvaluator {
 	private function fetchPublishedEntries(string $curriculumPlanId, string $learnerId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::GRADE_ENTRY_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::GRADE_ENTRY_SCHEMA,
 					'learnerId' => $learnerId,
 					'curriculumPlanId' => $curriculumPlanId,
 					'lifecycle' => 'published',

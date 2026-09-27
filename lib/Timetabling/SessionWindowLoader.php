@@ -139,9 +139,13 @@ class SessionWindowLoader {
 
 			$results = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::SESSION_SCHEMA,
-					'filters' => $filters,
+					'filters' => array_merge(
+						$filters,
+						[
+							'register' => self::LEARNIQ_REGISTER,
+							'schema' => self::SESSION_SCHEMA,
+						]
+					),
 					'limit' => 2000,
 				]
 			);
@@ -177,9 +181,13 @@ class SessionWindowLoader {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::TIMETABLE_CONFLICT_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::TIMETABLE_CONFLICT_SCHEMA,
+					]
+				),
 				'limit' => 5000,
 			]
 		);
@@ -219,9 +227,13 @@ class SessionWindowLoader {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ASSESSMENT_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ASSESSMENT_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -270,9 +282,13 @@ class SessionWindowLoader {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::COHORT_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::COHORT_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -316,9 +332,13 @@ class SessionWindowLoader {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ROOM_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ROOM_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);

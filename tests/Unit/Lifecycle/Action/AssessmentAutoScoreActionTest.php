@@ -53,7 +53,7 @@ class AssessmentAutoScoreActionTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			static function (array $config) use ($assessment, $items): array {
-				if ($config['schema'] === 'exam') {
+				if ($config['filters']['schema'] === 'exam') {
 					return array_filter([$assessment]);
 				}
 

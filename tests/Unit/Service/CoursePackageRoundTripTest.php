@@ -86,7 +86,7 @@ class CoursePackageRoundTripTest extends TestCase {
 		);
 		$exportObjectService->method('findAll')->willReturnCallback(
 			static function (array $config): array {
-				return match ($config['schema']) {
+				return match ($config['filters']['schema']) {
 					'course' => [],
 					'lesson' => [['id' => 'lesson-source', 'name' => 'Introduction', 'order' => 1, 'contentType' => 'text', 'contentRef' => 'material-source', 'courseId' => 'course-source']],
 					'material' => [['id' => 'material-source', 'title' => 'Syllabus', 'kind' => 'document', 'fileRef' => '/Scholiq/materials/syllabus.pdf', 'courseId' => 'course-source']],

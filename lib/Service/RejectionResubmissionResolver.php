@@ -86,9 +86,13 @@ class RejectionResubmissionResolver {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::REJECTION_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::REJECTION_SCHEMA,
+					]
+				),
 				'limit' => ExchangeRejectionContract::MAX_REJECTIONS_PER_JOB,
 			]
 		);
@@ -256,9 +260,11 @@ class RejectionResubmissionResolver {
 	private function saveRejectionFields(string $rejectionId, array $fields): void {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::REJECTION_SCHEMA,
-				'filters' => ['id' => $rejectionId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::REJECTION_SCHEMA,
+					'id' => $rejectionId,
+				],
 				'limit' => 1,
 			]
 		);

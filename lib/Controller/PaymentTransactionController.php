@@ -476,9 +476,9 @@ class PaymentTransactionController extends Controller {
 	private function sumSucceededTransactions(string $orderId): float {
 		$transactions = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::PAYMENT_TRANSACTION_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::PAYMENT_TRANSACTION_SCHEMA,
 					'orderId' => $orderId,
 					'lifecycle' => 'succeeded',
 				],

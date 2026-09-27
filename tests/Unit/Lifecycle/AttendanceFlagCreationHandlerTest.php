@@ -88,7 +88,7 @@ class AttendanceFlagCreationHandlerTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $query) {
-				$schema = (string)($query['schema'] ?? '');
+				$schema = (string)($query['filters']['schema'] ?? '');
 				return $this->findAllResults[$schema] ?? [];
 			}
 		);

@@ -46,11 +46,11 @@ class BsaProgressEvaluatorTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($courses, $finalGrades) {
-				if ($config['schema'] === 'course') {
+				if ($config['filters']['schema'] === 'course') {
 					return $courses;
 				}
 
-				if ($config['schema'] === 'final-grade') {
+				if ($config['filters']['schema'] === 'final-grade') {
 					return $finalGrades;
 				}
 

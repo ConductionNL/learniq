@@ -76,7 +76,7 @@ class ReportPeriodLockGuardTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($reportPeriods) {
-				if ($config['schema'] === 'report-period') {
+				if ($config['filters']['schema'] === 'report-period') {
 					return $reportPeriods;
 				}
 

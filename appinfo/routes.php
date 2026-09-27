@@ -76,6 +76,20 @@ return [
         // Controller: CoursePackageExportController (slug: coursePackageExport).
         ['name' => 'coursePackageExport#export', 'url' => '/api/course-management/course-package-export', 'verb' => 'GET'],
 
+        // Course-package share export: the package meant to leave the school, behind
+        // the sharing gate and a CourseShareConsent (ADR-023: course-package.share).
+        // Controller: CourseSharingController (lesson-sharing-consent-gate).
+        ['name' => 'courseSharing#share', 'url' => '/api/course-management/course-package-share', 'verb' => 'POST'],
+
+        // Course store (ADR-080, lesson-sharing-via-store-plane). Learniq ships its own
+        // StoreController, so OpenRegister's Bootstrap::aliasStoreController() leaves these
+        // to it: search and resolve run through the engine's GenericStoreService; install
+        // imports a shared course as a copy (ADR-023: course-package.import); publish runs
+        // the sharing gate first (ADR-023: course-package.share).
+        ['name' => 'store#search',  'url' => '/api/store/items', 'verb' => 'GET'],
+        ['name' => 'store#install', 'url' => '/api/store/items/{slug}/install', 'verb' => 'POST', 'requirements' => ['slug' => '[a-z0-9][a-z0-9\\-]*[a-z0-9]']],
+        ['name' => 'store#publish', 'url' => '/api/store/publish', 'verb' => 'POST'],
+
         // Lesson onboarding from Word and PowerPoint files (office-file-lesson-onboarding):
         // the teacher's watched folder, and the import of one confirmed file (D17).
         // Listing and dismissing detected files go straight to OpenRegister.
@@ -127,6 +141,14 @@ return [
         // action matrix or a bare authenticated-user gate.
         // Controller: PeerReviewController (slug: peerReview).
         ['name' => 'peerReview#allocate', 'url' => '/api/peer-review/{assignmentId}/allocate', 'verb' => 'POST'],
+
+        // Peer review work projection (peer-review-projection-guard): what a
+        // reviewer sees of the work under review, built by the server. The
+        // authors are withheld for double-blind, the teacher's marking always.
+        // Authorized per object: the PeerReview's reviewer, or an admin.
+        // Controller: PeerReviewWorkController (slug: peerReviewWork).
+        ['name' => 'peerReviewWork#show', 'url' => '/api/peer-review/{peerReviewId}/work', 'verb' => 'GET'],
+        ['name' => 'peerReviewWork#file', 'url' => '/api/peer-review/{peerReviewId}/work/files/{fileId}', 'verb' => 'GET'],
 
         // Observability (ADR-006 / ADR-040) — AppHost generic controllers.
         // health#index → GenericHealthController (PUBLIC, declarative checks).

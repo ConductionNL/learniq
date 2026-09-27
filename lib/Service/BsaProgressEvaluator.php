@@ -123,9 +123,11 @@ class BsaProgressEvaluator {
 	private function fetchCourseCredits(string $programmeId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::COURSE_SCHEMA,
-				'filters' => ['programmeIds' => $programmeId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::COURSE_SCHEMA,
+					'programmeIds' => $programmeId,
+				],
 			]
 		);
 
@@ -163,9 +165,9 @@ class BsaProgressEvaluator {
 	private function fetchPassedFinalGrades(string $learnerId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::FINAL_GRADE_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::FINAL_GRADE_SCHEMA,
 					'learnerId' => $learnerId,
 					'passed' => true,
 				],

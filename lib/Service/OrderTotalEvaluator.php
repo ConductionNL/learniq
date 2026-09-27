@@ -82,9 +82,11 @@ class OrderTotalEvaluator {
 
 		$lines = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ORDER_LINE_SCHEMA,
-				'filters' => ['orderId' => $orderId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ORDER_LINE_SCHEMA,
+					'orderId' => $orderId,
+				],
 			]
 		);
 

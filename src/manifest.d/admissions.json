@@ -26,6 +26,15 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate",
+								"training"
+							]
 						}
 					}
 				},
@@ -41,6 +50,15 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate",
+								"training"
 							]
 						}
 					}
@@ -58,6 +76,15 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate",
+								"training"
+							]
 						}
 					}
 				},
@@ -73,6 +100,13 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"po",
+								"vo",
+								"corporate"
 							]
 						}
 					}

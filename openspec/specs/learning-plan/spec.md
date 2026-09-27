@@ -1,13 +1,15 @@
 ---
 slug: learning-plan
 title: Individual Learning Plan
-status: done
+status: in-progress
 feature_tier: must
 depends_on_adrs: [ADR-022, ADR-024, ADR-031]
 created: 2026-05-12
 updated: 2026-05-12
 profiles: [opp-passend-onderwijs, handelingsplan, iep, pdp-he, idp-corporate]
 replaces: [opp-cycle]
+openspec_changes:
+  - learner-lookup-and-learnerrefs-fixes
 ---
 
 # Individual Learning Plan

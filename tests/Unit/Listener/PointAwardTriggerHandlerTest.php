@@ -94,13 +94,13 @@ class PointAwardTriggerHandlerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				if ($config['schema'] === 'point-rule') {
+				if ($config['filters']['schema'] === 'point-rule') {
 					$kind = $config['filters']['kind'] ?? '';
 					return $this->rulesByKind[$kind] ?? [];
 				}
 
-				if ($config['schema'] === 'point-award') {
-					$filters = $config['filters'] ?? [];
+				if ($config['filters']['schema'] === 'point-award') {
+					$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 					foreach ($this->existingAwards as $existing) {
 						if (($existing['learnerId'] ?? null) === ($filters['learnerId'] ?? null)
 							&& ($existing['pointRuleId'] ?? null) === ($filters['pointRuleId'] ?? null)

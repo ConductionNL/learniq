@@ -76,6 +76,7 @@ class EventListenerWiring {
 	 */
 	public function bootFilteredListeners(IEventDispatcher $dispatcher, string $appId): void {
 		(new BootListenerRegistrar())->register(dispatcher: $dispatcher, appId: $appId);
+		(new CoverageListenerRegistrar())->register(dispatcher: $dispatcher, appId: $appId);
 
 	}//end bootFilteredListeners()
 }//end class

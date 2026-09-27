@@ -74,11 +74,11 @@ class CourseEvaluationResponseSubmittedHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($invitations, $callerUid) {
-				if ($config['schema'] !== 'evaluation-invitation') {
+				if ($config['filters']['schema'] !== 'evaluation-invitation') {
 					return [];
 				}
 
-				$filters = $config['filters'] ?? [];
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 				return array_values(
 					array_filter(
 						$invitations,

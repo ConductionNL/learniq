@@ -219,9 +219,9 @@ class LessonReleaseController extends Controller {
 	private function resolveEnrolment(string $learnerId, string $courseId): array {
 		$enrolments = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ENROLMENT_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ENROLMENT_SCHEMA,
 					'learnerId' => $learnerId,
 					'courseId' => $courseId,
 				],

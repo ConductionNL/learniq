@@ -127,9 +127,13 @@ class ProgrammePublishGuard implements LifecycleGuardInterface {
 
 		$plans = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'curriculum-plan',
-				'filters' => $planFilters,
+				'filters' => array_merge(
+					$planFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'curriculum-plan',
+					]
+				),
 				'limit' => 1,
 			]
 		);

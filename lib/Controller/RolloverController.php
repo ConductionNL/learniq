@@ -97,9 +97,11 @@ class RolloverController extends Controller {
 
 		$cohorts = $this->objectService->findAll(
 			[
-				'register' => 'learniq',
-				'schema' => 'cohort',
-				'filters' => ['academicYear' => $fromAcademicYear],
+				'filters' => [
+					'register' => 'learniq',
+					'schema' => 'cohort',
+					'academicYear' => $fromAcademicYear,
+				],
 			]
 		);
 

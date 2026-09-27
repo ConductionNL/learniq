@@ -241,8 +241,10 @@ class PrivacyGovernanceController extends Controller {
 		try {
 			$jobs = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::DATA_EXCHANGE_JOB_SCHEMA,
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::DATA_EXCHANGE_JOB_SCHEMA,
+					],
 				]
 			);
 		} catch (Throwable $e) {
