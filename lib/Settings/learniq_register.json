@@ -20845,7 +20845,12 @@
                         "generate": {
                             "from": "requested",
                             "to": "generated",
-                            "requires": "OCA\\Learniq\\Service\\LearningRecordExportService"
+                            "requires": "OCA\\Learniq\\Service\\LearningRecordExportService",
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\LearningRecordExportGenerateAction"
+                                }
+                            ]
                         }
                     }
                 },

@@ -14,14 +14,14 @@
  * of input), stores the bundle as an nc:files attachment (`bundleRef`), and
  * delegates signing to `LearningRecordExportSigningService`.
  *
- * Fails closed: any failure sets `errorMessage` and blocks the transition —
- * never leaves partial bundle state, the identical shape
- * `WalletOfferDelegationService::check()`/`CredentialSigningService
- * ::check()` already establish.
+ * Fails closed: the guard refuses `generate` when there is no learner,
+ * tenant or signing key, and generate() throws on any later failure, which
+ * aborts the transition — never leaves partial bundle state.
  *
  * Legitimate PHP per ADR-031 "Lifecycle guard" — referenced from
  * `LearningRecordExport`'s `x-openregister-lifecycle.transitions.generate
- * .requires` in learniq_register.json.
+ * .requires` in learniq_register.json. The bundle is written by the
+ * transition's LearningRecordExportGenerateAction (learniq#983).
  *
  * @category Service
  * @package  OCA\Learniq\Service
@@ -46,7 +46,10 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
+use RuntimeException;
 
 /**
  * Guards `LearningRecordExport`'s `generate` transition and assembles the
@@ -54,9 +57,19 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/changes/portable-learning-record/tasks.md#task-2-3
  */
-class LearningRecordExportService {
+class LearningRecordExportService implements LifecycleGuardInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
+
+	/**
+	 * Refusal when the export names no learner or tenant.
+	 */
+	private const MISSING_SUBJECT = 'Missing learnerRef or tenant_id — cannot compose a record to export.';
+
+	/**
+	 * Refusal when the tenant has no signing key.
+	 */
+	private const MISSING_KEY = 'No signing key configured for this tenant — an admin must generate one before an export can be signed.';
 
 	/**
 	 * Schemas whose per-item timestamp is unambiguous enough to apply
@@ -109,33 +122,61 @@ class LearningRecordExportService {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point for `LearningRecordExport`'s `generate`
-	 * transition.
+	 * OpenRegister lifecycle guard entry-point for `LearningRecordExport`'s
+	 * `generate` transition.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the LearningRecordExport data array
-	 *                                               - 'transition' : 'generate'
-	 *                                               - 'from'       : 'requested'
-	 *                                               - 'to'         : 'generated'
+	 * Refuses the transition when the export can not be composed or signed:
+	 * a missing learnerRef or tenant, or no signing key for the tenant. The
+	 * bundle itself is assembled by generate(), run by the transition's
+	 * {@see \OCA\Learniq\Lifecycle\Action\LearningRecordExportGenerateAction},
+	 * because OpenRegister hands a guard the object by value (learniq#983).
 	 *
-	 * @return bool True when the bundle was assembled and signed; false blocks the transition.
+	 * @param array<string,mixed> $object The LearningRecordExport as it would be saved.
+	 * @param string $action The transition, `generate`.
+	 * @param string $userId The caller, or '' without a session.
+	 *
+	 * @return GuardResult
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
+	 *
+	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-generation-fails-closed-and-blocks-the-transition-on-error
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		$tenantId = (string)($object['tenant_id'] ?? '');
+		if ((string)($object['learnerRef'] ?? '') === '' || $tenantId === '') {
+			return GuardResult::deny(self::MISSING_SUBJECT);
+		}
+
+		if ($this->signingService->resolveIssuerDid(tenantId: $tenantId) === null) {
+			return GuardResult::deny(self::MISSING_KEY);
+		}
+
+		return GuardResult::allow();
+	}//end check()
+
+	/**
+	 * Assemble, sign and store the export bundle.
+	 *
+	 * @param array<string,mixed> $export The LearningRecordExport data array.
+	 *
+	 * @return array<string,mixed> The export with coverageReport, bundleRef, bundleSignature,
+	 *                             issuerDid and generatedAt set and errorMessage cleared.
+	 *
+	 * @throws RuntimeException When the bundle can not be composed, signed or stored.
 	 *
 	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-generated-export-names-every-source-object-s-outcome
 	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-generation-fails-closed-and-blocks-the-transition-on-error
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = &$transitionContext['object'];
-
-		$learnerRef = (string)($object['learnerRef'] ?? '');
-		$learnerId = (string)($object['learnerId'] ?? '');
-		$requestedBy = (string)($object['requestedBy'] ?? '');
-		$tenantId = (string)($object['tenant_id'] ?? '');
-		$periodFrom = $object['periodFrom'] ?? null;
-		$periodTo = $object['periodTo'] ?? null;
+	public function generate(array $export): array {
+		$learnerRef = (string)($export['learnerRef'] ?? '');
+		$learnerId = (string)($export['learnerId'] ?? '');
+		$requestedBy = (string)($export['requestedBy'] ?? '');
+		$tenantId = (string)($export['tenant_id'] ?? '');
+		$periodFrom = $export['periodFrom'] ?? null;
+		$periodTo = $export['periodTo'] ?? null;
 
 		if ($learnerRef === '' || $tenantId === '') {
-			$object['errorMessage'] = 'Missing learnerRef or tenant_id — cannot compose a record to export.';
-			return false;
+			throw new RuntimeException(self::MISSING_SUBJECT);
 		}
 
 		$composition = $this->aggregationService->compose(learnerRef: $learnerRef);
@@ -155,8 +196,7 @@ class LearningRecordExportService {
 
 		$issuerDid = $this->signingService->resolveIssuerDid(tenantId: $tenantId);
 		if ($issuerDid === null) {
-			$object['errorMessage'] = 'No signing key configured for this tenant — an admin must generate one before an export can be signed.';
-			return false;
+			throw new RuntimeException(self::MISSING_KEY);
 		}
 
 		$generatedAt = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
@@ -174,8 +214,7 @@ class LearningRecordExportService {
 
 		$jws = $this->signingService->sign(bundle: $bundle, tenantId: $tenantId);
 		if ($jws === null) {
-			$object['errorMessage'] = 'Signing the export bundle failed.';
-			return false;
+			throw new RuntimeException('Signing the export bundle failed.');
 		}
 
 		// The stored/downloadable artifact is fully self-contained: the
@@ -193,7 +232,7 @@ class LearningRecordExportService {
 			'jws' => $jws,
 		];
 
-		$exportId = (string)($object['id'] ?? ($object['uuid'] ?? bin2hex(random_bytes(8))));
+		$exportId = (string)($export['id'] ?? ($export['uuid'] ?? bin2hex(random_bytes(8))));
 
 		$ownerUid = $requestedBy;
 		if ($learnerId !== '') {
@@ -207,19 +246,18 @@ class LearningRecordExportService {
 			exportId: $exportId
 		);
 		if ($bundleRef === null) {
-			$object['errorMessage'] = 'Could not store the signed bundle.';
-			return false;
+			throw new RuntimeException('Could not store the signed bundle.');
 		}
 
-		$object['coverageReport'] = $coverageReport;
-		$object['bundleRef'] = $bundleRef;
-		$object['bundleSignature'] = $jws;
-		$object['issuerDid'] = $issuerDid;
-		$object['generatedAt'] = $generatedAt;
-		$object['errorMessage'] = null;
+		$export['coverageReport'] = $coverageReport;
+		$export['bundleRef'] = $bundleRef;
+		$export['bundleSignature'] = $jws;
+		$export['issuerDid'] = $issuerDid;
+		$export['generatedAt'] = $generatedAt;
+		$export['errorMessage'] = null;
 
-		return true;
-	}//end check()
+		return $export;
+	}//end generate()
 
 	/**
 	 * Walk the composed collections, deciding per row whether it is exported,
