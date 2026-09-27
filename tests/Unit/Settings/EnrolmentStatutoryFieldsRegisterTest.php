@@ -116,29 +116,65 @@ class EnrolmentStatutoryFieldsRegisterTest extends TestCase {
 	}//end testLeerjaarIsABoundedIntegerNotParsedFromCohortName()
 
 	/**
-	 * The seed fixtures put two Enrolments on the same "Groep 5/6" Cohort
-	 * seed (from school-and-location-records) with independent leerjaar
-	 * values 5 and 6, proving the per-pupil (not per-cohort-name) shape.
+	 * The primary school example set puts pupils in leerjaar 5 and 6 on the
+	 * same "Groep 5/6" Cohort, proving the per-pupil (not per-cohort-name)
+	 * leerjaar shape, each with an inschrijving date and a volgnummer.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testSeedFixturesExerciseCombinationGroupLeerjaarSplit(): void {
-		$cohortSeeds = $this->config['components']['schemas']['Cohort']['x-openregister-seed'];
-		self::assertSame('Groep 5/6', $cohortSeeds[0]['name']);
-		$cohortId = $cohortSeeds[0]['id'];
-
-		$enrolmentSeeds = $this->config['components']['schemas']['Enrolment']['x-openregister-seed'];
-		self::assertCount(2, $enrolmentSeeds);
+		$cohortId = self::poObject(schema: 'cohort', field: 'name', value: 'Groep 5/6')['uuid'];
 
 		$onThisCohort = array_values(array_filter(
-			$enrolmentSeeds,
+			self::poObjects(schema: 'enrolment'),
 			static fn (array $e): bool => $e['cohortId'] === $cohortId
 		));
-		self::assertCount(2, $onThisCohort);
+		self::assertGreaterThanOrEqual(2, count($onThisCohort));
 
-		$leerjaren = array_column($onThisCohort, 'leerjaar');
+		$leerjaren = array_values(array_unique(array_column($onThisCohort, 'leerjaar')));
 		sort($leerjaren);
 		self::assertSame([5, 6], $leerjaren);
 
+		foreach ($onThisCohort as $enrolment) {
+			self::assertNotNull($enrolment['inschrijvingDate']);
+			self::assertIsInt($enrolment['volgnummer']);
+		}
+
 	}//end testSeedFixturesExerciseCombinationGroupLeerjaarSplit()
+
+	/**
+	 * The objects of one schema in the primary school example set, where the
+	 * curated primary school seeds moved to (segment-example-datasets-po).
+	 *
+	 * @param string $schema The schema slug.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function poObjects(string $schema): array {
+		$path = __DIR__ . '/../../../lib/Settings/profiles/po.json';
+		$set  = json_decode((string)file_get_contents($path), true);
+
+		return ($set['x-openregister']['seedData']['objects'][$schema] ?? []);
+	}//end poObjects()
+
+	/**
+	 * The first object of a schema in the example set whose field equals a value.
+	 *
+	 * @param string $schema The schema slug.
+	 * @param string $field  The field to match.
+	 * @param mixed  $value  The value it must hold.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function poObject(string $schema, string $field, mixed $value): array {
+		foreach (self::poObjects(schema: $schema) as $object) {
+			if (($object[$field] ?? null) === $value) {
+				return $object;
+			}
+		}
+
+		self::fail('No ' . $schema . ' with ' . $field . ' = ' . json_encode($value) . ' in the primary school example set.');
+	}//end poObject()
 }//end class
