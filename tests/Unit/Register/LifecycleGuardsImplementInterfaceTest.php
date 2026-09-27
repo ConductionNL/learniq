@@ -36,28 +36,6 @@ use ReflectionNamedType;
 class LifecycleGuardsImplementInterfaceTest extends TestCase {
 
 	/**
-	 * Guards not converted yet, each owned by a follow-up PR on learniq#983.
-	 * The list may only shrink: an entry that now implements the interface
-	 * fails the test until it is removed here.
-	 *
-	 * @var list<string>
-	 */
-	private const PENDING = [
-		// Write data inside the guard; the write moves to an action (learniq#983 part B).
-		'OCA\\Learniq\\Lifecycle\\AttestationSigningGuard',
-		'OCA\\Learniq\\Lifecycle\\BsaDecisionGuard',
-		'OCA\\Learniq\\Lifecycle\\BsaWarningSigningGuard',
-		'OCA\\Learniq\\Lifecycle\\ExamAccommodationApprovalGuard',
-		'OCA\\Learniq\\Lifecycle\\ExternalTrainingVerificationGuard',
-		'OCA\\Learniq\\Lifecycle\\FraudCaseDecisionGuard',
-		'OCA\\Learniq\\Lifecycle\\MunicipalityFeedbackGuard',
-		'OCA\\Learniq\\Lifecycle\\RejectionResubmitGuard',
-		'OCA\\Learniq\\Lifecycle\\RejectionWaiveGuard',
-		'OCA\\Learniq\\Lifecycle\\OsoImportAcceptGuard',
-		'OCA\\Learniq\\Lifecycle\\OsoImportRejectGuard',
-	];
-
-	/**
 	 * Collect every `requires` value with the transitions that name it.
 	 *
 	 * @return array<string, list<string>> Guard class => list of "schema.action".
@@ -93,17 +71,13 @@ class LifecycleGuardsImplementInterfaceTest extends TestCase {
 	}//end testRegisterNamesGuards()
 
 	/**
-	 * Every guard outside PENDING resolves to a class OpenRegister can run.
+	 * Every guard resolves to a class OpenRegister can run. There is no exemption list.
 	 *
 	 * @return void
 	 */
 	public function testEveryRequiredGuardImplementsTheInterface(): void {
 		$broken = [];
 		foreach (self::requiredGuards() as $class => $transitions) {
-			if (in_array($class, self::PENDING, true) === true) {
-				continue;
-			}
-
 			$problem = self::problemWith(class: $class);
 			if ($problem !== null) {
 				$broken[] = sprintf('%s (%s): %s', $class, implode(', ', $transitions), $problem);
@@ -112,28 +86,6 @@ class LifecycleGuardsImplementInterfaceTest extends TestCase {
 
 		self::assertSame([], $broken, "Guards OpenRegister cannot run:\n" . implode("\n", $broken));
 	}//end testEveryRequiredGuardImplementsTheInterface()
-
-	/**
-	 * PENDING only shrinks: a converted or unreferenced entry must be removed.
-	 *
-	 * @return void
-	 */
-	public function testPendingListHoldsOnlyUnconvertedGuards(): void {
-		$guards = self::requiredGuards();
-		$stale = [];
-		foreach (self::PENDING as $class) {
-			if (isset($guards[$class]) === false) {
-				$stale[] = $class . ': no longer named by any transition';
-				continue;
-			}
-
-			if (self::problemWith(class: $class) === null) {
-				$stale[] = $class . ': implements the interface now, remove it from PENDING';
-			}
-		}
-
-		self::assertSame([], $stale, implode("\n", $stale));
-	}//end testPendingListHoldsOnlyUnconvertedGuards()
 
 	/**
 	 * Describe why OpenRegister's registry would refuse a class, or null when it would not.
