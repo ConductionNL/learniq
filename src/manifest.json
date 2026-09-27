@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/ConductionNL/nextcloud-vue/raw/main/src/schemas/app-manifest-v2.schema.json",
   "setup": {
-    "version": 1,
+    "version": 2,
     "completionConfigKey": "setup_completed_version",
     "steps": [
       {
@@ -11,22 +11,43 @@
         "body": "A short setup to get this app ready. Nothing here is required; you can close it and come back later."
       },
       {
-        "id": "demo-data",
+        "id": "example-set",
         "type": "choice",
         "display": "cards",
-        "optionsSource": "datasets",
-        "configKey": "demo_dataset",
-        "title": "Load example data?",
+        "optionsSource": "profiles",
+        "configKey": "example_profile",
+        "multiple": false,
+        "title": "Which example data do you want?",
         "required": false,
-        "body": "Example data fills the lists, detail pages and dashboards so you can see the app working straight away. Pick \"None\" on a production install."
+        "body": "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install."
       },
       {
-        "id": "load-demo-data",
+        "id": "load-example-set",
         "type": "run-action",
-        "action": "load-demo-data",
+        "action": "load-example-set",
         "title": "Load the example data",
         "required": false,
-        "body": "Loads what you picked. The data is obviously sample data, it is safe to run more than once, and you can delete it afterwards."
+        "body": "Loads the set you picked. It is sample data, and running it twice adds nothing. Remove a set later with occ learniq:example-set:remove."
+      },
+      {
+        "id": "segment",
+        "type": "choice",
+        "display": "cards",
+        "optionsSource": "segments",
+        "configKey": "segment",
+        "multiple": false,
+        "suggestFrom": "example_profile",
+        "suggestMap": {
+          "po": "po",
+          "vo": "vo",
+          "mbo": "mbo",
+          "he": "he",
+          "corporate": "corporate",
+          "training": "training"
+        },
+        "title": "What kind of organisation is this?",
+        "required": false,
+        "body": "Pick the one that fits best. You can change it later under App settings."
       },
       {
         "id": "done",
