@@ -40,6 +40,10 @@ By the end you will have at least one programme and one cohort in Scholiq, with 
 
    ![Cohort timetable](/screenshots/tutorials/admin/01-school-structure-05.png)
 
+## Record staff functions
+
+Open **People > Staff** and pick the functions each person holds, such as *Exam secretary*, *Career counsellor* or *Confidential counsellor*. A function tells colleagues who does what. It gives no access. What someone can open depends on their groups, which the Nextcloud admin sets.
+
 ## Verification
 
 The structure is in place when: the Programmes list has at least one row, the Cohorts list has at least one cohort linked to that programme, and the cohort detail page shows members and a timetable.

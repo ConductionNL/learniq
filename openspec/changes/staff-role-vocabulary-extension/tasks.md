@@ -31,6 +31,9 @@
 - [x] Implement
 - [x] Test
 
+## Documentation
+- `docs/user-guide/admin/01-school-structure.md` gains a short "Record staff functions" section.
+
 ## Quality checklist
 - No new PHP business logic; register-shape tests cover the change.
 - No API endpoint change, so no Newman update.
