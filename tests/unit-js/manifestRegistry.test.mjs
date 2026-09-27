@@ -66,6 +66,13 @@ test('every custom page names a component the registry has', () => {
 			}
 		}
 	}
-	assert.ok(checked > 40, `only ${checked} custom pages found; is the manifest read?`)
-	assert.deepEqual(missing, [], 'these custom pages would render "This page is empty"')
+	assert.ok(
+		checked > 40,
+		`only ${checked} custom pages found; is the manifest read?`,
+	)
+	assert.deepEqual(
+		missing,
+		[],
+		'these custom pages would render "This page is empty"',
+	)
 })
