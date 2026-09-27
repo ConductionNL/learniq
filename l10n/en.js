@@ -1398,7 +1398,17 @@ OC.L10N.register(
         "Payment Request Sent At": "Payment Request Sent At",
         "When staff last recorded sending a payment request for this order to the payer, or null if none was sent (payment-request-ux). Set via the generic object-edit form — no bespoke controller, per ADR-022.": "When staff last recorded sending a payment request for this order to the payer, or null if none was sent (payment-request-ux). Set via the generic object-edit form — no bespoke controller, per ADR-022.",
         "Payment Request Sent By": "Payment Request Sent By",
-        "Nextcloud user id of the staff member who last recorded sending a payment request, or null if none was sent.": "Nextcloud user id of the staff member who last recorded sending a payment request, or null if none was sent."
+        "Nextcloud user id of the staff member who last recorded sending a payment request, or null if none was sent.": "Nextcloud user id of the staff member who last recorded sending a payment request, or null if none was sent.",
+        "Plagiarism Check Status": "Plagiarism Check Status",
+        "Status of a plagiarism check for this submission (finding 6.11). Set to 'pending' when a provider check is submitted (OCA\\Learniq\\Plagiarism\\ProvidesPlagiarismCheck::submitForCheck()), 'completed' once a score is available. No built-in provider ships with learniq — this is the data-model landing spot only.": "Status of a plagiarism check for this submission (finding 6.11). Set to 'pending' when a provider check is submitted (OCA\\Learniq\\Plagiarism\\ProvidesPlagiarismCheck::submitForCheck()), 'completed' once a score is available. No built-in provider ships with learniq — this is the data-model landing spot only.",
+        "Plagiarism Similarity Score": "Plagiarism Similarity Score",
+        "Similarity score in [0.0, 1.0] as returned by ProvidesPlagiarismCheck::getSimilarityScore(). Null until plagiarismStatus is 'completed'.": "Similarity score in [0.0, 1.0] as returned by ProvidesPlagiarismCheck::getSimilarityScore(). Null until plagiarismStatus is 'completed'.",
+        "Plagiarism Checked At": "Plagiarism Checked At",
+        "Timestamp the plagiarism check completed. Null until plagiarismStatus is 'completed'.": "Timestamp the plagiarism check completed. Null until plagiarismStatus is 'completed'.",
+        "Method Name": "Method Name",
+        "The teaching method this mark came from (e.g. 'Wereld in Getallen', 'Snappet'), set when sourceKind=method-test (finding 6.6). Null for every other sourceKind.": "The teaching method this mark came from (e.g. 'Wereld in Getallen', 'Snappet'), set when sourceKind=method-test (finding 6.6). Null for every other sourceKind.",
+        "Method Block": "Method Block",
+        "The method's block/unit this mark covers (e.g. 'blok 3'), set when sourceKind=method-test. Null for every other sourceKind.": "The method's block/unit this mark covers (e.g. 'blok 3'), set when sourceKind=method-test. Null for every other sourceKind."
     },
     "nplurals=2; plural=(n != 1);"
 )
