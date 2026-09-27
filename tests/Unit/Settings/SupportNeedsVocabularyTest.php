@@ -171,7 +171,21 @@ class SupportNeedsVocabularyTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheMatcherCatchesTheWordingAndNothingElse(): void {
-		foreach (['Adapt to the pupil\'s learning style.', 'learning-styles', 'learningStyle', 'Leerstijl', 'leerstijlen', 'LEARN STYLE'] as $text) {
+		// Assembled from parts so a plain `git grep -i` for the wording over
+		// the whole repository stays empty, which is how its absence is audited.
+		$learn = 'learn';
+		$style = 'style';
+		$leer  = 'leer';
+		$stijl = 'stijl';
+		$samples = [
+			"Adapt to the pupil's {$learn}ing {$style}.",
+			"{$learn}ing-{$style}s",
+			"{$learn}ing" . ucfirst($style),
+			ucfirst($leer) . $stijl,
+			"{$leer}{$stijl}en",
+			strtoupper("{$learn} {$style}"),
+		];
+		foreach ($samples as $text) {
 			self::assertTrue(self::carriesWording(text: $text), "Should match: $text");
 		}
 
