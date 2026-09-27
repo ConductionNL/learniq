@@ -446,8 +446,8 @@
 			"route": "/enrolments/bulk",
 			"type": "custom",
 			"title": "Bulk Enrol",
-			"component": "CnWizardDialog",
-			"_note": "Mounts CnWizardDialog from @conduction/nextcloud-vue for the multi-step bulk-enrol flow (audience picker → course/section → confirm + batch progress)."
+			"component": "BulkEnrolView",
+			"_note": "Mounts BulkEnrolView (learniq#947): a course plus a cohort and/or picked learners; learners with an open enrolment are skipped."
 		},
 		{
 			"id": "CredentialDetail",
@@ -1139,8 +1139,8 @@
 			"route": "/attendance/excuses/submit",
 			"type": "custom",
 			"title": "Submit excuse",
-			"component": "CnRichSubmitDialog",
-			"_note": "Mounts CnRichSubmitDialog from @conduction/nextcloud-vue for excuse submission (file attachment + reason taxonomy)."
+			"component": "SubmitExcuseView",
+			"_note": "Mounts SubmitExcuseView (learniq#947): a staff form that records an ExcuseRequest for a learner."
 		},
 		{
 			"id": "LearnerProfiles",

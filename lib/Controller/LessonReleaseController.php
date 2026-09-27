@@ -31,6 +31,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Service\AssessmentAccessFacts;
 use OCA\Learniq\Service\LessonReleaseEvaluator;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCP\AppFramework\Controller;
@@ -75,6 +76,7 @@ class LessonReleaseController extends Controller {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LessonReleaseEvaluator $releaseEvaluator Stateless release-gate evaluator.
 	 * @param DashboardRoleService $dashboardRoleService Resolves the caller's Learniq role/views.
+	 * @param AssessmentAccessFacts $accessFacts Attempt-gate facts for an Assessment.
 	 */
 	public function __construct(
 		IRequest $request,
@@ -82,6 +84,7 @@ class LessonReleaseController extends Controller {
 		private readonly ObjectService $objectService,
 		private readonly LessonReleaseEvaluator $releaseEvaluator,
 		private readonly DashboardRoleService $dashboardRoleService,
+		private readonly AssessmentAccessFacts $accessFacts,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 
@@ -177,15 +180,19 @@ class LessonReleaseController extends Controller {
 			enrolment: $enrolment
 		);
 
-		return new JSONResponse(
-			data: [
-				'available' => $result['available'],
-				'reason' => $result['reason'],
-				'availableAt' => $result['availableAt'],
-			]
-		);
+		$data = [
+			'available' => $result['available'],
+			'reason' => $result['reason'],
+			'availableAt' => $result['availableAt'],
+		];
+		if ($itemSchema === self::ASSESSMENT_SCHEMA) {
+			$data = array_merge($data, $this->accessFacts->assessmentAccess(assessmentId: $itemId, item: $item));
+		}
+
+		return new JSONResponse(data: $data);
 
 	}//end resolveStatus()
+
 
 	/**
 	 * Whether the caller holds a Learniq staff (admin/teacher-equivalent)
