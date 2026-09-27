@@ -82,6 +82,9 @@ import CoursePackageImportView from './views/CoursePackageImportView.vue'
 // coordinator/opleidingscommissie view of a course's CourseQualityScore
 // trend over time, response rate, and raw free-text answers.
 import CourseQualityReport from './views/CourseQualityReport.vue'
+// curriculum-coverage-matrix-view: goals by year with planned and assessed
+// marked, plus the gap list per subject and year (read-only CnDataMatrix).
+import CurriculumCoverageMatrixView from './views/CurriculumCoverageMatrixView.vue'
 // Per-role dashboard route wrappers (group-gated menu items; replaces the
 // single role-switcher dashboard).
 import DashboardAdmin from './views/DashboardAdmin.vue'
@@ -255,6 +258,7 @@ export default {
 	CourseBuilder: page(CourseBuilder),
 	CoursePackageImportView: page(CoursePackageImportView),
 	CourseQualityReport: page(CourseQualityReport),
+	CurriculumCoverageMatrixView: page(CurriculumCoverageMatrixView),
 	DashboardAdmin: page(DashboardAdmin),
 	DashboardTeacher: page(DashboardTeacher),
 	DashboardStudent: page(DashboardStudent),

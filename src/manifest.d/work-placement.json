@@ -107,6 +107,12 @@
 						"administration-manager",
 						"admin"
 					]
+				},
+				"workspace.segment": {
+					"in": [
+						"mbo",
+						"corporate"
+					]
 				}
 			}
 		}

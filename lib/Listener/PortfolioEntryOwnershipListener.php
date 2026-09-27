@@ -97,11 +97,7 @@ class PortfolioEntryOwnershipListener implements IEventListener {
 			return;
 		}
 
-		$entity = $event->getObject();
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			$entity = $event->getNewObject();
-		}
-
+		$entity = $this->writtenEntity(event: $event);
 		$uid = $this->policedUid(entity: $entity);
 		if ($uid === null) {
 			return;
@@ -121,6 +117,27 @@ class PortfolioEntryOwnershipListener implements IEventListener {
 		$event->stopPropagation();
 		$this->logger->info('[PortfolioEntryOwnershipListener] Refused a portfolio entry by {uid}.', ['uid' => $uid]);
 	}//end handle()
+
+	/**
+	 * The object being written, read through the accessor each event really has.
+	 *
+	 * ObjectUpdatingEvent has no getObject(): its accessors are getNewObject()
+	 * and getOldObject(). Calling getObject() on it was a fatal error on every
+	 * object update in the instance (learniq#1046).
+	 *
+	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The pre-write event.
+	 *
+	 * @return ObjectEntity The object as it will be stored.
+	 *
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-a-learner-runs-the-transitions-on-their-own-rows
+	 */
+	private function writtenEntity(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
+		if ($event instanceof ObjectUpdatingEvent === true) {
+			return $event->getNewObject();
+		}
+
+		return $event->getObject();
+	}//end writtenEntity()
 
 	/**
 	 * The caller to police: a signed-in user who is neither an admin nor staff,
