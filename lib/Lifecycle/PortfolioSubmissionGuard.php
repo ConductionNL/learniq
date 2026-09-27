@@ -40,6 +40,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -55,7 +57,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
  */
-class PortfolioSubmissionGuard {
+class PortfolioSubmissionGuard implements LifecycleGuardInterface {
 
 	/**
 	 * OR register slug for Learniq objects.
@@ -77,33 +79,53 @@ class PortfolioSubmissionGuard {
 	 *
 	 * @param ObjectService $objectService OR object service for fetching the template + entries.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param LearnerCaller $learnerCaller Decides whether the caller is the portfolio's learner.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly LearnerCaller $learnerCaller,
 	) {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * OpenRegister lifecycle guard entry-point for `submit`.
 	 *
-	 * Called by OpenRegister's lifecycle engine before executing the `submit`
-	 * transition on a Portfolio object.
+	 * Only the portfolio's learner hands it in (administrators and system calls
+	 * are not refused), and only once every required section has evidence.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the Portfolio data array
-	 *                                               - 'transition' : 'submit'
-	 *                                               - 'from'       : 'draft'|'active'
-	 *                                               - 'to'         : 'submitted'
+	 * @param array<string,mixed> $object The Portfolio as it would be saved.
+	 * @param string $action The transition, `submit`.
+	 * @param string $userId The caller, or '' without a session.
 	 *
-	 * @return bool True to allow the transition; false blocks it (HTTP 422 from OR engine).
+	 * @return GuardResult
+	 *
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-a-learner-runs-the-transitions-on-their-own-rows
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->learnerCaller->isNamed(userId: $userId, named: ($object['learnerId'] ?? null)) === false) {
+			return GuardResult::deny(sprintf('Only the learner this portfolio belongs to can %s it.', $action));
+		}
+
+		if ($this->allows(portfolio: $object) === false) {
+			return GuardResult::deny('Every required section needs at least one evidence entry.');
+		}
+
+		return GuardResult::allow();
+	}//end check()
+
+	/**
+	 * Whether the portfolio's evidence covers its template.
+	 *
+	 * @param array<string,mixed> $portfolio The Portfolio data array.
+	 *
+	 * @return bool True to allow the transition; false blocks it.
 	 *
 	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
 	 */
-	public function check(array &$transitionContext): bool {
-		$portfolio = $transitionContext['object'] ?? [];
+	private function allows(array $portfolio): bool {
 		$portfolioId = $portfolio['id'] ?? ($portfolio['uuid'] ?? '');
 		$templateId = $portfolio['templateId'] ?? null;
 
@@ -158,7 +180,7 @@ class PortfolioSubmissionGuard {
 		);
 
 		return true;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Collect the section ids a PortfolioTemplate declares as required.

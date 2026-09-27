@@ -823,15 +823,15 @@
       "area": "compliance",
       "name": "Stop anyone editing a signed attestation afterwards.",
       "built": {
-        "state": "built",
-        "evidence": "lib/Settings/learniq_register.json Attestation.appendOnly true, HMAC signature plus signingKeyId",
+        "state": "building",
+        "evidence": "lib/Settings/learniq_register.json Attestation is no longer appendOnly (learniq#977): appendOnly refused the sign transition itself, so nothing was ever signed. lib/Lifecycle/AttestationSigningGuard.php HMAC signature plus signingKeyId makes an edit after signing detectable; nothing refuses it yet, since hr and compliance-officers keep update for revoke",
         "owner": "ConductionNL/openregister"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "compliance-evidence",
       "featureConfidence": "medium",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "no",
@@ -1409,7 +1409,7 @@
       "name": "Keep a certificate visible to its holder and your admins, nobody else.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json Credential.x-property-rbac.read, learnerId eq $userId or role admin",
+        "evidence": "lib/Settings/learniq_register.json Credential.authorization.read: learnerId eq $userId, hr, compliance-officers; admins pass the admin bypass (learniq#963; x-property-rbac is not read by Open Register, and the group-only block refused the holder until then)",
         "owner": "ConductionNL/openregister"
       },
       "provider": "openregister",
@@ -2890,11 +2890,11 @@
       "name": "Lock a finished attempt so nobody can change the answers afterwards.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json AssessmentResult.appendOnly true",
-        "owner": "ConductionNL/openregister"
+        "evidence": "lib/Listener/AssessmentResultIntegrityListener.php refuses any change to a submitted attempt's answers (FROZEN_FIELDS), makes a graded attempt final and refuses deletes; AssessmentResult is no longer appendOnly (learniq#978), tests/Unit/Listener/AssessmentResultIntegrityListenerTest.php. Finishing an attempt is itself blocked by the submit guard until learniq#983",
+        "owner": "ConductionNL/learniq"
       },
-      "provider": "openregister",
-      "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "assessment",
       "featureConfidence": "medium",
       "learniq": "yes",
@@ -3209,7 +3209,7 @@
       "name": "Let a learner hand in a file from their own drive.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.Submission references Nextcloud files; src/manifest.d/learning.json SubmitWorkModal",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.Submission references Nextcloud files; src/views/SubmitWorkView.vue creates the draft as the learner, which Submission.authorization allows since learniq#973 (create for signed-in users, update on the learner's own draft; SubmissionWindowGuard refuses a hand-in in another learner's name); src/manifest.d/learning.json SubmitWorkModal",
         "owner": "ConductionNL/learniq"
       },
       "provider": "nextcloud",
@@ -3296,7 +3296,7 @@
       "name": "Mark work against a rubric with weighted criteria.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.Rubric; src/manifest.d/learning.json MarkSubmissionView",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.Rubric; src/manifest.d/learning.json MarkSubmissionView; Submission.authorization grants instructors read and update since learniq#973",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -4166,7 +4166,7 @@
       "name": "Evaluate a plan on the agreed date and record the outcome.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.LearningPlanEvaluation, appendOnly; lib/Listener/LearningPlanEvaluationHandler.php",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.LearningPlanEvaluation (not appendOnly since learniq#977, so its record transition runs); lib/Listener/LearningPlanEvaluationHandler.php",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -4282,7 +4282,7 @@
       "name": "Log a behaviour incident and what was done about it.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.BehaviourIncident with an append-only follow-up log",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.BehaviourIncident with a follow-up log; not appendOnly since learniq#977, so its handling transitions run and the audit trail keeps each version",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -4427,7 +4427,7 @@
       "name": "Record who was consulted about a learner, and what they said.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.DeliberationRecord, append-only",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.DeliberationRecord, corrected by a new record (correctsId); not appendOnly since learniq#977, so its record transition runs",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -4603,7 +4603,7 @@
       "name": "Get a flag the moment a learner crosses that limit.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.AttendanceFlag, appendOnly; lib/Lifecycle/AttendanceFlagCreationHandler.php",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.AttendanceFlag (not appendOnly since learniq#977, so its handling transitions run); lib/Lifecycle/AttendanceFlagCreationHandler.php",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -5096,7 +5096,7 @@
       "name": "Record what was agreed in the conversation.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.ConferenceReport, append-only",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.ConferenceReport; not appendOnly since learniq#977, so its record transition runs",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -5733,15 +5733,15 @@
       "area": "governance",
       "name": "Hide one sensitive field from a role that may see the rest.",
       "built": {
-        "state": "built",
-        "evidence": "lib/Settings/learniq_register.json Credential.x-property-rbac.read is one of many per-property rules",
+        "state": "none",
+        "evidence": "lib/Settings/learniq_register.json declares no property-level authorization; x-property-rbac is row-level and OpenRegister does not read it (openregister#4064, learniq#972). OpenRegister can hide a property per group (lib/Service/PropertyRbacHandler.php) once a schema declares it",
         "owner": "ConductionNL/openregister"
       },
       "provider": "openregister",
-      "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
+      "providerHow": "OpenRegister hides a property per group when a schema declares a property authorization; learniq declares none.",
       "feature": "access-control",
       "featureConfidence": "medium",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "partial",
       "ilias": "partial",
@@ -7082,14 +7082,14 @@
       "origin": "featureRequest",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-35335",
       "built": {
-        "state": "building",
-        "evidence": "lib/Settings/learniq_register.json:2502",
-        "owner": "ConductionNL/openregister",
+        "state": "built",
+        "evidence": "lib/Listener/LessonProgressHandler.php (one LessonCompletion per enrolment and lesson) + lib/Service/EnrolmentProgressEvaluator.php::belongsToEnrolment + Enrolment.x-openregister-aggregate-refs.completedLessonCount (filtered on enrolmentId) + src/utils/lessonCompletion.js",
+        "owner": "ConductionNL/learniq",
         "reachedOn": "/enrolments"
       },
-      "provider": "openregister",
-      "providerHow": "OpenRegister aggregate-refs compute progress, scoped to learner and course rather than to the enrolment.",
-      "learniq": "partial",
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/moodlelib.php:5245 (course reset deletes all completion data) + public/lib/completionlib.php:902 delete_all_completion_data; retaking means resetting completion for the whole course, which removes the earlier record. Searched public/ for recomplet, completion_history, archive completion: none. Issued badges survive a reset, which is the nearest record. Marketplace local_recompletion adds it, not shipped.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/500/en/Moodle_Workplace_release_notes; Workplace 5.0 added a report source for historical certification completion data, and recertification runs through program reset (https://docs.moodle.org/502/en/Programs_Configuration). Keeping an earlier course completion when a learner retakes a course is not documented.",
@@ -7104,7 +7104,7 @@
       "totara": "yes",
       "chamilo": "yes",
       "ispring-learn": "yes",
-      "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-35335 (New Feature, Open, 36 votes): \"it is often necessary for students to retake courses they have already completed once, either on a fixed schedule (e.g. every year) ... At the moment this is often handled by creating multiple copies of courses for each ye built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
+      "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-35335 (New Feature, Open, 36 votes): \"it is often necessary for students to retake courses they have already completed once, either on a fixed schedule (e.g. every year) ... At the moment this is often handled by creating multiple copies of courses for each ye built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row. Built 2026-09-27 (learniq#945): completions are kept per enrolment, so a retake starts at 0% while the earlier enrolment keeps its completions and progress."
     },
     {
       "id": "gov-merge-duplicate-accounts",

@@ -1985,6 +1985,10 @@
 									"label": "Learner ID"
 								},
 								{
+									"key": "leerjaar",
+									"label": "Leerjaar"
+								},
+								{
 									"key": "courseId",
 									"label": "Course ID"
 								},
