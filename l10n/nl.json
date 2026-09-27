@@ -2102,7 +2102,21 @@
         "How many lessons and courses align to this goal.": "Hoeveel lessen en cursussen aan dit doel gekoppeld zijn.",
         "Assignments and assessments": "Opdrachten en toetsen",
         "How many assignments and assessments align to this goal.": "Hoeveel opdrachten en toetsen aan dit doel gekoppeld zijn.",
-        "When this row was last computed.": "Wanneer deze rij voor het laatst berekend is."
+        "When this row was last computed.": "Wanneer deze rij voor het laatst berekend is.",
+        "Curriculum coverage": "Curriculumdekking",
+        "Planned means a lesson or course works on a goal. Assessed means an assignment or assessment tests it. This shows your plan, not what learners have mastered.": "Gepland betekent dat een les of cursus aan een doel werkt. Getoetst betekent dat een opdracht of toets het doel test. Dit toont je plan, niet wat leerlingen beheersen.",
+        "No frameworks yet": "Nog geen kaders",
+        "Add a competency framework with its goals first.": "Voeg eerst een competentiekader met zijn doelen toe.",
+        "No coverage has been worked out for this framework yet. It fills in as soon as a goal, lesson, course, assignment or assessment in it is saved.": "Voor dit kader is nog geen dekking berekend. Die vult zich zodra een doel, les, cursus, opdracht of toets erin wordt opgeslagen.",
+        "Goals by year": "Doelen per jaar",
+        "No goals for this subject.": "Geen doelen voor dit vak.",
+        "Gaps per subject and year": "Hiaten per vak en jaar",
+        "No gaps. Every goal is planned and assessed.": "Geen hiaten. Elk doel is gepland en getoetst.",
+        "Planned and assessed": "Gepland en getoetst",
+        "All years": "Alle jaren",
+        "{planned} of {goals} goals are planned and {assessed} are assessed.": "{planned} van de {goals} doelen zijn gepland en {assessed} worden getoetst.",
+        "The frameworks could not be loaded.": "De kaders konden niet worden geladen.",
+        "The coverage of this framework could not be loaded.": "De dekking van dit kader kon niet worden geladen."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

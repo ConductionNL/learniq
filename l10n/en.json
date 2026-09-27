@@ -1631,7 +1631,21 @@
         "How many lessons and courses align to this goal.": "How many lessons and courses align to this goal.",
         "Assignments and assessments": "Assignments and assessments",
         "How many assignments and assessments align to this goal.": "How many assignments and assessments align to this goal.",
-        "When this row was last computed.": "When this row was last computed."
+        "When this row was last computed.": "When this row was last computed.",
+        "Curriculum coverage": "Curriculum coverage",
+        "Planned means a lesson or course works on a goal. Assessed means an assignment or assessment tests it. This shows your plan, not what learners have mastered.": "Planned means a lesson or course works on a goal. Assessed means an assignment or assessment tests it. This shows your plan, not what learners have mastered.",
+        "No frameworks yet": "No frameworks yet",
+        "Add a competency framework with its goals first.": "Add a competency framework with its goals first.",
+        "No coverage has been worked out for this framework yet. It fills in as soon as a goal, lesson, course, assignment or assessment in it is saved.": "No coverage has been worked out for this framework yet. It fills in as soon as a goal, lesson, course, assignment or assessment in it is saved.",
+        "Goals by year": "Goals by year",
+        "No goals for this subject.": "No goals for this subject.",
+        "Gaps per subject and year": "Gaps per subject and year",
+        "No gaps. Every goal is planned and assessed.": "No gaps. Every goal is planned and assessed.",
+        "Planned and assessed": "Planned and assessed",
+        "All years": "All years",
+        "{planned} of {goals} goals are planned and {assessed} are assessed.": "{planned} of {goals} goals are planned and {assessed} are assessed.",
+        "The frameworks could not be loaded.": "The frameworks could not be loaded.",
+        "The coverage of this framework could not be loaded.": "The coverage of this framework could not be loaded."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
