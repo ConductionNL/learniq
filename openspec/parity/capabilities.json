@@ -852,7 +852,8 @@
       "name": "Check for one person whether they are covered for one rule.",
       "built": {
         "state": "built",
-        "evidence": "lib/Controller/ExternalTrainingController.php learnerCoverage(), route /api/external-training/coverage",
+        "evidence": "lib/Controller/ExternalTrainingController.php learnerCoverage(), route /api/external-training/coverage, called per learner by src/views/ExternalTrainingBulkRecordView.vue Check coverage (learniq#952)",
+        "reachedOn": "/compliance/external-training/record-for-group (batch table, Check coverage)",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -939,7 +940,8 @@
       "name": "Upload a spreadsheet of outside training for many people at once.",
       "built": {
         "state": "building",
-        "evidence": "lib/Controller/ExternalTrainingController.php bulkRecord(), lib/Service/ExternalTrainingCsvBuilder.php",
+        "evidence": "src/views/ExternalTrainingBulkRecordView.vue records one training for many picked learners through lib/Controller/ExternalTrainingController.php bulkRecord(); no spreadsheet upload, so it stays partial (learniq#952)",
+        "reachedOn": "/compliance/external-training (header action Record training for a group)",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
