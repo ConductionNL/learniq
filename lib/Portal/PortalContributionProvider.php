@@ -472,9 +472,8 @@ class PortalContributionProvider {
 	 *
 	 * Matches `learner-profile` DIRECTLY (no `via`) by `guardianRefs` (array)
 	 * containing the guardian's own `subjectRef`. Portaliq's direct scope
-	 * compares one value today, so this list reads empty until portaliq matches
-	 * list values (reported by assignment-portal-wiring, which moved Submission
-	 * to a scalar `learnerRef` for that reason); there is no cross-object hop
+	 * compared one value, so this list read empty; ConductionNL/portaliq#750
+	 * adds list membership to the reader and writer. There is no cross-object hop
 	 * here, since `guardianRefs` lives on
 	 * the very schema being read. `guardianRefs` is itself exposed so a
 	 * guardian can see the full co-guardian group sharing a child (the
