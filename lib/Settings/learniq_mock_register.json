@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.12",
+    "version": "1.1.13",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -29716,7 +29716,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-1-1"
         },
-        "segment": "po",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 1",
         "setAt": "2026-03-01T09:00:00+00:00"
       },
@@ -29726,7 +29726,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-2-2"
         },
-        "segment": "vo",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 2",
         "setAt": "2026-03-02T09:00:00+00:00"
       },
@@ -29736,7 +29736,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-3-3"
         },
-        "segment": "mbo",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 3",
         "setAt": "2026-03-03T09:00:00+00:00"
       },

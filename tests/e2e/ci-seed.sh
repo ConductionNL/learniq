@@ -429,6 +429,18 @@ DEMO_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 300 \
 	"${DEMO_BASE}/index.php/apps/learniq/api/setup/action/skip-demo-data" || echo 000)"
 echo "[ci-seed] POST setup/action/skip-demo-data -> HTTP ${DEMO_CODE}"
 
+# ── Settle the segment step ──────────────────────────────────────────────────
+# The wizard also asks what kind of organisation this is (segment-wizard-choice).
+# That step is optional and outstanding until a LearniqSettings record holds a
+# segment, so without an answer the wizard would mask every click exactly as
+# above. `corporate` is the no-behaviour-change default: every menu stays
+# visible, which is what the suite asserts on. Tolerant for the same reason.
+SEGMENT_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 60 \
+	-u "${ADMIN_USER:-admin}:${ADMIN_PASSWORD:-admin}" -X POST \
+	-H 'Content-Type: application/json' -H 'OCS-APIRequest: true' --data '{"segment":"corporate"}' \
+	"${DEMO_BASE}/index.php/apps/learniq/api/setup/config" || echo 000)"
+echo "[ci-seed] POST setup/config segment=corporate -> HTTP ${SEGMENT_CODE}"
+
 # ── Settle the first-visit walkthrough ───────────────────────────────────────
 # 🔴 OR THE TOUR DIMS EVERY CLICK. The walkthrough opens on a fresh profile as a
 # modal with a full-page dim inside role="dialog", in EVERY new browser context
