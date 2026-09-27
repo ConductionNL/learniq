@@ -1646,7 +1646,8 @@ OC.L10N.register(
         "_%n already has an open enrolment and is skipped._::_%n already have an open enrolment and are skipped._": ["%n heeft al een open inschrijving en wordt overgeslagen.","%n hebben al een open inschrijving en worden overgeslagen."],
         "_%n item imported._::_%n items imported._": ["%n item geïmporteerd.","%n items geïmporteerd."],
         "_%n learner enrolled._::_%n learners enrolled._": ["%n deelnemer ingeschreven.","%n deelnemers ingeschreven."],
-        "_%n learner will be enrolled._::_%n learners will be enrolled._": ["%n deelnemer wordt ingeschreven.","%n deelnemers worden ingeschreven."]
+        "_%n learner will be enrolled._::_%n learners will be enrolled._": ["%n deelnemer wordt ingeschreven.","%n deelnemers worden ingeschreven."],
+        "The enrolment this completion belongs to. Filled in when the lesson is completed; empty only when the learner had no enrolment in the course.": "De inschrijving waar deze afronding bij hoort. Wordt ingevuld wanneer de les wordt afgerond; alleen leeg als de deelnemer geen inschrijving voor de cursus had."
     },
     "nplurals=2; plural=(n != 1);"
 )

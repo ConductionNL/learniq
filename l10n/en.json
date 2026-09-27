@@ -1159,7 +1159,8 @@
         "_%n learner will be enrolled._::_%n learners will be enrolled._": [
             "%n learner will be enrolled.",
             "%n learners will be enrolled."
-        ]
+        ],
+        "The enrolment this completion belongs to. Filled in when the lesson is completed; empty only when the learner had no enrolment in the course.": "The enrolment this completion belongs to. Filled in when the lesson is completed; empty only when the learner had no enrolment in the course."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

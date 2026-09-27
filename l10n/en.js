@@ -1148,7 +1148,8 @@ OC.L10N.register(
         "_%n already has an open enrolment and is skipped._::_%n already have an open enrolment and are skipped._": ["%n already has an open enrolment and is skipped.","%n already have an open enrolment and are skipped."],
         "_%n item imported._::_%n items imported._": ["%n item imported.","%n items imported."],
         "_%n learner enrolled._::_%n learners enrolled._": ["%n learner enrolled.","%n learners enrolled."],
-        "_%n learner will be enrolled._::_%n learners will be enrolled._": ["%n learner will be enrolled.","%n learners will be enrolled."]
+        "_%n learner will be enrolled._::_%n learners will be enrolled._": ["%n learner will be enrolled.","%n learners will be enrolled."],
+        "The enrolment this completion belongs to. Filled in when the lesson is completed; empty only when the learner had no enrolment in the course.": "The enrolment this completion belongs to. Filled in when the lesson is completed; empty only when the learner had no enrolment in the course."
     },
     "nplurals=2; plural=(n != 1);"
 )
