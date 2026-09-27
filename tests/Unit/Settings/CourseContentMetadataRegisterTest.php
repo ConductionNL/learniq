@@ -110,7 +110,9 @@ class CourseContentMetadataRegisterTest extends TestCase {
 			self::assertArrayNotHasKey('default', $properties['license'], "$name.license must not pick a licence.");
 			self::assertSame('array', $properties['educationalLevels']['type']);
 			self::assertSame(self::LEVELS, $properties['educationalLevels']['items']['enum'], "$name.educationalLevels enum");
-			self::assertSame('0.4.0', $schema['version'], "$name version");
+			// A floor, not an exact value: goal-alignment-depth also raised both
+			// schemas to 0.4.0, so after both landed they moved above it.
+			self::assertTrue(version_compare($schema['version'], '0.4.0', '>='), "$name version " . $schema['version'] . ' is at least 0.4.0');
 		}
 
 	}//end testBothSchemasDeclareTheFourOptionalFields()
