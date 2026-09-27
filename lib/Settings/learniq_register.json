@@ -17736,7 +17736,13 @@
                             "from": "succeeded",
                             "to": "succeeded",
                             "requires": "OCA\\Learniq\\Lifecycle\\MunicipalityFeedbackGuard",
-                            "description": "Coordinator/admin records the municipality's MAS-route feedback for a succeeded leerplicht report. A self-loop transition (lifecycle stays succeeded) used solely to attach MunicipalityFeedbackGuard's role + target check to this field write — this register has no declarative field-scoped write-authorization extension yet (ADR-031 exception; see design.md Security Considerations). ASSUMPTION (unverified against OpenRegister core, which is not present in this repo): the lifecycle engine permits a from==to transition; flag for confirmation during review."
+                            "description": "Coordinator/admin records the municipality's MAS-route feedback for a succeeded leerplicht report. A self-loop transition (lifecycle stays succeeded) used solely to attach MunicipalityFeedbackGuard's role + target check to this field write — this register has no declarative field-scoped write-authorization extension yet (ADR-031 exception; see design.md Security Considerations). ASSUMPTION (unverified against OpenRegister core, which is not present in this repo): the lifecycle engine permits a from==to transition; flag for confirmation during review.",
+                            "inputs": [
+                                {
+                                    "field": "municipalityFeedback",
+                                    "required": false
+                                }
+                            ]
                         },
                         "partial": {
                             "from": "running",

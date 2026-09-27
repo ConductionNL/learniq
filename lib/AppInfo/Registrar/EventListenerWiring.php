@@ -59,6 +59,7 @@ class EventListenerWiring {
 		(new CollaborationListenerRegistrar())->register(context: $context);
 		(new SchedulingListenerRegistrar())->register(context: $context);
 		(new IntegrityListenerRegistrar())->register(context: $context);
+		(new SelfLoopStampListenerRegistrar())->register(context: $context);
 
 	}//end registerAll()
 

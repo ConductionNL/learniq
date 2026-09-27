@@ -178,4 +178,21 @@ class LifecycleWriteActionsTest extends TestCase {
 
 		self::assertIsArray(actual: $declared);
 	}//end testTransitionAcceptsTheInputsItsGuardReads()
+
+	/**
+	 * recordMunicipalityFeedback is a self-loop, so its write is a listener, not
+	 * an action; the feedback the caller sends must still be an accepted input.
+	 *
+	 * @return void
+	 */
+	public function testRecordMunicipalityFeedbackAcceptsTheFeedback(): void {
+		$spec = self::transition(schema: 'DataExchangeJob', action: 'recordMunicipalityFeedback');
+		$declared = array_map(
+			static fn (array $input): string => (string)($input['field'] ?? ''),
+			($spec['inputs'] ?? [])
+		);
+
+		self::assertSame(expected: $spec['from'], actual: $spec['to'], message: 'recordMunicipalityFeedback is expected to be a self-loop');
+		self::assertContains(needle: 'municipalityFeedback', haystack: $declared);
+	}//end testRecordMunicipalityFeedbackAcceptsTheFeedback()
 }//end class
