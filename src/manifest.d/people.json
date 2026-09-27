@@ -85,6 +85,38 @@
 							]
 						}
 					}
+				},
+				{
+					"id": "Schools",
+					"label": "Schools",
+					"icon": "OfficeBuilding",
+					"route": "Schools",
+					"order": 50,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "Locations",
+					"label": "Locations",
+					"icon": "MapMarker",
+					"route": "Locations",
+					"order": 60,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
 			],
 			"visibleIf": {
@@ -119,6 +151,26 @@
 			"config": {
 				"register": "learniq",
 				"schema": "Credential"
+			}
+		},
+		{
+			"id": "Schools",
+			"route": "/schools",
+			"type": "index",
+			"title": "Schools",
+			"config": {
+				"register": "learniq",
+				"schema": "School"
+			}
+		},
+		{
+			"id": "Locations",
+			"route": "/locations",
+			"type": "index",
+			"title": "Locations",
+			"config": {
+				"register": "learniq",
+				"schema": "Vestiging"
 			}
 		},
 		{
@@ -583,6 +635,134 @@
 				],
 				"sidebar": {
 					"enabled": false
+				}
+			}
+		},
+		{
+			"id": "SchoolDetail",
+			"route": "/schools/:id",
+			"type": "detail",
+			"title": "School",
+			"_note": "A School is a reference-data record (BRIN, name, pedagogical concept) with no lifecycle — same shape as Room. Body leads with the school data 8-wide with a Related panel resolving its Locations. No email/calendar/files (HARD RULE 1: reference data, not a document or correspondence archetype). Sidebar keeps metadata + audit-trail.",
+			"config": {
+				"register": "learniq",
+				"schema": "School",
+				"widgets": [
+					{
+						"id": "school-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "OfficeBuilding"
+					},
+					{
+						"id": "school-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "school-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "school-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "LocationDetail",
+			"route": "/locations/:id",
+			"type": "detail",
+			"title": "Location",
+			"_note": "A Location is a vestiging/onderwijslocatie reference-data record (schoolId, vestigingscode, onderwijslocatiecode, address) with no lifecycle — same shape as Room. Body leads with the location data 8-wide with a Related panel resolving its School and the Cohorts running there. No email/calendar/files (HARD RULE 1). Sidebar keeps metadata + audit-trail.",
+			"config": {
+				"register": "learniq",
+				"schema": "Vestiging",
+				"widgets": [
+					{
+						"id": "location-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "MapMarker"
+					},
+					{
+						"id": "location-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "location-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "location-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
 				}
 			}
 		},
