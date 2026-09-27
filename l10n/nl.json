@@ -2023,7 +2023,18 @@
         "Tenant identifier for multi-tenant isolation.": "Tenant-identificatie voor multi-tenant scheiding.",
         "Lifecycle State": "Levenscyclusstatus",
         "SchoolAdvies lifecycle state.": "Levenscyclusstatus van het schooladvies.",
-        "School advies": "Schooladvies"
+        "School advies": "Schooladvies",
+        "Teaching assistant": "Onderwijsassistent",
+        "Support staff": "Onderwijsondersteunend personeel",
+        "Career counsellor": "Decaan of loopbaanbegeleider",
+        "Study adviser": "Studieadviseur",
+        "Remedial teacher": "Remedial teacher",
+        "Care coordinator": "Intern begeleider of zorgcoördinator",
+        "Exam secretary": "Examensecretaris",
+        "Placement coordinator": "Stagecoördinator",
+        "Confidential counsellor": "Vertrouwenspersoon",
+        "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.": "De functies die deze persoon op school heeft. Een functie beschrijft het werk en geeft geen toegang. Toegang komt uit de groepen van de persoon.",
+        "Administrative staff": "Administratief medewerker"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

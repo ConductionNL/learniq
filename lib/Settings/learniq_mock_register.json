@@ -29643,7 +29643,10 @@
         },
         "ncUserId": "Voorbeeld Ncuserid 1",
         "tenant_id": "00000000-0000-4000-8000-000000000000",
-        "roles": [],
+        "roles": [
+          "remedial-teacher",
+          "care-coordinator"
+        ],
         "qualifications": [],
         "workingDays": []
       },

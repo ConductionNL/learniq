@@ -1536,7 +1536,18 @@ OC.L10N.register(
         "Data Exchange Job ID": "Data Exchange Job ID",
         "UUID of the bron-rod DataExchangeJob queued by SchoolAdviesSendToRodHandler on verzendenNaarRod. Null until sent.": "UUID of the bron-rod DataExchangeJob queued by SchoolAdviesSendToRodHandler on verzendenNaarRod. Null until sent.",
         "SchoolAdvies lifecycle state.": "SchoolAdvies lifecycle state.",
-        "School advies": "School advies"
+        "School advies": "School advies",
+        "Teaching assistant": "Teaching assistant",
+        "Support staff": "Support staff",
+        "Career counsellor": "Career counsellor",
+        "Study adviser": "Study adviser",
+        "Remedial teacher": "Remedial teacher",
+        "Care coordinator": "Care coordinator",
+        "Exam secretary": "Exam secretary",
+        "Placement coordinator": "Placement coordinator",
+        "Confidential counsellor": "Confidential counsellor",
+        "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.": "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.",
+        "Administrative staff": "Administrative staff"
     },
     "nplurals=2; plural=(n != 1);"
 )

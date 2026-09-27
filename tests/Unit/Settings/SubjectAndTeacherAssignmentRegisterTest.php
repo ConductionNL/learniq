@@ -68,10 +68,13 @@ class SubjectAndTeacherAssignmentRegisterTest extends TestCase {
 		self::assertArrayNotHasKey('x-openregister-lifecycle', $schema);
 		self::assertSame(['ncUserId', 'tenant_id'], $schema['required']);
 
+		// The original seven tags stay first and in order; later changes may
+		// append tags (staff-role-vocabulary-extension added seven), so this
+		// asserts a floor, not the exact list.
 		$roles = $schema['properties']['roles'];
 		self::assertSame(
 			['teacher', 'mentor', 'coordinator', 'teaching-assistant', 'support-staff', 'administrator', 'other'],
-			$roles['items']['enum']
+			array_slice($roles['items']['enum'], 0, 7)
 		);
 
 		$workingDays = $schema['properties']['workingDays'];
@@ -145,8 +148,9 @@ class SubjectAndTeacherAssignmentRegisterTest extends TestCase {
 		$duoPartner = array_values(array_filter($assignments, static fn (array $a): bool => $a['role'] === 'duo-partner'))[0];
 		self::assertEmpty(array_intersect($primary['days'], $duoPartner['days']));
 
+		// A floor: later changes add Staff seed rows (staff-role-vocabulary-extension added one).
 		$staffSeeds = $this->config['components']['schemas']['Staff']['x-openregister-seed'];
-		self::assertCount(2, $staffSeeds);
+		self::assertGreaterThanOrEqual(2, count($staffSeeds));
 
 		$subjectAssignmentSeeds = $this->config['components']['schemas']['SubjectTeacherAssignment']['x-openregister-seed'];
 		self::assertCount(2, $subjectAssignmentSeeds);
