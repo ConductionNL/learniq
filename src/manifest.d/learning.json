@@ -3697,7 +3697,7 @@
 			"type": "custom",
 			"title": "Complete peer review",
 			"component": "PeerReviewMarkingView",
-			"_note": "Reviewer's rubric-scoring UI for an assigned PeerReview (peer-and-self-assessment). Lib gap: peer-review marking workflow widget — mirrors MarkSubmissionView's own genuine-UI justification. When the governing Assignment's peerReviewAnonymity is double-blind, this view withholds the reviewed Submission's learner identity from its own display (a UI convention, not a server-enforced guarantee — see design.md 'Anonymity Enforcement')."
+			"_note": "Reviewer's rubric-scoring UI for an assigned PeerReview (peer-and-self-assessment). Lib gap: peer-review marking workflow widget — mirrors MarkSubmissionView's own genuine-UI justification. The work under review comes from learniq's server-side projection (GET /api/peer-review/{id}/work, peer-review-projection-guard), which withholds the authors for a double-blind review and never includes the teacher's marking; the reviewer never reads the raw Submission."
 		},
 		{
 			"id": "SelfAssessments",
