@@ -8,19 +8,11 @@
  * `decisionRationale` are set; when `verdict: fraud-proven`, additionally
  * requires a capped sanction (`sanctionType`, `sanctionDurationMonths` ≤ 12,
  * `sanctionScope`) — "up to one-year exclusion" per Universiteit Leiden's
- * fraud process (source 6597) and story 10070. On success, stamps
- * `decidedAt` (now) and `appealDeadline` (`decidedAt` + 42 days, the CBE
- * 6-week appeal window named in journey 1745) onto the transition payload.
+ * fraud process (source 6597) and story 10070.
  *
- * This is a legitimate PHP lifecycle seam per ADR-031 §"Lifecycle guards":
- * conditional data-completeness preconditions plus a computed-field stamp
- * that cannot be expressed declaratively — this register's
- * `x-openregister-calculations` DSL has confirmed precedent for `today()`
- * comparisons but NO date-arithmetic primitive at HEAD (grepping the whole
- * register for `date_add`/`dateAdd`/`addDays` returns zero hits), so
- * `appealDeadline` is computed here via `DateTimeImmutable::modify('+42
- * days')`, exactly the pattern `ExternalTrainingVerificationGuard` already
- * uses to stamp `verifiedBy`/`verifiedAt`.
+ * `decidedAt` (now) and `appealDeadline` (`decidedAt` + 42 days, the CBE
+ * 6-week appeal window named in journey 1745) are stamped by
+ * FraudCaseAppealDeadlineAction on the same transition (learniq#983).
  *
  * Per ADR-008 OR emits the audit-trail entry automatically when the
  * transition completes — this guard records nothing itself.
@@ -46,9 +38,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use DateTimeImmutable;
-use DateTimeInterface;
-use DateTimeZone;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -56,12 +47,14 @@ use Psr\Log\LoggerInterface;
  *
  * Passes only when `verdict` and `decisionRationale` are set; when
  * `verdict === 'fraud-proven'`, also requires `sanctionType`,
- * `sanctionDurationMonths` (integer, at most 12), and `sanctionScope`. On
- * success, stamps `decidedAt` and `appealDeadline` onto the payload.
+ * `sanctionDurationMonths` (integer, at most 12), and `sanctionScope`.
+ * `decidedAt` and `appealDeadline` are stamped by FraudCaseAppealDeadlineAction,
+ * declared on the same transition: OpenRegister calls guards by value, so a
+ * guard can not write onto the object (learniq#983).
  *
  * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
  */
-class FraudCaseDecisionGuard {
+class FraudCaseDecisionGuard implements LifecycleGuardInterface {
 
 	/**
 	 * The verdict value that requires an accompanying sanction.
@@ -72,11 +65,6 @@ class FraudCaseDecisionGuard {
 	 * Maximum allowed sanction duration in months ("up to one-year exclusion").
 	 */
 	private const MAX_SANCTION_MONTHS = 12;
-
-	/**
-	 * Days between decidedAt and the stamped appealDeadline (the CBE 6-week window).
-	 */
-	private const APPEAL_WINDOW_DAYS = 42;
 
 	/**
 	 * Constructor.
@@ -91,30 +79,21 @@ class FraudCaseDecisionGuard {
 	}//end __construct()
 
 	/**
-	 * Assert the decision preconditions and stamp decidedAt/appealDeadline.
+	 * Assert the decision preconditions.
 	 *
-	 * Called by OpenRegister's lifecycle engine before executing the
-	 * `decide` transition on a FraudCase object.
+	 * Called by OpenRegister's LifecycleValidationListener before the `decide`
+	 * transition is saved; the verdict, rationale and sanction arrive as the
+	 * transition's declared inputs, merged into the object.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine. Expected
-	 *                                               keys:
-	 *                                               - 'object'     : the case
-	 *                                               property array
-	 *                                               - 'transition' : 'decide'
-	 *                                               - 'payload'    : mutable
-	 *                                               array; decidedAt/
-	 *                                               appealDeadline are written
-	 *                                               here
+	 * @param array<string,mixed> $object The FraudCase as it would be saved (lifecycle at `decided`).
+	 * @param string              $action The transition action (`decide`).
+	 * @param string              $userId The caller's uid, or '' without a session.
 	 *
-	 * @return bool True when the preconditions are satisfied (and the stamp
-	 *              has been written); false blocks the transition (HTTP 422).
+	 * @return GuardResult Allow, or deny with what is missing.
 	 *
 	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-a-42-day-appeal-deadline
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	public function check(array $object, string $action, string $userId): GuardResult {
 		$caseId = $object['id'] ?? ($object['uuid'] ?? '');
 		$verdict = $object['verdict'] ?? '';
 		$decisionRationale = $object['decisionRationale'] ?? '';
@@ -126,7 +105,7 @@ class FraudCaseDecisionGuard {
 				'[FraudCaseDecisionGuard] FraudCase {id} missing verdict and/or decisionRationale — denying decide.',
 				['id' => $caseId]
 			);
-			return false;
+			return GuardResult::deny('A fraud case can only be decided with a verdict and a rationale.');
 		}
 
 		if ($verdict === self::FRAUD_PROVEN && $this->hasValidSanction(object: $object) === false) {
@@ -134,17 +113,10 @@ class FraudCaseDecisionGuard {
 				'[FraudCaseDecisionGuard] FraudCase {id} verdict=fraud-proven but sanction incomplete/invalid — denying decide.',
 				['id' => $caseId]
 			);
-			return false;
+			return GuardResult::deny('A proven fraud needs a sanction type, a scope and a duration of 1 to 12 months.');
 		}
 
-		$now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
-
-		$appealDeadline = $now->modify('+' . self::APPEAL_WINDOW_DAYS . ' days');
-
-		$transitionContext['payload']['decidedAt'] = $now->format(DateTimeInterface::ATOM);
-		$transitionContext['payload']['appealDeadline'] = $appealDeadline->format(DateTimeInterface::ATOM);
-
-		return true;
+		return GuardResult::allow();
 	}//end check()
 
 	/**

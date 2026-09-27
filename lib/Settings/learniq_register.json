@@ -11981,6 +11981,11 @@
                                     "field": "sanctionScope",
                                     "required": false
                                 }
+                            ],
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\FraudCaseAppealDeadlineAction"
+                                }
                             ]
                         },
                         "dismiss": {

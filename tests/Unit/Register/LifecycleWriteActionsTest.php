@@ -88,6 +88,12 @@ class LifecycleWriteActionsTest extends TestCase {
 				],
 				['waiveReason'],
 			],
+			'FraudCase.decide' => [
+				'FraudCase',
+				'decide',
+				['OCA\\Learniq\\Lifecycle\\Action\\FraudCaseAppealDeadlineAction' => []],
+				['verdict', 'decisionRationale', 'sanctionType', 'sanctionDurationMonths', 'sanctionScope'],
+			],
 		];
 	}//end transitions()
 
