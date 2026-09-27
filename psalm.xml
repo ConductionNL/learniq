@@ -33,6 +33,7 @@
              container. Real classes live in openregister/lib/Service/. -->
         <file name="tests/Stubs/Service/TenantKeyService.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/TalkLinkService.php" preloadClasses="true" />
+        <file name="tests/Stubs/Service/FileService.php" preloadClasses="true" />
         <!-- OpenRegister's lifecycle guard contract. A `requires` guard must
              implement the interface or OpenRegister refuses to run it. -->
         <file name="tests/Stubs/Lifecycle/GuardResult.php" preloadClasses="true" />

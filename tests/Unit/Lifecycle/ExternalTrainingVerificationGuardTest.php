@@ -27,6 +27,8 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Lifecycle\ExternalTrainingVerificationGuard;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
+use OCA\OpenRegister\Service\FileService;
+use OCP\Files\Node;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -45,10 +47,11 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	 *
 	 * @param array<string> $actorGroups Group IDs the actor belongs to.
 	 * @param bool $actorExists Whether the user manager resolves the actor.
+	 * @param int $files How many files OpenRegister's file service lists on the record.
 	 *
 	 * @return ExternalTrainingVerificationGuard
 	 */
-	private function makeGuard(array $actorGroups, bool $actorExists = true): ExternalTrainingVerificationGuard {
+	private function makeGuard(array $actorGroups, bool $actorExists = true, int $files = 1): ExternalTrainingVerificationGuard {
 		$user = $this->createMock(IUser::class);
 
 		$userManager = $this->createMock(IUserManager::class);
@@ -57,20 +60,21 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 		$groupManager = $this->createMock(IGroupManager::class);
 		$groupManager->method('getUserGroupIds')->willReturn($actorGroups);
 
+		$fileService = $this->createMock(FileService::class);
+		$fileService->method('getFiles')->willReturn(array_fill(0, $files, $this->createMock(Node::class)));
+
 		return new ExternalTrainingVerificationGuard(
 			$groupManager,
 			$userManager,
-			$this->createMock(LoggerInterface::class)
+			$this->createMock(LoggerInterface::class),
+			$fileService
 		);
 	}//end makeGuard()
 
 	/**
-	 * A record fixture with one evidence attachment present.
-	 *
-	 * The guard reads attachments from `@self.files` (or a `files` array). The
-	 * object OpenRegister's LifecycleValidationListener hands a guard is
-	 * ObjectEntity::getObject(), which carries neither, see
-	 * testRecordAsOpenRegisterHandsItHasNoEvidence().
+	 * A record as OpenRegister's LifecycleValidationListener hands it to a guard
+	 * (ObjectEntity::getObject(): no `@self`, no `files`). The evidence lives in
+	 * the object's file folder, which the guard asks FileService for.
 	 *
 	 * @param string $submittedBy The submitter user ID.
 	 *
@@ -82,7 +86,6 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 			'learnerId' => 'learner-1',
 			'submittedBy' => $submittedBy,
 			'lifecycle' => 'verified',
-			'@self' => ['files' => [['name' => 'certificate.pdf']]],
 		];
 	}//end recordWithEvidence()
 
@@ -124,23 +127,18 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNoEvidenceAttachmentDenied(): void {
-		$object = ['id' => 'rec-2', 'learnerId' => 'learner-1', 'submittedBy' => 'learner-1', 'lifecycle' => 'verified'];
-
-		$this->assertFalse($this->makeGuard(['hr'])->check($object, 'verify', 'hr-1')->isAllowed());
+		$this->assertFalse($this->makeGuard(['hr'], true, 0)->check($this->recordWithEvidence(), 'verify', 'hr-1')->isAllowed());
 	}//end testNoEvidenceAttachmentDenied()
 
 	/**
-	 * The record as ObjectEntity::getObject() returns it has no `@self`, so the
-	 * evidence check refuses it. Pinned so the gap stays visible (learniq#983).
+	 * The record as OpenRegister hands it carries no file list, so the guard asks
+	 * FileService; with a file there it is allowed (it was always refused, learniq#983).
 	 *
 	 * @return void
 	 */
-	public function testRecordAsOpenRegisterHandsItHasNoEvidence(): void {
-		$object = $this->recordWithEvidence();
-		unset($object['@self']);
-
-		$this->assertFalse($this->makeGuard(['hr'])->check($object, 'verify', 'hr-1')->isAllowed());
-	}//end testRecordAsOpenRegisterHandsItHasNoEvidence()
+	public function testRecordAsOpenRegisterHandsItIsJudgedOnItsStoredFiles(): void {
+		$this->assertTrue($this->makeGuard(['hr'], true, 1)->check($this->recordWithEvidence(), 'verify', 'hr-1')->isAllowed());
+	}//end testRecordAsOpenRegisterHandsItIsJudgedOnItsStoredFiles()
 
 	/**
 	 * Self-verification (verifier == submitter) → denied.
