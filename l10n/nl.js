@@ -2001,7 +2001,12 @@ OC.L10N.register(
         "Years": "Jaren",
         "Subject": "Vak",
         "The years this goal is taught in. Use year levels such as groep 5, leerjaar 2 or jaar 1, or school years such as 2026-2027. Leave empty when the goal applies to every year, or to take the years of its parent goal.": "De jaren waarin dit doel aan bod komt. Gebruik leerjaren zoals groep 5, leerjaar 2 of jaar 1, of schooljaren zoals 2026-2027. Laat leeg als het doel voor elk jaar geldt, of om de jaren van het bovenliggende doel over te nemen.",
-        "The subject this goal belongs to. Leave empty for a goal that spans subjects, or to take the subject of its parent goal.": "Het vak waar dit doel bij hoort. Laat leeg voor een doel dat vakoverstijgend is, of om het vak van het bovenliggende doel over te nemen."
+        "The subject this goal belongs to. Leave empty for a goal that spans subjects, or to take the subject of its parent goal.": "Het vak waar dit doel bij hoort. Laat leeg voor een doel dat vakoverstijgend is, of om het vak van het bovenliggende doel over te nemen.",
+        "Goal alignments": "Doelkoppelingen",
+        "Depth": "Diepgang",
+        "The goal this is aligned to.": "Het doel waar dit aan gekoppeld is.",
+        "How far this takes the goal: a level from the goal's framework, such as practise or competent. Leave empty to not say.": "Hoe ver dit het doel brengt: een niveau uit het kader van het doel, zoals oefenen of competent. Laat leeg als je dat niet wilt aangeven.",
+        "The goals this works on, each with a depth from the goal's own framework. Competency IDs is kept in step with this list.": "De doelen waar dit aan werkt, elk met een diepgang uit het eigen kader van het doel. Het veld Competency IDs volgt deze lijst."
     },
     "nplurals=2; plural=(n != 1);"
 )
