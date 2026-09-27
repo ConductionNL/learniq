@@ -23,6 +23,7 @@ import {
 	exportJobBody,
 	gradebookGrid,
 	gradeEntryBody,
+	handInAction,
 	learnersToEnrol,
 	moveItem,
 	nextGoalId,
@@ -233,7 +234,8 @@ test('signature records fit their append-only schemas', async () => {
 })
 
 test('bulk enrolment by department takes the department and everything under it', async () => {
-	const { learnersInDepartment, departmentOptions } = await import('../../src/utils/customPages.js')
+	const { learnersInDepartment, departmentOptions } =
+		await import('../../src/utils/customPages.js')
 	const profiles = [
 		{ ncUserId: 'a', department: 'Operations/Infra/Team A' },
 		{ ncUserId: 'b', department: 'Operations / Infra' },
@@ -243,5 +245,49 @@ test('bulk enrolment by department takes the department and everything under it'
 	]
 	assert.deepEqual(learnersInDepartment(profiles, 'Operations/Infra'), ['a', 'b'])
 	assert.deepEqual(learnersInDepartment(profiles, ''), [])
-	assert.deepEqual(departmentOptions(profiles.slice(0, 2)), ['Operations', 'Operations/Infra', 'Operations/Infra/Team A'])
+	assert.deepEqual(departmentOptions(profiles.slice(0, 2)), [
+		'Operations',
+		'Operations/Infra',
+		'Operations/Infra/Team A',
+	])
+})
+
+// learniq#983 part C: a guard can not redirect submit to `late`, so the hand-in
+// screen picks the transition itself; SubmissionWindowGuard refuses the wrong one.
+test('handInAction picks submit inside the window and submitLate after it', () => {
+	const now = new Date('2026-09-27T12:00:00Z')
+	assert.equal(handInAction({ dueAt: null }, now), 'submit')
+	assert.equal(handInAction({}, now), 'submit')
+	assert.equal(handInAction({ dueAt: '2026-09-27T13:00:00Z' }, now), 'submit')
+	assert.equal(handInAction({ dueAt: '2026-09-27T12:00:00Z' }, now), 'submit')
+	assert.equal(
+		handInAction(
+			{ dueAt: '2026-09-27T11:00:00Z', allowLateSubmission: true },
+			now,
+		),
+		'submitLate',
+	)
+})
+
+test('handInAction keeps submit when late work is not accepted, so the guard refuses it with its reason', () => {
+	const now = new Date('2026-09-27T12:00:00Z')
+	assert.equal(
+		handInAction(
+			{ dueAt: '2026-09-27T11:00:00Z', allowLateSubmission: false },
+			now,
+		),
+		'submit',
+	)
+	assert.equal(handInAction({ dueAt: '2026-09-27T11:00:00Z' }, now), 'submit')
+})
+
+test('handInAction names transitions the register declares on Submission', () => {
+	const register = JSON.parse(
+		readFileSync(resolve(root, 'lib/Settings/learniq_register.json'), 'utf8'),
+	)
+	const transitions =
+		register.components.schemas.Submission['x-openregister-lifecycle']
+			.transitions
+	assert.equal(transitions.submit.to, 'submitted')
+	assert.equal(transitions.submitLate.to, 'late')
 })

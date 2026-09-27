@@ -8,8 +8,9 @@
  Opens CnRichSubmitDialog with the assignment's late rule. On confirm it
  creates a draft Submission for the current learner, attaches the picked
  files to it through OpenRegister's file API, records their references in
- attachmentRefs, and fires the submit transition, whose SubmissionWindowGuard
- decides on lateness. Closing the dialog returns to the assignment.
+ attachmentRefs, and fires `submit`, or `submitLate` once the deadline of an
+ assignment that accepts late work has passed; SubmissionWindowGuard refuses
+ the wrong one (learniq#983). Closing the dialog returns to the assignment.
 
  @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
 -->
@@ -47,6 +48,7 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
 import {
+	handInAction,
 	objectId,
 	objectsUrl,
 	oneObject,
@@ -136,7 +138,7 @@ export default {
 					attachmentRefs: refs,
 				})
 				await axios.post(generateUrl(transitionUrl(id)), {
-					action: 'submit',
+					action: handInAction(this.assignment),
 				})
 				this.$refs.dialog.setResult({ success: true })
 			} catch (e) {
