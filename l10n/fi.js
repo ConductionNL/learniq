@@ -467,7 +467,20 @@ OC.L10N.register(
         "What course evaluations said, per course.": "Mitä kurssiarvioinnit kertoivat, kursseittain.",
         "What was found on placement visits.": "Mitä työpaikkakäynneillä havaittiin.",
         "Store": "Kauppa",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Asenna muiden organisaatioiden julkaisemia rekistereitä, skeemoja ja vuokaavioita."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Asenna muiden organisaatioiden julkaisemia rekistereitä, skeemoja ja vuokaavioita.",
+        "Enter the access code you were given to start this assessment.": "Anna saamasi pääsykoodi aloittaaksesi tämän kokeen.",
+        "Access code": "Pääsykoodi",
+        "This assessment is not open yet. It opens on {date}.": "Tämä koe ei ole vielä auki. Se avautuu {date}.",
+        "This assessment is not open yet.": "Tämä koe ei ole vielä auki.",
+        "This assessment is closed.": "Tämä koe on suljettu.",
+        "This assessment is not available right now.": "Tämä koe ei ole juuri nyt saatavilla.",
+        "The access code is not correct.": "Pääsykoodi ei ole oikein.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Valinnainen koodi, joka oppijoiden on annettava kokeen aloittamiseksi, esimerkiksi kokeen rajaamiseksi koesalissa oleviin henkilöihin. Jätä tyhjäksi, jos koodia ei käytetä.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Tämän yrityksen aloittamiseen annettu pääsykoodi. Se tarkistetaan ja poistetaan sen jälkeen, joten sitä ei koskaan säilytetä.",
+        "Teachers": "Opettajat",
+        "Manager": "Esihenkilö",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Kurssin opettajat, jotka saavat nähdä ja arvioida tämän yrityksen. Palvelin täyttää.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Oppijan esihenkilö, joka saa nähdä tämän yrityksen. Palvelin täyttää."
     },
     "nplurals=2; plural=(n != 1);"
 )
