@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Learniq AssessmentResult Audience Stamper
+ * Learniq AssessmentResult Audience
  *
  * Stamps who may read an attempt onto the AssessmentResult itself when it is
  * created: `teacherIds` (the teachers of the assessment's course) and
@@ -19,8 +19,8 @@
  * audience is stamped EMPTY, which leaves the learner and admins; it never
  * blocks the attempt and never widens access.
  *
- * @category Listener
- * @package  OCA\Learniq\Listener
+ * @category Service
+ * @package  OCA\Learniq\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -37,27 +37,23 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\Listener;
+namespace OCA\Learniq\Service;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\EventDispatcher\Event;
-use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Stamps teacherIds and managerId on a new AssessmentResult.
- *
- * @implements IEventListener<Event>
+ * Stamps teacherIds and managerId on a new AssessmentResult. Called by
+ * AssessmentAttemptGateListener for every AssessmentResult create it lets
+ * through (admins included), so the audience is always server-set.
  *
  * @spec openspec/specs/assessment/spec.md#requirement-assessment-results-are-read-by-the-learner-their-manager-and-the-courses-teachers
  */
-class AssessmentResultAudienceStamper implements IEventListener {
+class AssessmentResultAudience {
 
 	private const LEARNIQ_REGISTER = 'learniq';
-	private const RESULT_SCHEMA = 'assessment-result';
 	private const ASSESSMENT_SCHEMA = 'exam';
 	private const COHORT_SCHEMA = 'cohort';
 	private const PROFILE_SCHEMA = 'learner-profile';
@@ -66,42 +62,27 @@ class AssessmentResultAudienceStamper implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's schema slug.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ListenerSchemaResolver $schemaResolver,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
 
 	/**
-	 * Handle an OR object-creating event, filtering to `assessment-result`.
+	 * Stamp the audience of the AssessmentResult being created, merging with
+	 * data other listeners already set.
 	 *
-	 * @param Event $event The dispatched event.
+	 * @param ObjectCreatingEvent $event The AssessmentResult creating event.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/assessment/spec.md#requirement-assessment-results-are-read-by-the-learner-their-manager-and-the-courses-teachers
 	 */
-	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatingEvent === false) {
-			return;
-		}
-
-		try {
-			$slug = $this->schemaResolver->guardSchemaSlug(entity: $event->getObject());
-		} catch (Throwable $exception) {
-			return;
-		}
-
-		if ($slug !== self::RESULT_SCHEMA) {
-			return;
-		}
-
+	public function stamp(ObjectCreatingEvent $event): void {
 		$payload = $event->getObject()->jsonSerialize();
 		$audience = ['teacherIds' => [], 'managerId' => null];
 		try {
@@ -111,13 +92,13 @@ class AssessmentResultAudienceStamper implements IEventListener {
 			];
 		} catch (Throwable $exception) {
 			$this->logger->warning(
-				'[AssessmentResultAudienceStamper] Could not resolve the audience, stamping it empty: {msg}',
+				'[AssessmentResultAudience] Could not resolve the audience, stamping it empty: {msg}',
 				['msg' => $exception->getMessage()]
 			);
 		}
 
 		$event->setModifiedData(array_merge($event->getModifiedData(), $audience));
-	}//end handle()
+	}//end stamp()
 
 	/**
 	 * The teachers of the Assessment's cohort, or of every cohort of its course.

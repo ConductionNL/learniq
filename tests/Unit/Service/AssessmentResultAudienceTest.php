@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Learniq AssessmentResultAudienceStamper unit tests.
+ * Learniq AssessmentResultAudience unit tests.
  *
  * @category Tests
- * @package  OCA\Learniq\Tests\Unit\Listener
+ * @package  OCA\Learniq\Tests\Unit\Service
  *
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
@@ -21,10 +21,9 @@
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\Tests\Unit\Listener;
+namespace OCA\Learniq\Tests\Unit\Service;
 
-use OCA\Learniq\Listener\AssessmentResultAudienceStamper;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\AssessmentResultAudience;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -33,9 +32,9 @@ use Psr\Log\NullLogger;
 use RuntimeException;
 
 /**
- * Tests for AssessmentResultAudienceStamper::handle().
+ * Tests for AssessmentResultAudience::stamp().
  */
-class AssessmentResultAudienceStamperTest extends TestCase {
+class AssessmentResultAudienceTest extends TestCase {
 
 	/**
 	 * Fake OR rows keyed by schema slug.
@@ -54,15 +53,11 @@ class AssessmentResultAudienceStamperTest extends TestCase {
 	/**
 	 * Build the stamper over the fake datastore.
 	 *
-	 * @param string $schemaSlug Slug the resolver returns for the created entity.
 	 * @param bool $throws Whether every lookup throws.
 	 *
-	 * @return AssessmentResultAudienceStamper
+	 * @return AssessmentResultAudience
 	 */
-	private function makeStamper(string $schemaSlug = 'assessment-result', bool $throws = false): AssessmentResultAudienceStamper {
-		$resolver = $this->createMock(ListenerSchemaResolver::class);
-		$resolver->method('guardSchemaSlug')->willReturn($schemaSlug);
-
+	private function makeStamper(bool $throws = false): AssessmentResultAudience {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
 			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true) use ($throws) {
@@ -106,9 +101,8 @@ class AssessmentResultAudienceStamperTest extends TestCase {
 			}
 		);
 
-		return new AssessmentResultAudienceStamper(
+		return new AssessmentResultAudience(
 			objectService: $objectService,
-			schemaResolver: $resolver,
 			logger: new NullLogger(),
 		);
 	}//end makeStamper()
@@ -153,7 +147,7 @@ class AssessmentResultAudienceStamperTest extends TestCase {
 		$this->seedCourse();
 		$event = $this->event();
 
-		$this->makeStamper()->handle($event);
+		$this->makeStamper()->stamp($event);
 
 		$this->assertSame(['teacherIds' => ['t-anna', 't-bob', 't-carl'], 'managerId' => 'm-maria'], $event->getModifiedData());
 		$this->assertNotContains(true, $this->rbacFlags, 'lookups must bypass RBAC: a learner cannot read cohorts or their own profile');
@@ -168,7 +162,7 @@ class AssessmentResultAudienceStamperTest extends TestCase {
 		$this->seedCourse(assessmentCohortId: 'cohort-b');
 		$event = $this->event();
 
-		$this->makeStamper()->handle($event);
+		$this->makeStamper()->stamp($event);
 
 		$this->assertSame(['t-bob', 't-carl'], $event->getModifiedData()['teacherIds']);
 	}//end testCohortScopedAssessmentGetsThatCohortsTeachers()
@@ -182,7 +176,7 @@ class AssessmentResultAudienceStamperTest extends TestCase {
 		$this->seedCourse();
 		$event = $this->event(['teacherIds' => ['my-friend'], 'managerId' => 'my-friend']);
 
-		$this->makeStamper()->handle($event);
+		$this->makeStamper()->stamp($event);
 
 		$this->assertSame(['teacherIds' => ['t-anna', 't-bob', 't-carl'], 'managerId' => 'm-maria'], $event->getModifiedData());
 	}//end testClientSuppliedAudienceIsOverwritten()
@@ -198,7 +192,7 @@ class AssessmentResultAudienceStamperTest extends TestCase {
 		$event = $this->event();
 		$event->setModifiedData(['accessCode' => null]);
 
-		$this->makeStamper()->handle($event);
+		$this->makeStamper()->stamp($event);
 
 		$this->assertArrayHasKey('accessCode', $event->getModifiedData());
 		$this->assertNull($event->getModifiedData()['accessCode']);
@@ -213,22 +207,9 @@ class AssessmentResultAudienceStamperTest extends TestCase {
 	public function testFailedLookupStampsAnEmptyAudience(): void {
 		$event = $this->event(['teacherIds' => ['my-friend']]);
 
-		$this->makeStamper(throws: true)->handle($event);
+		$this->makeStamper(throws: true)->stamp($event);
 
 		$this->assertFalse($event->isPropagationStopped());
 		$this->assertSame(['teacherIds' => [], 'managerId' => null], $event->getModifiedData());
 	}//end testFailedLookupStampsAnEmptyAudience()
-
-	/**
-	 * Other schemas are left alone.
-	 *
-	 * @return void
-	 */
-	public function testOtherSchemasAreIgnored(): void {
-		$event = $this->event();
-
-		$this->makeStamper(schemaSlug: 'enrolment')->handle($event);
-
-		$this->assertSame([], $event->getModifiedData());
-	}//end testOtherSchemasAreIgnored()
 }//end class

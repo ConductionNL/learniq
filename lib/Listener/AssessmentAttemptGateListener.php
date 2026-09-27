@@ -24,6 +24,11 @@
  * Admins and system context (no user session: occ, background jobs) bypass
  * the gate, so seeding and corrections keep working.
  *
+ * Every create it lets through, admins' included, then has its read audience
+ * stamped by AssessmentResultAudience (learniq#949). That lives here rather
+ * than in a listener of its own so the two pre-write steps run in a fixed
+ * order and a refused attempt is never stamped.
+ *
  * @category Listener
  * @package  OCA\Learniq\Listener
  *
@@ -45,6 +50,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\AssessmentAccessPolicy;
+use OCA\Learniq\Service\AssessmentResultAudience;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -78,6 +84,7 @@ class AssessmentAttemptGateListener implements IEventListener {
 	 * @param IGroupManager $groupManager NC group manager (admin check).
 	 * @param ITimeFactory $timeFactory Clock.
 	 * @param AssessmentAccessPolicy $policy Window and access-code rules.
+	 * @param AssessmentResultAudience $audience Stamps who may read the attempt (learniq#949).
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -89,6 +96,7 @@ class AssessmentAttemptGateListener implements IEventListener {
 		private readonly IGroupManager $groupManager,
 		private readonly ITimeFactory $timeFactory,
 		private readonly AssessmentAccessPolicy $policy,
+		private readonly AssessmentResultAudience $audience,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -116,11 +124,19 @@ class AssessmentAttemptGateListener implements IEventListener {
 			return;
 		}
 
-		if ($slug !== self::RESULT_SCHEMA || $this->callerBypasses() === true) {
+		if ($slug !== self::RESULT_SCHEMA) {
 			return;
 		}
 
-		$this->evaluate(event: $event, payload: $entity->jsonSerialize());
+		if ($this->callerBypasses() === false) {
+			$this->evaluate(event: $event, payload: $entity->jsonSerialize());
+		}
+
+		// Every attempt that is let through, admins' included, gets its read
+		// audience stamped by the server (learniq#949).
+		if ($event->isPropagationStopped() === false) {
+			$this->audience->stamp(event: $event);
+		}
 	}//end handle()
 
 	/**

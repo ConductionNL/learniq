@@ -239,8 +239,9 @@ learner's manager (`LearnerProfile.managerId`), the teachers of the assessment's
 the Assessment's cohort, or of every cohort of its course), and admins, and by nobody else. The rule SHALL
 be expressed in the schema's `authorization` block, which OpenRegister enforces on every read and list;
 `x-property-rbac` is not read by OpenRegister and is documentation only. Because an authorization `match`
-compares a field on the object with the caller, `AssessmentResultAudienceStamper` SHALL stamp `teacherIds`
-and `managerId` on the result when it is created, overwriting any client value; when a lookup fails it
+compares a field on the object with the caller, `AssessmentResultAudience` (run by
+`AssessmentAttemptGateListener` for every create it lets through) SHALL stamp `teacherIds` and `managerId`
+on the result when it is created, overwriting any client value; when a lookup fails it
 stamps an empty audience, which narrows rather than widens. The learner and the course's teachers MAY
 update a result; only admins delete.
 
@@ -252,7 +253,7 @@ update a result; only admins delete.
 
 <!-- @e2e exclude Needs four seeded accounts with OpenRegister RBAC evaluated live. The rule itself is
      asserted in tests/Unit/Register/AssessmentResultAccessTest.php and the stamp in
-     tests/Unit/Listener/AssessmentResultAudienceStamperTest.php. -->
+     tests/Unit/Service/AssessmentResultAudienceTest.php. -->
 
 ### Requirement: Assessment declares which competencies it assesses, and Item carries competency tags for authoring
 
