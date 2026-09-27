@@ -54,9 +54,9 @@
 - **spec_ref**: `openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is`
 - **type**: regression
 - **preconditions**: `src/manifest.json`
-- **steps**: `check_setup_demo_first.py`, `check_manifest_l10n_coverage.py`, `npm run check:manifest`
-- **expected result**: all pass; the segment step carries `suggestFrom: example_profile`
-- **test command**: the three commands above
+- **steps**: `check_setup_demo_first.py`, `check_manifest_l10n_coverage.py`, `npm run check:manifest`, `node --test tests/unit-js/setupSteps.test.mjs`
+- **expected result**: all pass; the segment step carries `suggestFrom: example_profile` and an identity `suggestMap` over the six segments
+- **test command**: the four commands above
 
 ## Coverage Summary
 - An example set is one descriptor file per segment: TC-1, TC-2.
