@@ -31,6 +31,7 @@ namespace OCA\Learniq\AppInfo\Registrar;
 use OCA\Learniq\Listener\AssessmentResultIntegrityListener;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
+use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectDeletingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -89,6 +90,18 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: GradeEntryLearnerRefStamp::class
+		);
+
+		// Submission learnerRefs (learner-lookup-and-learnerrefs-fixes): the
+		// portal's student submissions collection scopes on learnerRefs, so the
+		// server derives it from learnerIds on every write. A stamp, not a veto.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: SubmissionLearnerRefsStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: SubmissionLearnerRefsStamp::class
 		);
 	}//end register()
 }//end class
