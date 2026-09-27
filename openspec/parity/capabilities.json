@@ -6581,14 +6581,14 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "building",
-        "evidence": "lib/Settings/learniq_register.json:7956",
-        "owner": "ConductionNL/openregister",
-        "reachedOn": "/assessments/:id (settings form)"
+        "state": "built",
+        "evidence": "lib/Listener/AssessmentAttemptGateListener.php (refuses an AssessmentResult create outside availableFrom/availableUntil or without Assessment.accessCode) + lib/Service/AssessmentAccessPolicy.php + src/views/TakeAssessmentView.vue",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/assessments/:assessmentId/take"
       },
-      "provider": "openregister",
-      "providerHow": "OpenRegister materialises isAvailable from the declared window; nothing in learniq enforces it on the take screen.",
-      "learniq": "partial",
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/quiz/mod_form.php:92 (open and close time) + :289 (require password) + :294 (subnet); enforced by public/mod/quiz/accessrule/openclosedate/rule.php:27 and public/mod/quiz/accessrule/password/rule.php:28. User and group overrides allow different windows per person.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Quiz_settings; \"You can specify times when the quiz is accessible for people to make attempts\" and \"If you specify a password in here then participants must enter the same password before they are allowed to make an attempt\". Workplace includes core per https://support.moodle.com/support/solutions/articles/80001074804-difference-between-moodle-workplace-and-moodle-lms: \"Moodle Workplace is built on Moodle LMS and contains all its features plus more\"; Workplace 5.2.3 is based on Moodle LMS 5.2.3 (https://docs.moodle.org/502/en/Moodle_Workplace_release_notes).",
@@ -6603,7 +6603,7 @@
       "totara": "yes",
       "chamilo": "partial",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84943: a test can only be taken in specific time slots or under conditions such as a password. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
+      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84943: a test can only be taken in specific time slots or under conditions such as a password. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row. Built 2026-09-27 (learniq#946): the window is enforced on the server when an attempt is created, evaluated live from the dates, and an optional write-only access code gates the start. No per-person window overrides or IP range, which Moodle and ILIAS also offer."
     },
     {
       "id": "ass-manager-sees-answers",

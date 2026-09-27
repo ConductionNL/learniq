@@ -160,6 +160,36 @@ class ListenerSchemaResolver {
 	}//end schemaSlug()
 
 	/**
+	 * Resolve an entity's schema slug for a SECURITY guard, regardless of the
+	 * listener slug contract.
+	 *
+	 * The contract exists so that waking long-dead side-effect listeners is an
+	 * explicit per-instance decision. A security guard is the opposite case: a
+	 * guard that only runs when an admin opts in is a guard that does not run.
+	 * So this always resolves the real slug, and still returns '' for an entity
+	 * outside Learniq's own register.
+	 *
+	 * @param object|null $entity The OpenRegister object entity.
+	 *
+	 * @return string The schema slug, or '' when unresolvable or foreign.
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
+	 */
+	public function guardSchemaSlug(?object $entity): string {
+		// `is_callable()`, not `method_exists()` — see schemaSlug().
+		if ($entity === null || is_callable([$entity, 'getSchema']) === false) {
+			return '';
+		}
+
+		$rawSchema = (string)($entity->getSchema() ?? '');
+		if ($rawSchema === '' || $this->isOwnRegister(entity: $entity) === false) {
+			return '';
+		}
+
+		return $this->resolveSlug(service: self::SCHEMA_MAPPER, id: $rawSchema);
+	}//end guardSchemaSlug()
+
+	/**
 	 * Resolve the register slug of an OpenRegister object entity.
 	 *
 	 * Listeners guard on register and schema together; this returns the value

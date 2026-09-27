@@ -7783,6 +7783,15 @@
                         "description": "ISO-8601 datetime after which the assessment is no longer available.",
                         "title": "Available Until"
                     },
+                    "accessCode": {
+                        "type": "string",
+                        "nullable": true,
+                        "writeOnly": true,
+                        "maxLength": 64,
+                        "description": "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.",
+                        "x-notes": "writeOnly: OpenRegister strips it from every read, admins included, so learners cannot read it off the Assessment. AssessmentAttemptGateListener reads the raw row and compares it with the code typed on AssessmentResult create (learniq#946).",
+                        "title": "Access code"
+                    },
                     "proctoring": {
                         "type": "object",
                         "nullable": true,
@@ -8155,6 +8164,15 @@
                         "$ref": "ProctoringSession",
                         "description": "UUID of the associated ProctoringSession. Null for unproctored attempts.",
                         "title": "Proctoring Session ID"
+                    },
+                    "accessCode": {
+                        "type": "string",
+                        "nullable": true,
+                        "writeOnly": true,
+                        "maxLength": 64,
+                        "description": "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.",
+                        "x-notes": "Input only. AssessmentAttemptGateListener compares it with Assessment.accessCode on create and clears it through ObjectCreatingEvent::setModifiedData (learniq#946).",
+                        "title": "Access code"
                     },
                     "gradeEntryId": {
                         "type": "string",

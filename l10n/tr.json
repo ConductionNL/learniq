@@ -466,7 +466,16 @@
         "What course evaluations said, per course.": "Kurs değerlendirmelerinin ne dediği, kurs bazında.",
         "What was found on placement visits.": "İşyeri ziyaretlerinde ne bulunduğu.",
         "Store": "Mağaza",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Diğer kuruluşların yayımladığı kayıtları, şemaları ve akışları yükleyin."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Diğer kuruluşların yayımladığı kayıtları, şemaları ve akışları yükleyin.",
+        "Enter the access code you were given to start this assessment.": "Bu değerlendirmeyi başlatmak için size verilen erişim kodunu girin.",
+        "Access code": "Erişim kodu",
+        "This assessment is not open yet. It opens on {date}.": "Bu değerlendirme henüz açılmadı. {date} tarihinde açılır.",
+        "This assessment is not open yet.": "Bu değerlendirme henüz açılmadı.",
+        "This assessment is closed.": "Bu değerlendirme kapandı.",
+        "This assessment is not available right now.": "Bu değerlendirme şu anda kullanılamıyor.",
+        "The access code is not correct.": "Erişim kodu doğru değil.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Öğrencilerin sınavı başlatmak için girmesi gereken isteğe bağlı kod; örneğin sınavı yalnızca sınav salonundakilerle sınırlamak için. Kod istemiyorsanız boş bırakın.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Bu denemeyi başlatmak için girilen erişim kodu. Kontrol edilir ve ardından silinir, bu yüzden asla saklanmaz."
     },
     "plurals": null
 }

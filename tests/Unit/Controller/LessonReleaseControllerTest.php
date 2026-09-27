@@ -120,9 +120,15 @@ class LessonReleaseControllerTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true, bool $_render = true) {
 				foreach (($this->db[$schema] ?? []) as $rec) {
 					if (($rec['id'] ?? null) === $id) {
+						if ($_render === true) {
+							// Assessment.accessCode is writeOnly: OR strips it
+							// from every rendered read.
+							unset($rec['accessCode']);
+						}
+
 						return OrEntityFactory::make($rec, (string)$schema);
 					}
 				}
@@ -286,6 +292,36 @@ class LessonReleaseControllerTest extends TestCase {
 		self::assertSame(['available', 'reason', 'availableAt'], array_keys($response->getData()));
 
 	}//end testResponseShapeIsMinimal()
+
+	/**
+	 * An assessment's status says whether it needs an access code (read from
+	 * the raw row, since the code is write-only) and why its window is shut,
+	 * without ever returning the code itself (learniq#946).
+	 *
+	 * @return void
+	 */
+	public function testAssessmentStatusReportsAccessCodeAndWindowReason(): void {
+		$this->seed(
+			'exam',
+			[
+				'id' => 'exam-1',
+				'courseId' => 'course-1',
+				'tenant_id' => 'tenant-a',
+				'accessCode' => 'room-12',
+				'availableFrom' => (new \DateTimeImmutable('+1 day'))->format(DATE_ATOM),
+			]
+		);
+		$this->seed('enrolment', ['id' => 'enrolment-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1']);
+		$this->signInAs('learner-1');
+
+		$controller = $this->controller(['available' => false, 'reason' => 'This assessment is not open yet.', 'availableAt' => null]);
+		$data = $controller->assessmentStatus('exam-1')->getData();
+
+		self::assertTrue($data['requiresAccessCode']);
+		self::assertSame('window-not-open', $data['reasonCode']);
+		self::assertStringNotContainsString('room-12', json_encode($data));
+
+	}//end testAssessmentStatusReportsAccessCodeAndWindowReason()
 
 	/**
 	 * An unknown lesson id returns 404 when ObjectService THROWS.

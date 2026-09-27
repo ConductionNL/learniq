@@ -1426,7 +1426,16 @@
         "Not configured": "Niet geconfigureerd",
         "Open settings": "Instellingen openen",
         "Simulated": "Gesimuleerd",
-        "Status message": "Statusmelding"
+        "Status message": "Statusmelding",
+        "Enter the access code you were given to start this assessment.": "Voer de toegangscode in die je hebt gekregen om deze toets te starten.",
+        "Access code": "Toegangscode",
+        "This assessment is not open yet. It opens on {date}.": "Deze toets is nog niet geopend. Hij opent op {date}.",
+        "This assessment is not open yet.": "Deze toets is nog niet geopend.",
+        "This assessment is closed.": "Deze toets is gesloten.",
+        "This assessment is not available right now.": "Deze toets is nu niet beschikbaar.",
+        "The access code is not correct.": "De toegangscode is niet juist.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Optionele code die deelnemers moeten invoeren om de toets te starten, bijvoorbeeld om hem te beperken tot de mensen in het examenlokaal. Laat leeg voor geen code.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "De toegangscode die is ingevoerd om deze poging te starten. Hij wordt gecontroleerd en daarna gewist, dus nooit bewaard."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

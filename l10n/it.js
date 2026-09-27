@@ -467,7 +467,16 @@ OC.L10N.register(
         "What course evaluations said, per course.": "Cosa hanno detto le valutazioni, per corso.",
         "What was found on placement visits.": "Cosa è emerso dalle visite in azienda.",
         "Store": "Store",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installa registri, schemi e flussi pubblicati da altre organizzazioni."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installa registri, schemi e flussi pubblicati da altre organizzazioni.",
+        "Enter the access code you were given to start this assessment.": "Inserisci il codice di accesso che hai ricevuto per iniziare questa verifica.",
+        "Access code": "Codice di accesso",
+        "This assessment is not open yet. It opens on {date}.": "Questa verifica non è ancora aperta. Si apre il {date}.",
+        "This assessment is not open yet.": "Questa verifica non è ancora aperta.",
+        "This assessment is closed.": "Questa verifica è chiusa.",
+        "This assessment is not available right now.": "Questa verifica non è disponibile al momento.",
+        "The access code is not correct.": "Il codice di accesso non è corretto.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Codice facoltativo che i discenti devono inserire per iniziare la prova, ad esempio per limitarla alle persone presenti nell'aula d'esame. Lascia vuoto per nessun codice.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Il codice di accesso inserito per iniziare questo tentativo. Viene verificato e poi cancellato, quindi non viene mai conservato."
     },
     "nplurals=2; plural=(n != 1);"
 )

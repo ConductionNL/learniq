@@ -37,6 +37,47 @@
 			<p>{{ error }}</p>
 		</div>
 
+		<!-- Closed: outside the availability window or otherwise not released -->
+		<div v-else-if="closedMessage" class="take-assessment__closed" role="status">
+			<span class="icon-info" aria-hidden="true" />
+			<p>{{ closedMessage }}</p>
+		</div>
+
+		<!-- Access code: the assessment is behind a code (learniq#946) -->
+		<form
+			v-else-if="showAccessCodeForm"
+			class="take-assessment__access-code"
+			@submit.prevent="submitAccessCode">
+			<h3>{{ assessment ? assessment.title : '' }}</h3>
+			<p id="take-assessment-access-code-hint">
+				{{
+					t(
+						'learniq',
+						'Enter the access code you were given to start this assessment.',
+					)
+				}}
+			</p>
+			<label for="take-assessment-access-code">
+				{{ t('learniq', 'Access code') }}
+			</label>
+			<input
+				id="take-assessment-access-code"
+				v-model="accessCode"
+				type="password"
+				autocomplete="off"
+				aria-describedby="take-assessment-access-code-hint"
+				required />
+			<p
+				v-if="accessCodeError"
+				role="alert"
+				class="take-assessment__error-inline">
+				{{ accessCodeError }}
+			</p>
+			<button type="submit" class="button-vue button-vue--primary">
+				{{ t('learniq', 'Start assessment') }}
+			</button>
+		</form>
+
 		<!-- Confirmation -->
 		<div
 			v-else-if="submitted"
@@ -332,6 +373,13 @@ export default {
 			submitted: false,
 			showProctoringNotice: false,
 			error: null,
+			/** @type {string|null} Why the assessment cannot be started now */
+			closedMessage: null,
+			showAccessCodeForm: false,
+			/** Access code the learner typed; sent once, on create */
+			accessCode: '',
+			/** @type {string|null} */
+			accessCodeError: null,
 			submitError: null,
 			/** @type {number|null} Seconds remaining; null = untimed */
 			secondsRemaining: null,
@@ -480,57 +528,214 @@ export default {
 		async init(id) {
 			this.loading = true
 			this.error = null
+			this.closedMessage = null
 
 			try {
 				await this.loadAssessment(id)
 
-				const proctoring = this.assessment?.proctoring ?? null
-
-				if (proctoring?.provider) {
-					if (proctoring?.nativeTestMode) {
-						// Config error: both an external provider and native test mode are set.
-						// The external provider wins (design.md §3.1) — no schema-level
-						// mutual-exclusion precedent exists in this register.
-						// eslint-disable-next-line no-console
-						console.warn(
-							'[TakeAssessmentView] Assessment.proctoring has both "provider" and "nativeTestMode" set; the external provider path wins.',
-						)
-					}
-					this.showProctoringNotice = true
+				// Server-side gate facts first (learniq#946): the create guard
+				// refuses an attempt outside the window or without the access
+				// code anyway, this only lets the page say why up front.
+				const status = await this.loadReleaseStatus(id)
+				if (status && status.available === false) {
+					this.closedMessage = this.closedMessageFor(
+						status.reasonCode,
+						status.reason,
+					)
 					return
 				}
 
-				if (proctoring?.nativeTestMode) {
-					this.nativeTestModeActive = true
-					this.tabId = this.generateId()
-					this.showTestModeIntro = true
+				if (
+					status?.requiresAccessCode === true
+					&& !(await this.checkExistingAttempt(id))
+				) {
+					this.showAccessCodeForm = true
 					return
 				}
 
-				// Item pools and analysis: items are resolved from the server-side
-				// drawnItemRefs snapshot, which only exists once the AssessmentResult
-				// has been created — loadItems() MUST run after getOrCreateResult().
-				await this.getOrCreateResult(id)
-				await this.loadItems()
-				this.startTimer()
+				await this.proceed(id)
 			} catch (err) {
-				// A missing record is input, not a fault — see the same branch in
-				// PortfolioBuilder.vue. An assessment that has been withdrawn, or
-				// a link a learner kept after it was removed, is an ordinary 404
-				// and belongs on screen rather than in console.error.
-				if (err?.notFound === true) {
-					this.error = this.t(
-						'learniq',
-						'This assessment is no longer available, or you do not have access to it.',
-					)
-				} else {
-					this.error = this.t(
-						'learniq',
-						'Failed to load assessment. Please try again.',
-					)
+				this.handleInitError(err)
+			} finally {
+				this.loading = false
+			}
+		},
+
+		/**
+		 * Continue after the gate: branch on proctoring shape (external provider
+		 * notice / native test-mode intro / unproctored start).
+		 *
+		 * @param {string} id Assessment UUID
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/secure-exam-test-mode/specs/assessment/spec.md
+		 * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-every-assessmentresult-persists-a-frozen-server-resolved-snapshot-of-what-was-presented
+		 */
+		async proceed(id) {
+			const proctoring = this.assessment?.proctoring ?? null
+
+			if (proctoring?.provider) {
+				if (proctoring?.nativeTestMode) {
+					// Config error: both an external provider and native test mode are set.
+					// The external provider wins (design.md §3.1) — no schema-level
+					// mutual-exclusion precedent exists in this register.
 					// eslint-disable-next-line no-console
-					console.error('[TakeAssessmentView] init error', err)
+					console.warn(
+						'[TakeAssessmentView] Assessment.proctoring has both "provider" and "nativeTestMode" set; the external provider path wins.',
+					)
 				}
+				this.showProctoringNotice = true
+				return
+			}
+
+			if (proctoring?.nativeTestMode) {
+				this.nativeTestModeActive = true
+				this.tabId = this.generateId()
+				this.showTestModeIntro = true
+				return
+			}
+
+			// Item pools and analysis: items are resolved from the server-side
+			// drawnItemRefs snapshot, which only exists once the AssessmentResult
+			// has been created — loadItems() MUST run after getOrCreateResult().
+			await this.getOrCreateResult(id)
+			await this.loadItems()
+			this.startTimer()
+		},
+
+		/**
+		 * Show an init failure: a refused attempt goes back to the gate screen,
+		 * a missing record is a plain message, anything else is logged.
+		 *
+		 * @param {Error} err The failure
+		 * @return {void}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 */
+		handleInitError(err) {
+			if (this.routeGateRefusal(err)) {
+				return
+			}
+			// A missing record is input, not a fault — see the same branch in
+			// PortfolioBuilder.vue. An assessment that has been withdrawn, or
+			// a link a learner kept after it was removed, is an ordinary 404
+			// and belongs on screen rather than in console.error.
+			if (err?.notFound === true) {
+				this.error = this.t(
+					'learniq',
+					'This assessment is no longer available, or you do not have access to it.',
+				)
+			} else {
+				this.error = this.t(
+					'learniq',
+					'Failed to load assessment. Please try again.',
+				)
+				// eslint-disable-next-line no-console
+				console.error('[TakeAssessmentView] init error', err)
+			}
+		},
+
+		/**
+		 * Ask the server whether this learner may start the assessment now
+		 * (window, drip and release conditions) and whether it needs an access
+		 * code. A failed lookup returns null: the create guard still decides.
+		 *
+		 * @param {string} id Assessment UUID
+		 * @return {Promise<object|null>} `{available, reason, reasonCode, requiresAccessCode}`
+		 * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
+		 */
+		async loadReleaseStatus(id) {
+			try {
+				const resp = await fetch(
+					generateUrl(
+						`/apps/learniq/api/assessments/${id}/release-status`,
+					),
+					{
+						headers: {
+							'OCS-APIREQUEST': 'true',
+							Accept: 'application/json',
+						},
+					},
+				)
+				if (!resp.ok) return null
+				return await resp.json()
+			} catch (err) {
+				return null
+			}
+		},
+
+		/**
+		 * The sentence to show for a refused start, by the server's reason code.
+		 *
+		 * @param {string|null} reasonCode Machine reason from the server
+		 * @param {string|null} fallback Server-supplied text for other reasons
+		 * @return {string}
+		 * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
+		 */
+		closedMessageFor(reasonCode, fallback) {
+			if (reasonCode === 'window-not-open') {
+				const from = this.assessment?.availableFrom
+				if (from) {
+					return this.t(
+						'learniq',
+						'This assessment is not open yet. It opens on {date}.',
+						{ date: new Date(from).toLocaleString() },
+					)
+				}
+				return this.t('learniq', 'This assessment is not open yet.')
+			}
+			if (reasonCode === 'window-closed') {
+				return this.t('learniq', 'This assessment is closed.')
+			}
+			return (
+				fallback
+				|| this.t('learniq', 'This assessment is not available right now.')
+			)
+		},
+
+		/**
+		 * Route a create refused by the server's attempt gate back to the right
+		 * screen. Returns false for any other failure.
+		 *
+		 * @param {Error} err The failure
+		 * @return {boolean} True when handled
+		 * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
+		 */
+		routeGateRefusal(err) {
+			const reason = err?.gateReason ?? null
+			if (!reason) return false
+
+			if (
+				reason === 'access-code-required'
+				|| reason === 'access-code-invalid'
+			) {
+				this.showProctoringNotice = false
+				this.showTestModeIntro = false
+				this.showAccessCodeForm = true
+				this.accessCodeError =
+					reason === 'access-code-invalid'
+						? this.t('learniq', 'The access code is not correct.')
+						: null
+				return true
+			}
+
+			this.closedMessage = this.closedMessageFor(reason, err?.gateMessage)
+			return true
+		},
+
+		/**
+		 * The learner entered an access code: continue the normal start. The
+		 * code is checked by the server when the attempt is created.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
+		 */
+		async submitAccessCode() {
+			this.showAccessCodeForm = false
+			this.accessCodeError = null
+			this.loading = true
+			try {
+				await this.proceed(this.assessmentId)
+			} catch (err) {
+				this.handleInitError(err)
 			} finally {
 				this.loading = false
 			}
@@ -633,10 +838,20 @@ export default {
 					startedAt: new Date().toISOString(),
 					lifecycle: 'in-progress',
 					tenant_id: this.assessment?.tenant_id ?? '',
+					...(this.accessCode ? { accessCode: this.accessCode } : {}),
 				}),
 			})
 			if (!resp.ok) {
-				throw new Error(`AssessmentResult create failed: ${resp.status}`)
+				const err = new Error(
+					`AssessmentResult create failed: ${resp.status}`,
+				)
+				if (resp.status === 422) {
+					// AssessmentAttemptGateListener refused the attempt.
+					const body = await resp.json().catch(() => ({}))
+					err.gateReason = body?.errors?.reason ?? null
+					err.gateMessage = body?.errors?.message ?? body?.error ?? null
+				}
+				throw err
 			}
 			const json = await resp.json()
 			const created = json.object ?? json ?? {}
@@ -789,6 +1004,7 @@ export default {
 				await this.loadItems()
 				this.startTimer()
 			} catch (err) {
+				if (this.routeGateRefusal(err)) return
 				this.error = this.t(
 					'learniq',
 					'Failed to start assessment. Please try again.',
@@ -826,6 +1042,10 @@ export default {
 				await this.loadItems()
 				this.startTimer()
 			} catch (err) {
+				if (this.routeGateRefusal(err)) {
+					this.showTestModeIntro = false
+					return
+				}
 				this.error = this.t(
 					'learniq',
 					'Failed to start assessment. Please try again.',
@@ -1394,6 +1614,21 @@ export default {
 	display: flex;
 	align-items: center;
 	gap: var(--default-grid-baseline, 8px);
+	padding: calc(var(--default-grid-baseline, 8px) * 2);
+}
+
+.take-assessment__closed {
+	display: flex;
+	align-items: center;
+	gap: var(--default-grid-baseline, 8px);
+	padding: calc(var(--default-grid-baseline, 8px) * 2);
+}
+
+.take-assessment__access-code {
+	display: flex;
+	flex-direction: column;
+	gap: var(--default-grid-baseline, 8px);
+	max-inline-size: 400px;
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
 }
 

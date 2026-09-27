@@ -466,7 +466,16 @@
         "What course evaluations said, per course.": "Co powiedziały ewaluacje kursów, według kursu.",
         "What was found on placement visits.": "Co stwierdzono podczas wizyt w miejscu praktyk.",
         "Store": "Sklep",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Zainstaluj rejestry, schematy i przepływy opublikowane przez inne organizacje."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Zainstaluj rejestry, schematy i przepływy opublikowane przez inne organizacje.",
+        "Enter the access code you were given to start this assessment.": "Wpisz otrzymany kod dostępu, aby rozpocząć ten test.",
+        "Access code": "Kod dostępu",
+        "This assessment is not open yet. It opens on {date}.": "Ten test nie jest jeszcze otwarty. Otwiera się {date}.",
+        "This assessment is not open yet.": "Ten test nie jest jeszcze otwarty.",
+        "This assessment is closed.": "Ten test jest zamknięty.",
+        "This assessment is not available right now.": "Ten test nie jest teraz dostępny.",
+        "The access code is not correct.": "Kod dostępu jest nieprawidłowy.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Opcjonalny kod, który uczący się muszą wpisać, aby rozpocząć test, na przykład aby ograniczyć go do osób obecnych w sali egzaminacyjnej. Pozostaw puste, jeśli kod nie jest potrzebny.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Kod dostępu wpisany przy rozpoczęciu tej próby. Jest sprawdzany, a następnie usuwany, więc nigdy nie jest przechowywany."
     },
     "plurals": null
 }
