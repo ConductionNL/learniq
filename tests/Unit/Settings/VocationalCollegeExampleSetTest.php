@@ -282,7 +282,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 			}
 		}
 
-		self::assertCount(count($placements), $agreements);
+		self::assertEqualsCanonicalizing(array_keys($placements), array_column($agreements, 'bpvPlacementId'), 'one agreement per placement');
 
 		foreach (self::of('bpv-visit-report') as $visit) {
 			$placement = $placements[$visit['bpvPlacementId']];
@@ -342,7 +342,8 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		$aggregation = new GradeAggregationEngine();
 		$pass        = new GradePassEvaluator($aggregation);
 		$finals      = self::of('final-grade');
-		self::assertCount(count($published), $finals);
+		$pairs       = array_map(static fn (array $f): string => $f['learnerId'] . '|' . $f['curriculumPlanId'], $finals);
+		self::assertEqualsCanonicalizing(array_keys($published), $pairs, 'one final grade per learner and plan with a published entry');
 		foreach ($finals as $final) {
 			$plan    = $plans[$final['curriculumPlanId']];
 			$entries = $published[$final['learnerId'] . '|' . $final['curriculumPlanId']];
