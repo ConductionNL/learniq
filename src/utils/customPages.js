@@ -454,6 +454,16 @@ export function coursePackageShareUrl() {
 	return '/apps/learniq/api/course-management/course-package-share'
 }
 
+/**
+ * The course store publish URL.
+ *
+ * @return {string} The app-relative URL (POST).
+ * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
+ */
+export function coursePackagePublishUrl() {
+	return '/apps/learniq/api/store/publish'
+}
+
 /** What each signable subject needs: schema slugs and the roles that sign in learniq. */
 export const SIGNABLE_SUBJECTS = {
 	'learning-plan': {

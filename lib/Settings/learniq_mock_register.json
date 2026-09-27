@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.19",
+    "version": "1.1.20",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -30643,6 +30643,81 @@
         "tenant_id": "00000000-0000-4000-8000-000000000002",
         "courseName": "Voorbeeld Coursename 3",
         "license": "Voorbeeld License 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "shared-course-package",
+          "slug": "shared-course-package-voorbeeld-title-1-1"
+        },
+        "slug": "Voorbeeld Slug 1",
+        "kind": "course-package",
+        "title": "Voorbeeld Title 1",
+        "package": {},
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "description": "Voorbeeld Description 1",
+        "subject": "Voorbeeld Subject 1",
+        "level": "Voorbeeld Level 1",
+        "levels": [],
+        "goals": "Voorbeeld Goals 1",
+        "goalsCovered": [],
+        "language": "Voorbeeld Language 1",
+        "license": "Voorbeeld License 1",
+        "author": "Voorbeeld Author 1",
+        "cardLine": "Voorbeeld Cardline 1",
+        "version": "Voorbeeld Version 1",
+        "lessonCount": 0,
+        "sharedAt": "2026-03-01T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "shared-course-package",
+          "slug": "shared-course-package-voorbeeld-title-2-2"
+        },
+        "slug": "Voorbeeld Slug 2",
+        "kind": "course-package",
+        "title": "Voorbeeld Title 2",
+        "package": {},
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "description": "Voorbeeld Description 2",
+        "subject": "Voorbeeld Subject 2",
+        "level": "Voorbeeld Level 2",
+        "levels": [],
+        "goals": "Voorbeeld Goals 2",
+        "goalsCovered": [],
+        "language": "Voorbeeld Language 2",
+        "license": "Voorbeeld License 2",
+        "author": "Voorbeeld Author 2",
+        "cardLine": "Voorbeeld Cardline 2",
+        "version": "Voorbeeld Version 2",
+        "lessonCount": 1,
+        "sharedAt": "2026-03-02T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "shared-course-package",
+          "slug": "shared-course-package-voorbeeld-title-3-3"
+        },
+        "slug": "Voorbeeld Slug 3",
+        "kind": "course-package",
+        "title": "Voorbeeld Title 3",
+        "package": {},
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "description": "Voorbeeld Description 3",
+        "subject": "Voorbeeld Subject 3",
+        "level": "Voorbeeld Level 3",
+        "levels": [],
+        "goals": "Voorbeeld Goals 3",
+        "goalsCovered": [],
+        "language": "Voorbeeld Language 3",
+        "license": "Voorbeeld License 3",
+        "author": "Voorbeeld Author 3",
+        "cardLine": "Voorbeeld Cardline 3",
+        "version": "Voorbeeld Version 3",
+        "lessonCount": 2,
+        "sharedAt": "2026-03-03T09:00:00+00:00"
       },
       {
         "@self": {
