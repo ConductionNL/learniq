@@ -40,8 +40,8 @@ use RuntimeException;
 /**
  * Provides a single public entry-point for auto-scoring an AssessmentResult.
  *
- * Delegates all scoring logic to AssessmentScoringHandler (the lifecycle guard/handler
- * that also runs on the submit transition). After scoring, persists the updated
+ * Delegates all scoring logic to AssessmentScoringHandler::score() (the same scoring
+ * the submit transition's AssessmentAutoScoreAction runs). After scoring, persists the updated
  * responses via ObjectService::saveObject().
  */
 class AssessmentScoringService {
@@ -122,22 +122,16 @@ class AssessmentScoringService {
 			$resultObject = $raw->jsonSerialize();
 		}
 
-		// Wrap in a transition context matching the handler contract.
-		$transitionContext = [
-			'object' => $resultObject,
-			'transition' => 'score',
-			'from' => $resultObject['lifecycle'] ?? 'submitted',
-			'to' => $resultObject['lifecycle'] ?? 'submitted',
-		];
-
-		$this->scoringHandler->check($transitionContext);
+		// An unresolvable parent Assessment scores nothing; the result is saved
+		// as it was, exactly as before the guard stopped writing into a context.
+		$scored = ($this->scoringHandler->score(result: $resultObject) ?? $resultObject);
 
 		// #194/#223: use named args so saveObject picks the correct register/schema
 		// from the stored state rather than relying on positional stale-state fallback.
 		$this->objectService->saveObject(
 			register: self::LEARNIQ_REGISTER,
 			schema: 'assessment-result',
-			object: $transitionContext['object']
+			object: $scored
 		);
 
 		$this->logger->info(
