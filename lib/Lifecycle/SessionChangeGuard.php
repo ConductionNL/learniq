@@ -73,7 +73,7 @@ class SessionChangeGuard {
 	 *
 	 * @var string[]
 	 */
-	private const OVERRIDE_GROUPS = ['admin', 'coordinator'];
+	private const OVERRIDE_GROUPS = ['admin', 'coordinators'];
 
 	/**
 	 * Constructor.

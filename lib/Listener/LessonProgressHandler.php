@@ -255,63 +255,73 @@ class LessonProgressHandler implements IEventListener {
 	}//end resolveLesson()
 
 	/**
-	 * Resolve the learner's active Enrolment id for this Course, if any.
+	 * Resolve the learner's current Enrolment id for this Course: the active
+	 * one, otherwise a pending one (a completion made before the enrolment is
+	 * activated still belongs to it), otherwise null.
 	 *
 	 * @param string $learnerId NC user ID of the learner.
 	 * @param string $courseId UUID of the Course.
 	 * @param string $tenantId Tenant scope for the lookup.
 	 *
 	 * @return string|null
+	 *
+	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
 	 */
 	private function resolveActiveEnrolmentId(string $learnerId, string $courseId, string $tenantId): ?string {
-		$filters = [
-			'learnerId' => $learnerId,
-			'courseId' => $courseId,
-			'lifecycle' => 'active',
-		];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
+		foreach (['active', 'pending'] as $lifecycle) {
+			$filters = [
+				'learnerId' => $learnerId,
+				'courseId' => $courseId,
+				'lifecycle' => $lifecycle,
+			];
+			if ($tenantId !== '') {
+				$filters['tenant_id'] = $tenantId;
+			}
 
-		$enrolments = $this->objectService->findAll(
-			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ENROLMENT_SCHEMA,
-				'filters' => $filters,
-				'limit' => 1,
-			]
-		);
+			$enrolments = $this->objectService->findAll(
+				[
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ENROLMENT_SCHEMA,
+					'filters' => $filters,
+					'limit' => 1,
+				]
+			);
 
-		if (empty($enrolments) === true) {
-			return null;
-		}
+			if (empty($enrolments) === false) {
+				$enrolment = $enrolments[0];
+				if (is_array($enrolment) === false) {
+					$enrolment = $enrolment->jsonSerialize();
+				}
 
-		$enrolment = $enrolments[0];
-		if (is_array($enrolment) === false) {
-			$enrolment = $enrolment->jsonSerialize();
-		}
+				return $enrolment['id'] ?? ($enrolment['uuid'] ?? null);
+			}
+		}//end foreach
 
-		return $enrolment['id'] ?? ($enrolment['uuid'] ?? null);
+		return null;
 	}//end resolveActiveEnrolmentId()
 
 	/**
-	 * Create or update the LessonCompletion for (learnerId, lessonId).
+	 * Create or update the LessonCompletion for (enrolmentId, lessonId).
 	 *
-	 * A duplicate completion statement for the same learner+lesson updates
-	 * the existing row's completedAt/verb/score rather than duplicating it —
-	 * LessonCompletion is an upsert target, not an append-only log.
+	 * A duplicate completion statement within the same enrolment updates that
+	 * enrolment's row rather than duplicating it. A completion in a later
+	 * enrolment (a retake, a re-enrolment, a recertification) adds a new row
+	 * and leaves the earlier enrolment's row, and its enrolmentId, untouched
+	 * (learniq#945). Rows are matched in PHP rather than with an enrolmentId
+	 * filter, so a legacy row without an enrolment is matched only by a
+	 * completion that also has none.
 	 *
 	 * @param string $learnerId NC user ID of the learner.
 	 * @param string $lessonId UUID of the completed Lesson.
 	 * @param string $courseId UUID of the Lesson's parent Course.
-	 * @param string|null $enrolmentId UUID of the learner's active Enrolment, if any.
+	 * @param string|null $enrolmentId UUID of the learner's current Enrolment, if any.
 	 * @param string $verb The xAPI verb IRI.
 	 * @param float|null $score Optional result.score.scaled value.
 	 * @param string $tenantId Tenant identifier.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#scenario-a-duplicate-completion-statement-for-the-same-lesson-updates-not-duplicates
+	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
 	 */
 	private function upsertLessonCompletion(
 		string $learnerId,
@@ -322,25 +332,26 @@ class LessonProgressHandler implements IEventListener {
 		?float $score,
 		string $tenantId,
 	): void {
-		$existingFilters = [
-			'learnerId' => $learnerId,
-			'lessonId' => $lessonId,
-		];
-
 		$existing = $this->objectService->findAll(
 			[
 				'register' => self::LEARNIQ_REGISTER,
 				'schema' => self::LESSON_COMPLETION_SCHEMA,
-				'filters' => $existingFilters,
-				'limit' => 1,
+				'filters' => [
+					'learnerId' => $learnerId,
+					'lessonId' => $lessonId,
+				],
 			]
 		);
 
 		$existingData = null;
-		if (empty($existing) === false) {
-			$existingData = $existing[0];
-			if (is_array($existingData) === false) {
-				$existingData = $existingData->jsonSerialize();
+		foreach ($existing as $row) {
+			if (is_array($row) === false) {
+				$row = $row->jsonSerialize();
+			}
+
+			if ((string)($row['enrolmentId'] ?? '') === (string)($enrolmentId ?? '')) {
+				$existingData = $row;
+				break;
 			}
 		}
 
