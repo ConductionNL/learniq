@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.17",
+    "version": "1.1.18",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -24049,6 +24049,44 @@
           "00000000-0000-4000-8000-000000000000"
         ],
         "ectsCredits": 0.0,
+        "competencyIds": [],
+        "prerequisiteCourseIds": [],
+        "license": "CC-BY-SA-4.0",
+        "author": "Voorbeeldschool, sectie Nederlands",
+        "subject": "Nederlandse taal",
+        "educationalLevels": [
+          "havo",
+          "vwo"
+        ]
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "Course",
+          "slug": "course-voorbeeld-name-1-1"
+        },
+        "code": "Voorbeeld Code 1",
+        "name": "Voorbeeld Name 1",
+        "level": "po",
+        "language": "ab",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "name_nl": "Voorbeeld Name Nl 1",
+        "description": "Voorbeeld Description 1",
+        "tags": [
+          "Voorbeeld Tags 1"
+        ],
+        "mandatoryTraining": false,
+        "regulationSlug": "Voorbeeld Regulationslug 1",
+        "renewalCourseSlug": "Voorbeeld Renewalcourseslug 1",
+        "certificateTemplate": "Voorbeeld Certificatetemplate 1",
+        "lifecycle": "draft",
+        "parentCourseId": "00000000-0000-4000-8000-000000000000",
+        "order": 1,
+        "curriculumPlanId": "00000000-0000-4000-8000-000000000000",
+        "programmeIds": [
+          "00000000-0000-4000-8000-000000000000"
+        ],
+        "ectsCredits": 0.0,
         "competencyIds": [
           "00000000-0000-4000-8000-000000000000",
           "00000000-0000-4000-8000-000000000001"
@@ -27276,6 +27314,34 @@
         "lastAccessedAt": "2026-03-03T09:00:00+00:00",
         "accessCount": 0,
         "lifecycle": "revoked"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "Lesson",
+          "slug": "lesson-voorbeeld-name-1-1"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000000",
+        "name": "Voorbeeld Name 1",
+        "order": 1,
+        "contentType": "text",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "contentRef": "Voorbeeld Contentref 1",
+        "blocks": [],
+        "durationMinutes": 1,
+        "learningObjectives": [
+          "Voorbeeld Learningobjectives 1"
+        ],
+        "competencyIds": [],
+        "releaseConditions": [],
+        "availableAfterDays": 0,
+        "mandatoryTraining": false,
+        "regulationSlug": "Voorbeeld Regulationslug 1",
+        "lifecycle": "draft",
+        "subject": "Nederlandse taal",
+        "educationalLevels": [
+          "havo"
+        ]
       },
       {
         "@self": {
