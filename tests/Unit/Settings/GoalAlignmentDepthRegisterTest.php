@@ -36,7 +36,8 @@ use PHPUnit\Framework\TestCase;
 class GoalAlignmentDepthRegisterTest extends TestCase {
 
 	/**
-	 * Expected schema versions after this change.
+	 * Schema versions this change raised them to. A floor, not an exact value:
+	 * a later change to the same schema raises its version again.
 	 */
 	private const VERSIONS = [
 		'Lesson'     => '0.4.0',
@@ -76,7 +77,7 @@ class GoalAlignmentDepthRegisterTest extends TestCase {
 			$schema   = $this->schemas[$name];
 			$property = $schema['properties']['competencyAlignments'];
 
-			self::assertSame($version, $schema['version'], $name);
+			self::assertTrue(version_compare($schema['version'], $version, '>='), $name . ' version ' . $schema['version'] . ' is at least ' . $version);
 			self::assertSame('array', $property['type'], $name);
 			self::assertSame([], $property['default'], $name);
 			self::assertSame('json', $property['widget'], $name);

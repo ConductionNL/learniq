@@ -132,6 +132,14 @@ return [
         // Controller: PeerReviewController (slug: peerReview).
         ['name' => 'peerReview#allocate', 'url' => '/api/peer-review/{assignmentId}/allocate', 'verb' => 'POST'],
 
+        // Peer review work projection (peer-review-projection-guard): what a
+        // reviewer sees of the work under review, built by the server. The
+        // authors are withheld for double-blind, the teacher's marking always.
+        // Authorized per object: the PeerReview's reviewer, or an admin.
+        // Controller: PeerReviewWorkController (slug: peerReviewWork).
+        ['name' => 'peerReviewWork#show', 'url' => '/api/peer-review/{peerReviewId}/work', 'verb' => 'GET'],
+        ['name' => 'peerReviewWork#file', 'url' => '/api/peer-review/{peerReviewId}/work/files/{fileId}', 'verb' => 'GET'],
+
         // Observability (ADR-006 / ADR-040) — AppHost generic controllers.
         // health#index → GenericHealthController (PUBLIC, declarative checks).
         ['name' => 'health#index',  'url' => '/api/health',  'verb' => 'GET'],
