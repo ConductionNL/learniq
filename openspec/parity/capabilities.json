@@ -6428,14 +6428,14 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "building",
-        "evidence": "src/views/LearniqCompliance.vue:106",
-        "owner": "ConductionNL/openregister",
-        "reachedOn": "/enrolments (as manager); /compliance"
+        "state": "built",
+        "evidence": "lib/Service/ComplianceRollupService.php byDepartment(), route GET /api/compliance/departments, src/views/widgets/DepartmentComplianceWidget.vue on src/views/LearniqCompliance.vue; tests/Unit/Service/DepartmentComplianceTest.php",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/compliance (Compliance per department)"
       },
-      "provider": "openregister",
-      "providerHow": "OpenRegister's per-row rbac gives the manager their reports' enrolments; the roll-up itself is not built.",
-      "learniq": "partial",
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/course/classes/reportbuilder/datasource/participants.php:129 (joins the course completion entity) + public/reportbuilder/classes/local/entities/user.php:398 (department user field) + public/reportbuilder/classes/local/aggregation/percent.php; a custom report can group course completion by the flat user department field with a percent aggregation. There is no team, department, directorate hierarchy to roll up through and no compliance dashboard with upcoming deadlines or expired qualifications (that is Moodle Workplace, not the core tree). Custom reports are on by default, public/admin/settings/subsystems.php:65.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Teams; managers can view \"Everybody reporting to me\" (all users at any level below them) with \"The status of active certifications and a link to the progress report\"; Report builder conditions can select \"all records from a specific department\" with aggregation and scheduled delivery (https://docs.moodle.org/502/en/Report_builder).",
@@ -6450,7 +6450,7 @@
       "totara": "yes",
       "chamilo": "partial",
       "ispring-learn": "yes",
-      "note": "Demand-signal row added 2026-09-26 (tender). ProRail LMS tender 2026, requirement 84950/84951: compliance dashboard per department with certification percentage, upcoming deadlines and expired qualifications, aggregated to director level. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
+      "note": "Demand-signal row added 2026-09-26 (tender). ProRail LMS tender 2026, requirement 84950/84951: compliance dashboard per department with certification percentage, upcoming deadlines and expired qualifications, aggregated to director level. built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row. Built 2026-09-27 (learniq#951): LearnerProfile.department is a path (Operations/Infra/Team A) and the compliance page shows one row per level, team to department to directorate, with coverage percentage (only learners each regulation's audience scope covers), mandatory training due within 30 days, overdue, and expired credentials."
     },
     {
       "id": "comp-assign-from-hr-roles",
@@ -6459,14 +6459,14 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/learniq_register.json:3331",
+        "state": "building",
+        "evidence": "lib/Service/RegulationAssignmentService.php assign() + lib/Service/RegulationAudienceResolver.php covers(), run on Regulation publish (lib/Listener/RegulationAssignmentHandler.php) and POST /api/compliance/regulations/{id}/assign; tests/Unit/Service/DepartmentComplianceTest.php",
         "owner": "ConductionNL/integriq",
-        "reachedOn": "nothing"
+        "reachedOn": "/compliance/regulations/:id (publish action)"
       },
       "provider": "integriq",
-      "providerHow": "An HR feed would come through integriq's data exchange, which connections.json marks unavailable; no assignment rule exists on the learniq side.",
-      "learniq": "no",
+      "providerHow": "learniq assigns a regulation's mandatory courses from the department and roles on each LearnerProfile, honouring audienceScope; the HR feed that would fill those fields would come through integriq's data exchange, which connections.json marks unavailable, so the job and role data must be entered or imported by hand.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/enrol/database/lib.php:325 sync_enrolments + public/enrol/database/settings.php:73 (remote enrolment table); an external database enrolment plugin can enrol people from a table the HR system fills, and enrol/ldap does the same from directory groups. Both are shipped but disabled by default (public/lib/db/install.php:121 enables only manual, guest, self, cohort). There is no rule that maps a job or role to mandatory training; the HR side must already compute the course list. No AFAS connector.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Dynamic_rules_Configuration; conditions \"User is in department\" (with \"Include subdepartments\" and job start date) and \"User has position\" drive actions \"Allocate users to certifications\", \"Allocate users to programs\" and \"Enrol users into a course\". Jobs load via CSV fields jobdepartment1 and jobposition1 (https://docs.moodle.org/502/en/Upload_users_in_Moodle_Workplace); the features page says Workplace integrates with \"HR platforms ... thanks to its comprehensive API\" (https://moodle.com/solutions/workplace/workplace-features/). AFAS is not named.",
@@ -6481,7 +6481,7 @@
       "totara": "yes",
       "chamilo": "partial",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84953: automated link with AFAS, staff, function and role data used to assign and monitor learning and compliance obligations."
+      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84953: automated link with AFAS, staff, function and role data used to assign and monitor learning and compliance obligations. Partly built 2026-09-27 (learniq#951): publishing a regulation enrols the learners its audience scope covers (department with sub-departments, or roles) in its mandatory courses; no HR (AFAS) connection yet, so the row stays partial."
     },
     {
       "id": "comp-record-exemption",
@@ -6614,14 +6614,14 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/learniq_register.json:8202",
-        "owner": "ConductionNL/openregister",
-        "reachedOn": "nothing"
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.AssessmentResult.authorization (read: learner, managerId, teacherIds) + lib/Service/AssessmentResultAudience.php",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/assessments/:assessmentId/results"
       },
-      "provider": "openregister",
-      "providerHow": "OpenRegister's x-property-rbac decides who reads a result, and the declared rule excludes managers.",
-      "learniq": "no",
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/quiz/classes/quiz_attempt.php:593 is_review_allowed (needs mod/quiz:viewreports, limited to shared groups in separate groups mode) + public/mod/quiz/review.php:72; a line manager given a non-editing teacher role in the course, with the team as a group, sees each member's answers. There is no line-manager relation that grants this: the parent or mentor role in user context does not reach quiz review, and it must be set up course by course.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Teams; the line manager sees certification, program and course status with links to progress reports, with no mention of quiz answers. Individual responses are in the core quiz reports for teachers (https://docs.moodle.org/502/en/Quiz_manual_grading_report). Workplace includes core per https://support.moodle.com/support/solutions/articles/80001074804-difference-between-moodle-workplace-and-moodle-lms: \"Moodle Workplace is built on Moodle LMS and contains all its features plus more\"; Workplace 5.2.3 is based on Moodle LMS 5.2.3 (https://docs.moodle.org/502/en/Moodle_Workplace_release_notes).",
@@ -6636,7 +6636,7 @@
       "totara": "partial",
       "chamilo": "yes",
       "ispring-learn": "partial",
-      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84945: test results down to detail level for the manager, including the individual answers per employee."
+      "note": "Demand-signal row added 2026-09-26 (tender). ProRail requirement 84945: test results down to detail level for the manager, including the individual answers per employee. Built 2026-09-27 (learniq#949): x-property-rbac was never read by OpenRegister, so results were readable by every signed-in user. The enforced authorization block now grants read to the learner, their manager (stamped from LearnerProfile.managerId) and the course's teachers (stamped from Cohort.teacherIds), responses included. Results created before this change carry no stamp, so only the learner and admins see those."
     },
     {
       "id": "enr-path-mandatory-per-person",

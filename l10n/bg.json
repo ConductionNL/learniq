@@ -475,7 +475,11 @@
         "This assessment is not available right now.": "Този тест не е достъпен в момента.",
         "The access code is not correct.": "Кодът за достъп не е правилен.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Незадължителен код, който обучаемите трябва да въведат, за да започнат теста, например за да го ограничите до хората в изпитната зала. Оставете празно, ако няма код.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Кодът за достъп, въведен при започване на този опит. Проверява се и след това се изтрива, така че никога не се пази."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Кодът за достъп, въведен при започване на този опит. Проверява се и след това се изтрива, така че никога не се пази.",
+        "Teachers": "Преподаватели",
+        "Manager": "Ръководител",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Преподавателите на курса, които могат да виждат и оценяват този опит. Попълва се от сървъра.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Ръководителят на обучаемия, който може да вижда този опит. Попълва се от сървъра."
     },
     "plurals": null
 }

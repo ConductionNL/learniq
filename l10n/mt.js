@@ -476,7 +476,11 @@ OC.L10N.register(
         "This assessment is not available right now.": "Din il-valutazzjoni mhix disponibbli bħalissa.",
         "The access code is not correct.": "Il-kodiċi tal-aċċess mhux korrett.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Kodiċi fakultattiv li l-istudenti jridu jdaħħlu biex jibdew it-test, pereżempju biex jiġi limitat għan-nies fil-kamra tal-eżami. Ħallih vojt għal ebda kodiċi.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Il-kodiċi tal-aċċess imdaħħal biex jinbeda dan it-tentattiv. Jiġi ċċekkjat u mbagħad imħassar, għalhekk qatt ma jinżamm."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Il-kodiċi tal-aċċess imdaħħal biex jinbeda dan it-tentattiv. Jiġi ċċekkjat u mbagħad imħassar, għalhekk qatt ma jinżamm.",
+        "Teachers": "Għalliema",
+        "Manager": "Maniġer",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Għalliema tal-kors li jistgħu jaraw u jimmarkaw dan it-tentattiv. Jimtela mis-server.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Maniġer tal-istudent, li jista jara dan it-tentattiv. Jimtela mis-server."
     },
     "nplurals=2; plural=(n != 1);"
 )

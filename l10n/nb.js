@@ -476,7 +476,11 @@ OC.L10N.register(
         "This assessment is not available right now.": "Denne prøven er ikke tilgjengelig akkurat nå.",
         "The access code is not correct.": "Tilgangskoden er ikke riktig.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Valgfri kode som deltakere må skrive inn for å starte prøven, for eksempel for å begrense den til personene i eksamenslokalet. La stå tomt for ingen kode.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Tilgangskoden som ble skrevet inn for å starte dette forsøket. Den kontrolleres og slettes deretter, så den lagres aldri."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Tilgangskoden som ble skrevet inn for å starte dette forsøket. Den kontrolleres og slettes deretter, så den lagres aldri.",
+        "Teachers": "Lærere",
+        "Manager": "Leder",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Lærere på kurset som kan se og vurdere dette forsøket. Fylles ut av serveren.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Deltakerens leder, som kan se dette forsøket. Fylles ut av serveren."
     },
     "nplurals=2; plural=(n != 1);"
 )

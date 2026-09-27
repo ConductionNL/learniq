@@ -265,6 +265,28 @@ open questions are all scored.
      testTeacherMayNotChangeTheAnswers, testTeacherMayNotChangeAnAutoScore, testAGradedAttemptIsFinal,
      testDeleteIsRefusedForNonAdmins). -->
 
+### Requirement: Assessment results are read by the learner, their manager and the course's teachers
+An `AssessmentResult` (the learner's answers and score) SHALL be readable by the learner who took it, the
+learner's manager (`LearnerProfile.managerId`), the teachers of the assessment's course (the `teacherIds` of
+the Assessment's cohort, or of every cohort of its course), and admins, and by nobody else. The rule SHALL
+be expressed in the schema's `authorization` block, which OpenRegister enforces on every read and list;
+`x-property-rbac` is not read by OpenRegister and is documentation only. Because an authorization `match`
+compares a field on the object with the caller, `AssessmentResultAudience` (run by
+`AssessmentAttemptGateListener` for every create it lets through) SHALL stamp `teacherIds` and `managerId`
+on the result when it is created, overwriting any client value; when a lookup fails it
+stamps an empty audience, which narrows rather than widens. The learner and the course's teachers MAY
+update a result; only admins delete.
+
+#### Scenario: A manager and a course teacher see a learner's result, a peer does not
+- **GIVEN** a learner whose LearnerProfile names a manager, enrolled in a course whose cohort lists a teacher
+- **WHEN** the learner takes and submits a test
+- **THEN** the manager and the teacher each see the attempt in the assessment's results list
+- **AND** another learner of the same course does not
+
+<!-- @e2e exclude Needs four seeded accounts with OpenRegister RBAC evaluated live. The rule itself is
+     asserted in tests/Unit/Register/AssessmentResultAccessTest.php and the stamp in
+     tests/Unit/Service/AssessmentResultAudienceTest.php. -->
+
 ### Requirement: Assessment declares which competencies it assesses, and Item carries competency tags for authoring
 
 The `Assessment` object MUST support a `competencyIds` field (array of `format: uuid` `$ref: Competency`,

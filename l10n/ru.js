@@ -476,7 +476,11 @@ OC.L10N.register(
         "This assessment is not available right now.": "Этот тест сейчас недоступен.",
         "The access code is not correct.": "Код доступа неверный.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Необязательный код, который учащиеся должны ввести, чтобы начать тест, например чтобы ограничить его людьми в экзаменационной аудитории. Оставьте пустым, если код не нужен.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Код доступа, введённый при начале этой попытки. Он проверяется и затем удаляется, поэтому никогда не хранится."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Код доступа, введённый при начале этой попытки. Он проверяется и затем удаляется, поэтому никогда не хранится.",
+        "Teachers": "Преподаватели",
+        "Manager": "Руководитель",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Преподаватели курса, которые могут видеть и оценивать эту попытку. Заполняется сервером.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Руководитель учащегося, который может видеть эту попытку. Заполняется сервером."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -476,7 +476,11 @@ OC.L10N.register(
         "This assessment is not available right now.": "Αυτή η αξιολόγηση δεν είναι διαθέσιμη αυτή τη στιγμή.",
         "The access code is not correct.": "Ο κωδικός πρόσβασης δεν είναι σωστός.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Προαιρετικός κωδικός που πρέπει να εισαγάγουν οι εκπαιδευόμενοι για να ξεκινήσουν το τεστ, για παράδειγμα για να περιοριστεί στα άτομα της αίθουσας εξέτασης. Αφήστε κενό για κανέναν κωδικό.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Ο κωδικός πρόσβασης που εισήχθη για την έναρξη αυτής της προσπάθειας. Ελέγχεται και στη συνέχεια διαγράφεται, οπότε δεν διατηρείται ποτέ."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Ο κωδικός πρόσβασης που εισήχθη για την έναρξη αυτής της προσπάθειας. Ελέγχεται και στη συνέχεια διαγράφεται, οπότε δεν διατηρείται ποτέ.",
+        "Teachers": "Εκπαιδευτικοί",
+        "Manager": "Προϊστάμενος",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Εκπαιδευτικοί του μαθήματος που μπορούν να δουν και να βαθμολογήσουν αυτή την προσπάθεια. Συμπληρώνεται από τον διακομιστή.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Προϊστάμενος του εκπαιδευόμενου, που μπορεί να δει αυτή την προσπάθεια. Συμπληρώνεται από τον διακομιστή."
     },
     "nplurals=2; plural=(n != 1);"
 )

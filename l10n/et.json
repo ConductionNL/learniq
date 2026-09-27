@@ -475,7 +475,11 @@
         "This assessment is not available right now.": "See test ei ole praegu saadaval.",
         "The access code is not correct.": "Pääsukood ei ole õige.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Valikuline kood, mille õppijad peavad testi alustamiseks sisestama, näiteks et piirata test eksamiruumis olijatega. Jäta tühjaks, kui koodi pole vaja.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Selle katse alustamiseks sisestatud pääsukood. See kontrollitakse ja kustutatakse seejärel, seega seda ei säilitata kunagi."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Selle katse alustamiseks sisestatud pääsukood. See kontrollitakse ja kustutatakse seejärel, seega seda ei säilitata kunagi.",
+        "Teachers": "Õpetajad",
+        "Manager": "Juht",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Kursuse õpetajad, kes võivad seda katset näha ja hinnata. Täidab server.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Õppija juht, kes võib seda katset näha. Täidab server."
     },
     "plurals": null
 }

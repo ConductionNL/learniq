@@ -476,7 +476,11 @@ OC.L10N.register(
         "This assessment is not available right now.": "Ova provjera trenutačno nije dostupna.",
         "The access code is not correct.": "Pristupni kod nije točan.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Neobavezni kod koji polaznici moraju unijeti za početak testa, na primjer da se ograniči na osobe u ispitnoj dvorani. Ostavite prazno ako nema koda.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Pristupni kod unesen za početak ovog pokušaja. Provjerava se i zatim briše, pa se nikada ne čuva."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Pristupni kod unesen za početak ovog pokušaja. Provjerava se i zatim briše, pa se nikada ne čuva.",
+        "Teachers": "Nastavnici",
+        "Manager": "Voditelj",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Nastavnici tečaja koji smiju vidjeti i ocijeniti ovaj pokušaj. Ispunjava poslužitelj.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Voditelj polaznika, koji smije vidjeti ovaj pokušaj. Ispunjava poslužitelj."
     },
     "nplurals=2; plural=(n != 1);"
 )
