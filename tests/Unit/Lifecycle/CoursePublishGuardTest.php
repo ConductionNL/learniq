@@ -32,6 +32,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Tests\Support\GuardVerdicts;
+use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\CoursePublishGuard;
 use PHPUnit\Framework\TestCase;
@@ -125,4 +126,78 @@ class CoursePublishGuardTest extends TestCase {
 		self::assertAllowed($guard->check($object, 'publish', ''));
 
 	}//end testLessonLookupIsScopedToTenant()
+
+	/**
+	 * A published Lesson on the Course lets it publish, read the way OpenRegister reads it (#1109).
+	 *
+	 * The store behind the ObjectService double answers like OpenRegister:
+	 * the register and schema count only inside `filters`, and a filter on a
+	 * property the shipped Lesson schema does not declare matches nothing.
+	 * Before #1047 the guard named its register and schema at the top level
+	 * of the config, OpenRegister read the Course's own table instead, and
+	 * `courseId` (which Course does not declare) matched nothing, so no Course
+	 * could publish. Run against that guard, this test is red.
+	 *
+	 * The tenant key travels as `tenant_id`, whole: the underscore split
+	 * #1109 suspected happens only on the REST query path, not in findAll().
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/findall-filter-keys-declared/specs/nextcloud-app/spec.md
+	 */
+	public function testAPublishedLessonLetsTheCoursePublishThroughARegisterFaithfulRead(): void {
+		$store = new RegisterFaithfulStore();
+		$store->rows['lesson'] = [
+			['id' => 'lesson-1', 'courseId' => 'course-7', 'lifecycle' => 'published', 'tenant_id' => 'tenant-a'],
+		];
+
+		$guard = new CoursePublishGuard($this->storeBackedObjectService(store: $store), $this->createMock(LoggerInterface::class));
+		$object = ['id' => 'course-7', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
+
+		self::assertAllowed($guard->check($object, 'publish', ''));
+
+		$filters = ($store->reads[0]['config']['filters'] ?? []);
+		self::assertSame('tenant-a', ($filters['tenant_id'] ?? null), 'The tenant key must reach OpenRegister whole.');
+		self::assertArrayNotHasKey('tenant', $filters);
+
+	}//end testAPublishedLessonLetsTheCoursePublishThroughARegisterFaithfulRead()
+
+	/**
+	 * A draft Lesson, a Lesson on another Course, or one in another tenant does not count.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/findall-filter-keys-declared/specs/nextcloud-app/spec.md
+	 */
+	public function testOnlyAPublishedLessonOfThisCourseAndTenantCounts(): void {
+		$store = new RegisterFaithfulStore();
+		$store->rows['lesson'] = [
+			['id' => 'lesson-draft', 'courseId' => 'course-7', 'lifecycle' => 'draft', 'tenant_id' => 'tenant-a'],
+			['id' => 'lesson-other-course', 'courseId' => 'course-8', 'lifecycle' => 'published', 'tenant_id' => 'tenant-a'],
+			['id' => 'lesson-other-tenant', 'courseId' => 'course-7', 'lifecycle' => 'published', 'tenant_id' => 'tenant-b'],
+		];
+
+		$guard = new CoursePublishGuard($this->storeBackedObjectService(store: $store), $this->createMock(LoggerInterface::class));
+		$object = ['id' => 'course-7', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
+
+		self::assertDenied($guard->check($object, 'publish', ''));
+
+	}//end testOnlyAPublishedLessonOfThisCourseAndTenantCounts()
+
+	/**
+	 * An ObjectService double whose findAll() is answered by the register-faithful store.
+	 *
+	 * @param RegisterFaithfulStore $store The store holding the rows.
+	 *
+	 * @return ObjectService
+	 */
+	private function storeBackedObjectService(RegisterFaithfulStore $store): ObjectService {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			static fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $store->findAll($config, $_rbac, $_multitenancy)
+		);
+
+		return $objectService;
+
+	}//end storeBackedObjectService()
 }//end class
