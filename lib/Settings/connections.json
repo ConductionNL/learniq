@@ -37,11 +37,11 @@
         },
         {
             "key": "payment",
-            "title": "Payment provider",
-            "description": "Starting an online payment for an order, with the provider each payment names.",
+            "title": "Payments through shillinq",
+            "description": "Granting an entitlement once shillinq reports the payment request on it settled.",
             "order": 50,
             "available": false,
-            "unavailableMessage": "Starting a payment calls api/payments/initiate on integriq. Integriq has no such endpoint, so no payment starts. This row covers every provider."
+            "unavailableMessage": "Learniq no longer starts payments itself. A school charges through shillinq and the pay screen is portaliq's; an entitlement is granted when shillinq reports its payment request captured. Without shillinq installed no entitlement is ever granted."
         },
         {
             "key": "sbb",

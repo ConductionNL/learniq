@@ -138,7 +138,6 @@ import MarkSubmissionView from './views/MarkSubmissionView.vue'
 import MyLearningRecordView from './views/MyLearningRecordView.vue'
 // personal-timetable: the signed-in user's own week view over Session objects.
 import MyTimetable from './views/MyTimetable.vue'
-import OrderPaymentPanel from './views/OrderPaymentPanel.vue'
 import OsoDossierReviewView from './views/OsoDossierReviewView.vue'
 import PeerReviewMarkingView from './views/PeerReviewMarkingView.vue'
 import PeopleDashboard from './views/PeopleDashboard.vue'
@@ -271,7 +270,6 @@ export default {
 	MarkSubmissionView: page(MarkSubmissionView),
 	MyLearningRecordView: page(MyLearningRecordView),
 	MyTimetable: page(MyTimetable),
-	OrderPaymentPanel: page(OrderPaymentPanel),
 	PeerReviewMarkingView: page(PeerReviewMarkingView),
 	PeopleDashboard: page(PeopleDashboard),
 	PortfolioBuilder: page(PortfolioBuilder),

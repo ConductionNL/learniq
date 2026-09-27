@@ -13,15 +13,14 @@
  `dependency-missing` phase (REQ-DIA-5) — nothing else renders.
    • openregister IS hard. Every Learniq entity is an OpenRegister object;
      without it the app has no data layer at all.
-   • openconnector is SOFT ({ id, required: false }). Learniq calls it from
-     exactly two places — LtiToolPlacementController (forwards an LTI 1.3
-     OIDC launch to `/apps/openconnector/api/lti/deployments/{id}/launch`)
-     and PaymentTransactionController (`/apps/openconnector/api/payments/
-     initiate`). Both are optional integrations. Declaring it HARD meant a
-     school running Learniq without LTI or online payments got a completely
+   • openconnector is SOFT ({ id, required: false }). Learniq calls it for
+     optional integrations such as LtiToolPlacementController (forwards an
+     LTI 1.3 OIDC launch to `/apps/openconnector/api/lti/deployments/{id}/launch`).
+     Online payments moved to shillinq (D19) and no longer call it. Declaring
+     it HARD meant a school running Learniq without LTI got a completely
      unusable app shell, and it blanked the entire e2e suite on any instance
      where openconnector was absent. As a soft dependency its absence now
-     surfaces as a dismissible in-shell notice and degrades only those two
+     surfaces as a dismissible in-shell notice and degrades only those
      features. appinfo/info.xml still lists <app>openconnector</app> as an
      integration hint; Nextcloud's DependencyAnalyzer does not enforce
      <app> entries, so that declaration never gated anything.

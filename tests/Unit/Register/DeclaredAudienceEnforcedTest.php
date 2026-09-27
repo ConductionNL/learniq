@@ -304,16 +304,15 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 	}//end testPortfolioAndLearningRecordBelongToTheLearner()
 
 	/**
-	 * Payment records are read by the payer or beneficiary and administration.
+	 * Entitlements are read by the learner and administration. Orders and
+	 * payment transactions left learniq for shillinq (D19).
 	 *
 	 * @return void
 	 */
 	public function testPaymentsAreReadByPayerLearnerAndAdministration(): void {
 		$this->assertReadAudience(
 			[
-				'Order'              => [self::AM, self::self('payerId'), self::self('learnerId')],
-				'PaymentTransaction' => [self::AM, self::self('initiatedBy')],
-				'Entitlement'        => [self::AM, self::self('learnerId')],
+				'Entitlement' => [self::AM, self::self('learnerId')],
 			]
 		);
 	}//end testPaymentsAreReadByPayerLearnerAndAdministration()
@@ -360,7 +359,7 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 			'ItemStatistics', 'AssessmentReliability', 'ItemRevisionFlag', 'GradeEntry', 'FinalGrade',
 			'ReportCard', 'CompetencyAttainment', 'SupportRequest', 'DeliberationRecord', 'EngagementScore',
 			'EngagementRiskFlag', 'ExchangeRejection', 'Portfolio', 'PortfolioEntry', 'LearningRecordExport',
-			'LearningRecordShare', 'LearnerEngagement', 'Order', 'PaymentTransaction', 'Entitlement',
+			'LearningRecordShare', 'LearnerEngagement', 'Entitlement',
 		];
 		$schemas = self::schemas();
 		foreach ($names as $name) {

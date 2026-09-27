@@ -115,7 +115,6 @@ class LifecycleSchemasAreNotAppendOnlyTest extends TestCase {
 			'ConferenceReport'         => ['ConferenceReport', 'record', 'draft', 'recorded'],
 			'PortfolioShare'           => ['PortfolioShare', 'grant', 'draft', 'active'],
 			'CourseEvaluationResponse' => ['CourseEvaluationResponse', 'submit', 'draft', 'submitted'],
-			'PaymentTransaction'       => ['PaymentTransaction', 'initiate', 'pending', 'awaiting-redirect'],
 		];
 	}//end transitions()
 

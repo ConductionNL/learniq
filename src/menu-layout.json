@@ -27,7 +27,9 @@
 		"DashboardTeacher": "Dashboard",
 		"DashboardStudent": "Dashboard",
 		"MyTimetableMenu": "GroupMyLearning",
-		"MyLearningRecordMenu": "GroupMyLearning"
+		"MyLearningRecordMenu": "GroupMyLearning",
+		"FeeItemsMenu": "GroupPeople",
+		"EntitlementsMenu": "GroupPeople"
 	},
 	"removals": [
 		"Accessibility",

@@ -296,7 +296,6 @@ class ConnectionsDeclarationTest extends TestCase {
 				"'/apps/openconnector/api/lti/deployments/%s/launch'",
 				'api/lti/deployments/[id]/launch',
 			],
-			'payment' => ['lib/Service/PaymentInitiationClient.php', "'api/payments/initiate'", 'api/payments/initiate'],
 		];
 
 		foreach ($calls as $key => [$file, $constant, $named]) {
