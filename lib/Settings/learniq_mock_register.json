@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.7",
+    "version": "1.1.8",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -30087,6 +30087,63 @@
         "description": "Voorbeeld Description 3",
         "decidedAt": "2026-03-03T09:00:00+00:00",
         "auditTrail": []
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "oso-import-dossier",
+          "slug": "oso-import-dossier-osoimportdossier-1-1"
+        },
+        "dataExchangeJobId": "00000000-0000-4000-8000-000000000000",
+        "sourceSchoolBrin": "Voorbeeld Sourceschoolbrin 1",
+        "receivedAt": "2026-03-01T09:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "learnerEckId": "Voorbeeld Learnereckid 1",
+        "categories": [],
+        "draftProfile": {},
+        "attachmentRefs": [],
+        "rejectionReason": "Voorbeeld Rejectionreason 1",
+        "reviewedBy": "Voorbeeld Reviewedby 1",
+        "reviewedAt": "2026-03-01T09:00:00+00:00",
+        "status": "received"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "oso-import-dossier",
+          "slug": "oso-import-dossier-osoimportdossier-2-2"
+        },
+        "dataExchangeJobId": "00000000-0000-4000-8000-000000000001",
+        "sourceSchoolBrin": "Voorbeeld Sourceschoolbrin 2",
+        "receivedAt": "2026-03-02T09:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "learnerEckId": "Voorbeeld Learnereckid 2",
+        "categories": [],
+        "draftProfile": {},
+        "attachmentRefs": [],
+        "rejectionReason": "Voorbeeld Rejectionreason 2",
+        "reviewedBy": "Voorbeeld Reviewedby 2",
+        "reviewedAt": "2026-03-02T09:00:00+00:00",
+        "status": "under-review"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "oso-import-dossier",
+          "slug": "oso-import-dossier-osoimportdossier-3-3"
+        },
+        "dataExchangeJobId": "00000000-0000-4000-8000-000000000002",
+        "sourceSchoolBrin": "Voorbeeld Sourceschoolbrin 3",
+        "receivedAt": "2026-03-03T09:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "learnerEckId": "Voorbeeld Learnereckid 3",
+        "categories": [],
+        "draftProfile": {},
+        "attachmentRefs": [],
+        "rejectionReason": "Voorbeeld Rejectionreason 3",
+        "reviewedBy": "Voorbeeld Reviewedby 3",
+        "reviewedAt": "2026-03-03T09:00:00+00:00",
+        "status": "accepted"
       }
     ]
   }
