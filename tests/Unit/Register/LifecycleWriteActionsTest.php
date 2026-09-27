@@ -48,6 +48,12 @@ class LifecycleWriteActionsTest extends TestCase {
 				['OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction'],
 				[],
 			],
+			'BsaWarning.issue' => [
+				'BsaWarning',
+				'issue',
+				['OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction'],
+				[],
+			],
 		];
 	}//end transitions()
 

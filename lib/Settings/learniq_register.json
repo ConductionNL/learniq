@@ -16616,7 +16616,12 @@
                         "issue": {
                             "from": "drafted",
                             "to": "issued",
-                            "requires": "OCA\\Learniq\\Lifecycle\\BsaWarningSigningGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\BsaWarningSigningGuard",
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction"
+                                }
+                            ]
                         },
                         "acknowledge": {
                             "from": "issued",
