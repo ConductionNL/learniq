@@ -7051,6 +7051,7 @@
                 },
                 "authorization": {
                     "read": [
+                        "instructors",
                         "compliance-officers",
                         "team-leads",
                         {
@@ -7064,11 +7065,22 @@
                     ],
                     "create": [
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        "authenticated"
                     ],
                     "update": [
+                        "instructors",
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerIds": {
+                                    "$contains": "$userId"
+                                },
+                                "lifecycle": "draft"
+                            }
+                        }
                     ]
                 }
             },
