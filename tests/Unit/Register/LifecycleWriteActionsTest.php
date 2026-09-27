@@ -100,6 +100,17 @@ class LifecycleWriteActionsTest extends TestCase {
 				['OCA\\Learniq\\Lifecycle\\Action\\RejectionResubmissionAction' => []],
 				[],
 			],
+			'OsoImportDossier.accept' => [
+				'OsoImportDossier',
+				'accept',
+				[
+					'OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction' => [
+						'actorField' => 'reviewedBy',
+						'timeField' => 'reviewedAt',
+					],
+				],
+				[],
+			],
 		];
 	}//end transitions()
 

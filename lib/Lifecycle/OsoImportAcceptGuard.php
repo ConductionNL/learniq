@@ -43,9 +43,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use DateTimeImmutable;
-use DateTimeInterface;
-use DateTimeZone;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
@@ -53,12 +52,14 @@ use Psr\Log\LoggerInterface;
 /**
  * Guards the OsoImportDossier `under-review → accepted` lifecycle transition.
  *
- * Only an admin/coordinator may accept a received overstapdossier; on
- * success `reviewedBy`/`reviewedAt` are stamped into the payload.
+ * Only an admin/coordinator may accept a received overstapdossier.
+ * `reviewedBy`/`reviewedAt` are stamped by StampTransitionActorAction, declared
+ * on the same transition: OpenRegister calls guards by value, so a guard can
+ * not write onto the object (learniq#983).
  *
  * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
  */
-class OsoImportAcceptGuard {
+class OsoImportAcceptGuard implements LifecycleGuardInterface {
 
 	/**
 	 * Groups whose members may accept an OsoImportDossier.
@@ -89,40 +90,31 @@ class OsoImportAcceptGuard {
 	}//end __construct()
 
 	/**
-	 * Allow the `under-review → accepted` transition and stamp the reviewer.
+	 * Allow the `under-review → accepted` transition for an admin/coordinator.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the OsoImportDossier data array
-	 *                                               - 'actor'      : NC user ID of the requester
-	 *                                               - 'transition' : 'accept'
-	 *                                               - 'payload'    : mutable array; reviewedBy/reviewedAt
-	 *                                               are written here
+	 * @param array<string,mixed> $object The OsoImportDossier as it would be saved (status at `accepted`).
+	 * @param string              $action The transition action (`accept`).
+	 * @param string              $userId The caller's uid, or '' without a session.
 	 *
-	 * @return bool True when the actor is admin/coordinator; false otherwise.
+	 * @return GuardResult Allow, or deny when the caller may not accept.
 	 *
 	 * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
-		$actor = (string)($transitionContext['actor'] ?? '');
-
-		if ($actor === '') {
-			$this->logger->warning('[OsoImportAcceptGuard] No actor in transitionContext — denying accept.');
-			return false;
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($userId === '') {
+			$this->logger->warning('[OsoImportAcceptGuard] No session user — denying accept.');
+			return GuardResult::deny('Only a signed-in admin or coordinator can accept a transfer dossier.');
 		}
 
-		if ($this->actorIsAuthorised(actor: $actor) === false) {
+		if ($this->actorIsAuthorised(actor: $userId) === false) {
 			$this->logger->info(
 				'[OsoImportAcceptGuard] Actor {a} is not in an authorised group — denying accept of OsoImportDossier {id}.',
-				['a' => $actor, 'id' => $object['id'] ?? '?']
+				['a' => $userId, 'id' => $object['id'] ?? '?']
 			);
-			return false;
+			return GuardResult::deny('Only an admin or coordinator can accept a transfer dossier.');
 		}
 
-		$transitionContext['payload']['reviewedBy'] = $actor;
-		$transitionContext['payload']['reviewedAt'] = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
-
-		return true;
+		return GuardResult::allow();
 	}//end check()
 
 	/**

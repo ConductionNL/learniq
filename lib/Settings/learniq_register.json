@@ -26393,7 +26393,16 @@
                             "from": "under-review",
                             "to": "accepted",
                             "requires": "OCA\\Learniq\\Lifecycle\\OsoImportAcceptGuard",
-                            "description": "An admin/coordinator accepts the dossier; they then complete the real LearnerProfile through the existing object UI."
+                            "description": "An admin/coordinator accepts the dossier; they then complete the real LearnerProfile through the existing object UI.",
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction",
+                                    "actionParameters": {
+                                        "actorField": "reviewedBy",
+                                        "timeField": "reviewedAt"
+                                    }
+                                }
+                            ]
                         },
                         "reject": {
                             "from": "under-review",
