@@ -1510,7 +1510,8 @@ OC.L10N.register(
         "Whether a guardian has consented to beeldmateriaal for the video purpose, or null while undecided. The combined record across all of this child’s guardians — when a guardian refuses a purpose already granted, staff update it here (portal-contribution-guardian-audiences PA-new-2: a human-resolved record, not a computed verdict).": "Whether a guardian has consented to beeldmateriaal for the video purpose, or null while undecided. The combined record across all of this child’s guardians — when a guardian refuses a purpose already granted, staff update it here (portal-contribution-guardian-audiences PA-new-2: a human-resolved record, not a computed verdict).",
         "Mentor": "Mentor",
         "IB-er": "IB-er",
-        "Director": "Director"
+        "Director": "Director",
+        "Import & export": "Import & export"
     },
     "nplurals=2; plural=(n != 1);"
 )

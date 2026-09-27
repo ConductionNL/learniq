@@ -44,6 +44,21 @@
 					}
 				},
 				{
+					"id": "ImportExportToolsMenu",
+					"label": "Import & export",
+					"icon": "DatabaseExportOutline",
+					"route": "DataExchangeJobs",
+					"order": 25,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"admin",
+								"administration-manager"
+							]
+						}
+					}
+				},
+				{
 					"id": "ExchangeRejectionsMenu",
 					"label": "Rejections",
 					"icon": "CloseCircleOutline",
