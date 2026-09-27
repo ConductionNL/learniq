@@ -57,6 +57,20 @@ use Psr\Log\LoggerInterface;
 class FraudCaseDecisionGuard implements LifecycleGuardInterface {
 
 	/**
+	 * The transition inputs the caller sends that this guard reads; each is
+	 * declared in `inputs` on every transition naming this class.
+	 *
+	 * @var list<string>
+	 */
+	public const TRANSITION_INPUTS = [
+		'verdict',
+		'decisionRationale',
+		'sanctionType',
+		'sanctionDurationMonths',
+		'sanctionScope',
+	];
+
+	/**
 	 * The verdict value that requires an accompanying sanction.
 	 */
 	private const FRAUD_PROVEN = 'fraud-proven';

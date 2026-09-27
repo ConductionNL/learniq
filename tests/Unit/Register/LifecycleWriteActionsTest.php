@@ -195,4 +195,51 @@ class LifecycleWriteActionsTest extends TestCase {
 		self::assertSame(expected: $spec['from'], actual: $spec['to'], message: 'recordMunicipalityFeedback is expected to be a self-loop');
 		self::assertContains(needle: 'municipalityFeedback', haystack: $declared);
 	}//end testRecordMunicipalityFeedbackAcceptsTheFeedback()
+
+	/**
+	 * A guard or action declaring TRANSITION_INPUTS has each key accepted by
+	 * every transition that names it, in `requires` or in `actions`.
+	 *
+	 * @return void
+	 */
+	public function testEveryDeclaredTransitionInputIsAccepted(): void {
+		$register = json_decode(
+			(string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'),
+			true,
+			flags: JSON_THROW_ON_ERROR
+		);
+
+		$missing = [];
+		$checked = 0;
+		foreach (($register['components']['schemas'] ?? []) as $schemaKey => $schema) {
+			foreach (($schema['x-openregister-lifecycle']['transitions'] ?? []) as $action => $spec) {
+				$classes = array_map(
+					static fn (array $envelope): string => (string)($envelope['action'] ?? ''),
+					($spec['actions'] ?? [])
+				);
+				$classes[] = (string)($spec['requires'] ?? '');
+
+				$accepted = array_map(
+					static fn (array $input): string => (string)($input['field'] ?? ''),
+					($spec['inputs'] ?? [])
+				);
+
+				foreach ($classes as $class) {
+					if ($class === '' || class_exists($class) === false || defined($class . '::TRANSITION_INPUTS') === false) {
+						continue;
+					}
+
+					$checked++;
+					foreach (constant($class . '::TRANSITION_INPUTS') as $field) {
+						if (in_array($field, $accepted, true) === false) {
+							$missing[] = $schemaKey . '.' . $action . ' does not accept ' . $field . ' (read by ' . $class . ')';
+						}
+					}
+				}
+			}//end foreach
+		}//end foreach
+
+		self::assertGreaterThan(expected: 0, actual: $checked);
+		self::assertSame(expected: [], actual: $missing, message: implode("\n", $missing));
+	}//end testEveryDeclaredTransitionInputIsAccepted()
 }//end class
