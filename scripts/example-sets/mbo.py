@@ -766,7 +766,6 @@ def build() -> dict:
     visits_by_coach: dict[str, set[str]] = {}
     assessments_by_student: dict[str, list[dict]] = {}
     terminated_student = None
-    retake_pool = []
     for cname, key, lj, _size, _room, _slb, _timetable, bpv in COHORTS:
         if bpv is None:
             continue
@@ -861,7 +860,8 @@ def build() -> dict:
     # Werkproces assessments: most competent at once, some after a retake, a
     # few not yet competent at the end of the year.
     completed = [p for p in placements if p["state"] == "completed"]
-    rng.shuffle(retake_pool := [(p, k) for p in completed for k in bpv_meta[p["unit"]]["kerntaken"]])
+    retake_pool = [(p, k) for p in completed for k in bpv_meta[p["unit"]]["kerntaken"]]
+    rng.shuffle(retake_pool)
     retakes = {(id(p), k) for p, k in retake_pool[:18]}
     fail_final = {(id(p), k) for p, k in retake_pool[18:21]}
     pvb_results: list[dict] = []
@@ -1361,7 +1361,7 @@ def build() -> dict:
     b.add("support-request", {
         "learnerId": low["nc"], "raisedBy": cohorts["SD4-1A"]["teacherAssignments"][0]["teacherId"],
         "supportDomain": "Aanwezigheid en welbevinden",
-        "description": f"Aanwezigheid in semester 1 onder de 80 procent. Vraag om begeleiding bij planning, werk naast school en slaap.",
+        "description": "Aanwezigheid in semester 1 onder de 80 procent. Vraag om begeleiding bij planning, werk naast school en slaap.",
         "urgency": "high", "lifecycle": "closed",
     })
     b.add("support-request", {
