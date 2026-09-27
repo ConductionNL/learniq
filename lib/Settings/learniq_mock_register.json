@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.4",
+    "version": "1.1.5",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -29796,6 +29796,60 @@
         "dle": 3.0,
         "assessmentResultId": "00000000-0000-4000-8000-000000000002",
         "lifecycle": "archived"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "FirstAidIncident",
+          "slug": "firstaidincident-firstaidincident-1-1"
+        },
+        "learnerId": "Voorbeeld Learnerid 1",
+        "reportedBy": "Voorbeeld Reportedby 1",
+        "occurredAt": "2026-03-01T09:00:00+00:00",
+        "whatHappened": "Voorbeeld Whathappened 1",
+        "treatmentGiven": "Voorbeeld Treatmentgiven 1",
+        "notifiedGuardian": false,
+        "notifiedGuardianAt": "2026-03-01T09:00:00+00:00",
+        "followUpActions": [],
+        "resolution": "Voorbeeld Resolution 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "open"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "FirstAidIncident",
+          "slug": "firstaidincident-firstaidincident-2-2"
+        },
+        "learnerId": "Voorbeeld Learnerid 2",
+        "reportedBy": "Voorbeeld Reportedby 2",
+        "occurredAt": "2026-03-02T09:00:00+00:00",
+        "whatHappened": "Voorbeeld Whathappened 2",
+        "treatmentGiven": "Voorbeeld Treatmentgiven 2",
+        "notifiedGuardian": true,
+        "notifiedGuardianAt": "2026-03-02T09:00:00+00:00",
+        "followUpActions": [],
+        "resolution": "Voorbeeld Resolution 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "lifecycle": "in-handling"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "FirstAidIncident",
+          "slug": "firstaidincident-firstaidincident-3-3"
+        },
+        "learnerId": "Voorbeeld Learnerid 3",
+        "reportedBy": "Voorbeeld Reportedby 3",
+        "occurredAt": "2026-03-03T09:00:00+00:00",
+        "whatHappened": "Voorbeeld Whathappened 3",
+        "treatmentGiven": "Voorbeeld Treatmentgiven 3",
+        "notifiedGuardian": true,
+        "notifiedGuardianAt": "2026-03-03T09:00:00+00:00",
+        "followUpActions": [],
+        "resolution": "Voorbeeld Resolution 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "lifecycle": "resolved"
       }
     ]
   }

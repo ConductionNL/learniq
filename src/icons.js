@@ -32,6 +32,7 @@ import AlertDecagramOutline from 'vue-material-design-icons/AlertDecagramOutline
 import AlertOctagonOutline from 'vue-material-design-icons/AlertOctagonOutline.vue'
 import AlertOutline from 'vue-material-design-icons/AlertOutline.vue'
 import ApplicationOutline from 'vue-material-design-icons/ApplicationOutline.vue'
+import Bandage from 'vue-material-design-icons/Bandage.vue'
 import BellOutline from 'vue-material-design-icons/BellOutline.vue'
 import BookAlertOutline from 'vue-material-design-icons/BookAlertOutline.vue'
 import BookOpenPageVariantOutline from 'vue-material-design-icons/BookOpenPageVariantOutline.vue'
@@ -110,9 +111,11 @@ import LinkVariant from 'vue-material-design-icons/LinkVariant.vue'
 import Lock from 'vue-material-design-icons/Lock.vue'
 import MapMarker from 'vue-material-design-icons/MapMarker.vue'
 import MapMarkerCheckOutline from 'vue-material-design-icons/MapMarkerCheckOutline.vue'
+import MapMarkerOutline from 'vue-material-design-icons/MapMarkerOutline.vue'
 import MapMarkerPath from 'vue-material-design-icons/MapMarkerPath.vue'
 import MapOutline from 'vue-material-design-icons/MapOutline.vue'
 import MedalOutline from 'vue-material-design-icons/MedalOutline.vue'
+import MedicalBag from 'vue-material-design-icons/MedicalBag.vue'
 import MessageAlertOutline from 'vue-material-design-icons/MessageAlertOutline.vue'
 import MessageTextOutline from 'vue-material-design-icons/MessageTextOutline.vue'
 import NotebookOutline from 'vue-material-design-icons/NotebookOutline.vue'
@@ -177,6 +180,7 @@ export default {
 	AlertOctagonOutline,
 	AlertOutline,
 	ApplicationOutline,
+	Bandage,
 	BellOutline,
 	BookAlertOutline,
 	BookOpenPageVariantOutline,
@@ -255,9 +259,11 @@ export default {
 	Lock,
 	MapMarker,
 	MapMarkerCheckOutline,
+	MapMarkerOutline,
 	MapMarkerPath,
 	MapOutline,
 	MedalOutline,
+	MedicalBag,
 	MessageAlertOutline,
 	MessageTextOutline,
 	NoteTextOutline,
