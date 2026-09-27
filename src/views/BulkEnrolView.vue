@@ -5,8 +5,9 @@
  BulkEnrolView: enrol a whole audience in one course
  (route /enrolments/bulk, learniq#947).
 
- Pick a course, then the audience: a cohort (all its learners) and/or
- individual learners. The confirm step says how many are new; learners with
+ Pick a course, then the audience: a department (everyone in it or under
+ it, matched the way the compliance roll-up matches), a cohort (all its
+ learners) and/or individual learners. The confirm step says how many are new; learners with
  an open enrolment for the course are skipped. Each new learner gets an
  Enrolment with source bulk. The prerequisite gate (EnrolmentPrerequisiteListener)
  still applies per learner, so a refusal is reported by name.
@@ -22,6 +23,11 @@
 				:options="courseOptions"
 				:getOptionLabel="(c) => c.name || c.code || c.id"
 				:inputLabel="t('learniq', 'Course')" />
+
+			<NcSelect
+				v-model="department"
+				:options="departments"
+				:inputLabel="t('learniq', 'Department (optional)')" />
 
 			<NcSelect
 				v-model="cohort"
@@ -93,6 +99,8 @@ import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcNoteCard, NcSelect } from '@nextcloud/vue'
 import {
 	bulkEnrolmentBody,
+	departmentOptions,
+	learnersInDepartment,
 	learnersToEnrol,
 	listRows,
 	objectId,
@@ -110,6 +118,8 @@ export default {
 			courseOptions: [],
 			cohort: null,
 			cohortOptions: [],
+			department: null,
+			profiles: [],
 			learners: [],
 			learnerOptions: [],
 			searching: false,
@@ -127,8 +137,19 @@ export default {
 		 */
 		audience() {
 			const fromCohort = this.cohort?.learnerIds ?? []
+			const fromDepartment = this.department
+				? learnersInDepartment(this.profiles, this.department)
+				: []
 			const picked = this.learners.map((l) => l.ncUserId).filter(Boolean)
-			return [...new Set([...fromCohort, ...picked])]
+			return [...new Set([...fromDepartment, ...fromCohort, ...picked])]
+		},
+
+		/**
+		 * @return {string[]} Department paths found on the learner profiles.
+		 * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
+		 */
+		departments() {
+			return departmentOptions(this.profiles)
 		},
 
 		/**
@@ -181,14 +202,18 @@ export default {
 
 	async mounted() {
 		try {
-			const [courses, cohorts] = await Promise.all([
+			const [courses, cohorts, profiles] = await Promise.all([
 				axios.get(generateUrl(objectsUrl('course')), {
 					params: { _limit: 500 },
 				}),
 				axios.get(generateUrl(objectsUrl('cohort')), {
 					params: { _limit: 500 },
 				}),
+				axios.get(generateUrl(objectsUrl('learner-profile')), {
+					params: { _limit: 5000 },
+				}),
 			])
+			this.profiles = listRows(profiles.data)
 			this.courseOptions = listRows(courses.data)
 			this.cohortOptions = listRows(cohorts.data)
 		} catch {

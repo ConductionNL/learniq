@@ -231,3 +231,17 @@ test('signature records fit their append-only schemas', async () => {
 	assertFitsSchema(pok, 'PokSignature')
 	assert.equal(pok.evidenceRef, 'drawn:data:image/png;base64,AA')
 })
+
+test('bulk enrolment by department takes the department and everything under it', async () => {
+	const { learnersInDepartment, departmentOptions } = await import('../../src/utils/customPages.js')
+	const profiles = [
+		{ ncUserId: 'a', department: 'Operations/Infra/Team A' },
+		{ ncUserId: 'b', department: 'Operations / Infra' },
+		{ ncUserId: 'c', department: 'Operations/Infrastructure' },
+		{ ncUserId: 'd', department: 'Finance' },
+		{ ncUserId: 'e', department: 'Operations/Infra', mergedInto: 'x' },
+	]
+	assert.deepEqual(learnersInDepartment(profiles, 'Operations/Infra'), ['a', 'b'])
+	assert.deepEqual(learnersInDepartment(profiles, ''), [])
+	assert.deepEqual(departmentOptions(profiles.slice(0, 2)), ['Operations', 'Operations/Infra', 'Operations/Infra/Team A'])
+})

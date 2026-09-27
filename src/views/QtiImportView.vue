@@ -78,10 +78,7 @@ export default {
 		 */
 		summary() {
 			const count = Number(
-				this.result?.imported
-					?? this.result?.count
-					?? this.result?.items?.length
-					?? 0,
+				this.result?.itemCount ?? this.result?.itemIds?.length ?? 0,
 			)
 			return this.n(
 				'learniq',

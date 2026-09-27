@@ -497,3 +497,52 @@ export function signatureBody({
 	if (kind === 'learning-plan') body.subjectKind = 'learning-plan'
 	return body
 }
+
+/**
+ * Every level of a department path, top first, trimmed: 'Operations / Infra'
+ * gives ['Operations', 'Operations/Infra']. Mirrors
+ * RegulationAudienceResolver::departmentLevels() so the bulk enrolment picker
+ * and the compliance roll-up agree on who is in a department.
+ *
+ * @param {string} department The department path.
+ * @return {string[]} The levels, [] when empty.
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
+ */
+export function departmentLevels(department) {
+	const parts = String(department ?? '')
+		.split('/')
+		.map((p) => p.trim())
+		.filter(Boolean)
+	return parts.map((_, i) => parts.slice(0, i + 1).join('/'))
+}
+
+/**
+ * The Nextcloud user ids of the profiles in a department or anywhere under it.
+ *
+ * @param {object[]} profiles LearnerProfiles.
+ * @param {string} department The picked department path.
+ * @return {string[]} User ids.
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
+ */
+export function learnersInDepartment(profiles, department) {
+	const levels = departmentLevels(department)
+	const target = levels[levels.length - 1]
+	if (!target) return []
+	return profiles
+		.filter((p) => !p.mergedInto && departmentLevels(p.department).includes(target))
+		.map((p) => p.ncUserId)
+		.filter(Boolean)
+}
+
+/**
+ * Every department path that occurs in the profiles, at every level, sorted.
+ *
+ * @param {object[]} profiles LearnerProfiles.
+ * @return {string[]} Department paths.
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
+ */
+export function departmentOptions(profiles) {
+	const all = new Set()
+	for (const p of profiles) departmentLevels(p.department).forEach((l) => all.add(l))
+	return [...all].sort()
+}
