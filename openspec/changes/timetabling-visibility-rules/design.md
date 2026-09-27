@@ -2,7 +2,7 @@
 
 ## Context
 
-The only timetable a learner has is their own (`TimetableController::mine()`, `lib/Controller/TimetableController.php:111`). Staff also have the cohort timetable (`CohortTimetableView.vue`, reading `objectsUrl('session')` at :60). `Session` has no authorization block, so the object API lets every signed-in user read every lesson; a visibility setting would be hollow without one. Under D10 the sessions move to planninq; the policy and the endpoint stay learniq's, and the reading goes through learniq's session reader.
+The only timetable a learner has is their own (`TimetableController::mine()`, `lib/Controller/TimetableController.php:111`). Staff also have the cohort timetable (`CohortTimetableView.vue`, reading `objectsUrl('session')` at :60). `Session` has no authorization block, so OpenRegister applies no read rule of its own to it and, on a static reading, lets every signed-in user read every lesson; a visibility setting would be hollow without one. Under D10 the sessions move to planninq; the policy and the endpoint stay learniq's, and the reading goes through learniq's session reader.
 
 ## Data model
 

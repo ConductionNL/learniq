@@ -6,7 +6,7 @@
 - **spec_ref**: `specs/personal-timetable/spec.md#requirement-the-api-follows-the-same-line`
 - **files**: every read of `session` in `src/` and `lib/` found by `git grep -n "'session'"` (at least `src/views/CohortTimetableView.vue:60`)
 - [ ] Implement
-- [ ] Test: the list of reads with their new path in the PR body; existing e2e for MyTimetable and the cohort timetable stay green
+- [ ] Test: as a learner on a live instance, list `session` objects through the object API and record what comes back; the list of reads with their new path in the PR body; existing e2e for MyTimetable and the cohort timetable stay green
 
 ### Task 2: Register: policy and Session authorization
 - **spec_ref**: `specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see`, `#requirement-the-api-follows-the-same-line`

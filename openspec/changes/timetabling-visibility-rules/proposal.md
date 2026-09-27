@@ -26,7 +26,7 @@ Read at learniq `development` 8bb8401d.
 
 - `GET /api/timetable/mine` (`lib/Controller/TimetableController.php:111`) returns the caller's own lessons; `MyTimetable.vue` shows them.
 - `CohortTimetableView.vue` (`/cohorts/:id/timetable`, `src/manifest.d/learning.json:2508-2518`) reads a cohort's sessions straight from the object API (`src/views/CohortTimetableView.vue:60`).
-- `Session` (`lib/Settings/learniq_register.json:6130`) has no `authorization` block, so its object API read is open to every signed-in user: any learner can list every lesson of the school.
+- `Session` (`lib/Settings/learniq_register.json:6130`) has no `authorization` block, so OpenRegister applies no read rule of its own to it. On that static reading any signed-in learner can list every lesson of the school through the object API; task 1 confirms it on a live instance before the block is added.
 - There is no setting for who may see which timetable, and no way to look up a teacher's or a room's timetable.
 
 ## What this change builds
