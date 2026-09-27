@@ -444,6 +444,16 @@ export function coursePackageUrl(courseId, format) {
 	return `/apps/learniq/api/course-management/course-package-export?${q.toString()}`
 }
 
+/**
+ * The course-package share URL: the package meant to leave the school.
+ *
+ * @return {string} The app-relative URL (POST).
+ * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
+ */
+export function coursePackageShareUrl() {
+	return '/apps/learniq/api/course-management/course-package-share'
+}
+
 /** What each signable subject needs: schema slugs and the roles that sign in learniq. */
 export const SIGNABLE_SUBJECTS = {
 	'learning-plan': {

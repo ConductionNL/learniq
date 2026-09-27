@@ -7,7 +7,10 @@
    - audit-pack (/compliance/export): regulation and date range, downloads
      the ZIP from POST /api/compliance/audit/export;
    - course-package (/course-packages/export): course and format, downloads
-     from GET /api/course-management/course-package-export;
+     from GET /api/course-management/course-package-export; with "Share
+     outside the school" on, it posts the two confirmations to
+     POST /api/course-management/course-package-share instead and lists the
+     sharing gate's reasons when it refuses (lesson-sharing-consent-gate);
    - data-exchange (/data-exchange/request): creates a queued export
      DataExchangeJob for a named connection and scope, then links to it.
 
@@ -36,11 +39,41 @@
 					:reduce="(option) => option.id"
 					:inputLabel="t('learniq', 'Course')" />
 				<NcSelect
+					v-if="!share"
 					v-model="format"
 					:options="packageFormats"
 					:reduce="(option) => option.id"
 					:clearable="false"
 					:inputLabel="t('learniq', 'Format')" />
+				<NcCheckboxRadioSwitch v-model="share" type="switch">
+					{{ t('learniq', 'Share outside the school') }}
+				</NcCheckboxRadioSwitch>
+				<template v-if="share">
+					<NcNoteCard type="info">
+						{{
+							t(
+								'learniq',
+								"A shared package leaves out your school's own links, file paths and access codes. Your confirmation is recorded with your name.",
+							)
+						}}
+					</NcNoteCard>
+					<NcCheckboxRadioSwitch v-model="noPupilData">
+						{{
+							t(
+								'learniq',
+								'This package holds no pupil names, photos, work or other personal data.',
+							)
+						}}
+					</NcCheckboxRadioSwitch>
+					<NcCheckboxRadioSwitch v-model="rightsCleared">
+						{{
+							t(
+								'learniq',
+								"The school may share everything in it. Nothing comes from a publisher's method without permission.",
+							)
+						}}
+					</NcCheckboxRadioSwitch>
+				</template>
 			</template>
 
 			<template v-else>
@@ -67,6 +100,16 @@
 
 			<NcNoteCard v-if="error" type="error">
 				{{ error }}
+			</NcNoteCard>
+			<NcNoteCard v-if="blockers.length > 0" type="warning">
+				<p>
+					{{ t('learniq', 'This course may not leave the school yet:') }}
+				</p>
+				<ul class="export-request__blockers">
+					<li v-for="(reason, index) in blockerTexts" :key="index">
+						{{ reason }}
+					</li>
+				</ul>
 			</NcNoteCard>
 			<NcNoteCard v-if="done" type="success">
 				{{ done }}
@@ -95,9 +138,15 @@
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcNoteCard, NcSelect } from '@nextcloud/vue'
+import {
+	NcButton,
+	NcCheckboxRadioSwitch,
+	NcNoteCard,
+	NcSelect,
+} from '@nextcloud/vue'
 import {
 	auditPackUrl,
+	coursePackageShareUrl,
 	coursePackageUrl,
 	exportJobBody,
 	listRows,
@@ -109,7 +158,7 @@ import {
 export default {
 	name: 'ExportRequestView',
 
-	components: { NcButton, NcNoteCard, NcSelect },
+	components: { NcButton, NcCheckboxRadioSwitch, NcNoteCard, NcSelect },
 
 	props: {
 		/** 'audit-pack', 'course-package' or 'data-exchange' (page config). */
@@ -125,6 +174,10 @@ export default {
 			courseId: null,
 			courseOptions: [],
 			format: 'common-cartridge',
+			share: false,
+			noPupilData: false,
+			rightsCleared: false,
+			blockers: [],
 			target: 'bron-rod',
 			learnerId: '',
 			formatHint: '',
@@ -184,12 +237,26 @@ export default {
 		},
 
 		/**
+		 * The sharing gate's reasons, one translated sentence each.
+		 *
+		 * @return {string[]} The sentences.
+		 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
+		 */
+		blockerTexts() {
+			return this.blockers.map((blocker) => this.blockerText(blocker))
+		},
+
+		/**
 		 * @return {boolean} Whether the form is complete.
 		 * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
 		 */
 		ready() {
 			if (this.kind === 'audit-pack')
 				return Boolean(this.regulationSlug && this.dateFrom && this.dateTo)
+			if (this.kind === 'course-package' && this.share)
+				return Boolean(
+					this.courseId && this.noPupilData && this.rightsCleared,
+				)
 			if (this.kind === 'course-package')
 				return Boolean(this.courseId && this.format)
 			return Boolean(this.target)
@@ -239,6 +306,7 @@ export default {
 			this.error = ''
 			this.done = ''
 			this.jobId = ''
+			this.blockers = []
 			try {
 				if (this.kind === 'audit-pack') {
 					const response = await axios.post(
@@ -253,6 +321,17 @@ export default {
 						{ responseType: 'blob' },
 					)
 					this.download(response, 'audit-pack.zip')
+				} else if (this.kind === 'course-package' && this.share) {
+					const response = await axios.post(
+						generateUrl(coursePackageShareUrl()),
+						{
+							courseId: this.courseId,
+							noPupilData: this.noPupilData,
+							rightsCleared: this.rightsCleared,
+						},
+						{ responseType: 'blob' },
+					)
+					this.download(response, 'course-share.json')
 				} else if (this.kind === 'course-package') {
 					const response = await axios.get(
 						generateUrl(coursePackageUrl(this.courseId, this.format)),
@@ -284,9 +363,14 @@ export default {
 					this.done = this.t('learniq', 'The export is queued.')
 				}
 			} catch (e) {
-				this.error =
-					(await this.errorText(e))
-					|| this.t('learniq', 'The export could not be made.')
+				const body = await this.errorBody(e)
+				if (Array.isArray(body.blockers) && body.blockers.length > 0) {
+					this.blockers = body.blockers
+				} else {
+					this.error =
+						(body.error ?? '')
+						|| this.t('learniq', 'The export could not be made.')
+				}
 			} finally {
 				this.busy = false
 			}
@@ -313,22 +397,71 @@ export default {
 		},
 
 		/**
-		 * Read an error message, also from a blob error body.
+		 * Read an error body, also from a blob response.
 		 *
 		 * @param {Error} e The failure.
-		 * @return {Promise<string>} The message, or ''.
-		 * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
+		 * @return {Promise<object>} The parsed body, or {}.
+		 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
 		 */
-		async errorText(e) {
+		async errorBody(e) {
 			const data = e?.response?.data
 			if (data instanceof Blob) {
 				try {
-					return JSON.parse(await data.text()).error ?? ''
+					return JSON.parse(await data.text()) ?? {}
 				} catch {
-					return ''
+					return {}
 				}
 			}
-			return data?.error ?? ''
+			return data && typeof data === 'object' ? data : {}
+		},
+
+		/**
+		 * One sharing-gate reason as a sentence in the user's language.
+		 *
+		 * @param {{code: string, name: string}} blocker The reason.
+		 * @return {string} The sentence.
+		 * @spec openspec/changes/lesson-sharing-consent-gate/specs/course-management/spec.md#requirement-the-export-page-offers-sharing-with-the-confirmations
+		 */
+		blockerText(blocker) {
+			const name = blocker?.name ?? ''
+			switch (blocker?.code) {
+				case 'licence-missing':
+					return this.t('learniq', 'Set a licence on the course first.')
+				case 'licence-not-open':
+					return this.t(
+						'learniq',
+						'The course licence does not allow sharing. Choose an open licence.',
+					)
+				case 'author-missing':
+					return this.t(
+						'learniq',
+						'Name the author on the course, so others can credit them.',
+					)
+				case 'lesson-licence-not-open':
+					return this.t(
+						'learniq',
+						'Lesson {name} has a licence that does not allow sharing.',
+						{ name },
+					)
+				case 'material-licence-not-open':
+					return this.t(
+						'learniq',
+						'Material {name} has a licence that does not allow sharing.',
+						{ name },
+					)
+				case 'pupil-data-not-confirmed':
+					return this.t(
+						'learniq',
+						'Confirm that the package holds no pupil data.',
+					)
+				case 'rights-not-confirmed':
+					return this.t(
+						'learniq',
+						'Confirm that the school may share everything in it.',
+					)
+				default:
+					return blocker?.code ?? ''
+			}
 		},
 	},
 }
@@ -338,6 +471,11 @@ export default {
 .export-request {
 	padding: calc(var(--default-grid-baseline, 4px) * 4);
 	max-inline-size: 40rem;
+}
+
+.export-request__blockers {
+	margin-block: 0;
+	padding-inline-start: calc(var(--default-grid-baseline, 4px) * 5);
 }
 
 .export-request__form {

@@ -76,6 +76,11 @@ return [
         // Controller: CoursePackageExportController (slug: coursePackageExport).
         ['name' => 'coursePackageExport#export', 'url' => '/api/course-management/course-package-export', 'verb' => 'GET'],
 
+        // Course-package share export: the package meant to leave the school, behind
+        // the sharing gate and a CourseShareConsent (ADR-023: course-package.share).
+        // Controller: CourseSharingController (lesson-sharing-consent-gate).
+        ['name' => 'courseSharing#share', 'url' => '/api/course-management/course-package-share', 'verb' => 'POST'],
+
         // School-year rollover wizard — proposal + side-effect-free preview,
         // authorized via the ADR-023 action matrix (rollover.plan).
         // Controller: RolloverController (slug: rollover).
