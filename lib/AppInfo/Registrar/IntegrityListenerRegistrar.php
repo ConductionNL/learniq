@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\AssessmentResultIntegrityListener;
+use OCA\Learniq\Listener\CompetencyAlignmentListener;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectDeletingEvent;
@@ -76,6 +77,19 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: PortfolioEntryOwnershipListener::class
+		);
+
+		// Competency alignments (goal-alignment-depth): keeps competencyIds
+		// derived from competencyAlignments on Lesson, Course, Assignment and
+		// Assessment, and refuses a depth the goal's framework does not know.
+		// A pre-write veto that also writes, so registered directly.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: CompetencyAlignmentListener::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: CompetencyAlignmentListener::class
 		);
 	}//end register()
 }//end class

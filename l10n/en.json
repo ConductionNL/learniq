@@ -1579,7 +1579,12 @@
         "Years": "Years",
         "Subject": "Subject",
         "The years this goal is taught in. Use year levels such as groep 5, leerjaar 2 or jaar 1, or school years such as 2026-2027. Leave empty when the goal applies to every year, or to take the years of its parent goal.": "The years this goal is taught in. Use year levels such as groep 5, leerjaar 2 or jaar 1, or school years such as 2026-2027. Leave empty when the goal applies to every year, or to take the years of its parent goal.",
-        "The subject this goal belongs to. Leave empty for a goal that spans subjects, or to take the subject of its parent goal.": "The subject this goal belongs to. Leave empty for a goal that spans subjects, or to take the subject of its parent goal."
+        "The subject this goal belongs to. Leave empty for a goal that spans subjects, or to take the subject of its parent goal.": "The subject this goal belongs to. Leave empty for a goal that spans subjects, or to take the subject of its parent goal.",
+        "Goal alignments": "Goal alignments",
+        "Depth": "Depth",
+        "The goal this is aligned to.": "The goal this is aligned to.",
+        "How far this takes the goal: a level from the goal's framework, such as practise or competent. Leave empty to not say.": "How far this takes the goal: a level from the goal's framework, such as practise or competent. Leave empty to not say.",
+        "The goals this works on, each with a depth from the goal's own framework. Competency IDs is kept in step with this list.": "The goals this works on, each with a depth from the goal's own framework. Competency IDs is kept in step with this list."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

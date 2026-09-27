@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.13",
+    "version": "1.1.14",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -22476,7 +22476,20 @@
           "navigationLock": true
         },
         "gradeEntryComponentId": "Voorbeeld Gradeentrycomponentid 1",
-        "competencyIds": [],
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
         "releaseConditions": []
       },
       {
@@ -22700,7 +22713,20 @@
         "visibleFrom": "2026-03-01T09:00:00+00:00",
         "visibleUntil": "2026-03-01T09:00:00+00:00",
         "plagiarismProvider": "Voorbeeld Plagiarismprovider 1",
-        "competencyIds": [],
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
         "peerReviewEnabled": false,
         "selfAssessmentEnabled": false,
         "peerReviewersPerSubmission": 2,
@@ -24011,7 +24037,20 @@
           "00000000-0000-4000-8000-000000000000"
         ],
         "ectsCredits": 0.0,
-        "competencyIds": [],
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
         "prerequisiteCourseIds": []
       },
       {
@@ -27243,7 +27282,20 @@
         "learningObjectives": [
           "Voorbeeld Learningobjectives 1"
         ],
-        "competencyIds": [],
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
         "releaseConditions": [],
         "availableAfterDays": 0,
         "mandatoryTraining": false,
