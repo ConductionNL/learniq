@@ -67,7 +67,7 @@ class AdmissionsWaitlistPromoterTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($waitlisted) {
-				if (($config['schema'] ?? '') === 'admission' && ($config['filters']['lifecycle'] ?? '') === 'waitlisted') {
+				if (($config['filters']['schema'] ?? '') === 'admission' && ($config['filters']['lifecycle'] ?? '') === 'waitlisted') {
 					return $waitlisted;
 				}
 

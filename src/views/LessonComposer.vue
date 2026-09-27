@@ -33,12 +33,22 @@
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring CourseBuilder.vue's shape.
 
+  lesson-ai-assist-actions: when hermiq is enabled, LessonAssistPanel adds
+  AI help (outline, questions, goal suggestions) and each rich text block
+  gets a "rewrite in simpler words" action. Every answer lands here as an AI
+  draft block with Keep and Discard; save() refuses while a draft is
+  pending, and the draft marker never reaches OpenRegister
+  (serialiseLessonBlocks). An added goal suggestion is saved into
+  `competencyIds` with the next save. Goal titles for the panel come from
+  the Course's and the Lesson's Competency rows.
+
   SPDX-License-Identifier: EUPL-1.2
   Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
   @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessons-within-a-course-and-blocks-within-a-lesson-are-reorderable-by-drag-and-drop-and-by-keyboard
   @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#scenario-a-media-block-references-an-existing-material-rather-than-duplicating-file-metadata
+  @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 -->
 
 <template>
@@ -170,6 +180,29 @@
 								<ChevronDown :size="18" />
 							</button>
 							<button
+								v-if="
+									assistAvailable
+									&& block.type === 'richText'
+									&& !block.assistDraft
+								"
+								type="button"
+								class="lesson-composer__icon-btn"
+								:disabled="!(block.text || '').trim()"
+								:title="t('learniq', 'Rewrite in simpler words')"
+								:aria-label="
+									t(
+										'learniq',
+										'Rewrite {type} block {position} in simpler words',
+										{
+											type: blockTypeLabel(block.type),
+											position: idx + 1,
+										},
+									)
+								"
+								@click="simplifyBlock(block)">
+								<AutoFix :size="18" />
+							</button>
+							<button
 								type="button"
 								class="lesson-composer__icon-btn"
 								:aria-label="
@@ -187,10 +220,93 @@
 						<div
 							v-if="block.type === 'richText'"
 							class="lesson-composer__block-body">
+							<div
+								v-if="block.assistDraft"
+								class="lesson-composer__draft"
+								role="group"
+								:aria-label="
+									t('learniq', 'AI draft in block {position}', {
+										position: idx + 1,
+									})
+								">
+								<p class="lesson-composer__draft-label">
+									<strong>{{ t('learniq', 'AI draft') }}</strong>
+									{{
+										t(
+											'learniq',
+											'Check and edit it before you keep it. Model service: {provider}',
+											{
+												provider:
+													block.assistDraft.provider
+													|| t('learniq', 'unknown'),
+											},
+										)
+									}}
+								</p>
+								<div class="lesson-composer__draft-actions">
+									<button
+										type="button"
+										class="button-vue button-vue--primary"
+										:aria-label="
+											t(
+												'learniq',
+												'Keep AI draft in block {position}',
+												{
+													position: idx + 1,
+												},
+											)
+										"
+										@click="keepDraft(block)">
+										{{ t('learniq', 'Keep') }}
+									</button>
+									<button
+										type="button"
+										class="button-vue"
+										:aria-label="
+											t(
+												'learniq',
+												'Discard AI draft in block {position}',
+												{ position: idx + 1 },
+											)
+										"
+										@click="discardDraft(idx)">
+										{{ t('learniq', 'Discard') }}
+									</button>
+								</div>
+							</div>
 							<CnMarkdownEditor
 								:value="block.text || ''"
 								:aria-label="t('learniq', 'Rich text content')"
 								:rows="6"
+								@input="
+									(v) => onBlockFieldInput(block, 'text', v)
+								" />
+						</div>
+
+						<!-- teacherNote (office-file-lesson-onboarding) -->
+						<div
+							v-else-if="block.type === 'teacherNote'"
+							class="lesson-composer__block-body">
+							<p class="lesson-composer__teacher-note-label">
+								{{
+									t(
+										'learniq',
+										'Only staff see this note here. Learners do not see it in the lesson player.',
+									)
+								}}
+							</p>
+							<CnMarkdownEditor
+								:value="block.text || ''"
+								:aria-label="
+									t(
+										'learniq',
+										'Teacher note in block {position}',
+										{
+											position: idx + 1,
+										},
+									)
+								"
+								:rows="4"
 								@input="
 									(v) => onBlockFieldInput(block, 'text', v)
 								" />
@@ -288,6 +404,9 @@
 					<option value="ltiTool">
 						{{ t('learniq', 'External tool (LTI)') }}
 					</option>
+					<option value="teacherNote">
+						{{ t('learniq', 'Teacher note (not shown to learners)') }}
+					</option>
 				</select>
 				<button
 					type="button"
@@ -297,6 +416,17 @@
 					{{ t('learniq', 'Add block') }}
 				</button>
 			</section>
+
+			<LessonAssistPanel
+				v-if="assistEnabled"
+				ref="assistPanel"
+				:blocks="blocks"
+				:goals="assistGoals"
+				:linkedGoalIds="competencyIds"
+				:language="courseLanguage"
+				@draft="onAssistDraft"
+				@addGoal="onAssistAddGoal"
+				@off="assistOff = true" />
 		</template>
 	</div>
 </template>
@@ -307,10 +437,19 @@ import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
 import { NcSelect } from '@nextcloud/vue'
 import draggable from 'vuedraggable'
+import AutoFix from 'vue-material-design-icons/AutoFix.vue'
 import ChevronDown from 'vue-material-design-icons/ChevronDown.vue'
 import ChevronUp from 'vue-material-design-icons/ChevronUp.vue'
 import DeleteOutline from 'vue-material-design-icons/DeleteOutline.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
+import LessonAssistPanel from '../components/lesson/LessonAssistPanel.vue'
+import { GOAL_COUNT_MAX, isHermiqEnabled } from '../utils/lessonAssist.js'
+import {
+	countPendingDrafts,
+	keepDraftBlock,
+	makeDraftBlock,
+	serialiseLessonBlocks,
+} from '../utils/lessonBlocks.js'
 
 /**
  * Material.kind inferred from a picked file's MIME type (design.md D3 task 4.4).
@@ -335,6 +474,8 @@ export default {
 		NcSelect,
 		CnMarkdownEditor,
 		Draggable: draggable,
+		LessonAssistPanel,
+		AutoFix,
 		ChevronUp,
 		ChevronDown,
 		DeleteOutline,
@@ -376,10 +517,33 @@ export default {
 			assignments: [],
 			/** @type {Array<object>} */
 			ltiToolPlacements: [],
+			/** Hermiq is enabled, so the AI help renders (lesson-ai-assist-actions). */
+			assistEnabled: isHermiqEnabled(window.OC?.appswebroots),
+			/** Hermiq said the AI help is switched off for this session. */
+			assistOff: false,
+			/** @type {Array<{id: string, title: string}>} Course and lesson goals, in a fixed order. */
+			assistGoals: [],
+			/** Course language for the AI help, from Course.language. */
+			courseLanguage: 'nl',
+			/** @type {string[]} Local mirror of lesson.competencyIds, saved with the blocks when changed. */
+			competencyIds: [],
+			/** A goal suggestion was added since the last save. */
+			competencyIdsDirty: false,
 		}
 	},
 
 	computed: {
+		/**
+		 * Whether the per-block AI rewrite action shows: hermiq is enabled and
+		 * has not said the feature is switched off.
+		 *
+		 * @return {boolean}
+		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+		 */
+		assistAvailable() {
+			return this.assistEnabled && !this.assistOff
+		},
+
 		/**
 		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
@@ -428,6 +592,11 @@ export default {
 				this.blocks = (this.lesson.blocks || [])
 					.slice()
 					.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+				this.competencyIds = (this.lesson.competencyIds || []).slice()
+				this.competencyIdsDirty = false
+				if (this.assistEnabled) {
+					await this.loadAssistGoals()
+				}
 
 				const [materials, assessments, assignments, ltiToolPlacements] =
 					await Promise.all([
@@ -462,6 +631,130 @@ export default {
 			} finally {
 				this.loading = false
 			}
+		},
+
+		/**
+		 * Load the goals the AI help offers: the Course's and the Lesson's
+		 * `competencyIds`, course first, capped at hermiq's 100-title limit,
+		 * resolved to `{id, title}` from their Competency rows. Also reads the
+		 * course language. A goal or course that fails to load is left out;
+		 * the AI help still works with the goals that did load.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+		 */
+		async loadAssistGoals() {
+			const course = await this.fetchObject('Course', this.courseId).catch(
+				() => ({}),
+			)
+			if (typeof course.language === 'string' && course.language !== '') {
+				this.courseLanguage = course.language
+			}
+
+			const ids = [
+				...new Set([
+					...(course.competencyIds || []),
+					...(this.lesson.competencyIds || []),
+				]),
+			].slice(0, GOAL_COUNT_MAX)
+			const rows = await Promise.all(
+				ids.map((id) =>
+					this.fetchObject('Competency', id).catch(() => null),
+				),
+			)
+			this.assistGoals = rows
+				.map((row, i) => ({
+					id: ids[i],
+					title: row ? String(row.title || row.code || '') : '',
+				}))
+				.filter((goal) => goal.title !== '')
+		},
+
+		/**
+		 * Rewrite one rich text block in simpler words through the AI help.
+		 *
+		 * @param {object} block A richText block.
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+		 */
+		async simplifyBlock(block) {
+			if (this.$refs.assistPanel) {
+				await this.$refs.assistPanel.simplifyBlock(block)
+			}
+		},
+
+		/**
+		 * Insert an AI answer as a draft block: after its source block for a
+		 * rewrite, otherwise at the end.
+		 *
+		 * @param {{text: string, action: string, provider: string|null, afterBlockId: string|null}} draft The draft.
+		 * @return {void}
+		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+		 */
+		onAssistDraft(draft) {
+			const block = makeDraftBlock({
+				blockId: this.generateBlockId(),
+				text: draft.text,
+				action: draft.action,
+				provider: draft.provider,
+			})
+			const after = this.blocks.findIndex(
+				(b) => b.blockId === draft.afterBlockId,
+			)
+			if (after >= 0) {
+				this.blocks.splice(after + 1, 0, block)
+			} else {
+				this.blocks.push(block)
+			}
+			this.renumberBlocks()
+			this.saveDone = false
+			this.liveMessage = this.t(
+				'learniq',
+				'AI draft added as block {position}. Keep or discard it.',
+				{ position: block.order },
+			)
+		},
+
+		/**
+		 * Keep an AI draft: it becomes an ordinary rich text block.
+		 *
+		 * @param {object} block The draft block.
+		 * @return {void}
+		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-a-teacher-keeps-an-ai-outline
+		 */
+		keepDraft(block) {
+			keepDraftBlock(block)
+			this.liveMessage = this.t('learniq', 'AI draft kept.')
+		},
+
+		/**
+		 * Discard an AI draft.
+		 *
+		 * @param {number} idx Index in `blocks`.
+		 * @return {void}
+		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+		 */
+		discardDraft(idx) {
+			this.removeBlock(idx)
+			this.liveMessage = this.t('learniq', 'AI draft discarded.')
+		},
+
+		/**
+		 * Add a goal the AI help suggested to the lesson; saved with the next save.
+		 *
+		 * @param {string} goalId The Competency id.
+		 * @return {void}
+		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-a-teacher-adds-a-suggested-goal
+		 */
+		onAssistAddGoal(goalId) {
+			if (this.competencyIds.includes(goalId)) return
+			this.competencyIds.push(goalId)
+			this.competencyIdsDirty = true
+			this.saveDone = false
+			this.liveMessage = this.t(
+				'learniq',
+				'Goal added. Save the lesson to keep it.',
+			)
 		},
 
 		/** @return {void} */
@@ -594,7 +887,7 @@ export default {
 		 *
 		 * @param {string} type Block type value.
 		 * @return {string}
-		 * @spec exclude Presentation-only label map from the 5 fixed block-type values to their localized display names; no behavioural spec requirement of its own.
+		 * @spec exclude Presentation-only label map from the fixed block-type values to their localized display names; no behavioural spec requirement of its own.
 		 */
 		blockTypeLabel(type) {
 			const labels = {
@@ -603,6 +896,7 @@ export default {
 				quiz: this.t('learniq', 'Quiz'),
 				assignment: this.t('learniq', 'Assignment'),
 				ltiTool: this.t('learniq', 'External tool'),
+				teacherNote: this.t('learniq', 'Teacher note'),
 			}
 			return labels[type] ?? type
 		},
@@ -618,7 +912,9 @@ export default {
 				blockId: this.generateBlockId(),
 				type: this.addBlockType,
 				order: this.blocks.length + 1,
-				text: this.addBlockType === 'richText' ? '' : null,
+				text: ['richText', 'teacherNote'].includes(this.addBlockType)
+					? ''
+					: null,
 				materialId: null,
 				assessmentId: null,
 				assignmentId: null,
@@ -670,57 +966,31 @@ export default {
 		},
 
 		/**
-		 * The `blocks` array as the Lesson schema will accept it: every block
-		 * keeps `blockId`/`type`/`order` (its required trio) plus ONLY the
-		 * payload field its type actually populates.
-		 *
-		 * ⚠️ Do not send the unused payload fields as `null`. addBlock() seeds
-		 * all four pointers to null for editing convenience, and saving that
-		 * shape verbatim was rejected:
-		 *
-		 *   Property 'blocks.0.materialId' should be type 'string' but is
-		 *   'null'. Please provide a value of the correct type.
-		 *
-		 * The schema marks `materialId` `nullable: true`, but it also carries
-		 * `$ref: "Material"`, and OpenRegister's validator does not apply
-		 * `nullable` to a `$ref`-bearing property — so an explicit null fails
-		 * where an ABSENT key is fine. The schema's own wording ("Each block
-		 * carries exactly one payload matching its type") describes the shape
-		 * this produces, so omitting is the intended contract, not a
-		 * workaround.
-		 *
-		 * Applied at the save boundary rather than in addBlock() so blocks
-		 * LOADED from the server — which may already carry nulls from earlier
-		 * writes — are normalised too.
+		 * The `blocks` array as the Lesson schema will accept it: the required
+		 * trio plus only the payload its type populates. The rules (and why an
+		 * explicit null payload is rejected) live in serialiseLessonBlocks();
+		 * it also drops the local AI draft marker.
 		 *
 		 * @return {Array<object>} Blocks safe to persist.
 		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		serialisableBlocks() {
-			// The payload field each block type populates. A type missing here
-			// carries no payload beyond the required trio.
-			const payloadField = {
-				richText: 'text',
-				media: 'materialId',
-				quiz: 'assessmentId',
-				assignment: 'assignmentId',
-				ltiTool: 'ltiToolPlacementId',
-			}
+			return serialiseLessonBlocks(this.blocks)
+		},
 
-			return this.blocks.map((block) => {
-				const serialised = {
-					blockId: block.blockId,
-					type: block.type,
-					order: block.order,
-				}
-				const field = payloadField[block.type]
-				// `null`/`undefined` are dropped; '' is a legitimate value for a
-				// richText block the author deliberately emptied.
-				if (field && block[field] !== null && block[field] !== undefined) {
-					serialised[field] = block[field]
-				}
-				return serialised
-			})
+		/**
+		 * The PATCH body: the blocks, plus `competencyIds` only when a goal
+		 * suggestion was added, so a plain save never rewrites the goals.
+		 *
+		 * @return {object} The body.
+		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-a-teacher-adds-a-suggested-goal
+		 */
+		saveBody() {
+			const body = { blocks: this.serialisableBlocks() }
+			if (this.competencyIdsDirty) {
+				body.competencyIds = this.competencyIds.slice()
+			}
+			return body
 		},
 
 		/**
@@ -833,22 +1103,33 @@ export default {
 
 		/**
 		 * Persist the full blocks array on the Lesson via OR's existing
-		 * object-update endpoint.
+		 * object-update endpoint, plus `competencyIds` when a suggested goal
+		 * was added. Refused while an AI draft is pending: a draft becomes
+		 * lesson text only after the teacher keeps it.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
+		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-a-pending-draft-blocks-the-save
 		 */
 		async save() {
-			this.saving = true
 			this.saveError = ''
 			this.saveDone = false
+			if (countPendingDrafts(this.blocks) > 0) {
+				this.saveError = this.t(
+					'learniq',
+					'Keep or discard the AI drafts before you save the lesson.',
+				)
+				return
+			}
+			this.saving = true
 			this.renumberBlocks()
 
 			try {
 				const url = generateUrl(
 					`/apps/openregister/api/objects/learniq/Lesson/${this.lessonId}`,
 				)
-				// ⚠️ PATCH, not PUT — this body carries only `blocks`, and OR
+				// ⚠️ PATCH, not PUT — this body carries only `blocks` (plus
+				// `competencyIds` after an added goal suggestion), and OR
 				// routes PUT (`objects#update`) as a full REPLACE. A partial PUT
 				// drops every omitted field and then fails the schema's
 				// `required` list (`Lesson.required` is
@@ -862,12 +1143,16 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({ blocks: this.serialisableBlocks() }),
+					body: JSON.stringify(this.saveBody()),
 				})
 				if (!resp.ok) {
 					throw new Error(`Lesson blocks save failed: ${resp.status}`)
 				}
 				this.lesson.blocks = this.blocks
+				if (this.competencyIdsDirty) {
+					this.lesson.competencyIds = this.competencyIds.slice()
+					this.competencyIdsDirty = false
+				}
 				this.saveDone = true
 			} catch (err) {
 				this.saveError = this.t(
@@ -993,6 +1278,33 @@ export default {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
+}
+
+.lesson-composer__draft {
+	border-inline-start: 4px solid var(--color-primary-element);
+	background: var(--color-primary-element-light);
+	border-radius: var(--border-radius, 4px);
+	padding: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.lesson-composer__teacher-note-label {
+	margin: 0;
+	color: var(--color-text-maxcontrast);
+	font-style: italic;
+}
+
+.lesson-composer__draft-label {
+	margin: 0;
+	color: var(--color-main-text);
+}
+
+.lesson-composer__draft-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
 }
 
 .lesson-composer__add-block {

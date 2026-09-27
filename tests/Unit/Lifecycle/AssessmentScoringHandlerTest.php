@@ -50,7 +50,7 @@ class AssessmentScoringHandlerTest extends TestCase {
 		$objectService->method('findAll')->willReturnCallback(
 			static function (array $config) use ($assessment, $items): array {
 				$uuid = ($config['filters']['uuid'] ?? '');
-				if ($config['schema'] === 'exam') {
+				if ($config['filters']['schema'] === 'exam') {
 					if ($assessment === null) {
 						return [];
 					}

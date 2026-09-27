@@ -107,8 +107,8 @@ class LearnerMergeHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config): array {
-				$rows = $this->store[(string)($config['schema'] ?? '')] ?? [];
-				$filters = $config['filters'] ?? [];
+				$rows = $this->store[(string)($config['filters']['schema'] ?? '')] ?? [];
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 				$hits = [];
 				foreach ($rows as $row) {
 					$match = true;
@@ -119,7 +119,7 @@ class LearnerMergeHandlerTest extends TestCase {
 					}
 
 					if ($match === true) {
-						$hits[] = OrEntityFactory::make($row, (string)$config['schema']);
+						$hits[] = OrEntityFactory::make($row, (string)$config['filters']['schema']);
 					}
 				}
 

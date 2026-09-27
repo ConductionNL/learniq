@@ -267,9 +267,9 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	private function flagAlreadyExists(mixed $learnerId, mixed $thresholdId, mixed $windowStart): bool {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ATTENDANCE_FLAG_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ATTENDANCE_FLAG_SCHEMA,
 					'learnerId' => $learnerId,
 					'attendanceThresholdId' => $thresholdId,
 					'windowStart' => $windowStart,
@@ -366,9 +366,11 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	private function resolveMentorId(string $learnerId): ?string {
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_PROFILE_SCHEMA,
-				'filters' => ['ncUserId' => $learnerId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNER_PROFILE_SCHEMA,
+					'ncUserId' => $learnerId,
+				],
 				'limit' => 1,
 			]
 		);

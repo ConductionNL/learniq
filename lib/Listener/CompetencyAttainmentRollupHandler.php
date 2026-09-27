@@ -262,9 +262,13 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 
 		$frameworks = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::FRAMEWORK_SCHEMA,
-				'filters' => $frameworkFilters,
+				'filters' => array_merge(
+					$frameworkFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::FRAMEWORK_SCHEMA,
+					]
+				),
 			]
 		);
 
@@ -282,9 +286,13 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 
 			$competencies = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::COMPETENCY_SCHEMA,
-					'filters' => $competencyFilters,
+					'filters' => array_merge(
+						$competencyFilters,
+						[
+							'register' => self::LEARNIQ_REGISTER,
+							'schema' => self::COMPETENCY_SCHEMA,
+						]
+					),
 					'limit' => 1,
 				]
 			);

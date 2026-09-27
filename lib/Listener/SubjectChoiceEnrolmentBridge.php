@@ -159,9 +159,13 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ENROLMENT_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ENROLMENT_SCHEMA,
+					]
+				),
 				'limit' => 2000,
 			]
 		);

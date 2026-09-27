@@ -27,6 +27,7 @@
  *
  * @link https://conduction.nl
  *
+ * @spec openspec/changes/assignment-portal-wiring/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
  * @spec openspec/specs/portal-contribution/spec.md#REQ-PCON-000
  */
 
@@ -40,6 +41,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 /**
  * Reads a LearnerProfile by uuid, or a profile uuid by Nextcloud user id.
  *
+ * @spec openspec/changes/assignment-portal-wiring/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
  * @spec openspec/specs/portal-contribution/spec.md#REQ-PCON-000
  */
 class LearnerProfileLookup {
@@ -83,6 +85,7 @@ class LearnerProfileLookup {
 	 *
 	 * @return array<string, mixed>|null
 	 *
+	 * @spec openspec/changes/assignment-portal-wiring/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
 	 * @spec openspec/specs/portal-contribution/spec.md#REQ-PCON-000
 	 */
 	public function byRef(string $learnerRef): ?array {
@@ -124,6 +127,7 @@ class LearnerProfileLookup {
 	 *
 	 * @return string|null
 	 *
+	 * @spec openspec/changes/assignment-portal-wiring/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
 	 * @spec openspec/specs/portal-contribution/spec.md#REQ-PCON-000
 	 */
 	public function refForUser(string $ncUserId): ?string {

@@ -184,8 +184,10 @@ class AiProcessingDisclosureController extends Controller {
 		try {
 			$features = $this->objectService->findAll(
 				[
-					'register' => self::HERMIQ_REGISTER,
-					'schema' => self::HERMIQ_AI_FEATURE_SCHEMA,
+					'filters' => [
+						'register' => self::HERMIQ_REGISTER,
+						'schema' => self::HERMIQ_AI_FEATURE_SCHEMA,
+					],
 				]
 			);
 		} catch (Throwable $e) {
@@ -226,8 +228,10 @@ class AiProcessingDisclosureController extends Controller {
 		try {
 			$existing = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::SOVEREIGNTY_POLICY_SCHEMA,
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::SOVEREIGNTY_POLICY_SCHEMA,
+					],
 					'limit' => 1,
 				]
 			);

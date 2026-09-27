@@ -141,11 +141,11 @@ class PaymentTransactionStatusHandlerTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				if ($config['schema'] === 'order-line') {
+				if ($config['filters']['schema'] === 'order-line') {
 					return [['id' => 'line-1', 'orderId' => 'order-1']];
 				}
 
-				if ($config['schema'] === 'entitlement') {
+				if ($config['filters']['schema'] === 'entitlement') {
 					return [['id' => 'ent-1', 'orderLineId' => 'line-1', 'lifecycle' => 'active']];
 				}
 

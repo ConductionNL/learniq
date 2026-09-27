@@ -134,8 +134,8 @@ class LessonReleaseControllerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				$schema = $config['schema'];
-				$filters = ($config['filters'] ?? []);
+				$schema = $config['filters']['schema'];
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				$rows = array_values(
 					array_filter(

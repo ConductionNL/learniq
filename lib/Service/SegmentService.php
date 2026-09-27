@@ -246,8 +246,10 @@ class SegmentService {
 		try {
 			$rows = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema'   => self::SETTINGS_SCHEMA,
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema'   => self::SETTINGS_SCHEMA,
+					],
 					'limit'    => self::MAX_ROWS,
 				],
 				_rbac: false

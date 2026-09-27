@@ -370,10 +370,16 @@ class ComplianceRollupService {
 	 * @return array<int,array<string,mixed>>
 	 */
 	private function rows(string $schema, array $filters=[]): array {
-		$config = ['register' => self::LEARNIQ_REGISTER, 'schema' => $schema, 'limit' => self::PAGE_LIMIT];
-		if ($filters !== []) {
-			$config['filters'] = $filters;
-		}
+		$config = [
+			'filters' => array_merge(
+				$filters,
+				[
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => $schema,
+				]
+			),
+			'limit' => self::PAGE_LIMIT,
+		];
 
 		$out = [];
 		foreach ($this->objectService->findAll($config) as $row) {

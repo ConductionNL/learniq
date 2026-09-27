@@ -369,6 +369,7 @@ import ApplicationOutline from 'vue-material-design-icons/ApplicationOutline.vue
 import BookOpenPageVariantOutline from 'vue-material-design-icons/BookOpenPageVariantOutline.vue'
 import LockOutline from 'vue-material-design-icons/LockOutline.vue'
 import { buildCmi5LaunchUrl } from '../utils/cmi5Launch.js'
+import { playerVisibleBlocks } from '../utils/lessonBlocks.js'
 import { completionBelongsTo, currentEnrolment } from '../utils/lessonCompletion.js'
 import { createScorm12Api } from '../utils/scorm12Runtime.js'
 
@@ -514,11 +515,11 @@ export default {
 		 *
 		 * @return {Array<object>}
 		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-lessonplayer-renders-a-lesson-s-authored-blocks
+		 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-notes-stay-out-of-the-player
 		 */
 		sortedBlocks() {
-			return (this.lesson?.blocks ?? [])
-				.slice()
-				.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+			// office-file-lesson-onboarding: teacher notes never render here.
+			return playerVisibleBlocks(this.lesson?.blocks)
 		},
 
 		/**
