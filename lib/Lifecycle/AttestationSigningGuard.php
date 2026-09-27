@@ -40,6 +40,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\OpenRegister\Service\TenantKeyService;
 use Psr\Log\LoggerInterface;
@@ -47,17 +49,18 @@ use Psr\Log\LoggerInterface;
 /**
  * Guards the Attestation `drafted → signed` lifecycle transition.
  *
- * Responsibilities (single method, two steps):
- *   1. Verify a matching cmi5.completed (or cmi5.passed) XapiStatement exists
- *      in OpenRegister for the given (learnerId, lessonId) pair.
- *   2. Compute HMAC-SHA256 of the canonicalised Attestation payload using OR's
- *      current tenant key, then inject `signature` and `signingKeyId` into the
- *      transition payload so OR persists them on the signed object.
+ * Verifies that a matching cmi5.completed (or cmi5.passed) XapiStatement exists
+ * in OpenRegister for the (learnerId, lessonId) pair and that the tenant has an
+ * HMAC signing key. The signing itself is TenantSignatureAction, declared on the
+ * same transition: OpenRegister calls guards by value, so a guard can not write
+ * onto the object (learniq#983).
  *
  * Per ADR-031: no AuditTrail::record(), no HmacKeyService, no event listener.
  * OR's lifecycle engine owns all audit entries; this guard only does guard logic.
+ *
+ * @spec openspec/specs/compliance-audit/spec.md#requirement-maintain-an-append-only-signed-evidence-log
  */
-class AttestationSigningGuard {
+class AttestationSigningGuard implements LifecycleGuardInterface {
 	/**
 	 * XAPI verb IDs that count as "completed" for attestation pre-condition.
 	 *
@@ -89,80 +92,51 @@ class AttestationSigningGuard {
 	}//end __construct()
 
 	/**
-	 * Assert xAPI completion exists and compute HMAC signature.
+	 * Assert xAPI completion exists and a signing key is available.
 	 *
-	 * Called by OpenRegister's lifecycle engine before executing the
-	 * `drafted → signed` transition on an Attestation object. The engine
-	 * passes $transitionContext and expects:
-	 *   - return true  → transition proceeds; engine persists the object.
-	 *   - return false → transition is rejected; OR returns HTTP 422.
+	 * Called by OpenRegister's LifecycleValidationListener before the
+	 * `drafted → signed` transition is saved.
 	 *
-	 * When returning true this method MUST have injected `signature` and
-	 * `signingKeyId` into $transitionContext['payload'] so that OR writes
-	 * those fields onto the signed Attestation record.
+	 * @param array<string,mixed> $object The Attestation as it would be saved (lifecycle at `signed`).
+	 * @param string              $action The transition action (`sign`).
+	 * @param string              $userId The caller's uid, or '' without a session.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine:
-	 *                                               - 'object'     : Attestation
-	 *                                               property array
-	 *                                               - 'transition' : 'sign'
-	 *                                               - 'from'       : 'drafted'
-	 *                                               - 'to'         : 'signed'
-	 *                                               - 'payload'    : mutable array;
-	 *                                               write signature
-	 *                                               fields here
-	 *
-	 * @return bool True when pre-condition is satisfied and signature has been
-	 *              computed; false blocks the transition with HTTP 422.
+	 * @return GuardResult Allow, or deny with what is missing.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-2
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
-		$learnerId = $object['learnerId'] ?? '';
-		$lessonId = $object['lessonId'] ?? '';
-		$tenantId = $object['tenant_id'] ?? '';
+	public function check(array $object, string $action, string $userId): GuardResult {
+		$learnerId = (string)($object['learnerId'] ?? '');
+		$lessonId = (string)($object['lessonId'] ?? '');
+		$tenantId = (string)($object['tenant_id'] ?? '');
 
 		if ($learnerId === '' || $lessonId === '') {
 			$this->logger->warning(
 				'AttestationSigningGuard: missing learnerId or lessonId',
 				['object' => $object]
 			);
-			return false;
+			return GuardResult::deny('The attestation names no learner or no lesson, so it can not be signed.');
 		}
 
-		// Step 1 — Verify cmi5.completed (or cmi5.passed) XapiStatement exists.
-		$completionExists = $this->xapiCompletionExists(learnerId: $learnerId, lessonId: $lessonId, tenantId: $tenantId);
-
-		if ($completionExists === false) {
+		// Verify cmi5.completed (or cmi5.passed) XapiStatement exists.
+		if ($this->xapiCompletionExists(learnerId: $learnerId, lessonId: $lessonId, tenantId: $tenantId) === false) {
 			$this->logger->info(
 				'AttestationSigningGuard: no completion statement found',
 				['learnerId' => $learnerId, 'lessonId' => $lessonId]
 			);
-			return false;
+			return GuardResult::deny('The learner has not completed this lesson yet, so the attestation can not be signed.');
 		}
 
-		// Step 2 — Compute HMAC-SHA256 using OR's current tenant key.
-		$tenantKey = $this->tenantKeyService->getCurrentTenantKey($tenantId);
-
-		if ($tenantKey === '') {
+		// Per spec: if the HMAC key is unavailable the attestation MUST fail.
+		if ($this->tenantKeyService->getCurrentTenantKey($tenantId) === '') {
 			$this->logger->error(
 				'AttestationSigningGuard: OR tenant key unavailable; refusing to sign without HMAC key',
 				['tenantId' => $tenantId]
 			);
-			// Per spec: if the HMAC key is unavailable the attestation MUST fail.
-			return false;
+			return GuardResult::deny('No signing key is available for this organisation, so the attestation can not be signed.');
 		}
 
-		$canonicalPayload = $this->buildCanonicalPayload(object: $object);
-		$signature = hash_hmac('sha256', $canonicalPayload, $tenantKey);
-
-		// Inject into the mutable payload so OR persists these on the signed object.
-		// signingKeyId is a verifiable fingerprint of the key in use at signing time.
-		$transitionContext['payload']['signature'] = $signature;
-		$transitionContext['payload']['signingKeyId'] = substr(hash('sha256', $tenantKey), 0, 16);
-
-		return true;
+		return GuardResult::allow();
 	}//end check()
 
 	/**
@@ -208,49 +182,4 @@ class AttestationSigningGuard {
 
 		return false;
 	}//end xapiCompletionExists()
-
-	/**
-	 * Build a canonical JSON string of the Attestation payload for HMAC input.
-	 *
-	 * Fields are sorted alphabetically at ALL nesting levels (recursive ksort) and
-	 * `signature` / `signingKeyId` are excluded to avoid circular dependency. Using
-	 * recursive key-sorting ensures the HMAC is stable across JSON decode/re-encode
-	 * cycles and PHP versions regardless of insertion order in nested arrays. Fixes #177.
-	 *
-	 * @param array<string,mixed> $object The Attestation property array.
-	 *
-	 * @return string Canonical JSON string.
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-2
-	 */
-	private function buildCanonicalPayload(array $object): string {
-		// Exclude fields set by the signing step itself to avoid circularity.
-		$excluded = ['signature', 'signingKeyId', 'lifecycle'];
-		$payload = array_diff_key($object, array_flip($excluded));
-
-		// Recursive sort so nested arrays are also deterministically ordered. Fixes #177.
-		$payload = $this->deepKsort(data: $payload);
-
-		return (string)json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-	}//end buildCanonicalPayload()
-
-	/**
-	 * Recursively sort an array by keys at all nesting levels.
-	 *
-	 * @param array<string,mixed> $data The array to sort.
-	 *
-	 * @return array<string,mixed> The sorted array.
-	 */
-	private function deepKsort(array $data): array {
-		foreach ($data as &$value) {
-			if (is_array($value) === true) {
-				$value = $this->deepKsort(data: $value);
-			}
-		}//end foreach
-
-		unset($value);
-
-		ksort($data);
-		return $data;
-	}//end deepKsort()
 }//end class

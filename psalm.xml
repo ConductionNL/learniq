@@ -37,6 +37,9 @@
              implement the interface or OpenRegister refuses to run it. -->
         <file name="tests/Stubs/Lifecycle/GuardResult.php" preloadClasses="true" />
         <file name="tests/Stubs/Lifecycle/LifecycleGuardInterface.php" preloadClasses="true" />
+        <!-- OpenRegister's lifecycle action contract. A transition's `actions`
+             resolve to a service implementing it (learniq#983). -->
+        <file name="tests/Stubs/Lifecycle/LifecycleActionInterface.php" preloadClasses="true" />
         <!-- Integriq's connection-registry event (adopt-connection-registry).
              ConnectionReportService names it by string behind class_exists
              (ADR-041). Declaration-only stub, so psalm sees the constructor the

@@ -3861,7 +3861,12 @@
                         "sign": {
                             "from": "drafted",
                             "to": "signed",
-                            "requires": "OCA\\Learniq\\Lifecycle\\AttestationSigningGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\AttestationSigningGuard",
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction"
+                                }
+                            ]
                         },
                         "revoke": {
                             "from": "signed",
