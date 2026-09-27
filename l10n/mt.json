@@ -466,7 +466,16 @@
         "What course evaluations said, per course.": "X'qalu l-evalwazzjonijiet tal-kors, kull kors.",
         "What was found on placement visits.": "X'instab fiż-żjarat fuq il-post tax-xogħol.",
         "Store": "Ħanut",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installa reġistri, skemi u flussi ppubblikati minn organizzazzjonijiet oħra."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installa reġistri, skemi u flussi ppubblikati minn organizzazzjonijiet oħra.",
+        "Enter the access code you were given to start this assessment.": "Daħħal il-kodiċi tal-aċċess li ngħatajt biex tibda din il-valutazzjoni.",
+        "Access code": "Kodiċi tal-aċċess",
+        "This assessment is not open yet. It opens on {date}.": "Din il-valutazzjoni għadha mhix miftuħa. Tiftaħ fi {date}.",
+        "This assessment is not open yet.": "Din il-valutazzjoni għadha mhix miftuħa.",
+        "This assessment is closed.": "Din il-valutazzjoni hija magħluqa.",
+        "This assessment is not available right now.": "Din il-valutazzjoni mhix disponibbli bħalissa.",
+        "The access code is not correct.": "Il-kodiċi tal-aċċess mhux korrett.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Kodiċi fakultattiv li l-istudenti jridu jdaħħlu biex jibdew it-test, pereżempju biex jiġi limitat għan-nies fil-kamra tal-eżami. Ħallih vojt għal ebda kodiċi.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Il-kodiċi tal-aċċess imdaħħal biex jinbeda dan it-tentattiv. Jiġi ċċekkjat u mbagħad imħassar, għalhekk qatt ma jinżamm."
     },
     "plurals": null
 }

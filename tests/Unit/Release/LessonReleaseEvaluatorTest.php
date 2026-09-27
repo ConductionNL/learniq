@@ -516,6 +516,44 @@ class LessonReleaseEvaluatorTest extends TestCase {
 	}//end testAssessmentAbsoluteWindowBlocksEvenWhenDripElapsed()
 
 	/**
+	 * The window is read from the dates, not the stored isAvailable: an
+	 * assessment saved inside its window keeps isAvailable true after the
+	 * window closes, and one saved before it opened keeps false after (learniq#946).
+	 *
+	 * @return void
+	 */
+	public function testAssessmentWindowIsEvaluatedFromTheDatesNotTheStoredFlag(): void {
+		$evaluator = $this->makeEvaluator();
+
+		$closed = $evaluator->evaluate(
+			item: [
+				'id' => 'assessment-c',
+				'tenant_id' => 'tenant-a',
+				'isAvailable' => true,
+				'availableUntil' => (new DateTimeImmutable('-1 hour'))->format(DATE_ATOM),
+			],
+			itemSchema: 'exam',
+			learnerId: 'learner-1',
+			enrolment: []
+		);
+		self::assertFalse($closed['available']);
+
+		$opened = $evaluator->evaluate(
+			item: [
+				'id' => 'assessment-c',
+				'tenant_id' => 'tenant-a',
+				'isAvailable' => false,
+				'availableFrom' => (new DateTimeImmutable('-1 hour'))->format(DATE_ATOM),
+			],
+			itemSchema: 'exam',
+			learnerId: 'learner-1',
+			enrolment: []
+		);
+		self::assertTrue($opened['available']);
+
+	}//end testAssessmentWindowIsEvaluatedFromTheDatesNotTheStoredFlag()
+
+	/**
 	 * An Assessment inside its absolute window is STILL locked when its own
 	 * drip delay has not elapsed for this learner — both gates must pass.
 	 *

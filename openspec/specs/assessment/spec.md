@@ -203,6 +203,36 @@ when one exists.
      scenarios. The tab-lock heartbeat logic (acquireTabLock()/writeTabLock() in TakeAssessmentView.vue) is
      deterministic client-side code. -->
 
+### Requirement: An attempt starts only inside the availability window and with the access code
+The server SHALL refuse to create an `AssessmentResult` (start an attempt) when the current time is before
+the Assessment's `availableFrom` or after its `availableUntil`, evaluated live from the two dates rather
+than from the stored `isAvailable` calculation. When the Assessment carries an `accessCode`, the server
+SHALL refuse the create unless the same code is supplied with it, and SHALL NOT keep the supplied code on
+the `AssessmentResult`. `Assessment.accessCode` SHALL be write-only, so no read returns it. The check runs
+in `AssessmentAttemptGateListener` on OpenRegister's `ObjectCreatingEvent`, fails closed when the
+Assessment cannot be read, and exempts Nextcloud admins and system context. `TakeAssessmentView` SHALL ask
+the release-status endpoint first and show why a closed test cannot be started, or ask for the code.
+
+#### Scenario: An attempt before the window opens is refused
+- **GIVEN** an Assessment whose `availableFrom` is tomorrow
+- **WHEN** an enrolled learner opens the take screen, or posts an `AssessmentResult` for it directly
+- **THEN** no attempt is created and the learner is told the test is not open yet
+
+<!-- @e2e exclude The refusal is a server-side create veto; AssessmentAttemptGateListenerTest asserts it
+     (testAttemptBeforeWindowOpensIsRefused, testAttemptAfterWindowClosedIsRefusedEvenWithStaleIsAvailable)
+     without needing a clock-shifted live instance. -->
+
+#### Scenario: A test behind an access code needs the code
+- **GIVEN** an Assessment with an `accessCode`
+- **WHEN** a learner starts it without the code, or with a wrong one
+- **THEN** no attempt is created
+- **AND** with the right code the attempt is created and the code is not stored on it
+
+<!-- @e2e exclude Asserted in tests/Unit/Listener/AssessmentAttemptGateListenerTest.php
+     (testMissingAccessCodeIsRefused, testWrongAccessCodeIsRefused, testRightAccessCodeIsAcceptedAndCleared)
+     and tests/Unit/Controller/LessonReleaseControllerTest.php
+     (testAssessmentStatusReportsAccessCodeAndWindowReason). -->
+
 ### Requirement: Assessment declares which competencies it assesses, and Item carries competency tags for authoring
 
 The `Assessment` object MUST support a `competencyIds` field (array of `format: uuid` `$ref: Competency`,
