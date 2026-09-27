@@ -24,7 +24,7 @@
     - GET  /api/objects/learniq/Rubric/:id
     - GET  /api/objects/learniq/self-assessment?submissionId=:id&learnerId=:uid
     - POST/PUT /api/objects/learniq/self-assessment
-    - POST /api/objects/learniq/self-assessment/:id/transition/submit
+    - POST /api/objects/:id/transition           ({ action: 'submit' })
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView / PeerReviewMarkingView.
@@ -175,6 +175,7 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'SelfAssessmentView',
@@ -533,7 +534,7 @@ export default {
 				}
 
 				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/self-assessment/${selfAssessmentId}/transition/submit`,
+					objectTransitionUrl(selfAssessmentId),
 				)
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',
@@ -542,7 +543,7 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({}),
+					body: JSON.stringify({ action: 'submit' }),
 				})
 				if (!transResp.ok) {
 					throw new Error(`Submit transition failed: ${transResp.status}`)

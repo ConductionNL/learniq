@@ -363,6 +363,7 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'MyLearningRecordView',
@@ -493,9 +494,7 @@ export default {
 				const created = await createResp.json()
 				const exportId = created.id ?? created.uuid
 
-				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/learning-record-export/${exportId}/transition/generate`,
-				)
+				const transitionUrl = generateUrl(objectTransitionUrl(exportId))
 				await fetch(transitionUrl, {
 					method: 'POST',
 					headers: {
@@ -503,7 +502,7 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({}),
+					body: JSON.stringify({ action: 'generate' }),
 				})
 
 				const finalUrl = generateUrl(
@@ -586,9 +585,7 @@ export default {
 				const created = await createResp.json()
 				const shareId = created.id ?? created.uuid
 
-				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/learning-record-share/${shareId}/transition/grant`,
-				)
+				const transitionUrl = generateUrl(objectTransitionUrl(shareId))
 				await fetch(transitionUrl, {
 					method: 'POST',
 					headers: {
@@ -596,7 +593,7 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({}),
+					body: JSON.stringify({ action: 'grant' }),
 				})
 
 				await this.loadShares()
@@ -627,9 +624,7 @@ export default {
 		 */
 		async revokeShare(shareId) {
 			try {
-				const url = generateUrl(
-					`/apps/openregister/api/objects/learniq/learning-record-share/${shareId}/transition/revoke`,
-				)
+				const url = generateUrl(objectTransitionUrl(shareId))
 				await fetch(url, {
 					method: 'POST',
 					headers: {
@@ -637,7 +632,7 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({}),
+					body: JSON.stringify({ action: 'revoke' }),
 				})
 				await this.loadShares()
 			} catch (err) {
