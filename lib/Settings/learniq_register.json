@@ -4071,7 +4071,16 @@
                         "verify": {
                             "from": "submitted",
                             "to": "verified",
-                            "requires": "OCA\\Learniq\\Lifecycle\\ExternalTrainingVerificationGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\ExternalTrainingVerificationGuard",
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction",
+                                    "actionParameters": {
+                                        "actorField": "verifiedBy",
+                                        "timeField": "verifiedAt"
+                                    }
+                                }
+                            ]
                         },
                         "reject": {
                             "from": "submitted",

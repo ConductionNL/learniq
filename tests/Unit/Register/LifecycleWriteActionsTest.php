@@ -66,6 +66,17 @@ class LifecycleWriteActionsTest extends TestCase {
 				['OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction' => ['actorField' => 'approvedBy']],
 				[],
 			],
+			'ExternalTrainingRecord.verify' => [
+				'ExternalTrainingRecord',
+				'verify',
+				[
+					'OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction' => [
+						'actorField' => 'verifiedBy',
+						'timeField' => 'verifiedAt',
+					],
+				],
+				[],
+			],
 		];
 	}//end transitions()
 
