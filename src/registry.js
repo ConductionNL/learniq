@@ -144,7 +144,6 @@ import MarkSubmissionView from './views/MarkSubmissionView.vue'
 import MyLearningRecordView from './views/MyLearningRecordView.vue'
 // personal-timetable: the signed-in user's own week view over Session objects.
 import MyTimetable from './views/MyTimetable.vue'
-import OrderPaymentPanel from './views/OrderPaymentPanel.vue'
 import OsoDossierReviewView from './views/OsoDossierReviewView.vue'
 import PeerReviewMarkingView from './views/PeerReviewMarkingView.vue'
 import PeopleDashboard from './views/PeopleDashboard.vue'
@@ -153,12 +152,6 @@ import PeopleDashboard from './views/PeopleDashboard.vue'
 // surface — the two named custom views the eportfolio spec permits.
 import PortfolioBuilder from './views/PortfolioBuilder.vue'
 import PortfolioReviewView from './views/PortfolioReviewView.vue'
-// privacy-governance-surfaces (P-new-6/P-new-7): the board-facing privacy
-// governance dashboard — mirrors LearniqAiProcessingDisclosure's singleton,
-// no-:id-route shape. Composes PrivacyGovernanceController's server-side
-// read (rbac-declare-groups member counts, best-effort 2FA adoption,
-// DataExchangeJob partner-approval counts).
-import PrivacyGovernanceDashboard from './views/PrivacyGovernanceDashboard.vue'
 import ProctoringReviewQueue from './views/ProctoringReviewQueue.vue'
 // pupil-dossier-notes: the one genuine new custom view this change adds —
 // the chronological DossierNote/BehaviourIncident/WellbeingCheckIn +
@@ -278,7 +271,6 @@ export default {
 	MarkSubmissionView: page(MarkSubmissionView),
 	MyLearningRecordView: page(MyLearningRecordView),
 	MyTimetable: page(MyTimetable),
-	OrderPaymentPanel: page(OrderPaymentPanel),
 	PeerReviewMarkingView: page(PeerReviewMarkingView),
 	PeopleDashboard: page(PeopleDashboard),
 	PortfolioBuilder: page(PortfolioBuilder),
@@ -293,7 +285,6 @@ export default {
 	LearniqCompliance: page(LearniqCompliance),
 	LearniqDashboards: page(LearniqDashboards),
 	LearniqLearnerHome: page(LearniqLearnerHome),
-	PrivacyGovernanceDashboard: page(PrivacyGovernanceDashboard),
 	SelfAssessmentView: page(SelfAssessmentView),
 	SkillsGapDashboard: page(SkillsGapDashboard),
 	SubjectChoicePicker: page(SubjectChoicePicker),

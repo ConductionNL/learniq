@@ -22,6 +22,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/assignment-portal-wiring/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
+ * @spec openspec/specs/portal-contribution/spec.md#REQ-PCON-000
  */
 
 declare(strict_types=1);

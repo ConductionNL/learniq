@@ -37,11 +37,11 @@
         },
         {
             "key": "payment",
-            "title": "Payment provider",
-            "description": "Starting an online payment for an order, with the provider each payment names.",
+            "title": "Payments through shillinq",
+            "description": "Raising a fee's contributions in shillinq, and granting an entitlement once shillinq reports the payment settled.",
             "order": 50,
-            "available": false,
-            "unavailableMessage": "Starting a payment calls api/payments/initiate on integriq. Integriq has no such endpoint, so no payment starts. This row covers every provider."
+            "requiredConfig": ["shillinq_administration_id"],
+            "unconfiguredMessage": "No shillinq administration is set, so learniq cannot raise a fee's contributions. Set it with occ config:app:set learniq shillinq_administration_id."
         },
         {
             "key": "sbb",

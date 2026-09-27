@@ -52,7 +52,7 @@ Like the primary school set's Decision 3: the three operational departments hold
 One active rule ("Training afgerond", 50 points per completed enrolment) and one draft streak rule. Each employee's `LearnerEngagement` holds the sum of their awards, the highest level that sum reaches (Starter 0, Op weg 100, Gevorderd 150, Kampioen 250), the longest run of consecutive award days, and a current streak of 0, since the year ended in July. Engagement scores exist for the security e-learning only, computed with `EngagementScoreEvaluator`'s formula from the lesson durations and the gap between the last two completions.
 
 ### Decision 7: paid courses are paid by the employer
-Three fee items (warmtepompen, an Excel licence, projectmatig werken), never voluntary, standard VAT rate. Each participant has one order paid by the employer (`payerKind: employer`, payer name and a `.example` address), one line, one successful Mollie payment (one order first fails and is paid on the second attempt) and an active entitlement. One Excel order placed on 29 June is still open: pending entitlement, pending enrolment. One project course order is cancelled with the withdrawn enrolment it belonged to.
+Amended by payments-to-shillinq-migration (D19): the orders, lines and payments below were removed; each paid enrolment keeps its entitlement, active with `paymentSettledAt`, pending while unpaid, none when withdrawn. Originally: three fee items (warmtepompen, an Excel licence, projectmatig werken), never voluntary, standard VAT rate. Each participant has one order paid by the employer (`payerKind: employer`, payer name and a `.example` address), one line, one successful Mollie payment (one order first fails and is paid on the second attempt) and an active entitlement. One Excel order placed on 29 June is still open: pending entitlement, pending enrolment. One project course order is cancelled with the withdrawn enrolment it belonged to.
 
 ### Decision 8: the promoted seed, made fictional
 The register's only corporate seed row ("NIS2 board awareness session", provider "SecureBoard B.V.", learner "learner-001", submitted and verified by "admin") becomes a batch of nine verified records (`batchId: nis2-bestuur-2026-03`) for the director, the seven managers and the compliance officer, provider "Voorbeeld SecureBoard B.V.", recorded and verified by the compliance officer, valid twelve months like the seed row.
@@ -90,7 +90,7 @@ The set is the seed data. Counts per schema (bucket order is load order):
 | learning-plan / learning-plan-evaluation | 200 / 125 | one plan per employee, mid-year reviews in February and March |
 | engagement-risk-threshold / engagement-score / engagement-risk-flag | 1 / 198 / 3 | security e-learning |
 | point-rule / engagement-level / point-award / learner-engagement / leaderboard | 2 / 4 / 625 / 200 / 3 | company-wide and two department leaderboards |
-| fee-item / order / order-line / payment-transaction / entitlement | 3 / 25 / 25 / 24 / 24 | paid courses |
+| fee-item / entitlement | 3 / 24 | paid courses (orders and payments left for shillinq in payments-to-shillinq-migration, D19) |
 
 Related items (files, notes, tasks): none; the set carries no `_relatedItems`.
 

@@ -68,10 +68,13 @@ class SubjectAndTeacherAssignmentRegisterTest extends TestCase {
 		self::assertArrayNotHasKey('x-openregister-lifecycle', $schema);
 		self::assertSame(['ncUserId', 'tenant_id'], $schema['required']);
 
+		// The original seven tags stay first and in order; later changes may
+		// append tags (staff-role-vocabulary-extension added seven), so this
+		// asserts a floor, not the exact list.
 		$roles = $schema['properties']['roles'];
 		self::assertSame(
 			['teacher', 'mentor', 'coordinator', 'teaching-assistant', 'support-staff', 'administrator', 'other'],
-			$roles['items']['enum']
+			array_slice($roles['items']['enum'], 0, 7)
 		);
 
 		$workingDays = $schema['properties']['workingDays'];

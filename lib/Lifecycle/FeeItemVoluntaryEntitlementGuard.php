@@ -11,25 +11,25 @@
  * non-compliant (rijksoverheid.nl / vo-raad.nl, "Een alternatief bieden is
  * niet voldoende"). Resolves the Entitlement's feeItemId and refuses the
  * transition unconditionally whenever the linked FeeItem.voluntary is true —
- * regardless of whether the linked Order ever reaches `paid`. Because nothing
+ * regardless of whether shillinq ever reports a payment settled. Because nothing
  * in this capability gates access on a `pending` Entitlement (only `active`
  * ones grant anything), this makes it structurally impossible for a
  * voluntary fee to ever become an access gate through this capability's own
  * mechanism, not merely discouraged by convention.
  *
- * NAMED IN THE SCHEMA: this class — not {@see EntitlementOrderPaidGuard} — is
+ * NAMED IN THE SCHEMA: this class — not {@see EntitlementPaymentSettledGuard} — is
  * the value of Entitlement.grant.requires in learniq_register.json.
  * OpenRegister's lifecycle engine accepts exactly one `requires` string per
  * transition (verified precedent: ReportPeriodLockGuard's own docblock/
  * changelog entry — LifecycleAnnotationValidator rejects a non-string
  * `requires` value, so there is no "second requires entry" array shape to add
  * alongside this guard). The `grant` transition needs BOTH the voluntary
- * check (this class) AND the payment check ({@see EntitlementOrderPaidGuard})
- * to pass, so this class composes EntitlementOrderPaidGuard by constructor
+ * check (this class) AND the payment check ({@see EntitlementPaymentSettledGuard})
+ * to pass, so this class composes EntitlementPaymentSettledGuard by constructor
  * injection and calls its check() after its own voluntary check passes —
  * mirroring ReportPeriodLockGuard's own composition of FraudCaseBlockGuard.
  * The voluntary check runs FIRST and short-circuits, so a voluntary FeeItem
- * is refused regardless of the linked Order's paid status even if a caller
+ * is refused regardless of any payment state even if a caller
  * only ever exercises this class directly.
  *
  * Legitimate PHP per ADR-031: "Lifecycle guard — business rule that must run
@@ -48,7 +48,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-payments/specs/payments/spec.md#requirement-a-voluntary-feeitem-must-not-gate-enrolment-or-participation
+ * @spec openspec/specs/payments/spec.md#requirement-a-voluntary-feeitem-must-not-gate-enrolment-or-participation
  */
 
 declare(strict_types=1);
@@ -62,10 +62,10 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Guards the Entitlement `grant` (pending -> active) transition against ever
- * activating for a voluntary FeeItem, then composes EntitlementOrderPaidGuard
+ * activating for a voluntary FeeItem, then composes EntitlementPaymentSettledGuard
  * for the payment check.
  *
- * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
+ * @spec openspec/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
  */
 class FeeItemVoluntaryEntitlementGuard implements LifecycleGuardInterface {
 
@@ -83,7 +83,7 @@ class FeeItemVoluntaryEntitlementGuard implements LifecycleGuardInterface {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
-	 * @param EntitlementOrderPaidGuard $orderPaidGuard Composed payment-status guard,
+	 * @param EntitlementPaymentSettledGuard $paymentSettledGuard Composed payment-status guard,
 	 *                                                  invoked after the voluntary
 	 *                                                  check passes.
 	 * @param LoggerInterface $logger PSR logger.
@@ -92,7 +92,7 @@ class FeeItemVoluntaryEntitlementGuard implements LifecycleGuardInterface {
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly EntitlementOrderPaidGuard $orderPaidGuard,
+		private readonly EntitlementPaymentSettledGuard $paymentSettledGuard,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -106,7 +106,7 @@ class FeeItemVoluntaryEntitlementGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
+	 * @spec openspec/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		if ($this->allows(entitlement: $object) === false) {
@@ -114,19 +114,19 @@ class FeeItemVoluntaryEntitlementGuard implements LifecycleGuardInterface {
 		}
 
 		// Voluntary check passed: compose the payment-status check.
-		return $this->orderPaidGuard->check($object, $action, $userId);
+		return $this->paymentSettledGuard->check($object, $action, $userId);
 	}//end check()
 
 	/**
 	 * Refuse the `grant` transition unconditionally for a voluntary FeeItem;
-	 * otherwise delegate to the composed EntitlementOrderPaidGuard.
+	 * otherwise delegate to the composed EntitlementPaymentSettledGuard.
 	 *
 	 * @param array<string,mixed> $entitlement The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True only when the linked FeeItem is non-voluntary AND the
-	 *              linked Order is paid; false blocks the transition (HTTP 422).
+	 *              payment is settled in shillinq; false blocks the transition (HTTP 422).
 	 *
-	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
+	 * @spec openspec/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
 	 */
 	private function allows(array $entitlement): bool {
 		$entitlementId = $entitlement['id'] ?? ($entitlement['uuid'] ?? '');
@@ -152,7 +152,7 @@ class FeeItemVoluntaryEntitlementGuard implements LifecycleGuardInterface {
 		if (($feeItem['voluntary'] ?? false) === true) {
 			$this->logger->info(
 				'[FeeItemVoluntaryEntitlementGuard] Entitlement {id} permanently blocked — linked FeeItem'
-				. ' {feeItemId} is voluntary (Wet vrijwillige ouderbijdrage); no Order status can override this.',
+				. ' {feeItemId} is voluntary (Wet vrijwillige ouderbijdrage); no payment state can override this.',
 				['id' => $entitlementId, 'feeItemId' => $feeItemId]
 			);
 			return false;

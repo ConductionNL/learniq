@@ -507,52 +507,53 @@ class CorporateExampleSetTest extends TestCase {
 	}//end testPointsLevelsAndScoresAddUp()
 
 	/**
-	 * A paid course is ordered once per participant; a paid order has one
-	 * successful payment and an active entitlement, an open order a pending
-	 * entitlement and a pending enrolment, a cancelled order none and a
-	 * withdrawn enrolment; order, line and fee amounts agree.
+	 * A paid course is paid through shillinq (D19), so the set carries no
+	 * orders or payments. Every paid-course enrolment has exactly one
+	 * entitlement for its fee, active with the day the payment settled when
+	 * the enrolment went ahead, pending while it waits, and none when it was
+	 * withdrawn.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-example-datasets-corporate/specs/example-sets/spec.md#requirement-skills-gaps-plans-points-and-payments-agree-with-their-sources
+	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-learniq-keeps-feeitem-and-entitlement-and-no-pay-screen-of-its-own
 	 */
 	public function testPaidCoursesAreOrderedPaidAndEntitled(): void {
-		$fees         = self::by(self::of('fee-item'), 'uuid');
-		$lines        = self::groupBy(self::of('order-line'), 'orderId');
-		$payments     = self::groupBy(self::of('payment-transaction'), 'orderId');
-		$entitlements = self::groupBy(self::of('entitlement'), 'orderLineId');
-		$enrolments   = self::groupBy(self::of('enrolment'), 'learnerId');
+		foreach (['order', 'order-line', 'payment-transaction'] as $retired) {
+			self::assertSame([], self::of($retired), "$retired left learniq for shillinq");
+		}
+
+		$feesByCourse = self::by(self::of('fee-item'), 'linkedCourseId');
+		$entitlements = self::of('entitlement');
 		$states       = [];
-		foreach (self::of('order') as $order) {
-			self::assertSame('employer', $order['payerKind']);
-			self::assertCount(1, $lines[$order['uuid']]);
-			$line = $lines[$order['uuid']][0];
-			$fee  = $fees[$line['feeItemId']];
-			self::assertEquals($fee['amount'], $line['lineTotal']);
-			self::assertEquals($line['lineTotal'], $order['totalAmount']);
+		foreach (self::of('enrolment') as $enrolment) {
+			$fee = ($feesByCourse[$enrolment['courseId']] ?? null);
+			if ($fee === null) {
+				continue;
+			}
 
-			$succeeded = array_filter(($payments[$order['uuid']] ?? []), static fn (array $p): bool => $p['lifecycle'] === 'succeeded');
-			$granted   = ($entitlements[$line['uuid']] ?? []);
-			$enrolment = array_values(array_filter(
-				$enrolments[$order['learnerId']],
-				static fn (array $e): bool => $e['courseId'] === $fee['linkedCourseId']
+			$mine = array_values(array_filter(
+				$entitlements,
+				static fn (array $e): bool => $e['learnerId'] === $enrolment['learnerId'] && $e['feeItemId'] === $fee['uuid']
 			));
-			self::assertCount(1, $enrolment, $order['slug'] . ' has one enrolment for the paid course');
-			$expected = ['paid' => ['succeeded' => 1, 'entitlement' => 'active'], 'open' => ['succeeded' => 0, 'entitlement' => 'pending'], 'cancelled' => ['succeeded' => 0, 'entitlement' => null]][$order['lifecycle']];
-			self::assertCount($expected['succeeded'], $succeeded, $order['slug']);
-			self::assertSame($expected['entitlement'], ($granted[0]['lifecycle'] ?? null), $order['slug']);
-			if ($order['lifecycle'] === 'open') {
-				self::assertSame('pending', $enrolment[0]['lifecycle']);
+			if ($enrolment['lifecycle'] === 'withdrawn') {
+				self::assertSame([], $mine, $enrolment['slug'] . ' was withdrawn');
+				$states['withdrawn'] = true;
+				continue;
 			}
 
-			if ($order['lifecycle'] === 'cancelled') {
-				self::assertSame('withdrawn', $enrolment[0]['lifecycle']);
+			self::assertCount(1, $mine, $enrolment['slug'] . ' has one entitlement');
+			$expected = ($enrolment['lifecycle'] === 'pending') ? 'pending' : 'active';
+			self::assertSame($expected, $mine[0]['lifecycle'], $enrolment['slug']);
+			self::assertSame($enrolment['courseId'], $mine[0]['grantedResourceId']);
+			self::assertArrayNotHasKey('orderLineId', $mine[0]);
+			if ($expected === 'active') {
+				self::assertNotEmpty($mine[0]['paymentSettledAt']);
 			}
 
-			$states[$order['lifecycle']] = true;
+			$states[$expected] = true;
 		}//end foreach
 
-		self::assertEqualsCanonicalizing(['paid', 'open', 'cancelled'], array_keys($states));
+		self::assertEqualsCanonicalizing(['active', 'pending', 'withdrawn'], array_keys($states));
 	}//end testPaidCoursesAreOrderedPaidAndEntitled()
 
 	/**

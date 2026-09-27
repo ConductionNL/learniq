@@ -129,6 +129,18 @@ return [
         ['name' => 'lessonRelease#status',           'url' => '/api/lessons/{lessonId}/release-status',         'verb' => 'GET'],
         ['name' => 'lessonRelease#assessmentStatus', 'url' => '/api/assessments/{assessmentId}/release-status', 'verb' => 'GET'],
 
+        // Portal test taking (assessment-portal-endpoints): the five steps of
+        // portaliq's timed task, forwarded server-to-server. #[PublicPage]
+        // because the caller is portaliq's backend with no Nextcloud session;
+        // the X-Portal-Subject assertion is the only credential
+        // (PortalAssertionVerifier), checked first in every method.
+        // Controller: PortalAssessmentController (slug: portalAssessment).
+        ['name' => 'portalAssessment#available', 'url' => '/api/portal/assessments',        'verb' => 'POST'],
+        ['name' => 'portalAssessment#start',     'url' => '/api/portal/assessments/start',  'verb' => 'POST'],
+        ['name' => 'portalAssessment#answer',    'url' => '/api/portal/assessments/answer', 'verb' => 'POST'],
+        ['name' => 'portalAssessment#submit',    'url' => '/api/portal/assessments/submit', 'verb' => 'POST'],
+        ['name' => 'portalAssessment#result',    'url' => '/api/portal/assessments/result', 'verb' => 'POST'],
+
         // Personal timetable — the caller's own sessions for a window, resolved
         // from cohort membership (teacher/learner) via ObjectService (RBAC-scoped).
         // Read-only; #[NoAdminRequired] (any signed-in user) + #[NoCSRFRequired] (GET read).
@@ -207,15 +219,11 @@ return [
         // P-new-7). Controller: PrivacyGovernanceController (slug: privacyGovernance).
         ['name' => 'privacyGovernance#overview', 'url' => '/api/privacy-governance/overview', 'verb' => 'GET'],
 
-        // Payment transaction — outbound initiate delegates to OpenConnector's
-        // (not-yet-built) PSP adapter; #[NoAdminRequired] + #[NoCSRFRequired]
-        // (any authenticated payer). Inbound callback receives OpenConnector's
-        // async status update; #[PublicPage] + #[NoCSRFRequired] since it is a
-        // server-to-server call with no NC session — authenticated instead by
-        // its own bearer-token check inside the controller (school-payments).
-        // Controller: PaymentTransactionController (slug: paymentTransaction).
-        ['name' => 'paymentTransaction#initiate', 'url' => '/api/payments/{orderId}/initiate', 'verb' => 'POST'],
-        ['name' => 'paymentTransaction#callback', 'url' => '/api/payments/callback',            'verb' => 'POST'],
+        // Raise a FeeItem's contributions in shillinq (payments-to-shillinq-migration,
+        // D19; shillinq contract extracurricular-fee-to-shillinq v1). #[NoAdminRequired]
+        // + the fee-item.raise-contributions action; shillinq checks payment.request.
+        // Controller: ContributionController (slug: contribution).
+        ['name' => 'contribution#raise', 'url' => '/api/fee-items/{id}/contributions', 'verb' => 'POST'],
 
         // Portable learning record — the calling user's own composed
         // trajectory (RBAC-gap read, mirrors LeaderboardController's own

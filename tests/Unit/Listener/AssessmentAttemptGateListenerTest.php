@@ -34,6 +34,7 @@ use DateTime;
 use OCA\Learniq\Listener\AssessmentAttemptGateListener;
 use OCA\Learniq\Service\AssessmentAccessPolicy;
 use OCA\Learniq\Service\AssessmentResultAudience;
+use OCA\Learniq\Service\AssessmentResultPortalStamp;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
@@ -73,6 +74,13 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 	 * @var int
 	 */
 	private int $stamps = 0;
+
+	/**
+	 * How many times the portal stamp ran.
+	 *
+	 * @var int
+	 */
+	private int $portalStamps = 0;
 
 	/**
 	 * Build the listener.
@@ -128,6 +136,13 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 			}
 		);
 
+		$portalStamp = $this->createMock(AssessmentResultPortalStamp::class);
+		$portalStamp->method('stamp')->willReturnCallback(
+			function (): void {
+				$this->portalStamps++;
+			}
+		);
+
 		return new AssessmentAttemptGateListener(
 			objectService: $objectService,
 			schemaResolver: $resolver,
@@ -136,6 +151,7 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 			timeFactory: $time,
 			policy: new AssessmentAccessPolicy(),
 			audience: $audience,
+			portalStamp: $portalStamp,
 			logger: new NullLogger(),
 		);
 	}//end makeListener()
@@ -175,6 +191,7 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 		$this->assertTrue($event->isPropagationStopped());
 		$this->assertStringContainsString('not open yet', (string)$event->getErrors()['message']);
 		$this->assertSame(0, $this->stamps, 'a refused attempt is not stamped');
+		$this->assertSame(0, $this->portalStamps, 'a refused attempt gets no portal stamp');
 	}//end testAttemptBeforeWindowOpensIsRefused()
 
 	/**
@@ -209,6 +226,7 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 		$this->assertFalse($event->isPropagationStopped());
 		$this->assertSame(['id' => 'a1', 'schema' => 'exam', 'rbac' => false, 'render' => false], $this->findCalls[0]);
 		$this->assertSame(1, $this->stamps, 'an allowed attempt gets its read audience stamped');
+		$this->assertSame(1, $this->portalStamps, 'an allowed attempt gets its portal scope and title stamped');
 	}//end testAttemptInsideWindowIsAllowed()
 
 	/**
