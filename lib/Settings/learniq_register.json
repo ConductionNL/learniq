@@ -8055,9 +8055,8 @@
                 "icon": "CheckboxMarkedOutline",
                 "version": "0.1.0",
                 "title": "AssessmentResult",
-                "description": "A learner's attempt at an Assessment. Append-only — a finished attempt is immutable evidence. Auto-scored items receive autoScore on the submit transition; essay items remain null until a teacher provides manualScore.",
+                "description": "A learner's attempt at an Assessment. A finished attempt is evidence: once submitted its answers are frozen and only a teacher writes manualScore, enforced by AssessmentResultIntegrityListener (not appendOnly, which refuses every lifecycle write). Auto-scored items receive autoScore on the submit transition; essay items remain null until a teacher provides manualScore.",
                 "type": "object",
-                "appendOnly": true,
                 "x-openregister": {
                     "active": true,
                     "hardDelete": false,

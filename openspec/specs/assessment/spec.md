@@ -233,6 +233,38 @@ the release-status endpoint first and show why a closed test cannot be started, 
      and tests/Unit/Controller/LessonReleaseControllerTest.php
      (testAssessmentStatusReportsAccessCodeAndWindowReason). -->
 
+### Requirement: A teacher scores open answers question by question and a finished attempt stays immutable
+`AssessmentResult` SHALL NOT be `appendOnly`, because Open Register refuses every update on an append-only
+schema, lifecycle transitions included, which made saving answers, `submit`, a manual score and `grade`
+impossible. `AssessmentResultIntegrityListener` SHALL keep the attempt trustworthy instead, on Open
+Register's `ObjectUpdatingEvent` and `ObjectDeletingEvent`: while `in-progress` only the learner changes the
+attempt and cannot score it; once `submitted` the answers, auto scores and attempt fields are frozen and only
+staff (a teacher or admin dashboard view) write `responses[].manualScore`, a number of zero or more, and fire
+`grade`; a `graded` attempt is final apart from the GradeEntry back-link and a learner merge; a delete is
+refused. Nextcloud admins and system context are exempt. `AssessmentScoringView` SHALL let a teacher take one
+open question across every submitted attempt of an assessment, save the scores and grade the attempts whose
+open questions are all scored.
+
+#### Scenario: A teacher scores an essay and grades the attempt
+- **GIVEN** a submitted attempt with an unscored essay answer
+- **WHEN** a teacher opens Score open answers from the results list, enters a score and saves
+- **THEN** the attempt's `manualScore` for that item is stored and the attempt can be graded
+
+<!-- @e2e exclude Needs a submitted attempt, which needs a live learner session through TakeAssessmentView;
+     the rules are asserted in tests/Unit/Listener/AssessmentResultIntegrityListenerTest.php
+     (testTeacherMayWriteAManualScoreOnASubmittedAttempt, testTeacherMayGradeAScoredAttempt) and the screen
+     wiring and helpers in tests/unit-js/manualScoring.test.mjs. -->
+
+#### Scenario: A finished attempt's answers cannot be changed
+- **GIVEN** a submitted attempt
+- **WHEN** the learner writes a score, or anyone changes an answer or an auto score, or deletes the attempt
+- **THEN** the write is refused
+
+<!-- @e2e exclude A server-side write veto; asserted in
+     tests/Unit/Listener/AssessmentResultIntegrityListenerTest.php (testLearnerMayNotScoreTheirOwnSubmittedAttempt,
+     testTeacherMayNotChangeTheAnswers, testTeacherMayNotChangeAnAutoScore, testAGradedAttemptIsFinal,
+     testDeleteIsRefusedForNonAdmins). -->
+
 ### Requirement: Assessment results are read by the learner, their manager and the course's teachers
 An `AssessmentResult` (the learner's answers and score) SHALL be readable by the learner who took it, the
 learner's manager (`LearnerProfile.managerId`), the teachers of the assessment's course (the `teacherIds` of

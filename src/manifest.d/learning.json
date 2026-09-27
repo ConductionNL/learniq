@@ -3930,7 +3930,16 @@
 				"showDeleteAction": false,
 				"showMassImport": false,
 				"showMassCopy": false,
-				"showMassDelete": false
+				"showMassDelete": false,
+				"headerActions": [
+					{
+						"id": "score-open-answers",
+						"label": "Score open answers",
+						"icon": "CheckboxMarkedOutline",
+						"handler": "navigate",
+						"route": "AssessmentScoring"
+					}
+				]
 			}
 		},
 		{
@@ -4074,6 +4083,14 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "AssessmentScoring",
+			"route": "/assessments/:assessmentId/scoring",
+			"type": "custom",
+			"title": "Score open answers",
+			"component": "AssessmentScoringView",
+			"_note": "learniq#948: a teacher scores one open question for every submitted attempt in turn, writing responses[].manualScore, then grades the attempts that are fully scored. No manifest page can show one question across many attempts. Reached from the results list header action."
 		},
 		{
 			"id": "ItemStatisticsList",

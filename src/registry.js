@@ -18,6 +18,8 @@ import AuditTrailWidget from './components/widgets/AuditTrailWidget.vue'
 // with live electiveRules/capacity feedback; every other Application/
 // AdmissionsRound/SubjectChoice screen is a declarative manifest page.
 import AdmissionsReviewBoard from './views/AdmissionsReviewBoard.vue'
+// learniq#948: score one open question for every submitted attempt in turn.
+import AssessmentScoringView from './views/AssessmentScoringView.vue'
 // learniq#947: AttendanceRegisterView, BulkEnrolView, CohortGradebookView,
 // CohortTimetableView, ExportRequestView, LearningPlanEditorView,
 // OsoDossierReviewView, QtiImportView, SignatureView, SubmitExcuseView and
@@ -207,6 +209,7 @@ export default {
 	SubmitWorkView: page(SubmitWorkView),
 
 	AdmissionsReviewBoard: page(AdmissionsReviewBoard),
+	AssessmentScoringView: page(AssessmentScoringView),
 	BookConferenceSlotsView: page(BookConferenceSlotsView),
 	BsaRiskDashboard: page(BsaRiskDashboard),
 	ConferenceScheduleBoard: page(ConferenceScheduleBoard),
