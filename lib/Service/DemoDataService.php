@@ -130,7 +130,9 @@ class DemoDataService {
 		if ($objects !== null) {
 			$choices[] = [
 				'id'    => self::DEMO_DATASET,
-				'label' => 'Example data',
+				// "Every schema, generated values" tells this set apart from the
+				// curated example sets SeedProfileService lists next to it.
+				'label' => 'Every schema, generated values',
 				// 🔴 NO NUMBER IN THIS SENTENCE. The wizard runs a card's
 				// description through the app's translation function, which is a
 				// literal lookup, so an interpolated count would make the string
@@ -139,9 +141,8 @@ class DemoDataService {
 				// stat, with a label the library translates.
 				'description' => (
 					'Sample values for every schema this app supplies, generated from the schemas '
-					. 'themselves. It shows the lists, detail pages and dashboards working rather '
-					. 'than telling a story. Safe to run more than once, and you can delete it '
-					. 'afterwards.'
+					. 'themselves. Use it to exercise the data model, not to show a school. Safe to '
+					. 'run more than once.'
 				),
 				'objectCount' => $objects,
 				'icon'        => 'DatabaseOutline',

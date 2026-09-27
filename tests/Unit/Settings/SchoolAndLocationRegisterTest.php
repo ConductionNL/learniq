@@ -139,29 +139,67 @@ class SchoolAndLocationRegisterTest extends TestCase {
 	}//end testCohortLocationIdIsAdditiveNullableSingleRef()
 
 	/**
-	 * Seed fixtures exercise the School→Location relation, the
-	 * independent-onderwijslocatiecode scenario, and one Cohort seed
-	 * backfilled with `locationId` pointing at a seeded Location.
+	 * The primary school example set exercises the School→Location relation,
+	 * the independent-onderwijslocatiecode scenario, and every Cohort carrying
+	 * a `locationId` that points at one of the set's locations.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testSeedFixturesExerciseRelationAndBackfill(): void {
-		$schoolSeeds = $this->config['components']['schemas']['School']['x-openregister-seed'];
-		self::assertCount(2, $schoolSeeds);
+		$schools = self::poObjects(schema: 'school');
+		self::assertGreaterThanOrEqual(1, count($schools));
 
-		$locationSeeds = $this->config['components']['schemas']['Vestiging']['x-openregister-seed'];
-		self::assertCount(3, $locationSeeds);
+		$locations = self::poObjects(schema: 'vestiging');
+		self::assertGreaterThanOrEqual(2, count($locations));
 
 		$withOnderwijslocatie = array_values(array_filter(
-			$locationSeeds,
+			$locations,
 			static fn (array $l): bool => $l['onderwijslocatiecode'] !== null
 		));
-		self::assertCount(1, $withOnderwijslocatie);
-		self::assertSame($locationSeeds[0]['schoolId'], $withOnderwijslocatie[0]['schoolId']);
-		self::assertNotSame($locationSeeds[0]['vestigingscode'], $withOnderwijslocatie[0]['vestigingscode']);
+		self::assertNotEmpty($withOnderwijslocatie);
+		self::assertSame($schools[0]['uuid'], $withOnderwijslocatie[0]['schoolId']);
+		self::assertNotSame($locations[0]['vestigingscode'], $withOnderwijslocatie[0]['vestigingscode']);
 
-		$cohortSeeds = $this->config['components']['schemas']['Cohort']['x-openregister-seed'];
-		self::assertSame($locationSeeds[0]['id'], $cohortSeeds[0]['locationId']);
+		$locationIds = array_column($locations, 'uuid');
+		foreach (self::poObjects(schema: 'cohort') as $cohort) {
+			self::assertContains($cohort['locationId'], $locationIds, $cohort['name'] . ' points at a location of the set');
+		}
 
 	}//end testSeedFixturesExerciseRelationAndBackfill()
+
+	/**
+	 * The objects of one schema in the primary school example set, where the
+	 * curated primary school seeds moved to (segment-example-datasets-po).
+	 *
+	 * @param string $schema The schema slug.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function poObjects(string $schema): array {
+		$path = __DIR__ . '/../../../lib/Settings/profiles/po.json';
+		$set  = json_decode((string)file_get_contents($path), true);
+
+		return ($set['x-openregister']['seedData']['objects'][$schema] ?? []);
+	}//end poObjects()
+
+	/**
+	 * The first object of a schema in the example set whose field equals a value.
+	 *
+	 * @param string $schema The schema slug.
+	 * @param string $field  The field to match.
+	 * @param mixed  $value  The value it must hold.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function poObject(string $schema, string $field, mixed $value): array {
+		foreach (self::poObjects(schema: $schema) as $object) {
+			if (($object[$field] ?? null) === $value) {
+				return $object;
+			}
+		}
+
+		self::fail('No ' . $schema . ' with ' . $field . ' = ' . json_encode($value) . ' in the primary school example set.');
+	}//end poObject()
 }//end class

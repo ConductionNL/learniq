@@ -1210,6 +1210,23 @@
                         },
                         "title": "Competency IDs"
                     },
+                    "prerequisiteCourseIds": {
+                        "type": "array",
+                        "default": [],
+                        "description": "UUIDs of Course objects a learner MUST hold a completed Enrolment for before they may enrol in this Course. Additive field — existing rows leave it empty/absent and are unaffected. Structurally identical to CurriculumPlan.requiredCourseIds/Course.programmeIds (array-of-$ref idiom). Enforced by the enrolment capability's EnrolmentPrerequisiteListener (ObjectCreatingEvent on enrolment) — not a lifecycle guard, since Enrolment has no transition into its initial pending state for a `requires` guard to attach to.",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid",
+                            "$ref": "Course"
+                        },
+                        "title": "Prerequisite Course IDs"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant UUID (multi-tenant isolation)",
+                        "title": "Tenant ID"
+                    },
                     "competencyAlignments": {
                         "type": "array",
                         "default": [],
@@ -1239,23 +1256,6 @@
                         "description": "The goals this works on, each with a depth from the goal's own framework. Competency IDs is kept in step with this list.",
                         "x-notes": "goal-alignment-depth: depth is a CompetencyFramework.proficiencyLevels[].levelId of the aligned goal's framework (plan A4), enforced by CompetencyAlignmentListener on save (no enum, the allowed set lives on another object). competencyIds stays and is derived: alignments changed -> competencyIds = their ids in order, deduplicated; only competencyIds changed on a row with alignments -> alignments follow (kept depth, new id depth null, removed id dropped); both changed -> alignments win; a row that never had alignments keeps its competencyIds. Readers use CompetencyAlignmentNormaliser::effectiveAlignments(). widget json because the shared form renders an array of objects as tags.",
                         "title": "Goal alignments"
-                    },
-                    "prerequisiteCourseIds": {
-                        "type": "array",
-                        "default": [],
-                        "description": "UUIDs of Course objects a learner MUST hold a completed Enrolment for before they may enrol in this Course. Additive field — existing rows leave it empty/absent and are unaffected. Structurally identical to CurriculumPlan.requiredCourseIds/Course.programmeIds (array-of-$ref idiom). Enforced by the enrolment capability's EnrolmentPrerequisiteListener (ObjectCreatingEvent on enrolment) — not a lifecycle guard, since Enrolment has no transition into its initial pending state for a `requires` guard to attach to.",
-                        "items": {
-                            "type": "string",
-                            "format": "uuid",
-                            "$ref": "Course"
-                        },
-                        "title": "Prerequisite Course IDs"
-                    },
-                    "tenant_id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "description": "Tenant UUID (multi-tenant isolation)",
-                        "title": "Tenant ID"
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -1557,36 +1557,6 @@
                         },
                         "title": "Competency IDs"
                     },
-                    "competencyAlignments": {
-                        "type": "array",
-                        "default": [],
-                        "widget": "json",
-                        "items": {
-                            "type": "object",
-                            "required": [
-                                "competencyId"
-                            ],
-                            "properties": {
-                                "competencyId": {
-                                    "type": "string",
-                                    "format": "uuid",
-                                    "$ref": "Competency",
-                                    "title": "Goal",
-                                    "description": "The goal this is aligned to."
-                                },
-                                "depth": {
-                                    "type": "string",
-                                    "nullable": true,
-                                    "maxLength": 64,
-                                    "title": "Depth",
-                                    "description": "How far this takes the goal: a level from the goal's framework, such as practise or competent. Leave empty to not say."
-                                }
-                            }
-                        },
-                        "description": "The goals this works on, each with a depth from the goal's own framework. Competency IDs is kept in step with this list.",
-                        "x-notes": "goal-alignment-depth: depth is a CompetencyFramework.proficiencyLevels[].levelId of the aligned goal's framework (plan A4), enforced by CompetencyAlignmentListener on save (no enum, the allowed set lives on another object). competencyIds stays and is derived: alignments changed -> competencyIds = their ids in order, deduplicated; only competencyIds changed on a row with alignments -> alignments follow (kept depth, new id depth null, removed id dropped); both changed -> alignments win; a row that never had alignments keeps its competencyIds. Readers use CompetencyAlignmentNormaliser::effectiveAlignments(). widget json because the shared form renders an array of objects as tags.",
-                        "title": "Goal alignments"
-                    },
                     "releaseConditions": {
                         "type": "array",
                         "default": [],
@@ -1669,6 +1639,36 @@
                         "format": "uuid",
                         "description": "Tenant UUID (multi-tenant isolation)",
                         "title": "Tenant ID"
+                    },
+                    "competencyAlignments": {
+                        "type": "array",
+                        "default": [],
+                        "widget": "json",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "competencyId"
+                            ],
+                            "properties": {
+                                "competencyId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "$ref": "Competency",
+                                    "title": "Goal",
+                                    "description": "The goal this is aligned to."
+                                },
+                                "depth": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "maxLength": 64,
+                                    "title": "Depth",
+                                    "description": "How far this takes the goal: a level from the goal's framework, such as practise or competent. Leave empty to not say."
+                                }
+                            }
+                        },
+                        "description": "The goals this works on, each with a depth from the goal's own framework. Competency IDs is kept in step with this list.",
+                        "x-notes": "goal-alignment-depth: depth is a CompetencyFramework.proficiencyLevels[].levelId of the aligned goal's framework (plan A4), enforced by CompetencyAlignmentListener on save (no enum, the allowed set lives on another object). competencyIds stays and is derived: alignments changed -> competencyIds = their ids in order, deduplicated; only competencyIds changed on a row with alignments -> alignments follow (kept depth, new id depth null, removed id dropped); both changed -> alignments win; a row that never had alignments keeps its competencyIds. Readers use CompetencyAlignmentNormaliser::effectiveAlignments(). widget json because the shared form renders an array of objects as tags.",
+                        "title": "Goal alignments"
                     }
                 },
                 "allOf": [
@@ -2474,7 +2474,7 @@
             "Enrolment": {
                 "slug": "enrolment",
                 "icon": "AccountSchoolOutline",
-                "version": "0.2.0",
+                "version": "0.2.1",
                 "title": "Enrolment",
                 "description": "Learner enrolment in a course (Schema.org EnrollmentRequest)",
                 "type": "object",
@@ -2963,32 +2963,7 @@
                         ]
                     }
                 },
-                "x-openregister-seed": [
-                    {
-                        "id": "00000000-0000-0000-0000-0000000d0001",
-                        "learnerId": "learner-005",
-                        "courseId": "00000000-0000-0000-0000-000000010001",
-                        "cohortId": "00000000-0000-0000-0000-0000000c0001",
-                        "source": "admission",
-                        "inschrijvingDate": "2025-08-18",
-                        "volgnummer": 1,
-                        "locationId": "00000000-0000-0000-0000-0000000b0001",
-                        "leerjaar": 5,
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    },
-                    {
-                        "id": "00000000-0000-0000-0000-0000000d0002",
-                        "learnerId": "learner-006",
-                        "courseId": "00000000-0000-0000-0000-000000010001",
-                        "cohortId": "00000000-0000-0000-0000-0000000c0001",
-                        "source": "admission",
-                        "inschrijvingDate": "2024-08-19",
-                        "volgnummer": 2,
-                        "locationId": "00000000-0000-0000-0000-0000000b0001",
-                        "leerjaar": 6,
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    }
-                ]
+                "x-openregister-seed": []
             },
             "AdmissionsRound": {
                 "slug": "admissions-round",
@@ -3985,7 +3960,7 @@
                 },
                 "slug": "external-training-record",
                 "icon": "SchoolOutline",
-                "version": "0.2.0",
+                "version": "0.2.1",
                 "title": "ExternalTrainingRecord",
                 "description": "An externally-completed training (classroom, third-party e-learning, conference, on-the-job) recorded per learner with evidence file attachments and an officer verification gate. A verified, unexpired record counts as compliance evidence for a matching regulation.",
                 "type": "object",
@@ -4247,23 +4222,7 @@
                         ]
                     }
                 },
-                "x-openregister-seed": [
-                    {
-                        "learnerId": "learner-001",
-                        "title": "NIS2 board awareness session",
-                        "provider": "SecureBoard B.V.",
-                        "kind": "classroom",
-                        "regulationSlug": "NIS2",
-                        "completedAt": "2026-03-10T10:00:00Z",
-                        "validUntil": "2027-03-10T10:00:00Z",
-                        "evidenceNote": "Signed attendance list attached",
-                        "submittedBy": "admin",
-                        "verifiedBy": "admin",
-                        "verifiedAt": "2026-03-11T09:00:00Z",
-                        "lifecycle": "verified",
-                        "tenant_id": "default"
-                    }
-                ],
+                "x-openregister-seed": [],
                 "appendOnly": false,
                 "authorization": {
                     "read": [
@@ -5417,7 +5376,7 @@
             "Cohort": {
                 "slug": "cohort",
                 "icon": "AccountGroupOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "Cohort",
                 "description": "A group of learners doing a Course or Programme together in a given period. Members are LearnerProfile UUIDs; backed by a Nextcloud group for permissioning. Lifecycle: planned → active → completed | archived.",
                 "type": "object",
@@ -5614,50 +5573,7 @@
                         }
                     }
                 },
-                "x-openregister-seed": [
-                    {
-                        "id": "00000000-0000-0000-0000-0000000c0001",
-                        "name": "Groep 5/6",
-                        "period": "Schooljaar",
-                        "academicYear": "2025-2026",
-                        "locationId": "00000000-0000-0000-0000-0000000b0001",
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    },
-                    {
-                        "id": "00000000-0000-0000-0000-0000000c0001",
-                        "name": "Groep 5/6",
-                        "period": "Schooljaar",
-                        "academicYear": "2025-2026",
-                        "teacherAssignments": [
-                            {
-                                "teacherId": "staff-mentor-01",
-                                "role": "primary",
-                                "days": [
-                                    "monday",
-                                    "tuesday",
-                                    "wednesday"
-                                ]
-                            },
-                            {
-                                "teacherId": "staff-duo-01",
-                                "role": "duo-partner",
-                                "days": [
-                                    "thursday",
-                                    "friday"
-                                ]
-                            }
-                        ],
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    },
-                    {
-                        "id": "00000000-0000-0000-0000-0000000c0002",
-                        "name": "Groep 7",
-                        "period": "Schooljaar",
-                        "academicYear": "2025-2026",
-                        "notes": "Combinatiegroep, extra aandacht voor rekenen.",
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    }
-                ],
+                "x-openregister-seed": [],
                 "authorization": {
                     "read": [
                         "instructors",
@@ -7125,36 +7041,6 @@
                         },
                         "title": "Competency IDs"
                     },
-                    "competencyAlignments": {
-                        "type": "array",
-                        "default": [],
-                        "widget": "json",
-                        "items": {
-                            "type": "object",
-                            "required": [
-                                "competencyId"
-                            ],
-                            "properties": {
-                                "competencyId": {
-                                    "type": "string",
-                                    "format": "uuid",
-                                    "$ref": "Competency",
-                                    "title": "Goal",
-                                    "description": "The goal this is aligned to."
-                                },
-                                "depth": {
-                                    "type": "string",
-                                    "nullable": true,
-                                    "maxLength": 64,
-                                    "title": "Depth",
-                                    "description": "How far this takes the goal: a level from the goal's framework, such as practise or competent. Leave empty to not say."
-                                }
-                            }
-                        },
-                        "description": "The goals this works on, each with a depth from the goal's own framework. Competency IDs is kept in step with this list.",
-                        "x-notes": "goal-alignment-depth: depth is a CompetencyFramework.proficiencyLevels[].levelId of the aligned goal's framework (plan A4), enforced by CompetencyAlignmentListener on save (no enum, the allowed set lives on another object). competencyIds stays and is derived: alignments changed -> competencyIds = their ids in order, deduplicated; only competencyIds changed on a row with alignments -> alignments follow (kept depth, new id depth null, removed id dropped); both changed -> alignments win; a row that never had alignments keeps its competencyIds. Readers use CompetencyAlignmentNormaliser::effectiveAlignments(). widget json because the shared form renders an array of objects as tags.",
-                        "title": "Goal alignments"
-                    },
                     "peerReviewEnabled": {
                         "type": "boolean",
                         "default": false,
@@ -7240,6 +7126,36 @@
                         "format": "uuid",
                         "description": "Tenant identifier for multi-tenant isolation.",
                         "title": "Tenant ID"
+                    },
+                    "competencyAlignments": {
+                        "type": "array",
+                        "default": [],
+                        "widget": "json",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "competencyId"
+                            ],
+                            "properties": {
+                                "competencyId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "$ref": "Competency",
+                                    "title": "Goal",
+                                    "description": "The goal this is aligned to."
+                                },
+                                "depth": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "maxLength": 64,
+                                    "title": "Depth",
+                                    "description": "How far this takes the goal: a level from the goal's framework, such as practise or competent. Leave empty to not say."
+                                }
+                            }
+                        },
+                        "description": "The goals this works on, each with a depth from the goal's own framework. Competency IDs is kept in step with this list.",
+                        "x-notes": "goal-alignment-depth: depth is a CompetencyFramework.proficiencyLevels[].levelId of the aligned goal's framework (plan A4), enforced by CompetencyAlignmentListener on save (no enum, the allowed set lives on another object). competencyIds stays and is derived: alignments changed -> competencyIds = their ids in order, deduplicated; only competencyIds changed on a row with alignments -> alignments follow (kept depth, new id depth null, removed id dropped); both changed -> alignments win; a row that never had alignments keeps its competencyIds. Readers use CompetencyAlignmentNormaliser::effectiveAlignments(). widget json because the shared form renders an array of objects as tags.",
+                        "title": "Goal alignments"
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -8718,36 +8634,6 @@
                         },
                         "title": "Competency IDs"
                     },
-                    "competencyAlignments": {
-                        "type": "array",
-                        "default": [],
-                        "widget": "json",
-                        "items": {
-                            "type": "object",
-                            "required": [
-                                "competencyId"
-                            ],
-                            "properties": {
-                                "competencyId": {
-                                    "type": "string",
-                                    "format": "uuid",
-                                    "$ref": "Competency",
-                                    "title": "Goal",
-                                    "description": "The goal this is aligned to."
-                                },
-                                "depth": {
-                                    "type": "string",
-                                    "nullable": true,
-                                    "maxLength": 64,
-                                    "title": "Depth",
-                                    "description": "How far this takes the goal: a level from the goal's framework, such as practise or competent. Leave empty to not say."
-                                }
-                            }
-                        },
-                        "description": "The goals this works on, each with a depth from the goal's own framework. Competency IDs is kept in step with this list.",
-                        "x-notes": "goal-alignment-depth: depth is a CompetencyFramework.proficiencyLevels[].levelId of the aligned goal's framework (plan A4), enforced by CompetencyAlignmentListener on save (no enum, the allowed set lives on another object). competencyIds stays and is derived: alignments changed -> competencyIds = their ids in order, deduplicated; only competencyIds changed on a row with alignments -> alignments follow (kept depth, new id depth null, removed id dropped); both changed -> alignments win; a row that never had alignments keeps its competencyIds. Readers use CompetencyAlignmentNormaliser::effectiveAlignments(). widget json because the shared form renders an array of objects as tags.",
-                        "title": "Goal alignments"
-                    },
                     "releaseConditions": {
                         "type": "array",
                         "default": [],
@@ -8817,6 +8703,36 @@
                         "default": "draft",
                         "description": "Lifecycle state. Managed by OR's lifecycle engine.",
                         "title": "Lifecycle State"
+                    },
+                    "competencyAlignments": {
+                        "type": "array",
+                        "default": [],
+                        "widget": "json",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "competencyId"
+                            ],
+                            "properties": {
+                                "competencyId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "$ref": "Competency",
+                                    "title": "Goal",
+                                    "description": "The goal this is aligned to."
+                                },
+                                "depth": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "maxLength": 64,
+                                    "title": "Depth",
+                                    "description": "How far this takes the goal: a level from the goal's framework, such as practise or competent. Leave empty to not say."
+                                }
+                            }
+                        },
+                        "description": "The goals this works on, each with a depth from the goal's own framework. Competency IDs is kept in step with this list.",
+                        "x-notes": "goal-alignment-depth: depth is a CompetencyFramework.proficiencyLevels[].levelId of the aligned goal's framework (plan A4), enforced by CompetencyAlignmentListener on save (no enum, the allowed set lives on another object). competencyIds stays and is derived: alignments changed -> competencyIds = their ids in order, deduplicated; only competencyIds changed on a row with alignments -> alignments follow (kept depth, new id depth null, removed id dropped); both changed -> alignments win; a row that never had alignments keeps its competencyIds. Readers use CompetencyAlignmentNormaliser::effectiveAlignments(). widget json because the shared form renders an array of objects as tags.",
+                        "title": "Goal alignments"
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -10531,7 +10447,7 @@
             "ReportPeriod": {
                 "slug": "report-period",
                 "icon": "CalendarRangeOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "ReportPeriod",
                 "description": "The school-wide term a periodic report card (rapport) is composed for: name, academic year, a periodCode matching the same period identifier GradeEntry.period / CurriculumPlan.components[].period / FinalGrade.breakdown.periods keys already use, the window AttendanceRecord is summarised over, which CurriculumPlans (subjects) and Cohorts it covers, and a nullable lockDate after which ordinary grade publishing for that period is blocked (report-card spec).",
                 "type": "object",
@@ -10785,32 +10701,7 @@
                         ]
                     }
                 },
-                "x-openregister-seed": [
-                    {
-                        "id": "00000000-0000-0000-0000-000000110001",
-                        "name": "Rapport 1",
-                        "academicYear": "2025-2026",
-                        "periodCode": "1",
-                        "startDate": "2025-08-18",
-                        "endDate": "2026-01-23",
-                        "curriculumPlanIds": [],
-                        "cohortIds": [],
-                        "holidays": [
-                            {
-                                "name": "Herfstvakantie",
-                                "startDate": "2025-10-20",
-                                "endDate": "2025-10-24"
-                            }
-                        ],
-                        "studyDays": [
-                            {
-                                "date": "2025-11-14",
-                                "description": "Studiedag team"
-                            }
-                        ],
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    }
-                ],
+                "x-openregister-seed": [],
                 "authorization": {
                     "read": [
                         "authenticated"
@@ -11503,6 +11394,23 @@
                         },
                         "title": "Required For Roles"
                     },
+                    "lifecycle": {
+                        "type": "string",
+                        "description": "Competency lifecycle state. Managed by OR lifecycle engine; do not set directly.",
+                        "enum": [
+                            "draft",
+                            "published",
+                            "archived"
+                        ],
+                        "default": "draft",
+                        "title": "Lifecycle State"
+                    },
+                    "tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Tenant identifier for multi-tenant isolation.",
+                        "title": "Tenant ID"
+                    },
                     "applicableYears": {
                         "type": "array",
                         "default": [],
@@ -11525,23 +11433,6 @@
                         "description": "The subject this goal belongs to. Leave empty for a goal that spans subjects, or to take the subject of its parent goal.",
                         "x-notes": "competency-year-scope: learniq models a subject as a Course (same reference as SubjectTeacherAssignment.courseId; PR 929 added no Subject schema). Null means cross-subject or not yet linked. Read rule, never stored: a null value inherits the nearest ancestor's non-null subjectId via parentId.",
                         "title": "Subject"
-                    },
-                    "lifecycle": {
-                        "type": "string",
-                        "description": "Competency lifecycle state. Managed by OR lifecycle engine; do not set directly.",
-                        "enum": [
-                            "draft",
-                            "published",
-                            "archived"
-                        ],
-                        "default": "draft",
-                        "title": "Lifecycle State"
-                    },
-                    "tenant_id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "description": "Tenant identifier for multi-tenant isolation.",
-                        "title": "Tenant ID"
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -13358,7 +13249,7 @@
             "GroupPlan": {
                 "slug": "group-plan",
                 "icon": "AccountGroupOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "GroupPlan",
                 "description": "The groepsplan: a Dutch PO/SBO group-level planning cycle for one Cohort/subject/period — results analysis, differentiated GroupPlanSubgroups (instructieniveau), period goals, and a period-end GroupPlanEvaluation. One level up from the per-learner LearningPlan (OPP); links to it and to SupportRequest by reference, never duplicates either.",
                 "type": "object",
@@ -13618,59 +13509,12 @@
                         }
                     }
                 },
-                "x-openregister-seed": [
-                    {
-                        "id": "fef97832-39c5-4f05-bcc3-e0abf7c5104d",
-                        "cohortId": "cohort-001",
-                        "subject": "technisch lezen",
-                        "period": "2025-2026 blok 3",
-                        "periodEndDate": "2026-04-15",
-                        "coordinatorId": "teacher-001",
-                        "resultsAnalysis": {
-                            "narrative": "Cito-toetsronde blok 3: methodetoetsen tonen een groep leerlingen die achterblijft op AVI/DMT.",
-                            "evidenceRefs": []
-                        },
-                        "goals": [
-                            {
-                                "goalId": "goal-1",
-                                "description": "90% van de groep behaalt het AVI-niveau passend bij leerjaar aan het einde van blok 3.",
-                                "status": "met"
-                            }
-                        ],
-                        "supersedesId": null,
-                        "lifecycle": "closed",
-                        "tenant_id": "default"
-                    },
-                    {
-                        "id": "410bed2e-1b8e-4c74-99d6-aa950fd5266a",
-                        "cohortId": "cohort-001",
-                        "subject": "technisch lezen",
-                        "period": "2026-2027 blok 1",
-                        "periodEndDate": "2026-10-16",
-                        "coordinatorId": "teacher-001",
-                        "resultsAnalysis": {
-                            "narrative": "Vervolg op blok 3 (zie de gekoppelde GroupPlanEvaluation): drie duidelijke instructieniveaus binnen de klas.",
-                            "evidenceRefs": [
-                                "11d6c388-8050-4303-a5fd-72a50c7f1e34"
-                            ]
-                        },
-                        "goals": [
-                            {
-                                "goalId": "goal-1",
-                                "description": "Alle subgroepen tonen aantoonbare vooruitgang op AVI-niveau bij de volgende meting.",
-                                "status": "open"
-                            }
-                        ],
-                        "supersedesId": "fef97832-39c5-4f05-bcc3-e0abf7c5104d",
-                        "lifecycle": "active",
-                        "tenant_id": "default"
-                    }
-                ]
+                "x-openregister-seed": []
             },
             "GroupPlanSubgroup": {
                 "slug": "group-plan-subgroup",
                 "icon": "AccountMultipleOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "GroupPlanSubgroup",
                 "description": "A named instructieniveau subgroup within a GroupPlan (intensief/basis/verdiept or school-defined), with its own differentiated goal, approach, and intended outcome. Carries its members' learnerIds only — no stored link to a member's LearningPlan or SupportRequest; those are resolved live (see GroupPlanSubgroupLearnerContext.vue and the standard originGroupPlanSubgroupId reverse filter).",
                 "type": "object",
@@ -13741,69 +13585,12 @@
                         "title": "Tenant ID"
                     }
                 },
-                "x-openregister-seed": [
-                    {
-                        "id": "ea23b17b-d5a0-4dc0-84f3-4418f4e93edc",
-                        "groupPlanId": "fef97832-39c5-4f05-bcc3-e0abf7c5104d",
-                        "name": "Basis - technisch lezen (blok 3)",
-                        "instructieniveau": "basis",
-                        "learnerIds": [
-                            "learner-001",
-                            "learner-003"
-                        ],
-                        "differentiatedGoal": "AVI-niveau een stap verhogen via extra leestijd.",
-                        "approach": "Drie keer per week begeleid lezen in kleine groep.",
-                        "intendedOutcome": "Beide leerlingen behalen het volgende AVI-niveau.",
-                        "tenant_id": "default"
-                    },
-                    {
-                        "id": "bd50b455-03c9-4254-9068-c2b68d4356b5",
-                        "groupPlanId": "410bed2e-1b8e-4c74-99d6-aa950fd5266a",
-                        "name": "Intensief - technisch lezen",
-                        "instructieniveau": "intensief",
-                        "learnerIds": [
-                            "learner-001",
-                            "learner-002"
-                        ],
-                        "differentiatedGoal": "Dagelijks 1-op-1 leesbegeleiding om de leesachterstand in te lopen.",
-                        "approach": "Dagelijks 15 minuten RT met de intern begeleider, aanvullend op de klassikale les.",
-                        "intendedOutcome": "Substantiële groei op DMT/AVI binnen dit blok; escalatie naar SupportRequest indien onvoldoende.",
-                        "tenant_id": "default"
-                    },
-                    {
-                        "id": "84fee2e8-b004-4e65-9c5b-a697eaefd4af",
-                        "groupPlanId": "410bed2e-1b8e-4c74-99d6-aa950fd5266a",
-                        "name": "Basis - technisch lezen",
-                        "instructieniveau": "basis",
-                        "learnerIds": [
-                            "learner-003",
-                            "learner-004",
-                            "learner-005"
-                        ],
-                        "differentiatedGoal": "Leerlijn-tempo vasthouden.",
-                        "approach": "Reguliere klassikale leesinstructie volgens de methode.",
-                        "intendedOutcome": "Leerlingen blijven op het leerlijn-tempo.",
-                        "tenant_id": "default"
-                    },
-                    {
-                        "id": "f4c78a7e-877e-4415-892f-3b326858daaf",
-                        "groupPlanId": "410bed2e-1b8e-4c74-99d6-aa950fd5266a",
-                        "name": "Verdiept - technisch lezen",
-                        "instructieniveau": "verdiept",
-                        "learnerIds": [
-                            "learner-006"
-                        ],
-                        "differentiatedGoal": "Uitdagende teksten boven leerjaarniveau.",
-                        "approach": "Verrijkingsopdrachten en zelfstandig verwerken van moeilijkere teksten.",
-                        "intendedOutcome": "Leerling blijft gemotiveerd en leest boven leerjaarniveau.",
-                        "tenant_id": "default"
-                    }
-                ]
+                "x-openregister-seed": []
             },
             "GroupPlanEvaluation": {
                 "slug": "group-plan-evaluation",
                 "icon": "ClipboardCheckOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "GroupPlanEvaluation",
                 "description": "A dated period-end evaluation of a GroupPlan: a per-subgroup outcome plus an overall narrative. Closes the HGW cycle; the next period's GroupPlan seeds from it via GroupPlan.supersedesId, not a forward-pointing field on this record.",
                 "type": "object",
@@ -13886,23 +13673,7 @@
                         "title": "Tenant ID"
                     }
                 },
-                "x-openregister-seed": [
-                    {
-                        "id": "11d6c388-8050-4303-a5fd-72a50c7f1e34",
-                        "groupPlanId": "fef97832-39c5-4f05-bcc3-e0abf7c5104d",
-                        "evaluatedAt": "2026-04-14",
-                        "evaluatedBy": "teacher-001",
-                        "outcomes": [
-                            {
-                                "subgroupId": "ea23b17b-d5a0-4dc0-84f3-4418f4e93edc",
-                                "outcome": "met",
-                                "narrative": "Beide leerlingen behaalden het beoogde AVI-niveau."
-                            }
-                        ],
-                        "narrative": "Blok 3 geëvalueerd; de groep wordt voor blok 1 van volgend jaar opnieuw ingedeeld op basis van deze uitkomst.",
-                        "tenant_id": "default"
-                    }
-                ]
+                "x-openregister-seed": []
             },
             "SupportRequest": {
                 "slug": "support-request",
@@ -25228,7 +24999,7 @@
             "School": {
                 "slug": "school",
                 "icon": "OfficeBuilding",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "School",
                 "description": "A school/instelling as a record: BRIN, name, and pedagogical concept. Plain resource-metadata object, same shape as Room, no lifecycle. No bestuur/board entity this round (decision D2); School is the top-level record. school-structure.",
                 "type": "object",
@@ -25279,27 +25050,12 @@
                         "title": "Tenant ID"
                     }
                 },
-                "x-openregister-seed": [
-                    {
-                        "id": "00000000-0000-0000-0000-0000000a0001",
-                        "brin": "02VG",
-                        "name": "OBS De Wilgenboom",
-                        "pedagogicalConcept": "regular",
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    },
-                    {
-                        "id": "00000000-0000-0000-0000-0000000a0002",
-                        "brin": "14LM",
-                        "name": "Montessorischool De Ontdekking",
-                        "pedagogicalConcept": "montessori",
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    }
-                ]
+                "x-openregister-seed": []
             },
             "Vestiging": {
                 "slug": "vestiging",
                 "icon": "MapMarker",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "Location",
                 "description": "A vestiging/onderwijslocatie as a record: vestigingscode, an independent onderwijslocatiecode, and address. Plain resource-metadata object, same shape as Room, no lifecycle. school-structure.",
                 "type": "object",
@@ -25370,46 +25126,12 @@
                         "title": "Tenant ID"
                     }
                 },
-                "x-openregister-seed": [
-                    {
-                        "id": "00000000-0000-0000-0000-0000000b0001",
-                        "schoolId": "00000000-0000-0000-0000-0000000a0001",
-                        "vestigingscode": "02VG00",
-                        "onderwijslocatiecode": null,
-                        "name": "Hoofdlocatie",
-                        "street": null,
-                        "postalCode": null,
-                        "city": "Utrecht",
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    },
-                    {
-                        "id": "00000000-0000-0000-0000-0000000b0002",
-                        "schoolId": "00000000-0000-0000-0000-0000000a0001",
-                        "vestigingscode": "02VG01",
-                        "onderwijslocatiecode": "02VG01-A",
-                        "name": "Dependance Noorderpark",
-                        "street": null,
-                        "postalCode": null,
-                        "city": "Utrecht",
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    },
-                    {
-                        "id": "00000000-0000-0000-0000-0000000b0003",
-                        "schoolId": "00000000-0000-0000-0000-0000000a0002",
-                        "vestigingscode": "14LM00",
-                        "onderwijslocatiecode": null,
-                        "name": "Hoofdlocatie",
-                        "street": null,
-                        "postalCode": null,
-                        "city": "Amersfoort",
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    }
-                ]
+                "x-openregister-seed": []
             },
             "Staff": {
                 "slug": "staff",
                 "icon": "AccountTieOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "Staff",
                 "description": "A staff member's roles, qualifications and working days. Plain resource-metadata object, same shape as Room, no lifecycle. Distinct from TeacherAvailability, which covers per-ConferenceRound free-time blocks only. school-structure.",
                 "type": "object",
@@ -25478,49 +25200,12 @@
                         "title": "Tenant ID"
                     }
                 },
-                "x-openregister-seed": [
-                    {
-                        "id": "00000000-0000-0000-0000-0000000e0001",
-                        "ncUserId": "staff-mentor-01",
-                        "roles": [
-                            "teacher"
-                        ],
-                        "qualifications": [
-                            "bevoegdheid groep 5-8"
-                        ],
-                        "workingDays": [
-                            "monday",
-                            "tuesday",
-                            "wednesday",
-                            "thursday",
-                            "friday"
-                        ],
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    },
-                    {
-                        "id": "00000000-0000-0000-0000-0000000e0002",
-                        "ncUserId": "staff-duo-01",
-                        "roles": [
-                            "teacher",
-                            "mentor"
-                        ],
-                        "qualifications": [
-                            "bevoegdheid groep 5-8",
-                            "BHV"
-                        ],
-                        "workingDays": [
-                            "monday",
-                            "wednesday",
-                            "friday"
-                        ],
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    }
-                ]
+                "x-openregister-seed": []
             },
             "SubjectTeacherAssignment": {
                 "slug": "subjectteacherassignment",
                 "icon": "AccountSchoolOutline",
-                "version": "0.1.0",
+                "version": "0.1.1",
                 "title": "SubjectTeacherAssignment",
                 "description": "A class x subject teacher assignment, distinct from Cohort.teacherIds: names which teacher covers a specific subject (Course) within a Cohort, for VO/MBO/HE where a class has a different teacher per subject. Plain resource-metadata object, same shape as Room, no lifecycle. school-structure.",
                 "type": "object",
@@ -25562,29 +25247,14 @@
                         "title": "Tenant ID"
                     }
                 },
-                "x-openregister-seed": [
-                    {
-                        "id": "00000000-0000-0000-0000-0000000f0001",
-                        "cohortId": "00000000-0000-0000-0000-0000000c0001",
-                        "courseId": "00000000-0000-0000-0000-000000010001",
-                        "teacherId": "staff-mentor-01",
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    },
-                    {
-                        "id": "00000000-0000-0000-0000-0000000f0002",
-                        "cohortId": "00000000-0000-0000-0000-0000000c0001",
-                        "courseId": "00000000-0000-0000-0000-000000010002",
-                        "teacherId": "staff-duo-01",
-                        "tenant_id": "00000000-0000-0000-0000-000000000001"
-                    }
-                ]
+                "x-openregister-seed": []
             },
             "LearniqSettings": {
                 "slug": "learniqsettings",
                 "icon": "FlagVariantOutline",
-                "version": "0.1.0",
+                "version": "0.2.0",
                 "title": "LearniqSettings",
-                "description": "The school-wide segment setting (po/vo/mbo/he/corporate). A flat, un-lifecycled singleton policy record, mirroring SovereigntyPolicy's precedent. Does not yet gate any menu visibility: manifest.runtime has no generic bridge from an OpenRegister object's field to a visibleIf condition, so menu gating on this value is a follow-up code change (PHP IInitialState provider + src/main.js runtime population), not this schema. See openspec/changes/segment-feature-flags/.",
+                "description": "The school-wide segment setting: which kind of organisation this instance serves (po, vo, mbo, he, corporate or training). A flat, un-lifecycled singleton policy record, mirroring SovereigntyPolicy's precedent. SegmentService reads the most recently updated row and PageController publishes it to the browser as manifest.runtime.workspace.segment, the path a menu visibleIf reads. See openspec/changes/segment-feature-flags/ and openspec/changes/segment-runtime-bridge/.",
                 "type": "object",
                 "x-openregister": {
                     "active": true,
@@ -25602,10 +25272,19 @@
                             "vo",
                             "mbo",
                             "he",
-                            "corporate"
+                            "corporate",
+                            "training"
                         ],
+                        "x-enum-labels": {
+                            "po": "Primary school",
+                            "vo": "Secondary school",
+                            "mbo": "Vocational education (MBO)",
+                            "he": "Higher education (HBO or university)",
+                            "corporate": "Company",
+                            "training": "Training institute"
+                        },
                         "default": "corporate",
-                        "description": "The education/training segment this instance serves. Defaults to corporate, the no-behaviour-change default matching every existing customer's undifferentiated build.",
+                        "description": "The kind of organisation this instance serves. Defaults to company.",
                         "title": "Segment"
                     },
                     "setBy": {
