@@ -335,6 +335,20 @@ export default {
 		})
 	},
 
+	/**
+	 * A panel mounted after hermiq already said the feature is off (another
+	 * lesson, same browser session) tells the composer at once, so the
+	 * per-block rewrite buttons hide too.
+	 *
+	 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-hermiq-answers-that-the-feature-is-switched-off
+	 * @return {void}
+	 */
+	mounted() {
+		if (this.switchedOff) {
+			this.$emit('off')
+		}
+	},
+
 	methods: {
 		/**
 		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards

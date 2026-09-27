@@ -47,7 +47,7 @@ Feature tier: should (V1). Frontend only; no schema, so no seed data task and no
 ## Verification
 - [x] `openspec validate lesson-ai-assist-actions` passes
 - [x] Diff-scoped checks green (eslint, stylelint, prettier on touched files; `npm run test:js-unit`)
-- [ ] Before push: `composer check:strict`, `npm run lint`, `npm run format`, l10n checks and hydra gates run once, exit codes in the PR body
+- [x] Before push: `composer check:strict`, `npm run lint`, `npm run format`, l10n checks and hydra gates run once, exit codes in the PR body
 
 ## Quality checklist
 - PHPUnit: not applicable, no PHP changes.
