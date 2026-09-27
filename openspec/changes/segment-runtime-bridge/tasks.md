@@ -48,7 +48,7 @@
 - [x] All tasks checked off
 - [x] `openspec validate segment-runtime-bridge --strict` passes
 - [x] Diff-scoped checks green (php -l, phpcs, phpstan, phpunit filter, eslint, node test, check:specs, check:schema-l10n)
-- [ ] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates with `--base origin/development` run once before push
+- [x] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates with `--base origin/development` run once before push (inherited reds only; see the PR)
 
 ## Quality checklist
 - New PHP covered by `SegmentServiceTest` and `PageControllerTest`; new JS by `workspaceRuntime.test.mjs`.
