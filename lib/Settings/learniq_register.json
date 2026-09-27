@@ -11151,12 +11151,32 @@
                         "grant": {
                             "from": "in-assessment",
                             "to": "granted",
-                            "requires": "OCA\\Learniq\\Lifecycle\\ExemptionDecisionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\ExemptionDecisionGuard",
+                            "inputs": [
+                                {
+                                    "field": "decisionRationale",
+                                    "required": false
+                                },
+                                {
+                                    "field": "policyReference",
+                                    "required": false
+                                }
+                            ]
                         },
                         "reject": {
                             "from": "in-assessment",
                             "to": "rejected",
-                            "requires": "OCA\\Learniq\\Lifecycle\\ExemptionDecisionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\ExemptionDecisionGuard",
+                            "inputs": [
+                                {
+                                    "field": "decisionRationale",
+                                    "required": false
+                                },
+                                {
+                                    "field": "policyReference",
+                                    "required": false
+                                }
+                            ]
                         },
                         "withdraw": {
                             "from": [
@@ -11543,7 +11563,13 @@
                         "scheduleHearing": {
                             "from": "reported",
                             "to": "hearing-scheduled",
-                            "requires": "OCA\\Learniq\\Lifecycle\\FraudCaseHearingGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\FraudCaseHearingGuard",
+                            "inputs": [
+                                {
+                                    "field": "hearingDate",
+                                    "required": false
+                                }
+                            ]
                         },
                         "holdHearing": {
                             "from": "hearing-scheduled",
@@ -11552,7 +11578,29 @@
                         "decide": {
                             "from": "heard",
                             "to": "decided",
-                            "requires": "OCA\\Learniq\\Lifecycle\\FraudCaseDecisionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\FraudCaseDecisionGuard",
+                            "inputs": [
+                                {
+                                    "field": "verdict",
+                                    "required": false
+                                },
+                                {
+                                    "field": "decisionRationale",
+                                    "required": false
+                                },
+                                {
+                                    "field": "sanctionType",
+                                    "required": false
+                                },
+                                {
+                                    "field": "sanctionDurationMonths",
+                                    "required": false
+                                },
+                                {
+                                    "field": "sanctionScope",
+                                    "required": false
+                                }
+                            ]
                         },
                         "dismiss": {
                             "from": [
