@@ -58,10 +58,10 @@ Cut from `origin/development` after `segment-menu-gating` (#1041) merged. Decisi
 - [x] Implement
 
 ## Verification
-- [ ] All tasks checked off
-- [ ] `openspec validate company-segment-menu-gating --strict` passes
-- [ ] Diff-scoped checks green (php -l, phpcs, phpunit on the two touched classes, eslint on touched JS, node tests, check:specs)
-- [ ] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates run once before push (inherited reds named in the PR)
+- [x] All tasks checked off
+- [x] `openspec validate company-segment-menu-gating --strict` passes
+- [x] Diff-scoped checks green (php -l, phpcs, phpunit on the two touched classes, eslint on touched JS, node tests, check:specs)
+- [x] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates run once before push (inherited reds named in the PR)
 
 ## Quality checklist
 - Tests: SegmentServiceTest and PageControllerTest for the value, workspaceRuntime and reportCardGates node tests, the matrix over the merged menu with negative validator runs.
