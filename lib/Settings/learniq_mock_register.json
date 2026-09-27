@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.16",
+    "version": "1.1.17",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -23622,7 +23622,10 @@
         "description": "Voorbeeld Description 1",
         "order": 1,
         "requiredForRoles": [],
-        "applicableYears": ["groep 5", "groep 6"],
+        "applicableYears": [
+          "groep 5",
+          "groep 6"
+        ],
         "subjectId": "00000000-0000-4000-8000-000000000000",
         "lifecycle": "draft"
       },
@@ -23640,7 +23643,9 @@
         "description": "Voorbeeld Description 2",
         "order": 2,
         "requiredForRoles": [],
-        "applicableYears": ["2026-2027"],
+        "applicableYears": [
+          "2026-2027"
+        ],
         "subjectId": null,
         "lifecycle": "published"
       },
@@ -30524,6 +30529,48 @@
         "dataExchangeJobId": null,
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "lifecycle": "voorlopig"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-1-1"
+        },
+        "title": "Voorbeeld Title 1",
+        "note": "Voorbeeld Note 1",
+        "authorId": "Voorbeeld Authorid 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "participantIds": [],
+        "status": "open",
+        "destroyAfter": "2026-03-01"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-2-2"
+        },
+        "title": "Voorbeeld Title 2",
+        "note": "Voorbeeld Note 2",
+        "authorId": "Voorbeeld Authorid 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "participantIds": [],
+        "status": "closed",
+        "destroyAfter": "2026-03-02"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-3-3"
+        },
+        "title": "Voorbeeld Title 3",
+        "note": "Voorbeeld Note 3",
+        "authorId": "Voorbeeld Authorid 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "participantIds": [],
+        "status": "open",
+        "destroyAfter": "2026-03-03"
       },
       {
         "@self": {

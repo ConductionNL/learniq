@@ -1680,7 +1680,21 @@ OC.L10N.register(
         "All years": "All years",
         "{planned} of {goals} goals are planned and {assessed} are assessed.": "{planned} of {goals} goals are planned and {assessed} are assessed.",
         "The frameworks could not be loaded.": "The frameworks could not be loaded.",
-        "The coverage of this framework could not be loaded.": "The coverage of this framework could not be loaded."
+        "The coverage of this framework could not be loaded.": "The coverage of this framework could not be loaded.",
+        "Confidential notes": "Confidential notes",
+        "Confidential note": "Confidential note",
+        "Case title": "Case title",
+        "A short label for the case. Leave out names.": "A short label for the case. Leave out names.",
+        "What was discussed and agreed. Only you and the people you add can read it.": "What was discussed and agreed. Only you and the people you add can read it.",
+        "Written by": "Written by",
+        "The confidential counsellor who keeps this note. Only this person can change or delete it.": "The confidential counsellor who keeps this note. Only this person can change or delete it.",
+        "People with access": "People with access",
+        "Colleagues you add to this case. They can read the note, nothing more.": "Colleagues you add to this case. They can read the note, nothing more.",
+        "Open while the case runs. Closed when it is done.": "Open while the case runs. Closed when it is done.",
+        "Closed": "Closed",
+        "Destroy after": "Destroy after",
+        "The date after which you delete this note. Keep a note no longer than the case needs.": "The date after which you delete this note. Keep a note no longer than the case needs.",
+        "History": "History"
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -93,6 +93,7 @@ class PageController extends Controller {
 			$this->initialState->provideInitialState('dashboardRole', $this->dashboardRoleSvc->resolveDefaultView($user));
 			$this->initialState->provideInitialState('dashboardRoles', $this->dashboardRoleSvc->resolveViews($user));
 			$this->initialState->provideInitialState('segment', $this->resolveSegment());
+			$this->initialState->provideInitialState('confidentialCounsellor', $this->dashboardRoleSvc->isConfidentialCounsellor($user));
 		}
 
 		return new TemplateResponse(Application::APP_ID, 'index');
