@@ -22,6 +22,16 @@
 // The role vocabulary is PARSED from DashboardRoleService.php rather than
 // duplicated here, so the gate cannot drift from the resolver it checks.
 //
+// A third failure mode arrived with segment-menu-gating: a `workspace.segment`
+// predicate. Two rules, both checked here:
+//   3. Every segment literal is one of LearniqSettings.segment's enum values
+//      (parsed from learniq_register.json), for the same reason as role
+//      literals: a typo hides the entry for everyone, silently.
+//   4. Every segment gate keeps `corporate` visible. `corporate` is the
+//      default every existing install has (segment-feature-flags Decision 2),
+//      so a gate that hides an entry from `corporate` takes a menu away from
+//      customers who never chose a segment.
+//
 // Usage:
 //   node tests/validate-menu-role-gates.js
 //
@@ -39,6 +49,8 @@ const REPO_ROOT = path.resolve(__dirname, '..')
 const MANIFEST = path.join(REPO_ROOT, 'src', 'manifest.json')
 const FRAGMENT_DIR = path.join(REPO_ROOT, 'src', 'manifest.d')
 const RESOLVER = path.join(REPO_ROOT, 'lib', 'Service', 'DashboardRoleService.php')
+const REGISTER = path.join(REPO_ROOT, 'lib', 'Settings', 'learniq_register.json')
+const DEFAULT_SEGMENT = 'corporate'
 
 // Menu nodes that are deliberately visible to every signed-in user. A learner,
 // a guardian and an instructor each have their own dashboard, their own
@@ -84,6 +96,51 @@ function emittableRoles() {
 }
 
 /**
+ * Every segment code LearniqSettings accepts, from the schema enum.
+ *
+ * @return {Set<string>} The segment codes.
+ */
+function segmentCodes() {
+	const register = JSON.parse(fs.readFileSync(REGISTER, 'utf8'))
+	const segment = register.components.schemas.LearniqSettings.properties.segment
+	return new Set(segment.enum)
+}
+
+/**
+ * Why a `workspace.segment` predicate breaks rule 3 or 4, or null.
+ *
+ * @param {object} predicate The predicate expression.
+ * @param {Set<string>} codes The known segment codes.
+ * @return {string|null} The reason, or null when the predicate is fine.
+ */
+function segmentProblem(predicate, codes) {
+	if (typeof predicate !== 'object' || predicate === null) {
+		return codes.has(predicate) && predicate === DEFAULT_SEGMENT
+			? null
+			: `shorthand "${predicate}" hides the entry from "${DEFAULT_SEGMENT}"; use { in: [...] }`
+	}
+	const listed = [...(predicate.in || []), ...(predicate.notIn || [])]
+	if (predicate.eq !== undefined) listed.push(predicate.eq)
+	const unknown = listed.filter((code) => !codes.has(code))
+	if (unknown.length > 0) {
+		return `unknown segment literal(s): ${unknown.join(', ')}`
+	}
+	if (Array.isArray(predicate.in) && !predicate.in.includes(DEFAULT_SEGMENT)) {
+		return `"in" omits "${DEFAULT_SEGMENT}", the default of every existing install`
+	}
+	if (
+		Array.isArray(predicate.notIn)
+		&& predicate.notIn.includes(DEFAULT_SEGMENT)
+	) {
+		return `"notIn" names "${DEFAULT_SEGMENT}", the default of every existing install`
+	}
+	if (predicate.eq !== undefined && predicate.eq !== DEFAULT_SEGMENT) {
+		return `"eq" hides the entry from "${DEFAULT_SEGMENT}"`
+	}
+	return null
+}
+
+/**
  * Collect every menu node across the manifest and its fragments.
  *
  * @return {Array<object>} One entry per node: { file, id, visibleIf }.
@@ -121,9 +178,12 @@ function collectMenuNodes() {
 }
 
 const roles = emittableRoles()
+const codes = segmentCodes()
 const nodes = collectMenuNodes()
 const ungated = []
 const badLiterals = []
+const badSegmentGates = []
+let segmentGated = 0
 
 for (const node of nodes) {
 	if (!node.visibleIf) {
@@ -138,6 +198,14 @@ for (const node of nodes) {
 	for (const role of named) {
 		if (!roles.has(role)) {
 			badLiterals.push({ ...node, role })
+		}
+	}
+
+	if (Object.hasOwn(node.visibleIf, 'workspace.segment')) {
+		segmentGated++
+		const problem = segmentProblem(node.visibleIf['workspace.segment'], codes)
+		if (problem !== null) {
+			badSegmentGates.push({ ...node, problem })
 		}
 	}
 }
@@ -169,7 +237,20 @@ if (badLiterals.length > 0) {
 	console.error('')
 }
 
-if (ungated.length > 0 || badLiterals.length > 0) {
+if (badSegmentGates.length > 0) {
+	console.error(
+		`FAIL: ${badSegmentGates.length} workspace.segment gate(s) break the segment rules.`,
+	)
+	console.error(
+		`      Known segments: ${[...codes].join(', ')}. Every gate must keep "${DEFAULT_SEGMENT}" visible.\n`,
+	)
+	for (const n of badSegmentGates) {
+		console.error(`        ${n.file}  ${n.id}  ->  ${n.problem}`)
+	}
+	console.error('')
+}
+
+if (ungated.length > 0 || badLiterals.length > 0 || badSegmentGates.length > 0) {
 	process.exit(1)
 }
 
@@ -177,5 +258,6 @@ console.log(
 	`validate-menu-role-gates: OK — ${nodes.length} menu nodes, `
 		+ `${nodes.length - ungated.length - UNIVERSAL.size} gated, `
 		+ `${UNIVERSAL.size} intentionally universal, `
-		+ `${roles.size} emittable roles.`,
+		+ `${roles.size} emittable roles, `
+		+ `${segmentGated} segment-gated (each keeps "${DEFAULT_SEGMENT}").`,
 )

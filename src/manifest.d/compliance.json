@@ -20,6 +20,12 @@
 						"hr",
 						"admin"
 					]
+				},
+				"workspace.segment": {
+					"in": [
+						"corporate",
+						"training"
+					]
 				}
 			}
 		},
@@ -35,6 +41,12 @@
 						"compliance-officer",
 						"hr",
 						"admin"
+					]
+				},
+				"workspace.segment": {
+					"in": [
+						"corporate",
+						"training"
 					]
 				}
 			}

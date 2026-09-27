@@ -114,6 +114,12 @@
 								"hr",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"corporate",
+								"training"
+							]
 						}
 					}
 				},
