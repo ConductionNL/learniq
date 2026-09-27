@@ -466,7 +466,20 @@
         "What course evaluations said, per course.": "Mit mondtak a kurzusértékelések, kurzusonként.",
         "What was found on placement visits.": "Mit találtak a munkahelyi látogatásokon.",
         "Store": "Áruház",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Telepítsen más szervezetek által közzétett nyilvántartásokat, sémákat és folyamatokat."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Telepítsen más szervezetek által közzétett nyilvántartásokat, sémákat és folyamatokat.",
+        "Enter the access code you were given to start this assessment.": "Add meg a kapott hozzáférési kódot a teszt elindításához.",
+        "Access code": "Hozzáférési kód",
+        "This assessment is not open yet. It opens on {date}.": "Ez a teszt még nincs megnyitva. Megnyílik: {date}.",
+        "This assessment is not open yet.": "Ez a teszt még nincs megnyitva.",
+        "This assessment is closed.": "Ez a teszt lezárult.",
+        "This assessment is not available right now.": "Ez a teszt most nem érhető el.",
+        "The access code is not correct.": "A hozzáférési kód nem megfelelő.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Nem kötelező kód, amelyet a tanulóknak meg kell adniuk a teszt indításához, például hogy csak a vizsgateremben lévők érjék el. Hagyd üresen, ha nincs kód.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "A kísérlet indításához megadott hozzáférési kód. Ellenőrzés után törlődik, így soha nem tároljuk.",
+        "Teachers": "Oktatók",
+        "Manager": "Vezető",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "A kurzus oktatói, akik megtekinthetik és értékelhetik ezt a kísérletet. A szerver tölti ki.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "A tanuló vezetője, aki megtekintheti ezt a kísérletet. A szerver tölti ki."
     },
     "plurals": null
 }
