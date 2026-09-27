@@ -17,6 +17,7 @@ export const ALL_COMPONENTS = '*'
  *
  * @param {object} entry A GradeEntry.
  * @return {boolean}
+ * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
  */
 function hasMark(entry) {
 	return (
@@ -63,6 +64,7 @@ export function publishable(scoped) {
  * @param {number} low Lowest value of the range.
  * @param {number} high Highest value of the range.
  * @return {Array<{from: number, to: number}>} Half-open bands; the last one is closed.
+ * @spec openspec/changes/cohort-gradebook-batch-publish/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
  */
 export function bandsFor(low, high) {
 	if (!Number.isFinite(low) || !Number.isFinite(high) || high < low) return []
