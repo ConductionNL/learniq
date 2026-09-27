@@ -268,6 +268,14 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate"
+							]
 						}
 					}
 				},
@@ -284,6 +292,14 @@
 								"guardian",
 								"coordinator",
 								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate"
 							]
 						}
 					}
@@ -482,6 +498,15 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate",
+								"training"
 							]
 						}
 					}

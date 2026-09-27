@@ -86,16 +86,16 @@ async function api(
  */
 async function pickShippedDataset(page: Page): Promise<string> {
 	const status = await api(page, 'GET', `${BASE}/api/setup/status`)
-	const shipped = (status.json?.datasets ?? []).find(
-		(d: any) => d?.id && d.id !== 'none',
-	)
+	// The generated set (`demo`) is picked on purpose: it is the one set that
+	// ships on every build, while the curated sets arrive one lane at a time.
+	const shipped = (status.json?.profiles ?? []).find((d: any) => d?.id === 'demo')
 	expect(
 		shipped,
-		`setup/status offers no dataset to load: ${JSON.stringify(status.json?.datasets)}`,
+		`setup/status offers no generated set to load: ${JSON.stringify(status.json?.profiles)}`,
 	).toBeTruthy()
 
 	const saved = await api(page, 'POST', `${BASE}/api/setup/config`, {
-		demo_dataset: shipped.id,
+		example_profile: shipped.id,
 	})
 	expect(saved.status, JSON.stringify(saved.json)).toBe(200)
 
@@ -112,7 +112,7 @@ test.describe('ADR-111 demo data', () => {
 		})
 	})
 
-	test('setup status reports the demo-data step, so the wizard can offer it', async ({
+	test('setup status reports the example-set and segment steps, so the wizard can offer them', async ({
 		page,
 	}) => {
 		const res = await api(page, 'GET', `${BASE}/api/setup/status`)
@@ -127,8 +127,16 @@ test.describe('ADR-111 demo data', () => {
 		// not "not done".
 		expect(
 			Object.keys(res.json?.steps ?? {}),
-			'setup/status must report a demo-data step',
-		).toContain('demo-data')
+			'setup/status must report the example-set step',
+		).toContain('example-set')
+		expect(
+			Object.keys(res.json?.steps ?? {}),
+			'setup/status must report the segment step',
+		).toContain('segment')
+		expect(
+			(res.json?.segments ?? []).map((s: any) => s.id),
+			'setup/status must offer the six kinds of organisation',
+		).toEqual(['po', 'vo', 'mbo', 'he', 'corporate', 'training'])
 	})
 
 	test('installing the demo data reports HOW MUCH landed, not just success', async ({
@@ -146,7 +154,7 @@ test.describe('ADR-111 demo data', () => {
 		const res = await api(
 			page,
 			'POST',
-			`${BASE}/api/setup/action/install-demo-data`,
+			`${BASE}/api/setup/action/load-example-set`,
 		)
 
 		expect(res.status, 'the action must pass the admin middleware').toBe(200)
@@ -180,7 +188,7 @@ test.describe('ADR-111 demo data', () => {
 		const again = await api(
 			page,
 			'POST',
-			`${BASE}/api/setup/action/install-demo-data`,
+			`${BASE}/api/setup/action/load-example-set`,
 		)
 
 		expect(again.status).toBe(200)
