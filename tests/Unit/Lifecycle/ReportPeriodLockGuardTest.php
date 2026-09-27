@@ -31,9 +31,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\FraudCaseBlockGuard;
 use OCA\Learniq\Lifecycle\ReportPeriodLockGuard;
+use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -44,6 +46,8 @@ use Psr\Log\LoggerInterface;
  * Tests for ReportPeriodLockGuard (GradeEntry publish/republish).
  */
 class ReportPeriodLockGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build a guard.
@@ -62,7 +66,12 @@ class ReportPeriodLockGuardTest extends TestCase {
 		bool $actorExists = true,
 	): ReportPeriodLockGuard {
 		$fraudCaseGuard = $this->createMock(FraudCaseBlockGuard::class);
-		$fraudCaseGuard->method('check')->willReturn($fraudCaseAllows);
+		$fraudCaseVerdict = GuardResult::deny('Linked fraud case is still open.');
+		if ($fraudCaseAllows === true) {
+			$fraudCaseVerdict = GuardResult::allow();
+		}
+
+		$fraudCaseGuard->method('check')->willReturn($fraudCaseVerdict);
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
@@ -103,9 +112,9 @@ class ReportPeriodLockGuardTest extends TestCase {
 	public function testFraudCaseBlockGuardShortCircuitsAndStaysBlocked(): void {
 		// Even with NO locked ReportPeriod at all, a fraud-case block wins.
 		$guard = $this->makeGuard(fraudCaseAllows: false, reportPeriods: []);
-		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1'], 'actor' => 'admin-1'];
+		$object = ['id' => 'entry-1', 'fraudCaseId' => 'case-1', 'lifecycle' => 'published'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', 'admin-1'));
 
 	}//end testFraudCaseBlockGuardShortCircuitsAndStaysBlocked()
 
@@ -119,12 +128,9 @@ class ReportPeriodLockGuardTest extends TestCase {
 	 */
 	public function testNoGoverningReportPeriodAllowsUnconditionally(): void {
 		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: []);
-		$context = [
-			'object' => ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a'],
-			'actor' => 'teacher-1',
-		];
+		$object = ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', 'teacher-1'));
 
 	}//end testNoGoverningReportPeriodAllowsUnconditionally()
 
@@ -136,12 +142,9 @@ class ReportPeriodLockGuardTest extends TestCase {
 	public function testMatchingButUnlockedReportPeriodAllows(): void {
 		$period = ['id' => 'period-1', 'periodCode' => '1', 'curriculumPlanIds' => ['plan-1'], 'isLocked' => false];
 		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [$period]);
-		$context = [
-			'object' => ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a'],
-			'actor' => 'teacher-1',
-		];
+		$object = ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', 'teacher-1'));
 
 	}//end testMatchingButUnlockedReportPeriodAllows()
 
@@ -155,12 +158,9 @@ class ReportPeriodLockGuardTest extends TestCase {
 	public function testMatchingLockedReportPeriodBlocksOrdinaryTeacher(): void {
 		$period = ['id' => 'period-1', 'periodCode' => '1', 'curriculumPlanIds' => ['plan-1'], 'isLocked' => true];
 		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [$period], actorGroups: ['teacher']);
-		$context = [
-			'object' => ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a'],
-			'actor' => 'teacher-1',
-		];
+		$object = ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', 'teacher-1'));
 
 	}//end testMatchingLockedReportPeriodBlocksOrdinaryTeacher()
 
@@ -174,12 +174,9 @@ class ReportPeriodLockGuardTest extends TestCase {
 	public function testMentorOverrideAllowsPublishOnLockedPeriod(): void {
 		$period = ['id' => 'period-1', 'periodCode' => '1', 'curriculumPlanIds' => ['plan-1'], 'isLocked' => true];
 		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [$period], actorGroups: ['team-leads']);
-		$context = [
-			'object' => ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a'],
-			'actor' => 'mentor-1',
-		];
+		$object = ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', 'mentor-1'));
 
 	}//end testMentorOverrideAllowsPublishOnLockedPeriod()
 
@@ -192,12 +189,9 @@ class ReportPeriodLockGuardTest extends TestCase {
 	public function testNonMatchingCurriculumPlanFailsOpen(): void {
 		$period = ['id' => 'period-1', 'periodCode' => '1', 'curriculumPlanIds' => ['other-plan'], 'isLocked' => true];
 		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [$period], actorGroups: []);
-		$context = [
-			'object' => ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a'],
-			'actor' => 'teacher-1',
-		];
+		$object = ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', 'teacher-1'));
 
 	}//end testNonMatchingCurriculumPlanFailsOpen()
 
@@ -208,9 +202,9 @@ class ReportPeriodLockGuardTest extends TestCase {
 	 */
 	public function testEmptyPeriodOrCurriculumPlanIdAllowsUnconditionally(): void {
 		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: []);
-		$context = ['object' => ['id' => 'entry-1'], 'actor' => 'teacher-1'];
+		$object = ['id' => 'entry-1', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', 'teacher-1'));
 
 	}//end testEmptyPeriodOrCurriculumPlanIdAllowsUnconditionally()
 }//end class

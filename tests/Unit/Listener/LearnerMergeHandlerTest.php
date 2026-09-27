@@ -269,9 +269,9 @@ class LearnerMergeHandlerTest extends TestCase {
 	 */
 	public function testGuardAllowsMergeIntoActiveProfile(): void {
 		$guard = new LearnerMergeGuard(new LearnerMergeService($this->makeObjectService(), new NullLogger()), new NullLogger());
-		$context = ['object' => ['id' => self::MERGED_UUID, 'ncUserId' => 'jan-old', 'mergedInto' => self::SURVIVOR_UUID]];
+		$object = ['id' => self::MERGED_UUID, 'ncUserId' => 'jan-old', 'mergedInto' => self::SURVIVOR_UUID, 'lifecycle' => 'merged'];
 
-		$this->assertTrue($guard->check($context));
+		$this->assertTrue($guard->check($object, 'merge', 'admin')->isAllowed());
 
 	}//end testGuardAllowsMergeIntoActiveProfile()
 
@@ -288,8 +288,10 @@ class LearnerMergeHandlerTest extends TestCase {
 		$guard = new LearnerMergeGuard(new LearnerMergeService($this->makeObjectService(), new NullLogger()), new NullLogger());
 
 		foreach ([null, self::MERGED_UUID, 'does-not-exist', 'gone'] as $target) {
-			$context = ['object' => ['id' => self::MERGED_UUID, 'ncUserId' => 'jan-old', 'mergedInto' => $target]];
-			$this->assertFalse($guard->check($context), 'merge into '.var_export($target, true).' must be refused');
+			$object = ['id' => self::MERGED_UUID, 'ncUserId' => 'jan-old', 'mergedInto' => $target, 'lifecycle' => 'merged'];
+			$verdict = $guard->check($object, 'merge', 'admin');
+			$this->assertFalse($verdict->isAllowed(), 'merge into '.var_export($target, true).' must be refused');
+			$this->assertStringStartsWith('This merge is refused: ', (string)$verdict->getMessage());
 		}
 
 	}//end testGuardRefusesInvalidTargets()
@@ -304,9 +306,11 @@ class LearnerMergeHandlerTest extends TestCase {
 	public function testGuardRefusesConflictingOpenEnrolments(): void {
 		$this->store['enrolment'][] = ['id' => 'enr-clash', 'learnerId' => 'jan-old', 'learnerRef' => self::MERGED_UUID, 'courseId' => 'course-b', 'lifecycle' => 'pending'];
 		$guard = new LearnerMergeGuard(new LearnerMergeService($this->makeObjectService(), new NullLogger()), new NullLogger());
-		$context = ['object' => ['id' => self::MERGED_UUID, 'ncUserId' => 'jan-old', 'mergedInto' => self::SURVIVOR_UUID]];
+		$object = ['id' => self::MERGED_UUID, 'ncUserId' => 'jan-old', 'mergedInto' => self::SURVIVOR_UUID, 'lifecycle' => 'merged'];
+		$verdict = $guard->check($object, 'merge', 'admin');
 
-		$this->assertFalse($guard->check($context));
+		$this->assertFalse($verdict->isAllowed());
+		$this->assertStringContainsString('open enrolment', (string)$verdict->getMessage());
 
 	}//end testGuardRefusesConflictingOpenEnrolments()
 

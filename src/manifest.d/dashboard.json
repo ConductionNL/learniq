@@ -57,6 +57,51 @@
 					}
 				},
 				{
+					"id": "DashboardMentorMenu",
+					"label": "Mentor",
+					"icon": "AccountHeartOutline",
+					"route": "DashboardTeacher",
+					"order": 8,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "DashboardIbMenu",
+					"label": "IB-er",
+					"icon": "AccountSupervisorOutline",
+					"route": "DashboardTeacher",
+					"order": 9,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "DashboardDirectorMenu",
+					"label": "Director",
+					"icon": "AccountTieOutline",
+					"route": "DashboardTeacher",
+					"order": 10,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "Compliance",
 					"label": "Overview",
 					"icon": "ClipboardCheckOutline",

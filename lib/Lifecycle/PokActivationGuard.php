@@ -44,6 +44,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -56,7 +58,14 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
  */
-class PokActivationGuard {
+class PokActivationGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'The practical training agreement needs the signatures of the student, the school and the workplace trainer.';
 
 	/**
 	 * Learniq register slug.
@@ -90,24 +99,40 @@ class PokActivationGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(pok: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the
 	 * `activate` transition on a Praktijkovereenkomst object.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the Praktijkovereenkomst data array
-	 *                                               - 'transition' : 'activate'
-	 *                                               - 'from'       : 'pending-signatures'
-	 *                                               - 'to'         : 'active'
+	 * @param array<string,mixed> $pok The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True when all three required roles have a PokSignature for this version;
 	 *              false blocks the transition (HTTP 422).
 	 *
 	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-all-three-signatures
 	 */
-	public function check(array &$transitionContext): bool {
-		$pok = $transitionContext['object'] ?? [];
+	private function allows(array $pok): bool {
 		$pokId = $pok['id'] ?? ($pok['uuid'] ?? '');
 		$version = (int)($pok['version'] ?? 1);
 		$tenantId = $pok['tenant_id'] ?? '';
@@ -135,7 +160,7 @@ class PokActivationGuard {
 		);
 
 		return true;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Fetch the distinct set of signerRoles that have signed this POK version.

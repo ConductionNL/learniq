@@ -26,6 +26,7 @@ import AccountMultipleOutline from 'vue-material-design-icons/AccountMultipleOut
 import AccountOutline from 'vue-material-design-icons/AccountOutline.vue'
 import AccountPlusOutline from 'vue-material-design-icons/AccountPlusOutline.vue'
 import AccountSchoolOutline from 'vue-material-design-icons/AccountSchoolOutline.vue'
+import AccountSupervisorOutline from 'vue-material-design-icons/AccountSupervisorOutline.vue'
 import AccountSwitchOutline from 'vue-material-design-icons/AccountSwitchOutline.vue'
 import AccountTieOutline from 'vue-material-design-icons/AccountTieOutline.vue'
 import AlertCircleOutline from 'vue-material-design-icons/AlertCircleOutline.vue'
@@ -66,6 +67,7 @@ import ClipboardEditOutline from 'vue-material-design-icons/ClipboardEditOutline
 import ClipboardList from 'vue-material-design-icons/ClipboardList.vue'
 import ClipboardListOutline from 'vue-material-design-icons/ClipboardListOutline.vue'
 import ClipboardOutline from 'vue-material-design-icons/ClipboardOutline.vue'
+import ClipboardTextClockOutline from 'vue-material-design-icons/ClipboardTextClockOutline.vue'
 import ClipboardTextOutline from 'vue-material-design-icons/ClipboardTextOutline.vue'
 import CloseCircleOutline from 'vue-material-design-icons/CloseCircleOutline.vue'
 import CommentOutline from 'vue-material-design-icons/CommentOutline.vue'
@@ -80,6 +82,7 @@ import Earth from 'vue-material-design-icons/Earth.vue'
 import EmoticonOutline from 'vue-material-design-icons/EmoticonOutline.vue'
 import ExportVariant from 'vue-material-design-icons/ExportVariant.vue'
 import Eye from 'vue-material-design-icons/Eye.vue'
+import EyeOutline from 'vue-material-design-icons/EyeOutline.vue'
 import FileCertificateOutline from 'vue-material-design-icons/FileCertificateOutline.vue'
 import FileChartOutline from 'vue-material-design-icons/FileChartOutline.vue'
 import FileDocument from 'vue-material-design-icons/FileDocument.vue'
@@ -124,6 +127,7 @@ import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
 import OfficeBuilding from 'vue-material-design-icons/OfficeBuilding.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import Package from 'vue-material-design-icons/Package.vue'
+import PackageDown from 'vue-material-design-icons/PackageDown.vue'
 import PackageVariant from 'vue-material-design-icons/PackageVariant.vue'
 import Pen from 'vue-material-design-icons/Pen.vue'
 import Percent from 'vue-material-design-icons/Percent.vue'
@@ -139,6 +143,7 @@ import ShareVariant from 'vue-material-design-icons/ShareVariant.vue'
 import ShareVariantOutline from 'vue-material-design-icons/ShareVariantOutline.vue'
 import ShieldAccountOutline from 'vue-material-design-icons/ShieldAccountOutline.vue'
 import ShieldCheckOutline from 'vue-material-design-icons/ShieldCheckOutline.vue'
+import SignDirection from 'vue-material-design-icons/SignDirection.vue'
 import Sitemap from 'vue-material-design-icons/Sitemap.vue'
 import SitemapOutline from 'vue-material-design-icons/SitemapOutline.vue'
 import Star from 'vue-material-design-icons/Star.vue'
@@ -175,6 +180,7 @@ export default {
 	AccountOutline,
 	AccountPlusOutline,
 	AccountSchoolOutline,
+	AccountSupervisorOutline,
 	AccountSwitchOutline,
 	AccountTieOutline,
 	AlertCircleOutline,
@@ -215,6 +221,7 @@ export default {
 	ClipboardList,
 	ClipboardListOutline,
 	ClipboardOutline,
+	ClipboardTextClockOutline,
 	ClipboardTextOutline,
 	CloseCircleOutline,
 	CommentOutline,
@@ -229,6 +236,7 @@ export default {
 	EmoticonOutline,
 	ExportVariant,
 	Eye,
+	EyeOutline,
 	FileCertificateOutline,
 	FileChartOutline,
 	FileDocument,
@@ -273,6 +281,7 @@ export default {
 	OfficeBuilding,
 	OpenInNew,
 	Package,
+	PackageDown,
 	PackageVariant,
 	Pen,
 	Percent,
@@ -288,6 +297,7 @@ export default {
 	ShareVariantOutline,
 	ShieldAccountOutline,
 	ShieldCheckOutline,
+	SignDirection,
 	Sitemap,
 	SitemapOutline,
 	Star,
