@@ -1997,7 +1997,11 @@ OC.L10N.register(
         "Tenant identifier for multi-tenant isolation.": "Tenant-identificatie voor multi-tenant scheiding.",
         "Lifecycle State": "Levenscyclusstatus",
         "SchoolAdvies lifecycle state.": "Levenscyclusstatus van het schooladvies.",
-        "School advies": "Schooladvies"
+        "School advies": "Schooladvies",
+        "Years": "Jaren",
+        "Subject": "Vak",
+        "The years this goal is taught in. Use year levels such as groep 5, leerjaar 2 or jaar 1, or school years such as 2026-2027. Leave empty when the goal applies to every year, or to take the years of its parent goal.": "De jaren waarin dit doel aan bod komt. Gebruik leerjaren zoals groep 5, leerjaar 2 of jaar 1, of schooljaren zoals 2026-2027. Laat leeg als het doel voor elk jaar geldt, of om de jaren van het bovenliggende doel over te nemen.",
+        "The subject this goal belongs to. Leave empty for a goal that spans subjects, or to take the subject of its parent goal.": "Het vak waar dit doel bij hoort. Laat leeg voor een doel dat vakoverstijgend is, of om het vak van het bovenliggende doel over te nemen."
     },
     "nplurals=2; plural=(n != 1);"
 )
