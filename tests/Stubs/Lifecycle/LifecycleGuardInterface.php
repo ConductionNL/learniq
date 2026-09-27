@@ -29,9 +29,13 @@ interface LifecycleGuardInterface {
 	/**
 	 * Authorise (or deny) a transition.
 	 *
-	 * @param array<string, mixed> $object The object as it would be saved.
-	 * @param string               $action The transition action being applied.
-	 * @param string               $userId The caller's uid, or '' without a session.
+	 * The real interface types `$object` as `array<string, mixed>`; the stub
+	 * keeps plain `array`, because psalm reads a stub's docblock as the
+	 * signature and would otherwise refuse every implementation's `array`.
+	 *
+	 * @param array  $object The object as it would be saved.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The caller's uid, or '' without a session.
 	 *
 	 * @return GuardResult
 	 */
