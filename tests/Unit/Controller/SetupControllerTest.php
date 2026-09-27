@@ -1,283 +1,370 @@
 <?php
 
-namespace Unit\Controller;
+/**
+ * Learniq SetupController unit tests.
+ *
+ * @category Tests
+ * @package  OCA\Learniq\Tests\Unit\Controller
+ *
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2026 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * SPDX-License-Identifier: EUPL-1.2
+ *
+ * @version GIT: <git-id>
+ *
+ * @link https://conduction.nl
+ *
+ * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md
+ */
+
+declare(strict_types=1);
+
+namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\SetupController;
-use OCA\Learniq\Service\DemoDataService;
+use OCA\Learniq\Service\SeedProfileService;
+use OCA\Learniq\Service\SegmentService;
 use OCP\IAppConfig;
 use OCP\IRequest;
+use OCP\IUser;
+use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
 /**
- * ADR-042 / ADR-111 setup contract.
+ * ADR-042 / ADR-111 setup contract, with example sets and the segment step.
  *
- * The assertions here are about what the wizard can OBSERVE. A step the status
+ * The assertions are about what the wizard can OBSERVE. A step the status
  * document never mentions resolves to `done: false` forever, and an optional
- * step that can never be marked done keeps the wizard open over every page —
- * so "the step is reported" and "a decision closes it" are the contract, not
- * incidental detail.
+ * step that can never be marked done keeps the wizard open over every page,
+ * so "the step is reported" and "a decision closes it" are the contract.
  */
 class SetupControllerTest extends TestCase {
-	private IAppConfig $appConfig;
-	private LoggerInterface $logger;
-	private DemoDataService $demoData;
-	private SetupController $controller;
 
+	/**
+	 * App config double.
+	 *
+	 * @var IAppConfig
+	 */
+	private IAppConfig $appConfig;
+
+	/**
+	 * Example set service double.
+	 *
+	 * @var SeedProfileService
+	 */
+	private SeedProfileService $profiles;
+
+	/**
+	 * Segment service double.
+	 *
+	 * @var SegmentService
+	 */
+	private SegmentService $segments;
+
+	/**
+	 * Request double.
+	 *
+	 * @var IRequest
+	 */
+	private IRequest $request;
+
+	/**
+	 * Fresh doubles per test.
+	 *
+	 * @return void
+	 */
 	protected function setUp(): void {
 		$this->appConfig = $this->createMock(IAppConfig::class);
-		$this->logger = $this->createMock(LoggerInterface::class);
-		$this->demoData = $this->createMock(DemoDataService::class);
+		$this->profiles  = $this->createMock(SeedProfileService::class);
+		$this->segments  = $this->createMock(SegmentService::class);
+		$this->request   = $this->createMock(IRequest::class);
 
-		$this->controller = new SetupController(
-			$this->createMock(IRequest::class),
-			$this->appConfig,
-			$this->logger,
-			$this->demoData
+		$this->profiles->method('listChoices')->willReturn(
+			[
+				['id' => 'none', 'label' => 'None', 'description' => 'x', 'objectCount' => 0, 'icon' => 'CloseCircleOutline'],
+				['id' => 'po', 'label' => 'Primary school', 'description' => 'x', 'objectCount' => 3, 'icon' => 'SchoolOutline'],
+				['id' => 'demo', 'label' => 'Every schema, generated values', 'description' => 'x', 'objectCount' => 405, 'icon' => 'DatabaseOutline'],
+			]
 		);
-	}
+		$this->profiles->method('isKnown')->willReturnCallback(static fn (string $id): bool => in_array($id, ['po', 'demo'], true));
+		$this->segments->method('listChoices')->willReturn([['id' => 'po', 'label' => 'Primary school', 'description' => 'x', 'icon' => 'SchoolOutline']]);
+	}//end setUp()
 
-	public function testStatusReportsBothDemoDataSteps(): void {
-		$this->appConfig->method('getValueString')->willReturn('');
-		$this->demoData->method('listChoices')->willReturn([]);
+	/**
+	 * The controller, with the posted parameters and stored config given.
+	 *
+	 * @param array<string, mixed>  $params Posted parameters.
+	 * @param array<string, string> $stored App config values.
+	 *
+	 * @return SetupController
+	 */
+	private function controller(array $params = [], array $stored = []): SetupController {
+		$this->request->method('getParam')->willReturnCallback(static fn (string $key): mixed => ($params[$key] ?? null));
+		$this->appConfig->method('getValueString')->willReturnCallback(
+			static fn (string $app, string $key, string $default = ''): string => ($stored[$key] ?? $default)
+		);
 
-		$data = $this->controller->status()->getData();
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('admin');
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($user);
 
-		// Absence is the defect this guards: a step the wizard is never told
-		// about cannot be offered and cannot be completed.
-		$this->assertArrayHasKey('demo-data', $data['steps']);
-		$this->assertArrayHasKey('load-demo-data', $data['steps']);
-		$this->assertFalse($data['steps']['demo-data']['done']);
-		$this->assertFalse($data['steps']['load-demo-data']['done']);
-		// This app declares no REQUIRED step, so setup must never gate the app.
-		$this->assertTrue($data['completed']);
-		$this->assertSame(1, $data['version']);
-	}
+		return new SetupController(
+			$this->request,
+			$this->appConfig,
+			$this->createMock(LoggerInterface::class),
+			$this->profiles,
+			$this->segments,
+			$session
+		);
+	}//end controller()
 
-	public function testStatusCarriesTheOptionListTheChoiceStepReads(): void {
-		// 🔴 THIS RESPONSE *IS* THE OPTION LIST. The step declares
-		// `optionsSource: datasets` and carries no options of its own, so a
-		// dataset missing here is a dataset nobody can pick.
-		$this->appConfig->method('getValueString')->willReturn('');
-		$this->demoData->method('listChoices')->willReturn([
-			['id' => 'none', 'label' => 'None', 'description' => 'Nothing.', 'objectCount' => 0, 'icon' => 'CloseCircleOutline'],
-			['id' => 'demo', 'label' => 'Example data', 'description' => 'Sample values.', 'objectCount' => 66, 'icon' => 'DatabaseOutline'],
-		]);
-
-		$data = $this->controller->status()->getData();
-
-		$this->assertSame(['none', 'demo'], array_column($data['datasets'], 'id'));
-		// A card renders all three; an entry missing one renders a blank card.
-		$this->assertSame('Sample values.', $data['datasets'][1]['description']);
-		$this->assertSame(66, $data['datasets'][1]['objectCount']);
-		$this->assertSame('DatabaseOutline', $data['datasets'][1]['icon']);
-	}
-
-	public function testChoosingNoneClosesBothStepsWithoutRunningAnything(): void {
-		// 🔴 THE DEFECT THIS FIXES. Every app in this fleet implemented
-		// `skip-demo-data` and NO manifest step could reach it, so declining was
-		// unsayable: the step stayed `done: false` and CnAppRoot reopened the
-		// wizard over every page, for ever, unless the operator imported data
-		// they did not want.
-		$this->appConfig->method('getValueString')
-			->willReturnCallback(static fn (string $app, string $key): string
-				=> ($key === 'demo_dataset' ? 'none' : ''));
-		$this->demoData->method('listChoices')->willReturn([]);
-
-		$data = $this->controller->status()->getData();
-
-		$this->assertTrue($data['steps']['demo-data']['done']);
-		$this->assertTrue($data['steps']['load-demo-data']['done']);
-	}
-
-	public function testTheChoiceIsPersisted(): void {
-		$request = $this->createMock(IRequest::class);
-		$request->method('getParam')->willReturn('demo');
-		$controller = new SetupController($request, $this->appConfig, $this->logger, $this->demoData);
-		$this->demoData->method('listChoices')->willReturn([
-			['id' => 'none', 'label' => 'None', 'description' => '', 'objectCount' => 0, 'icon' => ''],
-			['id' => 'demo', 'label' => 'Example data', 'description' => '', 'objectCount' => 66, 'icon' => ''],
-		]);
-
-		$this->appConfig->expects($this->once())
-			->method('setValueString')
-			->with('learniq', 'demo_dataset', 'demo');
-
-		$data = $controller->saveConfig()->getData();
-
-		$this->assertTrue($data['success']);
-		$this->assertSame('demo', $data['config']['demo_dataset']);
-	}
-
-	public function testAnUnknownDatasetIsRejectedRatherThanStored(): void {
-		// Storing it would leave the load step pointing at nothing, so the
-		// failure would surface one step later with no clue why.
-		$request = $this->createMock(IRequest::class);
-		$request->method('getParam')->willReturn('atlantis');
-		$controller = new SetupController($request, $this->appConfig, $this->logger, $this->demoData);
-		$this->demoData->method('listChoices')->willReturn([
-			['id' => 'none', 'label' => 'None', 'description' => '', 'objectCount' => 0, 'icon' => ''],
-		]);
-
-		$this->appConfig->expects($this->never())->method('setValueString');
-
-		$response = $controller->saveConfig();
-
-		$this->assertSame(400, $response->getStatus());
-		$this->assertFalse($response->getData()['success']);
-	}
-
-	public function testPostingNothingIsNotAnAnswerAndStoresNothing(): void {
-		// The wizard posts the whole config patch, so a step that has not been
-		// answered posts no key at all. That is not an error and it is not a
-		// choice either.
-		$request = $this->createMock(IRequest::class);
-		$request->method('getParam')->willReturn(null);
-		$controller = new SetupController($request, $this->appConfig, $this->logger, $this->demoData);
-
-		$this->appConfig->expects($this->never())->method('setValueString');
-
-		$data = $controller->saveConfig()->getData();
-
-		$this->assertTrue($data['success']);
-		$this->assertSame([], $data['config']);
-	}
-
-	public function testAListIsAcceptedBecauseTheWizardContractAllowsOne(): void {
-		// The step is not `multiple`, but the same endpoint serves steps that
-		// are, so an array must not reach `(string)` and become "Array".
-		$request = $this->createMock(IRequest::class);
-		$request->method('getParam')->willReturn(['demo']);
-		$controller = new SetupController($request, $this->appConfig, $this->logger, $this->demoData);
-		$this->demoData->method('listChoices')->willReturn([
-			['id' => 'demo', 'label' => 'Example data', 'description' => '', 'objectCount' => 1, 'icon' => ''],
-		]);
-
-		$this->appConfig->expects($this->once())
-			->method('setValueString')
-			->with('learniq', 'demo_dataset', 'demo');
-
-		$this->assertTrue($controller->saveConfig()->getData()['success']);
-	}
-
-	public function testAValueThatIsNotAStringIsRefused(): void {
-		// The body is whatever the browser posted. A nested array would
-		// otherwise reach `(string)` and raise a fatal.
-		$request = $this->createMock(IRequest::class);
-		$request->method('getParam')->willReturn([['demo']]);
-		$controller = new SetupController($request, $this->appConfig, $this->logger, $this->demoData);
-
-		$this->appConfig->expects($this->never())->method('setValueString');
-
-		$this->assertSame(400, $controller->saveConfig()->getStatus());
-	}
-
-	public function testChoosingNoneAndThenRunningImportsNothing(): void {
-		// 🔴 THE LOAD STEP STILL RUNS AFTER "None". It must record the decision
-		// and import nothing, rather than refusing: refusing would leave the
-		// step open and reopen the wizard.
-		$this->appConfig->method('getValueString')
-			->willReturnCallback(static fn (string $app, string $key): string
-				=> ($key === 'demo_dataset' ? 'none' : ''));
-		$this->demoData->expects($this->never())->method('install');
-
-		$data = $this->controller->runAction('load-demo-data')->getData();
-
-		$this->assertTrue($data['success']);
-		$this->assertStringContainsString('No example data', $data['message']);
-	}
-
-	public function testLoadingWithoutAChoiceRefusesRatherThanGuessing(): void {
-		// 🔴 NO SILENT DEFAULT. Importing because the operator clicked Run one
-		// step early would plant example objects nobody asked for.
-		$this->appConfig->method('getValueString')->willReturn('');
-		$this->demoData->expects($this->never())->method('install');
-
-		$response = $this->controller->runAction('load-demo-data');
-
-		$this->assertSame(400, $response->getStatus());
-		$this->assertFalse($response->getData()['success']);
-	}
-
-	public function testTheLegacyActionStillImportsTheShippedDataset(): void {
-		// `install-demo-data` was the id before the step asked WHICH dataset. A
-		// runbook or script that still posts it must keep working, and it names
-		// the shipped set by naming itself.
-		$this->appConfig->method('getValueString')->willReturn('');
-		$this->demoData->method('install')
-			->willReturn(['objects' => 30, 'registers' => 1, 'schemas' => 4]);
-
-		$data = $this->controller->runAction('install-demo-data')->getData();
-
-		$this->assertTrue($data['success']);
-		$this->assertStringContainsString('30', $data['message']);
-	}
-
-	public function testSkippingClosesBOTHStepsOrTheWizardNeverCloses(): void {
-		// Declining must be persisted, otherwise the wizard re-offers the import
-		// on every visit and "no thanks" is impossible to express.
-		//
-		// AND IT MUST ANSWER BOTH STEPS. Splitting the single `demo-data` step
-		// into a choice plus a run-action gives the wizard two outstanding
-		// steps, and CnAppRoot opens the wizard while ANY optional step is
-		// outstanding — so closing only the second is the same bug in a new
-		// shape.
-		$written = [];
-		$this->appConfig->method('setValueString')
-			->willReturnCallback(static function (string $app, string $key, string $value) use (&$written): bool {
+	/**
+	 * Capture every app-config write.
+	 *
+	 * @return \ArrayObject<string, string> Written values, filled as the test runs.
+	 */
+	private function captureWrites(): \ArrayObject {
+		$written = new \ArrayObject();
+		$this->appConfig->method('setValueString')->willReturnCallback(
+			static function (string $app, string $key, string $value) use ($written): bool {
 				$written[$key] = $value;
-
 				return true;
-			});
+			}
+		);
 
-		$response = $this->controller->runAction('skip-demo-data');
+		return $written;
+	}//end captureWrites()
 
-		$this->assertTrue($response->getData()['success']);
-		$this->assertSame('skipped', $written['demo_data_decided'] ?? null);
-		$this->assertSame('none', $written['demo_dataset'] ?? null, 'skipping IS choosing none');
-	}
+	/**
+	 * The status reports all three optional steps, both option lists, version
+	 * 2, and never gates the app.
+	 *
+	 * @return void
+	 */
+	public function testStatusReportsEveryStepAndBothOptionLists(): void {
+		$data = $this->controller()->status()->getData();
 
+		self::assertSame(2, $data['version']);
+		self::assertTrue($data['completed']);
+		self::assertSame(['none', 'po', 'demo'], array_column($data['profiles'], 'id'));
+		self::assertSame(['po'], array_column($data['segments'], 'id'));
+		self::assertSame(['example-set', 'load-example-set', 'segment'], array_keys($data['steps']));
+		self::assertFalse($data['steps']['example-set']['done']);
+		self::assertFalse($data['steps']['load-example-set']['done']);
+		self::assertFalse($data['steps']['segment']['done']);
+	}//end testStatusReportsEveryStepAndBothOptionLists()
+
+	/**
+	 * A stored segment closes the segment step, however it was stored.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-a-school-picks-primary-school
+	 */
+	public function testAStoredSegmentClosesTheSegmentStep(): void {
+		$this->segments->method('hasSegment')->willReturn(true);
+
+		self::assertTrue($this->controller()->status()->getData()['steps']['segment']['done']);
+	}//end testAStoredSegmentClosesTheSegmentStep()
+
+	/**
+	 * Choosing "None" closes both example steps; an answer given under the
+	 * legacy key still counts.
+	 *
+	 * @return void
+	 */
+	public function testChoosingNoneClosesBothExampleSteps(): void {
+		$data = $this->controller(stored: ['demo_dataset' => 'none'])->status()->getData();
+
+		self::assertTrue($data['steps']['example-set']['done']);
+		self::assertTrue($data['steps']['load-example-set']['done']);
+	}//end testChoosingNoneClosesBothExampleSteps()
+
+	/**
+	 * A set on offer is stored under the new key, also when posted under the
+	 * legacy key or as a one-element list.
+	 *
+	 * @return void
+	 */
+	public function testTheExampleSetChoiceIsPersisted(): void {
+		$written = $this->captureWrites();
+
+		$response = $this->controller(params: ['example_profile' => 'po'])->saveConfig();
+		self::assertSame(['example_profile' => 'po'], $response->getData()['config']);
+		self::assertSame('po', $written['example_profile']);
+
+		$this->setUp();
+		$written  = $this->captureWrites();
+		$response = $this->controller(params: ['demo_dataset' => ['demo']])->saveConfig();
+		self::assertSame(200, $response->getStatus());
+		self::assertSame('demo', $written['example_profile']);
+	}//end testTheExampleSetChoiceIsPersisted()
+
+	/**
+	 * An unknown set, a path, and a non-scalar answer are refused and nothing
+	 * is stored.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-a-path-in-the-answer-is-refused
+	 */
+	public function testAnUnknownSetIsRefusedRatherThanStored(): void {
+		foreach (['vo', '../../config/config', [['nested']]] as $value) {
+			$this->setUp();
+			$this->appConfig->expects(self::never())->method('setValueString');
+
+			$response = $this->controller(params: ['example_profile' => $value])->saveConfig();
+
+			self::assertSame(400, $response->getStatus(), json_encode($value));
+			self::assertFalse($response->getData()['success']);
+		}
+	}//end testAnUnknownSetIsRefusedRatherThanStored()
+
+	/**
+	 * Posting nothing is not an answer and stores nothing.
+	 *
+	 * @return void
+	 */
+	public function testPostingNothingStoresNothing(): void {
+		$this->appConfig->expects(self::never())->method('setValueString');
+		$this->segments->expects(self::never())->method('setSegment');
+
+		$data = $this->controller()->saveConfig()->getData();
+
+		self::assertTrue($data['success']);
+		self::assertSame([], $data['config']);
+	}//end testPostingNothingStoresNothing()
+
+	/**
+	 * The segment answer is written to LearniqSettings with the admin as
+	 * the one who set it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-a-school-picks-primary-school
+	 */
+	public function testTheSegmentAnswerIsWrittenWithTheAdminAsSetter(): void {
+		$this->segments->expects(self::once())->method('setSegment')->with('po', 'admin');
+
+		$data = $this->controller(params: ['segment' => 'po'])->saveConfig()->getData();
+
+		self::assertSame(['segment' => 'po'], $data['config']);
+	}//end testTheSegmentAnswerIsWrittenWithTheAdminAsSetter()
+
+	/**
+	 * An unknown segment is refused and nothing is written.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-an-unknown-segment-is-refused
+	 */
+	public function testAnUnknownSegmentIsRefused(): void {
+		$this->segments->expects(self::never())->method('setSegment');
+
+		$response = $this->controller(params: ['segment' => 'kindergarten'])->saveConfig();
+
+		self::assertSame(400, $response->getStatus());
+	}//end testAnUnknownSegmentIsRefused()
+
+	/**
+	 * Loading imports the picked set and names the count.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-loading-the-primary-school-set
+	 */
+	public function testLoadingImportsThePickedSetAndNamesTheCount(): void {
+		$written = $this->captureWrites();
+		$this->profiles->expects(self::once())->method('install')->with('po')->willReturn(['objects' => 3, 'profile' => 'po']);
+
+		$data = $this->controller(stored: ['example_profile' => 'po'])->runAction('load-example-set')->getData();
+
+		self::assertTrue($data['success']);
+		self::assertStringContainsString('3', $data['message']);
+		self::assertSame('installed', $written['demo_data_decided']);
+	}//end testLoadingImportsThePickedSetAndNamesTheCount()
+
+	/**
+	 * After "None", loading records the decision and imports nothing.
+	 *
+	 * @return void
+	 */
+	public function testChoosingNoneAndThenLoadingImportsNothing(): void {
+		$written = $this->captureWrites();
+		$this->profiles->expects(self::never())->method('install');
+
+		$data = $this->controller(stored: ['example_profile' => 'none'])->runAction('load-example-set')->getData();
+
+		self::assertTrue($data['success']);
+		self::assertSame('skipped', $written['demo_data_decided']);
+	}//end testChoosingNoneAndThenLoadingImportsNothing()
+
+	/**
+	 * No silent default: loading without an answer is refused.
+	 *
+	 * @return void
+	 */
+	public function testLoadingWithoutAChoiceRefusesRatherThanGuessing(): void {
+		$this->profiles->expects(self::never())->method('install');
+
+		self::assertSame(400, $this->controller()->runAction('load-example-set')->getStatus());
+	}//end testLoadingWithoutAChoiceRefusesRatherThanGuessing()
+
+	/**
+	 * The legacy `install-demo-data` still means the generated set.
+	 *
+	 * @return void
+	 */
+	public function testTheLegacyActionStillImportsTheGeneratedSet(): void {
+		$this->captureWrites();
+		$this->profiles->expects(self::once())->method('install')->with('demo')->willReturn(['objects' => 405, 'profile' => 'demo']);
+
+		self::assertTrue($this->controller()->runAction('install-demo-data')->getData()['success']);
+	}//end testTheLegacyActionStillImportsTheGeneratedSet()
+
+	/**
+	 * Skipping, under either id, closes BOTH example steps.
+	 *
+	 * @return void
+	 */
+	public function testSkippingClosesBothExampleSteps(): void {
+		foreach (['skip-example-set', 'skip-demo-data'] as $action) {
+			$this->setUp();
+			$written = $this->captureWrites();
+
+			self::assertTrue($this->controller()->runAction($action)->getData()['success']);
+			self::assertSame('none', $written['example_profile'], $action);
+			self::assertSame('skipped', $written['demo_data_decided'], $action);
+		}
+	}//end testSkippingClosesBothExampleSteps()
+
+	/**
+	 * An unknown action is a 404.
+	 *
+	 * @return void
+	 */
 	public function testUnknownActionIs404(): void {
-		$response = $this->controller->runAction('not-an-action');
+		self::assertSame(404, $this->controller()->runAction('remove-everything')->getStatus());
+	}//end testUnknownActionIs404()
 
-		$this->assertSame(404, $response->getStatus());
-		$this->assertFalse($response->getData()['success']);
-	}
+	/**
+	 * A failed load is reported and leaves the step undecided, so the wizard
+	 * offers it again.
+	 *
+	 * @return void
+	 */
+	public function testAFailedLoadIsReportedAndLeavesTheStepUndecided(): void {
+		$this->appConfig->expects(self::never())->method('setValueString');
+		$this->profiles->method('install')->willThrowException(new RuntimeException('OpenRegister is not installed'));
 
-	public function testLoadReportsHowMuchLanded(): void {
-		$this->appConfig->method('getValueString')->willReturn('demo');
-		$this->demoData->method('install')
-			->willReturn(['objects' => 30, 'registers' => 1, 'schemas' => 4]);
+		$response = $this->controller(stored: ['example_profile' => 'po'])->runAction('load-example-set');
 
-		$this->appConfig->expects($this->once())
-			->method('setValueString')
-			->with('learniq', 'demo_data_decided', 'installed');
-
-		$data = $this->controller->runAction('load-demo-data')->getData();
-
-		$this->assertTrue($data['success']);
-		// A success message that names no count cannot be told apart from an
-		// import that wrote nothing — the defect this programme already shipped.
-		$this->assertStringContainsString('30', $data['message']);
-	}
-
-	public function testAFailedLoadIsReportedAndLeavesTheStepUNDECIDED(): void {
-		$this->appConfig->method('getValueString')->willReturn('demo');
-		$this->demoData->method('install')
-			->willThrowException(new RuntimeException('OpenRegister is not installed.'));
-
-		// 🔴 THE POINT OF THIS TEST. Recording the decision here would close the
-		// step for an operator who asked for demo data and received none: the
-		// wizard would never offer it again, and nothing would have been
-		// imported.
-		$this->appConfig->expects($this->never())->method('setValueString');
-		$this->logger->expects($this->once())->method('error');
-
-		$response = $this->controller->runAction('load-demo-data');
-
-		$this->assertSame(500, $response->getStatus());
-		$this->assertFalse($response->getData()['success']);
-		$this->assertStringContainsString('OpenRegister is not installed.', $response->getData()['message']);
-	}
-}
+		self::assertSame(500, $response->getStatus());
+		self::assertStringContainsString('OpenRegister is not installed', $response->getData()['message']);
+	}//end testAFailedLoadIsReportedAndLeavesTheStepUndecided()
+}//end class

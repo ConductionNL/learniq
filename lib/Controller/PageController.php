@@ -25,6 +25,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\DashboardRoleService;
+use OCA\Learniq\Service\SegmentService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -34,6 +35,8 @@ use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
 use OCP\IUserSession;
+use Psr\Container\ContainerInterface;
+use Throwable;
 
 /**
  * Renders the main SPA template and serves the bundled app manifest.
@@ -42,7 +45,7 @@ use OCP\IUserSession;
  * blob unchanged (v0.1). A partial-override hook from IAppConfig is deferred
  * to v0.2 — the frontend loader's silent-fallback path is exercised in v0.1.
  *
- * @spec exclude framework glue — SPA shell + manifest passthrough + role initial-state provider; no business behaviour
+ * @spec exclude framework glue — SPA shell + manifest passthrough + role and segment initial-state provider; no business behaviour
  */
 class PageController extends Controller {
 	/**
@@ -52,6 +55,7 @@ class PageController extends Controller {
 	 * @param IUserSession $userSession The user session.
 	 * @param IInitialState $initialState The initial-state service.
 	 * @param DashboardRoleService $dashboardRoleSvc Resolves the user's role + dashboard views.
+	 * @param ContainerInterface $container Resolves SegmentService lazily (see resolveSegment()).
 	 *
 	 * @return void
 	 */
@@ -60,6 +64,7 @@ class PageController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly IInitialState $initialState,
 		private readonly DashboardRoleService $dashboardRoleSvc,
+		private readonly ContainerInterface $container,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -70,7 +75,9 @@ class PageController extends Controller {
 	 * Provides the resolved Learniq role context as initial state so the
 	 * manifest shell can populate `runtime.user.primaryRole` (menu visibleIf)
 	 * and the role-aware Dashboards component can pick its default view and
-	 * switcher set without a second round-trip.
+	 * switcher set without a second round-trip. Also provides the instance's
+	 * segment, which `src/main.js` publishes as `runtime.workspace.segment` so a
+	 * menu `visibleIf` on the segment resolves against a defined value.
 	 *
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
@@ -85,11 +92,32 @@ class PageController extends Controller {
 			$this->initialState->provideInitialState('primaryRole', $this->dashboardRoleSvc->resolvePrimaryRole($user));
 			$this->initialState->provideInitialState('dashboardRole', $this->dashboardRoleSvc->resolveDefaultView($user));
 			$this->initialState->provideInitialState('dashboardRoles', $this->dashboardRoleSvc->resolveViews($user));
+			$this->initialState->provideInitialState('segment', $this->resolveSegment());
 			$this->initialState->provideInitialState('confidentialCounsellor', $this->dashboardRoleSvc->isConfidentialCounsellor($user));
 		}
 
 		return new TemplateResponse(Application::APP_ID, 'index');
 	}//end index()
+
+	/**
+	 * The instance segment for `runtime.workspace.segment`, or the default.
+	 *
+	 * 🔴 RESOLVED LAZILY, NOT INJECTED. SegmentService reads OpenRegister, and
+	 * this is the app's default route: a constructor-injected OpenRegister
+	 * dependency here makes the start screen 500 on an instance without
+	 * OpenRegister instead of letting it explain what is missing (ADR-083
+	 * rule 3, gate-66). Resolving it at call time inside a catch that degrades
+	 * to the default keeps the page up either way.
+	 *
+	 * @return string One of SegmentService::SEGMENTS.
+	 */
+	private function resolveSegment(): string {
+		try {
+			return $this->container->get(SegmentService::class)->currentSegment();
+		} catch (Throwable $e) {
+			return SegmentService::DEFAULT_SEGMENT;
+		}
+	}//end resolveSegment()
 
 	/**
 	 * Serve the SPA for deep links (Vue history mode). Delegates to index().

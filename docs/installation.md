@@ -65,6 +65,36 @@ After installation, complete the setup wizard:
    - OSO (student transfer dossier)
    - SURFconext (higher-education SSO)
 
+## Example data and the kind of organisation
+
+The first time an administrator opens Learniq, the setup wizard asks two questions.
+
+1. **Which example data do you want?** Pick the set that matches your organisation: primary school, secondary school, MBO, HBO/WO, company or training institute, as far as they ship in your version. Each set is one fictional organisation with its own people, groups and history. "Every schema, generated values" fills every list with generated values instead. Pick "None" on a production install.
+2. **What kind of organisation is this?** Pick one of the six kinds. Learniq stores it as the segment under **App settings**, where you can change it later. The wizard pre-selects the kind of the example set you loaded.
+
+The kind of organisation decides which menus appear. Company is the default of every install that never chose, so it keeps every menu. The other kinds hide what belongs to someone else:
+
+| Menu | Primary school | Secondary school | MBO | HBO/WO | Company | Training institute |
+|---|---|---|---|---|---|---|
+| Compliance and external training | hidden | hidden | hidden | hidden | shown | shown |
+| Engagement and course evaluation | hidden | hidden | shown | shown | shown | shown |
+| Work placements (BPV) | hidden | hidden | shown | hidden | shown | hidden |
+| Study progress (BSA) | hidden | hidden | hidden | shown | shown | hidden |
+| Exam board, exam accommodations, applications and admissions rounds | hidden | shown | shown | shown | shown | shown |
+| Subject choices | hidden | shown | shown | shown | shown | hidden |
+| School advies | shown | shown | hidden | hidden | shown | hidden |
+
+Everything else, such as people, groups, attendance, report cards, the pupil dossier and group plans, shows for every kind. Hiding a menu is not an access control: each page still checks who may read its data.
+
+Loading a set twice adds nothing, because every example object has a fixed id. To remove a set again, run the command on the server. It shows what it would remove; add `--apply` to remove it:
+
+```bash
+php occ learniq:example-set:remove po
+php occ learniq:example-set:remove po --apply
+```
+
+The command hands the set's ids to OpenRegister's `openregister:objects:purge --force`, the one route OpenRegister offers for removing fixtures from archival schemas. It only ever removes objects the set itself shipped.
+
 ## First-login checklist
 
 After the registers are initialised:
