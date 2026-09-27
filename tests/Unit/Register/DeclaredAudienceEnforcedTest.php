@@ -331,7 +331,7 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 				'Credential'             => ['hr', 'compliance-officers', self::self('learnerId')],
 				'ExternalTrainingRecord' => ['hr', 'compliance-officers', self::self('learnerId'), self::self('submittedBy')],
 				'LearnerProfile'         => ['instructors', 'hr', 'compliance-officers', self::self('ncUserId')],
-				'Submission'             => [...$staff, ['group' => 'authenticated', 'match' => ['learnerIds' => ['$contains' => '$userId']]]],
+				'Submission'             => ['instructors', ...$staff, ['group' => 'authenticated', 'match' => ['learnerIds' => ['$contains' => '$userId']]]],
 				'PeerReview'             => [...$staff, self::self('reviewerId')],
 				'SelfAssessment'         => [...$staff, self::self('learnerId')],
 				'ExemptionCase'          => ['instructors', 'compliance-officers', self::self('learnerId')],

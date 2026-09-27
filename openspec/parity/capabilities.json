@@ -3209,7 +3209,7 @@
       "name": "Let a learner hand in a file from their own drive.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.Submission references Nextcloud files; src/manifest.d/learning.json SubmitWorkModal",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.Submission references Nextcloud files; src/views/SubmitWorkView.vue creates the draft as the learner, which Submission.authorization allows since learniq#973 (create for signed-in users, update on the learner's own draft; SubmissionWindowGuard refuses a hand-in in another learner's name); src/manifest.d/learning.json SubmitWorkModal",
         "owner": "ConductionNL/learniq"
       },
       "provider": "nextcloud",
@@ -3296,7 +3296,7 @@
       "name": "Mark work against a rubric with weighted criteria.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.Rubric; src/manifest.d/learning.json MarkSubmissionView",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.Rubric; src/manifest.d/learning.json MarkSubmissionView; Submission.authorization grants instructors read and update since learniq#973",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
