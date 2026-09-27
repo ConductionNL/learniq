@@ -12797,7 +12797,12 @@
                                 "draft"
                             ],
                             "to": "active",
-                            "requires": "OCA\\Learniq\\Lifecycle\\LearningPlanSignatureGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\LearningPlanSignatureGuard",
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\SupersedePriorLearningPlanAction"
+                                }
+                            ]
                         },
                         "startEvaluation": {
                             "from": [

@@ -12,12 +12,12 @@
  *   - `parent` role on `opp` plan: SUBSTANTIAL
  *   - all other roles: BASIC
  *
- * On successful activation this guard also transitions the prior version
- * (identified by `supersedesId`) to `superseded` via TransitionEngine, so the
- * version chain is atomically maintained.
+ * Superseding the prior version (identified by `supersedesId`) is not done
+ * here: a guard only authorises (learniq#983). The `activate` transition's
+ * SupersedePriorLearningPlanAction does it once this guard has allowed.
  *
  * ADR-031 legitimate exception: multi-schema guard logic (LearningPlan →
- * LearningPlanTemplate + Signature + TransitionEngine) cannot be expressed as
+ * LearningPlanTemplate + Signature) cannot be expressed as
  * schema metadata declarations.
  *
  * @category Lifecycle
@@ -43,7 +43,6 @@ namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
-use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -90,14 +89,12 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object query service.
-	 * @param TransitionEngine $transitionEngine OR lifecycle transition engine.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly TransitionEngine $transitionEngine,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -141,7 +138,6 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 		$templateId = $plan['templateId'] ?? null;
 		$version = (int)($plan['version'] ?? 1);
 		$kind = $plan['kind'] ?? '';
-		$supersedesId = $plan['supersedesId'] ?? null;
 		$learnerId = $plan['learnerId'] ?? '';
 		$tenantId = $plan['tenant_id'] ?? '';
 
@@ -159,7 +155,6 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 				'[LearningPlanSignatureGuard] No required signer roles — activating plan {id} v{v}.',
 				['id' => $planId, 'v' => $version]
 			);
-			$this->supersedesPriorVersion(supersedesId: $supersedesId);
 			return true;
 		}
 
@@ -201,8 +196,6 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 			['n' => count($requiredRoles), 'id' => $planId, 'v' => $version]
 		);
 
-		// Supersede prior version now that this version is activating.
-		$this->supersedesPriorVersion(supersedesId: $supersedesId);
 
 		return true;
 	}//end allows()
@@ -458,33 +451,4 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 
 		return (int)$rank;
 	}//end assuranceRank()
-
-	/**
-	 * Transition the superseded plan version to `superseded` lifecycle state.
-	 *
-	 * Best-effort: if the prior version is not found or the transition fails,
-	 * this guard still returns true (the activation is not blocked by prior-version
-	 * housekeeping). Errors are logged.
-	 *
-	 * @param string|null $supersedesId UUID of the LearningPlan version to supersede.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-15
-	 */
-	private function supersedesPriorVersion(?string $supersedesId): void {
-		if ($supersedesId === null || $supersedesId === '') {
-			return;
-		}
-
-		try {
-			$this->transitionEngine->transition(objectId: $supersedesId, action: 'supersede');
-		} catch (\Throwable $e) {
-			$this->logger->warning(
-				'[LearningPlanSignatureGuard] Could not supersede prior plan version {id}: {msg}',
-				['id' => $supersedesId, 'msg' => $e->getMessage()]
-			);
-		}
-
-	}//end supersedesPriorVersion()
 }//end class
