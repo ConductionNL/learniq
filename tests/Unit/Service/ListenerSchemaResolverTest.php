@@ -297,6 +297,37 @@ class ListenerSchemaResolverTest extends TestCase {
 	}//end testDisabledContractReturnsRawIdsSoListenersStayDead()
 
 	/**
+	 * A security guard must not be switched off by the default-off slug
+	 * contract: guardSchemaSlug() resolves the real slug with the contract
+	 * disabled, and still refuses a foreign register.
+	 *
+	 * @return void
+	 */
+	public function testGuardSchemaSlugResolvesEvenWithTheContractDisabled(): void {
+		$resolver = $this->resolver(
+			schemas: [
+				'1293' => 'assessment-result',
+				'5103' => 'assessment-result',
+			],
+			registers: [
+				'9' => 'learniq',
+				'264' => 'shillinq',
+			],
+			enabled: false,
+		);
+
+		$this->assertSame(
+			'assessment-result',
+			$resolver->guardSchemaSlug(entity: $this->entity(registerId: '9', schemaId: '1293'))
+		);
+		$this->assertSame(
+			'',
+			$resolver->guardSchemaSlug(entity: $this->entity(registerId: '264', schemaId: '5103'))
+		);
+
+	}//end testGuardSchemaSlugResolvesEvenWithTheContractDisabled()
+
+	/**
 	 * OpenRegister is a soft dependency: an absent mapper must degrade to '',
 	 * never throw into the object-write path.
 	 *

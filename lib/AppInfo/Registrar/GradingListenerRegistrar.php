@@ -41,6 +41,7 @@ use OCA\Learniq\Listener\GradeRollupHandler;
 use OCA\Learniq\Listener\ItemAnalysisRecomputeHandler;
 use OCA\Learniq\Listener\LearningPlanEvaluationHandler;
 use OCA\Learniq\Listener\PortfolioGradeEmitHandler;
+use OCA\Learniq\Listener\RegulationAssignmentHandler;
 use OCA\Learniq\Listener\WerkprocesGradeEmitHandler;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
@@ -64,6 +65,12 @@ class GradingListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: CredentialIssuanceHandler::class
+		);
+
+		// ADR-031 exception: Regulation publish -> mandatory Enrolments for its audience (learniq#951).
+		$context->registerEventListener(
+			event: ObjectTransitionedEvent::class,
+			listener: RegulationAssignmentHandler::class
 		);
 
 		// ADR-031 legitimate exception: GradeEntry.published → FinalGrade recompute bridge,
