@@ -35,6 +35,8 @@ use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
 use OCP\IUserSession;
+use Psr\Container\ContainerInterface;
+use Throwable;
 
 /**
  * Renders the main SPA template and serves the bundled app manifest.
@@ -53,7 +55,7 @@ class PageController extends Controller {
 	 * @param IUserSession $userSession The user session.
 	 * @param IInitialState $initialState The initial-state service.
 	 * @param DashboardRoleService $dashboardRoleSvc Resolves the user's role + dashboard views.
-	 * @param SegmentService $segmentService Resolves the instance's segment for `runtime.workspace.segment`.
+	 * @param ContainerInterface $container Resolves SegmentService lazily (see resolveSegment()).
 	 *
 	 * @return void
 	 */
@@ -62,7 +64,7 @@ class PageController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly IInitialState $initialState,
 		private readonly DashboardRoleService $dashboardRoleSvc,
-		private readonly SegmentService $segmentService,
+		private readonly ContainerInterface $container,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -90,11 +92,31 @@ class PageController extends Controller {
 			$this->initialState->provideInitialState('primaryRole', $this->dashboardRoleSvc->resolvePrimaryRole($user));
 			$this->initialState->provideInitialState('dashboardRole', $this->dashboardRoleSvc->resolveDefaultView($user));
 			$this->initialState->provideInitialState('dashboardRoles', $this->dashboardRoleSvc->resolveViews($user));
-			$this->initialState->provideInitialState('segment', $this->segmentService->currentSegment());
+			$this->initialState->provideInitialState('segment', $this->resolveSegment());
 		}
 
 		return new TemplateResponse(Application::APP_ID, 'index');
 	}//end index()
+
+	/**
+	 * The instance segment for `runtime.workspace.segment`, or the default.
+	 *
+	 * 🔴 RESOLVED LAZILY, NOT INJECTED. SegmentService reads OpenRegister, and
+	 * this is the app's default route: a constructor-injected OpenRegister
+	 * dependency here makes the start screen 500 on an instance without
+	 * OpenRegister instead of letting it explain what is missing (ADR-083
+	 * rule 3, gate-66). Resolving it at call time inside a catch that degrades
+	 * to the default keeps the page up either way.
+	 *
+	 * @return string One of SegmentService::SEGMENTS.
+	 */
+	private function resolveSegment(): string {
+		try {
+			return $this->container->get(SegmentService::class)->currentSegment();
+		} catch (Throwable $e) {
+			return SegmentService::DEFAULT_SEGMENT;
+		}
+	}//end resolveSegment()
 
 	/**
 	 * Serve the SPA for deep links (Vue history mode). Delegates to index().

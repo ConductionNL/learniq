@@ -8,7 +8,7 @@ LearniqSettings (OpenRegister singleton, segment enum)
         ▼
 SegmentService::currentSegment()  ── newest valid row, else "corporate"
         │
-PageController::index()  ── IInitialState::provideInitialState('segment', …)
+PageController::index()  ── IInitialState::provideInitialState('segment', …), SegmentService resolved lazily
         │  (next to primaryRole, dashboardRole, dashboardRoles)
         ▼
 src/main.js  ── loadState('learniq', 'segment', 'corporate')
@@ -20,7 +20,7 @@ manifest.runtime.workspace.segment  ── what visibleIf {"workspace.segment": 
 This copies the only runtime path that already works in the app. `runtime.user.primaryRole` is fed by `PageController` through `IInitialState` and read with `loadState` in `main.js`; `segment-feature-flags` design.md ("Discovery") traced that there is no generic settings-to-runtime bridge in `@conduction/nextcloud-vue`, so each path is wired by hand.
 
 ## Nextcloud Integration
-- Controllers: `PageController::index()` gains one `provideInitialState('segment', …)` call inside the existing signed-in branch.
+- Controllers: `PageController::index()` gains one `provideInitialState('segment', …)` call inside the existing signed-in branch; `SegmentService` is resolved lazily through `ContainerInterface` (Decision 5).
 - Services: new `OCA\Learniq\Service\SegmentService` (constructor: OpenRegister `ObjectService`, `LoggerInterface`).
 - OCP: `OCP\AppFramework\Services\IInitialState` (server), `@nextcloud/initial-state` `loadState` (browser).
 - Mappers/Entities: none. Events/Hooks: none.
@@ -46,7 +46,10 @@ Even with Decision 1, a demo import done after an admin chose a segment produces
 ### Decision 4: a pure helper in the browser
 `main.js` is not unit-testable (webpack `require.context`, a mount side effect). The logic that matters, "unknown or missing becomes corporate" and "keep other workspace keys", goes into `src/utils/workspaceRuntime.js` (`SEGMENTS`, `DEFAULT_SEGMENT`, `resolveSegment()`, `buildWorkspaceRuntime()`), tested with `node --test` like the other `tests/unit-js/` modules.
 
-### Decision 5: labels through `x-enum-labels`
+### Decision 5: PageController resolves SegmentService lazily
+`PageController` serves the app's default route. Injecting `SegmentService` (which reads OpenRegister) into its constructor makes the start screen unconstructable on an instance without OpenRegister, so it 500s instead of explaining what is missing (ADR-083 rule 3; gate-66 `openregister-dependency-shape` flagged exactly this on the first gate run). The controller therefore takes `Psr\Container\ContainerInterface` and resolves `SegmentService` at call time inside a catch that degrades to `corporate`. The lookup names an app class, not an OpenRegister class, so ADR-083 rule 1 (no string lookups of OpenRegister types) is untouched.
+
+### Decision 6: labels through `x-enum-labels`
 `fieldsFromSchema()` and the index-page filter both read `x-enum-labels` and translate each label through the app catalogue (`node_modules/@conduction/nextcloud-vue/src/utils/schema.js`). No property in this register used it yet; `check-schema-l10n.js` already counts its values as schema strings, so the six labels need en and nl keys.
 
 | code | English label | Dutch label |

@@ -48,6 +48,7 @@ export const DEFAULT_SEGMENT = 'corporate'
  *
  * @param {unknown} raw The value `loadState()` returned.
  * @return {string} A known segment code, or DEFAULT_SEGMENT.
+ * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-segment-reaches-the-manifest-runtime
  */
 export function resolveSegment(raw) {
 	return typeof raw === 'string' && SEGMENTS.includes(raw) ? raw : DEFAULT_SEGMENT
@@ -59,6 +60,7 @@ export function resolveSegment(raw) {
  * @param {object|undefined} existing The bundled manifest's `runtime.workspace`, if any.
  * @param {unknown} rawSegment The value `loadState('learniq', 'segment', …)` returned.
  * @return {{segment: string}} The workspace runtime.
+ * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-segment-reaches-the-manifest-runtime
  */
 export function buildWorkspaceRuntime(existing, rawSegment) {
 	return {

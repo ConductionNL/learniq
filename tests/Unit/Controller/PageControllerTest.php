@@ -33,6 +33,8 @@ use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
+use RuntimeException;
 
 /**
  * Contract tests for the two public page endpoints, manifest() and catchAll().
@@ -44,10 +46,11 @@ class PageControllerTest extends TestCase {
 	 *
 	 * @param IUser|null         $user         The signed-in user, or null for anonymous.
 	 * @param IInitialState|null $initialState The initial-state double, or a silent mock.
+	 * @param bool               $segmentFails Whether resolving SegmentService throws.
 	 *
 	 * @return PageController
 	 */
-	private function controller(?IUser $user, ?IInitialState $initialState = null): PageController {
+	private function controller(?IUser $user, ?IInitialState $initialState = null, bool $segmentFails = false): PageController {
 		$userSession = $this->createMock(IUserSession::class);
 		$userSession->method('getUser')->willReturn($user);
 
@@ -58,13 +61,19 @@ class PageControllerTest extends TestCase {
 
 		$segmentService = $this->createMock(SegmentService::class);
 		$segmentService->method('currentSegment')->willReturn('po');
+		$container = $this->createMock(ContainerInterface::class);
+		if ($segmentFails === true) {
+			$container->method('get')->willThrowException(new RuntimeException('OpenRegister is not installed'));
+		} else {
+			$container->method('get')->with(SegmentService::class)->willReturn($segmentService);
+		}
 
 		return new PageController(
 			request: $this->createMock(IRequest::class),
 			userSession: $userSession,
 			initialState: ($initialState ?? $this->createMock(IInitialState::class)),
 			dashboardRoleSvc: $roleService,
-			segmentService: $segmentService,
+			container: $container,
 		);
 	}//end controller()
 
@@ -167,6 +176,31 @@ class PageControllerTest extends TestCase {
 		self::assertSame('po', ($provided['segment'] ?? null));
 		self::assertArrayHasKey('primaryRole', $provided);
 	}//end testIndexProvidesTheSegmentForASignedInUser()
+
+	/**
+	 * Without OpenRegister the segment cannot be read, and the start screen
+	 * still renders with the default segment rather than a 500 (ADR-083).
+	 *
+	 * @return void
+	 */
+	public function testIndexFallsBackToTheDefaultWhenTheSegmentCannotBeResolved(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('learner-1');
+
+		$provided     = [];
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')
+			->willReturnCallback(
+				static function (string $key, mixed $value) use (&$provided): void {
+					$provided[$key] = $value;
+				}
+			);
+
+		$response = $this->controller($user, $initialState, true)->index();
+
+		self::assertSame('index', $response->getTemplateName());
+		self::assertSame('corporate', ($provided['segment'] ?? null));
+	}//end testIndexFallsBackToTheDefaultWhenTheSegmentCannotBeResolved()
 
 	/**
 	 * An anonymous request gets the shell and no initial state at all.
