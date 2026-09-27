@@ -166,6 +166,7 @@ if (interface_exists(\OC\Hooks\Emitter::class) === false) {
 // runtime classmap and can shadow real app classes instance-wide
 // (openregister#2036) — the same hazard the stub registration above avoids.
 require_once __DIR__ . '/Support/OrEntityFactory.php';
+require_once __DIR__ . '/Support/GuardVerdicts.php';
 
 // Integriq's connection-registry event (adopt-connection-registry).
 // ConnectionReportService sends it by string class name behind class_exists

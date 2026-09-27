@@ -55,6 +55,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Lifecycle;
 
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Constants;
 use OCP\EventDispatcher\Event;
@@ -73,7 +75,14 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
  * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
  */
-class PortfolioShareGrantHandler implements IEventListener {
+class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'This portfolio share is not complete or not allowed, so it can not be granted.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const SHARE_SCHEMA = 'portfolio-share';
@@ -99,23 +108,39 @@ class PortfolioShareGrantHandler implements IEventListener {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(share: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * OR lifecycle guard entry-point — blocks self-grant.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the `grant`
 	 * transition on a PortfolioShare object.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the PortfolioShare data array
-	 *                                               - 'transition' : 'grant'
-	 *                                               - 'from'       : 'draft'
-	 *                                               - 'to'         : 'active'
+	 * @param array<string,mixed> $share The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True to allow the transition; false blocks it (HTTP 422 from OR engine).
 	 *
 	 * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-a-teacher-can-be-granted-a-read-only-share-via-native-nextcloud-files-sharing
 	 */
-	public function check(array &$transitionContext): bool {
-		$share = $transitionContext['object'] ?? [];
+	private function allows(array $share): bool {
 		$shareId = $share['id'] ?? ($share['uuid'] ?? '');
 		$sharedBy = $share['sharedBy'] ?? '';
 		$recipient = $this->resolveRecipientIdentity(share: $share);
@@ -130,7 +155,7 @@ class PortfolioShareGrantHandler implements IEventListener {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Handle an ObjectTransitionedEvent.

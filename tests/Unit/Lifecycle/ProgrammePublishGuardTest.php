@@ -32,6 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\ProgrammePublishGuard;
 use PHPUnit\Framework\TestCase;
@@ -41,6 +42,8 @@ use Psr\Log\LoggerInterface;
  * Tests for ProgrammePublishGuard::check() — the Programme `draft -> published` transition.
  */
 class ProgrammePublishGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * A Programme with a published CurriculumPlan carrying required courses
@@ -64,14 +67,9 @@ class ProgrammePublishGuardTest extends TestCase {
 		);
 
 		$guard = new ProgrammePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = [
-			'object' => ['id' => 'programme-1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a'],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+		$object = ['id' => 'programme-1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 
 	}//end testProgrammeWithPublishedPlanAndRequiredCoursesIsAllowedToPublish()
 
@@ -87,14 +85,9 @@ class ProgrammePublishGuardTest extends TestCase {
 		$objectService->expects($this->never())->method('findAll');
 
 		$guard = new ProgrammePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = [
-			'object' => ['id' => 'programme-2', 'tenant_id' => 'tenant-a'],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+		$object = ['id' => 'programme-2', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testProgrammeWithoutCurriculumPlanIsBlocked()
 
@@ -108,14 +101,9 @@ class ProgrammePublishGuardTest extends TestCase {
 		$objectService->method('findAll')->willReturn([]);
 
 		$guard = new ProgrammePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = [
-			'object' => ['id' => 'programme-3', 'curriculumPlanId' => 'plan-3', 'tenant_id' => 'tenant-a'],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+		$object = ['id' => 'programme-3', 'curriculumPlanId' => 'plan-3', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testProgrammeWithUnpublishedPlanIsBlocked()
 
@@ -134,14 +122,9 @@ class ProgrammePublishGuardTest extends TestCase {
 		);
 
 		$guard = new ProgrammePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = [
-			'object' => ['id' => 'programme-4', 'curriculumPlanId' => 'plan-4', 'tenant_id' => 'tenant-a'],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+		$object = ['id' => 'programme-4', 'curriculumPlanId' => 'plan-4', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testProgrammeWithPublishedPlanButNoRequiredCoursesIsBlocked()
 }//end class

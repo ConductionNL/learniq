@@ -42,6 +42,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -54,7 +56,14 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
  */
-class BpvConfirmationGuard {
+class BpvConfirmationGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'The work placement can only be confirmed once the training company is verified.';
 
 	/**
 	 * The verification status value that satisfies the gate.
@@ -74,24 +83,40 @@ class BpvConfirmationGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(placement: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the
 	 * `confirm` transition on a BpvPlacement object.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the BpvPlacement data array
-	 *                                               - 'transition' : 'confirm'
-	 *                                               - 'from'       : 'sbb-verification-pending'
-	 *                                               - 'to'         : 'confirmed'
+	 * @param array<string,mixed> $placement The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True when leerbedrijfVerification.status is `verified`; false blocks the
 	 *              transition (HTTP 422).
 	 *
 	 * @spec openspec/changes/bpv-praktijkovereenkomst/specs/bpv/spec.md#requirement-bpvplacement-confirmation-is-gated-on-verified-leerbedrijf-status
 	 */
-	public function check(array &$transitionContext): bool {
-		$placement = $transitionContext['object'] ?? [];
+	private function allows(array $placement): bool {
 		$placementId = $placement['id'] ?? ($placement['uuid'] ?? '');
 		$verification = $placement['trainingCompanyVerification'] ?? null;
 
@@ -119,5 +144,5 @@ class BpvConfirmationGuard {
 		);
 
 		return true;
-	}//end check()
+	}//end allows()
 }//end class

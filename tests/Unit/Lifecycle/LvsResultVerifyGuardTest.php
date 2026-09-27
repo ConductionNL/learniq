@@ -21,6 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Lifecycle\LvsResultVerifyGuard;
 use OCP\IGroupManager;
 use OCP\IUser;
@@ -33,6 +34,8 @@ use Psr\Log\NullLogger;
  * `imported → verified` transition.
  */
 class LvsResultVerifyGuardTest extends TestCase {
+
+	use GuardVerdicts;
 	/**
 	 * Build a guard whose user/group managers report the given group
 	 * membership for a known 'actor-1' user.
@@ -66,9 +69,9 @@ class LvsResultVerifyGuardTest extends TestCase {
 	 */
 	public function testCoordinatorIsAllowed(): void {
 		$guard = $this->makeGuard(['coordinator']);
-		$context = ['object' => ['id' => 'lvs-1'], 'actor' => 'actor-1'];
+		$object = ['id' => 'lvs-1', 'lifecycle' => 'verified'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'verify', 'actor-1'));
 
 	}//end testCoordinatorIsAllowed()
 
@@ -79,9 +82,9 @@ class LvsResultVerifyGuardTest extends TestCase {
 	 */
 	public function testAdminIsAllowed(): void {
 		$guard = $this->makeGuard(['admin']);
-		$context = ['object' => ['id' => 'lvs-1'], 'actor' => 'actor-1'];
+		$object = ['id' => 'lvs-1', 'lifecycle' => 'verified'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'verify', 'actor-1'));
 
 	}//end testAdminIsAllowed()
 
@@ -94,9 +97,9 @@ class LvsResultVerifyGuardTest extends TestCase {
 	 */
 	public function testUnauthorisedActorIsDenied(): void {
 		$guard = $this->makeGuard([]);
-		$context = ['object' => ['id' => 'lvs-1'], 'actor' => 'actor-1'];
+		$object = ['id' => 'lvs-1', 'lifecycle' => 'verified'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'verify', 'actor-1'));
 
 	}//end testUnauthorisedActorIsDenied()
 
@@ -107,9 +110,9 @@ class LvsResultVerifyGuardTest extends TestCase {
 	 */
 	public function testNoActorIsDenied(): void {
 		$guard = $this->makeGuard(['coordinator']);
-		$context = ['object' => ['id' => 'lvs-1']];
+		$object = ['id' => 'lvs-1', 'lifecycle' => 'verified'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'verify', ''));
 
 	}//end testNoActorIsDenied()
 
@@ -120,9 +123,9 @@ class LvsResultVerifyGuardTest extends TestCase {
 	 */
 	public function testUnknownActorIsDenied(): void {
 		$guard = $this->makeGuard(['coordinator']);
-		$context = ['object' => ['id' => 'lvs-1'], 'actor' => 'ghost-user'];
+		$object = ['id' => 'lvs-1', 'lifecycle' => 'verified'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'verify', 'ghost-user'));
 
 	}//end testUnknownActorIsDenied()
 }//end class

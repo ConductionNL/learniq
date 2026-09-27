@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Lifecycle\AssignmentPublishGuard;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -31,6 +32,8 @@ use Psr\Log\LoggerInterface;
  * Tests for the AssignmentPublishGuard (Assignment `publish` transition).
  */
 class AssignmentPublishGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build the guard under test.
@@ -48,9 +51,9 @@ class AssignmentPublishGuardTest extends TestCase {
 	 */
 	public function testNoCourseOrSessionBlocksPublish(): void {
 		$guard = $this->guard();
-		$context = ['object' => ['id' => 'a-1']];
+		$object = ['id' => 'a-1', 'lifecycle' => 'published'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 	}//end testNoCourseOrSessionBlocksPublish()
 
 	/**
@@ -61,9 +64,9 @@ class AssignmentPublishGuardTest extends TestCase {
 	 */
 	public function testCourseIdAllowsPublish(): void {
 		$guard = $this->guard();
-		$context = ['object' => ['id' => 'a-1', 'courseId' => 'course-1']];
+		$object = ['id' => 'a-1', 'courseId' => 'course-1', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 	}//end testCourseIdAllowsPublish()
 
 	/**
@@ -73,9 +76,9 @@ class AssignmentPublishGuardTest extends TestCase {
 	 */
 	public function testSessionIdAllowsPublish(): void {
 		$guard = $this->guard();
-		$context = ['object' => ['id' => 'a-1', 'sessionId' => 'session-1']];
+		$object = ['id' => 'a-1', 'sessionId' => 'session-1', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 	}//end testSessionIdAllowsPublish()
 
 	/**
@@ -87,16 +90,15 @@ class AssignmentPublishGuardTest extends TestCase {
 	 */
 	public function testPeerReviewEnabledWithoutRubricBlocksPublish(): void {
 		$guard = $this->guard();
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'a-1',
 				'courseId' => 'course-1',
 				'peerReviewEnabled' => true,
 				'rubricId' => null,
-			],
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 	}//end testPeerReviewEnabledWithoutRubricBlocksPublish()
 
 	/**
@@ -108,16 +110,15 @@ class AssignmentPublishGuardTest extends TestCase {
 	 */
 	public function testSelfAssessmentEnabledWithoutRubricBlocksPublish(): void {
 		$guard = $this->guard();
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'a-1',
 				'courseId' => 'course-1',
 				'selfAssessmentEnabled' => true,
 				'rubricId' => null,
-			],
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 	}//end testSelfAssessmentEnabledWithoutRubricBlocksPublish()
 
 	/**
@@ -129,16 +130,15 @@ class AssignmentPublishGuardTest extends TestCase {
 	 */
 	public function testPeerReviewEnabledWithRubricAllowsPublish(): void {
 		$guard = $this->guard();
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'a-1',
 				'courseId' => 'course-1',
 				'peerReviewEnabled' => true,
 				'rubricId' => 'rubric-1',
-			],
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 	}//end testPeerReviewEnabledWithRubricAllowsPublish()
 
 	/**
@@ -151,16 +151,15 @@ class AssignmentPublishGuardTest extends TestCase {
 	 */
 	public function testBothDisabledAllowsPublishWithoutRubric(): void {
 		$guard = $this->guard();
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'a-1',
 				'courseId' => 'course-1',
 				'peerReviewEnabled' => false,
 				'selfAssessmentEnabled' => false,
 				'rubricId' => null,
-			],
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 	}//end testBothDisabledAllowsPublishWithoutRubric()
 }//end class

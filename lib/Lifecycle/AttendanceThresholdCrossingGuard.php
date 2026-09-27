@@ -41,6 +41,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -52,7 +54,14 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-records-a-real-per-learner-crossing-and-creates-an-attendanceflag
  * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
  */
-class AttendanceThresholdCrossingGuard {
+class AttendanceThresholdCrossingGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'The checked learner has not reached the limit of this attendance threshold.';
 	/**
 	 * Constructor.
 	 *
@@ -66,20 +75,36 @@ class AttendanceThresholdCrossingGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the AttendanceThreshold data
-	 *                                               array, already merged with this transition's
-	 *                                               inputs (checkedLearnerId/checkedMetricValue/...)
-	 *                                               - 'transition' : 'check-threshold'
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(threshold: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
+	 *
+	 * @param array<string,mixed> $threshold The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True if the transition is allowed; false blocks it (HTTP 422).
 	 *
 	 * @spec openspec/changes/attendance-threshold-calculation/specs/attendance/spec.md#scenario-a-guarded-manual-check-below-the-limit-is-refused
 	 */
-	public function check(array &$transitionContext): bool {
-		$threshold = $transitionContext['object'] ?? [];
+	private function allows(array $threshold): bool {
 
 		$learnerId = (string)($threshold['checkedLearnerId'] ?? '');
 		if ($learnerId === '') {
@@ -116,5 +141,5 @@ class AttendanceThresholdCrossingGuard {
 
 		return true;
 
-	}//end check()
+	}//end allows()
 }//end class

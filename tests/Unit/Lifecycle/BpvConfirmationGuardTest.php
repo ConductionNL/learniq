@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Lifecycle\BpvConfirmationGuard;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -31,6 +32,8 @@ use Psr\Log\LoggerInterface;
  * Tests for the BpvConfirmationGuard lifecycle guard (sbb-verification-pending → confirmed).
  */
 class BpvConfirmationGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build a guard with a stub logger.
@@ -47,14 +50,13 @@ class BpvConfirmationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testVerifiedStatusAllowsConfirm(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'placement-1',
 				'trainingCompanyVerification' => ['status' => 'verified', 'erkenningNumber' => 'SBB-123'],
-			],
-		];
+				'lifecycle' => 'confirmed',
+			];
 
-		$this->assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'confirm', ''));
 
 	}//end testVerifiedStatusAllowsConfirm()
 
@@ -65,14 +67,13 @@ class BpvConfirmationGuardTest extends TestCase {
 	 */
 	public function testNonVerifiedStatusesBlockConfirm(): void {
 		foreach (['unverified', 'pending', 'rejected', 'expired'] as $status) {
-			$context = [
-				'object' => [
+			$object = [
 					'id' => 'placement-1',
 					'trainingCompanyVerification' => ['status' => $status],
-				],
-			];
+					'lifecycle' => 'confirmed',
+				];
 
-			$this->assertFalse($this->makeGuard()->check($context), "status '{$status}' should block confirm");
+			self::assertDenied($this->makeGuard()->check($object, 'confirm', ''), "status '{$status}' should block confirm");
 		}
 
 	}//end testNonVerifiedStatusesBlockConfirm()
@@ -83,9 +84,9 @@ class BpvConfirmationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testMissingVerificationBlockFailsClosed(): void {
-		$context = ['object' => ['id' => 'placement-1']];
+		$object = ['id' => 'placement-1', 'lifecycle' => 'confirmed'];
 
-		$this->assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'confirm', ''));
 
 	}//end testMissingVerificationBlockFailsClosed()
 
@@ -95,9 +96,9 @@ class BpvConfirmationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNonArrayVerificationBlockFailsClosed(): void {
-		$context = ['object' => ['id' => 'placement-1', 'trainingCompanyVerification' => 'verified']];
+		$object = ['id' => 'placement-1', 'trainingCompanyVerification' => 'verified', 'lifecycle' => 'confirmed'];
 
-		$this->assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'confirm', ''));
 
 	}//end testNonArrayVerificationBlockFailsClosed()
 }//end class

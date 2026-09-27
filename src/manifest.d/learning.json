@@ -134,6 +134,25 @@
 					}
 				},
 				{
+					"id": "CareTeamOverviewMenu",
+					"label": "Care team overview",
+					"icon": "AccountHeartOutline",
+					"route": "LearningPlans",
+					"query": {
+						"lifecycle": "active"
+					},
+					"order": 31,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "GroupPlans",
 					"label": "Group plans",
 					"icon": "AccountGroupOutline",
@@ -156,6 +175,39 @@
 					"icon": "CommentOutline",
 					"route": "SupportRequests",
 					"order": 35,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "TrajectoriesMenu",
+					"label": "Trajectories",
+					"icon": "MapMarkerPath",
+					"route": "Trajectories",
+					"order": 36,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "ObservationInstrumentsMenu",
+					"label": "Observation instruments",
+					"icon": "EyeOutline",
+					"route": "ObservationInstruments",
+					"order": 37,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
@@ -1877,7 +1929,20 @@
 			"title": "Cohorts",
 			"config": {
 				"register": "learniq",
-				"schema": "Cohort"
+				"schema": "Cohort",
+				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly so the platform's built-in mass import/export/copy/delete is a documented capability of this index, not an implicit default (findings 12.6/14.7).",
+				"columns": [
+					"name",
+					"period",
+					"academicYear",
+					"lifecycle"
+				],
+				"actionToggles": {
+					"showMassImport": true,
+					"showMassExport": true,
+					"showMassCopy": true,
+					"showMassDelete": true
+				}
 			}
 		},
 		{
@@ -3808,10 +3873,19 @@
 			"config": {
 				"register": "learniq",
 				"schema": "item-bank",
-				"_note": "An Item Bank is a reusable pool of assessment questions grouped by subject. Body leads with the bank metadata (8-wide) and a Related panel. The constituent Items render as a wide related-index (the bank's actual content), with a total-items KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"_note": "An Item Bank is a reusable pool of assessment questions grouped by subject. Body leads with the bank metadata (8-wide) and a Related panel. The constituent Items render as a wide related-index (the bank's actual content), with a total-items KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. assessment-completeness (finding 6.3): headerActions adds a QTI export trigger for the already-built, unit-tested QtiExportController/qti-export route — the id is `export-qti`, not `export`, because a bare `export` header-action id is dropped at render time to avoid shadowing the built-in.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"headerActions": [
+					{
+						"id": "export-qti",
+						"label": "Export QTI package",
+						"icon": "PackageDown",
+						"type": "navigate",
+						"target": "/apps/learniq/api/assessment/qti-export?itemBankId=@objectId"
+					}
+				],
 				"widgets": [
 					{
 						"id": "ibank-data",
@@ -4124,6 +4198,45 @@
 						"type": "related",
 						"title": "Related",
 						"icon": "LinkVariant"
+					},
+					{
+						"id": "ass-accommodations",
+						"type": "object-list",
+						"title": "Exam accommodations",
+						"content": {
+							"register": "learniq",
+							"schema": "exam-accommodation",
+							"filter": {
+								"assessmentId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "accommodationKind",
+									"label": "Kind"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "ExamAccommodationDetail",
+							"viewAllRoute": "ExamAccommodations",
+							"viewAllQuery": {
+								"assessmentId": "@objectId"
+							},
+							"emptyText": "No accommodations found for this assessment.",
+							"allowCreate": false
+						},
+						"icon": "AccountHeartOutline"
 					}
 				],
 				"layout": [
@@ -4160,6 +4273,15 @@
 						"gridX": 6,
 						"gridY": 5,
 						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "ass-accommodations",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
 					}
@@ -5376,7 +5498,15 @@
 			"title": "Learning plans",
 			"config": {
 				"register": "learniq",
-				"schema": "learning-plan"
+				"schema": "learning-plan",
+				"_note": "care-and-support-index: columns[] added so the care team's own read (learner, kind, coordinator, lifecycle, next review date) does not need a second index page over the same schema (ADR-097 Decision 5, ratchet gate-68 duplicate-index-pages). The CareTeamOverviewMenu nav entry deep-links here with a lifecycle=active query preset (menu[].query, the documented role-lens mechanism) rather than duplicating this page.",
+				"columns": [
+					"learnerId",
+					"kind",
+					"coordinatorId",
+					"lifecycle",
+					"nextReviewAt"
+				]
 			}
 		},
 		{
@@ -6664,6 +6794,280 @@
 			}
 		},
 		{
+			"id": "Trajectories",
+			"route": "/trajectories",
+			"type": "index",
+			"title": "Trajectories",
+			"config": {
+				"register": "learniq",
+				"schema": "trajectory"
+			}
+		},
+		{
+			"id": "TrajectoryDetail",
+			"route": "/trajectories/:id",
+			"type": "detail",
+			"title": "Trajectory",
+			"config": {
+				"register": "learniq",
+				"schema": "trajectory",
+				"_note": "care-and-support-index: a Trajectory tracks a bovenschoolse-voorziening placement (OPDC, rebound), referral -> preparation -> scheduled -> running -> stopped, extending SupportRequest's pattern via a nullable back-reference rather than duplicating it. Body leads with the trajectory data (8-wide) and a Related panel resolving the learner and optional SupportRequest; TrajectoryStatusUpdates render as a wide, append-only related-index (the status log a care team reads chronologically). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "traj-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "MapMarkerPath"
+					},
+					{
+						"id": "traj-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					},
+					{
+						"id": "traj-status-updates",
+						"type": "object-list",
+						"title": "Status updates",
+						"content": {
+							"register": "learniq",
+							"schema": "trajectory-status-update",
+							"filter": {
+								"trajectoryId": "@objectId"
+							},
+							"sort": {
+								"field": "recordedAt",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "recordedAt",
+									"label": "Recorded At"
+								},
+								{
+									"key": "recordedBy",
+									"label": "Recorded By"
+								},
+								{
+									"key": "note",
+									"label": "Note"
+								}
+							],
+							"rowRoute": "TrajectoryStatusUpdateDetail",
+							"viewAllRoute": "TrajectoryStatusUpdates",
+							"viewAllQuery": {
+								"trajectoryId": "@objectId"
+							},
+							"emptyText": "No status updates found.",
+							"allowCreate": true
+						},
+						"icon": "ClipboardTextClockOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "traj-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "traj-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "traj-status-updates",
+						"gridX": 0,
+						"gridY": 5,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "TrajectoryStatusUpdates",
+			"route": "/trajectories/:trajectoryId/status-updates",
+			"type": "index",
+			"title": "Trajectory status updates",
+			"config": {
+				"register": "learniq",
+				"schema": "trajectory-status-update",
+				"filter": {
+					"trajectoryId": "@route.trajectoryId"
+				},
+				"selectable": false,
+				"showEditAction": false,
+				"showCopyAction": false,
+				"showDeleteAction": false,
+				"showMassImport": false,
+				"showMassCopy": false,
+				"showMassDelete": false
+			}
+		},
+		{
+			"id": "TrajectoryStatusUpdateDetail",
+			"route": "/trajectories/:trajectoryId/status-updates/:id",
+			"type": "detail",
+			"title": "Trajectory status update",
+			"config": {
+				"register": "learniq",
+				"schema": "trajectory-status-update",
+				"_note": "care-and-support-index: an append-only status-log entry on a Trajectory (ADR-008), mirroring LearningPlanEvaluation/DeliberationRecord's append-only precedent. Read-only once recorded, per the schema's appendOnly:true declaration.",
+				"widgets": [
+					{
+						"id": "tsu-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "ClipboardTextClockOutline"
+					},
+					{
+						"id": "tsu-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "tsu-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "tsu-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true
+				}
+			}
+		},
+		{
+			"id": "ObservationInstruments",
+			"route": "/observation-instruments",
+			"type": "index",
+			"title": "Observation instruments",
+			"config": {
+				"register": "learniq",
+				"schema": "observation-instrument"
+			}
+		},
+		{
+			"id": "ObservationInstrumentDetail",
+			"route": "/observation-instruments/:id",
+			"type": "detail",
+			"title": "Observation instrument",
+			"config": {
+				"register": "learniq",
+				"schema": "observation-instrument",
+				"_note": "care-and-support-index: structured kleuter (groep 1-2) leerlijn observation, per learner per period, mirroring IEP's documented observatie-instrument. A standing record, not a workflow (lifecycle is active/archived only). Body leads with the instrument data (entries[] renders via the generic data widget's nested-array support, 8-wide) and a Related panel resolving the learner. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "oi-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "EyeOutline"
+					},
+					{
+						"id": "oi-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "oi-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "oi-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
 			"id": "MarkAttendanceView",
 			"route": "/sessions/:sessionId/attendance",
 			"type": "custom",
@@ -6803,7 +7207,20 @@
 			"title": "Report cards",
 			"config": {
 				"register": "learniq",
-				"schema": "report-card"
+				"schema": "report-card",
+				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly, see Cohorts' note.",
+				"columns": [
+					"learnerId",
+					"cohortId",
+					"lifecycle",
+					"composedAt"
+				],
+				"actionToggles": {
+					"showMassImport": true,
+					"showMassExport": true,
+					"showMassCopy": true,
+					"showMassDelete": true
+				}
 			}
 		},
 		{

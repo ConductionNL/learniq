@@ -55,6 +55,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -65,7 +67,14 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
  */
-class FeeItemVoluntaryEntitlementGuard {
+class FeeItemVoluntaryEntitlementGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'This entitlement belongs to a voluntary fee, so it can never be granted.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const FEE_ITEM_SCHEMA = 'fee-item';
@@ -89,20 +98,37 @@ class FeeItemVoluntaryEntitlementGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(entitlement: $object) === false) {
+			return GuardResult::deny(self::DENIAL);
+		}
+
+		// Voluntary check passed: compose the payment-status check.
+		return $this->orderPaidGuard->check($object, $action, $userId);
+	}//end check()
+
+	/**
 	 * Refuse the `grant` transition unconditionally for a voluntary FeeItem;
 	 * otherwise delegate to the composed EntitlementOrderPaidGuard.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the Entitlement data array
-	 *                                               - 'transition' : 'grant'
+	 * @param array<string,mixed> $entitlement The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True only when the linked FeeItem is non-voluntary AND the
 	 *              linked Order is paid; false blocks the transition (HTTP 422).
 	 *
 	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
 	 */
-	public function check(array &$transitionContext): bool {
-		$entitlement = $transitionContext['object'] ?? [];
+	private function allows(array $entitlement): bool {
 		$entitlementId = $entitlement['id'] ?? ($entitlement['uuid'] ?? '');
 		$feeItemId = $entitlement['feeItemId'] ?? null;
 
@@ -132,9 +158,8 @@ class FeeItemVoluntaryEntitlementGuard {
 			return false;
 		}
 
-		// Voluntary check passed — compose the payment-status check.
-		return $this->orderPaidGuard->check($transitionContext);
-	}//end check()
+		return true;
+	}//end allows()
 
 	/**
 	 * Fetch the linked FeeItem by id.

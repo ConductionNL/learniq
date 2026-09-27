@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\FraudCaseBlockGuard;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -34,6 +35,8 @@ use Psr\Log\LoggerInterface;
  * Tests for the FraudCaseBlockGuard (GradeEntry publish/republish).
  */
 class FraudCaseBlockGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build a guard whose ObjectService::find() returns the given FraudCase (or null).
@@ -59,9 +62,9 @@ class FraudCaseBlockGuardTest extends TestCase {
 	 */
 	public function testNoFraudCaseIdAllowsUnconditionally(): void {
 		$guard = $this->makeGuard(fraudCase: null);
-		$context = ['object' => ['id' => 'entry-1']];
+		$object = ['id' => 'entry-1', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 
 	}//end testNoFraudCaseIdAllowsUnconditionally()
 
@@ -75,9 +78,9 @@ class FraudCaseBlockGuardTest extends TestCase {
 	public function testOpenFraudCaseBlocksPublish(): void {
 		foreach (['reported', 'hearing-scheduled', 'heard'] as $state) {
 			$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => $state]);
-			$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
+			$object = ['id' => 'entry-1', 'fraudCaseId' => 'case-1', 'lifecycle' => 'published'];
 
-			self::assertFalse($guard->check($context), "state '{$state}' should block publish");
+			self::assertDenied($guard->check($object, 'publish', ''), "state '{$state}' should block publish");
 		}
 
 	}//end testOpenFraudCaseBlocksPublish()
@@ -91,9 +94,9 @@ class FraudCaseBlockGuardTest extends TestCase {
 	 */
 	public function testDecidedFraudProvenBlocksPublishPermanently(): void {
 		$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'fraud-proven']);
-		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
+		$object = ['id' => 'entry-1', 'fraudCaseId' => 'case-1', 'lifecycle' => 'published'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testDecidedFraudProvenBlocksPublishPermanently()
 
@@ -106,9 +109,9 @@ class FraudCaseBlockGuardTest extends TestCase {
 	 */
 	public function testDecidedUnfoundedAllowsPublish(): void {
 		$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'unfounded']);
-		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
+		$object = ['id' => 'entry-1', 'fraudCaseId' => 'case-1', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 
 	}//end testDecidedUnfoundedAllowsPublish()
 
@@ -119,9 +122,9 @@ class FraudCaseBlockGuardTest extends TestCase {
 	 */
 	public function testDismissedFraudCaseAllowsPublish(): void {
 		$guard = $this->makeGuard(fraudCase: ['id' => 'case-1', 'lifecycle' => 'dismissed']);
-		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-1']];
+		$object = ['id' => 'entry-1', 'fraudCaseId' => 'case-1', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 
 	}//end testDismissedFraudCaseAllowsPublish()
 
@@ -132,9 +135,9 @@ class FraudCaseBlockGuardTest extends TestCase {
 	 */
 	public function testUnresolvableFraudCaseFailsClosed(): void {
 		$guard = $this->makeGuard(fraudCase: null);
-		$context = ['object' => ['id' => 'entry-1', 'fraudCaseId' => 'case-missing']];
+		$object = ['id' => 'entry-1', 'fraudCaseId' => 'case-missing', 'lifecycle' => 'published'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testUnresolvableFraudCaseFailsClosed()
 }//end class

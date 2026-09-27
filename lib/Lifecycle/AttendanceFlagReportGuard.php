@@ -38,6 +38,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -48,7 +50,14 @@ use Psr\Log\LoggerInterface;
  * DataExchangeJob has reached `succeeded` state. When no job is linked,
  * allows the transition unconditionally (manual report).
  */
-class AttendanceFlagReportGuard {
+class AttendanceFlagReportGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'The linked data exchange job has not succeeded, so this flag can not be marked as reported.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const DATA_EXCHANGE_JOB_SCHEMA = 'data-exchange-job';
@@ -68,6 +77,27 @@ class AttendanceFlagReportGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Allow the `in-handling → reported` transition.
 	 *
 	 * Returns true when:
@@ -78,18 +108,13 @@ class AttendanceFlagReportGuard {
 	 * - The linked DataExchangeJob is not yet `succeeded` (queued, running, pending-parent-review, failed, partial).
 	 * - The linked DataExchangeJob cannot be found.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the AttendanceFlag data array
-	 *                                               - 'transition' : 'report'
-	 *                                               - 'from'       : 'in-handling'
-	 *                                               - 'to'         : 'reported'
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True if the report transition is allowed; false otherwise.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object): bool {
 		$dataExchangeJobId = $object['dataExchangeJobId'] ?? null;
 
 		// No data exchange job linked — the flag was handled manually.
@@ -132,5 +157,5 @@ class AttendanceFlagReportGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 }//end class

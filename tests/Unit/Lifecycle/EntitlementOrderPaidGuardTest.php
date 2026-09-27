@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\EntitlementOrderPaidGuard;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -34,6 +35,8 @@ use Psr\Log\LoggerInterface;
  * Tests for the EntitlementOrderPaidGuard (Entitlement pending -> active / grant).
  */
 class EntitlementOrderPaidGuardTest extends TestCase {
+
+	use GuardVerdicts;
 	/**
 	 * Build a guard whose ObjectService::find() resolves the given OrderLine/Order fixtures.
 	 *
@@ -76,9 +79,9 @@ class EntitlementOrderPaidGuardTest extends TestCase {
 			orderLine: ['id' => 'line-1', 'orderId' => 'order-1'],
 			order: ['id' => 'order-1', 'lifecycle' => 'paid']
 		);
-		$context = ['object' => ['id' => 'ent-1', 'orderLineId' => 'line-1']];
+		$object = ['id' => 'ent-1', 'orderLineId' => 'line-1', 'lifecycle' => 'active'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'grant', ''));
 
 	}//end testPaidOrderAllowsGrant()
 
@@ -95,9 +98,9 @@ class EntitlementOrderPaidGuardTest extends TestCase {
 				orderLine: ['id' => 'line-1', 'orderId' => 'order-1'],
 				order: ['id' => 'order-1', 'lifecycle' => $state]
 			);
-			$context = ['object' => ['id' => 'ent-1', 'orderLineId' => 'line-1']];
+			$object = ['id' => 'ent-1', 'orderLineId' => 'line-1', 'lifecycle' => 'active'];
 
-			self::assertFalse($guard->check($context), "state '{$state}' should refuse grant");
+			self::assertDenied($guard->check($object, 'grant', ''), "state '{$state}' should refuse grant");
 		}
 
 	}//end testNonPaidOrderRefusesGrant()
@@ -109,9 +112,9 @@ class EntitlementOrderPaidGuardTest extends TestCase {
 	 */
 	public function testMissingOrderLineIdFailsClosed(): void {
 		$guard = $this->makeGuard(orderLine: null, order: null);
-		$context = ['object' => ['id' => 'ent-1']];
+		$object = ['id' => 'ent-1', 'lifecycle' => 'active'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'grant', ''));
 
 	}//end testMissingOrderLineIdFailsClosed()
 
@@ -122,9 +125,9 @@ class EntitlementOrderPaidGuardTest extends TestCase {
 	 */
 	public function testUnresolvableOrderLineFailsClosed(): void {
 		$guard = $this->makeGuard(orderLine: null, order: null);
-		$context = ['object' => ['id' => 'ent-1', 'orderLineId' => 'missing-line']];
+		$object = ['id' => 'ent-1', 'orderLineId' => 'missing-line', 'lifecycle' => 'active'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'grant', ''));
 
 	}//end testUnresolvableOrderLineFailsClosed()
 
@@ -138,9 +141,9 @@ class EntitlementOrderPaidGuardTest extends TestCase {
 			orderLine: ['id' => 'line-1', 'orderId' => 'missing-order'],
 			order: null
 		);
-		$context = ['object' => ['id' => 'ent-1', 'orderLineId' => 'line-1']];
+		$object = ['id' => 'ent-1', 'orderLineId' => 'line-1', 'lifecycle' => 'active'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'grant', ''));
 
 	}//end testUnresolvableOrderFailsClosed()
 }//end class
