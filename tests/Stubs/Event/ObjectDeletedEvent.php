@@ -25,13 +25,31 @@ use OCP\EventDispatcher\Event;
 /**
  * Mirror of OpenRegister's ObjectDeletedEvent for standalone Learniq unit tests.
  */
-abstract class ObjectDeletedEvent extends Event {
+class ObjectDeletedEvent extends Event {
+
+	/**
+	 * The deleted object, as it was before the delete.
+	 *
+	 * @var ObjectEntity
+	 */
+	private ObjectEntity $object;
+
+	/**
+	 * Built the way OpenRegister builds it: the deleted entity only.
+	 *
+	 * @param ObjectEntity $object The deleted object.
+	 */
+	public function __construct(ObjectEntity $object) {
+		parent::__construct();
+		$this->object = $object;
+	}//end __construct()
 
 	/**
 	 * The deleted object.
 	 *
 	 * @return ObjectEntity
 	 */
-	abstract public function getObject(): ObjectEntity;
-
+	public function getObject(): ObjectEntity {
+		return $this->object;
+	}//end getObject()
 }//end class
