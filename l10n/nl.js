@@ -1997,7 +1997,20 @@ OC.L10N.register(
         "Tenant identifier for multi-tenant isolation.": "Tenant-identificatie voor multi-tenant scheiding.",
         "Lifecycle State": "Levenscyclusstatus",
         "SchoolAdvies lifecycle state.": "Levenscyclusstatus van het schooladvies.",
-        "School advies": "Schooladvies"
+        "School advies": "Schooladvies",
+        "Confidential notes": "Vertrouwelijke notities",
+        "Confidential note": "Vertrouwelijke notitie",
+        "Case title": "Korte naam van de zaak",
+        "A short label for the case. Leave out names.": "Een korte naam voor de zaak. Laat namen weg.",
+        "What was discussed and agreed. Only you and the people you add can read it.": "Wat is besproken en afgesproken. Alleen jij en de mensen die je toevoegt kunnen dit lezen.",
+        "Written by": "Geschreven door",
+        "The confidential counsellor who keeps this note. Only this person can change or delete it.": "De vertrouwenspersoon die deze notitie bijhoudt. Alleen deze persoon kan hem wijzigen of verwijderen.",
+        "People with access": "Mensen met toegang",
+        "Colleagues you add to this case. They can read the note, nothing more.": "Collega's die je aan deze zaak toevoegt. Zij kunnen de notitie lezen, meer niet.",
+        "Open while the case runs. Closed when it is done.": "Open zolang de zaak loopt. Gesloten als hij klaar is.",
+        "Closed": "Gesloten",
+        "Destroy after": "Vernietigen na",
+        "The date after which you delete this note. Keep a note no longer than the case needs.": "De datum waarna je deze notitie verwijdert. Bewaar een notitie niet langer dan de zaak nodig heeft."
     },
     "nplurals=2; plural=(n != 1);"
 )

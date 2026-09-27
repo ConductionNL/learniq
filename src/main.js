@@ -163,6 +163,11 @@ bundledManifest.runtime = {
 		canAdminDashboard: dashboardRoles.includes('admin'),
 		canTeachDashboard: dashboardRoles.includes('teacher'),
 		canLearnDashboard: dashboardRoles.includes('student'),
+		// The confidential notes menu gates on group membership, not on
+		// primaryRole: a teacher who is also the vertrouwenspersoon keeps
+		// primaryRole 'instructor' (confidential-counsellor-channel).
+		isConfidentialCounsellor:
+			loadState('learniq', 'confidentialCounsellor', false) === true,
 	},
 }
 

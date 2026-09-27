@@ -30458,6 +30458,48 @@
         "dataExchangeJobId": null,
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "lifecycle": "voorlopig"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-1-1"
+        },
+        "title": "Voorbeeld Title 1",
+        "note": "Voorbeeld Note 1",
+        "authorId": "Voorbeeld Authorid 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "participantIds": [],
+        "status": "open",
+        "destroyAfter": "2026-03-01"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-2-2"
+        },
+        "title": "Voorbeeld Title 2",
+        "note": "Voorbeeld Note 2",
+        "authorId": "Voorbeeld Authorid 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "participantIds": [],
+        "status": "closed",
+        "destroyAfter": "2026-03-02"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-3-3"
+        },
+        "title": "Voorbeeld Title 3",
+        "note": "Voorbeeld Note 3",
+        "authorId": "Voorbeeld Authorid 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "participantIds": [],
+        "status": "open",
+        "destroyAfter": "2026-03-03"
       }
     ]
   }
