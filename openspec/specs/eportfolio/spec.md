@@ -9,8 +9,8 @@ The system MUST persist `PortfolioTemplate`, `Portfolio`, `PortfolioEntry`, `Ext
 `PortfolioShare` as OpenRegister objects. `PortfolioTemplate` MUST carry `x-openregister-lifecycle`
 (`draft → active → archived`, mirroring `LearningPlanTemplate`). `Portfolio` MUST carry a single
 `x-openregister-lifecycle` covering both flavours (`draft → active → archived` for `personal`;
-`draft → submitted → graded → archived` for `course-bound`). `PortfolioShare` MUST be `appendOnly: true`
-with its own `x-openregister-lifecycle` (`draft → active → revoked`). `PortfolioEntry` and
+`draft → submitted → graded → archived` for `course-bound`). `PortfolioShare` MUST NOT be `appendOnly`
+(its `grant` and `revoke` are updates) and carries its own `x-openregister-lifecycle` (`draft → active → revoked`). `PortfolioEntry` and
 `ExternalAssessor` are plain objects with no lifecycle of their own (mirroring `Praktijkopleider`).
 
 #### Scenario: E-portfolio objects persist in OpenRegister with the correct lifecycles
@@ -22,7 +22,7 @@ with its own `x-openregister-lifecycle` (`draft → active → revoked`). `Portf
   created
 - **THEN** it is stored as an OpenRegister object with its declared lifecycle (or none, for the two plain
   objects)
-- **AND** `PortfolioShare` is `appendOnly: true`
+- **AND** `PortfolioShare` is not `appendOnly`, so grant and revoke run
 
 ### Requirement: `Portfolio.kind` selects between a personal and a course-bound flavour on one schema
 

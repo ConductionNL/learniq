@@ -63,7 +63,7 @@ class ReportCardReopenGuardTest extends TestCase {
 	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
 	 */
 	public function testOverrideRolesAllowReopen(): void {
-		foreach (['admin', 'mentor', 'principal'] as $role) {
+		foreach (['admin', 'team-leads', 'administration-managers'] as $role) {
 			$guard = $this->makeGuard([$role]);
 			$context = ['object' => ['id' => 'card-1'], 'actor' => 'staff-1'];
 

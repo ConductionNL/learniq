@@ -21,7 +21,7 @@
     - GET  /api/objects/learniq/external-training-record/:id      (per external-training-record-kind entry)
     - GET  /api/objects/learniq/Credential/:id                  (per credential-kind entry)
     - PUT  /api/objects/learniq/Portfolio/:id                   (gradeValue)
-    - POST /api/objects/learniq/Portfolio/:id/transition/grade
+    - POST /api/objects/:id/transition           ({ action: 'grade' })
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView.vue's existing shape.
@@ -171,6 +171,7 @@
 
 <script>
 import { generateUrl } from '@nextcloud/router'
+import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 /**
  * Map from PortfolioEntry.evidenceKind to the OR schema + id field to
@@ -452,9 +453,7 @@ export default {
 					throw new Error(`Portfolio update failed: ${updateResp.status}`)
 				}
 
-				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/Portfolio/${this.id}/transition/grade`,
-				)
+				const transitionUrl = generateUrl(objectTransitionUrl(this.id))
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',
 					headers: {
@@ -462,7 +461,7 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({}),
+					body: JSON.stringify({ action: 'grade' }),
 				})
 				if (!transResp.ok) {
 					throw new Error(
