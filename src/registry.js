@@ -18,6 +18,8 @@ import AuditTrailWidget from './components/widgets/AuditTrailWidget.vue'
 // with live electiveRules/capacity feedback; every other Application/
 // AdmissionsRound/SubjectChoice screen is a declarative manifest page.
 import AdmissionsReviewBoard from './views/AdmissionsReviewBoard.vue'
+// learniq#948: score one open question for every submitted attempt in turn.
+import AssessmentScoringView from './views/AssessmentScoringView.vue'
 // parent-evening-planner: the guardian/self conversation-slot picker and the
 // coordinator's manual-override / regenerate board.
 import BookConferenceSlotsView from './views/BookConferenceSlotsView.vue'
@@ -178,6 +180,7 @@ export default {
 	FlowDetailSidebar: page(FlowDetailSidebar),
 
 	AdmissionsReviewBoard: page(AdmissionsReviewBoard),
+	AssessmentScoringView: page(AssessmentScoringView),
 	BookConferenceSlotsView: page(BookConferenceSlotsView),
 	BsaRiskDashboard: page(BsaRiskDashboard),
 	ConferenceScheduleBoard: page(ConferenceScheduleBoard),

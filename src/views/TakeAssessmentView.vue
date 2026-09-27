@@ -334,6 +334,7 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import { transitionUrl } from '../utils/manualScoring.js'
 
 export default {
 	name: 'TakeAssessmentView',
@@ -1480,8 +1481,10 @@ export default {
 				const patchUrl = generateUrl(
 					`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}`,
 				)
+				// PATCH, not PUT: a PUT replaces the object, and this body carries
+				// only the responses and submittedAt.
 				const patchResp = await fetch(patchUrl, {
-					method: 'PUT',
+					method: 'PATCH',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',
@@ -1497,18 +1500,20 @@ export default {
 				}
 
 				// Dispatch submit transition (triggers AssessmentScoringHandler).
-				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/assessment-result/${this.resultId}/transition/submit`,
-				)
-				const transitionResp = await fetch(transitionUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
+				// Open Register routes transitions at /api/objects/{id}/transition
+				// with the action in the body (learniq#948).
+				const transitionResp = await fetch(
+					generateUrl(transitionUrl(this.resultId)),
+					{
+						method: 'POST',
+						headers: {
+							'OCS-APIREQUEST': 'true',
+							Accept: 'application/json',
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({ action: 'submit' }),
 					},
-					body: JSON.stringify({}),
-				})
+				)
 				if (!transitionResp.ok) {
 					throw new Error(
 						`Submit transition failed: ${transitionResp.status}`,

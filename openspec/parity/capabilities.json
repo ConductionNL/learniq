@@ -7296,14 +7296,14 @@
       "origin": "changelog",
       "originUrl": "https://www.ilias.de/en/download-ilias/",
       "built": {
-        "state": "building",
-        "evidence": "lib/Lifecycle/AssessmentGradeGuard.php:46",
+        "state": "built",
+        "evidence": "src/views/AssessmentScoringView.vue scores one open question across every submitted attempt and grades the fully scored ones; lib/Listener/AssessmentResultIntegrityListener.php allows the manualScore write that appendOnly refused (learniq#948)",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "nothing"
+        "reachedOn": "/assessments/:assessmentId/results (header action Score open answers)"
       },
       "provider": "self",
-      "providerHow": "learniq's grade guard expects manual scores, but no learniq view writes them.",
-      "learniq": "no",
+      "providerHow": "learniq writes manual scores question by question (learniq#948), and course teachers read the attempts through the AssessmentResult authorization from learniq#949; the own rating stays partial until a teacher account has scored an attempt on a live instance.",
+      "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/quiz/report/grading/report.php:25-28 (manual grading report) and :78 slot parameter; the teacher picks one question and grades every learner's answer to it in turn, then the next question.",
         "moodle-workplace": "read 2026-09-26, rated partial by lane ruling: https://docs.moodle.org/502/en/Quiz_manual_grading_report says the manual grading report lists every manually graded question with its attempts, so marks are entered per question across learners; that describes Moodle LMS core, and Workplace is credited only through the support article https://support.moodle.com/support/solutions/articles/80001074804-difference-between-moodle-workplace-and-moodle-lms ('built on Moodle LMS and contains all its features') and the 5.2.3 release note. No Workplace page describes the question-by-question flow itself, so the reader's yes was a judgement call.",
