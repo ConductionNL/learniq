@@ -36,6 +36,7 @@ use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\Learniq\Listener\AdmissionsWaitlistPromoter;
 use OCA\Learniq\Listener\ApplicationConversionHandler;
+use OCA\Learniq\Listener\AssessmentAttemptGateListener;
 use OCA\Learniq\Listener\EnrolmentPrerequisiteListener;
 use OCA\Learniq\Listener\PaymentTransactionStatusHandler;
 use OCA\Learniq\Listener\SessionChangeNoticeHandler;
@@ -77,6 +78,16 @@ class SchedulingListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectCreatingEvent::class,
 			listener: EnrolmentPrerequisiteListener::class
+		);
+
+		// Assessment attempt gate (learniq#946): refuses an AssessmentResult
+		// create outside the Assessment's availableFrom/availableUntil window
+		// or without its access code. Same pre-write veto shape as the
+		// prerequisite gate above, and for the same reason not narrowed
+		// through ObjectEventSubscription.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: AssessmentAttemptGateListener::class
 		);
 
 		// ADR-031 legitimate exception (admissions-and-subject-choice):
