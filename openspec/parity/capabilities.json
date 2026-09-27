@@ -823,15 +823,15 @@
       "area": "compliance",
       "name": "Stop anyone editing a signed attestation afterwards.",
       "built": {
-        "state": "built",
-        "evidence": "lib/Settings/learniq_register.json Attestation.appendOnly true, HMAC signature plus signingKeyId",
+        "state": "building",
+        "evidence": "lib/Settings/learniq_register.json Attestation is no longer appendOnly (learniq#977): appendOnly refused the sign transition itself, so nothing was ever signed. lib/Lifecycle/AttestationSigningGuard.php HMAC signature plus signingKeyId makes an edit after signing detectable; nothing refuses it yet, since hr and compliance-officers keep update for revoke",
         "owner": "ConductionNL/openregister"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "compliance-evidence",
       "featureConfidence": "medium",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "no",
@@ -1409,7 +1409,7 @@
       "name": "Keep a certificate visible to its holder and your admins, nobody else.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json Credential.x-property-rbac.read, learnerId eq $userId or role admin",
+        "evidence": "lib/Settings/learniq_register.json Credential.authorization.read: learnerId eq $userId, hr, compliance-officers; admins pass the admin bypass (learniq#963; x-property-rbac is not read by Open Register, and the group-only block refused the holder until then)",
         "owner": "ConductionNL/openregister"
       },
       "provider": "openregister",
@@ -2890,11 +2890,11 @@
       "name": "Lock a finished attempt so nobody can change the answers afterwards.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json AssessmentResult.appendOnly true",
-        "owner": "ConductionNL/openregister"
+        "evidence": "lib/Listener/AssessmentResultIntegrityListener.php refuses any change to a submitted attempt's answers (FROZEN_FIELDS), makes a graded attempt final and refuses deletes; AssessmentResult is no longer appendOnly (learniq#978), tests/Unit/Listener/AssessmentResultIntegrityListenerTest.php. Finishing an attempt is itself blocked by the submit guard until learniq#983",
+        "owner": "ConductionNL/learniq"
       },
-      "provider": "openregister",
-      "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "assessment",
       "featureConfidence": "medium",
       "learniq": "yes",
@@ -3209,7 +3209,7 @@
       "name": "Let a learner hand in a file from their own drive.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.Submission references Nextcloud files; src/manifest.d/learning.json SubmitWorkModal",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.Submission references Nextcloud files; src/views/SubmitWorkView.vue creates the draft as the learner, which Submission.authorization allows since learniq#973 (create for signed-in users, update on the learner's own draft; SubmissionWindowGuard refuses a hand-in in another learner's name); src/manifest.d/learning.json SubmitWorkModal",
         "owner": "ConductionNL/learniq"
       },
       "provider": "nextcloud",
@@ -3296,7 +3296,7 @@
       "name": "Mark work against a rubric with weighted criteria.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.Rubric; src/manifest.d/learning.json MarkSubmissionView",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.Rubric; src/manifest.d/learning.json MarkSubmissionView; Submission.authorization grants instructors read and update since learniq#973",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -4166,7 +4166,7 @@
       "name": "Evaluate a plan on the agreed date and record the outcome.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.LearningPlanEvaluation, appendOnly; lib/Listener/LearningPlanEvaluationHandler.php",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.LearningPlanEvaluation (not appendOnly since learniq#977, so its record transition runs); lib/Listener/LearningPlanEvaluationHandler.php",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -4282,7 +4282,7 @@
       "name": "Log a behaviour incident and what was done about it.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.BehaviourIncident with an append-only follow-up log",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.BehaviourIncident with a follow-up log; not appendOnly since learniq#977, so its handling transitions run and the audit trail keeps each version",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -4427,7 +4427,7 @@
       "name": "Record who was consulted about a learner, and what they said.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.DeliberationRecord, append-only",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.DeliberationRecord, corrected by a new record (correctsId); not appendOnly since learniq#977, so its record transition runs",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -4603,7 +4603,7 @@
       "name": "Get a flag the moment a learner crosses that limit.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.AttendanceFlag, appendOnly; lib/Lifecycle/AttendanceFlagCreationHandler.php",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.AttendanceFlag (not appendOnly since learniq#977, so its handling transitions run); lib/Lifecycle/AttendanceFlagCreationHandler.php",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -5096,7 +5096,7 @@
       "name": "Record what was agreed in the conversation.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.ConferenceReport, append-only",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.ConferenceReport; not appendOnly since learniq#977, so its record transition runs",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -5733,15 +5733,15 @@
       "area": "governance",
       "name": "Hide one sensitive field from a role that may see the rest.",
       "built": {
-        "state": "built",
-        "evidence": "lib/Settings/learniq_register.json Credential.x-property-rbac.read is one of many per-property rules",
+        "state": "none",
+        "evidence": "lib/Settings/learniq_register.json declares no property-level authorization; x-property-rbac is row-level and OpenRegister does not read it (openregister#4064, learniq#972). OpenRegister can hide a property per group (lib/Service/PropertyRbacHandler.php) once a schema declares it",
         "owner": "ConductionNL/openregister"
       },
       "provider": "openregister",
-      "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
+      "providerHow": "OpenRegister hides a property per group when a schema declares a property authorization; learniq declares none.",
       "feature": "access-control",
       "featureConfidence": "medium",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "partial",
       "ilias": "partial",
