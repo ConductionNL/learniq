@@ -45,6 +45,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -53,7 +55,14 @@ use Psr\Log\LoggerInterface;
  * Blocks the transition unless pupilVoice.heard is true, or pupilVoice.waived
  * is true with a non-empty waiverReason.
  */
-class PupilVoiceGuard {
+class PupilVoiceGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'The pupil must have been heard, or the hearing waived with a reason, before this record is final.';
 	/**
 	 * Constructor.
 	 *
@@ -67,21 +76,37 @@ class PupilVoiceGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.3
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(record: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Allow the `scheduled → recorded` transition.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the DeliberationRecord data array
-	 *                                               - 'transition' : 'record'
-	 *                                               - 'from'       : 'scheduled'
-	 *                                               - 'to'         : 'recorded'
+	 * @param array<string,mixed> $record The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True when pupilVoice.heard is true, or pupilVoice.waived is true
 	 *              with a non-empty waiverReason; false otherwise.
 	 *
 	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-3.3
 	 */
-	public function check(array &$transitionContext): bool {
-		$record = $transitionContext['object'] ?? [];
+	private function allows(array $record): bool {
 		$recordId = $record['id'] ?? ($record['uuid'] ?? '?');
 		$pupilVoice = $record['pupilVoice'] ?? [];
 
@@ -129,5 +154,5 @@ class PupilVoiceGuard {
 		);
 
 		return false;
-	}//end check()
+	}//end allows()
 }//end class

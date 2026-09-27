@@ -43,6 +43,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -52,7 +54,14 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-entitlement-activates-once-its-order-is-fully-paid
  * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-entitlement-cannot-activate-while-its-order-is-only-partially-paid
  */
-class EntitlementOrderPaidGuard {
+class EntitlementOrderPaidGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'The order behind this entitlement is not fully paid yet.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ORDER_LINE_SCHEMA = 'order-line';
@@ -74,19 +83,38 @@ class EntitlementOrderPaidGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-entitlement-activates-once-its-order-is-fully-paid
+	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-entitlement-cannot-activate-while-its-order-is-only-partially-paid
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(entitlement: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Allow the `grant` transition only when the linked Order is `paid`.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the Entitlement data array
-	 *                                               - 'transition' : 'grant'
+	 * @param array<string,mixed> $entitlement The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True if the linked Order is paid; false blocks the transition (HTTP 422).
 	 *
 	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-entitlement-activates-once-its-order-is-fully-paid
 	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-entitlement-cannot-activate-while-its-order-is-only-partially-paid
 	 */
-	public function check(array &$transitionContext): bool {
-		$entitlement = $transitionContext['object'] ?? [];
+	private function allows(array $entitlement): bool {
 		$entitlementId = $entitlement['id'] ?? ($entitlement['uuid'] ?? '');
 		$orderLineId = $entitlement['orderLineId'] ?? null;
 
@@ -135,7 +163,7 @@ class EntitlementOrderPaidGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Fetch an object by id + schema, normalising both array and ObjectEntity

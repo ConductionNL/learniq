@@ -36,6 +36,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -46,7 +48,14 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-persist-exam-board-domain-objects-in-openregister
  */
-class FraudCaseHearingGuard {
+class FraudCaseHearingGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'A hearing date is needed to schedule the hearing.';
 	/**
 	 * Constructor.
 	 *
@@ -60,25 +69,40 @@ class FraudCaseHearingGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-persist-exam-board-domain-objects-in-openregister
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Assert the hearingDate precondition.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the
 	 * `scheduleHearing` transition on a FraudCase object.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine. Expected
-	 *                                               keys:
-	 *                                               - 'object'     : the case
-	 *                                               property array
-	 *                                               - 'transition' : 'scheduleHearing'
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True when hearingDate is set; false blocks the transition
 	 *              (HTTP 422).
 	 *
 	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-persist-exam-board-domain-objects-in-openregister
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object): bool {
 		$caseId = $object['id'] ?? ($object['uuid'] ?? '');
 		$hearingDate = $object['hearingDate'] ?? '';
 
@@ -91,5 +115,5 @@ class FraudCaseHearingGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 }//end class

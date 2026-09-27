@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\CoursePublishGuard;
 use PHPUnit\Framework\TestCase;
@@ -40,6 +41,8 @@ use Psr\Log\LoggerInterface;
  * Tests for CoursePublishGuard::check() — the Course `draft -> published` transition.
  */
 class CoursePublishGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * A Course with at least one published Lesson is allowed to publish —
@@ -54,14 +57,9 @@ class CoursePublishGuardTest extends TestCase {
 		$objectService->method('findAll')->willReturn([['id' => 'lesson-1', 'lifecycle' => 'published']]);
 
 		$guard = new CoursePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = [
-			'object' => ['id' => 'course-1', 'tenant_id' => 'tenant-a'],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+		$object = ['id' => 'course-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 
 	}//end testCourseWithPublishedLessonIsAllowedToPublish()
 
@@ -78,14 +76,9 @@ class CoursePublishGuardTest extends TestCase {
 		$objectService->method('findAll')->willReturn([]);
 
 		$guard = new CoursePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = [
-			'object' => ['id' => 'course-2', 'tenant_id' => 'tenant-a'],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+		$object = ['id' => 'course-2', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testCourseWithoutPublishedLessonIsBlocked()
 
@@ -99,9 +92,9 @@ class CoursePublishGuardTest extends TestCase {
 		$objectService->expects($this->never())->method('findAll');
 
 		$guard = new CoursePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = ['object' => [], 'transition' => 'publish', 'from' => 'draft', 'to' => 'published'];
+		$object = ['lifecycle' => 'published'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testMissingCourseIdBlocksPublish()
 
@@ -127,14 +120,9 @@ class CoursePublishGuardTest extends TestCase {
 			->willReturn([['id' => 'lesson-9', 'lifecycle' => 'published']]);
 
 		$guard = new CoursePublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = [
-			'object' => ['id' => 'course-3', 'tenant_id' => 'tenant-b'],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+		$object = ['id' => 'course-3', 'tenant_id' => 'tenant-b', 'lifecycle' => 'published'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 
 	}//end testLessonLookupIsScopedToTenant()
 }//end class

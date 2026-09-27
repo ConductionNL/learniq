@@ -35,6 +35,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
@@ -48,7 +50,14 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-the-rapportvergadering-review-lifecycle-gates-parent-visibility-behind-a-finalise-step
  */
-class ReportCardReopenGuard {
+class ReportCardReopenGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'Only an administrator, a team lead or an administration manager can reopen a finalised report card.';
 
 	/**
 	 * Groups whose members may reopen a finalised report card.
@@ -74,23 +83,41 @@ class ReportCardReopenGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the ReportCard data array
-	 *                                               - 'transition' : 'reopen'
-	 *                                               - 'actor'      : NC user ID of the requester
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object, userId: $userId) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $userId The uid of the caller.
 	 *
 	 * @return bool True when the actor holds admin/mentor/principal; false blocks it.
 	 *
 	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-mentor-reopens-a-finalised-report-card-to-correct-it-before-publication
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
-		$actor = (string)($transitionContext['actor'] ?? '');
+	private function allows(array $object, string $userId): bool {
+		$actor = $userId;
 
 		if ($actor === '') {
-			$this->logger->warning('[ReportCardReopenGuard] No actor in transitionContext — denying reopen.');
+			$this->logger->warning('[ReportCardReopenGuard] No acting user — denying reopen.');
 			return false;
 		}
 
@@ -114,5 +141,5 @@ class ReportCardReopenGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 }//end class

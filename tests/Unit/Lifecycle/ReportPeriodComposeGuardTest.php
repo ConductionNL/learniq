@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Lifecycle\ReportPeriodComposeGuard;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -32,6 +33,8 @@ use Psr\Log\LoggerInterface;
  * Tests for ReportPeriodComposeGuard (ReportPeriod open -> composed).
  */
 class ReportPeriodComposeGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build a guard with a mocked logger.
@@ -51,9 +54,9 @@ class ReportPeriodComposeGuardTest extends TestCase {
 	 */
 	public function testMaterialisedIsLockedTrueAllowsCompose(): void {
 		$guard = $this->makeGuard();
-		$context = ['object' => ['id' => 'period-1', 'isLocked' => true, 'lockDate' => '2020-01-01T00:00:00+00:00']];
+		$object = ['id' => 'period-1', 'isLocked' => true, 'lockDate' => '2020-01-01T00:00:00+00:00', 'lifecycle' => 'composed'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'compose', ''));
 
 	}//end testMaterialisedIsLockedTrueAllowsCompose()
 
@@ -66,9 +69,9 @@ class ReportPeriodComposeGuardTest extends TestCase {
 	 */
 	public function testMaterialisedIsLockedFalseBlocksCompose(): void {
 		$guard = $this->makeGuard();
-		$context = ['object' => ['id' => 'period-1', 'isLocked' => false, 'lockDate' => '2099-01-01T00:00:00+00:00']];
+		$object = ['id' => 'period-1', 'isLocked' => false, 'lockDate' => '2099-01-01T00:00:00+00:00', 'lifecycle' => 'composed'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'compose', ''));
 
 	}//end testMaterialisedIsLockedFalseBlocksCompose()
 
@@ -80,9 +83,9 @@ class ReportPeriodComposeGuardTest extends TestCase {
 	 */
 	public function testMissingMaterialisedValueFallsBackToPastLockDate(): void {
 		$guard = $this->makeGuard();
-		$context = ['object' => ['id' => 'period-1', 'lockDate' => '2020-01-01T00:00:00+00:00']];
+		$object = ['id' => 'period-1', 'lockDate' => '2020-01-01T00:00:00+00:00', 'lifecycle' => 'composed'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'compose', ''));
 
 	}//end testMissingMaterialisedValueFallsBackToPastLockDate()
 
@@ -94,9 +97,9 @@ class ReportPeriodComposeGuardTest extends TestCase {
 	 */
 	public function testMissingMaterialisedValueFallsBackToFutureLockDate(): void {
 		$guard = $this->makeGuard();
-		$context = ['object' => ['id' => 'period-1', 'lockDate' => '2099-01-01T00:00:00+00:00']];
+		$object = ['id' => 'period-1', 'lockDate' => '2099-01-01T00:00:00+00:00', 'lifecycle' => 'composed'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'compose', ''));
 
 	}//end testMissingMaterialisedValueFallsBackToFutureLockDate()
 
@@ -107,9 +110,9 @@ class ReportPeriodComposeGuardTest extends TestCase {
 	 */
 	public function testNullLockDateBlocksCompose(): void {
 		$guard = $this->makeGuard();
-		$context = ['object' => ['id' => 'period-1', 'lockDate' => null]];
+		$object = ['id' => 'period-1', 'lockDate' => null, 'lifecycle' => 'composed'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'compose', ''));
 
 	}//end testNullLockDateBlocksCompose()
 }//end class

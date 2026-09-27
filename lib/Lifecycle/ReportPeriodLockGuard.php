@@ -64,6 +64,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;
 use OCP\IUserManager;
@@ -84,7 +86,15 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/report-card-composer/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
-class ReportPeriodLockGuard {
+class ReportPeriodLockGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'This grade falls in a locked report period, and only an administrator, a team lead'
+		. ' or an administration manager can publish it now.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const REPORT_PERIOD_SCHEMA = 'report-period';
@@ -118,15 +128,40 @@ class ReportPeriodLockGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
+	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
+	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		// 1. Preserve the original fraud-case check.
+		$fraudCaseVerdict = $this->fraudCaseBlockGuard->check($object, $action, $userId);
+		if ($fraudCaseVerdict->isAllowed() === false) {
+			return $fraudCaseVerdict;
+		}
+
+		if ($this->allows(entry: $object, userId: $userId) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the
 	 * `publish`/`republish` transition on a GradeEntry object.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the GradeEntry data array
-	 *                                               - 'transition' : 'publish' or 'republish'
-	 *                                               - 'actor'      : NC user ID of the requester (when available)
+	 * @param array<string,mixed> $entry The object at its target state, transition inputs merged in.
+	 * @param string $userId The uid of the caller.
 	 *
 	 * @return bool True if the transition is allowed; false blocks it.
 	 *
@@ -134,14 +169,7 @@ class ReportPeriodLockGuard {
 	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-a-mentor-override-publishes-a-grade-for-a-locked-report-period
 	 * @spec openspec/changes/report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
 	 */
-	public function check(array &$transitionContext): bool {
-		// 1. Preserve the original fraud-case check byte-for-byte.
-		if ($this->fraudCaseBlockGuard->check($transitionContext) === false) {
-			return false;
-		}
-
-		$entry = $transitionContext['object'] ?? [];
-
+	private function allows(array $entry, string $userId): bool {
 		$period = (string)($entry['period'] ?? '');
 		$curriculumPlanId = (string)($entry['curriculumPlanId'] ?? '');
 		$tenantId = (string)($entry['tenant_id'] ?? '');
@@ -171,7 +199,7 @@ class ReportPeriodLockGuard {
 			return true;
 		}
 
-		$actor = (string)($transitionContext['actor'] ?? '');
+		$actor = $userId;
 
 		if ($this->actorMayOverride(actor: $actor) === true) {
 			$this->logger->info(
@@ -187,7 +215,7 @@ class ReportPeriodLockGuard {
 		);
 
 		return false;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Resolve the ReportPeriod (if any) governing this GradeEntry's period +
