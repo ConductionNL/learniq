@@ -104,6 +104,8 @@ class AttestationSigningGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny with what is missing.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-2
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$learnerId = (string)($object['learnerId'] ?? '');

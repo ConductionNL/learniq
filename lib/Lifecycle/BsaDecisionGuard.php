@@ -104,6 +104,8 @@ class BsaDecisionGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny naming the missing requirement.
 	 *
 	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-a-negative-bsa-decision-must-be-blocked-without-a-logged-issued-warning
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$decisionType = $object['decisionType'] ?? '';

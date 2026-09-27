@@ -118,6 +118,8 @@ class RejectionResubmitGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny with what is missing.
 	 *
 	 * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.3
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$rejectionId = $object['id'] ?? ($object['uuid'] ?? '?');

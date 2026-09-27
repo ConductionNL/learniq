@@ -107,6 +107,8 @@ class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny when the caller or the job does not qualify.
 	 *
 	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-2.2
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$target = (string)($object['target'] ?? '');

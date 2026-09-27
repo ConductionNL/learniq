@@ -91,6 +91,8 @@ class ExamAccommodationApprovalGuard implements LifecycleGuardInterface {
 	 *
 	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-requests-an-accommodation-and-a-mentor-approves-it
 	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-cannot-self-approve-their-own-accommodation
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		if ($userId === '') {

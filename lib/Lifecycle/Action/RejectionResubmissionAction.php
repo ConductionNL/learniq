@@ -74,6 +74,8 @@ class RejectionResubmissionAction implements LifecycleActionInterface {
 	 * @throws RuntimeException When there is no session user, the source or originating job can not be resolved, or the save yields no id.
 	 *
 	 * @spec openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-resubmit-creates-exactly-one-scoped-job-and-stamps-the-link
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleActionInterface's.
 	 */
 	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
 		$rejectionId = (string)($objectData['id'] ?? ($objectData['uuid'] ?? '?'));

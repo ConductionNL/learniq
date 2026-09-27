@@ -99,6 +99,8 @@ class OsoImportAcceptGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny when the caller may not accept.
 	 *
 	 * @spec openspec/changes/oso-inbound-contract/tasks.md#task-2
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		if ($userId === '') {

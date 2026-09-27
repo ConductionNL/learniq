@@ -60,6 +60,8 @@ class FraudCaseAppealDeadlineAction implements LifecycleActionInterface {
 	 * @return array<string,mixed> The FraudCase with decidedAt and appealDeadline set.
 	 *
 	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-a-42-day-appeal-deadline
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleActionInterface's.
 	 */
 	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
 		$now = new DateTimeImmutable('now', new DateTimeZone('UTC'));

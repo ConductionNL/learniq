@@ -106,6 +106,8 @@ class FraudCaseDecisionGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny with what is missing.
 	 *
 	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#requirement-fraudcase-decisions-require-a-verdict-rationale-and-when-fraud-is-proven-a-capped-sanction
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$caseId = $object['id'] ?? ($object['uuid'] ?? '');

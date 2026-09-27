@@ -92,6 +92,8 @@ class BsaWarningSigningGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny with what is missing.
 	 *
 	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-the-formal-warning-captures-improvement-period-guidance-and-personal-circumstances-and-is-signed-evidence
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$tenantId = (string)($object['tenant_id'] ?? '');

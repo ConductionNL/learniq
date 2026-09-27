@@ -74,6 +74,8 @@ class StampTransitionActorAction implements LifecycleActionInterface {
 	 * @throws RuntimeException When no actorField is declared or there is no session user.
 	 *
 	 * @spec openspec/specs/external-training-recording/spec.md#requirement-verification-must-be-gated-and-tamper-resistant
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleActionInterface's.
 	 */
 	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
 		$actorField = $parameters['actorField'] ?? null;

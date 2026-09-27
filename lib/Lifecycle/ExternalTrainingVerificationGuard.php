@@ -101,6 +101,8 @@ class ExternalTrainingVerificationGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny with what is missing.
 	 *
 	 * @spec openspec/changes/external-training-recording/tasks.md
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$submittedBy = (string)($object['submittedBy'] ?? '');
