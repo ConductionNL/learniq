@@ -141,6 +141,7 @@ class ReportCardPublishHandlerTest extends TestCase {
 	 * @return void
 	 *
 	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+	 * @spec openspec/changes/learner-lookup-and-learnerrefs-fixes/specs/report-card/spec.md#requirement-report-card-parent-notifications-find-the-learners-profile-on-ncuserid
 	 */
 	public function testTwoParentsYieldTwoNotificationsWithDistinctIdempotencyKeys(): void {
 		$now = new DateTime('2026-07-13T09:00:00+00:00');
