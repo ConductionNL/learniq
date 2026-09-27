@@ -125,6 +125,17 @@ class BootListenerRegistrar {
 			schemas: ['lesson-completion']
 		);
 
+		// Updates too (learniq#945): a re-completion within the same enrolment
+		// or a changed score updates the existing row, and progress must follow.
+		$this->registerFilteredObjectListener(
+			dispatcher: $dispatcher,
+			appId: $appId,
+			event: ObjectUpdatedEvent::class,
+			listener: EnrolmentProgressRollupHandler::class,
+			registers: ['learniq'],
+			schemas: ['lesson-completion']
+		);
+
 		$this->registerAnalyticsListeners(dispatcher: $dispatcher, appId: $appId);
 
 	}//end register()
