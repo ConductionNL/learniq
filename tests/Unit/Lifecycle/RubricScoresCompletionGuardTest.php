@@ -24,8 +24,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\Lifecycle\LearnerCaller;
 use OCA\Learniq\Lifecycle\RubricScoresCompletionGuard;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCP\IGroupManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -84,7 +86,7 @@ class RubricScoresCompletionGuardTest extends TestCase {
 			}
 		);
 
-		return new RubricScoresCompletionGuard($objectService, $this->createMock(LoggerInterface::class));
+		return new RubricScoresCompletionGuard($objectService, $this->createMock(LoggerInterface::class), new LearnerCaller($this->createMock(IGroupManager::class)));
 	}//end makeGuard()
 
 	/**
@@ -109,7 +111,7 @@ class RubricScoresCompletionGuardTest extends TestCase {
 			],
 		];
 
-		self::assertTrue($guard->check($context));
+		self::assertTrue($guard->check($context['object'], 'submit', '')->isAllowed());
 	}//end testCompleteCoverageAllowsSubmitForPeerReview()
 
 	/**
@@ -133,7 +135,7 @@ class RubricScoresCompletionGuardTest extends TestCase {
 			],
 		];
 
-		self::assertFalse($guard->check($context));
+		self::assertFalse($guard->check($context['object'], 'submit', '')->isAllowed());
 	}//end testIncompleteCoverageBlocksSubmitForPeerReview()
 
 	/**
@@ -164,7 +166,7 @@ class RubricScoresCompletionGuardTest extends TestCase {
 			],
 		];
 
-		self::assertTrue($guard->check($context));
+		self::assertTrue($guard->check($context['object'], 'submit', '')->isAllowed());
 	}//end testCompleteCoverageAndValidLearnerAllowsSubmitForSelfAssessment()
 
 	/**
@@ -195,7 +197,7 @@ class RubricScoresCompletionGuardTest extends TestCase {
 			],
 		];
 
-		self::assertFalse($guard->check($context));
+		self::assertFalse($guard->check($context['object'], 'submit', '')->isAllowed());
 	}//end testLearnerNotOnSubmissionBlocksSubmitForSelfAssessment()
 
 	/**
@@ -215,7 +217,7 @@ class RubricScoresCompletionGuardTest extends TestCase {
 			],
 		];
 
-		self::assertTrue($guard->check($context));
+		self::assertTrue($guard->check($context['object'], 'submit', '')->isAllowed());
 	}//end testNoRubricOnAssignmentAllowsSubmitWithEmptyScores()
 
 	/**
@@ -227,6 +229,6 @@ class RubricScoresCompletionGuardTest extends TestCase {
 		$guard = $this->makeGuard(null, null, null);
 		$context = ['object' => ['id' => 'pr-1', 'reviewerId' => 'teacher-uid', 'rubricScores' => []]];
 
-		self::assertFalse($guard->check($context));
+		self::assertFalse($guard->check($context['object'], 'submit', '')->isAllowed());
 	}//end testMissingAssignmentIdFailsClosed()
 }//end class

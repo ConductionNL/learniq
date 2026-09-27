@@ -47,7 +47,7 @@ use Psr\Log\LoggerInterface;
  * Guards the ExchangeRejection `open|corrected → waived` transition.
  *
  * The transition proceeds only when BOTH of the following hold:
- *   1. The acting user is in one of the authorised groups (`admin`, `coordinator`).
+ *   1. The acting user is in one of the authorised groups (`admin`, `coordinators`).
  *   2. `transitionContext['payload']['waiveReason']` is a non-empty string.
  *
  * On success it stamps `waivedBy` (always the acting user, never a
@@ -66,7 +66,7 @@ class RejectionWaiveGuard {
 	 */
 	private const AUTHORISED_GROUPS = [
 		'admin',
-		'coordinator',
+		'coordinators',
 	];
 
 	/**

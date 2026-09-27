@@ -29,6 +29,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\AssessmentResultIntegrityListener;
+use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
+use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectDeletingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
@@ -62,6 +64,18 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectDeletingEvent::class,
 			listener: AssessmentResultIntegrityListener::class
+		);
+
+		// PortfolioEntry ownership (learniq#981): every learner may create an
+		// entry, so a non-staff caller may only write one in their own name
+		// into their own portfolio.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: PortfolioEntryOwnershipListener::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: PortfolioEntryOwnershipListener::class
 		);
 	}//end register()
 }//end class
