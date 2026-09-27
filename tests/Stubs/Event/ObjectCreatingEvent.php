@@ -40,6 +40,11 @@ class ObjectCreatingEvent extends Event implements StoppableEventInterface {
 	private array $errors = [];
 
 	/**
+	 * @var array<string, mixed>
+	 */
+	private array $modifiedData = [];
+
+	/**
 	 * @param ObjectEntity $object The object entity being created.
 	 */
 	public function __construct(ObjectEntity $object) {
@@ -83,4 +88,20 @@ class ObjectCreatingEvent extends Event implements StoppableEventInterface {
 	public function getErrors(): array {
 		return $this->errors;
 	}//end getErrors()
+
+	/**
+	 * @param array<string, mixed> $data Data merged into the object before insert.
+	 *
+	 * @return void
+	 */
+	public function setModifiedData(array $data): void {
+		$this->modifiedData = $data;
+	}//end setModifiedData()
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function getModifiedData(): array {
+		return $this->modifiedData;
+	}//end getModifiedData()
 }//end class
