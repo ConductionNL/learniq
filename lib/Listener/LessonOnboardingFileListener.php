@@ -225,9 +225,12 @@ class LessonOnboardingFileListener implements IEventListener {
 	private function alreadyRecorded(string $teacherId, int $fileId): bool {
 		$existing = $this->objectService->findAll(
 			config: [
-				'register' => self::REGISTER,
-				'schema' => self::SCHEMA,
-				'filters' => ['teacherId' => $teacherId, 'fileId' => $fileId],
+				'filters' => [
+					'register' => self::REGISTER,
+					'schema' => self::SCHEMA,
+					'teacherId' => $teacherId,
+					'fileId' => $fileId,
+				],
 				'limit' => 1,
 			],
 			_rbac: false,

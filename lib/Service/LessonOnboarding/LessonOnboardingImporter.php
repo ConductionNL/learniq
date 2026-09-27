@@ -258,7 +258,14 @@ class LessonOnboardingImporter {
 	private function nextOrder(string $courseId): int {
 		$highest = 0;
 		$lessons = $this->objectService->findAll(
-			config: ['register' => self::REGISTER, 'schema' => 'lesson', 'filters' => ['courseId' => $courseId], 'limit' => 1000]
+			config: [
+				'filters' => [
+					'register' => self::REGISTER,
+					'schema' => 'lesson',
+					'courseId' => $courseId,
+				],
+				'limit' => 1000,
+			]
 		);
 		foreach ($lessons as $lesson) {
 			if (is_object($lesson) === true && method_exists($lesson, 'jsonSerialize') === true) {

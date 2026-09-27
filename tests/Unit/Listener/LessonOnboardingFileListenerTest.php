@@ -252,7 +252,8 @@ class LessonOnboardingFileListenerTest extends TestCase {
 	public function testAFileRecordedBeforeIsNotRecordedTwice(): void {
 		$this->folderSetting->method('folderId')->willReturn(self::FOLDER_ID);
 		$this->objectService->expects($this->once())->method('findAll')->with(
-			$this->callback(static fn (array $config): bool => $config['filters'] === ['teacherId' => 'jdevries', 'fileId' => 99]),
+			$this->callback(static fn (array $config): bool => ($config['filters']['schema'] ?? null) === 'lesson-onboarding-file'
+				&& array_diff_key($config['filters'], ['register' => true, 'schema' => true]) === ['teacherId' => 'jdevries', 'fileId' => 99]),
 			false,
 			false
 		)->willReturn([['id' => 'existing']]);
