@@ -2407,7 +2407,10 @@ OC.L10N.register(
         "Placement coordinator": "Stagecoördinator",
         "Confidential counsellor": "Vertrouwenspersoon",
         "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.": "De functies die deze persoon op school heeft. Een functie beschrijft het werk en geeft geen toegang. Toegang komt uit de groepen van de persoon.",
-        "Administrative staff": "Administratief medewerker"
+        "Administrative staff": "Administratief medewerker",
+        "The course store is busy. Try again in a few minutes.": "De cursuswinkel heeft het druk. Probeer het over een paar minuten opnieuw.",
+        "You may not publish courses to the store. Your administrator decides who may.": "Je mag geen cursussen in de winkel publiceren. Je beheerder bepaalt wie dat mag.",
+        "This server cannot publish to a course store yet. Ask your administrator to update OpenRegister.": "Deze server kan nog niet publiceren naar een cursuswinkel. Vraag je beheerder OpenRegister bij te werken."
     },
     "nplurals=2; plural=(n != 1);"
 )

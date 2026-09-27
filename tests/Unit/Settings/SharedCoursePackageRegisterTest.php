@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Settings;
 
+use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CourseStore\CourseStoreDescriptor;
 use OCA\Learniq\Service\CourseStore\CourseStoreRegistryObject;
 use PHPUnit\Framework\TestCase;
@@ -99,7 +100,7 @@ class SharedCoursePackageRegisterTest extends TestCase {
 			self::assertArrayHasKey($field, $seed);
 		}
 
-		self::assertTrue((new CourseStoreDescriptor())->isCourseSlug($seed['slug']));
+		self::assertTrue((new CourseStoreDescriptor($this->createMock(ActionAuthService::class)))->isCourseSlug($seed['slug']));
 		self::assertArrayHasKey('course', $seed['package']);
 		self::assertSame('CC-BY-SA-4.0', $seed['package']['course']['license']);
 	}//end testTheSeedRowIsAnImportablePackage()
