@@ -100,6 +100,24 @@
 					}
 				},
 				{
+					"id": "CurriculumCoverageMenu",
+					"label": "Curriculum coverage",
+					"icon": "TableCheck",
+					"route": "CurriculumCoverageMatrix",
+					"order": 21,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "CourseTemplatesMenu",
 					"label": "Course templates",
 					"icon": "FileReplaceOutline",
@@ -250,6 +268,14 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate"
+							]
 						}
 					}
 				},
@@ -266,6 +292,14 @@
 								"guardian",
 								"coordinator",
 								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate"
 							]
 						}
 					}
@@ -464,6 +498,15 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate",
+								"training"
 							]
 						}
 					}
@@ -1682,6 +1725,14 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "CurriculumCoverageMatrix",
+			"route": "/curriculum/coverage",
+			"type": "custom",
+			"title": "Curriculum coverage",
+			"component": "CurriculumCoverageMatrixView",
+			"_note": "curriculum-coverage-matrix-view: the one custom view for reading curriculum coverage. A read-only CnDataMatrix of a framework's goals (rows, grouped under their domains) by year label (columns), each cell saying planned, assessed, both or neither, plus the gap list per subject and year. Reads the CurriculumCoverage rows curriculum-coverage-rollup keeps current; computes nothing. A menu entry next to Curriculum, deliberately NOT a Reports card (ADR-112: a report is a card or an entry, never both)."
 		},
 		{
 			"id": "CurriculumPlans",
@@ -3483,6 +3534,26 @@
 						"showTitle": false
 					}
 				],
+				"bodyWidgets": [
+					{
+						"id": "asn-hand-in",
+						"component": "AssignmentHandInStatus",
+						"title": "Hand-in status",
+						"placement": "after-data",
+						"props": {
+							"assignmentId": "@objectId"
+						}
+					},
+					{
+						"id": "asn-peer-review",
+						"component": "AssignmentPeerReviewAllocation",
+						"title": "Peer review",
+						"placement": "after-data",
+						"props": {
+							"assignmentId": "@objectId"
+						}
+					}
+				],
 				"sidebar": {
 					"enabled": true,
 					"showMetadata": true,
@@ -3523,6 +3594,24 @@
 				"register": "learniq",
 				"schema": "Submission",
 				"readOnly": true,
+				"lifecycleActions": {
+					"field": "lifecycle",
+					"transitions": [
+						{
+							"from": "returned",
+							"to": "draft",
+							"action": "reopen",
+							"label": "Ask to hand in again",
+							"variant": "secondary",
+							"inputs": [
+								{
+									"field": "resubmissionDueAt",
+									"required": true
+								}
+							]
+						}
+					]
+				},
 				"_note": "A Submission is a learner's handed-in work for an assignment (attachments, feedback, rubric scores, proposed grade, linked grade entry) — a result/score record. Body leads with the submission data including feedback and rubric scores (8-wide), a proposed-grade KPI stat, and a Related panel resolving the assignment and grade entry. The submitted work renders as a Files leaf (attachments are the point of a submission). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"widgets": [
 					{
@@ -3697,7 +3786,7 @@
 			"type": "custom",
 			"title": "Complete peer review",
 			"component": "PeerReviewMarkingView",
-			"_note": "Reviewer's rubric-scoring UI for an assigned PeerReview (peer-and-self-assessment). Lib gap: peer-review marking workflow widget — mirrors MarkSubmissionView's own genuine-UI justification. When the governing Assignment's peerReviewAnonymity is double-blind, this view withholds the reviewed Submission's learner identity from its own display (a UI convention, not a server-enforced guarantee — see design.md 'Anonymity Enforcement')."
+			"_note": "Reviewer's rubric-scoring UI for an assigned PeerReview (peer-and-self-assessment). Lib gap: peer-review marking workflow widget — mirrors MarkSubmissionView's own genuine-UI justification. The work under review comes from learniq's server-side projection (GET /api/peer-review/{id}/work, peer-review-projection-guard), which withholds the authors for a double-blind review and never includes the teacher's marking; the reviewer never reads the raw Submission."
 		},
 		{
 			"id": "SelfAssessments",

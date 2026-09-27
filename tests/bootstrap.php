@@ -45,6 +45,7 @@ if (is_dir($ocpRoot)) {
 // (openregister#2036) — the same hazard the stub registration above avoids.
 require_once __DIR__ . '/Support/OrEntityFactory.php';
 require_once __DIR__ . '/Support/GuardVerdicts.php';
+require_once __DIR__ . '/Support/RegisterFaithfulStore.php';
 
 // Shared guard: base.php exits() rather than throwing on a bad NC instance, so
 // loading it unconditionally silently truncates the suite to zero tests while
