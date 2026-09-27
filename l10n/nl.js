@@ -2398,7 +2398,11 @@ OC.L10N.register(
         "Choose a course first.": "Kies eerst een cursus.",
         "The import failed. Try again later.": "Het importeren is mislukt. Probeer het later opnieuw.",
         "The LearnerProfile of the learner who handed in. The portal shows a pupil the submissions that carry their own profile here.": "Het leerlingprofiel van de leerling die het werk inleverde. Het portaal toont een leerling de inleveringen met het eigen profiel hier.",
-        "The LearnerProfiles of the learners who handed in. Filled by the server on a portal hand-in.": "De leerlingprofielen van de leerlingen die het werk inleverden. De server vult dit in bij inleveren via het portaal."
+        "The LearnerProfiles of the learners who handed in. Filled by the server on a portal hand-in.": "De leerlingprofielen van de leerlingen die het werk inleverden. De server vult dit in bij inleveren via het portaal.",
+        "The LearnerProfile of the learner who took this attempt. The portal shows a pupil the attempts that carry their own profile here. Filled in by the server.": "Het leerlingprofiel van de leerling die deze poging deed. Het portaal toont een leerling de pogingen met het eigen profiel hier. Wordt door de server ingevuld.",
+        "The title of the test at the moment the attempt started. Filled in by the server.": "De titel van de toets op het moment dat de poging begon. Wordt door de server ingevuld.",
+        "Learner Ref": "Leerlingverwijzing",
+        "Assessment Title": "Toetstitel"
     },
     "nplurals=2; plural=(n != 1);"
 )

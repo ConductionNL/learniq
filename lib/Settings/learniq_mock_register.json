@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.22",
+    "version": "1.1.23",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -22648,7 +22648,9 @@
           "slug": "assessmentresult-assessmentresult-1-1"
         },
         "assessmentId": "00000000-0000-4000-8000-000000000000",
+        "assessmentTitle": "Toets hoofdstuk 3",
         "learnerId": "Voorbeeld Learnerid 1",
+        "learnerRef": "00000000-0000-4000-8000-000000000000",
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "attemptNumber": 1,
         "responses": [],
@@ -22666,7 +22668,9 @@
           "slug": "assessmentresult-assessmentresult-2-2"
         },
         "assessmentId": "00000000-0000-4000-8000-000000000001",
+        "assessmentTitle": "Tentamen statistiek",
         "learnerId": "Voorbeeld Learnerid 2",
+        "learnerRef": "00000000-0000-4000-8000-000000000001",
         "tenant_id": "00000000-0000-4000-8000-000000000001",
         "attemptNumber": 1,
         "responses": [],
@@ -22684,7 +22688,9 @@
           "slug": "assessmentresult-assessmentresult-3-3"
         },
         "assessmentId": "00000000-0000-4000-8000-000000000002",
+        "assessmentTitle": "Leesvaardigheid Engels",
         "learnerId": "Voorbeeld Learnerid 3",
+        "learnerRef": "00000000-0000-4000-8000-000000000002",
         "tenant_id": "00000000-0000-4000-8000-000000000002",
         "attemptNumber": 1,
         "responses": [],

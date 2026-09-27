@@ -129,6 +129,18 @@ return [
         ['name' => 'lessonRelease#status',           'url' => '/api/lessons/{lessonId}/release-status',         'verb' => 'GET'],
         ['name' => 'lessonRelease#assessmentStatus', 'url' => '/api/assessments/{assessmentId}/release-status', 'verb' => 'GET'],
 
+        // Portal test taking (assessment-portal-endpoints): the five steps of
+        // portaliq's timed task, forwarded server-to-server. #[PublicPage]
+        // because the caller is portaliq's backend with no Nextcloud session;
+        // the X-Portal-Subject assertion is the only credential
+        // (PortalAssertionVerifier), checked first in every method.
+        // Controller: PortalAssessmentController (slug: portalAssessment).
+        ['name' => 'portalAssessment#available', 'url' => '/api/portal/assessments',        'verb' => 'POST'],
+        ['name' => 'portalAssessment#start',     'url' => '/api/portal/assessments/start',  'verb' => 'POST'],
+        ['name' => 'portalAssessment#answer',    'url' => '/api/portal/assessments/answer', 'verb' => 'POST'],
+        ['name' => 'portalAssessment#submit',    'url' => '/api/portal/assessments/submit', 'verb' => 'POST'],
+        ['name' => 'portalAssessment#result',    'url' => '/api/portal/assessments/result', 'verb' => 'POST'],
+
         // Personal timetable — the caller's own sessions for a window, resolved
         // from cohort membership (teacher/learner) via ObjectService (RBAC-scoped).
         // Read-only; #[NoAdminRequired] (any signed-in user) + #[NoCSRFRequired] (GET read).

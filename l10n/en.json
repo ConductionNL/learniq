@@ -1975,7 +1975,11 @@
         "Choose a course first.": "Choose a course first.",
         "The import failed. Try again later.": "The import failed. Try again later.",
         "The LearnerProfile of the learner who handed in. The portal shows a pupil the submissions that carry their own profile here.": "The LearnerProfile of the learner who handed in. The portal shows a pupil the submissions that carry their own profile here.",
-        "The LearnerProfiles of the learners who handed in. Filled by the server on a portal hand-in.": "The LearnerProfiles of the learners who handed in. Filled by the server on a portal hand-in."
+        "The LearnerProfiles of the learners who handed in. Filled by the server on a portal hand-in.": "The LearnerProfiles of the learners who handed in. Filled by the server on a portal hand-in.",
+        "The LearnerProfile of the learner who took this attempt. The portal shows a pupil the attempts that carry their own profile here. Filled in by the server.": "The LearnerProfile of the learner who took this attempt. The portal shows a pupil the attempts that carry their own profile here. Filled in by the server.",
+        "The title of the test at the moment the attempt started. Filled in by the server.": "The title of the test at the moment the attempt started. Filled in by the server.",
+        "Learner Ref": "Learner Ref",
+        "Assessment Title": "Assessment Title"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
