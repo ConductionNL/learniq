@@ -40,6 +40,7 @@ use OCA\Learniq\Listener\BsaProgressFlagHandler;
 use OCA\Learniq\Listener\CompetencyAttainmentRollupHandler;
 use OCA\Learniq\Listener\DataExchangeRunHandler;
 use OCA\Learniq\Listener\FraudCaseDecisionHandler;
+use OCA\Learniq\Listener\LearnerMergeHandler;
 use OCA\Learniq\Listener\RejectionMappingHandler;
 use OCA\Learniq\Listener\SchoolAdviesSendToRodHandler;
 use OCA\Learniq\Listener\SupportRequestSubmitHandler;
@@ -155,6 +156,16 @@ class CaseListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: RolloverExecutionHandler::class
+		);
+
+		// ADR-031 legitimate exception: LearnerProfile `merge` (active -> merged)
+		// -> move the merged account's enrolments, grades, attendance,
+		// credentials, portfolio entries and other learner-owned records to the
+		// surviving profile named in mergedInto (learniq#950). LearnerMergeGuard
+		// validated the target before the transition ran.
+		$context->registerEventListener(
+			event: ObjectTransitionedEvent::class,
+			listener: LearnerMergeHandler::class
 		);
 
 		// ADR-031 legitimate exception: BpvPlacement `checkLeerbedrijf` self-transition

@@ -51,6 +51,12 @@ return [
         // Controller: AuditPackExportController (slug: auditPackExport).
         ['name' => 'auditPackExport#export', 'url' => '/api/compliance/audit/export', 'verb' => 'POST'],
 
+        // Per-department compliance roll-up and audience-scoped regulation assignment
+        // (ADR-023: compliance.department-rollup, regulation.assign; learniq#951).
+        // Controller: ComplianceRollupController (slug: complianceRollup).
+        ['name' => 'complianceRollup#departments',      'url' => '/api/compliance/departments',        'verb' => 'GET'],
+        ['name' => 'complianceRollup#assignRegulation', 'url' => '/api/compliance/regulations/{id}/assign', 'verb' => 'POST'],
+
         // QTI package import — user-invokable action (ADR-023: qti.import).
         // Controller: QtiImportController (slug: qtiImport).
         ['name' => 'qtiImport#import', 'url' => '/api/assessment/qti-import', 'verb' => 'POST'],
