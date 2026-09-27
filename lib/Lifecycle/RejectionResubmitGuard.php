@@ -46,7 +46,7 @@ use Psr\Log\LoggerInterface;
  * Guards the ExchangeRejection `corrected → resubmitted` transition.
  *
  * The transition proceeds only when the acting user is in one of the
- * authorised groups (`admin`, `coordinator`). On success it creates exactly
+ * authorised groups (`admin`, `coordinators`). On success it creates exactly
  * one new DataExchangeJob (target/mappingProfileId copied from the
  * originating job, scope narrowed to this rejection's source object) and
  * stamps `resubmittedJobId` into the transition payload — always
@@ -67,7 +67,7 @@ class RejectionResubmitGuard {
 	 */
 	private const AUTHORISED_GROUPS = [
 		'admin',
-		'coordinator',
+		'coordinators',
 	];
 
 	/**
