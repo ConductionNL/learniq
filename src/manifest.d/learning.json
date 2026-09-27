@@ -3543,6 +3543,15 @@
 						"props": {
 							"assignmentId": "@objectId"
 						}
+					},
+					{
+						"id": "asn-peer-review",
+						"component": "AssignmentPeerReviewAllocation",
+						"title": "Peer review",
+						"placement": "after-data",
+						"props": {
+							"assignmentId": "@objectId"
+						}
 					}
 				],
 				"sidebar": {
