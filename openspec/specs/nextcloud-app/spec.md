@@ -199,6 +199,15 @@ Every schema that declares who may read its rows in `x-property-rbac` MUST carry
 - **WHEN** a schema carries `x-property-rbac` without an `authorization` block
 - **THEN** the unit suite fails and names the schema
 
+### Requirement: A schema with lifecycle transitions is not append-only
+A schema that declares `x-openregister-lifecycle` transitions MUST NOT be `appendOnly`. Open Register runs a transition as an update of the object and refuses every update on an append-only schema, so the two together make every transition fail. The audit ADR-008 asks for is Open Register's audit trail, which keeps each version of the object. Schemas without a lifecycle (for example `DossierNote`, `WellbeingCheckIn`) keep `appendOnly` and are corrected by a new record.
+
+#### Scenario: A credential can be revoked
+@e2e exclude Register-content invariant; pinned by tests/Unit/Register/LifecycleSchemasAreNotAppendOnlyTest.php, which runs one transition for each of the sixteen schemas that were append-only.
+- **GIVEN** an issued `Credential`
+- **WHEN** a compliance officer fires `revoke`
+- **THEN** the credential lands in `revoked` instead of being refused as an update on an append-only schema
+
 ## Standards
 Nextcloud OCP (`IAppManager`, `IConfig`, `IUserSession`, `IRootFolder`, `IGroupManager`, `Calendar\IManager`, `Notification\IManager`, `Talk\IBroker`, `Activity\IManager`), NL Design System tokens, WCAG 2.1 AA.
 

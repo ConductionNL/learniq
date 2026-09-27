@@ -823,15 +823,15 @@
       "area": "compliance",
       "name": "Stop anyone editing a signed attestation afterwards.",
       "built": {
-        "state": "built",
-        "evidence": "lib/Settings/learniq_register.json Attestation.appendOnly true, HMAC signature plus signingKeyId",
+        "state": "building",
+        "evidence": "lib/Settings/learniq_register.json Attestation is no longer appendOnly (learniq#977): appendOnly refused the sign transition itself, so nothing was ever signed. lib/Lifecycle/AttestationSigningGuard.php HMAC signature plus signingKeyId makes an edit after signing detectable; nothing refuses it yet, since hr and compliance-officers keep update for revoke",
         "owner": "ConductionNL/openregister"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "compliance-evidence",
       "featureConfidence": "medium",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "no",
@@ -4166,7 +4166,7 @@
       "name": "Evaluate a plan on the agreed date and record the outcome.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.LearningPlanEvaluation, appendOnly; lib/Listener/LearningPlanEvaluationHandler.php",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.LearningPlanEvaluation (not appendOnly since learniq#977, so its record transition runs); lib/Listener/LearningPlanEvaluationHandler.php",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -4282,7 +4282,7 @@
       "name": "Log a behaviour incident and what was done about it.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.BehaviourIncident with an append-only follow-up log",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.BehaviourIncident with a follow-up log; not appendOnly since learniq#977, so its handling transitions run and the audit trail keeps each version",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -4427,7 +4427,7 @@
       "name": "Record who was consulted about a learner, and what they said.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.DeliberationRecord, append-only",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.DeliberationRecord, corrected by a new record (correctsId); not appendOnly since learniq#977, so its record transition runs",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -4603,7 +4603,7 @@
       "name": "Get a flag the moment a learner crosses that limit.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.AttendanceFlag, appendOnly; lib/Lifecycle/AttendanceFlagCreationHandler.php",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.AttendanceFlag (not appendOnly since learniq#977, so its handling transitions run); lib/Lifecycle/AttendanceFlagCreationHandler.php",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
@@ -5096,7 +5096,7 @@
       "name": "Record what was agreed in the conversation.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.ConferenceReport, append-only",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.ConferenceReport; not appendOnly since learniq#977, so its record transition runs",
         "owner": "ConductionNL/learniq"
       },
       "provider": "self",
