@@ -77,6 +77,17 @@ class LifecycleWriteActionsTest extends TestCase {
 				],
 				[],
 			],
+			'ExchangeRejection.waive' => [
+				'ExchangeRejection',
+				'waive',
+				[
+					'OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction' => [
+						'actorField' => 'waivedBy',
+						'timeField' => 'waivedAt',
+					],
+				],
+				['waiveReason'],
+			],
 		];
 	}//end transitions()
 

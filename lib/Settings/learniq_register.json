@@ -18040,7 +18040,22 @@
                             ],
                             "to": "waived",
                             "requires": "OCA\\Learniq\\Lifecycle\\RejectionWaiveGuard",
-                            "description": "Admin/coordinator waives the rejection with a mandatory reason; waivedBy/waivedAt are server-stamped."
+                            "description": "Admin/coordinator waives the rejection with a mandatory reason; waivedBy/waivedAt are server-stamped.",
+                            "inputs": [
+                                {
+                                    "field": "waiveReason",
+                                    "required": true
+                                }
+                            ],
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction",
+                                    "actionParameters": {
+                                        "actorField": "waivedBy",
+                                        "timeField": "waivedAt"
+                                    }
+                                }
+                            ]
                         }
                     }
                 },
