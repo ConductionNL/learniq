@@ -91,18 +91,23 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 		// and named `principal`. Neither survives: OpenRegister reads
 		// `authorization`, never the `x-` variant, and `principal` was retired
 		// from the role vocabulary as school-specific when the app was reframed
-		// from Scholiq to Learniq. SupportRequest carries no schema-level block
-		// and is governed by the register cascade (Tier 2), so the assertion is
-		// that the decoy is gone and the cascade is what applies.
+		// from Scholiq to Learniq. learniq#963: the register cascade let every
+		// staff group read every support request, wider than the audience its
+		// x-property-rbac declares, so SupportRequest now carries its own block:
+		// the principal's group (administration-managers) and the coordinator
+		// who raised the request.
 		self::assertArrayNotHasKey(
 			'x-openregister-authorization',
 			$schema,
 			'The decoy key MUST be gone — OpenRegister never read it.'
 		);
-		self::assertArrayNotHasKey(
-			'authorization',
-			$schema,
-			'SupportRequest is Tier 2: it inherits the register cascade rather than declaring its own block.'
+		self::assertSame(
+			[
+				'administration-managers',
+				['group' => 'authenticated', 'match' => ['raisedBy' => '$userId']],
+			],
+			($schema['authorization']['read'] ?? null),
+			'SupportRequest is read by administration-managers and the coordinator who raised it.'
 		);
 
 	}//end testSupportRequestLifecycleAndAuthorizationShape()
@@ -207,7 +212,7 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 	}//end testTlvExpiringSoonNotificationShape()
 
 	/**
-	 * DeliberationRecord is appendOnly, requires at least one of
+	 * DeliberationRecord is not appendOnly (its record transition is an update), requires at least one of
 	 * supportRequestId/tlvApplicationId (schema-level anyOf), and the
 	 * scheduled → recorded transition requires PupilVoiceGuard.
 	 *
@@ -216,7 +221,8 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 	public function testDeliberationRecordAppendOnlyAndRequiredOneOfShape(): void {
 		$schema = $this->config['components']['schemas']['DeliberationRecord'];
 
-		self::assertTrue($schema['appendOnly']);
+		// Open Register refuses every update on an appendOnly schema, transitions included (learniq#977); a correction is still a new record via correctsId.
+		self::assertNotTrue($schema['appendOnly'] ?? false);
 
 		$anyOf = $schema['anyOf'];
 		self::assertSame(['supportRequestId'], $anyOf[0]['required']);

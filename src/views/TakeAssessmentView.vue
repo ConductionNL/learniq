@@ -507,10 +507,10 @@ export default {
 			&& typeof navigator !== 'undefined'
 			&& typeof navigator.sendBeacon === 'function'
 		) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}/transition/end`,
-			)
-			const blob = new Blob([JSON.stringify({})], { type: 'application/json' })
+			const url = generateUrl(transitionUrl(this.proctoringSession.uuid))
+			const blob = new Blob([JSON.stringify({ action: 'end' })], {
+				type: 'application/json',
+			})
 			navigator.sendBeacon(url, blob)
 		}
 	},
@@ -1206,17 +1206,17 @@ export default {
 			const json = await resp.json()
 			this.proctoringSession = json.object ?? json ?? {}
 
-			const transitionUrl = generateUrl(
-				`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}/transition/activate`,
+			const activateUrl = generateUrl(
+				transitionUrl(this.proctoringSession.uuid),
 			)
-			const transitionResp = await fetch(transitionUrl, {
+			const transitionResp = await fetch(activateUrl, {
 				method: 'POST',
 				headers: {
 					'OCS-APIREQUEST': 'true',
 					Accept: 'application/json',
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({}),
+				body: JSON.stringify({ action: 'activate' }),
 			})
 			if (!transitionResp.ok) {
 				throw new Error(
@@ -1392,17 +1392,17 @@ export default {
 
 			if (this.proctoringSession?.uuid) {
 				try {
-					const transitionUrl = generateUrl(
-						`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}/transition/end`,
+					const endUrl = generateUrl(
+						transitionUrl(this.proctoringSession.uuid),
 					)
-					const resp = await fetch(transitionUrl, {
+					const resp = await fetch(endUrl, {
 						method: 'POST',
 						headers: {
 							'OCS-APIREQUEST': 'true',
 							Accept: 'application/json',
 							'Content-Type': 'application/json',
 						},
-						body: JSON.stringify({}),
+						body: JSON.stringify({ action: 'end' }),
 					})
 					if (!resp.ok) {
 						throw new Error(
