@@ -585,4 +585,39 @@ class TrainingExampleSetTest extends TestCase {
 
 		self::assertSame(0, $exitCode, implode("\n", $output));
 	}//end testTheFileIsWhatTheGeneratorProduces()
+
+	/**
+	 * Every regulation code the set uses is a Regulation row in the set, or
+	 * AVG, which the register seeds (D29). The rows are published and oblige
+	 * no participant: the institute trains people for their employers.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-set-regulation-rows/specs/example-sets/spec.md#scenario-every-training-regulation-reference-resolves
+	 */
+	public function testEveryRegulationReferenceResolves(): void {
+		$rows    = self::of('regulation');
+		$shipped = array_column($rows, 'slug');
+		self::assertNotContains('AVG', $shipped, 'the register seeds AVG; a second row would duplicate it');
+
+		$used = [];
+		foreach ((array)self::$objects as $bucket) {
+			foreach ($bucket as $row) {
+				if (isset($row['regulationSlug']) === true) {
+					$used[$row['regulationSlug']] = true;
+				}
+			}
+		}
+
+		self::assertGreaterThanOrEqual(6, count($used));
+		foreach (array_keys($used) as $code) {
+			self::assertTrue($code === 'AVG' || in_array($code, $shipped, true), $code . ' is used but has no Regulation row');
+		}
+
+		foreach ($rows as $row) {
+			self::assertSame('published', $row['lifecycle'], $row['slug']);
+			self::assertSame('role-specific', $row['audienceScope'], $row['slug']);
+			self::assertSame([], $row['audienceRoles'], $row['slug'] . ' obliges no participant');
+		}
+	}//end testEveryRegulationReferenceResolves()
 }//end class

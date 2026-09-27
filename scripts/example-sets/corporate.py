@@ -121,6 +121,10 @@ SCHEMAS = [
     "leaderboard",
     "fee-item",
     "entitlement",
+    # Appended, not inserted: a uuid encodes its schema's position in this list, so
+    # inserting a schema would move every later uuid and a re-load would duplicate
+    # the set on an install that already has it (example-set-regulation-rows).
+    "regulation",
 ]
 
 # Public holidays and the Christmas closure: no training, no toolbox meeting.
@@ -1267,13 +1271,70 @@ def build() -> dict:
         for row in rows:
             for key in [k for k in row if k.startswith("_")]:
                 del row[key]
+    # --- the regulations the courses, credentials and records point at (D29) ---------------------
+    # Regulation's own slug is its code (^[A-Z0-9_-]+$), and the contract takes the slug from the
+    # object for such a schema. AVG is left out: learniq_register.json seeds it, and a second row
+    # with the same code would be a duplicate. Each audience follows who this script trains, so the
+    # Compliance overview counts what the data shows (example-set-regulation-rows, design).
+    def regulation(code: str, name: str, description: str, criteria: str, scope: str, renewal: int | None, annual: bool,
+                   departments: list[str] | None = None, roles: list[str] | None = None) -> None:
+        fields = {"slug": code, "name": name, "description": description, "applicabilityCriteria": criteria,
+                  "audienceScope": scope}
+        if departments is not None:
+            fields["audienceDepartments"] = departments
+        if roles is not None:
+            fields["audienceRoles"] = roles
+        fields["requiresAnnualRenewal"] = annual
+        if renewal is not None:
+            fields["renewalCycleMonths"] = renewal
+        fields.update({"active": True, "ragRedThreshold": 70, "ragAmberThreshold": 90, "lifecycle": "published"})
+        b.add("regulation", fields)
+
+    path_of = {key: path for key, _name, path, _site, _size, _head in DEPARTMENTS}
+    regulation("GEDRAGSCODE", "Gedragscode Esdoorn Techniek",
+               "De gedragscode van het bedrijf: integriteit, omgang met klanten en collega's en het melden van misstanden.",
+               "Iedereen die bij Esdoorn Techniek werkt, elk jaar opnieuw.", "all-employees", 12, True)
+    regulation("INFORMATIEBEVEILIGING", "Informatiebeveiligingsbeleid",
+               "Het beleid voor veilig werken met systemen en gegevens: phishing herkennen, veilig inloggen en incidenten melden.",
+               "Iedereen met een account, elk jaar opnieuw.", "all-employees", 12, True)
+    regulation("VCA", "VCA, veiligheid, gezondheid en milieu",
+               "Veilig werken op locatie en in de werkplaats, met een VCA-diploma dat tien jaar geldig is.",
+               "Iedereen in de operatie: planning, installatie, magazijn en werkplaats.", "department", 120, False,
+               departments=["Operatie"])
+    regulation("NEN3140", "NEN 3140, veilig werken aan elektrische installaties",
+               "Voldoend onderricht personen die aan of bij elektrische installaties werken, met herinstructie elke drie jaar.",
+               "Monteurs in installatie en service en in de werkplaats.", "department", 36, False,
+               departments=[path_of["installatie"], path_of["werkplaats"]])
+    regulation("HEFTRUCK", "Heftruckcertificaat",
+               "Een heftruck bedienen mag alleen met een geldig certificaat, dat vijf jaar geldig is.",
+               "Iedereen in het magazijn.", "department", 60, False, departments=[path_of["magazijn"]])
+    regulation("FGASSEN", "F-gassen, EU-verordening 2024/573",
+               "Werken aan koelcircuits van warmtepompen mag alleen met een F-gassencertificaat.",
+               "Aangewezen monteurs die koelcircuits openen; de leidinggevende houdt de lijst bij.", "role-specific", None, False,
+               roles=[])
+    regulation("BHV", "Bedrijfshulpverlening (Arbowet artikel 15)",
+               "Genoeg opgeleide bedrijfshulpverleners op elke vestiging, met een herhaling elk jaar.",
+               "Aangewezen bedrijfshulpverleners op beide vestigingen, niet iedere medewerker.", "role-specific", 12, True,
+               roles=[])
+    regulation("NIS2", "NIS2, cyberbeveiliging voor bestuurders",
+               "Bestuurders en leidinggevenden kennen de zorgplicht en meldplicht uit de NIS2-richtlijn.",
+               "De directie, de leidinggevenden en de compliance officer.", "board", 12, True,
+               roles=["manager", "compliance-officer"])
+
+    shipped = {r["slug"] for r in b.buckets["regulation"]}
+    for rows in b.buckets.values():
+        for row in rows:
+            code = row.get("regulationSlug")
+            if code is not None and code != "AVG" and code not in shipped:
+                raise RuntimeError(f"{row['slug']} points at regulation {code}, which this set does not ship")
+
     objects = {name: rows for name, rows in b.buckets.items() if rows}
     total = sum(len(rows) for rows in objects.values())
     return {
         "openapi": "3.0.0",
         "info": {
             "title": "Learniq example set: Company",
-            "version": "1.0.0",
+            "version": "1.1.0",
             "description": "Voorbeeldbedrijf Esdoorn Techniek B.V., a fictional installation and service company in the fictional town of Esdoornhaven, through the 2025-2026 training year.",
         },
         "x-openregister": {
@@ -1302,7 +1363,7 @@ def build() -> dict:
                     "their managers, HR, compliance and training staff, compliance e-learning and classroom certification with the "
                     "credentials they issue and the renewals their expiry opens, toolbox meetings with their attendance, external training "
                     "records, a competency framework with the gaps it shows, a development plan per employee, engagement scores, points "
-                    "and leaderboards, and orders with entitlements for three paid courses."
+                    "and leaderboards, orders with entitlements for three paid courses, and the regulations the courses answer to."
                 ),
                 "objects": objects,
             },
