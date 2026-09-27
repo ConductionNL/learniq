@@ -36,28 +36,34 @@ use PHPUnit\Framework\TestCase;
 class LifecycleWriteActionsTest extends TestCase {
 
 	/**
-	 * Transition => the action classes it must declare and the inputs it must accept.
+	 * Transition => the action classes it must declare (with their actionParameters) and the inputs it must accept.
 	 *
-	 * @return array<string, array{0: string, 1: string, 2: list<string>, 3: list<string>}>
+	 * @return array<string, array{0: string, 1: string, 2: array<string, array<string, string>>, 3: list<string>}>
 	 */
 	public static function transitions(): array {
 		return [
 			'Attestation.sign' => [
 				'Attestation',
 				'sign',
-				['OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction'],
+				['OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction' => []],
 				[],
 			],
 			'BsaWarning.issue' => [
 				'BsaWarning',
 				'issue',
-				['OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction'],
+				['OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction' => []],
 				[],
 			],
 			'BsaDecision.decide' => [
 				'BsaDecision',
 				'decide',
-				['OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction'],
+				['OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction' => []],
+				[],
+			],
+			'ExamAccommodation.approve' => [
+				'ExamAccommodation',
+				'approve',
+				['OCA\\Learniq\\Lifecycle\\Action\\StampTransitionActorAction' => ['actorField' => 'approvedBy']],
 				[],
 			],
 		];
@@ -86,20 +92,25 @@ class LifecycleWriteActionsTest extends TestCase {
 	 *
 	 * @param string       $schema  The schema key.
 	 * @param string       $action  The transition name.
-	 * @param list<string> $actions The action classes the transition must declare.
+	 * @param array<string, array<string, string>> $actions Action class => the actionParameters it must be declared with.
 	 * @param list<string> $inputs  The input fields the transition must accept.
 	 *
 	 * @return void
 	 */
 	#[DataProvider('transitions')]
 	public function testTransitionDeclaresItsWriteActions(string $schema, string $action, array $actions, array $inputs): void {
-		$declared = array_map(
-			static fn (array $envelope): string => (string)($envelope['action'] ?? ''),
-			(self::transition(schema: $schema, action: $action)['actions'] ?? [])
-		);
+		$declared = [];
+		foreach ((self::transition(schema: $schema, action: $action)['actions'] ?? []) as $envelope) {
+			$declared[(string)($envelope['action'] ?? '')] = ($envelope['actionParameters'] ?? []);
+		}
 
-		foreach ($actions as $class) {
-			self::assertContains(needle: $class, haystack: $declared, message: $schema . '.' . $action . ' does not declare ' . $class);
+		foreach ($actions as $class => $parameters) {
+			self::assertArrayHasKey(key: $class, array: $declared, message: $schema . '.' . $action . ' does not declare ' . $class);
+			self::assertSame(
+				expected: $parameters,
+				actual: $declared[$class],
+				message: $schema . '.' . $action . ' declares ' . $class . ' with other parameters'
+			);
 			self::assertTrue(condition: class_exists($class), message: $class . ' does not exist');
 			self::assertTrue(
 				condition: is_subclass_of($class, LifecycleActionInterface::class),
@@ -115,7 +126,7 @@ class LifecycleWriteActionsTest extends TestCase {
 	 *
 	 * @param string       $schema  The schema key.
 	 * @param string       $action  The transition name.
-	 * @param list<string> $actions The action classes the transition must declare.
+	 * @param array<string, array<string, string>> $actions Action class => the actionParameters it must be declared with.
 	 * @param list<string> $inputs  The input fields the transition must accept.
 	 *
 	 * @return void
