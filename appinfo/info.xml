@@ -205,6 +205,14 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 silently reading null.
             -->
             <step>OCA\Learniq\Repair\RenameDutchColumns</step>
+            <!--
+                gradeentry-learnerref-stamp: stamps the LearnerProfile UUID on
+                grades written before the server did it on every write, so
+                they reach the portal. After InitializeSettings (the register
+                must exist). Idempotent; a row it cannot resolve is retried on
+                the next upgrade.
+            -->
+            <step>OCA\Learniq\Repair\BackfillGradeEntryLearnerRef</step>
         </post-migration>
         <install>
             <!--
@@ -227,6 +235,9 @@ Vrij en open source onder de EUPL-1.2-licentie.
         <!-- Removes a loaded example set by handing its fixed uuids to
              occ openregister:objects:purge (openspec/changes/segment-wizard-choice). -->
         <command>OCA\Learniq\Command\ExampleSetRemoveCommand</command>
+        <!-- curriculum-coverage-rollup: fills CurriculumCoverage rows for data saved
+             before the rollup existed; the listener keeps them current afterwards. -->
+        <command>OCA\Learniq\Command\RecomputeCurriculumCoverage</command>
     </commands>
 
     <settings>

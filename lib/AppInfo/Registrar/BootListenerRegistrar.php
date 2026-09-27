@@ -290,8 +290,10 @@ class BootListenerRegistrar {
 	 * @param array<int,string> $schemas Schema slugs the listener reacts to.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
 	 */
-	private function registerFilteredObjectListener(
+	public function registerFilteredObjectListener(
 		IEventDispatcher $dispatcher,
 		string $appId,
 		string $event,

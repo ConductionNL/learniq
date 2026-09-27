@@ -133,3 +133,28 @@ describe('registry component coverage', () => {
 		)
 	})
 })
+
+describe('body section coverage', () => {
+	// assignment-missing-submissions-view: a `config.bodyWidgets` entry names a
+	// registry component the same way a custom page does, and CnBodySections
+	// renders an inline error, not the section, when the name is missing.
+	test('every bodyWidgets component is registered with kind:"section"', () => {
+		const registrySource = fs.readFileSync(path.join(ROOT, 'src/registry.js'), 'utf8')
+		const docs = [readJson('src/manifest.json')]
+		for (const name of fs.readdirSync(path.join(ROOT, 'src/manifest.d')).filter((n) => n.endsWith('.json'))) {
+			docs.push(readJson(`src/manifest.d/${name}`))
+		}
+		const sections = docs.flatMap((doc) =>
+			(doc.pages ?? []).flatMap((p) => (p.config?.bodyWidgets ?? []).map((w) => ({ page: p.id, component: w.component }))),
+		)
+		const isSection = (name) => new RegExp(`^\\s*${name}:\\s*\\{\\s*\\n\\s*kind:\\s*'section'`, 'm').test(registrySource)
+
+		assert.ok(sections.length > 0, 'expected at least one bodyWidgets entry to check')
+		assert.equal(isSection('NotARegisteredSection'), false, 'the check must be able to fail')
+		assert.deepEqual(
+			sections.filter((s) => !isSection(s.component)).map((s) => `${s.page} -> ${s.component}`),
+			[],
+			'every bodyWidgets component must be registered as kind:"section" in src/registry.js',
+		)
+	})
+})

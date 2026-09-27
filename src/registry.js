@@ -28,6 +28,9 @@ import {
 	CnTimelineView,
 	CnWizardDialog,
 } from '@conduction/nextcloud-vue'
+// assignment-missing-submissions-view: body section on AssignmentDetail.
+import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
+import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
 import AuditTrailWidget from './components/widgets/AuditTrailWidget.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
@@ -79,6 +82,9 @@ import CoursePackageImportView from './views/CoursePackageImportView.vue'
 // coordinator/opleidingscommissie view of a course's CourseQualityScore
 // trend over time, response rate, and raw free-text answers.
 import CourseQualityReport from './views/CourseQualityReport.vue'
+// curriculum-coverage-matrix-view: goals by year with planned and assessed
+// marked, plus the gap list per subject and year (read-only CnDataMatrix).
+import CurriculumCoverageMatrixView from './views/CurriculumCoverageMatrixView.vue'
 // Per-role dashboard route wrappers (group-gated menu items; replaces the
 // single role-switcher dashboard).
 import DashboardAdmin from './views/DashboardAdmin.vue'
@@ -251,6 +257,7 @@ export default {
 	CourseBuilder: page(CourseBuilder),
 	CoursePackageImportView: page(CoursePackageImportView),
 	CourseQualityReport: page(CourseQualityReport),
+	CurriculumCoverageMatrixView: page(CurriculumCoverageMatrixView),
 	DashboardAdmin: page(DashboardAdmin),
 	DashboardTeacher: page(DashboardTeacher),
 	DashboardStudent: page(DashboardStudent),
@@ -290,6 +297,20 @@ export default {
 	SubjectChoicePicker: page(SubjectChoicePicker),
 	TakeAssessmentView: page(TakeAssessmentView),
 	TimetableConflictQueue: page(TimetableConflictQueue),
+
+	// --- Body sections (manifest `config.bodyWidgets`), resolved by
+	//     CnBodySections. Not grid widgets, so not counted by the
+	//     custom-widget ratchet. ---
+	AssignmentHandInStatus: {
+		kind: 'section',
+		component: AssignmentHandInStatus,
+		_note: 'Hand-in status on AssignmentDetail: the cohort roster minus the learners who handed in, split into started and not started, overdue after dueAt. Staff only; self-fetches assignment, cohort(s), submissions and learner names.',
+	},
+	AssignmentPeerReviewAllocation: {
+		kind: 'section',
+		component: AssignmentPeerReviewAllocation,
+		_note: 'Peer review on AssignmentDetail: states the strategy and reviewers per submission and, unless allocation is manual, posts to /api/peer-review/{id}/allocate and reports the counts. Staff only, and only when peerReviewEnabled.',
+	},
 
 	// --- Shared library widgets registered under manifest widget keys (ADR-036). ---
 	'audit-trail': {
