@@ -55,7 +55,7 @@ class ExamAccommodationApprovalGuard {
 	 *
 	 * @var string[]
 	 */
-	private const AUTHORISED_GROUPS = ['admin', 'compliance-officer', 'mentor'];
+	private const AUTHORISED_GROUPS = ['admin', 'compliance-officers', 'team-leads'];
 
 	/**
 	 * Constructor.

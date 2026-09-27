@@ -47,7 +47,7 @@ use Psr\Log\LoggerInterface;
  * Guards the DataExchangeJob `recordMunicipalityFeedback` self-loop transition.
  *
  * The transition proceeds only when ALL of the following hold:
- *   1. The acting user is in one of the authorised groups (`admin`, `coordinator`).
+ *   1. The acting user is in one of the authorised groups (`admin`, `coordinators`).
  *   2. The job's `target` is `leerplicht` — municipalityFeedback (the MAS-route)
  *      only makes sense for a verzuimloket report to a municipality.
  *
@@ -71,7 +71,7 @@ class MunicipalityFeedbackGuard {
 	 */
 	private const AUTHORISED_GROUPS = [
 		'admin',
-		'coordinator',
+		'coordinators',
 	];
 
 	/**
