@@ -5,23 +5,24 @@
  *
  * Lifecycle guard for the Entitlement `grant` transition (pending -> active).
  * Replaces EntitlementOrderPaidGuard (D19, payments-to-shillinq-migration):
- * learniq no longer keeps orders or payment transactions. A school charges
- * through shillinq, which raises a PaymentRequest on the Entitlement itself
- * (`subjectKind: object`, ADR-048 semantic subject) and books the receipt.
+ * learniq no longer keeps orders or payment transactions. A school raises a
+ * fee's contributions in shillinq (the FeeItem is the chargeable, the learner
+ * the beneficiary) and shillinq books the receipt.
  *
  * The guard allows `grant` only when the Entitlement's `paymentRequestRef`
  * names a PaymentRequest in shillinq's register that
  * - exists,
- * - stands on this Entitlement (`subject.register` learniq, `subject.schema`
- *   entitlement, `subject.id` this Entitlement's id), and
- * - is settled: `state` is `captured`. `captured_unapplied` is not settled:
- *   shillinq took the money but could not book the receipt.
+ * - charges for this Entitlement's FeeItem (`subject.app` learniq,
+ *   `subject.id` the Entitlement's `feeItemId`),
+ * - is for this Entitlement's learner (`beneficiary`), and
+ * - is settled: `settledAt` is set. That is shillinq's settled signal
+ *   (contract extracurricular-fee-to-shillinq v1): written once, the first
+ *   time the request counts as paid, and never cleared.
  *
  * It FAILS CLOSED: shillinq not installed, no reference, the request not
- * found, a read error, a subject naming another object, or any other state
- * all refuse the grant. Shillinq is read duck-typed through OpenRegister's
- * ObjectService by register and schema slug; learniq references no shillinq
- * class, so learniq installs and runs without it.
+ * found, a read error, another fee or learner, or no `settledAt` all refuse
+ * the grant. Shillinq is read duck-typed through OpenRegister's ObjectService
+ * by register and schema slug; learniq references no shillinq class.
  *
  * Composed by {@see FeeItemVoluntaryEntitlementGuard}, which is the class the
  * Entitlement schema names in `grant.requires` and which refuses a voluntary
@@ -50,6 +51,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Service\ContributionBeneficiaryResolver;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -58,7 +60,7 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Guards the Entitlement `grant` transition on shillinq's payment state.
+ * Guards the Entitlement `grant` transition on shillinq's settled signal.
  *
  * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-an-entitlement-is-granted-only-once-shillinq-reports-its-payment-request-settled
  */
@@ -71,17 +73,6 @@ class EntitlementPaymentSettledGuard implements LifecycleGuardInterface {
 	public const SHILLINQ_REGISTER = 'shillinq';
 	public const PAYMENT_REQUEST_SCHEMA = 'PaymentRequest';
 
-	/**
-	 * The PaymentRequest state that means the money arrived and was booked.
-	 */
-	public const SETTLED_STATE = 'captured';
-
-	/**
-	 * How a PaymentRequest names a learniq Entitlement as its subject.
-	 */
-	public const SUBJECT_REGISTER = 'learniq';
-	public const SUBJECT_SCHEMA = 'entitlement';
-
 	private const DENIAL_NO_SHILLINQ = 'Payments run through shillinq, which is not installed, so no entitlement can be granted.';
 	private const DENIAL_NOT_SETTLED = 'This entitlement has no settled payment in shillinq yet.';
 
@@ -90,6 +81,7 @@ class EntitlementPaymentSettledGuard implements LifecycleGuardInterface {
 	 *
 	 * @param ObjectService $objectService OpenRegister object access (reads shillinq's register).
 	 * @param IAppManager $appManager Tells "shillinq absent" from "not paid".
+	 * @param ContributionBeneficiaryResolver $contributions Reads the request's chargeable and beneficiary.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -97,6 +89,7 @@ class EntitlementPaymentSettledGuard implements LifecycleGuardInterface {
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly IAppManager $appManager,
+		private readonly ContributionBeneficiaryResolver $contributions,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -119,8 +112,7 @@ class EntitlementPaymentSettledGuard implements LifecycleGuardInterface {
 			return GuardResult::deny(self::DENIAL_NO_SHILLINQ);
 		}
 
-		$request = $this->settledRequest(entitlement: $object);
-		if ($request === null) {
+		if ($this->hasSettledRequest(entitlement: $object) === false) {
 			return GuardResult::deny(self::DENIAL_NOT_SETTLED);
 		}
 
@@ -128,17 +120,18 @@ class EntitlementPaymentSettledGuard implements LifecycleGuardInterface {
 	}//end check()
 
 	/**
-	 * The settled PaymentRequest standing on this Entitlement, or null.
+	 * Whether a settled PaymentRequest for this Entitlement's fee and learner exists.
 	 *
 	 * @param array<string,mixed> $entitlement The Entitlement.
 	 *
-	 * @return array<string,mixed>|null
+	 * @return bool
 	 */
-	private function settledRequest(array $entitlement): ?array {
-		$entitlementId = (string)($entitlement['id'] ?? ($entitlement['uuid'] ?? ''));
-		$ref = $entitlement['paymentRequestRef'] ?? null;
-		if ($entitlementId === '' || is_string($ref) === false || $ref === '') {
-			return null;
+	private function hasSettledRequest(array $entitlement): bool {
+		$ref = ($entitlement['paymentRequestRef'] ?? null);
+		$feeItemId = (string)($entitlement['feeItemId'] ?? '');
+		$learnerId = (string)($entitlement['learnerId'] ?? '');
+		if (is_string($ref) === false || $ref === '' || $feeItemId === '' || $learnerId === '') {
+			return false;
 		}
 
 		try {
@@ -149,79 +142,41 @@ class EntitlementPaymentSettledGuard implements LifecycleGuardInterface {
 				_rbac: false,
 				_multitenancy: false
 			);
+			if ($found === null) {
+				return false;
+			}
+
+			$request = $found->jsonSerialize();
+
+			return $this->isSettledFor(request: $request, feeItemId: $feeItemId, learnerId: $learnerId);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
-				'[EntitlementPaymentSettledGuard] Could not read payment request {ref} for entitlement {id}; refusing: {msg}',
-				['ref' => $ref, 'id' => $entitlementId, 'msg' => $exception->getMessage()]
+				'[EntitlementPaymentSettledGuard] Could not read payment request {ref}; refusing: {msg}',
+				['ref' => $ref, 'msg' => $exception->getMessage()]
 			);
-			return null;
-		}
-
-		if ($found === null) {
-			return null;
-		}
-
-		$request = $found->jsonSerialize();
-		if ($this->isSettledRequestFor(request: $request, entitlementId: $entitlementId) === false) {
-			return null;
-		}
-
-		return $request;
-	}//end settledRequest()
+			return false;
+		}//end try
+	}//end hasSettledRequest()
 
 	/**
-	 * Whether a PaymentRequest is settled and stands on the given Entitlement.
-	 *
-	 * Used by {@see \OCA\Learniq\Listener\ShillinqPaymentSettledListener} too, so the
-	 * signal and the guard read the contract the same way.
+	 * Whether a PaymentRequest is settled and charges this fee for this learner.
 	 *
 	 * @param array<string,mixed> $request The PaymentRequest payload.
-	 * @param string $entitlementId The Entitlement id, or '' to accept any learniq Entitlement.
+	 * @param string $feeItemId The Entitlement's FeeItem id.
+	 * @param string $learnerId The Entitlement's learner (Nextcloud user id).
 	 *
 	 * @return bool
-	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-an-entitlement-is-granted-only-once-shillinq-reports-its-payment-request-settled
 	 */
-	public function isSettledRequestFor(array $request, string $entitlementId): bool {
-		if (($request['state'] ?? null) !== self::SETTLED_STATE) {
+	private function isSettledFor(array $request, string $feeItemId, string $learnerId): bool {
+		$settledAt = ($request['settledAt'] ?? null);
+		if (is_string($settledAt) === false || $settledAt === '') {
 			return false;
 		}
 
-		$subjectId = $this->subjectEntitlementId(request: $request);
-		if ($subjectId === null) {
+		if ($this->contributions->feeItemIdOf(request: $request) !== $feeItemId) {
 			return false;
 		}
 
-		return $entitlementId === '' || $subjectId === $entitlementId;
-	}//end isSettledRequestFor()
-
-	/**
-	 * The Entitlement id a PaymentRequest stands on, or null when it stands on anything else.
-	 *
-	 * @param array<string,mixed> $request The PaymentRequest payload.
-	 *
-	 * @return string|null
-	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-an-entitlement-is-granted-only-once-shillinq-reports-its-payment-request-settled
-	 */
-	public function subjectEntitlementId(array $request): ?string {
-		if (($request['subjectKind'] ?? null) !== 'object') {
-			return null;
-		}
-
-		$subject = $request['subject'] ?? null;
-		if (is_array($subject) === false
-			|| ($subject['register'] ?? null) !== self::SUBJECT_REGISTER
-			|| ($subject['schema'] ?? null) !== self::SUBJECT_SCHEMA
-		) {
-			return null;
-		}
-
-		$id = $subject['id'] ?? null;
-		if (is_string($id) === false || $id === '') {
-			return null;
-		}
-
-		return $id;
-	}//end subjectEntitlementId()
+		return $this->contributions->learnerIdOf(request: $request) === $learnerId;
+	}//end isSettledFor()
 }//end class

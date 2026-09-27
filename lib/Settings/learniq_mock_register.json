@@ -9762,7 +9762,7 @@
         "icon": "CheckDecagramOutline",
         "version": "0.2.0",
         "title": "Entitlement",
-        "description": "What a paid, non-voluntary fee grants (e.g. access to a paid Course). A school charges through shillinq: shillinq raises a PaymentRequest on this Entitlement and books the receipt, and the pay screen is portaliq's. The grant transition (pending -> active) requires BOTH FeeItemVoluntaryEntitlementGuard (refuses if the referenced FeeItem.voluntary is true, per the Wet vrijwillige ouderbijdrage) AND EntitlementPaymentSettledGuard (refuses unless shillinq reports the PaymentRequest named in paymentRequestRef captured; fails closed without shillinq). Nothing gates access on a pending Entitlement, so a voluntary fee can never become an access gate. See openspec/changes/payments-to-shillinq-migration/.",
+        "description": "What a paid, non-voluntary fee grants (e.g. access to a paid Course). A school charges through shillinq: learniq raises the fee's contribution there (the FeeItem is the chargeable, the learner the beneficiary), shillinq books the receipt, and the pay screen is portaliq's. The grant transition (pending -> active) requires BOTH FeeItemVoluntaryEntitlementGuard (refuses if the referenced FeeItem.voluntary is true, per the Wet vrijwillige ouderbijdrage) AND EntitlementPaymentSettledGuard (refuses unless shillinq reports the PaymentRequest named in paymentRequestRef settled, for this fee and this learner; fails closed without shillinq). Nothing gates access on a pending Entitlement, so a voluntary fee can never become an access gate. See openspec/changes/payments-to-shillinq-migration/.",
         "type": "object",
         "x-openregister": {
           "active": true,
@@ -9788,7 +9788,7 @@
             "nullable": true,
             "default": null,
             "title": "Payment request",
-            "description": "Id of the shillinq PaymentRequest that paid for this entitlement. The request stands on this Entitlement (subjectKind object). Learniq stamps it when shillinq reports the request captured, and the grant guard reads the request back from shillinq before it allows the grant."
+            "description": "Id of the shillinq PaymentRequest raised for this entitlement's fee and learner. Learniq stamps it when it raises the contribution and again when shillinq reports the request settled; the grant guard reads the request back from shillinq before it allows the grant."
           },
           "paymentSettledAt": {
             "type": "string",
@@ -9796,7 +9796,14 @@
             "nullable": true,
             "default": null,
             "title": "Payment settled at",
-            "description": "When shillinq reported the payment request captured."
+            "description": "When shillinq first reported the payment request settled (its settledAt)."
+          },
+          "paymentSettledVia": {
+            "type": "string",
+            "nullable": true,
+            "default": null,
+            "title": "Payment settled via",
+            "description": "How shillinq reports the payment completed (its settledVia): provider, cash, pin, bank-transfer, waived or other."
           },
           "learnerId": {
             "type": "string",
@@ -9860,7 +9867,7 @@
               "to": "revoked"
             }
           },
-          "_comment": "requires is a single DI-tag string in this register's lifecycle engine (OpenRegister's LifecycleAnnotationValidator rejects a non-string requires value). FeeItemVoluntaryEntitlementGuard composes OCA\\Learniq\\Lifecycle\\EntitlementPaymentSettledGuard internally, called after the voluntary check passes; the voluntary check runs FIRST and short-circuits. grant is fired by ShillinqPaymentSettledListener when shillinq reports the PaymentRequest captured, and revoke when a captured request is voided; both may also be fired by hand."
+          "_comment": "requires is a single DI-tag string in this register's lifecycle engine (OpenRegister's LifecycleAnnotationValidator rejects a non-string requires value). FeeItemVoluntaryEntitlementGuard composes OCA\\Learniq\\Lifecycle\\EntitlementPaymentSettledGuard internally, called after the voluntary check passes; the voluntary check runs FIRST and short-circuits. grant is fired by ShillinqContributionSettledListener when shillinq first stamps settledAt on the PaymentRequest for this fee and learner; grant and revoke may also be fired by hand."
         },
         "authorization": null,
         "x-property-rbac": {
@@ -11702,7 +11709,7 @@
         "icon": "CurrencyEur",
         "version": "0.1.1",
         "title": "FeeItem",
-        "description": "The chargeable definition: what is being charged for (course enrolment, school trip, materials, schoolkassa contribution, MBO contractonderwijs), its amount/currency/tax posture, and a required voluntary flag. voluntary: true is the Wet vrijwillige ouderbijdrage case (schoolkassa, trips, materials a school chooses to make voluntary): FeeItemVoluntaryEntitlementGuard structurally blocks any Entitlement referencing a voluntary FeeItem from ever activating. voluntary: false is a genuine paid product (contractonderwijs, a paid course) that may gate access through an Entitlement once shillinq reports its payment settled. The invoice or payment request itself is shillinq's.",
+        "description": "The chargeable definition: what is being charged for (course enrolment, school trip, materials, schoolkassa contribution, MBO contractonderwijs), its amount/currency/tax posture, and a required voluntary flag. voluntary: true is the Wet vrijwillige ouderbijdrage case (schoolkassa, trips, materials a school chooses to make voluntary): FeeItemVoluntaryEntitlementGuard structurally blocks any Entitlement referencing a voluntary FeeItem from ever activating. voluntary: false is a genuine paid product (contractonderwijs, a paid course) that may gate access through an Entitlement once shillinq reports its payment settled. The invoice and payment request are shillinq's: learniq raises them for the fee's learners through shillinq's contribution contract, with this FeeItem as the chargeable.",
         "type": "object",
         "x-openregister": {
           "active": true,

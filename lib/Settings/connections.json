@@ -38,10 +38,10 @@
         {
             "key": "payment",
             "title": "Payments through shillinq",
-            "description": "Granting an entitlement once shillinq reports the payment request on it settled.",
+            "description": "Raising a fee's contributions in shillinq, and granting an entitlement once shillinq reports the payment settled.",
             "order": 50,
-            "available": false,
-            "unavailableMessage": "Learniq no longer starts payments itself. A school charges through shillinq and the pay screen is portaliq's; an entitlement is granted when shillinq reports its payment request captured. Without shillinq installed no entitlement is ever granted."
+            "requiredConfig": ["shillinq_administration_id"],
+            "unconfiguredMessage": "No shillinq administration is set, so learniq cannot raise a fee's contributions. Set it with occ config:app:set learniq shillinq_administration_id."
         },
         {
             "key": "sbb",

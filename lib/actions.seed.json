@@ -11,6 +11,7 @@
     "external-training.issue-credential": ["admin", "compliance-officer", "hr"],
     "learning-record.import": ["admin"],
     "compliance.department-rollup": ["admin", "compliance-officer", "hr", "manager"],
-    "regulation.assign": ["admin", "compliance-officer", "hr"]
+    "regulation.assign": ["admin", "compliance-officer", "hr"],
+    "fee-item.raise-contributions": ["admin"]
   }
 }

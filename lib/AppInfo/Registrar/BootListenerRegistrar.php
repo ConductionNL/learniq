@@ -49,7 +49,7 @@ use OCA\Learniq\Listener\EnrolmentProgressRollupHandler;
 use OCA\Learniq\Listener\LearnerEngagementRollupHandler;
 use OCA\Learniq\Listener\LessonProgressHandler;
 use OCA\Learniq\Listener\SessionConflictListener;
-use OCA\Learniq\Listener\ShillinqPaymentSettledListener;
+use OCA\Learniq\Listener\ShillinqContributionSettledListener;
 use OCP\EventDispatcher\IEventDispatcher;
 
 /**
@@ -242,28 +242,29 @@ class BootListenerRegistrar {
 	}//end registerAnalyticsListeners()
 
 	/**
-	 * Subscribe the listener that turns shillinq payments into Entitlement transitions.
+	 * Subscribe the listener that turns shillinq's settled contributions into Entitlement grants.
 	 *
-	 * ADR-031 legitimate exception (payments-to-shillinq-migration, D19): a
-	 * shillinq PaymentRequest standing on a learniq Entitlement reaching
-	 * `captured` grants the Entitlement, and `captured -> voided` revokes it.
-	 * Shillinq saves the state (no transition), hence ObjectUpdatedEvent, and
-	 * only shillinq's PaymentRequest writes construct the listener. No shillinq
-	 * class is referenced: without shillinq nothing ever matches.
+	 * ADR-031 legitimate exception (payments-to-shillinq-migration, D19;
+	 * shillinq contract extracurricular-fee-to-shillinq v1): the first time
+	 * shillinq stamps `settledAt` on a PaymentRequest whose `subject.app` is
+	 * learniq, the learner's pending Entitlement for that FeeItem is granted.
+	 * Shillinq saves the request, hence ObjectUpdatedEvent, and only shillinq's
+	 * PaymentRequest writes construct the listener. No shillinq class is
+	 * referenced: without shillinq nothing ever matches.
 	 *
 	 * @param IEventDispatcher $dispatcher The live event dispatcher.
 	 * @param string $appId The Learniq app id (log context only).
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-settled-shillinq-payment-request-grants-its-entitlement-and-a-voided-one-revokes-it
+	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-settled-shillinq-contribution-grants-the-learners-entitlement
 	 */
 	private function registerPaymentListeners(IEventDispatcher $dispatcher, string $appId): void {
 		$this->registerFilteredObjectListener(
 			dispatcher: $dispatcher,
 			appId: $appId,
 			event: ObjectUpdatedEvent::class,
-			listener: ShillinqPaymentSettledListener::class,
+			listener: ShillinqContributionSettledListener::class,
 			registers: ['shillinq'],
 			schemas: ['PaymentRequest']
 		);

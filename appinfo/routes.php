@@ -185,6 +185,12 @@ return [
         // P-new-7). Controller: PrivacyGovernanceController (slug: privacyGovernance).
         ['name' => 'privacyGovernance#overview', 'url' => '/api/privacy-governance/overview', 'verb' => 'GET'],
 
+        // Raise a FeeItem's contributions in shillinq (payments-to-shillinq-migration,
+        // D19; shillinq contract extracurricular-fee-to-shillinq v1). #[NoAdminRequired]
+        // + the fee-item.raise-contributions action; shillinq checks payment.request.
+        // Controller: ContributionController (slug: contribution).
+        ['name' => 'contribution#raise', 'url' => '/api/fee-items/{id}/contributions', 'verb' => 'POST'],
+
         // Portable learning record — the calling user's own composed
         // trajectory (RBAC-gap read, mirrors LeaderboardController's own
         // reasoning: OR's per-schema self-match RBAC cannot serve a

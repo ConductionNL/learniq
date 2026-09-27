@@ -2110,12 +2110,17 @@ OC.L10N.register(
         "The frameworks could not be loaded.": "De kaders konden niet worden geladen.",
         "The coverage of this framework could not be loaded.": "De dekking van dit kader kon niet worden geladen.",
         "Payment request": "Betaalverzoek",
-        "Id of the shillinq PaymentRequest that paid for this entitlement. The request stands on this Entitlement (subjectKind object). Learniq stamps it when shillinq reports the request captured, and the grant guard reads the request back from shillinq before it allows the grant.": "Id van het shillinq-betaalverzoek waarmee dit recht is betaald. Het verzoek staat op dit recht (subjectKind object). Learniq zet het zodra shillinq het verzoek als ontvangen meldt, en de toekenning leest het verzoek eerst terug uit shillinq.",
         "Payment settled at": "Betaling ontvangen op",
-        "When shillinq reported the payment request captured.": "Wanneer shillinq het betaalverzoek als ontvangen meldde.",
         "Payments through shillinq": "Betalingen via shillinq",
-        "Granting an entitlement once shillinq reports the payment request on it settled.": "Een recht toekennen zodra shillinq het betaalverzoek erop als betaald meldt.",
-        "Learniq no longer starts payments itself. A school charges through shillinq and the pay screen is portaliq's; an entitlement is granted when shillinq reports its payment request captured. Without shillinq installed no entitlement is ever granted.": "Learniq start zelf geen betalingen meer. Een school rekent af via shillinq en het betaalscherm is van portaliq; een recht wordt toegekend zodra shillinq het betaalverzoek als ontvangen meldt. Zonder shillinq wordt nooit een recht toegekend."
+        "Id of the shillinq PaymentRequest raised for this entitlement's fee and learner. Learniq stamps it when it raises the contribution and again when shillinq reports the request settled; the grant guard reads the request back from shillinq before it allows the grant.": "Id van het shillinq-betaalverzoek voor de kosten en de leerling van dit recht. Learniq zet het bij het versturen van de bijdrage en opnieuw zodra shillinq het verzoek als betaald meldt; de toekenning leest het verzoek eerst terug uit shillinq.",
+        "When shillinq first reported the payment request settled (its settledAt).": "Wanneer shillinq het betaalverzoek voor het eerst als betaald meldde (settledAt).",
+        "Payment settled via": "Betaald via",
+        "How shillinq reports the payment completed (its settledVia): provider, cash, pin, bank-transfer, waived or other.": "Hoe de betaling volgens shillinq is voldaan (settledVia): provider, contant, pin, overboeking, kwijtgescholden of anders.",
+        "Raising a fee's contributions in shillinq, and granting an entitlement once shillinq reports the payment settled.": "De bijdragen voor kosten in shillinq versturen, en een recht toekennen zodra shillinq de betaling als voldaan meldt.",
+        "No shillinq administration is set, so learniq cannot raise a fee's contributions. Set it with occ config:app:set learniq shillinq_administration_id.": "Er is geen shillinq-administratie ingesteld, dus learniq kan geen bijdragen versturen. Stel die in met occ config:app:set learniq shillinq_administration_id.",
+        "Raise contributions in shillinq": "Bijdragen versturen via shillinq",
+        "The contributions were sent to shillinq.": "De bijdragen zijn naar shillinq verstuurd.",
+        "The contributions could not be raised in shillinq.": "De bijdragen konden niet in shillinq worden verstuurd."
     },
     "nplurals=2; plural=(n != 1);"
 )

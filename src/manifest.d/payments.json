@@ -55,6 +55,24 @@
 			"config": {
 				"register": "learniq",
 				"schema": "fee-item",
+				"headerActions": [
+					{
+						"id": "raise-contributions",
+						"label": "Raise contributions in shillinq",
+						"type": "api-call",
+						"url": "/apps/learniq/api/fee-items/@objectId/contributions",
+						"method": "POST",
+						"confirm": true,
+						"icon": "CurrencyEur",
+						"successMessage": "The contributions were sent to shillinq.",
+						"errorMessage": "The contributions could not be raised in shillinq.",
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "eq",
+							"value": "active"
+						}
+					}
+				],
 				"widgets": [
 					{
 						"id": "fee-item-data",
@@ -108,7 +126,8 @@
 						}
 					]
 				}
-			}
+			},
+			"_note": "payments-to-shillinq-migration (D19): the Raise contributions action posts to ContributionController, which raises this fee's contributions in shillinq for the guardians of its learners (shillinq contract extracurricular-fee-to-shillinq v1). Visible on an active fee only."
 		},
 		{
 			"id": "Entitlements",

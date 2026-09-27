@@ -87,6 +87,8 @@ class PaymentsToShillinqRegisterTest extends TestCase {
 		self::assertTrue($entitlement['properties']['paymentRequestRef']['nullable']);
 		self::assertArrayNotHasKey('$ref', $entitlement['properties']['paymentRequestRef'], 'shillinq is duck-typed: no cross-app $ref');
 		self::assertSame('date-time', $entitlement['properties']['paymentSettledAt']['format']);
+		self::assertTrue($entitlement['properties']['paymentSettledVia']['nullable']);
+		self::assertArrayNotHasKey('enum', $entitlement['properties']['paymentSettledVia'], 'the contract may add settledVia values');
 		self::assertSame(
 			'OCA\\Learniq\\Lifecycle\\FeeItemVoluntaryEntitlementGuard',
 			$entitlement['x-openregister-lifecycle']['transitions']['grant']['requires']
@@ -118,6 +120,28 @@ class PaymentsToShillinqRegisterTest extends TestCase {
 	}//end testOnlyFeeItemAndEntitlementPagesRemain()
 
 	/**
+	 * An active fee offers the raise, which posts to the routed endpoint.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+	 */
+	public function testAnActiveFeeOffersTheRaise(): void {
+		$payments = self::json('src/manifest.d/payments.json');
+		$detail = array_values(array_filter($payments['pages'], static fn (array $p): bool => $p['id'] === 'FeeItemDetail'))[0];
+		$action = $detail['config']['headerActions'][0];
+
+		self::assertSame('api-call', $action['type']);
+		self::assertSame('/apps/learniq/api/fee-items/@objectId/contributions', $action['url']);
+		self::assertTrue($action['confirm']);
+		self::assertSame(['field' => 'lifecycle', 'op' => 'eq', 'value' => 'active'], $action['visibleWhen']);
+
+		$routes = (string)file_get_contents(dirname(__DIR__, 3) . '/appinfo/routes.php');
+		self::assertStringContainsString("['name' => 'contribution#raise', 'url' => '/api/fee-items/{id}/contributions', 'verb' => 'POST']", $routes);
+		self::assertContains('admin', self::json('lib/actions.seed.json')['actions']['fee-item.raise-contributions']);
+	}//end testAnActiveFeeOffersTheRaise()
+
+	/**
 	 * No pay screen, no payment routes.
 	 *
 	 * @return void
@@ -126,7 +150,7 @@ class PaymentsToShillinqRegisterTest extends TestCase {
 		$root = dirname(__DIR__, 3);
 		self::assertFileDoesNotExist($root . '/src/views/OrderPaymentPanel.vue');
 		self::assertStringNotContainsString('OrderPaymentPanel', (string)file_get_contents($root . '/src/registry.js'));
-		self::assertStringNotContainsString('/api/payments', (string)file_get_contents($root . '/appinfo/routes.php'));
+		self::assertStringNotContainsString("'/api/payments", (string)file_get_contents($root . '/appinfo/routes.php'));
 		self::assertFileDoesNotExist($root . '/lib/Controller/PaymentTransactionController.php');
 	}//end testThereIsNoPayScreenOrPaymentRoute()
 }//end class

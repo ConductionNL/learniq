@@ -1660,12 +1660,17 @@ OC.L10N.register(
         "The frameworks could not be loaded.": "The frameworks could not be loaded.",
         "The coverage of this framework could not be loaded.": "The coverage of this framework could not be loaded.",
         "Payment request": "Payment request",
-        "Id of the shillinq PaymentRequest that paid for this entitlement. The request stands on this Entitlement (subjectKind object). Learniq stamps it when shillinq reports the request captured, and the grant guard reads the request back from shillinq before it allows the grant.": "Id of the shillinq PaymentRequest that paid for this entitlement. The request stands on this Entitlement (subjectKind object). Learniq stamps it when shillinq reports the request captured, and the grant guard reads the request back from shillinq before it allows the grant.",
         "Payment settled at": "Payment settled at",
-        "When shillinq reported the payment request captured.": "When shillinq reported the payment request captured.",
         "Payments through shillinq": "Payments through shillinq",
-        "Granting an entitlement once shillinq reports the payment request on it settled.": "Granting an entitlement once shillinq reports the payment request on it settled.",
-        "Learniq no longer starts payments itself. A school charges through shillinq and the pay screen is portaliq's; an entitlement is granted when shillinq reports its payment request captured. Without shillinq installed no entitlement is ever granted.": "Learniq no longer starts payments itself. A school charges through shillinq and the pay screen is portaliq's; an entitlement is granted when shillinq reports its payment request captured. Without shillinq installed no entitlement is ever granted."
+        "Id of the shillinq PaymentRequest raised for this entitlement's fee and learner. Learniq stamps it when it raises the contribution and again when shillinq reports the request settled; the grant guard reads the request back from shillinq before it allows the grant.": "Id of the shillinq PaymentRequest raised for this entitlement's fee and learner. Learniq stamps it when it raises the contribution and again when shillinq reports the request settled; the grant guard reads the request back from shillinq before it allows the grant.",
+        "When shillinq first reported the payment request settled (its settledAt).": "When shillinq first reported the payment request settled (its settledAt).",
+        "Payment settled via": "Payment settled via",
+        "How shillinq reports the payment completed (its settledVia): provider, cash, pin, bank-transfer, waived or other.": "How shillinq reports the payment completed (its settledVia): provider, cash, pin, bank-transfer, waived or other.",
+        "Raising a fee's contributions in shillinq, and granting an entitlement once shillinq reports the payment settled.": "Raising a fee's contributions in shillinq, and granting an entitlement once shillinq reports the payment settled.",
+        "No shillinq administration is set, so learniq cannot raise a fee's contributions. Set it with occ config:app:set learniq shillinq_administration_id.": "No shillinq administration is set, so learniq cannot raise a fee's contributions. Set it with occ config:app:set learniq shillinq_administration_id.",
+        "Raise contributions in shillinq": "Raise contributions in shillinq",
+        "The contributions were sent to shillinq.": "The contributions were sent to shillinq.",
+        "The contributions could not be raised in shillinq.": "The contributions could not be raised in shillinq."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -33,6 +33,7 @@ use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\EntitlementPaymentSettledGuard;
 use OCA\Learniq\Lifecycle\FeeItemVoluntaryEntitlementGuard;
+use OCA\Learniq\Service\ContributionBeneficiaryResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\App\IAppManager;
 use PHPUnit\Framework\TestCase;
@@ -76,26 +77,38 @@ class FeeItemVoluntaryEntitlementGuardTest extends TestCase {
 		$appManager = $this->createMock(IAppManager::class);
 		$appManager->method('isInstalled')->willReturn(true);
 
-		$settledGuard = new EntitlementPaymentSettledGuard($objectService, $appManager, $this->createMock(LoggerInterface::class));
+		$settledGuard = new EntitlementPaymentSettledGuard(
+			$objectService,
+			$appManager,
+			new ContributionBeneficiaryResolver($objectService),
+			$this->createMock(LoggerInterface::class)
+		);
 
 		return new FeeItemVoluntaryEntitlementGuard($objectService, $settledGuard, $this->createMock(LoggerInterface::class));
 	}//end makeGuard()
 
 	/**
-	 * A shillinq PaymentRequest standing on ent-1 in the given state.
+	 * A shillinq contribution request for fee-1 and leerling-001, settled or not.
 	 *
-	 * @param string $state The request state.
+	 * @param string $state The request state; `settled` sets settledAt.
 	 *
 	 * @return array<string,mixed>
 	 */
 	private function request(string $state): array {
-		return [
+		$request = [
 			'id' => 'pr-1',
 			'subjectKind' => 'object',
-			'subject' => ['type' => 'entitlement', 'register' => 'learniq', 'schema' => 'entitlement', 'id' => 'ent-1'],
-			'paymentGateway' => 'mollie',
+			'subject' => ['app' => 'learniq', 'type' => 'fee-item', 'register' => 'learniq', 'schema' => 'fee-item', 'id' => 'fee-1'],
+			'beneficiary' => ['type' => 'learner', 'id' => 'leerling-001'],
+			'requestType' => 'contribution',
 			'state' => $state,
 		];
+		if ($state === 'settled') {
+			$request['state'] = 'captured';
+			$request['settledAt'] = '2026-10-02T09:15:00+00:00';
+		}
+
+		return $request;
 	}//end request()
 
 	/**
@@ -107,12 +120,12 @@ class FeeItemVoluntaryEntitlementGuardTest extends TestCase {
 	 * @spec openspec/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
 	 */
 	public function testVoluntaryFeeItemBlocksGrantRegardlessOfPaymentState(): void {
-		foreach (['pending', 'authorized', 'captured', 'captured_unapplied', 'failed', 'voided'] as $state) {
+		foreach (['pending', 'authorized', 'captured', 'captured_unapplied', 'failed', 'voided', 'settled'] as $state) {
 			$guard = $this->makeGuard(
 				feeItem: ['id' => 'fee-1', 'voluntary' => true],
 				paymentRequest: $this->request(state: $state)
 			);
-			$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'paymentRequestRef' => 'pr-1', 'lifecycle' => 'active'];
+			$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'learnerId' => 'leerling-001', 'paymentRequestRef' => 'pr-1', 'lifecycle' => 'active'];
 
 			self::assertDenied(
 				$guard->check($object, 'grant', ''),
@@ -124,36 +137,36 @@ class FeeItemVoluntaryEntitlementGuardTest extends TestCase {
 
 	/**
 	 * A non-voluntary FeeItem is unaffected by this guard: the composed
-	 * EntitlementPaymentSettledGuard allows once shillinq reports it captured.
+	 * EntitlementPaymentSettledGuard allows once shillinq reports it settled.
 	 *
 	 * @return void
 	 */
-	public function testNonVoluntaryFeeItemAllowsGrantWhenPaymentCaptured(): void {
+	public function testNonVoluntaryFeeItemAllowsGrantWhenPaymentSettled(): void {
+		$guard = $this->makeGuard(
+			feeItem: ['id' => 'fee-1', 'voluntary' => false],
+			paymentRequest: $this->request(state: 'settled')
+		);
+		$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'learnerId' => 'leerling-001', 'paymentRequestRef' => 'pr-1', 'lifecycle' => 'active'];
+
+		self::assertAllowed($guard->check($object, 'grant', ''));
+
+	}//end testNonVoluntaryFeeItemAllowsGrantWhenPaymentSettled()
+
+	/**
+	 * A non-voluntary FeeItem still refuses while the payment is not settled, even when captured.
+	 *
+	 * @return void
+	 */
+	public function testNonVoluntaryFeeItemRefusesGrantWhenPaymentNotSettled(): void {
 		$guard = $this->makeGuard(
 			feeItem: ['id' => 'fee-1', 'voluntary' => false],
 			paymentRequest: $this->request(state: 'captured')
 		);
-		$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'paymentRequestRef' => 'pr-1', 'lifecycle' => 'active'];
-
-		self::assertAllowed($guard->check($object, 'grant', ''));
-
-	}//end testNonVoluntaryFeeItemAllowsGrantWhenPaymentCaptured()
-
-	/**
-	 * A non-voluntary FeeItem still refuses while the payment is not captured.
-	 *
-	 * @return void
-	 */
-	public function testNonVoluntaryFeeItemRefusesGrantWhenPaymentNotCaptured(): void {
-		$guard = $this->makeGuard(
-			feeItem: ['id' => 'fee-1', 'voluntary' => false],
-			paymentRequest: $this->request(state: 'pending')
-		);
-		$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'paymentRequestRef' => 'pr-1', 'lifecycle' => 'active'];
+		$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'learnerId' => 'leerling-001', 'paymentRequestRef' => 'pr-1', 'lifecycle' => 'active'];
 
 		self::assertDenied($guard->check($object, 'grant', ''));
 
-	}//end testNonVoluntaryFeeItemRefusesGrantWhenPaymentNotCaptured()
+	}//end testNonVoluntaryFeeItemRefusesGrantWhenPaymentNotSettled()
 
 	/**
 	 * A missing feeItemId fails closed.

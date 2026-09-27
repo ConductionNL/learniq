@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Lifecycle\EntitlementPaymentSettledGuard;
+use OCA\Learniq\Service\ContributionBeneficiaryResolver;
 use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
@@ -39,7 +40,7 @@ class EntitlementPaymentSettledGuardTest extends TestCase {
 	use GuardVerdicts;
 
 	/**
-	 * Every find() call: id, register, schema, rbac.
+	 * Every find() on shillinq's register: id, register, schema, rbac.
 	 *
 	 * @var array<int, array{id: string, register: mixed, schema: mixed, rbac: bool}>
 	 */
@@ -48,9 +49,9 @@ class EntitlementPaymentSettledGuardTest extends TestCase {
 	/**
 	 * Build the guard.
 	 *
-	 * @param array<string,mixed>|null $request     The PaymentRequest shillinq holds, or null.
-	 * @param bool                     $installed   Whether shillinq is installed.
-	 * @param bool                     $readFails   Whether reading shillinq throws.
+	 * @param array<string,mixed>|null $request   The PaymentRequest shillinq holds, or null.
+	 * @param bool                     $installed Whether shillinq is installed.
+	 * @param bool                     $readFails Whether reading shillinq throws.
 	 *
 	 * @return EntitlementPaymentSettledGuard
 	 */
@@ -58,6 +59,10 @@ class EntitlementPaymentSettledGuardTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
 			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true) use ($request, $readFails) {
+				if ($schema === 'learner-profile') {
+					return ($id === 'lp-1') ? OrEntityFactory::make(['id' => 'lp-1', 'ncUserId' => 'leerling-001'], 'learner-profile') : null;
+				}
+
 				$this->finds[] = ['id' => (string)$id, 'register' => $register, 'schema' => $schema, 'rbac' => $_rbac];
 				if ($readFails === true) {
 					throw new RuntimeException('shillinq register missing');
@@ -67,7 +72,7 @@ class EntitlementPaymentSettledGuardTest extends TestCase {
 					return null;
 				}
 
-				return OrEntityFactory::make($request, 'PaymentRequest');
+				return OrEntityFactory::make($request, 'PaymentRequest', 'shillinq');
 			}
 		);
 
@@ -76,29 +81,30 @@ class EntitlementPaymentSettledGuardTest extends TestCase {
 			static fn (string $appId): bool => $installed === true && $appId === 'shillinq'
 		);
 
-		return new EntitlementPaymentSettledGuard($objectService, $appManager, new NullLogger());
+		return new EntitlementPaymentSettledGuard($objectService, $appManager, new ContributionBeneficiaryResolver($objectService), new NullLogger());
 	}//end makeGuard()
 
 	/**
-	 * A PaymentRequest on an object.
+	 * A contribution request for fee-1 and leerling-001 (profile lp-1).
 	 *
-	 * @param string $state        Request state.
-	 * @param string $entitlement  The Entitlement id its subject names.
-	 * @param string $schema       The subject schema.
+	 * @param array<string,mixed> $override Fields to override.
 	 *
 	 * @return array<string,mixed>
 	 */
-	private function request(string $state = 'captured', string $entitlement = 'ent-1', string $schema = 'entitlement'): array {
-		return [
-			'id' => 'pr-1',
-			'subjectKind' => 'object',
-			'subject' => ['type' => 'entitlement', 'register' => 'learniq', 'schema' => $schema, 'id' => $entitlement],
-			'requestType' => 'other',
-			'paymentGateway' => 'mollie',
-			'amount' => 45.0,
-			'currency' => 'EUR',
-			'state' => $state,
-		];
+	private function request(array $override = []): array {
+		return array_merge(
+			[
+				'id' => 'pr-1',
+				'subjectKind' => 'object',
+				'subject' => ['app' => 'learniq', 'type' => 'fee-item', 'register' => 'learniq', 'schema' => 'fee-item', 'id' => 'fee-1'],
+				'beneficiary' => ['type' => 'learner', 'register' => 'learniq', 'schema' => 'learner-profile', 'id' => 'lp-1'],
+				'requestType' => 'contribution',
+				'state' => 'captured',
+				'settledAt' => '2026-10-02T09:15:00+00:00',
+				'settledVia' => 'provider',
+			],
+			$override
+		);
 	}//end request()
 
 	/**
@@ -113,38 +119,47 @@ class EntitlementPaymentSettledGuardTest extends TestCase {
 	}//end entitlement()
 
 	/**
-	 * A captured request on this Entitlement allows the grant, read without RBAC from shillinq's register.
+	 * A settled request for this fee and learner allows the grant, read without RBAC from shillinq.
 	 *
 	 * @return void
 	 */
-	public function testACapturedRequestOnThisEntitlementAllowsTheGrant(): void {
+	public function testASettledRequestForThisFeeAndLearnerAllowsTheGrant(): void {
 		self::assertAllowed($this->makeGuard(request: $this->request())->check($this->entitlement(), 'grant', 'admin'));
 		self::assertSame(['id' => 'pr-1', 'register' => 'shillinq', 'schema' => 'PaymentRequest', 'rbac' => false], $this->finds[0]);
-	}//end testACapturedRequestOnThisEntitlementAllowsTheGrant()
+	}//end testASettledRequestForThisFeeAndLearnerAllowsTheGrant()
 
 	/**
-	 * Every state other than captured refuses, including captured_unapplied.
+	 * Without settledAt nothing counts, whatever the state says.
 	 *
 	 * @return void
 	 */
-	public function testEveryOtherStateRefuses(): void {
-		foreach (['pending', 'authorized', 'captured_unapplied', 'failed', 'expired', 'voided'] as $state) {
+	public function testNoSettledAtRefuses(): void {
+		foreach (['pending', 'authorized', 'captured', 'captured_unapplied'] as $state) {
 			self::assertDenied(
-				$this->makeGuard(request: $this->request(state: $state))->check($this->entitlement(), 'grant', 'admin'),
+				$this->makeGuard(request: $this->request(['state' => $state, 'settledAt' => null]))->check($this->entitlement(), 'grant', 'admin'),
 				$state
 			);
 		}
-	}//end testEveryOtherStateRefuses()
+	}//end testNoSettledAtRefuses()
 
 	/**
-	 * A captured request on another object refuses.
+	 * A settled request for another fee, another learner or another app refuses.
 	 *
 	 * @return void
 	 */
-	public function testACapturedRequestOnAnotherObjectRefuses(): void {
-		self::assertDenied($this->makeGuard(request: $this->request(entitlement: 'ent-9'))->check($this->entitlement(), 'grant', 'admin'));
-		self::assertDenied($this->makeGuard(request: $this->request(schema: 'fee-item'))->check($this->entitlement(), 'grant', 'admin'));
-	}//end testACapturedRequestOnAnotherObjectRefuses()
+	public function testASettledRequestForSomethingElseRefuses(): void {
+		$others = [
+			['subject' => ['app' => 'learniq', 'register' => 'learniq', 'schema' => 'fee-item', 'id' => 'fee-9']],
+			['subject' => ['app' => 'portaliq', 'register' => 'portaliq', 'schema' => 'fee-item', 'id' => 'fee-1']],
+			['beneficiary' => ['type' => 'learner', 'id' => 'leerling-009']],
+			['beneficiary' => null],
+		];
+		foreach ($others as $override) {
+			self::assertDenied($this->makeGuard(request: $this->request($override))->check($this->entitlement(), 'grant', 'admin'));
+		}
+
+		self::assertAllowed($this->makeGuard(request: $this->request(['beneficiary' => ['type' => 'learner', 'id' => 'leerling-001']]))->check($this->entitlement(), 'grant', 'admin'));
+	}//end testASettledRequestForSomethingElseRefuses()
 
 	/**
 	 * Without shillinq installed the guard fails closed and reads nothing.
@@ -166,17 +181,4 @@ class EntitlementPaymentSettledGuardTest extends TestCase {
 		self::assertDenied($this->makeGuard(request: $this->request())->check($this->entitlement(ref: 'pr-unknown'), 'grant', 'admin'));
 		self::assertDenied($this->makeGuard(request: $this->request(), readFails: true)->check($this->entitlement(), 'grant', 'admin'));
 	}//end testMissingOrUnreadableRequestsRefuse()
-
-	/**
-	 * The subject helper recognises only an object request on a learniq Entitlement.
-	 *
-	 * @return void
-	 */
-	public function testTheSubjectHelperReadsOnlyLearniqEntitlements(): void {
-		$guard = $this->makeGuard(request: null);
-		self::assertSame('ent-1', $guard->subjectEntitlementId(request: $this->request()));
-		self::assertNull($guard->subjectEntitlementId(request: ['subjectKind' => 'invoice', 'invoiceReference' => 'inv-1']));
-		self::assertNull($guard->subjectEntitlementId(request: $this->request(schema: 'Zaak')));
-		self::assertTrue($guard->isSettledRequestFor(request: $this->request(), entitlementId: ''));
-	}//end testTheSubjectHelperReadsOnlyLearniqEntitlements()
 }//end class
