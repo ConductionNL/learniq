@@ -1207,7 +1207,10 @@ OC.L10N.register(
         "Subject teacher assignment": "Subject teacher assignment",
         "Teacher ID": "Teacher ID",
         "Role": "Role",
-        "Days": "Days"
+        "Days": "Days",
+        "No sessions scheduled for today.": "No sessions scheduled for today.",
+        "Notes": "Notes",
+        "Today's sessions": "Today's sessions"
     },
     "nplurals=2; plural=(n != 1);"
 )

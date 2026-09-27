@@ -1703,7 +1703,10 @@ OC.L10N.register(
         "No subject teacher assignments found.": "Geen vakleerkrachttoewijzingen gevonden.",
         "Subject teacher assignment": "Vakleerkrachttoewijzing",
         "Teacher ID": "Leerkracht-ID",
-        "Days": "Dagen"
+        "Days": "Dagen",
+        "No sessions scheduled for today.": "Geen sessies gepland voor vandaag.",
+        "Notes": "Notities",
+        "Today's sessions": "Sessies van vandaag"
     },
     "nplurals=2; plural=(n != 1);"
 )
