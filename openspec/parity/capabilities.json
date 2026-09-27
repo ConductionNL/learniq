@@ -7110,14 +7110,14 @@
       "origin": "featureRequest",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-24443",
       "built": {
-        "state": "building",
-        "evidence": "lib/Settings/learniq_register.json:4229",
-        "owner": "ConductionNL/openregister",
-        "reachedOn": "/learner-profiles/:id (lifecycle action)"
+        "state": "built",
+        "evidence": "lib/Lifecycle/LearnerMergeGuard.php check() on the merge transition, lib/Listener/LearnerMergeHandler.php + lib/Service/LearnerMergeService.php moveRecords(); tests/Unit/Listener/LearnerMergeHandlerTest.php",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/learner-profiles/:id (set mergedInto, then the merge lifecycle action)"
       },
-      "provider": "openregister",
-      "providerHow": "OpenRegister's lifecycle engine performs the state change; no learniq code moves the records.",
-      "learniq": "partial",
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Searched public/ for mergeuser, merge_user, mergeaccount outside vendored libs and tests: no hits. Nearest is public/admin/user/user_bulk.php:1 (bulk delete, suspend, cohort add), which has no merge action. Marketplace tool_mergeusers adds it, not shipped.",
         "moodle-workplace": "read 2026-09-26: not documented: searched the Workplace release notes and Workplace user pages (https://docs.moodle.org/502/en/Upload_users_in_Moodle_Workplace); no merge-users feature is described.",
@@ -7132,7 +7132,7 @@
       "totara": "unknown",
       "chamilo": "yes",
       "ispring-learn": "unknown",
-      "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-24443 (New Feature, Open, 87 votes): \"Merge Users: Add functionality to Moodle that allows site admins to merge two user profiles.\" (core lacks it; a contributed plugin fills it) built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
+      "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-24443 (New Feature, Open, 87 votes): \"Merge Users: Add functionality to Moodle that allows site admins to merge two user profiles.\" (core lacks it; a contributed plugin fills it) built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row. Built 2026-09-27 (learniq#950): the merge transition requires LearnerMergeGuard (mergedInto must name another active profile, no open enrolment in the same course on both accounts) and LearnerMergeHandler moves enrolments, grades, attendance, credentials, portfolio entries and every other learner-owned record to the surviving profile; mergedInto stays set and the merged profile is kept for audit."
     },
     {
       "id": "cred-reissue-all-from-new-template",
