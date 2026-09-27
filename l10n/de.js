@@ -467,7 +467,20 @@ OC.L10N.register(
         "What course evaluations said, per course.": "Was die Kursevaluationen sagten, je Kurs.",
         "What was found on placement visits.": "Was bei Praktikumsbesuchen festgestellt wurde.",
         "Store": "Store",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installieren Sie Register, Schemata und Flows, die andere Organisationen veröffentlicht haben."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installieren Sie Register, Schemata und Flows, die andere Organisationen veröffentlicht haben.",
+        "Enter the access code you were given to start this assessment.": "Geben Sie den Zugangscode ein, den Sie erhalten haben, um diesen Test zu starten.",
+        "Access code": "Zugangscode",
+        "This assessment is not open yet. It opens on {date}.": "Dieser Test ist noch nicht geöffnet. Er öffnet am {date}.",
+        "This assessment is not open yet.": "Dieser Test ist noch nicht geöffnet.",
+        "This assessment is closed.": "Dieser Test ist geschlossen.",
+        "This assessment is not available right now.": "Dieser Test ist gerade nicht verfügbar.",
+        "The access code is not correct.": "Der Zugangscode ist nicht korrekt.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Optionaler Code, den Lernende eingeben müssen, um den Test zu starten, zum Beispiel um ihn auf die Personen im Prüfungsraum zu beschränken. Leer lassen für keinen Code.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Der Zugangscode, der zum Starten dieses Versuchs eingegeben wurde. Er wird geprüft und danach gelöscht, also nie gespeichert.",
+        "Teachers": "Lehrkräfte",
+        "Manager": "Vorgesetzte Person",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Lehrkräfte des Kurses, die diesen Versuch sehen und bewerten dürfen. Wird vom Server ausgefüllt.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Vorgesetzte Person der lernenden Person, die diesen Versuch sehen darf. Wird vom Server ausgefüllt."
     },
     "nplurals=2; plural=(n != 1);"
 )
