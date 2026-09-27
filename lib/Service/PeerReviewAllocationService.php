@@ -13,6 +13,13 @@
  * exclusion rule), and `manual` (a no-op — the teacher creates `PeerReview`
  * rows by hand through the ordinary manifest create form).
  *
+ * Reads and writes as the system (`_rbac: false`): its one caller,
+ * PeerReviewController::allocate(), has already checked that the caller is an
+ * admin or a teacher of the Assignment's cohort, and PeerReview create is not
+ * open to that teacher's `instructors` group (peer-review-allocation-trigger).
+ * Only handed-in Submissions (submitted, late, returned) are reviewed or
+ * supply reviewers.
+ *
  * Idempotent: re-running allocate() only tops up Submissions short of
  * `peerReviewersPerSubmission` reviewers and never duplicates an existing
  * (reviewer, submission) pair.
@@ -51,6 +58,7 @@ use Psr\Log\LoggerInterface;
  * Allocates PeerReview rows for an Assignment's Submissions.
  *
  * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
+ * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
  */
 class PeerReviewAllocationService {
 
@@ -58,6 +66,18 @@ class PeerReviewAllocationService {
 	private const ASSIGNMENT_SCHEMA = 'assignment';
 	private const SUBMISSION_SCHEMA = 'submission';
 	private const PEER_REVIEW_SCHEMA = 'peer-review';
+
+	/**
+	 * Submission lifecycles that count as handed-in work: only these are
+	 * reviewed, and only their learners review. A draft is not handed in.
+	 */
+	private const HANDED_IN_STATES = ['submitted', 'late', 'returned'];
+
+	/**
+	 * Explicit read limits instead of OpenRegister's default page.
+	 */
+	private const SUBMISSION_LIMIT = 1000;
+	private const REVIEW_LIMIT = 5000;
 
 	private const DEFAULT_STRATEGY = 'round-robin';
 	private const DEFAULT_REVIEWERS = 2;
@@ -241,7 +261,8 @@ class PeerReviewAllocationService {
 					'rubricScores' => [],
 					'lifecycle' => 'assigned',
 					'tenant_id' => $submission['tenant_id'] ?? '',
-				]
+				],
+				_rbac: false
 			);
 		}//end while
 
@@ -306,21 +327,27 @@ class PeerReviewAllocationService {
 	 * @return array<int,array<string,mixed>>
 	 *
 	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
+	 * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
 	 */
 	private function fetchOrderedSubmissions(string $assignmentId): array {
 		$results = $this->objectService->findAll(
-			[
+			config: [
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::SUBMISSION_SCHEMA,
 					'assignmentId' => $assignmentId,
 				],
-			]
+				'limit' => self::SUBMISSION_LIMIT,
+			],
+			_rbac: false
 		);
 
 		$submissions = [];
 		foreach ($results as $result) {
-			$submissions[] = $this->toArray(value: $result);
+			$submission = $this->toArray(value: $result);
+			if (in_array(($submission['lifecycle'] ?? null), self::HANDED_IN_STATES, true) === true) {
+				$submissions[] = $submission;
+			}
 		}
 
 		usort(
@@ -400,13 +427,15 @@ class PeerReviewAllocationService {
 	 */
 	private function fetchExistingReviews(string $assignmentId): array {
 		$results = $this->objectService->findAll(
-			[
+			config: [
 				'filters' => [
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => self::PEER_REVIEW_SCHEMA,
 					'assignmentId' => $assignmentId,
 				],
-			]
+				'limit' => self::REVIEW_LIMIT,
+			],
+			_rbac: false
 		);
 
 		$reviews = [];
