@@ -915,7 +915,13 @@
                 "authorization": {
                     "read": [
                         "hr",
-                        "compliance-officers"
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
                     ],
                     "create": [
                         "hr",
@@ -2351,6 +2357,32 @@
                         "title": "Tenant ID"
                     }
                 },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        "coordinators",
+                        "administration-managers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "x-property-rbac": {
                     "_comment": "Progress-tracking rows are per-student PII and a teaching-relevant signal. Learner sees own rows; any teacher or admin sees all — the RBAC dialect grants role-wide (there is no existing precedent in this register for a cross-object 'teacher of this specific course's cohort' match; `match` only compares a self field to $userId), mirroring CompetencyAttainment's admin/role+self shape, the most recently established analogous block.",
                     "read": {
@@ -2765,6 +2797,38 @@
                             "en": "An employee's mandatory course is overdue"
                         }
                     }
+                },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        "hr",
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        },
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "managerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
                 },
                 "x-property-rbac": {
                     "_comment": "WF1 (wave-12): enrolment records are per-student PII. Learner sees own record; managers see their reports; admins see all.",
@@ -4057,7 +4121,19 @@
                 "authorization": {
                     "read": [
                         "hr",
-                        "compliance-officers"
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        },
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "submittedBy": "$userId"
+                            }
+                        }
                     ],
                     "create": [
                         "hr",
@@ -4277,7 +4353,13 @@
                     "read": [
                         "instructors",
                         "hr",
-                        "compliance-officers"
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "ncUserId": "$userId"
+                            }
+                        }
                     ],
                     "create": [
                         "hr",
@@ -5302,6 +5384,23 @@
                         }
                     }
                 },
+                "authorization": {
+                    "read": [
+                        "coordinators"
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "x-property-rbac": {
                     "_comment": "Rollover plans are admin/coordinator-only: they move hundreds of learners. Read + write restricted to admin (broaden to a coordinator group via the action matrix).",
                     "read": {
@@ -5812,6 +5911,23 @@
                         }
                     }
                 },
+                "authorization": {
+                    "read": [
+                        "coordinators"
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "x-property-rbac": {
                     "_comment": "A double-booking is an internal operational signal, not a fact to surface to the learners/parents affected by it — they are notified separately, once a human has acted, via the Session cancel/substitute-teacher notification. Restricted to admin/coordinator/scheduling roles per design.md Security posture; 'coordinator' is the same NC-group RBAC role already used fleet-wide for scheduling-coordinator gating (documented platform gap: no dedicated coordinator role exists in LearnerProfile.roles today, same rationale as SupportRequest/TlvApplication/DossierNote).",
                     "read": {
@@ -5949,6 +6065,36 @@
                             "to": "revoked"
                         }
                     }
+                },
+                "authorization": {
+                    "read": [
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        },
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "submittedBy": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
                 },
                 "x-property-rbac": {
                     "_comment": "AVG-sensitive (health/disability-adjacent) data. Read restricted to admin/compliance-officer/mentor, the learner themselves (learnerId match), or the submitter (submittedBy match, covering the parent/guardian who filed the request) — mirrors ExcuseRequest's learnerId/submittedBy field shape. Broader 'any guardian of this learner, not just the one who submitted' is the same x-property-rbac.match single-field-on-self limitation already documented for SupportRequest/DossierNote (cannot express a cross-object LearnerProfile.parentIds join) — a known platform gap, not a fabricated guarantee.",
@@ -6790,7 +6936,15 @@
                 "authorization": {
                     "read": [
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerIds": {
+                                    "$contains": "$userId"
+                                }
+                            }
+                        }
                     ],
                     "create": [
                         "compliance-officers",
@@ -6957,7 +7111,13 @@
                 "authorization": {
                     "read": [
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "reviewerId": "$userId"
+                            }
+                        }
                     ],
                     "create": [
                         "compliance-officers",
@@ -7106,7 +7266,13 @@
                 "authorization": {
                     "read": [
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
                     ],
                     "create": [
                         "compliance-officers",
@@ -8426,6 +8592,27 @@
                         "title": "Tenant ID"
                     }
                 },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        "coordinators",
+                        "administration-managers",
+                        "compliance-officers"
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "x-property-rbac": {
                     "_comment": "assessment-item-pools-and-analysis: item difficulty/discrimination statistics MUST NOT be visible to learners — that data would let a learner infer which items are safe to guess on, undermining validity for everyone else. Staff-only, mirroring CompetencyAttainment's admin/teacher role-wide shape plus examboard (the WHW art. 7.13 accountable body).",
                     "read": {
@@ -8506,6 +8693,27 @@
                         "description": "Tenant identifier for multi-tenancy isolation.",
                         "title": "Tenant ID"
                     }
+                },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        "coordinators",
+                        "administration-managers",
+                        "compliance-officers"
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
                 },
                 "x-property-rbac": {
                     "_comment": "assessment-item-pools-and-analysis: same staff-only posture as ItemStatistics — an assessment's reliability figure MUST NOT be visible to learners.",
@@ -8655,6 +8863,27 @@
                             "to": "dismissed"
                         }
                     }
+                },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        "coordinators",
+                        "administration-managers",
+                        "compliance-officers"
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
                 },
                 "x-property-rbac": {
                     "_comment": "assessment-item-pools-and-analysis: same staff-only posture as ItemStatistics/AssessmentReliability.",
@@ -9310,6 +9539,31 @@
                         }
                     }
                 },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "x-property-rbac": {
                     "_comment": "WF1 (wave-12): grade entries are sensitive academic PII. Learner sees own grades; admins see all. exam-board-case-handling: examboard role added so a board member can read the specific grade their ExemptionCase or FraudCase concerns.",
                     "read": {
@@ -9458,6 +9712,31 @@
                         "description": "Recompute this FinalGrade whenever a GradeEntry for (learnerId, curriculumPlanId) publishes. Implemented via GradeRollupHandler listening on ObjectTransitionedEvent — NOT a TimedJob.",
                         "handler": "OCA\\Learniq\\Listener\\GradeRollupHandler"
                     }
+                },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
                 },
                 "x-property-rbac": {
                     "_comment": "WF1 (wave-12): final grades are academic PII. Learner sees own final grade; admins see all. exam-board-case-handling: examboard role added, same reasoning as GradeEntry.",
@@ -9970,6 +10249,31 @@
                             "en": "Your report card is available"
                         }
                     }
+                },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        "administration-managers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
                 },
                 "x-property-rbac": {
                     "_comment": "Staff (admin/mentor/principal) see all; the learner sees their own report card, mirroring GradeEntry/FinalGrade's existing self-match shape exactly (no lifecycle gate at the RBAC layer, same posture those two schemas already have — the 'never before publication' promise is enforced by ReportCardVisibilityGuard at publishToParents and by the portal's parentReportCards collection filtering to published-to-parents only for guardians, not by this read RBAC). Guardian read is via the portal only, never a direct RBAC grant.",
@@ -10521,6 +10825,31 @@
                         "handler": "OCA\\Learniq\\Listener\\CompetencyAttainmentRollupHandler"
                     }
                 },
+                "authorization": {
+                    "read": [
+                        "hr",
+                        "team-leads",
+                        "administration-managers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "x-property-rbac": {
                     "_comment": "wave-2 competency-framework: attainment rows are academic PII. Learner sees own rows; admin/hr/manager see all, grounded in dashboard/spec.md's named HR/manager audience.",
                     "read": {
@@ -10801,7 +11130,13 @@
                 "authorization": {
                     "read": [
                         "instructors",
-                        "compliance-officers"
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
                     ],
                     "create": [
                         "instructors",
@@ -11182,7 +11517,19 @@
                 "authorization": {
                     "read": [
                         "instructors",
-                        "compliance-officers"
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "accusedLearnerId": "$userId"
+                            }
+                        },
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "reporterId": "$userId"
+                            }
+                        }
                     ],
                     "create": [
                         "instructors",
@@ -12544,6 +12891,29 @@
                         }
                     }
                 },
+                "authorization": {
+                    "read": [
+                        "administration-managers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "raisedBy": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "x-property-rbac": {
                     "_comment": "Full-detail read restricted to admin/principal plus the coordinator who raised the request (raisedBy match), per design.md Security Considerations. A future portal-contribution provider MUST field-project parent/pupil reads rather than reuse this block — explicitly out of scope for this change.",
                     "read": {
@@ -13040,6 +13410,23 @@
                         }
                     }
                 },
+                "authorization": {
+                    "read": [
+                        "administration-managers"
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "x-property-rbac": {
                     "_comment": "Full-detail read (including other attendees' coordinator/staff-only contributions) restricted to admin/principal per design.md Security Considerations. pupilVoice.statementNote MUST be pupil-visible where portal access exists — a future portal-contribution provider's field-projection concern, explicitly out of scope for this change (design.md).",
                     "read": {
@@ -13182,7 +13569,13 @@
                 "authorization": {
                     "read": [
                         "instructors",
-                        "compliance-officers"
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "authorId": "$userId"
+                            }
+                        }
                     ],
                     "create": [
                         "instructors",
@@ -13430,7 +13823,13 @@
                 "authorization": {
                     "read": [
                         "instructors",
-                        "compliance-officers"
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "reportedBy": "$userId"
+                            }
+                        }
                     ],
                     "create": [
                         "instructors",
@@ -13570,7 +13969,13 @@
                 "authorization": {
                     "read": [
                         "instructors",
-                        "compliance-officers"
+                        "compliance-officers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
                     ],
                     "create": [
                         "instructors",
@@ -15065,6 +15470,32 @@
                         "handler": "OCA\\Learniq\\Listener\\EngagementSignalHandler"
                     }
                 },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        "coordinators",
+                        "administration-managers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "x-property-rbac": {
                     "_comment": "Engagement data is per-student PII and a teaching-relevant signal, same reasoning as LessonCompletion. Learner sees own rows; any teacher or admin sees all.",
                     "read": {
@@ -15352,6 +15783,32 @@
                             "en": "A learner is at risk of low engagement"
                         }
                     }
+                },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        "coordinators",
+                        "administration-managers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
                 },
                 "x-property-rbac": {
                     "_comment": "Human-in-the-loop at-risk evidence. Admin/coordinator/mentor see all; the flagged learner sees their own record only — mirrors BsaProgressFlag's posture.",
@@ -15786,7 +16243,13 @@
                 "authorization": {
                     "read": [
                         "compliance-officers",
-                        "team-leads"
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
                     ],
                     "create": [
                         "compliance-officers",
@@ -16870,6 +17333,24 @@
                             ]
                         }
                     }
+                },
+                "authorization": {
+                    "read": [
+                        "administration-managers",
+                        "coordinators"
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
                 },
                 "x-property-rbac": {
                     "_comment": "Same tightest-available posture as SupportRequest/TlvApplication (design.md Security Considerations) — DUO afkeurmeldingen routinely quote learner PII (name, birth date, BSN-derived pseudonym) back in errorMessage/rawRecord. No dedicated data-exchange-coordinator role exists in this register.",
@@ -19028,6 +19509,30 @@
                         }
                     }
                 },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "x-property-rbac": {
                     "_comment": "eportfolio: a portfolio holds a learner's own evidence — mirrors Submission/AssessmentResult exactly. Learner sees own portfolios; admins see all. Portal/share-derived teacher/praktijkopleider/external-assessor reads are served by PortalContributionProvider and NC Files sharing, not by widening this block (design.md Security/RBAC Posture).",
                     "read": {
@@ -19188,6 +19693,30 @@
                         }
                     }
                 ],
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "x-property-rbac": {
                     "_comment": "eportfolio: mirrors SelfAssessment's learner-self pattern via the denormalized learnerId field above. Learner sees own entries; admins see all. Portal/share-derived reads are served by PortalContributionProvider and NC Files sharing, not by widening this block.",
                     "read": {
@@ -19547,6 +20076,31 @@
                         }
                     }
                 },
+                "authorization": {
+                    "read": [
+                        "hr",
+                        "team-leads",
+                        "administration-managers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "x-property-rbac": {
                     "_comment": "portable-learning-record: an export is the learner's own composed record. Learner sees own rows; admin/hr/manager see all, mirroring CompetencyAttainment/FinalGrade's oversight-role read pattern.",
                     "read": {
@@ -19749,6 +20303,31 @@
                         },
                         "_comment": "recipientEmail names an external party with no Scholiq presence by construction (an employer, a receiving school's admissions office) — the same documented, unimplemented out-of-band-delivery gap ExternalAssessor.email/Application.guardianEmail already carry in this register. Declared here so the field is wired per the spec's requirement; actual delivery to a non-NC address is not solved by this rule alone."
                     }
+                },
+                "authorization": {
+                    "read": [
+                        "hr",
+                        "team-leads",
+                        "administration-managers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
                 },
                 "x-property-rbac": {
                     "_comment": "portable-learning-record: a share is scoped to the learner it is about. Learner sees own rows; admin/hr/manager see all, mirroring CompetencyAttainment/FinalGrade's oversight-role read pattern.",
@@ -20288,6 +20867,28 @@
                         "description": "Recompute this LearnerEngagement whenever a PointAward for this learner is created. Implemented via LearnerEngagementRollupHandler listening on ObjectCreatedEvent -- NOT a TimedJob.",
                         "handler": "OCA\\Learniq\\Listener\\LearnerEngagementRollupHandler"
                     }
+                },
+                "authorization": {
+                    "read": [
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
                 },
                 "x-property-rbac": {
                     "_comment": "engagement-gamification: a learner's points/level/streak are personal progress data. Learner sees own row via self-match; admins see all. Deliberately NOT opened up to cohort-mates -- see design.md 'Why the RBAC gap forces a controller'. Peer-visible rankings go through LeaderboardController instead, which additionally respects the per-learner leaderboard opt-out preference this self-match RBAC rule is independent of.",
@@ -21698,6 +22299,35 @@
                         }
                     }
                 },
+                "authorization": {
+                    "read": [
+                        "administration-managers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "payerId": "$userId"
+                            }
+                        },
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "x-property-rbac": {
                     "_comment": "Mirrors FinalGrade's block: the payer (payerId) and the beneficiary learner (learnerId) read their own Order; admin/finance roles read all. A learner/guardian MUST NOT read another payer's Order.",
                     "read": {
@@ -21925,6 +22555,29 @@
                     },
                     "_comment": "initiate is driven by PaymentTransactionController::initiate() itself once OpenConnector's launch-initiation call succeeds (moving the freshly-created pending row to awaiting-redirect). fail additionally allows pending -> failed directly, for the case where the outbound OpenConnector call itself fails synchronously inside initiate() before any redirect ever happened. succeed/expire/cancel/refund (and the awaiting-redirect branch of fail) are driven by PaymentTransactionController::callback() (OpenConnector's PSP adapter reporting a status update) — never called directly by a raw OR object-API client."
                 },
+                "authorization": {
+                    "read": [
+                        "administration-managers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "initiatedBy": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "x-property-rbac": {
                     "_comment": "Mirrors FinalGrade's block, adapted to this schema's actual fields (PaymentTransaction has no payerId/learnerId of its own): the caller who initiated the payment (initiatedBy) reads their own PaymentTransaction; admin/finance roles read all.",
                     "read": {
@@ -22045,6 +22698,29 @@
                         }
                     },
                     "_comment": "requires is a single DI-tag string in this register's lifecycle engine (verified: ReportPeriodLockGuard's own docblock/changelog entry — OpenRegister's LifecycleAnnotationValidator rejects a non-string requires value) — there is no 'second requires entry' array shape. FeeItemVoluntaryEntitlementGuard composes OCA\\Learniq\\Lifecycle\\EntitlementOrderPaidGuard internally (constructor-injected, called after the voluntary check passes), mirroring ReportPeriodLockGuard's own composition of FraudCaseBlockGuard. The voluntary check runs FIRST and short-circuits so a voluntary FeeItem is refused regardless of the linked Order's paid status, exactly as the spec's own scenario requires."
+                },
+                "authorization": {
+                    "read": [
+                        "administration-managers",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
                 },
                 "x-property-rbac": {
                     "_comment": "Mirrors FinalGrade's block: the learner reads their own Entitlement; admin/finance roles read all. A learner MUST NOT read another learner's Entitlement.",
