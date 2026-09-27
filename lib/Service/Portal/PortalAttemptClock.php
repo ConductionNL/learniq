@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Exception;
@@ -125,7 +126,7 @@ class PortalAttemptClock {
 
 		$seconds = (int)round($minutes * 60 * (1 + ($extraPercentage / 100)));
 
-		return $start->modify(sprintf('+%d seconds', $seconds));
+		return $start->add(new DateInterval('PT' . max(0, $seconds) . 'S'));
 	}//end deadline()
 
 	/**
