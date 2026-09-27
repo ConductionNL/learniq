@@ -67,7 +67,7 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($existingEnrolments) {
-				if (($config['schema'] ?? '') === 'enrolment') {
+				if (($config['filters']['schema'] ?? '') === 'enrolment') {
 					return $existingEnrolments;
 				}
 

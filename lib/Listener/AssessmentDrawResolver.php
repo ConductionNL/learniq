@@ -304,9 +304,13 @@ class AssessmentDrawResolver implements IEventListener {
 
 		$items = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ITEM_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ITEM_SCHEMA,
+					]
+				),
 			]
 		);
 
@@ -370,9 +374,13 @@ class AssessmentDrawResolver implements IEventListener {
 
 		$matches = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => $schema,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => $schema,
+					]
+				),
 				'limit' => 1,
 			]
 		);

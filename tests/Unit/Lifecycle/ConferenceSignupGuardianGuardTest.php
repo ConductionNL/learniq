@@ -90,7 +90,7 @@ class ConferenceSignupGuardianGuardTest extends TestCase {
 	private function wireLearnerProfile(array $profiles): void {
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($profiles) {
-				if ($config['schema'] === 'learner-profile') {
+				if ($config['filters']['schema'] === 'learner-profile') {
 					return $profiles;
 				}
 

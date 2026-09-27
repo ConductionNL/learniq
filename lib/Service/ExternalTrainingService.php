@@ -262,9 +262,9 @@ class ExternalTrainingService {
 	private function hasSignedAttestation(string $learnerId, string $regulationSlug): bool {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'attestation',
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'attestation',
 					'learnerId' => $learnerId,
 					'regulationSlug' => $regulationSlug,
 					'lifecycle' => 'signed',
@@ -288,9 +288,9 @@ class ExternalTrainingService {
 	private function hasValidCredential(string $learnerId, string $regulationSlug, DateTimeInterface $now): bool {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'credential',
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'credential',
 					'learnerId' => $learnerId,
 					'regulationSlug' => $regulationSlug,
 				],
@@ -326,9 +326,9 @@ class ExternalTrainingService {
 	private function hasVerifiedExternalRecord(string $learnerId, string $regulationSlug, DateTimeInterface $now): bool {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::SCHEMA,
 					'learnerId' => $learnerId,
 					'regulationSlug' => $regulationSlug,
 					'lifecycle' => 'verified',

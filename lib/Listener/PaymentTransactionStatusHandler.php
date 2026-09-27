@@ -226,9 +226,9 @@ class PaymentTransactionStatusHandler implements IEventListener {
 	private function sumSucceededTransactions(string $orderId): float {
 		$transactions = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::PAYMENT_TRANSACTION_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::PAYMENT_TRANSACTION_SCHEMA,
 					'orderId' => $orderId,
 					'lifecycle' => self::TRANSACTION_STATE_SUCCEEDED,
 				],
@@ -258,9 +258,11 @@ class PaymentTransactionStatusHandler implements IEventListener {
 	private function revokeActiveEntitlementsForOrder(string $orderId): void {
 		$orderLines = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ORDER_LINE_SCHEMA,
-				'filters' => ['orderId' => $orderId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ORDER_LINE_SCHEMA,
+					'orderId' => $orderId,
+				],
 			]
 		);
 
@@ -276,9 +278,9 @@ class PaymentTransactionStatusHandler implements IEventListener {
 
 			$entitlements = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::ENTITLEMENT_SCHEMA,
 					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ENTITLEMENT_SCHEMA,
 						'orderLineId' => $orderLineId,
 						'lifecycle' => 'active',
 					],

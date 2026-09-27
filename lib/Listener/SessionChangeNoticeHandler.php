@@ -173,9 +173,13 @@ class SessionChangeNoticeHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::COHORT_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::COHORT_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -216,9 +220,13 @@ class SessionChangeNoticeHandler implements IEventListener {
 
 			$results = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::LEARNER_PROFILE_SCHEMA,
-					'filters' => $filters,
+					'filters' => array_merge(
+						$filters,
+						[
+							'register' => self::LEARNIQ_REGISTER,
+							'schema' => self::LEARNER_PROFILE_SCHEMA,
+						]
+					),
 					'limit' => 1,
 				]
 			);

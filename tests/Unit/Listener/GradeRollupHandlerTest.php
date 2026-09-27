@@ -89,11 +89,11 @@ class GradeRollupHandlerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($parentIds) {
-				if ($config['schema'] === 'final-grade') {
+				if ($config['filters']['schema'] === 'final-grade') {
 					return [];
 				}
 
-				if ($config['schema'] === 'learner-profile') {
+				if ($config['filters']['schema'] === 'learner-profile') {
 					return [['parentIds' => $parentIds]];
 				}
 

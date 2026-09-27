@@ -285,7 +285,7 @@ class LearniqToolProviderTest extends TestCase {
 
 		$this->objectService->method('findAll')->willReturnCallback(
 			static function (array $config) use ($courseUuid): array {
-				if (($config['schema'] ?? null) === 'course') {
+				if (($config['filters']['schema'] ?? null) === 'course') {
 					return [
 						[
 							'uuid' => $courseUuid,
@@ -297,7 +297,7 @@ class LearniqToolProviderTest extends TestCase {
 					];
 				}
 
-				if (($config['schema'] ?? null) === 'lesson') {
+				if (($config['filters']['schema'] ?? null) === 'lesson') {
 					return [
 						['uuid' => 'aaa', 'name' => 'Module 1', 'order' => 1, 'contentType' => 'cmi5'],
 						['uuid' => 'bbb', 'name' => 'Module 2', 'order' => 2, 'contentType' => 'text'],

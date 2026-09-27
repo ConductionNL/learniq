@@ -296,15 +296,17 @@ class LearniqToolProvider implements IMcpToolProvider {
 
 		// Hard cap at LIST_CAP regardless of the requested limit.
 		$config = [
-			'register' => self::REGISTER_SLUG,
-			'schema' => self::SCHEMA_COURSE,
+			'filters' => [
+				'register' => self::REGISTER_SLUG,
+				'schema' => self::SCHEMA_COURSE,
+			],
 			'limit' => min((int)$validated['limit'], self::LIST_CAP),
 		];
 
 		if ($status === null) {
 			// No status requested by a non-admin — restrict to published only.
 			if ($callerIsAdmin === false) {
-				$config['filters'] = ['lifecycle' => 'published'];
+				$config['filters']['lifecycle'] = 'published';
 			}
 
 			return $config;
@@ -321,7 +323,7 @@ class LearniqToolProvider implements IMcpToolProvider {
 			];
 		}
 
-		$config['filters'] = ['lifecycle' => $status];
+		$config['filters']['lifecycle'] = $status;
 
 		return $config;
 	}//end buildCourseListConfig()
@@ -497,9 +499,11 @@ class LearniqToolProvider implements IMcpToolProvider {
 		try {
 			$rawLessons = $this->objectService->findAll(
 				[
-					'register' => self::REGISTER_SLUG,
-					'schema' => self::SCHEMA_LESSON,
-					'filters' => ['courseId' => $courseUuid],
+					'filters' => [
+						'register' => self::REGISTER_SLUG,
+						'schema' => self::SCHEMA_LESSON,
+						'courseId' => $courseUuid,
+					],
 				]
 			);
 		} catch (\Throwable $e) {
@@ -602,9 +606,11 @@ class LearniqToolProvider implements IMcpToolProvider {
 		foreach (['slug', 'code'] as $field) {
 			$matches = $this->objectService->findAll(
 				[
-					'register' => self::REGISTER_SLUG,
-					'schema' => self::SCHEMA_COURSE,
-					'filters' => [$field => $courseRef],
+					'filters' => [
+						'register' => self::REGISTER_SLUG,
+						'schema' => self::SCHEMA_COURSE,
+						$field => $courseRef,
+					],
 					'limit' => 1,
 				]
 			);

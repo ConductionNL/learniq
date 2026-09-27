@@ -231,9 +231,13 @@ class ReportCardVisibilityGuard implements LifecycleGuardInterface {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::GRADE_ENTRY_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::GRADE_ENTRY_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);

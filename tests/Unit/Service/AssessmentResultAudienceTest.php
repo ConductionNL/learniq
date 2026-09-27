@@ -84,9 +84,9 @@ class AssessmentResultAudienceTest extends TestCase {
 
 				$rows = array_values(
 					array_filter(
-						($this->db[$config['schema']] ?? []),
+						($this->db[$config['filters']['schema']] ?? []),
 						static function (array $row) use ($config): bool {
-							foreach (($config['filters'] ?? []) as $key => $value) {
+							foreach (array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]) as $key => $value) {
 								if (($row[$key] ?? null) !== $value) {
 									return false;
 								}
@@ -97,7 +97,7 @@ class AssessmentResultAudienceTest extends TestCase {
 					)
 				);
 
-				return OrEntityFactory::makeMany($rows, (string)$config['schema']);
+				return OrEntityFactory::makeMany($rows, (string)$config['filters']['schema']);
 			}
 		);
 

@@ -72,7 +72,7 @@ class ReportCardPublishHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($profiles) {
-				if ($config['schema'] !== 'learner-profile') {
+				if ($config['filters']['schema'] !== 'learner-profile') {
 					return [];
 				}
 

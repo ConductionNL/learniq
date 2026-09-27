@@ -165,9 +165,13 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 
 		$assignments = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'assignment',
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'assignment',
+					]
+				),
 				'limit' => 1,
 			]
 		);

@@ -182,9 +182,13 @@ class BsaDecisionGuard implements LifecycleGuardInterface {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::BSA_WARNING_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::BSA_WARNING_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);

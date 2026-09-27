@@ -89,7 +89,7 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 	private function wireInvitations(array $invitations): void {
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($invitations) {
-				if ($config['schema'] === 'evaluation-invitation') {
+				if ($config['filters']['schema'] === 'evaluation-invitation') {
 					return $invitations;
 				}
 

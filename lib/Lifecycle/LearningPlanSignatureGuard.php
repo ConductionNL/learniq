@@ -223,9 +223,13 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 
 		$templates = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'learning-plan-template',
-				'filters' => $templateFilters,
+				'filters' => array_merge(
+					$templateFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'learning-plan-template',
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -262,9 +266,13 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 
 		$raw = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'signature',
-				'filters' => $sigFilters,
+				'filters' => array_merge(
+					$sigFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'signature',
+					]
+				),
 				'limit' => 200,
 			]
 		);
@@ -312,9 +320,13 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'learner-profile',
-				'filters' => $profileFilters,
+				'filters' => array_merge(
+					$profileFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'learner-profile',
+					]
+				),
 				'limit' => 1,
 			]
 		);

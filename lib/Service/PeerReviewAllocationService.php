@@ -310,9 +310,11 @@ class PeerReviewAllocationService {
 	private function fetchOrderedSubmissions(string $assignmentId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::SUBMISSION_SCHEMA,
-				'filters' => ['assignmentId' => $assignmentId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::SUBMISSION_SCHEMA,
+					'assignmentId' => $assignmentId,
+				],
 			]
 		);
 
@@ -399,9 +401,11 @@ class PeerReviewAllocationService {
 	private function fetchExistingReviews(string $assignmentId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::PEER_REVIEW_SCHEMA,
-				'filters' => ['assignmentId' => $assignmentId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::PEER_REVIEW_SCHEMA,
+					'assignmentId' => $assignmentId,
+				],
 			]
 		);
 

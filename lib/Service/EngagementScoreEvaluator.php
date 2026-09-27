@@ -150,9 +150,9 @@ class EngagementScoreEvaluator {
 	private function fetchStatements(string $learnerId, string $courseId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::XAPI_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::XAPI_SCHEMA,
 					'verified_actor_id' => $learnerId,
 					'courseId' => $courseId,
 				],
@@ -208,9 +208,9 @@ class EngagementScoreEvaluator {
 	private function sumPublishedLessonDuration(string $courseId): float {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LESSON_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LESSON_SCHEMA,
 					'courseId' => $courseId,
 					'lifecycle' => 'published',
 				],

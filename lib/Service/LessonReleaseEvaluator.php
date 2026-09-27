@@ -313,9 +313,13 @@ class LessonReleaseEvaluator {
 
 		$statements = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::XAPI_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::XAPI_SCHEMA,
+					]
+				),
 			]
 		);
 
@@ -371,9 +375,13 @@ class LessonReleaseEvaluator {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ASSESSMENT_RESULT_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ASSESSMENT_RESULT_SCHEMA,
+					]
+				),
 			]
 		);
 

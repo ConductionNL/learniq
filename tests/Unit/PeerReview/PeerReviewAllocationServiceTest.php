@@ -77,11 +77,11 @@ class PeerReviewAllocationServiceTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($submissions, $existingReviews) {
-				if (($config['schema'] ?? '') === 'submission') {
+				if (($config['filters']['schema'] ?? '') === 'submission') {
 					return $submissions;
 				}
 
-				if (($config['schema'] ?? '') === 'peer-review') {
+				if (($config['filters']['schema'] ?? '') === 'peer-review') {
 					return $existingReviews;
 				}
 

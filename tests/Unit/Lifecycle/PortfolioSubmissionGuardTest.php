@@ -53,11 +53,11 @@ class PortfolioSubmissionGuardTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($template, $entries) {
-				if ($config['schema'] === 'portfolio-template') {
+				if ($config['filters']['schema'] === 'portfolio-template') {
 					return ($template === null) ? [] : [$template];
 				}
 
-				if ($config['schema'] === 'portfolio-entry') {
+				if ($config['filters']['schema'] === 'portfolio-entry') {
 					return $entries;
 				}
 
