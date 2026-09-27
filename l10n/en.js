@@ -1243,7 +1243,7 @@ OC.L10N.register(
         "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install.": "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install.",
         "Loads the set you picked. It is sample data, and running it twice adds nothing. Remove a set later with occ learniq:example-set:remove.": "Loads the set you picked. It is sample data, and running it twice adds nothing. Remove a set later with occ learniq:example-set:remove.",
         "What kind of organisation is this?": "What kind of organisation is this?",
-        "Pick the one that fits best. You can change it later under App settings.": "Pick the one that fits best. You can change it later under App settings.",
+        "Pick the one that fits best. The app shows the menus that fit it. You can change it later under App settings.": "Pick the one that fits best. The app shows the menus that fit it. You can change it later under App settings.",
         "Groups 1 to 8, guardians, report cards and pupil tracking.": "Groups 1 to 8, guardians, report cards and pupil tracking.",
         "Classes, subjects, report cards and exam preparation.": "Classes, subjects, report cards and exam preparation.",
         "Programmes, work placements and progress per student.": "Programmes, work placements and progress per student.",
