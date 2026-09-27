@@ -28,7 +28,7 @@
     - GET  /api/objects/learniq/peer-feedback-summary?filters[submissionId]=:id (read-only context)
     - GET  /api/objects/learniq/self-assessment?filters[submissionId]=:id (read-only context)
     - PUT  /api/objects/learniq/Submission/:id
-    - POST /api/objects/learniq/Submission/:id/transition/return
+    - POST /api/objects/:id/transition           ({ action: 'return' })
 
   Uses Options API + direct fetch calls (no custom Pinia store modules).
 
@@ -343,6 +343,7 @@
 
 <script>
 import { generateUrl } from '@nextcloud/router'
+import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'MarkSubmissionView',
@@ -776,9 +777,7 @@ export default {
 				}
 
 				// 3. Dispatch `return` lifecycle transition
-				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/Submission/${this.id}/transition/return`,
-				)
+				const transitionUrl = generateUrl(objectTransitionUrl(this.id))
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',
 					headers: {
@@ -786,7 +785,7 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({}),
+					body: JSON.stringify({ action: 'return' }),
 				})
 				if (!transResp.ok) {
 					throw new Error(`Return transition failed: ${transResp.status}`)
