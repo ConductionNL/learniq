@@ -70,15 +70,50 @@ class CohortGroupPagePolishRegisterTest extends TestCase {
 	}//end testCohortNotesIsAdditiveAndNullable()
 
 	/**
-	 * The seed fixture ("Groep 7") carries a non-null notes value.
+	 * The primary school example set's "Groep 7" carries a non-empty notes value.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testSeedFixtureCarriesNotes(): void {
-		$seeds = $this->config['components']['schemas']['Cohort']['x-openregister-seed'];
-		self::assertSame('Groep 7', $seeds[0]['name']);
-		self::assertNotNull($seeds[0]['notes']);
-		self::assertNotSame('', $seeds[0]['notes']);
+		$cohort = self::poObject(schema: 'cohort', field: 'name', value: 'Groep 7');
+		self::assertNotNull($cohort['notes']);
+		self::assertNotSame('', $cohort['notes']);
 
 	}//end testSeedFixtureCarriesNotes()
+
+	/**
+	 * The objects of one schema in the primary school example set, where the
+	 * curated primary school seeds moved to (segment-example-datasets-po).
+	 *
+	 * @param string $schema The schema slug.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function poObjects(string $schema): array {
+		$path = __DIR__ . '/../../../lib/Settings/profiles/po.json';
+		$set  = json_decode((string)file_get_contents($path), true);
+
+		return ($set['x-openregister']['seedData']['objects'][$schema] ?? []);
+	}//end poObjects()
+
+	/**
+	 * The first object of a schema in the example set whose field equals a value.
+	 *
+	 * @param string $schema The schema slug.
+	 * @param string $field  The field to match.
+	 * @param mixed  $value  The value it must hold.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function poObject(string $schema, string $field, mixed $value): array {
+		foreach (self::poObjects(schema: $schema) as $object) {
+			if (($object[$field] ?? null) === $value) {
+				return $object;
+			}
+		}
+
+		self::fail('No ' . $schema . ' with ' . $field . ' = ' . json_encode($value) . ' in the primary school example set.');
+	}//end poObject()
 }//end class
