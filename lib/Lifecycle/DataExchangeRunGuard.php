@@ -31,6 +31,15 @@
  * and new job, so this condition never blocks a target that was not opted
  * in.
  *
+ * funding-and-teldatum-checks adds a third, independent condition: a job
+ * whose target `requiresTeldatumCheck` (an opt-in, school-confirmed
+ * pre-flight attestation for the 1 February / 1 October DUO count date —
+ * P-new-12) cannot reach `running` while its `teldatumCheckStatus` is not
+ * `confirmed`. This check is independent of the OSO/SWV gate above — a job
+ * may be subject to either, both, or neither. `requiresTeldatumCheck`
+ * defaults to `false` on every existing and new job, so this condition
+ * never blocks a target that was not opted in.
+ *
  * Referenced from DataExchangeJob.x-openregister-lifecycle.transitions.run.requires.
  * OR resolves guards by fully-qualified class name from the schema — no
  * Application.php registration needed.
@@ -66,9 +75,12 @@ namespace OCA\Learniq\Lifecycle;
  * `running`; they must first pass through `pending-parent-review` and be
  * approved via `approveDossier`. Also blocks a job whose target opted into
  * standing partner approval (privacy-governance-surfaces) while that
- * approval is not yet granted.
+ * approval is not yet granted, and a job whose target opted into a teldatum
+ * pre-flight check (funding-and-teldatum-checks) while that check is not
+ * yet confirmed.
  *
  * @spec openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-standing-partner-approval-before-it-runs
+ * @spec openspec/changes/funding-and-teldatum-checks/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-a-confirmed-teldatum-pre-flight-check-before-it-runs
  */
 class DataExchangeRunGuard {
 
@@ -123,6 +135,17 @@ class DataExchangeRunGuard {
 		$needsApproval = $object['requiresPartnerApproval'] ?? false;
 		$approvalStatus = $object['partnerApprovalStatus'] ?? 'not-required';
 		if ($needsApproval === true && $approvalStatus !== 'approved') {
+			return false;
+		}
+
+		// Funding-and-teldatum-checks: independent teldatum pre-flight
+		// condition. Only consulted when the target opted in
+		// (requiresTeldatumCheck: true); every existing/new job defaults to
+		// false, so this is a pure addition, never a narrowing of
+		// previously-passing behaviour.
+		$needsTeldatumCheck = $object['requiresTeldatumCheck'] ?? false;
+		$teldatumStatus = $object['teldatumCheckStatus'] ?? 'not-required';
+		if ($needsTeldatumCheck === true && $teldatumStatus !== 'confirmed') {
 			return false;
 		}
 
