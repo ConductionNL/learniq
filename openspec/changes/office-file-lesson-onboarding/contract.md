@@ -1,7 +1,7 @@
 # Contract: office-file-lesson-onboarding
 
 ## Consumers
-- `learniq` frontend (`src/views/LessonOnboardingReview.vue`): the three learniq endpoints below.
+- `learniq` frontend (`src/components/lesson/LessonOnboardingPanel.vue`, a section of `CoursePackageImportView`): the three learniq endpoints below.
 - `learniq` backend consumes two OpenRegister PHP interfaces, listed under "Consumed interfaces".
 
 ## Endpoints

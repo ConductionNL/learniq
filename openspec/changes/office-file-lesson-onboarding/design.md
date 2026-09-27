@@ -7,8 +7,8 @@ Nextcloud Files ── NodeCreatedEvent ──> LessonOnboardingFileListener
                                           │ .docx/.pptx? owner's folder? parent == folder? not seen?
                                           ▼
                               LessonOnboardingFile (detected)  ── x-openregister-notifications ──> teacher
-                                          │                                (action: /apps/learniq/lesson-onboarding)
-Review page (/lesson-onboarding) ─────────┤ list own rows (OR API), Dismiss = PATCH lifecycle
+                                          │                                (action: /apps/learniq/course-packages/import)
+Review section on the import page ────────┤ list own rows (OR API), Dismiss = PATCH lifecycle
                                           │
    POST /api/lesson-onboarding/files/{id}/import {courseId}
                                           ▼
@@ -88,7 +88,7 @@ self-only through the schema's `authorization` block.
 
 ### D4: Notification and lifecycle are declared
 `x-openregister-notifications.detected` fires on creation to `teacherId` over `nc-notification`, with a primary
-action `{kind: route, app: learniq, route: lesson-onboarding}`. The lifecycle is `detected -> imported | dismissed`
+action `{kind: route, app: learniq, route: course-packages/import}`. The lifecycle is `detected -> imported | dismissed`
 and `dismissed -> detected` (restore). `import` declares `lessonId`, `courseId` and `importNote` as inputs so the
 importer passes them through `TransitionEngine::transition()`.
 
@@ -132,6 +132,7 @@ read `x-property-rbac`), so notes are hidden, not access-controlled. A staff-onl
 - The detection row keeps the file name and path so the review page can list it; that is not content.
 - Image materials use `kind: other`: the enum has no image kind and `slides` would mislabel them.
 - The branch is stacked on PR 1049 instead of cut from `development`, because both change the block serialiser.
+- The review lives as a section on the existing "Import course package" page, not as a page of its own: a new custom page failed the gate 69 ratchet (26 to 27), and importing a package and importing Office files are the same job for a teacher. The menu label "Import course package" is unchanged; renaming it to cover both is a copy decision for the product owner.
 
 ## Security Considerations
 - IDOR: the import endpoint loads the row as the caller and refuses unless `teacherId` equals the caller (404).
@@ -163,10 +164,10 @@ lib/
   Settings/learniq_register.json, learniq_mock_register.json
 appinfo/routes.php
 src/
-  views/LessonOnboardingReview.vue
+  components/lesson/LessonOnboardingPanel.vue (section on CoursePackageImportView)
   utils/lessonOnboarding.js, utils/lessonBlocks.js
   views/LessonComposer.vue, views/LessonPlayer.vue
-  registry.js, manifest.d/learning.json
+  views/CoursePackageImportView.vue
 tests/Unit/... (listener, reader, adapter, builder, importer, controller, register)
 tests/unit-js/lessonOnboarding.test.mjs
 ```

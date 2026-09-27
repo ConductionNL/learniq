@@ -126,7 +126,7 @@ class LessonOnboardingRegisterTest extends TestCase {
 		$this->assertArrayHasKey('nl', $notification['subject']);
 		$this->assertArrayHasKey('en', $notification['subject']);
 		$this->assertSame(
-			['kind' => 'route', 'app' => 'learniq', 'route' => 'lesson-onboarding'],
+			['kind' => 'route', 'app' => 'learniq', 'route' => 'course-packages/import'],
 			$notification['actions'][0]['target']
 		);
 

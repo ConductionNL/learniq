@@ -7,7 +7,7 @@ depends_on:
 # Proposal: office-file-lesson-onboarding
 
 ## Summary
-A teacher who already has lessons in Word or PowerPoint has to retype them into learniq. This change lets a teacher pick an onboarding folder in Nextcloud Files. Learniq notices each new `.docx` or `.pptx` file that lands there and notifies the teacher, but reads nothing until the teacher confirms that file on a small review page (decision D17). On confirmation a Word file becomes one `Lesson` draft (a text block per heading section, images as `Material` rows) and a PowerPoint file becomes one `Lesson` draft (a text block per slide, speaker notes as a teacher note block); the original file stays linked as a `Material`. Nothing is published: every lesson lands in `draft`.
+A teacher who already has lessons in Word or PowerPoint has to retype them into learniq. This change lets a teacher pick an onboarding folder in Nextcloud Files. Learniq notices each new `.docx` or `.pptx` file that lands there and notifies the teacher, but reads nothing until the teacher confirms that file in a small review section (decision D17). On confirmation a Word file becomes one `Lesson` draft (a text block per heading section, images as `Material` rows) and a PowerPoint file becomes one `Lesson` draft (a text block per slide, speaker notes as a teacher note block); the original file stays linked as a `Material`. Nothing is published: every lesson lands in `draft`.
 
 ## Motivation
 Round 2 recon D (`/home/rubenlinde/memcap-work/learniq-mi/learniq/_round2/recon/D-ai-lessons-onboarding-styles.md`), section 1, found three gaps: learniq has no folder watching ("Files-app folder watching / NodeCreatedEvent listener inside learniq itself: missing"), the course package importer "does not cover docx/pptx, a structurally different format family", and OpenRegister's `WordExtractor` returns "flat text (search/indexing use, not structure)". Section 4 proposes this change; section 5 question 4 recommended option C, detect and notify, then extract on confirmation, which Ruben took as decision D17 ("the confirmation is where the pupil-data warning lives").
@@ -18,20 +18,20 @@ Competitor evidence (vendor claims, recon D section 2):
 - Moodle CourseAI: "a fully structured course in under three minutes" from uploaded materials (moodle.com/news/moodle-plugin-courseai, read 2026-09-27).
 No Dutch K-12 competitor frames document upload as onboarding (recon D section 2), so this is a differentiator for the teacher who switches with a drive full of lessons.
 
-Placement: one new custom page under the existing Learning menu, beside "Import course package", in the shape of `CoursePackageImportView`. No new menu section.
+Placement: rung 3, a section on the existing "Import course package" page (`CoursePackageImportView`, Learning menu). Bringing existing lessons in is one job, so both sources share one page; no new page, no new menu entry, and the app's custom-page count stays at 26 (gate 69 ratchet).
 
 Plan assumption A6: the onboarding folder detects and notifies; extraction and lesson creation happen only after the teacher confirms.
 
 ## Affected Projects
-- [x] Project: `learniq`: a per-teacher onboarding folder setting, a file listener, a `LessonOnboardingFile` schema with a lifecycle and a notification, a review page, a docx reader, an adapter for OpenRegister's `PresentationExtractor`, an importer that writes `Lesson` and `Material` drafts, and a `teacherNote` block type.
+- [x] Project: `learniq`: a per-teacher onboarding folder setting, a file listener, a `LessonOnboardingFile` schema with a lifecycle and a notification, a review section on the import page, a docx reader, an adapter for OpenRegister's `PresentationExtractor`, an importer that writes `Lesson` and `Material` drafts, and a `teacherNote` block type.
 
 ## Scope
 
 ### In Scope
 - A teacher chooses one onboarding folder in their own files (`PUT /api/lesson-onboarding/folder`), stored as a per-user setting.
 - A `NodeCreatedEvent` listener records every `.docx` or `.pptx` created directly in that folder as a `LessonOnboardingFile` row in state `detected`. It reads the file name and type only, never the content.
-- A declarative notification on that row tells the teacher, with a link to the review page.
-- A review page lists the teacher's detected files, with a course picker, an "Import as lesson draft" action and a "Dismiss" action, and says at the confirmation step that a lesson is visible to the whole school, so a file with pupil data does not belong there.
+- A declarative notification on that row tells the teacher, with a link to the import page.
+- A review section on the import page lists the teacher's detected files, with a course picker, an "Import as lesson draft" action and a "Dismiss" action, and says at the confirmation step that a lesson is visible to the whole school, so a file with pupil data does not belong there.
 - On confirmation (`POST /api/lesson-onboarding/files/{id}/import`): a docx becomes one `Lesson` draft (one `richText` block per heading section, each embedded image a `Material` plus a `media` block), a pptx becomes one `Lesson` draft (one `richText` block per visible slide, speaker notes as a `teacherNote` block), and the original file becomes a `Material` with its `fileRef`. The row moves to `imported` with the lesson id.
 - The pptx path calls OpenRegister's `PresentationExtractor` (openregister PR 4077) duck-typed; until that class exists the import answers "not available yet" and the file stays in the list.
 - A `teacherNote` block type on `Lesson.blocks`, shown in the composer and never rendered by the lesson player.
@@ -57,7 +57,7 @@ None. `ext-zip` is already a learniq requirement. OpenRegister's `PresentationEx
 - `lib/Listener/LessonOnboardingFileListener.php`, `lib/AppInfo/Registrar/OnboardingListenerRegistrar.php`, `EventListenerWiring.php`: new listener and its wiring.
 - `lib/Service/LessonOnboarding/`: folder setting, docx reader, presentation adapter, draft builder, importer.
 - `lib/Controller/LessonOnboardingController.php`, `appinfo/routes.php`: three routes.
-- `src/views/LessonOnboardingReview.vue`, `src/utils/lessonOnboarding.js`, `src/registry.js`, `src/manifest.d/learning.json`: the page and its menu entry.
+- `src/components/lesson/LessonOnboardingPanel.vue`, `src/utils/lessonOnboarding.js`, `src/views/CoursePackageImportView.vue`: the review section on the import page.
 - `src/views/LessonComposer.vue`, `src/views/LessonPlayer.vue`, `src/utils/lessonBlocks.js`: the `teacherNote` block.
 - Tests, translations, a user guide page.
 

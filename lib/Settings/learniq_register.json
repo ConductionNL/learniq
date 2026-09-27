@@ -1771,7 +1771,7 @@
                                 "target": {
                                     "kind": "route",
                                     "app": "learniq",
-                                    "route": "lesson-onboarding"
+                                    "route": "course-packages/import"
                                 }
                             }
                         ]

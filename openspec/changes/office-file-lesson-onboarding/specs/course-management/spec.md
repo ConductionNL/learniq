@@ -37,7 +37,7 @@ create one `LessonOnboardingFile` row in state `detected` carrying `teacherId` (
 the file's content. It MUST NOT create a second row for a file id it already recorded for that teacher. Every
 other node MUST be ignored before any setting or object lookup, and no failure in the listener MUST reach the
 file operation that raised the event. The `LessonOnboardingFile` schema MUST declare a notification on
-creation to the `teacherId` user with an action that opens the review page.
+creation to the `teacherId` user with an action that opens the import page (`course-packages/import`).
 
 #### Scenario: A teacher drops a Word file in the folder
 
@@ -57,7 +57,7 @@ creation to the `teacherId` user with an action that opens the review page.
 
 <!-- @e2e exclude Needs a detected row and a live file on the shared instance; the confirmation guard is covered by LessonOnboardingControllerTest (testImportRefusesARowOfAnotherTeacher, testImportRefusesARowThatIsNotDetected) and the page's request shapes by tests/unit-js/lessonOnboarding.test.mjs. -->
 
-A review page at `/lesson-onboarding` MUST list the calling teacher's `LessonOnboardingFile` rows in state
+The review section on the "Import course package" page (`/course-packages/import`) MUST list the calling teacher's `LessonOnboardingFile` rows in state
 `detected`, each with a course picker, an "Import as lesson draft" action and a "Dismiss" action. Next to the
 import action the page MUST say that a lesson is visible to everyone in the school and that a file with pupil
 names, marks or notes about a pupil does not belong in a lesson. Extraction MUST happen only through

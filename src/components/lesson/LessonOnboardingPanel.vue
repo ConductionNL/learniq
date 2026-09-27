@@ -2,13 +2,15 @@
 <!-- Copyright (C) 2026 Conduction B.V. -->
 
 <!--
-  LessonOnboardingReview.vue
-  Custom page for the LessonOnboardingReview manifest page (type: custom),
-  office-file-lesson-onboarding.
+  LessonOnboardingPanel.vue
+  The lesson onboarding section of the "Import course package" page
+  (CoursePackageImportView), office-file-lesson-onboarding. A section, not
+  a page of its own: bringing existing lessons in is one job, and the app's
+  custom-page count stays where it is (gate 69).
 
   A teacher chooses one folder in their Nextcloud files. Learniq records each
   Word or PowerPoint file created there as a LessonOnboardingFile row and
-  notifies the teacher; the notification links here. This page lists the
+  notifies the teacher; the notification links to this page. This page lists the
   teacher's detected files, and for each one the teacher picks a course and
   confirms the import, or dismisses the file (decision D17). The warning that
   a lesson is visible to the whole school sits next to the import action,
@@ -25,9 +27,14 @@
   @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-chooses-one-lesson-onboarding-folder-in-their-own-files
 -->
 <template>
-	<div class="lesson-onboarding">
+	<section
+		id="lesson-onboarding"
+		class="lesson-onboarding"
+		aria-labelledby="lo-heading">
 		<header class="lesson-onboarding__header">
-			<h2>{{ t('learniq', 'Lessons from Word and PowerPoint') }}</h2>
+			<h2 id="lo-heading">
+				{{ t('learniq', 'Lessons from Word and PowerPoint') }}
+			</h2>
 			<p class="lesson-onboarding__intro">
 				{{
 					t(
@@ -218,7 +225,7 @@
 				</ul>
 			</section>
 		</template>
-	</div>
+	</section>
 </template>
 
 <script>
@@ -241,10 +248,10 @@ import {
 	ONBOARDING_API,
 	rowsFrom,
 	rowsUrl,
-} from '../utils/lessonOnboarding.js'
+} from '../../utils/lessonOnboarding.js'
 
 export default {
-	name: 'LessonOnboardingReview',
+	name: 'LessonOnboardingPanel',
 
 	components: {
 		NcButton,
@@ -353,7 +360,7 @@ export default {
 					'Your files could not be loaded. Try again later.',
 				)
 				// eslint-disable-next-line no-console
-				console.error('[LessonOnboardingReview] load error', err)
+				console.error('[LessonOnboardingPanel] load error', err)
 			} finally {
 				this.loading = false
 			}
@@ -572,10 +579,6 @@ export default {
 
 <style scoped>
 .lesson-onboarding {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: calc(var(--default-grid-baseline, 4px) * 2)
-		calc(var(--default-grid-baseline, 4px) * 4);
 	display: flex;
 	flex-direction: column;
 	gap: calc(var(--default-grid-baseline, 4px) * 4);

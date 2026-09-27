@@ -43,9 +43,9 @@ Feature tier: should (V1). Stacked on lesson-ai-assist-actions (PR 1049).
 - [x] Implement
 - [x] Test
 
-### Task 5: Review page, menu entry, teacherNote in composer and player
+### Task 5: Review section on the import page, teacherNote in composer and player
 - **spec_ref**: `openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-note-block-is-shown-to-staff-in-the-composer-and-never-rendered-by-the-lesson-player`
-- **files**: `src/views/LessonOnboardingReview.vue`, `src/utils/lessonOnboarding.js`, `src/utils/lessonBlocks.js`, `src/registry.js`, `src/manifest.d/learning.json`, `src/views/LessonComposer.vue`, `src/views/LessonPlayer.vue`, `tests/unit-js/lessonOnboarding.test.mjs`
+- **files**: `src/components/lesson/LessonOnboardingPanel.vue`, `src/views/CoursePackageImportView.vue`, `src/utils/lessonOnboarding.js`, `src/utils/lessonBlocks.js`, `src/views/LessonComposer.vue`, `src/views/LessonPlayer.vue`, `tests/unit-js/lessonOnboarding.test.mjs`
 - **acceptance_criteria**:
   - GIVEN detected rows WHEN the page loads THEN each shows a course picker, import, dismiss, and the pupil-data warning
   - GIVEN a teacherNote WHEN the composer saves THEN its text is kept; the player does not render it
