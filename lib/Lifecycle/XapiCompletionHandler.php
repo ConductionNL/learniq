@@ -247,9 +247,14 @@ class XapiCompletionHandler implements IEventListener {
 
 		$lessons = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'lesson',
-				'filters' => $this->tenantScoped(filters: ['xapiObjectId' => $lessonId], tenantId: $tenantId),
+				'filters' => $this->tenantScoped(
+					filters: [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'lesson',
+						'xapiObjectId' => $lessonId,
+					],
+					tenantId: $tenantId
+				),
 				'limit' => 1,
 			]
 		);
@@ -292,10 +297,10 @@ class XapiCompletionHandler implements IEventListener {
 	private function isFinalPublishedLesson(array $lesson, mixed $courseId, string $tenantId): bool {
 		$publishedLessons = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'lesson',
 				'filters' => $this->tenantScoped(
 					filters: [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'lesson',
 						'courseId' => $courseId,
 						'lifecycle' => 'published',
 					],
@@ -346,10 +351,10 @@ class XapiCompletionHandler implements IEventListener {
 	private function resolveActiveEnrolmentId(mixed $learnerId, mixed $courseId, string $tenantId): ?string {
 		$enrolments = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'enrolment',
 				'filters' => $this->tenantScoped(
 					filters: [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'enrolment',
 						'learnerId' => $learnerId,
 						'courseId' => $courseId,
 						'lifecycle' => 'active',

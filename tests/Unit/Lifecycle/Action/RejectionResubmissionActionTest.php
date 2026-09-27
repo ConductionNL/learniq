@@ -69,7 +69,7 @@ class RejectionResubmissionActionTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			static function (array $config) use ($originalJob): array {
-				if (($config['schema'] ?? '') !== 'data-exchange-job' || $originalJob === null) {
+				if (($config['filters']['schema'] ?? '') !== 'data-exchange-job' || $originalJob === null) {
 					return [];
 				}
 

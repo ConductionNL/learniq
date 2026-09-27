@@ -166,9 +166,13 @@ class SsoAttributeMappingApplier {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::SSO_ATTRIBUTE_MAPPING_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::SSO_ATTRIBUTE_MAPPING_SCHEMA,
+					]
+				),
 			]
 		);
 

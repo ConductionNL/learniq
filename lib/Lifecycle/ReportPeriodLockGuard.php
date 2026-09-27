@@ -235,9 +235,13 @@ class ReportPeriodLockGuard implements LifecycleGuardInterface {
 
 		$candidates = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::REPORT_PERIOD_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::REPORT_PERIOD_SCHEMA,
+					]
+				),
 				'limit' => 500,
 			]
 		);

@@ -88,7 +88,7 @@ class LeaderboardControllerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($leaderboardActive, $engagementRows, $levels, $topN) {
-				if ($config['schema'] === 'leaderboard') {
+				if ($config['filters']['schema'] === 'leaderboard') {
 					if ($leaderboardActive === false) {
 						return [];
 					}
@@ -96,11 +96,11 @@ class LeaderboardControllerTest extends TestCase {
 					return [['id' => 'lb-1', 'cohortId' => self::COHORT_ID, 'lifecycle' => 'active', 'topN' => $topN]];
 				}
 
-				if ($config['schema'] === 'learner-engagement') {
+				if ($config['filters']['schema'] === 'learner-engagement') {
 					return $engagementRows;
 				}
 
-				if ($config['schema'] === 'engagement-level') {
+				if ($config['filters']['schema'] === 'engagement-level') {
 					return $levels;
 				}
 

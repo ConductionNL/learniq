@@ -203,9 +203,11 @@ class EngagementController extends Controller {
 	private function fetchOwnEngagement(string $learnerId): ?array {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_ENGAGEMENT_SCHEMA,
-				'filters' => ['learnerId' => $learnerId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNER_ENGAGEMENT_SCHEMA,
+					'learnerId' => $learnerId,
+				],
 				'limit' => 1,
 			]
 		);

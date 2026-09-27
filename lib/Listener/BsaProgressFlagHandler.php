@@ -178,9 +178,9 @@ class BsaProgressFlagHandler implements IEventListener {
 	private function checkProgramme(string $programmeId, string $learnerId, string $tenantId): void {
 		$trajectories = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::BSA_TRAJECTORY_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::BSA_TRAJECTORY_SCHEMA,
 					'programmeId' => $programmeId,
 					'lifecycle' => 'active',
 				],
@@ -306,9 +306,9 @@ class BsaProgressFlagHandler implements IEventListener {
 		foreach (self::OPEN_FLAG_STATES as $state) {
 			$existing = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::BSA_PROGRESS_FLAG_SCHEMA,
 					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::BSA_PROGRESS_FLAG_SCHEMA,
 						'learnerId' => $learnerId,
 						'bsaTrajectoryId' => $bsaTrajectoryId,
 						'lifecycle' => $state,

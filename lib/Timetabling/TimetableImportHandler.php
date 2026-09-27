@@ -389,9 +389,13 @@ class TimetableImportHandler implements IEventListener {
 
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::SESSION_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::SESSION_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -432,9 +436,11 @@ class TimetableImportHandler implements IEventListener {
 	private function loadMappingProfile(string $profileId): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::MAPPING_PROFILE_SCHEMA,
-				'filters' => ['id' => $profileId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::MAPPING_PROFILE_SCHEMA,
+					'id' => $profileId,
+				],
 				'limit' => 1,
 			]
 		);
@@ -536,9 +542,11 @@ class TimetableImportHandler implements IEventListener {
 	private function saveJobFields(string $jobId, array $fields): void {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::JOB_SCHEMA,
-				'filters' => ['id' => $jobId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::JOB_SCHEMA,
+					'id' => $jobId,
+				],
 				'limit' => 1,
 			]
 		);

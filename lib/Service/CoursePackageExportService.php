@@ -412,9 +412,13 @@ class CoursePackageExportService {
 	private function findAllArrays(string $schema, array $filters): array {
 		$rows = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => $schema,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => $schema,
+					]
+				),
 			]
 		);
 

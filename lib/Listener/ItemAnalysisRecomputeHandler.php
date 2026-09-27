@@ -211,9 +211,12 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	private function upsertItemStatistics(string $itemId, string $assessmentId, string $tenantId, array $statistics): ?string {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ITEM_STATISTICS_SCHEMA,
-				'filters' => ['itemId' => $itemId, 'assessmentId' => $assessmentId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ITEM_STATISTICS_SCHEMA,
+					'itemId' => $itemId,
+					'assessmentId' => $assessmentId,
+				],
 				'limit' => 1,
 			]
 		);
@@ -259,9 +262,11 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	private function upsertAssessmentReliability(string $assessmentId, string $tenantId, array $reliability): void {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ASSESSMENT_RELIABILITY_SCHEMA,
-				'filters' => ['assessmentId' => $assessmentId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ASSESSMENT_RELIABILITY_SCHEMA,
+					'assessmentId' => $assessmentId,
+				],
 				'limit' => 1,
 			]
 		);
@@ -415,9 +420,13 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 		foreach (self::OPEN_FLAG_STATES as $state) {
 			$existing = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::ITEM_REVISION_FLAG_SCHEMA,
-					'filters' => ['itemId' => $itemId, 'reason' => $reason, 'lifecycle' => $state],
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ITEM_REVISION_FLAG_SCHEMA,
+						'itemId' => $itemId,
+						'reason' => $reason,
+						'lifecycle' => $state,
+					],
 					'limit' => 1,
 				]
 			);
@@ -446,9 +455,13 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ASSESSMENT_RESULT_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ASSESSMENT_RESULT_SCHEMA,
+					]
+				),
 			]
 		);
 
@@ -476,9 +489,13 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		$matches = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => $schema,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => $schema,
+					]
+				),
 				'limit' => 1,
 			]
 		);

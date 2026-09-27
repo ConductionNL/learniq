@@ -124,9 +124,11 @@ class ReportCardPublishHandler implements IEventListener {
 
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_PROFILE_SCHEMA,
-				'filters' => ['learnerId' => $learnerId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNER_PROFILE_SCHEMA,
+					'learnerId' => $learnerId,
+				],
 				'limit' => 1,
 			]
 		);

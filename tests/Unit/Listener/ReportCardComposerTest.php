@@ -108,28 +108,28 @@ class ReportCardComposerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($finalGrades, $gradeEntries, $sessions, $attendance, $learnerProfiles) {
-				if ($config['schema'] === 'final-grade') {
+				if ($config['filters']['schema'] === 'final-grade') {
 					$key = ($config['filters']['learnerId'] ?? '') . '|' . ($config['filters']['curriculumPlanId'] ?? '');
 					$fg = $finalGrades[$key] ?? null;
 					return $fg === null ? [] : [$fg];
 				}
 
-				if ($config['schema'] === 'grade-entry') {
+				if ($config['filters']['schema'] === 'grade-entry') {
 					$key = ($config['filters']['learnerId'] ?? '') . '|' . ($config['filters']['curriculumPlanId'] ?? '') . '|' . ($config['filters']['period'] ?? '');
 					return $gradeEntries[$key] ?? [];
 				}
 
-				if ($config['schema'] === 'session') {
+				if ($config['filters']['schema'] === 'session') {
 					$cohortId = $config['filters']['cohortId'] ?? '';
 					return array_values(array_filter($sessions, static fn ($s) => ($s['cohortId'] ?? '') === $cohortId));
 				}
 
-				if ($config['schema'] === 'attendance-record') {
+				if ($config['filters']['schema'] === 'attendance-record') {
 					$learnerId = $config['filters']['learnerId'] ?? '';
 					return array_values(array_filter($attendance, static fn ($a) => ($a['learnerId'] ?? '') === $learnerId));
 				}
 
-				if ($config['schema'] === 'learner-profile') {
+				if ($config['filters']['schema'] === 'learner-profile') {
 					$learnerId = $config['filters']['learnerId'] ?? '';
 					$profile = $learnerProfiles[$learnerId] ?? null;
 					return $profile === null ? [] : [$profile];
@@ -383,11 +383,11 @@ class ReportCardComposerTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				if ($config['schema'] === 'final-grade') {
+				if ($config['filters']['schema'] === 'final-grade') {
 					return [['learnerId' => 'learner-1', 'curriculumPlanId' => 'plan-bio', 'passed' => true, 'breakdown' => ['periods' => ['1' => 9.0]]]];
 				}
 
-				if ($config['schema'] === 'grade-entry') {
+				if ($config['filters']['schema'] === 'grade-entry') {
 					return [['id' => 'entry-9']];
 				}
 
@@ -571,19 +571,19 @@ class ReportCardComposerTest extends TestCase {
 	 * @return array<int,mixed>
 	 */
 	public function resolveTemplateAwareFindAllFixture(array $config): array {
-		if ($config['schema'] === 'final-grade') {
+		if ($config['filters']['schema'] === 'final-grade') {
 			return [['learnerId' => 'learner-1', 'curriculumPlanId' => 'plan-bio', 'passed' => true, 'breakdown' => ['periods' => ['1' => 9.0]]]];
 		}
 
-		if ($config['schema'] === 'grade-entry') {
+		if ($config['filters']['schema'] === 'grade-entry') {
 			return [['id' => 'entry-9']];
 		}
 
-		if ($config['schema'] === 'session') {
+		if ($config['filters']['schema'] === 'session') {
 			return [['id' => 'session-1', 'cohortId' => 'cohort-a']];
 		}
 
-		if ($config['schema'] === 'attendance-record') {
+		if ($config['filters']['schema'] === 'attendance-record') {
 			return [['learnerId' => 'learner-1', 'sessionId' => 'session-1', 'status' => 'present']];
 		}
 

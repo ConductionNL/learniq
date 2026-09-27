@@ -215,9 +215,12 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 
 		$aiFeatures = $this->objectService->findAll(
 			[
-				'register' => self::HERMIQ_REGISTER,
-				'schema' => self::HERMIQ_AI_FEATURE_SCHEMA,
-				'filters' => ['slug' => self::AI_PROCTOR_SLUG, 'lifecycle' => 'enabled'],
+				'filters' => [
+					'register' => self::HERMIQ_REGISTER,
+					'schema' => self::HERMIQ_AI_FEATURE_SCHEMA,
+					'slug' => self::AI_PROCTOR_SLUG,
+					'lifecycle' => 'enabled',
+				],
 				'limit' => 1,
 			]
 		);
@@ -336,9 +339,12 @@ class AssessmentPublishGuard implements LifecycleGuardInterface {
 	private function countDistinctVariantGroups(array $poolConfig, string $itemBankId): int {
 		$items = $this->objectService->findAll(
 			[
-				'register' => 'learniq',
-				'schema' => self::ITEM_SCHEMA,
-				'filters' => ['itemBankId' => $itemBankId, 'lifecycle' => 'published'],
+				'filters' => [
+					'register' => 'learniq',
+					'schema' => self::ITEM_SCHEMA,
+					'itemBankId' => $itemBankId,
+					'lifecycle' => 'published',
+				],
 			]
 		);
 

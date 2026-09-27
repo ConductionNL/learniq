@@ -144,8 +144,8 @@ class LtiAgsScorePollJobTest extends TestCase {
 
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config): array {
-				$schema = $config['schema'] ?? '';
-				$filters = $config['filters'] ?? [];
+				$schema = $config['filters']['schema'] ?? '';
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				if ($schema === 'lti-tool-placement') {
 					if ($this->placementFixture === null) {

@@ -229,9 +229,9 @@ class RolloverExecutionService {
 	): array {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'cohort',
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'cohort',
 					'name' => $toCohortName,
 					'academicYear' => $toAcademicYear,
 					'tenant_id' => $tenantId,
@@ -302,9 +302,11 @@ class RolloverExecutionService {
 
 		$enrolments = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'enrolment',
-				'filters' => ['learnerId' => $learnerId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'enrolment',
+					'learnerId' => $learnerId,
+				],
 			]
 		);
 

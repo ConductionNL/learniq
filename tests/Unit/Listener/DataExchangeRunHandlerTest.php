@@ -76,7 +76,7 @@ class DataExchangeRunHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($recordsById): array {
-				if (($config['schema'] ?? '') !== 'attendance-record') {
+				if (($config['filters']['schema'] ?? '') !== 'attendance-record') {
 					return [];
 				}
 
@@ -391,8 +391,8 @@ class DataExchangeRunHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($profilesByNcUserId, $plansById): array {
-				$schema = $config['schema'] ?? '';
-				$filters = $config['filters'] ?? [];
+				$schema = $config['filters']['schema'] ?? '';
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				if ($schema === 'learner-profile') {
 					$ncUserId = $filters['ncUserId'] ?? null;
@@ -606,7 +606,7 @@ class DataExchangeRunHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($supportRequest): array {
-				if (($config['schema'] ?? '') !== 'support-request') {
+				if (($config['filters']['schema'] ?? '') !== 'support-request') {
 					return [];
 				}
 				return $supportRequest === null ? [] : [$supportRequest];

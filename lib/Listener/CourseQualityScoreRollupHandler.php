@@ -174,9 +174,13 @@ class CourseQualityScoreRollupHandler implements IEventListener {
 
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::COURSE_QUALITY_SCORE_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::COURSE_QUALITY_SCORE_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);

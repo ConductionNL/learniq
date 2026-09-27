@@ -85,7 +85,7 @@ class TimetableImportHandlerTest extends TestCase {
 
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config): array {
-				if (($config['schema'] ?? '') !== 'session') {
+				if (($config['filters']['schema'] ?? '') !== 'session') {
 					return [];
 				}
 

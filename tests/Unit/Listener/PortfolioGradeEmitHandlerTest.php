@@ -69,7 +69,7 @@ class PortfolioGradeEmitHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($curriculumPlan) {
-				if ($config['schema'] === 'curriculum-plan') {
+				if ($config['filters']['schema'] === 'curriculum-plan') {
 					return ($curriculumPlan === null) ? [] : [$curriculumPlan];
 				}
 

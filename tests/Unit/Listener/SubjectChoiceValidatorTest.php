@@ -78,7 +78,7 @@ class SubjectChoiceValidatorTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($siblings) {
-				if (($config['schema'] ?? '') === 'subject-choice') {
+				if (($config['filters']['schema'] ?? '') === 'subject-choice') {
 					return $siblings;
 				}
 

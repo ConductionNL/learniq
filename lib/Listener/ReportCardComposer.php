@@ -385,9 +385,9 @@ class ReportCardComposer implements IEventListener {
 		foreach ($curriculumPlanIds as $curriculumPlanId) {
 			$finalGrades = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::FINAL_GRADE_SCHEMA,
 					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::FINAL_GRADE_SCHEMA,
 						'learnerId' => $learnerId,
 						'curriculumPlanId' => $curriculumPlanId,
 					],
@@ -414,9 +414,9 @@ class ReportCardComposer implements IEventListener {
 
 			$sourceGradeEntries = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::GRADE_ENTRY_SCHEMA,
 					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::GRADE_ENTRY_SCHEMA,
 						'learnerId' => $learnerId,
 						'curriculumPlanId' => $curriculumPlanId,
 						'period' => $periodCode,
@@ -465,9 +465,11 @@ class ReportCardComposer implements IEventListener {
 	private function resolveLearnerRef(string $learnerId): ?string {
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_PROFILE_SCHEMA,
-				'filters' => ['learnerId' => $learnerId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNER_PROFILE_SCHEMA,
+					'learnerId' => $learnerId,
+				],
 				'limit' => 1,
 			]
 		);

@@ -169,8 +169,10 @@ class TimetableController extends Controller {
 		// RBAC-scoped cohort set rather than via an equality filter.
 		$cohorts = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'cohort',
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'cohort',
+				],
 			]
 		);
 
@@ -190,9 +192,11 @@ class TimetableController extends Controller {
 		// Cohorts reached through the caller's own enrolments.
 		$enrolments = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'enrolment',
-				'filters' => ['learnerId' => $uid],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'enrolment',
+					'learnerId' => $uid,
+				],
 			]
 		);
 
@@ -231,9 +235,11 @@ class TimetableController extends Controller {
 		foreach ($cohortIds as $cohortId) {
 			$results = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => 'session',
-					'filters' => ['cohortId' => $cohortId],
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'session',
+						'cohortId' => $cohortId,
+					],
 					'sort' => ['startsAt' => 'ASC'],
 				]
 			);
@@ -267,9 +273,11 @@ class TimetableController extends Controller {
 		foreach (array_keys($roomIds) as $roomId) {
 			$results = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => 'room',
-					'filters' => ['id' => $roomId],
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'room',
+						'id' => $roomId,
+					],
 					'limit' => 1,
 				]
 			);

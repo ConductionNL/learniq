@@ -256,9 +256,9 @@ class GradeRollupHandler implements IEventListener {
 		// Find existing FinalGrade for this pair.
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::FINAL_GRADE_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::FINAL_GRADE_SCHEMA,
 					'learnerId' => $learnerId,
 					'curriculumPlanId' => $curriculumPlanId,
 				],
@@ -320,9 +320,11 @@ class GradeRollupHandler implements IEventListener {
 	private function fanOutParentNotifications(string $learnerId, array $gradeEntry, string $visibleFrom): void {
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_PROFILE_SCHEMA,
-				'filters' => ['learnerId' => $learnerId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNER_PROFILE_SCHEMA,
+					'learnerId' => $learnerId,
+				],
 				'limit' => 1,
 			]
 		);

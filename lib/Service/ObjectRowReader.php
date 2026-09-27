@@ -72,9 +72,11 @@ class ObjectRowReader {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => $schema,
-				'filters' => ['id' => $id],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => $schema,
+					'id' => $id,
+				],
 				'limit' => 1,
 			]
 		);
