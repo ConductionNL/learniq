@@ -95,6 +95,8 @@ class AssessmentScoringHandler implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult
 	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
+	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-8
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
