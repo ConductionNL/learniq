@@ -339,6 +339,22 @@
 					}
 				},
 				{
+					"id": "ReportCardTemplatesMenu",
+					"label": "Report card templates",
+					"icon": "FileDocumentEditOutline",
+					"route": "ReportCardTemplates",
+					"order": 66,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "LtiToolPlacementsMenu",
 					"label": "LTI tools",
 					"icon": "OpenInNew",
@@ -370,6 +386,40 @@
 			"icon": "Calendar",
 			"order": 28,
 			"children": [
+				{
+					"id": "SessionsTodayMenu",
+					"label": "Today's sessions",
+					"icon": "Calendar",
+					"route": "SessionsToday",
+					"order": 60,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "SessionsThisWeekMenu",
+					"label": "This week's sessions",
+					"icon": "Calendar",
+					"route": "SessionsThisWeek",
+					"order": 61,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
 				{
 					"id": "RoomsMenu",
 					"label": "Rooms",
@@ -1883,6 +1933,16 @@
 			}
 		},
 		{
+			"id": "SubjectTeacherAssignments",
+			"route": "/subject-teacher-assignments",
+			"type": "index",
+			"title": "Subject teacher assignments",
+			"config": {
+				"register": "learniq",
+				"schema": "SubjectTeacherAssignment"
+			}
+		},
+		{
 			"id": "CohortDetail",
 			"route": "/cohorts/:id",
 			"type": "detail",
@@ -1903,6 +1963,56 @@
 							"columns": 2
 						},
 						"icon": "AccountGroup"
+					},
+					{
+						"id": "coh-notes",
+						"type": "data",
+						"title": "Notes",
+						"content": {
+							"columns": 1,
+							"include": [
+								"notes"
+							]
+						},
+						"icon": "NoteTextOutline"
+					},
+					{
+						"id": "coh-sessions-today",
+						"type": "object-list",
+						"title": "Today's sessions",
+						"content": {
+							"register": "learniq",
+							"schema": "Session",
+							"filter": {
+								"cohortId": "@objectId",
+								"startsAt": {
+									"gte": "@today",
+									"lt": "@today+1d"
+								}
+							},
+							"sort": {
+								"field": "startsAt",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "title",
+									"label": "Title"
+								},
+								{
+									"key": "startsAt",
+									"label": "Starts At"
+								},
+								{
+									"key": "endsAt",
+									"label": "Ends At"
+								}
+							],
+							"rowRoute": "SessionDetail",
+							"emptyText": "No sessions scheduled for today."
+						},
+						"icon": "Calendar"
 					},
 					{
 						"id": "coh-kpis-sessions",
@@ -2027,6 +2137,10 @@
 									"label": "Learner ID"
 								},
 								{
+									"key": "leerjaar",
+									"label": "Leerjaar"
+								},
+								{
 									"key": "courseId",
 									"label": "Course ID"
 								},
@@ -2092,6 +2206,40 @@
 						"icon": "AlertCircleOutline"
 					},
 					{
+						"id": "coh-subject-teachers",
+						"type": "object-list",
+						"title": "Subject teachers",
+						"content": {
+							"register": "learniq",
+							"schema": "SubjectTeacherAssignment",
+							"filter": {
+								"cohortId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "courseId",
+									"label": "Course ID"
+								},
+								{
+									"key": "teacherId",
+									"label": "Teacher ID"
+								}
+							],
+							"rowRoute": "SubjectTeacherAssignmentDetail",
+							"viewAllRoute": "SubjectTeacherAssignments",
+							"viewAllQuery": {
+								"cohortId": "@objectId"
+							},
+							"emptyText": "No subject teacher assignments found."
+						},
+						"icon": "AccountSchoolOutline"
+					},
+					{
 						"id": "coh-related",
 						"type": "related",
 						"title": "Related",
@@ -2143,10 +2291,28 @@
 						"showTitle": false
 					},
 					{
+						"id": "2-4",
+						"widgetId": "coh-notes",
+						"gridX": 0,
+						"gridY": 6,
+						"gridWidth": 12,
+						"gridHeight": 3,
+						"showTitle": false
+					},
+					{
+						"id": "2-5",
+						"widgetId": "coh-sessions-today",
+						"gridX": 0,
+						"gridY": 9,
+						"gridWidth": 12,
+						"gridHeight": 4,
+						"showTitle": false
+					},
+					{
 						"id": "3",
 						"widgetId": "coh-sessions",
 						"gridX": 0,
-						"gridY": 6,
+						"gridY": 13,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2155,7 +2321,7 @@
 						"id": "4",
 						"widgetId": "coh-enrol",
 						"gridX": 6,
-						"gridY": 6,
+						"gridY": 13,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2164,7 +2330,7 @@
 						"id": "5",
 						"widgetId": "coh-flags",
 						"gridX": 0,
-						"gridY": 11,
+						"gridY": 18,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2173,17 +2339,90 @@
 						"id": "6",
 						"widgetId": "coh-related",
 						"gridX": 6,
-						"gridY": 11,
+						"gridY": 18,
 						"gridWidth": 6,
 						"gridHeight": 5,
 						"showTitle": false
 					},
 					{
 						"id": "7",
+						"widgetId": "coh-subject-teachers",
+						"gridX": 0,
+						"gridY": 23,
+						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "8",
 						"widgetId": "cohort-talk",
 						"gridX": 0,
-						"gridY": 16,
+						"gridY": 21,
 						"gridWidth": 12,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "SubjectTeacherAssignmentDetail",
+			"route": "/subject-teacher-assignments/:id",
+			"type": "detail",
+			"title": "Subject teacher assignment",
+			"_note": "A SubjectTeacherAssignment is a class x subject teacher join (cohortId, courseId, teacherId), distinct from Cohort.teacherIds — for VO/MBO/HE where a class has a different teacher per subject. Plain resource-metadata object, no lifecycle. Body leads with the assignment data 8-wide with a Related panel resolving Cohort and Course. No email/calendar/files (HARD RULE 1). Sidebar keeps metadata + audit-trail.",
+			"config": {
+				"register": "learniq",
+				"schema": "SubjectTeacherAssignment",
+				"widgets": [
+					{
+						"id": "sta-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountSchoolOutline"
+					},
+					{
+						"id": "sta-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "sta-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "sta-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
 						"gridHeight": 5,
 						"showTitle": false
 					}
@@ -2222,6 +2461,38 @@
 			"config": {
 				"register": "learniq",
 				"schema": "Session"
+			}
+		},
+		{
+			"id": "SessionsToday",
+			"route": "/sessions/today",
+			"type": "index",
+			"title": "Today's sessions",
+			"config": {
+				"register": "learniq",
+				"schema": "Session",
+				"filter": {
+					"startsAt": {
+						"gte": "@today",
+						"lt": "@today+1d"
+					}
+				}
+			}
+		},
+		{
+			"id": "SessionsThisWeek",
+			"route": "/sessions/week",
+			"type": "index",
+			"title": "This week's sessions",
+			"config": {
+				"register": "learniq",
+				"schema": "Session",
+				"filter": {
+					"startsAt": {
+						"gte": "@today",
+						"lt": "@today+7d"
+					}
+				}
 			}
 		},
 		{
@@ -3589,10 +3860,19 @@
 			"config": {
 				"register": "learniq",
 				"schema": "item-bank",
-				"_note": "An Item Bank is a reusable pool of assessment questions grouped by subject. Body leads with the bank metadata (8-wide) and a Related panel. The constituent Items render as a wide related-index (the bank's actual content), with a total-items KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"_note": "An Item Bank is a reusable pool of assessment questions grouped by subject. Body leads with the bank metadata (8-wide) and a Related panel. The constituent Items render as a wide related-index (the bank's actual content), with a total-items KPI stat. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. assessment-completeness (finding 6.3): headerActions adds a QTI export trigger for the already-built, unit-tested QtiExportController/qti-export route — the id is `export-qti`, not `export`, because a bare `export` header-action id is dropped at render time to avoid shadowing the built-in.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
+				"headerActions": [
+					{
+						"id": "export-qti",
+						"label": "Export QTI package",
+						"icon": "PackageDown",
+						"type": "navigate",
+						"target": "/apps/learniq/api/assessment/qti-export?itemBankId=@objectId"
+					}
+				],
 				"widgets": [
 					{
 						"id": "ibank-data",
@@ -3905,6 +4185,45 @@
 						"type": "related",
 						"title": "Related",
 						"icon": "LinkVariant"
+					},
+					{
+						"id": "ass-accommodations",
+						"type": "object-list",
+						"title": "Exam accommodations",
+						"content": {
+							"register": "learniq",
+							"schema": "exam-accommodation",
+							"filter": {
+								"assessmentId": "@objectId"
+							},
+							"sort": {
+								"field": "id",
+								"dir": "asc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Learner ID"
+								},
+								{
+									"key": "accommodationKind",
+									"label": "Kind"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "ExamAccommodationDetail",
+							"viewAllRoute": "ExamAccommodations",
+							"viewAllQuery": {
+								"assessmentId": "@objectId"
+							},
+							"emptyText": "No accommodations found for this assessment.",
+							"allowCreate": false
+						},
+						"icon": "AccountHeartOutline"
 					}
 				],
 				"layout": [
@@ -3941,6 +4260,15 @@
 						"gridX": 6,
 						"gridY": 5,
 						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "5",
+						"widgetId": "ass-accommodations",
+						"gridX": 0,
+						"gridY": 10,
+						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
 					}
@@ -6915,6 +7243,83 @@
 						"gridY": 0,
 						"gridWidth": 4,
 						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "ReportCardTemplates",
+			"route": "/report-cards/templates",
+			"type": "index",
+			"title": "Report card templates",
+			"config": {
+				"register": "learniq",
+				"schema": "report-card-template"
+			}
+		},
+		{
+			"id": "ReportCardTemplateDetail",
+			"route": "/report-cards/templates/:id",
+			"type": "detail",
+			"title": "Report card template",
+			"config": {
+				"register": "learniq",
+				"schema": "report-card-template",
+				"_note": "report-card-templates: a ReportCardTemplate declares an ordered sections[] array (grades/lvs-results/attendance/social-emotional/narrative/pupil-voice/portfolio, each with a scale from the shared library) and a per-group testKindSectionMap[], a config/template archetype mirroring CourseTemplateDetail's shape exactly. Body leads with the template definition (8-wide, sections[]/testKindSectionMap[] render via the generic data widget's nested-array support) and a Related panel resolving the Cohorts assigned this template (Cohort.reportCardTemplateId). Assignment itself happens on CohortDetail, not here, this page only defines the template. No comms leaves (no linkedTypes): a template is a definition, not a correspondence thread. Sidebar keeps metadata + audit-trail.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "rctpl-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "FileDocumentEditOutline"
+					},
+					{
+						"id": "rctpl-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "rctpl-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "rctpl-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
 						"showTitle": false
 					}
 				],

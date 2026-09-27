@@ -24,7 +24,7 @@
     - GET  /api/objects/learniq/Rubric/:id
     - GET  /api/objects/learniq/Submission/:id (only when anonymity is not double-blind)
     - PUT  /api/objects/learniq/peer-review/:id
-    - POST /api/objects/learniq/peer-review/:id/transition/submit
+    - POST /api/objects/:id/transition           ({ action: 'submit' })
 
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView.
@@ -200,6 +200,7 @@
 
 <script>
 import { generateUrl } from '@nextcloud/router'
+import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'PeerReviewMarkingView',
@@ -524,9 +525,7 @@ export default {
 					throw new Error(`PeerReview update failed: ${updateResp.status}`)
 				}
 
-				const transitionUrl = generateUrl(
-					`/apps/openregister/api/objects/learniq/peer-review/${this.id}/transition/submit`,
-				)
+				const transitionUrl = generateUrl(objectTransitionUrl(this.id))
 				const transResp = await fetch(transitionUrl, {
 					method: 'POST',
 					headers: {
@@ -534,7 +533,7 @@ export default {
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({}),
+					body: JSON.stringify({ action: 'submit' }),
 				})
 				if (!transResp.ok) {
 					throw new Error(`Submit transition failed: ${transResp.status}`)

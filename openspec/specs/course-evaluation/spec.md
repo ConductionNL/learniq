@@ -7,8 +7,8 @@ TBD - created by archiving change course-evaluation. Update Purpose after archiv
 
 The system MUST persist `EvaluationCampaign`, `EvaluationInvitation`, `CourseEvaluationResponse`,
 `CourseQualityScore`, and `ImprovementAction` as OpenRegister objects. `EvaluationCampaign` MUST carry
-`x-openregister-lifecycle` (`draft → open → closed → archived`). `CourseEvaluationResponse` MUST be
-`appendOnly: true` and carry its own `x-openregister-lifecycle` (`draft → submitted`, terminal).
+`x-openregister-lifecycle` (`draft → open → closed → archived`). `CourseEvaluationResponse` MUST NOT be
+`appendOnly` (its `submit` is an update) and carries its own `x-openregister-lifecycle` (`draft → submitted`, terminal).
 `ImprovementAction` MUST carry `x-openregister-lifecycle` (`planned → in-progress → done | dropped`).
 `EvaluationInvitation` and `CourseQualityScore` are system-provisioned/materialised rows and carry no
 user-initiated lifecycle. `Course`/`Cohort` are referenced by `$ref` only — this requirement does not
@@ -23,7 +23,7 @@ modify either schema.
   `CourseQualityScore`, or `ImprovementAction` is created
 - **THEN** it is stored as an OpenRegister object with its declared lifecycle (or no lifecycle, for the two
   system-provisioned schemas)
-- **AND** `CourseEvaluationResponse` is `appendOnly: true`
+- **AND** `CourseEvaluationResponse` is not `appendOnly`, so `submit` runs
 
 ### Requirement: A campaign scopes its courses/cohorts, academic period, and instrument
 
@@ -192,7 +192,7 @@ pages, no PHP class required.
 ### Requirement: Frontend is declarative with one named custom view for the quality report
 
 The frontend MUST be declarative: `src/manifest.json` index/detail pages for `EvaluationCampaign`,
-`CourseEvaluationResponse` (read-only, respecting `appendOnly`), and `ImprovementAction`.
+`CourseEvaluationResponse` (read-only), and `ImprovementAction`.
 `EvaluationInvitation` and `CourseQualityScore` get no dedicated authoring UI (system-provisioned and
 materialised, respectively). The only custom Vue component MUST be `CourseQualityReport.vue` — a
 coordinator/opleidingscommissie view of a course or teacher's `CourseQualityScore` trend over time,

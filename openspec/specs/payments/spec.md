@@ -147,8 +147,8 @@ The system MUST persist `PaymentTransaction` (`orderId` $ref `Order`, `pspProvid
 (`mollie | stripe` — matching the credential-broker's catalogued provider identifiers), `pspPaymentId`
 (nullable, set once OpenConnector returns it), `amount`, `currency`, `initiatedBy`, `initiatedAt`,
 `completedAt` (nullable), `x-openregister-lifecycle`: `pending → awaiting-redirect → succeeded | failed |
-expired | cancelled`, `succeeded → refunded`; `appendOnly: true` per ADR-008, mirroring `Attestation`'s
-evidentiary shape). Scholiq MUST NOT construct, sign, or verify any PSP-specific request or webhook payload
+expired | cancelled`, `succeeded → refunded`; not `appendOnly`, because every one of those moves is an update
+Open Register would refuse; the audit trail keeps each version per ADR-008, mirroring `Attestation`). Scholiq MUST NOT construct, sign, or verify any PSP-specific request or webhook payload
 itself — a new `PaymentTransactionController::initiate()` MUST delegate to OpenConnector's (not-yet-built)
 PSP adapter using the same `IClientService` + `IURLGenerator::getAbsoluteURL()` + `IAppConfig` bearer-token
 shape `DataExchangeRunHandler::callOpenConnector()` and `LtiToolPlacementController::launch()` already

@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.0",
+    "version": "1.1.9",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -26799,20 +26799,7 @@
         "nextReviewAt": "2026-03-01",
         "version": 1,
         "supersedesId": "00000000-0000-4000-8000-000000000000",
-        "lifecycle": "draft",
-        "sixWeekDeadline": "2026-02-15",
-        "uitstroombestemming": "Praktijkonderwijs",
-        "outflowBandwidth": {
-          "lowerVaardigheidsscore": 45.0,
-          "upperVaardigheidsscore": 60.0,
-          "scale": "Cito rekenen-wiskunde"
-        },
-        "trackedGrowth": [
-          {
-            "recordedAt": "2026-01-10",
-            "vaardigheidsscore": 47.5
-          }
-        ]
+        "lifecycle": "draft"
       },
       {
         "@self": {
@@ -29569,6 +29556,650 @@
         "courseId": "00000000-0000-4000-8000-000000000002",
         "lessonId": "00000000-0000-4000-8000-000000000002",
         "verified_actor_id": "Voorbeeld Verified Actor Id 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "school",
+          "slug": "school-voorbeeld-name-1-1"
+        },
+        "brin": "01AB",
+        "name": "Voorbeeld Name 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "pedagogicalConcept": "regular"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "school",
+          "slug": "school-voorbeeld-name-2-2"
+        },
+        "brin": "12BC",
+        "name": "Voorbeeld Name 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "pedagogicalConcept": "montessori"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "school",
+          "slug": "school-voorbeeld-name-3-3"
+        },
+        "brin": "23CD",
+        "name": "Voorbeeld Name 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "pedagogicalConcept": "dalton"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "vestiging",
+          "slug": "vestiging-voorbeeld-name-1-1"
+        },
+        "schoolId": "00000000-0000-4000-8000-000000000000",
+        "vestigingscode": "Voorbeeld Vestigingscode 1",
+        "name": "Voorbeeld Name 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "onderwijslocatiecode": "Voorbeeld Onderwijslocatiecode 1",
+        "street": "Voorbeeld Street 1",
+        "postalCode": "Voorbeeld Postalcode 1",
+        "city": "Voorbeeld City 1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "vestiging",
+          "slug": "vestiging-voorbeeld-name-2-2"
+        },
+        "schoolId": "00000000-0000-4000-8000-000000000001",
+        "vestigingscode": "Voorbeeld Vestigingscode 2",
+        "name": "Voorbeeld Name 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "onderwijslocatiecode": "Voorbeeld Onderwijslocatiecode 2",
+        "street": "Voorbeeld Street 2",
+        "postalCode": "Voorbeeld Postalcode 2",
+        "city": "Voorbeeld City 2"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "vestiging",
+          "slug": "vestiging-voorbeeld-name-3-3"
+        },
+        "schoolId": "00000000-0000-4000-8000-000000000002",
+        "vestigingscode": "Voorbeeld Vestigingscode 3",
+        "name": "Voorbeeld Name 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "onderwijslocatiecode": "Voorbeeld Onderwijslocatiecode 3",
+        "street": "Voorbeeld Street 3",
+        "postalCode": "Voorbeeld Postalcode 3",
+        "city": "Voorbeeld City 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "staff",
+          "slug": "staff-staff-1-1"
+        },
+        "ncUserId": "Voorbeeld Ncuserid 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "roles": [],
+        "qualifications": [],
+        "workingDays": []
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "staff",
+          "slug": "staff-staff-2-2"
+        },
+        "ncUserId": "Voorbeeld Ncuserid 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "roles": [],
+        "qualifications": [],
+        "workingDays": []
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "staff",
+          "slug": "staff-staff-3-3"
+        },
+        "ncUserId": "Voorbeeld Ncuserid 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "roles": [],
+        "qualifications": [],
+        "workingDays": []
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "subjectteacherassignment",
+          "slug": "subjectteacherassignment-subjectteacherassignment-1-1"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "courseId": "00000000-0000-4000-8000-000000000000",
+        "teacherId": "Voorbeeld Teacherid 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "subjectteacherassignment",
+          "slug": "subjectteacherassignment-subjectteacherassignment-2-2"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000001",
+        "courseId": "00000000-0000-4000-8000-000000000001",
+        "teacherId": "Voorbeeld Teacherid 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "subjectteacherassignment",
+          "slug": "subjectteacherassignment-subjectteacherassignment-3-3"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000002",
+        "courseId": "00000000-0000-4000-8000-000000000002",
+        "teacherId": "Voorbeeld Teacherid 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "learniqsettings",
+          "slug": "learniqsettings-learniqsettings-1-1"
+        },
+        "segment": "po",
+        "setBy": "Voorbeeld Setby 1",
+        "setAt": "2026-03-01T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "learniqsettings",
+          "slug": "learniqsettings-learniqsettings-2-2"
+        },
+        "segment": "vo",
+        "setBy": "Voorbeeld Setby 2",
+        "setAt": "2026-03-02T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "learniqsettings",
+          "slug": "learniqsettings-learniqsettings-3-3"
+        },
+        "segment": "mbo",
+        "setBy": "Voorbeeld Setby 3",
+        "setAt": "2026-03-03T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lvs-result",
+          "slug": "lvs-result-lvsresult-1-1"
+        },
+        "provider": "cito",
+        "instrument": "Voorbeeld Instrument 1",
+        "moment": "Voorbeeld Moment 1",
+        "learnerId": "Voorbeeld Learnerid 1",
+        "dataExchangeJobId": "00000000-0000-4000-8000-000000000000",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "takenAt": "2026-03-01",
+        "rawScore": 1.0,
+        "vaardigheidsscore": 1.0,
+        "niveau": "Voorbeeld Niveau 1",
+        "referentieniveau": "Voorbeeld Referentieniveau 1",
+        "dle": 1.0,
+        "assessmentResultId": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "imported"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lvs-result",
+          "slug": "lvs-result-lvsresult-2-2"
+        },
+        "provider": "iep",
+        "instrument": "Voorbeeld Instrument 2",
+        "moment": "Voorbeeld Moment 2",
+        "learnerId": "Voorbeeld Learnerid 2",
+        "dataExchangeJobId": "00000000-0000-4000-8000-000000000001",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "takenAt": "2026-03-02",
+        "rawScore": 2.0,
+        "vaardigheidsscore": 2.0,
+        "niveau": "Voorbeeld Niveau 2",
+        "referentieniveau": "Voorbeeld Referentieniveau 2",
+        "dle": 2.0,
+        "assessmentResultId": "00000000-0000-4000-8000-000000000001",
+        "lifecycle": "verified"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lvs-result",
+          "slug": "lvs-result-lvsresult-3-3"
+        },
+        "provider": "boom",
+        "instrument": "Voorbeeld Instrument 3",
+        "moment": "Voorbeeld Moment 3",
+        "learnerId": "Voorbeeld Learnerid 3",
+        "dataExchangeJobId": "00000000-0000-4000-8000-000000000002",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "takenAt": "2026-03-03",
+        "rawScore": 3.0,
+        "vaardigheidsscore": 3.0,
+        "niveau": "Voorbeeld Niveau 3",
+        "referentieniveau": "Voorbeeld Referentieniveau 3",
+        "dle": 3.0,
+        "assessmentResultId": "00000000-0000-4000-8000-000000000002",
+        "lifecycle": "archived"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "FirstAidIncident",
+          "slug": "firstaidincident-firstaidincident-1-1"
+        },
+        "learnerId": "Voorbeeld Learnerid 1",
+        "reportedBy": "Voorbeeld Reportedby 1",
+        "occurredAt": "2026-03-01T09:00:00+00:00",
+        "whatHappened": "Voorbeeld Whathappened 1",
+        "treatmentGiven": "Voorbeeld Treatmentgiven 1",
+        "notifiedGuardian": false,
+        "notifiedGuardianAt": "2026-03-01T09:00:00+00:00",
+        "followUpActions": [],
+        "resolution": "Voorbeeld Resolution 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "open"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "FirstAidIncident",
+          "slug": "firstaidincident-firstaidincident-2-2"
+        },
+        "learnerId": "Voorbeeld Learnerid 2",
+        "reportedBy": "Voorbeeld Reportedby 2",
+        "occurredAt": "2026-03-02T09:00:00+00:00",
+        "whatHappened": "Voorbeeld Whathappened 2",
+        "treatmentGiven": "Voorbeeld Treatmentgiven 2",
+        "notifiedGuardian": true,
+        "notifiedGuardianAt": "2026-03-02T09:00:00+00:00",
+        "followUpActions": [],
+        "resolution": "Voorbeeld Resolution 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "lifecycle": "in-handling"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "FirstAidIncident",
+          "slug": "firstaidincident-firstaidincident-3-3"
+        },
+        "learnerId": "Voorbeeld Learnerid 3",
+        "reportedBy": "Voorbeeld Reportedby 3",
+        "occurredAt": "2026-03-03T09:00:00+00:00",
+        "whatHappened": "Voorbeeld Whathappened 3",
+        "treatmentGiven": "Voorbeeld Treatmentgiven 3",
+        "notifiedGuardian": true,
+        "notifiedGuardianAt": "2026-03-03T09:00:00+00:00",
+        "followUpActions": [],
+        "resolution": "Voorbeeld Resolution 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "lifecycle": "resolved"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "Cohort",
+          "slug": "cohort-voorbeeld-name-1-1"
+        },
+        "name": "Voorbeeld Name 1",
+        "period": "Voorbeeld Period 1",
+        "academicYear": "Voorbeeld Academicyear 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "programmeId": "00000000-0000-4000-8000-000000000000",
+        "courseId": "00000000-0000-4000-8000-000000000000",
+        "teacherIds": [
+          "Voorbeeld Teacherids 1"
+        ],
+        "learnerIds": [
+          "Voorbeeld Learnerids 1"
+        ],
+        "ncGroupId": "Voorbeeld Ncgroupid 1",
+        "lifecycle": "planned",
+        "reportCardTemplateId": "00000000-0000-4000-8000-0000000000f1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "ReportCard",
+          "slug": "reportcard-reportcard-1-1"
+        },
+        "learnerId": "Voorbeeld Learnerid 1",
+        "reportPeriodId": "00000000-0000-4000-8000-000000000000",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "learnerRef": "00000000-0000-4000-8000-000000000000",
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "subjectGrades": [],
+        "attendanceSummary": {
+          "presentCount": 1,
+          "absentUnexcusedCount": 1,
+          "absentExcusedCount": 1,
+          "lateCount": 1,
+          "leftEarlyCount": 1,
+          "attendancePercent": 1.0
+        },
+        "mentorComment": "Voorbeeld Mentorcomment 1",
+        "competencyAttainment": {},
+        "composedAt": "2026-03-01T09:00:00+00:00",
+        "docudeskRenderStatus": "requested",
+        "docudeskRequestedAt": "2026-03-01T09:00:00+00:00",
+        "docudeskDocumentRef": "Voorbeeld Docudeskdocumentref 1",
+        "docudeskRenderError": "Voorbeeld Docudeskrendererror 1",
+        "lifecycle": "draft",
+        "templateId": "00000000-0000-4000-8000-0000000000f1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "ReportCardTemplate",
+          "slug": "reportcardtemplate-basisschool-huisstijl-1"
+        },
+        "name": "Basisschool huisstijl rapport",
+        "slug": "huisstijl-groep-6",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "description": "Standaardsjabloon in de huisstijl van de school, met een trapjesschaal en een sectie waarin de leerling zelf iets vertelt.",
+        "sections": [
+          {
+            "kind": "grades",
+            "label": "Cijfers",
+            "order": 1,
+            "scale": "steps"
+          },
+          {
+            "kind": "narrative",
+            "label": "Verhaal van de leerkracht",
+            "order": 2,
+            "scale": "text"
+          },
+          {
+            "kind": "pupil-voice",
+            "label": "Dit vertel ik zelf",
+            "order": 3,
+            "scale": "text"
+          }
+        ],
+        "testKindSectionMap": [
+          {
+            "testKind": "cito-rekenen-groep-6",
+            "sectionKind": "lvs-results"
+          }
+        ],
+        "lifecycle": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "ReportCardTemplate",
+          "slug": "reportcardtemplate-vo-cijferlijst-2"
+        },
+        "name": "VO cijferlijst",
+        "slug": "vo-cijferlijst",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "description": "Compacte cijferlijst voor voortgezet onderwijs: cijfers en aanwezigheid, geen verhalend gedeelte.",
+        "sections": [
+          {
+            "kind": "grades",
+            "label": "Cijfers",
+            "order": 1,
+            "scale": "grades-1-10"
+          },
+          {
+            "kind": "attendance",
+            "label": "Aanwezigheid",
+            "order": 2,
+            "scale": "text"
+          }
+        ],
+        "testKindSectionMap": [],
+        "lifecycle": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "ReportCardTemplate",
+          "slug": "reportcardtemplate-kleuterrapport-3"
+        },
+        "name": "Kleuterrapport groep 1-2",
+        "slug": "kleuterrapport-groep-1-2",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "description": "Rapport voor de kleutergroepen: sociaal-emotionele ontwikkeling met smileys, een verhalend gedeelte en een portfolio-sectie. Nog niet actief.",
+        "sections": [
+          {
+            "kind": "social-emotional",
+            "label": "Sociaal-emotionele ontwikkeling",
+            "order": 1,
+            "scale": "smileys"
+          },
+          {
+            "kind": "narrative",
+            "label": "Verhaal van de leerkracht",
+            "order": 2,
+            "scale": "text"
+          },
+          {
+            "kind": "portfolio",
+            "label": "Werk van dit kind",
+            "order": 3,
+            "scale": "text"
+          }
+        ],
+        "testKindSectionMap": [],
+        "lifecycle": "archived"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "compliance",
+          "slug": "compliance-compliance-1-1"
+        },
+        "privacyconvenantSigned": false,
+        "privacyconvenantSignedAt": "2026-03-01T09:00:00+00:00",
+        "verwerkersovereenkomstUrl": "Voorbeeld Verwerkersovereenkomsturl 1",
+        "privacybijsluiterUrl": "Voorbeeld Privacybijsluiterurl 1",
+        "privacybijsluiterVersion": "Voorbeeld Privacybijsluiterversion 1",
+        "lastReviewedAt": "2026-03-01T09:00:00+00:00",
+        "lastReviewedBy": "Voorbeeld Lastreviewedby 1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "compliance",
+          "slug": "compliance-compliance-2-2"
+        },
+        "privacyconvenantSigned": false,
+        "privacyconvenantSignedAt": "2026-03-02T09:00:00+00:00",
+        "verwerkersovereenkomstUrl": "Voorbeeld Verwerkersovereenkomsturl 2",
+        "privacybijsluiterUrl": "Voorbeeld Privacybijsluiterurl 2",
+        "privacybijsluiterVersion": "Voorbeeld Privacybijsluiterversion 2",
+        "lastReviewedAt": "2026-03-02T09:00:00+00:00",
+        "lastReviewedBy": "Voorbeeld Lastreviewedby 2"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "compliance",
+          "slug": "compliance-compliance-3-3"
+        },
+        "privacyconvenantSigned": false,
+        "privacyconvenantSignedAt": "2026-03-03T09:00:00+00:00",
+        "verwerkersovereenkomstUrl": "Voorbeeld Verwerkersovereenkomsturl 3",
+        "privacybijsluiterUrl": "Voorbeeld Privacybijsluiterurl 3",
+        "privacybijsluiterVersion": "Voorbeeld Privacybijsluiterversion 3",
+        "lastReviewedAt": "2026-03-03T09:00:00+00:00",
+        "lastReviewedBy": "Voorbeeld Lastreviewedby 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "data-subject-request",
+          "slug": "data-subject-request-datasubjectrequest-1-1"
+        },
+        "kind": "correction",
+        "learnerId": "Voorbeeld Learnerid 1",
+        "submittedBy": "Voorbeeld Submittedby 1",
+        "requestedAt": "2026-03-01T09:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "description": "Voorbeeld Description 1",
+        "decidedAt": "2026-03-01T09:00:00+00:00",
+        "auditTrail": []
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "data-subject-request",
+          "slug": "data-subject-request-datasubjectrequest-2-2"
+        },
+        "kind": "deletion",
+        "learnerId": "Voorbeeld Learnerid 2",
+        "submittedBy": "Voorbeeld Submittedby 2",
+        "requestedAt": "2026-03-02T09:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "description": "Voorbeeld Description 2",
+        "decidedAt": "2026-03-02T09:00:00+00:00",
+        "auditTrail": []
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "data-subject-request",
+          "slug": "data-subject-request-datasubjectrequest-3-3"
+        },
+        "kind": "correction",
+        "learnerId": "Voorbeeld Learnerid 3",
+        "submittedBy": "Voorbeeld Submittedby 3",
+        "requestedAt": "2026-03-03T09:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "description": "Voorbeeld Description 3",
+        "decidedAt": "2026-03-03T09:00:00+00:00",
+        "auditTrail": []
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "oso-import-dossier",
+          "slug": "oso-import-dossier-osoimportdossier-1-1"
+        },
+        "dataExchangeJobId": "00000000-0000-4000-8000-000000000000",
+        "sourceSchoolBrin": "Voorbeeld Sourceschoolbrin 1",
+        "receivedAt": "2026-03-01T09:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "learnerEckId": "Voorbeeld Learnereckid 1",
+        "categories": [],
+        "draftProfile": {},
+        "attachmentRefs": [],
+        "rejectionReason": "Voorbeeld Rejectionreason 1",
+        "reviewedBy": "Voorbeeld Reviewedby 1",
+        "reviewedAt": "2026-03-01T09:00:00+00:00",
+        "status": "received"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "oso-import-dossier",
+          "slug": "oso-import-dossier-osoimportdossier-2-2"
+        },
+        "dataExchangeJobId": "00000000-0000-4000-8000-000000000001",
+        "sourceSchoolBrin": "Voorbeeld Sourceschoolbrin 2",
+        "receivedAt": "2026-03-02T09:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "learnerEckId": "Voorbeeld Learnereckid 2",
+        "categories": [],
+        "draftProfile": {},
+        "attachmentRefs": [],
+        "rejectionReason": "Voorbeeld Rejectionreason 2",
+        "reviewedBy": "Voorbeeld Reviewedby 2",
+        "reviewedAt": "2026-03-02T09:00:00+00:00",
+        "status": "under-review"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "oso-import-dossier",
+          "slug": "oso-import-dossier-osoimportdossier-3-3"
+        },
+        "dataExchangeJobId": "00000000-0000-4000-8000-000000000002",
+        "sourceSchoolBrin": "Voorbeeld Sourceschoolbrin 3",
+        "receivedAt": "2026-03-03T09:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "learnerEckId": "Voorbeeld Learnereckid 3",
+        "categories": [],
+        "draftProfile": {},
+        "attachmentRefs": [],
+        "rejectionReason": "Voorbeeld Rejectionreason 3",
+        "reviewedBy": "Voorbeeld Reviewedby 3",
+        "reviewedAt": "2026-03-03T09:00:00+00:00",
+        "status": "accepted"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "LearningPlan",
+          "slug": "learningplan-learningplan-1-1"
+        },
+        "learnerId": "Voorbeeld Learnerid 1",
+        "kind": "opp",
+        "coordinatorId": "Voorbeeld Coordinatorid 1",
+        "tenant_id": "Voorbeeld Tenant Id 1",
+        "templateId": "00000000-0000-4000-8000-000000000000",
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "courseId": "00000000-0000-4000-8000-000000000000",
+        "goals": [
+          {
+            "goalId": "Voorbeeld Goalid 1",
+            "description": "Voorbeeld Description 1",
+            "domain": "Voorbeeld Domain 1",
+            "baseline": "Voorbeeld Baseline 1",
+            "target": "Voorbeeld Target 1",
+            "targetDate": "2026-03-01",
+            "status": "open",
+            "evidenceRefs": [
+              "00000000-0000-4000-8000-000000000000"
+            ]
+          }
+        ],
+        "supportMeasures": [
+          {
+            "measureId": "Voorbeeld Measureid 1",
+            "description": "Voorbeeld Description 1",
+            "responsibleId": "Voorbeeld Responsibleid 1",
+            "startDate": "2026-03-01",
+            "endDate": "2026-03-01"
+          }
+        ],
+        "period": "Voorbeeld Period 1",
+        "reviewCadenceMonths": 3,
+        "nextReviewAt": "2026-03-01",
+        "version": 1,
+        "supersedesId": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "draft",
+        "sixWeekDeadline": "2026-02-15",
+        "uitstroombestemming": "Praktijkonderwijs",
+        "outflowBandwidth": {
+          "lowerVaardigheidsscore": 45.0,
+          "upperVaardigheidsscore": 60.0,
+          "scale": "Cito rekenen-wiskunde"
+        },
+        "trackedGrowth": [
+          {
+            "recordedAt": "2026-01-10",
+            "vaardigheidsscore": 47.5
+          }
+        ]
       },
       {
         "@self": {

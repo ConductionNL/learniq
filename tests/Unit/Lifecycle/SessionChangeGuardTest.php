@@ -153,7 +153,7 @@ class SessionChangeGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testCoordinatorMaySubstitute(): void {
-		$guard = $this->makeGuard(['coordinator'], ['id' => 'cohort-1', 'teacherIds' => []]);
+		$guard = $this->makeGuard(['coordinators'], ['id' => 'cohort-1', 'teacherIds' => []]);
 		$context = [
 			'object' => [
 				'cohortId' => 'cohort-1',
