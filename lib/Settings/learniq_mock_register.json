@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.8",
+    "version": "1.1.9",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -30144,6 +30144,214 @@
         "reviewedBy": "Voorbeeld Reviewedby 3",
         "reviewedAt": "2026-03-03T09:00:00+00:00",
         "status": "accepted"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "LearningPlan",
+          "slug": "learningplan-learningplan-1-1"
+        },
+        "learnerId": "Voorbeeld Learnerid 1",
+        "kind": "opp",
+        "coordinatorId": "Voorbeeld Coordinatorid 1",
+        "tenant_id": "Voorbeeld Tenant Id 1",
+        "templateId": "00000000-0000-4000-8000-000000000000",
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "courseId": "00000000-0000-4000-8000-000000000000",
+        "goals": [
+          {
+            "goalId": "Voorbeeld Goalid 1",
+            "description": "Voorbeeld Description 1",
+            "domain": "Voorbeeld Domain 1",
+            "baseline": "Voorbeeld Baseline 1",
+            "target": "Voorbeeld Target 1",
+            "targetDate": "2026-03-01",
+            "status": "open",
+            "evidenceRefs": [
+              "00000000-0000-4000-8000-000000000000"
+            ]
+          }
+        ],
+        "supportMeasures": [
+          {
+            "measureId": "Voorbeeld Measureid 1",
+            "description": "Voorbeeld Description 1",
+            "responsibleId": "Voorbeeld Responsibleid 1",
+            "startDate": "2026-03-01",
+            "endDate": "2026-03-01"
+          }
+        ],
+        "period": "Voorbeeld Period 1",
+        "reviewCadenceMonths": 3,
+        "nextReviewAt": "2026-03-01",
+        "version": 1,
+        "supersedesId": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "draft",
+        "sixWeekDeadline": "2026-02-15",
+        "uitstroombestemming": "Praktijkonderwijs",
+        "outflowBandwidth": {
+          "lowerVaardigheidsscore": 45.0,
+          "upperVaardigheidsscore": 60.0,
+          "scale": "Cito rekenen-wiskunde"
+        },
+        "trackedGrowth": [
+          {
+            "recordedAt": "2026-01-10",
+            "vaardigheidsscore": 47.5
+          }
+        ]
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "ObservationInstrument",
+          "slug": "observationinstrument-groep-1-leerling-1"
+        },
+        "learnerId": "learner-001",
+        "academicYear": "2025-2026",
+        "period": "Blok 2",
+        "entries": [
+          {
+            "leerlijn": "taal",
+            "observedAt": "2026-01-15",
+            "level": "is-aan-het-ontdekken",
+            "observedBy": "teacher-001",
+            "note": null
+          },
+          {
+            "leerlijn": "rekenen",
+            "observedAt": "2026-01-15",
+            "level": "kan-het-met-hulp",
+            "observedBy": "teacher-001",
+            "note": null
+          }
+        ],
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "ObservationInstrument",
+          "slug": "observationinstrument-groep-2-leerling-2"
+        },
+        "learnerId": "learner-002",
+        "academicYear": "2025-2026",
+        "period": "Blok 2",
+        "entries": [
+          {
+            "leerlijn": "sociaal-emotioneel",
+            "observedAt": "2026-01-16",
+            "level": "kan-het-zelfstandig",
+            "observedBy": "teacher-002",
+            "note": "Werkt goed samen."
+          }
+        ],
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "lifecycle": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "ObservationInstrument",
+          "slug": "observationinstrument-groep-1-leerling-3"
+        },
+        "learnerId": "learner-003",
+        "academicYear": "2025-2026",
+        "period": "Blok 1",
+        "entries": [
+          {
+            "leerlijn": "motoriek",
+            "observedAt": "2025-11-01",
+            "level": "kan-het-met-hulp",
+            "observedBy": "teacher-001",
+            "note": null
+          },
+          {
+            "leerlijn": "spel",
+            "observedAt": "2025-11-01",
+            "level": "kan-het-zelfstandig",
+            "observedBy": "teacher-001",
+            "note": null
+          }
+        ],
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "lifecycle": "archived"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "Trajectory",
+          "slug": "trajectory-opdc-referral-1"
+        },
+        "learnerId": "learner-004",
+        "supportRequestId": null,
+        "voorzieningType": "OPDC",
+        "referredAt": "2026-01-15",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "referral"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "Trajectory",
+          "slug": "trajectory-rebound-running-2"
+        },
+        "learnerId": "learner-005",
+        "supportRequestId": "00000000-0000-4000-8000-000000000001",
+        "voorzieningType": "Rebound",
+        "referredAt": "2025-11-01",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "lifecycle": "running"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "Trajectory",
+          "slug": "trajectory-opdc-stopped-3"
+        },
+        "learnerId": "learner-006",
+        "supportRequestId": null,
+        "voorzieningType": "OPDC",
+        "referredAt": "2025-09-01",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "lifecycle": "stopped"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "TrajectoryStatusUpdate",
+          "slug": "trajectorystatusupdate-1"
+        },
+        "trajectoryId": "00000000-0000-4000-8000-0000000000t2",
+        "recordedAt": "2025-12-01",
+        "recordedBy": "coordinator-001",
+        "note": "Plaatsing gestart, eerste week verlopen zonder bijzonderheden.",
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "TrajectoryStatusUpdate",
+          "slug": "trajectorystatusupdate-2"
+        },
+        "trajectoryId": "00000000-0000-4000-8000-0000000000t2",
+        "recordedAt": "2025-11-15",
+        "recordedBy": "coordinator-001",
+        "note": "Voorbereiding afgerond, intake gepland.",
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "TrajectoryStatusUpdate",
+          "slug": "trajectorystatusupdate-3"
+        },
+        "trajectoryId": "00000000-0000-4000-8000-0000000000t3",
+        "recordedAt": "2025-10-01",
+        "recordedBy": "coordinator-002",
+        "note": "Traject stopgezet na terugkeer naar de eigen school.",
+        "tenant_id": "00000000-0000-4000-8000-000000000002"
       }
     ]
   }
