@@ -1232,6 +1232,7 @@ OC.L10N.register(
         "Segment": "Segment",
         "The kind of organisation this instance serves. Defaults to company.": "The kind of organisation this instance serves. Defaults to company.",
         "Primary school": "Primary school",
+        "A fictional primary school with groups 1 to 8, pupils, guardians and one full school year.": "A fictional primary school with groups 1 to 8, pupils, guardians and one full school year.",
         "Secondary school": "Secondary school",
         "Vocational education (MBO)": "Vocational education (MBO)",
         "Higher education (HBO or university)": "Higher education (HBO or university)",

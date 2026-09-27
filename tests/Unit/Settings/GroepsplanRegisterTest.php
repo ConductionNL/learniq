@@ -273,30 +273,27 @@ class GroepsplanRegisterTest extends TestCase {
 	}//end testSupportRequestOriginGroupPlanSubgroupIdIsAdditiveAndIndependent()
 
 	/**
-	 * The seeded GroupPlan/GroupPlanSubgroup/GroupPlanEvaluation fixtures
-	 * exercise the cross-lookup and version-chain scenarios: an active plan
-	 * with an intensief/basis/verdiept split, an intensief-subgroup learner
-	 * (learner-001) also present in the closed prior plan's subgroup, and a
-	 * closed prior-period plan referenced via the active plan's
+	 * The primary school example set's GroupPlan/GroupPlanSubgroup/
+	 * GroupPlanEvaluation objects exercise the cross-lookup and version-chain
+	 * scenarios: an active plan with an intensief/basis/verdiept split, an
+	 * intensief-subgroup learner also present in the closed prior plan's
+	 * subgroup, and the closed plan referenced via the active plan's
 	 * supersedesId.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testSeedFixturesExerciseSubgroupSplitAndVersionChain(): void {
-		$groupPlanSeeds = $this->config['components']['schemas']['GroupPlan']['x-openregister-seed'];
-		self::assertCount(2, $groupPlanSeeds);
-
-		$closed = $groupPlanSeeds[0];
-		$active = $groupPlanSeeds[1];
-		self::assertSame('closed', $closed['lifecycle']);
-		self::assertSame('active', $active['lifecycle']);
+		$closed = self::poObject(schema: 'group-plan', field: 'lifecycle', value: 'closed');
+		$active = self::poObject(schema: 'group-plan', field: 'lifecycle', value: 'active');
 		self::assertNull($closed['supersedesId']);
-		self::assertSame($closed['id'], $active['supersedesId']);
+		self::assertSame($closed['uuid'], $active['supersedesId']);
 
-		$subgroupSeeds = $this->config['components']['schemas']['GroupPlanSubgroup']['x-openregister-seed'];
+		$subgroups       = self::poObjects(schema: 'group-plan-subgroup');
 		$activeSubgroups = array_values(array_filter(
-			$subgroupSeeds,
-			static fn (array $s): bool => $s['groupPlanId'] === $active['id']
+			$subgroups,
+			static fn (array $s): bool => $s['groupPlanId'] === $active['uuid']
 		));
 		$levels = array_column($activeSubgroups, 'instructieniveau');
 		sort($levels);
@@ -306,11 +303,48 @@ class GroepsplanRegisterTest extends TestCase {
 			$activeSubgroups,
 			static fn (array $s): bool => $s['instructieniveau'] === 'intensief'
 		))[0];
-		self::assertContains('learner-001', $intensief['learnerIds']);
+		$closedSubgroup = array_values(array_filter(
+			$subgroups,
+			static fn (array $s): bool => $s['groupPlanId'] === $closed['uuid']
+		))[0];
+		self::assertNotEmpty(array_intersect($intensief['learnerIds'], $closedSubgroup['learnerIds']));
 
-		$evaluationSeeds = $this->config['components']['schemas']['GroupPlanEvaluation']['x-openregister-seed'];
-		self::assertSame($closed['id'], $evaluationSeeds[0]['groupPlanId']);
-		self::assertContains($evaluationSeeds[0]['id'], $active['resultsAnalysis']['evidenceRefs']);
+		$evaluation = self::poObject(schema: 'group-plan-evaluation', field: 'groupPlanId', value: $closed['uuid']);
+		self::assertContains($evaluation['uuid'], $active['resultsAnalysis']['evidenceRefs']);
 
 	}//end testSeedFixturesExerciseSubgroupSplitAndVersionChain()
+
+	/**
+	 * The objects of one schema in the primary school example set, where the
+	 * curated primary school seeds moved to (segment-example-datasets-po).
+	 *
+	 * @param string $schema The schema slug.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function poObjects(string $schema): array {
+		$path = __DIR__ . '/../../../lib/Settings/profiles/po.json';
+		$set  = json_decode((string)file_get_contents($path), true);
+
+		return ($set['x-openregister']['seedData']['objects'][$schema] ?? []);
+	}//end poObjects()
+
+	/**
+	 * The first object of a schema in the example set whose field equals a value.
+	 *
+	 * @param string $schema The schema slug.
+	 * @param string $field  The field to match.
+	 * @param mixed  $value  The value it must hold.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function poObject(string $schema, string $field, mixed $value): array {
+		foreach (self::poObjects(schema: $schema) as $object) {
+			if (($object[$field] ?? null) === $value) {
+				return $object;
+			}
+		}
+
+		self::fail('No ' . $schema . ' with ' . $field . ' = ' . json_encode($value) . ' in the primary school example set.');
+	}//end poObject()
 }//end class
