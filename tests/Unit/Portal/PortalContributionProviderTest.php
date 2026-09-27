@@ -199,13 +199,10 @@ class PortalContributionProviderTest extends TestCase {
 			$this->assertSame('learniq', $collection['register']);
 			$this->assertSame('learnerRef', $collection['scopeClaim']);
 			$this->assertNotEmpty($collection['fields']);
-			// Submission is scoped by the learnerRefs ARRAY (membership); every
-			// other collection is scoped by the scalar learnerRef.
-			if ($collection['schema'] === 'submission') {
-				$this->assertSame('learnerRefs', $collection['scopeField']);
-			} else {
-				$this->assertSame('learnerRef', $collection['scopeField']);
-			}
+			// Every collection, Submission included, is scoped by the scalar
+			// learnerRef: portaliq's direct scope compares one value, so an
+			// array scope field never matches (assignment-portal-wiring).
+			$this->assertSame('learnerRef', $collection['scopeField']);
 		}
 
 	}//end testStudentManifestShape()
@@ -245,7 +242,7 @@ class PortalContributionProviderTest extends TestCase {
 		$submission = $actions[0];
 		$this->assertSame('create', $submission['type']);
 		$this->assertSame('submission', $submission['schema']);
-		$this->assertSame('learnerRefs', $submission['scopeField']);
+		$this->assertSame('learnerRef', $submission['scopeField']);
 		$this->assertSame(['assignmentId', 'attachmentRefs'], $submission['fields']);
 
 		$excuse = $actions[1];
@@ -264,6 +261,49 @@ class PortalContributionProviderTest extends TestCase {
 		}
 
 	}//end testStudentCreateActionsWhitelistIntakeFields()
+
+	/**
+	 * The hand-in declares portaliq's file field on attachmentRefs, inside the
+	 * limits ConductionNL/portaliq#745's FileFieldConfigNormaliser keeps: a
+	 * create action, the field in `fields`, `type: file`, a boolean `multiple`,
+	 * at most 20 `accept` entries and `maxSizeMb` from 1 to 50. Anything outside
+	 * those limits portaliq drops fail-closed, and the pupil gets a text box.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/assignment-portal-wiring/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
+	 */
+	public function testSubmissionHandInDeclaresAFileField(): void {
+		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$submission = array_values(
+			array_filter(
+				$manifest['actions'],
+				static fn (array $a): bool => ($a['id'] ?? '') === 'createSubmission'
+			)
+		)[0];
+
+		$this->assertSame('create', $submission['type']);
+		$this->assertSame('low', $submission['minTrust']);
+		$this->assertSame('learnerRef', $submission['scopeClaim']);
+		$this->assertArrayHasKey('fieldConfigs', $submission);
+		$this->assertSame(['attachmentRefs'], array_keys($submission['fieldConfigs']));
+
+		$file = $submission['fieldConfigs']['attachmentRefs'];
+		$this->assertContains('attachmentRefs', $submission['fields']);
+		$this->assertSame('file', $file['type']);
+		$this->assertTrue($file['multiple']);
+		$this->assertSame(20, $file['maxSizeMb']);
+		$this->assertGreaterThanOrEqual(1, $file['maxSizeMb']);
+		$this->assertLessThanOrEqual(50, $file['maxSizeMb']);
+		$this->assertNotEmpty($file['accept']);
+		$this->assertLessThanOrEqual(20, count($file['accept']));
+		foreach ($file['accept'] as $accepted) {
+			$this->assertMatchesRegularExpression('/^\.[a-z0-9]+$/', $accepted);
+		}
+
+		$this->assertNotSame('', trim((string)$file['label']));
+
+	}//end testSubmissionHandInDeclaresAFileField()
 
 	/**
 	 * The parent manifest is labelled and carries exactly the three
@@ -340,9 +380,7 @@ class PortalContributionProviderTest extends TestCase {
 	/**
 	 * parentChildren matches `learner-profile` DIRECTLY — `guardianRefs`
 	 * (array, on the schema being read) containing the guardian's own
-	 * subjectRef — the same array-containment match
-	 * `testStudentManifestShape()`'s `studentSubmissions` (`learnerRefs`)
-	 * already exercises. It carries NO `via` (no cross-object hop is
+	 * subjectRef. It carries NO `via` (no cross-object hop is
 	 * needed), and exposes the full co-guardian group plus current
 	 * beeldmateriaal consent state.
 	 *
@@ -643,6 +681,7 @@ class PortalContributionProviderTest extends TestCase {
 		// The portal-identity refs MUST exist (the change this provider depends on).
 		$this->assertContains('learnerRef', $propsBySlug['grade-entry'] ?? []);
 		$this->assertContains('learnerRefs', $propsBySlug['submission'] ?? []);
+		$this->assertContains('learnerRef', $propsBySlug['submission'] ?? []);
 		$this->assertContains('submittedByRef', $propsBySlug['excuse-request'] ?? []);
 		$this->assertContains('guardianRefs', $propsBySlug['learner-profile'] ?? []);
 

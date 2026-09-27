@@ -1547,7 +1547,9 @@
         "Data Exchange Job ID": "Data Exchange Job ID",
         "UUID of the bron-rod DataExchangeJob queued by SchoolAdviesSendToRodHandler on verzendenNaarRod. Null until sent.": "UUID of the bron-rod DataExchangeJob queued by SchoolAdviesSendToRodHandler on verzendenNaarRod. Null until sent.",
         "SchoolAdvies lifecycle state.": "SchoolAdvies lifecycle state.",
-        "School advies": "School advies"
+        "School advies": "School advies",
+        "The LearnerProfile of the learner who handed in. The portal shows a pupil the submissions that carry their own profile here.": "The LearnerProfile of the learner who handed in. The portal shows a pupil the submissions that carry their own profile here.",
+        "The LearnerProfiles of the learners who handed in. Filled by the server on a portal hand-in.": "The LearnerProfiles of the learners who handed in. Filled by the server on a portal hand-in."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -144,9 +144,8 @@ class PortalContributionProvider {
 	 * Manifest for the `student` audience (the learner themself).
 	 *
 	 * `subject.subjectRef` is the student's own `LearnerProfile` object UUID.
-	 * Every read collection is scoped by the record's `learnerRef` (Submission
-	 * by membership in `learnerRefs`) == that UUID, field-projected to hide
-	 * staff-only columns. The learner may create their own Submission and
+	 * Every read collection is scoped by the record's scalar `learnerRef` ==
+	 * that UUID, field-projected to hide staff-only columns. The learner may create their own Submission and
 	 * ExcuseRequest (strict field whitelists — grades, status, staff decision
 	 * and assurance fields stay server-authoritative). The GradeNotification
 	 * inbox is scoped to the learner. `scopeClaim` names the subject claim
@@ -246,8 +245,9 @@ class PortalContributionProvider {
 	/**
 	 * The learner's own activity collections — enrolments, submissions, excuses and inbox.
 	 *
-	 * Submissions are scoped by membership in `learnerRefs`; the rest by
-	 * `learnerRef`. The inbox entry carries `kind: inbox` so portaliq renders it
+	 * Every entry is scoped by the scalar `learnerRef`: portaliq's direct scope
+	 * compares one value, so the Submission array `learnerRefs` never matched
+	 * (assignment-portal-wiring). The inbox entry carries `kind: inbox` so portaliq renders it
 	 * in the shared inbox surface rather than as a plain collection.
 	 *
 	 * @return array<int, array<string, mixed>> Student activity collections.
@@ -278,12 +278,12 @@ class PortalContributionProvider {
 				'id' => 'studentSubmissions',
 				'register' => self::REGISTER,
 				'schema' => 'submission',
-				'scopeField' => 'learnerRefs',
+				'scopeField' => 'learnerRef',
 				'scopeClaim' => 'learnerRef',
 				'label' => 'My submissions',
 				'listable' => true,
 				'fields' => [
-					'learnerRefs',
+					'learnerRef',
 					'assignmentId',
 					'attachmentRefs',
 					'submittedAt',
@@ -338,9 +338,16 @@ class PortalContributionProvider {
 	 * Strict field whitelists: grades, status, staff decision and assurance
 	 * fields stay server-authoritative and are never client-writable.
 	 *
+	 * The hand-in carries real files through portaliq's file field
+	 * (ConductionNL/portaliq#745): portaliq creates the Submission, uploads each
+	 * file into its folder and appends the file id to `attachmentRefs`. The
+	 * learners and tenant a portal create cannot send are stamped by
+	 * `SubmissionOwnerStamp` from the pupil's LearnerProfile.
+	 *
 	 * @return array<int, array<string, mixed>> Student create-actions.
 	 *
 	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/changes/assignment-portal-wiring/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
 	 */
 	private function studentActions(): array {
 		return [
@@ -350,11 +357,21 @@ class PortalContributionProvider {
 				'label' => 'Hand in an assignment',
 				'register' => self::REGISTER,
 				'schema' => 'submission',
-				'scopeField' => 'learnerRefs',
+				'scopeField' => 'learnerRef',
 				'scopeClaim' => 'learnerRef',
+				'minTrust' => 'low',
 				'fields' => [
 					'assignmentId',
 					'attachmentRefs',
+				],
+				'fieldConfigs' => [
+					'attachmentRefs' => [
+						'type' => 'file',
+						'label' => 'Your work',
+						'multiple' => true,
+						'accept' => ['.pdf', '.doc', '.docx', '.odt', '.pptx', '.jpg', '.png'],
+						'maxSizeMb' => 20,
+					],
 				],
 			],
 			[
@@ -454,9 +471,11 @@ class PortalContributionProvider {
 	 * beeldmateriaal consent state.
 	 *
 	 * Matches `learner-profile` DIRECTLY (no `via`) by `guardianRefs` (array)
-	 * containing the guardian's own `subjectRef` — the same array-containment
-	 * match `studentActivityCollections()`'s `Submission.learnerRefs` already
-	 * uses; there is no cross-object hop here, since `guardianRefs` lives on
+	 * containing the guardian's own `subjectRef`. Portaliq's direct scope
+	 * compares one value today, so this list reads empty until portaliq matches
+	 * list values (reported by assignment-portal-wiring, which moved Submission
+	 * to a scalar `learnerRef` for that reason); there is no cross-object hop
+	 * here, since `guardianRefs` lives on
 	 * the very schema being read. `guardianRefs` is itself exposed so a
 	 * guardian can see the full co-guardian group sharing a child (the
 	 * "per-group" audience D1 names alongside "per-child").

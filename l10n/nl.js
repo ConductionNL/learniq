@@ -1997,7 +1997,9 @@ OC.L10N.register(
         "Tenant identifier for multi-tenant isolation.": "Tenant-identificatie voor multi-tenant scheiding.",
         "Lifecycle State": "Levenscyclusstatus",
         "SchoolAdvies lifecycle state.": "Levenscyclusstatus van het schooladvies.",
-        "School advies": "Schooladvies"
+        "School advies": "Schooladvies",
+        "The LearnerProfile of the learner who handed in. The portal shows a pupil the submissions that carry their own profile here.": "Het leerlingprofiel van de leerling die het werk inleverde. Het portaal toont een leerling de inleveringen met het eigen profiel hier.",
+        "The LearnerProfiles of the learners who handed in. Filled by the server on a portal hand-in.": "De leerlingprofielen van de leerlingen die het werk inleverden. De server vult dit in bij inleveren via het portaal."
     },
     "nplurals=2; plural=(n != 1);"
 )

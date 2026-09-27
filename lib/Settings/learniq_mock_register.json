@@ -29121,6 +29121,7 @@
         "learnerRefs": [
           "00000000-0000-4000-8000-000000000000"
         ],
+        "learnerRef": "00000000-0000-4000-8000-000000000000",
         "attachmentRefs": [
           "Voorbeeld Attachmentrefs 1"
         ],
@@ -29151,6 +29152,7 @@
         "learnerRefs": [
           "00000000-0000-4000-8000-000000000001"
         ],
+        "learnerRef": "00000000-0000-4000-8000-000000000001",
         "attachmentRefs": [
           "Voorbeeld Attachmentrefs 2"
         ],
@@ -29181,6 +29183,7 @@
         "learnerRefs": [
           "00000000-0000-4000-8000-000000000002"
         ],
+        "learnerRef": "00000000-0000-4000-8000-000000000002",
         "attachmentRefs": [
           "Voorbeeld Attachmentrefs 3"
         ],
