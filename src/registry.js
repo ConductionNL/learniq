@@ -10,6 +10,23 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  */
 
+// registry-component-fix: eight shared @conduction/nextcloud-vue components
+// that 14 type:"custom" manifest pages already name by their exact export
+// string (learniq-defect-triage.md, entry 1) but that this registry never
+// registered, so CnPageRenderer.resolveCustomComponent() found nothing and
+// mounted an empty page body. The manifest's `component` strings already
+// match these export names verbatim — no manifest edit needed, only this
+// registration.
+import {
+	CnDataMatrix,
+	CnExportWizard,
+	CnRelationshipGraph,
+	CnRichSubmitDialog,
+	CnSignatureCapture,
+	CnStructuredDocReview,
+	CnTimelineView,
+	CnWizardDialog,
+} from '@conduction/nextcloud-vue'
 import AuditTrailWidget from './components/widgets/AuditTrailWidget.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
@@ -18,6 +35,8 @@ import AuditTrailWidget from './components/widgets/AuditTrailWidget.vue'
 // with live electiveRules/capacity feedback; every other Application/
 // AdmissionsRound/SubjectChoice screen is a declarative manifest page.
 import AdmissionsReviewBoard from './views/AdmissionsReviewBoard.vue'
+// learniq#948: score one open question for every submitted attempt in turn.
+import AssessmentScoringView from './views/AssessmentScoringView.vue'
 // parent-evening-planner: the guardian/self conversation-slot picker and the
 // coordinator's manual-override / regenerate board.
 import BookConferenceSlotsView from './views/BookConferenceSlotsView.vue'
@@ -56,6 +75,9 @@ import DashboardAdmin from './views/DashboardAdmin.vue'
 import DashboardStudent from './views/DashboardStudent.vue'
 import DashboardTeacher from './views/DashboardTeacher.vue'
 import ExamCaseDossierView from './views/ExamCaseDossierView.vue'
+// learniq#952: record one external training for many learners at once, the
+// only caller of ExternalTrainingController (bulk, credential, coverage).
+import ExternalTrainingBulkRecordView from './views/ExternalTrainingBulkRecordView.vue'
 import FlowDetailSidebar from './views/flows/FlowDetailSidebar.vue'
 import GradeImpactDetail from './views/GradeImpactDetail.vue'
 // groepsplan: the one genuine new custom view this change adds — resolves
@@ -174,7 +196,21 @@ export default {
 	//     to keep full width. ---
 	FlowDetailSidebar: page(FlowDetailSidebar),
 
+	// --- Shared @conduction/nextcloud-vue components named directly by
+	//     type:"custom" manifest pages (registry-component-fix; see the
+	//     import comment above). Keyed by the component's own export name,
+	//     matching each page's `component` string verbatim. ---
+	CnDataMatrix: page(CnDataMatrix),
+	CnExportWizard: page(CnExportWizard),
+	CnRelationshipGraph: page(CnRelationshipGraph),
+	CnRichSubmitDialog: page(CnRichSubmitDialog),
+	CnSignatureCapture: page(CnSignatureCapture),
+	CnStructuredDocReview: page(CnStructuredDocReview),
+	CnTimelineView: page(CnTimelineView),
+	CnWizardDialog: page(CnWizardDialog),
+
 	AdmissionsReviewBoard: page(AdmissionsReviewBoard),
+	AssessmentScoringView: page(AssessmentScoringView),
 	BookConferenceSlotsView: page(BookConferenceSlotsView),
 	BsaRiskDashboard: page(BsaRiskDashboard),
 	ConferenceScheduleBoard: page(ConferenceScheduleBoard),
@@ -185,6 +221,7 @@ export default {
 	DashboardTeacher: page(DashboardTeacher),
 	DashboardStudent: page(DashboardStudent),
 	ExamCaseDossierView: page(ExamCaseDossierView),
+	ExternalTrainingBulkRecordView: page(ExternalTrainingBulkRecordView),
 	GradeImpactDetail: page(GradeImpactDetail),
 	GroupPlanSubgroupLearnerContext: page(GroupPlanSubgroupLearnerContext),
 	GroupTrendHeatmap: page(GroupTrendHeatmap),
