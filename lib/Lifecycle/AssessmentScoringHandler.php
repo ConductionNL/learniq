@@ -326,6 +326,7 @@ class AssessmentScoringHandler implements LifecycleGuardInterface {
 		mixed $correctResponse,
 		float $maxScore,
 	): float {
+		$learnerResponse = $this->responseValue(response: $learnerResponse);
 		if ($learnerResponse === null || $correctResponse === null) {
 			return 0.0;
 		}
@@ -349,6 +350,25 @@ class AssessmentScoringHandler implements LifecycleGuardInterface {
 			default => 0.0,
 		};
 	}//end scoreResponse()
+
+	/**
+	 * The answer itself. Responses are stored as `{value: X}` (TakeAssessmentView
+	 * and the portal write it, ItemAnalysisService and AssessmentScoringView read
+	 * it), so X is what is compared; a bare value is returned as is.
+	 *
+	 * @param mixed $response The stored response.
+	 *
+	 * @return mixed
+	 *
+	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-auto-scoring-reads-the-stored-answer-shape
+	 */
+	private function responseValue(mixed $response): mixed {
+		if (is_array($response) === true && count($response) === 1 && array_key_exists('value', $response) === true) {
+			return $response['value'];
+		}
+
+		return $response;
+	}//end responseValue()
 
 	/**
 	 * All-or-nothing scoring: the response matches the declared answer exactly,

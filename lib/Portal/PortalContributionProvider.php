@@ -161,9 +161,10 @@ class PortalContributionProvider {
 			'label' => 'Learniq',
 			'collections' => array_merge(
 				$this->studentResultCollections(),
-				$this->studentActivityCollections()
+				$this->studentActivityCollections(),
+				[$this->studentTestsCollection()]
 			),
-			'actions' => $this->studentActions(),
+			'actions' => array_merge($this->studentActions(), $this->studentTestActions()),
 			'notifications' => [],
 		];
 
@@ -331,6 +332,90 @@ class PortalContributionProvider {
 		];
 
 	}//end studentActivityCollections()
+
+	/**
+	 * The learner's tests as a portaliq timed task (ConductionNL/portaliq#749).
+	 *
+	 * The collection lists the learner's own attempts, scoped by the scalar
+	 * `AssessmentResult.learnerRef` the attempt gate stamps, and exposes no
+	 * responses or scores: a result only leaves learniq through the `result`
+	 * step, once the teacher released it. The `timedTask` block names the five
+	 * endpoint actions of studentTestActions().
+	 *
+	 * @return array<string, mixed> The studentTests collection.
+	 *
+	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 */
+	private function studentTestsCollection(): array {
+		return [
+			'id' => 'studentTests',
+			'kind' => 'timedTask',
+			'register' => self::REGISTER,
+			'schema' => 'assessment-result',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'label' => 'My tests',
+			'listable' => true,
+			'minTrust' => 'low',
+			'fields' => [
+				'assessmentId',
+				'assessmentTitle',
+				'lifecycle',
+				'attemptNumber',
+				'startedAt',
+				'submittedAt',
+			],
+			'timedTask' => [
+				'available' => 'listTests',
+				'start' => 'startTest',
+				'answer' => 'saveTestAnswer',
+				'submit' => 'submitTest',
+				'result' => 'readTestResult',
+			],
+		];
+
+	}//end studentTestsCollection()
+
+	/**
+	 * The five steps of the timed task, each a server-to-server forward to
+	 * PortalAssessmentController.
+	 *
+	 * Every action is a POST to an instance-local endpoint, whitelists only the
+	 * fields its step sends, and has portaliq stamp the learner's own
+	 * `learnerRef` into the body (`subjectField`) over any client value. The
+	 * endpoints take the learner from that stamp alone and enforce every rule.
+	 *
+	 * @return array<int, array<string, mixed>> The timed-task actions.
+	 *
+	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 */
+	private function studentTestActions(): array {
+		$steps = [
+			'listTests' => ['', 'Tests you can take', []],
+			'startTest' => ['/start', 'Start a test', ['taskId', 'accessCode']],
+			'saveTestAnswer' => ['/answer', 'Save an answer', ['attemptId', 'itemId', 'response']],
+			'submitTest' => ['/submit', 'Hand in a test', ['attemptId']],
+			'readTestResult' => ['/result', 'View a result', ['attemptId']],
+		];
+
+		$actions = [];
+		foreach ($steps as $id => [$path, $label, $fields]) {
+			$actions[] = [
+				'id' => $id,
+				'type' => 'endpoint-forward',
+				'label' => $label,
+				'endpoint' => '/apps/learniq/api/portal/assessments' . $path,
+				'method' => 'POST',
+				'minTrust' => 'low',
+				'fields' => $fields,
+				'subjectField' => 'learnerRef',
+				'scopeClaim' => 'learnerRef',
+			];
+		}
+
+		return $actions;
+
+	}//end studentTestActions()
 
 	/**
 	 * The learner's own create-actions — hand in an assignment, report an absence.

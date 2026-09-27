@@ -109,4 +109,16 @@ abstract class ObjectService {
 		bool $failIfExists = false,
 	): ObjectEntity;
 
+	/**
+	 * Run a callable as a named user, with that user's RBAC and multitenancy.
+	 *
+	 * Mirrors the real signature exactly: no return type.
+	 *
+	 * @param IUser    $user      The user to act as.
+	 * @param callable $operation The operation to execute as that user.
+	 *
+	 * @return mixed
+	 */
+	abstract public function runAs(IUser $user, callable $operation);
+
 }//end class

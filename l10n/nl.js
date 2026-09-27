@@ -2017,7 +2017,11 @@ OC.L10N.register(
         "School advies": "Schooladvies",
         "Attendance and compulsory education": "Verzuim en leerplicht",
         "Which pupils crossed an attendance threshold, and what has to be reported.": "Welke leerlingen een verzuimgrens hebben overschreden, en wat er gemeld moet worden.",
-        "The final grade per pupil and subject, as it was decided.": "Het eindcijfer per leerling en vak, zoals het is vastgesteld."
+        "The final grade per pupil and subject, as it was decided.": "Het eindcijfer per leerling en vak, zoals het is vastgesteld.",
+        "The LearnerProfile of the learner who took this attempt. The portal shows a pupil the attempts that carry their own profile here. Filled in by the server.": "Het leerlingprofiel van de leerling die deze poging deed. Het portaal toont een leerling de pogingen met het eigen profiel hier. Wordt door de server ingevuld.",
+        "The title of the test at the moment the attempt started. Filled in by the server.": "De titel van de toets op het moment dat de poging begon. Wordt door de server ingevuld.",
+        "Learner Ref": "Leerlingverwijzing",
+        "Assessment Title": "Toetstitel"
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -25,9 +25,10 @@
  * the gate, so seeding and corrections keep working.
  *
  * Every create it lets through, admins' included, then has its read audience
- * stamped by AssessmentResultAudience (learniq#949). That lives here rather
- * than in a listener of its own so the two pre-write steps run in a fixed
- * order and a refused attempt is never stamped.
+ * stamped by AssessmentResultAudience (learniq#949) and its portal scope and
+ * title by AssessmentResultPortalStamp (assessment-portal-endpoints). That
+ * lives here rather than in listeners of their own so the pre-write steps run
+ * in a fixed order and a refused attempt is never stamped.
  *
  * @category Listener
  * @package  OCA\Learniq\Listener
@@ -51,6 +52,7 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\AssessmentAccessPolicy;
 use OCA\Learniq\Service\AssessmentResultAudience;
+use OCA\Learniq\Service\AssessmentResultPortalStamp;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -85,6 +87,7 @@ class AssessmentAttemptGateListener implements IEventListener {
 	 * @param ITimeFactory $timeFactory Clock.
 	 * @param AssessmentAccessPolicy $policy Window and access-code rules.
 	 * @param AssessmentResultAudience $audience Stamps who may read the attempt (learniq#949).
+	 * @param AssessmentResultPortalStamp $portalStamp Stamps learnerRef and the test's title for the portal.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -97,6 +100,7 @@ class AssessmentAttemptGateListener implements IEventListener {
 		private readonly ITimeFactory $timeFactory,
 		private readonly AssessmentAccessPolicy $policy,
 		private readonly AssessmentResultAudience $audience,
+		private readonly AssessmentResultPortalStamp $portalStamp,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -133,9 +137,11 @@ class AssessmentAttemptGateListener implements IEventListener {
 		}
 
 		// Every attempt that is let through, admins' included, gets its read
-		// audience stamped by the server (learniq#949).
+		// audience stamped by the server (learniq#949), then the portal's scope
+		// key and the test's title (assessment-portal-endpoints).
 		if ($event->isPropagationStopped() === false) {
 			$this->audience->stamp(event: $event);
+			$this->portalStamp->stamp(event: $event);
 		}
 	}//end handle()
 

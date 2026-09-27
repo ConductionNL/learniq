@@ -1560,7 +1560,11 @@ OC.L10N.register(
         "School advies": "School advies",
         "Attendance and compulsory education": "Attendance and compulsory education",
         "Which pupils crossed an attendance threshold, and what has to be reported.": "Which pupils crossed an attendance threshold, and what has to be reported.",
-        "The final grade per pupil and subject, as it was decided.": "The final grade per pupil and subject, as it was decided."
+        "The final grade per pupil and subject, as it was decided.": "The final grade per pupil and subject, as it was decided.",
+        "The LearnerProfile of the learner who took this attempt. The portal shows a pupil the attempts that carry their own profile here. Filled in by the server.": "The LearnerProfile of the learner who took this attempt. The portal shows a pupil the attempts that carry their own profile here. Filled in by the server.",
+        "The title of the test at the moment the attempt started. Filled in by the server.": "The title of the test at the moment the attempt started. Filled in by the server.",
+        "Learner Ref": "Learner Ref",
+        "Assessment Title": "Assessment Title"
     },
     "nplurals=2; plural=(n != 1);"
 )

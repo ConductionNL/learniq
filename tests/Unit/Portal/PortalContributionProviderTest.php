@@ -181,7 +181,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(7, $collections);
+		$this->assertCount(8, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -191,6 +191,7 @@ class PortalContributionProviderTest extends TestCase {
 				'studentSubmissions',
 				'studentExcuseRequests',
 				'studentInbox',
+				'studentTests',
 			],
 			array_column($collections, 'id')
 		);
@@ -240,7 +241,10 @@ class PortalContributionProviderTest extends TestCase {
 		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
 		$actions = $manifest['actions'];
 
-		$this->assertSame(['createSubmission', 'createExcuseRequest'], array_column($actions, 'id'));
+		$this->assertSame(
+			['createSubmission', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult'],
+			array_column($actions, 'id')
+		);
 
 		$submission = $actions[0];
 		$this->assertSame('create', $submission['type']);
@@ -264,6 +268,46 @@ class PortalContributionProviderTest extends TestCase {
 		}
 
 	}//end testStudentCreateActionsWhitelistIntakeFields()
+
+	/**
+	 * studentTests is a timed task over the learner's own attempts: it names
+	 * five instance-local POST actions, each stamping learnerRef from the
+	 * server, and exposes no response or score.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 */
+	public function testStudentTestsIsATimedTask(): void {
+		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$tests = array_values(array_filter($manifest['collections'], static fn (array $c): bool => ($c['id'] ?? '') === 'studentTests'))[0];
+		$actions = array_column($manifest['actions'], null, 'id');
+
+		$this->assertSame('timedTask', $tests['kind']);
+		$this->assertSame('assessment-result', $tests['schema']);
+		$this->assertSame('learnerRef', $tests['scopeField']);
+		foreach (['responses', 'autoScore', 'manualScore', 'drawnItemRefs', 'accessCode', 'teacherIds', 'managerId'] as $hidden) {
+			$this->assertNotContains($hidden, $tests['fields']);
+		}
+
+		$this->assertSame(['available', 'start', 'answer', 'submit', 'result'], array_keys($tests['timedTask']));
+		foreach ($tests['timedTask'] as $step => $actionId) {
+			$this->assertArrayHasKey($actionId, $actions, $step);
+			$action = $actions[$actionId];
+			$this->assertSame('POST', $action['method']);
+			$this->assertStringStartsWith('/apps/learniq/api/portal/assessments', $action['endpoint']);
+			$this->assertStringNotContainsString('://', $action['endpoint']);
+			$this->assertSame('learnerRef', $action['subjectField']);
+			$this->assertSame('learnerRef', $action['scopeClaim']);
+			$this->assertSame('low', $action['minTrust']);
+			$this->assertNotContains('learnerRef', $action['fields']);
+			$this->assertNotContains('learnerId', $action['fields']);
+		}
+
+		$this->assertSame(['attemptId', 'itemId', 'response'], $actions['saveTestAnswer']['fields']);
+		$this->assertSame(['taskId', 'accessCode'], $actions['startTest']['fields']);
+
+	}//end testStudentTestsIsATimedTask()
 
 	/**
 	 * The parent manifest is labelled and carries exactly the three
@@ -707,6 +751,13 @@ class PortalContributionProviderTest extends TestCase {
 			}
 
 			foreach (($manifest['actions'] ?? []) as $action) {
+				// An endpoint-forward action writes nothing itself: its fields
+				// are the body of a learniq endpoint, not register properties
+				// (checked in testStudentTestsIsATimedTask).
+				if (($action['type'] ?? '') === 'endpoint-forward') {
+					continue;
+				}
+
 				$slug = $action['schema'];
 				$this->assertArrayHasKey($slug, $propsBySlug, "action schema '$slug' missing from register");
 				$props = $propsBySlug[$slug];

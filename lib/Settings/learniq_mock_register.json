@@ -22628,7 +22628,9 @@
           "slug": "assessmentresult-assessmentresult-1-1"
         },
         "assessmentId": "00000000-0000-4000-8000-000000000000",
+        "assessmentTitle": "Toets hoofdstuk 3",
         "learnerId": "Voorbeeld Learnerid 1",
+        "learnerRef": "00000000-0000-4000-8000-000000000000",
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "attemptNumber": 1,
         "responses": [],
@@ -22646,7 +22648,9 @@
           "slug": "assessmentresult-assessmentresult-2-2"
         },
         "assessmentId": "00000000-0000-4000-8000-000000000001",
+        "assessmentTitle": "Tentamen statistiek",
         "learnerId": "Voorbeeld Learnerid 2",
+        "learnerRef": "00000000-0000-4000-8000-000000000001",
         "tenant_id": "00000000-0000-4000-8000-000000000001",
         "attemptNumber": 1,
         "responses": [],
@@ -22664,7 +22668,9 @@
           "slug": "assessmentresult-assessmentresult-3-3"
         },
         "assessmentId": "00000000-0000-4000-8000-000000000002",
+        "assessmentTitle": "Leesvaardigheid Engels",
         "learnerId": "Voorbeeld Learnerid 3",
+        "learnerRef": "00000000-0000-4000-8000-000000000002",
         "tenant_id": "00000000-0000-4000-8000-000000000002",
         "attemptNumber": 1,
         "responses": [],
