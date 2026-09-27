@@ -3534,6 +3534,17 @@
 						"showTitle": false
 					}
 				],
+				"bodyWidgets": [
+					{
+						"id": "asn-hand-in",
+						"component": "AssignmentHandInStatus",
+						"title": "Hand-in status",
+						"placement": "after-data",
+						"props": {
+							"assignmentId": "@objectId"
+						}
+					}
+				],
 				"sidebar": {
 					"enabled": true,
 					"showMetadata": true,

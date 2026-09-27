@@ -28,6 +28,8 @@ import {
 	CnTimelineView,
 	CnWizardDialog,
 } from '@conduction/nextcloud-vue'
+// assignment-missing-submissions-view: body section on AssignmentDetail.
+import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AuditTrailWidget from './components/widgets/AuditTrailWidget.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
@@ -296,6 +298,15 @@ export default {
 	SubjectChoicePicker: page(SubjectChoicePicker),
 	TakeAssessmentView: page(TakeAssessmentView),
 	TimetableConflictQueue: page(TimetableConflictQueue),
+
+	// --- Body sections (manifest `config.bodyWidgets`), resolved by
+	//     CnBodySections. Not grid widgets, so not counted by the
+	//     custom-widget ratchet. ---
+	AssignmentHandInStatus: {
+		kind: 'section',
+		component: AssignmentHandInStatus,
+		_note: 'Hand-in status on AssignmentDetail: the cohort roster minus the learners who handed in, split into started and not started, overdue after dueAt. Staff only; self-fetches assignment, cohort(s), submissions and learner names.',
+	},
 
 	// --- Shared library widgets registered under manifest widget keys (ADR-036). ---
 	'audit-trail': {
