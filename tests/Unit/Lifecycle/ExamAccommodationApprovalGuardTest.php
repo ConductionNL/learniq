@@ -67,7 +67,7 @@ class ExamAccommodationApprovalGuardTest extends TestCase {
 	 * @spec openspec/changes/timetabling-and-substitution/specs/timetabling/spec.md#scenario-a-learner-requests-an-accommodation-and-a-mentor-approves-it
 	 */
 	public function testMentorApprovalIsAllowedAndStamped(): void {
-		$guard = $this->makeGuard(['mentor']);
+		$guard = $this->makeGuard(['team-leads']);
 		$context = ['actor' => 'actor-1', 'payload' => []];
 
 		self::assertTrue($guard->check($context));
@@ -94,7 +94,7 @@ class ExamAccommodationApprovalGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testComplianceOfficerApprovalIsAllowed(): void {
-		$guard = $this->makeGuard(['compliance-officer']);
+		$guard = $this->makeGuard(['compliance-officers']);
 		$context = ['actor' => 'actor-1', 'payload' => []];
 
 		self::assertTrue($guard->check($context));

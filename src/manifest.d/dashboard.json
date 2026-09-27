@@ -131,6 +131,21 @@
 							]
 						}
 					}
+				},
+				{
+					"id": "PrivacyGovernanceDashboardMenu",
+					"label": "Privacy governance",
+					"icon": "ShieldCheckOutline",
+					"route": "PrivacyGovernanceDashboard",
+					"order": 44,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"admin",
+								"compliance-officer"
+							]
+						}
+					}
 				}
 			],
 			"visibleIf": {
@@ -194,6 +209,14 @@
 			"title": "AI processing disclosure",
 			"component": "LearniqAiProcessingDisclosure",
 			"_note": "sovereign-ai-guarantee: the AI-processing locality disclosure surface a school hands to its DPO, mirrors LearniqAccessibilityStatement's exact shape (no generic lib index/detail analogue, no :id route param, singleton disclosure page). Composes AiProcessingDisclosureController's server-side read (Hermiq agentaifeature register + scholiq-ai-features AVG carrier + AiLocalityClassifier/SovereigntyPolicyService verdict) with an inline SovereigntyPolicy editor. Gated to admin/compliance-officer via the AiProcessingDisclosure nav entry's visibleIf (unlike Accessibility, which is open to every authenticated user)."
+		},
+		{
+			"id": "PrivacyGovernanceDashboard",
+			"route": "/privacy-governance",
+			"type": "custom",
+			"title": "Privacy governance",
+			"component": "PrivacyGovernanceDashboard",
+			"_note": "privacy-governance-surfaces (P-new-6/P-new-7): the board-facing privacy governance dashboard, mirrors LearniqAiProcessingDisclosure's exact shape (no generic lib index/detail analogue, singleton disclosure page). Composes PrivacyGovernanceController's server-side read (rbac-declare-groups member counts, best-effort 2FA adoption, DataExchangeJob partner-approval counts). Gated to admin/compliance-officer via the PrivacyGovernanceDashboardMenu nav entry's visibleIf, same posture AiProcessingDisclosure already established."
 		},
 		{
 			"id": "AccessibilityStatement",

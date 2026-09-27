@@ -78,8 +78,19 @@
 				</tfoot>
 			</table>
 
+			<p
+				v-if="order && order.paymentRequestSentAt"
+				class="order-payment-panel__request-sent">
+				{{
+					t('learniq', 'A payment request was sent on {date}.', {
+						date: formatDate(order.paymentRequestSentAt),
+					})
+				}}
+			</p>
+
 			<section v-if="canPay" class="order-payment-panel__pay">
 				<NcSelect
+					v-if="pspOptions.length > 1"
 					id="order-payment-panel-psp-select"
 					v-model="pspProvider"
 					class="order-payment-panel__psp-select"
@@ -182,16 +193,26 @@ export default {
 	},
 
 	data() {
+		// payment-request-ux: when an install configures exactly one PSP,
+		// there is nothing for the payer to choose — the picker (hidden
+		// below via v-if="pspOptions.length > 1") never shows, and "pay now"
+		// is a single tap. pspOptions still lists both known providers by
+		// default (unchanged from before this change — no per-install PSP
+		// configuration surface exists yet, a named follow-up, not built
+		// here per "keep the PSP adapter delegated"); an install that wants
+		// the one-tap path today removes the entry it does not use.
+		const pspOptions = [
+			{ value: 'mollie', label: this.t('learniq', 'Mollie') },
+			{ value: 'stripe', label: this.t('learniq', 'Stripe') },
+		]
+
 		return {
 			loading: true,
 			error: '',
 			order: null,
 			orderLines: [],
-			pspProvider: 'mollie',
-			pspOptions: [
-				{ value: 'mollie', label: this.t('learniq', 'Mollie') },
-				{ value: 'stripe', label: this.t('learniq', 'Stripe') },
-			],
+			pspProvider: pspOptions[0].value,
+			pspOptions,
 
 			paying: false,
 			payError: '',
@@ -294,6 +315,23 @@ export default {
 		},
 
 		/**
+		 * Format an ISO date-time string for the payment-request-sent note.
+		 *
+		 * @param {string} value The ISO date-time string.
+		 * @return {string} The formatted date, or the raw value if unparsable.
+		 * @spec openspec/changes/payment-request-ux/specs/payments/spec.md#scenario-a-payer-sees-when-a-request-was-sent
+		 */
+		formatDate(value) {
+			const parsed = new Date(value)
+			if (Number.isNaN(parsed.getTime())) {
+				return value
+			}
+			return new Intl.DateTimeFormat(undefined, {
+				dateStyle: 'medium',
+			}).format(parsed)
+		},
+
+		/**
 		 * Initiate payment via PaymentTransactionController::initiate() and
 		 * render the returned checkout reference opaquely — no PSP-specific
 		 * field is parsed (design.md's "forward the response as-is" rule).
@@ -375,6 +413,11 @@ export default {
 
 .order-payment-panel__pay-error {
 	color: var(--color-error);
+}
+
+.order-payment-panel__request-sent {
+	color: var(--color-text-maxcontrast);
+	margin-bottom: 12px;
 }
 
 .order-payment-panel__checkout {
