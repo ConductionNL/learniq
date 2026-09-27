@@ -317,7 +317,7 @@ class ConnectionsDeclarationTest extends TestCase {
 		$this->assertArrayNotHasKey(key: 'available', array: $payment);
 		$this->assertStringContainsString(
 			needle: "ADMINISTRATION_KEY = 'shillinq_administration_id'",
-			haystack: (string)file_get_contents($this->root() . '/lib/Controller/ContributionController.php')
+			haystack: (string)file_get_contents($this->root() . '/lib/Service/ContributionRaiser.php')
 		);
 	}//end testPaymentsRequireTheAdministrationTheRaiseSends()
 

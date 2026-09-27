@@ -27,11 +27,8 @@ use InvalidArgumentException;
 use OCA\Learniq\Controller\ContributionController;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\ContributionRaiser;
-use OCA\Learniq\Tests\Support\OrEntityFactory;
-use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\OCS\OCSForbiddenException;
-use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -77,19 +74,17 @@ class ContributionControllerTest extends TestCase {
 		$session = $this->createMock(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn === true ? $this->createMock(IUser::class) : null);
 
-		$objectService = $this->createMock(ObjectService::class);
-		$objectService->method('find')->willReturn($feeItem === null ? null : OrEntityFactory::make($feeItem, 'fee-item'));
-
-		$config = $this->createMock(IAppConfig::class);
-		$config->method('getValueString')->willReturnCallback(
-			static fn (string $app, string $key, string $fallback = ''): string => ($app === 'learniq' && $key === 'shillinq_administration_id') ? $default : $fallback
-		);
-
 		$this->raiser = $this->createMock(ContributionRaiser::class);
 		$this->raiser->method('isAvailable')->willReturn($available);
+		$this->raiser->method('activeFeeItem')->willReturnCallback(
+			static fn (string $id): ?array => ($feeItem !== null && ($feeItem['lifecycle'] ?? '') === 'active' && $id === $feeItem['id']) ? $feeItem : null
+		);
+		$this->raiser->method('administrationId')->willReturnCallback(
+			static fn (string $given): string => (trim($given) !== '') ? trim($given) : $default
+		);
 		$this->actionAuth = $this->createMock(ActionAuthService::class);
 
-		return new ContributionController($request, $session, $this->actionAuth, $objectService, $this->raiser, $config, new NullLogger());
+		return new ContributionController($request, $session, $this->actionAuth, $this->raiser, new NullLogger());
 	}//end makeController()
 
 	/**

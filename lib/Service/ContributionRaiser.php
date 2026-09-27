@@ -47,7 +47,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use InvalidArgumentException;
+use OCA\Learniq\AppInfo\Application;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\IAppConfig;
 use OCP\IUserManager;
 
 /**
@@ -59,6 +61,11 @@ class ContributionRaiser {
 
 	private const REGISTER = 'learniq';
 	private const MAX_ROWS = 1000;
+
+	/**
+	 * App config key holding the school's shillinq administration id.
+	 */
+	public const ADMINISTRATION_KEY = 'shillinq_administration_id';
 
 	/**
 	 * FeeItem.kind to the contract's `kind`.
@@ -88,6 +95,7 @@ class ContributionRaiser {
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param ShillinqContributionClient $shillinq Shillinq's raise service, duck-typed.
 	 * @param IUserManager $userManager Guardian and learner names and e-mail addresses.
+	 * @param IAppConfig $appConfig The school's default shillinq administration.
 	 *
 	 * @return void
 	 */
@@ -95,8 +103,54 @@ class ContributionRaiser {
 		private readonly ObjectService $objectService,
 		private readonly ShillinqContributionClient $shillinq,
 		private readonly IUserManager $userManager,
+		private readonly IAppConfig $appConfig,
 	) {
 	}//end __construct()
+
+	/**
+	 * The FeeItem when it exists and is active, with its id; null otherwise.
+	 *
+	 * Read with the caller's rights: a fee the caller cannot see is not found.
+	 *
+	 * @param string $id FeeItem UUID.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+	 */
+	public function activeFeeItem(string $id): ?array {
+		if ($id === '') {
+			return null;
+		}
+
+		$found = $this->objectService->find(id: $id, register: self::REGISTER, schema: 'fee-item');
+		$feeItem = $found?->jsonSerialize();
+		if (is_array($feeItem) === false || ($feeItem['lifecycle'] ?? '') !== 'active') {
+			return null;
+		}
+
+		$feeItem['id'] = (string)($feeItem['id'] ?? $id);
+
+		return $feeItem;
+	}//end activeFeeItem()
+
+	/**
+	 * The shillinq administration to raise in: the given one, else the school's default.
+	 *
+	 * @param string $given The caller's administration id, or ''.
+	 *
+	 * @return string '' when neither is set.
+	 *
+	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+	 */
+	public function administrationId(string $given): string {
+		$given = trim($given);
+		if ($given !== '') {
+			return $given;
+		}
+
+		return $this->appConfig->getValueString(Application::APP_ID, self::ADMINISTRATION_KEY, '');
+	}//end administrationId()
 
 	/**
 	 * Whether shillinq is there to raise in.
@@ -241,20 +295,37 @@ class ContributionRaiser {
 	private function learnersOf(array $feeItem): array {
 		$cohortId = (string)($feeItem['linkedCohortId'] ?? '');
 		$courseId = (string)($feeItem['linkedCourseId'] ?? '');
-		if ($cohortId !== '') {
-			$cohort = $this->objectService->find(id: $cohortId, register: self::REGISTER, schema: 'cohort', _rbac: false, _multitenancy: false);
-			$ids = (array)($cohort?->jsonSerialize()['learnerIds'] ?? []);
-		} elseif ($courseId !== '') {
-			$live = array_filter(
-				$this->rows(schema: 'enrolment', filters: ['courseId' => $courseId]),
-				static fn (array $row): bool => in_array(($row['lifecycle'] ?? ''), ['pending', 'active'], true)
-			);
-			$ids = array_column($live, 'learnerId');
-		} else {
+		if ($cohortId === '' && $courseId === '') {
 			throw new InvalidArgumentException('This fee names no course or group, so learniq cannot tell whom to charge.');
 		}
 
+		$ids = $this->courseLearners(courseId: $courseId);
+		if ($cohortId !== '') {
+			$cohort = $this->objectService->find(id: $cohortId, register: self::REGISTER, schema: 'cohort', _rbac: false, _multitenancy: false);
+			$ids = (array)($cohort?->jsonSerialize()['learnerIds'] ?? []);
+		}
+
 		return array_values(array_unique(array_filter($ids, static fn ($id): bool => is_string($id) && $id !== '')));
+	}//end learnersOf()
+
+	/**
+	 * The learners of a course's pending and active enrolments.
+	 *
+	 * @param string $courseId Course UUID, or '' for none.
+	 *
+	 * @return array<int, mixed>
+	 */
+	private function courseLearners(string $courseId): array {
+		if ($courseId === '') {
+			return [];
+		}
+
+		$live = array_filter(
+			$this->rows(schema: 'enrolment', filters: ['courseId' => $courseId]),
+			static fn (array $row): bool => in_array(($row['lifecycle'] ?? ''), ['pending', 'active'], true)
+		);
+
+		return array_column($live, 'learnerId');
 	}//end learnersOf()
 
 	/**

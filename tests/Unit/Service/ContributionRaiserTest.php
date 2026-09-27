@@ -35,6 +35,7 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\IAppConfig;
 use OCP\IUser;
 use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
@@ -148,7 +149,12 @@ class ContributionRaiserTest extends TestCase {
 			}
 		);
 
-		return new ContributionRaiser($objectService, $shillinq, $users);
+		$config = $this->createMock(IAppConfig::class);
+		$config->method('getValueString')->willReturnCallback(
+			static fn (string $app, string $key, string $fallback = ''): string => ($app === 'learniq' && $key === 'shillinq_administration_id') ? 'adm-standaard' : $fallback
+		);
+
+		return new ContributionRaiser($objectService, $shillinq, $users, $config);
 	}//end makeRaiser()
 
 	/**
@@ -258,6 +264,26 @@ class ContributionRaiserTest extends TestCase {
 		self::assertSame(205, $result['raised']);
 		self::assertSame('leerling-305', end($result['results'])['learnerId']);
 	}//end testLargeGroupsAreSentInChunksOf200()
+
+	/**
+	 * Only an active fee is raised, and the school's default administration fills a blank one.
+	 *
+	 * @return void
+	 */
+	public function testOnlyActiveFeesAndTheDefaultAdministration(): void {
+		$this->store->rows['fee-item'] = [
+			array_merge($this->schoolkassa(), ['id' => 'fee-actief']),
+			array_merge($this->schoolkassa(), ['id' => 'fee-concept', 'lifecycle' => 'draft']),
+		];
+		$raiser = $this->makeRaiser();
+
+		self::assertSame('fee-actief', $raiser->activeFeeItem('fee-actief')['id']);
+		self::assertNull($raiser->activeFeeItem('fee-concept'));
+		self::assertNull($raiser->activeFeeItem('fee-onbekend'));
+		self::assertNull($raiser->activeFeeItem(''));
+		self::assertSame('adm-standaard', $raiser->administrationId(given: '  '));
+		self::assertSame('adm-andere', $raiser->administrationId(given: 'adm-andere'));
+	}//end testOnlyActiveFeesAndTheDefaultAdministration()
 
 	/**
 	 * A fee without a course or group, or with no learners, is refused.

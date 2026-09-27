@@ -10,7 +10,8 @@ Tier: must (MVP). D19.
 ## 2. Payment state from shillinq
 
 - [x] 2.1 New `EntitlementPaymentSettledGuard` (contract in design.md); `FeeItemVoluntaryEntitlementGuard` composes it.
-- [x] 2.2 New `ShillinqPaymentSettledListener` on `ObjectUpdatedEvent`, registered in `SchedulingListenerRegistrar` in place of `PaymentTransactionStatusHandler`.
+- [x] 2.2 New `ShillinqContributionSettledListener` on `ObjectUpdatedEvent` (shillinq/PaymentRequest, the `settledAt` edge), subscribed in `BootListenerRegistrar`; `PaymentTransactionStatusHandler` unregistered.
+- [x] 2.3 Raise side of shillinq's contract: `ShillinqContributionClient`, `ContributionRaiser`, `ContributionController` + route + action `fee-item.raise-contributions`, the FeeItem page action, the `payment` connection row requiring `shillinq_administration_id`.
 
 ## 3. Archive
 
@@ -29,7 +30,7 @@ Tier: must (MVP). D19.
 
 ## 6. Tests
 
-- [x] 6.1 `EntitlementPaymentSettledGuardTest`, `ShillinqPaymentSettledListenerTest`, `ArchiveRetiredPaymentObjectsTest`, `PaymentsToShillinqRegisterTest`; `FeeItemVoluntaryEntitlementGuardTest` rewritten; retired schemas dropped from the register ratchet lists.
+- [x] 6.1 `EntitlementPaymentSettledGuardTest`, `ShillinqContributionSettledListenerTest`, `ContributionRaiserTest`, `ContributionControllerTest`, `ShillinqContributionClientTest`, `ArchiveRetiredPaymentObjectsTest`, `PaymentsToShillinqRegisterTest`; `FeeItemVoluntaryEntitlementGuardTest` rewritten; retired schemas dropped from the register ratchet lists.
 
 ## 7. Verify and ship
 

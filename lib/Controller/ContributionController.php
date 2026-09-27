@@ -37,12 +37,10 @@ use InvalidArgumentException;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\ContributionRaiser;
-use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -57,19 +55,12 @@ use Throwable;
 class ContributionController extends Controller {
 
 	/**
-	 * App config key holding the school's shillinq administration id.
-	 */
-	public const ADMINISTRATION_KEY = 'shillinq_administration_id';
-
-	/**
 	 * Constructor.
 	 *
 	 * @param IRequest $request HTTP request.
 	 * @param IUserSession $userSession Current user session.
 	 * @param ActionAuthService $actionAuth ADR-023 action matrix.
-	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param ContributionRaiser $raiser Builds and sends the raise.
-	 * @param IAppConfig $appConfig The default shillinq administration.
+	 * @param ContributionRaiser $raiser Finds the fee and the administration, builds and sends the raise.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
@@ -78,9 +69,7 @@ class ContributionController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
-		private readonly ObjectService $objectService,
 		private readonly ContributionRaiser $raiser,
-		private readonly IAppConfig $appConfig,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
@@ -108,16 +97,19 @@ class ContributionController extends Controller {
 		$this->actionAuth->requireAction(user: $user, action: 'fee-item.raise-contributions');
 
 		if ($this->raiser->isAvailable() === false) {
-			return new JSONResponse(data: ['error' => 'Shillinq is not installed, so no contribution can be raised.'], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);
+			return new JSONResponse(
+				data: ['error' => 'Shillinq is not installed, so no contribution can be raised.'],
+				statusCode: Http::STATUS_SERVICE_UNAVAILABLE
+			);
 		}
 
 		try {
-			$feeItem = $this->activeFeeItem(id: $id);
+			$feeItem = $this->raiser->activeFeeItem(id: $id);
 			if ($feeItem === null) {
 				return new JSONResponse(data: ['error' => 'Fee item not found or not active'], statusCode: Http::STATUS_NOT_FOUND);
 			}
 
-			$administrationId = $this->administrationId();
+			$administrationId = $this->raiser->administrationId(given: (string)$this->request->getParam('administrationId', ''));
 			if ($administrationId === '') {
 				return new JSONResponse(data: ['error' => 'No shillinq administration is set for this school.'], statusCode: Http::STATUS_BAD_REQUEST);
 			}
@@ -135,47 +127,6 @@ class ContributionController extends Controller {
 			return $this->failure(exception: $exception);
 		}//end try
 	}//end raise()
-
-	/**
-	 * The FeeItem when it exists and is active, with its id.
-	 *
-	 * @param string $id FeeItem UUID.
-	 *
-	 * @return array<string, mixed>|null
-	 */
-	private function activeFeeItem(string $id): ?array {
-		if ($id === '') {
-			return null;
-		}
-
-		$found = $this->objectService->find(id: $id, register: 'learniq', schema: 'fee-item');
-		if ($found === null) {
-			return null;
-		}
-
-		$feeItem = $found->jsonSerialize();
-		if (($feeItem['lifecycle'] ?? '') !== 'active') {
-			return null;
-		}
-
-		$feeItem['id'] = (string)($feeItem['id'] ?? $id);
-
-		return $feeItem;
-	}//end activeFeeItem()
-
-	/**
-	 * The shillinq administration: the request's, else the app's default.
-	 *
-	 * @return string
-	 */
-	private function administrationId(): string {
-		$given = trim((string)$this->request->getParam('administrationId', ''));
-		if ($given !== '') {
-			return $given;
-		}
-
-		return $this->appConfig->getValueString(Application::APP_ID, self::ADMINISTRATION_KEY, '');
-	}//end administrationId()
 
 	/**
 	 * The optional raise fields the caller may pass.

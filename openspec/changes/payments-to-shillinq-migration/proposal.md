@@ -13,7 +13,7 @@ Learniq stops being a payment system. Order, OrderLine and PaymentTransaction le
 
 Decision D19 (Ruben, 2026-09-27, `learniq-mi/learniq/_round1/compare/decisions.md`), closing D12: "school contributions are shillinq invoices paid from portaliq; learniq retires Order, OrderLine and PaymentTransaction in a migration change and keeps FeeItem and Entitlement. payment-request-ux (merged as learniq #917) is unwound by that migration."
 
-The evidence behind D12 and round 2 recon E (`_round2/recon/E-roles-and-lesson-shop.md`, section 1b, row `extracurricular-fee-to-shillinq`, and section 4): shillinq owns invoices, invoice lines, payment requests, SEPA and dunning; portaliq is the shell and shillinq contributes the pay action (`portal-payment-initiation`). Learniq's own stack duplicated that, and its outbound call targets `api/payments/initiate` on integriq, an endpoint that does not exist (the connection registry row said so). Shillinq's `case-payment-requests` change added `PaymentRequest.subjectKind: object` with an ADR-048 semantic `subject`, so a request can stand on a learniq Entitlement without shillinq knowing learniq.
+The evidence behind D12 and round 2 recon E (`_round2/recon/E-roles-and-lesson-shop.md`, section 1b, row `extracurricular-fee-to-shillinq`, and section 4): shillinq owns invoices, invoice lines, payment requests, SEPA and dunning; portaliq is the shell and shillinq contributes the pay action (`portal-payment-initiation`). Learniq's own stack duplicated that, and its outbound call targets `api/payments/initiate` on integriq, an endpoint that does not exist (the connection registry row said so). Shillinq's `extracurricular-fee-to-shillinq` (#1704) raises a school contribution per guardian with the owning app's chargeable as `subject` and the child as `beneficiary`, and signals settlement with `settledAt`, so learniq can charge through shillinq without either app referencing the other's classes.
 
 ## Affected Projects
 
@@ -26,11 +26,11 @@ The evidence behind D12 and round 2 recon E (`_round2/recon/E-roles-and-lesson-s
 ### In Scope
 
 - Remove the `Order`, `OrderLine`, `PaymentTransaction` schemas (and their mock copies); register 0.26.0.
-- `Entitlement` 0.2.0: `orderLineId` goes, `paymentRequestRef` and `paymentSettledAt` come; `grant` still requires `FeeItemVoluntaryEntitlementGuard`, which now composes `EntitlementPaymentSettledGuard` instead of `EntitlementOrderPaidGuard`.
-- New `ShillinqPaymentSettledListener` on OpenRegister's `ObjectUpdatedEvent`: a shillinq PaymentRequest on a learniq Entitlement reaching `captured` grants it; `captured → voided` revokes it.
+- `Entitlement` 0.2.0: `orderLineId` goes, `paymentRequestRef`, `paymentSettledAt` and `paymentSettledVia` come; `grant` still requires `FeeItemVoluntaryEntitlementGuard`, which now composes `EntitlementPaymentSettledGuard` instead of `EntitlementOrderPaidGuard`.
+- Learniq's side of shillinq's contract extracurricular-fee-to-shillinq v1 (shillinq #1704): `ContributionRaiser` and `POST /api/fee-items/{id}/contributions` raise a FeeItem's contributions for the guardians of its learners; `ShillinqContributionSettledListener` grants the learner's Entitlement on the `settledAt` edge.
 - New repair step `ArchiveRetiredPaymentObjects`: every retired row to `payments-archive/retired-payments.json` in learniq's app data folder, before `InitializeSettings`.
 - Remove the Orders, OrderLines, PaymentTransactions index and detail pages, the `OrderPaymentPanel` page and view, the `GroupPayments` menu group (FeeItems and Entitlements move under People), `PaymentTransactionController` and its two routes, `PaymentInitiationClient`, `OrderTotalEvaluator`, `OrderTotalValidationGuard`, `EntitlementOrderPaidGuard`, `PaymentTransactionStatusHandler` and their tests; the unarchived `payment-request-ux` change.
-- Repoint the `payment` connection row (key kept, keys are frozen) at shillinq; prune 27 catalogue keys only the retired surface used.
+- Repoint the `payment` connection row (key kept, keys are frozen) at shillinq, configured by `shillinq_administration_id`; prune 27 catalogue keys only the retired surface used.
 - Rewrite `openspec/specs/payments` to the reduced scope through this change's delta.
 
 ### Out of Scope
@@ -41,8 +41,11 @@ The evidence behind D12 and round 2 recon E (`_round2/recon/E-roles-and-lesson-s
 
 ## What shillinq and portaliq still build
 
-- **shillinq:** a `requestType` for school fees (today's enum is `leges`, `dwangsom`, `deposit`, `other`; learniq's contract uses `other` until then) with its revenue account; raising a PaymentRequest for a learniq Entitlement (`subjectKind: object`, `subject: {type: entitlement, register: learniq, schema: entitlement, id}`, amount from the FeeItem), for example from its `shillinq-payment-requests` leaf; and keeping `state: captured` as the settled signal, written with a save so OpenRegister emits `ObjectUpdatedEvent`.
-- **portaliq:** the guardian's pay screen for such a request, i.e. the object request appearing in the "Pay my invoices" collection that shillinq contributes (REQ-SPC-020/021), and the `pay` action of `portal-payment-initiation` working on it unchanged.
+Shillinq built its half in #1704 (merged `2a9d5876`): the raise endpoint and service, invoices and payment requests per guardian, the `settledAt`/`settledVia` signal, and the contract this change builds against. What remains outside learniq:
+
+- **portaliq:** the guardian's pay screen for a school contribution: the object request in the "Pay my invoices" collection shillinq contributes, with `portal-payment-initiation`'s `pay` action working on it (portaliq's own contract consumer is `extracurricular-activity-offer`).
+- **shillinq, optional:** a school-fee `kind` beyond `parental-contribution`, `school-trip` and `other` if a school needs one; learniq maps course and contractonderwijs fees to `other` today.
+- **operations:** each school sets its shillinq administration (`occ config:app:set learniq shillinq_administration_id`) and gives the administrator shillinq's `payment.request` action.
 
 ## Approach
 
@@ -68,7 +71,7 @@ Reads shillinq's `PaymentRequest` (register `shillinq`, schema `PaymentRequest`,
 
 ### Risk 2: entitlements that stay pending
 
-**Severity:** Medium. **Mitigation:** intended until shillinq raises requests on Entitlements. An administrator can still grant by hand once a request is captured; without shillinq the guard refuses with a message that says why.
+**Severity:** Medium. **Mitigation:** intended: an Entitlement opens when its contribution is settled. An administrator raises the contributions from the FeeItem page, and without shillinq the guard refuses with a message that says why.
 
 ### Risk 3: a lookalike object granting access
 
