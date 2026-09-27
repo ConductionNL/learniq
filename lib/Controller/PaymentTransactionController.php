@@ -27,16 +27,14 @@
  *   best-effort proposal, not a negotiated contract (see design.md "What is
  *   still genuinely missing").
  *
- * KNOWN GAP, documented not fabricated: PaymentTransaction is appendOnly
- * (OpenRegister rejects any UPDATE after creation — verified by reading
- * ObjectService::saveObject()/deleteObject() at HEAD, INSERT only). Neither
- * initiate() nor callback() can persist pspPaymentId or completedAt on any
- * existing PaymentTransaction row — only the lifecycle field itself can move,
- * via TransitionEngine::transition(), which takes no data payload. Both
- * fields remain declared, nullable schema properties for forward
- * compatibility but are not populated by this change. This is a structural
- * property of OpenRegister's append-only enforcement, not something scoped
- * to fix here.
+ * KNOWN GAP: neither initiate() nor callback() persists pspPaymentId or
+ * completedAt on an existing PaymentTransaction. PaymentTransaction is no
+ * longer appendOnly (learniq#978), and OpenRegister's
+ * TransitionEngine::transition() accepts a data payload, but only for fields
+ * a transition declares in `inputs`, and none of PaymentTransaction's
+ * transitions declares any. Both calls here move the lifecycle field alone.
+ * Both fields remain declared, nullable schema properties until a transition
+ * declares them and the callback passes them.
  *
  * @category Controller
  * @package  OCA\Learniq\Controller

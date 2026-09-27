@@ -20,6 +20,27 @@ course's teacher(s); it MUST NOT be broadly readable.
 - **THEN** it is stored as an OpenRegister object with no lifecycle field
 - **AND** a learner who is not the row's own `learnerId`, an admin, or the course's teacher cannot read it
 
+### Requirement: A lesson completion belongs to one enrolment
+A `LessonCompletion` SHALL belong to the enrolment it was made in: one row per (`enrolmentId`, `lessonId`).
+`LessonProgressHandler` SHALL resolve the learner's active, otherwise pending, Enrolment for the course and
+update only that enrolment's row; a completion in a later enrolment (a retake, a re-enrolment, a
+recertification) SHALL add a new row and leave the earlier row and its `enrolmentId` untouched. Progress for
+an Enrolment SHALL count only its own completions: rows tied to it, plus untied rows completed after it was
+created, each lesson once. `LessonPlayer` SHALL judge "already completed" against the learner's current
+Enrolment and send its id with a manual completion. An update of a `LessonCompletion` SHALL trigger the
+progress roll-up just as a create does.
+
+#### Scenario: A retake starts with no lessons completed
+- **GIVEN** a learner completed every lesson of a course in an earlier enrolment
+- **WHEN** they are enrolled in the course again
+- **THEN** the new enrolment's progress is 0 and the lessons show as not completed in the player
+- **AND** the earlier enrolment's completions are still on record with their own `enrolmentId`
+
+<!-- @e2e exclude Asserted in tests/Unit/Listener/LessonProgressHandlerTest.php
+     (testARetakeAddsACompletionForTheNewEnrolmentAndKeepsTheOldRow),
+     tests/Unit/Progress/EnrolmentProgressEvaluatorTest.php (testARetakeCountsOnlyThisEnrolmentsCompletions)
+     and tests/unit-js/lessonCompletion.test.mjs; a live run needs two enrolments a year apart. -->
+
 ### Requirement: xAPI completion statements are wired into per-lesson completion, not duplicated
 
 The system MUST derive `LessonCompletion` from the same `ObjectCreatedEvent<XapiStatement>` that `Xapi
