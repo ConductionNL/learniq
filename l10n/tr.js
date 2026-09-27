@@ -476,7 +476,11 @@ OC.L10N.register(
         "This assessment is not available right now.": "Bu değerlendirme şu anda kullanılamıyor.",
         "The access code is not correct.": "Erişim kodu doğru değil.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Öğrencilerin sınavı başlatmak için girmesi gereken isteğe bağlı kod; örneğin sınavı yalnızca sınav salonundakilerle sınırlamak için. Kod istemiyorsanız boş bırakın.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Bu denemeyi başlatmak için girilen erişim kodu. Kontrol edilir ve ardından silinir, bu yüzden asla saklanmaz."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Bu denemeyi başlatmak için girilen erişim kodu. Kontrol edilir ve ardından silinir, bu yüzden asla saklanmaz.",
+        "Teachers": "Öğretmenler",
+        "Manager": "Yönetici",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Bu denemeyi görebilen ve notlandırabilen kurs öğretmenleri. Sunucu tarafından doldurulur.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Bu denemeyi görebilen öğrenci yöneticisi. Sunucu tarafından doldurulur."
     },
     "nplurals=2; plural=(n != 1);"
 )

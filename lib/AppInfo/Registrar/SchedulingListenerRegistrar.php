@@ -37,6 +37,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\Learniq\Listener\AdmissionsWaitlistPromoter;
 use OCA\Learniq\Listener\ApplicationConversionHandler;
 use OCA\Learniq\Listener\AssessmentAttemptGateListener;
+use OCA\Learniq\Listener\AssessmentResultAudienceStamper;
 use OCA\Learniq\Listener\EnrolmentPrerequisiteListener;
 use OCA\Learniq\Listener\PaymentTransactionStatusHandler;
 use OCA\Learniq\Listener\SessionChangeNoticeHandler;
@@ -88,6 +89,16 @@ class SchedulingListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectCreatingEvent::class,
 			listener: AssessmentAttemptGateListener::class
+		);
+
+		// AssessmentResult read audience (learniq#949): stamps teacherIds (the
+		// course's teachers) and managerId (the learner's manager) on a new
+		// attempt, because AssessmentResult's authorization `match` can only
+		// compare a field on the object with the caller. Runs after the gate
+		// above; a refused attempt never reaches it.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: AssessmentResultAudienceStamper::class
 		);
 
 		// ADR-031 legitimate exception (admissions-and-subject-choice):

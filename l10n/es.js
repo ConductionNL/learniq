@@ -476,7 +476,11 @@ OC.L10N.register(
         "This assessment is not available right now.": "Esta evaluación no está disponible en este momento.",
         "The access code is not correct.": "El código de acceso no es correcto.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Código opcional que los alumnos deben introducir para empezar la prueba, por ejemplo para limitarla a las personas en la sala de examen. Déjalo vacío para no usar código.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "El código de acceso introducido para empezar este intento. Se comprueba y luego se borra, así que nunca se guarda."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "El código de acceso introducido para empezar este intento. Se comprueba y luego se borra, así que nunca se guarda.",
+        "Teachers": "Docentes",
+        "Manager": "Responsable",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Docentes del curso que pueden ver y calificar este intento. Lo rellena el servidor.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Responsable del alumno, que puede ver este intento. Lo rellena el servidor."
     },
     "nplurals=2; plural=(n != 1);"
 )

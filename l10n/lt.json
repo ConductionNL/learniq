@@ -475,7 +475,11 @@
         "This assessment is not available right now.": "Šis vertinimas šiuo metu nepasiekiamas.",
         "The access code is not correct.": "Prieigos kodas neteisingas.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Neprivalomas kodas, kurį besimokantieji turi įvesti, kad pradėtų testą, pavyzdžiui, norint jį apriboti egzamino patalpoje esantiems asmenims. Palikite tuščią, jei kodo nereikia.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Prieigos kodas, įvestas pradedant šį bandymą. Jis patikrinamas ir tada ištrinamas, todėl niekada nesaugomas."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Prieigos kodas, įvestas pradedant šį bandymą. Jis patikrinamas ir tada ištrinamas, todėl niekada nesaugomas.",
+        "Teachers": "Mokytojai",
+        "Manager": "Vadovas",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Kurso mokytojai, kurie gali matyti ir vertinti šį bandymą. Užpildo serveris.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Besimokančiojo vadovas, kuris gali matyti šį bandymą. Užpildo serveris."
     },
     "plurals": null
 }

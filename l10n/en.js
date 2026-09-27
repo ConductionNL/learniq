@@ -988,7 +988,12 @@ OC.L10N.register(
         "This assessment is not available right now.": "This assessment is not available right now.",
         "The access code is not correct.": "The access code is not correct.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "The access code typed to start this attempt. It is checked and then cleared, so it is never kept."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.",
+        "Teachers": "Teachers",
+        "Manager": "Manager",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Teachers of the course who may see and mark this attempt. Filled in by the server.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Manager of the learner, who may see this attempt. Filled in by the server.",
+        "UUID of the surviving LearnerProfile this profile was merged into. Set before firing the merge transition, which requires it and keeps it; null for active profiles.": "UUID of the surviving LearnerProfile this profile was merged into. Set before firing the merge transition, which requires it and keeps it; null for active profiles."
     },
     "nplurals=2; plural=(n != 1);"
 )

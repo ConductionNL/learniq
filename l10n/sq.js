@@ -476,7 +476,11 @@ OC.L10N.register(
         "This assessment is not available right now.": "Ky vlerësim nuk është i disponueshëm tani.",
         "The access code is not correct.": "Kodi i hyrjes nuk është i saktë.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Kod opsional që nxënësit duhet ta fusin për të nisur testin, për shembull për ta kufizuar te njerëzit në sallën e provimit. Lëre bosh për asnjë kod.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Kodi i hyrjes i futur për të nisur këtë përpjekje. Kontrollohet dhe pastaj fshihet, prandaj nuk ruhet kurrë."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Kodi i hyrjes i futur për të nisur këtë përpjekje. Kontrollohet dhe pastaj fshihet, prandaj nuk ruhet kurrë.",
+        "Teachers": "Mësuesit",
+        "Manager": "Menaxheri",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Mësuesit e kursit që mund ta shohin dhe ta vlerësojnë këtë përpjekje. Plotësohet nga serveri.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Menaxheri i nxënësit, që mund ta shohë këtë përpjekje. Plotësohet nga serveri."
     },
     "nplurals=2; plural=(n != 1);"
 )

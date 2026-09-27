@@ -475,7 +475,11 @@
         "This assessment is not available right now.": "Tämä koe ei ole juuri nyt saatavilla.",
         "The access code is not correct.": "Pääsykoodi ei ole oikein.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Valinnainen koodi, joka oppijoiden on annettava kokeen aloittamiseksi, esimerkiksi kokeen rajaamiseksi koesalissa oleviin henkilöihin. Jätä tyhjäksi, jos koodia ei käytetä.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Tämän yrityksen aloittamiseen annettu pääsykoodi. Se tarkistetaan ja poistetaan sen jälkeen, joten sitä ei koskaan säilytetä."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Tämän yrityksen aloittamiseen annettu pääsykoodi. Se tarkistetaan ja poistetaan sen jälkeen, joten sitä ei koskaan säilytetä.",
+        "Teachers": "Opettajat",
+        "Manager": "Esihenkilö",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Kurssin opettajat, jotka saavat nähdä ja arvioida tämän yrityksen. Palvelin täyttää.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Oppijan esihenkilö, joka saa nähdä tämän yrityksen. Palvelin täyttää."
     },
     "plurals": null
 }

@@ -165,7 +165,7 @@ class AssessmentAttemptGateListener implements IEventListener {
 
 		if (array_key_exists('accessCode', $payload) === true) {
 			// The typed code proved access; it is not kept on the attempt.
-			$event->setModifiedData(['accessCode' => null]);
+			$event->setModifiedData(array_merge($event->getModifiedData(), ['accessCode' => null]));
 		}
 	}//end evaluate()
 

@@ -476,7 +476,11 @@ OC.L10N.register(
         "This assessment is not available right now.": "Ez a teszt most nem érhető el.",
         "The access code is not correct.": "A hozzáférési kód nem megfelelő.",
         "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Nem kötelező kód, amelyet a tanulóknak meg kell adniuk a teszt indításához, például hogy csak a vizsgateremben lévők érjék el. Hagyd üresen, ha nincs kód.",
-        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "A kísérlet indításához megadott hozzáférési kód. Ellenőrzés után törlődik, így soha nem tároljuk."
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "A kísérlet indításához megadott hozzáférési kód. Ellenőrzés után törlődik, így soha nem tároljuk.",
+        "Teachers": "Oktatók",
+        "Manager": "Vezető",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "A kurzus oktatói, akik megtekinthetik és értékelhetik ezt a kísérletet. A szerver tölti ki.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "A tanuló vezetője, aki megtekintheti ezt a kísérletet. A szerver tölti ki."
     },
     "nplurals=2; plural=(n != 1);"
 )

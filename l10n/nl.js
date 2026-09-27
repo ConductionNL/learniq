@@ -1466,7 +1466,12 @@ OC.L10N.register(
         "The credential could not be issued.": "Het certificaat kon niet worden uitgegeven.",
         "Could not check": "Controle mislukt",
         "Covered by {kind}": "Gedekt door {kind}",
-        "Not covered": "Niet gedekt"
+        "Not covered": "Niet gedekt",
+        "Teachers": "Docenten",
+        "Manager": "Manager",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Docenten van de cursus die deze poging mogen inzien en beoordelen. Wordt door de server ingevuld.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Manager van de deelnemer, die deze poging mag inzien. Wordt door de server ingevuld.",
+        "UUID of the surviving LearnerProfile this profile was merged into. Set before firing the merge transition, which requires it and keeps it; null for active profiles.": "UUID van het LearnerProfile waarin dit profiel is samengevoegd. Wordt ingesteld voordat de samenvoeg-overgang start, die het vereist en behoudt; leeg voor actieve profielen."
     },
     "nplurals=2; plural=(n != 1);"
 )
