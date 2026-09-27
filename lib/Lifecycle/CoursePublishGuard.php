@@ -121,9 +121,13 @@ class CoursePublishGuard implements LifecycleGuardInterface {
 
 		$publishedLessons = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'lesson',
-				'filters' => $lessonFilters,
+				'filters' => array_merge(
+					$lessonFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'lesson',
+					]
+				),
 				'limit' => 1,
 			]
 		);

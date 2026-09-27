@@ -98,7 +98,7 @@ class SupersedePriorLearningPlanActionTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			static function (array $config): array {
-				if ($config['schema'] === 'learning-plan-template') {
+				if ($config['filters']['schema'] === 'learning-plan-template') {
 					return [['id' => 'tpl-1', 'requiredSignerRoles' => ['mentor', 'parent']]];
 				}
 

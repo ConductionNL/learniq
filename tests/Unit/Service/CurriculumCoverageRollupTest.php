@@ -112,7 +112,9 @@ class CurriculumCoverageRollupTest extends TestCase {
 				self::assertFalse($_rbac);
 				self::assertFalse($_multitenancy);
 				$this->queries[] = $config;
-				return array_values(array_filter($this->store[$config['schema']] ?? [], fn (array $row): bool => $this->rowMatches($row, $config['filters'])));
+				// OpenRegister reads register and schema from `filters` only.
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
+				return array_values(array_filter($this->store[$config['filters']['schema'] ?? ''] ?? [], fn (array $row): bool => $this->rowMatches($row, $filters)));
 			}
 		);
 		$service->method('saveObject')->willReturnCallback(
@@ -295,7 +297,7 @@ class CurriculumCoverageRollupTest extends TestCase {
 		$bySchema = [];
 		foreach ($this->queries as $query) {
 			if (isset($query['filters']['competencyIds']) === true) {
-				$bySchema[$query['schema']][] = count($query['filters']['competencyIds']);
+				$bySchema[$query['filters']['schema']][] = count($query['filters']['competencyIds']);
 			}
 		}
 

@@ -142,11 +142,11 @@ class LearnerEngagementRollupJobTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				if ($config['schema'] === 'learner-engagement') {
+				if ($config['filters']['schema'] === 'learner-engagement') {
 					return $this->existingEngagement === null ? [] : [$this->existingEngagement];
 				}
 
-				if ($config['schema'] === 'point-rule') {
+				if ($config['filters']['schema'] === 'point-rule') {
 					return $this->streakRules;
 				}
 

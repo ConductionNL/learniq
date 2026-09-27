@@ -43,6 +43,15 @@ By the end you will have published an assignment, seen learners submit to it, an
 
 The assignment cycle is complete when: the submission's status moves from *pending* to *graded* (or *returned*), the learner sees the grade and feedback on their home view, and the grade appears under the course's **Grades** tab.
 
+## Hand in through the portal
+
+Pupils without a Nextcloud account can hand in from the school portal (the portaliq app). They pick **Hand in an assignment**, fill in the assignment and attach their files: PDF, Word, OpenDocument, PowerPoint or an image, up to 20 MB each.
+
+- Learniq fills in who handed in and which school it belongs to. The pupil cannot choose another pupil.
+- The hand-in shows up in the assignment's submissions list as a draft, with its files.
+- The portal cannot hand the draft in formally yet. Open it in Learniq to mark it, or ask the pupil to hand it in from the app.
+- **My submissions** in the portal lists only the pupil's own work.
+
 ## Common issues
 
 | Symptom | Fix |

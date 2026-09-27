@@ -137,8 +137,8 @@ class TimetableControllerTest extends TestCase {
 	private function wireFindAll(array $cohorts, array $enrolments, array $sessions, array $rooms = []): void {
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($cohorts, $enrolments, $sessions, $rooms): array {
-				$schema = $config['schema'] ?? '';
-				$filters = $config['filters'] ?? [];
+				$schema = $config['filters']['schema'] ?? '';
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				if ($schema === 'cohort') {
 					return $cohorts;
@@ -266,10 +266,10 @@ class TimetableControllerTest extends TestCase {
 			->method('findAll')
 			->willReturnCallback(
 				function (array $config) use ($cohorts): array {
-					if (($config['schema'] ?? '') === 'session') {
+					if (($config['filters']['schema'] ?? '') === 'session') {
 						$this->fail('Sessions must not be queried when the caller has no cohorts');
 					}
-					if (($config['schema'] ?? '') === 'cohort') {
+					if (($config['filters']['schema'] ?? '') === 'cohort') {
 						return $cohorts;
 					}
 					return [];

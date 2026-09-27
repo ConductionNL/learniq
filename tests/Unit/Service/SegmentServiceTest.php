@@ -170,7 +170,7 @@ class SegmentServiceTest extends TestCase {
 			->method('findAll')
 			->with(
 				self::callback(
-					static fn (array $config): bool => $config['register'] === 'learniq' && $config['schema'] === 'learniqsettings'
+					static fn (array $config): bool => ($config['filters']['register'] ?? null) === 'learniq' && ($config['filters']['schema'] ?? null) === 'learniqsettings'
 				),
 				false
 			)

@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.16",
+    "version": "1.1.24",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -22648,7 +22648,9 @@
           "slug": "assessmentresult-assessmentresult-1-1"
         },
         "assessmentId": "00000000-0000-4000-8000-000000000000",
+        "assessmentTitle": "Toets hoofdstuk 3",
         "learnerId": "Voorbeeld Learnerid 1",
+        "learnerRef": "00000000-0000-4000-8000-000000000000",
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "attemptNumber": 1,
         "responses": [],
@@ -22666,7 +22668,9 @@
           "slug": "assessmentresult-assessmentresult-2-2"
         },
         "assessmentId": "00000000-0000-4000-8000-000000000001",
+        "assessmentTitle": "Tentamen statistiek",
         "learnerId": "Voorbeeld Learnerid 2",
+        "learnerRef": "00000000-0000-4000-8000-000000000001",
         "tenant_id": "00000000-0000-4000-8000-000000000001",
         "attemptNumber": 1,
         "responses": [],
@@ -22684,7 +22688,9 @@
           "slug": "assessmentresult-assessmentresult-3-3"
         },
         "assessmentId": "00000000-0000-4000-8000-000000000002",
+        "assessmentTitle": "Leesvaardigheid Engels",
         "learnerId": "Voorbeeld Learnerid 3",
+        "learnerRef": "00000000-0000-4000-8000-000000000002",
         "tenant_id": "00000000-0000-4000-8000-000000000002",
         "attemptNumber": 1,
         "responses": [],
@@ -23622,7 +23628,10 @@
         "description": "Voorbeeld Description 1",
         "order": 1,
         "requiredForRoles": [],
-        "applicableYears": ["groep 5", "groep 6"],
+        "applicableYears": [
+          "groep 5",
+          "groep 6"
+        ],
         "subjectId": "00000000-0000-4000-8000-000000000000",
         "lifecycle": "draft"
       },
@@ -23640,7 +23649,9 @@
         "description": "Voorbeeld Description 2",
         "order": 2,
         "requiredForRoles": [],
-        "applicableYears": ["2026-2027"],
+        "applicableYears": [
+          "2026-2027"
+        ],
         "subjectId": null,
         "lifecycle": "published"
       },
@@ -24015,6 +24026,44 @@
         "signupId": "00000000-0000-4000-8000-000000000002",
         "location": "Voorbeeld Location 3",
         "lifecycle": "completed"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "Course",
+          "slug": "course-voorbeeld-name-1-1"
+        },
+        "code": "Voorbeeld Code 1",
+        "name": "Voorbeeld Name 1",
+        "level": "po",
+        "language": "ab",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "name_nl": "Voorbeeld Name Nl 1",
+        "description": "Voorbeeld Description 1",
+        "tags": [
+          "Voorbeeld Tags 1"
+        ],
+        "mandatoryTraining": false,
+        "regulationSlug": "Voorbeeld Regulationslug 1",
+        "renewalCourseSlug": "Voorbeeld Renewalcourseslug 1",
+        "certificateTemplate": "Voorbeeld Certificatetemplate 1",
+        "lifecycle": "draft",
+        "parentCourseId": "00000000-0000-4000-8000-000000000000",
+        "order": 1,
+        "curriculumPlanId": "00000000-0000-4000-8000-000000000000",
+        "programmeIds": [
+          "00000000-0000-4000-8000-000000000000"
+        ],
+        "ectsCredits": 0.0,
+        "competencyIds": [],
+        "prerequisiteCourseIds": [],
+        "license": "CC-BY-SA-4.0",
+        "author": "Voorbeeldschool, sectie Nederlands",
+        "subject": "Nederlandse taal",
+        "educationalLevels": [
+          "havo",
+          "vwo"
+        ]
       },
       {
         "@self": {
@@ -27289,6 +27338,34 @@
         "learningObjectives": [
           "Voorbeeld Learningobjectives 1"
         ],
+        "competencyIds": [],
+        "releaseConditions": [],
+        "availableAfterDays": 0,
+        "mandatoryTraining": false,
+        "regulationSlug": "Voorbeeld Regulationslug 1",
+        "lifecycle": "draft",
+        "subject": "Nederlandse taal",
+        "educationalLevels": [
+          "havo"
+        ]
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "Lesson",
+          "slug": "lesson-voorbeeld-name-1-1"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000000",
+        "name": "Voorbeeld Name 1",
+        "order": 1,
+        "contentType": "text",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "contentRef": "Voorbeeld Contentref 1",
+        "blocks": [],
+        "durationMinutes": 1,
+        "learningObjectives": [
+          "Voorbeeld Learningobjectives 1"
+        ],
         "competencyIds": [
           "00000000-0000-4000-8000-000000000000",
           "00000000-0000-4000-8000-000000000001"
@@ -27407,6 +27484,57 @@
         "enrolmentId": "00000000-0000-4000-8000-000000000002",
         "verb": "Voorbeeld Verb 3",
         "score": 3.0
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-onboarding-file",
+          "slug": "lesson-onboarding-file-lessononboardingfile-1-1"
+        },
+        "teacherId": "jdevries",
+        "fileId": 1,
+        "fileName": "Breuken vergelijken.docx",
+        "format": "docx",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "filePath": "/Lessen inbox/Breuken vergelijken.docx",
+        "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "detectedAt": "2026-03-01T09:00:00+00:00",
+        "lifecycle": "detected"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-onboarding-file",
+          "slug": "lesson-onboarding-file-lessononboardingfile-2-2"
+        },
+        "teacherId": "jdevries",
+        "fileId": 2,
+        "fileName": "Fotosynthese.pptx",
+        "format": "pptx",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "filePath": "/Lessen inbox/Fotosynthese.pptx",
+        "mimeType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "detectedAt": "2026-03-02T09:00:00+00:00",
+        "courseId": "00000000-0000-4000-8000-000000000001",
+        "lessonId": "00000000-0000-4000-8000-000000000001",
+        "importNote": "1 hidden slide left out",
+        "lifecycle": "imported"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-onboarding-file",
+          "slug": "lesson-onboarding-file-lessononboardingfile-3-3"
+        },
+        "teacherId": "mbakker",
+        "fileId": 3,
+        "fileName": "Kerstviering.docx",
+        "format": "docx",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "filePath": "/Lessen inbox/Kerstviering.docx",
+        "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "detectedAt": "2026-03-03T09:00:00+00:00",
+        "lifecycle": "dismissed"
       },
       {
         "@self": {
@@ -29186,6 +29314,7 @@
         "learnerRefs": [
           "00000000-0000-4000-8000-000000000000"
         ],
+        "learnerRef": "00000000-0000-4000-8000-000000000000",
         "attachmentRefs": [
           "Voorbeeld Attachmentrefs 1"
         ],
@@ -29217,6 +29346,7 @@
         "learnerRefs": [
           "00000000-0000-4000-8000-000000000001"
         ],
+        "learnerRef": "00000000-0000-4000-8000-000000000001",
         "attachmentRefs": [
           "Voorbeeld Attachmentrefs 2"
         ],
@@ -29247,6 +29377,7 @@
         "learnerRefs": [
           "00000000-0000-4000-8000-000000000002"
         ],
+        "learnerRef": "00000000-0000-4000-8000-000000000002",
         "attachmentRefs": [
           "Voorbeeld Attachmentrefs 3"
         ],
@@ -30479,6 +30610,171 @@
         "dataExchangeJobId": null,
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "lifecycle": "voorlopig"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-share-consent",
+          "slug": "course-share-consent-courseshareconsent-1-1"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000000",
+        "purpose": "download",
+        "confirmedBy": "Voorbeeld Confirmedby 1",
+        "confirmedAt": "2026-03-01T09:00:00+00:00",
+        "noPupilData": true,
+        "rightsCleared": true,
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "courseName": "Voorbeeld Coursename 1",
+        "license": "Voorbeeld License 1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-share-consent",
+          "slug": "course-share-consent-courseshareconsent-2-2"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000001",
+        "purpose": "store",
+        "confirmedBy": "Voorbeeld Confirmedby 2",
+        "confirmedAt": "2026-03-02T09:00:00+00:00",
+        "noPupilData": false,
+        "rightsCleared": false,
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "courseName": "Voorbeeld Coursename 2",
+        "license": "Voorbeeld License 2"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-share-consent",
+          "slug": "course-share-consent-courseshareconsent-3-3"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000002",
+        "purpose": "download",
+        "confirmedBy": "Voorbeeld Confirmedby 3",
+        "confirmedAt": "2026-03-03T09:00:00+00:00",
+        "noPupilData": true,
+        "rightsCleared": true,
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "courseName": "Voorbeeld Coursename 3",
+        "license": "Voorbeeld License 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "shared-course-package",
+          "slug": "shared-course-package-voorbeeld-title-1-1"
+        },
+        "slug": "Voorbeeld Slug 1",
+        "kind": "course-package",
+        "title": "Voorbeeld Title 1",
+        "package": {},
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "description": "Voorbeeld Description 1",
+        "subject": "Voorbeeld Subject 1",
+        "level": "Voorbeeld Level 1",
+        "levels": [],
+        "goals": "Voorbeeld Goals 1",
+        "goalsCovered": [],
+        "language": "Voorbeeld Language 1",
+        "license": "Voorbeeld License 1",
+        "author": "Voorbeeld Author 1",
+        "cardLine": "Voorbeeld Cardline 1",
+        "version": "Voorbeeld Version 1",
+        "lessonCount": 0,
+        "sharedAt": "2026-03-01T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "shared-course-package",
+          "slug": "shared-course-package-voorbeeld-title-2-2"
+        },
+        "slug": "Voorbeeld Slug 2",
+        "kind": "course-package",
+        "title": "Voorbeeld Title 2",
+        "package": {},
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "description": "Voorbeeld Description 2",
+        "subject": "Voorbeeld Subject 2",
+        "level": "Voorbeeld Level 2",
+        "levels": [],
+        "goals": "Voorbeeld Goals 2",
+        "goalsCovered": [],
+        "language": "Voorbeeld Language 2",
+        "license": "Voorbeeld License 2",
+        "author": "Voorbeeld Author 2",
+        "cardLine": "Voorbeeld Cardline 2",
+        "version": "Voorbeeld Version 2",
+        "lessonCount": 1,
+        "sharedAt": "2026-03-02T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "shared-course-package",
+          "slug": "shared-course-package-voorbeeld-title-3-3"
+        },
+        "slug": "Voorbeeld Slug 3",
+        "kind": "course-package",
+        "title": "Voorbeeld Title 3",
+        "package": {},
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "description": "Voorbeeld Description 3",
+        "subject": "Voorbeeld Subject 3",
+        "level": "Voorbeeld Level 3",
+        "levels": [],
+        "goals": "Voorbeeld Goals 3",
+        "goalsCovered": [],
+        "language": "Voorbeeld Language 3",
+        "license": "Voorbeeld License 3",
+        "author": "Voorbeeld Author 3",
+        "cardLine": "Voorbeeld Cardline 3",
+        "version": "Voorbeeld Version 3",
+        "lessonCount": 2,
+        "sharedAt": "2026-03-03T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-1-1"
+        },
+        "title": "Voorbeeld Title 1",
+        "note": "Voorbeeld Note 1",
+        "authorId": "Voorbeeld Authorid 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "participantIds": [],
+        "status": "open",
+        "destroyAfter": "2026-03-01"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-2-2"
+        },
+        "title": "Voorbeeld Title 2",
+        "note": "Voorbeeld Note 2",
+        "authorId": "Voorbeeld Authorid 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "participantIds": [],
+        "status": "closed",
+        "destroyAfter": "2026-03-02"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-3-3"
+        },
+        "title": "Voorbeeld Title 3",
+        "note": "Voorbeeld Note 3",
+        "authorId": "Voorbeeld Authorid 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "participantIds": [],
+        "status": "open",
+        "destroyAfter": "2026-03-03"
       },
       {
         "@self": {

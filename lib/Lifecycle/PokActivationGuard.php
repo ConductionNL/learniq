@@ -181,9 +181,13 @@ class PokActivationGuard implements LifecycleGuardInterface {
 
 		$raw = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::POK_SIGNATURE_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::POK_SIGNATURE_SCHEMA,
+					]
+				),
 				'limit' => 200,
 			]
 		);

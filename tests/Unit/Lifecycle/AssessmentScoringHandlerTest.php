@@ -50,7 +50,7 @@ class AssessmentScoringHandlerTest extends TestCase {
 		$objectService->method('findAll')->willReturnCallback(
 			static function (array $config) use ($assessment, $items): array {
 				$uuid = ($config['filters']['uuid'] ?? '');
-				if ($config['schema'] === 'exam') {
+				if ($config['filters']['schema'] === 'exam') {
 					if ($assessment === null) {
 						return [];
 					}
@@ -132,4 +132,42 @@ class AssessmentScoringHandlerTest extends TestCase {
 
 		self::assertTrue(self::makeHandler($this, null)->check($object, 'submit', 'learner-1')->isAllowed());
 	}//end testAttemptWithoutResponsesIsAllowed()
+
+	/**
+	 * Answers are stored as `{value: X}`: TakeAssessmentView and the portal
+	 * write that shape, ItemAnalysisService and AssessmentScoringView read it.
+	 * Scoring compares X with the correct response, so a right answer earns its
+	 * points and a wrong one does not; a bare value still scores as before.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/assessment-portal-endpoints/specs/assessment/spec.md#requirement-auto-scoring-reads-the-stored-answer-shape
+	 */
+	public function testTheStoredValueShapeIsScored(): void {
+		$handler = self::makeHandler(
+			$this,
+			['id' => 'exam-1', 'itemRefs' => [['itemId' => 'item-choice', 'points' => 2], ['itemId' => 'item-order', 'points' => 4]]],
+			[
+				'item-choice' => ['interactionType' => 'choice', 'correctResponse' => 'B', 'maxScore' => 1],
+				'item-order' => ['interactionType' => 'order', 'correctResponse' => ['C', 'A', 'B'], 'maxScore' => 4],
+				'item-wrong' => ['interactionType' => 'choice', 'correctResponse' => 'B', 'maxScore' => 1],
+				'item-bare' => ['interactionType' => 'choice', 'correctResponse' => 'B', 'maxScore' => 1],
+			]
+		);
+		$result = self::submittedResult();
+		$result['responses'] = [
+			['itemId' => 'item-choice', 'response' => ['value' => 'B'], 'autoScore' => null],
+			['itemId' => 'item-order', 'response' => ['value' => ['C', 'A', 'B']], 'autoScore' => null],
+			['itemId' => 'item-wrong', 'response' => ['value' => 'A'], 'autoScore' => null],
+			['itemId' => 'item-bare', 'response' => 'B', 'autoScore' => null],
+		];
+
+		$scored = $handler->score($result);
+
+		self::assertNotNull($scored);
+		self::assertSame(2.0, $scored['responses'][0]['autoScore']);
+		self::assertSame(4.0, $scored['responses'][1]['autoScore']);
+		self::assertSame(0.0, $scored['responses'][2]['autoScore']);
+		self::assertSame(1.0, $scored['responses'][3]['autoScore']);
+	}//end testTheStoredValueShapeIsScored()
 }//end class

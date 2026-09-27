@@ -40,6 +40,23 @@ By the end you will have confirmed the right OpenRegister register is wired up, 
 
    ![Verifier showing new signature](/screenshots/tutorials/admin/03-admin-settings-05.png)
 
+## Give the vertrouwenspersoon a private place for notes
+
+Add your school's vertrouwenspersoon to the Nextcloud group *confidential-counsellors*. They then see **Confidential notes** in the menu. A note there is readable by its writer and by the colleagues they add to it, nobody else. School leaders, mentors, coordinators and compliance officers cannot open it.
+
+Nextcloud admins can read every record, including these notes. Keep the *admin* group to IT staff who are not school leaders.
+
+## Connect the course store
+
+The **Store** page lists courses other schools share. It needs a course registry: another learniq, for example your school board's. Ask its administrator for its address and for a token of an account in the *instructors* group there. Then set them on your server:
+
+```
+occ config:app:set learniq registry_url --value=https://store.example.nl
+occ config:app:set learniq registry_token --value=YOUR_TOKEN_HERE --sensitive
+```
+
+Until the address is set, the Store page says no store is set up, and publishing tells the teacher to ask you. Installing a course from the store creates your own copy. Only Nextcloud admins see the **Install** button.
+
 ## Verification
 
 The settings page is healthy when: the Default register is set, the AI Features table reflects reality, and the Credential Signing section shows a *Created at* timestamp.

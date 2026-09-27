@@ -16,6 +16,7 @@
 
   @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#requirement-course-package-frontend-is-declarative-with-one-named-custom-view-for-the-import-report
   @spec openspec/changes/course-package-import-export/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
+  @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 -->
 
 <template>
@@ -166,14 +167,23 @@
 				{{ t('learniq', 'Import another package') }}
 			</button>
 		</div>
+
+		<!-- office-file-lesson-onboarding: Word and PowerPoint lessons from the
+		     teacher's onboarding folder, confirmed one file at a time (D17). -->
+		<LessonOnboardingPanel class="course-package-import__onboarding" />
 	</div>
 </template>
 
 <script>
 import { generateUrl } from '@nextcloud/router'
+import LessonOnboardingPanel from '../components/lesson/LessonOnboardingPanel.vue'
 
 export default {
 	name: 'CoursePackageImportView',
+
+	components: {
+		LessonOnboardingPanel,
+	},
 
 	data() {
 		return {
@@ -423,6 +433,12 @@ export default {
 .course-package-import__badge--dropped {
 	background: var(--color-error);
 	color: var(--color-primary-element-text, #fff);
+}
+
+.course-package-import__onboarding {
+	margin-top: calc(var(--default-grid-baseline, 4px) * 8);
+	padding-top: calc(var(--default-grid-baseline, 4px) * 6);
+	border-top: 1px solid var(--color-border);
 }
 
 .course-package-import__empty {

@@ -120,9 +120,9 @@ class EnrolmentProgressEvaluator {
 	private function countCompletedLessons(string $learnerId, string $courseId, array $enrolment): int {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LESSON_COMPLETION_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LESSON_COMPLETION_SCHEMA,
 					'learnerId' => $learnerId,
 					'courseId' => $courseId,
 				],
@@ -184,9 +184,9 @@ class EnrolmentProgressEvaluator {
 	private function countPublishedLessons(string $courseId): int {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LESSON_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LESSON_SCHEMA,
 					'courseId' => $courseId,
 					'lifecycle' => 'published',
 				],

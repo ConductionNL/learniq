@@ -194,9 +194,9 @@ class EnrolmentProgressRollupJob extends ActorForwardedJob {
 	private function findActiveEnrolment(string $learnerId, string $courseId): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ENROLMENT_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ENROLMENT_SCHEMA,
 					'learnerId' => $learnerId,
 					'courseId' => $courseId,
 					'lifecycle' => 'active',

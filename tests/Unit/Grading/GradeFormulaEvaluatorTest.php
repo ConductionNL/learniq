@@ -93,7 +93,7 @@ class GradeFormulaEvaluatorTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($entries) {
-				if ($config['schema'] === 'grade-entry') {
+				if ($config['filters']['schema'] === 'grade-entry') {
 					return $entries;
 				}
 

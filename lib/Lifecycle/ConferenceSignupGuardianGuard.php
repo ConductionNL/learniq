@@ -185,9 +185,13 @@ class ConferenceSignupGuardianGuard implements LifecycleGuardInterface {
 
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_PROFILE_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::LEARNER_PROFILE_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);

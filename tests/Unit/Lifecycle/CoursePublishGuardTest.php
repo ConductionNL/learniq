@@ -113,7 +113,7 @@ class CoursePublishGuardTest extends TestCase {
 					function (array $params): bool {
 						return ($params['filters']['tenant_id'] ?? null) === 'tenant-b'
 							&& ($params['filters']['courseId'] ?? null) === 'course-3'
-							&& ($params['schema'] ?? null) === 'lesson';
+							&& ($params['filters']['schema'] ?? null) === 'lesson';
 					}
 				)
 			)

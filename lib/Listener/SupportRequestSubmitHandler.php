@@ -309,9 +309,13 @@ class SupportRequestSubmitHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::MAPPING_PROFILE_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::MAPPING_PROFILE_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -348,9 +352,11 @@ class SupportRequestSubmitHandler implements IEventListener {
 	private function saveSupportRequestFields(string $supportRequestId, array $fields): void {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::SUPPORT_REQUEST_SCHEMA,
-				'filters' => ['id' => $supportRequestId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::SUPPORT_REQUEST_SCHEMA,
+					'id' => $supportRequestId,
+				],
 				'limit' => 1,
 			]
 		);

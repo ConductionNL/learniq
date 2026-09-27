@@ -189,9 +189,9 @@ class CredentialIssuanceHandler implements IEventListener {
 
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'credential',
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'credential',
 					'enrolmentId' => $enrolmentId,
 					'source' => 'auto',
 				],

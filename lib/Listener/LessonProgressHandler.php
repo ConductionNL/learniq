@@ -235,9 +235,13 @@ class LessonProgressHandler implements IEventListener {
 
 		$lessons = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LESSON_SCHEMA,
-				'filters' => $lessonFilters,
+				'filters' => array_merge(
+					$lessonFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::LESSON_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -280,9 +284,13 @@ class LessonProgressHandler implements IEventListener {
 
 			$enrolments = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::ENROLMENT_SCHEMA,
-					'filters' => $filters,
+					'filters' => array_merge(
+						$filters,
+						[
+							'register' => self::LEARNIQ_REGISTER,
+							'schema' => self::ENROLMENT_SCHEMA,
+						]
+					),
 					'limit' => 1,
 				]
 			);
@@ -334,9 +342,9 @@ class LessonProgressHandler implements IEventListener {
 	): void {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LESSON_COMPLETION_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LESSON_COMPLETION_SCHEMA,
 					'learnerId' => $learnerId,
 					'lessonId' => $lessonId,
 				],

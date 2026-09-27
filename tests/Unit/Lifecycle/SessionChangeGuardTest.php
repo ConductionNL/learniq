@@ -66,7 +66,7 @@ class SessionChangeGuardTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			static function (array $config) use ($cohort): array {
-				if (($config['schema'] ?? '') === 'cohort') {
+				if (($config['filters']['schema'] ?? '') === 'cohort') {
 					return $cohort === null ? [] : [$cohort];
 				}
 				return [];

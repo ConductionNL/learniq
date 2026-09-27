@@ -384,9 +384,11 @@ class LtiAgsScorePollJob extends TimedJob {
 	private function resolvePlacementByDeployment(string $deploymentUuid): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::PLACEMENT_SCHEMA,
-				'filters' => ['openconnectorDeploymentId' => $deploymentUuid],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::PLACEMENT_SCHEMA,
+					'openconnectorDeploymentId' => $deploymentUuid,
+				],
 				'limit' => 1,
 			]
 		);
@@ -411,9 +413,9 @@ class LtiAgsScorePollJob extends TimedJob {
 	private function gradeEntryAlreadyExists(string $placementId, string $resultId): bool {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::GRADE_ENTRY_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::GRADE_ENTRY_SCHEMA,
 					'ltiToolPlacementId' => $placementId,
 					'ltiAgsResultId' => $resultId,
 				],

@@ -82,12 +82,12 @@ class EvaluationInvitationProvisioningHandlerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($cohorts, $existingInvitations) {
-				if ($config['schema'] === 'cohort') {
+				if ($config['filters']['schema'] === 'cohort') {
 					$courseId = $config['filters']['courseId'] ?? null;
 					return array_values(array_filter($cohorts, static fn ($c) => ($c['courseId'] ?? null) === $courseId));
 				}
 
-				if ($config['schema'] === 'evaluation-invitation') {
+				if ($config['filters']['schema'] === 'evaluation-invitation') {
 					return $existingInvitations;
 				}
 
