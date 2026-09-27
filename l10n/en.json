@@ -1251,6 +1251,7 @@
         "Higher education (HBO or university)": "Higher education (HBO or university)",
         "A fictional university of applied sciences with programmes, students, study credits and one full academic year.": "A fictional university of applied sciences with programmes, students, study credits and one full academic year.",
         "Company": "Company",
+        "A fictional company with two sites, employees, compliance training, certificates and one full training year.": "A fictional company with two sites, employees, compliance training, certificates and one full training year.",
         "Training institute": "Training institute",
         "Which example data do you want?": "Which example data do you want?",
         "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install.": "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install.",
