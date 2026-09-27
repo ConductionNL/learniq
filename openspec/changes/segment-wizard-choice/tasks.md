@@ -79,7 +79,7 @@ Stacked on `segment-runtime-bridge` (uses `SegmentService` and the six-value enu
 - [x] All tasks checked off
 - [x] `openspec validate segment-wizard-choice --strict` passes
 - [x] Diff-scoped checks green (php -l, phpcs, phpstan, phpmd, phpunit filter, eslint, check:specs, check:manifest, schema-l10n, manifest-l10n, setup-demo-first)
-- [ ] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates with `--base origin/development` run once before push
+- [x] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates with `--base origin/development` run once before push (inherited reds only; see the PR)
 
 ## Quality checklist
 - New PHP covered by unit tests with at least three methods each.

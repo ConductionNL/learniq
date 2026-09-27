@@ -110,6 +110,9 @@ Required keys and their rules:
 
 Two sets can therefore never collide, and the contract test rejects a uuid outside the set's `ee<SS>` prefix.
 
+### Dates
+Every set tells the same school year: **2025-2026** (Monday 18 August 2025 to Friday 10 July 2026), finished and complete, so attendance, report periods and test moments all fall inside it. Timestamps carry an explicit offset (`2025-09-01T08:30:00+02:00`).
+
 ### Fictional school codes
 A BRIN is `^[0-9]{2}[A-Za-z0-9]{2}$`. DUO assigns two digits plus two letters, so a set uses a code with a digit in the last position, which DUO never assigns: `00X1` (po), `00X2` (vo), `00X3` (mbo), `00X4` (he). Vestiging codes append two digits (`00X100`).
 
