@@ -132,4 +132,45 @@ class PageControllerTest extends TestCase {
 		self::assertSame(Http::STATUS_OK, $response->getStatus());
 		self::assertSame('index', $response->getTemplateName());
 	}//end testCatchAllStillServesTheShellWhenAnonymous()
+
+	/**
+	 * index() hands the page shell the confidential counsellor flag, so the
+	 * confidential notes menu can gate on group membership.
+	 *
+	 * @spec openspec/changes/confidential-counsellor-channel/specs/confidential-counsel/spec.md#requirement-the-confidential-notes-menu-is-shown-to-confidential-counsellors-only
+	 *
+	 * @return void
+	 */
+	public function testIndexProvidesTheConfidentialCounsellorFlag(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('vp-01');
+
+		$userSession = $this->createMock(IUserSession::class);
+		$userSession->method('getUser')->willReturn($user);
+
+		$roleService = $this->createMock(DashboardRoleService::class);
+		$roleService->method('resolvePrimaryRole')->willReturn('instructor');
+		$roleService->method('resolveDefaultView')->willReturn('teacher');
+		$roleService->method('resolveViews')->willReturn(['teacher', 'student']);
+		$roleService->method('isConfidentialCounsellor')->willReturn(true);
+
+		$provided     = [];
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')->willReturnCallback(
+			static function (string $key, mixed $value) use (&$provided): void {
+				$provided[$key] = $value;
+			}
+		);
+
+		$controller = new PageController(
+			request: $this->createMock(IRequest::class),
+			userSession: $userSession,
+			initialState: $initialState,
+			dashboardRoleSvc: $roleService,
+		);
+		$controller->index();
+
+		self::assertTrue($provided['confidentialCounsellor']);
+		self::assertSame('instructor', $provided['primaryRole']);
+	}//end testIndexProvidesTheConfidentialCounsellorFlag()
 }//end class
