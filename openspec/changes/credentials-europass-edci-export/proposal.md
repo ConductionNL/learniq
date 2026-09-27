@@ -31,7 +31,7 @@ Read at learniq `development` a84b6273.
 
 ### A defect this change depends on
 
-`Credential`'s `x-openregister-lifecycle` declares `revoke`, `expire`, `offerToWallet` and `recordWalletClaim`, and no `issue` transition. `CredentialIssuanceHandler.php:128-131` relies on OpenRegister "auto-firing the `issue` transition from null" to run `CredentialSigningService::check()`, while `Credential.required` lists `signature`, `openbadges3Payload` and `issuerDid`, which the handler's `saveObject()` (:133-147) does not send. On this reading the signing guard has no transition to run on, and an automatic issue would be refused for missing required fields. This is a static reading; task 1 checks it on a live instance before anything else is built.
+`Credential`'s `x-openregister-lifecycle` declares `revoke`, `expire`, `offerToWallet` and `recordWalletClaim`, and no `issue` transition. `CredentialIssuanceHandler.php:128-131` relies on OpenRegister "auto-firing the `issue` transition from null" to run `CredentialSigningService::check()`, while `Credential.required` lists `signature`, `openbadges3Payload` and `issuerDid`, which the handler's `saveObject()` (:133-147) does not send. On this reading the signing guard has no transition to run on, and an automatic issue would be refused for missing required fields. Learniq's own code records why a create never runs a guard: `lib/Listener/EnrolmentPrerequisiteListener.php:13-24` explains that OpenRegister resolves a `requires` guard only on an update of an existing object, and that the initial state is stamped on create by a listener that runs no guard. This is a static reading; task 1 checks it on a live instance before anything else is built.
 
 ## What this change builds
 
