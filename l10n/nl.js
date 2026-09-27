@@ -1729,6 +1729,7 @@ OC.L10N.register(
         "Vocational education (MBO)": "Middelbaar beroepsonderwijs (mbo)",
         "Higher education (HBO or university)": "Hoger onderwijs (hbo of wo)",
         "Company": "Bedrijf",
+        "A fictional company with two sites, employees, compliance training, certificates and one full training year.": "Een verzonnen bedrijf met twee locaties, medewerkers, verplichte trainingen, certificaten en een volledig opleidingsjaar.",
         "Training institute": "Opleidingsinstituut",
         "Which example data do you want?": "Welke voorbeeldgegevens wil je?",
         "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install.": "Voorbeeldgegevens vullen de lijsten, detailpagina's en dashboards, zodat je de app meteen aan het werk ziet. Elke set laat één soort organisatie zien. Kies \"Geen\" op een productie-installatie.",
