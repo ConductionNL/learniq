@@ -1730,6 +1730,7 @@ OC.L10N.register(
         "Higher education (HBO or university)": "Hoger onderwijs (hbo of wo)",
         "Company": "Bedrijf",
         "Training institute": "Opleidingsinstituut",
+        "A fictional training institute with open courses, participants from client companies and a full year.": "Een verzonnen opleidingsinstituut met open cursussen, deelnemers van klantbedrijven en een volledig jaar.",
         "Which example data do you want?": "Welke voorbeeldgegevens wil je?",
         "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install.": "Voorbeeldgegevens vullen de lijsten, detailpagina's en dashboards, zodat je de app meteen aan het werk ziet. Elke set laat één soort organisatie zien. Kies \"Geen\" op een productie-installatie.",
         "Loads the set you picked. It is sample data, and running it twice adds nothing. Remove a set later with occ learniq:example-set:remove.": "Laadt de set die je koos. Het zijn voorbeeldgegevens, en twee keer laden voegt niets toe. Verwijder een set later met occ learniq:example-set:remove.",

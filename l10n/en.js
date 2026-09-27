@@ -1238,6 +1238,7 @@ OC.L10N.register(
         "Higher education (HBO or university)": "Higher education (HBO or university)",
         "Company": "Company",
         "Training institute": "Training institute",
+        "A fictional training institute with open courses, participants from client companies and a full year.": "A fictional training institute with open courses, participants from client companies and a full year.",
         "Which example data do you want?": "Which example data do you want?",
         "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install.": "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install.",
         "Loads the set you picked. It is sample data, and running it twice adds nothing. Remove a set later with occ learniq:example-set:remove.": "Loads the set you picked. It is sample data, and running it twice adds nothing. Remove a set later with occ learniq:example-set:remove.",
