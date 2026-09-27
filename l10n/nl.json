@@ -1662,7 +1662,8 @@
         "_%n learner will be enrolled._::_%n learners will be enrolled._": [
             "%n deelnemer wordt ingeschreven.",
             "%n deelnemers worden ingeschreven."
-        ]
+        ],
+        "The enrolment this completion belongs to. Filled in when the lesson is completed; empty only when the learner had no enrolment in the course.": "De inschrijving waar deze afronding bij hoort. Wordt ingevuld wanneer de les wordt afgerond; alleen leeg als de deelnemer geen inschrijving voor de cursus had."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

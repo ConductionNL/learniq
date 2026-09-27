@@ -117,14 +117,20 @@ class EnrolmentProgressRollupJob extends ActorForwardedJob {
 			}
 
 			try {
-				$enrolment = $this->findActiveEnrolment(learnerId: $learnerId, courseId: $courseId);
+				$enrolment = $this->resolveEnrolment(
+					learnerId: $learnerId,
+					courseId: $courseId,
+					enrolmentId: (string)($entry['enrolmentId'] ?? '')
+				);
 				if ($enrolment === null) {
-					// No active Enrolment for this learner+course — nothing to
+					// No Enrolment for this learner+course — nothing to
 					// recompute onto. Skipped without error, as before.
 					continue;
 				}
 
-				$result = $this->evaluator->evaluate(learnerId: $learnerId, courseId: $courseId);
+				// Handing the evaluator the enrolment scopes the count to its
+				// own completions, so a retake starts at zero (learniq#945).
+				$result = $this->evaluator->evaluate(learnerId: $learnerId, courseId: $courseId, enrolment: $enrolment);
 
 				$this->objectService->saveObject(
 					register: self::LEARNIQ_REGISTER,
@@ -146,6 +152,34 @@ class EnrolmentProgressRollupJob extends ActorForwardedJob {
 		}//end foreach
 
 	}//end runDeferred()
+
+	/**
+	 * The Enrolment to roll up onto: the one the completion names, otherwise
+	 * the learner's active Enrolment on the course.
+	 *
+	 * @param string $learnerId   The learner.
+	 * @param string $courseId    The course.
+	 * @param string $enrolmentId The completion's enrolmentId, or ''.
+	 *
+	 * @return array<string, mixed>|null The enrolment, or null.
+	 *
+	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
+	 */
+	private function resolveEnrolment(string $learnerId, string $courseId, string $enrolmentId): ?array {
+		if ($enrolmentId !== '') {
+			try {
+				$named = $this->objectService->find(id: $enrolmentId, register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA);
+			} catch (\Throwable $e) {
+				$named = null;
+			}
+
+			if ($named !== null) {
+				return $named->jsonSerialize();
+			}
+		}
+
+		return $this->findActiveEnrolment(learnerId: $learnerId, courseId: $courseId);
+	}//end resolveEnrolment()
 
 	/**
 	 * The learner's active Enrolment on a course, or null.
