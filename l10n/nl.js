@@ -1730,6 +1730,7 @@ OC.L10N.register(
         "Vocational education (MBO)": "Middelbaar beroepsonderwijs (mbo)",
         "A fictional MBO college with three programmes, students, work placements and one full school year.": "Een verzonnen mbo-college met drie opleidingen, studenten, stages en een volledig schooljaar.",
         "Higher education (HBO or university)": "Hoger onderwijs (hbo of wo)",
+        "A fictional university of applied sciences with programmes, students, study credits and one full academic year.": "Een verzonnen hogeschool met opleidingen, studenten, studiepunten en een volledig studiejaar.",
         "Company": "Bedrijf",
         "Training institute": "Opleidingsinstituut",
         "Which example data do you want?": "Welke voorbeeldgegevens wil je?",
