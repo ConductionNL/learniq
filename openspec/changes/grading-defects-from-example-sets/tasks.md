@@ -72,9 +72,9 @@ Every task writes its test first and runs it against the old code, where it must
 - [x] Test
 
 ## Verification
-- [ ] `openspec validate grading-defects-from-example-sets` passes
-- [ ] Diff-scoped checks, then `composer check:strict`, `npm run lint`, `npm run format`, `npm run check:schema-l10n`, hydra gates, each with its exit code in the PR body
-- [ ] Full PHPUnit failure set equals development's inherited set
+- [x] `openspec validate grading-defects-from-example-sets` passes
+- [x] Diff-scoped checks, then `composer check:strict`, `npm run lint`, `npm run format`, `npm run check:schema-l10n`, hydra gates, each with its exit code in the PR body
+- [x] Full PHPUnit failure set equals development's inherited set
 
 ## Quality checklist
 
