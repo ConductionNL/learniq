@@ -1,6 +1,16 @@
 OC.L10N.register(
     "learniq",
     {
+        "Last Checked Learner ID": "Last Checked Learner ID",
+        "Nextcloud user ID of the learner named in the most recent `check-threshold` transition. Transient — overwritten on every check. See attendance-threshold-calculation: OpenRegister's aggregation DSL cannot express a per-individual-learner figure on a shared threshold definition, so a caller (a manual admin/mentor action today; a future scheduled per-learner job is the natural long-term caller) supplies this value as a guarded transition input.": "Nextcloud user ID of the learner named in the most recent `check-threshold` transition. Transient — overwritten on every check. See attendance-threshold-calculation: OpenRegister's aggregation DSL cannot express a per-individual-learner figure on a shared threshold definition, so a caller (a manual admin/mentor action today; a future scheduled per-learner job is the natural long-term caller) supplies this value as a guarded transition input.",
+        "Last Checked Metric Value": "Last Checked Metric Value",
+        "The externally-computed per-learner metric value (e.g. unexcused lesuren) submitted with the most recent `check-threshold` transition. Compared against `limit` by AttendanceThresholdCrossingGuard.": "The externally-computed per-learner metric value (e.g. unexcused lesuren) submitted with the most recent `check-threshold` transition. Compared against `limit` by AttendanceThresholdCrossingGuard.",
+        "Last Checked Window Start": "Last Checked Window Start",
+        "Start date of the measurement window for the most recent `check-threshold` transition.": "Start date of the measurement window for the most recent `check-threshold` transition.",
+        "Last Checked Window End": "Last Checked Window End",
+        "End date of the measurement window for the most recent `check-threshold` transition.": "End date of the measurement window for the most recent `check-threshold` transition.",
+        "Last Checked Breaching Record IDs": "Last Checked Breaching Record IDs",
+        "UUIDs of the AttendanceRecord rows that breach the threshold, submitted with the most recent `check-threshold` transition.": "UUIDs of the AttendanceRecord rows that breach the threshold, submitted with the most recent `check-threshold` transition.",
         "My learning record": "My learning record",
         "Everything you have earned, everywhere in Learniq — composed live, read-only. Nothing here can be edited or deleted from this page.": "Everything you have earned, everywhere in Learniq — composed live, read-only. Nothing here can be edited or deleted from this page.",
         "Loading your record…": "Loading your record…",
