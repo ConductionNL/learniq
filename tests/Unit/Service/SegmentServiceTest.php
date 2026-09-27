@@ -17,6 +17,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
+ * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
  */
 
 declare(strict_types=1);
@@ -27,6 +28,7 @@ use OCA\Learniq\Service\SegmentService;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use InvalidArgumentException;
 use RuntimeException;
 
 /**
@@ -193,4 +195,108 @@ class SegmentServiceTest extends TestCase {
 		self::assertSame($segment['enum'], SegmentService::SEGMENTS);
 		self::assertSame($segment['default'], SegmentService::DEFAULT_SEGMENT);
 	}//end testTheListMatchesTheSchemaEnum()
+
+	/**
+	 * The wizard's six cards follow the enum order and reuse the schema's own
+	 * labels, so the card and the settings dropdown never disagree.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
+	 */
+	public function testTheWizardCardsUseTheSchemaLabels(): void {
+		$path     = __DIR__ . '/../../../lib/Settings/learniq_register.json';
+		$register = json_decode((string)file_get_contents($path), true);
+		$labels   = $register['components']['schemas']['LearniqSettings']['properties']['segment']['x-enum-labels'];
+
+		$choices = $this->service([])->listChoices();
+
+		self::assertSame(SegmentService::SEGMENTS, array_column($choices, 'id'));
+		foreach ($choices as $choice) {
+			self::assertSame($labels[$choice['id']], $choice['label']);
+			self::assertNotSame('', $choice['description']);
+			self::assertNotSame('', $choice['icon']);
+		}
+	}//end testTheWizardCardsUseTheSchemaLabels()
+
+	/**
+	 * Without a row the segment is not stored yet; with a valid row it is.
+	 *
+	 * @return void
+	 */
+	public function testHasSegmentReflectsAStoredValidRow(): void {
+		self::assertFalse($this->service([])->hasSegment());
+		self::assertFalse($this->service([self::row('kindergarten', '2026-09-27T09:00:00+00:00')])->hasSegment());
+		self::assertTrue($this->service([self::row('po', '2026-09-27T09:00:00+00:00')])->hasSegment());
+	}//end testHasSegmentReflectsAStoredValidRow()
+
+	/**
+	 * With no record yet, setting the segment creates one, stamped with who
+	 * and when, without RBAC (setup runs with system privileges).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-a-school-picks-primary-school
+	 */
+	public function testSetSegmentCreatesTheRecordWhenNoneExists(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn([]);
+		$objectService->expects(self::once())
+			->method('saveObject')
+			->with(
+				self::callback(
+					static fn (array $data): bool => $data['segment'] === 'po'
+						&& $data['setBy'] === 'admin'
+						&& strtotime((string)$data['setAt']) !== false
+				),
+				self::anything(),
+				'learniq',
+				'learniqsettings',
+				null,
+				false
+			);
+
+		(new SegmentService($objectService, $this->createMock(LoggerInterface::class)))->setSegment('po', 'admin');
+	}//end testSetSegmentCreatesTheRecordWhenNoneExists()
+
+	/**
+	 * With a record, setting the segment updates that record by its uuid, so
+	 * no second row appears.
+	 *
+	 * @return void
+	 */
+	public function testSetSegmentUpdatesTheCurrentRecord(): void {
+		$row = self::row('corporate', '2026-09-01T09:00:00+00:00');
+		$row['@self']['id'] = 'ee000000-0000-4000-8000-000000000001';
+
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn([$row]);
+		$objectService->expects(self::once())
+			->method('saveObject')
+			->with(
+				self::callback(static fn (array $data): bool => $data['segment'] === 'vo'),
+				self::anything(),
+				'learniq',
+				'learniqsettings',
+				'ee000000-0000-4000-8000-000000000001',
+				false
+			);
+
+		(new SegmentService($objectService, $this->createMock(LoggerInterface::class)))->setSegment('vo', 'admin');
+	}//end testSetSegmentUpdatesTheCurrentRecord()
+
+	/**
+	 * An unknown segment is refused before anything is written.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-an-unknown-segment-is-refused
+	 */
+	public function testSetSegmentRefusesAnUnknownCode(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects(self::never())->method('saveObject');
+
+		$this->expectException(InvalidArgumentException::class);
+		(new SegmentService($objectService, $this->createMock(LoggerInterface::class)))->setSegment('kindergarten', 'admin');
+	}//end testSetSegmentRefusesAnUnknownCode()
 }//end class

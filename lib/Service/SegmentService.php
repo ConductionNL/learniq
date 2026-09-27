@@ -33,6 +33,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use DateTimeImmutable;
+use DateTimeInterface;
+use InvalidArgumentException;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -82,6 +85,48 @@ class SegmentService {
 	private const MAX_ROWS = 50;
 
 	/**
+	 * The card the setup wizard shows for each segment, in SEGMENTS order.
+	 *
+	 * English source strings; the wizard translates `label` and `description`
+	 * through the app catalogue by literal lookup, so neither may interpolate
+	 * anything.
+	 *
+	 * @var array<string, array{label: string, description: string, icon: string}>
+	 */
+	private const CHOICES = [
+		'po'        => [
+			'label'       => 'Primary school',
+			'description' => 'Groups 1 to 8, guardians, report cards and pupil tracking.',
+			'icon'        => 'SchoolOutline',
+		],
+		'vo'        => [
+			'label'       => 'Secondary school',
+			'description' => 'Classes, subjects, report cards and exam preparation.',
+			'icon'        => 'School',
+		],
+		'mbo'       => [
+			'label'       => 'Vocational education (MBO)',
+			'description' => 'Programmes, work placements and progress per student.',
+			'icon'        => 'BriefcaseOutline',
+		],
+		'he'        => [
+			'label'       => 'Higher education (HBO or university)',
+			'description' => 'Programmes, credits and first-year study advice.',
+			'icon'        => 'CertificateOutline',
+		],
+		'corporate' => [
+			'label'       => 'Company',
+			'description' => 'Mandatory training, certificates and compliance for staff.',
+			'icon'        => 'OfficeBuilding',
+		],
+		'training'  => [
+			'label'       => 'Training institute',
+			'description' => 'Courses and trainings for people from outside the organisation.',
+			'icon'        => 'AccountSchoolOutline',
+		],
+	];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService   $objectService OR object service for the singleton read.
@@ -115,6 +160,89 @@ class SegmentService {
 	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
 	 */
 	public function currentSegment(): string {
+		$current = $this->currentRow();
+		if ($current === null) {
+			return self::DEFAULT_SEGMENT;
+		}
+
+		return $current['segment'];
+	}//end currentSegment()
+
+	/**
+	 * Whether a valid segment has been stored at all.
+	 *
+	 * The setup wizard's `segment` step is done once this is true, so an admin
+	 * who already chose on the App settings page is not asked again.
+	 *
+	 * @return bool True when a LearniqSettings row carries a known segment.
+	 *
+	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
+	 */
+	public function hasSegment(): bool {
+		return $this->currentRow() !== null;
+	}//end hasSegment()
+
+	/**
+	 * The six cards the setup wizard's `segment` step offers.
+	 *
+	 * @return array<int, array{id: string, label: string, description: string, icon: string}> The cards, in SEGMENTS order.
+	 *
+	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
+	 */
+	public function listChoices(): array {
+		$choices = [];
+		foreach (self::SEGMENTS as $code) {
+			$choices[] = array_merge(['id' => $code], self::CHOICES[$code]);
+		}
+
+		return $choices;
+	}//end listChoices()
+
+	/**
+	 * Store the instance segment.
+	 *
+	 * Updates the row currentSegment() reads, or creates the record when none
+	 * holds a valid value, so the answer is what the next page load publishes.
+	 * Runs without RBAC: it is only called from the admin-only setup contract,
+	 * which ADR-042 runs with system privileges.
+	 *
+	 * @param string      $segment One of SEGMENTS.
+	 * @param string|null $actor   Nextcloud user id of the admin who chose it.
+	 *
+	 * @return void
+	 *
+	 * @throws InvalidArgumentException When the segment is not one of SEGMENTS.
+	 *
+	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
+	 */
+	public function setSegment(string $segment, ?string $actor): void {
+		if (in_array($segment, self::SEGMENTS, true) === false) {
+			throw new InvalidArgumentException('Unknown segment "' . $segment . '".');
+		}
+
+		$data = [
+			'segment' => $segment,
+			'setBy'   => $actor,
+			'setAt'   => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
+		];
+
+		$current = $this->currentRow();
+		$this->objectService->saveObject(
+			object: $data,
+			register: self::LEARNIQ_REGISTER,
+			schema: self::SETTINGS_SCHEMA,
+			uuid: ($current['uuid'] ?? null),
+			_rbac: false
+		);
+	}//end setSegment()
+
+	/**
+	 * The row currentSegment() answers from: the most recently updated row
+	 * with a known segment, or null.
+	 *
+	 * @return array{segment: string, uuid: string|null}|null The row's segment and uuid.
+	 */
+	private function currentRow(): ?array {
 		try {
 			$rows = $this->objectService->findAll(
 				[
@@ -129,10 +257,10 @@ class SegmentService {
 				'[SegmentService] LearniqSettings read failed ({message}); defaulting to "{default}".',
 				['message' => $e->getMessage(), 'default' => self::DEFAULT_SEGMENT]
 			);
-			return self::DEFAULT_SEGMENT;
+			return null;
 		}
 
-		$segment = self::DEFAULT_SEGMENT;
+		$current = null;
 		$newest  = null;
 		foreach ($rows as $row) {
 			$data = $this->toRow(object: $row);
@@ -144,12 +272,32 @@ class SegmentService {
 			$updated = $this->updatedAt(row: $data);
 			if ($newest === null || $updated > $newest) {
 				$newest  = $updated;
-				$segment = $code;
+				$current = [
+					'segment' => $code,
+					'uuid'    => $this->uuidOf(row: $data),
+				];
 			}
 		}
 
-		return $segment;
-	}//end currentSegment()
+		return $current;
+	}//end currentRow()
+
+	/**
+	 * The uuid of a serialised row, or null when it carries none.
+	 *
+	 * @param array<string, mixed> $row The serialised row.
+	 *
+	 * @return string|null The uuid.
+	 */
+	private function uuidOf(array $row): ?string {
+		foreach ([($row['@self']['id'] ?? null), ($row['id'] ?? null), ($row['uuid'] ?? null)] as $candidate) {
+			if (is_string($candidate) === true && $candidate !== '') {
+				return $candidate;
+			}
+		}
+
+		return null;
+	}//end uuidOf()
 
 	/**
 	 * Normalise a findAll() entry to a plain array.
