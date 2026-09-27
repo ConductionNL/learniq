@@ -1727,6 +1727,7 @@ OC.L10N.register(
         "A fictional primary school with groups 1 to 8, pupils, guardians and one full school year.": "Een verzonnen basisschool met groep 1 tot en met 8, leerlingen, ouders en een volledig schooljaar.",
         "Secondary school": "Middelbare school (vo)",
         "Vocational education (MBO)": "Middelbaar beroepsonderwijs (mbo)",
+        "A fictional MBO college with three programmes, students, work placements and one full school year.": "Een verzonnen mbo-college met drie opleidingen, studenten, stages en een volledig schooljaar.",
         "Higher education (HBO or university)": "Hoger onderwijs (hbo of wo)",
         "Company": "Bedrijf",
         "Training institute": "Opleidingsinstituut",

@@ -1235,6 +1235,7 @@ OC.L10N.register(
         "A fictional primary school with groups 1 to 8, pupils, guardians and one full school year.": "A fictional primary school with groups 1 to 8, pupils, guardians and one full school year.",
         "Secondary school": "Secondary school",
         "Vocational education (MBO)": "Vocational education (MBO)",
+        "A fictional MBO college with three programmes, students, work placements and one full school year.": "A fictional MBO college with three programmes, students, work placements and one full school year.",
         "Higher education (HBO or university)": "Higher education (HBO or university)",
         "Company": "Company",
         "Training institute": "Training institute",
