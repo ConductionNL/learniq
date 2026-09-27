@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Lifecycle\SchoolAdviesFinalizeGuard;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -34,6 +35,8 @@ use Psr\Log\NullLogger;
  * Tests for the SchoolAdviesFinalizeGuard lifecycle guard.
  */
 class SchoolAdviesFinalizeGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build the guard under test.
@@ -54,18 +57,16 @@ class SchoolAdviesFinalizeGuardTest extends TestCase {
 	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-a-higher-doorstroomtoets-result-without-a-raised-definitief-or-a-motivation-blocks-finalisation
 	 */
 	public function testHigherDoorstroomtoetsWithoutRaiseOrMotivationBlocksFinalisation(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'advies-1',
 				'voorlopigAdviesLevel' => 'vmbo-gt',
 				'doorstroomtoetsResultLevel' => 'havo',
 				'definitiefAdviesLevel' => 'vmbo-gt',
 				'heroverwegingMotivation' => '',
-			],
-			'to' => 'definitief',
-		];
+				'lifecycle' => 'definitief',
+			];
 
-		self::assertFalse($this->guard()->check($context));
+		self::assertDenied($this->guard()->check($object, 'vaststellenDefinitief', ''));
 
 	}//end testHigherDoorstroomtoetsWithoutRaiseOrMotivationBlocksFinalisation()
 
@@ -77,18 +78,16 @@ class SchoolAdviesFinalizeGuardTest extends TestCase {
 	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-raising-definitiefadvieslevel-to-match-the-doorstroomtoets-result-allows-finalisation
 	 */
 	public function testRaisedDefinitiefAllowsFinalisation(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'advies-2',
 				'voorlopigAdviesLevel' => 'vmbo-gt',
 				'doorstroomtoetsResultLevel' => 'havo',
 				'definitiefAdviesLevel' => 'havo',
 				'heroverwegingMotivation' => '',
-			],
-			'to' => 'definitief',
-		];
+				'lifecycle' => 'definitief',
+			];
 
-		self::assertTrue($this->guard()->check($context));
+		self::assertAllowed($this->guard()->check($object, 'vaststellenDefinitief', ''));
 
 	}//end testRaisedDefinitiefAllowsFinalisation()
 
@@ -100,18 +99,16 @@ class SchoolAdviesFinalizeGuardTest extends TestCase {
 	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-a-motivation-allows-finalisation-without-raising-the-level
 	 */
 	public function testMotivationAllowsFinalisationWithoutRaise(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'advies-3',
 				'voorlopigAdviesLevel' => 'vmbo-gt',
 				'doorstroomtoetsResultLevel' => 'havo',
 				'definitiefAdviesLevel' => 'vmbo-gt',
 				'heroverwegingMotivation' => 'Niet in het belang van de leerling.',
-			],
-			'to' => 'definitief',
-		];
+				'lifecycle' => 'definitief',
+			];
 
-		self::assertTrue($this->guard()->check($context));
+		self::assertAllowed($this->guard()->check($object, 'vaststellenDefinitief', ''));
 
 	}//end testMotivationAllowsFinalisationWithoutRaise()
 
@@ -123,18 +120,16 @@ class SchoolAdviesFinalizeGuardTest extends TestCase {
 	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-the-provmbo-bb-exemption-allows-finalisation-without-a-raise-or-motivation
 	 */
 	public function testProVmboBbExemptionAllowsFinalisation(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'advies-4',
 				'voorlopigAdviesLevel' => 'pro',
 				'doorstroomtoetsResultLevel' => 'vmbo-bb',
 				'definitiefAdviesLevel' => 'pro',
 				'heroverwegingMotivation' => '',
-			],
-			'to' => 'definitief',
-		];
+				'lifecycle' => 'definitief',
+			];
 
-		self::assertTrue($this->guard()->check($context));
+		self::assertAllowed($this->guard()->check($object, 'vaststellenDefinitief', ''));
 
 	}//end testProVmboBbExemptionAllowsFinalisation()
 
@@ -147,18 +142,16 @@ class SchoolAdviesFinalizeGuardTest extends TestCase {
 	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-a-doorstroomtoets-result-that-does-not-outrank-the-definitief-advies-never-blocks-finalisation
 	 */
 	public function testNonOutrankingResultNeverBlocks(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'advies-5',
 				'voorlopigAdviesLevel' => 'havo',
 				'doorstroomtoetsResultLevel' => 'vmbo-gt',
 				'definitiefAdviesLevel' => 'havo',
 				'heroverwegingMotivation' => '',
-			],
-			'to' => 'definitief',
-		];
+				'lifecycle' => 'definitief',
+			];
 
-		self::assertTrue($this->guard()->check($context));
+		self::assertAllowed($this->guard()->check($object, 'vaststellenDefinitief', ''));
 
 	}//end testNonOutrankingResultNeverBlocks()
 
@@ -168,18 +161,16 @@ class SchoolAdviesFinalizeGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNoDoorstroomtoetsResultNeverBlocks(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'advies-6',
 				'voorlopigAdviesLevel' => 'havo',
 				'doorstroomtoetsResultLevel' => null,
 				'definitiefAdviesLevel' => 'havo',
 				'heroverwegingMotivation' => '',
-			],
-			'to' => 'definitief',
-		];
+				'lifecycle' => 'definitief',
+			];
 
-		self::assertTrue($this->guard()->check($context));
+		self::assertAllowed($this->guard()->check($object, 'vaststellenDefinitief', ''));
 
 	}//end testNoDoorstroomtoetsResultNeverBlocks()
 }//end class

@@ -171,17 +171,15 @@ class DataExchangeRunGuardTest extends TestCase {
 	 * @spec openspec/changes/funding-and-teldatum-checks/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-a-confirmed-teldatum-pre-flight-check-before-it-runs
 	 */
 	public function testTeldatumCheckPendingBlocksRun(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'job-5',
 				'target' => 'bron-rod',
 				'requiresTeldatumCheck' => true,
 				'teldatumCheckStatus' => 'pending',
-			],
-			'from' => 'queued',
-		];
+				'lifecycle' => 'running',
+			];
 
-		self::assertFalse((new DataExchangeRunGuard())->check($context));
+		self::assertDenied((new DataExchangeRunGuard())->check($object, 'run', ''));
 
 	}//end testTeldatumCheckPendingBlocksRun()
 
@@ -193,17 +191,15 @@ class DataExchangeRunGuardTest extends TestCase {
 	 * @spec openspec/changes/funding-and-teldatum-checks/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-a-confirmed-teldatum-pre-flight-check-before-it-runs
 	 */
 	public function testTeldatumCheckConfirmedAllowsRun(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'job-6',
 				'target' => 'bron-rod',
 				'requiresTeldatumCheck' => true,
 				'teldatumCheckStatus' => 'confirmed',
-			],
-			'from' => 'queued',
-		];
+				'lifecycle' => 'running',
+			];
 
-		self::assertTrue((new DataExchangeRunGuard())->check($context));
+		self::assertAllowed((new DataExchangeRunGuard())->check($object, 'run', ''));
 
 	}//end testTeldatumCheckConfirmedAllowsRun()
 
@@ -216,12 +212,9 @@ class DataExchangeRunGuardTest extends TestCase {
 	 * @spec openspec/changes/funding-and-teldatum-checks/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-a-confirmed-teldatum-pre-flight-check-before-it-runs
 	 */
 	public function testJobWithNoTeldatumCheckFieldsIsUnaffected(): void {
-		$context = [
-			'object' => ['id' => 'job-7', 'target' => 'leerplicht'],
-			'from' => 'queued',
-		];
+		$object = ['id' => 'job-7', 'target' => 'leerplicht', 'lifecycle' => 'running'];
 
-		self::assertTrue((new DataExchangeRunGuard())->check($context));
+		self::assertAllowed((new DataExchangeRunGuard())->check($object, 'run', ''));
 
 	}//end testJobWithNoTeldatumCheckFieldsIsUnaffected()
 }//end class
