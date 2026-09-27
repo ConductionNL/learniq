@@ -466,7 +466,20 @@
         "What course evaluations said, per course.": "Что сказали оценки курсов, по курсу.",
         "What was found on placement visits.": "Что выявлено при посещениях рабочего места.",
         "Store": "Магазин",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Установите реестры, схемы и потоки, опубликованные другими организациями."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Установите реестры, схемы и потоки, опубликованные другими организациями.",
+        "Enter the access code you were given to start this assessment.": "Введите полученный код доступа, чтобы начать этот тест.",
+        "Access code": "Код доступа",
+        "This assessment is not open yet. It opens on {date}.": "Этот тест ещё не открыт. Он откроется {date}.",
+        "This assessment is not open yet.": "Этот тест ещё не открыт.",
+        "This assessment is closed.": "Этот тест закрыт.",
+        "This assessment is not available right now.": "Этот тест сейчас недоступен.",
+        "The access code is not correct.": "Код доступа неверный.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Необязательный код, который учащиеся должны ввести, чтобы начать тест, например чтобы ограничить его людьми в экзаменационной аудитории. Оставьте пустым, если код не нужен.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Код доступа, введённый при начале этой попытки. Он проверяется и затем удаляется, поэтому никогда не хранится.",
+        "Teachers": "Преподаватели",
+        "Manager": "Руководитель",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Преподаватели курса, которые могут видеть и оценивать эту попытку. Заполняется сервером.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Руководитель учащегося, который может видеть эту попытку. Заполняется сервером."
     },
     "plurals": null
 }
