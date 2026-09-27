@@ -191,6 +191,19 @@ class SecondarySchoolExampleSetTest extends TestCase {
 			self::assertArrayNotHasKey('eckId', $pupil);
 		}
 
+		// Postcodes start with 0 and phone numbers with 06-0: the Netherlands issues neither.
+		foreach (array_merge(self::of('learner-profile'), self::of('vestiging')) as $row) {
+			$postcode = ($row['address']['postalCode'] ?? $row['postalCode'] ?? '0');
+			self::assertStringStartsWith('0', $postcode, $row['slug']);
+			foreach (($row['emergencyContacts'] ?? []) as $contact) {
+				self::assertStringStartsWith('06-0', $contact['phone'], $row['slug']);
+			}
+		}
+
+		foreach (self::of('admission') as $application) {
+			self::assertStringStartsWith('06-0', ($application['guardianPhone'] ?? '06-0'), $application['slug']);
+		}
+
 		$cohorts   = self::by(self::of('cohort'), 'uuid');
 		$enrolment = self::groupBy(self::of('enrolment'), ['learnerId']);
 		self::assertEqualsCanonicalizing(array_column($pupils, 'ncUserId'), array_keys($enrolment));
@@ -313,6 +326,15 @@ class SecondarySchoolExampleSetTest extends TestCase {
 			}
 		}
 
+		$enrolment = self::by(self::of('enrolment'), 'learnerId');
+		$cards     = self::groupBy(self::of('report-card'), ['learnerId', 'reportPeriodId']);
+		foreach (self::pupils() as $pupil) {
+			foreach ($periods as $uuid => $period) {
+				$expected = (int)($enrolment[$pupil['ncUserId']]['inschrijvingDate'] <= $period['endDate']);
+				self::assertCount($expected, $cards[$pupil['ncUserId'] . '|' . $uuid] ?? [], $pupil['ncUserId'] . ' has one card per period enrolled');
+			}
+		}
+
 		self::assertGreaterThan(800, count(self::of('report-card')));
 		foreach (self::of('report-card') as $card) {
 			$tally   = ($counted[$card['learnerId'] . '|' . $card['reportPeriodId']] ?? []);
@@ -399,8 +421,13 @@ class SecondarySchoolExampleSetTest extends TestCase {
 				$total += $weight;
 				$periods[$entry['period']][] = [$entry['value'] * $weight, $weight];
 				self::assertSame($final['courseId'], $entry['courseId'], $entry['slug']);
+				$part = $final['breakdown']['components'][$entry['componentId']];
+				self::assertEqualsWithDelta($entry['value'], $part['value'], 0.00001, $final['slug']);
+				self::assertEqualsWithDelta($weight, $part['weight'], 0.00001, $final['slug']);
+				self::assertEqualsWithDelta($entry['value'] * $weight, $part['contribution'], 0.00001, $final['slug']);
 			}
 
+			self::assertCount(count($own), $final['breakdown']['components'], $final['slug']);
 			self::assertEqualsWithDelta(round($sum / $total, 4), $final['value'], 0.00001, $final['slug']);
 			self::assertSame($final['value'] >= 5.5, $final['passed'], $final['slug']);
 			foreach ($periods as $period => $parts) {
