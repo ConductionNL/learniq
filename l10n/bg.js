@@ -467,7 +467,16 @@ OC.L10N.register(
         "What course evaluations said, per course.": "Какво казаха оценките на курсовете, по курс.",
         "What was found on placement visits.": "Какво е установено при посещенията на работното място.",
         "Store": "Магазин",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Инсталирайте регистри, схеми и потоци, публикувани от други организации."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Инсталирайте регистри, схеми и потоци, публикувани от други организации.",
+        "Enter the access code you were given to start this assessment.": "Въведете кода за достъп, който сте получили, за да започнете този тест.",
+        "Access code": "Код за достъп",
+        "This assessment is not open yet. It opens on {date}.": "Този тест още не е отворен. Отваря се на {date}.",
+        "This assessment is not open yet.": "Този тест още не е отворен.",
+        "This assessment is closed.": "Този тест е затворен.",
+        "This assessment is not available right now.": "Този тест не е достъпен в момента.",
+        "The access code is not correct.": "Кодът за достъп не е правилен.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Незадължителен код, който обучаемите трябва да въведат, за да започнат теста, например за да го ограничите до хората в изпитната зала. Оставете празно, ако няма код.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Кодът за достъп, въведен при започване на този опит. Проверява се и след това се изтрива, така че никога не се пази."
     },
     "nplurals=2; plural=(n != 1);"
 )

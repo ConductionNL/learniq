@@ -466,7 +466,16 @@
         "What course evaluations said, per course.": "Ko teica kursu novērtējumi, pa kursiem.",
         "What was found on placement visits.": "Kas tika konstatēts darba vietas apmeklējumos.",
         "Store": "Veikals",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Instalējiet reģistrus, shēmas un plūsmas, ko publicējušas citas organizācijas."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Instalējiet reģistrus, shēmas un plūsmas, ko publicējušas citas organizācijas.",
+        "Enter the access code you were given to start this assessment.": "Ievadiet saņemto piekļuves kodu, lai sāktu šo pārbaudi.",
+        "Access code": "Piekļuves kods",
+        "This assessment is not open yet. It opens on {date}.": "Šī pārbaude vēl nav atvērta. Tā tiek atvērta {date}.",
+        "This assessment is not open yet.": "Šī pārbaude vēl nav atvērta.",
+        "This assessment is closed.": "Šī pārbaude ir slēgta.",
+        "This assessment is not available right now.": "Šī pārbaude pašlaik nav pieejama.",
+        "The access code is not correct.": "Piekļuves kods nav pareizs.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Neobligāts kods, kas izglītojamajiem jāievada, lai sāktu testu, piemēram, lai to ierobežotu ar eksāmena telpā esošajiem. Atstājiet tukšu, ja kods nav vajadzīgs.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Piekļuves kods, kas ievadīts šī mēģinājuma sākšanai. Tas tiek pārbaudīts un pēc tam dzēsts, tāpēc tas nekad netiek glabāts."
     },
     "plurals": null
 }

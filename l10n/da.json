@@ -466,7 +466,16 @@
         "What course evaluations said, per course.": "Hvad kursusevalueringerne sagde, pr. kursus.",
         "What was found on placement visits.": "Hvad der blev fundet ved praktikbesøg.",
         "Store": "Butik",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installer registre, skemaer og flows, som andre organisationer har udgivet."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installer registre, skemaer og flows, som andre organisationer har udgivet.",
+        "Enter the access code you were given to start this assessment.": "Indtast den adgangskode, du har fået, for at starte denne prøve.",
+        "Access code": "Adgangskode",
+        "This assessment is not open yet. It opens on {date}.": "Denne prøve er ikke åben endnu. Den åbner {date}.",
+        "This assessment is not open yet.": "Denne prøve er ikke åben endnu.",
+        "This assessment is closed.": "Denne prøve er lukket.",
+        "This assessment is not available right now.": "Denne prøve er ikke tilgængelig lige nu.",
+        "The access code is not correct.": "Adgangskoden er ikke korrekt.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Valgfri kode, som deltagere skal indtaste for at starte prøven, for eksempel for at begrænse den til personerne i eksamenslokalet. Lad feltet stå tomt for ingen kode.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Den adgangskode, der blev indtastet for at starte dette forsøg. Den kontrolleres og slettes derefter, så den gemmes aldrig."
     },
     "plurals": null
 }

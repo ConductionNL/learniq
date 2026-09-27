@@ -467,7 +467,16 @@ OC.L10N.register(
         "What course evaluations said, per course.": "Mida kursuse hinnangud ütlesid, kursuste kaupa.",
         "What was found on placement visits.": "Mida leiti töökoha külastustel.",
         "Store": "Pood",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Paigalda registrid, skeemid ja voog, mille teised organisatsioonid on avaldanud."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Paigalda registrid, skeemid ja voog, mille teised organisatsioonid on avaldanud.",
+        "Enter the access code you were given to start this assessment.": "Sisesta saadud pääsukood, et seda testi alustada.",
+        "Access code": "Pääsukood",
+        "This assessment is not open yet. It opens on {date}.": "See test ei ole veel avatud. See avatakse {date}.",
+        "This assessment is not open yet.": "See test ei ole veel avatud.",
+        "This assessment is closed.": "See test on suletud.",
+        "This assessment is not available right now.": "See test ei ole praegu saadaval.",
+        "The access code is not correct.": "Pääsukood ei ole õige.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Valikuline kood, mille õppijad peavad testi alustamiseks sisestama, näiteks et piirata test eksamiruumis olijatega. Jäta tühjaks, kui koodi pole vaja.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Selle katse alustamiseks sisestatud pääsukood. See kontrollitakse ja kustutatakse seejärel, seega seda ei säilitata kunagi."
     },
     "nplurals=2; plural=(n != 1);"
 )

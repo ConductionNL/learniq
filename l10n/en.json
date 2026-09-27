@@ -978,7 +978,16 @@
         "Not configured": "Not configured",
         "Open settings": "Open settings",
         "Simulated": "Simulated",
-        "Status message": "Status message"
+        "Status message": "Status message",
+        "Enter the access code you were given to start this assessment.": "Enter the access code you were given to start this assessment.",
+        "Access code": "Access code",
+        "This assessment is not open yet. It opens on {date}.": "This assessment is not open yet. It opens on {date}.",
+        "This assessment is not open yet.": "This assessment is not open yet.",
+        "This assessment is closed.": "This assessment is closed.",
+        "This assessment is not available right now.": "This assessment is not available right now.",
+        "The access code is not correct.": "The access code is not correct.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "The access code typed to start this attempt. It is checked and then cleared, so it is never kept."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

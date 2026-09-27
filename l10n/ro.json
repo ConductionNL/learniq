@@ -466,7 +466,16 @@
         "What course evaluations said, per course.": "Ce au spus evaluările cursurilor, pe curs.",
         "What was found on placement visits.": "Ce s-a constatat la vizitele la locul de muncă.",
         "Store": "Magazin",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Instalați registre, scheme și fluxuri publicate de alte organizații."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Instalați registre, scheme și fluxuri publicate de alte organizații.",
+        "Enter the access code you were given to start this assessment.": "Introdu codul de acces primit pentru a începe această evaluare.",
+        "Access code": "Cod de acces",
+        "This assessment is not open yet. It opens on {date}.": "Această evaluare nu este încă deschisă. Se deschide pe {date}.",
+        "This assessment is not open yet.": "Această evaluare nu este încă deschisă.",
+        "This assessment is closed.": "Această evaluare este închisă.",
+        "This assessment is not available right now.": "Această evaluare nu este disponibilă acum.",
+        "The access code is not correct.": "Codul de acces nu este corect.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Cod opțional pe care cursanții trebuie să îl introducă pentru a începe testul, de exemplu pentru a-l limita la persoanele din sala de examen. Lasă gol pentru niciun cod.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Codul de acces introdus pentru a începe această încercare. Este verificat și apoi șters, deci nu este păstrat niciodată."
     },
     "plurals": null
 }
