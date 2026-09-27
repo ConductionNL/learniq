@@ -3336,8 +3336,24 @@
                             "role-specific",
                             "department"
                         ],
-                        "description": "Audience scope for this regulation.",
+                        "description": "Audience scope for this regulation: all-employees covers every active learner, department covers the learners in audienceDepartments (and their sub-departments), role-specific and board cover the learners holding one of audienceRoles. A scope with an empty list covers nobody.",
                         "title": "Audience Scope"
+                    },
+                    "audienceDepartments": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Departments this regulation covers when audienceScope is department, written like LearnerProfile.department. A department also covers every department under it.",
+                        "title": "Audience Departments"
+                    },
+                    "audienceRoles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Learniq roles (as in LearnerProfile.roles) this regulation covers when audienceScope is role-specific or board.",
+                        "title": "Audience Roles"
                     },
                     "requiresAnnualRenewal": {
                         "type": "boolean",
@@ -4193,7 +4209,7 @@
                     "department": {
                         "type": "string",
                         "nullable": true,
-                        "description": "Organisational department for grouping and reporting.",
+                        "description": "Organisational unit, written as a path from the top down with a slash between levels (for example Operations/Infra/Team A). Compliance rolls up along the path, from team to department to directorate, and a regulation scoped to a department covers the units under it.",
                         "title": "Department"
                     },
                     "mergedInto": {
@@ -4201,7 +4217,7 @@
                         "nullable": true,
                         "format": "uuid",
                         "$ref": "LearnerProfile",
-                        "description": "UUID of the surviving LearnerProfile this profile was merged into. Set by the merge transition; null for active profiles.",
+                        "description": "UUID of the surviving LearnerProfile this profile was merged into. Set before firing the merge transition, which requires it and keeps it; null for active profiles.",
                         "title": "Merged Into"
                     },
                     "lifecycle": {
@@ -4229,7 +4245,8 @@
                         "merge": {
                             "from": "active",
                             "to": "merged",
-                            "description": "Merges this profile into another LearnerProfile. The surviving profile is referenced via mergedInto."
+                            "description": "Merges this profile into another LearnerProfile. The surviving profile is referenced via mergedInto. LearnerMergeGuard refuses the merge unless mergedInto names another active profile and the two accounts hold no open enrolment in the same course; LearnerMergeHandler then moves the merged account's records to the surviving profile.",
+                            "requires": "OCA\\Learniq\\Lifecycle\\LearnerMergeGuard"
                         },
                         "delete": {
                             "from": "active",
@@ -7792,6 +7809,15 @@
                         "description": "ISO-8601 datetime after which the assessment is no longer available.",
                         "title": "Available Until"
                     },
+                    "accessCode": {
+                        "type": "string",
+                        "nullable": true,
+                        "writeOnly": true,
+                        "maxLength": 64,
+                        "description": "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.",
+                        "x-notes": "writeOnly: OpenRegister strips it from every read, admins included, so learners cannot read it off the Assessment. AssessmentAttemptGateListener reads the raw row and compares it with the code typed on AssessmentResult create (learniq#946).",
+                        "title": "Access code"
+                    },
                     "proctoring": {
                         "type": "object",
                         "nullable": true,
@@ -8038,9 +8064,8 @@
                 "icon": "CheckboxMarkedOutline",
                 "version": "0.1.0",
                 "title": "AssessmentResult",
-                "description": "A learner's attempt at an Assessment. Append-only — a finished attempt is immutable evidence. Auto-scored items receive autoScore on the submit transition; essay items remain null until a teacher provides manualScore.",
+                "description": "A learner's attempt at an Assessment. A finished attempt is evidence: once submitted its answers are frozen and only a teacher writes manualScore, enforced by AssessmentResultIntegrityListener (not appendOnly, which refuses every lifecycle write). Auto-scored items receive autoScore on the submit transition; essay items remain null until a teacher provides manualScore.",
                 "type": "object",
-                "appendOnly": true,
                 "x-openregister": {
                     "active": true,
                     "hardDelete": false,
@@ -8165,6 +8190,33 @@
                         "description": "UUID of the associated ProctoringSession. Null for unproctored attempts.",
                         "title": "Proctoring Session ID"
                     },
+                    "accessCode": {
+                        "type": "string",
+                        "nullable": true,
+                        "writeOnly": true,
+                        "maxLength": 64,
+                        "description": "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.",
+                        "x-notes": "Input only. AssessmentAttemptGateListener compares it with Assessment.accessCode on create and clears it through ObjectCreatingEvent::setModifiedData (learniq#946).",
+                        "title": "Access code"
+                    },
+                    "teacherIds": {
+                        "type": "array",
+                        "readOnly": true,
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Teachers of the course who may see and mark this attempt. Filled in by the server.",
+                        "x-notes": "Stamped on create by AssessmentResultAudience (run from AssessmentAttemptGateListener) from Cohort.teacherIds (the Assessment's cohort, or every cohort of its course); any client value is overwritten. Backs the authorization read/update match (learniq#949).",
+                        "title": "Teachers"
+                    },
+                    "managerId": {
+                        "type": "string",
+                        "nullable": true,
+                        "readOnly": true,
+                        "description": "Manager of the learner, who may see this attempt. Filled in by the server.",
+                        "x-notes": "Stamped on create by AssessmentResultAudience (run from AssessmentAttemptGateListener) from LearnerProfile.managerId; any client value is overwritten. Backs the authorization read match (learniq#949).",
+                        "title": "Manager"
+                    },
                     "gradeEntryId": {
                         "type": "string",
                         "nullable": true,
@@ -8207,8 +8259,51 @@
                         }
                     }
                 },
+                "authorization": {
+                    "read": [
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        },
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "managerId": "$userId"
+                            }
+                        },
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "teacherIds": {
+                                    "$contains": "$userId"
+                                }
+                            }
+                        }
+                    ],
+                    "create": [
+                        "authenticated"
+                    ],
+                    "update": [
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerId": "$userId"
+                            }
+                        },
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "teacherIds": {
+                                    "$contains": "$userId"
+                                }
+                            }
+                        }
+                    ]
+                },
                 "x-property-rbac": {
-                    "_comment": "WF1 (wave-12): assessment results contain responses and scores — student PII. Learner sees own results; admins see all.",
+                    "_comment": "Documentation only: OpenRegister does not read x-property-rbac; the authorization block above is what it enforces (learniq#949). Assessment results contain responses and scores, student PII. The learner, their manager and the course's teachers see a result; admins see all; peers do not.",
                     "read": {
                         "anyOf": [
                             {
@@ -8218,6 +8313,20 @@
                                 "match": {
                                     "field": "learnerId",
                                     "operator": "eq",
+                                    "value": "$userId"
+                                }
+                            },
+                            {
+                                "match": {
+                                    "field": "managerId",
+                                    "operator": "eq",
+                                    "value": "$userId"
+                                }
+                            },
+                            {
+                                "match": {
+                                    "field": "teacherIds",
+                                    "operator": "contains",
                                     "value": "$userId"
                                 }
                             }
