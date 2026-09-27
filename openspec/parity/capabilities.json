@@ -1409,7 +1409,7 @@
       "name": "Keep a certificate visible to its holder and your admins, nobody else.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json Credential.x-property-rbac.read, learnerId eq $userId or role admin",
+        "evidence": "lib/Settings/learniq_register.json Credential.authorization.read: learnerId eq $userId, hr, compliance-officers; admins pass the admin bypass (learniq#963; x-property-rbac is not read by Open Register, and the group-only block refused the holder until then)",
         "owner": "ConductionNL/openregister"
       },
       "provider": "openregister",
