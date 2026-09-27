@@ -148,9 +148,13 @@ class AdmissionsWaitlistPromoter implements IEventListener {
 
 		$waitlisted = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::APPLICATION_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::APPLICATION_SCHEMA,
+					]
+				),
 				'limit' => 2000,
 			]
 		);

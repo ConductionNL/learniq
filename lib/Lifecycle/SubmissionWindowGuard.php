@@ -51,6 +51,14 @@ use Psr\Log\LoggerInterface;
  * - dueAt is null  -> `submit` allowed, `submitLate` denied (there is no late).
  * - now <= dueAt   -> `submit` allowed, `submitLate` denied.
  * - now > dueAt    -> `submit` denied; `submitLate` allowed only with allowLateSubmission.
+ *
+ * When a teacher asked for the work to be handed in again (the `reopen`
+ * transition), the Submission carries `resubmissionDueAt` and that date is the
+ * deadline instead of the Assignment's `dueAt` (submission-resubmission-action).
+ * Only staff can set it: SubmissionResubmissionDateListener keeps learners from
+ * writing it.
+ *
+ * @spec openspec/specs/assignments/spec.md#requirement-a-learner-hands-in-their-own-work-and-the-teacher-marks-it
  */
 class SubmissionWindowGuard implements LifecycleGuardInterface {
 
@@ -90,6 +98,7 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
 	 * @spec openspec/specs/assignments/spec.md#requirement-a-learner-hands-in-their-own-work-and-the-teacher-marks-it
+	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$assignmentId = $object['assignmentId'] ?? null;
@@ -110,8 +119,31 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 			return GuardResult::deny('The assignment of this submission could not be found.');
 		}
 
-		return $this->windowVerdict(assignment: $assignment, late: $action === self::LATE_ACTION);
+		return $this->windowVerdict(
+			assignment: $this->withDeadline(assignment: $assignment, submission: $object),
+			late: $action === self::LATE_ACTION
+		);
 	}//end check()
+
+	/**
+	 * The Assignment with the deadline that applies to this Submission: a
+	 * requested resubmission's own date when one is set, else the Assignment's.
+	 *
+	 * @param array<string,mixed> $assignment The Assignment.
+	 * @param array<string,mixed> $submission The Submission being handed in.
+	 *
+	 * @return array<string,mixed>
+	 *
+	 * @spec openspec/changes/submission-resubmission-action/specs/assignments/spec.md#requirement-a-requested-resubmission-has-its-own-deadline
+	 */
+	private function withDeadline(array $assignment, array $submission): array {
+		$resubmissionDueAt = ($submission['resubmissionDueAt'] ?? null);
+		if (is_string($resubmissionDueAt) === false || $resubmissionDueAt === '') {
+			return $assignment;
+		}
+
+		return array_merge($assignment, ['dueAt' => $resubmissionDueAt]);
+	}//end withDeadline()
 
 	/**
 	 * Judge the hand-in against the Assignment's deadline.
@@ -165,9 +197,13 @@ class SubmissionWindowGuard implements LifecycleGuardInterface {
 
 		$assignments = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'assignment',
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'assignment',
+					]
+				),
 				'limit' => 1,
 			]
 		);

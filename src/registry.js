@@ -28,6 +28,9 @@ import {
 	CnTimelineView,
 	CnWizardDialog,
 } from '@conduction/nextcloud-vue'
+// assignment-missing-submissions-view: body section on AssignmentDetail.
+import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
+import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
 import AuditTrailWidget from './components/widgets/AuditTrailWidget.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
@@ -79,6 +82,9 @@ import CoursePackageImportView from './views/CoursePackageImportView.vue'
 // coordinator/opleidingscommissie view of a course's CourseQualityScore
 // trend over time, response rate, and raw free-text answers.
 import CourseQualityReport from './views/CourseQualityReport.vue'
+// curriculum-coverage-matrix-view: goals by year with planned and assessed
+// marked, plus the gap list per subject and year (read-only CnDataMatrix).
+import CurriculumCoverageMatrixView from './views/CurriculumCoverageMatrixView.vue'
 // Per-role dashboard route wrappers (group-gated menu items; replaces the
 // single role-switcher dashboard).
 import DashboardAdmin from './views/DashboardAdmin.vue'
@@ -138,7 +144,6 @@ import MarkSubmissionView from './views/MarkSubmissionView.vue'
 import MyLearningRecordView from './views/MyLearningRecordView.vue'
 // personal-timetable: the signed-in user's own week view over Session objects.
 import MyTimetable from './views/MyTimetable.vue'
-import OrderPaymentPanel from './views/OrderPaymentPanel.vue'
 import OsoDossierReviewView from './views/OsoDossierReviewView.vue'
 import PeerReviewMarkingView from './views/PeerReviewMarkingView.vue'
 import PeopleDashboard from './views/PeopleDashboard.vue'
@@ -147,12 +152,6 @@ import PeopleDashboard from './views/PeopleDashboard.vue'
 // surface — the two named custom views the eportfolio spec permits.
 import PortfolioBuilder from './views/PortfolioBuilder.vue'
 import PortfolioReviewView from './views/PortfolioReviewView.vue'
-// privacy-governance-surfaces (P-new-6/P-new-7): the board-facing privacy
-// governance dashboard — mirrors LearniqAiProcessingDisclosure's singleton,
-// no-:id-route shape. Composes PrivacyGovernanceController's server-side
-// read (rbac-declare-groups member counts, best-effort 2FA adoption,
-// DataExchangeJob partner-approval counts).
-import PrivacyGovernanceDashboard from './views/PrivacyGovernanceDashboard.vue'
 import ProctoringReviewQueue from './views/ProctoringReviewQueue.vue'
 // pupil-dossier-notes: the one genuine new custom view this change adds —
 // the chronological DossierNote/BehaviourIncident/WellbeingCheckIn +
@@ -252,6 +251,7 @@ export default {
 	CourseBuilder: page(CourseBuilder),
 	CoursePackageImportView: page(CoursePackageImportView),
 	CourseQualityReport: page(CourseQualityReport),
+	CurriculumCoverageMatrixView: page(CurriculumCoverageMatrixView),
 	DashboardAdmin: page(DashboardAdmin),
 	DashboardTeacher: page(DashboardTeacher),
 	DashboardStudent: page(DashboardStudent),
@@ -271,7 +271,6 @@ export default {
 	MarkSubmissionView: page(MarkSubmissionView),
 	MyLearningRecordView: page(MyLearningRecordView),
 	MyTimetable: page(MyTimetable),
-	OrderPaymentPanel: page(OrderPaymentPanel),
 	PeerReviewMarkingView: page(PeerReviewMarkingView),
 	PeopleDashboard: page(PeopleDashboard),
 	PortfolioBuilder: page(PortfolioBuilder),
@@ -286,12 +285,25 @@ export default {
 	LearniqCompliance: page(LearniqCompliance),
 	LearniqDashboards: page(LearniqDashboards),
 	LearniqLearnerHome: page(LearniqLearnerHome),
-	PrivacyGovernanceDashboard: page(PrivacyGovernanceDashboard),
 	SelfAssessmentView: page(SelfAssessmentView),
 	SkillsGapDashboard: page(SkillsGapDashboard),
 	SubjectChoicePicker: page(SubjectChoicePicker),
 	TakeAssessmentView: page(TakeAssessmentView),
 	TimetableConflictQueue: page(TimetableConflictQueue),
+
+	// --- Body sections (manifest `config.bodyWidgets`), resolved by
+	//     CnBodySections. Not grid widgets, so not counted by the
+	//     custom-widget ratchet. ---
+	AssignmentHandInStatus: {
+		kind: 'section',
+		component: AssignmentHandInStatus,
+		_note: 'Hand-in status on AssignmentDetail: the cohort roster minus the learners who handed in, split into started and not started, overdue after dueAt. Staff only; self-fetches assignment, cohort(s), submissions and learner names.',
+	},
+	AssignmentPeerReviewAllocation: {
+		kind: 'section',
+		component: AssignmentPeerReviewAllocation,
+		_note: 'Peer review on AssignmentDetail: states the strategy and reviewers per submission and, unless allocation is manual, posts to /api/peer-review/{id}/allocate and reports the counts. Staff only, and only when peerReviewEnabled.',
+	},
 
 	// --- Shared library widgets registered under manifest widget keys (ADR-036). ---
 	'audit-trail': {

@@ -129,16 +129,17 @@ class SubjectAndTeacherAssignmentRegisterTest extends TestCase {
 	}//end testCohortTeacherAssignmentsIsAdditiveWithDuoPartnerRole()
 
 	/**
-	 * Seed fixtures exercise the duo-partner day split on one Cohort seed
-	 * and two independent SubjectTeacherAssignments on the same cohort.
+	 * The primary school example set exercises the duo-partner day split on
+	 * "Groep 5/6" and two independent SubjectTeacherAssignments on it.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testSeedFixturesExerciseDuoPartnerSplitAndSubjectAssignments(): void {
-		$cohortSeeds = $this->config['components']['schemas']['Cohort']['x-openregister-seed'];
-		self::assertSame('Groep 5/6', $cohortSeeds[0]['name']);
+		$cohort = self::poObject(schema: 'cohort', field: 'name', value: 'Groep 5/6');
 
-		$assignments = $cohortSeeds[0]['teacherAssignments'];
+		$assignments = $cohort['teacherAssignments'];
 		self::assertCount(2, $assignments);
 		$roles = array_column($assignments, 'role');
 		sort($roles);
@@ -148,16 +149,51 @@ class SubjectAndTeacherAssignmentRegisterTest extends TestCase {
 		$duoPartner = array_values(array_filter($assignments, static fn (array $a): bool => $a['role'] === 'duo-partner'))[0];
 		self::assertEmpty(array_intersect($primary['days'], $duoPartner['days']));
 
-		// A floor: later changes add Staff seed rows (staff-role-vocabulary-extension added one).
-		$staffSeeds = $this->config['components']['schemas']['Staff']['x-openregister-seed'];
-		self::assertGreaterThanOrEqual(2, count($staffSeeds));
+		$staffIds = array_column(self::poObjects(schema: 'staff'), 'ncUserId');
+		self::assertContains($primary['teacherId'], $staffIds);
+		self::assertContains($duoPartner['teacherId'], $staffIds);
 
-		$subjectAssignmentSeeds = $this->config['components']['schemas']['SubjectTeacherAssignment']['x-openregister-seed'];
-		self::assertCount(2, $subjectAssignmentSeeds);
-		self::assertSame($cohortSeeds[0]['id'], $subjectAssignmentSeeds[0]['cohortId']);
-		self::assertSame($cohortSeeds[0]['id'], $subjectAssignmentSeeds[1]['cohortId']);
-		self::assertNotSame($subjectAssignmentSeeds[0]['courseId'], $subjectAssignmentSeeds[1]['courseId']);
-		self::assertNotSame($subjectAssignmentSeeds[0]['teacherId'], $subjectAssignmentSeeds[1]['teacherId']);
+		$onCohort = array_values(array_filter(
+			self::poObjects(schema: 'subjectteacherassignment'),
+			static fn (array $a): bool => $a['cohortId'] === $cohort['uuid']
+		));
+		self::assertGreaterThanOrEqual(2, count($onCohort));
+		self::assertGreaterThanOrEqual(2, count(array_unique(array_column($onCohort, 'courseId'))));
+		self::assertGreaterThanOrEqual(2, count(array_unique(array_column($onCohort, 'teacherId'))));
 
 	}//end testSeedFixturesExerciseDuoPartnerSplitAndSubjectAssignments()
+
+	/**
+	 * The objects of one schema in the primary school example set, where the
+	 * curated primary school seeds moved to (segment-example-datasets-po).
+	 *
+	 * @param string $schema The schema slug.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function poObjects(string $schema): array {
+		$path = __DIR__ . '/../../../lib/Settings/profiles/po.json';
+		$set  = json_decode((string)file_get_contents($path), true);
+
+		return ($set['x-openregister']['seedData']['objects'][$schema] ?? []);
+	}//end poObjects()
+
+	/**
+	 * The first object of a schema in the example set whose field equals a value.
+	 *
+	 * @param string $schema The schema slug.
+	 * @param string $field  The field to match.
+	 * @param mixed  $value  The value it must hold.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function poObject(string $schema, string $field, mixed $value): array {
+		foreach (self::poObjects(schema: $schema) as $object) {
+			if (($object[$field] ?? null) === $value) {
+				return $object;
+			}
+		}
+
+		self::fail('No ' . $schema . ' with ' . $field . ' = ' . json_encode($value) . ' in the primary school example set.');
+	}//end poObject()
 }//end class

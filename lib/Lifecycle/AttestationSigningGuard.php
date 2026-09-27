@@ -170,9 +170,13 @@ class AttestationSigningGuard implements LifecycleGuardInterface {
 
 			$results = $this->objectService->findAll(
 				[
-					'register' => 'learniq',
-					'schema' => 'xapi-statement',
-					'filters' => $filters,
+					'filters' => array_merge(
+						$filters,
+						[
+							'register' => 'learniq',
+							'schema' => 'xapi-statement',
+						]
+					),
 					'limit' => 1,
 				]
 			);

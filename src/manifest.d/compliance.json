@@ -20,6 +20,12 @@
 						"hr",
 						"admin"
 					]
+				},
+				"workspace.segment": {
+					"in": [
+						"corporate",
+						"training"
+					]
 				}
 			}
 		},
@@ -35,6 +41,12 @@
 						"compliance-officer",
 						"hr",
 						"admin"
+					]
+				},
+				"workspace.segment": {
+					"in": [
+						"corporate",
+						"training"
 					]
 				}
 			}
@@ -155,23 +167,24 @@
 			"id": "DataSubjectRequests",
 			"route": "/compliance/data-subject-requests",
 			"type": "index",
-			"title": "Correction & deletion requests",
+			"title": "Privacy requests",
 			"config": {
-				"register": "learniq",
-				"schema": "data-subject-request"
+				"register": "data-subject-requests",
+				"schema": "dataSubjectRequest",
+				"_note": "privacy-reuse-openregister-register (D20): reads OpenRegister's shared data-subject-requests register through the generic objects API. Learniq no longer ships its own DataSubjectRequest schema; MigrateDataSubjectRequestsToOpenRegister moved the existing rows here."
 			}
 		},
 		{
 			"id": "DataSubjectRequestDetail",
 			"route": "/compliance/data-subject-requests/:id",
 			"type": "detail",
-			"title": "Correction & deletion request",
+			"title": "Privacy request",
 			"config": {
-				"register": "learniq",
-				"schema": "data-subject-request",
-				"_note": "privacy-governance-surfaces: a staff-logged AVG correction or deletion request. Body leads with the request data (kind, learner, description, requested/decided dates); no Related/Files leaves — the audit trail IS the point of the record. Sidebar keeps metadata + the append-only auditTrail as History, same shape as ExternalTrainingRecordDetail's own audit sidebar.",
+				"register": "data-subject-requests",
+				"schema": "dataSubjectRequest",
+				"_note": "privacy-reuse-openregister-register (D20): an OpenRegister dataSubjectRequest case (six AVG rights, the art-12 deadline, escalation), read through the generic objects API. Body leads with the case data; no Related/Files leaves. The lifecycle field is OpenRegister's `status`. Sidebar keeps metadata and the audit trail as History.",
 				"lifecycleActions": {
-					"field": "lifecycle"
+					"field": "status"
 				},
 				"widgets": [
 					{
@@ -312,11 +325,11 @@
 								},
 								{
 									"id": "DataSubjectRequestsCard",
-									"label": "Correction & deletion requests",
+									"label": "Privacy requests",
 									"route": "DataSubjectRequests",
 									"order": 45,
 									"icon": "AccountAlertOutline",
-									"description": "AVG correction and deletion requests, tracked to completion"
+									"description": "AVG requests, tracked to their legal deadline"
 								},
 								{
 									"id": "PartnerApprovalJobsCard",

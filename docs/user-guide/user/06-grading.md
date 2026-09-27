@@ -52,6 +52,18 @@ While an entry is published but its visibility window hasn't opened yet, its lif
 
 Each user can also set a personal quiet-hours window (for example 22:00–07:00) under **Settings → Notifications**, so Scholiq notifications they'd otherwise receive during that window are deferred until it ends. Deadline reminders are declared with enough lead time that they still land before the deadline even after a quiet-hours deferral.
 
+## Tests in the portal
+
+Pupils can also take a test in the school portal (the portaliq app), under **My tests**. The portal shows a test when it is published, the pupil is enrolled in its course or group, the test is open for them and they have an attempt left.
+
+- The pupil answers one question at a time. Every answer is saved at once.
+- The countdown includes extra time from an approved exam accommodation. When time is up, the test is handed in.
+- A test with an access code asks for it in the portal too.
+- One attempt per test, unless you allow more with **Maximum attempts**.
+- Closed questions are scored when the pupil hands in. You score open questions as usual.
+- The pupil sees the result only after you grade the attempt and publish the grade.
+- A test with supervision settings (test mode or a proctoring provider) is not offered in the portal. Pupils take it in the app.
+
 ## Common issues
 
 | Symptom | Fix |

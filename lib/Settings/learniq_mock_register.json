@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.11",
+    "version": "1.1.26",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -9760,9 +9760,9 @@
       "Entitlement": {
         "slug": "entitlement",
         "icon": "CheckDecagramOutline",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "title": "Entitlement",
-        "description": "What a paid, non-voluntary Order grants (e.g. access to a paid Course). Structurally cannot become a gate for a voluntary fee: the grant transition (pending -> active) requires BOTH FeeItemVoluntaryEntitlementGuard (refuses if the referenced FeeItem.voluntary is true, per the Wet vrijwillige ouderbijdrage) AND EntitlementOrderPaidGuard (refuses unless the referenced Order has reached paid). Nothing in this capability gates access on a pending Entitlement — only active ones grant anything — so it is structurally impossible for a voluntary fee to ever become an access gate through this capability's own mechanism. See openspec/changes/school-payments/.",
+        "description": "What a paid, non-voluntary fee grants (e.g. access to a paid Course). A school charges through shillinq: learniq raises the fee's contribution there (the FeeItem is the chargeable, the learner the beneficiary), shillinq books the receipt, and the pay screen is portaliq's. The grant transition (pending -> active) requires BOTH FeeItemVoluntaryEntitlementGuard (refuses if the referenced FeeItem.voluntary is true, per the Wet vrijwillige ouderbijdrage) AND EntitlementPaymentSettledGuard (refuses unless shillinq reports the PaymentRequest named in paymentRequestRef settled, for this fee and this learner; fails closed without shillinq). Nothing gates access on a pending Entitlement, so a voluntary fee can never become an access gate. See openspec/changes/payments-to-shillinq-migration/.",
         "type": "object",
         "x-openregister": {
           "active": true,
@@ -9771,7 +9771,6 @@
         },
         "required": [
           "feeItemId",
-          "orderLineId",
           "learnerId",
           "grantedResourceKind",
           "tenant_id"
@@ -9784,12 +9783,27 @@
             "description": "UUID of the FeeItem this Entitlement is for. FeeItemVoluntaryEntitlementGuard reads this FeeItem's voluntary flag to decide whether the grant transition may ever succeed.",
             "title": "Fee Item ID"
           },
-          "orderLineId": {
+          "paymentRequestRef": {
             "type": "string",
-            "format": "uuid",
-            "$ref": "OrderLine",
-            "description": "UUID of the OrderLine this Entitlement is for. EntitlementOrderPaidGuard resolves this OrderLine's parent Order to check whether payment has completed.",
-            "title": "Order Line ID"
+            "nullable": true,
+            "default": null,
+            "title": "Payment request",
+            "description": "Id of the shillinq PaymentRequest raised for this entitlement's fee and learner. Learniq stamps it when it raises the contribution and again when shillinq reports the request settled; the grant guard reads the request back from shillinq before it allows the grant."
+          },
+          "paymentSettledAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "default": null,
+            "title": "Payment settled at",
+            "description": "When shillinq first reported the payment request settled (its settledAt)."
+          },
+          "paymentSettledVia": {
+            "type": "string",
+            "nullable": true,
+            "default": null,
+            "title": "Payment settled via",
+            "description": "How shillinq reports the payment completed (its settledVia): provider, cash, pin, bank-transfer, waived or other."
           },
           "learnerId": {
             "type": "string",
@@ -9853,8 +9867,9 @@
               "to": "revoked"
             }
           },
-          "_comment": "requires is a single DI-tag string in this register's lifecycle engine (verified: ReportPeriodLockGuard's own docblock/changelog entry — OpenRegister's LifecycleAnnotationValidator rejects a non-string requires value) — there is no 'second requires entry' array shape. FeeItemVoluntaryEntitlementGuard composes OCA\\Learniq\\Lifecycle\\EntitlementOrderPaidGuard internally (constructor-injected, called after the voluntary check passes), mirroring ReportPeriodLockGuard's own composition of FraudCaseBlockGuard. The voluntary check runs FIRST and short-circuits so a voluntary FeeItem is refused regardless of the linked Order's paid status, exactly as the spec's own scenario requires."
+          "_comment": "requires is a single DI-tag string in this register's lifecycle engine (OpenRegister's LifecycleAnnotationValidator rejects a non-string requires value). FeeItemVoluntaryEntitlementGuard composes OCA\\Learniq\\Lifecycle\\EntitlementPaymentSettledGuard internally, called after the voluntary check passes; the voluntary check runs FIRST and short-circuits. grant is fired by ShillinqContributionSettledListener when shillinq first stamps settledAt on the PaymentRequest for this fee and learner; grant and revoke may also be fired by hand."
         },
+        "authorization": null,
         "x-property-rbac": {
           "_comment": "Mirrors FinalGrade's block: the learner reads their own Entitlement; admin/finance roles read all. A learner MUST NOT read another learner's Entitlement.",
           "read": {
@@ -11692,9 +11707,9 @@
       "FeeItem": {
         "slug": "fee-item",
         "icon": "CurrencyEur",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "FeeItem",
-        "description": "The chargeable definition: what is being charged for (course enrolment, school trip, materials, schoolkassa contribution, MBO contractonderwijs), its amount/currency/tax posture, and a required voluntary flag. voluntary: true is the Wet vrijwillige ouderbijdrage case (schoolkassa, trips, materials a school chooses to make voluntary) — FeeItemVoluntaryEntitlementGuard structurally blocks any Entitlement referencing a voluntary FeeItem from ever activating. voluntary: false is a genuine paid product (contractonderwijs, a paid course) that may legitimately gate access via Entitlement/EntitlementOrderPaidGuard. See openspec/changes/school-payments/.",
+        "description": "The chargeable definition: what is being charged for (course enrolment, school trip, materials, schoolkassa contribution, MBO contractonderwijs), its amount/currency/tax posture, and a required voluntary flag. voluntary: true is the Wet vrijwillige ouderbijdrage case (schoolkassa, trips, materials a school chooses to make voluntary): FeeItemVoluntaryEntitlementGuard structurally blocks any Entitlement referencing a voluntary FeeItem from ever activating. voluntary: false is a genuine paid product (contractonderwijs, a paid course) that may gate access through an Entitlement once shillinq reports its payment settled. The invoice and payment request are shillinq's: learniq raises them for the fee's learners through shillinq's contribution contract, with this FeeItem as the chargeable.",
         "type": "object",
         "x-openregister": {
           "active": true,
@@ -16379,499 +16394,6 @@
           ]
         }
       },
-      "Order": {
-        "slug": "order",
-        "icon": "CartOutline",
-        "version": "0.1.0",
-        "title": "Order",
-        "description": "The payer-facing request for payment: payer (guardian/learner/employer), beneficiary learner, total, currency, due date, and a lifecycle draft -> open -> partially-paid | paid, draft | open -> cancelled, paid -> refunded. isOverdue is a materialised calculation using the identical @now-comparison idiom Enrolment.isOverdue already uses; dueSoon/overdue reuse Enrolment.dueReminder/Enrolment.overdue's exact x-openregister-notifications shape. See openspec/changes/school-payments/.",
-        "type": "object",
-        "x-openregister": {
-          "active": true,
-          "hardDelete": false,
-          "searchable": true
-        },
-        "required": [
-          "payerKind",
-          "learnerId",
-          "totalAmount",
-          "currency",
-          "tenant_id"
-        ],
-        "properties": {
-          "payerKind": {
-            "type": "string",
-            "enum": [
-              "guardian",
-              "learner",
-              "employer"
-            ],
-            "description": "Who is paying this Order.",
-            "title": "Payer Kind"
-          },
-          "payerId": {
-            "type": "string",
-            "nullable": true,
-            "description": "Nextcloud user ID of the payer, when the payer has an NC account (guardian or learner paying for themselves).",
-            "title": "Payer ID"
-          },
-          "payerName": {
-            "type": "string",
-            "nullable": true,
-            "description": "Free-text payer name, for an employer or other payer with no Nextcloud account.",
-            "title": "Payer Name"
-          },
-          "payerEmail": {
-            "type": "string",
-            "nullable": true,
-            "description": "Payer email address, for an employer or other payer with no Nextcloud account, or as a notification fallback.",
-            "title": "Payer Email"
-          },
-          "learnerId": {
-            "type": "string",
-            "description": "Nextcloud user ID of the beneficiary learner — who this Order's chargeables are for.",
-            "title": "Learner ID"
-          },
-          "learnerRef": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true,
-            "$ref": "LearnerProfile",
-            "description": "UUID reference to the LearnerProfile object — the portal-subject scoping key (ADR-046 A4). Distinct from learnerId, which is the Nextcloud user id. Additive and optional; existing rows leave it unset and stay invisible to the portal (fail-closed) until backfilled.",
-            "title": "Learner Ref"
-          },
-          "totalAmount": {
-            "type": "number",
-            "minimum": 0,
-            "description": "The total amount owed for this Order — the sum of its OrderLines. Validated (not merely trusted) by OrderTotalValidationGuard at the draft -> open transition.",
-            "title": "Total Amount"
-          },
-          "currency": {
-            "type": "string",
-            "default": "EUR",
-            "description": "ISO 4217 currency code. Defaults to EUR.",
-            "title": "Currency"
-          },
-          "dueDate": {
-            "type": "string",
-            "nullable": true,
-            "format": "date",
-            "description": "ISO date by which payment is due. Null means no deadline.",
-            "title": "Due Date"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "description": "Free-text notes about this Order.",
-            "title": "Notes"
-          },
-          "lifecycle": {
-            "type": "string",
-            "enum": [
-              "draft",
-              "open",
-              "partially-paid",
-              "paid",
-              "cancelled",
-              "refunded"
-            ],
-            "default": "draft",
-            "description": "Order lifecycle state. Managed by the OR lifecycle engine; do not set directly.",
-            "title": "Lifecycle State"
-          },
-          "tenant_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Tenant identifier for multi-tenant scoping.",
-            "title": "Tenant ID"
-          }
-        },
-        "x-openregister-lifecycle": {
-          "property": "lifecycle",
-          "initial": "draft",
-          "transitions": {
-            "finalize": {
-              "from": "draft",
-              "to": "open",
-              "requires": "OCA\\Learniq\\Lifecycle\\OrderTotalValidationGuard"
-            },
-            "markPartiallyPaid": {
-              "from": "open",
-              "to": "partially-paid"
-            },
-            "markPaid": {
-              "from": [
-                "open",
-                "partially-paid"
-              ],
-              "to": "paid"
-            },
-            "cancel": {
-              "from": [
-                "draft",
-                "open"
-              ],
-              "to": "cancelled"
-            },
-            "refund": {
-              "from": "paid",
-              "to": "refunded"
-            }
-          },
-          "_comment": "markPartiallyPaid/markPaid are driven by PaymentTransactionStatusHandler (event-driven, ADR-022 — NOT a TimedJob) reacting to a PaymentTransaction reaching succeeded, never called directly by a controller. refund is driven by the same handler reacting to a PaymentTransaction reaching refunded."
-        },
-        "x-openregister-calculations": {
-          "isOverdue": {
-            "type": "boolean",
-            "materialise": true,
-            "expression": {
-              "and": [
-                {
-                  "or": [
-                    {
-                      "eq": [
-                        {
-                          "prop": "lifecycle"
-                        },
-                        "open"
-                      ]
-                    },
-                    {
-                      "eq": [
-                        {
-                          "prop": "lifecycle"
-                        },
-                        "partially-paid"
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "ne": [
-                    {
-                      "prop": "dueDate"
-                    },
-                    null
-                  ]
-                },
-                {
-                  "lt": [
-                    {
-                      "prop": "dueDate"
-                    },
-                    {
-                      "now": []
-                    }
-                  ]
-                }
-              ]
-            }
-          }
-        },
-        "x-openregister-notifications": {
-          "dueSoon": {
-            "trigger": {
-              "type": "scheduled",
-              "intervalSec": 86400,
-              "filter": {
-                "dueDate": {
-                  "operator": "withinNext",
-                  "value": "P3D"
-                }
-              }
-            },
-            "enabled": true,
-            "channels": [
-              "nc-notification"
-            ],
-            "recipients": [
-              {
-                "kind": "field",
-                "field": "payerId"
-              }
-            ],
-            "subject": {
-              "nl": "Je betaling moet binnenkort voldaan zijn",
-              "en": "Your payment is due soon"
-            }
-          },
-          "overdue": {
-            "trigger": {
-              "type": "scheduled",
-              "intervalSec": 86400,
-              "filter": {
-                "dueDate": {
-                  "operator": "olderThan",
-                  "value": "PT0S"
-                }
-              }
-            },
-            "enabled": true,
-            "channels": [
-              "nc-notification"
-            ],
-            "recipients": [
-              {
-                "kind": "field",
-                "field": "payerId"
-              }
-            ],
-            "subject": {
-              "nl": "Je betaling is over tijd",
-              "en": "Your payment is overdue"
-            }
-          }
-        },
-        "x-property-rbac": {
-          "_comment": "Mirrors FinalGrade's block: the payer (payerId) and the beneficiary learner (learnerId) read their own Order; admin/finance roles read all. A learner/guardian MUST NOT read another payer's Order.",
-          "read": {
-            "anyOf": [
-              {
-                "role": "admin"
-              },
-              {
-                "role": "finance"
-              },
-              {
-                "match": {
-                  "field": "payerId",
-                  "operator": "eq",
-                  "value": "$userId"
-                }
-              },
-              {
-                "match": {
-                  "field": "learnerId",
-                  "operator": "eq",
-                  "value": "$userId"
-                }
-              }
-            ]
-          }
-        },
-        "x-openregister-seed": []
-      },
-      "OrderLine": {
-        "slug": "order-line",
-        "icon": "FormatListNumbered",
-        "version": "0.1.0",
-        "title": "OrderLine",
-        "description": "One priced line on an Order, referencing a FeeItem. A snapshot child row (mirrors AttendanceRecord/GradeEntry's shape), not an inline array — no verified precedent in this register for an array-of-composite-objects property carrying its own $ref relations. Order.totalAmount is validated against the sum of its OrderLines' lineTotal by OrderTotalValidationGuard at the draft -> open transition. See openspec/changes/school-payments/.",
-        "type": "object",
-        "x-openregister": {
-          "active": true,
-          "hardDelete": false,
-          "searchable": true
-        },
-        "required": [
-          "orderId",
-          "feeItemId",
-          "description",
-          "quantity",
-          "unitAmount",
-          "lineTotal",
-          "tenant_id"
-        ],
-        "properties": {
-          "orderId": {
-            "type": "string",
-            "format": "uuid",
-            "$ref": "Order",
-            "description": "UUID of the parent Order this line belongs to.",
-            "title": "Order ID"
-          },
-          "feeItemId": {
-            "type": "string",
-            "format": "uuid",
-            "$ref": "FeeItem",
-            "description": "UUID of the FeeItem this line charges for.",
-            "title": "Fee Item ID"
-          },
-          "description": {
-            "type": "string",
-            "description": "Snapshot of the FeeItem's name at the time this line was added — kept stable even if the FeeItem is later edited.",
-            "title": "Line Description"
-          },
-          "quantity": {
-            "type": "integer",
-            "minimum": 1,
-            "default": 1,
-            "description": "Number of units charged.",
-            "title": "Quantity"
-          },
-          "unitAmount": {
-            "type": "number",
-            "minimum": 0,
-            "description": "Amount charged per unit, in the parent Order's currency.",
-            "title": "Unit Amount"
-          },
-          "lineTotal": {
-            "type": "number",
-            "minimum": 0,
-            "description": "quantity * unitAmount. Summed across all of an Order's OrderLines by OrderTotalValidationGuard and compared against Order.totalAmount.",
-            "title": "Line Total"
-          },
-          "tenant_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Tenant identifier for multi-tenant scoping.",
-            "title": "Tenant ID"
-          }
-        },
-        "x-openregister-seed": []
-      },
-      "PaymentTransaction": {
-        "slug": "payment-transaction",
-        "icon": "CreditCardOutline",
-        "version": "0.1.0",
-        "title": "PaymentTransaction",
-        "description": "One PSP round-trip against an Order (pending -> awaiting-redirect -> succeeded | failed | expired | cancelled, succeeded -> refunded). Append-only per ADR-008, mirroring Attestation's evidentiary shape. Records only the opaque status OpenConnector's (not-yet-built) PSP adapter returns — scholiq never parses a Mollie/Stripe-specific payload field, matching the 'forward the response as-is' posture LtiToolPlacementController already establishes for LTI. See openspec/changes/school-payments/.",
-        "type": "object",
-        "x-openregister": {
-          "active": true,
-          "hardDelete": false,
-          "searchable": true
-        },
-        "required": [
-          "orderId",
-          "pspProvider",
-          "amount",
-          "currency",
-          "initiatedBy",
-          "initiatedAt",
-          "tenant_id"
-        ],
-        "properties": {
-          "orderId": {
-            "type": "string",
-            "format": "uuid",
-            "$ref": "Order",
-            "description": "UUID of the Order this payment attempt is for.",
-            "title": "Order ID"
-          },
-          "pspProvider": {
-            "type": "string",
-            "enum": [
-              "mollie",
-              "stripe"
-            ],
-            "description": "Which payment service provider this transaction routes through — matches the credential-broker's catalogued mollie/stripe provider identifiers (openregister/lib/Settings/credential-providers.json).",
-            "title": "PSP Provider"
-          },
-          "pspPaymentId": {
-            "type": "string",
-            "nullable": true,
-            "description": "Opaque payment identifier returned by OpenConnector's PSP adapter once initiation succeeds. Scholiq stores this value only — never inspects or parses it. KNOWN GAP (documented, not fabricated): this schema is appendOnly (OpenRegister rejects any UPDATE, INSERT only), and this value is only knowable AFTER the PaymentTransaction row already exists (the row's own id is needed as the callback reference sent to OpenConnector before OpenConnector can return a pspPaymentId), so PaymentTransactionController does not currently persist it on any code path. Declared here for forward-compatibility; see PaymentTransactionController::initiate()'s docblock.",
-            "title": "PSP Payment ID"
-          },
-          "amount": {
-            "type": "number",
-            "description": "Amount of this payment attempt. PaymentTransactionController::initiate() always computes this server-side from the Order's remaining balance and never accepts a client-supplied amount. KNOWN GAP (documented, not fabricated): OpenRegister's generic object-create API carries no role restriction on this schema — an admin-only x-openregister-authorization.create (mirroring XapiStatement's stopgap) would also block initiate()'s own non-admin payer callers, and ObjectService::runAsSystem()'s own docblock warns against wrapping user-triggered writes in elevated system trust — so a payer who bypassed the controller and POSTed directly to the OR object API could still set an arbitrary amount. This residual risk is acknowledged here rather than silently assumed away; see PaymentTransactionController::initiate()'s docblock.",
-            "title": "Amount"
-          },
-          "currency": {
-            "type": "string",
-            "default": "EUR",
-            "description": "ISO 4217 currency code. Defaults to EUR.",
-            "title": "Currency"
-          },
-          "initiatedBy": {
-            "type": "string",
-            "description": "Nextcloud user ID of the caller who initiated this payment attempt.",
-            "title": "Initiated By"
-          },
-          "initiatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When this payment attempt was initiated.",
-            "title": "Initiated At"
-          },
-          "completedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time",
-            "description": "When this payment attempt reached a terminal state (succeeded/failed/expired/cancelled). Not populated by this change's callback() implementation — a documented follow-up, not a fabricated guarantee (see PaymentTransactionController docblock).",
-            "title": "Completed At"
-          },
-          "lifecycle": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "awaiting-redirect",
-              "succeeded",
-              "failed",
-              "expired",
-              "cancelled",
-              "refunded"
-            ],
-            "default": "pending",
-            "description": "PaymentTransaction lifecycle state. Managed by the OR lifecycle engine; do not set directly.",
-            "title": "Lifecycle State"
-          },
-          "tenant_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Tenant identifier for multi-tenant scoping.",
-            "title": "Tenant ID"
-          }
-        },
-        "x-openregister-lifecycle": {
-          "property": "lifecycle",
-          "initial": "pending",
-          "transitions": {
-            "initiate": {
-              "from": "pending",
-              "to": "awaiting-redirect"
-            },
-            "succeed": {
-              "from": "awaiting-redirect",
-              "to": "succeeded"
-            },
-            "fail": {
-              "from": [
-                "pending",
-                "awaiting-redirect"
-              ],
-              "to": "failed"
-            },
-            "expire": {
-              "from": "awaiting-redirect",
-              "to": "expired"
-            },
-            "cancel": {
-              "from": "awaiting-redirect",
-              "to": "cancelled"
-            },
-            "refund": {
-              "from": "succeeded",
-              "to": "refunded"
-            }
-          },
-          "_comment": "initiate is driven by PaymentTransactionController::initiate() itself once OpenConnector's launch-initiation call succeeds (moving the freshly-created pending row to awaiting-redirect). fail additionally allows pending -> failed directly, for the case where the outbound OpenConnector call itself fails synchronously inside initiate() before any redirect ever happened. succeed/expire/cancel/refund (and the awaiting-redirect branch of fail) are driven by PaymentTransactionController::callback() (OpenConnector's PSP adapter reporting a status update) — never called directly by a raw OR object-API client."
-        },
-        "x-property-rbac": {
-          "_comment": "Mirrors FinalGrade's block, adapted to this schema's actual fields (PaymentTransaction has no payerId/learnerId of its own): the caller who initiated the payment (initiatedBy) reads their own PaymentTransaction; admin/finance roles read all.",
-          "read": {
-            "anyOf": [
-              {
-                "role": "admin"
-              },
-              {
-                "role": "finance"
-              },
-              {
-                "match": {
-                  "field": "initiatedBy",
-                  "operator": "eq",
-                  "value": "$userId"
-                }
-              }
-            ]
-          }
-        },
-        "x-openregister-seed": [],
-        "appendOnly": true
-      },
       "PeerFeedbackSummary": {
         "slug": "peer-feedback-summary",
         "icon": "MessageTextOutline",
@@ -20789,7 +20311,7 @@
       "Submission": {
         "slug": "submission",
         "icon": "FileUploadOutline",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "title": "Submission",
         "description": "A learner's (or group's) hand-in for an Assignment. Carries file attachment references (bytes live in OpenRegister file attachments), rubric scores from the teacher's marking, and the proposed grade before it becomes a GradeEntry via the grading spec.",
         "type": "object",
@@ -20850,6 +20372,13 @@
             "nullable": true,
             "description": "Free-text teacher feedback returned to the learner when the Submission is returned.",
             "title": "Feedback"
+          },
+          "resubmissionDueAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "title": "Hand in again by",
+            "description": "When a teacher asks for the work to be handed in again, the new deadline. Set only through the reopen transition, and only by staff. While set, the hand-in window runs to this date instead of the assignment's own deadline."
           },
           "gradeEntryId": {
             "type": "string",
@@ -22476,7 +22005,20 @@
           "navigationLock": true
         },
         "gradeEntryComponentId": "Voorbeeld Gradeentrycomponentid 1",
-        "competencyIds": [],
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
         "releaseConditions": []
       },
       {
@@ -22628,7 +22170,9 @@
           "slug": "assessmentresult-assessmentresult-1-1"
         },
         "assessmentId": "00000000-0000-4000-8000-000000000000",
+        "assessmentTitle": "Toets hoofdstuk 3",
         "learnerId": "Voorbeeld Learnerid 1",
+        "learnerRef": "00000000-0000-4000-8000-000000000000",
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "attemptNumber": 1,
         "responses": [],
@@ -22646,7 +22190,9 @@
           "slug": "assessmentresult-assessmentresult-2-2"
         },
         "assessmentId": "00000000-0000-4000-8000-000000000001",
+        "assessmentTitle": "Tentamen statistiek",
         "learnerId": "Voorbeeld Learnerid 2",
+        "learnerRef": "00000000-0000-4000-8000-000000000001",
         "tenant_id": "00000000-0000-4000-8000-000000000001",
         "attemptNumber": 1,
         "responses": [],
@@ -22664,7 +22210,9 @@
           "slug": "assessmentresult-assessmentresult-3-3"
         },
         "assessmentId": "00000000-0000-4000-8000-000000000002",
+        "assessmentTitle": "Leesvaardigheid Engels",
         "learnerId": "Voorbeeld Learnerid 3",
+        "learnerRef": "00000000-0000-4000-8000-000000000002",
         "tenant_id": "00000000-0000-4000-8000-000000000002",
         "attemptNumber": 1,
         "responses": [],
@@ -22700,7 +22248,20 @@
         "visibleFrom": "2026-03-01T09:00:00+00:00",
         "visibleUntil": "2026-03-01T09:00:00+00:00",
         "plagiarismProvider": "Voorbeeld Plagiarismprovider 1",
-        "competencyIds": [],
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
         "peerReviewEnabled": false,
         "selfAssessmentEnabled": false,
         "peerReviewersPerSubmission": 2,
@@ -23589,6 +23150,11 @@
         "description": "Voorbeeld Description 1",
         "order": 1,
         "requiredForRoles": [],
+        "applicableYears": [
+          "groep 5",
+          "groep 6"
+        ],
+        "subjectId": "00000000-0000-4000-8000-000000000000",
         "lifecycle": "draft"
       },
       {
@@ -23605,6 +23171,10 @@
         "description": "Voorbeeld Description 2",
         "order": 2,
         "requiredForRoles": [],
+        "applicableYears": [
+          "2026-2027"
+        ],
+        "subjectId": null,
         "lifecycle": "published"
       },
       {
@@ -23621,6 +23191,8 @@
         "description": "Voorbeeld Description 3",
         "order": 3,
         "requiredForRoles": [],
+        "applicableYears": [],
+        "subjectId": "00000000-0000-4000-8000-000000000002",
         "lifecycle": "archived"
       },
       {
@@ -24006,6 +23578,57 @@
         ],
         "ectsCredits": 0.0,
         "competencyIds": [],
+        "prerequisiteCourseIds": [],
+        "license": "CC-BY-SA-4.0",
+        "author": "Voorbeeldschool, sectie Nederlands",
+        "subject": "Nederlandse taal",
+        "educationalLevels": [
+          "havo",
+          "vwo"
+        ]
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "Course",
+          "slug": "course-voorbeeld-name-1-1"
+        },
+        "code": "Voorbeeld Code 1",
+        "name": "Voorbeeld Name 1",
+        "level": "po",
+        "language": "ab",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "name_nl": "Voorbeeld Name Nl 1",
+        "description": "Voorbeeld Description 1",
+        "tags": [
+          "Voorbeeld Tags 1"
+        ],
+        "mandatoryTraining": false,
+        "regulationSlug": "Voorbeeld Regulationslug 1",
+        "renewalCourseSlug": "Voorbeeld Renewalcourseslug 1",
+        "certificateTemplate": "Voorbeeld Certificatetemplate 1",
+        "lifecycle": "draft",
+        "parentCourseId": "00000000-0000-4000-8000-000000000000",
+        "order": 1,
+        "curriculumPlanId": "00000000-0000-4000-8000-000000000000",
+        "programmeIds": [
+          "00000000-0000-4000-8000-000000000000"
+        ],
+        "ectsCredits": 0.0,
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
         "prerequisiteCourseIds": []
       },
       {
@@ -27242,6 +26865,47 @@
         "availableAfterDays": 0,
         "mandatoryTraining": false,
         "regulationSlug": "Voorbeeld Regulationslug 1",
+        "lifecycle": "draft",
+        "subject": "Nederlandse taal",
+        "educationalLevels": [
+          "havo"
+        ]
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "Lesson",
+          "slug": "lesson-voorbeeld-name-1-1"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000000",
+        "name": "Voorbeeld Name 1",
+        "order": 1,
+        "contentType": "text",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "contentRef": "Voorbeeld Contentref 1",
+        "blocks": [],
+        "durationMinutes": 1,
+        "learningObjectives": [
+          "Voorbeeld Learningobjectives 1"
+        ],
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
+        "releaseConditions": [],
+        "availableAfterDays": 0,
+        "mandatoryTraining": false,
+        "regulationSlug": "Voorbeeld Regulationslug 1",
         "lifecycle": "draft"
       },
       {
@@ -27342,6 +27006,57 @@
         "enrolmentId": "00000000-0000-4000-8000-000000000002",
         "verb": "Voorbeeld Verb 3",
         "score": 3.0
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-onboarding-file",
+          "slug": "lesson-onboarding-file-lessononboardingfile-1-1"
+        },
+        "teacherId": "jdevries",
+        "fileId": 1,
+        "fileName": "Breuken vergelijken.docx",
+        "format": "docx",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "filePath": "/Lessen inbox/Breuken vergelijken.docx",
+        "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "detectedAt": "2026-03-01T09:00:00+00:00",
+        "lifecycle": "detected"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-onboarding-file",
+          "slug": "lesson-onboarding-file-lessononboardingfile-2-2"
+        },
+        "teacherId": "jdevries",
+        "fileId": 2,
+        "fileName": "Fotosynthese.pptx",
+        "format": "pptx",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "filePath": "/Lessen inbox/Fotosynthese.pptx",
+        "mimeType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "detectedAt": "2026-03-02T09:00:00+00:00",
+        "courseId": "00000000-0000-4000-8000-000000000001",
+        "lessonId": "00000000-0000-4000-8000-000000000001",
+        "importNote": "1 hidden slide left out",
+        "lifecycle": "imported"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-onboarding-file",
+          "slug": "lesson-onboarding-file-lessononboardingfile-3-3"
+        },
+        "teacherId": "mbakker",
+        "fileId": 3,
+        "fileName": "Kerstviering.docx",
+        "format": "docx",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "filePath": "/Lessen inbox/Kerstviering.docx",
+        "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "detectedAt": "2026-03-03T09:00:00+00:00",
+        "lifecycle": "dismissed"
       },
       {
         "@self": {
@@ -29121,11 +28836,13 @@
         "learnerRefs": [
           "00000000-0000-4000-8000-000000000000"
         ],
+        "learnerRef": "00000000-0000-4000-8000-000000000000",
         "attachmentRefs": [
           "Voorbeeld Attachmentrefs 1"
         ],
         "submittedAt": "2026-03-01T09:00:00+00:00",
         "feedbackText": "Voorbeeld Feedbacktext 1",
+        "resubmissionDueAt": "2026-03-15T17:00:00+00:00",
         "gradeEntryId": "00000000-0000-4000-8000-000000000000",
         "rubricScores": [
           {
@@ -29151,6 +28868,7 @@
         "learnerRefs": [
           "00000000-0000-4000-8000-000000000001"
         ],
+        "learnerRef": "00000000-0000-4000-8000-000000000001",
         "attachmentRefs": [
           "Voorbeeld Attachmentrefs 2"
         ],
@@ -29181,6 +28899,7 @@
         "learnerRefs": [
           "00000000-0000-4000-8000-000000000002"
         ],
+        "learnerRef": "00000000-0000-4000-8000-000000000002",
         "attachmentRefs": [
           "Voorbeeld Attachmentrefs 3"
         ],
@@ -29713,7 +29432,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-1-1"
         },
-        "segment": "po",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 1",
         "setAt": "2026-03-01T09:00:00+00:00"
       },
@@ -29723,7 +29442,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-2-2"
         },
-        "segment": "vo",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 2",
         "setAt": "2026-03-02T09:00:00+00:00"
       },
@@ -29733,7 +29452,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-3-3"
         },
-        "segment": "mbo",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 3",
         "setAt": "2026-03-03T09:00:00+00:00"
       },
@@ -30045,51 +29764,6 @@
         "privacybijsluiterVersion": "Voorbeeld Privacybijsluiterversion 3",
         "lastReviewedAt": "2026-03-03T09:00:00+00:00",
         "lastReviewedBy": "Voorbeeld Lastreviewedby 3"
-      },
-      {
-        "@self": {
-          "register": "learniq",
-          "schema": "data-subject-request",
-          "slug": "data-subject-request-datasubjectrequest-1-1"
-        },
-        "kind": "correction",
-        "learnerId": "Voorbeeld Learnerid 1",
-        "submittedBy": "Voorbeeld Submittedby 1",
-        "requestedAt": "2026-03-01T09:00:00+00:00",
-        "tenant_id": "00000000-0000-4000-8000-000000000000",
-        "description": "Voorbeeld Description 1",
-        "decidedAt": "2026-03-01T09:00:00+00:00",
-        "auditTrail": []
-      },
-      {
-        "@self": {
-          "register": "learniq",
-          "schema": "data-subject-request",
-          "slug": "data-subject-request-datasubjectrequest-2-2"
-        },
-        "kind": "deletion",
-        "learnerId": "Voorbeeld Learnerid 2",
-        "submittedBy": "Voorbeeld Submittedby 2",
-        "requestedAt": "2026-03-02T09:00:00+00:00",
-        "tenant_id": "00000000-0000-4000-8000-000000000001",
-        "description": "Voorbeeld Description 2",
-        "decidedAt": "2026-03-02T09:00:00+00:00",
-        "auditTrail": []
-      },
-      {
-        "@self": {
-          "register": "learniq",
-          "schema": "data-subject-request",
-          "slug": "data-subject-request-datasubjectrequest-3-3"
-        },
-        "kind": "correction",
-        "learnerId": "Voorbeeld Learnerid 3",
-        "submittedBy": "Voorbeeld Submittedby 3",
-        "requestedAt": "2026-03-03T09:00:00+00:00",
-        "tenant_id": "00000000-0000-4000-8000-000000000002",
-        "description": "Voorbeeld Description 3",
-        "decidedAt": "2026-03-03T09:00:00+00:00",
-        "auditTrail": []
       },
       {
         "@self": {
@@ -30461,6 +30135,339 @@
         "dataExchangeJobId": null,
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "lifecycle": "voorlopig"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-share-consent",
+          "slug": "course-share-consent-courseshareconsent-1-1"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000000",
+        "purpose": "download",
+        "confirmedBy": "Voorbeeld Confirmedby 1",
+        "confirmedAt": "2026-03-01T09:00:00+00:00",
+        "noPupilData": true,
+        "rightsCleared": true,
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "courseName": "Voorbeeld Coursename 1",
+        "license": "Voorbeeld License 1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-share-consent",
+          "slug": "course-share-consent-courseshareconsent-2-2"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000001",
+        "purpose": "store",
+        "confirmedBy": "Voorbeeld Confirmedby 2",
+        "confirmedAt": "2026-03-02T09:00:00+00:00",
+        "noPupilData": false,
+        "rightsCleared": false,
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "courseName": "Voorbeeld Coursename 2",
+        "license": "Voorbeeld License 2"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-share-consent",
+          "slug": "course-share-consent-courseshareconsent-3-3"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000002",
+        "purpose": "download",
+        "confirmedBy": "Voorbeeld Confirmedby 3",
+        "confirmedAt": "2026-03-03T09:00:00+00:00",
+        "noPupilData": true,
+        "rightsCleared": true,
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "courseName": "Voorbeeld Coursename 3",
+        "license": "Voorbeeld License 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "shared-course-package",
+          "slug": "shared-course-package-voorbeeld-title-1-1"
+        },
+        "slug": "Voorbeeld Slug 1",
+        "kind": "course-package",
+        "title": "Voorbeeld Title 1",
+        "package": {},
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "description": "Voorbeeld Description 1",
+        "subject": "Voorbeeld Subject 1",
+        "level": "Voorbeeld Level 1",
+        "levels": [],
+        "goals": "Voorbeeld Goals 1",
+        "goalsCovered": [],
+        "language": "Voorbeeld Language 1",
+        "license": "Voorbeeld License 1",
+        "author": "Voorbeeld Author 1",
+        "cardLine": "Voorbeeld Cardline 1",
+        "version": "Voorbeeld Version 1",
+        "lessonCount": 0,
+        "sharedAt": "2026-03-01T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "shared-course-package",
+          "slug": "shared-course-package-voorbeeld-title-2-2"
+        },
+        "slug": "Voorbeeld Slug 2",
+        "kind": "course-package",
+        "title": "Voorbeeld Title 2",
+        "package": {},
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "description": "Voorbeeld Description 2",
+        "subject": "Voorbeeld Subject 2",
+        "level": "Voorbeeld Level 2",
+        "levels": [],
+        "goals": "Voorbeeld Goals 2",
+        "goalsCovered": [],
+        "language": "Voorbeeld Language 2",
+        "license": "Voorbeeld License 2",
+        "author": "Voorbeeld Author 2",
+        "cardLine": "Voorbeeld Cardline 2",
+        "version": "Voorbeeld Version 2",
+        "lessonCount": 1,
+        "sharedAt": "2026-03-02T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "shared-course-package",
+          "slug": "shared-course-package-voorbeeld-title-3-3"
+        },
+        "slug": "Voorbeeld Slug 3",
+        "kind": "course-package",
+        "title": "Voorbeeld Title 3",
+        "package": {},
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "description": "Voorbeeld Description 3",
+        "subject": "Voorbeeld Subject 3",
+        "level": "Voorbeeld Level 3",
+        "levels": [],
+        "goals": "Voorbeeld Goals 3",
+        "goalsCovered": [],
+        "language": "Voorbeeld Language 3",
+        "license": "Voorbeeld License 3",
+        "author": "Voorbeeld Author 3",
+        "cardLine": "Voorbeeld Cardline 3",
+        "version": "Voorbeeld Version 3",
+        "lessonCount": 2,
+        "sharedAt": "2026-03-03T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-1-1"
+        },
+        "title": "Voorbeeld Title 1",
+        "note": "Voorbeeld Note 1",
+        "authorId": "Voorbeeld Authorid 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "participantIds": [],
+        "status": "open",
+        "destroyAfter": "2026-03-01"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-2-2"
+        },
+        "title": "Voorbeeld Title 2",
+        "note": "Voorbeeld Note 2",
+        "authorId": "Voorbeeld Authorid 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "participantIds": [],
+        "status": "closed",
+        "destroyAfter": "2026-03-02"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-3-3"
+        },
+        "title": "Voorbeeld Title 3",
+        "note": "Voorbeeld Note 3",
+        "authorId": "Voorbeeld Authorid 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "participantIds": [],
+        "status": "open",
+        "destroyAfter": "2026-03-03"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CurriculumCoverage",
+          "slug": "curriculum-coverage-groep-5-all"
+        },
+        "frameworkId": "00000000-0000-4000-8000-000000000001",
+        "year": "groep 5",
+        "subjectScope": "all",
+        "subjectId": null,
+        "goalCount": 3,
+        "plannedCount": 2,
+        "assessedCount": 1,
+        "plannedNotAssessedCount": 1,
+        "uncoveredCount": 1,
+        "plannedPercent": 66.7,
+        "assessedPercent": 33.3,
+        "plannedByDepth": [
+          {
+            "depth": "Voorbeeld Levelid 1",
+            "count": 1
+          },
+          {
+            "depth": null,
+            "count": 1
+          }
+        ],
+        "assessedByDepth": [
+          {
+            "depth": "Voorbeeld Levelid 1",
+            "count": 1
+          }
+        ],
+        "uncoveredIds": [
+          "00000000-0000-4000-8000-000000000002"
+        ],
+        "plannedNotAssessedIds": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "goals": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "planned": true,
+            "assessed": true,
+            "plannedDepth": "Voorbeeld Levelid 1",
+            "assessedDepth": "Voorbeeld Levelid 1",
+            "plannedRefs": 2,
+            "assessedRefs": 1
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "planned": true,
+            "assessed": false,
+            "plannedDepth": null,
+            "assessedDepth": null,
+            "plannedRefs": 1,
+            "assessedRefs": 0
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000002",
+            "planned": false,
+            "assessed": false,
+            "plannedDepth": null,
+            "assessedDepth": null,
+            "plannedRefs": 0,
+            "assessedRefs": 0
+          }
+        ],
+        "lastRecomputedAt": "2026-09-27T12:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CurriculumCoverage",
+          "slug": "curriculum-coverage-groep-5-rekenen"
+        },
+        "frameworkId": "00000000-0000-4000-8000-000000000001",
+        "year": "groep 5",
+        "subjectScope": "subject",
+        "subjectId": "00000000-0000-4000-8000-000000000000",
+        "goalCount": 2,
+        "plannedCount": 2,
+        "assessedCount": 1,
+        "plannedNotAssessedCount": 1,
+        "uncoveredCount": 0,
+        "plannedPercent": 100.0,
+        "assessedPercent": 50.0,
+        "plannedByDepth": [
+          {
+            "depth": "Voorbeeld Levelid 1",
+            "count": 1
+          },
+          {
+            "depth": null,
+            "count": 1
+          }
+        ],
+        "assessedByDepth": [
+          {
+            "depth": "Voorbeeld Levelid 1",
+            "count": 1
+          }
+        ],
+        "uncoveredIds": [],
+        "plannedNotAssessedIds": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "goals": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "planned": true,
+            "assessed": true,
+            "plannedDepth": "Voorbeeld Levelid 1",
+            "assessedDepth": "Voorbeeld Levelid 1",
+            "plannedRefs": 2,
+            "assessedRefs": 1
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "planned": true,
+            "assessed": false,
+            "plannedDepth": null,
+            "assessedDepth": null,
+            "plannedRefs": 1,
+            "assessedRefs": 0
+          }
+        ],
+        "lastRecomputedAt": "2026-09-27T12:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CurriculumCoverage",
+          "slug": "curriculum-coverage-groep-5-none"
+        },
+        "frameworkId": "00000000-0000-4000-8000-000000000001",
+        "year": "groep 5",
+        "subjectScope": "none",
+        "subjectId": null,
+        "goalCount": 1,
+        "plannedCount": 0,
+        "assessedCount": 0,
+        "plannedNotAssessedCount": 0,
+        "uncoveredCount": 1,
+        "plannedPercent": 0.0,
+        "assessedPercent": 0.0,
+        "plannedByDepth": [],
+        "assessedByDepth": [],
+        "uncoveredIds": [
+          "00000000-0000-4000-8000-000000000002"
+        ],
+        "plannedNotAssessedIds": [],
+        "goals": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000002",
+            "planned": false,
+            "assessed": false,
+            "plannedDepth": null,
+            "assessedDepth": null,
+            "plannedRefs": 0,
+            "assessedRefs": 0
+          }
+        ],
+        "lastRecomputedAt": "2026-09-27T12:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
       }
     ]
   }

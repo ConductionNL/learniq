@@ -34,6 +34,11 @@
         <file name="tests/Stubs/Service/TenantKeyService.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/TalkLinkService.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/FileService.php" preloadClasses="true" />
+        <!-- OpenRegister's store plane (ADR-080) and its SSRF guard, injected and
+             called by learniq's course store (lesson-sharing-via-store-plane). -->
+        <file name="tests/Stubs/AppHost/Service/StoreDescriptor.php" preloadClasses="true" />
+        <file name="tests/Stubs/AppHost/Service/GenericStoreService.php" preloadClasses="true" />
+        <file name="tests/Stubs/Service/SecurityService.php" preloadClasses="true" />
         <!-- OpenRegister's lifecycle guard contract. A `requires` guard must
              implement the interface or OpenRegister refuses to run it. -->
         <file name="tests/Stubs/Lifecycle/GuardResult.php" preloadClasses="true" />

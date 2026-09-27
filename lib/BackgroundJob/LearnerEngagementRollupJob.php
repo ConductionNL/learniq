@@ -189,9 +189,9 @@ class LearnerEngagementRollupJob extends ActorForwardedJob {
 	private function findExistingEngagement(string $learnerId, string $tenantId): ?array {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_ENGAGEMENT_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNER_ENGAGEMENT_SCHEMA,
 					'learnerId' => $learnerId,
 					'tenant_id' => $tenantId,
 				],
@@ -232,9 +232,9 @@ class LearnerEngagementRollupJob extends ActorForwardedJob {
 
 		$rules = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::POINT_RULE_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::POINT_RULE_SCHEMA,
 					'kind' => self::STREAK_MILESTONE_KIND,
 					'lifecycle' => 'active',
 					'tenant_id' => $tenantId,

@@ -6,7 +6,7 @@
  * One of the domain-scoped registrars `Application::register()` delegates its
  * event-listener wiring to, so no single class has to name every listener in
  * the app. This one wires the intake-to-enrolment path (prerequisites,
- * admissions, subject choice), plus payments, session-change notices and the
+ * admissions, subject choice), plus session-change notices and the
  * optional openconnector wallet-claim listener.
  *
  * Every listener below is an ADR-031 legitimate exception: a cross-object
@@ -39,7 +39,6 @@ use OCA\Learniq\Listener\ApplicationConversionHandler;
 use OCA\Learniq\Listener\AssessmentAttemptGateListener;
 use OCA\Learniq\Listener\CredentialRenewalListener;
 use OCA\Learniq\Listener\EnrolmentPrerequisiteListener;
-use OCA\Learniq\Listener\PaymentTransactionStatusHandler;
 use OCA\Learniq\Listener\SessionChangeNoticeHandler;
 use OCA\Learniq\Listener\SubjectChoiceEnrolmentBridge;
 use OCA\Learniq\Listener\SubjectChoiceValidator;
@@ -47,11 +46,11 @@ use OCA\Learniq\Listener\WalletOfferConcludedListener;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 /**
- * Wires the admissions, subject-choice, payment and session-change bridges.
+ * Wires the admissions, subject-choice and session-change bridges.
  */
 class SchedulingListenerRegistrar {
 	/**
-	 * Register every intake/enrolment/payment/session listener.
+	 * Register every intake/enrolment/session listener.
 	 *
 	 * @param IRegistrationContext $context Nextcloud registration context.
 	 *
@@ -131,15 +130,6 @@ class SchedulingListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: SubjectChoiceEnrolmentBridge::class
-		);
-
-		// ADR-031 legitimate exception (school-payments): PaymentTransaction
-		// `succeeded`/`refunded` -> Order paid/partially-paid roll-up and
-		// refund cascade (revoking any active Entitlements reachable through
-		// the Order's OrderLines). Event-driven, NOT a TimedJob (ADR-022).
-		$context->registerEventListener(
-			event: ObjectTransitionedEvent::class,
-			listener: PaymentTransactionStatusHandler::class
 		);
 
 		// ADR-031 legitimate exception (timetabling-and-substitution): Session

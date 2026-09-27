@@ -136,9 +136,11 @@ class LearningPlanEvaluationHandler implements IEventListener {
 		// Fetch the parent LearningPlan.
 		$plans = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNING_PLAN_SCHEMA,
-				'filters' => ['uuid' => $planId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNING_PLAN_SCHEMA,
+					'uuid' => $planId,
+				],
 				'limit' => 1,
 			]
 		);

@@ -49,10 +49,17 @@ use OCA\Learniq\Listener\EnrolmentProgressRollupHandler;
 use OCA\Learniq\Listener\LearnerEngagementRollupHandler;
 use OCA\Learniq\Listener\LessonProgressHandler;
 use OCA\Learniq\Listener\SessionConflictListener;
+use OCA\Learniq\Listener\ShillinqContributionSettledListener;
 use OCP\EventDispatcher\IEventDispatcher;
 
 /**
  * Subscribes the boot-phase object listeners that declare their register/schema interest.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) This class exists to name
+ * every boot-phase listener in one place, the same reason
+ * CollaborationListenerRegistrar carries this suppression. Each listener is
+ * one more class by construction; splitting the registrar to dodge the metric
+ * would move the same coupling around without reducing it.
  */
 class BootListenerRegistrar {
 	/**
@@ -137,6 +144,7 @@ class BootListenerRegistrar {
 		);
 
 		$this->registerAnalyticsListeners(dispatcher: $dispatcher, appId: $appId);
+		$this->registerPaymentListeners(dispatcher: $dispatcher, appId: $appId);
 
 	}//end register()
 
@@ -234,6 +242,35 @@ class BootListenerRegistrar {
 	}//end registerAnalyticsListeners()
 
 	/**
+	 * Subscribe the listener that turns shillinq's settled contributions into Entitlement grants.
+	 *
+	 * ADR-031 legitimate exception (payments-to-shillinq-migration, D19;
+	 * shillinq contract extracurricular-fee-to-shillinq v1): the first time
+	 * shillinq stamps `settledAt` on a PaymentRequest whose `subject.app` is
+	 * learniq, the learner's pending Entitlement for that FeeItem is granted.
+	 * Shillinq saves the request, hence ObjectUpdatedEvent, and only shillinq's
+	 * PaymentRequest writes construct the listener. No shillinq class is
+	 * referenced: without shillinq nothing ever matches.
+	 *
+	 * @param IEventDispatcher $dispatcher The live event dispatcher.
+	 * @param string $appId The Learniq app id (log context only).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-settled-shillinq-contribution-grants-the-learners-entitlement
+	 */
+	private function registerPaymentListeners(IEventDispatcher $dispatcher, string $appId): void {
+		$this->registerFilteredObjectListener(
+			dispatcher: $dispatcher,
+			appId: $appId,
+			event: ObjectUpdatedEvent::class,
+			listener: ShillinqContributionSettledListener::class,
+			registers: ['shillinq'],
+			schemas: ['PaymentRequest']
+		);
+	}//end registerPaymentListeners()
+
+	/**
 	 * Register an object-lifecycle listener that declares its interest up front.
 	 *
 	 * OpenRegister's `ObjectEventSubscription` records the register/schema slugs
@@ -254,8 +291,10 @@ class BootListenerRegistrar {
 	 * @param array<int,string> $schemas Schema slugs the listener reacts to.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/curriculum-coverage-rollup/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
 	 */
-	private function registerFilteredObjectListener(
+	public function registerFilteredObjectListener(
 		IEventDispatcher $dispatcher,
 		string $appId,
 		string $event,

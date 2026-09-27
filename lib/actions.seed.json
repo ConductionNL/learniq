@@ -6,11 +6,13 @@
     "qti.export": ["admin"],
     "course-package.import": ["admin"],
     "course-package.export": ["admin"],
+    "course-package.share": ["admin"],
     "rollover.plan": ["admin"],
     "external-training.bulk-record": ["admin", "compliance-officer", "hr"],
     "external-training.issue-credential": ["admin", "compliance-officer", "hr"],
     "learning-record.import": ["admin"],
     "compliance.department-rollup": ["admin", "compliance-officer", "hr", "manager"],
-    "regulation.assign": ["admin", "compliance-officer", "hr"]
+    "regulation.assign": ["admin", "compliance-officer", "hr"],
+    "fee-item.raise-contributions": ["admin"]
   }
 }

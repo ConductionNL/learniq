@@ -47,7 +47,7 @@ class PokActivationGuardTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($signatures) {
-				if ($config['schema'] === 'pok-signature') {
+				if ($config['filters']['schema'] === 'pok-signature') {
 					return $signatures;
 				}
 

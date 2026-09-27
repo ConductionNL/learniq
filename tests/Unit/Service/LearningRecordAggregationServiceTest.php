@@ -75,8 +75,8 @@ class LearningRecordAggregationServiceTest extends TestCase {
 		$this->objectService = $this->createMock(ObjectService::class);
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config): array {
-				$schema = $config['schema'] ?? '';
-				$filters = $config['filters'] ?? [];
+				$schema = $config['filters']['schema'] ?? '';
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 				$rows = $this->rowsBySchema[$schema] ?? [];
 
 				foreach ($filters as $field => $value) {

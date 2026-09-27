@@ -198,9 +198,9 @@ class LeaderboardController extends Controller {
 	private function hasActiveLeaderboard(string $cohortId): bool {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEADERBOARD_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEADERBOARD_SCHEMA,
 					'cohortId' => $cohortId,
 					'lifecycle' => 'active',
 				],
@@ -221,9 +221,9 @@ class LeaderboardController extends Controller {
 	private function fetchLeaderboardTopN(string $cohortId): ?int {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEADERBOARD_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEADERBOARD_SCHEMA,
 					'cohortId' => $cohortId,
 					'lifecycle' => 'active',
 				],
@@ -258,9 +258,11 @@ class LeaderboardController extends Controller {
 	private function fetchLevelNames(string $tenantId): array {
 		$levels = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ENGAGEMENT_LEVEL_SCHEMA,
-				'filters' => ['tenant_id' => $tenantId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ENGAGEMENT_LEVEL_SCHEMA,
+					'tenant_id' => $tenantId,
+				],
 			]
 		);
 
@@ -296,9 +298,11 @@ class LeaderboardController extends Controller {
 	private function buildRankings(array $learnerIds, string $tenantId, array $levelNames): array {
 		$engagementRows = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_ENGAGEMENT_SCHEMA,
-				'filters' => ['tenant_id' => $tenantId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::LEARNER_ENGAGEMENT_SCHEMA,
+					'tenant_id' => $tenantId,
+				],
 			]
 		);
 

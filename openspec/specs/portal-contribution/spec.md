@@ -12,6 +12,7 @@ built_by: openspec/changes/portal-contribution
 **OpenSpec changes**:
 - [portal-contribution](../../changes/portal-contribution/) _(active)_ — plain ADR-046 provider class for the `student` + `parent` audiences (kind: code, depends_on portal-identity)
 - [portal-parent](../../changes/portal-parent/) _(active)_ — re-enables the `parent` audience against portaliq's merged reverse / scope-value `via` join (`match: 'scopeField'`); corrects the via key-set (kind: code, depends_on portal-contribution)
+- [assignment-portal-wiring](../../changes/assignment-portal-wiring/) _(active)_: the pupil's hand-in uses portaliq's file field and a scalar `learnerRef` scope; the server stamps learners and tenant (kind: code)
 
 ## Purpose
 

@@ -55,7 +55,7 @@ class ExternalTrainingServiceTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			static function (array $query) use ($bySchema): array {
-				$schema = $query['schema'] ?? '';
+				$schema = $query['filters']['schema'] ?? '';
 				return $bySchema[$schema] ?? [];
 			}
 		);

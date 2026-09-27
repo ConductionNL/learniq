@@ -80,8 +80,8 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				$rows = $this->fixtures[$config['schema']] ?? [];
-				$filters = $config['filters'] ?? [];
+				$rows = $this->fixtures[$config['filters']['schema']] ?? [];
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				return array_values(
 					array_filter(

@@ -76,6 +76,28 @@ return [
         // Controller: CoursePackageExportController (slug: coursePackageExport).
         ['name' => 'coursePackageExport#export', 'url' => '/api/course-management/course-package-export', 'verb' => 'GET'],
 
+        // Course-package share export: the package meant to leave the school, behind
+        // the sharing gate and a CourseShareConsent (ADR-023: course-package.share).
+        // Controller: CourseSharingController (lesson-sharing-consent-gate).
+        ['name' => 'courseSharing#share', 'url' => '/api/course-management/course-package-share', 'verb' => 'POST'],
+
+        // Course store (ADR-080, lesson-sharing-via-store-plane). Learniq ships its own
+        // StoreController, so OpenRegister's Bootstrap::aliasStoreController() leaves these
+        // to it: search and resolve run through the engine's GenericStoreService; install
+        // imports a shared course as a copy (ADR-023: course-package.import); publish runs
+        // the sharing gate first (ADR-023: course-package.share).
+        ['name' => 'store#search',  'url' => '/api/store/items', 'verb' => 'GET'],
+        ['name' => 'store#install', 'url' => '/api/store/items/{slug}/install', 'verb' => 'POST', 'requirements' => ['slug' => '[a-z0-9][a-z0-9\\-]*[a-z0-9]']],
+        ['name' => 'store#publish', 'url' => '/api/store/publish', 'verb' => 'POST'],
+
+        // Lesson onboarding from Word and PowerPoint files (office-file-lesson-onboarding):
+        // the teacher's watched folder, and the import of one confirmed file (D17).
+        // Listing and dismissing detected files go straight to OpenRegister.
+        // Controller: LessonOnboardingController (slug: lessonOnboarding).
+        ['name' => 'lessonOnboarding#folder',    'url' => '/api/lesson-onboarding/folder',              'verb' => 'GET'],
+        ['name' => 'lessonOnboarding#setFolder', 'url' => '/api/lesson-onboarding/folder',              'verb' => 'PUT'],
+        ['name' => 'lessonOnboarding#import',    'url' => '/api/lesson-onboarding/files/{id}/import',   'verb' => 'POST'],
+
         // School-year rollover wizard — proposal + side-effect-free preview,
         // authorized via the ADR-023 action matrix (rollover.plan).
         // Controller: RolloverController (slug: rollover).
@@ -107,6 +129,18 @@ return [
         ['name' => 'lessonRelease#status',           'url' => '/api/lessons/{lessonId}/release-status',         'verb' => 'GET'],
         ['name' => 'lessonRelease#assessmentStatus', 'url' => '/api/assessments/{assessmentId}/release-status', 'verb' => 'GET'],
 
+        // Portal test taking (assessment-portal-endpoints): the five steps of
+        // portaliq's timed task, forwarded server-to-server. #[PublicPage]
+        // because the caller is portaliq's backend with no Nextcloud session;
+        // the X-Portal-Subject assertion is the only credential
+        // (PortalAssertionVerifier), checked first in every method.
+        // Controller: PortalAssessmentController (slug: portalAssessment).
+        ['name' => 'portalAssessment#available', 'url' => '/api/portal/assessments',        'verb' => 'POST'],
+        ['name' => 'portalAssessment#start',     'url' => '/api/portal/assessments/start',  'verb' => 'POST'],
+        ['name' => 'portalAssessment#answer',    'url' => '/api/portal/assessments/answer', 'verb' => 'POST'],
+        ['name' => 'portalAssessment#submit',    'url' => '/api/portal/assessments/submit', 'verb' => 'POST'],
+        ['name' => 'portalAssessment#result',    'url' => '/api/portal/assessments/result', 'verb' => 'POST'],
+
         // Personal timetable — the caller's own sessions for a window, resolved
         // from cohort membership (teacher/learner) via ObjectService (RBAC-scoped).
         // Read-only; #[NoAdminRequired] (any signed-in user) + #[NoCSRFRequired] (GET read).
@@ -119,6 +153,14 @@ return [
         // action matrix or a bare authenticated-user gate.
         // Controller: PeerReviewController (slug: peerReview).
         ['name' => 'peerReview#allocate', 'url' => '/api/peer-review/{assignmentId}/allocate', 'verb' => 'POST'],
+
+        // Peer review work projection (peer-review-projection-guard): what a
+        // reviewer sees of the work under review, built by the server. The
+        // authors are withheld for double-blind, the teacher's marking always.
+        // Authorized per object: the PeerReview's reviewer, or an admin.
+        // Controller: PeerReviewWorkController (slug: peerReviewWork).
+        ['name' => 'peerReviewWork#show', 'url' => '/api/peer-review/{peerReviewId}/work', 'verb' => 'GET'],
+        ['name' => 'peerReviewWork#file', 'url' => '/api/peer-review/{peerReviewId}/work/files/{fileId}', 'verb' => 'GET'],
 
         // Observability (ADR-006 / ADR-040) — AppHost generic controllers.
         // health#index → GenericHealthController (PUBLIC, declarative checks).
@@ -177,15 +219,11 @@ return [
         // P-new-7). Controller: PrivacyGovernanceController (slug: privacyGovernance).
         ['name' => 'privacyGovernance#overview', 'url' => '/api/privacy-governance/overview', 'verb' => 'GET'],
 
-        // Payment transaction — outbound initiate delegates to OpenConnector's
-        // (not-yet-built) PSP adapter; #[NoAdminRequired] + #[NoCSRFRequired]
-        // (any authenticated payer). Inbound callback receives OpenConnector's
-        // async status update; #[PublicPage] + #[NoCSRFRequired] since it is a
-        // server-to-server call with no NC session — authenticated instead by
-        // its own bearer-token check inside the controller (school-payments).
-        // Controller: PaymentTransactionController (slug: paymentTransaction).
-        ['name' => 'paymentTransaction#initiate', 'url' => '/api/payments/{orderId}/initiate', 'verb' => 'POST'],
-        ['name' => 'paymentTransaction#callback', 'url' => '/api/payments/callback',            'verb' => 'POST'],
+        // Raise a FeeItem's contributions in shillinq (payments-to-shillinq-migration,
+        // D19; shillinq contract extracurricular-fee-to-shillinq v1). #[NoAdminRequired]
+        // + the fee-item.raise-contributions action; shillinq checks payment.request.
+        // Controller: ContributionController (slug: contribution).
+        ['name' => 'contribution#raise', 'url' => '/api/fee-items/{id}/contributions', 'verb' => 'POST'],
 
         // Portable learning record — the calling user's own composed
         // trajectory (RBAC-gap read, mirrors LeaderboardController's own

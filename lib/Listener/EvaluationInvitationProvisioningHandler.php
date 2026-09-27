@@ -292,9 +292,11 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 
 			$matches = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::COHORT_SCHEMA,
-					'filters' => ['courseId' => $courseId],
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::COHORT_SCHEMA,
+						'courseId' => $courseId,
+					],
 				]
 			);
 
@@ -332,9 +334,11 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	private function fetchExistingInvitedLearnerIds(string $campaignId): array {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::EVALUATION_INVITATION_SCHEMA,
-				'filters' => ['campaignId' => $campaignId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::EVALUATION_INVITATION_SCHEMA,
+					'campaignId' => $campaignId,
+				],
 			]
 		);
 

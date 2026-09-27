@@ -80,7 +80,7 @@ class AiProcessingDisclosureControllerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				if (($config['schema'] ?? null) === 'agentaifeature') {
+				if (($config['filters']['schema'] ?? null) === 'agentaifeature') {
 					return [
 						[
 							'slug' => 'assessment-ai-proctor-review',
@@ -143,7 +143,7 @@ class AiProcessingDisclosureControllerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				if (($config['schema'] ?? null) === 'agentaifeature') {
+				if (($config['filters']['schema'] ?? null) === 'agentaifeature') {
 					return [['slug' => 'assessment-ai-proctor-review', 'name' => 'x', 'lifecycle' => 'enabled']];
 				}
 

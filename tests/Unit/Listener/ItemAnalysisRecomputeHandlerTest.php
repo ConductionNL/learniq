@@ -85,9 +85,9 @@ class ItemAnalysisRecomputeHandlerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) {
-				$schema = $config['schema'];
+				$schema = $config['filters']['schema'];
 				$records = $this->db[$schema] ?? [];
-				$filters = $config['filters'] ?? [];
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				$matched = array_values(
 					array_filter(

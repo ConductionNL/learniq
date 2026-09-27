@@ -243,9 +243,11 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => $schema,
-				'filters' => ['id' => $id],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => $schema,
+					'id' => $id,
+				],
 				'limit' => 1,
 			]
 		);
@@ -290,9 +292,13 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::GRADE_ENTRY_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::GRADE_ENTRY_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
