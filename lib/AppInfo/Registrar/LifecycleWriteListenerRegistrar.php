@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\CredentialWalletTransitionListener;
+use OCA\Learniq\Listener\ReportCardPdfTransitionListener;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
@@ -53,6 +54,13 @@ class LifecycleWriteListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: CredentialWalletTransitionListener::class
+		);
+
+		// ReportCard.renderToPdf (finalised) and ReportCard.rerenderToPdf
+		// (published-to-parents), both self-loops.
+		$context->registerEventListener(
+			event: ObjectTransitionedEvent::class,
+			listener: ReportCardPdfTransitionListener::class
 		);
 	}//end register()
 }//end class
