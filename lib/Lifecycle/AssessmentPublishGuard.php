@@ -65,10 +65,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\AiLocalityClassifier;
 use OCA\Learniq\Service\ItemPoolFilter;
 use OCA\Learniq\Service\SovereigntyPolicyService;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
 use Psr\Log\LoggerInterface;
 
@@ -90,7 +92,14 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/changes/assessment-item-pools-and-analysis/specs/assessment/spec.md#requirement-publishing-an-assessment-requires-a-resolvable-item-source
  * @spec openspec/changes/sovereign-ai-guarantee/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
  */
-class AssessmentPublishGuard {
+class AssessmentPublishGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'This assessment has no usable item source or its AI proctoring review is not allowed, so it can not be published.';
 
 	/**
 	 * App id of the central AI governance app (Hermiq).
@@ -144,23 +153,39 @@ class AssessmentPublishGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/ai-feature-delegate-to-hermiq/specs/ai-surface/spec.md
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the `publish`
 	 * transition on an Assessment object.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the Assessment data array
-	 *                                               - 'transition' : 'publish'
-	 *                                               - 'from'       : 'draft'
-	 *                                               - 'to'         : 'published'
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True if the Assessment may be published; false blocks the transition (HTTP 422).
 	 *
 	 * @spec openspec/changes/ai-feature-delegate-to-hermiq/specs/ai-surface/spec.md
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object): bool {
 
 		if ($this->hasResolvableItemSource(assessment: $object) === false) {
 			return false;
@@ -227,7 +252,7 @@ class AssessmentPublishGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Whether the Assessment has a resolvable item source for publish.

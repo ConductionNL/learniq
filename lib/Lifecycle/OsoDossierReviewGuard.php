@@ -40,6 +40,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -49,7 +51,14 @@ use Psr\Log\LoggerInterface;
  * Only a parent listed in the learner's LearnerProfile.parentIds may approve
  * an OSO dossier for transfer.
  */
-class OsoDossierReviewGuard {
+class OsoDossierReviewGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'Only a parent of this learner can approve the dossier transfer.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
@@ -69,6 +78,27 @@ class OsoDossierReviewGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-17
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object, userId: $userId) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Allow the `pending-parent-review → running` transition.
 	 *
 	 * Returns true only when the actor in the transition context is listed in
@@ -77,24 +107,19 @@ class OsoDossierReviewGuard {
 	 * (e.g. a cohort-wide export), this guard returns false and the transition
 	 * must be triggered via administrative override outside this guard.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the DataExchangeJob data array
-	 *                                               - 'transition' : 'approveDossier'
-	 *                                               - 'from'       : 'pending-parent-review'
-	 *                                               - 'to'         : 'running'
-	 *                                               - 'actor'      : NC user ID of the requester
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $userId The uid of the caller.
 	 *
 	 * @return bool True if the actor is a parent of the learner; false otherwise.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-17
 	 */
-	public function check(array &$transitionContext): bool {
-		$actor = $transitionContext['actor'] ?? '';
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object, string $userId): bool {
+		$actor = $userId;
 		$tenantId = $object['tenant_id'] ?? '';
 
 		if ($actor === '') {
-			$this->logger->warning('[OsoDossierReviewGuard] No actor in transitionContext — denying approveDossier.');
+			$this->logger->warning('[OsoDossierReviewGuard] No acting user — denying approveDossier.');
 			return false;
 		}
 
@@ -151,5 +176,5 @@ class OsoDossierReviewGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 }//end class

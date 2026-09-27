@@ -26,6 +26,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\SubjectChoiceConsentGuard;
 use OCP\IUser;
@@ -38,6 +39,8 @@ use Psr\Log\LoggerInterface;
  * Tests for the SubjectChoiceConsentGuard lifecycle guard (draft → submitted).
  */
 class SubjectChoiceConsentGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * ObjectService mock.
@@ -125,9 +128,9 @@ class SubjectChoiceConsentGuardTest extends TestCase {
 		$this->signInAs('parent-1');
 		$this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => ['parent-1', 'parent-2']]]);
 
-		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$object = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testLinkedGuardianCanSubmit()
 
@@ -142,9 +145,9 @@ class SubjectChoiceConsentGuardTest extends TestCase {
 		$this->signInAs('stranger-1');
 		$this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => ['parent-1', 'parent-2']]]);
 
-		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$object = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testUnrelatedUserCannotSubmit()
 
@@ -158,9 +161,9 @@ class SubjectChoiceConsentGuardTest extends TestCase {
 		$this->signInAs('learner-1');
 		$this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => []]]);
 
-		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$object = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testSelfSubmissionPasses()
 
@@ -173,9 +176,9 @@ class SubjectChoiceConsentGuardTest extends TestCase {
 		$this->signInAs('parent-1');
 		$this->wireLearnerProfile([]);
 
-		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$object = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testMissingLearnerProfileFailsClosed()
 
@@ -188,9 +191,9 @@ class SubjectChoiceConsentGuardTest extends TestCase {
 		$this->signInAs('parent-1');
 		$this->objectService->expects(self::never())->method('findAll');
 
-		$context = ['object' => ['tenant_id' => 'tenant-a']];
+		$object = ['tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testMissingLearnerIdFailsClosedWithoutQuerying()
 
@@ -203,9 +206,9 @@ class SubjectChoiceConsentGuardTest extends TestCase {
 		$this->userSession->method('getUser')->willReturn(null);
 		$this->wireLearnerProfile([['ncUserId' => 'learner-1', 'parentIds' => ['parent-1']]]);
 
-		$context = ['object' => ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a']];
+		$object = ['learnerId' => 'learner-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testNoAuthenticatedUserFailsClosed()
 }//end class

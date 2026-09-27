@@ -57,6 +57,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -65,7 +67,14 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
  */
-class AdmissionsDecisionGuard {
+class AdmissionsDecisionGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'This admission decision does not meet the rules of its admissions round.';
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ADMISSIONS_ROUND_SCHEMA = 'admissions-round';
@@ -108,25 +117,40 @@ class AdmissionsDecisionGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Assert the pre-conditions for the target transition.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing a guarded
 	 * Application transition.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine:
-	 *                                               - 'object' : Application
-	 *                                               property array
-	 *                                               - 'to'     : target
-	 *                                               lifecycle state
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True when pre-conditions are satisfied; false blocks the transition.
 	 *
 	 * @spec openspec/changes/admissions-and-subject-choice/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
-		$to = (string)($transitionContext['to'] ?? '');
+	private function allows(array $object): bool {
+		$to = (string)($object['lifecycle'] ?? '');
 
 		$roundId = (string)($object['admissionsRoundId'] ?? '');
 		if ($roundId === '') {
@@ -153,7 +177,7 @@ class AdmissionsDecisionGuard {
 		}
 
 		return $this->checkDecision(round: $round, object: $object, roundId: $roundId, to: $to);
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Run the three decision-transition branches (schooladvies, toelatingsrecht, capacity).

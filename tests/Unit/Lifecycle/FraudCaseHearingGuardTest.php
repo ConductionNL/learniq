@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Lifecycle\FraudCaseHearingGuard;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -31,6 +32,8 @@ use Psr\Log\LoggerInterface;
  * Tests for the FraudCaseHearingGuard (reported → hearing-scheduled).
  */
 class FraudCaseHearingGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build a guard with a stub logger.
@@ -47,9 +50,9 @@ class FraudCaseHearingGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testHearingDateSetAllowsTransition(): void {
-		$context = ['object' => ['id' => 'case-1', 'hearingDate' => '2026-08-01T10:00:00Z']];
+		$object = ['id' => 'case-1', 'hearingDate' => '2026-08-01T10:00:00Z', 'lifecycle' => 'hearing-scheduled'];
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'scheduleHearing', ''));
 
 	}//end testHearingDateSetAllowsTransition()
 
@@ -59,9 +62,9 @@ class FraudCaseHearingGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testMissingHearingDateBlocks(): void {
-		$context = ['object' => ['id' => 'case-1']];
+		$object = ['id' => 'case-1', 'lifecycle' => 'hearing-scheduled'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'scheduleHearing', ''));
 
 	}//end testMissingHearingDateBlocks()
 
@@ -71,9 +74,9 @@ class FraudCaseHearingGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testBlankHearingDateBlocks(): void {
-		$context = ['object' => ['id' => 'case-1', 'hearingDate' => '   ']];
+		$object = ['id' => 'case-1', 'hearingDate' => '   ', 'lifecycle' => 'hearing-scheduled'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'scheduleHearing', ''));
 
 	}//end testBlankHearingDateBlocks()
 }//end class

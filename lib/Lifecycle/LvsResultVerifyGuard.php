@@ -39,6 +39,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
@@ -50,7 +52,14 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/lvs-import-contract/tasks.md#task-2
  */
-class LvsResultVerifyGuard {
+class LvsResultVerifyGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'Only an administrator or coordinator can verify an imported result.';
 
 	/**
 	 * Groups whose members may verify an imported LvsResult.
@@ -81,27 +90,45 @@ class LvsResultVerifyGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/lvs-import-contract/tasks.md#task-2
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object, userId: $userId) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Allow the `imported → verified` transition.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the `verify`
 	 * transition. Returns true only when the acting user is in one of
 	 * AUTHORISED_GROUPS.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the LvsResult data array
-	 *                                               - 'actor'      : NC user ID of the requester
-	 *                                               - 'transition' : 'verify'
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $userId The uid of the caller.
 	 *
 	 * @return bool True when the actor is admin/coordinator; false otherwise.
 	 *
 	 * @spec openspec/changes/lvs-import-contract/tasks.md#task-2
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
-		$actor = (string)($transitionContext['actor'] ?? '');
+	private function allows(array $object, string $userId): bool {
+		$actor = $userId;
 
 		if ($actor === '') {
-			$this->logger->warning('[LvsResultVerifyGuard] No actor in transitionContext — denying verify.');
+			$this->logger->warning('[LvsResultVerifyGuard] No acting user — denying verify.');
 			return false;
 		}
 
@@ -114,7 +141,7 @@ class LvsResultVerifyGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Whether the acting user is in one of the authorised groups.

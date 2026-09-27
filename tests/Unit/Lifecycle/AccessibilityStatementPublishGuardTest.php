@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\AccessibilityStatementPublishGuard;
 use PHPUnit\Framework\TestCase;
@@ -39,6 +40,8 @@ use Psr\Log\LoggerInterface;
  * AccessibilityStatement `draft -> published` transition.
  */
 class AccessibilityStatementPublishGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * A statement missing evaluation evidence is refused, regardless of what
@@ -53,21 +56,17 @@ class AccessibilityStatementPublishGuardTest extends TestCase {
 		$objectService->expects($this->never())->method('findAll');
 
 		$guard = new AccessibilityStatementPublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'statement-1',
 				'status' => 'partially-compliant',
 				'evaluationMethod' => 'self-assessment',
 				'evaluationDate' => null,
 				'feedbackContact' => 'accessibility@school.example',
 				'tenant_id' => 'tenant-a',
-			],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testMissingEvaluationEvidenceRefusesPublish()
 
@@ -82,21 +81,17 @@ class AccessibilityStatementPublishGuardTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$guard = new AccessibilityStatementPublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'statement-2',
 				'status' => 'partially-compliant',
 				'evaluationMethod' => 'expert-review',
 				'evaluationDate' => '2026-06-01',
 				'feedbackContact' => '   ',
 				'tenant_id' => 'tenant-a',
-			],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testMissingFeedbackContactRefusesPublish()
 
@@ -113,21 +108,17 @@ class AccessibilityStatementPublishGuardTest extends TestCase {
 		$objectService->expects($this->never())->method('findAll');
 
 		$guard = new AccessibilityStatementPublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'statement-3',
 				'status' => 'partially-compliant',
 				'evaluationMethod' => 'automated-scan',
 				'evaluationDate' => '2026-07-01',
 				'feedbackContact' => 'accessibility@school.example',
 				'tenant_id' => 'tenant-a',
-			],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 
 	}//end testCompleteEvidenceAllowsPublish()
 
@@ -148,21 +139,17 @@ class AccessibilityStatementPublishGuardTest extends TestCase {
 		);
 
 		$guard = new AccessibilityStatementPublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'statement-4',
 				'status' => 'fully-compliant',
 				'evaluationMethod' => 'expert-review',
 				'evaluationDate' => '2026-07-01',
 				'feedbackContact' => 'accessibility@school.example',
 				'tenant_id' => 'tenant-a',
-			],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testOpenLimitationBlocksFullyCompliantStatus()
 
@@ -184,21 +171,17 @@ class AccessibilityStatementPublishGuardTest extends TestCase {
 		);
 
 		$guard = new AccessibilityStatementPublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'statement-5',
 				'status' => 'fully-compliant',
 				'evaluationMethod' => 'expert-review',
 				'evaluationDate' => '2026-07-01',
 				'feedbackContact' => 'accessibility@school.example',
 				'tenant_id' => 'tenant-a',
-			],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publish', ''));
 
 	}//end testMitigatedLimitationBlocksFullyCompliantStatus()
 
@@ -219,21 +202,17 @@ class AccessibilityStatementPublishGuardTest extends TestCase {
 		);
 
 		$guard = new AccessibilityStatementPublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'statement-6',
 				'status' => 'fully-compliant',
 				'evaluationMethod' => 'expert-review',
 				'evaluationDate' => '2026-07-01',
 				'feedbackContact' => 'accessibility@school.example',
 				'tenant_id' => 'tenant-a',
-			],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 
 	}//end testFullyCompliantWithOnlyFixedLimitationsAllowsPublish()
 
@@ -259,21 +238,17 @@ class AccessibilityStatementPublishGuardTest extends TestCase {
 			->willReturn([]);
 
 		$guard = new AccessibilityStatementPublishGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'statement-7',
 				'status' => 'fully-compliant',
 				'evaluationMethod' => 'expert-review',
 				'evaluationDate' => '2026-07-01',
 				'feedbackContact' => 'accessibility@school.example',
 				'tenant_id' => 'tenant-b',
-			],
-			'transition' => 'publish',
-			'from' => 'draft',
-			'to' => 'published',
-		];
+				'lifecycle' => 'published',
+			];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publish', ''));
 
 	}//end testLimitationLookupIsScopedToTenant()
 }//end class
