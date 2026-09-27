@@ -5,9 +5,11 @@ TBD - created by archiving change pupil-dossier-notes. Update Purpose after arch
 ## Requirements
 ### Requirement: Persist DossierNote, BehaviourIncident, and WellbeingCheckIn domain objects in OpenRegister
 
-The system MUST persist `DossierNote`, `BehaviourIncident`, and `WellbeingCheckIn` as OpenRegister objects,
-each `appendOnly: true` (ADR-008 — a correction is a new record, never an in-place edit of prior evidence
-about a named minor).
+The system MUST persist `DossierNote`, `BehaviourIncident`, and `WellbeingCheckIn` as OpenRegister objects.
+`DossierNote` and `WellbeingCheckIn` MUST be `appendOnly: true` (ADR-008 — a correction is a new record, never
+an in-place edit of prior evidence about a named minor). `BehaviourIncident` MUST NOT be `appendOnly`, because
+its `open → in-handling → resolved` transitions are updates, which Open Register refuses on an append-only
+schema; the audit trail keeps each version.
 
 `DossierNote` MUST carry `learnerId`, `authorId`, `date`, `category` (enum: `observation`, `conversation`,
 `phone-call-home`, `concern`, `positive`), `body`, and `confidentiality` (enum: `team-visible`,
@@ -35,14 +37,14 @@ and `tenant_id`. It has no `x-openregister-lifecycle` — each check-in is a sin
 
 #### Scenario: A behaviour incident tracks follow-up to resolution
 
-<!-- @e2e exclude Lifecycle transitions on an appendOnly object are backend/register mechanics with no
+<!-- @e2e exclude Lifecycle transitions on a BehaviourIncident are backend/register mechanics with no
      distinct DOM surface beyond the timeline view already covered by
      tests/e2e/spec-coverage/pupil-dossier.spec.ts; transition correctness is asserted by PHPUnit
      schema-validation coverage, not a second Playwright path. -->
 
 - **GIVEN** an open `BehaviourIncident`
 - **WHEN** staff record a `followUpActions` entry and later transition it to `resolved`
-- **THEN** the incident carries the full append-only follow-up history and its final `resolution`, and the
+- **THEN** the incident carries the full audited follow-up history and its final `resolution`, and the
   `open → in-handling → resolved` transitions are enforced by `x-openregister-lifecycle`
 
 #### Scenario: A learner submits a wellbeing check-in

@@ -281,13 +281,19 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(4, $collections);
+		$this->assertCount(5, $collections);
 		$this->assertSame(
-			['parentGrades', 'parentAttendance', 'parentExcuseRequests', 'parentReportCards'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentExcuseRequests', 'parentReportCards'],
 			array_column($collections, 'id')
 		);
 
-		foreach ($collections as $collection) {
+		$byId = array_column($collections, null, 'id');
+
+		// parentChildren is a direct match (no via — see
+		// testParentChildrenCollectionMatchesDirectly), so it is excluded from
+		// this reverse-join-shaped assertion loop.
+		$reverseJoinedCollections = array_filter($collections, static fn ($c) => $c['id'] !== 'parentChildren');
+		foreach ($reverseJoinedCollections as $collection) {
 			$this->assertSame('learniq', $collection['register']);
 			// Parent scope key is the guardian claim; the outer record scope
 			// field is the child's learnerRef (matched by the reverse via).
@@ -296,6 +302,9 @@ class PortalContributionProviderTest extends TestCase {
 			// A guardian reading a MINOR's data needs substantial assurance.
 			$this->assertSame('substantial', $collection['minTrust']);
 			$this->assertNotEmpty($collection['fields']);
+			// Portal-contribution-guardian-audiences: a portal groups these
+			// per child without a schema change.
+			$this->assertSame('learnerRef', $collection['groupByField']);
 			// Parent reads never expose staff-only columns (same drop as student).
 			foreach (['grader', 'comment', 'markedBy', 'submittedBy', 'submittedByRef', 'decidedBy', 'decisionNote'] as $forbidden) {
 				$this->assertNotContains($forbidden, $collection['fields']);
@@ -303,7 +312,6 @@ class PortalContributionProviderTest extends TestCase {
 		}
 
 		// Parent grade/attendance/excuse projections mirror the student ones.
-		$byId = array_column($collections, null, 'id');
 		$this->assertSame(
 			['learnerRef', 'courseId', 'curriculumPlanId', 'componentId', 'value', 'gradeScaleId', 'period', 'gradedAt'],
 			$byId['parentGrades']['fields']
@@ -330,6 +338,37 @@ class PortalContributionProviderTest extends TestCase {
 	}//end testParentManifestShape()
 
 	/**
+	 * parentChildren matches `learner-profile` DIRECTLY — `guardianRefs`
+	 * (array, on the schema being read) containing the guardian's own
+	 * subjectRef — the same array-containment match
+	 * `testStudentManifestShape()`'s `studentSubmissions` (`learnerRefs`)
+	 * already exercises. It carries NO `via` (no cross-object hop is
+	 * needed), and exposes the full co-guardian group plus current
+	 * beeldmateriaal consent state.
+	 *
+	 * @return void
+	 * @spec openspec/changes/portal-contribution-guardian-audiences/specs/portal-contribution/spec.md#requirement-the-parent-audience-exposes-per-child-and-per-guardian-group-directory-data-req-pcon-006
+	 */
+	public function testParentChildrenCollectionMatchesDirectly(): void {
+		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
+		$byId = array_column($manifest['collections'], null, 'id');
+		$children = $byId['parentChildren'] ?? null;
+
+		$this->assertIsArray($children, 'parentChildren collection MUST exist');
+		$this->assertArrayNotHasKey('via', $children, 'parentChildren MUST NOT declare a via join — no cross-object hop is needed');
+		$this->assertSame('learniq', $children['register']);
+		$this->assertSame('learner-profile', $children['schema']);
+		$this->assertSame('guardianRefs', $children['scopeField']);
+		$this->assertSame('guardianRef', $children['scopeClaim']);
+		$this->assertSame('substantial', $children['minTrust']);
+		$this->assertSame(
+			['givenName', 'familyName', 'guardianRefs', 'beeldmateriaalConsent', 'beeldmateriaalConsentReviewDueAt'],
+			$children['fields']
+		);
+
+	}//end testParentChildrenCollectionMatchesDirectly()
+
+	/**
 	 * Every parent read collection carries the reverse / scope-value `via` join
 	 * with EXACTLY the reader's contract keys — `{register, schema, scopeField,
 	 * targetField, match}` — and `match: 'scopeField'`. The join resolves the
@@ -343,7 +382,15 @@ class PortalContributionProviderTest extends TestCase {
 	public function testParentCollectionsUseReverseScopeValueVia(): void {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
 
-		foreach ($manifest['collections'] as $collection) {
+		// parentChildren is deliberately excluded — it matches learner-profile
+		// directly (see testParentChildrenCollectionMatchesDirectly), the one
+		// parent collection with no cross-object hop and therefore no via.
+		$reverseJoinedCollections = array_filter(
+			$manifest['collections'],
+			static fn ($c) => $c['id'] !== 'parentChildren'
+		);
+
+		foreach ($reverseJoinedCollections as $collection) {
 			$via = $collection['via'] ?? null;
 			$this->assertIsArray($via, "parent collection '{$collection['id']}' must declare a via join");
 
@@ -373,23 +420,44 @@ class PortalContributionProviderTest extends TestCase {
 	}//end testParentCollectionsUseReverseScopeValueVia()
 
 	/**
-	 * The parent audience ships READS only — no create action. A guardian
-	 * reporting an absence would supply the child `learnerRef` in the create
-	 * body, but portaliq's writer only server-stamps the scope field
-	 * (`submittedByRef` = guardian); it does not verify a client-supplied
-	 * cross-reference (`learnerRef`) against the guardian's own children. That
-	 * would be a write IDOR, so the create is withheld until portaliq validates
-	 * create-body cross-refs against the subject's reverse-join set. Parent
-	 * reads are safe (the reverse `via` verifies the child set per row).
+	 * portal-contribution-guardian-audiences: the parent audience now ships
+	 * `createExcuseRequest`, now that portaliq's writer cross-reference guard
+	 * (portaliq#607, merged 2026-09-18) validates a client-supplied
+	 * cross-reference against the subject's own `via`-derived scope. The
+	 * load-bearing assertion is `scopeField`: it MUST be `submittedByRef`
+	 * (who filed it), never `learnerRef` (which child it concerns) — stamping
+	 * `learnerRef` from the guardian's own resolved UUID would silently write
+	 * the guardian's UUID into the child-identifying field, the exact write
+	 * IDOR shape this action was withheld to avoid before portaliq#607 landed.
+	 * `via` MUST be byte-identical to the read collections' own reverse join
+	 * (belt-and-braces per the lane's orchestrator instruction).
 	 *
 	 * @return void
+	 * @spec openspec/changes/portal-contribution-guardian-audiences/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
 	 */
-	public function testParentShipsNoCreateActionPendingCrossRefValidation(): void {
+	public function testParentShipsCreateExcuseRequestValidatedAgainstOwnChildren(): void {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
 
-		$this->assertSame([], $manifest['actions']);
+		$this->assertCount(1, $manifest['actions']);
+		$action = $manifest['actions'][0];
 
-	}//end testParentShipsNoCreateActionPendingCrossRefValidation()
+		$this->assertSame('createExcuseRequest', $action['id']);
+		$this->assertSame('create', $action['type']);
+		$this->assertSame('learniq', $action['register']);
+		$this->assertSame('excuse-request', $action['schema']);
+		$this->assertSame('submittedByRef', $action['scopeField'], 'scopeField MUST be submittedByRef, never learnerRef');
+		$this->assertSame('guardianRef', $action['scopeClaim']);
+		$this->assertSame('substantial', $action['minTrust']);
+		$this->assertContains('learnerRef', $action['fields'], 'the guardian MUST supply which child the excuse concerns');
+
+		// Drift pin: the create action's via MUST be the exact reverse-join
+		// descriptor every parent read collection already uses — the same
+		// scope the guardian's supplied learnerRef is validated against.
+		$readCollectionVia = $manifest['collections'][1]['via'] ?? null;
+		$this->assertIsArray($readCollectionVia, 'a reverse-joined read collection must exist to compare against');
+		$this->assertSame($readCollectionVia, $action['via'], "the create action's via MUST match the read collections' via exactly");
+
+	}//end testParentShipsCreateExcuseRequestValidatedAgainstOwnChildren()
 
 	/**
 	 * The praktijkopleider manifest carries a single direct-scoped BpvPlacement read
@@ -577,6 +645,11 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertContains('learnerRefs', $propsBySlug['submission'] ?? []);
 		$this->assertContains('submittedByRef', $propsBySlug['excuse-request'] ?? []);
 		$this->assertContains('guardianRefs', $propsBySlug['learner-profile'] ?? []);
+
+		// Portal-contribution-guardian-audiences: the parentChildren
+		// collection's whitelisted fields.
+		$this->assertContains('beeldmateriaalConsent', $propsBySlug['learner-profile'] ?? []);
+		$this->assertContains('beeldmateriaalConsentReviewDueAt', $propsBySlug['learner-profile'] ?? []);
 
 		// The bpv-praktijkovereenkomst refs the praktijkopleider audience depends on.
 		$this->assertContains('practicalTrainerId', $propsBySlug['bpv-placement'] ?? []);

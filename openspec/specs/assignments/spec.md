@@ -300,6 +300,21 @@ at the field level (documented, not silently assumed away).
   `Submission`, which remains unrestricted at the field level — consistent with the same documented limit
   already stated for `FraudCase`'s `ExamCaseDossierView` (`openspec/specs/exam-board/spec.md:136-139`)
 
+### Requirement: A learner hands in their own work and the teacher marks it
+The Submission authorization MUST let every signed-in user create a submission, MUST let a learner named in `learnerIds` update it while its lifecycle is `draft` (file upload, saving the references, the `submit` transition), and MUST let `instructors`, `compliance-officers` and `team-leads` read and update it for marking. Because create cannot be narrowed by a match, the `submit` guard MUST refuse a caller who is not in `learnerIds`, except administrators and system calls.
+
+#### Scenario: A learner hands in work
+@e2e exclude Enforced by OpenRegister from the register JSON and by SubmissionWindowGuard; pinned by tests/Unit/Register/SubmissionAccessTest.php and tests/Unit/Lifecycle/SubmissionWindowGuardTest.php.
+- **GIVEN** a learner in no staff group and an open assignment
+- **WHEN** the learner hands in a file on the hand-in screen
+- **THEN** the draft is created, the file attached and the submission lands in `submitted`
+
+#### Scenario: Nobody hands in work in another learner's name
+@e2e exclude Guard behaviour; pinned by tests/Unit/Lifecycle/SubmissionWindowGuardTest.php.
+- **GIVEN** a draft submission whose `learnerIds` names learner A
+- **WHEN** user B fires `submit`
+- **THEN** the transition is refused
+
 ## Standards
 
 Schema.org `CreativeWork` / `MediaObject` for submissions; IMS Caliper for submission events; QTI is *not* used here (that's `assessment`); plagiarism providers (Turnitin/Ouriginal/Compilatio) behind an interface.

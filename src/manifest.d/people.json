@@ -85,6 +85,54 @@
 							]
 						}
 					}
+				},
+				{
+					"id": "Staff",
+					"label": "Staff",
+					"icon": "AccountTieOutline",
+					"route": "Staff",
+					"order": 50,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "Schools",
+					"label": "Schools",
+					"icon": "OfficeBuilding",
+					"route": "Schools",
+					"order": 50,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
+					"id": "Locations",
+					"label": "Locations",
+					"icon": "MapMarker",
+					"route": "Locations",
+					"order": 60,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
 				}
 			],
 			"visibleIf": {
@@ -119,6 +167,36 @@
 			"config": {
 				"register": "learniq",
 				"schema": "Credential"
+			}
+		},
+		{
+			"id": "Staff",
+			"route": "/staff",
+			"type": "index",
+			"title": "Staff",
+			"config": {
+				"register": "learniq",
+				"schema": "Staff"
+			}
+		},
+		{
+			"id": "Schools",
+			"route": "/schools",
+			"type": "index",
+			"title": "Schools",
+			"config": {
+				"register": "learniq",
+				"schema": "School"
+			}
+		},
+		{
+			"id": "Locations",
+			"route": "/locations",
+			"type": "index",
+			"title": "Locations",
+			"config": {
+				"register": "learniq",
+				"schema": "Vestiging"
 			}
 		},
 		{
@@ -587,13 +665,218 @@
 			}
 		},
 		{
+			"id": "StaffDetail",
+			"route": "/staff/:id",
+			"type": "detail",
+			"title": "Staff",
+			"_note": "A Staff record is reference data (ncUserId, roles, qualifications, workingDays) with no lifecycle, same shape as Room. Body leads with the staff data 8-wide with a Related panel resolving Cohorts and SubjectTeacherAssignments this person is named on. No email/calendar/files (HARD RULE 1: reference data, not correspondence). Sidebar keeps metadata + audit-trail.",
+			"config": {
+				"register": "learniq",
+				"schema": "Staff",
+				"widgets": [
+					{
+						"id": "staff-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "AccountTieOutline"
+					},
+					{
+						"id": "staff-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "staff-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "staff-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "SchoolDetail",
+			"route": "/schools/:id",
+			"type": "detail",
+			"title": "School",
+			"_note": "A School is a reference-data record (BRIN, name, pedagogical concept) with no lifecycle — same shape as Room. Body leads with the school data 8-wide with a Related panel resolving its Locations. No email/calendar/files (HARD RULE 1: reference data, not a document or correspondence archetype). Sidebar keeps metadata + audit-trail.",
+			"config": {
+				"register": "learniq",
+				"schema": "School",
+				"widgets": [
+					{
+						"id": "school-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "OfficeBuilding"
+					},
+					{
+						"id": "school-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "school-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "school-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "LocationDetail",
+			"route": "/locations/:id",
+			"type": "detail",
+			"title": "Location",
+			"_note": "A Location is a vestiging/onderwijslocatie reference-data record (schoolId, vestigingscode, onderwijslocatiecode, address) with no lifecycle — same shape as Room. Body leads with the location data 8-wide with a Related panel resolving its School and the Cohorts running there. No email/calendar/files (HARD RULE 1). Sidebar keeps metadata + audit-trail.",
+			"config": {
+				"register": "learniq",
+				"schema": "Vestiging",
+				"widgets": [
+					{
+						"id": "location-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "MapMarker"
+					},
+					{
+						"id": "location-related",
+						"type": "related",
+						"title": "Related",
+						"icon": "LinkVariant"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "location-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 8,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "2",
+						"widgetId": "location-related",
+						"gridX": 8,
+						"gridY": 0,
+						"gridWidth": 4,
+						"gridHeight": 5,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
 			"id": "AttendanceRecords",
 			"route": "/attendance/records",
 			"type": "index",
 			"title": "Attendance records",
 			"config": {
 				"register": "learniq",
-				"schema": "attendance-record"
+				"schema": "attendance-record",
+				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly so the platform's built-in mass import/export/copy/delete (CnIndexPage showMass*) is a documented capability of this index, not an implicit default (findings 12.6/14.7).",
+				"columns": [
+					"learnerId",
+					"cohortId",
+					"status",
+					"markedAt"
+				],
+				"actionToggles": {
+					"showMassImport": true,
+					"showMassExport": true,
+					"showMassCopy": true,
+					"showMassDelete": true
+				}
 			}
 		},
 		{
@@ -1149,7 +1432,20 @@
 			"title": "Learners",
 			"config": {
 				"register": "learniq",
-				"schema": "learner-profile"
+				"schema": "learner-profile",
+				"_note": "trend-and-export-reporting: columns/actionToggles declared explicitly, see AttendanceRecords' note.",
+				"columns": [
+					"givenName",
+					"familyName",
+					"ncUserId",
+					"schoolId"
+				],
+				"actionToggles": {
+					"showMassImport": true,
+					"showMassExport": true,
+					"showMassCopy": true,
+					"showMassDelete": true
+				}
 			}
 		},
 		{
@@ -1160,8 +1456,44 @@
 			"config": {
 				"register": "learniq",
 				"schema": "learner-profile",
-				"_note": "A Learner Profile is the person record — the STUDENT hub. What a mentor lands here to see is this learner's whole footprint, each its own object-list scoped by learnerId: Enrolments (the courses they take), Final grades (outcomes/results), Attendance (presence), Learning plans (support/OPP), and Credentials (diplomas/badges earned) — paired 6+6 below the profile Data block (8-wide) and a Related panel resolving parents + manager. A stats-block KPI panel counts enrolments/attendance/credentials at a glance. No lifecycleActions: LearnerProfile uses a states model (active/merged/deleted via merge/delete transitions), not a linear `lifecycle` enum, so status changes are handled by dedicated flows, not a generic transition menu. No comms leaves on the body: LearnerProfile declares no linkedTypes (HARD RULE 1). The audit trail lives as the single sidebar tab (the built-in audit widget), not a body widget (HARD RULE 4).",
+				"_note": "A Learner Profile is the person record — the STUDENT hub. learner-record-extras (finding 2.1/pupil-card-anatomy.md) replaced the single scrolling Data block with a top-of-page `lprof-tabs` widget (Identity / Address & contact / Guardians / Medical / First aid), so guardians — previously the `related` widget buried at layout slot 8, resolving only after a long scroll — are now one click away instead of a dash at the bottom. Each tabbed child is declared here as an ordinary widget with NO layout entry of its own (CnTabsWidget resolves them by id from this widgets array, not from layout; a widget with both would render twice). Below the tabs: KPI tiles, then Enrolments (the courses they take), Final grades (outcomes/results), Attendance (presence), Learning plans (support/OPP), and Credentials (diplomas/badges earned), each its own object-list scoped by learnerId — paired 6+6. No lifecycleActions: LearnerProfile uses a states model (active/merged/deleted via merge/delete transitions), not a linear `lifecycle` enum, so status changes are handled by dedicated flows, not a generic transition menu. No comms leaves on the body: LearnerProfile declares no linkedTypes (HARD RULE 1). The audit trail lives as the single sidebar tab (the built-in audit widget), not a body widget (HARD RULE 4).",
 				"widgets": [
+					{
+						"id": "lprof-tabs",
+						"type": "tabs",
+						"title": "Learner",
+						"icon": "AccountBoxOutline",
+						"content": {
+							"ariaLabel": "Learner profile sections",
+							"tabs": [
+								{
+									"widgetId": "lprof-data",
+									"label": "Identity",
+									"icon": "AccountBoxOutline"
+								},
+								{
+									"widgetId": "lprof-data-address",
+									"label": "Address & contact",
+									"icon": "MapMarkerOutline"
+								},
+								{
+									"widgetId": "lprof-related",
+									"label": "Guardians",
+									"icon": "AccountMultipleOutline"
+								},
+								{
+									"widgetId": "lprof-data-medical",
+									"label": "Medical",
+									"icon": "MedicalBag"
+								},
+								{
+									"widgetId": "lprof-first-aid",
+									"label": "First aid",
+									"icon": "Bandage"
+								}
+							]
+						}
+					},
 					{
 						"id": "lprof-data",
 						"type": "data",
@@ -1170,6 +1502,72 @@
 							"columns": 2
 						},
 						"icon": "AccountBoxOutline"
+					},
+					{
+						"id": "lprof-data-address",
+						"type": "data",
+						"title": "Address & contact",
+						"content": {
+							"columns": 2,
+							"include": [
+								"address",
+								"emergencyContacts"
+							]
+						},
+						"icon": "MapMarkerOutline"
+					},
+					{
+						"id": "lprof-data-medical",
+						"type": "data",
+						"title": "Medical",
+						"content": {
+							"columns": 2,
+							"include": [
+								"medicalConditions",
+								"allergies",
+								"medicalConsentDate",
+								"hasParentalAuthority"
+							]
+						},
+						"icon": "MedicalBag"
+					},
+					{
+						"id": "lprof-first-aid",
+						"type": "object-list",
+						"title": "First aid incidents",
+						"content": {
+							"register": "learniq",
+							"schema": "first-aid-incident",
+							"filter": {
+								"learnerId": "@objectId"
+							},
+							"sort": {
+								"field": "occurredAt",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "occurredAt",
+									"label": "Occurred At"
+								},
+								{
+									"key": "whatHappened",
+									"label": "What Happened"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "FirstAidIncidentDetail",
+							"viewAllRoute": "FirstAidIncidents",
+							"viewAllQuery": {
+								"learnerId": "@objectId"
+							},
+							"emptyText": "No first aid incidents found."
+						},
+						"icon": "Bandage"
 					},
 					{
 						"id": "lprof-kpis-enrolments",
@@ -1582,7 +1980,7 @@
 				"layout": [
 					{
 						"id": "1",
-						"widgetId": "lprof-data",
+						"widgetId": "lprof-tabs",
 						"gridX": 0,
 						"gridY": 0,
 						"gridWidth": 8,
@@ -1656,15 +2054,6 @@
 						"id": "7",
 						"widgetId": "lprof-credentials",
 						"gridX": 0,
-						"gridY": 16,
-						"gridWidth": 6,
-						"gridHeight": 5,
-						"showTitle": false
-					},
-					{
-						"id": "8",
-						"widgetId": "lprof-related",
-						"gridX": 6,
 						"gridY": 16,
 						"gridWidth": 6,
 						"gridHeight": 5,

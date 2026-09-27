@@ -251,7 +251,7 @@ class AssessmentItemPoolsRegisterTest extends TestCase {
 	}//end testAssessmentReliabilityIsFullyDerivedAndStaffOnly()
 
 	/**
-	 * ItemRevisionFlag is appendOnly, open->acknowledged->revised|dismissed,
+	 * ItemRevisionFlag is not appendOnly, open->acknowledged->revised|dismissed,
 	 * notifies examboard+admin on creation, and is staff-only readable.
 	 *
 	 * @return void
@@ -259,7 +259,8 @@ class AssessmentItemPoolsRegisterTest extends TestCase {
 	public function testItemRevisionFlagShapeAndNotifications(): void {
 		$schema = $this->config['components']['schemas']['ItemRevisionFlag'] ?? null;
 		$this->assertIsArray($schema, 'ItemRevisionFlag schema MUST exist');
-		$this->assertTrue($schema['appendOnly'] ?? false);
+		// Open Register refuses every update on an appendOnly schema, transitions included (learniq#977).
+		$this->assertNotTrue($schema['appendOnly'] ?? false);
 
 		$properties = $schema['properties'] ?? [];
 		$this->assertSame(
