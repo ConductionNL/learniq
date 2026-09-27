@@ -67,7 +67,7 @@ class RejectionWaiveGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testCoordinatorWithReasonIsAllowedAndStamped(): void {
-		$guard = $this->makeGuard(['coordinator']);
+		$guard = $this->makeGuard(['coordinators']);
 		$context = [
 			'object' => ['id' => 'rej-1', 'status' => 'open'],
 			'actor' => 'actor-1',
@@ -107,7 +107,7 @@ class RejectionWaiveGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testCallerSuppliedWaivedByIsOverwritten(): void {
-		$guard = $this->makeGuard(['coordinator']);
+		$guard = $this->makeGuard(['coordinators']);
 		$context = [
 			'object' => ['id' => 'rej-1', 'status' => 'open'],
 			'actor' => 'actor-1',
@@ -127,7 +127,7 @@ class RejectionWaiveGuardTest extends TestCase {
 	 * @spec openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-waiving-without-a-reason-is-refused
 	 */
 	public function testEmptyReasonRefused(): void {
-		$guard = $this->makeGuard(['coordinator']);
+		$guard = $this->makeGuard(['coordinators']);
 		$context = [
 			'object' => ['id' => 'rej-1', 'status' => 'open'],
 			'actor' => 'actor-1',
@@ -144,7 +144,7 @@ class RejectionWaiveGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testWhitespaceOnlyReasonRefused(): void {
-		$guard = $this->makeGuard(['coordinator']);
+		$guard = $this->makeGuard(['coordinators']);
 		$context = [
 			'object' => ['id' => 'rej-1', 'status' => 'open'],
 			'actor' => 'actor-1',
@@ -161,7 +161,7 @@ class RejectionWaiveGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testMissingReasonRefused(): void {
-		$guard = $this->makeGuard(['coordinator']);
+		$guard = $this->makeGuard(['coordinators']);
 		$context = [
 			'object' => ['id' => 'rej-1', 'status' => 'open'],
 			'actor' => 'actor-1',
@@ -197,7 +197,7 @@ class RejectionWaiveGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNoActorIsDenied(): void {
-		$guard = $this->makeGuard(['coordinator']);
+		$guard = $this->makeGuard(['coordinators']);
 		$context = [
 			'object' => ['id' => 'rej-1', 'status' => 'open'],
 			'payload' => ['waiveReason' => 'Valid reason.'],

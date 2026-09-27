@@ -173,7 +173,7 @@ class ReportPeriodLockGuardTest extends TestCase {
 	 */
 	public function testMentorOverrideAllowsPublishOnLockedPeriod(): void {
 		$period = ['id' => 'period-1', 'periodCode' => '1', 'curriculumPlanIds' => ['plan-1'], 'isLocked' => true];
-		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [$period], actorGroups: ['mentor']);
+		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [$period], actorGroups: ['team-leads']);
 		$context = [
 			'object' => ['id' => 'entry-1', 'period' => '1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a'],
 			'actor' => 'mentor-1',
