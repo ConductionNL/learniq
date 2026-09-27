@@ -676,15 +676,16 @@
       "area": "compliance",
       "name": "Enrol a whole department in a mandatory course in one go.",
       "built": {
-        "state": "building",
-        "evidence": "src/manifest.d/people.json page BulkEnrol, a CnWizardDialog audience picker",
-        "owner": "ConductionNL/learniq"
+        "state": "built",
+        "evidence": "src/views/BulkEnrolView.vue (department, cohort or picked learners into one course; learnersInDepartment in src/utils/customPages.js mirrors RegulationAudienceResolver)",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/enrolments/bulk"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "compliance-coverage",
       "featureConfidence": "high",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
       "ilias": "yes",
@@ -699,7 +700,7 @@
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/enrolling-on-a-user-s-page-35664610.html; Enrolling on a User's Page: \"Click the Advanced Search button to select an entire department, group, or filter users by any of the profile fields.\"; same flow on https://ispringhelpdocs.com/ispring-learn/enrollments-16187447.html",
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/db/install.php:122 (cohort enrolment enabled by default) + public/enrol/cohort/lib.php:43 enrol_cohort_plugin + public/cohort/edit.php:31; a site or category cohort (a department) is synced into a course, and new cohort members are enrolled automatically. Reached on: course > Participants > Enrolment methods > Cohort sync."
       },
-      "note": "Downgraded 2026-09-27 from built.state 'built' and learniq 'yes' (learniq#947): the BulkEnrol page names CnWizardDialog, which src/registry.js does not register, so /enrolments/bulk renders 'This page is empty'. The manifest page is there; the screen is not."
+      "note": "Downgraded 2026-09-27 from built.state 'built' and learniq 'yes' (learniq#947): the BulkEnrol page names CnWizardDialog, which src/registry.js does not register, so /enrolments/bulk renders 'This page is empty'. The manifest page is there; the screen is not. Built 2026-09-27 (learniq#947): /enrolments/bulk now mounts BulkEnrolView, which enrols a whole department (and everything under it), a cohort or picked learners in one course and skips learners with an open enrolment."
     },
     {
       "id": "comp-deadline-per-enrolment",
@@ -4483,15 +4484,16 @@
       "area": "attendance",
       "name": "Take the register for a lesson.",
       "built": {
-        "state": "building",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.AttendanceRecord holds the fact, but src/manifest.d/people.json ships only a flat index and detail, with no per-session roster screen",
-        "owner": "ConductionNL/learniq"
+        "state": "built",
+        "evidence": "src/views/AttendanceRegisterView.vue (one row per learner of the session cohort, one AttendanceRecord each)",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/sessions/:sessionId/attendance"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "attendance",
       "featureConfidence": "high",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "yes",
       "ilias": "yes",
@@ -4505,7 +4507,8 @@
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Appointments_Configuration; for face-to-face sessions you set \"the attendance status: No show, Partially attended, and Fully attended\".",
         "totara": "read 2026-09-26: https://totara.help/docs/taking-seminar-attendance; statuses \"No show\", \"Unable to attend\", \"Partially attended\" and \"Fully attended\", per event or per session.",
         "ispring-learn": "read 2026-09-26: https://ispringhelpdocs.com/ispring-learn/how-to-record-attendance-62853299.html; \"Go to the Attendance tab and click Record Attendance next to the employee's name. Then, note the employee's attendance for each day.\""
-      }
+      },
+      "note": "Built 2026-09-27 (learniq#947): the MarkAttendanceView page named CnDataMatrix, which the registry lacked, so it opened empty; it now mounts AttendanceRegisterView."
     },
     {
       "id": "att-learner-submits-an-excuse",
@@ -6894,12 +6897,12 @@
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
         "state": "none",
-        "evidence": "src/manifest.d/learning.json:3260",
+        "evidence": "src/views/SubmitWorkView.vue (the hand-in screen now renders, but Assignment has no allowed-types or size fields and nothing passes filesAccept or maxSizeMb)",
         "owner": "nextcloud",
         "reachedOn": "nothing"
       },
       "provider": "nextcloud",
-      "providerHow": "Only Nextcloud's server-wide upload limit applies; the shared dialog supports an accept list but learniq passes none.",
+      "providerHow": "Only Nextcloud's server-wide upload limit applies; the hand-in dialog renders since learniq#947 but the assignment carries no file-type or size rule to pass it.",
       "learniq": "no",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/assign/submission/file/locallib.php:72 (maximum submission size) and :73 (accepted file types); set per assignment on the assignment form under File submissions.",
@@ -7079,14 +7082,14 @@
       "origin": "featureRequest",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-35335",
       "built": {
-        "state": "building",
-        "evidence": "lib/Settings/learniq_register.json:2502",
-        "owner": "ConductionNL/openregister",
+        "state": "built",
+        "evidence": "lib/Listener/LessonProgressHandler.php (one LessonCompletion per enrolment and lesson) + lib/Service/EnrolmentProgressEvaluator.php::belongsToEnrolment + Enrolment.x-openregister-aggregate-refs.completedLessonCount (filtered on enrolmentId) + src/utils/lessonCompletion.js",
+        "owner": "ConductionNL/learniq",
         "reachedOn": "/enrolments"
       },
-      "provider": "openregister",
-      "providerHow": "OpenRegister aggregate-refs compute progress, scoped to learner and course rather than to the enrolment.",
-      "learniq": "partial",
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/lib/moodlelib.php:5245 (course reset deletes all completion data) + public/lib/completionlib.php:902 delete_all_completion_data; retaking means resetting completion for the whole course, which removes the earlier record. Searched public/ for recomplet, completion_history, archive completion: none. Issued badges survive a reset, which is the nearest record. Marketplace local_recompletion adds it, not shipped.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/500/en/Moodle_Workplace_release_notes; Workplace 5.0 added a report source for historical certification completion data, and recertification runs through program reset (https://docs.moodle.org/502/en/Programs_Configuration). Keeping an earlier course completion when a learner retakes a course is not documented.",
@@ -7101,7 +7104,7 @@
       "totara": "yes",
       "chamilo": "yes",
       "ispring-learn": "yes",
-      "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-35335 (New Feature, Open, 36 votes): \"it is often necessary for students to retake courses they have already completed once, either on a fixed schedule (e.g. every year) ... At the moment this is often handled by creating multiple copies of courses for each ye built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row."
+      "note": "Demand-signal row added 2026-09-26 (featureRequest). moodle featureRequest: https://moodle.atlassian.net/browse/MDL-35335 (New Feature, Open, 36 votes): \"it is often necessary for students to retake courses they have already completed once, either on a fixed schedule (e.g. every year) ... At the moment this is often handled by creating multiple copies of courses for each ye built.state was 'partial', outside the schema enum; set to 'building' 2026-09-27, the value this file uses for a partly built row. Built 2026-09-27 (learniq#945): completions are kept per enrolment, so a retake starts at 0% while the earlier enrolment keeps its completions and progress."
     },
     {
       "id": "gov-merge-duplicate-accounts",

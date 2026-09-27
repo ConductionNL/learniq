@@ -25,6 +25,7 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\BackgroundJob\EnrolmentProgressRollupJob;
 use OCA\Learniq\Listener\EnrolmentProgressRollupHandler;
@@ -286,4 +287,30 @@ class EnrolmentProgressRollupHandlerTest extends TestCase {
 		self::assertCount(0, $this->deferred, 'an unrelated schema must not even enqueue work');
 
 	}//end testUnrelatedSchemaIsIgnored()
+
+	/**
+	 * An update of a LessonCompletion (a re-completion, a changed score) owes
+	 * a roll-up too, not only a create; the entry names the enrolment the row
+	 * belongs to (learniq#945).
+	 *
+	 * @return void
+	 */
+	public function testAnUpdatedCompletionTriggersRecomputeForItsEnrolment(): void {
+		$handler = $this->makeHandler(enrolments: [], evaluated: ['progressPercent' => 0, 'completedLessonCount' => 0, 'totalPublishedLessonCount' => 0]);
+
+		$objectEntity = OrEntityFactory::make(
+			['learnerId' => 'learner-1', 'lessonId' => 'lesson-4', 'courseId' => 'course-1', 'enrolmentId' => 'enrol-2', 'source' => 'xapi'],
+			'1280',
+			'9'
+		);
+		$this->stubResolver('lesson-completion');
+		$event = $this->createMock(ObjectUpdatedEvent::class);
+		$event->method('getObject')->willReturn($objectEntity);
+
+		$handler->handle($event);
+
+		self::assertCount(1, $this->deferred);
+		self::assertSame('enrol-2', $this->deferred[0]['entry']['enrolmentId']);
+
+	}//end testAnUpdatedCompletionTriggersRecomputeForItsEnrolment()
 }//end class

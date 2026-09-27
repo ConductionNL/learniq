@@ -2265,7 +2265,7 @@
                 "icon": "CheckCircleOutline",
                 "version": "0.1.0",
                 "title": "LessonCompletion",
-                "description": "Per-learner, per-Lesson completion state — one row per (learnerId, lessonId), an upsert target (not an append-only log; XapiStatement itself is already the append-only source of truth for the xAPI half — mirrors the relationship FinalGrade has to GradeEntry). Written by the new LessonProgressHandler for every resolvable completed/passed xAPI statement (no mandatoryTraining or last-lesson gate, unlike XapiCompletionHandler's Enrolment-completion path — a sibling listener on the same ObjectCreatedEvent<XapiStatement>, not an edit to that handler), or self-reported (source: manual) by the learner for content types that do not emit xAPI statements, mirroring AssessmentResult's unrestricted self-serve create posture. No x-openregister-lifecycle — a completion fact has no workflow states to move through. See openspec/changes/learning-progress-and-analytics/.",
+                "description": "Per-enrolment, per-Lesson completion state — one row per (enrolmentId, lessonId), an upsert target, so a retake or re-enrolment starts with no completions (learniq#945) (not an append-only log; XapiStatement itself is already the append-only source of truth for the xAPI half — mirrors the relationship FinalGrade has to GradeEntry). Written by the new LessonProgressHandler for every resolvable completed/passed xAPI statement (no mandatoryTraining or last-lesson gate, unlike XapiCompletionHandler's Enrolment-completion path — a sibling listener on the same ObjectCreatedEvent<XapiStatement>, not an edit to that handler), or self-reported (source: manual) by the learner for content types that do not emit xAPI statements, mirroring AssessmentResult's unrestricted self-serve create posture. No x-openregister-lifecycle — a completion fact has no workflow states to move through. See openspec/changes/learning-progress-and-analytics/.",
                 "type": "object",
                 "x-openregister": {
                     "active": true,
@@ -2313,7 +2313,8 @@
                         "nullable": true,
                         "format": "uuid",
                         "$ref": "Enrolment",
-                        "description": "UUID of the learner's active Enrolment in this Course. Resolved at write time by LessonProgressHandler the same way XapiCompletionHandler resolves the active enrolment today. Null when no active Enrolment is found, or for a manual completion (the frontend does not resolve it).",
+                        "description": "The enrolment this completion belongs to. Filled in when the lesson is completed; empty only when the learner had no enrolment in the course.",
+                        "x-notes": "LessonProgressHandler resolves the active, else pending, Enrolment; LessonPlayer sends the learner's current Enrolment for a manual completion. A row keeps its enrolmentId: a later enrolment gets its own row (learniq#945). Enrolment.completedLessonCount counts rows by enrolmentId; EnrolmentProgressEvaluator additionally counts an untied row completed after the enrolment started.",
                         "title": "Enrolment ID"
                     },
                     "source": {
@@ -2503,8 +2504,7 @@
                         "schema": "lesson-completion",
                         "metric": "count",
                         "filters": {
-                            "learnerId": "@self.learnerId",
-                            "courseId": "@self.courseId"
+                            "enrolmentId": "@self.id"
                         }
                     },
                     "totalPublishedLessonCount": {
