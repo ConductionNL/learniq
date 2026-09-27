@@ -101,16 +101,9 @@ class SubmissionWindowGuard {
 		$assignmentId = $object['assignmentId'] ?? null;
 		$tenantId = $object['tenant_id'] ?? '';
 
-		if ($assignmentId === null) {
+		if ($assignmentId === null || $this->callerMayHandIn(object: $object) === false) {
 			$this->logger->info(
-				'[SubmissionWindowGuard] Submission has no assignmentId; blocking submit.'
-			);
-			return false;
-		}
-
-		if ($this->callerMayHandIn(object: $object) === false) {
-			$this->logger->info(
-				'[SubmissionWindowGuard] Caller is not a learner on submission {id}; blocking submit.',
+				'[SubmissionWindowGuard] Submission {id} has no assignmentId or the caller is not one of its learners; blocking submit.',
 				['id' => ($object['id'] ?? '')]
 			);
 			return false;
