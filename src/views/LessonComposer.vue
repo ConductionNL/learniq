@@ -283,6 +283,35 @@
 								" />
 						</div>
 
+						<!-- teacherNote (office-file-lesson-onboarding) -->
+						<div
+							v-else-if="block.type === 'teacherNote'"
+							class="lesson-composer__block-body">
+							<p class="lesson-composer__teacher-note-label">
+								{{
+									t(
+										'learniq',
+										'Only staff see this note here. Learners do not see it in the lesson player.',
+									)
+								}}
+							</p>
+							<CnMarkdownEditor
+								:value="block.text || ''"
+								:aria-label="
+									t(
+										'learniq',
+										'Teacher note in block {position}',
+										{
+											position: idx + 1,
+										},
+									)
+								"
+								:rows="4"
+								@input="
+									(v) => onBlockFieldInput(block, 'text', v)
+								" />
+						</div>
+
 						<!-- media -->
 						<div
 							v-else-if="block.type === 'media'"
@@ -374,6 +403,9 @@
 					</option>
 					<option value="ltiTool">
 						{{ t('learniq', 'External tool (LTI)') }}
+					</option>
+					<option value="teacherNote">
+						{{ t('learniq', 'Teacher note (not shown to learners)') }}
 					</option>
 				</select>
 				<button
@@ -855,7 +887,7 @@ export default {
 		 *
 		 * @param {string} type Block type value.
 		 * @return {string}
-		 * @spec exclude Presentation-only label map from the 5 fixed block-type values to their localized display names; no behavioural spec requirement of its own.
+		 * @spec exclude Presentation-only label map from the fixed block-type values to their localized display names; no behavioural spec requirement of its own.
 		 */
 		blockTypeLabel(type) {
 			const labels = {
@@ -864,6 +896,7 @@ export default {
 				quiz: this.t('learniq', 'Quiz'),
 				assignment: this.t('learniq', 'Assignment'),
 				ltiTool: this.t('learniq', 'External tool'),
+				teacherNote: this.t('learniq', 'Teacher note'),
 			}
 			return labels[type] ?? type
 		},
@@ -879,7 +912,9 @@ export default {
 				blockId: this.generateBlockId(),
 				type: this.addBlockType,
 				order: this.blocks.length + 1,
-				text: this.addBlockType === 'richText' ? '' : null,
+				text: ['richText', 'teacherNote'].includes(this.addBlockType)
+					? ''
+					: null,
 				materialId: null,
 				assessmentId: null,
 				assignmentId: null,
@@ -1253,6 +1288,12 @@ export default {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
+}
+
+.lesson-composer__teacher-note-label {
+	margin: 0;
+	color: var(--color-text-maxcontrast);
+	font-style: italic;
 }
 
 .lesson-composer__draft-label {

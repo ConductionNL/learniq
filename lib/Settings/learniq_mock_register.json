@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.20",
+    "version": "1.1.21",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -27478,6 +27478,57 @@
         "enrolmentId": "00000000-0000-4000-8000-000000000002",
         "verb": "Voorbeeld Verb 3",
         "score": 3.0
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-onboarding-file",
+          "slug": "lesson-onboarding-file-lessononboardingfile-1-1"
+        },
+        "teacherId": "jdevries",
+        "fileId": 1,
+        "fileName": "Breuken vergelijken.docx",
+        "format": "docx",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "filePath": "/Lessen inbox/Breuken vergelijken.docx",
+        "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "detectedAt": "2026-03-01T09:00:00+00:00",
+        "lifecycle": "detected"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-onboarding-file",
+          "slug": "lesson-onboarding-file-lessononboardingfile-2-2"
+        },
+        "teacherId": "jdevries",
+        "fileId": 2,
+        "fileName": "Fotosynthese.pptx",
+        "format": "pptx",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "filePath": "/Lessen inbox/Fotosynthese.pptx",
+        "mimeType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "detectedAt": "2026-03-02T09:00:00+00:00",
+        "courseId": "00000000-0000-4000-8000-000000000001",
+        "lessonId": "00000000-0000-4000-8000-000000000001",
+        "importNote": "1 hidden slide left out",
+        "lifecycle": "imported"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-onboarding-file",
+          "slug": "lesson-onboarding-file-lessononboardingfile-3-3"
+        },
+        "teacherId": "mbakker",
+        "fileId": 3,
+        "fileName": "Kerstviering.docx",
+        "format": "docx",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "filePath": "/Lessen inbox/Kerstviering.docx",
+        "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "detectedAt": "2026-03-03T09:00:00+00:00",
+        "lifecycle": "dismissed"
       },
       {
         "@self": {
