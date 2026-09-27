@@ -467,7 +467,20 @@ OC.L10N.register(
         "What course evaluations said, per course.": "O que disseram as avaliações de curso, por curso.",
         "What was found on placement visits.": "O que foi encontrado nas visitas ao local de trabalho.",
         "Store": "Loja",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Instale registos, esquemas e fluxos publicados por outras organizações."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Instale registos, esquemas e fluxos publicados por outras organizações.",
+        "Enter the access code you were given to start this assessment.": "Introduza o código de acesso que recebeu para iniciar esta avaliação.",
+        "Access code": "Código de acesso",
+        "This assessment is not open yet. It opens on {date}.": "Esta avaliação ainda não está aberta. Abre em {date}.",
+        "This assessment is not open yet.": "Esta avaliação ainda não está aberta.",
+        "This assessment is closed.": "Esta avaliação está fechada.",
+        "This assessment is not available right now.": "Esta avaliação não está disponível neste momento.",
+        "The access code is not correct.": "O código de acesso não está correto.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Código opcional que os formandos têm de introduzir para iniciar o teste, por exemplo para o limitar às pessoas na sala de exame. Deixe vazio para não usar código.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "O código de acesso introduzido para iniciar esta tentativa. É verificado e depois apagado, por isso nunca é guardado.",
+        "Teachers": "Docentes",
+        "Manager": "Responsável",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Docentes do curso que podem ver e avaliar esta tentativa. Preenchido pelo servidor.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Responsável do formando, que pode ver esta tentativa. Preenchido pelo servidor."
     },
     "nplurals=2; plural=(n != 1);"
 )
