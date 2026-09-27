@@ -1,34 +1,84 @@
-# Lane log: lq-reports
+# LANE-LOG: r2-assessment (learniq round 2, lane C)
 
-Lane dir: `/home/rubenlinde/memcap-work/lq-lanes/lq-reports`, app id `learniq` (source dir `scholiq`).
+Clone: /home/rubenlinde/memcap-work/lq-lanes/lq-reports. Brief: six changes in order, one branch and PR each, cut
+from origin/development with --no-track. Logs of each run under `.tmp/` in this clone.
 
-## Change 1: report-card-templates
+## 1. gradeentry-learnerref-stamp: DONE
+- Branch: feat/gradeentry-learnerref-stamp (2 commits, pushed, ls-remote 2c48572)
+- PR: https://github.com/ConductionNL/learniq/pull/1020
+- Built: LearnerRefResolver (ncUserId, nested filters, merge survivor), GradeEntryLearnerRefStamp (create+update,
+  IntegrityListenerRegistrar), BackfillGradeEntryLearnerRef repair step + info.xml version bump (gate 110),
+  tests/Support/RegisterFaithfulStore (fake that answers like OR), 22 tests.
+- Verification: diff checks 0; check:strict 1 (inherited: phpmd coupling in Case/SchedulingListenerRegistrar,
+  14 register/seed tests = #1006); lint 0; format 0; schema-l10n 0; gates 1 (gate 112 newman-reach, inherited).
+- opsx-verify: pass (one suggestion: no docs page for portal grade visibility).
+- Findings for the orchestrator: ReportCardComposer::resolveLearnerRef and GradeRollupHandler::fanOutParentNotifications
+  filter learner-profile on `learnerId` (undeclared; returns zero rows). ~170 findAll() call sites put register/schema at
+  the top level (inert in OR's prepareFindAllConfig). Submission portal scoping uses `learnerRefs`, which nothing stamps.
+- Time: ~1h40.
 
-- Branch: `feat/report-card-templates`, cut from `origin/development` (5dfc675).
-- Status: **in progress** (implementation complete, verification in progress, not yet committed/pushed as of this log entry).
-- Artifacts: `openspec/changes/report-card-templates/{proposal,contract,design,migration,test-plan,tasks}.md` and `specs/report-card/spec.md`, all written and `openspec validate report-card-templates --strict` passes.
-- Implementation:
-  - `lib/Settings/learniq_register.json`: new `ReportCardTemplate` schema (sections[] with `minItems:1`, 7 section kinds, 7-value scale library, `testKindSectionMap[]`, `slug` property, draft/active/archived lifecycle); `Cohort.reportCardTemplateId` and `ReportCard.templateId` (both nullable `$ref`); `info.version` bumped 0.21.0 -> 0.22.0 with a changelog sentence.
-  - `lib/Settings/learniq_mock_register.json`: 3 curated `ReportCardTemplate` seed objects; one `Cohort` and one `ReportCard` mock row wired to the first template. **Did NOT use the schema's own mock generator wholesale** (`generate_mock_register.py --keep` rewrote the 29562-line file down to 7547 lines, dropping the embedded full-schema `components.schemas` duplicate block entirely — a destructive regression from a version/invocation mismatch, not a real regen. Restored from a pre-run backup and hand-added only the 3 new objects + 2 field touches via a small Python script instead, verified `--check` passes clean afterward).
-  - `lib/Listener/ReportCardComposer.php`: `resolveLearnersByCohort()` now also returns a `cohortId => reportCardTemplateId` map; new `resolveTemplateSectionKinds()`/`sectionEnabled()` helpers; both `composeForPeriod()` and `recomposeCard()` stamp `templateId` and gate `subjectGrades`/`attendanceSummary` population by the assigned template's declared sections, falling back to the pre-existing fixed shape when no template is assigned or it fails to resolve.
-  - `lib/Service/ReportCardPdfDelegationService.php`: new `ObjectService`-injected `resolveTemplateSlug()` reads `ReportCard.templateId` -> `ReportCardTemplate.slug`, falling back to the existing `'report-card'` literal.
-  - `src/manifest.d/learning.json`: `ReportCardTemplates`/`ReportCardTemplateDetail` index+detail pages (mirrors `CourseTemplateDetail`'s layout) plus a `ReportCardTemplatesMenu` nav entry. Verified via the shared hydra-gates `build_effective_manifest.js`/`check_duplicate_index_pages.js`/`check_manifest_crossref.js` libraries (route `/report-cards/templates` alongside `/report-cards/:id` mirrors the already-shipped `/courses/templates` vs `/courses/:id` precedent — router ranks the static segment first).
-  - Tests: `tests/Unit/Settings/ReportCardTemplateRegisterTest.php` (new, 7 tests); `tests/Unit/Listener/ReportCardComposerTest.php` (+2 tests: fallback path, templated path); `tests/Unit/Service/ReportCardPdfDelegationServiceTest.php` (+2 tests: assigned slug, default slug) — all with `@spec` tags.
-  - l10n: `check:schema-l10n` ratchet caught 18 new untranslated schema strings from the new schema; added identity keys to `l10n/en.json` and Dutch translations to `l10n/nl.json` (20 unique strings — 2 already covered by existing baseline slack), ran `npm run l10n:build`. Net result: 2414 uncovered vs baseline 2416 (2 fewer, same as before this change — zero net new debt). Fixed 2 em-dashes introduced in new schema `description` fields per the writing-skill rule (checked; `_note`/`info.description` em-dashes are pre-existing, non-form-rendered engineering prose, left alone).
-- Verified so far (all exit 0 unless noted):
-  - `php -l` on all 4 touched PHP files
-  - `vendor/bin/phpcs lib/Listener/ReportCardComposer.php lib/Service/ReportCardPdfDelegationService.php` — 0 findings (phpcs scope is `lib/` only per `phpcs.xml`; tests/ is out of scope for this gate)
-  - `vendor/bin/phpstan analyse lib/Listener/ReportCardComposer.php lib/Service/ReportCardPdfDelegationService.php` — 0 errors
-  - `vendor/bin/phpunit --filter 'ReportCardTemplateRegisterTest|ReportCardComposerTest|ReportCardPdfDelegationServiceTest|ReportCardComposerRegisterTest|PortalContributionProviderTest|Cohort'` — all green (78 tests across the two runs)
-  - `python3 vendor/conduction/hydra-gates/hydra-gates/scripts/lib/generate_mock_register.py . --check` — clean
-  - `npm run check:specs` (json-strict, manifest, register, menu-role-gates) — all PASS
-  - `npm run check:schema-l10n` — 2414/2416, non-failing
-  - `npm run lint` — 0 errors (19 pre-existing warnings, unrelated files)
-  - `npm run format` — all files match Prettier
-  - `TMPDIR=$PWD/.tmp COMPOSER_PROCESS_TIMEOUT=0 composer check:strict` via `with-slot.sh` — **running in background as of this log entry**, output at `.tmp/check-strict-report-card-templates.log` inside this lane dir (survives a crash, per lane-dir-only logging rule)
-- Not yet done: read `check:strict` result, `hydra` gates run, commit, push, PR, `opsx-verify`.
-- Blocked/deferred (per proposal.md Out of Scope): PDF house-style rendering (filinq's job), LVS test-result ingestion (tier-B `lvs-import-contract`), pupil-authoring UI, ZIP export/leavers' archive (carried by `trend-and-export-reporting`, change 4 in this lane), the `slugify-ref-relation-resolver` nextcloud-vue fix (another lane — not worked around here).
+## 2. assignment-missing-submissions-view: DONE
+- Branch: feat/assignment-missing-submissions-view (2 commits, pushed, ls-remote b720b85)
+- PR: https://github.com/ConductionNL/learniq/pull/1023
+- Built: src/utils/handInStatus.js (+7 node tests), src/components/sections/AssignmentHandInStatus.vue (kind: section,
+  staff-only via dashboardRoles), AssignmentDetail.config.bodyWidgets, registry coverage test for bodyWidgets, en/nl strings.
+- Verification: node tests 0; check:manifest/specs/l10n-js 0; check:strict 1 (same inherited set); lint/format/schema-l10n 0;
+  shared gates 1 (gate 16 fixed, gate 53 env ESM failure, gate 112 inherited); vendored gates 0 (gate 53 PASS).
+- opsx-verify: pass.
+- Note: LANE-LOG.md is TRACKED in development (committed by #910, an earlier lane). Never `git add` it.
+- Time: ~50 min.
 
-## Changes 2-5 (care-and-support-index, role-dashboards, trend-and-export-reporting, po-schooladvies-flow)
+## 3. submission-resubmission-action: DONE
+- Branch: feat/submission-resubmission-action (1 commit, pushed, ls-remote 46126bb)
+- PR: https://github.com/ConductionNL/learniq/pull/1027
+- Built: Submission.resubmissionDueAt; reopen gets required input + staff authorization + resubmissionRequested notification;
+  SubmissionWindowGuard honours the date; SubmissionResubmissionDateListener (learners cannot set/move it);
+  SubmissionDetail lifecycleActions (reopen only). Submission 0.3.0, register 0.24.10.
+- Verification: targeted phpunit 0 (26); Register suite same 5 inherited; check:strict 1 (inherited set); lint/format 0;
+  shared gates 2 (53 env, 112 inherited); vendored gates 0.
+- opsx-verify: pass. Known limit: pupils see the reopen button (server refuses).
+- Time: ~1h10.
 
-Not started yet.
+## 4. peer-review-allocation-trigger: DONE (stacked on #1023)
+- Branch: feat/peer-review-allocation-trigger, cut from origin/feat/assignment-missing-submissions-view (pushed, 9afd52a)
+- PR: https://github.com/ConductionNL/learniq/pull/1030 (base development; land #1023 first)
+- Built: AssignmentPeerReviewAllocation section (+ peerReviewAllocation.js, 6 node tests); PeerReviewAllocationService fixed:
+  filters-nested register/schema, limits, _rbac:false behind the controller's check, handed-in work only; service test
+  now answers like OR.
+- Verification: phpunit PeerReview 0 (21); node 0 (17); check:strict 1 (inherited set); lint/format 0; shared gates 2
+  (53 env, 112 inherited); vendored 0.
+- opsx-verify: pass.
+- Finding: PeerReviewMarkingView shows the reviewer no work at all; pupil reviewers cannot read the Submission. Change 6
+  addresses it via a projection endpoint.
+- Time: ~1h.
+
+## 5. cohort-gradebook-batch-publish: DONE
+- Branch: feat/cohort-gradebook-batch-publish (2 commits, pushed, 72501f5)
+- PR: https://github.com/ConductionNL/learniq/pull/1033
+- Built: gradebookPublish.js (8 node tests); publish panel in CohortGradebookView (scope, stats, histogram, confirmed
+  sequential publish transitions, refusal report). The grid itself already existed (learniq#947).
+- Verification: node 0; check:strict 1 (inherited set); lint/format/l10n 0; shared gates 2 (16 fixed, 112 inherited);
+  vendored gates 0 after fix.
+- opsx-verify: pass. Not done: one notification per recipient per batch (needs a notification change).
+- Time: ~50 min.
+
+## 6. peer-review-projection-guard: DONE
+- Branch: feat/peer-review-projection-guard (2 commits, pushed, c4e8b32)
+- PR: https://github.com/ConductionNL/learniq/pull/1044
+- Built: PeerReviewWorkProjection + PeerReviewWorkController (GET work, GET work/files/{fileId}), two routes;
+  PeerReviewMarkingView reads the projection and shows the work; Assignment.peerReviewAnonymity description,
+  Assignment 0.4.0, register 0.24.11; spec: anonymity requirement REMOVED + re-ADDED with a server-enforced 4th
+  scenario (MODIFIED may not drop a scenario); regression node test for the view.
+- Verification: phpunit 0 (39); Register same 5 inherited; check:strict 1 (inherited set); lint/format 0; shared gates 2
+  (53 env, 112 inherited; 5/7/8/14/16/17/48/49/50 PASS); vendored 0.
+- opsx-verify: pass after adding the view test.
+- Time: ~1h30.
+
+## CI read (once, end of lane, 2026-09-27)
+- #1020, #1023, #1027, #1030, #1033: identical 4 reds on every PR, all inherited. Hydra Gates in CI reads the WHOLE
+  tree (gate package 9ca0732, "File scope: FULL"): gate 3 stub-scan (6), 25 contract-coverage (2), 49 (1), 55 (3), the
+  same counts on #1020 which touches no controller or manifest. PHPUnit: the same 1 error + 13 failures, all under
+  tests/Unit/Register and tests/Unit/Settings (#1006). phpmd: the two inherited registrars. No NEW red, nothing to fix.
+- #1044: checks still pending at the one read.
+
+## Lane status: ALL SIX DONE. Landing order: #1020, #1023 then #1030 (stacked), #1027, #1033, #1044.
