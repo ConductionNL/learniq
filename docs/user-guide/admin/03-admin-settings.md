@@ -40,6 +40,12 @@ By the end you will have confirmed the right OpenRegister register is wired up, 
 
    ![Verifier showing new signature](/screenshots/tutorials/admin/03-admin-settings-05.png)
 
+## Give the vertrouwenspersoon a private place for notes
+
+Add your school's vertrouwenspersoon to the Nextcloud group *confidential-counsellors*. They then see **Confidential notes** in the menu. A note there is readable by its writer and by the colleagues they add to it, nobody else. School leaders, mentors, coordinators and compliance officers cannot open it.
+
+Nextcloud admins can read every record, including these notes. Keep the *admin* group to IT staff who are not school leaders.
+
 ## Connect the course store
 
 The **Store** page lists courses other schools share. It needs a course registry: another learniq, for example your school board's. Ask its administrator for its address and for a token of an account in the *instructors* group there. Then set them on your server:

@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/ConductionNL/nextcloud-vue/raw/main/src/schemas/app-manifest-v2.schema.json",
   "setup": {
-    "version": 1,
+    "version": 2,
     "completionConfigKey": "setup_completed_version",
     "steps": [
       {
@@ -11,22 +11,43 @@
         "body": "A short setup to get this app ready. Nothing here is required; you can close it and come back later."
       },
       {
-        "id": "demo-data",
+        "id": "example-set",
         "type": "choice",
         "display": "cards",
-        "optionsSource": "datasets",
-        "configKey": "demo_dataset",
-        "title": "Load example data?",
+        "optionsSource": "profiles",
+        "configKey": "example_profile",
+        "multiple": false,
+        "title": "Which example data do you want?",
         "required": false,
-        "body": "Example data fills the lists, detail pages and dashboards so you can see the app working straight away. Pick \"None\" on a production install."
+        "body": "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install."
       },
       {
-        "id": "load-demo-data",
+        "id": "load-example-set",
         "type": "run-action",
-        "action": "load-demo-data",
+        "action": "load-example-set",
         "title": "Load the example data",
         "required": false,
-        "body": "Loads what you picked. The data is obviously sample data, it is safe to run more than once, and you can delete it afterwards."
+        "body": "Loads the set you picked. It is sample data, and running it twice adds nothing. Remove a set later with occ learniq:example-set:remove."
+      },
+      {
+        "id": "segment",
+        "type": "choice",
+        "display": "cards",
+        "optionsSource": "segments",
+        "configKey": "segment",
+        "multiple": false,
+        "suggestFrom": "example_profile",
+        "suggestMap": {
+          "po": "po",
+          "vo": "vo",
+          "mbo": "mbo",
+          "he": "he",
+          "corporate": "corporate",
+          "training": "training"
+        },
+        "title": "What kind of organisation is this?",
+        "required": false,
+        "body": "Pick the one that fits best. The app shows the menus that fit it. You can change it later under App settings."
       },
       {
         "id": "done",
@@ -263,18 +284,36 @@
     },
     {
       "id": "Reports",
-      "_note": "ADR-112 / ADR-114 Decision 3. NOTHING here is invented and nothing is relocated: all seven pages already existed as routes with NO menu entry at all, reachable only by someone who already knew the URL. Carding them GIVES an entry point rather than moving one. Two neighbouring orphans are deliberately NOT carded, because a gate finding is a question rather than an instruction: AuditPackExport (/compliance/export) BUILDS an export, and EngagementRiskThresholds (/progress/engagement-thresholds) CONFIGURES the thresholds that produce the flags. Both are things you do, not readings, and ADR-097 keeps work in the main navigation. The report periods, report cards, conference reports and course-package import reports already have menu entries and stay there: ADR-112 forbids a report being BOTH a card and an entry, not being an entry.",
+      "_note": "ADR-112 / ADR-114 Decision 3. NOTHING here is invented and nothing is relocated: all nine pages already existed as routes with NO menu entry at all, reachable only by someone who already knew the URL. Carding them GIVES an entry point rather than moving one. Two neighbouring orphans are deliberately NOT carded, because a gate finding is a question rather than an instruction: AuditPackExport (/compliance/export) BUILDS an export, and EngagementRiskThresholds (/progress/engagement-thresholds) CONFIGURES the thresholds that produce the flags. Both are things you do, not readings, and ADR-097 keeps work in the main navigation. The report periods, report cards, conference reports and course-package import reports already have menu entries and stay there: ADR-112 forbids a report being BOTH a card and an entry, not being an entry.",
       "route": "/reports",
       "type": "reports",
       "title": "Reports",
       "config": {
         "description": "Pick a report to open it.",
         "categories": {
+          "attendance": "Attendance and compulsory education",
+          "results": "Results",
           "progress": "Progress and risk",
           "quality": "Quality and assessment",
           "placements": "Placements"
         },
         "cards": [
+          {
+            "id": "AttendanceFlags",
+            "label": "Attendance flags",
+            "description": "Which pupils crossed an attendance threshold, and what has to be reported.",
+            "icon": "FlagOutline",
+            "category": "attendance",
+            "route": "AttendanceFlags"
+          },
+          {
+            "id": "FinalGrades",
+            "label": "Final grades",
+            "description": "The final grade per pupil and subject, as it was decided.",
+            "icon": "CertificateOutline",
+            "category": "results",
+            "route": "FinalGrades"
+          },
           {
             "id": "BsaRiskDashboard",
             "label": "Study progress risk",

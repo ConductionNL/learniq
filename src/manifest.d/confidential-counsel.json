@@ -1,0 +1,84 @@
+{
+	"_meta": {
+		"spdx-license": "EUPL-1.2",
+		"spdx-copyright": "2026 Conduction B.V.",
+		"change": "confidential-counsellor-channel",
+		"adr": "ADR-037 modular manifest fragment, never edit src/manifest.json",
+		"description": "ConfidentialNotesMenu: the vertrouwenspersoon's own notes. Gated on user.isConfidentialCounsellor (group membership), not on primaryRole, so a teacher who is also the vertrouwenspersoon sees it next to the teacher menus. Access to the rows is enforced by ConfidentialNote.authorization in the register; this gate only hides the entry from everyone else."
+	},
+	"menu": [
+		{
+			"id": "ConfidentialNotesMenu",
+			"label": "Confidential notes",
+			"icon": "ShieldAccountOutline",
+			"route": "ConfidentialNotes",
+			"order": 35,
+			"visibleIf": {
+				"user.isConfidentialCounsellor": {
+					"eq": true
+				}
+			}
+		}
+	],
+	"pages": [
+		{
+			"id": "ConfidentialNotes",
+			"route": "/confidential-notes",
+			"type": "index",
+			"title": "Confidential notes",
+			"config": {
+				"register": "learniq",
+				"schema": "confidential-note"
+			}
+		},
+		{
+			"id": "ConfidentialNoteDetail",
+			"route": "/confidential-notes/:id",
+			"type": "detail",
+			"title": "Confidential note",
+			"config": {
+				"register": "learniq",
+				"schema": "confidential-note",
+				"_note": "confidential-counsellor-channel: a vertrouwenspersoon's case note. Data only, full width: no related panel (the schema references nothing and nothing references it), no email, calendar or files leaves. Sidebar keeps metadata and history.",
+				"widgets": [
+					{
+						"id": "cn-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "NoteTextOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "cn-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				}
+			}
+		}
+	]
+}
