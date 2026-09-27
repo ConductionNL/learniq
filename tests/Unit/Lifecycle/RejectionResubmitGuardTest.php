@@ -26,6 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\RejectionResubmitGuard;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\IGroupManager;
 use OCP\IUser;
@@ -121,48 +122,53 @@ class RejectionResubmitGuardTest extends TestCase {
 	}//end makeGuard()
 
 	/**
-	 * A coordinator resubmitting a corrected rejection is allowed: exactly one
-	 * new DataExchangeJob is created with the original job's target/
-	 * mappingProfileId, scope.filters.id = sourceObjectId, and
-	 * resubmittedJobId is stamped into the transition payload.
+	 * The rejection as the guard sees it on resubmit.
 	 *
-	 * @return void
+	 * @param array<string,mixed> $overrides Fields to change.
 	 *
-	 * @spec openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-resubmit-creates-exactly-one-scoped-job-and-stamps-the-link
+	 * @return array<string,mixed>
 	 */
-	public function testCoordinatorResubmitCreatesScopedJobAndStampsLink(): void {
-		$guard = $this->makeGuard(
-			['coordinators'],
-			['id' => 'job-orig', 'target' => 'bron-rod', 'mappingProfileId' => 'profile-1']
-		);
-
-		$context = [
-			'object' => [
+	private function rejection(array $overrides = []): array {
+		return array_merge(
+			[
 				'id' => 'rej-1',
 				'sourceKind' => 'learner-profile',
 				'learnerProfileId' => 'lp-1',
 				'dataExchangeJobId' => 'job-orig',
 				'tenant_id' => 'tenant-a',
+				'status' => 'resubmitted',
 			],
-			'actor' => 'actor-1',
-			'payload' => [],
-		];
+			$overrides
+		);
+	}//end rejection()
 
-		self::assertTrue($guard->check($context));
+	/**
+	 * OpenRegister's registry refuses a guard that does not implement its interface.
+	 *
+	 * @return void
+	 */
+	public function testImplementsTheOpenRegisterGuardInterface(): void {
+		self::assertInstanceOf(LifecycleGuardInterface::class, $this->makeGuard([], null));
 
-		self::assertCount(1, $this->savedObjects);
-		$newJob = $this->savedObjects[0]['object'];
-		self::assertSame('bron-rod', $newJob['target']);
-		self::assertSame('profile-1', $newJob['mappingProfileId']);
-		self::assertSame('learner-profile', $newJob['scope']['schema']);
-		self::assertSame('lp-1', $newJob['scope']['filters']['id']);
-		self::assertSame('queued', $newJob['lifecycle']);
-		self::assertSame('actor-1', $newJob['requestedBy']);
-		self::assertSame('tenant-a', $newJob['tenant_id']);
+	}//end testImplementsTheOpenRegisterGuardInterface()
 
-		self::assertSame('new-job-1', $context['payload']['resubmittedJobId']);
+	/**
+	 * A coordinator resubmitting a corrected rejection is allowed, and the guard
+	 * creates nothing: the scoped job is RejectionResubmissionAction's write
+	 * (learniq#983), see tests/Unit/Lifecycle/Action/RejectionResubmissionActionTest.php.
+	 *
+	 * @return void
+	 */
+	public function testCoordinatorResubmitIsAllowedWithoutWriting(): void {
+		$guard = $this->makeGuard(
+			['coordinators'],
+			['id' => 'job-orig', 'target' => 'bron-rod', 'mappingProfileId' => 'profile-1']
+		);
 
-	}//end testCoordinatorResubmitCreatesScopedJobAndStampsLink()
+		self::assertTrue($guard->check($this->rejection(), 'resubmit', 'actor-1')->isAllowed());
+		self::assertCount(0, $this->savedObjects);
+
+	}//end testCoordinatorResubmitIsAllowedWithoutWriting()
 
 	/**
 	 * An admin resubmitting is also allowed.
@@ -175,53 +181,14 @@ class RejectionResubmitGuardTest extends TestCase {
 			['id' => 'job-orig', 'target' => 'leerplicht', 'mappingProfileId' => null]
 		);
 
-		$context = [
-			'object' => [
-				'id' => 'rej-1',
-				'sourceKind' => 'attendance-flag',
-				'attendanceFlagId' => 'flag-1',
-				'dataExchangeJobId' => 'job-orig',
-				'tenant_id' => 'tenant-a',
-			],
-			'actor' => 'actor-1',
-			'payload' => [],
-		];
+		$object = $this->rejection(['sourceKind' => 'attendance-flag', 'attendanceFlagId' => 'flag-1', 'learnerProfileId' => null]);
 
-		self::assertTrue($guard->check($context));
+		self::assertTrue($guard->check($object, 'resubmit', 'actor-1')->isAllowed());
 
 	}//end testAdminResubmitIsAllowed()
 
 	/**
-	 * A caller-supplied resubmittedJobId is overwritten with the actual new
-	 * job id — never trust a caller-supplied value for this link.
-	 *
-	 * @return void
-	 */
-	public function testCallerSuppliedResubmittedJobIdIsOverwritten(): void {
-		$guard = $this->makeGuard(
-			['coordinators'],
-			['id' => 'job-orig', 'target' => 'bron-rod', 'mappingProfileId' => 'profile-1']
-		);
-
-		$context = [
-			'object' => [
-				'id' => 'rej-1',
-				'sourceKind' => 'learner-profile',
-				'learnerProfileId' => 'lp-1',
-				'dataExchangeJobId' => 'job-orig',
-				'tenant_id' => 'tenant-a',
-			],
-			'actor' => 'actor-1',
-			'payload' => ['resubmittedJobId' => 'attacker-supplied-id'],
-		];
-
-		self::assertTrue($guard->check($context));
-		self::assertSame('new-job-1', $context['payload']['resubmittedJobId']);
-
-	}//end testCallerSuppliedResubmittedJobIdIsOverwritten()
-
-	/**
-	 * A learner (no privileged group) is denied — no job created.
+	 * A learner (no privileged group) is denied.
 	 *
 	 * @return void
 	 *
@@ -233,93 +200,48 @@ class RejectionResubmitGuardTest extends TestCase {
 			['id' => 'job-orig', 'target' => 'bron-rod', 'mappingProfileId' => 'profile-1']
 		);
 
-		$context = [
-			'object' => [
-				'id' => 'rej-1',
-				'sourceKind' => 'learner-profile',
-				'learnerProfileId' => 'lp-1',
-				'dataExchangeJobId' => 'job-orig',
-				'tenant_id' => 'tenant-a',
-			],
-			'actor' => 'actor-1',
-			'payload' => [],
-		];
+		$result = $guard->check($this->rejection(), 'resubmit', 'actor-1');
 
-		self::assertFalse($guard->check($context));
-		self::assertCount(0, $this->savedObjects);
+		self::assertFalse($result->isAllowed());
+		self::assertNotSame('', (string)$result->getMessage());
 
 	}//end testUnauthorisedActorIsDenied()
 
 	/**
-	 * No actor in the transition context is denied.
+	 * No session user is denied.
 	 *
 	 * @return void
 	 */
 	public function testNoActorIsDenied(): void {
 		$guard = $this->makeGuard(['coordinators'], ['id' => 'job-orig', 'target' => 'bron-rod']);
 
-		$context = [
-			'object' => ['id' => 'rej-1', 'sourceKind' => 'learner-profile', 'learnerProfileId' => 'lp-1', 'dataExchangeJobId' => 'job-orig'],
-			'payload' => [],
-		];
-
-		self::assertFalse($guard->check($context));
+		self::assertFalse($guard->check($this->rejection(), 'resubmit', '')->isAllowed());
 
 	}//end testNoActorIsDenied()
 
 	/**
-	 * An unresolvable originating DataExchangeJob denies the transition —
-	 * no partial job is created.
+	 * An unresolvable originating DataExchangeJob denies the transition.
 	 *
 	 * @return void
 	 */
 	public function testUnresolvableOriginalJobIsDenied(): void {
 		$guard = $this->makeGuard(['coordinators'], null);
 
-		$context = [
-			'object' => [
-				'id' => 'rej-1',
-				'sourceKind' => 'learner-profile',
-				'learnerProfileId' => 'lp-1',
-				'dataExchangeJobId' => 'job-missing',
-				'tenant_id' => 'tenant-a',
-			],
-			'actor' => 'actor-1',
-			'payload' => [],
-		];
-
-		self::assertFalse($guard->check($context));
-		self::assertCount(0, $this->savedObjects);
+		self::assertFalse($guard->check($this->rejection(['dataExchangeJobId' => 'job-missing']), 'resubmit', 'actor-1')->isAllowed());
 
 	}//end testUnresolvableOriginalJobIsDenied()
 
 	/**
-	 * A job save that yields no usable id denies the transition.
+	 * A rejection without its source object id denies the transition.
 	 *
 	 * @return void
 	 */
-	public function testJobSaveFailureIsDenied(): void {
-		$guard = $this->makeGuard(
-			['coordinators'],
-			['id' => 'job-orig', 'target' => 'bron-rod'],
-			newJobId: null
-		);
+	public function testMissingSourceObjectIdIsDenied(): void {
+		$guard = $this->makeGuard(['coordinators'], ['id' => 'job-orig', 'target' => 'bron-rod']);
 
-		$context = [
-			'object' => [
-				'id' => 'rej-1',
-				'sourceKind' => 'learner-profile',
-				'learnerProfileId' => 'lp-1',
-				'dataExchangeJobId' => 'job-orig',
-				'tenant_id' => 'tenant-a',
-			],
-			'actor' => 'actor-1',
-			'payload' => [],
-		];
+		self::assertFalse($guard->check($this->rejection(['learnerProfileId' => '']), 'resubmit', 'actor-1')->isAllowed());
 
-		self::assertFalse($guard->check($context));
-
-	}//end testJobSaveFailureIsDenied()
+	}//end testMissingSourceObjectIdIsDenied()
 
 	/**
 	 * An unsupported sourceKind on the rejection denies the transition.
@@ -329,19 +251,7 @@ class RejectionResubmitGuardTest extends TestCase {
 	public function testUnsupportedSourceKindIsDenied(): void {
 		$guard = $this->makeGuard(['coordinators'], ['id' => 'job-orig', 'target' => 'bron-rod']);
 
-		$context = [
-			'object' => [
-				'id' => 'rej-1',
-				'sourceKind' => 'cohort',
-				'dataExchangeJobId' => 'job-orig',
-				'tenant_id' => 'tenant-a',
-			],
-			'actor' => 'actor-1',
-			'payload' => [],
-		];
-
-		self::assertFalse($guard->check($context));
-		self::assertCount(0, $this->savedObjects);
+		self::assertFalse($guard->check($this->rejection(['sourceKind' => 'cohort']), 'resubmit', 'actor-1')->isAllowed());
 
 	}//end testUnsupportedSourceKindIsDenied()
 }//end class

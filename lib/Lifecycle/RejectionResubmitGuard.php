@@ -37,6 +37,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;
 use OCP\IUserManager;
@@ -46,16 +48,16 @@ use Psr\Log\LoggerInterface;
  * Guards the ExchangeRejection `corrected → resubmitted` transition.
  *
  * The transition proceeds only when the acting user is in one of the
- * authorised groups (`admin`, `coordinators`). On success it creates exactly
- * one new DataExchangeJob (target/mappingProfileId copied from the
- * originating job, scope narrowed to this rejection's source object) and
- * stamps `resubmittedJobId` into the transition payload — always
- * server-side, never a caller-supplied value.
+ * authorised groups (`admin`, `coordinators`), the rejection's sourceKind is
+ * supported, and its source object and originating DataExchangeJob resolve.
+ * The new scoped DataExchangeJob and the `resubmittedJobId` link are written by
+ * RejectionResubmissionAction, declared on the same transition: OpenRegister
+ * calls guards by value, so a guard can not write (learniq#983).
  *
  * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.3
  * @spec openspec/changes/duo-afkeurmelding-correction/specs/data-exchange/spec.md#scenario-resubmit-creates-exactly-one-scoped-job-and-stamps-the-link
  */
-class RejectionResubmitGuard {
+class RejectionResubmitGuard implements LifecycleGuardInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const JOB_SCHEMA = 'data-exchange-job';
@@ -72,11 +74,12 @@ class RejectionResubmitGuard {
 
 	/**
 	 * Maps ExchangeRejection.sourceKind to the typed $ref id field carrying
-	 * the source object's id. Mirrors RejectionMappingHandler's own map.
+	 * the source object's id. Mirrors RejectionMappingHandler's own map;
+	 * RejectionResubmissionAction reads it too.
 	 *
 	 * @var array<string,string>
 	 */
-	private const SOURCE_KIND_FIELD_MAP = [
+	public const SOURCE_KIND_FIELD_MAP = [
 		'learner-profile' => 'learnerProfileId',
 		'enrolment' => 'enrolmentId',
 		'final-grade' => 'finalGradeId',
@@ -103,51 +106,41 @@ class RejectionResubmitGuard {
 	}//end __construct()
 
 	/**
-	 * Assert the resubmission preconditions, create the scoped DataExchangeJob,
-	 * and stamp resubmittedJobId.
+	 * Assert the resubmission preconditions.
 	 *
-	 * Called by OpenRegister's lifecycle engine before executing the
-	 * `corrected → resubmitted` resubmit transition. Returns true to allow the
-	 * transition (and writes `resubmittedJobId` into the payload), false to
-	 * block it.
+	 * Called by OpenRegister's LifecycleValidationListener before the
+	 * `corrected → resubmitted` transition is saved.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine. Expected
-	 *                                               keys:
-	 *                                               - 'object'  : the
-	 *                                               ExchangeRejection data array
-	 *                                               - 'actor'   : NC user ID of
-	 *                                               the requester
-	 *                                               - 'payload' : mutable array;
-	 *                                               resubmittedJobId is written
-	 *                                               here
+	 * @param array<string,mixed> $object The ExchangeRejection as it would be saved (status at `resubmitted`).
+	 * @param string              $action The transition action (`resubmit`).
+	 * @param string              $userId The caller's uid, or '' without a session.
 	 *
-	 * @return bool True when the transition is allowed; false blocks it.
+	 * @return GuardResult Allow, or deny with what is missing.
 	 *
 	 * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.3
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
-	public function check(array &$transitionContext): bool {
-		$rejection = $transitionContext['object'] ?? [];
-		$rejectionId = $rejection['id'] ?? ($rejection['uuid'] ?? '?');
-		$actor = (string)($transitionContext['actor'] ?? '');
+	public function check(array $object, string $action, string $userId): GuardResult {
+		$rejectionId = $object['id'] ?? ($object['uuid'] ?? '?');
 
-		if ($actor === '') {
+		if ($userId === '') {
 			$this->logger->warning(
-				'[RejectionResubmitGuard] No actor in transitionContext — denying resubmit of {id}.',
+				'[RejectionResubmitGuard] No session user — denying resubmit of {id}.',
 				['id' => $rejectionId]
 			);
-			return false;
+			return GuardResult::deny('Only a signed-in admin or coordinator can resubmit a rejection.');
 		}
 
-		if ($this->actorIsAuthorised(actor: $actor) === false) {
+		if ($this->actorIsAuthorised(actor: $userId) === false) {
 			$this->logger->info(
 				'[RejectionResubmitGuard] Actor {a} is not in an authorised group — denying resubmit of {id}.',
-				['a' => $actor, 'id' => $rejectionId]
+				['a' => $userId, 'id' => $rejectionId]
 			);
-			return false;
+			return GuardResult::deny('Only an admin or coordinator can resubmit a rejection.');
 		}
 
-		$sourceKind = (string)($rejection['sourceKind'] ?? '');
+		$sourceKind = (string)($object['sourceKind'] ?? '');
 		$sourceField = self::SOURCE_KIND_FIELD_MAP[$sourceKind] ?? null;
 
 		if ($sourceField === null) {
@@ -155,61 +148,31 @@ class RejectionResubmitGuard {
 				'[RejectionResubmitGuard] ExchangeRejection {id} has unsupported sourceKind "{kind}" — denying resubmit.',
 				['id' => $rejectionId, 'kind' => $sourceKind]
 			);
-			return false;
+			return GuardResult::deny('This kind of rejection can not be resubmitted.');
 		}
 
-		$sourceObjectId = (string)($rejection[$sourceField] ?? '');
-		$originalJobId = (string)($rejection['dataExchangeJobId'] ?? '');
+		$sourceObjectId = (string)($object[$sourceField] ?? '');
+		$originalJobId = (string)($object['dataExchangeJobId'] ?? '');
 
 		if ($sourceObjectId === '' || $originalJobId === '') {
 			$this->logger->warning(
 				'[RejectionResubmitGuard] ExchangeRejection {id} is missing {field} or dataExchangeJobId — denying resubmit.',
 				['id' => $rejectionId, 'field' => $sourceField]
 			);
-			return false;
+			return GuardResult::deny('The rejection names no source record or no original exchange job, so it can not be resubmitted.');
 		}
 
-		$tenantId = (string)($rejection['tenant_id'] ?? '');
-		$originalJob = $this->loadOriginalJob(jobId: $originalJobId, tenantId: $tenantId);
-
-		if ($originalJob === null) {
+		$tenantId = (string)($object['tenant_id'] ?? '');
+		if ($this->loadOriginalJob(jobId: $originalJobId, tenantId: $tenantId) === null) {
 			$this->logger->warning(
 				'[RejectionResubmitGuard] Originating DataExchangeJob {job} for rejection {id} could not be '
 				. 'resolved — denying resubmit.',
 				['job' => $originalJobId, 'id' => $rejectionId]
 			);
-			return false;
+			return GuardResult::deny('The original exchange job of this rejection can not be found.');
 		}
 
-		$newJobId = $this->createResubmissionJob(
-			originalJob: $originalJob,
-			sourceKind: $sourceKind,
-			sourceObjectId: $sourceObjectId,
-			actor: $actor,
-			tenantId: $tenantId
-		);
-
-		if ($newJobId === null) {
-			$this->logger->error(
-				'[RejectionResubmitGuard] Failed to create the resubmission DataExchangeJob for rejection {id} — '
-				. 'denying resubmit.',
-				['id' => $rejectionId]
-			);
-			return false;
-		}
-
-		// Server-side only — never trust a caller-supplied resubmittedJobId for
-		// this compliance-sensitive link (mirrors MunicipalityFeedbackGuard's
-		// recordedBy stamping).
-		$payload = $transitionContext['payload'] ?? [];
-		if (is_array($payload) === false) {
-			$payload = [];
-		}
-
-		$payload['resubmittedJobId'] = $newJobId;
-		$transitionContext['payload'] = $payload;
-
-		return true;
+		return GuardResult::allow();
 	}//end check()
 
 	/**
@@ -247,60 +210,6 @@ class RejectionResubmitGuard {
 
 		return $results[0]->jsonSerialize();
 	}//end loadOriginalJob()
-
-	/**
-	 * Create the single-record DataExchangeJob scoped to this rejection's
-	 * source object.
-	 *
-	 * @param array<string,mixed> $originalJob The originating DataExchangeJob data.
-	 * @param string $sourceKind Resolved sourceKind (== the scope.schema slug to reuse).
-	 * @param string $sourceObjectId UUID of the rejection's source object.
-	 * @param string $actor NC user ID of the requester (requestedBy).
-	 * @param string $tenantId Tenant ID.
-	 *
-	 * @return string|null UUID of the newly-created job, or null on failure.
-	 *
-	 * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.3
-	 */
-	private function createResubmissionJob(
-		array $originalJob,
-		string $sourceKind,
-		string $sourceObjectId,
-		string $actor,
-		string $tenantId,
-	): ?string {
-		$newJob = [
-			'direction' => 'export',
-			'target' => $originalJob['target'] ?? '',
-			'mappingProfileId' => $originalJob['mappingProfileId'] ?? null,
-			'scope' => [
-				'schema' => $sourceKind,
-				'filters' => ['id' => $sourceObjectId],
-				'cohortId' => null,
-				'period' => null,
-			],
-			'requestedBy' => $actor,
-			'requestedAt' => date('c'),
-			'lifecycle' => 'queued',
-			'tenant_id' => $tenantId,
-		];
-
-		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::JOB_SCHEMA,
-			object: $newJob
-		);
-
-		$savedJob = $saved->jsonSerialize();
-
-		$newJobId = $savedJob['id'] ?? ($savedJob['uuid'] ?? null);
-
-		if (is_string($newJobId) === false || $newJobId === '') {
-			return null;
-		}
-
-		return $newJobId;
-	}//end createResubmissionJob()
 
 	/**
 	 * Whether the acting user is in one of the authorised groups.
