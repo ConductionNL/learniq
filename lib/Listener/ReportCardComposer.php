@@ -57,6 +57,7 @@ namespace OCA\Learniq\Listener;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\AttendanceWindowAggregator;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ReportCardTemplateSectionResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -80,7 +81,6 @@ class ReportCardComposer implements IEventListener {
 	private const CURRICULUM_PLAN_SCHEMA = 'curriculum-plan';
 	private const FINAL_GRADE_SCHEMA = 'final-grade';
 	private const GRADE_ENTRY_SCHEMA = 'grade-entry';
-	private const LEARNER_PROFILE_SCHEMA = 'learner-profile';
 
 	/**
 	 * Constructor.
@@ -92,6 +92,7 @@ class ReportCardComposer implements IEventListener {
 	 * @param ReportCardTemplateSectionResolver $templateSections Resolves a template's declared
 	 *                                                            sections and gates population by
 	 *                                                            them (report-card-templates change).
+	 * @param LearnerRefResolver $learnerRefs Nextcloud user id to LearnerProfile UUID, the card's learnerRef.
 	 *
 	 * @return void
 	 */
@@ -101,6 +102,7 @@ class ReportCardComposer implements IEventListener {
 		private readonly LoggerInterface $logger,
 		private readonly AttendanceWindowAggregator $attendance,
 		private readonly ReportCardTemplateSectionResolver $templateSections,
+		private readonly LearnerRefResolver $learnerRefs,
 	) {
 	}//end __construct()
 
@@ -192,7 +194,7 @@ class ReportCardComposer implements IEventListener {
 
 			$reportCard = [
 				'learnerId' => $learnerId,
-				'learnerRef' => $this->resolveLearnerRef(learnerId: $learnerId),
+				'learnerRef' => $this->learnerRefs->resolve(learnerId: $learnerId),
 				'reportPeriodId' => $periodId,
 				'cohortId' => $cohortId,
 				'templateId' => $templateId,
@@ -385,9 +387,9 @@ class ReportCardComposer implements IEventListener {
 		foreach ($curriculumPlanIds as $curriculumPlanId) {
 			$finalGrades = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::FINAL_GRADE_SCHEMA,
 					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::FINAL_GRADE_SCHEMA,
 						'learnerId' => $learnerId,
 						'curriculumPlanId' => $curriculumPlanId,
 					],
@@ -414,9 +416,9 @@ class ReportCardComposer implements IEventListener {
 
 			$sourceGradeEntries = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::GRADE_ENTRY_SCHEMA,
 					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::GRADE_ENTRY_SCHEMA,
 						'learnerId' => $learnerId,
 						'curriculumPlanId' => $curriculumPlanId,
 						'period' => $periodCode,
@@ -451,41 +453,6 @@ class ReportCardComposer implements IEventListener {
 
 		return $rows;
 	}//end buildSubjectGrades()
-
-	/**
-	 * Resolve a learner's `LearnerProfile` object UUID (ADR-046 `learnerRef`),
-	 * mirroring the `learnerId` filter shape every other cross-schema
-	 * LearnerProfile lookup in this app already uses (e.g.
-	 * `GradeRollupHandler::fanOutParentNotifications()`).
-	 *
-	 * @param string $learnerId NC user ID.
-	 *
-	 * @return string|null The LearnerProfile object UUID, or null when unresolvable.
-	 */
-	private function resolveLearnerRef(string $learnerId): ?string {
-		$profiles = $this->objectService->findAll(
-			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_PROFILE_SCHEMA,
-				'filters' => ['learnerId' => $learnerId],
-				'limit' => 1,
-			]
-		);
-
-		if (empty($profiles) === true) {
-			return null;
-		}
-
-		$profile = $this->normalise(row: $profiles[0]);
-
-		$ref = $profile['id'] ?? ($profile['uuid'] ?? null);
-
-		if ($ref === null) {
-			return null;
-		}
-
-		return (string)$ref;
-	}//end resolveLearnerRef()
 
 	/**
 	 * Current moment as an ISO-8601 string, via the injected time source.

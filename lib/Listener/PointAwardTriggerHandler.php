@@ -317,9 +317,9 @@ class PointAwardTriggerHandler implements IEventListener {
 	private function fetchActiveRules(string $kind, string $tenantId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::POINT_RULE_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::POINT_RULE_SCHEMA,
 					'kind' => $kind,
 					'lifecycle' => 'active',
 					'tenant_id' => $tenantId,
@@ -382,9 +382,9 @@ class PointAwardTriggerHandler implements IEventListener {
 	private function hasExistingAward(string $learnerId, string $pointRuleId, string $sourceObjectId): bool {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::POINT_AWARD_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::POINT_AWARD_SCHEMA,
 					'learnerId' => $learnerId,
 					'pointRuleId' => $pointRuleId,
 					'sourceObjectId' => $sourceObjectId,

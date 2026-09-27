@@ -151,9 +151,11 @@ class PointEngagementEvaluator {
 	private function fetchAwards(string $learnerId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::POINT_AWARD_SCHEMA,
-				'filters' => ['learnerId' => $learnerId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::POINT_AWARD_SCHEMA,
+					'learnerId' => $learnerId,
+				],
 			]
 		);
 
@@ -181,9 +183,11 @@ class PointEngagementEvaluator {
 	private function resolveLevelId(float $totalPoints, string $tenantId): ?string {
 		$levels = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ENGAGEMENT_LEVEL_SCHEMA,
-				'filters' => ['tenant_id' => $tenantId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ENGAGEMENT_LEVEL_SCHEMA,
+					'tenant_id' => $tenantId,
+				],
 			]
 		);
 

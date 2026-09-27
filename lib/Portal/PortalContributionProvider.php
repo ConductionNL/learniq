@@ -144,9 +144,8 @@ class PortalContributionProvider {
 	 * Manifest for the `student` audience (the learner themself).
 	 *
 	 * `subject.subjectRef` is the student's own `LearnerProfile` object UUID.
-	 * Every read collection is scoped by the record's `learnerRef` (Submission
-	 * by membership in `learnerRefs`) == that UUID, field-projected to hide
-	 * staff-only columns. The learner may create their own Submission and
+	 * Every read collection is scoped by the record's scalar `learnerRef` ==
+	 * that UUID, field-projected to hide staff-only columns. The learner may create their own Submission and
 	 * ExcuseRequest (strict field whitelists — grades, status, staff decision
 	 * and assurance fields stay server-authoritative). The GradeNotification
 	 * inbox is scoped to the learner. `scopeClaim` names the subject claim
@@ -161,9 +160,10 @@ class PortalContributionProvider {
 			'label' => 'Learniq',
 			'collections' => array_merge(
 				$this->studentResultCollections(),
-				$this->studentActivityCollections()
+				$this->studentActivityCollections(),
+				[$this->studentTestsCollection()]
 			),
-			'actions' => $this->studentActions(),
+			'actions' => array_merge($this->studentActions(), $this->studentTestActions()),
 			'notifications' => [],
 		];
 
@@ -246,8 +246,9 @@ class PortalContributionProvider {
 	/**
 	 * The learner's own activity collections — enrolments, submissions, excuses and inbox.
 	 *
-	 * Submissions are scoped by membership in `learnerRefs`; the rest by
-	 * `learnerRef`. The inbox entry carries `kind: inbox` so portaliq renders it
+	 * Every entry is scoped by the scalar `learnerRef`: portaliq's direct scope
+	 * compares one value, so the Submission array `learnerRefs` never matched
+	 * (assignment-portal-wiring). The inbox entry carries `kind: inbox` so portaliq renders it
 	 * in the shared inbox surface rather than as a plain collection.
 	 *
 	 * @return array<int, array<string, mixed>> Student activity collections.
@@ -278,12 +279,12 @@ class PortalContributionProvider {
 				'id' => 'studentSubmissions',
 				'register' => self::REGISTER,
 				'schema' => 'submission',
-				'scopeField' => 'learnerRefs',
+				'scopeField' => 'learnerRef',
 				'scopeClaim' => 'learnerRef',
 				'label' => 'My submissions',
 				'listable' => true,
 				'fields' => [
-					'learnerRefs',
+					'learnerRef',
 					'assignmentId',
 					'attachmentRefs',
 					'submittedAt',
@@ -333,14 +334,105 @@ class PortalContributionProvider {
 	}//end studentActivityCollections()
 
 	/**
+	 * The learner's tests as a portaliq timed task (ConductionNL/portaliq#749).
+	 *
+	 * The collection lists the learner's own attempts, scoped by the scalar
+	 * `AssessmentResult.learnerRef` the attempt gate stamps, and exposes no
+	 * responses or scores: a result only leaves learniq through the `result`
+	 * step, once the teacher released it. The `timedTask` block names the five
+	 * endpoint actions of studentTestActions().
+	 *
+	 * @return array<string, mixed> The studentTests collection.
+	 *
+	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 */
+	private function studentTestsCollection(): array {
+		return [
+			'id' => 'studentTests',
+			'kind' => 'timedTask',
+			'register' => self::REGISTER,
+			'schema' => 'assessment-result',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'label' => 'My tests',
+			'listable' => true,
+			'minTrust' => 'low',
+			'fields' => [
+				'assessmentId',
+				'assessmentTitle',
+				'lifecycle',
+				'attemptNumber',
+				'startedAt',
+				'submittedAt',
+			],
+			'timedTask' => [
+				'available' => 'listTests',
+				'start' => 'startTest',
+				'answer' => 'saveTestAnswer',
+				'submit' => 'submitTest',
+				'result' => 'readTestResult',
+			],
+		];
+
+	}//end studentTestsCollection()
+
+	/**
+	 * The five steps of the timed task, each a server-to-server forward to
+	 * PortalAssessmentController.
+	 *
+	 * Every action is a POST to an instance-local endpoint, whitelists only the
+	 * fields its step sends, and has portaliq stamp the learner's own
+	 * `learnerRef` into the body (`subjectField`) over any client value. The
+	 * endpoints take the learner from that stamp alone and enforce every rule.
+	 *
+	 * @return array<int, array<string, mixed>> The timed-task actions.
+	 *
+	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 */
+	private function studentTestActions(): array {
+		$steps = [
+			'listTests' => ['', 'Tests you can take', []],
+			'startTest' => ['/start', 'Start a test', ['taskId', 'accessCode']],
+			'saveTestAnswer' => ['/answer', 'Save an answer', ['attemptId', 'itemId', 'response']],
+			'submitTest' => ['/submit', 'Hand in a test', ['attemptId']],
+			'readTestResult' => ['/result', 'View a result', ['attemptId']],
+		];
+
+		$actions = [];
+		foreach ($steps as $id => [$path, $label, $fields]) {
+			$actions[] = [
+				'id' => $id,
+				'type' => 'endpoint-forward',
+				'label' => $label,
+				'endpoint' => '/apps/learniq/api/portal/assessments' . $path,
+				'method' => 'POST',
+				'minTrust' => 'low',
+				'fields' => $fields,
+				'subjectField' => 'learnerRef',
+				'scopeClaim' => 'learnerRef',
+			];
+		}
+
+		return $actions;
+
+	}//end studentTestActions()
+
+	/**
 	 * The learner's own create-actions — hand in an assignment, report an absence.
 	 *
 	 * Strict field whitelists: grades, status, staff decision and assurance
 	 * fields stay server-authoritative and are never client-writable.
 	 *
+	 * The hand-in carries real files through portaliq's file field
+	 * (ConductionNL/portaliq#745): portaliq creates the Submission, uploads each
+	 * file into its folder and appends the file id to `attachmentRefs`. The
+	 * learners and tenant a portal create cannot send are stamped by
+	 * `SubmissionOwnerStamp` from the pupil's LearnerProfile.
+	 *
 	 * @return array<int, array<string, mixed>> Student create-actions.
 	 *
 	 * @spec openspec/changes/portal-contribution/specs/portal-contribution/spec.md
+	 * @spec openspec/changes/assignment-portal-wiring/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
 	 */
 	private function studentActions(): array {
 		return [
@@ -350,11 +442,21 @@ class PortalContributionProvider {
 				'label' => 'Hand in an assignment',
 				'register' => self::REGISTER,
 				'schema' => 'submission',
-				'scopeField' => 'learnerRefs',
+				'scopeField' => 'learnerRef',
 				'scopeClaim' => 'learnerRef',
+				'minTrust' => 'low',
 				'fields' => [
 					'assignmentId',
 					'attachmentRefs',
+				],
+				'fieldConfigs' => [
+					'attachmentRefs' => [
+						'type' => 'file',
+						'label' => 'Your work',
+						'multiple' => true,
+						'accept' => ['.pdf', '.doc', '.docx', '.odt', '.pptx', '.jpg', '.png'],
+						'maxSizeMb' => 20,
+					],
 				],
 			],
 			[
@@ -454,9 +556,10 @@ class PortalContributionProvider {
 	 * beeldmateriaal consent state.
 	 *
 	 * Matches `learner-profile` DIRECTLY (no `via`) by `guardianRefs` (array)
-	 * containing the guardian's own `subjectRef` — the same array-containment
-	 * match `studentActivityCollections()`'s `Submission.learnerRefs` already
-	 * uses; there is no cross-object hop here, since `guardianRefs` lives on
+	 * containing the guardian's own `subjectRef`. Portaliq's direct scope
+	 * compared one value, so this list read empty; ConductionNL/portaliq#750
+	 * adds list membership to the reader and writer. There is no cross-object hop
+	 * here, since `guardianRefs` lives on
 	 * the very schema being read. `guardianRefs` is itself exposed so a
 	 * guardian can see the full co-guardian group sharing a child (the
 	 * "per-group" audience D1 names alongside "per-child").

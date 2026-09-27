@@ -295,9 +295,13 @@ class CompetencyAttainmentWriter {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ATTAINMENT_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::ATTAINMENT_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);

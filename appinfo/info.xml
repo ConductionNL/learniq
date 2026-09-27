@@ -187,6 +187,16 @@ Vrij en open source onder de EUPL-1.2-licentie.
             -->
             <step>OCA\Learniq\Repair\RemoveRetiredCronJobs</step>
             <!--
+                privacy-reuse-openregister-register (D20): copies learniq's own
+                DataSubjectRequest rows into OpenRegister's shared
+                data-subject-requests register. BEFORE InitializeSettings, while
+                the retired schema and its rows are certainly still there.
+                Idempotent on the target (a marker line in each case's notes);
+                source rows are left in place. post-migration only: a fresh
+                install has no rows to move.
+            -->
+            <step>OCA\Learniq\Repair\MigrateDataSubjectRequestsToOpenRegister</step>
+            <!--
                 payments-to-shillinq-migration (D19): writes every retired
                 Order, OrderLine and PaymentTransaction row to
                 payments-archive/retired-payments.json in learniq's app data

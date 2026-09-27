@@ -69,15 +69,15 @@ class CourseQualityScoreRollupHandlerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($existingScore, $responses, $invitations) {
-				if ($config['schema'] === 'course-evaluation-response') {
+				if ($config['filters']['schema'] === 'course-evaluation-response') {
 					return $responses;
 				}
 
-				if ($config['schema'] === 'evaluation-invitation') {
+				if ($config['filters']['schema'] === 'evaluation-invitation') {
 					return $invitations;
 				}
 
-				if ($config['schema'] === 'course-quality-score') {
+				if ($config['filters']['schema'] === 'course-quality-score') {
 					return $existingScore === null ? [] : [$existingScore];
 				}
 

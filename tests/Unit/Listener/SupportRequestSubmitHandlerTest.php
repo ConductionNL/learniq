@@ -95,7 +95,7 @@ class SupportRequestSubmitHandlerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($mappingProfile, $existingSupportRequest): array {
-				$schema = $config['schema'] ?? '';
+				$schema = $config['filters']['schema'] ?? '';
 
 				if ($schema === 'data-mapping-profile') {
 					return $mappingProfile === null ? [] : [$mappingProfile];

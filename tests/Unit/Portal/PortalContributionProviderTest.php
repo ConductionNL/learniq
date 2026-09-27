@@ -181,7 +181,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(7, $collections);
+		$this->assertCount(8, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -191,6 +191,7 @@ class PortalContributionProviderTest extends TestCase {
 				'studentSubmissions',
 				'studentExcuseRequests',
 				'studentInbox',
+				'studentTests',
 			],
 			array_column($collections, 'id')
 		);
@@ -199,13 +200,10 @@ class PortalContributionProviderTest extends TestCase {
 			$this->assertSame('learniq', $collection['register']);
 			$this->assertSame('learnerRef', $collection['scopeClaim']);
 			$this->assertNotEmpty($collection['fields']);
-			// Submission is scoped by the learnerRefs ARRAY (membership); every
-			// other collection is scoped by the scalar learnerRef.
-			if ($collection['schema'] === 'submission') {
-				$this->assertSame('learnerRefs', $collection['scopeField']);
-			} else {
-				$this->assertSame('learnerRef', $collection['scopeField']);
-			}
+			// Every collection, Submission included, is scoped by the scalar
+			// learnerRef: portaliq's direct scope compares one value, so an
+			// array scope field never matches (assignment-portal-wiring).
+			$this->assertSame('learnerRef', $collection['scopeField']);
 		}
 
 	}//end testStudentManifestShape()
@@ -240,12 +238,15 @@ class PortalContributionProviderTest extends TestCase {
 		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
 		$actions = $manifest['actions'];
 
-		$this->assertSame(['createSubmission', 'createExcuseRequest'], array_column($actions, 'id'));
+		$this->assertSame(
+			['createSubmission', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult'],
+			array_column($actions, 'id')
+		);
 
 		$submission = $actions[0];
 		$this->assertSame('create', $submission['type']);
 		$this->assertSame('submission', $submission['schema']);
-		$this->assertSame('learnerRefs', $submission['scopeField']);
+		$this->assertSame('learnerRef', $submission['scopeField']);
 		$this->assertSame(['assignmentId', 'attachmentRefs'], $submission['fields']);
 
 		$excuse = $actions[1];
@@ -264,6 +265,89 @@ class PortalContributionProviderTest extends TestCase {
 		}
 
 	}//end testStudentCreateActionsWhitelistIntakeFields()
+
+	/**
+	 * The hand-in declares portaliq's file field on attachmentRefs, inside the
+	 * limits ConductionNL/portaliq#745's FileFieldConfigNormaliser keeps: a
+	 * create action, the field in `fields`, `type: file`, a boolean `multiple`,
+	 * at most 20 `accept` entries and `maxSizeMb` from 1 to 50. Anything outside
+	 * those limits portaliq drops fail-closed, and the pupil gets a text box.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/assignment-portal-wiring/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
+	 */
+	public function testSubmissionHandInDeclaresAFileField(): void {
+		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$submission = array_values(
+			array_filter(
+				$manifest['actions'],
+				static fn (array $a): bool => ($a['id'] ?? '') === 'createSubmission'
+			)
+		)[0];
+
+		$this->assertSame('create', $submission['type']);
+		$this->assertSame('low', $submission['minTrust']);
+		$this->assertSame('learnerRef', $submission['scopeClaim']);
+		$this->assertArrayHasKey('fieldConfigs', $submission);
+		$this->assertSame(['attachmentRefs'], array_keys($submission['fieldConfigs']));
+
+		$file = $submission['fieldConfigs']['attachmentRefs'];
+		$this->assertContains('attachmentRefs', $submission['fields']);
+		$this->assertSame('file', $file['type']);
+		$this->assertTrue($file['multiple']);
+		$this->assertSame(20, $file['maxSizeMb']);
+		$this->assertGreaterThanOrEqual(1, $file['maxSizeMb']);
+		$this->assertLessThanOrEqual(50, $file['maxSizeMb']);
+		$this->assertNotEmpty($file['accept']);
+		$this->assertLessThanOrEqual(20, count($file['accept']));
+		foreach ($file['accept'] as $accepted) {
+			$this->assertMatchesRegularExpression('/^\.[a-z0-9]+$/', $accepted);
+		}
+
+		$this->assertNotSame('', trim((string)$file['label']));
+
+	}//end testSubmissionHandInDeclaresAFileField()
+
+	/**
+	 * studentTests is a timed task over the learner's own attempts: it names
+	 * five instance-local POST actions, each stamping learnerRef from the
+	 * server, and exposes no response or score.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 */
+	public function testStudentTestsIsATimedTask(): void {
+		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$tests = array_values(array_filter($manifest['collections'], static fn (array $c): bool => ($c['id'] ?? '') === 'studentTests'))[0];
+		$actions = array_column($manifest['actions'], null, 'id');
+
+		$this->assertSame('timedTask', $tests['kind']);
+		$this->assertSame('assessment-result', $tests['schema']);
+		$this->assertSame('learnerRef', $tests['scopeField']);
+		foreach (['responses', 'autoScore', 'manualScore', 'drawnItemRefs', 'accessCode', 'teacherIds', 'managerId'] as $hidden) {
+			$this->assertNotContains($hidden, $tests['fields']);
+		}
+
+		$this->assertSame(['available', 'start', 'answer', 'submit', 'result'], array_keys($tests['timedTask']));
+		foreach ($tests['timedTask'] as $step => $actionId) {
+			$this->assertArrayHasKey($actionId, $actions, $step);
+			$action = $actions[$actionId];
+			$this->assertSame('POST', $action['method']);
+			$this->assertStringStartsWith('/apps/learniq/api/portal/assessments', $action['endpoint']);
+			$this->assertStringNotContainsString('://', $action['endpoint']);
+			$this->assertSame('learnerRef', $action['subjectField']);
+			$this->assertSame('learnerRef', $action['scopeClaim']);
+			$this->assertSame('low', $action['minTrust']);
+			$this->assertNotContains('learnerRef', $action['fields']);
+			$this->assertNotContains('learnerId', $action['fields']);
+		}
+
+		$this->assertSame(['attemptId', 'itemId', 'response'], $actions['saveTestAnswer']['fields']);
+		$this->assertSame(['taskId', 'accessCode'], $actions['startTest']['fields']);
+
+	}//end testStudentTestsIsATimedTask()
 
 	/**
 	 * The parent manifest is labelled and carries exactly the three
@@ -340,9 +424,7 @@ class PortalContributionProviderTest extends TestCase {
 	/**
 	 * parentChildren matches `learner-profile` DIRECTLY — `guardianRefs`
 	 * (array, on the schema being read) containing the guardian's own
-	 * subjectRef — the same array-containment match
-	 * `testStudentManifestShape()`'s `studentSubmissions` (`learnerRefs`)
-	 * already exercises. It carries NO `via` (no cross-object hop is
+	 * subjectRef. It carries NO `via` (no cross-object hop is
 	 * needed), and exposes the full co-guardian group plus current
 	 * beeldmateriaal consent state.
 	 *
@@ -643,6 +725,7 @@ class PortalContributionProviderTest extends TestCase {
 		// The portal-identity refs MUST exist (the change this provider depends on).
 		$this->assertContains('learnerRef', $propsBySlug['grade-entry'] ?? []);
 		$this->assertContains('learnerRefs', $propsBySlug['submission'] ?? []);
+		$this->assertContains('learnerRef', $propsBySlug['submission'] ?? []);
 		$this->assertContains('submittedByRef', $propsBySlug['excuse-request'] ?? []);
 		$this->assertContains('guardianRefs', $propsBySlug['learner-profile'] ?? []);
 
@@ -707,6 +790,13 @@ class PortalContributionProviderTest extends TestCase {
 			}
 
 			foreach (($manifest['actions'] ?? []) as $action) {
+				// An endpoint-forward action writes nothing itself: its fields
+				// are the body of a learniq endpoint, not register properties
+				// (checked in testStudentTestsIsATimedTask).
+				if (($action['type'] ?? '') === 'endpoint-forward') {
+					continue;
+				}
+
 				$slug = $action['schema'];
 				$this->assertArrayHasKey($slug, $propsBySlug, "action schema '$slug' missing from register");
 				$props = $propsBySlug[$slug];

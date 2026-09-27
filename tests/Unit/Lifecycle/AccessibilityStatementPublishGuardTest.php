@@ -231,7 +231,7 @@ class AccessibilityStatementPublishGuardTest extends TestCase {
 					function (array $params): bool {
 						return ($params['filters']['tenant_id'] ?? null) === 'tenant-b'
 							&& ($params['filters']['accessibilityStatementId'] ?? null) === 'statement-7'
-							&& ($params['schema'] ?? null) === 'accessibility-limitation';
+							&& ($params['filters']['schema'] ?? null) === 'accessibility-limitation';
 					}
 				)
 			)

@@ -214,9 +214,9 @@ class PeerFeedbackAggregator implements IEventListener {
 	private function fetchReleasedReviews(string $submissionId): array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::PEER_REVIEW_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::PEER_REVIEW_SCHEMA,
 					'submissionId' => $submissionId,
 					'lifecycle' => 'released',
 				],
@@ -241,9 +241,11 @@ class PeerFeedbackAggregator implements IEventListener {
 	private function fetchExistingSummary(string $submissionId): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::PEER_FEEDBACK_SUMMARY_SCHEMA,
-				'filters' => ['submissionId' => $submissionId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::PEER_FEEDBACK_SUMMARY_SCHEMA,
+					'submissionId' => $submissionId,
+				],
 				'limit' => 1,
 			]
 		);

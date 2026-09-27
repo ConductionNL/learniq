@@ -264,9 +264,11 @@ class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterf
 
 		$entries = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ENTRY_SCHEMA,
-				'filters' => ['portfolioId' => $portfolioId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ENTRY_SCHEMA,
+					'portfolioId' => $portfolioId,
+				],
 			]
 		);
 
@@ -421,9 +423,11 @@ class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterf
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => $schema,
-				'filters' => ['id' => $id],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => $schema,
+					'id' => $id,
+				],
 				'limit' => 1,
 			]
 		);

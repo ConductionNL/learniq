@@ -110,8 +110,10 @@ class SovereigntyPolicyService {
 		try {
 			$existing = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::SOVEREIGNTY_POLICY_SCHEMA,
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::SOVEREIGNTY_POLICY_SCHEMA,
+					],
 					'limit' => 1,
 				]
 			);

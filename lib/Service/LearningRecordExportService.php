@@ -531,9 +531,11 @@ class LearningRecordExportService implements LifecycleGuardInterface {
 		foreach (self::EXCLUDED_SCHEMA_DATE_FIELD as $schema => $dateField) {
 			$rows = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => $schema,
-					'filters' => ['learnerId' => $learnerId],
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => $schema,
+						'learnerId' => $learnerId,
+					],
 				]
 			);
 

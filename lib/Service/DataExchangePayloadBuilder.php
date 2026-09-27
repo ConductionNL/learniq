@@ -367,9 +367,13 @@ class DataExchangePayloadBuilder {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNER_PROFILE_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::LEARNER_PROFILE_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -415,9 +419,13 @@ class DataExchangePayloadBuilder {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::LEARNING_PLAN_SCHEMA,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::LEARNING_PLAN_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -465,9 +473,13 @@ class DataExchangePayloadBuilder {
 
 			$results = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::ATTENDANCE_RECORD_SCHEMA,
-					'filters' => $filters,
+					'filters' => array_merge(
+						$filters,
+						[
+							'register' => self::LEARNIQ_REGISTER,
+							'schema' => self::ATTENDANCE_RECORD_SCHEMA,
+						]
+					),
 					'limit' => 1,
 				]
 			);

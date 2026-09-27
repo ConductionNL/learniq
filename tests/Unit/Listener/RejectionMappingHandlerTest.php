@@ -93,8 +93,8 @@ class RejectionMappingHandlerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($existingRejections, $errorCodes, $resubmissionRejections): array {
-				$schema = $config['schema'] ?? '';
-				$filters = $config['filters'] ?? [];
+				$schema = $config['filters']['schema'] ?? '';
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				if ($schema === 'exchange-rejection') {
 					if (isset($filters['resubmittedJobId']) === true) {

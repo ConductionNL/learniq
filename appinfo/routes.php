@@ -76,6 +76,28 @@ return [
         // Controller: CoursePackageExportController (slug: coursePackageExport).
         ['name' => 'coursePackageExport#export', 'url' => '/api/course-management/course-package-export', 'verb' => 'GET'],
 
+        // Course-package share export: the package meant to leave the school, behind
+        // the sharing gate and a CourseShareConsent (ADR-023: course-package.share).
+        // Controller: CourseSharingController (lesson-sharing-consent-gate).
+        ['name' => 'courseSharing#share', 'url' => '/api/course-management/course-package-share', 'verb' => 'POST'],
+
+        // Course store (ADR-080, lesson-sharing-via-store-plane). Learniq ships its own
+        // StoreController, so OpenRegister's Bootstrap::aliasStoreController() leaves these
+        // to it: search and resolve run through the engine's GenericStoreService; install
+        // imports a shared course as a copy (ADR-023: course-package.import); publish runs
+        // the sharing gate first (ADR-023: course-package.share).
+        ['name' => 'store#search',  'url' => '/api/store/items', 'verb' => 'GET'],
+        ['name' => 'store#install', 'url' => '/api/store/items/{slug}/install', 'verb' => 'POST', 'requirements' => ['slug' => '[a-z0-9][a-z0-9\\-]*[a-z0-9]']],
+        ['name' => 'store#publish', 'url' => '/api/store/publish', 'verb' => 'POST'],
+
+        // Lesson onboarding from Word and PowerPoint files (office-file-lesson-onboarding):
+        // the teacher's watched folder, and the import of one confirmed file (D17).
+        // Listing and dismissing detected files go straight to OpenRegister.
+        // Controller: LessonOnboardingController (slug: lessonOnboarding).
+        ['name' => 'lessonOnboarding#folder',    'url' => '/api/lesson-onboarding/folder',              'verb' => 'GET'],
+        ['name' => 'lessonOnboarding#setFolder', 'url' => '/api/lesson-onboarding/folder',              'verb' => 'PUT'],
+        ['name' => 'lessonOnboarding#import',    'url' => '/api/lesson-onboarding/files/{id}/import',   'verb' => 'POST'],
+
         // School-year rollover wizard — proposal + side-effect-free preview,
         // authorized via the ADR-023 action matrix (rollover.plan).
         // Controller: RolloverController (slug: rollover).
@@ -106,6 +128,18 @@ return [
         // Controller: LessonReleaseController (slug: lessonRelease).
         ['name' => 'lessonRelease#status',           'url' => '/api/lessons/{lessonId}/release-status',         'verb' => 'GET'],
         ['name' => 'lessonRelease#assessmentStatus', 'url' => '/api/assessments/{assessmentId}/release-status', 'verb' => 'GET'],
+
+        // Portal test taking (assessment-portal-endpoints): the five steps of
+        // portaliq's timed task, forwarded server-to-server. #[PublicPage]
+        // because the caller is portaliq's backend with no Nextcloud session;
+        // the X-Portal-Subject assertion is the only credential
+        // (PortalAssertionVerifier), checked first in every method.
+        // Controller: PortalAssessmentController (slug: portalAssessment).
+        ['name' => 'portalAssessment#available', 'url' => '/api/portal/assessments',        'verb' => 'POST'],
+        ['name' => 'portalAssessment#start',     'url' => '/api/portal/assessments/start',  'verb' => 'POST'],
+        ['name' => 'portalAssessment#answer',    'url' => '/api/portal/assessments/answer', 'verb' => 'POST'],
+        ['name' => 'portalAssessment#submit',    'url' => '/api/portal/assessments/submit', 'verb' => 'POST'],
+        ['name' => 'portalAssessment#result',    'url' => '/api/portal/assessments/result', 'verb' => 'POST'],
 
         // Personal timetable — the caller's own sessions for a window, resolved
         // from cohort membership (teacher/learner) via ObjectService (RBAC-scoped).

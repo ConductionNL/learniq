@@ -136,7 +136,13 @@ class AssessmentResultAudience {
 			$cohorts = array_filter([$cohort]);
 		} elseif ($courseId !== '') {
 			$cohorts = $this->objectService->findAll(
-				['register' => self::LEARNIQ_REGISTER, 'schema' => self::COHORT_SCHEMA, 'filters' => ['courseId' => $courseId]],
+				[
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::COHORT_SCHEMA,
+						'courseId' => $courseId,
+					],
+				],
 				_rbac: false
 			);
 		}
@@ -158,9 +164,11 @@ class AssessmentResultAudience {
 
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::PROFILE_SCHEMA,
-				'filters' => ['ncUserId' => $learnerId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::PROFILE_SCHEMA,
+					'ncUserId' => $learnerId,
+				],
 				'limit' => 1,
 			],
 			_rbac: false

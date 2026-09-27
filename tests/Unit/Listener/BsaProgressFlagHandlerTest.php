@@ -92,11 +92,11 @@ class BsaProgressFlagHandlerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($trajectories) {
-				if ($config['schema'] === 'bsa-trajectory') {
+				if ($config['filters']['schema'] === 'bsa-trajectory') {
 					return $trajectories;
 				}
 
-				if ($config['schema'] === 'bsa-progress-flag') {
+				if ($config['filters']['schema'] === 'bsa-progress-flag') {
 					$state = $config['filters']['lifecycle'] ?? '';
 					return $this->existingFlagsByState[$state] ?? [];
 				}

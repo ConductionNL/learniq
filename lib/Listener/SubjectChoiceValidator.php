@@ -342,9 +342,13 @@ class SubjectChoiceValidator implements IEventListener {
 
 			$rows = $this->objectService->findAll(
 				[
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::SUBJECT_CHOICE_SCHEMA,
-					'filters' => $filters,
+					'filters' => array_merge(
+						$filters,
+						[
+							'register' => self::LEARNIQ_REGISTER,
+							'schema' => self::SUBJECT_CHOICE_SCHEMA,
+						]
+					),
 					'limit' => 5000,
 				]
 			);

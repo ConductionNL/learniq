@@ -465,9 +465,13 @@ class DataExchangeRunHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::SUPPORT_REQUEST_SCHEMA,
-				'filters' => $idFilters,
+				'filters' => array_merge(
+					$idFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::SUPPORT_REQUEST_SCHEMA,
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -503,9 +507,11 @@ class DataExchangeRunHandler implements IEventListener {
 	private function loadMappingProfile(string $profileId): ?array {
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::MAPPING_PROFILE_SCHEMA,
-				'filters' => ['id' => $profileId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::MAPPING_PROFILE_SCHEMA,
+					'id' => $profileId,
+				],
 				'limit' => 1,
 			]
 		);
@@ -552,9 +558,13 @@ class DataExchangeRunHandler implements IEventListener {
 
 		$results = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => $schema,
-				'filters' => $filters,
+				'filters' => array_merge(
+					$filters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => $schema,
+					]
+				),
 				// #188: raised from 10 000 to 100 000; full pagination is a follow-up.
 				'limit' => self::QUERY_LIMIT,
 			]
@@ -672,9 +682,11 @@ class DataExchangeRunHandler implements IEventListener {
 	private function saveJobFields(string $jobId, array $fields): void {
 		$existing = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::JOB_SCHEMA,
-				'filters' => ['id' => $jobId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::JOB_SCHEMA,
+					'id' => $jobId,
+				],
 				'limit' => 1,
 			]
 		);

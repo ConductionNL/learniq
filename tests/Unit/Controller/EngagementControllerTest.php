@@ -64,7 +64,7 @@ class EngagementControllerTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			static function (array $config) use ($engagementRows, $readThrows) {
-				if ($config['schema'] === 'learner-engagement') {
+				if ($config['filters']['schema'] === 'learner-engagement') {
 					if ($readThrows === true) {
 						throw new RuntimeException('the store is unreachable');
 					}

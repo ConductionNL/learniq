@@ -73,7 +73,7 @@ class CoursePackageExportServiceTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturnCallback(
 			static function (array $config): array {
-				return match ($config['schema']) {
+				return match ($config['filters']['schema']) {
 					'course' => [],
 					'lesson' => [['id' => 'lesson-1', 'name' => 'Intro', 'courseId' => 'course-1']],
 					'material' => [['id' => 'material-1', 'title' => 'Slides', 'kind' => 'document', 'fileRef' => '/Scholiq/materials/slides.pdf', 'courseId' => 'course-1']],
