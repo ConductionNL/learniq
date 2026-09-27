@@ -37,6 +37,8 @@ namespace OCA\Learniq\Lifecycle;
 use DateTimeImmutable;
 use DateTimeZone;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\IGroupManager;
+use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -58,14 +60,18 @@ class SubmissionWindowGuard {
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objectService OR object service for fetching the parent Assignment.
-	 * @param LoggerInterface $logger PSR logger.
+	 * @param ObjectService   $objectService OR object service for fetching the parent Assignment.
+	 * @param LoggerInterface $logger        PSR logger.
+	 * @param IUserSession    $userSession   Current session (server-resolved caller identity).
+	 * @param IGroupManager   $groupManager  Resolves whether the caller is an administrator.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly IUserSession $userSession,
+		private readonly IGroupManager $groupManager,
 	) {
 	}//end __construct()
 
@@ -95,9 +101,10 @@ class SubmissionWindowGuard {
 		$assignmentId = $object['assignmentId'] ?? null;
 		$tenantId = $object['tenant_id'] ?? '';
 
-		if ($assignmentId === null) {
+		if ($assignmentId === null || $this->callerMayHandIn(object: $object) === false) {
 			$this->logger->info(
-				'[SubmissionWindowGuard] Submission has no assignmentId; blocking submit.'
+				'[SubmissionWindowGuard] Submission {id} has no assignmentId or the caller is not one of its learners; blocking submit.',
+				['id' => ($object['id'] ?? '')]
 			);
 			return false;
 		}
@@ -172,4 +179,34 @@ class SubmissionWindowGuard {
 
 		return true;
 	}//end check()
+	/**
+	 * Whether the caller may hand this submission in.
+	 *
+	 * Any signed-in user may create a Submission (OpenRegister checks create
+	 * without the object, so the schema cannot narrow it), so the hand-in is
+	 * where a submission made in someone else's name is refused: the caller
+	 * must be one of its learnerIds. Administrators and system calls (no
+	 * session) are not refused.
+	 *
+	 * @param array<string, mixed> $object The Submission data.
+	 *
+	 * @return bool True when the caller may submit.
+	 *
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-learner-hands-in-their-own-work-and-the-teacher-marks-it
+	 */
+	private function callerMayHandIn(array $object): bool {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return true;
+		}
+
+		$uid = $user->getUID();
+		if ($this->groupManager->isAdmin($uid) === true) {
+			return true;
+		}
+
+		$learnerIds = ($object['learnerIds'] ?? []);
+
+		return is_array($learnerIds) === true && in_array($uid, $learnerIds, true) === true;
+	}//end callerMayHandIn()
 }//end class

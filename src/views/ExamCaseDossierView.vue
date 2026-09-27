@@ -338,6 +338,7 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
 export default {
 	name: 'ExamCaseDossierView',
@@ -490,14 +491,14 @@ export default {
 			this.saving = true
 			this.saveError = null
 			try {
-				const resp = await fetch(this.objectUrl(`/transition/${action}`), {
+				const resp = await fetch(generateUrl(objectTransitionUrl(this.id)), {
 					method: 'POST',
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify(payload),
+					body: JSON.stringify({ action, data: payload }),
 				})
 				if (!resp.ok) {
 					throw new Error(`Transition '${action}' failed: ${resp.status}`)

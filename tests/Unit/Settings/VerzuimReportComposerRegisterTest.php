@@ -71,7 +71,8 @@ class VerzuimReportComposerRegisterTest extends TestCase {
 	public function testAttendanceFlagInterventionsShape(): void {
 		$flag = $this->config['components']['schemas']['AttendanceFlag'];
 
-		self::assertTrue($flag['appendOnly']);
+		// Open Register refuses every update on an appendOnly schema, transitions included (learniq#977).
+		self::assertNotTrue($flag['appendOnly'] ?? false);
 
 		$interventions = $flag['properties']['interventions'];
 		self::assertSame('array', $interventions['type']);

@@ -7,7 +7,7 @@
  * CourseEvaluationResponse, CourseQualityScore, and ImprovementAction —
  * most importantly the anonymity-by-schema-shape invariant (design.md
  * Decision 2): CourseEvaluationResponse declares NO learner-identifying
- * property anywhere in its schema, is appendOnly, and its submit transition
+ * property anywhere in its schema, is not appendOnly, and its submit transition
  * requires CourseEvaluationEligibilityGuard, while EvaluationInvitation is
  * the only place learnerId and response status co-exist and carries no
  * field referencing a response. Mirrors PupilDossierNotesRegisterTest.php's
@@ -124,7 +124,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 	}//end testCourseEvaluationResponseDeclaresNoLearnerIdentityProperty()
 
 	/**
-	 * CourseEvaluationResponse is appendOnly, and its draft -> submitted
+	 * CourseEvaluationResponse is not appendOnly (its submit is an update), and its draft -> submitted
 	 * transition requires CourseEvaluationEligibilityGuard.
 	 *
 	 * @return void
@@ -135,7 +135,7 @@ class CourseEvaluationRegisterTest extends TestCase {
 		$schema = $this->config['components']['schemas']['CourseEvaluationResponse'] ?? null;
 		$this->assertIsArray($schema, 'CourseEvaluationResponse schema MUST exist');
 
-		$this->assertTrue($schema['appendOnly'] ?? false, 'CourseEvaluationResponse MUST be appendOnly');
+		$this->assertNotTrue($schema['appendOnly'] ?? false, 'CourseEvaluationResponse MUST NOT be appendOnly: Open Register refuses every update on an appendOnly schema, transitions included (learniq#977)');
 
 		$lifecycle = $schema['x-openregister-lifecycle'] ?? null;
 		$this->assertIsArray($lifecycle);

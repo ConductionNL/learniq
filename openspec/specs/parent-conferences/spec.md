@@ -13,7 +13,8 @@ locked`; `ConferenceSignup`: `draft → submitted → scheduled | waitlisted →
 `ConferenceSlot`: `proposed → confirmed → completed | no-show | cancelled`; `ConferenceReport`:
 `draft → recorded`). Every UUID foreign key MUST use the property-level relation dialect already in
 use across the register (`format: uuid` + `$ref: <SchemaTitle>` on the property itself — no
-separate `x-openregister-relations` block). `ConferenceReport` MUST be `appendOnly: true`.
+separate `x-openregister-relations` block). `ConferenceReport` MUST NOT be `appendOnly`, because its
+`record` transition is an update, which Open Register refuses on an append-only schema.
 
 #### Scenario: All five schemas persist with their declared lifecycles
 
@@ -21,7 +22,7 @@ separate `x-openregister-relations` block). `ConferenceReport` MUST be `appendOn
 - **WHEN** a `ConferenceRound`, `TeacherAvailability`, `ConferenceSignup`, `ConferenceSlot`, and
   `ConferenceReport` are each created
 - **THEN** each is stored as an OpenRegister object carrying its declared lifecycle state
-- **AND** `ConferenceReport` is `appendOnly: true`
+- **AND** `ConferenceReport` is not `appendOnly`, so its `record` transition runs
 
 ### Requirement: A conference round declares its scope, slot duration, and buffer time
 
@@ -116,10 +117,10 @@ submitted availability.
 - **THEN** all `confirmed` slots are unchanged
 - **AND** the freed slot becomes available to any still-`waitlisted` signup requesting that teacher
 
-### Requirement: A gespreksverslag is recorded to the pupil dossier as an append-only record
+### Requirement: A gespreksverslag is recorded to the pupil dossier
 
-A `ConferenceReport` MUST be creatable against a `completed` `ConferenceSlot`, MUST be
-`appendOnly: true` once `recorded`, and MUST carry `narrative`, `attendeeIds[]`, `recordedBy`,
+A `ConferenceReport` MUST be creatable against a `completed` `ConferenceSlot`, MUST move
+`draft → recorded` (the schema is not `appendOnly`, which would refuse that move), and MUST carry `narrative`, `attendeeIds[]`, `recordedBy`,
 `recordedAt`, and the learner reference — mirroring `LearningPlanEvaluation`'s shape
 (`lib/Settings/scholiq_register.json` `learning-plan-evaluation`) so it becomes part of the
 learner's queryable record set the same way `LearningPlan`/`GradeEntry`/`AttendanceRecord` already
@@ -131,7 +132,7 @@ adding `ConferenceReport` to that composer is an explicit future follow-up, not 
 - **GIVEN** a `ConferenceSlot` in `completed` status
 - **WHEN** the teacher records a `ConferenceReport` with a narrative and attendees
 - **THEN** the report persists linked to the slot and the learner
-- **AND** it transitions `draft → recorded`, becoming append-only (immutable) from that point
+- **AND** it transitions `draft → recorded`, and the audit trail keeps each version
 - **AND** a declared `transition` notification informs the learner it was recorded
 
 ### Requirement: Frontend is declarative with two named custom views

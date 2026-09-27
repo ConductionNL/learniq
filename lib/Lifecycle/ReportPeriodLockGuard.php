@@ -95,7 +95,7 @@ class ReportPeriodLockGuard {
 	 *
 	 * @var string[]
 	 */
-	private const OVERRIDE_GROUPS = ['admin', 'mentor', 'principal'];
+	private const OVERRIDE_GROUPS = ['admin', 'team-leads', 'administration-managers'];
 
 	/**
 	 * Constructor.

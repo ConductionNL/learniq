@@ -44,7 +44,7 @@ use Psr\Log\LoggerInterface;
  * lifecycle transition.
  *
  * Allows the transition only when the acting user is in one of the
- * privileged groups (`admin`, `mentor`, `principal`).
+ * privileged groups (`admin`, `team-leads`, `administration-managers`).
  *
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-the-rapportvergadering-review-lifecycle-gates-parent-visibility-behind-a-finalise-step
  */
@@ -55,7 +55,7 @@ class ReportCardReopenGuard {
 	 *
 	 * @var string[]
 	 */
-	private const REOPEN_GROUPS = ['admin', 'mentor', 'principal'];
+	private const REOPEN_GROUPS = ['admin', 'team-leads', 'administration-managers'];
 
 	/**
 	 * Constructor.

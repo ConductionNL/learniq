@@ -33,7 +33,7 @@ already uses). `x-property-rbac.read` MUST scope to the learner themself, admin,
 
 The system MUST support `EngagementRiskThreshold` (config: `name`, `kind`, `scope`, `cohortId` nullable,
 `metric` [`engagement-score-below` | `recency-days-above`], `limit`, `onAtRisk`, `lifecycle: draft → active →
-archived`, mirroring `AttendanceThreshold`) and `EngagementRiskFlag` (`appendOnly: true`, `lifecycle: open →
+archived`, mirroring `AttendanceThreshold`) and `EngagementRiskFlag` (not `appendOnly`, `lifecycle: open →
 in-handling → resolved`, mirroring `AttendanceFlag`/`BsaProgressFlag` — human-in-the-loop, never auto-acting
 against the learner). Unlike `BsaTrajectory`, this threshold MUST apply to any `Course`/`Cohort` — it MUST
 NOT be gated on `Course.ectsCredits` or on an HE/MBO `kind`. Detection MUST be a plain arithmetic/threshold

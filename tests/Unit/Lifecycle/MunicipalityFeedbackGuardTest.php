@@ -68,7 +68,7 @@ class MunicipalityFeedbackGuardTest extends TestCase {
 	 * @spec openspec/changes/verzuim-report-composer/specs/data-exchange/spec.md#scenario-coordinator-records-the-municipalitys-route-decision
 	 */
 	public function testCoordinatorOnLeerplichtJobIsAllowedAndStamped(): void {
-		$guard = $this->makeGuard(['coordinator']);
+		$guard = $this->makeGuard(['coordinators']);
 		$context = [
 			'object' => ['id' => 'job-1', 'target' => 'leerplicht'],
 			'actor' => 'actor-1',
@@ -106,7 +106,7 @@ class MunicipalityFeedbackGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testCallerSuppliedRecordedByIsOverwritten(): void {
-		$guard = $this->makeGuard(['coordinator']);
+		$guard = $this->makeGuard(['coordinators']);
 		$context = [
 			'object' => ['id' => 'job-1', 'target' => 'leerplicht'],
 			'actor' => 'actor-1',
@@ -124,7 +124,7 @@ class MunicipalityFeedbackGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testCallerSuppliedReceivedAtIsPreserved(): void {
-		$guard = $this->makeGuard(['coordinator']);
+		$guard = $this->makeGuard(['coordinators']);
 		$context = [
 			'object' => ['id' => 'job-1', 'target' => 'leerplicht'],
 			'actor' => 'actor-1',
@@ -160,7 +160,7 @@ class MunicipalityFeedbackGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNonLeerplichtTargetIsDenied(): void {
-		$guard = $this->makeGuard(['coordinator']);
+		$guard = $this->makeGuard(['coordinators']);
 		$context = [
 			'object' => ['id' => 'job-1', 'target' => 'oso'],
 			'actor' => 'actor-1',
@@ -177,7 +177,7 @@ class MunicipalityFeedbackGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNoActorIsDenied(): void {
-		$guard = $this->makeGuard(['coordinator']);
+		$guard = $this->makeGuard(['coordinators']);
 		$context = [
 			'object' => ['id' => 'job-1', 'target' => 'leerplicht'],
 			'payload' => [],
