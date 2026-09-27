@@ -33,10 +33,13 @@ declare(strict_types=1);
 namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Event\ObjectDeletingEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCA\Learniq\Listener\AdmissionsWaitlistPromoter;
 use OCA\Learniq\Listener\ApplicationConversionHandler;
 use OCA\Learniq\Listener\AssessmentAttemptGateListener;
+use OCA\Learniq\Listener\AssessmentResultIntegrityListener;
 use OCA\Learniq\Listener\EnrolmentPrerequisiteListener;
 use OCA\Learniq\Listener\PaymentTransactionStatusHandler;
 use OCA\Learniq\Listener\SessionChangeNoticeHandler;
@@ -88,6 +91,19 @@ class SchedulingListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectCreatingEvent::class,
 			listener: AssessmentAttemptGateListener::class
+		);
+
+		// AssessmentResult integrity (learniq#948): replaces `appendOnly`, which
+		// refused every lifecycle write. Freezes a submitted attempt's answers,
+		// lets only staff write manualScore and fire `grade`, and refuses
+		// deletes. Same pre-write veto shape, so not narrowed either.
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: AssessmentResultIntegrityListener::class
+		);
+		$context->registerEventListener(
+			event: ObjectDeletingEvent::class,
+			listener: AssessmentResultIntegrityListener::class
 		);
 
 		// ADR-031 legitimate exception (admissions-and-subject-choice):
