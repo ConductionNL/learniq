@@ -24,13 +24,14 @@
  * before a state transition and cannot be expressed as a schema declaration."
  * Referenced from the Credential schema's
  * x-openregister-lifecycle.transitions.revoke.requires in
- * learniq_register.json. Built to the `check(array &$transitionContext): bool`
- * contract `CredentialSigningService` establishes.
+ * learniq_register.json, as a LifecycleGuardInterface guard; the write runs
+ * in the transition's WalletRevocationPropagationAction (learniq#983).
  *
  * FAIL-SOFT BY DESIGN (per spec): revoking a credential is the compliance
  * action of record and MUST NOT be blocked by the wallet rail being
- * unavailable. This guard therefore always returns true, catching every
- * `Throwable` and logging rather than surfacing a transition error.
+ * unavailable. This guard therefore always allows, and the propagation
+ * catches every `Throwable` and records it rather than surfacing a
+ * transition error.
  *
  * @category Service
  * @package  OCA\Learniq\Service
@@ -53,6 +54,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Support\FleetAppId;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\App\IAppManager;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
@@ -64,14 +67,15 @@ use Throwable;
  * Guards the Credential `revoke` transition (as an additional `requires`
  * hook, fail-soft).
  *
- * No-ops (returns true, no call made) unless `walletOfferStatus` is
+ * The guard always allows. propagate(), run by the transition's
+ * WalletRevocationPropagationAction, no-ops unless `walletOfferStatus` is
  * `offered` or `claimed` — nothing to revoke otherwise. Otherwise calls
  * openconnector's revoke endpoint best-effort and, on a confirmed success,
- * sets `walletOfferStatus=revoked` in the context. Any failure (missing
+ * sets `walletOfferStatus=revoked` on the returned Credential. Any failure (missing
  * config, HTTP error, thrown exception) is logged and swallowed — the
  * `revoke` transition itself is never blocked.
  */
-class WalletRevocationPropagationService {
+class WalletRevocationPropagationService implements LifecycleGuardInterface {
 
 	/**
 	 * OpenConnector REST endpoint template for consumer-gated offer
@@ -126,42 +130,58 @@ class WalletRevocationPropagationService {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * OpenRegister lifecycle guard entry-point for `revoke`.
 	 *
-	 * Called before executing the `revoke` transition on a Credential
-	 * object. When there is an outstanding wallet offer, propagates the
-	 * revocation to openconnector best-effort. Always returns true — never
-	 * blocks `revoke`.
+	 * Always allows: revoking is the compliance action of record and MUST NOT
+	 * be blocked by the wallet rail. The propagation runs in
+	 * {@see \OCA\Learniq\Lifecycle\Action\WalletRevocationPropagationAction},
+	 * because OpenRegister hands a guard the object by value (learniq#983).
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the Credential data array (mutated)
-	 *                                               - 'transition' : 'revoke'
-	 *                                               - 'from'       : 'issued'
-	 *                                               - 'to'         : 'revoked'
+	 * @param array<string,mixed> $object The Credential as it would be saved.
+	 * @param string $action The transition, `revoke`.
+	 * @param string $userId The caller, or '' without a session.
 	 *
-	 * @return bool Always true (fail-soft by design).
+	 * @return GuardResult Always allow (fail-soft by design).
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
 	 *
 	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = &$transitionContext['object'];
+	public function check(array $object, string $action, string $userId): GuardResult {
+		return GuardResult::allow();
+	}//end check()
 
-		$walletOfferStatus = ($object['walletOfferStatus'] ?? null);
+	/**
+	 * Propagate a revocation to any outstanding wallet offer, best-effort.
+	 *
+	 * No-op (credential returned unchanged, no call made) unless there is an
+	 * outstanding offer with a correlation key. On a confirmed revocation sets
+	 * `walletOfferStatus=revoked`; on any failure records `walletOfferError`
+	 * and never throws.
+	 *
+	 * @param array<string,mixed> $credential The Credential data array.
+	 *
+	 * @return array<string,mixed> The Credential with the propagation outcome applied.
+	 *
+	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
+	 */
+	public function propagate(array $credential): array {
+		$walletOfferStatus = ($credential['walletOfferStatus'] ?? null);
 		if (in_array($walletOfferStatus, self::OUTSTANDING_STATUSES, true) === false) {
 			// Nothing outstanding to revoke — no-op.
-			return true;
+			return $credential;
 		}
 
-		$attestationRef = (string)($object['walletAttestationRef'] ?? '');
+		$attestationRef = (string)($credential['walletAttestationRef'] ?? '');
 		if ($attestationRef === '') {
 			// No correlation key to revoke by — nothing we can propagate.
-			return true;
+			return $credential;
 		}
 
 		try {
 			$handled = $this->callOpenConnectorRevoke(attestationRef: $attestationRef);
 			if ($handled === true) {
-				$object['walletOfferStatus'] = 'revoked';
+				$credential['walletOfferStatus'] = 'revoked';
 				$this->logger->info(
 					'[WalletRevocationPropagationService] Propagated revocation for wallet offer {ref}',
 					['ref' => $attestationRef]
@@ -169,7 +189,7 @@ class WalletRevocationPropagationService {
 			}
 
 			if ($handled === false) {
-				$object['walletOfferError'] = 'Wallet revocation propagation failed or openconnector is unavailable.';
+				$credential['walletOfferError'] = 'Wallet revocation propagation failed or openconnector is unavailable.';
 				$this->logger->warning(
 					'[WalletRevocationPropagationService] Revocation propagation for wallet offer {ref} did not succeed',
 					['ref' => $attestationRef]
@@ -177,15 +197,15 @@ class WalletRevocationPropagationService {
 			}
 		} catch (Throwable $exception) {
 			// Fail-soft by design: never block revoke on the wallet rail.
-			$object['walletOfferError'] = 'Wallet revocation propagation error: ' . $exception->getMessage();
+			$credential['walletOfferError'] = 'Wallet revocation propagation error: ' . $exception->getMessage();
 			$this->logger->warning(
 				'[WalletRevocationPropagationService] Revocation propagation threw: {msg}',
 				['msg' => $exception->getMessage()]
 			);
 		}//end try
 
-		return true;
-	}//end check()
+		return $credential;
+	}//end propagate()
 
 	/**
 	 * Call openconnector's consumer-gated offer-revocation endpoint.

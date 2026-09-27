@@ -41,7 +41,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
 /**
- * Tests for the connection observation in WalletOfferDelegationService::check().
+ * Tests for the connection observation in WalletOfferDelegationService::offer().
  *
  * @covers \OCA\Learniq\Service\WalletOfferDelegationService
  * @uses   \OCA\Learniq\Support\FleetAppId
@@ -130,16 +130,12 @@ class WalletOfferConnectionObservationTest extends TestCase {
 	 */
 	private function context(): array {
 		return [
-			'object' => [
-				'id' => 'credential-1',
-				'kind' => 'badge',
-				'learnerId' => 'learner-1',
-				'walletOfferStatus' => null,
-				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-1']],
-			],
-			'transition' => 'offerToWallet',
-			'from' => 'issued',
-			'to' => 'issued',
+			'id' => 'credential-1',
+			'lifecycle' => 'issued',
+			'kind' => 'badge',
+			'learnerId' => 'learner-1',
+			'walletOfferStatus' => null,
+			'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-1']],
 		];
 	}//end context()
 
@@ -195,7 +191,7 @@ class WalletOfferConnectionObservationTest extends TestCase {
 	 *
 	 * @param string   $token  The stored API token.
 	 * @param callable $answer Builds what the client answers.
-	 * @param bool     $passes Whether the guard lets the transition through.
+	 * @param bool     $passes Whether the offer is recorded as made.
 	 * @param string   $status The recorded status.
 	 * @param string   $reason The recorded reason.
 	 *
@@ -203,11 +199,9 @@ class WalletOfferConnectionObservationTest extends TestCase {
 	 */
 	#[DataProvider('outcomes')]
 	public function testEachOutcomeRecordsOneObservation(string $token, callable $answer, bool $passes, string $status, string $reason): void {
-		$context = $this->context();
+		$saved = $this->service(token: $token, answer: $answer($this), reporter: $this->reporter())->offer(credential: $this->context());
 
-		$result = $this->service(token: $token, answer: $answer($this), reporter: $this->reporter())->check($context);
-
-		$this->assertSame(expected: $passes, actual: $result);
+		$this->assertSame(expected: $passes, actual: ($saved['walletOfferStatus'] === 'offered'));
 		$this->assertSame(expected: [['eudi-wallet', $status, $reason]], actual: $this->observed);
 	}//end testEachOutcomeRecordsOneObservation()
 
@@ -221,14 +215,10 @@ class WalletOfferConnectionObservationTest extends TestCase {
 	 */
 	#[DataProvider('outcomes')]
 	public function testTheGuardAnswersTheSameWithoutAReporter(string $token, callable $answer): void {
-		$withContext = $this->context();
-		$withoutContext = $this->context();
+		$with = $this->service(token: $token, answer: $answer($this), reporter: $this->reporter())->offer(credential: $this->context());
+		$without = $this->service(token: $token, answer: $answer($this), reporter: null)->offer(credential: $this->context());
 
-		$with = $this->service(token: $token, answer: $answer($this), reporter: $this->reporter())->check($withContext);
-		$without = $this->service(token: $token, answer: $answer($this), reporter: null)->check($withoutContext);
-
-		unset($withContext['object']['walletOfferedAt'], $withoutContext['object']['walletOfferedAt']);
+		unset($with['walletOfferedAt'], $without['walletOfferedAt']);
 		$this->assertSame(expected: $with, actual: $without);
-		$this->assertSame(expected: $withContext, actual: $withoutContext);
 	}//end testTheGuardAnswersTheSameWithoutAReporter()
 }//end class

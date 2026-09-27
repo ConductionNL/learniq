@@ -32,6 +32,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\LearningRecordAggregationService;
 use OCA\Learniq\Service\LearningRecordBundleWriter;
 use OCA\Learniq\Service\LearningRecordExportService;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\Learniq\Service\LearningRecordExportSigningService;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -40,6 +41,7 @@ use OCP\Files\NotFoundException;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 /**
  * Tests for LearningRecordExportService::check() (the `generate` transition guard).
@@ -135,29 +137,28 @@ class LearningRecordExportServiceTest extends TestCase {
 	}//end emptyComposition()
 
 	/**
-	 * A base valid transition context, overridden per test.
+	 * A base valid LearningRecordExport as OpenRegister saves it on `generate`
+	 * (lifecycle already at its target), overridden per test.
 	 *
 	 * @param array<string,mixed> $overrides Object field overrides.
 	 *
 	 * @return array<string,mixed>
 	 */
-	private function baseContext(array $overrides = []): array {
-		return [
-			'object' => array_merge(
-				[
-					'id' => 'export-1',
-					'learnerId' => 'anna',
-					'learnerRef' => 'learner-ref-1',
-					'requestedBy' => 'anna',
-					'tenant_id' => 'tenant-1',
-					'periodFrom' => null,
-					'periodTo' => null,
-				],
-				$overrides
-			),
-			'transition' => 'generate',
-		];
-	}//end baseContext()
+	private function baseObject(array $overrides = []): array {
+		return array_merge(
+			[
+				'id' => 'export-1',
+				'lifecycle' => 'generated',
+				'learnerId' => 'anna',
+				'learnerRef' => 'learner-ref-1',
+				'requestedBy' => 'anna',
+				'tenant_id' => 'tenant-1',
+				'periodFrom' => null,
+				'periodTo' => null,
+			],
+			$overrides
+		);
+	}//end baseObject()
 
 	/**
 	 * coverageReport[] names every included source object, and omitted
@@ -178,11 +179,9 @@ class LearningRecordExportServiceTest extends TestCase {
 		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:abc');
 		$this->signingService->method('sign')->willReturn('header..signature');
 
-		$context = $this->baseContext();
-		$result = $this->service->check($context);
+		$saved = $this->service->generate(export: $this->baseObject());
 
-		self::assertTrue($result);
-		$coverage = $context['object']['coverageReport'];
+		$coverage = $saved['coverageReport'];
 
 		$credEntry = current(array_filter($coverage, static fn (array $e) => $e['sourceId'] === 'cred-1'));
 		self::assertNotFalse($credEntry);
@@ -209,10 +208,9 @@ class LearningRecordExportServiceTest extends TestCase {
 		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:abc');
 		$this->signingService->method('sign')->willReturn('header..signature');
 
-		$context = $this->baseContext();
-		$this->service->check($context);
+		$saved = $this->service->generate(export: $this->baseObject());
 
-		$coverage = $context['object']['coverageReport'];
+		$coverage = $saved['coverageReport'];
 		$entry = current(array_filter($coverage, static fn (array $e) => $e['sourceSchema'] === 'lesson-completion'));
 
 		self::assertNotFalse($entry);
@@ -237,10 +235,9 @@ class LearningRecordExportServiceTest extends TestCase {
 		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:abc');
 		$this->signingService->method('sign')->willReturn('header..signature');
 
-		$context = $this->baseContext(['periodFrom' => '2026-01-01', 'periodTo' => '2026-12-31']);
-		$this->service->check($context);
+		$saved = $this->service->generate(export: $this->baseObject(['periodFrom' => '2026-01-01', 'periodTo' => '2026-12-31']));
 
-		$coverage = $context['object']['coverageReport'];
+		$coverage = $saved['coverageReport'];
 		$entry = current(array_filter($coverage, static fn (array $e) => $e['sourceId'] === 'cred-old'));
 
 		self::assertNotFalse($entry);
@@ -277,10 +274,9 @@ class LearningRecordExportServiceTest extends TestCase {
 		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:abc');
 		$this->signingService->method('sign')->willReturn('header..signature');
 
-		$context = $this->baseContext();
-		$this->service->check($context);
+		$saved = $this->service->generate(export: $this->baseObject());
 
-		$bundleRef = $context['object']['bundleRef'];
+		$bundleRef = $saved['bundleRef'];
 		self::assertNotNull($bundleRef, 'A successful generate must produce a bundleRef.');
 
 		// The elm section is not directly inspectable from the transition
@@ -294,8 +290,9 @@ class LearningRecordExportServiceTest extends TestCase {
 	}//end testCredentialEntriesAreVerbatim()
 
 	/**
-	 * Generation fails closed when no signing key is configured: errorMessage
-	 * is set and the transition is blocked (returns false).
+	 * Generation fails closed when no signing key is configured: the guard
+	 * refuses `generate` with the reason, and generate() throws rather than
+	 * saving an unsigned export.
 	 *
 	 * @return void
 	 */
@@ -303,12 +300,14 @@ class LearningRecordExportServiceTest extends TestCase {
 		$this->aggregationService->method('compose')->willReturn($this->emptyComposition());
 		$this->signingService->method('resolveIssuerDid')->willReturn(null);
 
-		$context = $this->baseContext();
-		$result = $this->service->check($context);
+		$verdict = $this->service->check($this->baseObject(), 'generate', 'anna');
 
-		self::assertFalse($result);
-		self::assertNotNull($context['object']['errorMessage']);
-		self::assertArrayNotHasKey('bundleRef', $context['object']);
+		self::assertInstanceOf(LifecycleGuardInterface::class, $this->service);
+		self::assertFalse($verdict->isAllowed());
+		self::assertStringContainsString('signing key', (string)$verdict->getMessage());
+
+		$this->expectException(RuntimeException::class);
+		$this->service->generate(export: $this->baseObject());
 	}//end testFailedGenerationBlocksTransition()
 
 	/**
@@ -319,10 +318,21 @@ class LearningRecordExportServiceTest extends TestCase {
 	public function testMissingLearnerRefBlocksTransition(): void {
 		$this->aggregationService->expects($this->never())->method('compose');
 
-		$context = $this->baseContext(['learnerRef' => '']);
-		$result = $this->service->check($context);
+		$verdict = $this->service->check($this->baseObject(['learnerRef' => '']), 'generate', 'anna');
 
-		self::assertFalse($result);
-		self::assertNotNull($context['object']['errorMessage']);
+		self::assertFalse($verdict->isAllowed());
+		self::assertNotSame('', (string)$verdict->getMessage());
 	}//end testMissingLearnerRefBlocksTransition()
+
+	/**
+	 * A complete export with a signing key is allowed through the guard.
+	 *
+	 * @return void
+	 */
+	public function testCompleteExportIsAllowed(): void {
+		$this->aggregationService->expects($this->never())->method('compose');
+		$this->signingService->method('resolveIssuerDid')->willReturn('did:web:learniq:tenant-1:abc');
+
+		self::assertTrue($this->service->check($this->baseObject(), 'generate', 'anna')->isAllowed());
+	}//end testCompleteExportIsAllowed()
 }//end class
