@@ -239,7 +239,10 @@ class HigherEducationExampleSetTest extends TestCase {
 		}
 
 		self::assertGreaterThan(1000, count(self::of(schema: 'final-grade')));
+		$graded = [];
 		foreach (self::of(schema: 'final-grade') as $final) {
+			self::assertArrayNotHasKey($final['learnerId'] . '|' . $final['courseId'], $graded, $final['slug'] . ' is the only final grade of its course');
+			$graded[$final['learnerId'] . '|' . $final['courseId']] = $final['curriculumPlanId'];
 			$plan = $plans[$final['curriculumPlanId']];
 			$rows = ($entries[$final['learnerId'] . '|' . $final['curriculumPlanId']] ?? []);
 			self::assertNotEmpty($rows, $final['slug'] . ' has published entries');
@@ -258,6 +261,19 @@ class HigherEducationExampleSetTest extends TestCase {
 
 			self::assertSame($expected, $enrolments[$final['learnerId'] . '|' . $final['courseId']]['lifecycle'], $final['slug']);
 		}//end foreach
+
+		// The other direction: a finished enrolment has a final grade, a
+		// withdrawn one has none, and no published entry is left without one.
+		foreach ($enrolments as $key => $enrolment) {
+			self::assertSame($enrolment['lifecycle'] !== 'withdrawn', isset($graded[$key]), $enrolment['slug']);
+		}
+
+		$gradedPlans = [];
+		foreach ($graded as $key => $planId) {
+			$gradedPlans[explode('|', $key)[0] . '|' . $planId] = true;
+		}
+
+		self::assertEqualsCanonicalizing(array_keys($entries), array_keys($gradedPlans));
 	}//end testEveryFinalGradeIsWhatTheEngineComputes()
 
 	/**
@@ -298,6 +314,7 @@ class HigherEducationExampleSetTest extends TestCase {
 				self::assertNotEmpty($decision['studentHeardAt']);
 			}
 
+			self::assertArrayNotHasKey($decision['learnerId'], $decided, $decision['slug'] . ' is the only advice of its student');
 			$decided[$decision['learnerId']] = true;
 		}//end foreach
 
@@ -383,7 +400,9 @@ class HigherEducationExampleSetTest extends TestCase {
 		}
 
 		self::assertGreaterThanOrEqual(40, count(self::of(schema: 'item-statistics')));
+		$covered = [];
 		foreach (self::of(schema: 'item-statistics') as $stat) {
+			$covered[$stat['assessmentId'] . '|' . $stat['itemId']] = true;
 			$rows = $results[$stat['assessmentId']];
 			$full = 0;
 			foreach ($rows as $result) {
@@ -396,6 +415,17 @@ class HigherEducationExampleSetTest extends TestCase {
 
 			self::assertSame(count($rows), $stat['sampleSize'], $stat['slug']);
 			self::assertEqualsWithDelta($full / count($rows), $stat['pValue'], 0.0000001, $stat['slug']);
+		}
+
+		// Every item of a main sitting (a sitting of 20 or more) has its statistic.
+		foreach ($results as $assessmentId => $rows) {
+			if (count($rows) < 20) {
+				continue;
+			}
+
+			foreach ($exams[$assessmentId]['itemRefs'] as $ref) {
+				self::assertArrayHasKey($assessmentId . '|' . $ref['itemId'], $covered, $exams[$assessmentId]['slug']);
+			}
 		}
 
 		// A revision flag is raised only where its statistic crosses the
@@ -436,6 +466,7 @@ class HigherEducationExampleSetTest extends TestCase {
 			$reviews[$review['submissionId']][] = $review['totalScore'];
 		}
 
+		self::assertEqualsCanonicalizing(array_keys($submissions), array_column(self::of(schema: 'peer-feedback-summary'), 'submissionId'));
 		foreach (self::of(schema: 'peer-feedback-summary') as $summary) {
 			$scores = $reviews[$summary['submissionId']];
 			self::assertGreaterThanOrEqual(2, count($scores));
