@@ -54,26 +54,35 @@ class CoursePackageObjectWriter {
 	/**
 	 * Create a `Course` object.
 	 *
-	 * @param string $title Course display name.
-	 * @param string|null $parentCourseId Parent Course UUID for nested organization folders.
-	 * @param string $tenantId Tenant UUID.
+	 * `$metadata` carries what a copy keeps from its source course (level,
+	 * language, description, licence, author, subject, NL-LOM levels); only
+	 * values {@see CourseMetadataFilter} accepts are written, over the import
+	 * defaults. The code is always new and the course always starts as a draft.
+	 *
+	 * @param string               $title          Course display name.
+	 * @param string|null          $parentCourseId Parent Course UUID for nested organization folders.
+	 * @param string               $tenantId       Tenant UUID.
+	 * @param array<string, mixed> $metadata       Source course row whose metadata the copy keeps.
 	 *
 	 * @return string|null Created Course UUID.
 	 *
 	 * @spec openspec/changes/course-package-import-export/design.md#data-model
+	 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-installing-a-shared-course-creates-an-independent-copy-that-keeps-the-credit
 	 */
-	public function createCourse(string $title, ?string $parentCourseId, string $tenantId): ?string {
+	public function createCourse(string $title, ?string $parentCourseId, string $tenantId, array $metadata=[]): ?string {
+		$object = [
+			'code' => 'IMPORT-' . substr(md5($title . microtime()), 0, 8),
+			'name' => $title,
+			'level' => 'other',
+			'language' => 'en',
+			'parentCourseId' => $parentCourseId,
+			'lifecycle' => 'draft',
+			'tenant_id' => $tenantId,
+		];
+
 		return $this->create(
 			schema: 'course',
-			object: [
-				'code' => 'IMPORT-' . substr(md5($title . microtime()), 0, 8),
-				'name' => $title,
-				'level' => 'other',
-				'language' => 'en',
-				'parentCourseId' => $parentCourseId,
-				'lifecycle' => 'draft',
-				'tenant_id' => $tenantId,
-			]
+			object: array_merge($object, (new CourseMetadataFilter())->filter(course: $metadata))
 		);
 	}//end createCourse()
 
