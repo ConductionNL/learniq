@@ -44,6 +44,7 @@ class LifecycleActionsImplementInterfaceTest extends TestCase {
 		'Credential.revoke' => 'OCA\\Learniq\\Lifecycle\\Action\\WalletRevocationPropagationAction',
 		'LearningRecordExport.generate' => 'OCA\\Learniq\\Lifecycle\\Action\\LearningRecordExportGenerateAction',
 		'LearningRecordImport.parse' => 'OCA\\Learniq\\Lifecycle\\Action\\LearningRecordImportParseAction',
+		'LearningPlan.activate' => 'OCA\\Learniq\\Lifecycle\\Action\\SupersedePriorLearningPlanAction',
 	];
 
 	/**
