@@ -1728,6 +1728,7 @@ OC.L10N.register(
         "Secondary school": "Middelbare school (vo)",
         "A fictional havo and vwo school with years 1 to 6, pupils, guardians and one full school year.": "Een verzonnen havo/vwo-school met leerjaar 1 tot en met 6, leerlingen, ouders en een volledig schooljaar.",
         "Vocational education (MBO)": "Middelbaar beroepsonderwijs (mbo)",
+        "A fictional MBO college with three programmes, students, work placements and one full school year.": "Een verzonnen mbo-college met drie opleidingen, studenten, stages en een volledig schooljaar.",
         "Higher education (HBO or university)": "Hoger onderwijs (hbo of wo)",
         "Company": "Bedrijf",
         "Training institute": "Opleidingsinstituut",
