@@ -100,6 +100,24 @@
 					}
 				},
 				{
+					"id": "CurriculumCoverageMenu",
+					"label": "Curriculum coverage",
+					"icon": "TableCheck",
+					"route": "CurriculumCoverageMatrix",
+					"order": 21,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"team-lead",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "CourseTemplatesMenu",
 					"label": "Course templates",
 					"icon": "FileReplaceOutline",
@@ -250,6 +268,14 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate"
+							]
 						}
 					}
 				},
@@ -266,6 +292,14 @@
 								"guardian",
 								"coordinator",
 								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate"
 							]
 						}
 					}
@@ -464,6 +498,15 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"vo",
+								"mbo",
+								"he",
+								"corporate",
+								"training"
 							]
 						}
 					}
@@ -1682,6 +1725,14 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "CurriculumCoverageMatrix",
+			"route": "/curriculum/coverage",
+			"type": "custom",
+			"title": "Curriculum coverage",
+			"component": "CurriculumCoverageMatrixView",
+			"_note": "curriculum-coverage-matrix-view: the one custom view for reading curriculum coverage. A read-only CnDataMatrix of a framework's goals (rows, grouped under their domains) by year label (columns), each cell saying planned, assessed, both or neither, plus the gap list per subject and year. Reads the CurriculumCoverage rows curriculum-coverage-rollup keeps current; computes nothing. A menu entry next to Curriculum, deliberately NOT a Reports card (ADR-112: a report is a card or an entry, never both)."
 		},
 		{
 			"id": "CurriculumPlans",
@@ -3481,6 +3532,26 @@
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false
+					}
+				],
+				"bodyWidgets": [
+					{
+						"id": "asn-hand-in",
+						"component": "AssignmentHandInStatus",
+						"title": "Hand-in status",
+						"placement": "after-data",
+						"props": {
+							"assignmentId": "@objectId"
+						}
+					},
+					{
+						"id": "asn-peer-review",
+						"component": "AssignmentPeerReviewAllocation",
+						"title": "Peer review",
+						"placement": "after-data",
+						"props": {
+							"assignmentId": "@objectId"
+						}
 					}
 				],
 				"sidebar": {

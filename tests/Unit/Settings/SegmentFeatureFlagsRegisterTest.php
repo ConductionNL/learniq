@@ -74,10 +74,61 @@ class SegmentFeatureFlagsRegisterTest extends TestCase {
 		self::assertSame(['segment'], $schema['required']);
 
 		$segment = $schema['properties']['segment'];
-		self::assertSame(['po', 'vo', 'mbo', 'he', 'corporate'], $segment['enum']);
+		self::assertSame(['po', 'vo', 'mbo', 'he', 'corporate', 'training'], $segment['enum']);
 		self::assertSame('corporate', $segment['default']);
 
 	}//end testLearniqSettingsIsAFlatSingletonDefaultingToCorporate()
+
+	/**
+	 * Every segment code carries a display label, and every label has an
+	 * English and a Dutch catalogue key, so a form never shows the raw code.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-learniqsettings-knows-six-organisation-kinds
+	 */
+	public function testEverySegmentHasATranslatedLabel(): void {
+		$segment = $this->config['components']['schemas']['LearniqSettings']['properties']['segment'];
+		$labels  = $segment['x-enum-labels'];
+
+		self::assertSame($segment['enum'], array_keys($labels));
+		self::assertSame('Training institute', $labels['training']);
+
+		$l10n = __DIR__ . '/../../../l10n/';
+		$en   = json_decode((string)file_get_contents($l10n . 'en.json'), true)['translations'];
+		$nl   = json_decode((string)file_get_contents($l10n . 'nl.json'), true)['translations'];
+		foreach ($labels as $code => $label) {
+			self::assertArrayHasKey($label, $en, 'en catalogue lacks the label for ' . $code);
+			self::assertArrayHasKey($label, $nl, 'nl catalogue lacks the label for ' . $code);
+			self::assertNotSame($label, $nl[$label], 'nl label for ' . $code . ' is untranslated');
+		}
+
+	}//end testEverySegmentHasATranslatedLabel()
+
+	/**
+	 * The generated demo rows never switch an instance away from the
+	 * no-behaviour-change default: loading generic example data must not
+	 * change which menus render.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-generic-demo-data-does-not-change-the-segment
+	 */
+	public function testGenericDemoRowsKeepTheCorporateDefault(): void {
+		$path = __DIR__ . '/../../../lib/Settings/learniq_mock_register.json';
+		$mock = json_decode((string)file_get_contents($path), true);
+
+		$rows = array_filter(
+			$mock['components']['objects'],
+			static fn (array $object): bool => ($object['@self']['schema'] ?? '') === 'learniqsettings'
+		);
+
+		self::assertNotEmpty($rows);
+		foreach ($rows as $row) {
+			self::assertSame('corporate', $row['segment']);
+		}
+
+	}//end testGenericDemoRowsKeepTheCorporateDefault()
 
 	/**
 	 * `setBy`/`setAt` mirror `SovereigntyPolicy`'s nullable traceability

@@ -327,6 +327,14 @@
 						"administration-manager",
 						"admin"
 					]
+				},
+				"workspace.segment": {
+					"in": [
+						"mbo",
+						"he",
+						"corporate",
+						"training"
+					]
 				}
 			}
 		},
@@ -415,6 +423,14 @@
 						"team-lead",
 						"administration-manager",
 						"admin"
+					]
+				},
+				"workspace.segment": {
+					"in": [
+						"mbo",
+						"he",
+						"corporate",
+						"training"
 					]
 				}
 			}
