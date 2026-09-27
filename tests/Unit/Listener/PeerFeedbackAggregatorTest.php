@@ -83,11 +83,11 @@ class PeerFeedbackAggregatorTest extends TestCase {
 
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($releasedReviews, $existingSummary) {
-				if (($config['schema'] ?? '') === 'peer-review') {
+				if (($config['filters']['schema'] ?? '') === 'peer-review') {
 					return $releasedReviews;
 				}
 
-				if (($config['schema'] ?? '') === 'peer-feedback-summary') {
+				if (($config['filters']['schema'] ?? '') === 'peer-feedback-summary') {
 					return $existingSummary === null ? [] : [$existingSummary];
 				}
 

@@ -53,7 +53,7 @@ class ReportCardVisibilityGuardTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($visibleFromById) {
-				if ($config['schema'] !== 'grade-entry') {
+				if ($config['filters']['schema'] !== 'grade-entry') {
 					return [];
 				}
 

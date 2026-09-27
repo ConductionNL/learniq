@@ -82,11 +82,11 @@ class PortfolioShareGrantHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($portfolio, $entries) {
-				if ($config['schema'] === 'portfolio') {
+				if ($config['filters']['schema'] === 'portfolio') {
 					return ($portfolio === null) ? [] : [$portfolio];
 				}
 
-				if ($config['schema'] === 'portfolio-entry') {
+				if ($config['filters']['schema'] === 'portfolio-entry') {
 					return $entries;
 				}
 

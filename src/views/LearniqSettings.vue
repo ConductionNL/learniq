@@ -67,6 +67,38 @@
 					)
 				}}
 			</NcNoteCard>
+			<!-- differentiation-not-styles-copy: a request to profile pupils
+				 would arrive as an AI feature, so the evidence sits here. -->
+			<NcNoteCard type="info" data-testid="learniq-differentiation-note">
+				<p>
+					{{
+						t(
+							'learniq',
+							'Learniq does not profile how a pupil prefers to learn.',
+						)
+					}}
+					{{
+						t(
+							'learniq',
+							'Research finds no benefit in matching lessons to such a profile (NRO Kennisrotonde, Differentiatie in de klas).',
+						)
+					}}
+				</p>
+				<p>
+					{{
+						t(
+							'learniq',
+							'Differentiate by level, goal, time and material instead.',
+						)
+					}}
+					{{
+						t(
+							'learniq',
+							'Record support needs in the group plan or the learning plan.',
+						)
+					}}
+				</p>
+			</NcNoteCard>
 		</NcSettingsSection>
 
 		<!-- Section 3: Credential signing key -->

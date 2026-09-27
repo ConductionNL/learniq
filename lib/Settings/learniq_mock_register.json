@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.11",
+    "version": "1.1.20",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -20789,7 +20789,7 @@
       "Submission": {
         "slug": "submission",
         "icon": "FileUploadOutline",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "title": "Submission",
         "description": "A learner's (or group's) hand-in for an Assignment. Carries file attachment references (bytes live in OpenRegister file attachments), rubric scores from the teacher's marking, and the proposed grade before it becomes a GradeEntry via the grading spec.",
         "type": "object",
@@ -20850,6 +20850,13 @@
             "nullable": true,
             "description": "Free-text teacher feedback returned to the learner when the Submission is returned.",
             "title": "Feedback"
+          },
+          "resubmissionDueAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "title": "Hand in again by",
+            "description": "When a teacher asks for the work to be handed in again, the new deadline. Set only through the reopen transition, and only by staff. While set, the hand-in window runs to this date instead of the assignment's own deadline."
           },
           "gradeEntryId": {
             "type": "string",
@@ -22476,7 +22483,20 @@
           "navigationLock": true
         },
         "gradeEntryComponentId": "Voorbeeld Gradeentrycomponentid 1",
-        "competencyIds": [],
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
         "releaseConditions": []
       },
       {
@@ -22700,7 +22720,20 @@
         "visibleFrom": "2026-03-01T09:00:00+00:00",
         "visibleUntil": "2026-03-01T09:00:00+00:00",
         "plagiarismProvider": "Voorbeeld Plagiarismprovider 1",
-        "competencyIds": [],
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
         "peerReviewEnabled": false,
         "selfAssessmentEnabled": false,
         "peerReviewersPerSubmission": 2,
@@ -23589,6 +23622,11 @@
         "description": "Voorbeeld Description 1",
         "order": 1,
         "requiredForRoles": [],
+        "applicableYears": [
+          "groep 5",
+          "groep 6"
+        ],
+        "subjectId": "00000000-0000-4000-8000-000000000000",
         "lifecycle": "draft"
       },
       {
@@ -23605,6 +23643,10 @@
         "description": "Voorbeeld Description 2",
         "order": 2,
         "requiredForRoles": [],
+        "applicableYears": [
+          "2026-2027"
+        ],
+        "subjectId": null,
         "lifecycle": "published"
       },
       {
@@ -23621,6 +23663,8 @@
         "description": "Voorbeeld Description 3",
         "order": 3,
         "requiredForRoles": [],
+        "applicableYears": [],
+        "subjectId": "00000000-0000-4000-8000-000000000002",
         "lifecycle": "archived"
       },
       {
@@ -24006,6 +24050,57 @@
         ],
         "ectsCredits": 0.0,
         "competencyIds": [],
+        "prerequisiteCourseIds": [],
+        "license": "CC-BY-SA-4.0",
+        "author": "Voorbeeldschool, sectie Nederlands",
+        "subject": "Nederlandse taal",
+        "educationalLevels": [
+          "havo",
+          "vwo"
+        ]
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "Course",
+          "slug": "course-voorbeeld-name-1-1"
+        },
+        "code": "Voorbeeld Code 1",
+        "name": "Voorbeeld Name 1",
+        "level": "po",
+        "language": "ab",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "name_nl": "Voorbeeld Name Nl 1",
+        "description": "Voorbeeld Description 1",
+        "tags": [
+          "Voorbeeld Tags 1"
+        ],
+        "mandatoryTraining": false,
+        "regulationSlug": "Voorbeeld Regulationslug 1",
+        "renewalCourseSlug": "Voorbeeld Renewalcourseslug 1",
+        "certificateTemplate": "Voorbeeld Certificatetemplate 1",
+        "lifecycle": "draft",
+        "parentCourseId": "00000000-0000-4000-8000-000000000000",
+        "order": 1,
+        "curriculumPlanId": "00000000-0000-4000-8000-000000000000",
+        "programmeIds": [
+          "00000000-0000-4000-8000-000000000000"
+        ],
+        "ectsCredits": 0.0,
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
         "prerequisiteCourseIds": []
       },
       {
@@ -27242,6 +27337,47 @@
         "availableAfterDays": 0,
         "mandatoryTraining": false,
         "regulationSlug": "Voorbeeld Regulationslug 1",
+        "lifecycle": "draft",
+        "subject": "Nederlandse taal",
+        "educationalLevels": [
+          "havo"
+        ]
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "Lesson",
+          "slug": "lesson-voorbeeld-name-1-1"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000000",
+        "name": "Voorbeeld Name 1",
+        "order": 1,
+        "contentType": "text",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "contentRef": "Voorbeeld Contentref 1",
+        "blocks": [],
+        "durationMinutes": 1,
+        "learningObjectives": [
+          "Voorbeeld Learningobjectives 1"
+        ],
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
+        "releaseConditions": [],
+        "availableAfterDays": 0,
+        "mandatoryTraining": false,
+        "regulationSlug": "Voorbeeld Regulationslug 1",
         "lifecycle": "draft"
       },
       {
@@ -29126,6 +29262,7 @@
         ],
         "submittedAt": "2026-03-01T09:00:00+00:00",
         "feedbackText": "Voorbeeld Feedbacktext 1",
+        "resubmissionDueAt": "2026-03-15T17:00:00+00:00",
         "gradeEntryId": "00000000-0000-4000-8000-000000000000",
         "rubricScores": [
           {
@@ -29710,7 +29847,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-1-1"
         },
-        "segment": "po",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 1",
         "setAt": "2026-03-01T09:00:00+00:00"
       },
@@ -29720,7 +29857,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-2-2"
         },
-        "segment": "vo",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 2",
         "setAt": "2026-03-02T09:00:00+00:00"
       },
@@ -29730,7 +29867,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-3-3"
         },
-        "segment": "mbo",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 3",
         "setAt": "2026-03-03T09:00:00+00:00"
       },
@@ -30458,6 +30595,339 @@
         "dataExchangeJobId": null,
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "lifecycle": "voorlopig"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-share-consent",
+          "slug": "course-share-consent-courseshareconsent-1-1"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000000",
+        "purpose": "download",
+        "confirmedBy": "Voorbeeld Confirmedby 1",
+        "confirmedAt": "2026-03-01T09:00:00+00:00",
+        "noPupilData": true,
+        "rightsCleared": true,
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "courseName": "Voorbeeld Coursename 1",
+        "license": "Voorbeeld License 1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-share-consent",
+          "slug": "course-share-consent-courseshareconsent-2-2"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000001",
+        "purpose": "store",
+        "confirmedBy": "Voorbeeld Confirmedby 2",
+        "confirmedAt": "2026-03-02T09:00:00+00:00",
+        "noPupilData": false,
+        "rightsCleared": false,
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "courseName": "Voorbeeld Coursename 2",
+        "license": "Voorbeeld License 2"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "course-share-consent",
+          "slug": "course-share-consent-courseshareconsent-3-3"
+        },
+        "courseId": "00000000-0000-4000-8000-000000000002",
+        "purpose": "download",
+        "confirmedBy": "Voorbeeld Confirmedby 3",
+        "confirmedAt": "2026-03-03T09:00:00+00:00",
+        "noPupilData": true,
+        "rightsCleared": true,
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "courseName": "Voorbeeld Coursename 3",
+        "license": "Voorbeeld License 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "shared-course-package",
+          "slug": "shared-course-package-voorbeeld-title-1-1"
+        },
+        "slug": "Voorbeeld Slug 1",
+        "kind": "course-package",
+        "title": "Voorbeeld Title 1",
+        "package": {},
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "description": "Voorbeeld Description 1",
+        "subject": "Voorbeeld Subject 1",
+        "level": "Voorbeeld Level 1",
+        "levels": [],
+        "goals": "Voorbeeld Goals 1",
+        "goalsCovered": [],
+        "language": "Voorbeeld Language 1",
+        "license": "Voorbeeld License 1",
+        "author": "Voorbeeld Author 1",
+        "cardLine": "Voorbeeld Cardline 1",
+        "version": "Voorbeeld Version 1",
+        "lessonCount": 0,
+        "sharedAt": "2026-03-01T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "shared-course-package",
+          "slug": "shared-course-package-voorbeeld-title-2-2"
+        },
+        "slug": "Voorbeeld Slug 2",
+        "kind": "course-package",
+        "title": "Voorbeeld Title 2",
+        "package": {},
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "description": "Voorbeeld Description 2",
+        "subject": "Voorbeeld Subject 2",
+        "level": "Voorbeeld Level 2",
+        "levels": [],
+        "goals": "Voorbeeld Goals 2",
+        "goalsCovered": [],
+        "language": "Voorbeeld Language 2",
+        "license": "Voorbeeld License 2",
+        "author": "Voorbeeld Author 2",
+        "cardLine": "Voorbeeld Cardline 2",
+        "version": "Voorbeeld Version 2",
+        "lessonCount": 1,
+        "sharedAt": "2026-03-02T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "shared-course-package",
+          "slug": "shared-course-package-voorbeeld-title-3-3"
+        },
+        "slug": "Voorbeeld Slug 3",
+        "kind": "course-package",
+        "title": "Voorbeeld Title 3",
+        "package": {},
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "description": "Voorbeeld Description 3",
+        "subject": "Voorbeeld Subject 3",
+        "level": "Voorbeeld Level 3",
+        "levels": [],
+        "goals": "Voorbeeld Goals 3",
+        "goalsCovered": [],
+        "language": "Voorbeeld Language 3",
+        "license": "Voorbeeld License 3",
+        "author": "Voorbeeld Author 3",
+        "cardLine": "Voorbeeld Cardline 3",
+        "version": "Voorbeeld Version 3",
+        "lessonCount": 2,
+        "sharedAt": "2026-03-03T09:00:00+00:00"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-1-1"
+        },
+        "title": "Voorbeeld Title 1",
+        "note": "Voorbeeld Note 1",
+        "authorId": "Voorbeeld Authorid 1",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "participantIds": [],
+        "status": "open",
+        "destroyAfter": "2026-03-01"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-2-2"
+        },
+        "title": "Voorbeeld Title 2",
+        "note": "Voorbeeld Note 2",
+        "authorId": "Voorbeeld Authorid 2",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "participantIds": [],
+        "status": "closed",
+        "destroyAfter": "2026-03-02"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "confidential-note",
+          "slug": "confidential-note-voorbeeld-title-3-3"
+        },
+        "title": "Voorbeeld Title 3",
+        "note": "Voorbeeld Note 3",
+        "authorId": "Voorbeeld Authorid 3",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "participantIds": [],
+        "status": "open",
+        "destroyAfter": "2026-03-03"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CurriculumCoverage",
+          "slug": "curriculum-coverage-groep-5-all"
+        },
+        "frameworkId": "00000000-0000-4000-8000-000000000001",
+        "year": "groep 5",
+        "subjectScope": "all",
+        "subjectId": null,
+        "goalCount": 3,
+        "plannedCount": 2,
+        "assessedCount": 1,
+        "plannedNotAssessedCount": 1,
+        "uncoveredCount": 1,
+        "plannedPercent": 66.7,
+        "assessedPercent": 33.3,
+        "plannedByDepth": [
+          {
+            "depth": "Voorbeeld Levelid 1",
+            "count": 1
+          },
+          {
+            "depth": null,
+            "count": 1
+          }
+        ],
+        "assessedByDepth": [
+          {
+            "depth": "Voorbeeld Levelid 1",
+            "count": 1
+          }
+        ],
+        "uncoveredIds": [
+          "00000000-0000-4000-8000-000000000002"
+        ],
+        "plannedNotAssessedIds": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "goals": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "planned": true,
+            "assessed": true,
+            "plannedDepth": "Voorbeeld Levelid 1",
+            "assessedDepth": "Voorbeeld Levelid 1",
+            "plannedRefs": 2,
+            "assessedRefs": 1
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "planned": true,
+            "assessed": false,
+            "plannedDepth": null,
+            "assessedDepth": null,
+            "plannedRefs": 1,
+            "assessedRefs": 0
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000002",
+            "planned": false,
+            "assessed": false,
+            "plannedDepth": null,
+            "assessedDepth": null,
+            "plannedRefs": 0,
+            "assessedRefs": 0
+          }
+        ],
+        "lastRecomputedAt": "2026-09-27T12:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CurriculumCoverage",
+          "slug": "curriculum-coverage-groep-5-rekenen"
+        },
+        "frameworkId": "00000000-0000-4000-8000-000000000001",
+        "year": "groep 5",
+        "subjectScope": "subject",
+        "subjectId": "00000000-0000-4000-8000-000000000000",
+        "goalCount": 2,
+        "plannedCount": 2,
+        "assessedCount": 1,
+        "plannedNotAssessedCount": 1,
+        "uncoveredCount": 0,
+        "plannedPercent": 100.0,
+        "assessedPercent": 50.0,
+        "plannedByDepth": [
+          {
+            "depth": "Voorbeeld Levelid 1",
+            "count": 1
+          },
+          {
+            "depth": null,
+            "count": 1
+          }
+        ],
+        "assessedByDepth": [
+          {
+            "depth": "Voorbeeld Levelid 1",
+            "count": 1
+          }
+        ],
+        "uncoveredIds": [],
+        "plannedNotAssessedIds": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "goals": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "planned": true,
+            "assessed": true,
+            "plannedDepth": "Voorbeeld Levelid 1",
+            "assessedDepth": "Voorbeeld Levelid 1",
+            "plannedRefs": 2,
+            "assessedRefs": 1
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "planned": true,
+            "assessed": false,
+            "plannedDepth": null,
+            "assessedDepth": null,
+            "plannedRefs": 1,
+            "assessedRefs": 0
+          }
+        ],
+        "lastRecomputedAt": "2026-09-27T12:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CurriculumCoverage",
+          "slug": "curriculum-coverage-groep-5-none"
+        },
+        "frameworkId": "00000000-0000-4000-8000-000000000001",
+        "year": "groep 5",
+        "subjectScope": "none",
+        "subjectId": null,
+        "goalCount": 1,
+        "plannedCount": 0,
+        "assessedCount": 0,
+        "plannedNotAssessedCount": 0,
+        "uncoveredCount": 1,
+        "plannedPercent": 0.0,
+        "assessedPercent": 0.0,
+        "plannedByDepth": [],
+        "assessedByDepth": [],
+        "uncoveredIds": [
+          "00000000-0000-4000-8000-000000000002"
+        ],
+        "plannedNotAssessedIds": [],
+        "goals": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000002",
+            "planned": false,
+            "assessed": false,
+            "plannedDepth": null,
+            "assessedDepth": null,
+            "plannedRefs": 0,
+            "assessedRefs": 0
+          }
+        ],
+        "lastRecomputedAt": "2026-09-27T12:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
       }
     ]
   }

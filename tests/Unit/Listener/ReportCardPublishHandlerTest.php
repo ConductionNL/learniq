@@ -34,6 +34,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Listener\ReportCardPublishHandler;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -51,19 +52,28 @@ class ReportCardPublishHandlerTest extends TestCase {
 	private array $savedObjects = [];
 
 	/**
+	 * OpenRegister-faithful store behind the findAll() double.
+	 *
+	 * @var RegisterFaithfulStore
+	 */
+	private RegisterFaithfulStore $store;
+
+	/**
 	 * @return void
 	 */
 	protected function setUp(): void {
 		parent::setUp();
 		$this->savedObjects = [];
+		$this->store = new RegisterFaithfulStore();
 
 	}//end setUp()
 
 	/**
-	 * Build a handler whose ObjectService::findAll(learner-profile) resolves
-	 * a fixed learnerId => LearnerProfile map.
+	 * Build a handler whose ObjectService::findAll(learner-profile) is answered
+	 * the way OpenRegister answers it: rows are keyed on ncUserId, and a filter
+	 * on a property LearnerProfile does not declare (learnerId) matches nothing.
 	 *
-	 * @param array<string,array<string,mixed>|null> $profiles learnerId => LearnerProfile data (or null = unresolvable).
+	 * @param array<string,array<string,mixed>|null> $profiles ncUserId => LearnerProfile data (or null = unresolvable).
 	 * @param DateTime $now The "now" the injected ITimeFactory reports.
 	 *
 	 * @return ReportCardPublishHandler
@@ -71,15 +81,17 @@ class ReportCardPublishHandlerTest extends TestCase {
 	private function makeHandler(array $profiles, DateTime $now): ReportCardPublishHandler {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
-			function (array $config) use ($profiles) {
-				if ($config['schema'] !== 'learner-profile') {
-					return [];
+			function (array $config, bool $_rbac = true) use ($profiles) {
+				foreach ($profiles as $ncUserId => $profile) {
+					if ($profile !== null) {
+						$this->store->rows['learner-profile'][] = array_merge($profile, ['ncUserId' => $ncUserId]);
+					}
 				}
 
-				$learnerId = $config['filters']['learnerId'] ?? '';
-				$profile = $profiles[$learnerId] ?? null;
+				$rows = $this->store->findAll($config, $_rbac);
+				$this->store->rows = [];
 
-				return $profile === null ? [] : [$profile];
+				return $rows;
 			}
 		);
 
@@ -129,6 +141,7 @@ class ReportCardPublishHandlerTest extends TestCase {
 	 * @return void
 	 *
 	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+	 * @spec openspec/changes/learner-lookup-and-learnerrefs-fixes/specs/report-card/spec.md#requirement-report-card-parent-notifications-find-the-learners-profile-on-ncuserid
 	 */
 	public function testTwoParentsYieldTwoNotificationsWithDistinctIdempotencyKeys(): void {
 		$now = new DateTime('2026-07-13T09:00:00+00:00');
@@ -161,6 +174,9 @@ class ReportCardPublishHandlerTest extends TestCase {
 		self::assertSame('card-1-parent-parent-1', $byRecipient['parent-1']['idempotencyKey']);
 		self::assertSame('card-1-parent-parent-2', $byRecipient['parent-2']['idempotencyKey']);
 		self::assertSame('tenant-a', $byRecipient['parent-1']['tenant_id']);
+		// The profile is found on ncUserId, read without RBAC: the publisher may not read LearnerProfile.
+		self::assertSame('learner-1', $this->store->reads[0]['config']['filters']['ncUserId']);
+		self::assertFalse($this->store->reads[0]['rbac']);
 		self::assertNotEmpty($byRecipient['parent-1']['visibleFrom']);
 
 	}//end testTwoParentsYieldTwoNotificationsWithDistinctIdempotencyKeys()

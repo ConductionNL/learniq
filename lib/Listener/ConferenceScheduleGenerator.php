@@ -158,9 +158,11 @@ class ConferenceScheduleGenerator implements IEventListener {
 
 		$existingSlots = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::CONFERENCE_SLOT_SCHEMA,
-				'filters' => ['conferenceRoundId' => $roundId],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::CONFERENCE_SLOT_SCHEMA,
+					'conferenceRoundId' => $roundId,
+				],
 				'limit' => 5000,
 			]
 		);
@@ -623,9 +625,9 @@ class ConferenceScheduleGenerator implements IEventListener {
 	private function fetchByRoundAndLifecycle(string $schema, string $roundId, string $lifecycle): array {
 		return $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => $schema,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => $schema,
 					'conferenceRoundId' => $roundId,
 					'lifecycle' => $lifecycle,
 				],

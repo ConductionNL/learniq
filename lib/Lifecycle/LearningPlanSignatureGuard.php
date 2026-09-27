@@ -215,17 +215,25 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 			return [];
 		}
 
-		// H1: scope template lookup to the same tenant.
-		$templateFilters = ['uuid' => $templateId];
+		// H1: scope template lookup to the same tenant. The template is found by
+		// `ids`: LearningPlanTemplate declares no `uuid` property, and a filter on
+		// an undeclared property matches nothing, which read as "no required
+		// signers" and let every plan activate unsigned.
+		$templateFilters = [];
 		if ($tenantId !== '') {
 			$templateFilters['tenant_id'] = $tenantId;
 		}
 
 		$templates = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'learning-plan-template',
-				'filters' => $templateFilters,
+				'ids' => [$templateId],
+				'filters' => array_merge(
+					$templateFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'learning-plan-template',
+					]
+				),
 				'limit' => 1,
 			]
 		);
@@ -262,9 +270,13 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 
 		$raw = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'signature',
-				'filters' => $sigFilters,
+				'filters' => array_merge(
+					$sigFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'signature',
+					]
+				),
 				'limit' => 200,
 			]
 		);
@@ -305,18 +317,27 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 
 		// Load the LearnerProfile to resolve the authoritative parentIds.
 		// H1: scope to the same tenant.
-		$profileFilters = ['learnerId' => $learnerId];
+		// LearnerProfile keys the pupil on ncUserId; it has no learnerId, and a
+		// filter on an undeclared property matches nothing, which rejected every
+		// parent co-sign. Read without RBAC: the signer (often the parent) may not
+		// read LearnerProfile, and only parentIds is used.
+		$profileFilters = ['ncUserId' => $learnerId];
 		if ($tenantId !== '') {
 			$profileFilters['tenant_id'] = $tenantId;
 		}
 
 		$profiles = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => 'learner-profile',
-				'filters' => $profileFilters,
+				'filters' => array_merge(
+					$profileFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'learner-profile',
+					]
+				),
 				'limit' => 1,
-			]
+			],
+			_rbac: false
 		);
 
 		$authorisedParentIds = [];

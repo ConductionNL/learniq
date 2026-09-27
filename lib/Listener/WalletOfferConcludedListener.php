@@ -153,9 +153,11 @@ class WalletOfferConcludedListener implements IEventListener {
 	private function resolveCredentialByAttestationRef(string $attestationRef): ?array {
 		$matches = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::CREDENTIAL_SCHEMA,
-				'filters' => ['walletAttestationRef' => $attestationRef],
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::CREDENTIAL_SCHEMA,
+					'walletAttestationRef' => $attestationRef,
+				],
 				'limit' => 1,
 			]
 		);

@@ -80,8 +80,8 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 	private function wire(array $cohorts, array $profiles): void {
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($cohorts, $profiles): array {
-				$schema = $config['schema'] ?? '';
-				$filters = $config['filters'] ?? [];
+				$schema = $config['filters']['schema'] ?? '';
+				$filters = array_diff_key(($config['filters'] ?? []), ['register' => true, 'schema' => true]);
 
 				if ($schema === 'cohort') {
 					return array_values(array_filter($cohorts, static fn (array $c): bool => ($c['id'] ?? null) === ($filters['id'] ?? null)));

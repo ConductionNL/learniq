@@ -134,9 +134,9 @@ class ExcuseApprovalHandler implements IEventListener {
 		// Fetch all absent-unexcused records for this learner.
 		$records = $this->objectService->findAll(
 			[
-				'register' => self::LEARNIQ_REGISTER,
-				'schema' => self::ATTENDANCE_RECORD_SCHEMA,
 				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::ATTENDANCE_RECORD_SCHEMA,
 					'learnerId' => $learnerId,
 					'status' => 'absent-unexcused',
 				],

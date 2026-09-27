@@ -44,11 +44,11 @@ class CourseQualityScoreEvaluatorTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config) use ($responses, $invitations) {
-				if ($config['schema'] === 'course-evaluation-response') {
+				if ($config['filters']['schema'] === 'course-evaluation-response') {
 					return $responses;
 				}
 
-				if ($config['schema'] === 'evaluation-invitation') {
+				if ($config['filters']['schema'] === 'evaluation-invitation') {
 					return $invitations;
 				}
 

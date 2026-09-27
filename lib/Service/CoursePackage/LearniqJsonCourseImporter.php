@@ -126,10 +126,14 @@ class LearniqJsonCourseImporter {
 	 */
 	private function importTree(array $tree, string $importedBy, string $tenantId, array &$entries): ?string {
 		$courseData = (array)($tree['course'] ?? []);
+		// The copy keeps the source course's metadata, so a CC BY licence and
+		// its author survive an install from the course store
+		// (lesson-sharing-via-store-plane); invalid values are dropped.
 		$courseId = $this->objectWriter->createCourse(
 			title: (string)($courseData['name'] ?? 'Imported course'),
 			parentCourseId: null,
-			tenantId: $tenantId
+			tenantId: $tenantId,
+			metadata: $courseData
 		);
 		$entries[] = $this->reporter->entry(
 			resourceIdentifier: $this->sourceIdentifier(row: $courseData, fallback: 'course'),
