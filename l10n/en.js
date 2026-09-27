@@ -1556,7 +1556,10 @@ OC.L10N.register(
         "Data Exchange Job ID": "Data Exchange Job ID",
         "UUID of the bron-rod DataExchangeJob queued by SchoolAdviesSendToRodHandler on verzendenNaarRod. Null until sent.": "UUID of the bron-rod DataExchangeJob queued by SchoolAdviesSendToRodHandler on verzendenNaarRod. Null until sent.",
         "SchoolAdvies lifecycle state.": "SchoolAdvies lifecycle state.",
-        "School advies": "School advies"
+        "School advies": "School advies",
+        "Attendance and compulsory education": "Attendance and compulsory education",
+        "Which pupils crossed an attendance threshold, and what has to be reported.": "Which pupils crossed an attendance threshold, and what has to be reported.",
+        "The final grade per pupil and subject, as it was decided.": "The final grade per pupil and subject, as it was decided."
     },
     "nplurals=2; plural=(n != 1);"
 )

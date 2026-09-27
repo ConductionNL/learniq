@@ -279,18 +279,36 @@
     },
     {
       "id": "Reports",
-      "_note": "ADR-112 / ADR-114 Decision 3. NOTHING here is invented and nothing is relocated: all seven pages already existed as routes with NO menu entry at all, reachable only by someone who already knew the URL. Carding them GIVES an entry point rather than moving one. Two neighbouring orphans are deliberately NOT carded, because a gate finding is a question rather than an instruction: AuditPackExport (/compliance/export) BUILDS an export, and EngagementRiskThresholds (/progress/engagement-thresholds) CONFIGURES the thresholds that produce the flags. Both are things you do, not readings, and ADR-097 keeps work in the main navigation. The report periods, report cards, conference reports and course-package import reports already have menu entries and stay there: ADR-112 forbids a report being BOTH a card and an entry, not being an entry.",
+      "_note": "ADR-112 / ADR-114 Decision 3. NOTHING here is invented and nothing is relocated: all nine pages already existed as routes with NO menu entry at all, reachable only by someone who already knew the URL. Carding them GIVES an entry point rather than moving one. Two neighbouring orphans are deliberately NOT carded, because a gate finding is a question rather than an instruction: AuditPackExport (/compliance/export) BUILDS an export, and EngagementRiskThresholds (/progress/engagement-thresholds) CONFIGURES the thresholds that produce the flags. Both are things you do, not readings, and ADR-097 keeps work in the main navigation. The report periods, report cards, conference reports and course-package import reports already have menu entries and stay there: ADR-112 forbids a report being BOTH a card and an entry, not being an entry.",
       "route": "/reports",
       "type": "reports",
       "title": "Reports",
       "config": {
         "description": "Pick a report to open it.",
         "categories": {
+          "attendance": "Attendance and compulsory education",
+          "results": "Results",
           "progress": "Progress and risk",
           "quality": "Quality and assessment",
           "placements": "Placements"
         },
         "cards": [
+          {
+            "id": "AttendanceFlags",
+            "label": "Attendance flags",
+            "description": "Which pupils crossed an attendance threshold, and what has to be reported.",
+            "icon": "FlagOutline",
+            "category": "attendance",
+            "route": "AttendanceFlags"
+          },
+          {
+            "id": "FinalGrades",
+            "label": "Final grades",
+            "description": "The final grade per pupil and subject, as it was decided.",
+            "icon": "CertificateOutline",
+            "category": "results",
+            "route": "FinalGrades"
+          },
           {
             "id": "BsaRiskDashboard",
             "label": "Study progress risk",
