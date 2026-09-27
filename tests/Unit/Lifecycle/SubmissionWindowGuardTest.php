@@ -24,38 +24,41 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Lifecycle\SubmissionWindowGuard;
+use OCA\Learniq\Tests\Support\GuardVerdicts;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;
-use OCP\IUser;
-use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /**
- * Tests for the submit guard: only a learner named on the submission hands it in.
+ * SubmissionWindowGuard judges both hand-in transitions: `submit` (draft to
+ * submitted) inside the window, `submitLate` (draft to late) after it. A guard
+ * can not redirect the target state (learniq#983), so each transition answers
+ * only for its own side of the deadline.
+ *
+ * @spec openspec/specs/assignments/spec.md#requirement-a-learner-hands-in-their-own-work-and-the-teacher-marks-it
  */
 class SubmissionWindowGuardTest extends TestCase {
 
+	use GuardVerdicts;
+
 	/**
-	 * Build a guard whose assignment is open-ended and whose caller is `$uid`.
+	 * Build the guard with one assignment on file.
 	 *
-	 * @param string|null $uid     The signed-in user, or null for a system call.
-	 * @param bool        $isAdmin Whether the caller is an administrator.
+	 * @param array<string,mixed>|null $assignment The assignment the lookup returns, or null for none.
+	 * @param bool                     $isAdmin    Whether the caller is an administrator.
 	 *
 	 * @return SubmissionWindowGuard
 	 */
-	private function makeGuard(?string $uid, bool $isAdmin = false): SubmissionWindowGuard {
+	private function makeGuard(?array $assignment, bool $isAdmin = false): SubmissionWindowGuard {
 		$objectService = $this->createMock(ObjectService::class);
-		$objectService->method('findAll')->willReturn([['id' => 'assignment-1', 'dueAt' => null]]);
-
-		$session = $this->createMock(IUserSession::class);
-		$user = null;
-		if ($uid !== null) {
-			$user = $this->createMock(IUser::class);
-			$user->method('getUID')->willReturn($uid);
+		$rows = [];
+		if ($assignment !== null) {
+			$rows = [$assignment];
 		}
 
-		$session->method('getUser')->willReturn($user);
+		$objectService->method('findAll')->willReturn($rows);
 
 		$groups = $this->createMock(IGroupManager::class);
 		$groups->method('isAdmin')->willReturn($isAdmin);
@@ -63,56 +66,159 @@ class SubmissionWindowGuardTest extends TestCase {
 		return new SubmissionWindowGuard(
 			objectService: $objectService,
 			logger: $this->createMock(LoggerInterface::class),
-			userSession: $session,
 			groupManager: $groups
 		);
 	}//end makeGuard()
 
 	/**
-	 * The submission under test, handed in for learner `alice`.
+	 * A draft Submission as OpenRegister hands it to the guard: at its target state.
 	 *
-	 * @return array<string, mixed>
+	 * @param string $target The target lifecycle state of the transition.
+	 *
+	 * @return array<string,mixed>
 	 */
-	private function context(): array {
+	private function submission(string $target): array {
 		return [
-			'object' => ['id' => 'submission-1', 'assignmentId' => 'assignment-1', 'learnerIds' => ['alice']],
-			'transition' => 'submit',
-			'from' => 'draft',
-			'to' => 'submitted',
+			'id' => 'submission-1',
+			'assignmentId' => 'assignment-1',
+			'learnerIds' => ['alice'],
+			'lifecycle' => $target,
 		];
-	}//end context()
+	}//end submission()
 
 	/**
-	 * The learner named on the submission hands it in.
+	 * An assignment whose deadline is an hour away or an hour gone.
+	 *
+	 * @param string    $offset    A relative time for dueAt, or '' for no deadline.
+	 * @param bool|null $allowLate The allowLateSubmission flag, or null to leave it out.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function assignment(string $offset, ?bool $allowLate = null): array {
+		$assignment = ['id' => 'assignment-1', 'dueAt' => null];
+		if ($offset !== '') {
+			$assignment['dueAt'] = (new \DateTimeImmutable($offset, new \DateTimeZone('UTC')))->format(DATE_ATOM);
+		}
+
+		if ($allowLate !== null) {
+			$assignment['allowLateSubmission'] = $allowLate;
+		}
+
+		return $assignment;
+	}//end assignment()
+
+	/**
+	 * OpenRegister can run the guard at all.
+	 *
+	 * @return void
+	 */
+	public function testImplementsTheInterfaceOpenRegisterRuns(): void {
+		self::assertInstanceOf(LifecycleGuardInterface::class, $this->makeGuard(null));
+	}//end testImplementsTheInterfaceOpenRegisterRuns()
+
+	/**
+	 * The named learner hands in on time.
 	 *
 	 * @return void
 	 */
 	public function testNamedLearnerMaySubmit(): void {
-		$context = $this->context();
-		$this->assertTrue($this->makeGuard('alice')->check($context));
+		self::assertAllowed($this->makeGuard($this->assignment(''))->check($this->submission('submitted'), 'submit', 'alice'));
 	}//end testNamedLearnerMaySubmit()
 
 	/**
-	 * Anyone may create a submission, so someone who names another learner on
-	 * it is refused at submit: a hand-in is never made in someone else's name.
+	 * Nobody hands in in another learner's name, on time or late.
 	 *
 	 * @return void
 	 */
 	public function testSomeoneElseMayNotSubmitInTheLearnersName(): void {
-		$context = $this->context();
-		$this->assertFalse($this->makeGuard('mallory')->check($context));
+		self::assertDenied($this->makeGuard($this->assignment(''))->check($this->submission('submitted'), 'submit', 'mallory'));
+		self::assertDenied(
+			$this->makeGuard($this->assignment('-1 hour', true))->check($this->submission('late'), 'submitLate', 'mallory')
+		);
 	}//end testSomeoneElseMayNotSubmitInTheLearnersName()
 
 	/**
-	 * An administrator and a system call (no session) are not refused.
+	 * Administrators and system calls (no caller) are not refused for the learner check.
 	 *
 	 * @return void
 	 */
 	public function testAdminAndSystemCallsAreNotRefused(): void {
-		$context = $this->context();
-		$this->assertTrue($this->makeGuard('root', true)->check($context));
-
-		$context = $this->context();
-		$this->assertTrue($this->makeGuard(null)->check($context));
+		self::assertAllowed($this->makeGuard($this->assignment(''), true)->check($this->submission('submitted'), 'submit', 'root'));
+		self::assertAllowed($this->makeGuard($this->assignment(''))->check($this->submission('submitted'), 'submit', ''));
 	}//end testAdminAndSystemCallsAreNotRefused()
+
+	/**
+	 * Inside the window, `submit` passes and `submitLate` is refused.
+	 *
+	 * @return void
+	 */
+	public function testInsideTheWindowOnlySubmitPasses(): void {
+		$guard = $this->makeGuard($this->assignment('+1 hour', true));
+
+		self::assertAllowed($guard->check($this->submission('submitted'), 'submit', 'alice'));
+		self::assertDenied($guard->check($this->submission('late'), 'submitLate', 'alice'));
+	}//end testInsideTheWindowOnlySubmitPasses()
+
+	/**
+	 * After the window, `submit` is refused and `submitLate` lands the work in `late`.
+	 *
+	 * @return void
+	 */
+	public function testAfterTheWindowOnlySubmitLatePasses(): void {
+		$guard = $this->makeGuard($this->assignment('-1 hour', true));
+
+		self::assertDenied($guard->check($this->submission('submitted'), 'submit', 'alice'));
+		self::assertAllowed($guard->check($this->submission('late'), 'submitLate', 'alice'));
+	}//end testAfterTheWindowOnlySubmitLatePasses()
+
+	/**
+	 * After the window of an assignment that takes no late work, both are refused.
+	 *
+	 * @return void
+	 */
+	public function testNoLateWorkRefusesBothAfterTheWindow(): void {
+		$guard = $this->makeGuard($this->assignment('-1 hour', false));
+
+		self::assertDenied($guard->check($this->submission('submitted'), 'submit', 'alice'));
+		self::assertDenied($guard->check($this->submission('late'), 'submitLate', 'alice'));
+	}//end testNoLateWorkRefusesBothAfterTheWindow()
+
+	/**
+	 * An assignment without a deadline has no late hand-in.
+	 *
+	 * @return void
+	 */
+	public function testNoDeadlineHasNoLateHandIn(): void {
+		self::assertDenied($this->makeGuard($this->assignment(''))->check($this->submission('late'), 'submitLate', 'alice'));
+	}//end testNoDeadlineHasNoLateHandIn()
+
+	/**
+	 * A missing assignment or a malformed deadline blocks the hand-in.
+	 *
+	 * @return void
+	 */
+	public function testMissingAssignmentOrMalformedDeadlineBlocks(): void {
+		self::assertDenied($this->makeGuard(null)->check($this->submission('submitted'), 'submit', 'alice'));
+		self::assertDenied(
+			$this->makeGuard(['id' => 'assignment-1', 'dueAt' => 'not a date'])->check($this->submission('submitted'), 'submit', 'alice')
+		);
+	}//end testMissingAssignmentOrMalformedDeadlineBlocks()
+	/**
+	 * The register gives late hand-in its own guarded transition into `late`.
+	 *
+	 * @return void
+	 */
+	public function testRegisterDeclaresSubmitLateIntoLate(): void {
+		$register = json_decode(
+			(string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'),
+			true,
+			flags: JSON_THROW_ON_ERROR
+		);
+		$transitions = $register['components']['schemas']['Submission']['x-openregister-lifecycle']['transitions'];
+
+		self::assertSame('submitted', $transitions['submit']['to']);
+		self::assertSame('late', $transitions[SubmissionWindowGuard::LATE_ACTION]['to'] ?? null);
+		self::assertSame('draft', $transitions[SubmissionWindowGuard::LATE_ACTION]['from'] ?? null);
+		self::assertSame(SubmissionWindowGuard::class, $transitions[SubmissionWindowGuard::LATE_ACTION]['requires'] ?? null);
+	}//end testRegisterDeclaresSubmitLateIntoLate()
 }//end class
