@@ -153,7 +153,7 @@ class PupilDossierNotesRegisterTest extends TestCase {
 	}//end testDossierNoteCreateAndReadFloorAreStaffOrAuthorOnly()
 
 	/**
-	 * BehaviourIncident is appendOnly, carries its own unguarded
+	 * BehaviourIncident is not appendOnly (its handling transitions are updates), carries its own unguarded
 	 * open -> in-handling -> resolved lifecycle (resolve reachable from
 	 * both open and in-handling), and its followUpActions log matches
 	 * AttendanceFlag.interventions' append-only entry shape.
@@ -165,7 +165,7 @@ class PupilDossierNotesRegisterTest extends TestCase {
 		$schema = $this->config['components']['schemas']['BehaviourIncident'] ?? null;
 		$this->assertIsArray($schema, 'BehaviourIncident schema MUST exist');
 
-		$this->assertTrue($schema['appendOnly'] ?? false, 'BehaviourIncident MUST be appendOnly');
+		$this->assertNotTrue($schema['appendOnly'] ?? false, 'BehaviourIncident MUST NOT be appendOnly: Open Register refuses every update on an appendOnly schema, transitions included (learniq#977)');
 
 		foreach (['learnerId', 'reportedBy', 'occurredAt', 'what', 'severity', 'tenant_id'] as $field) {
 			$this->assertContains($field, $schema['required'] ?? [], "BehaviourIncident.required MUST include $field");

@@ -82,7 +82,7 @@ class ExternalTrainingVerificationGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testValidVerificationStampsVerifier(): void {
-		$guard = $this->makeGuard(['compliance-officer']);
+		$guard = $this->makeGuard(['compliance-officers']);
 		$context = [
 			'object' => $this->recordWithEvidence(submittedBy: 'learner-1'),
 			'actor' => 'officer-1',
