@@ -1734,7 +1734,7 @@ OC.L10N.register(
         "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install.": "Voorbeeldgegevens vullen de lijsten, detailpagina's en dashboards, zodat je de app meteen aan het werk ziet. Elke set laat één soort organisatie zien. Kies \"Geen\" op een productie-installatie.",
         "Loads the set you picked. It is sample data, and running it twice adds nothing. Remove a set later with occ learniq:example-set:remove.": "Laadt de set die je koos. Het zijn voorbeeldgegevens, en twee keer laden voegt niets toe. Verwijder een set later met occ learniq:example-set:remove.",
         "What kind of organisation is this?": "Wat voor organisatie is dit?",
-        "Pick the one that fits best. You can change it later under App settings.": "Kies wat het beste past. Je kunt het later wijzigen onder App-instellingen.",
+        "Pick the one that fits best. The app shows the menus that fit it. You can change it later under App settings.": "Kies wat het beste past. De app toont de menu's die daarbij horen. Je kunt het later wijzigen onder App-instellingen.",
         "Groups 1 to 8, guardians, report cards and pupil tracking.": "Groep 1 tot en met 8, ouders, rapporten en leerlingvolgsysteem.",
         "Classes, subjects, report cards and exam preparation.": "Klassen, vakken, rapporten en examenvoorbereiding.",
         "Programmes, work placements and progress per student.": "Opleidingen, stages (bpv) en voortgang per student.",
