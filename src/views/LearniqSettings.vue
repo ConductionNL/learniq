@@ -266,7 +266,7 @@
 
 			<div class="learniq-settings__field">
 				<div class="learniq-settings__catalogue-label">
-					{{ t('learniq', 'Recent correction and deletion requests') }}
+					{{ t('learniq', 'Recent privacy requests') }}
 				</div>
 				<ul
 					v-if="recentDataSubjectRequests.length > 0"
@@ -274,12 +274,12 @@
 					<li
 						v-for="request in recentDataSubjectRequests"
 						:key="request.id">
-						<strong>{{ request.kind }}</strong>
+						<strong>{{ request.type }}</strong>
 						<span class="learniq-settings__activity-meta">{{
-							request.learnerId
+							request.subjectId
 						}}</span>
 						<span class="learniq-settings__activity-meta">{{
-							request.lifecycle || 'requested'
+							request.status || 'received'
 						}}</span>
 					</li>
 				</ul>
@@ -287,7 +287,7 @@
 					{{
 						t(
 							'learniq',
-							'No correction or deletion requests logged yet.',
+							'No privacy requests logged yet.',
 						)
 					}}
 				</div>
@@ -323,8 +323,11 @@ import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 const REGISTER = 'learniq'
 const COMPLIANCE_SCHEMA = 'compliance'
 const COMPLIANCE_TYPE = `${REGISTER}-${COMPLIANCE_SCHEMA}`
-const DATA_SUBJECT_REQUEST_SCHEMA = 'data-subject-request'
-const DATA_SUBJECT_REQUEST_TYPE = `${REGISTER}-${DATA_SUBJECT_REQUEST_SCHEMA}`
+// privacy-reuse-openregister-register (D20): privacy requests live in
+// OpenRegister's shared data subject request register, not in learniq's own.
+const DATA_SUBJECT_REQUEST_REGISTER = 'data-subject-requests'
+const DATA_SUBJECT_REQUEST_SCHEMA = 'dataSubjectRequest'
+const DATA_SUBJECT_REQUEST_TYPE = `${DATA_SUBJECT_REQUEST_REGISTER}-${DATA_SUBJECT_REQUEST_SCHEMA}`
 
 export default {
 	name: 'LearniqSettings',
@@ -819,12 +822,12 @@ export default {
 		},
 
 		/**
-		 * Load the most recent DataSubjectRequest objects for the compact
-		 * "Recent requests" list. Read-only — the full list lives on the
+		 * Load the most recent OpenRegister dataSubjectRequest cases for the
+		 * compact "Recent requests" list. Read-only: the full list lives on the
 		 * DataSubjectRequests index page.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#requirement-staff-can-log-and-track-a-correction-or-deletion-request
+		 * @spec openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 		 */
 		async loadRecentDataSubjectRequests() {
 			const store = useObjectStore()
@@ -832,7 +835,7 @@ export default {
 				store.registerObjectType(
 					DATA_SUBJECT_REQUEST_TYPE,
 					DATA_SUBJECT_REQUEST_SCHEMA,
-					REGISTER,
+					DATA_SUBJECT_REQUEST_REGISTER,
 				)
 			}
 
@@ -852,7 +855,7 @@ export default {
 		 * Navigate to the full DataSubjectRequests index page.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#requirement-staff-can-log-and-track-a-correction-or-deletion-request
+		 * @spec openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 		 */
 		openDataSubjectRequests() {
 			window.location.href =

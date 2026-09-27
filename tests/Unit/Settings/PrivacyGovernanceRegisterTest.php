@@ -3,8 +3,8 @@
 /**
  * Unit tests for the `privacy-governance-surfaces` register delta.
  *
- * Asserts the schema shape for the new Compliance singleton and
- * DataSubjectRequest schemas, and the five additive DataExchangeJob
+ * Asserts the schema shape for the new Compliance singleton, that the
+ * retired DataSubjectRequest copy stays gone (D20), and the five additive DataExchangeJob
  * properties this change introduces. Mirrors PupilDossierNotesRegisterTest's
  * style — these are declarative OpenRegister schemas with no bespoke write
  * controller, so the enforceable surface this suite covers is the schema
@@ -111,64 +111,27 @@ class PrivacyGovernanceRegisterTest extends TestCase {
 	}//end testComplianceIsAFlatSingletonWithPrivacyFields()
 
 	/**
-	 * DataSubjectRequest carries the two AVG-right kinds, a staff-only create
-	 * floor, and an unguarded requested -> in-review -> completed|rejected
-	 * lifecycle with no PHP guard on any transition.
+	 * Learniq no longer ships its own DataSubjectRequest: privacy requests live
+	 * in OpenRegister's shared data-subject-requests register (D20). The schema
+	 * and its slot in the register's schema list are both gone, so the import
+	 * cannot recreate the copy.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#requirement-staff-can-log-and-track-a-correction-or-deletion-request
+	 * @spec   openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 	 */
-	public function testDataSubjectRequestLifecycleAndCreateFloor(): void {
-		$schema = $this->config['components']['schemas']['DataSubjectRequest'] ?? null;
-		$this->assertIsArray($schema, 'DataSubjectRequest schema MUST exist');
-
-		$this->assertEqualsCanonicalizing(['correction', 'deletion'], $schema['properties']['kind']['enum'] ?? []);
-
-		foreach (['kind', 'learnerId', 'submittedBy', 'requestedAt', 'tenant_id'] as $field) {
-			$this->assertContains($field, $schema['required'] ?? [], "DataSubjectRequest.required MUST include $field");
+	public function testDataSubjectRequestIsRetiredInFavourOfOpenRegister(): void {
+		$this->assertArrayNotHasKey('DataSubjectRequest', $this->config['components']['schemas']);
+		foreach ($this->config['components']['schemas'] as $name => $schema) {
+			$this->assertNotSame('data-subject-request', $schema['slug'] ?? null, "$name MUST NOT reuse the retired slug");
 		}
 
-		$lifecycle = $schema['x-openregister-lifecycle'] ?? null;
-		$this->assertIsArray($lifecycle, 'DataSubjectRequest MUST declare x-openregister-lifecycle');
-		$this->assertSame('requested', $lifecycle['initial'] ?? null);
-
-		$transitions = $lifecycle['transitions'] ?? [];
-		$this->assertSame('requested', $transitions['startReview']['from'] ?? null);
-		$this->assertSame('in-review', $transitions['startReview']['to'] ?? null);
-		$this->assertSame('in-review', $transitions['complete']['from'] ?? null);
-		$this->assertSame('completed', $transitions['complete']['to'] ?? null);
-		$this->assertSame('in-review', $transitions['reject']['from'] ?? null);
-		$this->assertSame('rejected', $transitions['reject']['to'] ?? null);
-
-		foreach ($transitions as $transition) {
-			$this->assertArrayNotHasKey('requires', $transition, 'No DataSubjectRequest transition carries a PHP guard');
-		}
-
-		$createRoles = $schema['authorization']['create'] ?? [];
-		$this->assertEqualsCanonicalizing(['instructors', 'compliance-officers'], $createRoles);
-
-	}//end testDataSubjectRequestLifecycleAndCreateFloor()
-
-	/**
-	 * DataSubjectRequest.auditTrail is an append-only-shaped array defaulting
-	 * to empty, whose entries require recordedBy/recordedAt/action — the same
-	 * shape as BehaviourIncident.followUpActions.
-	 *
-	 * @return void
-	 * @spec   openspec/changes/privacy-governance-surfaces/specs/avg-verwerkingsregister/spec.md#requirement-staff-can-log-and-track-a-correction-or-deletion-request
-	 */
-	public function testAuditTrailShapeMirrorsFollowUpActions(): void {
-		$schema = $this->config['components']['schemas']['DataSubjectRequest'] ?? null;
-		$auditTrail = $schema['properties']['auditTrail'] ?? [];
-
-		$this->assertSame([], $auditTrail['default'] ?? null, 'auditTrail MUST default to an empty array');
-		$this->assertEqualsCanonicalizing(
-			['recordedBy', 'recordedAt', 'action'],
-			$auditTrail['items']['required'] ?? [],
-			'auditTrail entries MUST require recordedBy/recordedAt/action, same shape as BehaviourIncident.followUpActions'
+		$this->assertNotContains('data-subject-request', $this->config['components']['registers']['learniq']['schemas'] ?? []);
+		$this->assertTrue(
+			version_compare((string)$this->config['info']['version'], '0.25.0', '>='),
+			'Retiring a schema bumps the register version'
 		);
 
-	}//end testAuditTrailShapeMirrorsFollowUpActions()
+	}//end testDataSubjectRequestIsRetiredInFavourOfOpenRegister()
 
 	/**
 	 * DataExchangeJob gains the five additive partner-approval properties,

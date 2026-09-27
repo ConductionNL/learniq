@@ -1997,7 +1997,16 @@ OC.L10N.register(
         "Tenant identifier for multi-tenant isolation.": "Tenant-identificatie voor multi-tenant scheiding.",
         "Lifecycle State": "Levenscyclusstatus",
         "SchoolAdvies lifecycle state.": "Levenscyclusstatus van het schooladvies.",
-        "School advies": "Schooladvies"
+        "School advies": "Schooladvies",
+        "Privacy requests": "Privacyverzoeken",
+        "Privacy request": "Privacyverzoek",
+        "AVG requests, tracked to their legal deadline": "AVG-verzoeken, bijgehouden tot de wettelijke termijn",
+        "Recent privacy requests": "Recente privacyverzoeken",
+        "No privacy requests logged yet.": "Nog geen privacyverzoeken vastgelegd.",
+        "Partner approvals pending": "Partnergoedkeuringen in afwachting",
+        "Partners approved": "Goedgekeurde partners",
+        "Partners rejected": "Afgewezen partners",
+        "of {twoFactor.eligibleCount} staff accounts": "van {twoFactor.eligibleCount} medewerkersaccounts"
     },
     "nplurals=2; plural=(n != 1);"
 )

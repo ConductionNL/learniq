@@ -1,5 +1,7 @@
 ---
-status: done
+status: in-progress
+openspec_changes:
+  - privacy-reuse-openregister-register
 ---
 
 # avg-verwerkingsregister Specification

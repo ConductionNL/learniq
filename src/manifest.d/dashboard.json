@@ -258,10 +258,141 @@
 		{
 			"id": "PrivacyGovernanceDashboard",
 			"route": "/privacy-governance",
-			"type": "custom",
+			"type": "dashboard",
 			"title": "Privacy governance",
-			"component": "PrivacyGovernanceDashboard",
-			"_note": "privacy-governance-surfaces (P-new-6/P-new-7): the board-facing privacy governance dashboard, mirrors LearniqAiProcessingDisclosure's exact shape (no generic lib index/detail analogue, singleton disclosure page). Composes PrivacyGovernanceController's server-side read (rbac-declare-groups member counts, best-effort 2FA adoption, DataExchangeJob partner-approval counts). Gated to admin/compliance-officer via the PrivacyGovernanceDashboardMenu nav entry's visibleIf, same posture AiProcessingDisclosure already established."
+			"_note": "privacy-reuse-openregister-register (D20): a typed dashboard page, formerly a custom page. Every tile reads PrivacyGovernanceController::overview() through CnStatWidget's endpointSource, and the group table through CnWidgetObjectTable's endpointSource on `groups`; the library shares one request per render. A null figure (group not provisioned, 2FA registry unavailable, DataExchangeJob read failed) shows as `unknown`, never as 0. Gated to admin and compliance officers by the PrivacyGovernanceDashboardMenu entry's visibleIf.",
+			"config": {
+				"allowEdit": false,
+				"widgets": [
+					{
+						"id": "pg-two-factor",
+						"type": "stat",
+						"title": "Two-factor adoption",
+						"content": {
+							"label": "Two-factor adoption",
+							"endpointSource": {
+								"url": "/apps/learniq/api/privacy-governance/overview"
+							},
+							"valueField": "twoFactor.enabledCount",
+							"emptyText": "unknown",
+							"caption": "of {twoFactor.eligibleCount} staff accounts",
+							"icon": "ShieldCheckOutline"
+						}
+					},
+					{
+						"id": "pg-partners-pending",
+						"type": "stat",
+						"title": "Partner approvals pending",
+						"content": {
+							"label": "Partner approvals pending",
+							"endpointSource": {
+								"url": "/apps/learniq/api/privacy-governance/overview"
+							},
+							"valueField": "dataExchange.pending",
+							"emptyText": "unknown",
+							"route": "PartnerApprovalJobs",
+							"icon": "HandshakeOutline"
+						}
+					},
+					{
+						"id": "pg-partners-approved",
+						"type": "stat",
+						"title": "Partners approved",
+						"content": {
+							"label": "Partners approved",
+							"endpointSource": {
+								"url": "/apps/learniq/api/privacy-governance/overview"
+							},
+							"valueField": "dataExchange.approved",
+							"emptyText": "unknown",
+							"route": "PartnerApprovalJobs",
+							"icon": "Check"
+						}
+					},
+					{
+						"id": "pg-partners-rejected",
+						"type": "stat",
+						"title": "Partners rejected",
+						"content": {
+							"label": "Partners rejected",
+							"endpointSource": {
+								"url": "/apps/learniq/api/privacy-governance/overview"
+							},
+							"valueField": "dataExchange.rejected",
+							"emptyText": "unknown",
+							"route": "PartnerApprovalJobs",
+							"icon": "CloseCircleOutline"
+						}
+					},
+					{
+						"id": "pg-groups",
+						"type": "object-table",
+						"title": "Groups",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/privacy-governance/overview",
+								"responsePath": "groups"
+							},
+							"columns": [
+								{
+									"key": "id",
+									"label": "Group"
+								},
+								{
+									"key": "provisioned",
+									"label": "Provisioned"
+								},
+								{
+									"key": "memberCount",
+									"label": "Members"
+								}
+							]
+						}
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "pg-two-factor",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 3,
+						"gridHeight": 2
+					},
+					{
+						"id": "2",
+						"widgetId": "pg-partners-pending",
+						"gridX": 3,
+						"gridY": 0,
+						"gridWidth": 3,
+						"gridHeight": 2
+					},
+					{
+						"id": "3",
+						"widgetId": "pg-partners-approved",
+						"gridX": 6,
+						"gridY": 0,
+						"gridWidth": 3,
+						"gridHeight": 2
+					},
+					{
+						"id": "4",
+						"widgetId": "pg-partners-rejected",
+						"gridX": 9,
+						"gridY": 0,
+						"gridWidth": 3,
+						"gridHeight": 2
+					},
+					{
+						"id": "5",
+						"widgetId": "pg-groups",
+						"gridX": 0,
+						"gridY": 2,
+						"gridWidth": 12,
+						"gridHeight": 6
+					}
+				]
+			}
 		},
 		{
 			"id": "AccessibilityStatement",

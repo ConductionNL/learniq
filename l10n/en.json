@@ -1547,7 +1547,16 @@
         "Data Exchange Job ID": "Data Exchange Job ID",
         "UUID of the bron-rod DataExchangeJob queued by SchoolAdviesSendToRodHandler on verzendenNaarRod. Null until sent.": "UUID of the bron-rod DataExchangeJob queued by SchoolAdviesSendToRodHandler on verzendenNaarRod. Null until sent.",
         "SchoolAdvies lifecycle state.": "SchoolAdvies lifecycle state.",
-        "School advies": "School advies"
+        "School advies": "School advies",
+        "Privacy requests": "Privacy requests",
+        "Privacy request": "Privacy request",
+        "AVG requests, tracked to their legal deadline": "AVG requests, tracked to their legal deadline",
+        "Recent privacy requests": "Recent privacy requests",
+        "No privacy requests logged yet.": "No privacy requests logged yet.",
+        "Partner approvals pending": "Partner approvals pending",
+        "Partners approved": "Partners approved",
+        "Partners rejected": "Partners rejected",
+        "of {twoFactor.eligibleCount} staff accounts": "of {twoFactor.eligibleCount} staff accounts"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
