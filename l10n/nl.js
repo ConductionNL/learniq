@@ -2014,7 +2014,10 @@ OC.L10N.register(
         "Tenant identifier for multi-tenant isolation.": "Tenant-identificatie voor multi-tenant scheiding.",
         "Lifecycle State": "Levenscyclusstatus",
         "SchoolAdvies lifecycle state.": "Levenscyclusstatus van het schooladvies.",
-        "School advies": "Schooladvies"
+        "School advies": "Schooladvies",
+        "Attendance and compulsory education": "Verzuim en leerplicht",
+        "Which pupils crossed an attendance threshold, and what has to be reported.": "Welke leerlingen een verzuimgrens hebben overschreden, en wat er gemeld moet worden.",
+        "The final grade per pupil and subject, as it was decided.": "Het eindcijfer per leerling en vak, zoals het is vastgesteld."
     },
     "nplurals=2; plural=(n != 1);"
 )
