@@ -529,7 +529,9 @@ export function learnersInDepartment(profiles, department) {
 	const target = levels[levels.length - 1]
 	if (!target) return []
 	return profiles
-		.filter((p) => !p.mergedInto && departmentLevels(p.department).includes(target))
+		.filter(
+			(p) => !p.mergedInto && departmentLevels(p.department).includes(target),
+		)
 		.map((p) => p.ncUserId)
 		.filter(Boolean)
 }
@@ -543,6 +545,7 @@ export function learnersInDepartment(profiles, department) {
  */
 export function departmentOptions(profiles) {
 	const all = new Set()
-	for (const p of profiles) departmentLevels(p.department).forEach((l) => all.add(l))
+	for (const p of profiles)
+		departmentLevels(p.department).forEach((l) => all.add(l))
 	return [...all].sort()
 }
