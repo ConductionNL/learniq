@@ -7302,7 +7302,7 @@
         "reachedOn": "/assessments/:assessmentId/results (header action Score open answers)"
       },
       "provider": "self",
-      "providerHow": "learniq writes manual scores question by question; a teacher sees the attempts once learniq#949 lets teachers read AssessmentResult, so the own rating stays partial until then.",
+      "providerHow": "learniq writes manual scores question by question (learniq#948), and course teachers read the attempts through the AssessmentResult authorization from learniq#949; the own rating stays partial until a teacher account has scored an attempt on a live instance.",
       "learniq": "partial",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/quiz/report/grading/report.php:25-28 (manual grading report) and :78 slot parameter; the teacher picks one question and grades every learner's answer to it in turn, then the next question.",
