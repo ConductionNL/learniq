@@ -1,6 +1,10 @@
 OC.L10N.register(
     "learniq",
     {
+        "QTI 2.1 interaction type.": "QTI 2.1 interaction type.",
+        "QTI 2.1 item XML, in the imsqti_v2p1 namespace.": "QTI 2.1 item XML, in the imsqti_v2p1 namespace.",
+        "When true, the presentation order of each choice-bearing item's answer options is independently permuted per attempt by AssessmentDrawResolver, respecting the QTI fixed attribute on individual simpleChoice options.": "When true, the presentation order of each choice-bearing item's answer options is independently permuted per attempt by AssessmentDrawResolver, respecting the QTI fixed attribute on individual simpleChoice options.",
+        "What this flag is about. The first three are school attendance concerns under the Leerplichtwet. Attendance requirement is for a course, programme, training or company that asks for a minimum presence.": "What this flag is about. The first three are school attendance concerns under the Leerplichtwet. Attendance requirement is for a course, programme, training or company that asks for a minimum presence.",
         "Last Checked Learner ID": "Last Checked Learner ID",
         "Nextcloud user ID of the learner named in the most recent `check-threshold` transition. Transient — overwritten on every check. See attendance-threshold-calculation: OpenRegister's aggregation DSL cannot express a per-individual-learner figure on a shared threshold definition, so a caller (a manual admin/mentor action today; a future scheduled per-learner job is the natural long-term caller) supplies this value as a guarded transition input.": "Nextcloud user ID of the learner named in the most recent `check-threshold` transition. Transient — overwritten on every check. See attendance-threshold-calculation: OpenRegister's aggregation DSL cannot express a per-individual-learner figure on a shared threshold definition, so a caller (a manual admin/mentor action today; a future scheduled per-learner job is the natural long-term caller) supplies this value as a guarded transition input.",
         "Last Checked Metric Value": "Last Checked Metric Value",

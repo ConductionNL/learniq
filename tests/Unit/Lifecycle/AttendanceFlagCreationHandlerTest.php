@@ -160,6 +160,88 @@ class AttendanceFlagCreationHandlerTest extends TestCase {
 	}//end testCheckThresholdCreatesAttendanceFlag()
 
 	/**
+	 * Threshold kinds and the flag kind their crossing must carry; null means
+	 * the flag leaves flagKind to the schema default.
+	 *
+	 * @return array<string, array{0: string|null, 1: string|null}>
+	 */
+	public static function thresholdKinds(): array {
+		return [
+			'leerplicht profile' => ['leerplicht-16uur', 'signal-verzuim'],
+			'university workgroup requirement' => ['college-aanwezigheid', 'attendance-requirement'],
+			'training attendance' => ['training-attendance', 'attendance-requirement'],
+			'company compliance presence' => ['compliance-presence', 'attendance-requirement'],
+			'generic threshold keeps the default' => ['generic', null],
+			'threshold without a kind keeps the default' => [null, null],
+		];
+	}//end thresholdKinds()
+
+	/**
+	 * The flag kind follows the threshold kind, so a student under a
+	 * workgroup requirement is not flagged as a leerplicht signal. Red
+	 * before the fix: no flag carried a kind, so every flag read as
+	 * `signal-verzuim`.
+	 *
+	 * @param string|null $thresholdKind AttendanceThreshold.kind.
+	 * @param string|null $expected The flagKind the created flag carries, or null for none.
+	 *
+	 * @return void
+	 *
+	 * @dataProvider thresholdKinds
+	 *
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/attendance/spec.md#requirement-an-attendance-flag-outside-the-leerplicht-carries-a-neutral-kind
+	 */
+	public function testTheFlagKindFollowsTheThresholdKind(?string $thresholdKind, ?string $expected): void {
+		$handler = $this->makeHandler();
+		$threshold = [
+			'id' => 'threshold-1',
+			'tenant_id' => 'tenant-a',
+			'checkedLearnerId' => 'learner-1',
+			'checkedMetricValue' => 79.5,
+			'checkedWindowStart' => '2026-02-01',
+			'checkedWindowEnd' => '2026-06-30',
+			'onCross' => ['notify' => true, 'createFlag' => true, 'dataExchangeTarget' => null],
+		];
+		if ($thresholdKind !== null) {
+			$threshold['kind'] = $thresholdKind;
+		}
+
+		$handler->handle($this->makeEvent($threshold));
+
+		$flagSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'attendance-flag'));
+		self::assertCount(1, $flagSaves);
+		if ($expected === null) {
+			self::assertArrayNotHasKey('flagKind', $flagSaves[0]['object']);
+			return;
+		}
+
+		self::assertSame($expected, $flagSaves[0]['object']['flagKind'] ?? null);
+	}//end testTheFlagKindFollowsTheThresholdKind()
+
+	/**
+	 * Every flag kind the handler writes is one the register accepts, and the
+	 * school default is unchanged.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/attendance/spec.md#requirement-an-attendance-flag-outside-the-leerplicht-carries-a-neutral-kind
+	 */
+	public function testTheRegisterAcceptsEveryFlagKindTheHandlerWrites(): void {
+		$register = json_decode((string)file_get_contents(dirname(__DIR__, 3) . '/lib/Settings/learniq_register.json'), true);
+		$flagKind = $register['components']['schemas']['AttendanceFlag']['properties']['flagKind'];
+
+		foreach (self::thresholdKinds() as [$_kind, $expected]) {
+			if ($expected !== null) {
+				self::assertContains($expected, $flagKind['enum']);
+			}
+		}
+
+		self::assertSame('signal-verzuim', $flagKind['default']);
+		self::assertContains('thuiszitter', $flagKind['enum']);
+		self::assertTrue(version_compare($register['components']['schemas']['AttendanceFlag']['version'], '0.2.0', '>='));
+	}//end testTheRegisterAcceptsEveryFlagKindTheHandlerWrites()
+
+	/**
 	 * A duplicate check for the same learner/threshold/window is skipped.
 	 *
 	 * @return void

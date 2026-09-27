@@ -920,6 +920,7 @@ def build() -> dict:
                 "learnerId": s["nc"], "attendanceThresholdId": threshold["uuid"], "cohortId": cohorts[(key, 1)]["uuid"],
                 "windowStart": start.isoformat(), "windowEnd": end.isoformat(), "metricValue": percent,
                 "breachingRecordIds": [r["uuid"] for r in absent], "mentorId": slb_of(key, 1),
+                "flagKind": "attendance-requirement",
                 "interventions": [{"recordedBy": slb_of(key, 1), "recordedAt": stamp(last + dt.timedelta(days=2), 15, 0),
                                    "note": "Gesprek over de gemiste werkgroepen; de student maakt een vervangende opdracht.",
                                    "lifecycleAtRecording": "open"}],
@@ -1590,7 +1591,7 @@ def qti(identifier: str, title: str, itype: str, stem: str, options: list[str] |
     def attr(text: str) -> str:
         return escape(text, {'"': "&quot;"})
 
-    head = ('<?xml version="1.0" encoding="UTF-8"?><assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" '
+    head = ('<?xml version="1.0" encoding="UTF-8"?><assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" '
             f'identifier="{attr(identifier)}" title="{attr(title)}" adaptive="false" timeDependent="false">')
     score = f'<outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float"><defaultValue><value>{max_score:g}</value></defaultValue></outcomeDeclaration>'
     if itype == "choice":
