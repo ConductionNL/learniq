@@ -17,6 +17,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/retrofit-2026-05-25-app-shell-settings/tasks.md#task-5
+ * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-segment-reaches-the-manifest-runtime
  */
 
 declare(strict_types=1);
@@ -25,6 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\PageController;
 use OCA\Learniq\Service\DashboardRoleService;
+use OCA\Learniq\Service\SegmentService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
@@ -40,11 +42,12 @@ class PageControllerTest extends TestCase {
 	/**
 	 * Build a PageController for the given signed-in user (or anonymous).
 	 *
-	 * @param IUser|null $user The signed-in user, or null for anonymous.
+	 * @param IUser|null         $user         The signed-in user, or null for anonymous.
+	 * @param IInitialState|null $initialState The initial-state double, or a silent mock.
 	 *
 	 * @return PageController
 	 */
-	private function controller(?IUser $user): PageController {
+	private function controller(?IUser $user, ?IInitialState $initialState = null): PageController {
 		$userSession = $this->createMock(IUserSession::class);
 		$userSession->method('getUser')->willReturn($user);
 
@@ -53,11 +56,15 @@ class PageControllerTest extends TestCase {
 		$roleService->method('resolveDefaultView')->willReturn('learner');
 		$roleService->method('resolveViews')->willReturn(['learner']);
 
+		$segmentService = $this->createMock(SegmentService::class);
+		$segmentService->method('currentSegment')->willReturn('po');
+
 		return new PageController(
 			request: $this->createMock(IRequest::class),
 			userSession: $userSession,
-			initialState: $this->createMock(IInitialState::class),
+			initialState: ($initialState ?? $this->createMock(IInitialState::class)),
 			dashboardRoleSvc: $roleService,
+			segmentService: $segmentService,
 		);
 	}//end controller()
 
@@ -132,4 +139,44 @@ class PageControllerTest extends TestCase {
 		self::assertSame(Http::STATUS_OK, $response->getStatus());
 		self::assertSame('index', $response->getTemplateName());
 	}//end testCatchAllStillServesTheShellWhenAnonymous()
+
+	/**
+	 * A signed-in user's page carries the instance segment as initial state,
+	 * next to the role context, so `src/main.js` can publish it at
+	 * `runtime.workspace.segment`.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#scenario-a-signed-in-users-page-carries-the-segment
+	 */
+	public function testIndexProvidesTheSegmentForASignedInUser(): void {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('learner-1');
+
+		$provided     = [];
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')
+			->willReturnCallback(
+				static function (string $key, mixed $value) use (&$provided): void {
+					$provided[$key] = $value;
+				}
+			);
+
+		$this->controller($user, $initialState)->index();
+
+		self::assertSame('po', ($provided['segment'] ?? null));
+		self::assertArrayHasKey('primaryRole', $provided);
+	}//end testIndexProvidesTheSegmentForASignedInUser()
+
+	/**
+	 * An anonymous request gets the shell and no initial state at all.
+	 *
+	 * @return void
+	 */
+	public function testIndexProvidesNothingWhenAnonymous(): void {
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->expects(self::never())->method('provideInitialState');
+
+		$this->controller(null, $initialState)->index();
+	}//end testIndexProvidesNothingWhenAnonymous()
 }//end class

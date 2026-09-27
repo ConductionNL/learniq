@@ -25,6 +25,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\DashboardRoleService;
+use OCA\Learniq\Service\SegmentService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -42,7 +43,7 @@ use OCP\IUserSession;
  * blob unchanged (v0.1). A partial-override hook from IAppConfig is deferred
  * to v0.2 — the frontend loader's silent-fallback path is exercised in v0.1.
  *
- * @spec exclude framework glue — SPA shell + manifest passthrough + role initial-state provider; no business behaviour
+ * @spec exclude framework glue — SPA shell + manifest passthrough + role and segment initial-state provider; no business behaviour
  */
 class PageController extends Controller {
 	/**
@@ -52,6 +53,7 @@ class PageController extends Controller {
 	 * @param IUserSession $userSession The user session.
 	 * @param IInitialState $initialState The initial-state service.
 	 * @param DashboardRoleService $dashboardRoleSvc Resolves the user's role + dashboard views.
+	 * @param SegmentService $segmentService Resolves the instance's segment for `runtime.workspace.segment`.
 	 *
 	 * @return void
 	 */
@@ -60,6 +62,7 @@ class PageController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly IInitialState $initialState,
 		private readonly DashboardRoleService $dashboardRoleSvc,
+		private readonly SegmentService $segmentService,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -70,7 +73,9 @@ class PageController extends Controller {
 	 * Provides the resolved Learniq role context as initial state so the
 	 * manifest shell can populate `runtime.user.primaryRole` (menu visibleIf)
 	 * and the role-aware Dashboards component can pick its default view and
-	 * switcher set without a second round-trip.
+	 * switcher set without a second round-trip. Also provides the instance's
+	 * segment, which `src/main.js` publishes as `runtime.workspace.segment` so a
+	 * menu `visibleIf` on the segment resolves against a defined value.
 	 *
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
@@ -85,6 +90,7 @@ class PageController extends Controller {
 			$this->initialState->provideInitialState('primaryRole', $this->dashboardRoleSvc->resolvePrimaryRole($user));
 			$this->initialState->provideInitialState('dashboardRole', $this->dashboardRoleSvc->resolveDefaultView($user));
 			$this->initialState->provideInitialState('dashboardRoles', $this->dashboardRoleSvc->resolveViews($user));
+			$this->initialState->provideInitialState('segment', $this->segmentService->currentSegment());
 		}
 
 		return new TemplateResponse(Application::APP_ID, 'index');

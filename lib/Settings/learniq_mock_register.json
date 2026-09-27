@@ -29710,7 +29710,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-1-1"
         },
-        "segment": "po",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 1",
         "setAt": "2026-03-01T09:00:00+00:00"
       },
@@ -29720,7 +29720,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-2-2"
         },
-        "segment": "vo",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 2",
         "setAt": "2026-03-02T09:00:00+00:00"
       },
@@ -29730,7 +29730,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-3-3"
         },
-        "segment": "mbo",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 3",
         "setAt": "2026-03-03T09:00:00+00:00"
       },
