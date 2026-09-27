@@ -33,6 +33,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\LessonReleaseController;
+use OCA\Learniq\Service\AssessmentAccessFacts;
 use OCA\Learniq\Service\LessonReleaseEvaluator;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -159,6 +160,10 @@ class LessonReleaseControllerTest extends TestCase {
 		$evaluator->method('evaluate')->willReturn(
 			$evaluatorResult ?? ['available' => true, 'reason' => null, 'availableAt' => null]
 		);
+		$accessFacts = $this->createMock(AssessmentAccessFacts::class);
+		$accessFacts->method('assessmentAccess')->willReturn(
+			['reasonCode' => 'window-not-open', 'requiresAccessCode' => true]
+		);
 
 		return new LessonReleaseController(
 			request: $this->createMock(IRequest::class),
@@ -166,6 +171,7 @@ class LessonReleaseControllerTest extends TestCase {
 			objectService: $objectService,
 			releaseEvaluator: $evaluator,
 			dashboardRoleService: $this->dashboardRoleService,
+			accessFacts: $accessFacts,
 		);
 
 	}//end controller()
@@ -288,6 +294,26 @@ class LessonReleaseControllerTest extends TestCase {
 	}//end testResponseShapeIsMinimal()
 
 	/**
+	 * An assessment's status carries the attempt-gate facts (why the window is
+	 * shut, whether an access code is needed) next to the release decision;
+	 * a lesson's status does not (learniq#946).
+	 *
+	 * @return void
+	 */
+	public function testAssessmentStatusCarriesTheAttemptGateFacts(): void {
+		$this->seed('exam', ['id' => 'exam-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']);
+		$this->seed('enrolment', ['id' => 'enrolment-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1']);
+		$this->signInAs('learner-1');
+
+		$controller = $this->controller(['available' => false, 'reason' => 'This assessment is not open yet.', 'availableAt' => null]);
+		$data = $controller->assessmentStatus('exam-1')->getData();
+
+		self::assertTrue($data['requiresAccessCode']);
+		self::assertSame('window-not-open', $data['reasonCode']);
+
+	}//end testAssessmentStatusCarriesTheAttemptGateFacts()
+
+	/**
 	 * An unknown lesson id returns 404 when ObjectService THROWS.
 	 *
 	 * ObjectService::find() raises DoesNotExistException for an unknown id
@@ -310,6 +336,7 @@ class LessonReleaseControllerTest extends TestCase {
 			objectService: $objectService,
 			releaseEvaluator: $this->createMock(LessonReleaseEvaluator::class),
 			dashboardRoleService: $this->dashboardRoleService,
+			accessFacts: $this->createMock(AssessmentAccessFacts::class),
 		);
 
 		$response = $controller->status('nope');
