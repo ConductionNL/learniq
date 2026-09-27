@@ -80,18 +80,52 @@ class SchoolYearShapeRegisterTest extends TestCase {
 	}//end testHolidaysAndStudyDaysAreAdditiveArrays()
 
 	/**
-	 * The seed fixture carries a named holiday and a study day.
+	 * The primary school example set's first report period carries a named
+	 * holiday and a study day.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-primary-school-set-is-one-consistent-school
 	 */
 	public function testSeedFixtureCarriesHolidayAndStudyDay(): void {
-		$seed = $this->config['components']['schemas']['ReportPeriod']['x-openregister-seed'][0];
+		$period = self::poObject(schema: 'report-period', field: 'periodCode', value: '1');
 
-		self::assertNotEmpty($seed['holidays']);
-		self::assertSame('Herfstvakantie', $seed['holidays'][0]['name']);
-
-		self::assertNotEmpty($seed['studyDays']);
-		self::assertSame('2025-11-14', $seed['studyDays'][0]['date']);
+		self::assertContains('Herfstvakantie', array_column($period['holidays'], 'name'));
+		self::assertContains('2025-11-14', array_column($period['studyDays'], 'date'));
 
 	}//end testSeedFixtureCarriesHolidayAndStudyDay()
+
+	/**
+	 * The objects of one schema in the primary school example set, where the
+	 * curated primary school seeds moved to (segment-example-datasets-po).
+	 *
+	 * @param string $schema The schema slug.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function poObjects(string $schema): array {
+		$path = __DIR__ . '/../../../lib/Settings/profiles/po.json';
+		$set  = json_decode((string)file_get_contents($path), true);
+
+		return ($set['x-openregister']['seedData']['objects'][$schema] ?? []);
+	}//end poObjects()
+
+	/**
+	 * The first object of a schema in the example set whose field equals a value.
+	 *
+	 * @param string $schema The schema slug.
+	 * @param string $field  The field to match.
+	 * @param mixed  $value  The value it must hold.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function poObject(string $schema, string $field, mixed $value): array {
+		foreach (self::poObjects(schema: $schema) as $object) {
+			if (($object[$field] ?? null) === $value) {
+				return $object;
+			}
+		}
+
+		self::fail('No ' . $schema . ' with ' . $field . ' = ' . json_encode($value) . ' in the primary school example set.');
+	}//end poObject()
 }//end class

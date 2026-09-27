@@ -1750,6 +1750,7 @@
         "Segment": "Segment",
         "The kind of organisation this instance serves. Defaults to company.": "Het soort organisatie waarvoor deze omgeving is ingericht. Standaard een bedrijf.",
         "Primary school": "Basisschool (po)",
+        "A fictional primary school with groups 1 to 8, pupils, guardians and one full school year.": "Een verzonnen basisschool met groep 1 tot en met 8, leerlingen, ouders en een volledig schooljaar.",
         "Secondary school": "Middelbare school (vo)",
         "Vocational education (MBO)": "Middelbaar beroepsonderwijs (mbo)",
         "Higher education (HBO or university)": "Hoger onderwijs (hbo of wo)",
