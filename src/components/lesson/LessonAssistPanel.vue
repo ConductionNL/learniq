@@ -318,6 +318,13 @@ export default {
 		},
 	},
 
+	/**
+	 * Build the hermiq client once per panel: axios for the session and CSRF
+	 * token, generateUrl for the endpoint.
+	 *
+	 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+	 * @return {void}
+	 */
 	created() {
 		this.client = createLessonAssistClient({
 			post: (url, body) => axios.post(url, body),

@@ -327,6 +327,14 @@ export function draftTextFromResult(action, data) {
  */
 export function createLessonAssistClient({ post, urlFor }) {
 	return {
+		/**
+		 * Build the body, post it, and classify whatever comes back.
+		 *
+		 * @param {string} action One of ASSIST_ACTIONS.
+		 * @param {object} input The fields the body is built from.
+		 * @return {Promise<object>} `{outcome, reason, data, body}`.
+		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+		 */
 		async run(action, input) {
 			if (!ASSIST_ACTIONS.includes(action)) {
 				throw new Error(`Unknown lesson assist action: ${action}`)
