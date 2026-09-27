@@ -27,6 +27,7 @@ import bundledManifest from './manifest.json'
 import menuLayout from './menu-layout.json'
 import pinia from './pinia.js'
 import registry from './registry.js'
+import { buildWorkspaceRuntime, DEFAULT_SEGMENT } from './utils/workspaceRuntime.js'
 
 // Library CSS — must be explicit import (webpack tree-shakes side-effect imports from aliased packages)
 import '@conduction/nextcloud-vue/css/index.css'
@@ -154,6 +155,10 @@ function routesFromManifest(manifest) {
 // Exposed as per-role booleans so each dashboard menu item's
 // `visibleIf` can gate on a scalar `eq: true` (the predicate grammar has no
 // array-contains operator).
+// `workspace.segment` is the kind of organisation this instance serves
+// (SegmentService, provided by PageController), so a menu item can declare
+// `visibleIf: {"workspace.segment": …}`. It is always defined: a missing or
+// unknown value becomes the default rather than tripping the fail-safe.
 const dashboardRoles = loadState('learniq', 'dashboardRoles', ['student']) || []
 bundledManifest.runtime = {
 	...(bundledManifest.runtime || {}),
@@ -164,6 +169,10 @@ bundledManifest.runtime = {
 		canTeachDashboard: dashboardRoles.includes('teacher'),
 		canLearnDashboard: dashboardRoles.includes('student'),
 	},
+	workspace: buildWorkspaceRuntime(
+		bundledManifest.runtime?.workspace,
+		loadState('learniq', 'segment', DEFAULT_SEGMENT),
+	),
 }
 
 // Collect the app's manifest.d/*.json fragments — require.context is resolved

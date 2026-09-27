@@ -90,6 +90,12 @@
 						"compliance-officer",
 						"admin"
 					]
+				},
+				"workspace.segment": {
+					"in": [
+						"he",
+						"corporate"
+					]
 				}
 			}
 		}
