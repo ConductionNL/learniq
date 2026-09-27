@@ -7,8 +7,9 @@ TBD - created by archiving change bsa-study-progress-guard. Update Purpose after
 
 The system MUST persist `BsaTrajectory`, `BsaProgressFlag`, `BsaWarning`, and `BsaDecision` as OpenRegister
 objects. `BsaTrajectory` MUST carry `x-openregister-lifecycle` (`draft → active → archived`, mirroring
-`AttendanceThreshold`). `BsaProgressFlag`, `BsaWarning`, and `BsaDecision` MUST be `appendOnly: true` (audit
-per ADR-008), each with its own `x-openregister-lifecycle` workflow (`BsaProgressFlag`:
+`AttendanceThreshold`). `BsaProgressFlag`, `BsaWarning`, and `BsaDecision` MUST NOT be `appendOnly` (Open Register
+refuses every update on an append-only schema, transitions included; the audit trail keeps each version per
+ADR-008), each with its own `x-openregister-lifecycle` workflow (`BsaProgressFlag`:
 `open → in-handling → warned → resolved`; `BsaWarning`: `drafted → issued → acknowledged`; `BsaDecision`:
 `drafted → decided → appealed → upheld | overturned`). Creation of `BsaWarning` and `BsaDecision` MUST be
 restricted via `x-openregister-authorization.create` to `admin`/`study-advisor`/`exam-board` roles — a
@@ -21,7 +22,7 @@ learner MUST NOT be able to author their own warning or decision.
 - **GIVEN** the `study-progress` schemas are registered in OpenRegister
 - **WHEN** a `BsaTrajectory`, `BsaProgressFlag`, `BsaWarning`, or `BsaDecision` is created
 - **THEN** it is stored as an OpenRegister object with its declared lifecycle
-- **AND** `BsaProgressFlag`, `BsaWarning`, and `BsaDecision` are `appendOnly: true`
+- **AND** `BsaProgressFlag`, `BsaWarning`, and `BsaDecision` are not `appendOnly`, so their transitions run
 - **AND** a non-privileged user cannot create a `BsaWarning` or `BsaDecision`
 
 ### Requirement: Credit-earned and at-risk detection are declared calculations, not a TimedJob
