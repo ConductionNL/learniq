@@ -212,7 +212,7 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 	}//end testTlvExpiringSoonNotificationShape()
 
 	/**
-	 * DeliberationRecord is appendOnly, requires at least one of
+	 * DeliberationRecord is not appendOnly (its record transition is an update), requires at least one of
 	 * supportRequestId/tlvApplicationId (schema-level anyOf), and the
 	 * scheduled → recorded transition requires PupilVoiceGuard.
 	 *
@@ -221,7 +221,8 @@ class ZorgvraagSwvTlvChainRegisterTest extends TestCase {
 	public function testDeliberationRecordAppendOnlyAndRequiredOneOfShape(): void {
 		$schema = $this->config['components']['schemas']['DeliberationRecord'];
 
-		self::assertTrue($schema['appendOnly']);
+		// Open Register refuses every update on an appendOnly schema, transitions included (learniq#977); a correction is still a new record via correctsId.
+		self::assertNotTrue($schema['appendOnly'] ?? false);
 
 		$anyOf = $schema['anyOf'];
 		self::assertSame(['supportRequestId'], $anyOf[0]['required']);
