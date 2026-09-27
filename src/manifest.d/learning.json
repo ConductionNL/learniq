@@ -1057,8 +1057,11 @@
 			"route": "/course-packages/export",
 			"type": "custom",
 			"title": "Export course package",
-			"component": "CnExportWizard",
-			"_note": "course-package-import-export: mounts CnExportWizard from @conduction/nextcloud-vue for the course export (Course scope + common-cartridge/scholiq-json format picker → server-side bundle), the same declarative pattern AuditPackExport (src/manifest.json) already uses — no bespoke Vue file needed."
+			"component": "ExportRequestView",
+			"_note": "Mounts ExportRequestView (learniq#947) with kind course-package: course and format, downloads from GET /api/course-management/course-package-export.",
+			"config": {
+				"kind": "course-package"
+			}
 		},
 		{
 			"id": "LessonIndex",
@@ -2156,8 +2159,8 @@
 			"route": "/cohorts/:id/timetable",
 			"type": "custom",
 			"title": "Cohort timetable",
-			"component": "CnTimelineView",
-			"_note": "Mounts CnTimelineView from @conduction/nextcloud-vue for the date-grouped session timetable (calendar-like layout)."
+			"component": "CohortTimetableView",
+			"_note": "Mounts CohortTimetableView (learniq#947): the cohort's Sessions in CnTimelineView."
 		},
 		{
 			"id": "Sessions",
@@ -3261,8 +3264,8 @@
 			"route": "/assignments/:assignmentId/submit",
 			"type": "custom",
 			"title": "Submit work",
-			"component": "CnRichSubmitDialog",
-			"_note": "Mounts CnRichSubmitDialog from @conduction/nextcloud-vue for assignment submission (file upload + late-submission rules)."
+			"component": "SubmitWorkView",
+			"_note": "Mounts SubmitWorkView (learniq#947): CnRichSubmitDialog with the assignment's late rule; creates the Submission, attaches the files and fires submit."
 		},
 		{
 			"id": "MarkSubmissionView",
@@ -3984,7 +3987,16 @@
 				"showDeleteAction": false,
 				"showMassImport": false,
 				"showMassCopy": false,
-				"showMassDelete": false
+				"showMassDelete": false,
+				"headerActions": [
+					{
+						"id": "score-open-answers",
+						"label": "Score open answers",
+						"icon": "CheckboxMarkedOutline",
+						"handler": "navigate",
+						"route": "AssessmentScoring"
+					}
+				]
 			}
 		},
 		{
@@ -4128,6 +4140,14 @@
 					]
 				}
 			}
+		},
+		{
+			"id": "AssessmentScoring",
+			"route": "/assessments/:assessmentId/scoring",
+			"type": "custom",
+			"title": "Score open answers",
+			"component": "AssessmentScoringView",
+			"_note": "learniq#948: a teacher scores one open question for every submitted attempt in turn, writing responses[].manualScore, then grades the attempts that are fully scored. No manifest page can show one question across many attempts. Reached from the results list header action."
 		},
 		{
 			"id": "ItemStatisticsList",
@@ -4410,8 +4430,8 @@
 			"route": "/assessments/item-banks/:itemBankId/import",
 			"type": "custom",
 			"title": "Import QTI package",
-			"component": "CnWizardDialog",
-			"_note": "Mounts CnWizardDialog from @conduction/nextcloud-vue for the QTI item-bank import (file upload → parse → preview → commit)."
+			"component": "QtiImportView",
+			"_note": "Mounts QtiImportView (learniq#947): uploads the package to POST /api/assessment/qti-import."
 		},
 		{
 			"id": "GradeScales",
@@ -4890,8 +4910,8 @@
 			"route": "/grades/cohort/:cohortId/plan/:planId",
 			"type": "custom",
 			"title": "Gradebook",
-			"component": "CnDataMatrix",
-			"_note": "Mounts CnDataMatrix from @conduction/nextcloud-vue for the gradebook (cohort × plan inline-edit grid with weighted aggregation)."
+			"component": "CohortGradebookView",
+			"_note": "Mounts CohortGradebookView (learniq#947): CnDataMatrix of cohort learners by plan components; a typed mark saves a concept GradeEntry."
 		},
 		{
 			"id": "GradeImpactDetail",
@@ -5575,16 +5595,19 @@
 			"route": "/learning-plans/:planId/sign",
 			"type": "custom",
 			"title": "Sign learning plan",
-			"component": "CnSignatureCapture",
-			"_note": "Mounts CnSignatureCapture from @conduction/nextcloud-vue for the learning-plan signature flow (canvas/typed signature + audit)."
+			"component": "SignatureView",
+			"_note": "Mounts SignatureView (learniq#947) with subject learning-plan: CnSignatureCapture, saved as an append-only Signature.",
+			"config": {
+				"subject": "learning-plan"
+			}
 		},
 		{
 			"id": "LearningPlanEditor",
 			"route": "/learning-plans/:planId/edit",
 			"type": "custom",
 			"title": "Learning plan editor",
-			"component": "CnRelationshipGraph",
-			"_note": "Mounts CnRelationshipGraph from @conduction/nextcloud-vue for the learning-plan editor (dependency-chain layout, drag-drop ordering, milestone scoring)."
+			"component": "LearningPlanEditorView",
+			"_note": "Mounts LearningPlanEditorView (learniq#947): CnRelationshipGraph of the plan, goals added, reworded, reordered and removed below it."
 		},
 		{
 			"id": "GroupPlans",
@@ -6431,8 +6454,8 @@
 			"route": "/sessions/:sessionId/attendance",
 			"type": "custom",
 			"title": "Mark attendance",
-			"component": "CnDataMatrix",
-			"_note": "Mounts CnDataMatrix from @conduction/nextcloud-vue for roster-based attendance marking (inline-edit grid with bulk + per-student state + late codes)."
+			"component": "AttendanceRegisterView",
+			"_note": "Mounts AttendanceRegisterView (learniq#947): one row per learner of the session's cohort, a status per learner, saved as one AttendanceRecord each."
 		},
 		{
 			"id": "ReportPeriods",

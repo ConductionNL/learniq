@@ -750,8 +750,11 @@
 			"route": "/bpv/praktijkovereenkomsten/:pokId/sign",
 			"type": "custom",
 			"title": "Sign praktijkovereenkomst",
-			"component": "CnSignatureCapture",
-			"_note": "Mounts CnSignatureCapture from @conduction/nextcloud-vue for the student/school signing legs of POK signing inside Learniq's own UI (mirrors SignPlanModal). The praktijkopleider's signature is captured through the portaliq portal (signPraktijkovereenkomst action), not this page."
+			"component": "SignatureView",
+			"_note": "Mounts SignatureView (learniq#947) with subject praktijkovereenkomst for the student and school legs; the praktijkopleider signs through the portaliq portal.",
+			"config": {
+				"subject": "praktijkovereenkomst"
+			}
 		}
 	]
 }
