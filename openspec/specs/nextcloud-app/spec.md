@@ -56,7 +56,7 @@ Every manifest page of `type: "custom"` SHALL name, in `component` (or `slots.ma
 `src/registry.js` registers as a `kind: "page"` entry. `CnPageRenderer` resolves a custom page only against
 the app registry, and a missing name renders "This page is empty" with no more than a console warning, so a
 library building block (a grid, a dialog, a wizard) is never named directly: a thin learniq view loads the
-data, mounts the building block and writes back. `tests/unit-js/manifestRegistry.test.mjs` SHALL fail when
+data, mounts the building block and writes back. `tests/unit-js/registryComponentCoverage.test.mjs` SHALL fail when
 any custom page names an unregistered component.
 
 #### Scenario: A custom page naming an unregistered component fails the test suite
@@ -65,8 +65,8 @@ any custom page names an unregistered component.
 - **WHEN** `npm run test:js-unit` runs
 - **THEN** it fails and names the page and the component
 
-<!-- @e2e exclude A static manifest-against-registry check; tests/unit-js/manifestRegistry.test.mjs
-     (every custom page names a component the registry has) is the assertion. -->
+<!-- @e2e exclude A static manifest-against-registry check; tests/unit-js/registryComponentCoverage.test.mjs
+     (every type:"custom" page names a component registered as kind:"page") is the assertion. -->
 
 ### Requirement: Vue Router in hash mode for all navigation
 The system MUST use Vue Router in hash mode for all navigation; custom hash routing or `$emit('navigate')` patterns are forbidden.
