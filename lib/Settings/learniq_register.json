@@ -21302,7 +21302,12 @@
                         "parse": {
                             "from": "uploaded",
                             "to": "parsed",
-                            "requires": "OCA\\Learniq\\Service\\LearningRecordImportService"
+                            "requires": "OCA\\Learniq\\Service\\LearningRecordImportService",
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\LearningRecordImportParseAction"
+                                }
+                            ]
                         }
                     }
                 },
