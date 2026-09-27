@@ -203,6 +203,90 @@ when one exists.
      scenarios. The tab-lock heartbeat logic (acquireTabLock()/writeTabLock() in TakeAssessmentView.vue) is
      deterministic client-side code. -->
 
+### Requirement: An attempt starts only inside the availability window and with the access code
+The server SHALL refuse to create an `AssessmentResult` (start an attempt) when the current time is before
+the Assessment's `availableFrom` or after its `availableUntil`, evaluated live from the two dates rather
+than from the stored `isAvailable` calculation. When the Assessment carries an `accessCode`, the server
+SHALL refuse the create unless the same code is supplied with it, and SHALL NOT keep the supplied code on
+the `AssessmentResult`. `Assessment.accessCode` SHALL be write-only, so no read returns it. The check runs
+in `AssessmentAttemptGateListener` on OpenRegister's `ObjectCreatingEvent`, fails closed when the
+Assessment cannot be read, and exempts Nextcloud admins and system context. `TakeAssessmentView` SHALL ask
+the release-status endpoint first and show why a closed test cannot be started, or ask for the code.
+
+#### Scenario: An attempt before the window opens is refused
+- **GIVEN** an Assessment whose `availableFrom` is tomorrow
+- **WHEN** an enrolled learner opens the take screen, or posts an `AssessmentResult` for it directly
+- **THEN** no attempt is created and the learner is told the test is not open yet
+
+<!-- @e2e exclude The refusal is a server-side create veto; AssessmentAttemptGateListenerTest asserts it
+     (testAttemptBeforeWindowOpensIsRefused, testAttemptAfterWindowClosedIsRefusedEvenWithStaleIsAvailable)
+     without needing a clock-shifted live instance. -->
+
+#### Scenario: A test behind an access code needs the code
+- **GIVEN** an Assessment with an `accessCode`
+- **WHEN** a learner starts it without the code, or with a wrong one
+- **THEN** no attempt is created
+- **AND** with the right code the attempt is created and the code is not stored on it
+
+<!-- @e2e exclude Asserted in tests/Unit/Listener/AssessmentAttemptGateListenerTest.php
+     (testMissingAccessCodeIsRefused, testWrongAccessCodeIsRefused, testRightAccessCodeIsAcceptedAndCleared)
+     and tests/Unit/Controller/LessonReleaseControllerTest.php
+     (testAssessmentStatusReportsAccessCodeAndWindowReason). -->
+
+### Requirement: A teacher scores open answers question by question and a finished attempt stays immutable
+`AssessmentResult` SHALL NOT be `appendOnly`, because Open Register refuses every update on an append-only
+schema, lifecycle transitions included, which made saving answers, `submit`, a manual score and `grade`
+impossible. `AssessmentResultIntegrityListener` SHALL keep the attempt trustworthy instead, on Open
+Register's `ObjectUpdatingEvent` and `ObjectDeletingEvent`: while `in-progress` only the learner changes the
+attempt and cannot score it; once `submitted` the answers, auto scores and attempt fields are frozen and only
+staff (a teacher or admin dashboard view) write `responses[].manualScore`, a number of zero or more, and fire
+`grade`; a `graded` attempt is final apart from the GradeEntry back-link and a learner merge; a delete is
+refused. Nextcloud admins and system context are exempt. `AssessmentScoringView` SHALL let a teacher take one
+open question across every submitted attempt of an assessment, save the scores and grade the attempts whose
+open questions are all scored.
+
+#### Scenario: A teacher scores an essay and grades the attempt
+- **GIVEN** a submitted attempt with an unscored essay answer
+- **WHEN** a teacher opens Score open answers from the results list, enters a score and saves
+- **THEN** the attempt's `manualScore` for that item is stored and the attempt can be graded
+
+<!-- @e2e exclude Needs a submitted attempt, which needs a live learner session through TakeAssessmentView;
+     the rules are asserted in tests/Unit/Listener/AssessmentResultIntegrityListenerTest.php
+     (testTeacherMayWriteAManualScoreOnASubmittedAttempt, testTeacherMayGradeAScoredAttempt) and the screen
+     wiring and helpers in tests/unit-js/manualScoring.test.mjs. -->
+
+#### Scenario: A finished attempt's answers cannot be changed
+- **GIVEN** a submitted attempt
+- **WHEN** the learner writes a score, or anyone changes an answer or an auto score, or deletes the attempt
+- **THEN** the write is refused
+
+<!-- @e2e exclude A server-side write veto; asserted in
+     tests/Unit/Listener/AssessmentResultIntegrityListenerTest.php (testLearnerMayNotScoreTheirOwnSubmittedAttempt,
+     testTeacherMayNotChangeTheAnswers, testTeacherMayNotChangeAnAutoScore, testAGradedAttemptIsFinal,
+     testDeleteIsRefusedForNonAdmins). -->
+
+### Requirement: Assessment results are read by the learner, their manager and the course's teachers
+An `AssessmentResult` (the learner's answers and score) SHALL be readable by the learner who took it, the
+learner's manager (`LearnerProfile.managerId`), the teachers of the assessment's course (the `teacherIds` of
+the Assessment's cohort, or of every cohort of its course), and admins, and by nobody else. The rule SHALL
+be expressed in the schema's `authorization` block, which OpenRegister enforces on every read and list;
+`x-property-rbac` is not read by OpenRegister and is documentation only. Because an authorization `match`
+compares a field on the object with the caller, `AssessmentResultAudience` (run by
+`AssessmentAttemptGateListener` for every create it lets through) SHALL stamp `teacherIds` and `managerId`
+on the result when it is created, overwriting any client value; when a lookup fails it
+stamps an empty audience, which narrows rather than widens. The learner and the course's teachers MAY
+update a result; only admins delete.
+
+#### Scenario: A manager and a course teacher see a learner's result, a peer does not
+- **GIVEN** a learner whose LearnerProfile names a manager, enrolled in a course whose cohort lists a teacher
+- **WHEN** the learner takes and submits a test
+- **THEN** the manager and the teacher each see the attempt in the assessment's results list
+- **AND** another learner of the same course does not
+
+<!-- @e2e exclude Needs four seeded accounts with OpenRegister RBAC evaluated live. The rule itself is
+     asserted in tests/Unit/Register/AssessmentResultAccessTest.php and the stamp in
+     tests/Unit/Service/AssessmentResultAudienceTest.php. -->
+
 ### Requirement: Assessment declares which competencies it assesses, and Item carries competency tags for authoring
 
 The `Assessment` object MUST support a `competencyIds` field (array of `format: uuid` `$ref: Competency`,
