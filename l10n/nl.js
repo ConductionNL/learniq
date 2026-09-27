@@ -1966,7 +1966,10 @@ OC.L10N.register(
         "Class Photo": "Klassenfoto",
         "Whether a guardian has consented to beeldmateriaal for the class photo purpose, or null while undecided. The combined record across all of this child’s guardians — when a guardian refuses a purpose already granted, staff update it here (portal-contribution-guardian-audiences PA-new-2: a human-resolved record, not a computed verdict).": "Of een voogd toestemming heeft gegeven voor beeldmateriaal voor het doel klassenfoto, of null zolang onbeslist. Het gecombineerde record over alle voogden van dit kind heen: wanneer een voogd een reeds verleende toestemming intrekt, werken medewerkers dit hier bij (portal-contribution-guardian-audiences PA-new-2: een door mensen vastgesteld record, geen berekend oordeel).",
         "Video": "Video",
-        "Whether a guardian has consented to beeldmateriaal for the video purpose, or null while undecided. The combined record across all of this child’s guardians — when a guardian refuses a purpose already granted, staff update it here (portal-contribution-guardian-audiences PA-new-2: a human-resolved record, not a computed verdict).": "Of een voogd toestemming heeft gegeven voor beeldmateriaal voor het doel video, of null zolang onbeslist. Het gecombineerde record over alle voogden van dit kind heen: wanneer een voogd een reeds verleende toestemming intrekt, werken medewerkers dit hier bij (portal-contribution-guardian-audiences PA-new-2: een door mensen vastgesteld record, geen berekend oordeel)."
+        "Whether a guardian has consented to beeldmateriaal for the video purpose, or null while undecided. The combined record across all of this child’s guardians — when a guardian refuses a purpose already granted, staff update it here (portal-contribution-guardian-audiences PA-new-2: a human-resolved record, not a computed verdict).": "Of een voogd toestemming heeft gegeven voor beeldmateriaal voor het doel video, of null zolang onbeslist. Het gecombineerde record over alle voogden van dit kind heen: wanneer een voogd een reeds verleende toestemming intrekt, werken medewerkers dit hier bij (portal-contribution-guardian-audiences PA-new-2: een door mensen vastgesteld record, geen berekend oordeel).",
+        "Mentor": "Mentor",
+        "IB-er": "IB'er",
+        "Director": "Directeur"
     },
     "nplurals=2; plural=(n != 1);"
 )
