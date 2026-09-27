@@ -52,7 +52,7 @@ Learniq MUST declare a `StoreDescriptor` for schema `shared-course-package` (def
 - **THEN** the response carries outcome `ok` and a slug starting with `course-package-`
 
 ### Requirement: Any learniq instance can act as the registry
-The register MUST declare `SharedCoursePackage` (slug `shared-course-package`) holding the card fields as strings, `levels` and `goalsCovered` as arrays, `kind` `course-package`, `sharedAt` and the `package` object. Read MUST be `authenticated`; create MUST be `instructors`, `team-leads`, `coordinators` and `administration-managers`; update MUST be `administration-managers`.
+The register MUST declare `SharedCoursePackage` (slug `shared-course-package`) holding the card fields as strings, `levels` and `goalsCovered` as arrays, `kind` `course-package`, `sharedAt` and the `package` object. None of the fields the publisher cannot fill (such as `tenant_id`) MAY be required. Read MUST be `authenticated`; create MUST be `instructors`, `team-leads`, `coordinators` and `administration-managers`; update MUST be `administration-managers`.
 
 #### Scenario: A school board runs the registry
 - **GIVEN** a learniq instance whose admin created a service account in `instructors` and handed its token to member schools

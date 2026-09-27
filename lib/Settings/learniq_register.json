@@ -2357,8 +2357,7 @@
                     "slug",
                     "kind",
                     "title",
-                    "package",
-                    "tenant_id"
+                    "package"
                 ],
                 "properties": {
                     "slug": {
@@ -2468,7 +2467,8 @@
                         "type": "string",
                         "format": "uuid",
                         "title": "Tenant ID",
-                        "description": "Tenant identifier for multi-tenant isolation."
+                        "description": "Tenant identifier for multi-tenant isolation.",
+                        "x-notes": "Optional here: a publishing school writes to another instance and cannot know that registry's tenant."
                     }
                 },
                 "x-openregister-seed": [

@@ -60,6 +60,12 @@ class SharedCoursePackageRegisterTest extends TestCase {
 			self::assertSame('string', $schema['properties'][$property]['type'], "$property must be a string.");
 		}
 
+		// The publisher cannot know the registry's tenant, so nothing it
+		// does not write may be required, or the registry refuses the POST.
+		foreach ($schema['required'] as $field) {
+			self::assertArrayHasKey($field, $object, "$field is required but the publisher does not write it.");
+		}
+
 		self::assertSame('object', $schema['properties']['package']['type']);
 		self::assertSame(['course-package'], $schema['properties']['kind']['enum']);
 	}//end testTheSchemaHoldsWhatThePublisherWrites()
