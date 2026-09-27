@@ -3,15 +3,16 @@
 /**
  * Learniq Submission Window Guard
  *
- * Lifecycle guard for the Submission schema's `submit` transition. Enforces the
- * Assignment's submission window: after dueAt, submission is blocked (HTTP 422) unless
- * allowLateSubmission is true, in which case the target lifecycle state is redirected
- * to `late` via the transitionContext.
+ * Lifecycle guard for the Submission schema's two hand-in transitions. Enforces the
+ * Assignment's submission window: `submit` (draft to submitted) only inside the
+ * window, `submitLate` (draft to late) only after it and only when the Assignment
+ * allows late work. A guard can not redirect the target state (learniq#983), so late
+ * hand-in is its own transition.
  *
  * Legitimate PHP per ADR-031: "Lifecycle guard — business rule that must run before
  * a state transition and cannot be expressed as a schema declaration." Requires a
  * cross-schema query (Submission → Assignment) and datetime comparison.
- * Referenced from the Submission schema's x-openregister-lifecycle.transitions.submit.requires
+ * Referenced from the Submission schema's submit and submitLate transitions
  * in learniq_register.json.
  *
  * @category Lifecycle
@@ -36,21 +37,22 @@ namespace OCA\Learniq\Lifecycle;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
- * Guards the Submission `submit` transition.
+ * Guards the Submission `submit` and `submitLate` transitions.
  *
  * Behaviour matrix:
- * - dueAt is null → always allow (open-ended assignment).
- * - now <= dueAt  → allow; `to` stays `submitted`.
- * - now > dueAt + allowLateSubmission=false → block (return false).
- * - now > dueAt + allowLateSubmission=true  → redirect `to` to `late` and allow.
+ * - caller not in learnerIds (and not admin or system) -> deny both.
+ * - dueAt is null  -> `submit` allowed, `submitLate` denied (there is no late).
+ * - now <= dueAt   -> `submit` allowed, `submitLate` denied.
+ * - now > dueAt    -> `submit` denied; `submitLate` allowed only with allowLateSubmission.
  */
-class SubmissionWindowGuard {
+class SubmissionWindowGuard implements LifecycleGuardInterface {
 
 	/**
 	 * OR register slug for Learniq objects.
@@ -58,11 +60,15 @@ class SubmissionWindowGuard {
 	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
+	 * The late hand-in transition.
+	 */
+	public const LATE_ACTION = 'submitLate';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService   $objectService OR object service for fetching the parent Assignment.
 	 * @param LoggerInterface $logger        PSR logger.
-	 * @param IUserSession    $userSession   Current session (server-resolved caller identity).
 	 * @param IGroupManager   $groupManager  Resolves whether the caller is an administrator.
 	 *
 	 * @return void
@@ -70,115 +76,145 @@ class SubmissionWindowGuard {
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
-		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
 	) {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny a hand-in (LifecycleGuardInterface).
 	 *
-	 * Called by OpenRegister's lifecycle engine before executing the `submit`
-	 * transition on a Submission object. Looks up the parent Assignment to check
-	 * whether the submission window is still open.
+	 * @param array<string,mixed> $object The Submission at its target state.
+	 * @param string              $action `submit` or `submitLate`.
+	 * @param string              $userId The uid of the caller, '' for a system call.
 	 *
-	 * When the deadline has passed and late submission is allowed, this guard mutates
-	 * $transitionContext['to'] = 'late' so OpenRegister lands the Submission in the
-	 * `late` state rather than `submitted`.
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the Submission data array
-	 *                                               - 'transition' : 'submit'
-	 *                                               - 'from'       : 'draft'
-	 *                                               - 'to'         : 'submitted' (may be mutated to 'late')
-	 *
-	 * @return bool True to allow the transition; false blocks it (HTTP 422 from OR engine).
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-9
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-learner-hands-in-their-own-work-and-the-teacher-marks-it
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	public function check(array $object, string $action, string $userId): GuardResult {
 		$assignmentId = $object['assignmentId'] ?? null;
-		$tenantId = $object['tenant_id'] ?? '';
-
-		if ($assignmentId === null || $this->callerMayHandIn(object: $object) === false) {
-			$this->logger->info(
-				'[SubmissionWindowGuard] Submission {id} has no assignmentId or the caller is not one of its learners; blocking submit.',
-				['id' => ($object['id'] ?? '')]
-			);
-			return false;
+		if ($assignmentId === null || $assignmentId === '') {
+			return GuardResult::deny('This submission is not linked to an assignment.');
 		}
 
+		if ($this->callerMayHandIn(object: $object, userId: $userId) === false) {
+			$this->logger->info(
+				'[SubmissionWindowGuard] Caller {uid} is not one of the learners of Submission {id}; blocking {action}.',
+				['uid' => $userId, 'id' => ($object['id'] ?? ''), 'action' => $action]
+			);
+			return GuardResult::deny('Only the learners this submission belongs to can hand it in.');
+		}
+
+		$assignment = $this->loadAssignment(assignmentId: (string)$assignmentId, tenantId: (string)($object['tenant_id'] ?? ''));
+		if ($assignment === null) {
+			return GuardResult::deny('The assignment of this submission could not be found.');
+		}
+
+		return $this->windowVerdict(assignment: $assignment, late: $action === self::LATE_ACTION);
+	}//end check()
+
+	/**
+	 * Judge the hand-in against the Assignment's deadline.
+	 *
+	 * @param array<string,mixed> $assignment The Assignment.
+	 * @param bool                $late       Whether this is the `submitLate` transition.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 */
+	private function windowVerdict(array $assignment, bool $late): GuardResult {
+		$window = $this->windowState(assignment: $assignment);
+
+		if ($window === 'malformed') {
+			return GuardResult::deny('The deadline of this assignment could not be read.');
+		}
+
+		if ($window === 'open') {
+			if ($late === true) {
+				return GuardResult::deny('The deadline has not passed, so hand the work in normally.');
+			}
+
+			return GuardResult::allow();
+		}
+
+		// The deadline has passed.
+		if ((bool)($assignment['allowLateSubmission'] ?? false) === false) {
+			return GuardResult::deny('The deadline has passed and this assignment does not accept late work.');
+		}
+
+		if ($late === false) {
+			return GuardResult::deny('The deadline has passed, so this work can only be handed in late.');
+		}
+
+		return GuardResult::allow();
+	}//end windowVerdict()
+
+	/**
+	 * Load the parent Assignment, scoped to the Submission's tenant.
+	 *
+	 * @param string $assignmentId The Assignment UUID.
+	 * @param string $tenantId     The tenant UUID, '' when unscoped.
+	 *
+	 * @return array<string,mixed>|null The Assignment, or null when not found.
+	 */
+	private function loadAssignment(string $assignmentId, string $tenantId): ?array {
 		// H1: scope Assignment lookup to the same tenant.
-		$assignmentFilters = ['uuid' => $assignmentId];
+		$filters = ['uuid' => $assignmentId];
 		if ($tenantId !== '') {
-			$assignmentFilters['tenant_id'] = $tenantId;
+			$filters['tenant_id'] = $tenantId;
 		}
 
 		$assignments = $this->objectService->findAll(
 			[
 				'register' => self::LEARNIQ_REGISTER,
 				'schema' => 'assignment',
-				'filters' => $assignmentFilters,
+				'filters' => $filters,
 				'limit' => 1,
 			]
 		);
 
 		if (empty($assignments) === true) {
-			$this->logger->info(
-				'[SubmissionWindowGuard] Assignment {id} not found; blocking submit.',
-				['id' => $assignmentId]
-			);
-			return false;
+			$this->logger->info('[SubmissionWindowGuard] Assignment {id} not found; blocking hand-in.', ['id' => $assignmentId]);
+			return null;
 		}
 
 		$assignment = $assignments[0];
+		if (is_array($assignment) === false) {
+			$assignment = $assignment->jsonSerialize();
+		}
+
+		return $assignment;
+	}//end loadAssignment()
+
+	/**
+	 * Whether the Assignment's window is open, closed, or unreadable.
+	 *
+	 * @param array<string,mixed> $assignment The Assignment.
+	 *
+	 * @return string `open` (no deadline, or not yet passed), `closed`, or `malformed`.
+	 */
+	private function windowState(array $assignment): string {
 		$dueAtRaw = $assignment['dueAt'] ?? null;
-
-		if ($dueAtRaw === null) {
-			// Open-ended assignment — no deadline to enforce.
-			return true;
+		if ($dueAtRaw === null || $dueAtRaw === '') {
+			// Open-ended assignment: no deadline to enforce.
+			return 'open';
 		}
 
-		// #202: use explicit UTC timezone for both timestamps so DST transitions on the
-		// server do not cause inconsistent deadline comparisons. Stored dueAt values must
-		// include a timezone offset (ISO 8601); if they don't we default to UTC.
-		// #219: wrap DateTimeImmutable construction in a try/catch to surface malformed
-		// dueAt values as a guard rejection rather than an unhandled 500.
+		// #202: explicit UTC for both timestamps so DST transitions do not skew the
+		// comparison. #219: a malformed dueAt is a refusal, not an unhandled 500.
 		try {
-			$dueAt = new DateTimeImmutable($dueAtRaw, new DateTimeZone('UTC'));
+			$dueAt = new DateTimeImmutable((string)$dueAtRaw, new DateTimeZone('UTC'));
 		} catch (\Exception $e) {
-			$this->logger->warning(
-				'[SubmissionWindowGuard] Assignment {id} has malformed dueAt value; blocking submit.',
-				['id' => $assignmentId]
-			);
-			return false;
+			$this->logger->warning('[SubmissionWindowGuard] Malformed dueAt {due}; blocking hand-in.', ['due' => $dueAtRaw]);
+			return 'malformed';
 		}
 
-		$now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
-
-		if ($now <= $dueAt) {
-			// Within the window — normal submit.
-			return true;
+		if (new DateTimeImmutable('now', new DateTimeZone('UTC')) <= $dueAt) {
+			return 'open';
 		}
 
-		$allowLate = (bool)($assignment['allowLateSubmission'] ?? false);
+		return 'closed';
+	}//end windowState()
 
-		if ($allowLate === false) {
-			$this->logger->info(
-				'[SubmissionWindowGuard] Submission after dueAt and late submission not allowed; blocking.'
-			);
-			return false;
-		}
-
-		// Past deadline but late submission is allowed → redirect lifecycle target to `late`.
-		$transitionContext['to'] = 'late';
-		$this->logger->info(
-			'[SubmissionWindowGuard] Submission after dueAt; redirecting lifecycle to `late`.'
-		);
-
-		return true;
-	}//end check()
 	/**
 	 * Whether the caller may hand this submission in.
 	 *
@@ -186,27 +222,22 @@ class SubmissionWindowGuard {
 	 * without the object, so the schema cannot narrow it), so the hand-in is
 	 * where a submission made in someone else's name is refused: the caller
 	 * must be one of its learnerIds. Administrators and system calls (no
-	 * session) are not refused.
+	 * caller) are not refused.
 	 *
 	 * @param array<string, mixed> $object The Submission data.
+	 * @param string               $userId The uid of the caller, '' for a system call.
 	 *
 	 * @return bool True when the caller may submit.
 	 *
 	 * @spec openspec/specs/assignments/spec.md#requirement-a-learner-hands-in-their-own-work-and-the-teacher-marks-it
 	 */
-	private function callerMayHandIn(array $object): bool {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return true;
-		}
-
-		$uid = $user->getUID();
-		if ($this->groupManager->isAdmin($uid) === true) {
+	private function callerMayHandIn(array $object, string $userId): bool {
+		if ($userId === '' || $this->groupManager->isAdmin($userId) === true) {
 			return true;
 		}
 
 		$learnerIds = ($object['learnerIds'] ?? []);
 
-		return is_array($learnerIds) === true && in_array($uid, $learnerIds, true) === true;
+		return is_array($learnerIds) === true && in_array($userId, $learnerIds, true) === true;
 	}//end callerMayHandIn()
 }//end class

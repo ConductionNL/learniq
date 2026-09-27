@@ -301,13 +301,19 @@ at the field level (documented, not silently assumed away).
   already stated for `FraudCase`'s `ExamCaseDossierView` (`openspec/specs/exam-board/spec.md:136-139`)
 
 ### Requirement: A learner hands in their own work and the teacher marks it
-The Submission authorization MUST let every signed-in user create a submission, MUST let a learner named in `learnerIds` update it while its lifecycle is `draft` (file upload, saving the references, the `submit` transition), and MUST let `instructors`, `compliance-officers` and `team-leads` read and update it for marking. Because create cannot be narrowed by a match, the `submit` guard MUST refuse a caller who is not in `learnerIds`, except administrators and system calls.
+The Submission authorization MUST let every signed-in user create a submission, MUST let a learner named in `learnerIds` update it while its lifecycle is `draft` (file upload, saving the references, the `submit` transition), and MUST let `instructors`, `compliance-officers` and `team-leads` read and update it for marking. Because create cannot be narrowed by a match, the `submit` guard MUST refuse a caller who is not in `learnerIds`, except administrators and system calls. Late hand-in MUST be its own transition, `submitLate` (draft to `late`), because a guard cannot change a transition's target state: `SubmissionWindowGuard` MUST allow `submit` only inside the window and `submitLate` only after the deadline of an assignment with `allowLateSubmission`, and the hand-in screen MUST pick the transition that fits the deadline.
 
 #### Scenario: A learner hands in work
 @e2e exclude Enforced by OpenRegister from the register JSON and by SubmissionWindowGuard; pinned by tests/Unit/Register/SubmissionAccessTest.php and tests/Unit/Lifecycle/SubmissionWindowGuardTest.php.
 - **GIVEN** a learner in no staff group and an open assignment
 - **WHEN** the learner hands in a file on the hand-in screen
 - **THEN** the draft is created, the file attached and the submission lands in `submitted`
+
+#### Scenario: A learner hands in late work after the deadline
+@e2e exclude Guard and register behaviour; pinned by tests/Unit/Lifecycle/SubmissionWindowGuardTest.php (testAfterTheWindowOnlySubmitLatePasses, testRegisterDeclaresSubmitLateIntoLate) and tests/unit-js/customPages.test.mjs (handInAction).
+- **GIVEN** an assignment whose deadline has passed and that accepts late work
+- **WHEN** the learner hands in on the hand-in screen
+- **THEN** the screen fires `submitLate`, the submission lands in `late`, and `submit` on the same draft is refused with a reason
 
 #### Scenario: Nobody hands in work in another learner's name
 @e2e exclude Guard behaviour; pinned by tests/Unit/Lifecycle/SubmissionWindowGuardTest.php.

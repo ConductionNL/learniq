@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Service\WalletOfferDelegationService;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\App\IAppManager;
 use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
@@ -41,7 +42,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
 /**
- * Tests for WalletOfferDelegationService::check().
+ * Tests for WalletOfferDelegationService: the offerToWallet guard and offer().
  */
 class WalletOfferDelegationServiceTest extends TestCase {
 
@@ -132,28 +133,23 @@ class WalletOfferDelegationServiceTest extends TestCase {
 			);
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => [
-				'id' => 'credential-1',
-				'kind' => 'diploma',
-				'learnerId' => 'learner-1',
-				'edciPayload' => null,
-				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-1']],
-				'walletOfferStatus' => null,
-				'walletOfferError' => 'previous failure',
-			],
-			'transition' => 'offerToWallet',
-			'from' => 'issued',
-			'to' => 'issued',
+		$object = [
+			'id' => 'credential-1',
+			'kind' => 'diploma',
+			'learnerId' => 'learner-1',
+			'edciPayload' => null,
+			'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-1']],
+			'walletOfferStatus' => null,
+			'walletOfferError' => 'previous failure',
+			'lifecycle' => 'issued',
 		];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->offer(credential: $object);
 
-		self::assertTrue($result);
-		self::assertSame('offered', $context['object']['walletOfferStatus']);
-		self::assertSame('offer-uuid-1', $context['object']['walletAttestationRef']);
-		self::assertNotEmpty($context['object']['walletOfferedAt']);
-		self::assertNull($context['object']['walletOfferError']);
+		self::assertSame('offered', $saved['walletOfferStatus']);
+		self::assertSame('offer-uuid-1', $saved['walletAttestationRef']);
+		self::assertNotEmpty($saved['walletOfferedAt']);
+		self::assertNull($saved['walletOfferError']);
 
 		// The app SEGMENT is resolved at call time — the target answers to
 		// `integriq` on development and `openconnector` on beta/main — so
@@ -193,19 +189,15 @@ class WalletOfferDelegationServiceTest extends TestCase {
 		);
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => [
-				'id' => 'credential-2',
-				'kind' => 'badge',
-				'learnerId' => 'learner-2',
-				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-2']],
-			],
-			'transition' => 'offerToWallet',
-			'from' => 'issued',
-			'to' => 'issued',
+		$object = [
+			'id' => 'credential-2',
+			'kind' => 'badge',
+			'learnerId' => 'learner-2',
+			'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-2']],
+			'lifecycle' => 'issued',
 		];
 
-		self::assertTrue($this->service()->check($context));
+		$this->service()->offer(credential: $object);
 		self::assertSame('open-badges-3', $capturedOptions['json']['credentialConfigurationId']);
 	}//end testBadgeUsesOpenBadges3ConfigurationId()
 
@@ -217,23 +209,22 @@ class WalletOfferDelegationServiceTest extends TestCase {
 	public function testNoPayloadFailsClosedWithoutCallingOpenConnector(): void {
 		$this->clientService->expects($this->never())->method('newClient');
 
-		$context = [
-			'object' => [
-				'id' => 'credential-3',
-				'kind' => 'diploma',
-				'learnerId' => 'learner-3',
-				'edciPayload' => null,
-				'openbadges3Payload' => null,
-			],
-			'transition' => 'offerToWallet',
-			'from' => 'issued',
-			'to' => 'issued',
+		$object = [
+			'id' => 'credential-3',
+			'kind' => 'diploma',
+			'learnerId' => 'learner-3',
+			'edciPayload' => null,
+			'openbadges3Payload' => null,
+			'lifecycle' => 'issued',
 		];
 
-		$result = $this->service()->check($context);
+		$verdict = $this->service()->check($object, 'offerToWallet', 'admin');
+		self::assertInstanceOf(LifecycleGuardInterface::class, $this->service());
+		self::assertFalse($verdict->isAllowed());
+		self::assertStringContainsString('signed payload', (string)$verdict->getMessage());
 
-		self::assertFalse($result);
-		self::assertNotEmpty($context['object']['walletOfferError']);
+		$saved = $this->service()->offer(credential: $object);
+		self::assertNotEmpty($saved['walletOfferError']);
 	}//end testNoPayloadFailsClosedWithoutCallingOpenConnector()
 
 	/**
@@ -247,23 +238,18 @@ class WalletOfferDelegationServiceTest extends TestCase {
 		$this->appConfig->method('getValueString')->willReturn('');
 		$this->clientService->expects($this->never())->method('newClient');
 
-		$context = [
-			'object' => [
-				'id' => 'credential-4',
-				'kind' => 'diploma',
-				'learnerId' => 'learner-4',
-				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-4']],
-			],
-			'transition' => 'offerToWallet',
-			'from' => 'issued',
-			'to' => 'issued',
+		$object = [
+			'id' => 'credential-4',
+			'kind' => 'diploma',
+			'learnerId' => 'learner-4',
+			'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-4']],
+			'lifecycle' => 'issued',
 		];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->offer(credential: $object);
 
-		self::assertFalse($result);
-		self::assertNotEmpty($context['object']['walletOfferError']);
-		self::assertArrayNotHasKey('walletAttestationRef', $context['object']);
+		self::assertNotEmpty($saved['walletOfferError']);
+		self::assertArrayNotHasKey('walletAttestationRef', $saved);
 	}//end testMissingTokenFailsClosed()
 
 	/**
@@ -281,24 +267,19 @@ class WalletOfferDelegationServiceTest extends TestCase {
 		$client->method('post')->willThrowException(new \Exception('Connection refused'));
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => [
-				'id' => 'credential-5',
-				'kind' => 'diploma',
-				'learnerId' => 'learner-5',
-				'walletOfferStatus' => null,
-				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-5']],
-			],
-			'transition' => 'offerToWallet',
-			'from' => 'issued',
-			'to' => 'issued',
+		$object = [
+			'id' => 'credential-5',
+			'kind' => 'diploma',
+			'learnerId' => 'learner-5',
+			'walletOfferStatus' => null,
+			'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-5']],
+			'lifecycle' => 'issued',
 		];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->offer(credential: $object);
 
-		self::assertFalse($result);
-		self::assertNull($context['object']['walletOfferStatus']);
-		self::assertNotEmpty($context['object']['walletOfferError']);
+		self::assertNull($saved['walletOfferStatus']);
+		self::assertNotEmpty($saved['walletOfferError']);
 	}//end testOpenConnectorUnreachableFailsClosed()
 
 	/**
@@ -316,21 +297,35 @@ class WalletOfferDelegationServiceTest extends TestCase {
 		$client->method('post')->willReturn($response);
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => [
-				'id' => 'credential-6',
-				'kind' => 'diploma',
-				'learnerId' => 'learner-6',
-				'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-6']],
-			],
-			'transition' => 'offerToWallet',
-			'from' => 'issued',
-			'to' => 'issued',
+		$object = [
+			'id' => 'credential-6',
+			'kind' => 'diploma',
+			'learnerId' => 'learner-6',
+			'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-6']],
+			'lifecycle' => 'issued',
 		];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->offer(credential: $object);
 
-		self::assertFalse($result);
-		self::assertNotEmpty($context['object']['walletOfferError']);
+		self::assertNotEmpty($saved['walletOfferError']);
 	}//end testUnresolvableResponseFailsClosed()
+	/**
+	 * A Credential with a signed payload and a subject is allowed through the guard,
+	 * without the guard calling openconnector.
+	 *
+	 * @return void
+	 */
+	public function testGuardAllowsAnOfferableCredential(): void {
+		$this->clientService->expects($this->never())->method('newClient');
+
+		$object = [
+			'id' => 'credential-7',
+			'lifecycle' => 'issued',
+			'kind' => 'badge',
+			'learnerId' => 'learner-7',
+			'openbadges3Payload' => ['credentialSubject' => ['id' => 'urn:learniq:learner:learner-7']],
+		];
+
+		self::assertTrue($this->service()->check($object, 'offerToWallet', 'admin')->isAllowed());
+	}//end testGuardAllowsAnOfferableCredential()
 }//end class

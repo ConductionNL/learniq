@@ -60,6 +60,23 @@ export function transitionUrl(id) {
 }
 
 /**
+ * The hand-in transition for an assignment right now. After the deadline of an
+ * assignment that accepts late work it is `submitLate` (draft to late); in every
+ * other case `submit`, which SubmissionWindowGuard refuses with its reason when
+ * the deadline has passed (learniq#983).
+ *
+ * @param {object} assignment The assignment (dueAt, allowLateSubmission).
+ * @param {Date} [now] The moment to judge, defaults to the current time.
+ * @return {string} `submit` or `submitLate`.
+ * @spec openspec/specs/assignments/spec.md#requirement-a-learner-hands-in-their-own-work-and-the-teacher-marks-it
+ */
+export function handInAction(assignment, now = new Date()) {
+	const due = assignment?.dueAt ? new Date(assignment.dueAt) : null
+	if (!due || Number.isNaN(due.getTime()) || due >= now) return 'submit'
+	return assignment.allowLateSubmission === true ? 'submitLate' : 'submit'
+}
+
+/**
  * Read the rows out of an OpenRegister list response body.
  *
  * @param {object} body The response body.
