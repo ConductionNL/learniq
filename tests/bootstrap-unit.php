@@ -167,6 +167,7 @@ if (interface_exists(\OC\Hooks\Emitter::class) === false) {
 // (openregister#2036) — the same hazard the stub registration above avoids.
 require_once __DIR__ . '/Support/OrEntityFactory.php';
 require_once __DIR__ . '/Support/GuardVerdicts.php';
+require_once __DIR__ . '/Support/RegisterFaithfulStore.php';
 
 // Integriq's connection-registry event (adopt-connection-registry).
 // ConnectionReportService sends it by string class name behind class_exists
