@@ -281,4 +281,28 @@ class PrimarySchoolExampleSetTest extends TestCase {
 
 		self::assertSame(0, $exitCode, implode("\n", $output));
 	}//end testTheFileIsWhatTheGeneratorProduces()
+
+	/**
+	 * The promoted seed rows live in the set, found by name, and the register
+	 * no longer carries them: OpenRegister never read `x-openregister-seed`,
+	 * so the rows only ever became reachable by moving.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-example-datasets-po/specs/example-sets/spec.md#requirement-the-register-no-longer-carries-dark-primary-school-seeds
+	 */
+	public function testThePromotedSeedMovedOutOfTheRegister(): void {
+		self::assertContains('Voorbeeldschool De Wilgenboom', array_column(self::of('school'), 'name'));
+		self::assertContains('Dependance Noorderpark', array_column(self::of('vestiging'), 'name'));
+		self::assertContains('technisch lezen', array_column(self::of('group-plan'), 'subject'));
+
+		$register = json_decode((string)file_get_contents(dirname(__DIR__, 3) . '/lib/Settings/learniq_register.json'), true);
+		$promoted = [
+			'School', 'Vestiging', 'Cohort', 'Enrolment', 'ReportPeriod',
+			'GroupPlan', 'GroupPlanSubgroup', 'GroupPlanEvaluation', 'Staff', 'SubjectTeacherAssignment',
+		];
+		foreach ($promoted as $schema) {
+			self::assertSame([], ($register['components']['schemas'][$schema]['x-openregister-seed'] ?? []), $schema . ' still carries seed rows');
+		}
+	}//end testThePromotedSeedMovedOutOfTheRegister()
 }//end class
