@@ -49,7 +49,7 @@ use Psr\Log\LoggerInterface;
  *
  * The transition proceeds only when ALL of the following hold:
  *   1. The acting user is in one of the privileged groups
- *      (`compliance-officer`, `hr`, `admin`).
+ *      (`compliance-officers`, `hr`, `admin`).
  *   2. At least one OpenRegister file attachment (evidence) is present on the
  *      record.
  *   3. The verifier is not the same person who submitted the record when the
@@ -68,7 +68,7 @@ class ExternalTrainingVerificationGuard {
 	 */
 	private const VERIFIER_GROUPS = [
 		'admin',
-		'compliance-officer',
+		'compliance-officers',
 		'hr',
 	];
 
