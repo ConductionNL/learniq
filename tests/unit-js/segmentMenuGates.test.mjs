@@ -111,6 +111,19 @@ test('a primary school sees the school shape', () => {
 	}
 })
 
+test('the school shape carries no segment gate, so every kind keeps it', () => {
+	for (const id of SCHOOL_SHAPE.filter((i) => i !== 'SchoolAdviezenMenu')) {
+		assert.equal(
+			Object.hasOwn(entries.get(id).visibleIf || {}, 'workspace.segment'),
+			false,
+			`${id} must not be segment-gated`,
+		)
+		for (const segment of SEGMENTS) {
+			assert.equal(visible(id, segment), true, `${id} visible for ${segment}`)
+		}
+	}
+})
+
 test('company menus hide for every school and stay for companies and training institutes', () => {
 	for (const id of COMPANY) {
 		for (const segment of ['po', 'vo', 'mbo', 'he']) {

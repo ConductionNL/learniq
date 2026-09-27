@@ -44,6 +44,17 @@ test('the segment is pre-selected from the example set picked earlier', () => {
 	)
 })
 
+test('the segment step says the menus follow the answer', () => {
+	assert.match(step('segment').body, /menus that fit/)
+	const nl = JSON.parse(
+		readFileSync(new URL('../../l10n/nl.json', import.meta.url), 'utf8'),
+	).translations
+	assert.ok(
+		nl[step('segment').body],
+		'the segment step body has a Dutch translation',
+	)
+})
+
 test('no step is required, so setup never gates the app', () => {
 	for (const s of steps) {
 		assert.notEqual(s.required, true, `${s.id} must stay optional`)
