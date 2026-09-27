@@ -46,7 +46,6 @@ class LifecycleGuardsImplementInterfaceTest extends TestCase {
 		// Write data inside the guard; the write moves to an action (learniq#983 part B).
 		'OCA\\Learniq\\Service\\WalletOfferDelegationService',
 		'OCA\\Learniq\\Service\\WalletClaimSyncService',
-		'OCA\\Learniq\\Service\\WalletRevocationPropagationService',
 		'OCA\\Learniq\\Service\\LearningRecordExportService',
 		'OCA\\Learniq\\Service\\LearningRecordImportService',
 		'OCA\\Learniq\\Service\\ReportCardPdfDelegationService',

@@ -557,7 +557,12 @@
                         "revoke": {
                             "from": "issued",
                             "to": "revoked",
-                            "requires": "OCA\\Learniq\\Service\\WalletRevocationPropagationService"
+                            "requires": "OCA\\Learniq\\Service\\WalletRevocationPropagationService",
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\WalletRevocationPropagationAction"
+                                }
+                            ]
                         },
                         "expire": {
                             "from": "issued",

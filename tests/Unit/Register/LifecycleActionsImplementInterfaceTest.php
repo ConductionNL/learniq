@@ -41,6 +41,7 @@ class LifecycleActionsImplementInterfaceTest extends TestCase {
 	 */
 	private const CONVERTED = [
 		'AssessmentResult.submit' => 'OCA\\Learniq\\Lifecycle\\Action\\AssessmentAutoScoreAction',
+		'Credential.revoke' => 'OCA\\Learniq\\Lifecycle\\Action\\WalletRevocationPropagationAction',
 	];
 
 	/**

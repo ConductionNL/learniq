@@ -22,9 +22,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle\Action;
 
 use OCA\Learniq\Lifecycle\Action\AssessmentAutoScoreAction;
-use OCA\Learniq\Tests\Unit\Lifecycle\AssessmentScoringHandlerTest;
+use OCA\Learniq\Lifecycle\AssessmentScoringHandler;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 use RuntimeException;
 
 /**
@@ -48,8 +50,39 @@ class AssessmentAutoScoreActionTest extends TestCase {
 			'item-essay' => ['id' => 'item-essay', 'interactionType' => 'extendedText', 'correctResponse' => null, 'maxScore' => 5],
 		];
 
-		return new AssessmentAutoScoreAction(AssessmentScoringHandlerTest::makeHandler($this, $assessment, $items));
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			static function (array $config) use ($assessment, $items): array {
+				if ($config['schema'] === 'exam') {
+					return array_filter([$assessment]);
+				}
+
+				$uuid = ($config['filters']['uuid'] ?? '');
+
+				return array_filter([($items[$uuid] ?? null)]);
+			}
+		);
+
+		return new AssessmentAutoScoreAction(new AssessmentScoringHandler($objectService, new NullLogger()));
 	}//end makeAction()
+
+	/**
+	 * The submitted AssessmentResult as OpenRegister saves it.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function submittedResult(): array {
+		return [
+			'id' => 'result-1',
+			'lifecycle' => 'submitted',
+			'assessmentId' => 'exam-1',
+			'tenant_id' => 'tenant-1',
+			'responses' => [
+				['itemId' => 'item-choice', 'response' => 'B', 'autoScore' => 99],
+				['itemId' => 'item-essay', 'response' => 'My essay.', 'autoScore' => 99],
+			],
+		];
+	}//end submittedResult()
 
 	/**
 	 * The action is one OpenRegister's executor can run.
@@ -68,10 +101,10 @@ class AssessmentAutoScoreActionTest extends TestCase {
 	 */
 	public function testReturnedObjectCarriesTheAutoScores(): void {
 		$action = $this->makeAction(['id' => 'exam-1', 'itemRefs' => [['itemId' => 'item-choice', 'points' => 4]]]);
-		$previous = AssessmentScoringHandlerTest::submittedResult();
+		$previous = self::submittedResult();
 		$previous['lifecycle'] = 'in-progress';
 
-		$saved = $action->execute(AssessmentScoringHandlerTest::submittedResult(), $previous, [], AssessmentAutoScoreAction::class);
+		$saved = $action->execute(self::submittedResult(), $previous, [], AssessmentAutoScoreAction::class);
 
 		self::assertSame(4.0, $saved['responses'][0]['autoScore']);
 		self::assertNull($saved['responses'][1]['autoScore']);
@@ -87,6 +120,6 @@ class AssessmentAutoScoreActionTest extends TestCase {
 	public function testUnreachableAssessmentThrows(): void {
 		$this->expectException(RuntimeException::class);
 
-		$this->makeAction(null)->execute(AssessmentScoringHandlerTest::submittedResult(), [], [], AssessmentAutoScoreAction::class);
+		$this->makeAction(null)->execute(self::submittedResult(), [], [], AssessmentAutoScoreAction::class);
 	}//end testUnreachableAssessmentThrows()
 }//end class
