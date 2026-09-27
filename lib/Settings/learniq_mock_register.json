@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.21",
+    "version": "1.1.22",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -29308,6 +29308,7 @@
         "learnerRefs": [
           "00000000-0000-4000-8000-000000000000"
         ],
+        "learnerRef": "00000000-0000-4000-8000-000000000000",
         "attachmentRefs": [
           "Voorbeeld Attachmentrefs 1"
         ],
@@ -29339,6 +29340,7 @@
         "learnerRefs": [
           "00000000-0000-4000-8000-000000000001"
         ],
+        "learnerRef": "00000000-0000-4000-8000-000000000001",
         "attachmentRefs": [
           "Voorbeeld Attachmentrefs 2"
         ],
@@ -29369,6 +29371,7 @@
         "learnerRefs": [
           "00000000-0000-4000-8000-000000000002"
         ],
+        "learnerRef": "00000000-0000-4000-8000-000000000002",
         "attachmentRefs": [
           "Voorbeeld Attachmentrefs 3"
         ],

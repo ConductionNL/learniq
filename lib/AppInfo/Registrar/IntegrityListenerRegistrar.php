@@ -33,6 +33,7 @@ use OCA\Learniq\Listener\CompetencyAlignmentListener;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
+use OCA\Learniq\Listener\SubmissionOwnerStamp;
 use OCA\Learniq\Listener\SubmissionResubmissionDateListener;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectDeletingEvent;
@@ -68,6 +69,20 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectDeletingEvent::class,
 			listener: AssessmentResultIntegrityListener::class
+		);
+
+		// Submission owner (assignment-portal-wiring): a portal hand-in gets
+		// its learners and tenant from the pupil's profile, every other write
+		// gets learnerRef from learnerIds[0], and no write may end without
+		// learners or tenant. Create and update, so a client never keeps a
+		// learnerRef of its own.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: SubmissionOwnerStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: SubmissionOwnerStamp::class
 		);
 
 		// PortfolioEntry ownership (learniq#981): every learner may create an

@@ -1950,7 +1950,9 @@ OC.L10N.register(
         "That course does not exist, or you cannot see it.": "That course does not exist, or you cannot see it.",
         "This file holds no lesson content learniq can read.": "This file holds no lesson content learniq can read.",
         "Choose a course first.": "Choose a course first.",
-        "The import failed. Try again later.": "The import failed. Try again later."
+        "The import failed. Try again later.": "The import failed. Try again later.",
+        "The LearnerProfile of the learner who handed in. The portal shows a pupil the submissions that carry their own profile here.": "The LearnerProfile of the learner who handed in. The portal shows a pupil the submissions that carry their own profile here.",
+        "The LearnerProfiles of the learners who handed in. Filled by the server on a portal hand-in.": "The LearnerProfiles of the learners who handed in. Filled by the server on a portal hand-in."
     },
     "nplurals=2; plural=(n != 1);"
 )
