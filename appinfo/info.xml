@@ -214,6 +214,14 @@ Vrij en open source onder de EUPL-1.2-licentie.
         </install>
     </repair-steps>
 
+    <!--
+        curriculum-coverage-rollup: fills CurriculumCoverage rows for data saved
+        before the rollup existed; the listener keeps them current afterwards.
+    -->
+    <commands>
+        <command>OCA\Learniq\Command\RecomputeCurriculumCoverage</command>
+    </commands>
+
     <settings>
         <admin>OCA\Learniq\Settings\AdminSettings</admin>
         <admin-section>OCA\Learniq\Sections\SettingsSection</admin-section>
