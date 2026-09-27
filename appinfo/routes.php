@@ -219,15 +219,11 @@ return [
         // P-new-7). Controller: PrivacyGovernanceController (slug: privacyGovernance).
         ['name' => 'privacyGovernance#overview', 'url' => '/api/privacy-governance/overview', 'verb' => 'GET'],
 
-        // Payment transaction — outbound initiate delegates to OpenConnector's
-        // (not-yet-built) PSP adapter; #[NoAdminRequired] + #[NoCSRFRequired]
-        // (any authenticated payer). Inbound callback receives OpenConnector's
-        // async status update; #[PublicPage] + #[NoCSRFRequired] since it is a
-        // server-to-server call with no NC session — authenticated instead by
-        // its own bearer-token check inside the controller (school-payments).
-        // Controller: PaymentTransactionController (slug: paymentTransaction).
-        ['name' => 'paymentTransaction#initiate', 'url' => '/api/payments/{orderId}/initiate', 'verb' => 'POST'],
-        ['name' => 'paymentTransaction#callback', 'url' => '/api/payments/callback',            'verb' => 'POST'],
+        // Raise a FeeItem's contributions in shillinq (payments-to-shillinq-migration,
+        // D19; shillinq contract extracurricular-fee-to-shillinq v1). #[NoAdminRequired]
+        // + the fee-item.raise-contributions action; shillinq checks payment.request.
+        // Controller: ContributionController (slug: contribution).
+        ['name' => 'contribution#raise', 'url' => '/api/fee-items/{id}/contributions', 'verb' => 'POST'],
 
         // Portable learning record — the calling user's own composed
         // trajectory (RBAC-gap read, mirrors LeaderboardController's own

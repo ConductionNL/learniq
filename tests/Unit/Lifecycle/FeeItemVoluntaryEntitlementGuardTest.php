@@ -5,9 +5,9 @@
  *
  * Covers the structural Wet vrijwillige ouderbijdrage guarantee: a voluntary
  * FeeItem's Entitlement must never be able to reach `active`, regardless of
- * the linked Order's payment status — including a paid Order (a guardian who
- * does pay is recorded as having paid, but that fact must never gate
- * anything).
+ * the payment state shillinq reports, including a captured payment (a
+ * guardian who does pay is recorded as having paid, but that fact must never
+ * gate anything).
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Lifecycle
@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
+ * @spec openspec/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
  */
 
 declare(strict_types=1);
@@ -31,9 +31,11 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Lifecycle\EntitlementOrderPaidGuard;
+use OCA\Learniq\Lifecycle\EntitlementPaymentSettledGuard;
 use OCA\Learniq\Lifecycle\FeeItemVoluntaryEntitlementGuard;
+use OCA\Learniq\Service\ContributionBeneficiaryResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCP\App\IAppManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -45,103 +47,126 @@ class FeeItemVoluntaryEntitlementGuardTest extends TestCase {
 	use GuardVerdicts;
 	/**
 	 * Build a guard whose ObjectService::find() resolves the given FeeItem
-	 * fixture, composing a real EntitlementOrderPaidGuard whose own
-	 * ObjectService resolves the given OrderLine/Order fixtures.
+	 * fixture, composing a real EntitlementPaymentSettledGuard whose reads of
+	 * shillinq's register resolve the given PaymentRequest fixture.
 	 *
 	 * @param array<string,mixed>|null $feeItem FeeItem data, or null (not found).
-	 * @param array<string,mixed>|null $orderLine OrderLine data, or null.
-	 * @param array<string,mixed>|null $order Order data, or null.
+	 * @param array<string,mixed>|null $paymentRequest Shillinq PaymentRequest data, or null.
 	 *
 	 * @return FeeItemVoluntaryEntitlementGuard
 	 */
-	private function makeGuard(?array $feeItem, ?array $orderLine = null, ?array $order = null): FeeItemVoluntaryEntitlementGuard {
+	private function makeGuard(?array $feeItem, ?array $paymentRequest = null): FeeItemVoluntaryEntitlementGuard {
 		$objectService = $this->createMock(ObjectService::class);
 		// OpenRegister's find() is find($id, $_extend, $files, $register, $schema, ...)
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($feeItem, $orderLine, $order) {
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($feeItem, $paymentRequest) {
 				if ($schema === 'fee-item' && $feeItem !== null) {
 					return OrEntityFactory::make($feeItem, 'fee-item');
 				}
 
-				if ($schema === 'order-line' && $orderLine !== null) {
-					return OrEntityFactory::make($orderLine, 'order-line');
-				}
-
-				if ($schema === 'order' && $order !== null) {
-					return OrEntityFactory::make($order, 'order');
+				if ($register === 'shillinq' && $schema === 'PaymentRequest' && $paymentRequest !== null) {
+					return OrEntityFactory::make($paymentRequest, 'PaymentRequest');
 				}
 
 				return null;
 			}
 		);
 
-		$orderPaidGuard = new EntitlementOrderPaidGuard($objectService, $this->createMock(LoggerInterface::class));
+		$appManager = $this->createMock(IAppManager::class);
+		$appManager->method('isInstalled')->willReturn(true);
 
-		return new FeeItemVoluntaryEntitlementGuard($objectService, $orderPaidGuard, $this->createMock(LoggerInterface::class));
+		$settledGuard = new EntitlementPaymentSettledGuard(
+			$objectService,
+			$appManager,
+			new ContributionBeneficiaryResolver($objectService),
+			$this->createMock(LoggerInterface::class)
+		);
+
+		return new FeeItemVoluntaryEntitlementGuard($objectService, $settledGuard, $this->createMock(LoggerInterface::class));
 	}//end makeGuard()
 
 	/**
-	 * A voluntary FeeItem's Entitlement can never activate — even when the
-	 * linked Order has reached `paid`.
+	 * A shillinq contribution request for fee-1 and leerling-001, settled or not.
+	 *
+	 * @param string $state The request state; `settled` sets settledAt.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function request(string $state): array {
+		$request = [
+			'id' => 'pr-1',
+			'subjectKind' => 'object',
+			'subject' => ['app' => 'learniq', 'type' => 'fee-item', 'register' => 'learniq', 'schema' => 'fee-item', 'id' => 'fee-1'],
+			'beneficiary' => ['type' => 'learner', 'id' => 'leerling-001'],
+			'requestType' => 'contribution',
+			'state' => $state,
+		];
+		if ($state === 'settled') {
+			$request['state'] = 'captured';
+			$request['settledAt'] = '2026-10-02T09:15:00+00:00';
+		}
+
+		return $request;
+	}//end request()
+
+	/**
+	 * A voluntary FeeItem's Entitlement can never activate, even when shillinq
+	 * reports its payment captured.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
+	 * @spec openspec/specs/payments/spec.md#scenario-an-entitlement-referencing-a-voluntary-feeitem-can-never-activate
 	 */
-	public function testVoluntaryFeeItemBlocksGrantRegardlessOfOrderStatus(): void {
-		foreach (['draft', 'open', 'partially-paid', 'paid', 'cancelled', 'refunded'] as $orderState) {
+	public function testVoluntaryFeeItemBlocksGrantRegardlessOfPaymentState(): void {
+		foreach (['pending', 'authorized', 'captured', 'captured_unapplied', 'failed', 'voided', 'settled'] as $state) {
 			$guard = $this->makeGuard(
 				feeItem: ['id' => 'fee-1', 'voluntary' => true],
-				orderLine: ['id' => 'line-1', 'orderId' => 'order-1'],
-				order: ['id' => 'order-1', 'lifecycle' => $orderState]
+				paymentRequest: $this->request(state: $state)
 			);
-			$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'orderLineId' => 'line-1', 'lifecycle' => 'active'];
+			$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'learnerId' => 'leerling-001', 'paymentRequestRef' => 'pr-1', 'lifecycle' => 'active'];
 
 			self::assertDenied(
 				$guard->check($object, 'grant', ''),
-				"voluntary FeeItem must block grant even when Order is '{$orderState}'"
+				"voluntary FeeItem must block grant even when the payment is '{$state}'"
 			);
 		}
 
-	}//end testVoluntaryFeeItemBlocksGrantRegardlessOfOrderStatus()
+	}//end testVoluntaryFeeItemBlocksGrantRegardlessOfPaymentState()
 
 	/**
-	 * A non-voluntary FeeItem is unaffected by this guard — the composed
-	 * EntitlementOrderPaidGuard's own check still applies (paid Order allows).
+	 * A non-voluntary FeeItem is unaffected by this guard: the composed
+	 * EntitlementPaymentSettledGuard allows once shillinq reports it settled.
 	 *
 	 * @return void
 	 */
-	public function testNonVoluntaryFeeItemAllowsGrantWhenOrderPaid(): void {
+	public function testNonVoluntaryFeeItemAllowsGrantWhenPaymentSettled(): void {
 		$guard = $this->makeGuard(
 			feeItem: ['id' => 'fee-1', 'voluntary' => false],
-			orderLine: ['id' => 'line-1', 'orderId' => 'order-1'],
-			order: ['id' => 'order-1', 'lifecycle' => 'paid']
+			paymentRequest: $this->request(state: 'settled')
 		);
-		$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'orderLineId' => 'line-1', 'lifecycle' => 'active'];
+		$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'learnerId' => 'leerling-001', 'paymentRequestRef' => 'pr-1', 'lifecycle' => 'active'];
 
 		self::assertAllowed($guard->check($object, 'grant', ''));
 
-	}//end testNonVoluntaryFeeItemAllowsGrantWhenOrderPaid()
+	}//end testNonVoluntaryFeeItemAllowsGrantWhenPaymentSettled()
 
 	/**
-	 * A non-voluntary FeeItem still refuses when the composed
-	 * EntitlementOrderPaidGuard's own check fails (Order not paid).
+	 * A non-voluntary FeeItem still refuses while the payment is not settled, even when captured.
 	 *
 	 * @return void
 	 */
-	public function testNonVoluntaryFeeItemRefusesGrantWhenOrderNotPaid(): void {
+	public function testNonVoluntaryFeeItemRefusesGrantWhenPaymentNotSettled(): void {
 		$guard = $this->makeGuard(
 			feeItem: ['id' => 'fee-1', 'voluntary' => false],
-			orderLine: ['id' => 'line-1', 'orderId' => 'order-1'],
-			order: ['id' => 'order-1', 'lifecycle' => 'partially-paid']
+			paymentRequest: $this->request(state: 'captured')
 		);
-		$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'orderLineId' => 'line-1', 'lifecycle' => 'active'];
+		$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'learnerId' => 'leerling-001', 'paymentRequestRef' => 'pr-1', 'lifecycle' => 'active'];
 
 		self::assertDenied($guard->check($object, 'grant', ''));
 
-	}//end testNonVoluntaryFeeItemRefusesGrantWhenOrderNotPaid()
+	}//end testNonVoluntaryFeeItemRefusesGrantWhenPaymentNotSettled()
 
 	/**
 	 * A missing feeItemId fails closed.

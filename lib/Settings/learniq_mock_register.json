@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.24",
+    "version": "1.1.25",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -9760,9 +9760,9 @@
       "Entitlement": {
         "slug": "entitlement",
         "icon": "CheckDecagramOutline",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "title": "Entitlement",
-        "description": "What a paid, non-voluntary Order grants (e.g. access to a paid Course). Structurally cannot become a gate for a voluntary fee: the grant transition (pending -> active) requires BOTH FeeItemVoluntaryEntitlementGuard (refuses if the referenced FeeItem.voluntary is true, per the Wet vrijwillige ouderbijdrage) AND EntitlementOrderPaidGuard (refuses unless the referenced Order has reached paid). Nothing in this capability gates access on a pending Entitlement — only active ones grant anything — so it is structurally impossible for a voluntary fee to ever become an access gate through this capability's own mechanism. See openspec/changes/school-payments/.",
+        "description": "What a paid, non-voluntary fee grants (e.g. access to a paid Course). A school charges through shillinq: learniq raises the fee's contribution there (the FeeItem is the chargeable, the learner the beneficiary), shillinq books the receipt, and the pay screen is portaliq's. The grant transition (pending -> active) requires BOTH FeeItemVoluntaryEntitlementGuard (refuses if the referenced FeeItem.voluntary is true, per the Wet vrijwillige ouderbijdrage) AND EntitlementPaymentSettledGuard (refuses unless shillinq reports the PaymentRequest named in paymentRequestRef settled, for this fee and this learner; fails closed without shillinq). Nothing gates access on a pending Entitlement, so a voluntary fee can never become an access gate. See openspec/changes/payments-to-shillinq-migration/.",
         "type": "object",
         "x-openregister": {
           "active": true,
@@ -9771,7 +9771,6 @@
         },
         "required": [
           "feeItemId",
-          "orderLineId",
           "learnerId",
           "grantedResourceKind",
           "tenant_id"
@@ -9784,12 +9783,27 @@
             "description": "UUID of the FeeItem this Entitlement is for. FeeItemVoluntaryEntitlementGuard reads this FeeItem's voluntary flag to decide whether the grant transition may ever succeed.",
             "title": "Fee Item ID"
           },
-          "orderLineId": {
+          "paymentRequestRef": {
             "type": "string",
-            "format": "uuid",
-            "$ref": "OrderLine",
-            "description": "UUID of the OrderLine this Entitlement is for. EntitlementOrderPaidGuard resolves this OrderLine's parent Order to check whether payment has completed.",
-            "title": "Order Line ID"
+            "nullable": true,
+            "default": null,
+            "title": "Payment request",
+            "description": "Id of the shillinq PaymentRequest raised for this entitlement's fee and learner. Learniq stamps it when it raises the contribution and again when shillinq reports the request settled; the grant guard reads the request back from shillinq before it allows the grant."
+          },
+          "paymentSettledAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "default": null,
+            "title": "Payment settled at",
+            "description": "When shillinq first reported the payment request settled (its settledAt)."
+          },
+          "paymentSettledVia": {
+            "type": "string",
+            "nullable": true,
+            "default": null,
+            "title": "Payment settled via",
+            "description": "How shillinq reports the payment completed (its settledVia): provider, cash, pin, bank-transfer, waived or other."
           },
           "learnerId": {
             "type": "string",
@@ -9853,8 +9867,9 @@
               "to": "revoked"
             }
           },
-          "_comment": "requires is a single DI-tag string in this register's lifecycle engine (verified: ReportPeriodLockGuard's own docblock/changelog entry — OpenRegister's LifecycleAnnotationValidator rejects a non-string requires value) — there is no 'second requires entry' array shape. FeeItemVoluntaryEntitlementGuard composes OCA\\Learniq\\Lifecycle\\EntitlementOrderPaidGuard internally (constructor-injected, called after the voluntary check passes), mirroring ReportPeriodLockGuard's own composition of FraudCaseBlockGuard. The voluntary check runs FIRST and short-circuits so a voluntary FeeItem is refused regardless of the linked Order's paid status, exactly as the spec's own scenario requires."
+          "_comment": "requires is a single DI-tag string in this register's lifecycle engine (OpenRegister's LifecycleAnnotationValidator rejects a non-string requires value). FeeItemVoluntaryEntitlementGuard composes OCA\\Learniq\\Lifecycle\\EntitlementPaymentSettledGuard internally, called after the voluntary check passes; the voluntary check runs FIRST and short-circuits. grant is fired by ShillinqContributionSettledListener when shillinq first stamps settledAt on the PaymentRequest for this fee and learner; grant and revoke may also be fired by hand."
         },
+        "authorization": null,
         "x-property-rbac": {
           "_comment": "Mirrors FinalGrade's block: the learner reads their own Entitlement; admin/finance roles read all. A learner MUST NOT read another learner's Entitlement.",
           "read": {
@@ -11692,9 +11707,9 @@
       "FeeItem": {
         "slug": "fee-item",
         "icon": "CurrencyEur",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "FeeItem",
-        "description": "The chargeable definition: what is being charged for (course enrolment, school trip, materials, schoolkassa contribution, MBO contractonderwijs), its amount/currency/tax posture, and a required voluntary flag. voluntary: true is the Wet vrijwillige ouderbijdrage case (schoolkassa, trips, materials a school chooses to make voluntary) — FeeItemVoluntaryEntitlementGuard structurally blocks any Entitlement referencing a voluntary FeeItem from ever activating. voluntary: false is a genuine paid product (contractonderwijs, a paid course) that may legitimately gate access via Entitlement/EntitlementOrderPaidGuard. See openspec/changes/school-payments/.",
+        "description": "The chargeable definition: what is being charged for (course enrolment, school trip, materials, schoolkassa contribution, MBO contractonderwijs), its amount/currency/tax posture, and a required voluntary flag. voluntary: true is the Wet vrijwillige ouderbijdrage case (schoolkassa, trips, materials a school chooses to make voluntary): FeeItemVoluntaryEntitlementGuard structurally blocks any Entitlement referencing a voluntary FeeItem from ever activating. voluntary: false is a genuine paid product (contractonderwijs, a paid course) that may gate access through an Entitlement once shillinq reports its payment settled. The invoice and payment request are shillinq's: learniq raises them for the fee's learners through shillinq's contribution contract, with this FeeItem as the chargeable.",
         "type": "object",
         "x-openregister": {
           "active": true,
@@ -16378,499 +16393,6 @@
             "team-leads"
           ]
         }
-      },
-      "Order": {
-        "slug": "order",
-        "icon": "CartOutline",
-        "version": "0.1.0",
-        "title": "Order",
-        "description": "The payer-facing request for payment: payer (guardian/learner/employer), beneficiary learner, total, currency, due date, and a lifecycle draft -> open -> partially-paid | paid, draft | open -> cancelled, paid -> refunded. isOverdue is a materialised calculation using the identical @now-comparison idiom Enrolment.isOverdue already uses; dueSoon/overdue reuse Enrolment.dueReminder/Enrolment.overdue's exact x-openregister-notifications shape. See openspec/changes/school-payments/.",
-        "type": "object",
-        "x-openregister": {
-          "active": true,
-          "hardDelete": false,
-          "searchable": true
-        },
-        "required": [
-          "payerKind",
-          "learnerId",
-          "totalAmount",
-          "currency",
-          "tenant_id"
-        ],
-        "properties": {
-          "payerKind": {
-            "type": "string",
-            "enum": [
-              "guardian",
-              "learner",
-              "employer"
-            ],
-            "description": "Who is paying this Order.",
-            "title": "Payer Kind"
-          },
-          "payerId": {
-            "type": "string",
-            "nullable": true,
-            "description": "Nextcloud user ID of the payer, when the payer has an NC account (guardian or learner paying for themselves).",
-            "title": "Payer ID"
-          },
-          "payerName": {
-            "type": "string",
-            "nullable": true,
-            "description": "Free-text payer name, for an employer or other payer with no Nextcloud account.",
-            "title": "Payer Name"
-          },
-          "payerEmail": {
-            "type": "string",
-            "nullable": true,
-            "description": "Payer email address, for an employer or other payer with no Nextcloud account, or as a notification fallback.",
-            "title": "Payer Email"
-          },
-          "learnerId": {
-            "type": "string",
-            "description": "Nextcloud user ID of the beneficiary learner — who this Order's chargeables are for.",
-            "title": "Learner ID"
-          },
-          "learnerRef": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true,
-            "$ref": "LearnerProfile",
-            "description": "UUID reference to the LearnerProfile object — the portal-subject scoping key (ADR-046 A4). Distinct from learnerId, which is the Nextcloud user id. Additive and optional; existing rows leave it unset and stay invisible to the portal (fail-closed) until backfilled.",
-            "title": "Learner Ref"
-          },
-          "totalAmount": {
-            "type": "number",
-            "minimum": 0,
-            "description": "The total amount owed for this Order — the sum of its OrderLines. Validated (not merely trusted) by OrderTotalValidationGuard at the draft -> open transition.",
-            "title": "Total Amount"
-          },
-          "currency": {
-            "type": "string",
-            "default": "EUR",
-            "description": "ISO 4217 currency code. Defaults to EUR.",
-            "title": "Currency"
-          },
-          "dueDate": {
-            "type": "string",
-            "nullable": true,
-            "format": "date",
-            "description": "ISO date by which payment is due. Null means no deadline.",
-            "title": "Due Date"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true,
-            "description": "Free-text notes about this Order.",
-            "title": "Notes"
-          },
-          "lifecycle": {
-            "type": "string",
-            "enum": [
-              "draft",
-              "open",
-              "partially-paid",
-              "paid",
-              "cancelled",
-              "refunded"
-            ],
-            "default": "draft",
-            "description": "Order lifecycle state. Managed by the OR lifecycle engine; do not set directly.",
-            "title": "Lifecycle State"
-          },
-          "tenant_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Tenant identifier for multi-tenant scoping.",
-            "title": "Tenant ID"
-          }
-        },
-        "x-openregister-lifecycle": {
-          "property": "lifecycle",
-          "initial": "draft",
-          "transitions": {
-            "finalize": {
-              "from": "draft",
-              "to": "open",
-              "requires": "OCA\\Learniq\\Lifecycle\\OrderTotalValidationGuard"
-            },
-            "markPartiallyPaid": {
-              "from": "open",
-              "to": "partially-paid"
-            },
-            "markPaid": {
-              "from": [
-                "open",
-                "partially-paid"
-              ],
-              "to": "paid"
-            },
-            "cancel": {
-              "from": [
-                "draft",
-                "open"
-              ],
-              "to": "cancelled"
-            },
-            "refund": {
-              "from": "paid",
-              "to": "refunded"
-            }
-          },
-          "_comment": "markPartiallyPaid/markPaid are driven by PaymentTransactionStatusHandler (event-driven, ADR-022 — NOT a TimedJob) reacting to a PaymentTransaction reaching succeeded, never called directly by a controller. refund is driven by the same handler reacting to a PaymentTransaction reaching refunded."
-        },
-        "x-openregister-calculations": {
-          "isOverdue": {
-            "type": "boolean",
-            "materialise": true,
-            "expression": {
-              "and": [
-                {
-                  "or": [
-                    {
-                      "eq": [
-                        {
-                          "prop": "lifecycle"
-                        },
-                        "open"
-                      ]
-                    },
-                    {
-                      "eq": [
-                        {
-                          "prop": "lifecycle"
-                        },
-                        "partially-paid"
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "ne": [
-                    {
-                      "prop": "dueDate"
-                    },
-                    null
-                  ]
-                },
-                {
-                  "lt": [
-                    {
-                      "prop": "dueDate"
-                    },
-                    {
-                      "now": []
-                    }
-                  ]
-                }
-              ]
-            }
-          }
-        },
-        "x-openregister-notifications": {
-          "dueSoon": {
-            "trigger": {
-              "type": "scheduled",
-              "intervalSec": 86400,
-              "filter": {
-                "dueDate": {
-                  "operator": "withinNext",
-                  "value": "P3D"
-                }
-              }
-            },
-            "enabled": true,
-            "channels": [
-              "nc-notification"
-            ],
-            "recipients": [
-              {
-                "kind": "field",
-                "field": "payerId"
-              }
-            ],
-            "subject": {
-              "nl": "Je betaling moet binnenkort voldaan zijn",
-              "en": "Your payment is due soon"
-            }
-          },
-          "overdue": {
-            "trigger": {
-              "type": "scheduled",
-              "intervalSec": 86400,
-              "filter": {
-                "dueDate": {
-                  "operator": "olderThan",
-                  "value": "PT0S"
-                }
-              }
-            },
-            "enabled": true,
-            "channels": [
-              "nc-notification"
-            ],
-            "recipients": [
-              {
-                "kind": "field",
-                "field": "payerId"
-              }
-            ],
-            "subject": {
-              "nl": "Je betaling is over tijd",
-              "en": "Your payment is overdue"
-            }
-          }
-        },
-        "x-property-rbac": {
-          "_comment": "Mirrors FinalGrade's block: the payer (payerId) and the beneficiary learner (learnerId) read their own Order; admin/finance roles read all. A learner/guardian MUST NOT read another payer's Order.",
-          "read": {
-            "anyOf": [
-              {
-                "role": "admin"
-              },
-              {
-                "role": "finance"
-              },
-              {
-                "match": {
-                  "field": "payerId",
-                  "operator": "eq",
-                  "value": "$userId"
-                }
-              },
-              {
-                "match": {
-                  "field": "learnerId",
-                  "operator": "eq",
-                  "value": "$userId"
-                }
-              }
-            ]
-          }
-        },
-        "x-openregister-seed": []
-      },
-      "OrderLine": {
-        "slug": "order-line",
-        "icon": "FormatListNumbered",
-        "version": "0.1.0",
-        "title": "OrderLine",
-        "description": "One priced line on an Order, referencing a FeeItem. A snapshot child row (mirrors AttendanceRecord/GradeEntry's shape), not an inline array — no verified precedent in this register for an array-of-composite-objects property carrying its own $ref relations. Order.totalAmount is validated against the sum of its OrderLines' lineTotal by OrderTotalValidationGuard at the draft -> open transition. See openspec/changes/school-payments/.",
-        "type": "object",
-        "x-openregister": {
-          "active": true,
-          "hardDelete": false,
-          "searchable": true
-        },
-        "required": [
-          "orderId",
-          "feeItemId",
-          "description",
-          "quantity",
-          "unitAmount",
-          "lineTotal",
-          "tenant_id"
-        ],
-        "properties": {
-          "orderId": {
-            "type": "string",
-            "format": "uuid",
-            "$ref": "Order",
-            "description": "UUID of the parent Order this line belongs to.",
-            "title": "Order ID"
-          },
-          "feeItemId": {
-            "type": "string",
-            "format": "uuid",
-            "$ref": "FeeItem",
-            "description": "UUID of the FeeItem this line charges for.",
-            "title": "Fee Item ID"
-          },
-          "description": {
-            "type": "string",
-            "description": "Snapshot of the FeeItem's name at the time this line was added — kept stable even if the FeeItem is later edited.",
-            "title": "Line Description"
-          },
-          "quantity": {
-            "type": "integer",
-            "minimum": 1,
-            "default": 1,
-            "description": "Number of units charged.",
-            "title": "Quantity"
-          },
-          "unitAmount": {
-            "type": "number",
-            "minimum": 0,
-            "description": "Amount charged per unit, in the parent Order's currency.",
-            "title": "Unit Amount"
-          },
-          "lineTotal": {
-            "type": "number",
-            "minimum": 0,
-            "description": "quantity * unitAmount. Summed across all of an Order's OrderLines by OrderTotalValidationGuard and compared against Order.totalAmount.",
-            "title": "Line Total"
-          },
-          "tenant_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Tenant identifier for multi-tenant scoping.",
-            "title": "Tenant ID"
-          }
-        },
-        "x-openregister-seed": []
-      },
-      "PaymentTransaction": {
-        "slug": "payment-transaction",
-        "icon": "CreditCardOutline",
-        "version": "0.1.0",
-        "title": "PaymentTransaction",
-        "description": "One PSP round-trip against an Order (pending -> awaiting-redirect -> succeeded | failed | expired | cancelled, succeeded -> refunded). Append-only per ADR-008, mirroring Attestation's evidentiary shape. Records only the opaque status OpenConnector's (not-yet-built) PSP adapter returns — scholiq never parses a Mollie/Stripe-specific payload field, matching the 'forward the response as-is' posture LtiToolPlacementController already establishes for LTI. See openspec/changes/school-payments/.",
-        "type": "object",
-        "x-openregister": {
-          "active": true,
-          "hardDelete": false,
-          "searchable": true
-        },
-        "required": [
-          "orderId",
-          "pspProvider",
-          "amount",
-          "currency",
-          "initiatedBy",
-          "initiatedAt",
-          "tenant_id"
-        ],
-        "properties": {
-          "orderId": {
-            "type": "string",
-            "format": "uuid",
-            "$ref": "Order",
-            "description": "UUID of the Order this payment attempt is for.",
-            "title": "Order ID"
-          },
-          "pspProvider": {
-            "type": "string",
-            "enum": [
-              "mollie",
-              "stripe"
-            ],
-            "description": "Which payment service provider this transaction routes through — matches the credential-broker's catalogued mollie/stripe provider identifiers (openregister/lib/Settings/credential-providers.json).",
-            "title": "PSP Provider"
-          },
-          "pspPaymentId": {
-            "type": "string",
-            "nullable": true,
-            "description": "Opaque payment identifier returned by OpenConnector's PSP adapter once initiation succeeds. Scholiq stores this value only — never inspects or parses it. KNOWN GAP (documented, not fabricated): this schema is appendOnly (OpenRegister rejects any UPDATE, INSERT only), and this value is only knowable AFTER the PaymentTransaction row already exists (the row's own id is needed as the callback reference sent to OpenConnector before OpenConnector can return a pspPaymentId), so PaymentTransactionController does not currently persist it on any code path. Declared here for forward-compatibility; see PaymentTransactionController::initiate()'s docblock.",
-            "title": "PSP Payment ID"
-          },
-          "amount": {
-            "type": "number",
-            "description": "Amount of this payment attempt. PaymentTransactionController::initiate() always computes this server-side from the Order's remaining balance and never accepts a client-supplied amount. KNOWN GAP (documented, not fabricated): OpenRegister's generic object-create API carries no role restriction on this schema — an admin-only x-openregister-authorization.create (mirroring XapiStatement's stopgap) would also block initiate()'s own non-admin payer callers, and ObjectService::runAsSystem()'s own docblock warns against wrapping user-triggered writes in elevated system trust — so a payer who bypassed the controller and POSTed directly to the OR object API could still set an arbitrary amount. This residual risk is acknowledged here rather than silently assumed away; see PaymentTransactionController::initiate()'s docblock.",
-            "title": "Amount"
-          },
-          "currency": {
-            "type": "string",
-            "default": "EUR",
-            "description": "ISO 4217 currency code. Defaults to EUR.",
-            "title": "Currency"
-          },
-          "initiatedBy": {
-            "type": "string",
-            "description": "Nextcloud user ID of the caller who initiated this payment attempt.",
-            "title": "Initiated By"
-          },
-          "initiatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When this payment attempt was initiated.",
-            "title": "Initiated At"
-          },
-          "completedAt": {
-            "type": "string",
-            "nullable": true,
-            "format": "date-time",
-            "description": "When this payment attempt reached a terminal state (succeeded/failed/expired/cancelled). Not populated by this change's callback() implementation — a documented follow-up, not a fabricated guarantee (see PaymentTransactionController docblock).",
-            "title": "Completed At"
-          },
-          "lifecycle": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "awaiting-redirect",
-              "succeeded",
-              "failed",
-              "expired",
-              "cancelled",
-              "refunded"
-            ],
-            "default": "pending",
-            "description": "PaymentTransaction lifecycle state. Managed by the OR lifecycle engine; do not set directly.",
-            "title": "Lifecycle State"
-          },
-          "tenant_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Tenant identifier for multi-tenant scoping.",
-            "title": "Tenant ID"
-          }
-        },
-        "x-openregister-lifecycle": {
-          "property": "lifecycle",
-          "initial": "pending",
-          "transitions": {
-            "initiate": {
-              "from": "pending",
-              "to": "awaiting-redirect"
-            },
-            "succeed": {
-              "from": "awaiting-redirect",
-              "to": "succeeded"
-            },
-            "fail": {
-              "from": [
-                "pending",
-                "awaiting-redirect"
-              ],
-              "to": "failed"
-            },
-            "expire": {
-              "from": "awaiting-redirect",
-              "to": "expired"
-            },
-            "cancel": {
-              "from": "awaiting-redirect",
-              "to": "cancelled"
-            },
-            "refund": {
-              "from": "succeeded",
-              "to": "refunded"
-            }
-          },
-          "_comment": "initiate is driven by PaymentTransactionController::initiate() itself once OpenConnector's launch-initiation call succeeds (moving the freshly-created pending row to awaiting-redirect). fail additionally allows pending -> failed directly, for the case where the outbound OpenConnector call itself fails synchronously inside initiate() before any redirect ever happened. succeed/expire/cancel/refund (and the awaiting-redirect branch of fail) are driven by PaymentTransactionController::callback() (OpenConnector's PSP adapter reporting a status update) — never called directly by a raw OR object-API client."
-        },
-        "x-property-rbac": {
-          "_comment": "Mirrors FinalGrade's block, adapted to this schema's actual fields (PaymentTransaction has no payerId/learnerId of its own): the caller who initiated the payment (initiatedBy) reads their own PaymentTransaction; admin/finance roles read all.",
-          "read": {
-            "anyOf": [
-              {
-                "role": "admin"
-              },
-              {
-                "role": "finance"
-              },
-              {
-                "match": {
-                  "field": "initiatedBy",
-                  "operator": "eq",
-                  "value": "$userId"
-                }
-              }
-            ]
-          }
-        },
-        "x-openregister-seed": [],
-        "appendOnly": true
       },
       "PeerFeedbackSummary": {
         "slug": "peer-feedback-summary",

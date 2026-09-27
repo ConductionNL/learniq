@@ -13,8 +13,11 @@ credentials; a credential that expires during the year opens a renewal
 enrolment, the way CredentialRenewalListener does it. Around that: toolbox
 meetings with their attendance, external training records, a competency
 framework with the skills gaps it shows, a personal development plan per
-employee, engagement scores, points and leaderboards, and orders with
-entitlements for the three paid courses.
+employee, engagement scores, points and leaderboards, and entitlements for the
+three paid courses. The company pays those through shillinq (D19,
+payments-to-shillinq-migration), so the set carries no orders or payments of
+its own: a paid enrolment has an active entitlement with the day the payment
+settled, an unpaid one a pending entitlement, a cancelled one none.
 
 WHY A SCRIPT. The set is several thousand objects that must agree with each
 other: a renewal enrolment starts on the day the old certificate expires, the
@@ -66,8 +69,6 @@ COMPANY = "Voorbeeldbedrijf Esdoorn Techniek B.V."
 TOWN = "Esdoornhaven"
 COMPANY_DID = "did:web:esdoorn-techniek.example"
 UNSIGNED = "voorbeeldgegevens-niet-ondertekend"
-PAYER = COMPANY + ", afdeling HR"
-PAYER_EMAIL = "opleidingen@esdoorn-techniek.example"
 OB3_CONTEXT = ["https://www.w3.org/ns/credentials/v2", "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json"]
 VERB_COMPLETED = "http://adlnet.gov/expapi/verbs/completed"
 VERB_PASSED = "http://adlnet.gov/expapi/verbs/passed"
@@ -119,9 +120,6 @@ SCHEMAS = [
     "learner-engagement",
     "leaderboard",
     "fee-item",
-    "order",
-    "order-line",
-    "payment-transaction",
     "entitlement",
 ]
 
@@ -1237,7 +1235,7 @@ def build() -> dict:
     b.add("leaderboard", {"name": "Leerkampioenen installatie en service", "cohortId": cohorts["installatie"]["uuid"], "topN": 5, "lifecycle": "active"})
     b.add("leaderboard", {"name": "Leerkampioenen verkoop en klantenservice", "cohortId": cohorts["verkoop"]["uuid"], "topN": 5, "lifecycle": "active"})
 
-    # --- paid courses: fee items, orders, payments, entitlements ---------------------------------------
+    # --- paid courses: fee items and entitlements; payment is shillinq's (D19) ---------------------------
     fees = {
         "WP": b.add("fee-item", {"name": "Praktijkcursus warmtepompen", "description": "Deelname aan de tweedaagse externe praktijkcursus.",
                                  "kind": "course-enrolment", "amount": 895.0, "currency": "EUR", "voluntary": False, "taxPosture": "standard-rate",
@@ -1252,34 +1250,17 @@ def build() -> dict:
                                   "linkedCourseId": courses["PRJ"]["uuid"], "academicYear": YEAR, "validFrom": FIRST_DAY.isoformat(),
                                   "validUntil": LAST_DAY.isoformat(), "lifecycle": "active"}),
     }
-    payment = 0
-    for index, (e, key, day) in enumerate(paid):
+    for e, key, day in paid:
         fee, p = fees[key], e["_p"]
-        state = "cancelled" if e["lifecycle"] == "withdrawn" else "open" if e["lifecycle"] == "pending" else "paid"
-        order = b.add("order", {"payerKind": "employer", "payerName": PAYER, "payerEmail": PAYER_EMAIL, "learnerId": p["nc"],
-                                "learnerRef": p["profile"]["uuid"], "totalAmount": fee["amount"], "currency": "EUR",
-                                "dueDate": (day + dt.timedelta(days=30)).isoformat(), "notes": f"Kostenplaats {dept_of[p['dept']][1]}",
-                                "lifecycle": state, "paymentRequestSentAt": iso(moment(day, 10, 0)), "paymentRequestSentBy": COORDINATOR})
-        line = b.add("order-line", {"orderId": order["uuid"], "feeItemId": fee["uuid"], "description": fee["name"], "quantity": 1,
-                                    "unitAmount": fee["amount"], "lineTotal": fee["amount"]})
-        if state != "paid":
-            if state == "open":
-                b.add("entitlement", {"feeItemId": fee["uuid"], "orderLineId": line["uuid"], "learnerId": p["nc"],
-                                      "grantedResourceKind": "course-access", "grantedResourceId": courses[key]["uuid"], "lifecycle": "pending"})
+        if e["lifecycle"] == "withdrawn":
             continue
-        started = moment(plus_workdays(day, 1), 11, 0)
-        if index == 2:
-            payment += 1
-            b.add("payment-transaction", {"orderId": order["uuid"], "pspProvider": "mollie", "pspPaymentId": f"tr_VOORBEELD{payment:04d}",
-                                          "amount": fee["amount"], "currency": "EUR", "initiatedBy": COORDINATOR,
-                                          "initiatedAt": iso(started - dt.timedelta(hours=1)), "lifecycle": "failed"})
-        payment += 1
-        paid_at = started + dt.timedelta(minutes=4)
-        b.add("payment-transaction", {"orderId": order["uuid"], "pspProvider": "mollie", "pspPaymentId": f"tr_VOORBEELD{payment:04d}",
-                                      "amount": fee["amount"], "currency": "EUR", "initiatedBy": COORDINATOR, "initiatedAt": iso(started),
-                                      "completedAt": iso(paid_at), "lifecycle": "succeeded"})
-        b.add("entitlement", {"feeItemId": fee["uuid"], "orderLineId": line["uuid"], "learnerId": p["nc"], "grantedResourceKind": "course-access",
-                              "grantedResourceId": courses[key]["uuid"], "grantedAt": iso(paid_at), "lifecycle": "active"})
+        entitlement = {"feeItemId": fee["uuid"], "learnerId": p["nc"], "grantedResourceKind": "course-access",
+                       "grantedResourceId": courses[key]["uuid"]}
+        if e["lifecycle"] == "pending":
+            b.add("entitlement", {**entitlement, "lifecycle": "pending"})
+            continue
+        paid_at = moment(plus_workdays(day, 1), 11, 4)
+        b.add("entitlement", {**entitlement, "paymentSettledAt": iso(paid_at), "grantedAt": iso(paid_at), "lifecycle": "active"})
 
     # --- assemble -------------------------------------------------------------------------------------
     for rows in b.buckets.values():

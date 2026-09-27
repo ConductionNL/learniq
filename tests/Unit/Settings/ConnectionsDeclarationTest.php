@@ -273,7 +273,7 @@ class ConnectionsDeclarationTest extends TestCase {
 		}
 
 		$this->assertSame(
-			expected: ['data-exchange', 'timetable', 'lti', 'payment', 'sbb', 'proctoring', 'plagiarism'],
+			expected: ['data-exchange', 'timetable', 'lti', 'sbb', 'proctoring', 'plagiarism'],
 			actual: $unavailable
 		);
 	}//end testEveryUnavailableConnectionSaysWhy()
@@ -296,7 +296,6 @@ class ConnectionsDeclarationTest extends TestCase {
 				"'/apps/openconnector/api/lti/deployments/%s/launch'",
 				'api/lti/deployments/[id]/launch',
 			],
-			'payment' => ['lib/Service/PaymentInitiationClient.php', "'api/payments/initiate'", 'api/payments/initiate'],
 		];
 
 		foreach ($calls as $key => [$file, $constant, $named]) {
@@ -305,6 +304,22 @@ class ConnectionsDeclarationTest extends TestCase {
 			$this->assertStringContainsString(needle: $named, haystack: (string)$byKey[$key]['unavailableMessage'], message: $key);
 		}
 	}//end testTheUnavailableMessagesNameTheCalledPaths()
+
+	/**
+	 * Payments need the shillinq administration the raise sends.
+	 *
+	 * @return void
+	 */
+	public function testPaymentsRequireTheAdministrationTheRaiseSends(): void {
+		$payment = $this->connectionsByKey()['payment'];
+
+		$this->assertSame(expected: ['shillinq_administration_id'], actual: $payment['requiredConfig']);
+		$this->assertArrayNotHasKey(key: 'available', array: $payment);
+		$this->assertStringContainsString(
+			needle: "ADMINISTRATION_KEY = 'shillinq_administration_id'",
+			haystack: (string)file_get_contents($this->root() . '/lib/Service/ContributionRaiser.php')
+		);
+	}//end testPaymentsRequireTheAdministrationTheRaiseSends()
 
 	/**
 	 * The wallet needs the token every wallet call sends.
