@@ -48,8 +48,25 @@
 			"title": "External training",
 			"config": {
 				"register": "learniq",
-				"schema": "external-training-record"
+				"schema": "external-training-record",
+				"headerActions": [
+					{
+						"id": "record-for-group",
+						"label": "Record training for a group",
+						"icon": "AccountMultipleOutline",
+						"handler": "navigate",
+						"route": "ExternalTrainingBulkRecord"
+					}
+				]
 			}
+		},
+		{
+			"id": "ExternalTrainingBulkRecord",
+			"route": "/compliance/external-training/record-for-group",
+			"type": "custom",
+			"title": "Record training for a group",
+			"component": "ExternalTrainingBulkRecordView",
+			"_note": "learniq#952: record one external training for many learners at once through POST /api/external-training/bulk, then issue credentials and check coverage for the batch. No manifest page can post one form for a list of picked learners. Reached from the External training index header action."
 		},
 		{
 			"id": "ExternalTrainingRecordDetail",

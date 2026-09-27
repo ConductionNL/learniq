@@ -9,6 +9,8 @@
     "rollover.plan": ["admin"],
     "external-training.bulk-record": ["admin", "compliance-officer", "hr"],
     "external-training.issue-credential": ["admin", "compliance-officer", "hr"],
-    "learning-record.import": ["admin"]
+    "learning-record.import": ["admin"],
+    "compliance.department-rollup": ["admin", "compliance-officer", "hr", "manager"],
+    "regulation.assign": ["admin", "compliance-officer", "hr"]
   }
 }

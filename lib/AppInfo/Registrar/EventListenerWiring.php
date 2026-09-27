@@ -58,6 +58,7 @@ class EventListenerWiring {
 		(new CaseListenerRegistrar())->register(context: $context);
 		(new CollaborationListenerRegistrar())->register(context: $context);
 		(new SchedulingListenerRegistrar())->register(context: $context);
+		(new IntegrityListenerRegistrar())->register(context: $context);
 
 	}//end registerAll()
 
