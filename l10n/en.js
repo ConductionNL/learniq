@@ -1956,7 +1956,16 @@ OC.L10N.register(
         "The LearnerProfile of the learner who took this attempt. The portal shows a pupil the attempts that carry their own profile here. Filled in by the server.": "The LearnerProfile of the learner who took this attempt. The portal shows a pupil the attempts that carry their own profile here. Filled in by the server.",
         "The title of the test at the moment the attempt started. Filled in by the server.": "The title of the test at the moment the attempt started. Filled in by the server.",
         "Learner Ref": "Learner Ref",
-        "Assessment Title": "Assessment Title"
+        "Assessment Title": "Assessment Title",
+        "Privacy requests": "Privacy requests",
+        "Privacy request": "Privacy request",
+        "AVG requests, tracked to their legal deadline": "AVG requests, tracked to their legal deadline",
+        "Recent privacy requests": "Recent privacy requests",
+        "No privacy requests logged yet.": "No privacy requests logged yet.",
+        "Partner approvals pending": "Partner approvals pending",
+        "Partners approved": "Partners approved",
+        "Partners rejected": "Partners rejected",
+        "of {twoFactor.eligibleCount} staff accounts": "of {twoFactor.eligibleCount} staff accounts"
     },
     "nplurals=2; plural=(n != 1);"
 )

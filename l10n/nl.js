@@ -2402,7 +2402,16 @@ OC.L10N.register(
         "The LearnerProfile of the learner who took this attempt. The portal shows a pupil the attempts that carry their own profile here. Filled in by the server.": "Het leerlingprofiel van de leerling die deze poging deed. Het portaal toont een leerling de pogingen met het eigen profiel hier. Wordt door de server ingevuld.",
         "The title of the test at the moment the attempt started. Filled in by the server.": "De titel van de toets op het moment dat de poging begon. Wordt door de server ingevuld.",
         "Learner Ref": "Leerlingverwijzing",
-        "Assessment Title": "Toetstitel"
+        "Assessment Title": "Toetstitel",
+        "Privacy requests": "Privacyverzoeken",
+        "Privacy request": "Privacyverzoek",
+        "AVG requests, tracked to their legal deadline": "AVG-verzoeken, bijgehouden tot de wettelijke termijn",
+        "Recent privacy requests": "Recente privacyverzoeken",
+        "No privacy requests logged yet.": "Nog geen privacyverzoeken vastgelegd.",
+        "Partner approvals pending": "Partnergoedkeuringen in afwachting",
+        "Partners approved": "Goedgekeurde partners",
+        "Partners rejected": "Afgewezen partners",
+        "of {twoFactor.eligibleCount} staff accounts": "van {twoFactor.eligibleCount} medewerkersaccounts"
     },
     "nplurals=2; plural=(n != 1);"
 )
