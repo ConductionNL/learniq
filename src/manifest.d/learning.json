@@ -3523,6 +3523,24 @@
 				"register": "learniq",
 				"schema": "Submission",
 				"readOnly": true,
+				"lifecycleActions": {
+					"field": "lifecycle",
+					"transitions": [
+						{
+							"from": "returned",
+							"to": "draft",
+							"action": "reopen",
+							"label": "Ask to hand in again",
+							"variant": "secondary",
+							"inputs": [
+								{
+									"field": "resubmissionDueAt",
+									"required": true
+								}
+							]
+						}
+					]
+				},
 				"_note": "A Submission is a learner's handed-in work for an assignment (attachments, feedback, rubric scores, proposed grade, linked grade entry) — a result/score record. Body leads with the submission data including feedback and rubric scores (8-wide), a proposed-grade KPI stat, and a Related panel resolving the assignment and grade entry. The submitted work renders as a Files leaf (attachments are the point of a submission). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"widgets": [
 					{

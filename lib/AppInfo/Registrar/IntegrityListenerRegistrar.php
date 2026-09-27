@@ -30,6 +30,7 @@ namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\AssessmentResultIntegrityListener;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
+use OCA\Learniq\Listener\SubmissionResubmissionDateListener;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectDeletingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -76,6 +77,18 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: PortfolioEntryOwnershipListener::class
+		);
+
+		// Submission resubmission date (submission-resubmission-action): the
+		// date moves the hand-in deadline, so only staff may write it. Drops
+		// or restores the value; never stops the write.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: SubmissionResubmissionDateListener::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: SubmissionResubmissionDateListener::class
 		);
 	}//end register()
 }//end class

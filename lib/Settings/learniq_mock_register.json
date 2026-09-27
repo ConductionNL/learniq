@@ -20851,6 +20851,13 @@
             "description": "Free-text teacher feedback returned to the learner when the Submission is returned.",
             "title": "Feedback"
           },
+          "resubmissionDueAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "title": "Hand in again by",
+            "description": "When a teacher asks for the work to be handed in again, the new deadline. Set only through the reopen transition, and only by staff. While set, the hand-in window runs to this date instead of the assignment's own deadline."
+          },
           "gradeEntryId": {
             "type": "string",
             "nullable": true,
@@ -29126,6 +29133,7 @@
         ],
         "submittedAt": "2026-03-01T09:00:00+00:00",
         "feedbackText": "Voorbeeld Feedbacktext 1",
+        "resubmissionDueAt": "2026-03-15T17:00:00+00:00",
         "gradeEntryId": "00000000-0000-4000-8000-000000000000",
         "rubricScores": [
           {
