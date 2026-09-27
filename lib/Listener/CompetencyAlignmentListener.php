@@ -109,48 +109,93 @@ class CompetencyAlignmentListener implements IEventListener {
 	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
 	 */
 	public function handle(Event $event): void {
-		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
+		$write = $this->unpack(event: $event);
+		if ($write === null || $this->isAlignedSchema(entity: $write['entity']) === false) {
 			return;
 		}
 
-		$entity = null;
-		$old    = [];
-		if ($event instanceof ObjectCreatingEvent === true) {
-			$entity = $event->getObject();
-		} else {
-			$entity = $event->getNewObject();
-			$old    = ($event->getOldObject()?->getObject() ?? []);
-		}
-
-		if ($this->isAlignedSchema(entity: $entity) === false) {
-			return;
-		}
-
-		$new    = ($entity->getObject() ?? []);
-		$oldAl  = $this->normaliser->normalise(raw: ($old['competencyAlignments'] ?? []));
-		$oldIds = $this->normaliser->flatIds(raw: ($old['competencyIds'] ?? []));
-		$newAl  = $oldAl;
-		$newIds = $oldIds;
-		if (array_key_exists('competencyAlignments', $new) === true) {
-			$newAl = $this->normaliser->normalise(raw: $new['competencyAlignments']);
-		}
-
-		if (array_key_exists('competencyIds', $new) === true) {
-			$newIds = $this->normaliser->flatIds(raw: $new['competencyIds']);
-		}
+		$new    = ($write['entity']->getObject() ?? []);
+		$oldAl  = $this->normaliser->normalise(raw: ($write['old']['competencyAlignments'] ?? []));
+		$oldIds = $this->normaliser->flatIds(raw: ($write['old']['competencyIds'] ?? []));
+		$newAl  = $this->submittedAlignments(new: $new, stored: $oldAl);
+		$newIds = $this->submittedIds(new: $new, stored: $oldIds);
 
 		if ($newAl !== $oldAl) {
-			$this->applyChangedAlignments(event: $event, alignments: $newAl, currentIds: $newIds);
+			$this->applyChangedAlignments(event: $write['event'], alignments: $newAl, currentIds: $newIds);
 			return;
 		}
 
 		if ($oldAl !== [] && $newIds !== $oldIds) {
 			$this->merge(
-				event: $event,
+				event: $write['event'],
 				data: ['competencyAlignments' => $this->normaliser->alignmentsFollowIds(alignments: $oldAl, ids: $newIds)]
 			);
 		}
 	}//end handle()
+
+	/**
+	 * The typed event, the object being written and the stored data, or null
+	 * for any other event.
+	 *
+	 * @param Event $event The dispatched event.
+	 *
+	 * @return array{event: ObjectCreatingEvent|ObjectUpdatingEvent, entity: ObjectEntity, old: array<string, mixed>}|null
+	 *
+	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+	 */
+	private function unpack(Event $event): ?array {
+		if ($event instanceof ObjectCreatingEvent === true) {
+			return ['event' => $event, 'entity' => $event->getObject(), 'old' => []];
+		}
+
+		if ($event instanceof ObjectUpdatingEvent === true) {
+			return [
+				'event'  => $event,
+				'entity' => $event->getNewObject(),
+				'old'    => ($event->getOldObject()?->getObject() ?? []),
+			];
+		}
+
+		return null;
+	}//end unpack()
+
+	/**
+	 * The submitted alignments, or the stored ones when the payload does not
+	 * carry the key (a partial write never clears the list).
+	 *
+	 * @param array<string, mixed>                                        $new    The object as submitted.
+	 * @param array<int, array{competencyId: string, depth: string|null}> $stored The stored alignments.
+	 *
+	 * @return array<int, array{competencyId: string, depth: string|null}>
+	 *
+	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+	 */
+	private function submittedAlignments(array $new, array $stored): array {
+		if (array_key_exists('competencyAlignments', $new) === false) {
+			return $stored;
+		}
+
+		return $this->normaliser->normalise(raw: $new['competencyAlignments']);
+	}//end submittedAlignments()
+
+	/**
+	 * The submitted flat goal list, or the stored one when the payload does
+	 * not carry the key.
+	 *
+	 * @param array<string, mixed> $new    The object as submitted.
+	 * @param array<int, string>   $stored The stored flat list.
+	 *
+	 * @return array<int, string>
+	 *
+	 * @spec openspec/changes/goal-alignment-depth/specs/competency/spec.md#requirement-competencyids-stays-derived-from-the-alignments
+	 */
+	private function submittedIds(array $new, array $stored): array {
+		if (array_key_exists('competencyIds', $new) === false) {
+			return $stored;
+		}
+
+		return $this->normaliser->flatIds(raw: $new['competencyIds']);
+	}//end submittedIds()
 
 	/**
 	 * Validate changed alignments, then derive competencyIds from them, or
