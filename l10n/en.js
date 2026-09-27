@@ -1236,6 +1236,7 @@ OC.L10N.register(
         "Secondary school": "Secondary school",
         "Vocational education (MBO)": "Vocational education (MBO)",
         "Higher education (HBO or university)": "Higher education (HBO or university)",
+        "A fictional university of applied sciences with programmes, students, study credits and one full academic year.": "A fictional university of applied sciences with programmes, students, study credits and one full academic year.",
         "Company": "Company",
         "Training institute": "Training institute",
         "Which example data do you want?": "Which example data do you want?",

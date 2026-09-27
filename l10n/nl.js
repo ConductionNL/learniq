@@ -1728,6 +1728,7 @@ OC.L10N.register(
         "Secondary school": "Middelbare school (vo)",
         "Vocational education (MBO)": "Middelbaar beroepsonderwijs (mbo)",
         "Higher education (HBO or university)": "Hoger onderwijs (hbo of wo)",
+        "A fictional university of applied sciences with programmes, students, study credits and one full academic year.": "Een verzonnen hogeschool met opleidingen, studenten, studiepunten en een volledig studiejaar.",
         "Company": "Bedrijf",
         "Training institute": "Opleidingsinstituut",
         "Which example data do you want?": "Welke voorbeeldgegevens wil je?",
