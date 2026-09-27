@@ -36,6 +36,7 @@ use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;
@@ -284,14 +285,33 @@ class LearnerTransitionAccessTest extends TestCase {
 	}//end testPortfolioEntryIsAddedToTheLearnersOwnPortfolio()
 
 	/**
-	 * Whether the create listener refuses a portfolio entry.
+	 * An update is policed the same way as a create: the listener is registered
+	 * for ObjectUpdatingEvent too, and runs before every update in the instance.
 	 *
-	 * @param string               $uid   The caller, in no staff group.
-	 * @param array<string, mixed> $entry The entry being created.
+	 * The event is the class OpenRegister dispatches (the stub mirrors its
+	 * accessors: getNewObject()/getOldObject(), no getObject()), so reading the
+	 * entity through an accessor the real event lacks fails here instead of
+	 * 500-ing every object update on a live instance (learniq#1046).
+	 *
+	 * @return void
+	 */
+	public function testPortfolioEntryUpdateIsPolicedLikeCreate(): void {
+		$entry = ['portfolioId' => 'portfolio-1', 'learnerId' => self::LEARNER, 'title' => 'Reflection'];
+		$this->assertFalse($this->entryRefused(uid: self::LEARNER, entry: $entry, update: true));
+		$this->assertTrue($this->entryRefused(uid: self::OTHER, entry: $entry, update: true));
+		$this->assertTrue($this->entryRefused(uid: self::OTHER, entry: ['learnerId' => self::OTHER] + $entry, update: true));
+	}//end testPortfolioEntryUpdateIsPolicedLikeCreate()
+
+	/**
+	 * Whether the ownership listener refuses a portfolio entry.
+	 *
+	 * @param string               $uid    The caller, in no staff group.
+	 * @param array<string, mixed> $entry  The entry being written.
+	 * @param bool                 $update Dispatch the update event instead of the create event.
 	 *
 	 * @return bool
 	 */
-	private function entryRefused(string $uid, array $entry): bool {
+	private function entryRefused(string $uid, array $entry, bool $update = false): bool {
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willReturn('portfolio-entry');
 
@@ -308,7 +328,12 @@ class LearnerTransitionAccessTest extends TestCase {
 			logger: $this->createMock(LoggerInterface::class)
 		);
 
-		$event = new ObjectCreatingEvent(OrEntityFactory::make($entry, 'portfolio-entry'));
+		$entity = OrEntityFactory::make($entry, 'portfolio-entry');
+		$event  = new ObjectCreatingEvent($entity);
+		if ($update === true) {
+			$event = new ObjectUpdatingEvent($entity, OrEntityFactory::make($entry, 'portfolio-entry'));
+		}
+
 		$listener->handle($event);
 
 		return $event->isPropagationStopped();

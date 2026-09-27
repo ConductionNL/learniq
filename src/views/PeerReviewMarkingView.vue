@@ -11,18 +11,19 @@
      then dispatch the `submit` lifecycle transition (server-side enforced by
      RubricScoresCompletionGuard regardless of client-side validation here).
 
-  Anonymity (design.md "Anonymity Enforcement"): when the governing
-  Assignment's peerReviewAnonymity is `double-blind`, this view MUST NOT
-  display the reviewed Submission's learner identity anywhere — a UI
-  convention only; the reviewer's underlying object-level read access to the
-  Submission is unchanged (documented, not a server-enforced guarantee, same
-  as ExamCaseDossierView's own documented limit).
+  Anonymity (peer-review-projection-guard): the reviewer never reads the raw
+  Submission. The work comes from learniq's server-side projection
+  (GET /apps/learniq/api/peer-review/:id/work), which withholds the authors
+  and gives the files neutral names when the review is double-blind, and
+  never includes the teacher's marking. So the reviewee side of double-blind
+  is enforced by the server on this path, not by this view.
 
-  Talks only to OpenRegister's REST API:
+  Talks to:
     - GET  /api/objects/learniq/peer-review/:id
     - GET  /api/objects/learniq/Assignment/:id
     - GET  /api/objects/learniq/Rubric/:id
-    - GET  /api/objects/learniq/Submission/:id (only when anonymity is not double-blind)
+    - GET  /apps/learniq/api/peer-review/:id/work            (the work, projected)
+    - GET  /apps/learniq/api/peer-review/:id/work/files/:fid (one file)
     - PUT  /api/objects/learniq/peer-review/:id
     - POST /api/objects/:id/transition           ({ action: 'submit' })
 
@@ -33,7 +34,7 @@
   Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
-  @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-double-blind-reviewee-identity-hiding-is-ui-level-only-and-this-is-documented
+  @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 -->
 
 <template>
@@ -83,11 +84,11 @@
 					}}
 				</p>
 				<!--
-					Anonymity Enforcement: the reviewed learner's identity is never
-					rendered when peerReviewAnonymity is double-blind (UI convention).
+					The authors come from the server's projection, which withholds
+					them for a double-blind review (peer-review-projection-guard).
 				-->
 				<p
-					v-if="!isDoubleBlind && submissionLearnerIds.length > 0"
+					v-if="submissionLearnerIds.length > 0"
 					class="peer-review-marking-view__learners">
 					{{
 						t('learniq', 'Reviewing work by: {ids}', {
@@ -101,11 +102,34 @@
 					{{
 						t(
 							'learniq',
-							"Double-blind review — the author's identity is withheld.",
+							"Double-blind review: the author's identity is withheld.",
 						)
 					}}
 				</p>
 			</header>
+
+			<section class="peer-review-marking-view__work">
+				<h3>{{ t('learniq', 'Work to review') }}</h3>
+				<p
+					v-if="work && work.submittedAt"
+					class="peer-review-marking-view__meta">
+					{{
+						t('learniq', 'Handed in on {date}', {
+							date: formatDate(work.submittedAt),
+						})
+					}}
+				</p>
+				<ul
+					v-if="workFiles.length > 0"
+					class="peer-review-marking-view__files">
+					<li v-for="file in workFiles" :key="file.id">
+						<a :href="fileUrl(file)" download>{{ file.name }}</a>
+					</li>
+				</ul>
+				<p v-else class="peer-review-marking-view__meta">
+					{{ t('learniq', 'No files were handed in.') }}
+				</p>
+			</section>
 
 			<section
 				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
@@ -199,6 +223,7 @@
 </template>
 
 <script>
+import { getRequestToken } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 
@@ -233,6 +258,7 @@ export default {
 			rubric: null,
 			/** @type {Array<string>} */
 			submissionLearnerIds: [],
+			work: null,
 			/**
 			 * Map of criterionId → { levelId, points }
 			 *
@@ -264,12 +290,27 @@ export default {
 		},
 
 		/**
-		 * Whether the governing Assignment's peerReviewAnonymity is double-blind.
+		 * Whether the review is double-blind, as the server's projection says
+		 * (falling back to the Assignment before the projection loads).
 		 *
 		 * @return {boolean}
+		 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 		 */
 		isDoubleBlind() {
-			return this.assignment.peerReviewAnonymity === 'double-blind'
+			return (
+				(this.work?.anonymity ?? this.assignment.peerReviewAnonymity)
+				=== 'double-blind'
+			)
+		},
+
+		/**
+		 * The files of the work under review, as the server projected them.
+		 *
+		 * @return {Array<{id: string, name: string}>}
+		 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+		 */
+		workFiles() {
+			return Array.isArray(this.work?.files) ? this.work.files : []
 		},
 
 		/**
@@ -313,8 +354,7 @@ export default {
 
 	methods: {
 		/**
-		 * Load the PeerReview, Assignment, Rubric, and (when not double-blind)
-		 * the reviewed Submission's learnerIds.
+		 * Load the PeerReview, Assignment, Rubric, and the projected work.
 		 *
 		 * @param {string} peerReviewId PeerReview UUID
 		 * @return {Promise<void>}
@@ -334,9 +374,7 @@ export default {
 					await this.loadRubric(this.assignment.rubricId)
 				}
 
-				if (!this.isDoubleBlind && this.peerReview.submissionId) {
-					await this.loadSubmissionLearnerIds(this.peerReview.submissionId)
-				}
+				await this.loadWork(peerReviewId)
 
 				const existingScores = this.peerReview.rubricScores ?? []
 				for (const score of existingScores) {
@@ -423,26 +461,60 @@ export default {
 		},
 
 		/**
-		 * Fetch the reviewed Submission's learnerIds — only called when anonymity
-		 * is not double-blind (Anonymity Enforcement).
+		 * Fetch the work under review from the server's projection: the files,
+		 * the hand-in time and, unless the review is double-blind, the authors.
+		 * Non-fatal: without it the reviewer still scores the rubric.
 		 *
-		 * @param {string} submissionId Submission UUID
+		 * @param {string} peerReviewId PeerReview UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
+		 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 		 */
-		async loadSubmissionLearnerIds(submissionId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/Submission/${submissionId}`,
-			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+		async loadWork(peerReviewId) {
+			this.work = null
+			this.submissionLearnerIds = []
+			const url = generateUrl('/apps/learniq/api/peer-review/{id}/work', {
+				id: peerReviewId,
 			})
-			if (!resp.ok) {
-				return
+			try {
+				const resp = await fetch(url, {
+					headers: {
+						'OCS-APIREQUEST': 'true',
+						Accept: 'application/json',
+						requesttoken: getRequestToken() ?? '',
+					},
+				})
+				if (!resp.ok) return
+				this.work = await resp.json()
+				this.submissionLearnerIds = Array.isArray(this.work?.authorIds)
+					? this.work.authorIds
+					: []
+			} catch {
+				this.work = null
 			}
-			const json = await resp.json()
-			const submission = json.object ?? json ?? {}
-			this.submissionLearnerIds = submission.learnerIds ?? []
+		},
+
+		/**
+		 * @param {{id: string}} file A projected file.
+		 * @return {string} Its download URL on the projection endpoint.
+		 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+		 */
+		fileUrl(file) {
+			return generateUrl(
+				'/apps/learniq/api/peer-review/{id}/work/files/{fileId}',
+				{
+					id: this.id,
+					fileId: file.id,
+				},
+			)
+		},
+
+		/**
+		 * @param {string} value ISO date-time.
+		 * @return {string} A local date and time.
+		 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+		 */
+		formatDate(value) {
+			return value ? new Date(value).toLocaleString() : ''
 		},
 
 		/**

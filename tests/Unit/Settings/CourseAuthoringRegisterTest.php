@@ -379,11 +379,12 @@ class CourseAuthoringRegisterTest extends TestCase {
 		// description, not that it is the latest entry.
 		$this->assertStringContainsString('course-authoring-ux', $this->config['info']['description'] ?? '');
 
-		// A floor, not an exact value: later changes bump both schemas again
-		// (course-content-metadata took them to 0.4.0).
+		// A floor, not an exact value: later changes (goal-alignment-depth,
+		// 0.4.0) bump these schemas again, and course-authoring-ux's own bump
+		// stays satisfied by any version at or above it.
 		foreach (['Lesson', 'Course'] as $name) {
-			$version = (string)($this->config['components']['schemas'][$name]['version'] ?? '0');
-			$this->assertTrue(version_compare($version, '0.3.0', '>='), "$name version $version is below 0.3.0");
+			$version = (string) ($this->config['components']['schemas'][$name]['version'] ?? '0.0.0');
+			$this->assertTrue(version_compare($version, '0.3.0', '>='), "$name version $version is below course-authoring-ux's 0.3.0");
 		}
 
 	}//end testRegisterAndSchemaVersionsBumped()
