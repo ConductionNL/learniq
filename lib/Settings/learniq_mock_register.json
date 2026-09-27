@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.11",
+    "version": "1.1.15",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -22476,7 +22476,20 @@
           "navigationLock": true
         },
         "gradeEntryComponentId": "Voorbeeld Gradeentrycomponentid 1",
-        "competencyIds": [],
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
         "releaseConditions": []
       },
       {
@@ -22700,7 +22713,20 @@
         "visibleFrom": "2026-03-01T09:00:00+00:00",
         "visibleUntil": "2026-03-01T09:00:00+00:00",
         "plagiarismProvider": "Voorbeeld Plagiarismprovider 1",
-        "competencyIds": [],
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
         "peerReviewEnabled": false,
         "selfAssessmentEnabled": false,
         "peerReviewersPerSubmission": 2,
@@ -23589,6 +23615,8 @@
         "description": "Voorbeeld Description 1",
         "order": 1,
         "requiredForRoles": [],
+        "applicableYears": ["groep 5", "groep 6"],
+        "subjectId": "00000000-0000-4000-8000-000000000000",
         "lifecycle": "draft"
       },
       {
@@ -23605,6 +23633,8 @@
         "description": "Voorbeeld Description 2",
         "order": 2,
         "requiredForRoles": [],
+        "applicableYears": ["2026-2027"],
+        "subjectId": null,
         "lifecycle": "published"
       },
       {
@@ -23621,6 +23651,8 @@
         "description": "Voorbeeld Description 3",
         "order": 3,
         "requiredForRoles": [],
+        "applicableYears": [],
+        "subjectId": "00000000-0000-4000-8000-000000000002",
         "lifecycle": "archived"
       },
       {
@@ -24005,7 +24037,20 @@
           "00000000-0000-4000-8000-000000000000"
         ],
         "ectsCredits": 0.0,
-        "competencyIds": [],
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
         "prerequisiteCourseIds": []
       },
       {
@@ -27237,7 +27282,20 @@
         "learningObjectives": [
           "Voorbeeld Learningobjectives 1"
         ],
-        "competencyIds": [],
+        "competencyIds": [
+          "00000000-0000-4000-8000-000000000000",
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "competencyAlignments": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "depth": "Voorbeeld Levelid 1"
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "depth": null
+          }
+        ],
         "releaseConditions": [],
         "availableAfterDays": 0,
         "mandatoryTraining": false,
@@ -29710,7 +29768,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-1-1"
         },
-        "segment": "po",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 1",
         "setAt": "2026-03-01T09:00:00+00:00"
       },
@@ -29720,7 +29778,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-2-2"
         },
-        "segment": "vo",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 2",
         "setAt": "2026-03-02T09:00:00+00:00"
       },
@@ -29730,7 +29788,7 @@
           "schema": "learniqsettings",
           "slug": "learniqsettings-learniqsettings-3-3"
         },
-        "segment": "mbo",
+        "segment": "corporate",
         "setBy": "Voorbeeld Setby 3",
         "setAt": "2026-03-03T09:00:00+00:00"
       },
@@ -30458,6 +30516,174 @@
         "dataExchangeJobId": null,
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "lifecycle": "voorlopig"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CurriculumCoverage",
+          "slug": "curriculum-coverage-groep-5-all"
+        },
+        "frameworkId": "00000000-0000-4000-8000-000000000001",
+        "year": "groep 5",
+        "subjectScope": "all",
+        "subjectId": null,
+        "goalCount": 3,
+        "plannedCount": 2,
+        "assessedCount": 1,
+        "plannedNotAssessedCount": 1,
+        "uncoveredCount": 1,
+        "plannedPercent": 66.7,
+        "assessedPercent": 33.3,
+        "plannedByDepth": [
+          {
+            "depth": "Voorbeeld Levelid 1",
+            "count": 1
+          },
+          {
+            "depth": null,
+            "count": 1
+          }
+        ],
+        "assessedByDepth": [
+          {
+            "depth": "Voorbeeld Levelid 1",
+            "count": 1
+          }
+        ],
+        "uncoveredIds": [
+          "00000000-0000-4000-8000-000000000002"
+        ],
+        "plannedNotAssessedIds": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "goals": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "planned": true,
+            "assessed": true,
+            "plannedDepth": "Voorbeeld Levelid 1",
+            "assessedDepth": "Voorbeeld Levelid 1",
+            "plannedRefs": 2,
+            "assessedRefs": 1
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "planned": true,
+            "assessed": false,
+            "plannedDepth": null,
+            "assessedDepth": null,
+            "plannedRefs": 1,
+            "assessedRefs": 0
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000002",
+            "planned": false,
+            "assessed": false,
+            "plannedDepth": null,
+            "assessedDepth": null,
+            "plannedRefs": 0,
+            "assessedRefs": 0
+          }
+        ],
+        "lastRecomputedAt": "2026-09-27T12:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CurriculumCoverage",
+          "slug": "curriculum-coverage-groep-5-rekenen"
+        },
+        "frameworkId": "00000000-0000-4000-8000-000000000001",
+        "year": "groep 5",
+        "subjectScope": "subject",
+        "subjectId": "00000000-0000-4000-8000-000000000000",
+        "goalCount": 2,
+        "plannedCount": 2,
+        "assessedCount": 1,
+        "plannedNotAssessedCount": 1,
+        "uncoveredCount": 0,
+        "plannedPercent": 100.0,
+        "assessedPercent": 50.0,
+        "plannedByDepth": [
+          {
+            "depth": "Voorbeeld Levelid 1",
+            "count": 1
+          },
+          {
+            "depth": null,
+            "count": 1
+          }
+        ],
+        "assessedByDepth": [
+          {
+            "depth": "Voorbeeld Levelid 1",
+            "count": 1
+          }
+        ],
+        "uncoveredIds": [],
+        "plannedNotAssessedIds": [
+          "00000000-0000-4000-8000-000000000001"
+        ],
+        "goals": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000000",
+            "planned": true,
+            "assessed": true,
+            "plannedDepth": "Voorbeeld Levelid 1",
+            "assessedDepth": "Voorbeeld Levelid 1",
+            "plannedRefs": 2,
+            "assessedRefs": 1
+          },
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000001",
+            "planned": true,
+            "assessed": false,
+            "plannedDepth": null,
+            "assessedDepth": null,
+            "plannedRefs": 1,
+            "assessedRefs": 0
+          }
+        ],
+        "lastRecomputedAt": "2026-09-27T12:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CurriculumCoverage",
+          "slug": "curriculum-coverage-groep-5-none"
+        },
+        "frameworkId": "00000000-0000-4000-8000-000000000001",
+        "year": "groep 5",
+        "subjectScope": "none",
+        "subjectId": null,
+        "goalCount": 1,
+        "plannedCount": 0,
+        "assessedCount": 0,
+        "plannedNotAssessedCount": 0,
+        "uncoveredCount": 1,
+        "plannedPercent": 0.0,
+        "assessedPercent": 0.0,
+        "plannedByDepth": [],
+        "assessedByDepth": [],
+        "uncoveredIds": [
+          "00000000-0000-4000-8000-000000000002"
+        ],
+        "plannedNotAssessedIds": [],
+        "goals": [
+          {
+            "competencyId": "00000000-0000-4000-8000-000000000002",
+            "planned": false,
+            "assessed": false,
+            "plannedDepth": null,
+            "assessedDepth": null,
+            "plannedRefs": 0,
+            "assessedRefs": 0
+          }
+        ],
+        "lastRecomputedAt": "2026-09-27T12:00:00+00:00",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
       }
     ]
   }
