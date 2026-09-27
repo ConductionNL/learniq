@@ -5734,8 +5734,8 @@
       "name": "Hide one sensitive field from a role that may see the rest.",
       "built": {
         "state": "none",
-        "evidence": "lib/Settings/learniq_register.json declares no property-level authorization; x-property-rbac is row-level and OpenRegister does not read it (openregister#4064, learniq#972). OpenRegister can hide a property per group (lib/Service/PropertyRbacHandler.php) once a schema declares it",
-        "owner": "ConductionNL/openregister"
+        "evidence": "lib/Settings/learniq_register.json declares no property-level authorization; x-property-rbac is row-level and OpenRegister does not read it (openregister#4064, learniq#972). OpenRegister can hide a property per group (lib/Service/PropertyRbacHandler.php) once a schema declares it. OpenRegister's half shipped (openregister change 2026-07-13-property-level-read-rbac); the missing half is learniq declaring a property-level read rule, so the owner moved to learniq and the row is deferred (OpenSpec pass 2026-09-27).",
+        "owner": "ConductionNL/learniq"
       },
       "provider": "openregister",
       "providerHow": "OpenRegister hides a property per group when a schema declares a property authorization; learniq declares none.",
@@ -6679,8 +6679,8 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "none",
-        "evidence": "lib/Settings/connections.json:5",
+        "state": "specified",
+        "evidence": "lib/Settings/connections.json:5. Specified in ConductionNL/openregister openspec/changes/rapportage-bi-export/ (OData and scheduled exports for BI tools), as openregister's OpenSpec-pass lane recorded (OpenSpec pass 2026-09-27).",
         "owner": "ConductionNL/openregister",
         "reachedOn": "web service only; list export"
       },
