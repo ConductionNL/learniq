@@ -2890,11 +2890,11 @@
       "name": "Lock a finished attempt so nobody can change the answers afterwards.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json AssessmentResult.appendOnly true",
-        "owner": "ConductionNL/openregister"
+        "evidence": "lib/Listener/AssessmentResultIntegrityListener.php refuses any change to a submitted attempt's answers (FROZEN_FIELDS), makes a graded attempt final and refuses deletes; AssessmentResult is no longer appendOnly (learniq#978), tests/Unit/Listener/AssessmentResultIntegrityListenerTest.php. Finishing an attempt is itself blocked by the submit guard until learniq#983",
+        "owner": "ConductionNL/learniq"
       },
-      "provider": "openregister",
-      "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "assessment",
       "featureConfidence": "medium",
       "learniq": "yes",
@@ -5733,15 +5733,15 @@
       "area": "governance",
       "name": "Hide one sensitive field from a role that may see the rest.",
       "built": {
-        "state": "built",
-        "evidence": "lib/Settings/learniq_register.json Credential.x-property-rbac.read is one of many per-property rules",
+        "state": "none",
+        "evidence": "lib/Settings/learniq_register.json declares no property-level authorization; x-property-rbac is row-level and OpenRegister does not read it (openregister#4064, learniq#972). OpenRegister can hide a property per group (lib/Service/PropertyRbacHandler.php) once a schema declares it",
         "owner": "ConductionNL/openregister"
       },
       "provider": "openregister",
-      "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
+      "providerHow": "OpenRegister hides a property per group when a schema declares a property authorization; learniq declares none.",
       "feature": "access-control",
       "featureConfidence": "medium",
-      "learniq": "yes",
+      "learniq": "partial",
       "moodle": "partial",
       "moodle-workplace": "partial",
       "ilias": "partial",
