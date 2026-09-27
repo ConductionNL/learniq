@@ -284,12 +284,7 @@
 					</li>
 				</ul>
 				<div v-else class="learniq-settings__message">
-					{{
-						t(
-							'learniq',
-							'No privacy requests logged yet.',
-						)
-					}}
+					{{ t('learniq', 'No privacy requests logged yet.') }}
 				</div>
 				<div class="learniq-settings__activity-actions">
 					<NcButton variant="secondary" @click="openDataSubjectRequests">
