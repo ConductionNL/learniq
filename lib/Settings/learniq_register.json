@@ -18026,7 +18026,12 @@
                             "from": "corrected",
                             "to": "resubmitted",
                             "requires": "OCA\\Learniq\\Lifecycle\\RejectionResubmitGuard",
-                            "description": "Creates one new single-record DataExchangeJob scoped to this rejection's source object and stamps resubmittedJobId server-side."
+                            "description": "Creates one new single-record DataExchangeJob scoped to this rejection's source object and stamps resubmittedJobId server-side.",
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\RejectionResubmissionAction"
+                                }
+                            ]
                         },
                         "accept": {
                             "from": "resubmitted",

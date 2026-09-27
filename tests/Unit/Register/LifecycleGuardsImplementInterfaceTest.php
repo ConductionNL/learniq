@@ -52,7 +52,6 @@ class LifecycleGuardsImplementInterfaceTest extends TestCase {
 		'OCA\\Learniq\\Service\\LearningRecordImportService',
 		'OCA\\Learniq\\Service\\ReportCardPdfDelegationService',
 		'OCA\\Learniq\\Lifecycle\\MunicipalityFeedbackGuard',
-		'OCA\\Learniq\\Lifecycle\\RejectionResubmitGuard',
 		// Redirects the target state to `late`; gets its own transition (learniq#983 part C).
 		'OCA\\Learniq\\Lifecycle\\SubmissionWindowGuard',
 	];

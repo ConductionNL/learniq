@@ -94,6 +94,12 @@ class LifecycleWriteActionsTest extends TestCase {
 				['OCA\\Learniq\\Lifecycle\\Action\\FraudCaseAppealDeadlineAction' => []],
 				['verdict', 'decisionRationale', 'sanctionType', 'sanctionDurationMonths', 'sanctionScope'],
 			],
+			'ExchangeRejection.resubmit' => [
+				'ExchangeRejection',
+				'resubmit',
+				['OCA\\Learniq\\Lifecycle\\Action\\RejectionResubmissionAction' => []],
+				[],
+			],
 		];
 	}//end transitions()
 
