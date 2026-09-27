@@ -29,10 +29,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\AssessmentAccessPolicy;
+use OCA\Learniq\Service\AssessmentAccessFacts;
 use OCA\Learniq\Service\LessonReleaseEvaluator;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCP\AppFramework\Controller;
@@ -77,7 +76,7 @@ class LessonReleaseController extends Controller {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LessonReleaseEvaluator $releaseEvaluator Stateless release-gate evaluator.
 	 * @param DashboardRoleService $dashboardRoleService Resolves the caller's Learniq role/views.
-	 * @param AssessmentAccessPolicy $accessPolicy Live window and access-code rules.
+	 * @param AssessmentAccessFacts $accessFacts Attempt-gate facts for an Assessment.
 	 */
 	public function __construct(
 		IRequest $request,
@@ -85,7 +84,7 @@ class LessonReleaseController extends Controller {
 		private readonly ObjectService $objectService,
 		private readonly LessonReleaseEvaluator $releaseEvaluator,
 		private readonly DashboardRoleService $dashboardRoleService,
-		private readonly AssessmentAccessPolicy $accessPolicy = new AssessmentAccessPolicy(),
+		private readonly AssessmentAccessFacts $accessFacts,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 
@@ -187,50 +186,13 @@ class LessonReleaseController extends Controller {
 			'availableAt' => $result['availableAt'],
 		];
 		if ($itemSchema === self::ASSESSMENT_SCHEMA) {
-			$data = array_merge($data, $this->assessmentAccess(assessmentId: $itemId, item: $item));
+			$data = array_merge($data, $this->accessFacts->assessmentAccess(assessmentId: $itemId, item: $item));
 		}
 
 		return new JSONResponse(data: $data);
 
 	}//end resolveStatus()
 
-	/**
-	 * The attempt-gate facts TakeAssessmentView needs before it starts an
-	 * attempt: why the window is shut (a code it can translate) and whether an
-	 * access code is needed. The code itself is write-only and is never
-	 * returned; it is read raw here only to report that one exists.
-	 *
-	 * @param string $assessmentId UUID of the Assessment.
-	 * @param array<string, mixed> $item The rendered Assessment row.
-	 *
-	 * @return array{reasonCode: string|null, requiresAccessCode: bool}
-	 *
-	 * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
-	 */
-	private function assessmentAccess(string $assessmentId, array $item): array {
-		$window = $this->accessPolicy->windowBlock(assessment: $item, now: new DateTimeImmutable());
-
-		$raw = [];
-		try {
-			$object = $this->objectService->find(
-				id: $assessmentId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ASSESSMENT_SCHEMA,
-				_rbac: false,
-				_render: false
-			);
-			if ($object !== null) {
-				$raw = $this->toArray(object: $object);
-			}
-		} catch (Throwable $exception) {
-			$raw = [];
-		}
-
-		return [
-			'reasonCode' => $window['reason'] ?? null,
-			'requiresAccessCode' => $this->accessPolicy->requiresAccessCode(assessment: $raw),
-		];
-	}//end assessmentAccess()
 
 	/**
 	 * Whether the caller holds a Learniq staff (admin/teacher-equivalent)

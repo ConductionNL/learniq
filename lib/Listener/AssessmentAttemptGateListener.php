@@ -120,7 +120,21 @@ class AssessmentAttemptGateListener implements IEventListener {
 			return;
 		}
 
-		$payload = $entity->jsonSerialize();
+		$this->evaluate(event: $event, payload: $entity->jsonSerialize());
+	}//end handle()
+
+	/**
+	 * Check one AssessmentResult create against its Assessment's window and
+	 * access code, refusing it or clearing the typed code.
+	 *
+	 * @param ObjectCreatingEvent $event The event to stop or amend.
+	 * @param array<string, mixed> $payload The AssessmentResult being created.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
+	 */
+	private function evaluate(ObjectCreatingEvent $event, array $payload): void {
 		$assessmentId = (string)($payload['assessmentId'] ?? '');
 		if ($assessmentId === '') {
 			// OR's own `required` validation rejects a missing assessmentId.
@@ -153,7 +167,7 @@ class AssessmentAttemptGateListener implements IEventListener {
 			// The typed code proved access; it is not kept on the attempt.
 			$event->setModifiedData(['accessCode' => null]);
 		}
-	}//end handle()
+	}//end evaluate()
 
 	/**
 	 * Whether the caller is exempt: system context or a Nextcloud admin.

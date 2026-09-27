@@ -33,6 +33,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Controller\LessonReleaseController;
+use OCA\Learniq\Service\AssessmentAccessFacts;
 use OCA\Learniq\Service\LessonReleaseEvaluator;
 use OCA\Learniq\Service\DashboardRoleService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -120,15 +121,9 @@ class LessonReleaseControllerTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true, bool $_render = true) {
+			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
 				foreach (($this->db[$schema] ?? []) as $rec) {
 					if (($rec['id'] ?? null) === $id) {
-						if ($_render === true) {
-							// Assessment.accessCode is writeOnly: OR strips it
-							// from every rendered read.
-							unset($rec['accessCode']);
-						}
-
 						return OrEntityFactory::make($rec, (string)$schema);
 					}
 				}
@@ -165,6 +160,10 @@ class LessonReleaseControllerTest extends TestCase {
 		$evaluator->method('evaluate')->willReturn(
 			$evaluatorResult ?? ['available' => true, 'reason' => null, 'availableAt' => null]
 		);
+		$accessFacts = $this->createMock(AssessmentAccessFacts::class);
+		$accessFacts->method('assessmentAccess')->willReturn(
+			['reasonCode' => 'window-not-open', 'requiresAccessCode' => true]
+		);
 
 		return new LessonReleaseController(
 			request: $this->createMock(IRequest::class),
@@ -172,6 +171,7 @@ class LessonReleaseControllerTest extends TestCase {
 			objectService: $objectService,
 			releaseEvaluator: $evaluator,
 			dashboardRoleService: $this->dashboardRoleService,
+			accessFacts: $accessFacts,
 		);
 
 	}//end controller()
@@ -294,23 +294,14 @@ class LessonReleaseControllerTest extends TestCase {
 	}//end testResponseShapeIsMinimal()
 
 	/**
-	 * An assessment's status says whether it needs an access code (read from
-	 * the raw row, since the code is write-only) and why its window is shut,
-	 * without ever returning the code itself (learniq#946).
+	 * An assessment's status carries the attempt-gate facts (why the window is
+	 * shut, whether an access code is needed) next to the release decision;
+	 * a lesson's status does not (learniq#946).
 	 *
 	 * @return void
 	 */
-	public function testAssessmentStatusReportsAccessCodeAndWindowReason(): void {
-		$this->seed(
-			'exam',
-			[
-				'id' => 'exam-1',
-				'courseId' => 'course-1',
-				'tenant_id' => 'tenant-a',
-				'accessCode' => 'room-12',
-				'availableFrom' => (new \DateTimeImmutable('+1 day'))->format(DATE_ATOM),
-			]
-		);
+	public function testAssessmentStatusCarriesTheAttemptGateFacts(): void {
+		$this->seed('exam', ['id' => 'exam-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']);
 		$this->seed('enrolment', ['id' => 'enrolment-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1']);
 		$this->signInAs('learner-1');
 
@@ -319,9 +310,8 @@ class LessonReleaseControllerTest extends TestCase {
 
 		self::assertTrue($data['requiresAccessCode']);
 		self::assertSame('window-not-open', $data['reasonCode']);
-		self::assertStringNotContainsString('room-12', json_encode($data));
 
-	}//end testAssessmentStatusReportsAccessCodeAndWindowReason()
+	}//end testAssessmentStatusCarriesTheAttemptGateFacts()
 
 	/**
 	 * An unknown lesson id returns 404 when ObjectService THROWS.
@@ -346,6 +336,7 @@ class LessonReleaseControllerTest extends TestCase {
 			objectService: $objectService,
 			releaseEvaluator: $this->createMock(LessonReleaseEvaluator::class),
 			dashboardRoleService: $this->dashboardRoleService,
+			accessFacts: $this->createMock(AssessmentAccessFacts::class),
 		);
 
 		$response = $controller->status('nope');
