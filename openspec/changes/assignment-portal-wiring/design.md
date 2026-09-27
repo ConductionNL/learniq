@@ -92,7 +92,7 @@ No new route. The contract portaliq reads changes:
 
 ## Database Changes
 Schema-only, in `lib/Settings/learniq_register.json`: Submission gains `learnerRef` and its
-`required` list shrinks to `assignmentId`. Submission 0.2.0 to 0.3.0, register `info.version` bumped
+`required` list shrinks to `assignmentId`. Submission 0.3.0 to 0.4.0 (after #1027), register `info.version` bumped
 so OpenRegister re-imports it. No table or migration class; see migration.md.
 
 ## Nextcloud Integration

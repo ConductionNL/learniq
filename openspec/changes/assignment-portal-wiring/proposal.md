@@ -76,7 +76,7 @@ None.
 
 ## Impact
 - `lib/Portal/PortalContributionProvider.php`: `studentActions()`, `studentActivityCollections()`.
-- `lib/Settings/learniq_register.json`: Submission 0.2.0 to 0.3.0, register `info.version` bump.
+- `lib/Settings/learniq_register.json`: Submission 0.3.0 to 0.4.0 (after #1027), register `info.version` bump.
 - `lib/Listener/SubmissionOwnerStamp.php` (new), `lib/Service/Portal/LearnerProfileLookup.php`
   (new), `lib/AppInfo/Registrar/IntegrityListenerRegistrar.php`.
 - `l10n/en.json`, `l10n/nl.json` for the new property text.

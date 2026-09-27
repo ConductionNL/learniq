@@ -1,11 +1,11 @@
 # Migration: assignment-portal-wiring
 
 ## Current State
-`Submission` (0.2.0) requires `assignmentId`, `learnerIds` and `tenant_id`. It has an optional array
+`Submission` (0.3.0) requires `assignmentId`, `learnerIds` and `tenant_id`. It has an optional array
 `learnerRefs` that nothing writes, so no Submission is visible in the portal.
 
 ## Target State
-`Submission` (0.3.0) requires `assignmentId` only. It declares a nullable scalar `learnerRef`
+`Submission` (0.4.0) requires `assignmentId` only. It declares a nullable scalar `learnerRef`
 (LearnerProfile UUID). `learnerIds` and `tenant_id` are still required on every write, enforced by
 `SubmissionOwnerStamp` after it stamps a portal hand-in.
 
@@ -18,7 +18,7 @@ File: lib/Settings/learniq_register.json
 Key operations:
 - add Submission.properties.learnerRef
 - Submission.required: [assignmentId]
-- Submission.version 0.2.0 -> 0.3.0, info.version bumped
+- Submission.version 0.3.0 -> 0.4.0, info.version bumped
 ```
 
 ## Migration Steps
