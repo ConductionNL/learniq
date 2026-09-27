@@ -54,6 +54,12 @@ class LifecycleWriteActionsTest extends TestCase {
 				['OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction'],
 				[],
 			],
+			'BsaDecision.decide' => [
+				'BsaDecision',
+				'decide',
+				['OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction'],
+				[],
+			],
 		];
 	}//end transitions()
 

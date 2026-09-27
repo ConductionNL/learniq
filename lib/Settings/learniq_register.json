@@ -16822,7 +16822,12 @@
                         "decide": {
                             "from": "drafted",
                             "to": "decided",
-                            "requires": "OCA\\Learniq\\Lifecycle\\BsaDecisionGuard"
+                            "requires": "OCA\\Learniq\\Lifecycle\\BsaDecisionGuard",
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\TenantSignatureAction"
+                                }
+                            ]
                         },
                         "appeal": {
                             "from": "decided",

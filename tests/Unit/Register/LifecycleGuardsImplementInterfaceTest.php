@@ -51,7 +51,6 @@ class LifecycleGuardsImplementInterfaceTest extends TestCase {
 		'OCA\\Learniq\\Service\\LearningRecordExportService',
 		'OCA\\Learniq\\Service\\LearningRecordImportService',
 		'OCA\\Learniq\\Service\\ReportCardPdfDelegationService',
-		'OCA\\Learniq\\Lifecycle\\BsaDecisionGuard',
 		'OCA\\Learniq\\Lifecycle\\ExamAccommodationApprovalGuard',
 		'OCA\\Learniq\\Lifecycle\\ExternalTrainingVerificationGuard',
 		'OCA\\Learniq\\Lifecycle\\FraudCaseDecisionGuard',
