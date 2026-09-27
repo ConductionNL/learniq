@@ -2396,7 +2396,18 @@ OC.L10N.register(
         "No shillinq administration is set, so learniq cannot raise a fee's contributions. Set it with occ config:app:set learniq shillinq_administration_id.": "Er is geen shillinq-administratie ingesteld, dus learniq kan geen bijdragen versturen. Stel die in met occ config:app:set learniq shillinq_administration_id.",
         "Raise contributions in shillinq": "Bijdragen versturen via shillinq",
         "The contributions were sent to shillinq.": "De bijdragen zijn naar shillinq verstuurd.",
-        "The contributions could not be raised in shillinq.": "De bijdragen konden niet in shillinq worden verstuurd."
+        "The contributions could not be raised in shillinq.": "De bijdragen konden niet in shillinq worden verstuurd.",
+        "Teaching assistant": "Onderwijsassistent",
+        "Support staff": "Onderwijsondersteunend personeel",
+        "Career counsellor": "Decaan of loopbaanbegeleider",
+        "Study adviser": "Studieadviseur",
+        "Remedial teacher": "Remedial teacher",
+        "Care coordinator": "Intern begeleider of zorgcoördinator",
+        "Exam secretary": "Examensecretaris",
+        "Placement coordinator": "Stagecoördinator",
+        "Confidential counsellor": "Vertrouwenspersoon",
+        "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.": "De functies die deze persoon op school heeft. Een functie beschrijft het werk en geeft geen toegang. Toegang komt uit de groepen van de persoon.",
+        "Administrative staff": "Administratief medewerker"
     },
     "nplurals=2; plural=(n != 1);"
 )
