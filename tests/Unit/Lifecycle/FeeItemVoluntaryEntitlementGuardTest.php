@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\EntitlementOrderPaidGuard;
 use OCA\Learniq\Lifecycle\FeeItemVoluntaryEntitlementGuard;
@@ -40,6 +41,8 @@ use Psr\Log\LoggerInterface;
  * Tests for the FeeItemVoluntaryEntitlementGuard (Entitlement pending -> active / grant).
  */
 class FeeItemVoluntaryEntitlementGuardTest extends TestCase {
+
+	use GuardVerdicts;
 	/**
 	 * Build a guard whose ObjectService::find() resolves the given FeeItem
 	 * fixture, composing a real EntitlementOrderPaidGuard whose own
@@ -94,10 +97,10 @@ class FeeItemVoluntaryEntitlementGuardTest extends TestCase {
 				orderLine: ['id' => 'line-1', 'orderId' => 'order-1'],
 				order: ['id' => 'order-1', 'lifecycle' => $orderState]
 			);
-			$context = ['object' => ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'orderLineId' => 'line-1']];
+			$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'orderLineId' => 'line-1', 'lifecycle' => 'active'];
 
-			self::assertFalse(
-				$guard->check($context),
+			self::assertDenied(
+				$guard->check($object, 'grant', ''),
 				"voluntary FeeItem must block grant even when Order is '{$orderState}'"
 			);
 		}
@@ -116,9 +119,9 @@ class FeeItemVoluntaryEntitlementGuardTest extends TestCase {
 			orderLine: ['id' => 'line-1', 'orderId' => 'order-1'],
 			order: ['id' => 'order-1', 'lifecycle' => 'paid']
 		);
-		$context = ['object' => ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'orderLineId' => 'line-1']];
+		$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'orderLineId' => 'line-1', 'lifecycle' => 'active'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'grant', ''));
 
 	}//end testNonVoluntaryFeeItemAllowsGrantWhenOrderPaid()
 
@@ -134,9 +137,9 @@ class FeeItemVoluntaryEntitlementGuardTest extends TestCase {
 			orderLine: ['id' => 'line-1', 'orderId' => 'order-1'],
 			order: ['id' => 'order-1', 'lifecycle' => 'partially-paid']
 		);
-		$context = ['object' => ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'orderLineId' => 'line-1']];
+		$object = ['id' => 'ent-1', 'feeItemId' => 'fee-1', 'orderLineId' => 'line-1', 'lifecycle' => 'active'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'grant', ''));
 
 	}//end testNonVoluntaryFeeItemRefusesGrantWhenOrderNotPaid()
 
@@ -147,9 +150,9 @@ class FeeItemVoluntaryEntitlementGuardTest extends TestCase {
 	 */
 	public function testMissingFeeItemIdFailsClosed(): void {
 		$guard = $this->makeGuard(feeItem: null);
-		$context = ['object' => ['id' => 'ent-1']];
+		$object = ['id' => 'ent-1', 'lifecycle' => 'active'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'grant', ''));
 
 	}//end testMissingFeeItemIdFailsClosed()
 
@@ -160,9 +163,9 @@ class FeeItemVoluntaryEntitlementGuardTest extends TestCase {
 	 */
 	public function testUnresolvableFeeItemFailsClosed(): void {
 		$guard = $this->makeGuard(feeItem: null);
-		$context = ['object' => ['id' => 'ent-1', 'feeItemId' => 'missing-fee']];
+		$object = ['id' => 'ent-1', 'feeItemId' => 'missing-fee', 'lifecycle' => 'active'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'grant', ''));
 
 	}//end testUnresolvableFeeItemFailsClosed()
 }//end class

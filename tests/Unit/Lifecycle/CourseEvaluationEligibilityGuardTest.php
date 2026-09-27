@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\CourseEvaluationEligibilityGuard;
 use OCP\IUser;
@@ -35,6 +36,8 @@ use Psr\Log\LoggerInterface;
  * Tests for the CourseEvaluationEligibilityGuard lifecycle guard (draft → submitted).
  */
 class CourseEvaluationEligibilityGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * ObjectService mock.
@@ -121,9 +124,9 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 		$this->signInAs('learner-1');
 		$this->wireInvitations([]);
 
-		$context = ['object' => ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a']];
+		$object = ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testNoInvitationBlocksSubmit()
 
@@ -142,9 +145,9 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 		// invitation never matches, so findAll returns empty for this caller.
 		$this->wireInvitations([]);
 
-		$context = ['object' => ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a']];
+		$object = ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testAlreadyRespondedBlocksSecondSubmit()
 
@@ -167,9 +170,9 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 			]
 		);
 
-		$context = ['object' => ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a']];
+		$object = ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertAllowed($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testEligibleInvitationAllowsSubmit()
 
@@ -201,13 +204,16 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 			'answers' => [],
 			'tenant_id' => 'tenant-a',
 		];
-		$context = ['object' => $original];
+		$object = array_merge($original, ['lifecycle' => 'submitted']);
 
-		$this->makeGuard()->check($context);
+		self::assertAllowed($this->makeGuard()->check($object, 'submit', ''));
 
-		self::assertSame($original, $context['object'], 'The guard MUST NOT add/remove/change any key on the response payload');
-		self::assertArrayNotHasKey('learnerId', $context['object']);
-		self::assertArrayNotHasKey('submittedBy', $context['object']);
+		// OpenRegister hands the guard the object by value, so the guard can not
+		// add, remove or change a key on the response it judges (anonymity).
+		$parameter = (new \ReflectionMethod(CourseEvaluationEligibilityGuard::class, 'check'))->getParameters()[0];
+		self::assertFalse($parameter->isPassedByReference());
+		self::assertArrayNotHasKey('learnerId', $object);
+		self::assertArrayNotHasKey('submittedBy', $object);
 
 	}//end testGuardNeverMutatesResponsePayload()
 
@@ -228,9 +234,9 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 			]
 		);
 
-		$context = ['object' => ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a']];
+		$object = ['campaignId' => 'campaign-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testNoAuthenticatedUserFailsClosed()
 
@@ -243,9 +249,9 @@ class CourseEvaluationEligibilityGuardTest extends TestCase {
 		$this->signInAs('learner-1');
 		$this->objectService->expects(self::never())->method('findAll');
 
-		$context = ['object' => ['tenant_id' => 'tenant-a']];
+		$object = ['tenant_id' => 'tenant-a', 'lifecycle' => 'submitted'];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertDenied($this->makeGuard()->check($object, 'submit', ''));
 
 	}//end testMissingCampaignIdFailsClosedWithoutQuerying()
 }//end class

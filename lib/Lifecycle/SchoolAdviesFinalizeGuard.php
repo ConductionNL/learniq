@@ -43,6 +43,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -50,7 +52,14 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#requirement-a-po-schooladvies-may-only-be-raised-on-heroverweging-never-lowered-unless-motivated
  */
-class SchoolAdviesFinalizeGuard {
+class SchoolAdviesFinalizeGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'The doorstroomtoets outranks this advice, so it needs a raise, a motivation or an exemption before it can be made final.';
 
 	/**
 	 * The shared low->high schooladvies/doorstroomtoets ordinal, identical to
@@ -80,18 +89,36 @@ class SchoolAdviesFinalizeGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object' : SchoolAdvies property array
-	 *                                               - 'to'     : target lifecycle state
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-a-higher-doorstroomtoets-result-without-a-raised-definitief-or-a-motivation-blocks-finalisation
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True when the transition may proceed; false blocks it.
 	 *
 	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-a-higher-doorstroomtoets-result-without-a-raised-definitief-or-a-motivation-blocks-finalisation
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object): bool {
 
 		if ($this->heroverwegingSatisfied(object: $object) === true) {
 			return true;
@@ -104,7 +131,7 @@ class SchoolAdviesFinalizeGuard {
 		);
 
 		return false;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Whether the heroverweging rule is satisfied (finalisation may proceed).

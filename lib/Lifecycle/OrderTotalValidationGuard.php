@@ -38,6 +38,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Lifecycle;
 
 use OCA\Learniq\Service\OrderTotalEvaluator;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -50,7 +52,14 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-finalizing-an-order-with-a-mismatched-total-is-refused
  * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-finalizing-an-order-with-a-correct-total-succeeds
  */
-class OrderTotalValidationGuard {
+class OrderTotalValidationGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'The order total does not match the sum of its order lines, or the order has no lines.';
 
 	/**
 	 * Floating-point comparison tolerance for currency amounts (half a cent).
@@ -74,20 +83,39 @@ class OrderTotalValidationGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-finalizing-an-order-with-a-mismatched-total-is-refused
+	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-finalizing-an-order-with-a-correct-total-succeeds
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(order: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Allow the `finalize` transition only when totalAmount matches the sum
 	 * of the Order's OrderLines.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the Order data array
-	 *                                               - 'transition' : 'finalize'
+	 * @param array<string,mixed> $order The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True if the transition is allowed; false blocks it (HTTP 422).
 	 *
 	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-finalizing-an-order-with-a-mismatched-total-is-refused
 	 * @spec openspec/changes/school-payments/specs/payments/spec.md#scenario-finalizing-an-order-with-a-correct-total-succeeds
 	 */
-	public function check(array &$transitionContext): bool {
-		$order = $transitionContext['object'] ?? [];
+	private function allows(array $order): bool {
 		$orderId = $order['id'] ?? ($order['uuid'] ?? '');
 		$storedTotal = (float)($order['totalAmount'] ?? 0);
 
@@ -115,5 +143,5 @@ class OrderTotalValidationGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 }//end class

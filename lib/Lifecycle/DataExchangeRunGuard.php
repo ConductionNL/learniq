@@ -68,6 +68,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
+
 /**
  * Guards the DataExchangeJob `queued → running` lifecycle transition.
  *
@@ -82,7 +85,14 @@ namespace OCA\Learniq\Lifecycle;
  * @spec openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-standing-partner-approval-before-it-runs
  * @spec openspec/changes/funding-and-teldatum-checks/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-a-confirmed-teldatum-pre-flight-check-before-it-runs
  */
-class DataExchangeRunGuard {
+class DataExchangeRunGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'This exchange job needs parent review or partner approval before it can run.';
 
 	/**
 	 * Literal, explicit allowlist of target strings whose composed dossier is
@@ -95,6 +105,28 @@ class DataExchangeRunGuard {
 	private const GATED_TARGETS = ['oso', 'swv'];
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
+	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.4
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Allow the `queued → running` transition.
 	 *
 	 * For gated targets (see GATED_TARGETS): returns false when the job is
@@ -105,26 +137,22 @@ class DataExchangeRunGuard {
 	 *
 	 * For all other targets: returns true unconditionally.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the DataExchangeJob data array
-	 *                                               - 'transition' : 'run'
-	 *                                               - 'from'       : current state (expected: 'queued')
-	 *                                               - 'to'         : 'running'
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool False for gated-target jobs in queued state; true otherwise.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-14
 	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.4
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object): bool {
 		$target = $object['target'] ?? '';
-		$from = $transitionContext['from'] ?? '';
 
-		// Gated-target jobs must NOT move directly from queued to running.
+		// Gated-target jobs must NOT move directly from queued to running. This
+		// guard is named only on `run`, whose sole source state is `queued`, so
+		// reaching it already means the job is leaving `queued`.
 		// They must first enter pending-parent-review via the pendingParentReview
 		// transition, and then proceed via approveDossier → running.
-		if (in_array($target, self::GATED_TARGETS, true) === true && $from === 'queued') {
+		if (in_array($target, self::GATED_TARGETS, true) === true) {
 			return false;
 		}
 
@@ -150,5 +178,5 @@ class DataExchangeRunGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 }//end class

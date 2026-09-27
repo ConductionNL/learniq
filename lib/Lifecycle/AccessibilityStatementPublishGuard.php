@@ -44,13 +44,22 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
 /**
  * Guards the AccessibilityStatement `draft -> published` lifecycle transition.
  */
-class AccessibilityStatementPublishGuard {
+class AccessibilityStatementPublishGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'This accessibility statement is not complete enough to publish yet.';
 
 	/**
 	 * OR register slug for Learniq objects.
@@ -109,19 +118,34 @@ class AccessibilityStatementPublishGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-a-statement-must-not-publish-without-evaluation-evidence
+	 * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the
 	 * `draft -> published` transition on an AccessibilityStatement object.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine:
-	 *                                               - 'object'     : the
-	 *                                               AccessibilityStatement
-	 *                                               data array
-	 *                                               - 'transition' : 'publish'
-	 *                                               - 'from'       : 'draft'
-	 *                                               - 'to'         : 'published'
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True when evaluation evidence is complete and (for a
 	 *              fully-compliant status) no open/mitigated limitation
@@ -130,8 +154,7 @@ class AccessibilityStatementPublishGuard {
 	 * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-a-statement-must-not-publish-without-evaluation-evidence
 	 * @spec openspec/changes/accessibility-conformance-statement/specs/accessibility-conformance/spec.md#requirement-known-limitations-must-be-evidence-backed-and-linked-from-the-published-statement
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object): bool {
 		$status = $object['status'] ?? null;
 		$tenantId = $object['tenant_id'] ?? '';
 
@@ -159,7 +182,7 @@ class AccessibilityStatementPublishGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Assert status, evaluationMethod, evaluationDate, and feedbackContact

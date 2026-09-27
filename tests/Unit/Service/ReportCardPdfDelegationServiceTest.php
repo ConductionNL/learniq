@@ -3,8 +3,9 @@
 /**
  * Unit tests for ReportCardPdfDelegationService.
  *
- * Covers the fail-soft contract: `check()` ALWAYS returns true regardless of
- * outcome (missing token, unreachable docudesk, malformed response, thrown
+ * Covers the fail-soft contract: the guard `check()` ALWAYS allows, and
+ * `render()` records the outcome and never throws regardless of outcome
+ * (missing token, unreachable docudesk, malformed response, thrown
  * exception, or success), mirroring WalletRevocationPropagationService's
  * fail-soft shape. Records the request-body shape against the proposed
  * docudesk contract.
@@ -33,6 +34,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Service\ReportCardPdfDelegationService;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
@@ -46,7 +48,7 @@ use Psr\Log\NullLogger;
 use RuntimeException;
 
 /**
- * Tests for ReportCardPdfDelegationService::check().
+ * Tests for ReportCardPdfDelegationService: the guard and render().
  */
 class ReportCardPdfDelegationServiceTest extends TestCase {
 
@@ -160,26 +162,21 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 			);
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => [
-				'id' => 'card-1',
-				'subjectGrades' => [['curriculumPlanId' => 'plan-1']],
-				'mentorComment' => 'Goed gedaan.',
-				'attendanceSummary' => ['presentCount' => 10],
-				'docudeskRenderError' => 'previous failure',
-			],
-			'transition' => 'renderToPdf',
-			'from' => 'finalised',
-			'to' => 'finalised',
+		$object = [
+			'id' => 'card-1',
+			'subjectGrades' => [['curriculumPlanId' => 'plan-1']],
+			'mentorComment' => 'Goed gedaan.',
+			'attendanceSummary' => ['presentCount' => 10],
+			'docudeskRenderError' => 'previous failure',
+			'lifecycle' => 'finalised',
 		];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->render(reportCard: $object);
 
-		self::assertTrue($result);
-		self::assertSame('rendered', $context['object']['docudeskRenderStatus']);
-		self::assertSame('doc-uuid-1', $context['object']['docudeskDocumentRef']);
-		self::assertNull($context['object']['docudeskRenderError']);
-		self::assertNotEmpty($context['object']['docudeskRequestedAt']);
+		self::assertSame('rendered', $saved['docudeskRenderStatus']);
+		self::assertSame('doc-uuid-1', $saved['docudeskDocumentRef']);
+		self::assertNull($saved['docudeskRenderError']);
+		self::assertNotEmpty($saved['docudeskRequestedAt']);
 
 		// The app SEGMENT is resolved at call time — the target answers to
 		// `filinq` on development and `docudesk` on beta/main — so pinning
@@ -210,18 +207,12 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 		$this->appConfig->method('getValueString')->willReturn('');
 		$this->clientService->expects($this->never())->method('newClient');
 
-		$context = [
-			'object' => ['id' => 'card-2', 'subjectGrades' => [], 'mentorComment' => null],
-			'transition' => 'renderToPdf',
-			'from' => 'finalised',
-			'to' => 'finalised',
-		];
+		$object = ['id' => 'card-2', 'subjectGrades' => [], 'mentorComment' => null, 'lifecycle' => 'finalised'];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->render(reportCard: $object);
 
-		self::assertTrue($result);
-		self::assertSame('failed', $context['object']['docudeskRenderStatus']);
-		self::assertNotEmpty($context['object']['docudeskRenderError']);
+		self::assertSame('failed', $saved['docudeskRenderStatus']);
+		self::assertNotEmpty($saved['docudeskRenderError']);
 
 	}//end testMissingTokenIsFailSoft()
 
@@ -240,20 +231,14 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 		$client->method('post')->willThrowException(new \Exception('Connection refused'));
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => ['id' => 'card-3', 'subjectGrades' => [], 'mentorComment' => null, 'lifecycle' => 'finalised'],
-			'transition' => 'renderToPdf',
-			'from' => 'finalised',
-			'to' => 'finalised',
-		];
+		$object = ['id' => 'card-3', 'subjectGrades' => [], 'mentorComment' => null, 'lifecycle' => 'finalised'];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->render(reportCard: $object);
 
-		self::assertTrue($result);
-		self::assertSame('failed', $context['object']['docudeskRenderStatus']);
-		self::assertStringContainsString('Connection refused', $context['object']['docudeskRenderError']);
+		self::assertSame('failed', $saved['docudeskRenderStatus']);
+		self::assertStringContainsString('Connection refused', $saved['docudeskRenderError']);
 		// Fail-soft never touches lifecycle — the transition context still applies normally.
-		self::assertSame('finalised', $context['object']['lifecycle']);
+		self::assertSame('finalised', $saved['lifecycle']);
 
 	}//end testUnreachableDocudeskIsFailSoft()
 
@@ -272,18 +257,12 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 		$client->method('post')->willReturn($response);
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => ['id' => 'card-4', 'subjectGrades' => [], 'mentorComment' => null],
-			'transition' => 'rerenderToPdf',
-			'from' => 'published-to-parents',
-			'to' => 'published-to-parents',
-		];
+		$object = ['id' => 'card-4', 'subjectGrades' => [], 'mentorComment' => null, 'lifecycle' => 'published-to-parents'];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->render(reportCard: $object);
 
-		self::assertTrue($result);
-		self::assertSame('failed', $context['object']['docudeskRenderStatus']);
-		self::assertNotEmpty($context['object']['docudeskRenderError']);
+		self::assertSame('failed', $saved['docudeskRenderStatus']);
+		self::assertNotEmpty($saved['docudeskRenderError']);
 
 	}//end testMalformedResponseIsFailSoft()
 
@@ -313,21 +292,16 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 		);
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => [
-				'id' => 'card-5',
-				'templateId' => 'template-1',
-				'subjectGrades' => [],
-				'mentorComment' => null,
-			],
-			'transition' => 'renderToPdf',
-			'from' => 'finalised',
-			'to' => 'finalised',
+		$object = [
+			'id' => 'card-5',
+			'templateId' => 'template-1',
+			'subjectGrades' => [],
+			'mentorComment' => null,
+			'lifecycle' => 'finalised',
 		];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->render(reportCard: $object);
 
-		self::assertTrue($result);
 		self::assertSame('huisstijl-groep-6', $capturedOptions['json']['templateSlug']);
 
 	}//end testRenderSendsAssignedTemplateSlug()
@@ -357,21 +331,16 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 		);
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => [
-				'id' => 'card-6',
-				'templateId' => null,
-				'subjectGrades' => [],
-				'mentorComment' => null,
-			],
-			'transition' => 'renderToPdf',
-			'from' => 'finalised',
-			'to' => 'finalised',
+		$object = [
+			'id' => 'card-6',
+			'templateId' => null,
+			'subjectGrades' => [],
+			'mentorComment' => null,
+			'lifecycle' => 'finalised',
 		];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->render(reportCard: $object);
 
-		self::assertTrue($result);
 		self::assertSame('report-card', $capturedOptions['json']['templateSlug']);
 
 	}//end testRenderSendsDefaultSlugWithoutTemplate()
@@ -402,21 +371,16 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 		);
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => [
-				'id' => 'card-7',
-				'templateId' => 'template-missing',
-				'subjectGrades' => [],
-				'mentorComment' => null,
-			],
-			'transition' => 'renderToPdf',
-			'from' => 'finalised',
-			'to' => 'finalised',
+		$object = [
+			'id' => 'card-7',
+			'templateId' => 'template-missing',
+			'subjectGrades' => [],
+			'mentorComment' => null,
+			'lifecycle' => 'finalised',
 		];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->render(reportCard: $object);
 
-		self::assertTrue($result);
 		self::assertSame('report-card', $capturedOptions['json']['templateSlug']);
 
 	}//end testFallsBackToDefaultSlugWhenTemplateNotFound()
@@ -445,21 +409,16 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 		);
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => [
-				'id' => 'card-8',
-				'templateId' => 'template-no-slug',
-				'subjectGrades' => [],
-				'mentorComment' => null,
-			],
-			'transition' => 'renderToPdf',
-			'from' => 'finalised',
-			'to' => 'finalised',
+		$object = [
+			'id' => 'card-8',
+			'templateId' => 'template-no-slug',
+			'subjectGrades' => [],
+			'mentorComment' => null,
+			'lifecycle' => 'finalised',
 		];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->render(reportCard: $object);
 
-		self::assertTrue($result);
 		self::assertSame('report-card', $capturedOptions['json']['templateSlug']);
 
 	}//end testFallsBackToDefaultSlugWhenTemplateHasNoSlug()
@@ -491,22 +450,31 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 		);
 		$this->clientService->method('newClient')->willReturn($client);
 
-		$context = [
-			'object' => [
-				'id' => 'card-9',
-				'templateId' => 'template-throws',
-				'subjectGrades' => [],
-				'mentorComment' => null,
-			],
-			'transition' => 'renderToPdf',
-			'from' => 'finalised',
-			'to' => 'finalised',
+		$object = [
+			'id' => 'card-9',
+			'templateId' => 'template-throws',
+			'subjectGrades' => [],
+			'mentorComment' => null,
+			'lifecycle' => 'finalised',
 		];
 
-		$result = $this->service()->check($context);
+		$saved = $this->service()->render(reportCard: $object);
 
-		self::assertTrue($result);
 		self::assertSame('report-card', $capturedOptions['json']['templateSlug']);
 
 	}//end testFallsBackToDefaultSlugWhenTemplateLookupThrows()
+	/**
+	 * The renderToPdf/rerenderToPdf guard is one OpenRegister can run, and it
+	 * always allows without calling docudesk.
+	 *
+	 * @return void
+	 */
+	public function testGuardAlwaysAllowsTheRender(): void {
+		$this->clientService->expects($this->never())->method('newClient');
+
+		$service = $this->service();
+
+		self::assertInstanceOf(LifecycleGuardInterface::class, $service);
+		self::assertTrue($service->check(['id' => 'card-9', 'lifecycle' => 'finalised'], 'renderToPdf', 'mentor-1')->isAllowed());
+	}//end testGuardAlwaysAllowsTheRender()
 }//end class

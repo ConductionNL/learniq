@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Lifecycle\OrderTotalValidationGuard;
 use OCA\Learniq\Service\OrderTotalEvaluator;
 use PHPUnit\Framework\TestCase;
@@ -33,6 +34,8 @@ use Psr\Log\LoggerInterface;
  * Tests for the OrderTotalValidationGuard (Order draft -> open / finalize).
  */
 class OrderTotalValidationGuardTest extends TestCase {
+
+	use GuardVerdicts;
 	/**
 	 * Build a guard whose OrderTotalEvaluator returns the given result.
 	 *
@@ -57,9 +60,9 @@ class OrderTotalValidationGuardTest extends TestCase {
 	 */
 	public function testMatchingTotalSucceeds(): void {
 		$guard = $this->makeGuard(total: 45.00, lineCount: 2);
-		$context = ['object' => ['id' => 'order-1', 'totalAmount' => 45.00]];
+		$object = ['id' => 'order-1', 'totalAmount' => 45.00, 'lifecycle' => 'open'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'finalize', ''));
 
 	}//end testMatchingTotalSucceeds()
 
@@ -72,9 +75,9 @@ class OrderTotalValidationGuardTest extends TestCase {
 	 */
 	public function testMismatchedTotalRefused(): void {
 		$guard = $this->makeGuard(total: 45.00, lineCount: 2);
-		$context = ['object' => ['id' => 'order-1', 'totalAmount' => 40.00]];
+		$object = ['id' => 'order-1', 'totalAmount' => 40.00, 'lifecycle' => 'open'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'finalize', ''));
 
 	}//end testMismatchedTotalRefused()
 
@@ -85,9 +88,9 @@ class OrderTotalValidationGuardTest extends TestCase {
 	 */
 	public function testZeroOrderLinesRefused(): void {
 		$guard = $this->makeGuard(total: 0.0, lineCount: 0);
-		$context = ['object' => ['id' => 'order-1', 'totalAmount' => 0.0]];
+		$object = ['id' => 'order-1', 'totalAmount' => 0.0, 'lifecycle' => 'open'];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'finalize', ''));
 
 	}//end testZeroOrderLinesRefused()
 
@@ -98,9 +101,9 @@ class OrderTotalValidationGuardTest extends TestCase {
 	 */
 	public function testWithinEpsilonSucceeds(): void {
 		$guard = $this->makeGuard(total: 45.001, lineCount: 2);
-		$context = ['object' => ['id' => 'order-1', 'totalAmount' => 45.00]];
+		$object = ['id' => 'order-1', 'totalAmount' => 45.00, 'lifecycle' => 'open'];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'finalize', ''));
 
 	}//end testWithinEpsilonSucceeds()
 }//end class

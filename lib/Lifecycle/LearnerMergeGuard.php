@@ -28,12 +28,15 @@ declare(strict_types=1);
 namespace OCA\Learniq\Lifecycle;
 
 use OCA\Learniq\Service\LearnerMergeService;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
 
 /**
  * Blocks a learner merge whose target is missing, inactive, itself, or conflicting.
  */
-class LearnerMergeGuard {
+class LearnerMergeGuard implements LifecycleGuardInterface {
+
 	/**
 	 * Constructor.
 	 *
@@ -49,27 +52,25 @@ class LearnerMergeGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point for LearnerProfile `merge`.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
 	 *
-	 * @param array<string,mixed> $transitionContext Context from OR's lifecycle engine;
-	 *                                               'object' is the LearnerProfile data.
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
 	 *
-	 * @return bool True when the merge may proceed.
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
 	 * @spec openspec/parity/capabilities.json#gov-merge-duplicate-accounts
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
-	public function check(array &$transitionContext): bool {
-		$profile = $transitionContext['object'] ?? [];
-		if (is_array($profile) === false) {
-			return false;
-		}
-
-		$reason = $this->mergeService->refusalReason(profile: $profile);
+	public function check(array $object, string $action, string $userId): GuardResult {
+		$reason = $this->mergeService->refusalReason(profile: $object);
 		if ($reason !== null) {
 			$this->logger->info('[LearnerMergeGuard] Merge refused: {reason}.', ['reason' => $reason]);
-			return false;
+			return GuardResult::deny(sprintf('This merge is refused: %s.', $reason));
 		}
 
-		return true;
+		return GuardResult::allow();
 	}//end check()
 }//end class

@@ -46,6 +46,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -56,7 +58,14 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-lock-date-is-enforced-by-a-materialised-calculation-and-guards-not-an-automatic-transition
  */
-class ReportPeriodComposeGuard {
+class ReportPeriodComposeGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'The report period is not locked yet, so it can not be composed.';
 	/**
 	 * Constructor.
 	 *
@@ -70,25 +79,42 @@ class ReportPeriodComposeGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
+	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the
 	 * `compose` transition on a ReportPeriod object. Returns true only when
 	 * `isLocked` (the materialised lockDate-passed calculation) is `true`.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the ReportPeriod data array
-	 *                                               - 'transition' : 'compose'
-	 *                                               - 'from'       : 'open'
-	 *                                               - 'to'         : 'composed'
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True when the period is locked; false blocks the transition.
 	 *
 	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-is-blocked-before-the-lock-date
 	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-compose-succeeds-once-the-lock-date-has-passed
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object): bool {
 		$periodId = $object['id'] ?? ($object['uuid'] ?? '');
 
 		$isLocked = $object['isLocked'] ?? null;
@@ -108,7 +134,7 @@ class ReportPeriodComposeGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Defensive fallback: compute whether `lockDate` has passed `@now`,

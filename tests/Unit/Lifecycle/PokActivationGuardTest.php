@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\PokActivationGuard;
 use PHPUnit\Framework\TestCase;
@@ -32,6 +33,8 @@ use Psr\Log\LoggerInterface;
  * Tests for the PokActivationGuard lifecycle guard (pending-signatures → active).
  */
 class PokActivationGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build a guard whose ObjectService::findAll() returns the given PokSignature rows.
@@ -56,15 +59,15 @@ class PokActivationGuardTest extends TestCase {
 	}//end makeGuard()
 
 	/**
-	 * Build the transitionContext for a Praktijkovereenkomst.
+	 * Build a Praktijkovereenkomst as OpenRegister hands it to the guard: at its target state.
 	 *
 	 * @param int $version POK version.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function pokContext(int $version = 1): array {
-		return ['object' => ['id' => 'pok-1', 'version' => $version, 'tenant_id' => 'tenant-a']];
-	}//end pokContext()
+	private function pokObject(int $version = 1): array {
+		return ['id' => 'pok-1', 'version' => $version, 'tenant_id' => 'tenant-a', 'lifecycle' => 'active'];
+	}//end pokObject()
 
 	/**
 	 * All three roles signed → activation allowed.
@@ -78,8 +81,8 @@ class PokActivationGuardTest extends TestCase {
 			['signerRole' => 'praktijkopleider'],
 		];
 
-		$context = $this->pokContext();
-		$this->assertTrue($this->makeGuard($signatures)->check($context));
+		$object = $this->pokObject();
+		self::assertAllowed($this->makeGuard($signatures)->check($object, 'activate', ''));
 
 	}//end testAllThreeRolesSignedAllowsActivation()
 
@@ -96,8 +99,8 @@ class PokActivationGuardTest extends TestCase {
 		];
 
 		foreach ($cases as $signatures) {
-			$context = $this->pokContext();
-			$this->assertFalse($this->makeGuard($signatures)->check($context));
+			$object = $this->pokObject();
+			self::assertDenied($this->makeGuard($signatures)->check($object, 'activate', ''));
 		}
 
 	}//end testIncompleteSignaturesBlockActivation()
@@ -115,8 +118,8 @@ class PokActivationGuardTest extends TestCase {
 			['signerRole' => 'school'],
 		];
 
-		$context = $this->pokContext();
-		$this->assertFalse($this->makeGuard($signatures)->check($context));
+		$object = $this->pokObject();
+		self::assertDenied($this->makeGuard($signatures)->check($object, 'activate', ''));
 
 	}//end testDuplicateRoleStillCountsAsOneDistinctRole()
 
@@ -130,9 +133,9 @@ class PokActivationGuardTest extends TestCase {
 		$objectService->expects($this->never())->method('findAll');
 
 		$guard = new PokActivationGuard($objectService, $this->createMock(LoggerInterface::class));
-		$context = ['object' => ['version' => 1]];
+		$object = ['version' => 1, 'lifecycle' => 'active'];
 
-		$this->assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'activate', ''));
 
 	}//end testMissingIdFailsClosedWithoutQuerying()
 }//end class

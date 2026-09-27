@@ -29,38 +29,45 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Service\WalletClaimSyncService;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests for WalletClaimSyncService::check().
+ * Tests for WalletClaimSyncService: the recordWalletClaim guard and claim().
  */
 class WalletClaimSyncServiceTest extends TestCase {
 
 	/**
-	 * A claimed offer writes `walletOfferStatus=claimed` and
-	 * `walletClaimedAt`, and always allows the transition.
+	 * The recordWalletClaim guard is one OpenRegister can run, and it always allows.
+	 *
+	 * @return void
+	 */
+	public function testGuardAlwaysAllowsTheClaim(): void {
+		$service = new WalletClaimSyncService();
+
+		self::assertInstanceOf(LifecycleGuardInterface::class, $service);
+		self::assertTrue($service->check(['id' => 'credential-1', 'lifecycle' => 'issued'], 'recordWalletClaim', '')->isAllowed());
+	}//end testGuardAlwaysAllowsTheClaim()
+
+	/**
+	 * A claimed offer writes `walletOfferStatus=claimed` and `walletClaimedAt`.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/eudi-wallet-credential-push/specs/certification/spec.md#scenario-a-claimed-wallet-offer-updates-the-credentials-wallet-offer-status
 	 */
 	public function testClaimWritesStatusAndTimestamp(): void {
-		$context = [
-			'object' => [
-				'id' => 'credential-1',
-				'walletOfferStatus' => 'offered',
-				'walletClaimedAt' => null,
-			],
-			'transition' => 'recordWalletClaim',
-			'from' => 'issued',
-			'to' => 'issued',
+		$credential = [
+			'id' => 'credential-1',
+			'lifecycle' => 'issued',
+			'walletOfferStatus' => 'offered',
+			'walletClaimedAt' => null,
 		];
 
-		$service = new WalletClaimSyncService();
-		$result = $service->check($context);
+		$saved = (new WalletClaimSyncService())->claim(credential: $credential);
 
-		self::assertTrue($result);
-		self::assertSame('claimed', $context['object']['walletOfferStatus']);
-		self::assertNotEmpty($context['object']['walletClaimedAt']);
+		self::assertSame('claimed', $saved['walletOfferStatus']);
+		self::assertNotEmpty($saved['walletClaimedAt']);
+		self::assertSame('issued', $saved['lifecycle']);
 	}//end testClaimWritesStatusAndTimestamp()
 }//end class

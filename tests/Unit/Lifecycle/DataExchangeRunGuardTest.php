@@ -36,6 +36,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\Learniq\Lifecycle\DataExchangeRunGuard;
 use PHPUnit\Framework\TestCase;
 
@@ -43,6 +44,8 @@ use PHPUnit\Framework\TestCase;
  * Tests for DataExchangeRunGuard::check() — the queued → running transition.
  */
 class DataExchangeRunGuardTest extends TestCase {
+
+	use GuardVerdicts;
 	/**
 	 * A leerplicht-target job in `queued` is allowed to run directly —
 	 * NOT blocked the way an oso-target job in `queued` is.
@@ -52,12 +55,9 @@ class DataExchangeRunGuardTest extends TestCase {
 	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-3.2
 	 */
 	public function testLeerplichtTargetInQueuedIsAllowedToRun(): void {
-		$context = [
-			'object' => ['id' => 'job-1', 'target' => 'leerplicht'],
-			'from' => 'queued',
-		];
+		$object = ['id' => 'job-1', 'target' => 'leerplicht', 'lifecycle' => 'running'];
 
-		self::assertTrue((new DataExchangeRunGuard())->check($context));
+		self::assertAllowed((new DataExchangeRunGuard())->check($object, 'run', ''));
 
 	}//end testLeerplichtTargetInQueuedIsAllowedToRun()
 
@@ -71,12 +71,9 @@ class DataExchangeRunGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testOsoTargetInQueuedIsBlocked(): void {
-		$context = [
-			'object' => ['id' => 'job-2', 'target' => 'oso'],
-			'from' => 'queued',
-		];
+		$object = ['id' => 'job-2', 'target' => 'oso', 'lifecycle' => 'running'];
 
-		self::assertFalse((new DataExchangeRunGuard())->check($context));
+		self::assertDenied((new DataExchangeRunGuard())->check($object, 'run', ''));
 
 	}//end testOsoTargetInQueuedIsBlocked()
 
@@ -87,12 +84,9 @@ class DataExchangeRunGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testBronRodTargetInQueuedIsAllowedToRun(): void {
-		$context = [
-			'object' => ['id' => 'job-3', 'target' => 'bron-rod'],
-			'from' => 'queued',
-		];
+		$object = ['id' => 'job-3', 'target' => 'bron-rod', 'lifecycle' => 'running'];
 
-		self::assertTrue((new DataExchangeRunGuard())->check($context));
+		self::assertAllowed((new DataExchangeRunGuard())->check($object, 'run', ''));
 
 	}//end testBronRodTargetInQueuedIsAllowedToRun()
 
@@ -107,12 +101,9 @@ class DataExchangeRunGuardTest extends TestCase {
 	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.4
 	 */
 	public function testSwvTargetInQueuedIsBlocked(): void {
-		$context = [
-			'object' => ['id' => 'job-4', 'target' => 'swv'],
-			'from' => 'queued',
-		];
+		$object = ['id' => 'job-4', 'target' => 'swv', 'lifecycle' => 'running'];
 
-		self::assertFalse((new DataExchangeRunGuard())->check($context));
+		self::assertDenied((new DataExchangeRunGuard())->check($object, 'run', ''));
 
 	}//end testSwvTargetInQueuedIsBlocked()
 
@@ -125,17 +116,15 @@ class DataExchangeRunGuardTest extends TestCase {
 	 * @spec openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-standing-partner-approval-before-it-runs
 	 */
 	public function testPartnerApprovalPendingBlocksRun(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'job-5',
 				'target' => 'uwlr',
 				'requiresPartnerApproval' => true,
 				'partnerApprovalStatus' => 'pending',
-			],
-			'from' => 'queued',
-		];
+				'lifecycle' => 'running',
+			];
 
-		self::assertFalse((new DataExchangeRunGuard())->check($context));
+		self::assertDenied((new DataExchangeRunGuard())->check($object, 'run', ''));
 
 	}//end testPartnerApprovalPendingBlocksRun()
 
@@ -146,17 +135,15 @@ class DataExchangeRunGuardTest extends TestCase {
 	 * @spec openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-standing-partner-approval-before-it-runs
 	 */
 	public function testPartnerApprovalApprovedAllowsRun(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'job-6',
 				'target' => 'uwlr',
 				'requiresPartnerApproval' => true,
 				'partnerApprovalStatus' => 'approved',
-			],
-			'from' => 'queued',
-		];
+				'lifecycle' => 'running',
+			];
 
-		self::assertTrue((new DataExchangeRunGuard())->check($context));
+		self::assertAllowed((new DataExchangeRunGuard())->check($object, 'run', ''));
 
 	}//end testPartnerApprovalApprovedAllowsRun()
 
@@ -169,12 +156,9 @@ class DataExchangeRunGuardTest extends TestCase {
 	 * @spec openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-standing-partner-approval-before-it-runs
 	 */
 	public function testJobWithNoPartnerApprovalFieldsIsUnaffected(): void {
-		$context = [
-			'object' => ['id' => 'job-7', 'target' => 'bron-rod'],
-			'from' => 'queued',
-		];
+		$object = ['id' => 'job-7', 'target' => 'bron-rod', 'lifecycle' => 'running'];
 
-		self::assertTrue((new DataExchangeRunGuard())->check($context));
+		self::assertAllowed((new DataExchangeRunGuard())->check($object, 'run', ''));
 
 	}//end testJobWithNoPartnerApprovalFieldsIsUnaffected()
 
@@ -187,17 +171,15 @@ class DataExchangeRunGuardTest extends TestCase {
 	 * @spec openspec/changes/funding-and-teldatum-checks/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-a-confirmed-teldatum-pre-flight-check-before-it-runs
 	 */
 	public function testTeldatumCheckPendingBlocksRun(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'job-5',
 				'target' => 'bron-rod',
 				'requiresTeldatumCheck' => true,
 				'teldatumCheckStatus' => 'pending',
-			],
-			'from' => 'queued',
-		];
+				'lifecycle' => 'running',
+			];
 
-		self::assertFalse((new DataExchangeRunGuard())->check($context));
+		self::assertDenied((new DataExchangeRunGuard())->check($object, 'run', ''));
 
 	}//end testTeldatumCheckPendingBlocksRun()
 
@@ -209,17 +191,15 @@ class DataExchangeRunGuardTest extends TestCase {
 	 * @spec openspec/changes/funding-and-teldatum-checks/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-a-confirmed-teldatum-pre-flight-check-before-it-runs
 	 */
 	public function testTeldatumCheckConfirmedAllowsRun(): void {
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'job-6',
 				'target' => 'bron-rod',
 				'requiresTeldatumCheck' => true,
 				'teldatumCheckStatus' => 'confirmed',
-			],
-			'from' => 'queued',
-		];
+				'lifecycle' => 'running',
+			];
 
-		self::assertTrue((new DataExchangeRunGuard())->check($context));
+		self::assertAllowed((new DataExchangeRunGuard())->check($object, 'run', ''));
 
 	}//end testTeldatumCheckConfirmedAllowsRun()
 
@@ -232,12 +212,9 @@ class DataExchangeRunGuardTest extends TestCase {
 	 * @spec openspec/changes/funding-and-teldatum-checks/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-a-confirmed-teldatum-pre-flight-check-before-it-runs
 	 */
 	public function testJobWithNoTeldatumCheckFieldsIsUnaffected(): void {
-		$context = [
-			'object' => ['id' => 'job-7', 'target' => 'leerplicht'],
-			'from' => 'queued',
-		];
+		$object = ['id' => 'job-7', 'target' => 'leerplicht', 'lifecycle' => 'running'];
 
-		self::assertTrue((new DataExchangeRunGuard())->check($context));
+		self::assertAllowed((new DataExchangeRunGuard())->check($object, 'run', ''));
 
 	}//end testJobWithNoTeldatumCheckFieldsIsUnaffected()
 }//end class

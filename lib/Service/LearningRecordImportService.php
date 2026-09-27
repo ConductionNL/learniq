@@ -3,7 +3,9 @@
 /**
  * Learniq Learning Record Import Service
  *
- * OR lifecycle guard for `LearningRecordImport`'s `parse` transition.
+ * OR lifecycle guard for `LearningRecordImport`'s `parse` transition; the
+ * parse itself runs in the transition's LearningRecordImportParseAction
+ * (learniq#983).
  * Reads the raw uploaded bundle bytes from nc:files (via `sourceRef`, set by
  * `LearningRecordImportController` before the transition fires), recognises
  * `sourceFormat: scholiq-learning-record` (this capability's own
@@ -41,8 +43,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\Files\IRootFolder;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 /**
  * Guards `LearningRecordImport`'s `parse` transition and parses the
@@ -50,7 +55,12 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/portable-learning-record/tasks.md#task-4-1
  */
-class LearningRecordImportService {
+class LearningRecordImportService implements LifecycleGuardInterface {
+
+	/**
+	 * The sourceFormat values parse() recognises.
+	 */
+	private const RECOGNISED_FORMATS = ['scholiq-learning-record', 'elm-europass'];
 
 	/**
 	 * Top-level keys expected in an own-format (`scholiq-learning-record`)
@@ -89,58 +99,92 @@ class LearningRecordImportService {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point for `LearningRecordImport`'s `parse`
-	 * transition.
+	 * OpenRegister lifecycle guard entry-point for `LearningRecordImport`'s
+	 * `parse` transition.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the LearningRecordImport data array
-	 *                                               - 'transition' : 'parse'
-	 *                                               - 'from'       : 'uploaded'
-	 *                                               - 'to'         : 'parsed'
+	 * Refuses the transition only when the uploaded content can not be read,
+	 * is not JSON, or names a sourceFormat this app does not recognise.
+	 * `unrecognized`/`unverifiable` outcomes are honest, non-error results.
+	 * The entries are written by parse(), run by the transition's
+	 * {@see \OCA\Learniq\Lifecycle\Action\LearningRecordImportParseAction},
+	 * because OpenRegister hands a guard the object by value (learniq#983).
 	 *
-	 * @return bool True when the bundle was parsed (even when `unrecognized`/`unverifiable` outcomes
-	 *              resulted — those are honest, non-error results); false blocks the transition only
-	 *              when the uploaded content could not be parsed as JSON at all.
+	 * @param array<string,mixed> $object The LearningRecordImport as it would be saved.
+	 * @param string $action The transition, `parse`.
+	 * @param string $userId The caller, or '' without a session.
+	 *
+	 * @return GuardResult
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
+	 *
+	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-an-unrecognisable-file-fails-closed-without-partial-data
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		$decoded = $this->readBundle(import: $object);
+		if (is_string($decoded) === true) {
+			return GuardResult::deny($decoded);
+		}
+
+		return GuardResult::allow();
+	}//end check()
+
+	/**
+	 * Parse the uploaded bundle into an evidence-only coverage report.
+	 *
+	 * @param array<string,mixed> $import The LearningRecordImport data array.
+	 *
+	 * @return array<string,mixed> The import with entries, issuerDid and verificationStatus
+	 *                             set and errorMessage cleared.
+	 *
+	 * @throws RuntimeException When the bundle can not be read, decoded or recognised.
 	 *
 	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-a-coordinator-uploads-a-prior-scholiq-export-during-intake-and-sees-a-verified-coverage-report
 	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-an-unrecognisable-file-fails-closed-without-partial-data
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = &$transitionContext['object'];
+	public function parse(array $import): array {
+		$decoded = $this->readBundle(import: $import);
+		if (is_string($decoded) === true) {
+			throw new RuntimeException($decoded);
+		}
 
-		$sourceRef = (string)($object['sourceRef'] ?? '');
-		$uploadedBy = (string)($object['uploadedBy'] ?? '');
-		$sourceFormat = (string)($object['sourceFormat'] ?? '');
-		$tenantId = (string)($object['tenant_id'] ?? '');
+		if (($import['sourceFormat'] ?? '') === 'elm-europass') {
+			$this->parseElmEuropass(decoded: $decoded, object: $import);
+			return $import;
+		}
 
-		$raw = $this->readSourceBytes(sourceRef: $sourceRef, ownerUid: $uploadedBy);
+		$this->parseScholiqLearningRecord(decoded: $decoded, tenantId: (string)($import['tenant_id'] ?? ''), object: $import);
+
+		return $import;
+	}//end parse()
+
+	/**
+	 * Read and decode the uploaded bundle, checking its declared sourceFormat.
+	 *
+	 * @param array<string,mixed> $import The LearningRecordImport data array.
+	 *
+	 * @return array<mixed>|string The decoded bundle, or the reason it can not be parsed.
+	 *
+	 * @spec openspec/changes/portable-learning-record/specs/portable-learning-record/spec.md#scenario-an-unrecognisable-file-fails-closed-without-partial-data
+	 */
+	private function readBundle(array $import): array|string {
+		$sourceFormat = (string)($import['sourceFormat'] ?? '');
+
+		$raw = $this->readSourceBytes(sourceRef: (string)($import['sourceRef'] ?? ''), ownerUid: (string)($import['uploadedBy'] ?? ''));
 		if ($raw === null) {
-			$object['errorMessage'] = 'Could not read the uploaded bundle.';
-			$object['entries'] = [];
-			return false;
+			return 'Could not read the uploaded bundle.';
 		}
 
 		$decoded = json_decode($raw, associative: true);
 		if (is_array($decoded) === false) {
-			$object['errorMessage'] = 'Uploaded file is not valid JSON.';
-			$object['entries'] = [];
-			return false;
+			return 'Uploaded file is not valid JSON.';
 		}
 
-		if ($sourceFormat === 'scholiq-learning-record') {
-			$this->parseScholiqLearningRecord(decoded: $decoded, tenantId: $tenantId, object: $object);
-			return true;
+		if (in_array($sourceFormat, self::RECOGNISED_FORMATS, true) === false) {
+			return 'Unrecognised sourceFormat: ' . $sourceFormat;
 		}
 
-		if ($sourceFormat === 'elm-europass') {
-			$this->parseElmEuropass(decoded: $decoded, object: $object);
-			return true;
-		}
-
-		$object['errorMessage'] = 'Unrecognised sourceFormat: ' . $sourceFormat;
-		$object['entries'] = [];
-		return false;
-	}//end check()
+		return $decoded;
+	}//end readBundle()
 
 	/**
 	 * Parse an own-format `scholiq-learning-record` bundle: one `entries[]`
@@ -151,7 +195,7 @@ class LearningRecordImportService {
 	 *
 	 * @param array<string,mixed> $decoded The decoded bundle JSON.
 	 * @param string $tenantId Importing tenant's UUID (the only key this app can check against).
-	 * @param array<string,mixed> $object The LearningRecordImport transition-context object, by reference.
+	 * @param array<string,mixed> $object The LearningRecordImport object, by reference.
 	 *
 	 * @return void
 	 */
@@ -214,7 +258,7 @@ class LearningRecordImportService {
 	 * expected, honest default for a genuinely foreign format.
 	 *
 	 * @param array<string,mixed> $decoded The decoded bundle JSON.
-	 * @param array<string,mixed> $object The LearningRecordImport transition-context object, by reference.
+	 * @param array<string,mixed> $object The LearningRecordImport object, by reference.
 	 *
 	 * @return void
 	 */

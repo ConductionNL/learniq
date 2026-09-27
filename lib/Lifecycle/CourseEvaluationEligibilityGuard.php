@@ -43,6 +43,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -56,7 +58,14 @@ use Psr\Log\LoggerInterface;
  * matching invitation, or an already-responded invitation all block the
  * transition.
  */
-class CourseEvaluationEligibilityGuard {
+class CourseEvaluationEligibilityGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'You have no open invitation for this course evaluation.';
 
 	/**
 	 * OR register slug for Learniq objects.
@@ -85,7 +94,29 @@ class CourseEvaluationEligibilityGuard {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
+	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(object: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
+	 * The rule behind check(), answered as a boolean.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the `submit`
 	 * transition on a CourseEvaluationResponse object. Resolves the caller's
@@ -94,19 +125,14 @@ class CourseEvaluationEligibilityGuard {
 	 * field to read from) and passes only when that user holds an eligible,
 	 * not-yet-responded EvaluationInvitation for the response's campaignId.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the CourseEvaluationResponse data array
-	 *                                               - 'transition' : 'submit'
-	 *                                               - 'from'       : 'draft'
-	 *                                               - 'to'         : 'submitted'
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True if the caller may submit this response; false blocks the transition.
 	 *
 	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-eligibility-and-duplicate-submission-are-blocked-by-a-lifecycle-guard
 	 * @spec openspec/changes/course-evaluation/specs/course-evaluation/spec.md#requirement-a-response-is-anonymous-by-schema-shape-not-by-rbac
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
+	private function allows(array $object): bool {
 		$campaignId = $object['campaignId'] ?? '';
 
 		if ($campaignId === '') {
@@ -156,5 +182,5 @@ class CourseEvaluationEligibilityGuard {
 		}
 
 		return true;
-	}//end check()
+	}//end allows()
 }//end class

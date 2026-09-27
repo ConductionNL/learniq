@@ -557,7 +557,12 @@
                         "revoke": {
                             "from": "issued",
                             "to": "revoked",
-                            "requires": "OCA\\Learniq\\Service\\WalletRevocationPropagationService"
+                            "requires": "OCA\\Learniq\\Service\\WalletRevocationPropagationService",
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\WalletRevocationPropagationAction"
+                                }
+                            ]
                         },
                         "expire": {
                             "from": "issued",
@@ -8971,7 +8976,12 @@
                         "submit": {
                             "from": "in-progress",
                             "to": "submitted",
-                            "requires": "OCA\\Learniq\\Lifecycle\\AssessmentScoringHandler"
+                            "requires": "OCA\\Learniq\\Lifecycle\\AssessmentScoringHandler",
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\AssessmentAutoScoreAction"
+                                }
+                            ]
                         },
                         "grade": {
                             "from": "submitted",
@@ -21827,7 +21837,12 @@
                         "generate": {
                             "from": "requested",
                             "to": "generated",
-                            "requires": "OCA\\Learniq\\Service\\LearningRecordExportService"
+                            "requires": "OCA\\Learniq\\Service\\LearningRecordExportService",
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\LearningRecordExportGenerateAction"
+                                }
+                            ]
                         }
                     }
                 },
@@ -22279,7 +22294,12 @@
                         "parse": {
                             "from": "uploaded",
                             "to": "parsed",
-                            "requires": "OCA\\Learniq\\Service\\LearningRecordImportService"
+                            "requires": "OCA\\Learniq\\Service\\LearningRecordImportService",
+                            "actions": [
+                                {
+                                    "action": "OCA\\Learniq\\Lifecycle\\Action\\LearningRecordImportParseAction"
+                                }
+                            ]
                         }
                     }
                 },

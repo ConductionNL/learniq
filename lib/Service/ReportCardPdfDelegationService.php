@@ -18,8 +18,8 @@
  *
  * FAIL-SOFT BY DESIGN (per spec): a PDF-render failure is logged and
  * recorded in `docudeskRenderError`, and MUST NOT block any ReportCard
- * lifecycle transition — this guard therefore always returns `true`,
- * catching every `Throwable` and mirroring
+ * lifecycle transition — this guard therefore always allows, and render()
+ * catches every `Throwable`, mirroring
  * {@see \OCA\Learniq\Service\WalletRevocationPropagationService}'s
  * fail-soft shape (a render failure is a convenience-feature-degraded
  * state, not a compliance blocker).
@@ -33,7 +33,8 @@
  * cross-app delegation that cannot be expressed as a schema declaration."
  * Referenced from the ReportCard schema's
  * x-openregister-lifecycle.transitions.renderToPdf/rerenderToPdf.requires
- * in learniq_register.json.
+ * in learniq_register.json. Both are self-loops, so render() runs after the
+ * save in ReportCardPdfTransitionListener (learniq#983).
  *
  * @category Service
  * @package  OCA\Learniq\Service
@@ -59,6 +60,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Support\FleetAppId;
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
 use OCP\Http\Client\IClientService;
@@ -76,11 +79,11 @@ use Throwable;
  * `docudeskRenderStatus=rendered`, stamps `docudeskDocumentRef`, and clears
  * `docudeskRenderError`. On any failure (missing config, HTTP error, thrown
  * exception, non-2xx, malformed body) sets `docudeskRenderStatus=failed` +
- * `docudeskRenderError`, logs, and still returns `true`.
+ * `docudeskRenderError`, logs, and never throws. The guard always allows.
  *
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#requirement-docudesk-pdf-rendering-is-fail-soft-non-blocking-and-its-contract-is-explicitly-proposed
  */
-class ReportCardPdfDelegationService {
+class ReportCardPdfDelegationService implements LifecycleGuardInterface {
 
 	/**
 	 * Proposed, not-yet-verified docudesk REST contract for rendering a
@@ -152,35 +155,55 @@ class ReportCardPdfDelegationService {
 	}//end __construct()
 
 	/**
-	 * OR lifecycle guard entry-point.
+	 * OpenRegister lifecycle guard entry-point for `renderToPdf`/`rerenderToPdf`.
 	 *
-	 * Called before executing the `renderToPdf`/`rerenderToPdf` self-loop
-	 * transition on a ReportCard object. Always returns true — never blocks
-	 * the transition (fail-soft by design).
+	 * Always allows: a render failure never blocks a ReportCard transition
+	 * (fail-soft by design). Both transitions are self-loops, on which
+	 * OpenRegister runs neither guards nor actions, so render() runs after the
+	 * save in {@see \OCA\Learniq\Listener\ReportCardPdfTransitionListener}
+	 * (learniq#983).
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the ReportCard data array (mutated)
-	 *                                               - 'transition' : 'renderToPdf' or 'rerenderToPdf'
+	 * @param array<string,mixed> $object The ReportCard as it would be saved.
+	 * @param string $action The transition, `renderToPdf` or `rerenderToPdf`.
+	 * @param string $userId The caller, or '' without a session.
 	 *
-	 * @return bool Always true (fail-soft by design).
+	 * @return GuardResult Always allow (fail-soft by design).
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The interface fixes the signature.
+	 *
+	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		return GuardResult::allow();
+	}//end check()
+
+	/**
+	 * Render the ReportCard to PDF through docudesk and record the outcome.
+	 *
+	 * Never throws: on success sets `docudeskRenderStatus=rendered` and
+	 * `docudeskDocumentRef`, on any failure `docudeskRenderStatus=failed` and
+	 * `docudeskRenderError`; always stamps `docudeskRequestedAt`.
+	 *
+	 * @param array<string,mixed> $reportCard The ReportCard data array.
+	 *
+	 * @return array<string,mixed> The ReportCard with the render outcome applied.
 	 *
 	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
 	 * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = &$transitionContext['object'];
-		$reportId = (string)($object['id'] ?? ($object['uuid'] ?? ''));
+	public function render(array $reportCard): array {
+		$reportId = (string)($reportCard['id'] ?? ($reportCard['uuid'] ?? ''));
 
-		$object['docudeskRequestedAt'] = date('c');
+		$reportCard['docudeskRequestedAt'] = date('c');
 
 		try {
-			$result = $this->callDocudeskRender(reportCard: $object);
+			$result = $this->callDocudeskRender(reportCard: $reportCard);
 			$rendered = ($result !== null && ($result['documentRef'] ?? null) !== null);
 
 			if ($rendered === true) {
-				$object['docudeskRenderStatus'] = 'rendered';
-				$object['docudeskDocumentRef'] = (string)$result['documentRef'];
-				$object['docudeskRenderError'] = null;
+				$reportCard['docudeskRenderStatus'] = 'rendered';
+				$reportCard['docudeskDocumentRef'] = (string)$result['documentRef'];
+				$reportCard['docudeskRenderError'] = null;
 				$this->logger->info(
 					'[ReportCardPdfDelegationService] ReportCard {id} rendered — docudeskDocumentRef {ref}.',
 					['id' => $reportId, 'ref' => $result['documentRef']]
@@ -188,8 +211,8 @@ class ReportCardPdfDelegationService {
 			}
 
 			if ($rendered === false) {
-				$object['docudeskRenderStatus'] = 'failed';
-				$object['docudeskRenderError'] = 'docudesk render failed or returned no document reference '
+				$reportCard['docudeskRenderStatus'] = 'failed';
+				$reportCard['docudeskRenderError'] = 'docudesk render failed or returned no document reference '
 					. '(the docudesk-side endpoint is a proposed, not-yet-verified contract — see design.md).';
 				$this->logger->warning(
 					'[ReportCardPdfDelegationService] ReportCard {id} render did not succeed — recording failure, not blocking the transition.',
@@ -198,16 +221,16 @@ class ReportCardPdfDelegationService {
 			}
 		} catch (Throwable $exception) {
 			// Fail-soft by design: never block renderToPdf/rerenderToPdf on the docudesk rail.
-			$object['docudeskRenderStatus'] = 'failed';
-			$object['docudeskRenderError'] = 'docudesk render error: ' . $exception->getMessage();
+			$reportCard['docudeskRenderStatus'] = 'failed';
+			$reportCard['docudeskRenderError'] = 'docudesk render error: ' . $exception->getMessage();
 			$this->logger->warning(
 				'[ReportCardPdfDelegationService] Render for ReportCard {id} threw: {msg}',
 				['id' => $reportId, 'msg' => $exception->getMessage()]
 			);
 		}//end try
 
-		return true;
-	}//end check()
+		return $reportCard;
+	}//end render()
 
 	/**
 	 * Call docudesk's proposed render endpoint.

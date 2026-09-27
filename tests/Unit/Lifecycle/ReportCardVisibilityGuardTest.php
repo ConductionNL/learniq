@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use DateTime;
 use DateTimeImmutable;
 use OCA\OpenRegister\Service\ObjectService;
@@ -36,6 +37,8 @@ use Psr\Log\LoggerInterface;
  * Tests for ReportCardVisibilityGuard (finalised -> published-to-parents).
  */
 class ReportCardVisibilityGuardTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Build a guard whose ObjectService::findAll(schema=grade-entry) resolves
@@ -84,17 +87,16 @@ class ReportCardVisibilityGuardTest extends TestCase {
 			now: $now
 		);
 
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'card-1',
 				'subjectGrades' => [
 					['curriculumPlanId' => 'plan-1', 'sourceGradeEntryIds' => ['entry-1']],
 					['curriculumPlanId' => 'plan-2', 'sourceGradeEntryIds' => ['entry-2']],
 				],
-			],
-		];
+				'lifecycle' => 'published-to-parents',
+			];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publishToParents', ''));
 
 	}//end testAllVisibleFromPassedAllowsPublish()
 
@@ -112,17 +114,16 @@ class ReportCardVisibilityGuardTest extends TestCase {
 			now: $now
 		);
 
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'card-1',
 				'subjectGrades' => [
 					['curriculumPlanId' => 'plan-1', 'sourceGradeEntryIds' => ['entry-1']],
 					['curriculumPlanId' => 'biologie', 'sourceGradeEntryIds' => ['entry-2']],
 				],
-			],
-		];
+				'lifecycle' => 'published-to-parents',
+			];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publishToParents', ''));
 
 	}//end testFutureVisibleFromBlocksPublish()
 
@@ -135,14 +136,13 @@ class ReportCardVisibilityGuardTest extends TestCase {
 		$now = new DateTime('2026-07-13T12:00:00+00:00');
 		$guard = $this->makeGuard(visibleFromById: ['entry-1' => null], now: $now);
 
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'card-1',
 				'subjectGrades' => [['curriculumPlanId' => 'plan-1', 'sourceGradeEntryIds' => ['entry-1']]],
-			],
-		];
+				'lifecycle' => 'published-to-parents',
+			];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publishToParents', ''));
 
 	}//end testNullVisibleFromBlocksPublish()
 
@@ -155,14 +155,13 @@ class ReportCardVisibilityGuardTest extends TestCase {
 		$now = new DateTime('2026-07-13T12:00:00+00:00');
 		$guard = $this->makeGuard(visibleFromById: [], now: $now);
 
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'card-1',
 				'subjectGrades' => [['curriculumPlanId' => 'plan-1', 'sourceGradeEntryIds' => ['entry-missing']]],
-			],
-		];
+				'lifecycle' => 'published-to-parents',
+			];
 
-		self::assertFalse($guard->check($context));
+		self::assertDenied($guard->check($object, 'publishToParents', ''));
 
 	}//end testUnresolvableSourceGradeEntryBlocksPublish()
 
@@ -174,14 +173,13 @@ class ReportCardVisibilityGuardTest extends TestCase {
 	public function testEmptySourceGradeEntryIdsDoesNotBlock(): void {
 		$now = new DateTime('2026-07-13T12:00:00+00:00');
 		$guard = $this->makeGuard(visibleFromById: [], now: $now);
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'card-1',
 				'subjectGrades' => [['curriculumPlanId' => 'plan-1', 'sourceGradeEntryIds' => []]],
-			],
-		];
+				'lifecycle' => 'published-to-parents',
+			];
 
-		self::assertTrue($guard->check($context));
+		self::assertAllowed($guard->check($object, 'publishToParents', ''));
 
 	}//end testEmptySourceGradeEntryIdsDoesNotBlock()
 }//end class

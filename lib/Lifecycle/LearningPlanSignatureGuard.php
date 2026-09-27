@@ -41,6 +41,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -51,7 +53,14 @@ use Psr\Log\LoggerInterface;
  * Single responsibility: verify that all required signers have signed this
  * version with sufficient assurance, then supersede the prior version.
  */
-class LearningPlanSignatureGuard {
+class LearningPlanSignatureGuard implements LifecycleGuardInterface {
+
+	/**
+	 * Reason shown to the caller when the transition is refused.
+	 *
+	 * @var string
+	 */
+	private const DENIAL = 'Not every required signer has signed this version of the plan with enough assurance.';
 
 	/**
 	 * Learniq register slug.
@@ -94,24 +103,40 @@ class LearningPlanSignatureGuard {
 	}//end __construct()
 
 	/**
+	 * Authorise or deny the transition this guard is named on (LifecycleGuardInterface).
+	 *
+	 * @param array<string,mixed> $object The object at its target state, transition inputs merged in.
+	 * @param string $action The transition action being applied.
+	 * @param string $userId The uid of the caller.
+	 *
+	 * @return GuardResult Allow, or deny with the reason shown to the caller.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-15
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
+	 */
+	public function check(array $object, string $action, string $userId): GuardResult {
+		if ($this->allows(plan: $object) === true) {
+			return GuardResult::allow();
+		}
+
+		return GuardResult::deny(self::DENIAL);
+	}//end check()
+
+	/**
 	 * Assert all required signers have signed this version; supersede prior on pass.
 	 *
 	 * Called by OpenRegister's lifecycle engine before executing the
 	 * `draft → active` transition. Returns false (HTTP 422) when the
 	 * co-sign pre-condition is not yet satisfied.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's lifecycle engine:
-	 *                                               - 'object'     : the LearningPlan data array
-	 *                                               - 'transition' : 'activate'
-	 *                                               - 'from'       : 'draft'
-	 *                                               - 'to'         : 'active'
+	 * @param array<string,mixed> $plan The object at its target state, transition inputs merged in.
 	 *
 	 * @return bool True when all required roles have signed with sufficient assurance.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-15
 	 */
-	public function check(array &$transitionContext): bool {
-		$plan = $transitionContext['object'] ?? [];
+	private function allows(array $plan): bool {
 		$planId = $plan['id'] ?? ($plan['uuid'] ?? '');
 		$templateId = $plan['templateId'] ?? null;
 		$version = (int)($plan['version'] ?? 1);
@@ -180,7 +205,7 @@ class LearningPlanSignatureGuard {
 		$this->supersedesPriorVersion(supersedesId: $supersedesId);
 
 		return true;
-	}//end check()
+	}//end allows()
 
 	/**
 	 * Fetch the requiredSignerRoles from the LearningPlanTemplate.

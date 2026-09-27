@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
+use OCA\Learniq\Tests\Support\GuardVerdicts;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -44,6 +45,8 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/changes/eportfolio/specs/eportfolio/spec.md#requirement-bpv-praktijkopleider-and-external-assessor-sharing-reuse-the-adr-046-portal-audience-mechanism
  */
 class PortfolioShareGrantHandlerTest extends TestCase {
+
+	use GuardVerdicts;
 
 	/**
 	 * Recorded IManager::createShare() calls.
@@ -155,16 +158,15 @@ class PortfolioShareGrantHandlerTest extends TestCase {
 	public function testSelfGrantBlocked(): void {
 		$handler = $this->makeHandler(null, []);
 
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'share-1',
 				'sharedWithKind' => 'teacher',
 				'sharedWithTeacherId' => 'user-1',
 				'sharedBy' => 'user-1',
-			],
-		];
+				'lifecycle' => 'active',
+			];
 
-		$this->assertFalse($handler->check($context));
+		self::assertDenied($handler->check($object, 'grant', ''));
 
 	}//end testSelfGrantBlocked()
 
@@ -176,16 +178,15 @@ class PortfolioShareGrantHandlerTest extends TestCase {
 	public function testDifferentRecipientAllowed(): void {
 		$handler = $this->makeHandler(null, []);
 
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'share-1',
 				'sharedWithKind' => 'teacher',
 				'sharedWithTeacherId' => 'teacher-mentor',
 				'sharedBy' => 'learner-7',
-			],
-		];
+				'lifecycle' => 'active',
+			];
 
-		$this->assertTrue($handler->check($context));
+		self::assertAllowed($handler->check($object, 'grant', ''));
 
 	}//end testDifferentRecipientAllowed()
 
@@ -198,16 +199,15 @@ class PortfolioShareGrantHandlerTest extends TestCase {
 	public function testSelfGrantBlockedForPraktijkopleiderKind(): void {
 		$handler = $this->makeHandler(null, []);
 
-		$context = [
-			'object' => [
+		$object = [
 				'id' => 'share-2',
 				'sharedWithKind' => 'praktijkopleider',
 				'sharedWithPracticalTrainerId' => 'po-1',
 				'sharedBy' => 'po-1',
-			],
-		];
+				'lifecycle' => 'active',
+			];
 
-		$this->assertFalse($handler->check($context));
+		self::assertDenied($handler->check($object, 'grant', ''));
 
 	}//end testSelfGrantBlockedForPraktijkopleiderKind()
 
