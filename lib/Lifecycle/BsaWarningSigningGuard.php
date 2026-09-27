@@ -45,23 +45,26 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Lifecycle\GuardResult;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\TenantKeyService;
 use Psr\Log\LoggerInterface;
 
 /**
  * Guards the BsaWarning `drafted -> issued` lifecycle transition.
  *
- * Responsibilities (single method, two steps):
- *   1. Verify `improvementPeriod.startDate`/`improvementPeriod.endDate` and
- *      non-empty `offeredGuidance` are present.
- *   2. Compute HMAC-SHA256 of the canonicalised BsaWarning payload using OR's
- *      current tenant key, then inject `signature` and `signingKeyId` into the
- *      transition payload so OR persists them on the issued object.
+ * Verifies `improvementPeriod.startDate`/`improvementPeriod.endDate` and a
+ * non-empty `offeredGuidance`, and that the tenant has an HMAC signing key. The
+ * signing itself is TenantSignatureAction, declared on the same transition:
+ * OpenRegister calls guards by value, so a guard can not write onto the object
+ * (learniq#983).
  *
  * Per ADR-031: no AuditTrail::record(), no HmacKeyService, no event listener.
  * OR's lifecycle engine owns all audit entries; this guard only does guard logic.
+ *
+ * @spec openspec/specs/study-progress/spec.md#requirement-the-formal-warning-captures-improvement-period-guidance-and-personal-circumstances-and-is-signed-evidence
  */
-class BsaWarningSigningGuard {
+class BsaWarningSigningGuard implements LifecycleGuardInterface {
 	/**
 	 * Constructor.
 	 *
@@ -77,45 +80,30 @@ class BsaWarningSigningGuard {
 	}//end __construct()
 
 	/**
-	 * Assert the guidance/improvement-period pre-conditions and compute the
-	 * HMAC signature.
+	 * Assert the guidance/improvement-period pre-conditions and that a signing key is available.
 	 *
-	 * Called by OpenRegister's lifecycle engine before executing the
-	 * `drafted -> issued` transition on a BsaWarning object. The engine
-	 * passes $transitionContext and expects:
-	 *   - return true  → transition proceeds; engine persists the object.
-	 *   - return false → transition is rejected; OR returns HTTP 422.
+	 * Called by OpenRegister's LifecycleValidationListener before the
+	 * `drafted -> issued` transition is saved.
 	 *
-	 * When returning true this method MUST have injected `signature` and
-	 * `signingKeyId` into $transitionContext['payload'] so that OR writes
-	 * those fields onto the issued BsaWarning record.
+	 * @param array<string,mixed> $object The BsaWarning as it would be saved (lifecycle at `issued`).
+	 * @param string              $action The transition action (`issue`).
+	 * @param string              $userId The caller's uid, or '' without a session.
 	 *
-	 * @param array<string,mixed> $transitionContext Context provided by OR's
-	 *                                               lifecycle engine:
-	 *                                               - 'object'     : BsaWarning
-	 *                                               property array
-	 *                                               - 'transition' : 'issue'
-	 *                                               - 'from'       : 'drafted'
-	 *                                               - 'to'         : 'issued'
-	 *                                               - 'payload'    : mutable array;
-	 *                                               write signature
-	 *                                               fields here
-	 *
-	 * @return bool True when pre-conditions are satisfied and signature has
-	 *              been computed; false blocks the transition with HTTP 422.
+	 * @return GuardResult Allow, or deny with what is missing.
 	 *
 	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-the-formal-warning-captures-improvement-period-guidance-and-personal-circumstances-and-is-signed-evidence
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
-	public function check(array &$transitionContext): bool {
-		$object = $transitionContext['object'] ?? [];
-		$tenantId = $object['tenant_id'] ?? '';
+	public function check(array $object, string $action, string $userId): GuardResult {
+		$tenantId = (string)($object['tenant_id'] ?? '');
 
 		if ($this->hasValidImprovementPeriod(object: $object) === false) {
 			$this->logger->info(
 				'BsaWarningSigningGuard: improvementPeriod missing startDate/endDate — blocking issue',
 				['object' => $object]
 			);
-			return false;
+			return GuardResult::deny('The warning needs an improvement period with a start and an end date before it can be issued.');
 		}
 
 		$offeredGuidance = $object['offeredGuidance'] ?? '';
@@ -124,29 +112,19 @@ class BsaWarningSigningGuard {
 				'BsaWarningSigningGuard: offeredGuidance missing/empty — blocking issue',
 				['object' => $object]
 			);
-			return false;
+			return GuardResult::deny('The warning needs a description of the study guidance offered before it can be issued.');
 		}
 
-		$tenantKey = $this->tenantKeyService->getCurrentTenantKey($tenantId);
-
-		if ($tenantKey === '') {
+		// Per spec: if the HMAC key is unavailable the warning MUST fail to issue.
+		if ($this->tenantKeyService->getCurrentTenantKey($tenantId) === '') {
 			$this->logger->error(
 				'BsaWarningSigningGuard: OR tenant key unavailable; refusing to sign without HMAC key',
 				['tenantId' => $tenantId]
 			);
-			// Per spec: if the HMAC key is unavailable the warning MUST fail to issue.
-			return false;
+			return GuardResult::deny('No signing key is available for this organisation, so the warning can not be issued.');
 		}
 
-		$canonicalPayload = $this->buildCanonicalPayload(object: $object);
-		$signature = hash_hmac('sha256', $canonicalPayload, $tenantKey);
-
-		// Inject into the mutable payload so OR persists these on the issued object.
-		// signingKeyId is a verifiable fingerprint of the key in use at signing time.
-		$transitionContext['payload']['signature'] = $signature;
-		$transitionContext['payload']['signingKeyId'] = substr(hash('sha256', $tenantKey), 0, 16);
-
-		return true;
+		return GuardResult::allow();
 	}//end check()
 
 	/**
@@ -177,46 +155,4 @@ class BsaWarningSigningGuard {
 
 		return true;
 	}//end hasValidImprovementPeriod()
-
-	/**
-	 * Build a canonical JSON string of the BsaWarning payload for HMAC input.
-	 *
-	 * Fields are sorted alphabetically at ALL nesting levels (recursive ksort) and
-	 * `signature` / `signingKeyId` are excluded to avoid circular dependency, mirroring
-	 * AttestationSigningGuard::buildCanonicalPayload().
-	 *
-	 * @param array<string,mixed> $object The BsaWarning property array.
-	 *
-	 * @return string Canonical JSON string.
-	 *
-	 * @spec openspec/changes/bsa-study-progress-guard/specs/study-progress/spec.md#requirement-the-formal-warning-captures-improvement-period-guidance-and-personal-circumstances-and-is-signed-evidence
-	 */
-	private function buildCanonicalPayload(array $object): string {
-		$excluded = ['signature', 'signingKeyId', 'lifecycle'];
-		$payload = array_diff_key($object, array_flip($excluded));
-
-		$payload = $this->deepKsort(data: $payload);
-
-		return (string)json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-	}//end buildCanonicalPayload()
-
-	/**
-	 * Recursively sort an array by keys at all nesting levels.
-	 *
-	 * @param array<string,mixed> $data The array to sort.
-	 *
-	 * @return array<string,mixed> The sorted array.
-	 */
-	private function deepKsort(array $data): array {
-		foreach ($data as &$value) {
-			if (is_array($value) === true) {
-				$value = $this->deepKsort(data: $value);
-			}
-		}//end foreach
-
-		unset($value);
-
-		ksort($data);
-		return $data;
-	}//end deepKsort()
 }//end class

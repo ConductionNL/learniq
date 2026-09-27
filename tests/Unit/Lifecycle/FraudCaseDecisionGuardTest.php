@@ -28,8 +28,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
-use DateTimeImmutable;
 use OCA\Learniq\Lifecycle\FraudCaseDecisionGuard;
+use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -48,6 +48,16 @@ class FraudCaseDecisionGuardTest extends TestCase {
 	}//end makeGuard()
 
 	/**
+	 * OpenRegister's registry refuses a guard that does not implement its interface.
+	 *
+	 * @return void
+	 */
+	public function testImplementsTheOpenRegisterGuardInterface(): void {
+		self::assertInstanceOf(LifecycleGuardInterface::class, $this->makeGuard());
+
+	}//end testImplementsTheOpenRegisterGuardInterface()
+
+	/**
 	 * Missing verdict and/or decisionRationale blocks decide.
 	 *
 	 * @return void
@@ -55,38 +65,34 @@ class FraudCaseDecisionGuardTest extends TestCase {
 	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#scenario-decide-blocked-without-a-verdict-and-rationale
 	 */
 	public function testMissingVerdictOrRationaleBlocks(): void {
-		$context = ['object' => ['id' => 'case-1']];
-		self::assertFalse($this->makeGuard()->check($context));
+		$object = ['id' => 'case-1', 'lifecycle' => 'decided'];
+		self::assertFalse($this->makeGuard()->check($object, 'decide', 'board-1')->isAllowed());
 
-		$context = ['object' => ['id' => 'case-1', 'verdict' => 'unfounded']];
-		self::assertFalse($this->makeGuard()->check($context));
+		$object = ['id' => 'case-1', 'lifecycle' => 'decided', 'verdict' => 'unfounded'];
+		self::assertFalse($this->makeGuard()->check($object, 'decide', 'board-1')->isAllowed());
 
-		$context = ['object' => ['id' => 'case-1', 'decisionRationale' => 'No evidence found.']];
-		self::assertFalse($this->makeGuard()->check($context));
+		$object = ['id' => 'case-1', 'lifecycle' => 'decided', 'decisionRationale' => 'No evidence found.'];
+		self::assertFalse($this->makeGuard()->check($object, 'decide', 'board-1')->isAllowed());
 
 	}//end testMissingVerdictOrRationaleBlocks()
 
 	/**
-	 * verdict=unfounded with a rationale succeeds and stamps decidedAt/appealDeadline —
-	 * no sanction fields required.
+	 * verdict=unfounded with a rationale succeeds, no sanction fields required.
+	 * decidedAt/appealDeadline are FraudCaseAppealDeadlineAction's write (learniq#983).
 	 *
 	 * @return void
 	 */
-	public function testUnfoundedVerdictWithRationaleSucceedsAndStamps(): void {
-		$context = [
-			'object' => [
-				'id' => 'case-1',
-				'verdict' => 'unfounded',
-				'decisionRationale' => 'No evidence found.',
-			],
-			'payload' => [],
+	public function testUnfoundedVerdictWithRationaleSucceeds(): void {
+		$object = [
+			'id' => 'case-1',
+			'lifecycle' => 'decided',
+			'verdict' => 'unfounded',
+			'decisionRationale' => 'No evidence found.',
 		];
 
-		self::assertTrue($this->makeGuard()->check($context));
-		self::assertArrayHasKey('decidedAt', $context['payload']);
-		self::assertArrayHasKey('appealDeadline', $context['payload']);
+		self::assertTrue($this->makeGuard()->check($object, 'decide', 'board-1')->isAllowed());
 
-	}//end testUnfoundedVerdictWithRationaleSucceedsAndStamps()
+	}//end testUnfoundedVerdictWithRationaleSucceeds()
 
 	/**
 	 * verdict=fraud-proven without sanction fields blocks decide.
@@ -96,15 +102,14 @@ class FraudCaseDecisionGuardTest extends TestCase {
 	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#scenario-a-fraud-proven-verdict-requires-a-capped-sanction
 	 */
 	public function testFraudProvenWithoutSanctionBlocks(): void {
-		$context = [
-			'object' => [
-				'id' => 'case-1',
-				'verdict' => 'fraud-proven',
-				'decisionRationale' => 'Plagiarism confirmed via Turnitin report.',
-			],
+		$object = [
+			'id' => 'case-1',
+			'lifecycle' => 'decided',
+			'verdict' => 'fraud-proven',
+			'decisionRationale' => 'Plagiarism confirmed via Turnitin report.',
 		];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertFalse($this->makeGuard()->check($object, 'decide', 'board-1')->isAllowed());
 
 	}//end testFraudProvenWithoutSanctionBlocks()
 
@@ -116,58 +121,40 @@ class FraudCaseDecisionGuardTest extends TestCase {
 	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#scenario-a-fraud-proven-verdict-requires-a-capped-sanction
 	 */
 	public function testFraudProvenWithSanctionDurationOverCapBlocks(): void {
-		$context = [
-			'object' => [
-				'id' => 'case-1',
-				'verdict' => 'fraud-proven',
-				'decisionRationale' => 'Plagiarism confirmed.',
-				'sanctionType' => 'suspension',
-				'sanctionDurationMonths' => 13,
-				'sanctionScope' => 'course',
-			],
+		$object = [
+			'id' => 'case-1',
+			'lifecycle' => 'decided',
+			'verdict' => 'fraud-proven',
+			'decisionRationale' => 'Plagiarism confirmed.',
+			'sanctionType' => 'suspension',
+			'sanctionDurationMonths' => 13,
+			'sanctionScope' => 'course',
 		];
 
-		self::assertFalse($this->makeGuard()->check($context));
+		self::assertFalse($this->makeGuard()->check($object, 'decide', 'board-1')->isAllowed());
 
 	}//end testFraudProvenWithSanctionDurationOverCapBlocks()
 
 	/**
-	 * verdict=fraud-proven with a complete, valid sanction succeeds and stamps
-	 * decidedAt/appealDeadline = decidedAt + 42 days.
+	 * verdict=fraud-proven with a complete, valid sanction succeeds. The appeal
+	 * deadline stamp is covered in tests/Unit/Lifecycle/Action/FraudCaseAppealDeadlineActionTest.php.
 	 *
 	 * @return void
-	 *
-	 * @spec openspec/changes/exam-board-case-handling/specs/exam-board/spec.md#scenario-deciding-a-case-stamps-the-appeal-deadline
 	 */
-	public function testFraudProvenWithValidSanctionSucceedsAndStampsAppealDeadline(): void {
-		$context = [
-			'object' => [
-				'id' => 'case-1',
-				'verdict' => 'fraud-proven',
-				'decisionRationale' => 'Plagiarism confirmed via Turnitin report.',
-				'sanctionType' => 'suspension',
-				'sanctionDurationMonths' => 6,
-				'sanctionScope' => 'course',
-			],
-			'payload' => [],
+	public function testFraudProvenWithValidSanctionSucceeds(): void {
+		$object = [
+			'id' => 'case-1',
+			'lifecycle' => 'decided',
+			'verdict' => 'fraud-proven',
+			'decisionRationale' => 'Plagiarism confirmed via Turnitin report.',
+			'sanctionType' => 'suspension',
+			'sanctionDurationMonths' => 6,
+			'sanctionScope' => 'course',
 		];
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertTrue($this->makeGuard()->check($object, 'decide', 'board-1')->isAllowed());
 
-		self::assertArrayHasKey('decidedAt', $context['payload']);
-		self::assertArrayHasKey('appealDeadline', $context['payload']);
-
-		// Both values must parse as valid ISO-8601 dates (not asserting against
-		// the test process' own wall clock — the guard and the test process may
-		// run in different containers with independent clocks).
-		$decidedAt = new DateTimeImmutable($context['payload']['decidedAt']);
-		$appealDeadline = new DateTimeImmutable($context['payload']['appealDeadline']);
-
-		// The stamped deadline is exactly decidedAt + 42 days — the CBE appeal window.
-		$expectedDeadline = $decidedAt->modify('+42 days');
-		self::assertSame($expectedDeadline->format(\DATE_ATOM), $appealDeadline->format(\DATE_ATOM));
-
-	}//end testFraudProvenWithValidSanctionSucceedsAndStampsAppealDeadline()
+	}//end testFraudProvenWithValidSanctionSucceeds()
 
 	/**
 	 * A sanctionDurationMonths of exactly 12 (the cap boundary) is allowed.
@@ -175,19 +162,17 @@ class FraudCaseDecisionGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testSanctionDurationAtCapBoundaryAllowed(): void {
-		$context = [
-			'object' => [
-				'id' => 'case-1',
-				'verdict' => 'fraud-proven',
-				'decisionRationale' => 'Repeated, severe plagiarism.',
-				'sanctionType' => 'exclusion',
-				'sanctionDurationMonths' => 12,
-				'sanctionScope' => 'programme',
-			],
-			'payload' => [],
+		$object = [
+			'id' => 'case-1',
+			'lifecycle' => 'decided',
+			'verdict' => 'fraud-proven',
+			'decisionRationale' => 'Repeated, severe plagiarism.',
+			'sanctionType' => 'exclusion',
+			'sanctionDurationMonths' => 12,
+			'sanctionScope' => 'programme',
 		];
 
-		self::assertTrue($this->makeGuard()->check($context));
+		self::assertTrue($this->makeGuard()->check($object, 'decide', 'board-1')->isAllowed());
 
 	}//end testSanctionDurationAtCapBoundaryAllowed()
 }//end class

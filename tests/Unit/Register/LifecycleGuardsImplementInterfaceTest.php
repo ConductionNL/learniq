@@ -43,18 +43,7 @@ class LifecycleGuardsImplementInterfaceTest extends TestCase {
 	 * @var list<string>
 	 */
 	private const PENDING = [
-		// Write data inside the guard; the write moves to an action (learniq#983 part B).
-		'OCA\\Learniq\\Lifecycle\\AttestationSigningGuard',
-		'OCA\\Learniq\\Lifecycle\\BsaDecisionGuard',
-		'OCA\\Learniq\\Lifecycle\\BsaWarningSigningGuard',
-		'OCA\\Learniq\\Lifecycle\\ExamAccommodationApprovalGuard',
-		'OCA\\Learniq\\Lifecycle\\ExternalTrainingVerificationGuard',
-		'OCA\\Learniq\\Lifecycle\\FraudCaseDecisionGuard',
-		'OCA\\Learniq\\Lifecycle\\MunicipalityFeedbackGuard',
-		'OCA\\Learniq\\Lifecycle\\RejectionResubmitGuard',
-		'OCA\\Learniq\\Lifecycle\\RejectionWaiveGuard',
-		'OCA\\Learniq\\Lifecycle\\OsoImportAcceptGuard',
-		'OCA\\Learniq\\Lifecycle\\OsoImportRejectGuard',
+		// Empty: every guard the register names is converted (learniq#983).
 	];
 
 	/**
