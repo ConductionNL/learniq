@@ -76,6 +76,14 @@ return [
         // Controller: CoursePackageExportController (slug: coursePackageExport).
         ['name' => 'coursePackageExport#export', 'url' => '/api/course-management/course-package-export', 'verb' => 'GET'],
 
+        // Lesson onboarding from Word and PowerPoint files (office-file-lesson-onboarding):
+        // the teacher's watched folder, and the import of one confirmed file (D17).
+        // Listing and dismissing detected files go straight to OpenRegister.
+        // Controller: LessonOnboardingController (slug: lessonOnboarding).
+        ['name' => 'lessonOnboarding#folder',    'url' => '/api/lesson-onboarding/folder',              'verb' => 'GET'],
+        ['name' => 'lessonOnboarding#setFolder', 'url' => '/api/lesson-onboarding/folder',              'verb' => 'PUT'],
+        ['name' => 'lessonOnboarding#import',    'url' => '/api/lesson-onboarding/files/{id}/import',   'verb' => 'POST'],
+
         // School-year rollover wizard — proposal + side-effect-free preview,
         // authorized via the ADR-023 action matrix (rollover.plan).
         // Controller: RolloverController (slug: rollover).

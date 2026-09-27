@@ -127,6 +127,7 @@ import LearniqCompliance from './views/LearniqCompliance.vue'
 import LearniqDashboards from './views/LearniqDashboards.vue'
 import LearniqLearnerHome from './views/LearniqLearnerHome.vue'
 import LessonComposer from './views/LessonComposer.vue'
+import LessonOnboardingReview from './views/LessonOnboardingReview.vue'
 import LessonPlayer from './views/LessonPlayer.vue'
 import MarkSubmissionView from './views/MarkSubmissionView.vue'
 // portable-learning-record: the three genuine new custom views this change
@@ -251,6 +252,7 @@ export default {
 	ConferenceScheduleBoard: page(ConferenceScheduleBoard),
 	CourseBuilder: page(CourseBuilder),
 	CoursePackageImportView: page(CoursePackageImportView),
+	LessonOnboardingReview: page(LessonOnboardingReview),
 	CourseQualityReport: page(CourseQualityReport),
 	DashboardAdmin: page(DashboardAdmin),
 	DashboardTeacher: page(DashboardTeacher),

@@ -23,6 +23,9 @@ const PAYLOAD_FIELD = {
 	quiz: 'assessmentId',
 	assignment: 'assignmentId',
 	ltiTool: 'ltiToolPlacementId',
+	// office-file-lesson-onboarding: a teacher's note (speaker notes of an
+	// imported slide), shown in the composer and never in the player.
+	teacherNote: 'text',
 }
 
 /**
@@ -117,4 +120,19 @@ export function keepDraftBlock(block) {
  */
 export function countPendingDrafts(blocks) {
 	return (blocks ?? []).filter((b) => Boolean(b?.assistDraft)).length
+}
+
+/**
+ * The blocks the lesson player renders, in order: every block except a
+ * teacher note, which stays in the composer (office-file-lesson-onboarding).
+ *
+ * @param {Array<object>} blocks The lesson's blocks.
+ * @return {Array<object>} Sorted blocks without teacher notes.
+ * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#scenario-notes-stay-out-of-the-player
+ */
+export function playerVisibleBlocks(blocks) {
+	return (blocks ?? [])
+		.filter((b) => b?.type !== 'teacherNote')
+		.slice()
+		.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 }

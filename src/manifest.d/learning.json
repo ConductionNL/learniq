@@ -49,6 +49,23 @@
 					}
 				},
 				{
+					"id": "LessonOnboardingMenu",
+					"label": "Lessons from Word and PowerPoint",
+					"icon": "FileImportOutline",
+					"route": "LessonOnboardingReview",
+					"order": 11,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "CoursePackageExportMenu",
 					"label": "Export course package",
 					"icon": "DatabaseExportOutline",
@@ -1153,6 +1170,14 @@
 			"title": "Import course package",
 			"component": "CoursePackageImportView",
 			"_note": "course-package-import-export: the one genuine new custom view this change adds — uploads an IMS Common Cartridge 1.3 or Moodle backup (.mbz) package and renders the resulting CoursePackageImportReport's entries table (filterable by outcome), so an instructional designer sees every imported, degraded, and dropped resource in one place. No PHP CRUD controller — CoursePackageImportController is thin per ADR-022."
+		},
+		{
+			"id": "LessonOnboardingReview",
+			"route": "/lesson-onboarding",
+			"type": "custom",
+			"title": "Lessons from Word and PowerPoint",
+			"component": "LessonOnboardingReview",
+			"_note": "office-file-lesson-onboarding: the review step of decision D17. Lists the signed-in teacher's LessonOnboardingFile rows (Word and PowerPoint files detected in their onboarding folder), each with a course picker, an import action that calls LessonOnboardingController, and a dismiss action; also sets the folder. No typed archetype fits: a row needs a per-row course choice plus a server-side import with the pupil-data warning at the confirmation. The notification on a detected row links to this route."
 		},
 		{
 			"id": "CoursePackageExport",
