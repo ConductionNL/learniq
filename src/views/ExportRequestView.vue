@@ -11,6 +11,8 @@
      outside the school" on, it posts the two confirmations to
      POST /api/course-management/course-package-share instead and lists the
      sharing gate's reasons when it refuses (lesson-sharing-consent-gate);
+     "Publish to the course store" posts the same confirmations to
+     POST /api/store/publish (lesson-sharing-via-store-plane);
    - data-exchange (/data-exchange/request): creates a queued export
      DataExchangeJob for a named connection and scope, then links to it.
 
@@ -129,6 +131,13 @@
 							: t('learniq', 'Download')
 					}}
 				</NcButton>
+				<NcButton
+					v-if="kind === 'course-package' && share"
+					variant="secondary"
+					:disabled="busy || !ready"
+					@click="publish">
+					{{ t('learniq', 'Publish to the course store') }}
+				</NcButton>
 			</div>
 		</form>
 	</div>
@@ -146,6 +155,7 @@ import {
 } from '@nextcloud/vue'
 import {
 	auditPackUrl,
+	coursePackagePublishUrl,
 	coursePackageShareUrl,
 	coursePackageUrl,
 	exportJobBody,
@@ -373,6 +383,73 @@ export default {
 				}
 			} finally {
 				this.busy = false
+			}
+		},
+
+		/**
+		 * Publish the course to the course store, behind the sharing gate.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
+		 */
+		async publish() {
+			this.busy = true
+			this.error = ''
+			this.done = ''
+			this.blockers = []
+			try {
+				const response = await axios.post(
+					generateUrl(coursePackagePublishUrl()),
+					{
+						courseId: this.courseId,
+						noPupilData: this.noPupilData,
+						rightsCleared: this.rightsCleared,
+					},
+				)
+				if (response.data?.outcome === 'ok') {
+					this.done = this.t('learniq', 'Published to the course store.')
+				} else {
+					this.error = this.publishText(response.data?.outcome)
+				}
+			} catch (e) {
+				const body = e?.response?.data ?? {}
+				if (Array.isArray(body.blockers) && body.blockers.length > 0) {
+					this.blockers = body.blockers
+				} else {
+					this.error = this.publishText(body.outcome)
+				}
+			} finally {
+				this.busy = false
+			}
+		},
+
+		/**
+		 * A publish outcome other than ok, as a sentence.
+		 *
+		 * @param {string} outcome The server's outcome.
+		 * @return {string} The sentence.
+		 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
+		 */
+		publishText(outcome) {
+			switch (outcome) {
+				case 'not_configured':
+					return this.t(
+						'learniq',
+						'No course store is set up yet. Ask your administrator.',
+					)
+				case 'too_large':
+					return this.t(
+						'learniq',
+						'This course is too large for the store.',
+					)
+				case 'store_unreachable':
+				case 'store_rejected':
+					return this.t(
+						'learniq',
+						'The course store could not take the course. Try again later.',
+					)
+				default:
+					return this.t('learniq', 'The course could not be published.')
 			}
 		},
 

@@ -80,6 +80,8 @@ Open **Export course package** and turn on **Share outside the school**. Confirm
 
 If sharing is refused, the page lists every reason, such as a missing author or a worksheet from a publisher's method. Your confirmation is recorded with your name, so your school leader can see what left the school.
 
+To share with other schools straight away, choose **Publish to the course store** instead of **Download**. The same checks run first. Other schools then find the course in their **Store** and install their own copy, with your licence and your name on it.
+
 ## Reference
 
 - [Enrol students](./03-enrol-students.md), the natural next step.
