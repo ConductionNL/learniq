@@ -132,27 +132,13 @@
     }
   ],
   "store": {
-    "_note": "The course store (lesson-sharing-via-store-plane). Learniq ships its own Controller\\StoreController, so OpenRegister's generic store controller is not bound for learniq and this block documents the store rather than configuring it: search and resolve run through OpenRegister's GenericStoreService with CourseStoreDescriptor (schema shared-course-package in register learniq of the configured registry); install imports a shared course as a copy through CoursePackageImportService; publish runs the sharing gate first. `installable` is empty on purpose: the engine's generic installer never writes for learniq. The configuration-set types this block used to declare never had a route in learniq; configuration sets stay installable through OpenRegister's own configuration import.",
+    "_note": "The course store (lesson-sharing-via-store-plane). Learniq ships its own Controller\\StoreController, so OpenRegister's generic store controller is not bound for learniq and this block documents the store rather than configuring it: search and resolve run through OpenRegister's GenericStoreService with CourseStoreDescriptor (schema shared-course-package in register learniq of the configured registry; its CARD_FIELDS are the one list of card fields, so none are repeated here); install imports a shared course as a copy through CoursePackageImportService; publish runs the sharing gate first. `installable` is empty on purpose: the engine's generic installer never writes for learniq. The configuration-set types this block used to declare never had a route in learniq; configuration sets stay installable through OpenRegister's own configuration import.",
     "schema": "shared-course-package",
     "register": "learniq",
     "localRegister": "learniq",
     "kinds": [
       "course-package"
     ],
-    "cardFields": {
-      "slug": "slug",
-      "title": "title",
-      "description": "description",
-      "typeName": "cardLine",
-      "publisher": "author",
-      "version": "version",
-      "subject": "subject",
-      "level": "level",
-      "goals": "goals",
-      "language": "language",
-      "license": "license",
-      "author": "author"
-    },
     "installable": []
   },
   "menu": [
