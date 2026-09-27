@@ -185,6 +185,45 @@ The system MUST expose an admin-only health endpoint reporting OpenRegister conn
 #### Notes
 - Observed: `audit_trail_events_24h` returns `0` and `last_audit_pack_export` returns `null` in v0.1 — placeholders pending an OpenRegister audit-event query API. `openregister_connected` is derived from the presence of the bundled register manifest file, not a live connection probe.
 
+### Requirement: A schema's declared audience is enforced by its authorization block
+Every schema that declares who may read its rows in `x-property-rbac` MUST carry an `authorization` block that OpenRegister enforces and that grants read to that audience, because OpenRegister does not read `x-property-rbac` (openregister#4064). A rule of the form "the person in field F reads this row" MUST be enforced as an `authenticated` entry matching F against the caller. Role words MUST map onto the declared groups: teacher to `instructors`, `team-leads`, `coordinators` and `administration-managers`; mentor and study adviser to `team-leads`; coordinator to `coordinators`; principal and finance to `administration-managers`; exam board to `compliance-officers`; manager to `team-leads` and `administration-managers`; admin to OpenRegister's admin bypass. Schemas that relied on the register cascade MUST keep the create and update grants the cascade gave them.
+
+#### Scenario: A learner reads their own grade and not a classmate's
+@e2e exclude Enforced by OpenRegister from the shipped register JSON; pinned by tests/Unit/Register/DeclaredAudienceEnforcedTest.php.
+- **GIVEN** learner A and learner B, neither in a staff group, each with a GradeEntry
+- **WHEN** learner B lists grade entries
+- **THEN** only B's own grade entry is returned
+
+#### Scenario: A schema cannot ship an unenforced audience
+@e2e exclude Register-content invariant with no UI; pinned by tests/Unit/Register/DeclaredAudienceEnforcedTest.php.
+- **WHEN** a schema carries `x-property-rbac` without an `authorization` block
+- **THEN** the unit suite fails and names the schema
+
+### Requirement: A schema with lifecycle transitions is not append-only
+A schema that declares `x-openregister-lifecycle` transitions MUST NOT be `appendOnly`. Open Register runs a transition as an update of the object and refuses every update on an append-only schema, so the two together make every transition fail. The audit ADR-008 asks for is Open Register's audit trail, which keeps each version of the object. Schemas without a lifecycle (for example `DossierNote`, `WellbeingCheckIn`) keep `appendOnly` and are corrected by a new record.
+
+#### Scenario: A credential can be revoked
+@e2e exclude Register-content invariant; pinned by tests/Unit/Register/LifecycleSchemasAreNotAppendOnlyTest.php, which runs one transition for each of the sixteen schemas that were append-only.
+- **GIVEN** an issued `Credential`
+- **WHEN** a compliance officer fires `revoke`
+- **THEN** the credential lands in `revoked` instead of being refused as an update on an append-only schema
+
+### Requirement: A learner runs the transitions on their own rows
+A learner MUST be able to run the transitions a learner screen fires on a row that names them, and nobody else's. OpenRegister checks `update` for a transition and `create` without the object, so each schema grants `update` to `{"group": "authenticated", "match": {<person field>: "$userId", "lifecycle": <the states the learner acts in>}}` and, where the learner creates the row, `create` to `authenticated`. Because an open create lets anyone make a row in another learner's name (and then pass RBAC as its owner), the transition's `requires` guard MUST refuse any caller who is not the person on the row, administrators and system calls excepted. The person field is `reviewerId` on PeerReview (`submit` from `assigned`) and `learnerId` on SelfAssessment (`submit` from `draft`), Portfolio (`submit` from `draft` or `active`), LearningRecordExport (`generate` from `requested`; its guard, `LearningRecordExportService`, cannot run yet and is tracked in learniq#983), LearningRecordShare (`grant` and `revoke`) and ProctoringSession (`activate` and `end`). A share MUST be of an export of the same learner. A PortfolioEntry has no transition, so a pre-write veto MUST refuse a non-staff caller writing an entry that is not in their own name or not in their own portfolio. The staff transitions the learner's update grant would otherwise reach (Portfolio `activate` and `archive`, ProctoringSession `fail`) MUST carry a transition `authorization` list of the staff groups. A `requires` guard MUST implement OpenRegister's `LifecycleGuardInterface`, because OpenRegister refuses to run any other.
+
+#### Scenario: A reviewer submits the peer review they were allocated
+@e2e exclude Enforced by OpenRegister from the shipped register JSON and the guard; pinned by tests/Unit/Register/LearnerTransitionAccessTest.php (testPeerReviewSubmitIsTheReviewers).
+- **GIVEN** a PeerReview allocated by a team lead to learner A, in `assigned`
+- **WHEN** learner A fires `submit`
+- **THEN** the review moves to `submitted`
+- **AND** learner B firing `submit` on it is refused
+
+#### Scenario: A row made in someone else's name is refused at its transition
+@e2e exclude Guard behaviour with no UI of its own; pinned by tests/Unit/Register/LearnerTransitionAccessTest.php (testARowMadeInSomeoneElsesNameIsRefusedAtItsTransition).
+- **GIVEN** learner B created a LearningRecordShare naming learner A
+- **WHEN** learner B fires `grant`
+- **THEN** the guard refuses it
+
 ## Standards
 Nextcloud OCP (`IAppManager`, `IConfig`, `IUserSession`, `IRootFolder`, `IGroupManager`, `Calendar\IManager`, `Notification\IManager`, `Talk\IBroker`, `Activity\IManager`), NL Design System tokens, WCAG 2.1 AA.
 

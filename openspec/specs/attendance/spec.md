@@ -23,7 +23,7 @@ Institutions record who was present, and some are obliged to act when absence cr
 - **AttendanceRecord** — per Session per learner: `status` (`present` | `absent-unexcused` | `absent-excused` | `late` | `left-early`), `minutesAttended`, `markedBy`, `markedAt`, optional `reason`/`excuseRef`. Bulk-markable from a Session roster.
 - **ExcuseRequest** — a learner (or parent, or 18+ learner self) submits an absence excuse for a date range, with a reason and optional attachment; a coordinator approves/rejects; an approved one flips matching `AttendanceRecord`s to `absent-excused`. The submission may go through an external authenticated flow (Dutch: DigiD sick-reporting) — the auth strength is configurable.
 - **AttendanceThreshold** — a rule: `scope` (per learner / per cohort), `window` (rolling N weeks / a fixed term), `metric` (unexcused lesuren / unexcused sessions / attendance-%), `limit`, and an `onCross` action (notify mentor + coordinator; create a flag; trigger a `data-exchange` job to a `target`). Reuses the same threshold/`calculatedChange` machinery as `Regulation` coverage thresholds in the compliance wedge.
-- **AttendanceFlag** — created when a threshold crosses: the learner, the rule, the window, the breaching records, and a workflow (`open → in-handling → reported → resolved`) — so a mentor's intervention and the leerplicht report are tracked. Append-only audit per ADR-008.
+- **AttendanceFlag** — created when a threshold crosses: the learner, the rule, the window, the breaching records, and a workflow (`open → in-handling → reported → resolved`) — so a mentor's intervention and the leerplicht report are tracked. Every version is kept by the audit trail per ADR-008.
 - A mentor dashboard widget: which learners in my cohort are trending toward a threshold.
 
 ## User Stories
@@ -49,11 +49,12 @@ OpenRegister objects with `x-openregister-lifecycle` (ExcuseRequest: submitted �
 AttendanceFlag: open → in-handling → reported → resolved), `x-openregister-relations` (AttendanceRecord↔
 Session/learner, Flag↔learner/threshold), `x-openregister-calculations` (per-learner rolling counts vs
 each threshold), and `x-openregister-notifications` (`onCross` mentor/coordinator alert,
-idempotency-keyed). `AttendanceFlag` MUST be `appendOnly: true` (audit per ADR-008). `AttendanceFlag` MUST
+idempotency-keyed). `AttendanceFlag` MUST NOT be `appendOnly` (Open Register refuses every update on an append-only schema,
+transitions included; the audit trail keeps each version per ADR-008). `AttendanceFlag` MUST
 additionally persist an `interventions` list — each entry timestamped, attributed to the acting
 mentor/coordinator (Nextcloud user ID), and carrying a free-text note — recording the school's handling
 history (contact attempts, agreements reached, escalations) while the flag is `open`/`in-handling`.
-Appending an intervention MUST NOT bypass `appendOnly` versioning: each addition is a new, audited version
+Appending an intervention MUST NOT bypass the audit trail: each addition is a new, audited version
 of the flag (ADR-008), never an in-place edit of a prior entry.
 
 #### Scenario: Attendance objects persist in OpenRegister
@@ -61,14 +62,14 @@ of the flag (ADR-008), never an in-place edit of a prior entry.
 - **GIVEN** the attendance schemas are registered in OpenRegister
 - **WHEN** an `AttendanceRecord`, `ExcuseRequest`, `AttendanceThreshold`, or `AttendanceFlag` is created
 - **THEN** it is stored as an OpenRegister object with its lifecycle, relations, calculations, and
-  notifications metadata, and `AttendanceFlag` is `appendOnly: true` for audit (ADR-008)
+  notifications metadata, and `AttendanceFlag` is not `appendOnly`, its versions kept by the audit trail (ADR-008)
 
 #### Scenario: A mentor's intervention is recorded on the flag
 
 - **GIVEN** an `AttendanceFlag` in `in-handling`
 - **WHEN** a mentor records a contact attempt with the learner as an intervention note
 - **THEN** the note is appended to the flag's `interventions` list with its author and timestamp, as a new
-  audited version of the append-only flag
+  audited version of the flag
 
 ### Requirement: Threshold crossing is a declared calculation trigger
 The threshold-crossing detection MUST be a declared calculation + `calculatedChange` trigger — NOT a PHP TimedJob. It MUST reuse the same threshold machinery as compliance-`Regulation` coverage thresholds (no parallel mechanism — ADR-022).

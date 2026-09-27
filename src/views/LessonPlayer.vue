@@ -369,6 +369,7 @@ import ApplicationOutline from 'vue-material-design-icons/ApplicationOutline.vue
 import BookOpenPageVariantOutline from 'vue-material-design-icons/BookOpenPageVariantOutline.vue'
 import LockOutline from 'vue-material-design-icons/LockOutline.vue'
 import { buildCmi5LaunchUrl } from '../utils/cmi5Launch.js'
+import { completionBelongsTo, currentEnrolment } from '../utils/lessonCompletion.js'
 import { createScorm12Api } from '../utils/scorm12Runtime.js'
 
 // learning-progress-and-analytics: contentTypes that do NOT emit xAPI
@@ -426,6 +427,11 @@ export default {
 				error: '',
 			},
 
+			// learniq#945: the learner's current Enrolment in this lesson's
+			// course. Completion is judged against it, so a retake does not
+			// start with the earlier enrolment's lessons already done.
+			currentEnrolment: null,
+
 			// adaptive-release-and-prerequisites: per-learner release-gate
 			// decision from LessonReleaseController::status(). `available`
 			// defaults true so a fetch failure never fails CLOSED and hides
@@ -480,6 +486,16 @@ export default {
 	},
 
 	computed: {
+		/**
+		 * UUID of the learner's current Enrolment, or null (learniq#945).
+		 *
+		 * @return {string|null} The id.
+		 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
+		 */
+		currentEnrolmentId() {
+			return this.currentEnrolment?.id ?? this.currentEnrolment?.uuid ?? null
+		},
+
 		/**
 		 * True when this lesson's body is authored as blocks
 		 * (contentType === 'text' — course-authoring-ux).
@@ -945,10 +961,17 @@ export default {
 				const learnerId = currentUser?.uid ?? ''
 				if (!learnerId) return
 
+				this.currentEnrolment = await this.loadCurrentEnrolment(learnerId)
+
 				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/lesson-completion?_limit=100',
+					'/apps/openregister/api/objects/learniq/lesson-completion',
 				)
-				const resp = await fetch(url, {
+				const params = new URLSearchParams({
+					learnerId,
+					lessonId: this.lessonId,
+					_limit: '100',
+				})
+				const resp = await fetch(`${url}?${params.toString()}`, {
 					headers: {
 						'OCS-APIREQUEST': 'true',
 						Accept: 'application/json',
@@ -958,10 +981,13 @@ export default {
 
 				const json = await resp.json()
 				const results = json.results ?? json.objects ?? json ?? []
+				// learniq#945: only a completion of the CURRENT enrolment counts,
+				// so a retake starts with this lesson open again.
 				const existing = results.find(
 					(row) =>
 						row.learnerId === learnerId
-						&& row.lessonId === this.lessonId,
+						&& row.lessonId === this.lessonId
+						&& completionBelongsTo(row, this.currentEnrolment),
 				)
 
 				this.manualCompletion.completed = !!existing
@@ -970,6 +996,32 @@ export default {
 			} finally {
 				this.manualCompletion.checked = true
 			}
+		},
+
+		/**
+		 * The learner's current Enrolment in this lesson's course (newest
+		 * active, else newest pending), or null.
+		 *
+		 * @param {string} learnerId Nextcloud user id.
+		 * @return {Promise<object|null>} The enrolment.
+		 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
+		 */
+		async loadCurrentEnrolment(learnerId) {
+			if (!this.courseId) return null
+			const url = generateUrl(
+				'/apps/openregister/api/objects/learniq/enrolment',
+			)
+			const params = new URLSearchParams({
+				learnerId,
+				courseId: this.courseId,
+				_limit: '50',
+			})
+			const resp = await fetch(`${url}?${params.toString()}`, {
+				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
+			})
+			if (!resp.ok) return null
+			const json = await resp.json()
+			return currentEnrolment(json.results ?? json.objects ?? [])
 		},
 
 		/**
@@ -1042,6 +1094,7 @@ export default {
 						learnerId,
 						lessonId: this.lessonId,
 						courseId: this.courseId,
+						enrolmentId: this.currentEnrolmentId,
 						source: 'manual',
 						completedAt: new Date().toISOString(),
 						tenant_id:

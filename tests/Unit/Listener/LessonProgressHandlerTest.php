@@ -320,6 +320,88 @@ class LessonProgressHandlerTest extends TestCase {
 	}//end testDuplicateStatementUpdatesNotDuplicates()
 
 	/**
+	 * A retake does not reuse the completion of the earlier enrolment: the
+	 * statement in the new enrolment adds a row for that enrolment and leaves
+	 * the old row, and its enrolmentId, as they were (learniq#945).
+	 *
+	 * @return void
+	 */
+	public function testARetakeAddsACompletionForTheNewEnrolmentAndKeepsTheOldRow(): void {
+		$now = new DateTime('2027-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
+
+		$this->seed(
+			'lesson',
+			[
+				'id' => 'lesson-3',
+				'courseId' => 'course-1',
+				'lifecycle' => 'published',
+				'xapiObjectId' => 'https://learniq.test/lessons/lesson-3',
+				'tenant_id' => 'tenant-a',
+			]
+		);
+		$this->seed('enrolment', ['id' => 'enrol-1', 'learnerId' => 'learner-1', 'courseId' => 'course-1', 'lifecycle' => 'completed', 'tenant_id' => 'tenant-a']);
+		$this->seed('enrolment', ['id' => 'enrol-2', 'learnerId' => 'learner-1', 'courseId' => 'course-1', 'lifecycle' => 'active', 'tenant_id' => 'tenant-a']);
+		$this->seed(
+			'lesson-completion',
+			[
+				'id' => 'completion-1',
+				'learnerId' => 'learner-1',
+				'lessonId' => 'lesson-3',
+				'courseId' => 'course-1',
+				'enrolmentId' => 'enrol-1',
+				'source' => 'xapi',
+				'completedAt' => '2026-07-01T09:00:00+02:00',
+			]
+		);
+
+		$handler = $this->makeHandler(now: $now);
+		$handler->handle(
+			$this->makeXapiEvent(
+				[
+					'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
+					'object' => ['id' => 'https://learniq.test/lessons/lesson-3'],
+					'verified_actor_id' => 'learner-1',
+					'tenant_id' => 'tenant-a',
+				]
+			)
+		);
+
+		self::assertCount(2, $this->db['lesson-completion']);
+		self::assertSame('enrol-1', $this->db['lesson-completion'][0]['enrolmentId']);
+		self::assertSame('2026-07-01T09:00:00+02:00', $this->db['lesson-completion'][0]['completedAt']);
+		self::assertSame('enrol-2', $this->db['lesson-completion'][1]['enrolmentId']);
+		self::assertNotSame('completion-1', $this->db['lesson-completion'][1]['id']);
+
+	}//end testARetakeAddsACompletionForTheNewEnrolmentAndKeepsTheOldRow()
+
+	/**
+	 * A completion while the new enrolment is still pending belongs to it.
+	 *
+	 * @return void
+	 */
+	public function testAPendingEnrolmentIsUsedWhenNoneIsActive(): void {
+		$now = new DateTime('2027-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
+
+		$this->seed('lesson', ['id' => 'lesson-3', 'courseId' => 'course-1', 'lifecycle' => 'published', 'xapiObjectId' => 'https://learniq.test/lessons/lesson-3', 'tenant_id' => 'tenant-a']);
+		$this->seed('enrolment', ['id' => 'enrol-2', 'learnerId' => 'learner-1', 'courseId' => 'course-1', 'lifecycle' => 'pending', 'tenant_id' => 'tenant-a']);
+
+		$handler = $this->makeHandler(now: $now);
+		$handler->handle(
+			$this->makeXapiEvent(
+				[
+					'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed'],
+					'object' => ['id' => 'https://learniq.test/lessons/lesson-3'],
+					'verified_actor_id' => 'learner-1',
+					'tenant_id' => 'tenant-a',
+				]
+			)
+		);
+
+		self::assertSame('enrol-2', $this->savedCompletions()[0]['enrolmentId']);
+
+	}//end testAPendingEnrolmentIsUsedWhenNoneIsActive()
+
+	/**
 	 * A statement with no resolvable Lesson is skipped without error.
 	 *
 	 * @return void

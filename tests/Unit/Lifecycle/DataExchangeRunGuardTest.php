@@ -115,4 +115,66 @@ class DataExchangeRunGuardTest extends TestCase {
 		self::assertFalse((new DataExchangeRunGuard())->check($context));
 
 	}//end testSwvTargetInQueuedIsBlocked()
+
+	/**
+	 * privacy-governance-surfaces: a job whose target opted into standing
+	 * partner approval, and whose approval is still pending, cannot run —
+	 * independent of the OSO/SWV gate (this target is not one of those).
+	 *
+	 * @return void
+	 * @spec openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-standing-partner-approval-before-it-runs
+	 */
+	public function testPartnerApprovalPendingBlocksRun(): void {
+		$context = [
+			'object' => [
+				'id' => 'job-5',
+				'target' => 'uwlr',
+				'requiresPartnerApproval' => true,
+				'partnerApprovalStatus' => 'pending',
+			],
+			'from' => 'queued',
+		];
+
+		self::assertFalse((new DataExchangeRunGuard())->check($context));
+
+	}//end testPartnerApprovalPendingBlocksRun()
+
+	/**
+	 * Approval unblocks the run transition for the same partner-gated target.
+	 *
+	 * @return void
+	 * @spec openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-standing-partner-approval-before-it-runs
+	 */
+	public function testPartnerApprovalApprovedAllowsRun(): void {
+		$context = [
+			'object' => [
+				'id' => 'job-6',
+				'target' => 'uwlr',
+				'requiresPartnerApproval' => true,
+				'partnerApprovalStatus' => 'approved',
+			],
+			'from' => 'queued',
+		];
+
+		self::assertTrue((new DataExchangeRunGuard())->check($context));
+
+	}//end testPartnerApprovalApprovedAllowsRun()
+
+	/**
+	 * A job that never opted into partner approval (the default shape — no
+	 * requiresPartnerApproval/partnerApprovalStatus keys at all) is
+	 * completely unaffected by this condition.
+	 *
+	 * @return void
+	 * @spec openspec/changes/privacy-governance-surfaces/specs/data-exchange/spec.md#requirement-a-dataexchangejob-target-can-require-standing-partner-approval-before-it-runs
+	 */
+	public function testJobWithNoPartnerApprovalFieldsIsUnaffected(): void {
+		$context = [
+			'object' => ['id' => 'job-7', 'target' => 'bron-rod'],
+			'from' => 'queued',
+		];
+
+		self::assertTrue((new DataExchangeRunGuard())->check($context));
+
+	}//end testJobWithNoPartnerApprovalFieldsIsUnaffected()
 }//end class
