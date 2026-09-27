@@ -35,10 +35,10 @@ Stacked on `segment-example-datasets-po` (learniq #1031, on #1028 and #1022): us
 - [x] Test
 
 ## Verification
-- [ ] All tasks checked off
-- [ ] `openspec validate segment-example-datasets-he --strict` passes
-- [ ] Diff-scoped checks green (contract test, content test, check:register, check:schema-l10n, check:l10n-js, generator `--check`)
-- [ ] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates run once before push (inherited reds only; see the PR)
+- [x] All tasks checked off
+- [x] `openspec validate segment-example-datasets-he --strict` passes
+- [x] Diff-scoped checks green (contract test, content test, check:register, check:schema-l10n, check:l10n-js, generator `--check`)
+- [x] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates run once before push (inherited reds only; see the PR)
 
 ## Quality checklist
 - Tests: the contract test and the content test cover the set; the content test runs the real grade engine.
