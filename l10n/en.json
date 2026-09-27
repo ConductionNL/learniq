@@ -1072,6 +1072,33 @@
         "Learniq JSON": "Learniq JSON",
         "Mark everyone present": "Mark everyone present",
         "Mark saved as a concept.": "Mark saved as a concept.",
+        "Publish marks": "Publish marks",
+        "Column": "Column",
+        "All columns": "All columns",
+        "No marks in this column yet.": "No marks in this column yet.",
+        "Marks": "Marks",
+        "Lowest": "Lowest",
+        "Highest": "Highest",
+        "Passing": "Passing",
+        "Spread of the marks": "Spread of the marks",
+        "Nothing to publish: every mark here is published.": "Nothing to publish: every mark here is published.",
+        "Yes, publish": "Yes, publish",
+        "Publishing {done} of {total}": "Publishing {done} of {total}",
+        "Not published:": "Not published:",
+        "{from} to {to}": "{from} to {to}",
+        "The server refused this mark.": "The server refused this mark.",
+        "_Publish %n mark_::_Publish %n marks_": [
+            "Publish %n mark",
+            "Publish %n marks"
+        ],
+        "_Publish %n mark? Pupils and parents are notified according to their own settings._::_Publish %n marks? Pupils and parents are notified according to their own settings._": [
+            "Publish %n mark? Pupils and parents are notified according to their own settings.",
+            "Publish %n marks? Pupils and parents are notified according to their own settings."
+        ],
+        "_%n mark published._::_%n marks published._": [
+            "%n mark published.",
+            "%n marks published."
+        ],
         "No learners in this group": "No learners in this group",
         "No learners in this group.": "No learners in this group.",
         "No lessons are scheduled for this group.": "No lessons are scheduled for this group.",
