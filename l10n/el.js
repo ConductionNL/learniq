@@ -467,7 +467,20 @@ OC.L10N.register(
         "What course evaluations said, per course.": "Τι είπαν οι αξιολογήσεις μαθημάτων, ανά μάθημα.",
         "What was found on placement visits.": "Τι διαπιστώθηκε στις επισκέψεις στον χώρο εργασίας.",
         "Store": "Κατάστημα",
-        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Εγκαταστήστε μητρώα, σχήματα και ροές που έχουν δημοσιεύσει άλλοι οργανισμοί."
+        "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Εγκαταστήστε μητρώα, σχήματα και ροές που έχουν δημοσιεύσει άλλοι οργανισμοί.",
+        "Enter the access code you were given to start this assessment.": "Εισαγάγετε τον κωδικό πρόσβασης που σας δόθηκε για να ξεκινήσετε αυτή την αξιολόγηση.",
+        "Access code": "Κωδικός πρόσβασης",
+        "This assessment is not open yet. It opens on {date}.": "Αυτή η αξιολόγηση δεν έχει ανοίξει ακόμη. Ανοίγει στις {date}.",
+        "This assessment is not open yet.": "Αυτή η αξιολόγηση δεν έχει ανοίξει ακόμη.",
+        "This assessment is closed.": "Αυτή η αξιολόγηση έχει κλείσει.",
+        "This assessment is not available right now.": "Αυτή η αξιολόγηση δεν είναι διαθέσιμη αυτή τη στιγμή.",
+        "The access code is not correct.": "Ο κωδικός πρόσβασης δεν είναι σωστός.",
+        "Optional code learners must enter to start the test, for example to limit it to the people in the exam room. Leave empty for no code.": "Προαιρετικός κωδικός που πρέπει να εισαγάγουν οι εκπαιδευόμενοι για να ξεκινήσουν το τεστ, για παράδειγμα για να περιοριστεί στα άτομα της αίθουσας εξέτασης. Αφήστε κενό για κανέναν κωδικό.",
+        "The access code typed to start this attempt. It is checked and then cleared, so it is never kept.": "Ο κωδικός πρόσβασης που εισήχθη για την έναρξη αυτής της προσπάθειας. Ελέγχεται και στη συνέχεια διαγράφεται, οπότε δεν διατηρείται ποτέ.",
+        "Teachers": "Εκπαιδευτικοί",
+        "Manager": "Προϊστάμενος",
+        "Teachers of the course who may see and mark this attempt. Filled in by the server.": "Εκπαιδευτικοί του μαθήματος που μπορούν να δουν και να βαθμολογήσουν αυτή την προσπάθεια. Συμπληρώνεται από τον διακομιστή.",
+        "Manager of the learner, who may see this attempt. Filled in by the server.": "Προϊστάμενος του εκπαιδευόμενου, που μπορεί να δει αυτή την προσπάθεια. Συμπληρώνεται από τον διακομιστή."
     },
     "nplurals=2; plural=(n != 1);"
 )
