@@ -529,16 +529,19 @@
 			"route": "/data-exchange/request",
 			"type": "custom",
 			"title": "Request export",
-			"component": "CnExportWizard",
-			"_note": "Mounts CnExportWizard from @conduction/nextcloud-vue for the data-exchange export request (regulation + scope + delivery channel)."
+			"component": "ExportRequestView",
+			"_note": "Mounts ExportRequestView (learniq#947) with kind data-exchange: creates a queued export DataExchangeJob.",
+			"config": {
+				"kind": "data-exchange"
+			}
 		},
 		{
 			"id": "OsoDossierReviewView",
 			"route": "/data-exchange/jobs/:id/oso-review",
 			"type": "custom",
 			"title": "OSO-format dossier review",
-			"component": "CnStructuredDocReview",
-			"_note": "Mounts CnStructuredDocReview from @conduction/nextcloud-vue for the pending-parent-review dossier step of any OSO-format DataExchangeJob — the PO→VO overstapdossier (target: oso) AND the SWV zorgvraag care-request dossier (target: swv, openspec/changes/zorgvraag-swv-tlv-chain), reused unchanged per the data-exchange spec's 'OSO-format dossier parent-review gate covers the SWV zorgvraag target too' requirement. This view is generic by job :id, not target-filtered, so no manifest change was needed to extend it — DataExchangeJobDetail's lifecycleActions panel routes here for either target whenever the job's lifecycle is pending-parent-review. No new component was added."
+			"component": "OsoDossierReviewView",
+			"_note": "Mounts OsoDossierReviewView, which wraps CnStructuredDocReview (learniq#947), for the pending-parent-review dossier step of any OSO-format DataExchangeJob — the PO→VO overstapdossier (target: oso) AND the SWV zorgvraag care-request dossier (target: swv, openspec/changes/zorgvraag-swv-tlv-chain), reused unchanged per the data-exchange spec's 'OSO-format dossier parent-review gate covers the SWV zorgvraag target too' requirement. This view is generic by job :id, not target-filtered, so no manifest change was needed to extend it — DataExchangeJobDetail's lifecycleActions panel routes here for either target whenever the job's lifecycle is pending-parent-review."
 		}
 	]
 }
