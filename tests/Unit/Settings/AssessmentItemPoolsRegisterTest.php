@@ -289,7 +289,7 @@ class AssessmentItemPoolsRegisterTest extends TestCase {
 			}
 		}
 
-		$this->assertEqualsCanonicalizing(['examboard', 'admin'], $recipientGroups);
+		$this->assertEqualsCanonicalizing(['compliance-officers', 'admin'], $recipientGroups);
 		$this->assertNotEmpty($notification['subject']['nl'] ?? '');
 		$this->assertNotEmpty($notification['subject']['en'] ?? '');
 
