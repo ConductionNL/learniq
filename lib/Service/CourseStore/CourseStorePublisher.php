@@ -3,21 +3,24 @@
 /**
  * Learniq Course Store Publisher
  *
- * Sends a share package to the course registry. OpenRegister's store plane
- * covers discovery only (`GenericStoreService` exposes isConfigured, search and
- * resolve) and has no write path, so this class writes to the registry's
- * objects API itself, applying the plane's own rules to the write:
+ * Sends a share package to the course registry through OpenRegister's store
+ * plane: `GenericStoreService::publish()` (openregister #4079). The plane owns
+ * the whole transport, the same guard chain as discovery:
  *
- *   - the registry URL, token and register come from learniq's app config, the
- *     same keys the plane reads for learniq;
+ *   - the registry URL, token and register come from learniq's app config,
+ *     read by the plane for this app id; learniq never reads the token;
  *   - no registry configured means no request and outcome `not_configured`;
- *   - every URL passes OpenRegister's SSRF guard first, and redirects are
- *     refused, so a public host cannot bounce the token to a private address;
- *   - the token travels only as a Bearer header and never reaches a response
- *     or a log line.
+ *   - the SSRF guard, the redirect refusal, the timeouts and the 20 MiB cap;
+ *   - a 2xx counts only when the registry stored the slug that was sent.
  *
- * When OpenRegister adds a write path to the plane, this class becomes one
- * call to it (design.md D2).
+ * What may leave the server and who may send it are learniq's decisions, made
+ * on CourseStoreDescriptor (publishFields, and publishGroups from the ADR-023
+ * matrix action `course-package.share`). Who may publish is asked of the
+ * plane's StoreActionAuthorizer before a package is built.
+ *
+ * Duck-typed against the installed OpenRegister: an older one has no publish
+ * path, and then this class says so (`publish_not_supported`) instead of
+ * sending anything or failing search and install with it.
  *
  * @category Service
  * @package  OCA\Learniq\Service\CourseStore
@@ -32,170 +35,185 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
+ * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CourseStore;
 
-use OCA\Learniq\AppInfo\Application;
-use OCP\Http\Client\IClientService;
-use OCP\IAppConfig;
+use OCA\OpenRegister\AppHost\Service\GenericStoreService;
+use OCP\IUser;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * POSTs a registry object to the configured course registry.
+ * Publishes a gated share package through the store plane.
  */
 class CourseStorePublisher {
 
-	public const OUTCOME_OK = 'ok';
+	public const OUTCOME_OK = GenericStoreService::OUTCOME_OK;
 
-	public const OUTCOME_NOT_CONFIGURED = 'not_configured';
+	public const OUTCOME_NOT_CONFIGURED = GenericStoreService::OUTCOME_NOT_CONFIGURED;
 
-	public const OUTCOME_UNREACHABLE = 'store_unreachable';
+	public const OUTCOME_UNREACHABLE = GenericStoreService::OUTCOME_UNREACHABLE;
+
+	public const OUTCOME_INVALID = GenericStoreService::OUTCOME_INVALID;
+
+	/*
+	 * The next four are literals on purpose, not references to the plane's
+	 * constants: an OpenRegister before #4079 lacks those constants, and a
+	 * missing constant in a constant expression is fatal when this class loads.
+	 */
 
 	public const OUTCOME_REJECTED = 'store_rejected';
 
 	public const OUTCOME_TOO_LARGE = 'too_large';
 
-	/**
-	 * Largest package, as JSON, this publisher sends.
-	 */
-	public const MAX_BYTES = 20 * 1024 * 1024;
+	public const OUTCOME_RATE_LIMITED = 'rate_limited';
+
+	public const OUTCOME_NOT_PUBLISHABLE = 'not_publishable';
 
 	/**
-	 * Connect and request timeout in seconds, as the store plane uses.
+	 * Learniq's own refusal: the plane did not admit this user.
 	 */
-	private const TIMEOUT = 10;
+	public const OUTCOME_FORBIDDEN = 'forbidden';
+
+	/**
+	 * Learniq's own refusal: the installed OpenRegister has no publish path.
+	 */
+	public const OUTCOME_NOT_SUPPORTED = 'publish_not_supported';
+
+	/**
+	 * OpenRegister's store authorizer, resolved lazily (see mayPublish()).
+	 */
+	private const AUTHORIZER_CLASS = 'OCA\\OpenRegister\\AppHost\\Store\\StoreActionAuthorizer';
 
 	/**
 	 * Constructor.
 	 *
-	 * @param IClientService            $clientService  Nextcloud HTTP client factory.
-	 * @param IAppConfig                $appConfig      Learniq's app config (registry connection).
-	 * @param CourseStoreUrlGuard       $urlGuard       OpenRegister's SSRF guard.
+	 * @param GenericStoreService       $storeService   OpenRegister's store plane client.
+	 * @param CourseStoreDescriptor     $descriptor     Learniq's store parameters and publish opt-in.
 	 * @param CourseStoreRegistryObject $registryObject Builds the object to send.
+	 * @param ContainerInterface        $container      Server container, for the plane's authorizer.
 	 * @param LoggerInterface           $logger         Server-side diagnostics only.
 	 */
 	public function __construct(
-		private readonly IClientService $clientService,
-		private readonly IAppConfig $appConfig,
-		private readonly CourseStoreUrlGuard $urlGuard,
+		private readonly GenericStoreService $storeService,
+		private readonly CourseStoreDescriptor $descriptor,
 		private readonly CourseStoreRegistryObject $registryObject,
+		private readonly ContainerInterface $container,
 		private readonly LoggerInterface $logger,
 	) {
 
 	}//end __construct()
 
 	/**
-	 * Whether a course registry is configured.
+	 * Whether a course registry is configured, as the plane reads it.
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
+	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
 	 */
 	public function isConfigured(): bool {
-		return trim($this->appConfig->getValueString(Application::APP_ID, 'registry_url', '')) !== '';
+		return $this->storeService->isConfigured(descriptor: $this->descriptor->descriptor());
 
 	}//end isConfigured()
 
 	/**
-	 * Publish a share package.
+	 * Whether the installed OpenRegister can publish: the descriptor opt-in
+	 * exists and the plane has a publish() method.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-publishing-degrades-cleanly-on-an-openregister-without-the-write-path
+	 */
+	public function supportsPublish(): bool {
+		return $this->descriptor->supportsPublish() === true
+			&& $this->planeHas(method: 'publish') === true;
+
+	}//end supportsPublish()
+
+	/**
+	 * Whether the installed store plane client has a method.
+	 *
+	 * A runtime question on purpose: static analysis reads the declaration
+	 * stub of the newest OpenRegister, while an instance may run an older one.
+	 *
+	 * @param string $method The method name.
+	 *
+	 * @return bool
+	 */
+	private function planeHas(string $method): bool {
+		return method_exists($this->storeService, $method);
+
+	}//end planeHas()
+
+	/**
+	 * Whether the plane admits this user as a publisher for the course store.
+	 *
+	 * The authorizer is resolved from the container here, not injected: an
+	 * OpenRegister without the class would otherwise stop the DI container
+	 * from building the store controller, taking search and install with it.
+	 * Every failure to resolve or ask is a refusal, never a pass: an absent
+	 * class, an object without canPublish(), or canPublish() throwing.
+	 *
+	 * @param IUser $user The signed-in user.
+	 *
+	 * @return bool True only when the plane answered yes.
+	 *
+	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
+	 */
+	public function mayPublish(IUser $user): bool {
+		if ($this->supportsPublish() === false) {
+			return false;
+		}
+
+		try {
+			$authorizer = $this->container->get(self::AUTHORIZER_CLASS);
+		} catch (Throwable $e) {
+			$this->logger->error(message: 'Learniq course store: publish refused, the store authorizer is not resolvable: ' . $e->getMessage());
+			return false;
+		}
+
+		if (is_object($authorizer) === false || method_exists($authorizer, 'canPublish') === false) {
+			$this->logger->error(message: 'Learniq course store: publish refused, the store authorizer has no canPublish()');
+			return false;
+		}
+
+		try {
+			return $authorizer->canPublish($this->descriptor->descriptor(), $user) === true;
+		} catch (Throwable $e) {
+			$this->logger->error(message: 'Learniq course store: publish refused, canPublish() threw: ' . $e->getMessage());
+			return false;
+		}
+
+	}//end mayPublish()
+
+	/**
+	 * Publish a share package through the plane.
 	 *
 	 * @param array<string, mixed> $package The share package from the sharing gate.
 	 *
 	 * @return array{outcome: string, slug: string}
 	 *
-	 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
+	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
 	 */
 	public function publish(array $package): array {
-		$object = $this->registryObject->build(package: $package);
-		$slug   = (string)$object['slug'];
-
-		if ($this->isConfigured() === false) {
-			return ['outcome' => self::OUTCOME_NOT_CONFIGURED, 'slug' => ''];
+		if ($this->supportsPublish() === false) {
+			return ['outcome' => self::OUTCOME_NOT_SUPPORTED, 'slug' => ''];
 		}
 
-		$body = (string)json_encode($object, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-		if (strlen($body) > self::MAX_BYTES) {
-			return ['outcome' => self::OUTCOME_TOO_LARGE, 'slug' => ''];
-		}
+		$result = $this->storeService->publish(
+			descriptor: $this->descriptor->descriptor(),
+			payload: $this->registryObject->build(package: $package)
+		);
 
-		$url = $this->objectsUrl();
-		try {
-			$this->urlGuard->assertSafe(url: $url);
-		} catch (Throwable $e) {
-			$this->logger->warning(message: 'Learniq course store: refused unsafe registry URL: ' . $e->getMessage());
-			return ['outcome' => self::OUTCOME_UNREACHABLE, 'slug' => ''];
-		}
-
-		$status = $this->post(url: $url, body: $body);
-		if ($status === null) {
-			return ['outcome' => self::OUTCOME_UNREACHABLE, 'slug' => ''];
-		}
-
-		if ($status < 200 || $status >= 300) {
-			$this->logger->warning(message: 'Learniq course store: registry refused the package with HTTP ' . $status);
-			return ['outcome' => self::OUTCOME_REJECTED, 'slug' => ''];
-		}
-
-		return ['outcome' => self::OUTCOME_OK, 'slug' => $slug];
+		return [
+			'outcome' => (string)($result['outcome'] ?? self::OUTCOME_INVALID),
+			'slug'    => (string)($result['slug'] ?? ''),
+		];
 
 	}//end publish()
-
-	/**
-	 * The registry's objects API URL for shared course packages.
-	 *
-	 * @return string
-	 */
-	private function objectsUrl(): string {
-		$base     = rtrim(trim($this->appConfig->getValueString(Application::APP_ID, 'registry_url', '')), '/');
-		$register = trim(
-			$this->appConfig->getValueString(Application::APP_ID, 'registry_register', CourseStoreDescriptor::DEFAULT_REGISTER)
-		);
-		if ($register === '') {
-			$register = CourseStoreDescriptor::DEFAULT_REGISTER;
-		}
-
-		return $base . '/index.php/apps/openregister/api/objects/'
-			. rawurlencode($register) . '/' . rawurlencode(CourseStoreDescriptor::SCHEMA);
-
-	}//end objectsUrl()
-
-	/**
-	 * POST the body; return the status, or null when the request failed.
-	 *
-	 * @param string $url  The guarded URL.
-	 * @param string $body The JSON body.
-	 *
-	 * @return int|null
-	 */
-	private function post(string $url, string $body): ?int {
-		$headers = ['Content-Type' => 'application/json', 'Accept' => 'application/json'];
-		$token   = trim($this->appConfig->getValueString(Application::APP_ID, 'registry_token', ''));
-		if ($token !== '') {
-			$headers['Authorization'] = 'Bearer ' . $token;
-		}
-
-		try {
-			$response = $this->clientService->newClient()->post(
-				$url,
-				[
-					'body'            => $body,
-					'headers'         => $headers,
-					'timeout'         => self::TIMEOUT,
-					'connect_timeout' => self::TIMEOUT,
-					'allow_redirects' => false,
-				]
-			);
-		} catch (Throwable $e) {
-			$this->logger->warning(message: 'Learniq course store: registry write failed: ' . $e->getMessage());
-			return null;
-		}
-
-		return $response->getStatusCode();
-
-	}//end post()
 }//end class

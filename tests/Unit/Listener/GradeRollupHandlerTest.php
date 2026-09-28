@@ -74,10 +74,11 @@ class GradeRollupHandlerTest extends TestCase {
 	 * @param DateTime $now The "now" the injected ITimeFactory reports.
 	 * @param RegisterFaithfulStore|null $profiles When set, LearnerProfile reads are answered the way
 	 *                                            OpenRegister answers them instead of by $parentIds.
+	 * @param array<int, array<string, mixed>> $finalGrades FinalGrade rows the existing-row lookup returns.
 	 *
 	 * @return GradeRollupHandler
 	 */
-	private function makeHandler(?array $curriculumPlan, array $parentIds, DateTime $now, ?RegisterFaithfulStore $profiles = null): GradeRollupHandler {
+	private function makeHandler(?array $curriculumPlan, array $parentIds, DateTime $now, ?RegisterFaithfulStore $profiles = null, array $finalGrades = []): GradeRollupHandler {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
@@ -91,9 +92,9 @@ class GradeRollupHandlerTest extends TestCase {
 		);
 
 		$objectService->method('findAll')->willReturnCallback(
-			function (array $config, bool $_rbac = true) use ($parentIds, $profiles) {
+			function (array $config, bool $_rbac = true) use ($parentIds, $profiles, $finalGrades) {
 				if ($config['filters']['schema'] === 'final-grade') {
-					return [];
+					return $finalGrades;
 				}
 
 				if ($config['filters']['schema'] === 'learner-profile' && $profiles !== null) {
@@ -367,4 +368,57 @@ class GradeRollupHandlerTest extends TestCase {
 		self::assertSame('2026-07-13T14:00:00+02:00', $gradeEntrySaves[0]['object']['visibleFrom']);
 
 	}//end testNullPolicyResolvesVisibleFromToPublishMoment()
+
+	/**
+	 * The roll-up writes only what FinalGrade declares. It used to copy the
+	 * entry's `cohortId` onto the FinalGrade, a property the schema does not
+	 * declare and no reader uses; a row that still carries it loses it on
+	 * recompute.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#scenario-a-recomputed-final-grade-carries-no-cohortid
+	 */
+	public function testARecomputedFinalGradeCarriesNoCohortId(): void {
+		$now = new DateTime('2026-07-13 12:00:00', new DateTimeZone('Europe/Amsterdam'));
+		$existing = [
+			'id' => 'final-1',
+			'learnerId' => 'learner-1',
+			'curriculumPlanId' => 'plan-1',
+			'cohortId' => 'cohort-old',
+			'courseId' => 'course-1',
+			'gradeScaleId' => 'scale-1',
+			'tenant_id' => 'tenant-a',
+		];
+
+		$handler = $this->makeHandler(curriculumPlan: ['id' => 'plan-1'], parentIds: [], now: $now, finalGrades: [$existing]);
+		$handler->handle(
+			$this->makeEvent(
+				[
+					'id' => 'entry-1',
+					'learnerId' => 'learner-1',
+					'curriculumPlanId' => 'plan-1',
+					'cohortId' => 'cohort-1',
+					'tenant_id' => 'tenant-a',
+					'courseId' => 'course-1',
+					'gradeScaleId' => 'scale-1',
+					'lifecycle' => 'published',
+				]
+			)
+		);
+
+		$finalGradeSaves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'final-grade'));
+		self::assertCount(1, $finalGradeSaves);
+		$saved = $finalGradeSaves[0]['object'];
+		self::assertArrayNotHasKey('cohortId', $saved);
+		self::assertSame('final-1', $saved['id']);
+		self::assertSame('course-1', $saved['courseId']);
+		self::assertSame('scale-1', $saved['gradeScaleId']);
+		self::assertSame('tenant-a', $saved['tenant_id']);
+
+		// Everything the roll-up writes is a property FinalGrade declares.
+		$register = json_decode((string)file_get_contents(dirname(__DIR__, 3) . '/lib/Settings/learniq_register.json'), true);
+		$declared = array_keys($register['components']['schemas']['FinalGrade']['properties']);
+		self::assertSame([], array_values(array_diff(array_keys($saved), array_merge($declared, ['id']))));
+	}//end testARecomputedFinalGradeCarriesNoCohortId()
 }//end class

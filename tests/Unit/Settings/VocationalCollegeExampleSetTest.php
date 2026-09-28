@@ -363,7 +363,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 			$plan    = $plans[$final['curriculumPlanId']];
 			$entries = $published[$final['learnerId'] . '|' . $final['curriculumPlanId']];
 			[$value, $breakdown] = $aggregation->applyFormula($plan['formula'], $entries, $aggregation->indexComponents($plan));
-			$passed = $pass->evaluatePassed($plan['formula'], $value, $entries, $plan['passRules'], (float)$scales[$plan['gradeScaleId']]['passThreshold']);
+			$passed = $pass->evaluatePassed($plan['formula'], $value, $entries, $plan['passRules'], (float)$scales[$plan['gradeScaleId']]['passThreshold'], $aggregation->indexComponents($plan));
 
 			self::assertEqualsWithDelta($value, $final['value'], 0.00001, $final['slug']);
 			self::assertSame($passed, $final['passed'], $final['slug']);

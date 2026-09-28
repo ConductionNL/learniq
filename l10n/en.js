@@ -1,10 +1,10 @@
 OC.L10N.register(
     "learniq",
     {
-        "A parent or guardian also signs this agreement. The student is under 18, or their date of birth is not recorded.": "A parent or guardian also signs this agreement. The student is under 18, or their date of birth is not recorded.",
-        "Parent signature required": "Parent signature required",
-        "Role of the signer. A parent or guardian signs next to a student who is under 18.": "Role of the signer. A parent or guardian signs next to a student who is under 18.",
-        "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded.": "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded.",
+        "QTI 2.1 interaction type.": "QTI 2.1 interaction type.",
+        "QTI 2.1 item XML, in the imsqti_v2p1 namespace.": "QTI 2.1 item XML, in the imsqti_v2p1 namespace.",
+        "When true, the presentation order of each choice-bearing item's answer options is independently permuted per attempt by AssessmentDrawResolver, respecting the QTI fixed attribute on individual simpleChoice options.": "When true, the presentation order of each choice-bearing item's answer options is independently permuted per attempt by AssessmentDrawResolver, respecting the QTI fixed attribute on individual simpleChoice options.",
+        "What this flag is about. The first three are school attendance concerns under the Leerplichtwet. Attendance requirement is for a course, programme, training or company that asks for a minimum presence.": "What this flag is about. The first three are school attendance concerns under the Leerplichtwet. Attendance requirement is for a course, programme, training or company that asks for a minimum presence.",
         "Last Checked Learner ID": "Last Checked Learner ID",
         "Nextcloud user ID of the learner named in the most recent `check-threshold` transition. Transient — overwritten on every check. See attendance-threshold-calculation: OpenRegister's aggregation DSL cannot express a per-individual-learner figure on a shared threshold definition, so a caller (a manual admin/mentor action today; a future scheduled per-learner job is the natural long-term caller) supplies this value as a guarded transition input.": "Nextcloud user ID of the learner named in the most recent `check-threshold` transition. Transient — overwritten on every check. See attendance-threshold-calculation: OpenRegister's aggregation DSL cannot express a per-individual-learner figure on a shared threshold definition, so a caller (a manual admin/mentor action today; a future scheduled per-learner job is the natural long-term caller) supplies this value as a guarded transition input.",
         "Last Checked Metric Value": "Last Checked Metric Value",
@@ -2001,7 +2001,23 @@ OC.L10N.register(
         "This work could not be found.": "This work could not be found.",
         "This work is already handed in.": "This work is already handed in.",
         "This work cannot be handed in right now. Ask your teacher.": "This work cannot be handed in right now. Ask your teacher.",
-        "These lessons come from the school timetable. Changes are made there.": "These lessons come from the school timetable. Changes are made there."
+        "These lessons come from the school timetable. Changes are made there.": "These lessons come from the school timetable. Changes are made there.",
+        "A teacher's note on a lesson, for colleagues only. Learners and guardians can never read it: not in the lesson player and not through the objects API. The note sits after a lesson block, the way the lesson editor shows it. teacher-notes-protection.": "A teacher's note on a lesson, for colleagues only. Learners and guardians can never read it: not in the lesson player and not through the objects API. The note sits after a lesson block, the way the lesson editor shows it. teacher-notes-protection.",
+        "Lesson": "Lesson",
+        "The lesson this note belongs to.": "The lesson this note belongs to.",
+        "Note ID": "Note ID",
+        "Stable identifier of this note within its lesson, kept when the note moves.": "Stable identifier of this note within its lesson, kept when the note moves.",
+        "After block": "After block",
+        "The lesson block this note follows. Empty places the note before the first block.": "The lesson block this note follows. Empty places the note before the first block.",
+        "Position": "Position",
+        "Order among the notes that follow the same block, starting at 0.": "Order among the notes that follow the same block, starting at 0.",
+        "The note, as markdown. Only staff read it.": "The note, as markdown. Only staff read it.",
+        "Block type. It decides which payload field below is filled. Teacher notes are not blocks: they are kept apart, where learners cannot read them.": "Block type. It decides which payload field below is filled. Teacher notes are not blocks: they are kept apart, where learners cannot read them.",
+        "Markdown text of a rich text block. Empty for every other block type.": "Markdown text of a rich text block. Empty for every other block type.",
+        "A parent or guardian also signs this agreement. The student is under 18, or their date of birth is not recorded.": "A parent or guardian also signs this agreement. The student is under 18, or their date of birth is not recorded.",
+        "Parent signature required": "Parent signature required",
+        "Role of the signer. A parent or guardian signs next to a student who is under 18.": "Role of the signer. A parent or guardian signs next to a student who is under 18.",
+        "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded.": "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded."
     },
     "nplurals=2; plural=(n != 1);"
 )

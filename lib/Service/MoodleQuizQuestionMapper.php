@@ -213,9 +213,10 @@ class MoodleQuizQuestionMapper {
 	 * @param string $interactionType Learniq interactionType slug.
 	 * @param array<int, array{fraction: float, text: string}> $answers Parsed answers, for `choice` rendering.
 	 *
-	 * @return string A QTI-3.0-namespaced XML string wrapping the Moodle question content.
+	 * @return string A QTI 2.1 XML string wrapping the Moodle question content.
 	 *
 	 * @spec openspec/changes/course-package-import-export/design.md#fidelity--loss-table
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#requirement-items-are-stored-as-qti-21-and-labelled-as-qti-21
 	 */
 	private function buildQtiLikeBody(string $title, string $questionText, string $interactionType, array $answers): string {
 		$escapedTitle = htmlspecialchars($title, ENT_XML1 | ENT_QUOTES);
@@ -231,7 +232,7 @@ class MoodleQuizQuestionMapper {
 		}
 
 		return '<?xml version="1.0" encoding="UTF-8"?>'
-			. '<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" '
+			. '<assessmentItem xmlns="' . QtiExportService::QTI21_NAMESPACE . '" '
 			. 'identifier="moodle-' . md5($title) . '" title="' . $escapedTitle . '" adaptive="false" timeDependent="false">'
 			. '<itemBody><p>' . $escapedText . '</p>' . $choiceXml . '</itemBody>'
 			. '</assessmentItem>';

@@ -10,7 +10,7 @@
   - Edit title, interactionType, maxScore.
   - For `choice`: add/remove answer options; mark correct answer.
   - For `extendedText`: configure prompt only (no correctResponse — teacher scores).
-  - Writes `qtiBody` (simplified QTI 3.0 XML) and `correctResponse` to the Item.
+  - Writes `qtiBody` (simplified QTI 2.1 XML) and `correctResponse` to the Item.
   - Loads existing Item data if a UUID is in the route.
   - When editing an existing item, links to ItemAnalysisView (p-value,
     item-total correlation, distractor bars — assessment-item-pools-and-analysis).
@@ -251,6 +251,7 @@
 
 <script>
 import { generateUrl } from '@nextcloud/router'
+import { buildItemXml } from '../utils/qtiItemXml.js'
 
 export default {
 	name: 'ItemAuthorView',
@@ -408,76 +409,31 @@ export default {
 		},
 
 		/**
-		 * Build the QTI 3.0 item XML body from the form values.
+		 * Build the QTI 2.1 item XML body from the form values.
 		 *
-		 * @return {string} QTI 3.0 XML string
+		 * @return {string} QTI 2.1 XML string
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
+		 * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#requirement-items-are-stored-as-qti-21-and-labelled-as-qti-21
 		 */
 		buildQtiBody() {
-			const { interactionType, prompt, choices, correctChoiceIdx } = this.form
-			const identifier = `item-${Date.now()}`
+			const {
+				interactionType,
+				prompt,
+				choices,
+				correctChoiceIdx,
+				title,
+				maxScore,
+			} = this.form
 
-			if (interactionType === 'choice') {
-				const optionXml = choices
-					.map(
-						(c) =>
-							`<simpleChoice identifier="${c.id}">${this.escapeXml(c.label)}</simpleChoice>`,
-					)
-					.join('\n      ')
-
-				return `<?xml version="1.0" encoding="UTF-8"?>
-<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0"
-    identifier="${identifier}"
-    title="${this.escapeXml(this.form.title)}"
-    adaptive="false"
-    timeDependent="false">
-  <responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier">
-    <correctResponse>
-      <value>${this.escapeXml(choices[correctChoiceIdx]?.id ?? 'A')}</value>
-    </correctResponse>
-  </responseDeclaration>
-  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float">
-    <defaultValue><value>${this.form.maxScore}</value></defaultValue>
-  </outcomeDeclaration>
-  <itemBody>
-    <p>${this.escapeXml(prompt)}</p>
-    <choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1">
-      ${optionXml}
-    </choiceInteraction>
-  </itemBody>
-</assessmentItem>`
-			}
-
-			// extendedText and other types.
-			return `<?xml version="1.0" encoding="UTF-8"?>
-<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0"
-    identifier="${identifier}"
-    title="${this.escapeXml(this.form.title)}"
-    adaptive="false"
-    timeDependent="false">
-  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float">
-    <defaultValue><value>${this.form.maxScore}</value></defaultValue>
-  </outcomeDeclaration>
-  <itemBody>
-    <p>${this.escapeXml(prompt)}</p>
-    <extendedTextInteraction responseIdentifier="RESPONSE" expectedLength="500" />
-  </itemBody>
-</assessmentItem>`
-		},
-
-		/**
-		 * Escape XML special characters.
-		 *
-		 * @param {string} str Raw string
-		 * @return {string} XML-escaped string
-		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
-		 */
-		escapeXml(str) {
-			return (str ?? '')
-				.replace(/&/g, '&amp;')
-				.replace(/</g, '&lt;')
-				.replace(/>/g, '&gt;')
-				.replace(/"/g, '&quot;')
+			return buildItemXml({
+				identifier: `item-${Date.now()}`,
+				title,
+				interactionType,
+				prompt,
+				choices,
+				correctChoiceIdx,
+				maxScore,
+			})
 		},
 
 		/**

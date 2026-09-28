@@ -3,7 +3,7 @@
 /**
  * Learniq QTI Export Controller
  *
- * Thin HTTP endpoint that streams an ItemBank's QTI 3.0 export package.
+ * Thin HTTP endpoint that streams an ItemBank's QTI 2.1 export package.
  * All heavy lifting is delegated to QtiExportService — this controller is
  * intentionally thin per ADR-022.
  *
@@ -42,7 +42,7 @@ use OCP\IRequest;
 use OCP\IUserSession;
 
 /**
- * Handles QTI 3.0 package export for an ItemBank.
+ * Handles QTI 2.1 package export for an ItemBank.
  *
  * Single endpoint: GET /api/assessment/qti-export?itemBankId=...
  */
@@ -67,13 +67,14 @@ class QtiExportController extends Controller {
 	}//end __construct()
 
 	/**
-	 * Export an ItemBank as a QTI 3.0 package ZIP.
+	 * Export an ItemBank as a QTI 2.1 package ZIP.
 	 *
 	 * @param string $itemBankId UUID of the ItemBank to export.
 	 *
 	 * @return DataDownloadResponse|JSONResponse ZIP stream, or a JSON error.
 	 *
 	 * @spec openspec/changes/course-package-import-export/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-30-package
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/assessment/spec.md#requirement-itembank-exports-its-items-as-a-qti-21-package
 	 */
 	#[NoAdminRequired]
 	public function export(string $itemBankId = ''): DataDownloadResponse|JSONResponse {
@@ -107,7 +108,7 @@ class QtiExportController extends Controller {
 
 		return new DataDownloadResponse(
 			data: $zipContent,
-			filename: 'item-bank_' . $itemBankId . '_qti3.zip',
+			filename: 'item-bank_' . $itemBankId . '_qti21.zip',
 			contentType: 'application/zip'
 		);
 	}//end export()

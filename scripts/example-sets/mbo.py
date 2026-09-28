@@ -455,7 +455,7 @@ def build() -> dict:
     competencies: dict[tuple[str, str], dict] = {}
     for key, (pname, niveau, _years, crebo, _loc, fname) in PROGRAMMES.items():
         frameworks[key] = b.add("competency-framework", {
-            "name": fname, "sourceAuthority": "sbb-kwalificatiedossier", "sourceRef": f"crebo {crebo} (voorbeeldcode)",
+            "name": fname, "sourceAuthority": "sbb-kwalificatiedossier", "sourceRef": crebo,
             "edition": "2025", "level": "mbo",
             "description": f"Kerntaken en werkprocessen van de opleiding {pname} (niveau {niveau}), in de codering van een kwalificatiedossier. Een verzonnen voorbeeld, geen officieel dossier.",
             "proficiencyLevels": [
@@ -1067,7 +1067,7 @@ def build() -> dict:
         "learnerId": low["nc"], "attendanceThresholdId": threshold_pct["uuid"], "cohortId": cohorts["SD4-1A"]["uuid"],
         "windowStart": FIRST_DAY.isoformat(), "windowEnd": S1_END.isoformat(), "metricValue": pct,
         "breachingRecordIds": [r["uuid"] for r in absent_s1], "mentorId": cohorts["SD4-1A"]["teacherAssignments"][0]["teacherId"],
-        "flagKind": "langdurig-relatief-verzuim", "lifecycle": "resolved",
+        "flagKind": "attendance-requirement", "lifecycle": "resolved",
         "interventions": [
             {"recordedBy": cohorts["SD4-1A"]["teacherAssignments"][0]["teacherId"], "recordedAt": stamp(dt.date(2025, 12, 9), 13, 0),
              "note": "Gesprek over de aanwezigheid; de student werkt veel avonden en slaapt slecht."},

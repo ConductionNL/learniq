@@ -132,7 +132,7 @@
 					}}
 				</NcButton>
 				<NcButton
-					v-if="kind === 'course-package' && share"
+					v-if="kind === 'course-package' && share && canPublish"
 					variant="secondary"
 					:disabled="busy || !ready"
 					@click="publish">
@@ -146,6 +146,7 @@
 <script>
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
+import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 import {
 	NcButton,
@@ -164,6 +165,7 @@ import {
 	objectsUrl,
 	oneObject,
 } from '../utils/customPages.js'
+import { normaliseStoreAccess } from '../utils/storeAccess.js'
 
 export default {
 	name: 'ExportRequestView',
@@ -195,6 +197,12 @@ export default {
 			error: '',
 			done: '',
 			jobId: '',
+			// store-rights-for-teachers (D27): the publish button shows only
+			// to someone the matrix and the store plane admit; the endpoint
+			// checks the same rights.
+			canPublish: normaliseStoreAccess(
+				loadState('learniq', 'storeAccess', null),
+			).publish,
 		}
 	},
 
@@ -429,6 +437,7 @@ export default {
 		 * @param {string} outcome The server's outcome.
 		 * @return {string} The sentence.
 		 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
+		 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
 		 */
 		publishText(outcome) {
 			switch (outcome) {
@@ -444,9 +453,25 @@ export default {
 					)
 				case 'store_unreachable':
 				case 'store_rejected':
+				case 'store_invalid_response':
 					return this.t(
 						'learniq',
 						'The course store could not take the course. Try again later.',
+					)
+				case 'rate_limited':
+					return this.t(
+						'learniq',
+						'The course store is busy. Try again in a few minutes.',
+					)
+				case 'forbidden':
+					return this.t(
+						'learniq',
+						'You may not publish courses to the store. Your administrator decides who may.',
+					)
+				case 'publish_not_supported':
+					return this.t(
+						'learniq',
+						'This server cannot publish to a course store yet. Ask your administrator to update OpenRegister.',
 					)
 				default:
 					return this.t('learniq', 'The course could not be published.')

@@ -251,7 +251,7 @@ class HigherEducationExampleSetTest extends TestCase {
 			self::assertEqualsWithDelta($value, $final['value'], 0.00001, $final['slug']);
 			self::assertEquals($breakdown, $final['breakdown'], $final['slug']);
 
-			$passed = $pass->evaluatePassed($plan['formula'], $value, $rows, $plan['passRules'], (float)$scales[$plan['gradeScaleId']]['passThreshold']);
+			$passed = $pass->evaluatePassed($plan['formula'], $value, $rows, $plan['passRules'], (float)$scales[$plan['gradeScaleId']]['passThreshold'], $engine->indexComponents($plan));
 			self::assertSame($passed, $final['passed'], $final['slug']);
 
 			$expected = 'failed';
