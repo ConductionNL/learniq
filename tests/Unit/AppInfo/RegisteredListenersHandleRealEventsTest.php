@@ -28,6 +28,7 @@ use OCA\Learniq\Listener\SessionConflictListener;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Integriq\Event\ExchangeGateRequestedEvent;
 use OCA\Integriq\Event\ExchangeJobConcludedEvent;
+use OCA\Integriq\Event\ExchangeRecordsReceivedEvent;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectDeletedEvent;
@@ -235,6 +236,7 @@ class RegisteredListenersHandleRealEventsTest extends TestCase {
 			// Integriq's exchange events (data-exchange-to-integriq), from the verbatim contract copies.
 			ExchangeGateRequestedEvent::class => new ExchangeGateRequestedEvent('job-1', 'learniq', 'leerplicht', 'export', 'attendance-flag/minimal-object', []),
 			ExchangeJobConcludedEvent::class => new ExchangeJobConcludedEvent('learniq', 'job-1', 'swv', 'export', 'support-request/minimal-object', 'succeeded'),
+			ExchangeRecordsReceivedEvent::class => new ExchangeRecordsReceivedEvent('job-1', 'learniq', 'lvs-results', 'import', '', [], []),
 			default => null,
 		};
 	}//end event()

@@ -39,6 +39,7 @@ use OCA\Learniq\Listener\BpvLeerbedrijfVerificationHandler;
 use OCA\Learniq\Listener\BsaProgressFlagHandler;
 use OCA\Learniq\Listener\CompetencyAttainmentRollupHandler;
 use OCA\Learniq\Listener\ExchangeGateListener;
+use OCA\Learniq\Listener\ExchangeImportLandingListener;
 use OCA\Learniq\Listener\ExchangeJobConcludedListener;
 use OCA\Learniq\Listener\FraudCaseDecisionHandler;
 use OCA\Learniq\Listener\LearnerMergeHandler;
@@ -86,6 +87,14 @@ class CaseListenerRegistrar {
 		$context->registerEventListener(
 			event: ExchangeJobConcludedListener::CONCLUDED_EVENT,
 			listener: ExchangeJobConcludedListener::class
+		);
+
+		// Integriq exchange-import-landing: an import job's received records
+		// come back to learniq to land (LVS results, OSO dossiers, migrated
+		// pupils); learniq answers with what it took.
+		$context->registerEventListener(
+			event: ExchangeImportLandingListener::RECEIVED_EVENT,
+			listener: ExchangeImportLandingListener::class
 		);
 
 		// ADR-031 legitimate exception: SupportRequest `submit` -> ask integriq for
