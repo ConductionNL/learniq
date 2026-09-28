@@ -45,15 +45,7 @@ use OCP\Security\ICrypto;
  * management; all of that is declared in the schema.
  */
 class CredentialSigningService {
-	/**
-	 * App config key prefix for encrypted tenant private keys.
-	 */
-	private const PRIVATE_KEY_PREFIX = 'learniq.credential.signing.private.';
 
-	/**
-	 * App config key prefix for public keys (plain).
-	 */
-	private const PUBLIC_KEY_PREFIX = 'learniq.credential.signing.public.';
 
 	/**
 	 * Constructor.
@@ -127,7 +119,7 @@ class CredentialSigningService {
 
 		$publicKey = $this->appConfig->getValueString(
 			app: 'learniq',
-			key: self::PUBLIC_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
 			default: ''
 		);
 
@@ -286,7 +278,7 @@ class CredentialSigningService {
 	public function signPayload(array $payload, string $tenantId): ?string {
 		$encryptedPrivateKey = $this->appConfig->getValueString(
 			app: 'learniq',
-			key: self::PRIVATE_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PRIVATE, tenantId: $tenantId),
 			default: ''
 		);
 
@@ -303,7 +295,7 @@ class CredentialSigningService {
 		// Derive kid from the public-key fingerprint stored at key-generation time.
 		$publicKeyPem = $this->appConfig->getValueString(
 			app: 'learniq',
-			key: self::PUBLIC_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
 			default: ''
 		);
 
@@ -427,7 +419,7 @@ class CredentialSigningService {
 	private function resolveIssuerDid(string $tenantId): ?string {
 		$publicKey = $this->appConfig->getValueString(
 			app: 'learniq',
-			key: self::PUBLIC_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
 			default: ''
 		);
 

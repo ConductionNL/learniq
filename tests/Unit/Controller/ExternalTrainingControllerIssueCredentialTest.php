@@ -32,6 +32,7 @@ use OCA\Learniq\Controller\ExternalTrainingController;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CredentialSigningService;
 use OCA\Learniq\Service\ExternalTrainingService;
+use OCA\Learniq\Service\SigningKeyConfigKey;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
@@ -218,7 +219,7 @@ class ExternalTrainingControllerIssueCredentialTest extends TestCase {
 		$appConfig = $this->createMock(IAppConfig::class);
 		$appConfig->method('getValueString')->willReturnCallback(
 			function (string $app, string $key, string $default = '') use ($tenantHasKey): string {
-				if ($tenantHasKey === false || str_ends_with($key, '.' . self::TENANT) === false) {
+				if ($tenantHasKey === false || in_array($key, [SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PRIVATE, tenantId: self::TENANT), SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: self::TENANT)], true) === false) {
 					return $default;
 				}
 

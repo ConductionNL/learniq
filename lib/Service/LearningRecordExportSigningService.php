@@ -4,9 +4,8 @@
  * Learniq Learning Record Export Signing Service
  *
  * Canonicalises (RFC 8785 JCS) and signs a LearningRecordExport bundle with
- * the tenant's existing RS256 keypair — the SAME `learniq.credential.signing
- * .{private,public}.{tenantId}` IAppConfig keys `KeyManagementService`
- * generates and `CredentialSigningService` already signs Credentials with.
+ * the tenant's existing RS256 keypair — the SAME IAppConfig keys
+ * (`SigningKeyConfigKey::forTenant()`) `KeyManagementService` generates and `CredentialSigningService` already signs Credentials with.
  * No new key material, no new crypto primitive: the canonicalisation +
  * signing routine is ported verbatim from `CredentialSigningService`
  * (design.md: "reuse or port CredentialSigningService's RFC 8785 JCS
@@ -50,19 +49,7 @@ use OCP\Security\ICrypto;
  */
 class LearningRecordExportSigningService {
 
-	/**
-	 * App config key prefix for encrypted tenant private keys — identical to
-	 * `KeyManagementService::PRIVATE_KEY_PREFIX`/`CredentialSigningService
-	 * ::PRIVATE_KEY_PREFIX`.
-	 */
-	private const PRIVATE_KEY_PREFIX = 'learniq.credential.signing.private.';
 
-	/**
-	 * App config key prefix for public keys (plain) — identical to
-	 * `KeyManagementService::PUBLIC_KEY_PREFIX`/`CredentialSigningService
-	 * ::PUBLIC_KEY_PREFIX`.
-	 */
-	private const PUBLIC_KEY_PREFIX = 'learniq.credential.signing.public.';
 
 	/**
 	 * Constructor.
@@ -92,7 +79,7 @@ class LearningRecordExportSigningService {
 	public function resolveIssuerDid(string $tenantId): ?string {
 		$publicKey = $this->appConfig->getValueString(
 			app: 'learniq',
-			key: self::PUBLIC_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
 			default: ''
 		);
 
@@ -121,7 +108,7 @@ class LearningRecordExportSigningService {
 	public function sign(array $bundle, string $tenantId): ?string {
 		$encryptedPrivateKey = $this->appConfig->getValueString(
 			app: 'learniq',
-			key: self::PRIVATE_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PRIVATE, tenantId: $tenantId),
 			default: ''
 		);
 
@@ -137,7 +124,7 @@ class LearningRecordExportSigningService {
 
 		$publicKeyPem = $this->appConfig->getValueString(
 			app: 'learniq',
-			key: self::PUBLIC_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
 			default: ''
 		);
 
@@ -191,7 +178,7 @@ class LearningRecordExportSigningService {
 
 		$publicKeyPem = $this->appConfig->getValueString(
 			app: 'learniq',
-			key: self::PUBLIC_KEY_PREFIX . $tenantId,
+			key: SigningKeyConfigKey::forTenant(purpose: SigningKeyConfigKey::PUBLIC, tenantId: $tenantId),
 			default: ''
 		);
 		if ($publicKeyPem === '') {
