@@ -42,6 +42,7 @@ namespace OCA\Learniq\Service\CourseStore;
 use OCA\Learniq\Controller\StoreController;
 use OCA\Learniq\Service\ActionAuthService;
 use OCP\IUser;
+use OCP\IUserSession;
 
 /**
  * Answers which store actions a user may take.
@@ -51,15 +52,34 @@ class StoreAccessService {
 	/**
 	 * Constructor.
 	 *
-	 * @param ActionAuthService    $actionAuth Learniq's ADR-023 matrix.
-	 * @param CourseStorePublisher $publisher  The plane-backed publisher (probe and authorizer).
+	 * @param ActionAuthService    $actionAuth  Learniq's ADR-023 matrix.
+	 * @param CourseStorePublisher $publisher   The plane-backed publisher (probe and authorizer).
+	 * @param IUserSession         $userSession The session, for forCurrentUser().
 	 */
 	public function __construct(
 		private readonly ActionAuthService $actionAuth,
 		private readonly CourseStorePublisher $publisher,
+		private readonly IUserSession $userSession,
 	) {
 
 	}//end __construct()
+
+	/**
+	 * The store actions the signed-in user may take; none without a session.
+	 *
+	 * @return array{install: bool, publish: bool}
+	 *
+	 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
+	 */
+	public function forCurrentUser(): array {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return ['install' => false, 'publish' => false];
+		}
+
+		return $this->forUser(user: $user);
+
+	}//end forCurrentUser()
 
 	/**
 	 * The store actions this user may take.

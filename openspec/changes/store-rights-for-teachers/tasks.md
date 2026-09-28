@@ -60,8 +60,8 @@ Feature tier: should (sharing, D27). Stacked on store-publish-through-plane.
 - **acceptance_criteria**:
   - GIVEN every new string WHEN the catalogue is read THEN it has a Dutch value
   - GIVEN the admin guide WHEN read THEN it describes the settings section, the two matrix rows and the release dependency
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ## Quality checklist
 

@@ -48,16 +48,37 @@ Nextcloud admins can read every record, including these notes. Keep the *admin* 
 
 ## Connect the course store
 
-The **Store** page lists courses other schools share. It needs a course registry: another learniq, for example your school board's. Ask its administrator for its address and for a token of an account in the *instructors* group there. Then set them on your server:
+The **Store** page lists courses other schools share. It needs a course registry: another learniq, for example your school board's. Ask its administrator for its address and for a token of an account in the *instructors* group there.
+
+Then open **Administration settings**, **Learniq**, and fill in the **Course store** section:
+
+- **Registry address**: the full address, such as `https://store.example.nl`. Leave it empty to disconnect the store.
+- **Register**: leave it empty unless the registry's administrator names another register than `learniq`.
+- **Token**: paste it once. The page never shows it again; it only says that a token is set. Type a new one to replace it, or tick **Remove the stored token**.
+
+The same settings still work with `occ`, for scripts:
 
 ```
 occ config:app:set learniq registry_url --value=https://store.example.nl
 occ config:app:set learniq registry_token --value=YOUR_TOKEN_HERE --sensitive
 ```
 
-Until the address is set, the Store page says no store is set up, and publishing tells the teacher to ask you. Installing a course from the store creates your own copy. Only Nextcloud admins see the **Install** button.
+Until the address is set, the Store page says no store is set up, and publishing tells the teacher to ask you.
 
-Publishing goes through OpenRegister's store connection, which also keeps the token on the server. It needs an OpenRegister that can publish to a store; on an older one, publishing says so and sends nothing. Who may publish is the list of groups for **course-package.share** under **Action authorization**. A user outside those groups gets a clear refusal, and nothing leaves the school.
+### Who installs and who publishes
+
+Two rows under **Action authorization** decide it:
+
+| Action | Default | What it allows |
+|---|---|---|
+| **course-store.install** | admin, instructors, team-leads | Install a shared course as the school's own copy. |
+| **course-package.share** | admin, team-leads | Publish a course to the store, and download a share package. |
+
+An update to this version sets these defaults once. It leaves a row alone when you had already changed it, and it never overrides a change you make later. Uploading a Canvas or Moodle package stays with **course-package.import**, which is admin only.
+
+Publishing goes through OpenRegister's store connection, which keeps the token on the server. It needs an OpenRegister that can publish to a store; on an older one, publishing says so and sends nothing. A user outside the publish groups gets a clear refusal, and nothing leaves the school.
+
+The **Install** and **Publish** buttons on the Store page follow these rows once the app runs a nextcloud-vue release with the store page change (nextcloud-vue #1268). Until then the Store page shows **Install** to Nextcloud admins only, while teachers can already install through the rows above.
 
 ## Verification
 

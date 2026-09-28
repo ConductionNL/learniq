@@ -41,6 +41,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AuthorizedAdminSetting;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
+use OCP\IL10N;
 use OCP\IRequest;
 
 /**
@@ -64,10 +65,12 @@ class StoreRegistrySettingsController extends Controller {
 	 *
 	 * @param IRequest   $request   The request.
 	 * @param IAppConfig $appConfig Learniq's app config.
+	 * @param IL10N      $l10n      Learniq's translations, for the refusal the page shows.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IAppConfig $appConfig,
+		private readonly IL10N $l10n,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 
@@ -125,16 +128,16 @@ class StoreRegistrySettingsController extends Controller {
 			$parts  = parse_url($url);
 			$scheme = strtolower((string)($parts['scheme'] ?? ''));
 			if ($parts === false || in_array($scheme, ['http', 'https'], true) === false || (string)($parts['host'] ?? '') === '') {
-				return 'The registry address must be a full http or https address.';
+				return $this->l10n->t('The registry address must be a full http or https address.');
 			}
 
 			if (isset($parts['user']) === true || isset($parts['pass']) === true) {
-				return 'Put the token in the token field, not in the address.';
+				return $this->l10n->t('Put the token in the token field, not in the address.');
 			}
 		}
 
 		if ($register !== '' && preg_match(self::REGISTER_PATTERN, $register) !== 1) {
-			return 'The register is a lowercase name such as learniq.';
+			return $this->l10n->t('The register is a lowercase name such as learniq.');
 		}
 
 		return null;

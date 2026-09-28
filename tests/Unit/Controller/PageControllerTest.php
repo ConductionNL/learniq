@@ -280,7 +280,7 @@ class PageControllerTest extends TestCase {
 		$user->method('getUID')->willReturn('docent-07');
 
 		$storeAccess = $this->createMock(StoreAccessService::class);
-		$storeAccess->expects(self::once())->method('forUser')->with($user)->willReturn(['install' => true, 'publish' => false]);
+		$storeAccess->expects(self::once())->method('forCurrentUser')->willReturn(['install' => true, 'publish' => false]);
 
 		$provided     = [];
 		$initialState = $this->createMock(IInitialState::class);

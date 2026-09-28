@@ -26,6 +26,7 @@ use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CourseStore\CourseStorePublisher;
 use OCA\Learniq\Service\CourseStore\StoreAccessService;
 use OCP\IUser;
+use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -39,10 +40,11 @@ class StoreAccessServiceTest extends TestCase {
 	 * @param array<int, string> $actions       Actions the matrix admits for the user.
 	 * @param bool               $supported     Whether OpenRegister can publish.
 	 * @param bool               $planeAdmits   Whether the plane's authorizer admits the user.
+	 * @param IUser|null         $sessionUser   The signed-in user, for forCurrentUser().
 	 *
 	 * @return StoreAccessService
 	 */
-	private function service(array $actions, bool $supported=true, bool $planeAdmits=true): StoreAccessService {
+	private function service(array $actions, bool $supported=true, bool $planeAdmits=true, ?IUser $sessionUser=null): StoreAccessService {
 		$actionAuth = $this->createMock(ActionAuthService::class);
 		$actionAuth->method('can')->willReturnCallback(
 			static fn (IUser $user, string $action): bool => in_array($action, $actions, true)
@@ -52,7 +54,10 @@ class StoreAccessServiceTest extends TestCase {
 		$publisher->method('supportsPublish')->willReturn($supported);
 		$publisher->method('mayPublish')->willReturn($planeAdmits);
 
-		return new StoreAccessService($actionAuth, $publisher);
+		$userSession = $this->createMock(IUserSession::class);
+		$userSession->method('getUser')->willReturn($sessionUser);
+
+		return new StoreAccessService($actionAuth, $publisher, $userSession);
 	}//end service()
 
 	/**
@@ -98,4 +103,17 @@ class StoreAccessServiceTest extends TestCase {
 	public function testALearnerSeesNoStoreAction(): void {
 		self::assertSame(['install' => false, 'publish' => false], $this->service([])->forUser($this->createMock(IUser::class)));
 	}//end testALearnerSeesNoStoreAction()
+
+	/**
+	 * The page asks for the signed-in user; without a session there is none.
+	 *
+	 * @return void
+	 */
+	public function testForCurrentUserReadsTheSession(): void {
+		$signedIn = $this->service(['course-store.install'], true, true, $this->createMock(IUser::class));
+		self::assertSame(['install' => true, 'publish' => false], $signedIn->forCurrentUser());
+
+		$anonymous = $this->service(['course-store.install', 'course-package.share']);
+		self::assertSame(['install' => false, 'publish' => false], $anonymous->forCurrentUser());
+	}//end testForCurrentUserReadsTheSession()
 }//end class

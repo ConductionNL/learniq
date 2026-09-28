@@ -35,7 +35,6 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
-use OCP\IUser;
 use OCP\IUserSession;
 use Psr\Container\ContainerInterface;
 use Throwable;
@@ -96,7 +95,7 @@ class PageController extends Controller {
 			$this->initialState->provideInitialState('dashboardRoles', $this->dashboardRoleSvc->resolveViews($user));
 			$this->initialState->provideInitialState('segment', $this->resolveSegment());
 			$this->initialState->provideInitialState('confidentialCounsellor', $this->dashboardRoleSvc->isConfidentialCounsellor($user));
-			$this->initialState->provideInitialState('storeAccess', $this->resolveStoreAccess(user: $user));
+			$this->initialState->provideInitialState('storeAccess', $this->resolveStoreAccess());
 		}
 
 		return new TemplateResponse(Application::APP_ID, 'index');
@@ -123,7 +122,7 @@ class PageController extends Controller {
 	}//end resolveSegment()
 
 	/**
-	 * Which course store actions the user may take, for the Store page and
+	 * Which course store actions the signed-in user may take, for the Store page and
 	 * the export screen (store-rights-for-teachers, D27).
 	 *
 	 * Resolved lazily and degraded to "none" on failure, for the same reason
@@ -131,15 +130,13 @@ class PageController extends Controller {
 	 * the app's default route. Showing no store buttons is the safe answer; the
 	 * store endpoints enforce the rights either way.
 	 *
-	 * @param IUser $user The signed-in user.
-	 *
 	 * @return array{install: bool, publish: bool}
 	 *
 	 * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-the-store-page-shows-each-user-the-actions-they-may-take
 	 */
-	private function resolveStoreAccess(IUser $user): array {
+	private function resolveStoreAccess(): array {
 		try {
-			return $this->container->get(StoreAccessService::class)->forUser(user: $user);
+			return $this->container->get(StoreAccessService::class)->forCurrentUser();
 		} catch (Throwable $e) {
 			return ['install' => false, 'publish' => false];
 		}

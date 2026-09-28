@@ -28,6 +28,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AuthorizedAdminSetting;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\IAppConfig;
+use OCP\IL10N;
 use OCP\IRequest;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
@@ -84,7 +85,10 @@ class StoreRegistrySettingsControllerTest extends TestCase {
 			static fn (string $key, mixed $default=null): mixed => ($params[$key] ?? $default)
 		);
 
-		return new StoreRegistrySettingsController($request, $appConfig);
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnArgument(0);
+
+		return new StoreRegistrySettingsController($request, $appConfig, $l10n);
 	}//end controller()
 
 	/**
@@ -175,6 +179,7 @@ class StoreRegistrySettingsControllerTest extends TestCase {
 		$response = $this->controller([...$params, 'token' => 'YOUR_TOKEN_HERE'])->update();
 
 		self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		self::assertNotSame('', $response->getData()['error']);
 		self::assertSame([], $this->stored);
 	}//end testMalformedInputIsRefused()
 
