@@ -3,6 +3,8 @@ kind: config
 depends_on: []
 ---
 
+> Superseded in part by data-exchange-to-integriq (decision D7, 2026-09-28): its TimeEdit and migration-import DataMappingProfile seeds are integriq mappings now (`learniq-timetable-import-timeedit`, `learniq-migration-import-*`). See `openspec/changes/data-exchange-to-integriq/`.
+
 ## Why
 
 `findings.md` rows `11.7` (rostering import, SHOULD) and `13.15` (migration import, SHOULD). Verified at

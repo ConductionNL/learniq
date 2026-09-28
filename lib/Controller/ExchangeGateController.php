@@ -111,8 +111,7 @@ class ExchangeGateController extends Controller {
 			target: (string)($job['exchangeTarget'] ?? ''),
 			direction: (string)($job['exchangeDirection'] ?? ''),
 			ownerRef: (string)($job['ownerRef'] ?? ''),
-			scope: $scope,
-			withRecords: false
+			scope: $scope
 		);
 
 		return new JSONResponse(

@@ -70,9 +70,8 @@ class ExchangeGateListener implements IEventListener {
 	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
 	 */
 	public function handle(Event $event): void {
+		// Integriq's event class carries allow() and refuse() by contract.
 		if (is_a($event, self::GATE_EVENT) === false
-			|| method_exists($event, 'allow') === false
-			|| method_exists($event, 'refuse') === false
 			|| (string)$this->read(event: $event, getter: 'getOwnerApp') !== self::OWNER_APP
 		) {
 			return;
@@ -110,7 +109,6 @@ class ExchangeGateListener implements IEventListener {
 		}
 
 		$event->refuse($code, (string)($decision['reason'] ?? 'Learniq could not decide on this exchange.'));
-
 	}//end handle()
 
 	/**

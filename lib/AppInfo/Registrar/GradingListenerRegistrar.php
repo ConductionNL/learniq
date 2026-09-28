@@ -47,6 +47,8 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 /**
  * Wires the grading, credential-issuance and evidence-to-GradeEntry bridges.
+ *
+ * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
  */
 class GradingListenerRegistrar {
 	/**

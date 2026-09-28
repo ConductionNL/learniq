@@ -3,6 +3,8 @@ kind: config
 depends_on: []
 ---
 
+> Superseded in part by data-exchange-to-integriq (decision D7, 2026-09-28): its UWLR, Edu-V, Basispoort and Entree DataMappingProfile seeds are integriq mappings now (`learniq-uwlr-*`, `learniq-edu-v-*`, `learniq-basispoort-sync-learner`, `learniq-entree-content-sync-learner`). See `openspec/changes/data-exchange-to-integriq/`.
+
 ## Why
 
 `findings.md` rows `13.3` (UWLR/ECK iD, MUST), `13.4` (Edu-V/Basispoort, MUST) and `5.5` (method

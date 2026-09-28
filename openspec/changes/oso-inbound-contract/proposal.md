@@ -3,6 +3,8 @@ kind: code
 depends_on: []
 ---
 
+> Superseded in part by data-exchange-to-integriq (decision D7, 2026-09-28): the OSO import direction and its DataMappingProfile seed moved to integriq (the mapping `learniq-oso-import-dossier`). OsoImportDossier and its review lifecycle stay here. See `openspec/changes/data-exchange-to-integriq/`.
+
 ## Why
 
 `findings.md#3.6` (MUST): "OSO import into the receiving school's record" — verified at HEAD, the nearest

@@ -353,7 +353,7 @@ export default {
 					this.jobId = response.data?.jobId ?? ''
 					this.done = this.t(
 						'learniq',
-						'Integriq has the export. It runs once learniq\'s checks allow it.',
+						"Integriq has the export. It runs once learniq's checks allow it.",
 					)
 				}
 			} catch (e) {

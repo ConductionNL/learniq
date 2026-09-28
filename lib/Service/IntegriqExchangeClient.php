@@ -151,13 +151,13 @@ class IntegriqExchangeClient {
 		$class = $this->eventClass(name: $name);
 		if ($this->appManager->isEnabledForUser(self::INTEGRIQ_APP) === false || class_exists($class) === false) {
 			throw new IntegriqUnavailableException(
-				'Integriq is not installed, not enabled or too old to carry learniq\'s data exchanges.'
+				message: 'Integriq is not installed, not enabled or too old to carry learniq\'s data exchanges.'
 			);
 		}
 
 		$event = new $class(...$arguments);
 		if (($event instanceof Event) === false) {
-			throw new IntegriqUnavailableException('Integriq\'s ' . $name . ' is not an event.');
+			throw new IntegriqUnavailableException(message: 'Integriq\'s ' . $name . ' is not an event.');
 		}
 
 		return $event;
@@ -186,7 +186,7 @@ class IntegriqExchangeClient {
 
 		$id = $this->read(event: $event, getter: $idGetter);
 		if (is_string($id) === false || $id === '') {
-			throw new IntegriqUnavailableException('Integriq did not answer the ' . $what . ' request.');
+			throw new IntegriqUnavailableException(message: 'Integriq did not answer the ' . $what . ' request.');
 		}
 
 		return $id;

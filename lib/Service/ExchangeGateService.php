@@ -97,12 +97,11 @@ class ExchangeGateService {
 	/**
 	 * Decide for one integriq job.
 	 *
-	 * @param string               $jobId       The integriq job's uuid.
-	 * @param string               $target      The exchange target.
-	 * @param string               $direction   export, import or sync.
-	 * @param string               $ownerRef    The row that caused the job, `<schema>/<uuid>`.
-	 * @param array<string, mixed> $scope       The job's scope.
-	 * @param bool                 $withRecords Whether to hand back the records (the event) or not (HTTP).
+	 * @param string               $jobId     The integriq job's uuid.
+	 * @param string               $target    The exchange target.
+	 * @param string               $direction export, import or sync.
+	 * @param string               $ownerRef  The row that caused the job, `<schema>/<uuid>`.
+	 * @param array<string, mixed> $scope     The job's scope.
 	 *
 	 * @return array{decision: string, code: string, reason: string, checkedAt: string, records: array<int, array<string, mixed>>}
 	 *     The decision.
@@ -117,7 +116,6 @@ class ExchangeGateService {
 		string $direction,
 		string $ownerRef,
 		array $scope,
-		bool $withRecords = true,
 	): array {
 		$refusal = $this->flagRefusal(target: $target, ownerRef: $ownerRef)
 			?? $this->parentReviewRefusal(jobId: $jobId, target: $target, direction: $direction)
@@ -150,10 +148,6 @@ class ExchangeGateService {
 		$incomplete = $this->completenessRefusal(target: $target, records: $records);
 		if ($incomplete !== null) {
 			return $this->refuse(code: $incomplete['code'], reason: $incomplete['reason']);
-		}
-
-		if ($withRecords === false) {
-			$records = [];
 		}
 
 		return $this->allow(records: $records);
@@ -412,7 +406,11 @@ class ExchangeGateService {
 
 		$rows = [];
 		foreach ($results as $row) {
-			$rows[] = (is_array($row) === true) ? $row : (array)$row->jsonSerialize();
+			if (is_array($row) === false) {
+				$row = $row->jsonSerialize();
+			}
+
+			$rows[] = $row;
 		}
 
 		return $rows;

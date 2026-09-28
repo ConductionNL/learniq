@@ -22,8 +22,8 @@ Kind: code. Read at learniq `development` 0171a896 and integriq PR #2220
 
 ### D1. The gate
 
-`ExchangeGateService::evaluate(jobId, target, direction, ownerRef, scope, withRecords)` returns
-`{decision, code, reason, records}`. It checks, in this order, and the first refusal wins:
+`ExchangeGateService::evaluate(jobId, target, direction, ownerRef, scope)` returns
+`{decision, code, reason, checkedAt, records}`. The HTTP binding answers the same decision and leaves the records out of its response. It checks, in this order, and the first refusal wins:
 
 | # | Condition | Applies to | Refusal code |
 |---|---|---|---|

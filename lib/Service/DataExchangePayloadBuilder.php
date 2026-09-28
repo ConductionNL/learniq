@@ -200,7 +200,7 @@ class DataExchangePayloadBuilder {
 		}
 
 		$objects = array_map(
-			static fn ($item): array => (is_array($item) === true) ? $item : (array)$item->jsonSerialize(),
+			static fn ($item): array => self::rowOf(object: $item),
 			$results
 		);
 
@@ -500,4 +500,19 @@ class DataExchangePayloadBuilder {
 
 		return $records;
 	}//end resolveAttendanceRecords()
+
+	/**
+	 * One OpenRegister result as a plain row.
+	 *
+	 * @param mixed $object An array or an object entity.
+	 *
+	 * @return array<string, mixed> The row.
+	 */
+	private static function rowOf(mixed $object): array {
+		if (is_array($object) === true) {
+			return $object;
+		}
+
+		return (array)$object->jsonSerialize();
+	}//end rowOf()
 }//end class

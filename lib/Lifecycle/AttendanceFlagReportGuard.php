@@ -48,6 +48,8 @@ use Psr\Log\LoggerInterface;
  * When a dataExchangeJobId is set on the flag, verifies the linked integriq
  * exchange job's `exchangeStatus` is `succeeded`. When no job is linked,
  * allows the transition unconditionally (manual report).
+ *
+ * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
  */
 class AttendanceFlagReportGuard implements LifecycleGuardInterface {
 

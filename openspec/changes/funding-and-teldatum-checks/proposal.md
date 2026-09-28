@@ -4,6 +4,8 @@ kind: config
 
 # Proposal: funding-and-teldatum-checks
 
+> Superseded in part by data-exchange-to-integriq (decision D7, 2026-09-28): the teldatum check left DataExchangeJob for its own TeldatumCheck record, which learniq's exchange gate reads. The funding weight on LearnerProfile stays as built. See `openspec/changes/data-exchange-to-integriq/`.
+
 ## Summary
 Two additive, declarative changes closing P-new-12 and P-new-13: a pre-flight check on the ROD `DataExchangeJob` gated on the 1 February / 1 October teldatum (the DUO funding count dates), and a NOAT/CUMI/NNCA funding-weight property on `LearnerProfile`. Both are additive fields plus one more independent condition on the existing `DataExchangeRunGuard`, following the exact shape `privacy-governance-surfaces`'s partner-approval gate already established on the same guard — no OpenConnector adapter work, no new schema, no PHP beyond the guard's one extra condition.
 

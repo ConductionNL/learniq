@@ -57,6 +57,8 @@ use Throwable;
  * Creates an AttendanceFlag when an AttendanceThreshold crossing is detected.
  *
  * @implements IEventListener<Event>
+ *
+ * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
 class AttendanceFlagCreationHandler implements IEventListener {
 

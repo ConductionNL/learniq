@@ -48,6 +48,8 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 /**
  * Wires the data-exchange, case-handling and study-progress bridges.
+ *
+ * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
  */
 class CaseListenerRegistrar {
 	/**

@@ -45,7 +45,7 @@ class ExchangeRequestRefusedException extends RuntimeException {
 		private readonly string $refusalCode,
 		string $reason,
 	) {
-		parent::__construct($reason);
+		parent::__construct(message: $reason);
 	}//end __construct()
 
 	/**

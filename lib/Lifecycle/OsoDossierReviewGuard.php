@@ -51,6 +51,8 @@ use Psr\Log\LoggerInterface;
  *
  * Only a parent listed in the learner's LearnerProfile.parentIds may approve
  * an OSO dossier for transfer.
+ *
+ * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-the-gate-refuses-an-oso-or-swv-file-until-a-parent-approved-it
  */
 class OsoDossierReviewGuard implements LifecycleGuardInterface {
 
