@@ -108,3 +108,28 @@ export async function fetchCohortTimetable(cohortId, from, to) {
 export function isLearniqSession(session) {
 	return Boolean(session?.id) && (session.source ?? 'learniq') === 'learniq'
 }
+
+/**
+ * Fetch the signed-in caller's own standby blocks for a window
+ * (timetabling-standby-slots). A caller without standby hours gets an empty
+ * list; a failing read is an empty list too, so the lessons still show.
+ *
+ * @param {string} from Inclusive ISO 8601 window start.
+ * @param {string} to   Exclusive ISO 8601 window end.
+ *
+ * @return {Promise<Array<{slotId: string, date: string, startsAt: string, endsAt: string}>>} The blocks.
+ * @spec openspec/changes/timetabling-standby-slots/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
+ */
+export async function fetchMyStandby(from, to) {
+	try {
+		const response = await axios.get(
+			generateUrl('/apps/learniq/api/standby/mine'),
+			{
+				params: { from, to },
+			},
+		)
+		return Array.isArray(response.data?.standby) ? response.data.standby : []
+	} catch {
+		return []
+	}
+}

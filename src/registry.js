@@ -175,6 +175,8 @@ import RoomUtilisationReport from './views/RoomUtilisationReport.vue'
 import SelfAssessmentView from './views/SelfAssessmentView.vue'
 import SignatureView from './views/SignatureView.vue'
 import SkillsGapDashboard from './views/SkillsGapDashboard.vue'
+// timetabling-standby-slots: the standby planning grid.
+import StandbyPlanning from './views/StandbyPlanning.vue'
 import SubjectChoicePicker from './views/SubjectChoicePicker.vue'
 import SubmitExcuseView from './views/SubmitExcuseView.vue'
 import SubmitWorkView from './views/SubmitWorkView.vue'
@@ -245,6 +247,7 @@ export default {
 	LearningPlanEditorView: page(LearningPlanEditorView),
 	QtiImportView: page(QtiImportView),
 	SignatureView: page(SignatureView),
+	StandbyPlanning: page(StandbyPlanning),
 	SubmitExcuseView: page(SubmitExcuseView),
 	SubmitWorkView: page(SubmitWorkView),
 

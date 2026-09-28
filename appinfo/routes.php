@@ -170,6 +170,10 @@ return [
         // (planninq when installed, else Session), after an RBAC read of the cohort
         // (sessions-from-planninq).
         ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
+        // Standby hours (timetabling-standby-slots): who can cover a lesson,
+        // standby first, and the caller's own standby blocks. Checks in the body.
+        ['name' => 'standby#candidates', 'url' => '/api/substitution/candidates', 'verb' => 'GET'],
+        ['name' => 'standby#mine', 'url' => '/api/standby/mine', 'verb' => 'GET'],
         // Teaching activities of a school year, derived from the hour plans
         // (timetabling-multi-year-hour-plan). Staff groups only, checked in the body.
         ['name' => 'hourPlan#activities', 'url' => '/api/hour-plans/activities', 'verb' => 'GET'],
