@@ -120,8 +120,13 @@ class TimetableController extends Controller {
 
 		$cohortIds = $this->resolveCallerCohortIds(uid: $uid);
 
-		// A caller with no cohorts gets an empty timetable — not an error.
-		if (empty($cohortIds) === true) {
+		// The lessons the caller covers as substitute, whichever cohort they
+		// belong to (learniq#1134). Only those sessions, never their cohort's
+		// other lessons.
+		$coveredSessions = $this->loadCoveredSessions(uid: $uid);
+
+		// A caller with no cohorts and no cover gets an empty timetable, not an error.
+		if (empty($cohortIds) === true && empty($coveredSessions) === true) {
 			$this->logger->debug(
 				'[TimetableController] No cohorts resolved for {uid}; returning empty timetable.',
 				['uid' => $uid, 'from' => $windowFrom, 'to' => $windowTo]
@@ -132,7 +137,10 @@ class TimetableController extends Controller {
 			);
 		}
 
-		$rawSessions = $this->loadRawSessionsForCohorts(cohortIds: $cohortIds);
+		$rawSessions = $this->mergeCoveredSessions(
+			rawSessions: $this->loadRawSessionsForCohorts(cohortIds: $cohortIds),
+			coveredSessions: $coveredSessions
+		);
 		$roomCache = $this->preloadRooms(sessions: $rawSessions);
 
 		$sessions = $this->projector->windowedSessions(
@@ -216,6 +224,80 @@ class TimetableController extends Controller {
 
 		return array_keys($cohortIds);
 	}//end resolveCallerCohortIds()
+
+	/**
+	 * Load the Sessions where the caller is the substitute teacher.
+	 *
+	 * A substitute is often neither a teacher nor a learner of the cohort they
+	 * cover, so resolveCallerCohortIds() never reaches these lessons. They are
+	 * read on `substituteTeacherId` (declared on Session), so only the covered
+	 * lessons load, not the rest of that cohort's timetable. Each is marked
+	 * `cover: true`.
+	 *
+	 * @param string $uid The caller's Nextcloud user id.
+	 *
+	 * @return array<int,array<string,mixed>> Raw session data arrays, marked as cover.
+	 *
+	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
+	 */
+	private function loadCoveredSessions(string $uid): array {
+		$results = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'session',
+					'substituteTeacherId' => $uid,
+				],
+				'sort' => ['startsAt' => 'ASC'],
+			]
+		);
+
+		$rows = [];
+		foreach ($results as $row) {
+			$session = $this->toArray(row: $row);
+			// Defensive, as for enrolments: never show a lesson another teacher covers.
+			if ((string)($session['substituteTeacherId'] ?? '') !== $uid) {
+				continue;
+			}
+
+			$session['cover'] = true;
+			$rows[] = $session;
+		}
+
+		return $rows;
+	}//end loadCoveredSessions()
+
+	/**
+	 * Add the covered sessions to the cohort sessions, once each.
+	 *
+	 * A lesson of the caller's own cohort that they also cover keeps its cohort
+	 * row and gains the cover mark.
+	 *
+	 * @param array<int,array<string,mixed>> $rawSessions The caller's cohort sessions.
+	 * @param array<int,array<string,mixed>> $coveredSessions The sessions the caller covers.
+	 *
+	 * @return array<int,array<string,mixed>> The combined raw sessions.
+	 *
+	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
+	 */
+	private function mergeCoveredSessions(array $rawSessions, array $coveredSessions): array {
+		$positions = [];
+		foreach ($rawSessions as $index => $session) {
+			$positions[(string)($session['id'] ?? ($session['uuid'] ?? ''))] = $index;
+		}
+
+		foreach ($coveredSessions as $session) {
+			$sessionId = (string)($session['id'] ?? ($session['uuid'] ?? ''));
+			if ($sessionId !== '' && isset($positions[$sessionId]) === true) {
+				$rawSessions[$positions[$sessionId]]['cover'] = true;
+				continue;
+			}
+
+			$rawSessions[] = $session;
+		}
+
+		return $rawSessions;
+	}//end mergeCoveredSessions()
 
 	/**
 	 * Load every raw Session row for the resolved cohorts (no window filter).

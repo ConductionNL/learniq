@@ -229,6 +229,7 @@ class TimetableProjector {
 			'roomId' => $roomIdOrNull,
 			'room' => $room,
 			'substituteTeacherId' => $session['substituteTeacherId'] ?? null,
+			'cover' => (($session['cover'] ?? false) === true),
 			'changeReasonKind' => $session['changeReasonKind'] ?? null,
 			'changeReason' => $session['changeReason'] ?? null,
 			'changedAt' => $session['changedAt'] ?? null,
