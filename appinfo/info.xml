@@ -223,6 +223,16 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 the next upgrade.
             -->
             <step>OCA\Learniq\Repair\BackfillGradeEntryLearnerRef</step>
+            <!--
+                data-exchange-to-integriq (D7): archives every retired
+                DataExchangeJob, DataMappingProfile, ExchangeRejection and
+                ExchangeErrorCode row to data-exchange-archive/, then, when
+                integriq is installed, hands the jobs and customised mappings
+                to integriq through its events. After InitializeSettings, so
+                DossierReview exists for a job that still waits for a parent.
+                Runs once (app config exchange_migrated_to_integriq); deletes nothing.
+            -->
+            <step>OCA\Learniq\Repair\MigrateDataExchangeToIntegriq</step>
         </post-migration>
         <install>
             <!--

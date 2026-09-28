@@ -16465,7 +16465,7 @@
                                 "nullable": true,
                                 "description": "The case-handling route (MAS-route) the municipality assigned this report to.",
                                 "default": null,
-                                "title": "MAS Route"
+                                "title": "MAS route"
                             },
                             "receivedAt": {
                                 "type": "string",
@@ -16473,12 +16473,12 @@
                                 "format": "date-time",
                                 "description": "When the municipality told the school. Stamped server-side when not supplied.",
                                 "default": null,
-                                "title": "Received At"
+                                "title": "Received at"
                             },
                             "note": {
                                 "type": "string",
                                 "nullable": true,
-                                "description": "Free-text note from the coordinator recording the municipality's feedback.",
+                                "description": "The coordinator's note on the municipality's feedback.",
                                 "default": null,
                                 "title": "Note"
                             },
@@ -16487,10 +16487,10 @@
                                 "nullable": true,
                                 "description": "User id of whoever recorded this feedback. Always stamped server-side from the transition actor.",
                                 "default": null,
-                                "title": "Recorded By"
+                                "title": "Recorded by"
                             }
                         },
-                        "title": "Municipality Feedback"
+                        "title": "Municipality feedback"
                     }
                 },
                 "x-openregister-lifecycle": {

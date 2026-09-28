@@ -380,41 +380,32 @@ export function moveItem(list, index, delta) {
 }
 
 /**
- * The DataExchangeJob body for an export request.
+ * The body of an exchange request learniq forwards to integriq
+ * (POST /api/exchange/requests, data-exchange-to-integriq). Learniq picks the
+ * schema and the mapping for the target; the screen only names the target and,
+ * optionally, one learner.
  *
  * @param {object} args Arguments.
- * @param {string} args.target Named OpenConnector connection.
- * @param {string} args.format Output format hint, may be ''.
- * @param {object} args.filters Scope filters.
- * @param {string} args.requestedBy Nextcloud user id.
- * @param {string} args.requestedAt ISO date-time.
- * @param {string} args.tenantId Tenant.
- * @return {object} The job body.
- * @spec openspec/specs/nextcloud-app/spec.md#requirement-every-custom-page-renders-a-registered-component
+ * @param {string} args.target Exchange target, such as 'bron-rod'.
+ * @param {string} [args.learnerId] One learner's user id, or '' for everyone.
+ * @return {object} The request body.
+ * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
-export function exportJobBody({
-	target,
-	format,
-	filters,
-	requestedBy,
-	requestedAt,
-	tenantId,
-}) {
-	const cleanFilters = Object.fromEntries(
-		Object.entries(filters ?? {}).filter(
-			([, v]) => v !== '' && v !== null && v !== undefined,
-		),
-	)
-	const body = {
-		direction: 'export',
-		target,
-		scope: { filters: cleanFilters },
-		requestedBy,
-		requestedAt,
-		tenant_id: tenantId ?? '',
-	}
-	if (format) body.format = format
+export function exchangeRequestBody({ target, learnerId }) {
+	const body = { target }
+	const learner = (learnerId ?? '').trim()
+	if (learner !== '') body.learnerId = learner
 	return body
+}
+
+/**
+ * The exchange request URL.
+ *
+ * @return {string} The app-relative URL (POST).
+ * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+ */
+export function exchangeRequestUrl() {
+	return '/apps/learniq/api/exchange/requests'
 }
 
 /**

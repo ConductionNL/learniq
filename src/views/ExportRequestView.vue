@@ -85,19 +85,10 @@
 					:reduce="(option) => option.id"
 					:clearable="false"
 					:inputLabel="t('learniq', 'Send to')" />
-				<NcSelect
-					v-model="courseId"
-					:options="courseOptions"
-					:reduce="(option) => option.id"
-					:inputLabel="t('learniq', 'Course (optional)')" />
 				<label for="er-learner">{{
 					t('learniq', 'Learner user id (optional)')
 				}}</label>
 				<input id="er-learner" v-model="learnerId" type="text" />
-				<label for="er-format">{{
-					t('learniq', 'Format hint (optional)')
-				}}</label>
-				<input id="er-format" v-model="formatHint" type="text" />
 			</template>
 
 			<NcNoteCard v-if="error" type="error">
@@ -144,7 +135,6 @@
 </template>
 
 <script>
-import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -158,11 +148,11 @@ import {
 	coursePackagePublishUrl,
 	coursePackageShareUrl,
 	coursePackageUrl,
-	exportJobBody,
+	exchangeRequestBody,
+	exchangeRequestUrl,
 	listRows,
 	objectId,
 	objectsUrl,
-	oneObject,
 } from '../utils/customPages.js'
 
 export default {
@@ -190,7 +180,6 @@ export default {
 			blockers: [],
 			target: 'bron-rod',
 			learnerId: '',
-			formatHint: '',
 			busy: false,
 			error: '',
 			done: '',
@@ -242,6 +231,9 @@ export default {
 					id: 'swv',
 					label: this.t('learniq', 'Regional partnership (SWV)'),
 				},
+				{ id: 'uwlr', label: this.t('learniq', 'Test supplier (UWLR)') },
+				{ id: 'edu-v', label: this.t('learniq', 'Edu-V') },
+				{ id: 'basispoort', label: this.t('learniq', 'Basispoort') },
 				{ id: 'hr', label: this.t('learniq', 'HR system') },
 			]
 		},
@@ -351,26 +343,18 @@ export default {
 					)
 					this.download(response, 'course-package.zip')
 				} else {
-					const created = oneObject(
-						(
-							await axios.post(
-								generateUrl(objectsUrl('data-exchange-job')),
-								exportJobBody({
-									target: this.target,
-									format: this.formatHint.trim(),
-									filters: {
-										courseId: this.courseId,
-										learnerId: this.learnerId.trim(),
-									},
-									requestedBy: getCurrentUser()?.uid ?? '',
-									requestedAt: new Date().toISOString(),
-									tenantId: '',
-								}),
-							)
-						).data,
+					const response = await axios.post(
+						generateUrl(exchangeRequestUrl()),
+						exchangeRequestBody({
+							target: this.target,
+							learnerId: this.learnerId,
+						}),
 					)
-					this.jobId = objectId(created)
-					this.done = this.t('learniq', 'The export is queued.')
+					this.jobId = response.data?.jobId ?? ''
+					this.done = this.t(
+						'learniq',
+						'Integriq has the export. It runs once learniq\'s checks allow it.',
+					)
 				}
 			} catch (e) {
 				const body = await this.errorBody(e)

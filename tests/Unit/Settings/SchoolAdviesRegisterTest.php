@@ -74,7 +74,8 @@ class SchoolAdviesRegisterTest extends TestCase {
 		self::assertSame($ordinal, $schema['properties']['definitiefAdviesLevel']['enum']);
 
 		self::assertTrue($schema['properties']['dataExchangeJobId']['nullable']);
-		self::assertSame('DataExchangeJob', $schema['properties']['dataExchangeJobId']['$ref']);
+		// data-exchange-to-integriq: the job lives in integriq, so the id is a plain uuid.
+		self::assertArrayNotHasKey('$ref', $schema['properties']['dataExchangeJobId']);
 
 	}//end testSchoolAdviesSchemaShape()
 

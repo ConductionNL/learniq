@@ -4,7 +4,7 @@
  * Learniq MunicipalityFeedbackStampListener
  *
  * Stamps `municipalityFeedback.recordedBy` and `.receivedAt` onto a
- * DataExchangeJob after its recordMunicipalityFeedback transition.
+ * reported AttendanceFlag after its recordMunicipalityFeedback transition.
  *
  * @category Listener
  * @package  OCA\Learniq\Listener
@@ -53,14 +53,14 @@ use RuntimeException;
 class MunicipalityFeedbackStampListener implements IEventListener {
 
 	/**
-	 * The transition inputs this listener reads from the saved job.
+	 * The transition inputs this listener reads from the saved flag.
 	 *
 	 * @var list<string>
 	 */
 	public const TRANSITION_INPUTS = ['municipalityFeedback'];
 
 	private const LEARNIQ_REGISTER = 'learniq';
-	private const JOB_SCHEMA = 'data-exchange-job';
+	private const FLAG_SCHEMA = 'attendance-flag';
 	private const ACTION = 'recordMunicipalityFeedback';
 
 	/**
@@ -85,6 +85,7 @@ class MunicipalityFeedbackStampListener implements IEventListener {
 	 * @throws RuntimeException When the transition has no acting user.
 	 *
 	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-2.2
+	 * @spec openspec/changes/data-exchange-to-integriq/specs/attendance/spec.md#requirement-the-municipalitys-feedback-on-a-leerplicht-report-is-recorded-on-the-attendance-flag
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false || $event->getAction() !== self::ACTION) {
@@ -92,14 +93,14 @@ class MunicipalityFeedbackStampListener implements IEventListener {
 		}
 
 		$entity = $event->getObject();
-		if ($this->schemaResolver->guardSchemaSlug(entity: $entity) !== self::JOB_SCHEMA) {
+		if ($this->schemaResolver->guardSchemaSlug(entity: $entity) !== self::FLAG_SCHEMA) {
 			return;
 		}
 
 		$actor = (string)($event->getUserId() ?? '');
 		if ($actor === '') {
 			throw new RuntimeException(
-				sprintf('Municipality feedback on job %s was recorded without a user, so it can not be attributed.', (string)$entity->getUuid())
+				sprintf('Municipality feedback on attendance flag %s was recorded without a user, so it can not be attributed.', (string)$entity->getUuid())
 			);
 		}
 
@@ -119,7 +120,7 @@ class MunicipalityFeedbackStampListener implements IEventListener {
 		$this->objectService->saveObject(
 			object: $data,
 			register: self::LEARNIQ_REGISTER,
-			schema: self::JOB_SCHEMA,
+			schema: self::FLAG_SCHEMA,
 			uuid: $entity->getUuid()
 		);
 	}//end handle()

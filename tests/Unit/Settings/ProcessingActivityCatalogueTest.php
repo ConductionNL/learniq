@@ -70,7 +70,7 @@ class ProcessingActivityCatalogueTest extends TestCase {
 		'Assessment' => 'scholiq-grading-assessment',
 		'Attestation' => 'scholiq-attestations',
 		'Credential' => 'scholiq-credentialing',
-		'DataExchangeJob' => 'scholiq-data-exchange',
+		'DossierReview' => 'scholiq-data-exchange',
 		'AiFeature' => 'scholiq-ai-features',
 		'DossierNote' => 'scholiq-pupil-dossier-notes',
 		'BehaviourIncident' => 'scholiq-behaviour-incidents',

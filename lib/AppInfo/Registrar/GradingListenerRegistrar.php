@@ -106,7 +106,7 @@ class GradingListenerRegistrar {
 		// ADR-031 legitimate exception: AttendanceThreshold calculatedChange crossing → AttendanceFlag creation.
 		// When OR fires a threshold-crossed event for an AttendanceThreshold, the handler
 		// creates an AttendanceFlag (open) with mentor/window/metric details and, when
-		// onCross.dataExchangeTarget is set, queues a DataExchangeJob to that target.
+		// onCross.dataExchangeTarget is set, asks integriq for an exchange job to that target.
 		// It does NOT auto-act against the learner.
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,

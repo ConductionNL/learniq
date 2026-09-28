@@ -277,7 +277,12 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 				'ExamAccommodation'  => [self::CO, self::TL, self::self('learnerId'), self::self('submittedBy')],
 				'SupportRequest'     => [self::AM, self::self('raisedBy')],
 				'DeliberationRecord' => [self::AM],
-				'ExchangeRejection'  => [self::AM, self::C],
+				// data-exchange-to-integriq: rejections are integriq dead letters; the
+				// exchange gate's own records are staff-only, the parent review adds
+				// guardians and the learner the row is about.
+				'ExchangePartnerApproval' => [self::AM, self::CO, self::C],
+				'TeldatumCheck'           => [self::CO, self::AM],
+				'DossierReview'           => [self::AM, self::C, 'guardians', self::self('learnerUserId')],
 				'TimetableConflict'  => [self::C],
 				'RolloverPlan'       => [self::C],
 			]
@@ -358,7 +363,7 @@ class DeclaredAudienceEnforcedTest extends TestCase {
 			'LessonCompletion', 'Enrolment', 'RolloverPlan', 'TimetableConflict', 'ExamAccommodation',
 			'ItemStatistics', 'AssessmentReliability', 'ItemRevisionFlag', 'GradeEntry', 'FinalGrade',
 			'ReportCard', 'CompetencyAttainment', 'SupportRequest', 'DeliberationRecord', 'EngagementScore',
-			'EngagementRiskFlag', 'ExchangeRejection', 'Portfolio', 'PortfolioEntry', 'LearningRecordExport',
+			'EngagementRiskFlag', 'Portfolio', 'PortfolioEntry', 'LearningRecordExport',
 			'LearningRecordShare', 'LearnerEngagement', 'Entitlement',
 		];
 		$schemas = self::schemas();

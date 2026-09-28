@@ -7,7 +7,7 @@
  * `rbac-declare-groups` group ids with live Nextcloud member counts
  * (`IGroupManager`), a best-effort two-factor-adoption count across those
  * same members (`\OCP\Authentication\TwoFactorAuth\IRegistry`, degrading to
- * `null` — never a fabricated zero — when unavailable), and `DataExchangeJob`
+ * `null` — never a fabricated zero — when unavailable), and `ExchangePartnerApproval`
  * counts by partner-approval status, into one board-facing governance
  * payload. Mirrors ParnasSys's Privacybasis dashboard (2FA use,
  * groepsautorisatie, roles, koppelingen) named in P-new-6/P-new-7.
@@ -18,9 +18,9 @@
  * `AiProcessingDisclosureController`'s own docblock already gives for its
  * cross-app composition.
  *
- * No write path lives here — this endpoint is read-only. Setting
- * `partnerApprovalStatus` on a `DataExchangeJob` goes through OpenRegister's
- * existing generic object-update endpoint, per ADR-022.
+ * No write path lives here — this endpoint is read-only. Approving or
+ * rejecting an `ExchangePartnerApproval` is a declared lifecycle transition
+ * on that schema, per ADR-022 and ADR-031.
  *
  * @category Controller
  * @package  OCA\Learniq\Controller
@@ -84,9 +84,14 @@ class PrivacyGovernanceController extends Controller {
 	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
-	 * OR schema slug for DataExchangeJob.
+	 * OR schema slug for the standing partner approvals the exchange gate reads.
 	 */
-	private const DATA_EXCHANGE_JOB_SCHEMA = 'data-exchange-job';
+	private const PARTNER_APPROVAL_SCHEMA = 'exchange-partner-approval';
+
+	/**
+	 * The most partner approvals the overview counts (ADR-058).
+	 */
+	private const PARTNER_APPROVAL_LIMIT = 500;
 
 	/**
 	 * Constructor.
@@ -95,7 +100,7 @@ class PrivacyGovernanceController extends Controller {
 	 * @param IUserSession $userSession Current user session.
 	 * @param IGroupManager $groupManager Resolves group membership/counts.
 	 * @param IRegistry $twoFactorRegistry Resolves per-user 2FA provider state.
-	 * @param ObjectService $objectService OR object service for the DataExchangeJob read.
+	 * @param ObjectService $objectService OR object service for the partner approval read.
 	 * @param LoggerInterface $logger PSR logger.
 	 */
 	public function __construct(
@@ -228,28 +233,28 @@ class PrivacyGovernanceController extends Controller {
 	}//end loadTwoFactorAdoption()
 
 	/**
-	 * `DataExchangeJob` counts grouped by `partnerApprovalStatus`, restricted
-	 * to jobs with `requiresPartnerApproval: true` — the "sleeping" (pending)
-	 * vs active (approved) integrations ParnasSys's koppelverzoek view shows.
-	 * A read failure degrades to all-null counts rather than erroring the
-	 * whole dashboard, same posture `AiProcessingDisclosureController` takes
-	 * for its own cross-object reads.
+	 * Partner approval counts by status: the "sleeping" (pending) versus
+	 * active (approved) integrations ParnasSys's koppelverzoek view shows.
+	 * Since data-exchange-to-integriq each row is a standing
+	 * `ExchangePartnerApproval` for one target. A read failure degrades to
+	 * all-null counts rather than erroring the whole dashboard.
 	 *
 	 * @return array<string,mixed> `{pending, approved, rejected}` counts, or all null on read failure.
 	 */
 	private function loadDataExchangeApprovalCounts(): array {
 		try {
-			$jobs = $this->objectService->findAll(
+			$approvals = $this->objectService->findAll(
 				[
 					'filters' => [
 						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::DATA_EXCHANGE_JOB_SCHEMA,
+						'schema' => self::PARTNER_APPROVAL_SCHEMA,
 					],
+					'limit' => self::PARTNER_APPROVAL_LIMIT,
 				]
 			);
 		} catch (Throwable $e) {
 			$this->logger->info(
-				'[PrivacyGovernanceController] DataExchangeJob read failed ({message}); returning unknown counts.',
+				'[PrivacyGovernanceController] Partner approval read failed ({message}); returning unknown counts.',
 				['message' => $e->getMessage()]
 			);
 			return [
@@ -265,17 +270,17 @@ class PrivacyGovernanceController extends Controller {
 			'rejected' => 0,
 		];
 
-		foreach ($jobs as $job) {
-			$row = $job;
+		foreach ($approvals as $approval) {
+			$row = $approval;
 			if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
 				$row = $row->jsonSerialize();
 			}
 
-			if (is_array($row) === false || ($row['requiresPartnerApproval'] ?? false) !== true) {
+			if (is_array($row) === false) {
 				continue;
 			}
 
-			$status = $row['partnerApprovalStatus'] ?? 'pending';
+			$status = $row['status'] ?? 'pending';
 			if (isset($counts[$status]) === true) {
 				$counts[$status]++;
 			}

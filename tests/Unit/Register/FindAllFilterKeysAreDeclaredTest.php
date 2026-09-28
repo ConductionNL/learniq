@@ -62,8 +62,10 @@ class FindAllFilterKeysAreDeclaredTest extends TestCase {
 
 	/**
 	 * Fewer resolved findAll() calls than this means the scan is not reading lib/.
+	 * Lowered from 150 by data-exchange-to-integriq, which deleted the classes that
+	 * ran learniq's own exchange jobs and rejections (about 15 findAll calls).
 	 */
-	private const MIN_RESOLVED_CALLS = 150;
+	private const MIN_RESOLVED_CALLS = 130;
 
 	/**
 	 * Reads that already filtered on an undeclared property when this test landed.
@@ -80,40 +82,29 @@ class FindAllFilterKeysAreDeclaredTest extends TestCase {
 	 */
 	private const KNOWN_UNDECLARED = [
 		'lib/Controller/TimetableController.php: room has no property "id"',
-		'lib/Lifecycle/Action/RejectionResubmissionAction.php: data-exchange-job has no property "id"',
 		'lib/Lifecycle/AssessmentGradeGuard.php: exam has no property "uuid"',
 		'lib/Lifecycle/AssessmentGradeGuard.php: item has no property "uuid"',
 		'lib/Lifecycle/AssessmentScoringHandler.php: exam has no property "uuid"',
 		'lib/Lifecycle/AssessmentScoringHandler.php: item has no property "uuid"',
-		'lib/Lifecycle/AttendanceFlagReportGuard.php: data-exchange-job has no property "id"',
 		'lib/Lifecycle/AttestationSigningGuard.php: xapi-statement has no property "actor.id"',
 		'lib/Lifecycle/AttestationSigningGuard.php: xapi-statement has no property "object.id"',
 		'lib/Lifecycle/AttestationSigningGuard.php: xapi-statement has no property "verb.id"',
 		'lib/Lifecycle/ProgrammePublishGuard.php: curriculum-plan has no property "uuid"',
-		'lib/Lifecycle/RejectionResubmitGuard.php: data-exchange-job has no property "id"',
 		'lib/Lifecycle/ReportCardVisibilityGuard.php: grade-entry has no property "id"',
 		'lib/Lifecycle/SessionChangeGuard.php: cohort has no property "id"',
 		'lib/Lifecycle/SubmissionWindowGuard.php: assignment has no property "uuid"',
 		'lib/Lifecycle/XapiCompletionHandler.php: lesson has no property "xapiObjectId"',
 		'lib/Listener/CohortGroupProvisioningHandler.php: cohort has no property "id"',
-		'lib/Listener/DataExchangeRunHandler.php: support-request has no property "id"',
-		'lib/Listener/DataExchangeRunHandler.php: data-mapping-profile has no property "id"',
-		'lib/Listener/DataExchangeRunHandler.php: data-exchange-job has no property "id"',
 		'lib/Listener/LearningPlanEvaluationHandler.php: learning-plan has no property "uuid"',
 		'lib/Listener/LessonProgressHandler.php: lesson has no property "xapiObjectId"',
-		'lib/Listener/SchoolAdviesSendToRodHandler.php: school-advies has no property "id"',
 		'lib/Listener/SessionChangeNoticeHandler.php: cohort has no property "id"',
-		'lib/Listener/SupportRequestSubmitHandler.php: support-request has no property "id"',
 		'lib/Service/AssessmentScoringService.php: assessment-result has no property "uuid"',
 		'lib/Service/DataExchangePayloadBuilder.php: learning-plan has no property "id"',
 		'lib/Service/DataExchangePayloadBuilder.php: attendance-record has no property "id"',
 		'lib/Service/DataExchangeTransformer.php: cohort has no property "id"',
-		'lib/Service/RejectionResubmissionResolver.php: exchange-rejection has no property "id"',
 		'lib/Timetabling/SessionWindowLoader.php: session has no property "sessionDayBucket"',
 		'lib/Timetabling/SessionWindowLoader.php: cohort has no property "id"',
 		'lib/Timetabling/SessionWindowLoader.php: room has no property "id"',
-		'lib/Timetabling/TimetableImportHandler.php: data-mapping-profile has no property "id"',
-		'lib/Timetabling/TimetableImportHandler.php: data-exchange-job has no property "id"',
 	];
 
 	/**

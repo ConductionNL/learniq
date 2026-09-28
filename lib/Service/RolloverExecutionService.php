@@ -44,6 +44,7 @@ namespace OCA\Learniq\Service;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
  * Idempotent execution of a previewed school-year rollover plan.
@@ -72,12 +73,14 @@ class RolloverExecutionService {
 	 * @param IGroupManager $groupManager NC group manager for cohort-group sync.
 	 * @param LoggerInterface $logger PSR logger.
 	 * @param RolloverService $rolloverService Planning surface (group naming, override indexing, cohort loading).
+	 * @param IntegriqExchangeClient $integriq Asks integriq for the outflow OSO export.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly IGroupManager $groupManager,
 		private readonly LoggerInterface $logger,
 		private readonly RolloverService $rolloverService,
+		private readonly IntegriqExchangeClient $integriq,
 	) {
 	}//end __construct()
 
@@ -364,29 +367,45 @@ class RolloverExecutionService {
 	}//end syncGroup()
 
 	/**
-	 * Queue a data-exchange OSO export job for an outflow learner.
+	 * Ask integriq for the OSO export of an outflow learner, and open the
+	 * parents' review the exchange gate waits for.
 	 *
-	 * @param string $learnerId Outflow learner UUID.
+	 * Without integriq nothing is asked; the rollover itself carries on.
+	 *
+	 * @param string $learnerId Outflow learner (NC user id).
 	 * @param string $tenantId Tenant ID.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	private function queueOutflow(string $learnerId, string $tenantId): void {
-		$job = [
-			'direction' => 'export',
-			'target' => 'oso',
-			'scope' => [
-				'schema' => 'learner-profile',
-				'filters' => ['learnerId' => $learnerId],
-				'cohortId' => null,
-				'period' => null,
-			],
-			'requestedBy' => 'rollover',
-			'requestedAt' => date('c'),
-			'lifecycle' => 'queued',
-			'tenant_id' => $tenantId,
-		];
+		try {
+			$jobId = $this->integriq->requestJob(
+				target: 'oso',
+				direction: 'export',
+				ownerRef: 'learner-profile/' . $learnerId,
+				scope: [
+					'schema' => 'learner-profile',
+					'filters' => ['ncUserId' => $learnerId],
+					'tenantId' => $tenantId,
+				],
+				mappingSlug: 'learniq-oso-export-dossier',
+				requestedBy: 'rollover',
+				name: 'OSO overstapdossier'
+			);
+		} catch (Throwable $exception) {
+			$this->logger->warning(
+				'[RolloverExecutionService] No OSO export for outflow learner {l}: {msg}',
+				['l' => $learnerId, 'msg' => $exception->getMessage()]
+			);
+			return;
+		}
 
-		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'data-exchange-job', object: $job);
+		$this->objectService->saveObject(
+			register: self::LEARNIQ_REGISTER,
+			schema: 'dossier-review',
+			object: ['exchangeJobId' => $jobId, 'target' => 'oso', 'learnerUserId' => $learnerId, 'status' => 'pending', 'tenant_id' => $tenantId]
+		);
 	}//end queueOutflow()
 }//end class

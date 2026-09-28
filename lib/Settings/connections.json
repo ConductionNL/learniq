@@ -4,20 +4,19 @@
         {
             "key": "data-exchange",
             "title": "Data exchange",
-            "description": "Aanleveringen and imports with DUO/BRON, OSO, the municipality and ELO systems.",
+            "description": "Reports to DUO ROD and the Verzuimloket, OSO transfer files and SWV hand-offs, carried by integriq once learniq's gate allows them.",
             "order": 10,
             "settingsUrl": "/settings/admin/learniq#section-data-exchange",
-            "available": false,
-            "unavailableMessage": "A job run calls api/sources/[target]/run on integriq. Integriq has no such endpoint, so every run fails."
+            "available": true
         },
         {
             "key": "timetable",
             "title": "Timetable import",
-            "description": "Lessons imported from Zermelo, Untis or Xedule as a data-exchange job.",
+            "description": "Lessons from Zermelo, Untis or Xedule.",
             "order": 20,
             "settingsUrl": "/settings/admin/learniq#section-data-exchange",
             "available": false,
-            "unavailableMessage": "The import calls api/sources/timetable-import/run on integriq. Integriq has no such endpoint, so no lesson arrives."
+            "unavailableMessage": "The timetable is planninq's now: integriq delivers it there and learniq reads the lessons from planninq. Learniq no longer imports it."
         },
         {
             "key": "lti",

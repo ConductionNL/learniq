@@ -100,7 +100,9 @@ class LvsResultRegisterTest extends TestCase {
 		self::assertTrue($props['assessmentResultId']['nullable']);
 		self::assertNull($props['assessmentResultId']['default']);
 
-		self::assertSame('DataExchangeJob', $props['dataExchangeJobId']['$ref']);
+		// data-exchange-to-integriq: the job lives in integriq, so the id is a plain uuid.
+		self::assertArrayNotHasKey('$ref', $props['dataExchangeJobId']);
+		self::assertStringContainsString('integriq', $props['dataExchangeJobId']['description']);
 
 	}//end testAssessmentResultLinkIsNullable()
 
@@ -147,51 +149,6 @@ class LvsResultRegisterTest extends TestCase {
 		self::assertSame('$userId', $read['anyOf'][1]['match']['value']);
 
 	}//end testRbacReadMirrorsAssessmentResult()
-
-	/**
-	 * DataExchangeJob.target's description now names the lvs-results target.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/lvs-import-contract/specs/data-exchange/spec.md#scenario-delegate-the-lvs-results-import-to-openconnector
-	 */
-	public function testDataExchangeJobTargetDescribesLvsResults(): void {
-		$prop = $this->config['components']['schemas']['DataExchangeJob']['properties']['target'];
-
-		self::assertStringContainsString('lvs-results', $prop['description']);
-		self::assertStringContainsString('UWLR', $prop['description']);
-
-	}//end testDataExchangeJobTargetDescribesLvsResults()
-
-	/**
-	 * The lvs-results DataMappingProfile seed maps provider/instrument/moment
-	 * plus every normed-score field.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/lvs-import-contract/specs/data-exchange/spec.md#scenario-the-lvs-results-mapping-profile-declares-the-normed-score-fields
-	 */
-	public function testLvsResultsMappingProfileSeedShape(): void {
-		$seed = $this->config['components']['schemas']['DataMappingProfile']['x-openregister-seed'];
-
-		$profile = null;
-		foreach ($seed as $entry) {
-			if ($entry['target'] === 'lvs-results') {
-				$profile = $entry;
-				break;
-			}
-		}
-
-		self::assertNotNull($profile, 'lvs-results DataMappingProfile seed must exist');
-		self::assertSame('import', $profile['direction']);
-		self::assertSame('assessment-result', $profile['sourceSchema']);
-
-		$mappedFields = array_column($profile['fieldMappings'], 'scholiqField');
-		foreach (['provider', 'instrument', 'moment', 'rawScore', 'vaardigheidsscore', 'niveau', 'referentieniveau', 'dle'] as $field) {
-			self::assertContains($field, $mappedFields, "{$field} must be mapped");
-		}
-
-	}//end testLvsResultsMappingProfileSeedShape()
 
 	/**
 	 * Every LvsResult property carries a title and description (gate-28

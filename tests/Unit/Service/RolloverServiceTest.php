@@ -66,7 +66,8 @@ class RolloverServiceTest extends TestCase {
 			$objectService,
 			$this->createMock(IGroupManager::class),
 			$this->createMock(LoggerInterface::class),
-			new RolloverService($objectService)
+			new RolloverService($objectService),
+			$this->createMock(\OCA\Learniq\Service\IntegriqExchangeClient::class)
 		);
 	}//end makeExecutionService()
 

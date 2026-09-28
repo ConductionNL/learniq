@@ -13,6 +13,8 @@
     "learning-record.import": ["admin"],
     "compliance.department-rollup": ["admin", "compliance-officer", "hr", "manager"],
     "regulation.assign": ["admin", "compliance-officer", "hr"],
-    "fee-item.raise-contributions": ["admin"]
+    "fee-item.raise-contributions": ["admin"],
+    "exchange.gate-read": ["admin", "administration-managers", "compliance-officers", "coordinators"],
+    "exchange.request": ["admin", "administration-managers"]
   }
 }

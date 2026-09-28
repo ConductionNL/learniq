@@ -64,7 +64,7 @@ class LifecycleWriteListenerRegistrar {
 			listener: ReportCardPdfTransitionListener::class
 		);
 
-		// DataExchangeJob.recordMunicipalityFeedback (succeeded -> succeeded):
+		// AttendanceFlag.recordMunicipalityFeedback (reported -> reported):
 		// stamps municipalityFeedback.recordedBy/receivedAt.
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,

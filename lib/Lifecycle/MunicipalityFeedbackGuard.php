@@ -3,8 +3,8 @@
 /**
  * Learniq Municipality Feedback Guard
  *
- * Lifecycle guard for the DataExchangeJob schema's `recordMunicipalityFeedback`
- * transition — a self-loop (`succeeded` → `succeeded`) used solely to attach a
+ * Lifecycle guard for the AttendanceFlag schema's `recordMunicipalityFeedback`
+ * transition — a self-loop (`reported` → `reported`) used solely to attach a
  * PHP authorisation check to a plain field write. This register has no
  * declarative field-scoped write-authorization extension (`x-property-rbac`
  * only expresses whole-object `read` gates, and `x-openregister-authorization`
@@ -43,7 +43,7 @@ use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 
 /**
- * Guards the DataExchangeJob `recordMunicipalityFeedback` self-loop transition.
+ * Guards the AttendanceFlag `recordMunicipalityFeedback` self-loop transition.
  *
  * The transition proceeds only when ALL of the following hold:
  *   1. The acting user is in one of the authorised groups (`admin`, `coordinators`).
@@ -65,9 +65,9 @@ use Psr\Log\LoggerInterface;
 class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 
 	/**
-	 * The only DataExchangeJob target municipalityFeedback applies to.
+	 * The only attendance flag state municipality feedback is recorded in.
 	 */
-	private const LEERPLICHT_TARGET = 'leerplicht';
+	private const REPORTED = 'reported';
 
 	/**
 	 * Groups whose members may record municipality feedback.
@@ -100,18 +100,18 @@ class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 	/**
 	 * Assert the recording preconditions.
 	 *
-	 * @param array<string,mixed> $object The DataExchangeJob as it would be saved (lifecycle stays `succeeded`).
+	 * @param array<string,mixed> $object The AttendanceFlag as it would be saved (lifecycle stays `reported`).
 	 * @param string              $action The transition action (`recordMunicipalityFeedback`).
 	 * @param string              $userId The caller's uid, or '' without a session.
 	 *
-	 * @return GuardResult Allow, or deny when the caller or the job does not qualify.
+	 * @return GuardResult Allow, or deny when the caller or the flag does not qualify.
 	 *
 	 * @spec openspec/changes/verzuim-report-composer/tasks.md#task-2.2
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
-		$target = (string)($object['target'] ?? '');
+		$lifecycle = (string)($object['lifecycle'] ?? '');
 
 		if ($userId === '') {
 			$this->logger->warning(
@@ -120,12 +120,12 @@ class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 			return GuardResult::deny('Only a signed-in admin or coordinator can record municipality feedback.');
 		}
 
-		if ($target !== self::LEERPLICHT_TARGET) {
+		if ($lifecycle !== self::REPORTED) {
 			$this->logger->info(
-				'[MunicipalityFeedbackGuard] Job {id} target is {t}, not leerplicht — denying recordMunicipalityFeedback.',
-				['id' => $object['id'] ?? '?', 't' => $target]
+				'[MunicipalityFeedbackGuard] Flag {id} is {l}, not reported — denying recordMunicipalityFeedback.',
+				['id' => $object['id'] ?? '?', 'l' => $lifecycle]
 			);
-			return GuardResult::deny('Municipality feedback can only be recorded on a leerplicht report.');
+			return GuardResult::deny('Municipality feedback can only be recorded on a reported leerplicht flag.');
 		}
 
 		if ($this->actorIsAuthorised(actor: $userId) === false) {
