@@ -6,7 +6,7 @@ description: Read a single learner's full record, enrolments, grades, attendance
 
 # Track a learner's progress
 
-The **Learner profile** is the one page Scholiq pulls everything about one student into. Use it for one-on-ones, parent conversations, compliance audits, and the *"where are they at?"* question that comes up every week.
+The **Learner profile** is the one page Learniq pulls everything about one student into. Use it for one-on-ones, parent conversations, compliance audits, and the *"where are they at?"* question that comes up every week.
 
 ## Goal
 
@@ -35,7 +35,7 @@ By the end you will have opened a learner's profile, walked through each tab (ov
 
    ![Learner grades tab](/screenshots/tutorials/user/08-track-progress-04.png)
 
-5. Switch to **Attendance** for the per-session record, and **Credentials** for the certificates issued. The **Logs** tab at the end is the audit trail Scholiq writes for every change touching this learner, useful when you need to answer *"who marked this absence?"*.
+5. Switch to **Attendance** for the per-session record, and **Credentials** for the certificates issued. The **Logs** tab at the end is the audit trail Learniq writes for every change touching this learner, useful when you need to answer *"who marked this absence?"*.
 
    ![Learner credentials tab](/screenshots/tutorials/user/08-track-progress-05.png)
 
@@ -48,7 +48,7 @@ You are reading the profile correctly when: the *Overview* totals (enrolment cou
 | Symptom | Fix |
 |---|---|
 | The *Overview* totals do not match the tabs | The summary card caches for a minute or two, reload the page; if the gap stays, an admin opens the *Logs* tab for the learner to see which write failed. |
-| You cannot see a tab you expect | Your role is restricted, *Teacher* sees grades for their courses only; *Coordinator* sees everything. An admin sets roles in [Manage Scholiq settings](../admin/03-admin-settings.md). |
+| You cannot see a tab you expect | Your role is restricted, *Teacher* sees grades for their courses only; *Coordinator* sees everything. An admin sets roles in [Manage Learniq settings](../admin/03-admin-settings.md). |
 | The learner is missing from **Learners** | No Learner Profile exists for them yet, create one under **Learners → Add Item** or run the SIS import job. |
 
 ## Reference

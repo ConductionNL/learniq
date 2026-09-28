@@ -242,7 +242,7 @@ class GradeRollupHandler implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-21
-	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#requirement-the-final-grade-roll-up-writes-only-declared-properties
+	 * @spec openspec/specs/grading/spec.md#requirement-the-final-grade-roll-up-writes-only-declared-properties
 	 */
 	private function recomputeFinalGrade(
 		string $learnerId,
@@ -318,7 +318,7 @@ class GradeRollupHandler implements IEventListener {
 	 *
 	 * @return string|null The Programme UUID, or null.
 	 *
-	 * @spec openspec/changes/grading-rollup-followups/specs/grading/spec.md#requirement-the-final-grade-roll-up-writes-the-programme-it-belongs-to
+	 * @spec openspec/specs/grading/spec.md#requirement-the-final-grade-roll-up-writes-the-programme-it-belongs-to
 	 */
 	private function programmeFor(string $curriculumPlanId, mixed $current): ?string {
 		$programmes = $this->objectService->findAll(

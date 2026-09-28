@@ -2,7 +2,9 @@
 
 ## Purpose
 TBD - created by archiving change competency-framework. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: CompetencyFramework carries a named source authority and its own proficiency scale
 
 The system MUST persist `CompetencyFramework` as an OpenRegister object with `sourceAuthority` (required
@@ -180,3 +182,403 @@ framework's declared pass/target level, as a gap. No PHP CRUD controller.
 - **THEN** the role-required competency is included in the required set, independent of any Programme
   enrolment
 
+### Requirement: CurriculumCoverage is a derived, read-only coverage object per framework, year and subject
+
+The system MUST persist `CurriculumCoverage` (slug `curriculum-coverage`) as a read-only
+(`x-openregister.readOnly: true`), lifecycle-free OpenRegister object that holds no learner data. Each row MUST carry
+`frameworkId` (required, `$ref: CompetencyFramework`), `year` (nullable string: a year label, or `null` for the
+all-years row), `subjectScope` (required enum `all | subject | none`), `subjectId` (nullable `$ref: Course`, set only
+when `subjectScope` is `subject`), `goalCount`, `plannedCount`, `assessedCount`, `plannedNotAssessedCount`,
+`uncoveredCount` (integers), `plannedPercent` and `assessedPercent` (numbers, one decimal, 0 when `goalCount` is 0),
+`plannedByDepth` and `assessedByDepth` (arrays of `{depth, count}`), `uncoveredIds` and `plannedNotAssessedIds` (arrays
+of `$ref: Competency`), `goals` (the per-goal detail: `competencyId`, `planned`, `assessed`, `plannedDepth`,
+`assessedDepth`, `plannedRefs`, `assessedRefs`), `lastRecomputedAt` and `tenant_id`. Its `authorization` MUST let
+teaching and coordinating staff read it (`instructors`, `team-leads`, `coordinators`, `administration-managers`,
+`compliance-officers`) and keep the cascade writers for create and update, mirroring `ItemStatistics`. The schema
+description MUST say coverage is a planning signal and not evidence of learning.
+
+#### Scenario: A teacher reads coverage, a learner does not
+
+<!-- @e2e exclude Register authorization shape; no DOM surface in this change (the view ships in curriculum-coverage-matrix-view). Covered by CurriculumCoverageRegisterTest::testCoverageSchemaIsReadOnlyStaffOnlyAndLifecycleFree. -->
+
+- **GIVEN** the `CurriculumCoverage` schema
+- **WHEN** its authorization block is read
+- **THEN** `instructors`, `team-leads`, `coordinators`, `administration-managers` and `compliance-officers` may read it
+- **AND** no `learners` or `guardians` entry and no self-match entry exist, and the schema has no lifecycle
+
+### Requirement: Coverage counts leaf goals, planned and assessed separately
+
+For one framework, the system MUST count only leaf goals (a non-archived `Competency` with no non-archived child in
+the framework). A goal MUST count as planned when at least one non-retired `Lesson` or non-archived `Course` aligns
+to it, and as assessed when at least one non-archived `Assignment` or `Assessment` does, using
+`CompetencyAlignmentNormaliser::effectiveAlignments()` (so a row with only `competencyIds` counts, with depth
+`null`). Per goal the deepest depth per kind MUST be kept by the framework's level order, where a real level beats
+`null` and a depth the framework no longer declares reads as `null`. A goal nothing aligns to MUST appear in
+`uncoveredIds`; a goal planned but not assessed MUST appear in `plannedNotAssessedIds`.
+
+#### Scenario: A goal taught but never tested shows as a gap in assessment
+
+<!-- @e2e exclude Pure calculation; covered by CurriculumCoverageCalculatorTest::testCountsPlannedAndAssessedSeparately. -->
+
+- **GIVEN** a framework with three leaf goals A, B and C
+- **AND** a lesson aligned to A and B, and an assignment aligned to A
+- **WHEN** coverage is computed
+- **THEN** `plannedCount` is 2, `assessedCount` is 1, `plannedNotAssessedIds` is `[B]` and `uncoveredIds` is `[C]`
+
+#### Scenario: A domain node and archived rows do not count
+
+<!-- @e2e exclude Pure calculation; covered by CurriculumCoverageCalculatorTest::testOnlyLeafGoalsCount and ::testArchivedGoalsAndRetiredReferencesAreLeftOut. -->
+
+- **GIVEN** a domain goal with two leaf kerndoelen, one archived leaf, and a retired lesson aligned to a leaf
+- **WHEN** coverage is computed
+- **THEN** `goalCount` is 2 (the domain and the archived leaf are left out)
+- **AND** the retired lesson does not make any goal planned
+
+#### Scenario: The deepest depth wins
+
+<!-- @e2e exclude Pure calculation; covered by CurriculumCoverageCalculatorTest::testDeepestDepthWinsAndStaleDepthReadsAsNone. -->
+
+- **GIVEN** a framework with levels `introduce`, `practise`, `master` and one leaf goal
+- **AND** one lesson aligns to it at `introduce`, another at `master`, a third without depth
+- **WHEN** coverage is computed
+- **THEN** the goal's `plannedDepth` is `master`, `plannedRefs` is 3, and `plannedByDepth` is `[{depth: "master", count: 1}]`
+
+### Requirement: Coverage is bucketed by year and subject, with totals
+
+The system MUST resolve each leaf goal's effective years and subject with the `competency-year-scope` read rule
+(own non-empty value, else the nearest ancestor's), comparing year labels after trimming and lower-casing. It MUST
+write, per framework: one row per distinct year label plus an all-years row (`year: null`), crossed with one row per
+distinct subject (`subjectScope: subject`), an all-subjects row (`subjectScope: all`) and, when any goal has no
+subject, a no-subject row (`subjectScope: none`). A goal with no years MUST count in every year row. A bucket with no
+goals MUST NOT be written, except the all-years, all-subjects total row, which MUST always exist.
+
+#### Scenario: Goals set per groep land in the right columns
+
+<!-- @e2e exclude Pure calculation; covered by CurriculumCoverageCalculatorTest::testBucketsCoverEveryYearAndSubjectPlusTotals and ::testYearsAndSubjectsInheritFromTheNearestAncestor. -->
+
+- **GIVEN** a domain with `applicableYears: ["groep 5"]` and subject rekenen, holding two leaf goals without values of
+  their own, and a third leaf goal with `applicableYears: []` and no subject anywhere up its tree
+- **WHEN** coverage is computed
+- **THEN** the `groep 5` / rekenen row counts the two inherited goals
+- **AND** the `groep 5` / all-subjects row counts all three goals, because the third applies to every year
+- **AND** a `groep 5` / no-subject row counts the third goal, and the total row counts all three
+
+#### Scenario: An empty framework still has a total row
+
+<!-- @e2e exclude Pure calculation; covered by CurriculumCoverageCalculatorTest::testEmptyFrameworkStillGetsATotalRow. -->
+
+- **GIVEN** a framework with no goals
+- **WHEN** coverage is computed
+- **THEN** exactly one row exists: all years, all subjects, `goalCount` 0 and both percentages 0
+
+### Requirement: Coverage is recomputed on save for the touched frameworks only, never by a TimedJob
+
+`CurriculumCoverageRollupHandler` MUST listen to OpenRegister's `ObjectCreatedEvent`, `ObjectUpdatedEvent` and
+`ObjectDeletedEvent`, narrowed through `ObjectEventSubscription` to the `learniq` register and the schemas `lesson`,
+`course`, `assignment`, `exam`, `competency` and `competency-framework`. For a lesson, course, assignment or
+assessment it MUST recompute the frameworks of every goal in the old and new `competencyIds` and alignments; for a
+goal, its old and new framework; for a framework, itself. `CurriculumCoverageRollup` MUST save only rows whose
+numbers changed, delete the framework's rows whose bucket no longer exists, delete all of a framework's rows when
+the framework is gone, and never throw into the save that triggered it. No `TimedJob` (ADR-022).
+
+#### Scenario: Aligning a lesson updates the coverage of that framework only
+
+<!-- @e2e exclude Backend listener; covered by CurriculumCoverageRollupHandlerTest::testLessonSaveRecomputesTheFrameworksOfOldAndNewGoals. -->
+
+- **GIVEN** a lesson whose alignment moves from a goal in framework F1 to a goal in framework F2
+- **WHEN** the update is saved
+- **THEN** coverage recomputes for F1 and F2 and for no other framework
+
+#### Scenario: A recompute writes only what changed and removes vanished buckets
+
+<!-- @e2e exclude Backend service; covered by CurriculumCoverageRollupTest::testRecomputeUpsertsOnlyChangedRows and ::testRecomputeDeletesVanishedBuckets. -->
+
+- **GIVEN** stored coverage rows for a framework, one of them for a year label no goal uses any more
+- **WHEN** the framework is recomputed and one other row's numbers are unchanged
+- **THEN** the unchanged row is not saved, the changed rows are saved, and the orphaned year row is deleted
+
+#### Scenario: A failing recompute never breaks the save
+
+<!-- @e2e exclude Backend listener; covered by CurriculumCoverageRollupHandlerTest::testFailureNeverBreaksTheSave. -->
+
+- **GIVEN** the rollup throws while recomputing
+- **WHEN** the listener handles a lesson save
+- **THEN** the exception is logged and not rethrown
+
+### Requirement: An occ command fills coverage for existing data
+
+The system MUST register `occ learniq:curriculum-coverage:recompute` with an optional `--framework=<uuid>` option. Without
+the option it MUST recompute every framework; with it, that framework only. It MUST report how many frameworks it
+recomputed and exit 0, or exit 1 with a message when the named framework does not exist.
+
+#### Scenario: An administrator fills coverage after an upgrade
+
+<!-- @e2e exclude occ command, no DOM surface; covered by RecomputeCurriculumCoverageTest::testRecomputesEveryFramework and ::testRecomputesOneFramework. -->
+
+- **GIVEN** three frameworks with goals and aligned lessons saved before this change
+- **WHEN** an administrator runs `occ learniq:curriculum-coverage:recompute`
+- **THEN** each framework gets its coverage rows and the command reports 3 frameworks
+
+### Requirement: A coverage matrix shows goals by year with planned and assessed marked
+
+The frontend MUST offer one custom page, `CurriculumCoverageMatrix` at `/curriculum/coverage`, rendering the registered
+component `CurriculumCoverageMatrixView`, reachable from a "Curriculum coverage" entry in the Learning menu next to
+"Curriculum" and visible to the staff roles that may read `CurriculumCoverage` (instructor, coordinator, team lead,
+administration manager, admin). It MUST NOT also be a card on the Reports page. The page MUST render a read-only
+`CnDataMatrix` built from the selected framework's `CurriculumCoverage` rows and `Competency` rows: the active goals as
+rows in tree order with each domain as a heading row, the framework's year labels as columns in natural order (a
+single "All years" column when there are none), and in each leaf goal's cell, only for the years the goal applies to,
+one of "Planned and assessed", "Planned", "Assessed" or "Not covered" plus the deepest depth's level label. Status MUST
+be carried by words, not colour alone. A framework and a subject filter (all subjects, each subject, no subject) MUST
+narrow the matrix, and `?framework=<id>` MUST preselect a framework. The page MUST say that it shows the plan, not
+what learners have mastered.
+
+#### Scenario: A coordinator sees which goals of groep 5 are taught and tested
+
+<!-- @e2e exclude Lanes may not drive the shared instance; the layout rules live in pure builders covered by tests/unit-js/curriculumCoverage.test.mjs ("the matrix shows goals under their domain, years as columns, cells only in a goal's years"). A Playwright pass is a follow-up once the rows can be seeded. -->
+
+- **GIVEN** a framework whose domain "Getallen" holds K1 (planned and assessed, deepest depth "master") and K2
+  (planned only), both for groep 5, and a root goal K3 that applies to every year and nothing covers
+- **WHEN** a coordinator opens Curriculum coverage and picks that framework
+- **THEN** the matrix lists Getallen as a heading, then K1 and K2 under it, then K3
+- **AND** the groep 5 column reads "Planned and assessed (master)" for K1, "Planned" for K2 and "Not covered" for K3
+- **AND** K1 and K2 show nothing in any other year column
+
+#### Scenario: Picking a subject narrows the matrix
+
+<!-- @e2e exclude Same reason; covered by tests/unit-js/curriculumCoverage.test.mjs ("a subject selection narrows the rows; a framework without years gets one column"). -->
+
+- **GIVEN** the framework above, with K1 and K2 linked to the subject rekenen
+- **WHEN** the coordinator picks rekenen in the subject filter
+- **THEN** the matrix shows Getallen, K1 and K2 only, with the groep 5 column
+
+#### Scenario: The report is a menu entry, not a card
+
+<!-- @e2e exclude Manifest shape; covered by tests/unit-js/curriculumCoverage.test.mjs ("the page is a menu entry and not a Reports card") and the registry coverage test. -->
+
+- **GIVEN** the merged manifest
+- **WHEN** the Learning menu and the Reports page are read
+- **THEN** a "Curriculum coverage" entry routes to `CurriculumCoverageMatrix`, and no Reports card does
+
+### Requirement: A gap list names the uncovered goals per subject and year
+
+Below the matrix the page MUST list, per subject (by course name, or "No subject") and per year (or "All years" when
+the framework has no years), the goals nothing aligns to ("Not covered") and the goals planned but never assessed
+("Planned, not assessed"), read from the `uncoveredIds` and `plannedNotAssessedIds` of the per-subject coverage rows.
+Sections with no gap MUST be left out, and when no section remains the page MUST say that every goal is planned and
+assessed. A framework without coverage rows yet MUST show a notice that coverage fills in when a goal, lesson,
+course, assignment or assessment in it is saved, not an empty grid.
+
+#### Scenario: The gap list shows what to plan and what to test
+
+<!-- @e2e exclude Same reason; covered by tests/unit-js/curriculumCoverage.test.mjs ("the gap list names uncovered and untested goals per subject and year"). -->
+
+- **GIVEN** the framework above
+- **WHEN** the page renders
+- **THEN** the gap list has "No subject · groep 5" with K3 under "Not covered"
+- **AND** "Rekenen · groep 5" with K2 under "Planned, not assessed"
+- **AND** no section for a subject and year without gaps
+
+#### Scenario: A framework without coverage yet explains itself
+
+<!-- @e2e exclude Same reason; covered by tests/unit-js/curriculumCoverage.test.mjs ("no coverage rows give an empty matrix, not an error") plus the notice in the view template. -->
+
+- **GIVEN** a framework with no `CurriculumCoverage` rows
+- **WHEN** it is picked
+- **THEN** the page shows the notice that coverage fills in on the next save, and no matrix
+
+### Requirement: A Competency declares the years it is taught in
+
+`Competency` MUST declare an optional `applicableYears` property: an array of string labels (`uniqueItems:
+true`, each item `minLength: 1` and `maxLength: 64`), default `[]`, with no enum. A label is either a year level
+(canonical spelling `groep 1` to `groep 8`, `leerjaar 1` to `leerjaar 6`, `jaar 1` to `jaar 4`) or an academic
+year in the `Cohort.academicYear` format (`YYYY` or `YYYY-YYYY`). An empty array MUST mean the goal applies to
+every year of its framework, so every `Competency` stored before this change stays valid and in scope for every
+year. The property is additive: `frameworkId`, `parentId`, `code`, `title`, `description`, `order`,
+`requiredForRoles` and `lifecycle` keep their names, types and meaning.
+
+#### Scenario: A kerndoel is allocated to two year levels
+
+<!-- @e2e exclude Pure register shape with no learniq DOM surface of its own; the existing Competency data widget and form render every schema property. Covered by CompetencyYearScopeRegisterTest::testApplicableYearsIsAnOptionalFreeLabelArray. -->
+
+- **GIVEN** a `CompetencyFramework` with `sourceAuthority: slo-kerndoelen`
+- **WHEN** a curriculum designer saves a leaf `Competency` under it with `applicableYears: ["groep 5", "groep 6"]`
+- **THEN** the object persists with both labels
+- **AND** a second save with `applicableYears: ["groep 5", "groep 5"]` is rejected by the `uniqueItems` constraint
+
+#### Scenario: A Competency stored before this change applies to every year
+
+<!-- @e2e exclude Back-compat default on a register property; no DOM surface. Covered by CompetencyYearScopeRegisterTest::testNewPropertiesAreAdditiveAndOptional. -->
+
+- **GIVEN** a `Competency` row created before this change, with no `applicableYears`
+- **WHEN** it is read
+- **THEN** `applicableYears` resolves to `[]`, meaning the goal is in scope for every year of its framework
+- **AND** `required` on `Competency` is unchanged (`frameworkId`, `code`, `title`, `tenant_id`)
+
+### Requirement: A Competency declares the subject it belongs to
+
+`Competency` MUST declare an optional `subjectId` property: a nullable string with `format: uuid` and `$ref:
+Course`, default `null`. learniq models a subject as a `Course` row, the same reference
+`SubjectTeacherAssignment.courseId` uses, so `subjectId` MUST NOT reference any other schema. A null value MUST
+mean the goal is cross-subject or not yet linked.
+
+#### Scenario: A rekenen-wiskunde goal is linked to the school's rekenen course
+
+<!-- @e2e exclude Pure register shape; the relation renders through the existing Related panel on CompetencyDetail. Covered by CompetencyYearScopeRegisterTest::testSubjectIdReferencesCourse. -->
+
+- **GIVEN** a `Course` row named "Rekenen-wiskunde" standing for the subject
+- **WHEN** a curriculum designer sets a `Competency`'s `subjectId` to that course's UUID
+- **THEN** the object persists with the reference
+- **AND** the `Competency` detail page resolves `subjectId` to the course through its Related panel
+
+### Requirement: Readers resolve an empty year or subject from the nearest ancestor
+
+Any reader that groups `Competency` rows by year or subject (the coverage rollup in learniq, and the SLO
+importer in integriq when it decides where to set a value) MUST resolve an effective value per node: the
+node's own non-empty `applicableYears`, else the nearest ancestor's (via `parentId`) non-empty
+`applicableYears`, else `[]`; and the node's own non-null `subjectId`, else the nearest ancestor's non-null
+`subjectId`, else `null`. Labels MUST be compared after trimming whitespace and lower-casing. The effective
+value MUST NOT be written back onto the node: it is a read rule, so editing a domain node's value changes every
+descendant that has no value of its own.
+
+#### Scenario: Years set on a domain node apply to its kerndoelen
+
+<!-- @e2e exclude Read rule for a server-side consumer that ships in curriculum-coverage-rollup; no DOM surface in this change. Pinned by the spec text and by CompetencyYearScopeRegisterTest::testDescriptionsStateTheInheritanceRule. -->
+
+- **GIVEN** a domain `Competency` with `applicableYears: ["groep 7", "groep 8"]` and `subjectId` set to the
+  rekenen course
+- **AND** two child kerndoelen with `applicableYears: []` and `subjectId: null`
+- **WHEN** a reader resolves the effective year and subject of each child
+- **THEN** both children resolve to `groep 7` and `groep 8` and to the rekenen course
+- **AND** neither child row is modified
+
+#### Scenario: A child's own value wins over its parent's
+
+<!-- @e2e exclude Same read rule as above; no DOM surface in this change. -->
+
+- **GIVEN** a domain `Competency` with `applicableYears: ["groep 7", "groep 8"]`
+- **AND** a child kerndoel with `applicableYears: ["groep 8"]`
+- **WHEN** a reader resolves the child's effective years
+- **THEN** it resolves to `groep 8` only
+
+### Requirement: Lessons, courses, assignments and assessments align to goals with a depth
+
+`Lesson`, `Course`, `Assignment` and `Assessment` MUST each declare an optional `competencyAlignments` property:
+an array (default `[]`) of objects with `competencyId` (required, `format: uuid`, `$ref: Competency`) and `depth`
+(nullable string, `maxLength: 64`). `depth` MUST be either `null` (depth not set) or a `levelId` from the
+`proficiencyLevels` of the `CompetencyFramework` that owns the aligned `Competency` (plan assumption A4). No fixed
+depth enum exists. The existing `competencyIds` property on the four schemas MUST stay, with its type and meaning
+unchanged. `Item.competencyIds` MUST NOT gain alignments: it stays authoring metadata.
+
+#### Scenario: A lesson practises one goal and introduces another
+
+<!-- @e2e exclude Register shape plus a pre-save listener; the property renders through the existing Lesson form and data widget. Covered by GoalAlignmentDepthRegisterTest and CompetencyAlignmentListenerTest::testAlignmentsDeriveCompetencyIds. -->
+
+- **GIVEN** a `CompetencyFramework` whose `proficiencyLevels` are `introduce`, `practise` and `master`
+- **AND** two leaf `Competency` rows under it
+- **WHEN** a teacher saves a `Lesson` with `competencyAlignments: [{competencyId: <goal A>, depth: "practise"},
+  {competencyId: <goal B>, depth: "introduce"}]`
+- **THEN** the lesson persists with both alignments
+- **AND** its `competencyIds` is `[<goal A>, <goal B>]`
+
+#### Scenario: A depth may be left open
+
+<!-- @e2e exclude Same listener path; covered by CompetencyAlignmentListenerTest::testNullDepthIsAccepted. -->
+
+- **GIVEN** a leaf `Competency`
+- **WHEN** a teacher saves an `Assignment` with `competencyAlignments: [{competencyId: <goal>, depth: null}]`
+- **THEN** the assignment persists, and its `competencyIds` is `[<goal>]`
+
+### Requirement: competencyIds stays derived from the alignments
+
+On create and update of `Lesson`, `Course`, `Assignment` and `Assessment`, a pre-save listener
+(`CompetencyAlignmentListener`, registered on OpenRegister's `ObjectCreatingEvent` and `ObjectUpdatingEvent`) MUST
+keep the two lists in step:
+
+- When `competencyAlignments` differs from the stored value (or is non-empty on create), `competencyIds` MUST be
+  set to the alignments' `competencyId` values, in alignment order, without duplicates. An alignment list emptied
+  on update MUST empty `competencyIds`.
+- When only `competencyIds` changes on a row whose stored alignments are non-empty, `competencyAlignments` MUST
+  follow: an alignment whose goal is still listed keeps its depth, a newly listed goal gets `depth: null`, and an
+  alignment whose goal is no longer listed is dropped.
+- When both change in one save, the alignments MUST win.
+- A row that never had alignments MUST keep its `competencyIds` exactly as written.
+
+The listener MUST act only on objects in the `learniq` register with one of the four schema slugs, and MUST NOT
+fail another app's write when it cannot resolve a schema.
+
+#### Scenario: A legacy row keeps its flat list
+
+<!-- @e2e exclude Back-compat listener path; covered by CompetencyAlignmentListenerTest::testLegacyRowIsLeftAlone. -->
+
+- **GIVEN** a `Course` saved with `competencyIds: [<goal>]` and no `competencyAlignments`
+- **WHEN** the listener handles the save
+- **THEN** it writes nothing, and `competencyIds` stays `[<goal>]`
+
+#### Scenario: Editing only the flat list updates the alignments
+
+<!-- @e2e exclude Listener sync path; covered by CompetencyAlignmentListenerTest::testFlatListEditUpdatesAlignments. -->
+
+- **GIVEN** a stored `Lesson` with `competencyAlignments: [{competencyId: <goal A>, depth: "master"}, {competencyId:
+  <goal B>, depth: "introduce"}]`
+- **WHEN** an update changes only `competencyIds` to `[<goal A>, <goal C>]`
+- **THEN** `competencyAlignments` becomes `[{competencyId: <goal A>, depth: "master"}, {competencyId: <goal C>,
+  depth: null}]`
+
+#### Scenario: Emptying the alignments empties the flat list
+
+<!-- @e2e exclude Listener sync path; covered by CompetencyAlignmentListenerTest::testEmptiedAlignmentsEmptyTheFlatList. -->
+
+- **GIVEN** a stored `Assessment` with one alignment and `competencyIds: [<goal>]`
+- **WHEN** an update sets `competencyAlignments: []`
+- **THEN** `competencyIds` becomes `[]`
+
+### Requirement: A depth the goal's framework does not know is refused
+
+Before a `Lesson`, `Course`, `Assignment` or `Assessment` with changed `competencyAlignments` is saved, the listener
+MUST refuse the write (OpenRegister reject mode: `setErrors` plus `stopPropagation`) when any alignment names a
+`competencyId` that does not resolve to a `Competency`, names the same `competencyId` twice, or carries a non-null
+`depth` that is not a `levelId` of the aligned goal's framework. The refusal message MUST name the goal's code and
+the allowed level ids, so a teacher can correct it without looking them up.
+
+#### Scenario: A depth from another framework is refused
+
+<!-- @e2e exclude Reject-mode listener path; covered by CompetencyAlignmentListenerTest::testUnknownDepthIsRefusedWithTheAllowedLevels. -->
+
+- **GIVEN** a goal whose framework's levels are `nog-niet-competent` and `competent`
+- **WHEN** a teacher saves an `Assignment` aligning that goal with `depth: "master"`
+- **THEN** the save is refused
+- **AND** the message names the goal's code and the levels `nog-niet-competent` and `competent`
+
+#### Scenario: The same goal twice is refused
+
+<!-- @e2e exclude Reject-mode listener path; covered by CompetencyAlignmentListenerTest::testDuplicateGoalIsRefused. -->
+
+- **GIVEN** a leaf `Competency`
+- **WHEN** a teacher saves a `Course` with two alignments naming that goal
+- **THEN** the save is refused with a message that names the goal's code
+
+### Requirement: Readers treat a flat-only row as alignments without depth
+
+Any reader of goal links (the coverage rollup first) MUST resolve a row's effective alignments as its
+`competencyAlignments` when non-empty, else its `competencyIds` mapped to `{competencyId, depth: null}`. A stored
+depth that is no longer a `levelId` of the framework MUST be read as `null`, never as a missing link.
+
+#### Scenario: A course from before this change counts as aligned without depth
+
+<!-- @e2e exclude Read rule for the rollup that ships in curriculum-coverage-rollup; pinned here by CompetencyAlignmentNormaliserTest::testEffectiveAlignmentsFallBackToTheFlatList. -->
+
+- **GIVEN** a `Course` with `competencyIds: [<goal>]` and no alignments
+- **WHEN** a reader resolves its effective alignments
+- **THEN** it gets `[{competencyId: <goal>, depth: null}]`
+
+### Requirement: The competency attainment roll-up runs outside the save that triggers it
+
+`CompetencyAttainmentRollupHandler` MUST NOT read or write objects inside the save that fired it. For a created WerkprocesAssessment, a GradeEntry moving to `published` and a WerkprocesAssessment moving to `confirmed`, it MUST queue the work through `ListenerDeferralService`, deduplicated per kind and object, and `CompetencyAttainmentRollupJob` MUST run it as the acting user with the same outcome as before.
+
+#### Scenario: A new werkproces assessment is saved without waiting for its competency
+@e2e exclude Deferral with no UI of its own; pinned by tests/Unit/Listener/CompetencyAttainmentRollupHandlerTest.php::testTheHandlerQueuesTheWorkAndWritesNothingItself.
+- **GIVEN** a WerkprocesAssessment with a werkproces code
+- **WHEN** it is created
+- **THEN** the save writes no other object
+- **AND** a `werkproces-created` roll-up is queued for `CompetencyAttainmentRollupJob`

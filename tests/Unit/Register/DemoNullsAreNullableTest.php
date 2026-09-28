@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/oso-import-dossier-nullable-job/specs/data-exchange/spec.md#requirement-a-dossier-received-without-an-exchange-job-is-valid
+ * @spec openspec/specs/data-exchange/spec.md#requirement-a-dossier-received-without-an-exchange-job-is-valid
  */
 
 declare(strict_types=1);

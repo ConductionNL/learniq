@@ -143,7 +143,7 @@ class CoursePublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/findall-filter-keys-declared/specs/nextcloud-app/spec.md
+	 * @spec openspec/specs/nextcloud-app/spec.md
 	 */
 	public function testAPublishedLessonLetsTheCoursePublishThroughARegisterFaithfulRead(): void {
 		$store = new RegisterFaithfulStore();
@@ -167,7 +167,7 @@ class CoursePublishGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/findall-filter-keys-declared/specs/nextcloud-app/spec.md
+	 * @spec openspec/specs/nextcloud-app/spec.md
 	 */
 	public function testOnlyAPublishedLessonOfThisCourseAndTenantCounts(): void {
 		$store = new RegisterFaithfulStore();

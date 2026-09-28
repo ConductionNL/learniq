@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/store-rights-for-teachers/specs/course-management/spec.md#requirement-any-teacher-installs-a-shared-course-as-a-copy
+ * @spec openspec/specs/course-management/spec.md#requirement-any-teacher-installs-a-shared-course-as-a-copy
  */
 
 declare(strict_types=1);

@@ -14,7 +14,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/entree-surfconext-sso-contract/tasks.md#task-3
+ * @spec openspec/changes/archive/2026-09-28-entree-surfconext-sso-contract/tasks.md#task-3
  */
 
 declare(strict_types=1);
@@ -51,7 +51,7 @@ class SsoAttributeMappingApplierTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/entree-surfconext-sso-contract/specs/identity-federation/spec.md#scenario-attribute-mappings-compute-a-field-update-array-without-writing-anything
+	 * @spec openspec/specs/identity-federation/spec.md#scenario-attribute-mappings-compute-a-field-update-array-without-writing-anything
 	 */
 	public function testComputesFieldUpdateFromMatchingAttribute(): void {
 		$applier = $this->makeApplier(
@@ -72,7 +72,7 @@ class SsoAttributeMappingApplierTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/entree-surfconext-sso-contract/specs/identity-federation/spec.md#scenario-multiple-role-mappings-accumulate-into-one-roles-array
+	 * @spec openspec/specs/identity-federation/spec.md#scenario-multiple-role-mappings-accumulate-into-one-roles-array
 	 */
 	public function testAccumulatesMultipleRoleMatches(): void {
 		$applier = $this->makeApplier(
@@ -113,7 +113,7 @@ class SsoAttributeMappingApplierTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/entree-surfconext-sso-contract/specs/identity-federation/spec.md#scenario-an-attribute-with-no-matching-mapping-is-silently-ignored
+	 * @spec openspec/specs/identity-federation/spec.md#scenario-an-attribute-with-no-matching-mapping-is-silently-ignored
 	 */
 	public function testUnmappedAttributeIsIgnored(): void {
 		$applier = $this->makeApplier(
@@ -135,7 +135,7 @@ class SsoAttributeMappingApplierTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/entree-surfconext-sso-contract/specs/identity-federation/spec.md#scenario-only-active-mappings-are-eligible-for-application
+	 * @spec openspec/specs/identity-federation/spec.md#scenario-only-active-mappings-are-eligible-for-application
 	 */
 	public function testArchivedMappingIsIgnored(): void {
 		// Simulates the lifecycle:'active' filter already excluding archived rows —

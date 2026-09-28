@@ -188,7 +188,7 @@ class DashboardRoleServiceTest extends TestCase {
 	 * A teacher who is also the vertrouwenspersoon keeps the instructor role
 	 * and the teacher view, and still holds the confidential function.
 	 *
-	 * @spec openspec/changes/confidential-counsellor-channel/specs/confidential-counsel/spec.md#requirement-the-confidential-counsellor-has-one-declared-scope
+	 * @spec openspec/specs/confidential-counsel/spec.md#requirement-the-confidential-counsellor-has-one-declared-scope
 	 *
 	 * @return void
 	 */
@@ -208,7 +208,7 @@ class DashboardRoleServiceTest extends TestCase {
 	 * An external vertrouwenspersoon with no staff group resolves to the
 	 * confidential counsellor role, not to learner, with the base view only.
 	 *
-	 * @spec openspec/changes/confidential-counsellor-channel/specs/confidential-counsel/spec.md#requirement-the-confidential-counsellor-has-one-declared-scope
+	 * @spec openspec/specs/confidential-counsel/spec.md#requirement-the-confidential-counsellor-has-one-declared-scope
 	 *
 	 * @return void
 	 */
@@ -225,7 +225,7 @@ class DashboardRoleServiceTest extends TestCase {
 	 * The confidential function comes from the group only: neither an admin
 	 * nor a school leader gets it.
 	 *
-	 * @spec openspec/changes/confidential-counsellor-channel/specs/confidential-counsel/spec.md#requirement-the-confidential-notes-menu-is-shown-to-confidential-counsellors-only
+	 * @spec openspec/specs/confidential-counsel/spec.md#requirement-the-confidential-notes-menu-is-shown-to-confidential-counsellors-only
 	 *
 	 * @return void
 	 */
@@ -245,7 +245,7 @@ class DashboardRoleServiceTest extends TestCase {
 	 * The resolver's group vocabulary matches the register's declared scopes,
 	 * so a role can never point at a group nobody provisions.
 	 *
-	 * @spec openspec/changes/confidential-counsellor-channel/specs/confidential-counsel/spec.md#requirement-the-confidential-counsellor-has-one-declared-scope
+	 * @spec openspec/specs/confidential-counsel/spec.md#requirement-the-confidential-counsellor-has-one-declared-scope
 	 *
 	 * @return void
 	 */

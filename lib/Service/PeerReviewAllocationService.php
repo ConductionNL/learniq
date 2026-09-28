@@ -58,7 +58,7 @@ use Psr\Log\LoggerInterface;
  * Allocates PeerReview rows for an Assignment's Submissions.
  *
  * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
- * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
+ * @spec openspec/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
  */
 class PeerReviewAllocationService {
 
@@ -327,7 +327,7 @@ class PeerReviewAllocationService {
 	 * @return array<int,array<string,mixed>>
 	 *
 	 * @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
-	 * @spec openspec/changes/peer-review-allocation-trigger/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
+	 * @spec openspec/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
 	 */
 	private function fetchOrderedSubmissions(string $assignmentId): array {
 		$results = $this->objectService->findAll(

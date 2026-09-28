@@ -6,7 +6,7 @@
 // reviewer's path can not reveal the author of a double-blind review. Read as
 // text: plain `node --test` cannot load a .vue file.
 //
-// @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-both-sides-of-peer-review-anonymity-are-server-enforced-projections
+// @spec openspec/specs/assignments/spec.md#requirement-both-sides-of-peer-review-anonymity-are-server-enforced-projections
 
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'

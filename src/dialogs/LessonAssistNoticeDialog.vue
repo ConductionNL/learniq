@@ -10,7 +10,7 @@
  the teacher chooses to continue. LessonAssistPanel owns when it opens and
  remembers the confirmation.
 
- @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-the-first-assist-call-asks-for-confirmation
+ @spec openspec/specs/course-management/spec.md#scenario-the-first-assist-call-asks-for-confirmation
 -->
 <template>
 	<NcDialog
