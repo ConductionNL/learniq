@@ -41,6 +41,43 @@ class MbzExtractorTest extends TestCase {
 	private const TRAVERSAL_FIXTURE = __DIR__ . '/../../fixtures/course-packages/malicious-path-traversal.tar.gz';
 
 	/**
+	 * Build directories the oversized fixture made, removed in tearDown.
+	 *
+	 * @var array<int, string>
+	 */
+	private array $buildDirs = [];
+
+	/**
+	 * Remove every fixture build directory, whatever the test's outcome.
+	 *
+	 * @return void
+	 */
+	protected function tearDown(): void {
+		foreach ($this->buildDirs as $dir) {
+			$this->rrmdir($dir);
+		}
+
+		$this->buildDirs = [];
+		parent::tearDown();
+	}//end tearDown()
+
+	/**
+	 * The oversized fixture's build directory (a ~100 MB tar and a sparse
+	 * 101 MB file) is gone after tearDown, so a run leaves no temp data.
+	 *
+	 * @return void
+	 */
+	public function testTheOversizedFixtureLeavesNothingInTheTempDir(): void {
+		$archive = $this->buildOversizedTarGz();
+		$workDir = dirname($archive);
+		self::assertDirectoryExists($workDir);
+
+		$this->tearDown();
+
+		self::assertDirectoryDoesNotExist($workDir);
+	}//end testTheOversizedFixtureLeavesNothingInTheTempDir()
+
+	/**
 	 * A valid `.mbz` extracts its full directory tree.
 	 *
 	 * @return void
@@ -118,6 +155,7 @@ class MbzExtractorTest extends TestCase {
 
 		$workDir = sys_get_temp_dir() . '/learniq_test_mbz_oversize_build_' . bin2hex(random_bytes(6));
 		mkdir($workDir, 0700, true);
+		$this->buildDirs[] = $workDir;
 
 		// Sparse file: ftruncate reserves the size without writing real bytes,
 		// so the fixture builds in milliseconds instead of allocating 101 MB.
