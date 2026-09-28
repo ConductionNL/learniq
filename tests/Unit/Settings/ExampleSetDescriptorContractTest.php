@@ -23,6 +23,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-an-example-set-is-one-descriptor-file-per-segment
+ * @spec openspec/changes/example-set-regulation-rows/specs/example-sets/spec.md#requirement-a-schema-with-its-own-slug-pattern-takes-the-slug-from-the-object
  */
 
 declare(strict_types=1);
@@ -102,6 +103,48 @@ class ExampleSetDescriptorContractTest extends TestCase {
 
 		return $bySlug;
 	}//end schemasBySlug()
+
+	/**
+	 * Whether a schema's objects carry their own identifier as `slug`.
+	 *
+	 * True when the schema declares a `pattern` on its `slug` property, as
+	 * Regulation does (`^[A-Z0-9_-]+$`). The object's `slug` is then the
+	 * regulation-style code, and the `<id>-<schema>-<NNN>` form, which could
+	 * never match that pattern, does not apply (decision D29).
+	 *
+	 * @param array<string, mixed> $schema The schema.
+	 *
+	 * @return bool
+	 */
+	private static function ownsSlug(array $schema): bool {
+		return isset($schema['properties']['slug']['pattern']) === true;
+	}//end ownsSlug()
+
+	/**
+	 * The own-slug codes learniq_register.json already seeds, per schema slug.
+	 *
+	 * The importer matches a seed object by `uuid` when it has one, so a set
+	 * that ships one of these codes under its own uuid creates a second row
+	 * with the same identifier.
+	 *
+	 * @return array<string, array<string, bool>> Schema slug => code => true.
+	 */
+	private static function registerSeededSlugs(): array {
+		static $seeded = null;
+		if ($seeded === null) {
+			$register = json_decode((string)file_get_contents(self::root() . '/lib/Settings/learniq_register.json'), true);
+			$seeded   = [];
+			foreach (($register['components']['objects'] ?? []) as $object) {
+				$schema = (string)($object['@self']['schema'] ?? '');
+				$code   = ($object['slug'] ?? null);
+				if (is_string($code) === true && isset(self::schemasBySlug()[$schema]) === true && self::ownsSlug(schema: self::schemasBySlug()[$schema]) === true) {
+					$seeded[$schema][$code] = true;
+				}
+			}
+		}
+
+		return $seeded;
+	}//end registerSeededSlugs()
 
 	/**
 	 * Every descriptor to check: each shipped set, plus the contract fixture
@@ -195,6 +238,18 @@ class ExampleSetDescriptorContractTest extends TestCase {
 		$broken['x-openregister']['seedData']['objects']['cohort'][0]['@self']['schema'] = 'school';
 		$cases['a mismatched @self.schema'] = [$broken, '@self.schema'];
 
+		// D29: a schema with its own slug pattern (Regulation).
+		$withRegulation = self::withRegulations(fixture: $fixture, codes: ['VCA']);
+
+		$broken = self::withRegulations(fixture: $fixture, codes: ['po-regulation-001']);
+		$cases['a regulation with the envelope slug'] = [$broken, 'po-regulation-001: slug "po-regulation-001" does not match'];
+
+		$broken = self::withRegulations(fixture: $fixture, codes: ['VCA', 'VCA']);
+		$cases['a regulation code shipped twice'] = [$broken, 'VCA: slug must be unique in the set'];
+
+		$broken = self::withRegulations(fixture: $fixture, codes: ['AVG']);
+		$cases['a regulation the register seeds'] = [$broken, 'AVG: the register already seeds regulation "AVG"'];
+
 		foreach ($cases as $what => [$descriptor, $expected]) {
 			$findings = self::findings(descriptor: $descriptor, stem: 'po');
 			$matched  = array_filter($findings, static fn (string $f): bool => str_contains($f, $expected));
@@ -202,7 +257,37 @@ class ExampleSetDescriptorContractTest extends TestCase {
 		}
 
 		self::assertSame([], self::findings(descriptor: $fixture, stem: 'po'), 'the unmodified fixture must be clean');
+		self::assertSame([], self::findings(descriptor: $withRegulation, stem: 'po'), 'a regulation carrying its own code as slug must be clean');
 	}//end testEveryKindOfDefectIsReported()
+
+	/**
+	 * The fixture plus one Regulation row per code, uuids in the po namespace,
+	 * with objectCount kept exact.
+	 *
+	 * @param array<string, mixed> $fixture The fixture descriptor.
+	 * @param array<int, string>   $codes   The regulation codes, one row each.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function withRegulations(array $fixture, array $codes): array {
+		$rows = [];
+		foreach ($codes as $index => $code) {
+			$rows[] = [
+				'@self'         => ['configuration' => 'learniq', 'register' => 'learniq', 'schema' => 'regulation'],
+				'uuid'          => sprintf('ee01ff00-0000-4000-8000-%012d', ($index + 1)),
+				'slug'          => $code,
+				'name'          => 'Voorbeeldregeling ' . ($index + 1),
+				'audienceScope' => 'all-employees',
+				'lifecycle'     => 'published',
+				'tenant_id'     => self::TENANT,
+			];
+		}
+
+		$fixture['x-openregister']['seedData']['objects']['regulation'] = $rows;
+		$fixture['x-openregister']['profile']['objectCount'] += count($rows);
+
+		return $fixture;
+	}//end withRegulations()
 
 	/**
 	 * Every contract violation in one descriptor.
@@ -250,7 +335,18 @@ class ExampleSetDescriptorContractTest extends TestCase {
 				}
 
 				$uuids[$uuid] = true;
-				if (preg_match('/^' . preg_quote($stem, '/') . '-/', $name) !== 1 || isset($slugs[$name]) === true) {
+				if (self::ownsSlug(schema: $schemas[$slug]) === true) {
+					// The object's own code is the slug: its schema pattern is
+					// checked with the other properties; here only uniqueness,
+					// and no second row for a code the register seeds.
+					if (isset($slugs[$name]) === true) {
+						$findings[] = $name . ': slug must be unique in the set';
+					}
+
+					if (isset(self::registerSeededSlugs()[$slug][$name]) === true) {
+						$findings[] = $name . ': the register already seeds ' . $slug . ' "' . $name . '"; a second row would duplicate it';
+					}
+				} else if (preg_match('/^' . preg_quote($stem, '/') . '-/', $name) !== 1 || isset($slugs[$name]) === true) {
 					$findings[] = $name . ': slug must be unique and start with "' . $stem . '-"';
 				}
 
