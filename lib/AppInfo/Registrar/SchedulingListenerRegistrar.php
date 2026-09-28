@@ -89,6 +89,10 @@ class SchedulingListenerRegistrar {
 			listener: AssessmentAttemptGateListener::class
 		);
 
+		// The attempt's time limit (in-app-test-limits-server-side), in a
+		// registrar of its own so this one stays under the coupling limit.
+		(new AttemptLimitListenerRegistrar())->register(context: $context);
+
 		// ADR-031 legitimate exception (admissions-and-subject-choice):
 		// Application `withdrawn`/`rejected` FROM `placed` -> oldest-submittedAt
 		// waitlisted Application promotion bridge. Mirrors

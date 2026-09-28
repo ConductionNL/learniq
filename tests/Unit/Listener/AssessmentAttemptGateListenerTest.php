@@ -33,9 +33,12 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 use DateTime;
 use OCA\Learniq\Listener\AssessmentAttemptGateListener;
 use OCA\Learniq\Service\AssessmentAccessPolicy;
+use OCA\Learniq\Service\AssessmentAttemptLimits;
+use OCA\Learniq\Service\Portal\PortalAttemptClock;
 use OCA\Learniq\Service\AssessmentResultAudience;
 use OCA\Learniq\Service\AssessmentResultPortalStamp;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\Portal\PortalAttemptReader;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -60,6 +63,13 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 	 * @var array<string, array<string, mixed>>
 	 */
 	private array $assessments = [];
+
+	/**
+	 * Existing AssessmentResult rows, as the attempt count reads them.
+	 *
+	 * @var array<int, array<string, mixed>>
+	 */
+	private array $attempts = [];
 
 	/**
 	 * Arguments of every ObjectService::find() call.
@@ -117,6 +127,22 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 				return OrEntityFactory::make($row, 'exam');
 			}
 		);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config = []): array {
+				$filters = ($config['filters'] ?? []);
+				if (($filters['schema'] ?? '') !== 'assessment-result') {
+					return [];
+				}
+
+				return array_values(
+					array_filter(
+						$this->attempts,
+						static fn (array $row): bool => $row['assessmentId'] === ($filters['assessmentId'] ?? null)
+							&& $row['learnerId'] === ($filters['learnerId'] ?? null)
+					)
+				);
+			}
+		);
 
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('learner1');
@@ -148,11 +174,15 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 			schemaResolver: $resolver,
 			userSession: $session,
 			groupManager: $groups,
-			timeFactory: $time,
-			policy: new AssessmentAccessPolicy(),
 			audience: $audience,
 			portalStamp: $portalStamp,
 			logger: new NullLogger(),
+			limits: new AssessmentAttemptLimits(
+				attempts: new PortalAttemptReader(objectService: $objectService),
+				clock: new PortalAttemptClock(),
+				policy: new AssessmentAccessPolicy(),
+				timeFactory: $time,
+			),
 		);
 	}//end makeListener()
 
@@ -271,8 +301,70 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 		$this->makeListener()->handle($event);
 
 		$this->assertFalse($event->isPropagationStopped());
-		$this->assertSame(['accessCode' => null], $event->getModifiedData());
+		$this->assertArrayHasKey('accessCode', $event->getModifiedData());
+		$this->assertNull($event->getModifiedData()['accessCode']);
 	}//end testRightAccessCodeIsAcceptedAndCleared()
+
+	/**
+	 * A second attempt on a one-attempt test is refused on the server; the
+	 * screen's own check used to be the only one. Red before the fix.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-a-second-attempt-on-a-one-attempt-test-is-refused
+	 */
+	public function testASecondAttemptOnAOneAttemptTestIsRefused(): void {
+		$this->assessments['a1'] = ['title' => 'Exam', 'maxAttempts' => 1];
+		$this->attempts = [['assessmentId' => 'a1', 'learnerId' => 'learner1', 'lifecycle' => 'submitted']];
+		$event = $this->makeEvent();
+
+		$this->makeListener()->handle($event);
+
+		$this->assertTrue($event->isPropagationStopped());
+		$this->assertSame('attempts-used', $event->getErrors()['reason']);
+		$this->assertSame(0, $this->stamps, 'a refused attempt is not stamped');
+	}//end testASecondAttemptOnAOneAttemptTestIsRefused()
+
+	/**
+	 * Another learner's attempts, or attempts on another test, do not count.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-a-second-attempt-on-a-one-attempt-test-is-refused
+	 */
+	public function testOnlyTheLearnersOwnAttemptsOnThisTestCount(): void {
+		$this->assessments['a1'] = ['title' => 'Exam', 'maxAttempts' => 1];
+		$this->attempts = [
+			['assessmentId' => 'a1', 'learnerId' => 'learner2', 'lifecycle' => 'submitted'],
+			['assessmentId' => 'a2', 'learnerId' => 'learner1', 'lifecycle' => 'submitted'],
+		];
+		$event = $this->makeEvent();
+
+		$this->makeListener()->handle($event);
+
+		$this->assertFalse($event->isPropagationStopped());
+	}//end testOnlyTheLearnersOwnAttemptsOnThisTestCount()
+
+	/**
+	 * The server sets when the attempt started and its number: the screen used
+	 * to send its own clock and always attempt 1, so a learner could start the
+	 * clock in the future. Red before the fix.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#scenario-the-server-starts-the-clock
+	 */
+	public function testTheServerStartsTheClockAndNumbersTheAttempt(): void {
+		$this->assessments['a1'] = ['title' => 'Exam', 'maxAttempts' => 3, 'timeLimitMinutes' => 30];
+		$this->attempts = [['assessmentId' => 'a1', 'learnerId' => 'learner1', 'lifecycle' => 'graded']];
+		$event = $this->makeEvent(['startedAt' => '2030-01-01T00:00:00+00:00', 'attemptNumber' => 1]);
+
+		$this->makeListener()->handle($event);
+
+		$this->assertFalse($event->isPropagationStopped());
+		$this->assertSame('2026-09-27T10:00:00+00:00', $event->getModifiedData()['startedAt']);
+		$this->assertSame(2, $event->getModifiedData()['attemptNumber']);
+	}//end testTheServerStartsTheClockAndNumbersTheAttempt()
 
 	/**
 	 * An admin creating a result (seeding, a correction) is not gated.

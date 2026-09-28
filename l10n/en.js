@@ -2017,7 +2017,8 @@ OC.L10N.register(
         "A parent or guardian also signs this agreement. The student is under 18, or their date of birth is not recorded.": "A parent or guardian also signs this agreement. The student is under 18, or their date of birth is not recorded.",
         "Parent signature required": "Parent signature required",
         "Role of the signer. A parent or guardian signs next to a student who is under 18.": "Role of the signer. A parent or guardian signs next to a student who is under 18.",
-        "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded.": "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded."
+        "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded.": "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded.",
+        "You have used all attempts for this assessment.": "You have used all attempts for this assessment."
     },
     "nplurals=2; plural=(n != 1);"
 )

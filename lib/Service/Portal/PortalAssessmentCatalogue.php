@@ -163,7 +163,7 @@ class PortalAssessmentCatalogue {
 			return self::NOT_AVAILABLE;
 		}
 
-		if ($attemptsUsed >= $this->maxAttempts(exam: $exam)) {
+		if ($this->policy->attemptsBlock(assessment: $exam, attemptsUsed: $attemptsUsed) !== null) {
 			return self::ATTEMPTS_USED;
 		}
 
@@ -199,22 +199,6 @@ class PortalAssessmentCatalogue {
 
 		return $tenant !== '' && $learner->tenantId !== '' && $tenant !== $learner->tenantId;
 	}//end otherSchool()
-
-	/**
-	 * How many attempts a test allows; at least one.
-	 *
-	 * @param array<string, mixed> $exam The test.
-	 *
-	 * @return int
-	 */
-	private function maxAttempts(array $exam): int {
-		$max = ($exam['maxAttempts'] ?? 1);
-		if (is_numeric($max) === false) {
-			return 1;
-		}
-
-		return max(1, (int)$max);
-	}//end maxAttempts()
 
 	/**
 	 * The pupil's enrolments that let them take tests.
