@@ -41,7 +41,9 @@ Institutions record who was present, and some are obliged to act when absence cr
 - GIVEN an `AttendanceThreshold` of 16 unexcused lesuren in a rolling 4 weeks, WHEN a learner's count reaches 16 in any such window, THEN an `AttendanceFlag` is created (`open`) and the `onCross` notification fires to the mentor + coordinator (idempotency-keyed — re-crossing the same window doesn't re-flag).
 - GIVEN a threshold rule with `onCross` including a `data-exchange` target, WHEN the flag is created, THEN a `DataExchangeJob` (see `data-exchange`) is queued to that target; the flag moves `open → reported` only after the job succeeds, and the attempt is in the audit trail.
 - GIVEN a mentor opens the cohort attendance widget, THEN learners are shown with their current count against each applicable threshold, sorted by proximity to the limit.
+
 ## Requirements
+
 ### Requirement: Persist Attendance domain objects in OpenRegister
 
 The system MUST persist `AttendanceRecord`, `ExcuseRequest`, `AttendanceThreshold`, `AttendanceFlag` as
@@ -138,6 +140,25 @@ The frontend MUST be declarative: `src/manifest.json` pages for AttendanceRecord
 - **GIVEN** the attendance app frontend
 - **WHEN** the UI is composed
 - **THEN** AttendanceRecord/ExcuseRequest/AttendanceThreshold/AttendanceFlag index+detail are declarative `src/manifest.json` pages, the only custom views are `MarkAttendanceView`, `SubmitExcuseModal`, and the `cohort-attendance` dashboard widget, and there are no PHP CRUD controllers
+
+### Requirement: AttendanceFlag classifies its statutory flagKind
+
+`AttendanceFlag` MUST carry a `flagKind` enum property (`signal-verzuim`, `langdurig-relatief-verzuim`,
+`thuiszitter`; default `signal-verzuim`) classifying which statutory concern the flag represents (finding
+4.9). SWV notification reuses the existing `dataExchangeJobId` field — no new field is needed for that half
+of the finding.
+
+#### Scenario: A langdurig-relatief-verzuim flag is classified distinctly from a routine signal
+
+- **GIVEN** an `AttendanceThreshold` crossing that represents a langdurig relatief verzuim case
+- **WHEN** the resulting `AttendanceFlag` is created with `flagKind: "langdurig-relatief-verzuim"`
+- **THEN** it is distinguishable from a routine `signal-verzuim` flag by that field alone
+
+#### Scenario: An existing AttendanceFlag without a declared flagKind defaults to signal-verzuim
+
+- **GIVEN** an `AttendanceFlag` row created before this change, with no `flagKind` value stored
+- **WHEN** the row is read
+- **THEN** `flagKind` resolves to its default, `"signal-verzuim"`
 
 ## Standards
 

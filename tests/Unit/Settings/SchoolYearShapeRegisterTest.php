@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-year-shape/tasks.md#task-1-add-reportperiodholidays-and-reportperiodstudydays
+ * @spec openspec/changes/archive/2026-09-28-school-year-shape/tasks.md#task-1-add-reportperiodholidays-and-reportperiodstudydays
  */
 
 declare(strict_types=1);

@@ -29,7 +29,9 @@ Manual and bulk enrolment of learners into courses, modules, and learning paths;
 - GIVEN a line manager opens the team view, WHEN they multi-select reports and pick a course, THEN every selected learner is enrolled with a single shared deadline and notification.
 - GIVEN HR creates a new hire, WHEN they pick the role, THEN the matching 30-60-90 template auto-applies and milestones populate Days 1/30/60/90.
 - GIVEN a course has unmet prerequisites, WHEN a learner attempts enrolment, THEN the system blocks the enrolment and explains which prerequisite failed.
+
 ## Requirements
+
 ### Requirement: Bulk enrolment via cohort, role, department or CSV
 The system MUST support bulk enrolment via cohort, role, department, or CSV upload.
 
@@ -310,6 +312,55 @@ coordinator's queue of applications needing intake scheduling or a decision, cro
 - **WHEN** the coordinator opens the admissions review board
 - **THEN** the pending applications are listed with their round's deadline, kind, and remaining capacity
 - **AND** the coordinator can navigate from a listed application to record its decision
+
+### Requirement: Enrolment carries inschrijving date, volgnummer and its own vestiging
+`Enrolment` MUST declare `inschrijvingDate` (nullable date), `volgnummer` (nullable integer) and `locationId` (nullable `$ref Vestiging`) additively. `Enrolment.locationId` is the inschrijving's own vestiging and is independent of any `Cohort.locationId` the pupil is later grouped into (school-and-location-records).
+
+#### Scenario: An inschrijving records its date, volgnummer and vestiging
+- **GIVEN** an `Enrolment` representing a school inschrijving
+- **WHEN** `inschrijvingDate`, `volgnummer` and `locationId` are set
+- **THEN** all three persist on the `Enrolment` object, independent of the `Cohort` it may later reference
+
+#### Scenario: A pre-existing Enrolment without these fields is unaffected
+- **GIVEN** a pre-existing `Enrolment` row with none of the three fields set
+- **WHEN** it is read
+- **THEN** each resolves to `null` and the existing `learnerId`/`courseId`/`source`/lifecycle fields are unchanged
+
+### Requirement: Enrolment carries a destination school on withdrawal
+`Enrolment` MUST declare `destinationSchoolId` (nullable `$ref School`) additively, captured alongside the existing `withdraw` transition and free-text `reason` field.
+
+#### Scenario: A leaver's destination school is recorded on withdrawal
+- **GIVEN** an active `Enrolment` for a groep-8 leaver
+- **WHEN** the `withdraw` transition fires with `reason` set and `destinationSchoolId` set to the receiving school
+- **THEN** both persist on the withdrawn `Enrolment` object
+
+### Requirement: Enrolment carries leerjaar per pupil, independent of the cohort name
+`Enrolment` MUST declare `leerjaar` (nullable integer, 1 to 8) additively. A combination group (e.g. `Groep 5/6`) is one `Cohort` whose member `Enrolment`s carry different `leerjaar` values; `leerjaar` MUST NOT be parsed from the `Cohort.name` string.
+
+#### Scenario: A combination group carries two leerjaar values across its enrolments
+- **GIVEN** a `Cohort` named "Groep 5/6" with two `Enrolment`s referencing it via `cohortId`
+- **WHEN** one `Enrolment.leerjaar` is set to 5 and the other to 6
+- **THEN** both values persist independently on their own `Enrolment` objects, and neither is derived from the `Cohort`'s `name`
+
+### Requirement: CohortDetail's roster surfaces leerjaar
+The `CohortDetail` page's enrolment roster widget MUST include a `leerjaar` column.
+
+#### Scenario: A coordinator sees each pupil's leerjaar on the group roster
+- **GIVEN** `CohortDetail` for a combination group
+- **WHEN** the roster widget renders
+- **THEN** each row shows that enrolment's `leerjaar` value alongside the existing learner/course columns
+
+### Requirement: LearnerProfile records the NOAT/CUMI/NNCA funding-weight classification
+`LearnerProfile` SHALL gain `fundingWeightCode` (nullable enum `noat | cumi | nnca`, default `null`) — the
+culturele-achtergrond classification that feeds the ROD/bekostiging funding weging (P-new-13). This is additive:
+no existing `LearnerProfile` object is affected, and the field is independent of any other property.
+
+#### Scenario: A school records a learner's funding-weight classification
+- **GIVEN** a `LearnerProfile` with `fundingWeightCode: null`
+- **WHEN** staff set it to `"cumi"`
+- **THEN** the property persists and feeds the same ROD/bekostiging chain P-new-12's teldatum check protects
+
+<!-- @e2e exclude Schema-shape requirement, verified by FundingTeldatumRegisterTest; no bespoke controller — reads/writes go through OpenRegister's generic object endpoint per ADR-022. -->
 
 ## Standards
 Studielink, Edukoppeling, OOAPI 5.0, IMS LIS (legacy), Schema.org `EducationEvent`, eduPersonAffiliation propagation.

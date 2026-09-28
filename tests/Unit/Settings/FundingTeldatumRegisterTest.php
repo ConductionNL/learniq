@@ -19,8 +19,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/funding-and-teldatum-checks/specs/data-exchange/spec.md
- * @spec openspec/changes/funding-and-teldatum-checks/specs/enrolment/spec.md
+ * @spec openspec/specs/data-exchange/spec.md
+ * @spec openspec/specs/enrolment/spec.md
  */
 
 declare(strict_types=1);
@@ -90,7 +90,7 @@ class FundingTeldatumRegisterTest extends TestCase {
 	 * not required.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/funding-and-teldatum-checks/specs/enrolment/spec.md#requirement-learnerprofile-records-the-noatcuminnca-funding-weight-classification
+	 * @spec   openspec/specs/enrolment/spec.md#requirement-learnerprofile-records-the-noatcuminnca-funding-weight-classification
 	 */
 	public function testLearnerProfileGainsFundingWeightCode(): void {
 		$schema = $this->config['components']['schemas']['LearnerProfile'] ?? null;

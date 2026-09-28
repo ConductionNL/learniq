@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cohort-group-page-polish/tasks.md#task-1-add-cohortnotes
+ * @spec openspec/changes/archive/2026-09-28-cohort-group-page-polish/tasks.md#task-1-add-cohortnotes
  */
 
 declare(strict_types=1);

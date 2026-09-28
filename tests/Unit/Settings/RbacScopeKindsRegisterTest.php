@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/rbac-scope-kinds-extension/specs/rbac-groups/spec.md
+ * @spec openspec/specs/rbac-groups/spec.md
  */
 
 declare(strict_types=1);
@@ -65,7 +65,7 @@ class RbacScopeKindsRegisterTest extends TestCase {
 	 * own-group conditional entry.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/rbac-scope-kinds-extension/specs/rbac-groups/spec.md#requirement-an-own-group-scope-kind-grants-read-access-via-a-callers-nextcloud-group-membership
+	 * @spec   openspec/specs/rbac-groups/spec.md#requirement-an-own-group-scope-kind-grants-read-access-via-a-callers-nextcloud-group-membership
 	 */
 	public function testCohortAuthorizationReproducesCascadePlusOwnGroupRead(): void {
 		$schema = $this->config['components']['schemas']['Cohort'] ?? null;
@@ -102,7 +102,7 @@ class RbacScopeKindsRegisterTest extends TestCase {
 	 * create/update are unchanged.
 	 *
 	 * @return void
-	 * @spec   openspec/changes/rbac-scope-kinds-extension/specs/rbac-groups/spec.md#requirement-a-care-team-scope-kind-grants-read-access-via-an-array-of-user-ids-property
+	 * @spec   openspec/specs/rbac-groups/spec.md#requirement-a-care-team-scope-kind-grants-read-access-via-an-array-of-user-ids-property
 	 */
 	public function testDossierNoteGainsCareTeamPropertyAndReadEntry(): void {
 		$schema = $this->config['components']['schemas']['DossierNote'] ?? null;
@@ -144,7 +144,7 @@ class RbacScopeKindsRegisterTest extends TestCase {
 	 * finding: x-property-rbac is unread by any OpenRegister code path).
 	 *
 	 * @return void
-	 * @spec   openspec/changes/rbac-scope-kinds-extension/specs/rbac-groups/spec.md
+	 * @spec   openspec/specs/rbac-groups/spec.md
 	 */
 	public function testNeitherSchemaGainsAnXPropertyRbacEntry(): void {
 		$cohort = $this->config['components']['schemas']['Cohort'] ?? [];

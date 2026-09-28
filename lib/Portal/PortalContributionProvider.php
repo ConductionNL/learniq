@@ -606,7 +606,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed> The parentChildren collection.
 	 *
-	 * @spec openspec/changes/portal-contribution-guardian-audiences/specs/portal-contribution/spec.md#requirement-the-parent-audience-exposes-per-child-and-per-guardian-group-directory-data-req-pcon-006
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-exposes-per-child-and-per-guardian-group-directory-data-req-pcon-006
 	 */
 	private function parentChildrenCollection(): array {
 		return [
@@ -645,7 +645,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, array<string, mixed>> Parent create-actions.
 	 *
-	 * @spec openspec/changes/portal-contribution-guardian-audiences/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
 	 */
 	private function parentActions(array $childJoin): array {
 		return [
