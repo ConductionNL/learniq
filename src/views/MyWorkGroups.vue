@@ -151,6 +151,7 @@ export default {
 		/**
 		 * @param {string} value ISO date-time.
 		 * @return {string} A local date.
+		 * @spec openspec/changes/enrolment-self-join-work-group/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
 		 */
 		formatDate(value) {
 			return value ? new Date(value).toLocaleDateString() : ''

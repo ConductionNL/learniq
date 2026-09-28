@@ -245,9 +245,10 @@ class WorkGroupMembershipService {
 		$row = $group;
 		unset($row['@self']);
 		$row['memberIds'] = $members;
+		$uuid = (string)$group['id'];
 		$this->objects->runAs(
 			user: $learner->user,
-			operation: fn () => $this->objects->saveObject(object: $row, register: self::REGISTER, schema: self::SCHEMA, uuid: (string)$group['id'], _rbac: false)
+			operation: fn () => $this->objects->saveObject(object: $row, register: self::REGISTER, schema: self::SCHEMA, uuid: $uuid, _rbac: false)
 		);
 	}//end save()
 }//end class

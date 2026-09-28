@@ -122,7 +122,9 @@ class PortalWorkGroupController extends Controller {
 	#[AnonRateLimit(limit: 600, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function join(): JSONResponse {
-		return $this->receive(step: fn (PortalLearner $learner): PortalOutcome => $this->memberships->join(learner: $learner, groupId: $this->param(name: 'groupId')));
+		return $this->receive(
+			step: fn (PortalLearner $learner): PortalOutcome => $this->memberships->join(learner: $learner, groupId: $this->param(name: 'groupId'))
+		);
 	}//end join()
 
 	/**
@@ -137,7 +139,9 @@ class PortalWorkGroupController extends Controller {
 	#[AnonRateLimit(limit: 600, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function leave(): JSONResponse {
-		return $this->receive(step: fn (PortalLearner $learner): PortalOutcome => $this->memberships->leave(learner: $learner, groupId: $this->param(name: 'groupId')));
+		return $this->receive(
+			step: fn (PortalLearner $learner): PortalOutcome => $this->memberships->leave(learner: $learner, groupId: $this->param(name: 'groupId'))
+		);
 	}//end leave()
 
 	/**

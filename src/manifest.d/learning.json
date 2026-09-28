@@ -2335,7 +2335,7 @@
 						"title": "Work groups",
 						"content": {
 							"register": "learniq",
-							"schema": "WorkGroup",
+							"schema": "work-group",
 							"filter": {
 								"cohortId": "@objectId"
 							},
@@ -2493,7 +2493,7 @@
 						"id": "8",
 						"widgetId": "cohort-talk",
 						"gridX": 0,
-						"gridY": 21,
+						"gridY": 32,
 						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
@@ -2532,7 +2532,7 @@
 			"title": "Work groups",
 			"config": {
 				"register": "learniq",
-				"schema": "WorkGroup"
+				"schema": "work-group"
 			}
 		},
 		{
@@ -2542,7 +2542,7 @@
 			"title": "Work group",
 			"config": {
 				"register": "learniq",
-				"schema": "WorkGroup",
+				"schema": "work-group",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				}
