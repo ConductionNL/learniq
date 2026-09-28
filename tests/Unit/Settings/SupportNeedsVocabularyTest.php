@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/differentiation-not-styles-copy/tasks.md#task-2-wording-guard-and-settings-note
+ * @spec openspec/changes/archive/2026-09-28-differentiation-not-styles-copy/tasks.md#task-2-wording-guard-and-settings-note
  */
 
 declare(strict_types=1);

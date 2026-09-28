@@ -29,7 +29,9 @@ Authoring of courses, modules, and lessons; cloning of templates; ordered learni
 - GIVEN a student opens the catalog, WHEN a course has unmet prerequisites, THEN the enrol button is disabled and the failing prerequisite is named in plain text.
 - GIVEN a programme committee approves a catalog change, WHEN approval is recorded, THEN the change becomes visible in OOAPI within 5 minutes.
 - GIVEN a `Course` transitions to `published`, WHEN the publication contract's field mapping is applied, THEN a `DataExchangeJob` (`target: ooapi-catalog`) carries the OOAPI 5.0 `course` resource fields (ECTS, language, level) to the catalog publication surface hosted by opencatalogi — Scholiq itself serves no `/ooapi/v5/*` endpoint.
+
 ## Requirements
+
 ### Requirement: Course/Module/Lesson hierarchy in OpenRegister
 The system MUST support Course → Module → Lesson hierarchy persisted as OpenRegister objects.
 
@@ -78,13 +80,49 @@ hosted in **openconnector**. Scholiq implements neither.
   the source object has one, and omits the RIO identifier field otherwise
 
 ### Requirement: Run cmi5 + xAPI natively with SCORM shim
+
 The system MUST run cmi5 + xAPI content natively and SHOULD provide a SCORM 1.2/2004 compatibility shim.
 
+This requirement splits into two halves, tracked separately because they are built separately (finding 5.6
+found the player half unbuilt while `Lesson.contentType`/`XapiStatement` already existed):
+
+- **Ingest half** (LRS ingest endpoint, cmi5 launch-token minting, `xapi-statement` authorization): owned by
+  the sibling `cmi5-xapi-lrs-ingest` change (0/19 tasks at the time this change was authored) — NOT built by
+  this change.
+- **Player half** (this change): `src/utils/scorm12Runtime.js` provides a SCORM 1.2 `window.API` runtime (the
+  8-function RTE3 surface) over an in-memory CMI data model, wired into `LessonPlayer.vue` for
+  `contentType: scorm12` lessons. `src/utils/cmi5Launch.js` provides the cmi5 AU launch-URL builder, wired
+  into `LessonPlayer.vue` for `contentType: cmi5` lessons — functional once the sibling change's launch-token
+  endpoint exists; until then, a graceful empty state renders instead of a crash. `scorm2004` remains
+  unbuilt (SHOULD, not MUST, and a materially larger data model — explicitly out of scope this pass).
+
 #### Scenario: Run cmi5/xAPI content with SCORM fallback
+
 - **GIVEN** a lesson backed by a content package
 - **WHEN** a learner launches the lesson
 - **THEN** the system runs cmi5 + xAPI content natively
 - **AND** it runs SCORM 1.2/2004 packages through the compatibility shim
+
+#### Scenario: A SCORM 1.2 package's completion status produces a recognised xAPI statement
+
+<!-- @e2e exclude no local Nextcloud instance was exercised for this change (see proposal Open Questions);
+     the SCORM 1.2 API shim's completion-to-xAPI mapping is covered by
+     tests/unit-js/scorm12Runtime.test.mjs. A live browser verification pass against a real SCORM 1.2
+     package is a named follow-up, not silently skipped. -->
+
+- **GIVEN** a `Lesson` with `contentType: "scorm12"` and a learner has launched it
+- **WHEN** the package calls `LMSSetValue('cmi.core.lesson_status', 'completed')` (or `'passed'`)
+- **THEN** an xAPI statement is built with `verb.id` equal to `http://adlnet.gov/expapi/verbs/completed` or
+  `.../passed` — the same IRIs `XapiCompletionHandler` already recognises
+- **AND** the statement is POSTed via the existing OpenRegister object-create endpoint for `xapi-statement`
+
+#### Scenario: A cmi5 lesson gracefully degrades until the sibling ingest change ships
+
+- **GIVEN** a `Lesson` with `contentType: "cmi5"` and no cmi5 launch-token endpoint exists yet (the sibling
+  `cmi5-xapi-lrs-ingest` change is not merged)
+- **WHEN** a learner opens the lesson
+- **THEN** `LessonPlayer.vue` shows a clear "cmi5 playback is not yet available for this lesson" empty state
+- **AND** no unhandled error or infinite loading spinner is shown
 
 ### Requirement: Place an LTI 1.3 tool inside a lesson via a dedicated placement object
 
@@ -586,6 +624,238 @@ all parsing/generation to `CoursePackageImportService`/`CoursePackageExportServi
 - **WHEN** an instructional designer uploads a course package
 - **THEN** the resulting `CoursePackageImportReport` renders with its `entries` table, and the designer can
   filter it to `degraded`/`dropped` rows to see exactly what needs manual attention
+
+### Requirement: A course leaves the school only through the sharing gate
+The system MUST offer a share export, separate from the regular export, that refuses with the full list of reasons unless all of these hold: the course has a `license` that is an open Creative Commons licence or CC0; the course has an `author`; no lesson has its own non-open `license`; no material has a non-empty `license` outside the open set; the exporting user confirmed `noPupilData`; the exporting user confirmed `rightsCleared`. A lesson without its own licence MUST be judged by the course licence.
+
+#### Scenario: A course with no licence is refused
+- **GIVEN** a course with an author and no `license`
+- **WHEN** a teacher requests a share export with both confirmations
+- **THEN** the response is 422 and `blockers` holds `licence-missing`
+
+#### Scenario: All rights reserved is refused
+- **GIVEN** a course with `license: "all-rights-reserved"`
+- **WHEN** a share export is requested
+- **THEN** `blockers` holds `licence-not-open`
+
+#### Scenario: A publisher-licensed material blocks the course
+- **GIVEN** an openly licensed course with one material whose `license` is `© Uitgeverij Voorbeeld`
+- **WHEN** a share export is requested
+- **THEN** `blockers` holds `material-licence-not-open` naming that material
+
+#### Scenario: Missing confirmations are named
+- **GIVEN** an openly licensed course with an author
+- **WHEN** a share export is requested without `noPupilData` and without `rightsCleared`
+- **THEN** `blockers` holds `pupil-data-not-confirmed` and `rights-not-confirmed`, and no consent record is written
+
+### Requirement: A share package carries no school-bound or personal fields
+The share package MUST be learniq JSON without `@self`, `tenant_id`, material `fileRef`, `sessionId`, `cohortId`, `curriculumPlanId`, `curriculumPlanComponentId`, `programmeIds`, `gradeEntryComponentId`, `gradeScaleId` or an assessment's `accessCode`, and with an empty LTI placement list. It MUST add a `sharing` block with the licence, author, subject, education levels, language, goals covered and the share date, and MUST NOT name the Nextcloud user who confirmed.
+
+#### Scenario: An assessment access code does not travel
+- **GIVEN** an assessment with `accessCode: "KLAS3B"` and `cohortId` set
+- **WHEN** its course is share-exported
+- **THEN** the package's assessment has neither `accessCode` nor `cohortId`
+
+### Requirement: Every share export leaves a consent record
+A successful share export MUST write a `CourseShareConsent` with the course, the course name, purpose `download`, the confirming user, the time, both confirmations and the licence. If the record cannot be written, the export MUST fail. `CourseShareConsent` MUST be readable by `instructors`, `team-leads`, `coordinators`, `administration-managers`, `compliance-officers` and the confirming user, creatable by the four course-authoring groups, and updatable by `administration-managers` only.
+
+#### Scenario: A school leader sees who shared what
+- **GIVEN** teacher `docent-07` share-exported course "Nederlands havo 4"
+- **WHEN** a user in `administration-managers` lists course share consents
+- **THEN** a record shows `docent-07`, the time, both confirmations and `CC-BY-SA-4.0`
+
+### Requirement: The export page offers sharing with the confirmations
+The course package export page MUST offer a "Share outside the school" switch that shows the two confirmations, sends the share request, and lists the refusal reasons in the user's language.
+
+#### Scenario: A teacher sees why sharing is refused
+- **GIVEN** the switch is on and the course has no author
+- **WHEN** the teacher submits
+- **THEN** the page lists "Name the author on the course, so others can credit them."
+
+### Requirement: The Store page lists shared courses through the store plane
+Learniq MUST declare a `StoreDescriptor` for schema `shared-course-package` (default register `learniq`) and MUST search and resolve shared courses only through OpenRegister's `GenericStoreService`. `GET /api/store/items` MUST answer `{outcome, cards, kinds, builtIn}`; each card MUST carry `slug`, `title`, `description`, `subject`, `level`, `goals`, `language`, `license`, `author`, `version`, `typeName` and `kind`, and nothing else. With no registry configured it MUST answer `not_configured` without a network call.
+
+#### Scenario: No registry configured
+- **GIVEN** `registry_url` is empty for learniq
+- **WHEN** a signed-in user opens the Store page
+- **THEN** the response outcome is `not_configured`, the card list is empty, and no request left the server
+
+#### Scenario: A teacher finds a shared course
+- **GIVEN** a configured registry holding a shared package "Betoog schrijven, havo 4" licensed CC BY-SA 4.0
+- **WHEN** the teacher searches "betoog"
+- **THEN** a card shows the title, `Nederlandse taal · havo · CC-BY-SA-4.0` under it, and the author
+
+#### Scenario: An anonymous request is refused
+- **GIVEN** no session
+- **WHEN** `GET /api/store/items` is called
+- **THEN** the response is 401
+
+### Requirement: Installing a shared course creates an independent copy that keeps the credit
+`POST /api/store/items/{slug}/install` MUST require the `course-package.import` action, MUST refuse a malformed slug with 400 and an unresolvable one with 404, and MUST import the resolved package through `CoursePackageImportService` as learniq JSON. The import MUST create new objects and MUST carry the course `license`, `author`, `subject`, `educationalLevels`, `language`, `level` and `description` onto the new course when their values are valid. The response MUST list each imported resource with status `installed`, `degraded` or `refused`.
+
+#### Scenario: A shared course is installed as a copy
+- **GIVEN** a resolvable shared package whose course is licensed CC BY-SA 4.0 by "Sectie Nederlands, OSG De Vaart"
+- **WHEN** an administrator installs it
+- **THEN** a new draft course exists with that licence and author, a new course code, and its own lessons
+
+#### Scenario: A package without a package body is refused
+- **GIVEN** a registry object with no `package`
+- **WHEN** it is installed
+- **THEN** the response reports failure and nothing is written
+
+### Requirement: Publishing sends a gated package to the registry
+`POST /api/store/publish` MUST require the `course-package.share` action and MUST run the sharing gate with the two confirmations; a refusal MUST be 422 with `blockers`. On a pass it MUST record a `CourseShareConsent` with purpose `store`, then POST the registry object to `<registry_url>/index.php/apps/openregister/api/objects/<register>/shared-course-package` with the registry token as a Bearer header only, after `SecurityService::assertSafeFetchUrl()`, with redirects refused and 10 second timeouts. A package over 20 MB MUST be refused without a request.
+
+#### Scenario: Publishing without a registry
+- **GIVEN** the gate passes and `registry_url` is empty
+- **WHEN** the teacher publishes
+- **THEN** the outcome is `not_configured` and no request is made
+
+#### Scenario: A private registry address is refused
+- **GIVEN** `registry_url` is `http://192.168.1.10`
+- **WHEN** the teacher publishes
+- **THEN** the outcome is `store_unreachable` and no request is made
+
+#### Scenario: A published course is findable
+- **GIVEN** the gate passes and the registry accepts the POST
+- **WHEN** the teacher publishes "Betoog schrijven, havo 4"
+- **THEN** the response carries outcome `ok` and a slug starting with `course-package-`
+
+### Requirement: Any learniq instance can act as the registry
+The register MUST declare `SharedCoursePackage` (slug `shared-course-package`) holding the card fields as strings, `levels` and `goalsCovered` as arrays, `kind` `course-package`, `sharedAt` and the `package` object. None of the fields the publisher cannot fill (such as `tenant_id`) MAY be required. Read MUST be `authenticated`; create MUST be `instructors`, `team-leads`, `coordinators` and `administration-managers`; update MUST be `administration-managers`.
+
+#### Scenario: A school board runs the registry
+- **GIVEN** a learniq instance whose admin created a service account in `instructors` and handed its token to member schools
+- **WHEN** a member school publishes
+- **THEN** the package is stored as a `SharedCoursePackage` on the board's instance and every member school's store lists it
+
+### Requirement: Courses and lessons carry sharing metadata aligned to NL-LOM
+`Course` and `Lesson` MUST declare four optional properties: `license` (one of `CC0-1.0`, `CC-BY-4.0`, `CC-BY-SA-4.0`, `CC-BY-NC-4.0`, `CC-BY-NC-SA-4.0`, `CC-BY-ND-4.0`, `CC-BY-NC-ND-4.0`, `all-rights-reserved`), `author` (the name to credit), `subject` (the subject name as the Onderwijsbegrippenkader (OBK) gives it) and `educationalLevels` (an array of `po`, `so`, `vmbo`, `havo`, `vwo`, `mbo-1`, `mbo-2`, `mbo-3`, `mbo-4`, `hbo`, `wo`, `adult-education`, `professional-training`). None of them MAY be required, and `license` MUST have no default.
+
+#### Scenario: A teacher marks a course as openly licensed
+- **GIVEN** a `Course` in draft
+- **WHEN** the teacher sets `license: "CC-BY-SA-4.0"`, `author: "Sectie wiskunde, OSG De Vaart"`, `subject: "Rekenen/wiskunde"` and `educationalLevels: ["havo", "vwo"]`
+- **THEN** the course validates and all four values persist
+
+#### Scenario: An existing course without metadata stays valid
+- **GIVEN** a `Course` stored before this change
+- **WHEN** it is read and saved again
+- **THEN** it validates with the four properties absent
+
+#### Scenario: A lesson without a licence falls back to its course
+- **GIVEN** a `Lesson` with no `license` in a `Course` with `license: "CC-BY-4.0"`
+- **WHEN** a consumer resolves the lesson's licence
+- **THEN** it uses `CC-BY-4.0`, as the lesson `license` description states
+
+### Requirement: Licence and level values have translated labels
+`license` and `educationalLevels.items` MUST declare `x-enum-labels` for every value, and every label MUST have an English key and a Dutch value in the catalogue.
+
+#### Scenario: A Dutch teacher picks a licence
+- **GIVEN** a Dutch-language user opens the course form
+- **WHEN** the licence field renders
+- **THEN** `all-rights-reserved` shows as "Alle rechten voorbehouden"
+
+### Requirement: The lesson composer offers four AI assist actions through hermiq, only when hermiq can answer
+
+<!-- @e2e exclude The actions need hermiq PR 962 merged and a DPO-acknowledged feature on a live instance, neither exists yet. The decision logic (visibility, payloads, outcome classes) is covered by tests/unit-js/lessonAssist.test.mjs. -->
+
+`LessonComposer` MUST offer four assist actions: draft an outline from one or more goals, suggest questions
+for the lesson, rewrite one rich text block at a lower reading level, and suggest which goals the lesson
+covers. Each action MUST call hermiq's `lesson-authoring` delegate
+(`POST /apps/hermiq/api/lesson-authoring/{outline|questions|simplify|goal-suggestions}`) and MUST NOT call
+any model or vendor directly. The actions MUST NOT render when the hermiq app is not enabled for the user,
+read from `window.OC.appswebroots.hermiq` exactly as `LearniqSettings.vue` reads it, so learniq keeps no hard
+dependency on hermiq. When hermiq answers `available: false` with `reason: feature-not-enabled`, or the route
+answers 404, the actions MUST collapse to a note saying AI help is switched off and MUST stay hidden for the
+rest of the browser session. A `provider-error`, a 429 or any other failure MUST show a plain message and
+MUST leave the lesson and the actions unchanged.
+
+#### Scenario: A teacher without hermiq sees no assist actions
+
+- **GIVEN** a Nextcloud instance where the hermiq app is not enabled
+- **WHEN** a teacher opens `LessonComposer` for a lesson
+- **THEN** no assist panel and no "rewrite simpler" block action render
+- **AND** no request is sent to `/apps/hermiq/`
+
+#### Scenario: Hermiq answers that the feature is switched off
+
+- **GIVEN** hermiq is enabled but its `lesson-authoring` AI feature is `disabled`
+- **WHEN** the teacher runs "Suggest questions"
+- **THEN** hermiq answers `{available: false, reason: "feature-not-enabled"}`
+- **AND** the panel collapses to a note that AI help is switched off
+- **AND** no block is added to the lesson
+
+#### Scenario: The model gives no usable answer
+
+- **GIVEN** hermiq's feature is enabled and the model call fails
+- **WHEN** the teacher runs "Draft an outline"
+- **THEN** hermiq answers `{available: false, reason: "provider-error"}`
+- **AND** the panel shows that the AI model gave no usable answer
+- **AND** the actions stay available for another try
+
+### Requirement: Assist requests carry lesson content and goal titles only
+
+<!-- @e2e exclude Request shape is a pure function of the lesson state; asserted by tests/unit-js/lessonAssist.test.mjs ("request bodies carry only the contract fields", "goal ids never leave learniq"). -->
+
+Every assist request body MUST be built from an allowlist per action and MUST carry only `lessonText`,
+`goalTitles`, `language`, `questionCount` and `readingLevel` as hermiq's contract defines them for that
+action. It MUST NOT carry a pupil name, number, grade, note, any other pupil data, or any object id. Goal ids
+MUST be mapped to their titles before the call, and the `index` values hermiq returns MUST be mapped back to
+goal ids after it; an index outside the list sent MUST be ignored. `lessonText` MUST be the rich text of the
+lesson's blocks that are not pending drafts, cut to 20,000 characters; `goalTitles` MUST hold at most 100
+titles of at most 300 characters each. Next to the actions the panel MUST say that the text goes to an AI
+model and must not contain pupil data, and before the first call in a browser the teacher MUST confirm a
+notice that says the same.
+
+#### Scenario: Goal suggestions map back to goal ids
+
+- **GIVEN** a lesson whose course links three goals, sent in the order A, B, C
+- **WHEN** hermiq answers `suggestedGoals: [{index: 0}, {index: 2}, {index: 7}]`
+- **THEN** learniq offers goals A and C as suggestions
+- **AND** index 7 is ignored
+- **AND** the request body held the three titles and no goal id
+
+#### Scenario: The first assist call asks for confirmation
+
+- **GIVEN** a teacher who has never confirmed the AI notice in this browser
+- **WHEN** they run any assist action
+- **THEN** a dialog says the lesson text goes to an AI model and must not contain pupil data
+- **AND** the request is sent only after they choose to continue
+- **AND** a later action in the same browser runs without the dialog
+
+### Requirement: Every assist result is a draft the teacher keeps or discards
+
+<!-- @e2e exclude Needs a live hermiq answer; the draft insertion and the save guard are covered by tests/unit-js/lessonAssist.test.mjs ("draft blocks are marked and never serialised with the marker", "pending drafts block save"). -->
+
+An outline, a question list or a rewrite MUST be inserted as a `richText` block marked as an AI draft: an
+outline or question list at the end of the lesson, a rewrite directly after the block it came from. A draft
+block MUST show that it is an AI draft, MUST name the model service hermiq reports in `provider`, and MUST
+offer "Keep" and "Discard". Keeping MUST turn it into an ordinary `richText` block; discarding MUST remove it.
+The lesson MUST NOT be saved while any draft is pending, and the draft marker MUST never be written to
+`Lesson.blocks`. A goal suggestion MUST be added to `Lesson.competencyIds` only when the teacher adds it, and
+the addition MUST be saved with the next "Save lesson". No assist result MUST change `Lesson.lifecycle`.
+
+#### Scenario: A teacher keeps an AI outline
+
+- **GIVEN** hermiq returns an outline for the goal "De leerling kan breuken vergelijken en ordenen"
+- **WHEN** the draft block appears at the end of the lesson labelled as an AI draft with its model service
+- **AND** the teacher edits it and chooses "Keep"
+- **THEN** the block becomes an ordinary rich text block
+- **AND** "Save lesson" writes it to `Lesson.blocks` without any draft marker
+
+#### Scenario: A pending draft blocks the save
+
+- **GIVEN** a lesson with one AI draft block not yet kept or discarded
+- **WHEN** the teacher chooses "Save lesson"
+- **THEN** nothing is sent to OpenRegister
+- **AND** the composer asks the teacher to keep or discard the AI drafts first
+
+#### Scenario: A teacher adds a suggested goal
+
+- **GIVEN** goal suggestions list a goal the lesson does not yet link
+- **WHEN** the teacher adds it and saves the lesson
+- **THEN** `Lesson.competencyIds` holds that goal's id
+- **AND** `Lesson.lifecycle` is unchanged
 
 ## Standards
 SCORM, xAPI, cmi5, LTI 1.3, Common Cartridge, NL LOM, VDEX, OAI-PMH, OOAPI 5.0, Schema.org `Course` / `CourseInstance`, ECTS, Bologna. LTI 1.3 / LTI Advantage (Assignment & Grade Services, Deep Linking 2.0) protocol implementation lives entirely in openconnector's `lti-13-platform` adapter; Scholiq covers only the consuming-app placement and launch-delegation contract. WCAG 2.1 AA (reorder keyboard-operability, course-authoring-ux).

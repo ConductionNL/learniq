@@ -261,7 +261,7 @@ class PageControllerTest extends TestCase {
 	 * index() hands the page shell the confidential counsellor flag, so the
 	 * confidential notes menu can gate on group membership.
 	 *
-	 * @spec openspec/changes/confidential-counsellor-channel/specs/confidential-counsel/spec.md#requirement-the-confidential-notes-menu-is-shown-to-confidential-counsellors-only
+	 * @spec openspec/specs/confidential-counsel/spec.md#requirement-the-confidential-notes-menu-is-shown-to-confidential-counsellors-only
 	 *
 	 * @return void
 	 */

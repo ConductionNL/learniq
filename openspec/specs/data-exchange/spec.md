@@ -40,7 +40,9 @@ An institution's data has to flow to and from external systems: a Dutch school's
 - GIVEN an incoming OSO dossier, WHEN a VO mentor imports it, THEN the matching `LearnerProfile` is updated (or created) and an audit entry records the import source.
 - GIVEN an `AttendanceThreshold` with `onCross` targeting `leerplicht`, WHEN a flag is created (see `attendance`), THEN a `DataExchangeJob` is auto-queued to the `leerplicht` target and the flag's lifecycle tracks it.
 - GIVEN any `DataExchangeJob`, WHEN it changes state, THEN an OR audit-trail entry is emitted and the produced artefact is attached to the job for retention.
+
 ## Requirements
+
 ### Requirement: Persist DataExchangeJob and DataMappingProfile in OpenRegister
 
 The system MUST persist `DataExchangeJob`, `DataMappingProfile` as OpenRegister objects with
@@ -332,6 +334,116 @@ protocols to OpenConnector" requirement already lists.
 - **THEN** the `ExchangeRejection` is still created, with `errorCodeRef` left null
 
 <!-- @e2e exclude Fail-open catalogue-lookup behaviour verified by PHPUnit RejectionMappingHandlerTest::testUnknownErrorCodeLeavesRefNull; no DOM surface. -->
+
+### Requirement: Data-exchange management is reached from the Admin Settings page
+The data-exchange entry point MUST move from the in-app settings foldout to the Nextcloud Admin Settings page. The `DataExchange` leaf id MUST be removed from `src/menu-layout.json#settingsSection`, and the Admin Settings page (mounted by `lib/Settings/AdminSettings.php` + `src/settings.js` → `src/views/settings/AdminRoot.vue`) MUST render a "Data exchange" settings section that links to the still-routable Data-exchange **jobs** (`#/data-exchange/jobs`) and **mapping profiles** (`#/data-exchange/mapping-profiles`) SPA pages, mirroring the "Manage AI features" affordance in `ScholiqSettings.vue`. Because the Admin Settings mount has no in-app vue-router, the links MUST navigate out via full navigation (hash-form SPA URL), not by embedding router pages. All data-exchange pages (`DataExchangeJobs`, `DataExchangeJobDetail`, `DataMappingProfiles`, `DataMappingProfileDetail`, `RequestExportModal`, `OsoDossierReviewView`) MUST remain registered in `src/manifest.json.pages[]` and routable. No backend, register schema, lifecycle guard, OSO gate or OpenConnector delegation is changed.
+
+#### Scenario: Admin Settings shows a Data exchange section
+<!-- @e2e exclude Admin Settings is rendered by the Nextcloud settings framework outside the SPA route-smoke harness (tests/e2e/pages.spec.ts); the section render + link targets are verified in-browser at apply. -->
+- **GIVEN** an admin on the Scholiq Admin Settings page (`AdminRoot.vue`)
+- **WHEN** the page renders
+- **THEN** a "Data exchange" settings section is shown with a link to Data-exchange jobs (`#/data-exchange/jobs`) and a link to mapping profiles (`#/data-exchange/mapping-profiles`)
+
+#### Scenario: The in-app Data exchange foldout entry is removed
+<!-- @e2e exclude Static / absence assertion — verified by the manifest/menu-layout unit test (no `DataExchange` id in settingsSection); not a positive route-smoke DOM behaviour. -->
+- **GIVEN** the parsed `src/menu-layout.json`
+- **WHEN** its `settingsSection` array is inspected
+- **THEN** it does not list `DataExchange`
+
+#### Scenario: Data-exchange jobs page remains routable via deep link
+- **GIVEN** the `DataExchangeJobs` page is no longer in the nav
+- **WHEN** a user navigates directly to `#/data-exchange/jobs`
+- **THEN** the `DataExchangeJobs` index page renders without a fatal error
+
+#### Scenario: Data-exchange mapping profiles page remains routable via deep link
+- **GIVEN** the `DataMappingProfiles` page is no longer in the nav
+- **WHEN** a user navigates directly to `#/data-exchange/mapping-profiles`
+- **THEN** the `DataMappingProfiles` index page renders without a fatal error
+
+### Requirement: A DataExchangeJob target can require standing partner approval before it runs
+`DataExchangeJob` SHALL gain four additive properties: `requiresPartnerApproval` (boolean, default `false`),
+`partnerApprovalStatus` (enum `not-required | pending | approved | rejected`, default `not-required`),
+`partnerApprovedBy`, `partnerApprovedAt`, and `dataSharedFields` (array of strings naming which fields this
+target pulls). `DataExchangeRunGuard::check()` SHALL deny the `run` transition (`queued → running`) when
+`requiresPartnerApproval === true` and `partnerApprovalStatus !== 'approved'`, independently of the existing
+OSO/SWV parent-review gate — a job may be subject to either gate, both, or neither. Every existing job defaults
+to `requiresPartnerApproval: false`, so no previously-running target is newly blocked by this change.
+
+#### Scenario: A job for a partner-gated target cannot run before approval
+- **GIVEN** a `DataExchangeJob` with `target: "uwlr"`, `requiresPartnerApproval: true`, `partnerApprovalStatus: "pending"`
+- **WHEN** the `run` transition is attempted from `queued`
+- **THEN** the transition is refused
+
+#### Scenario: Approval unblocks the run transition
+- **GIVEN** the same job with `partnerApprovalStatus` updated to `"approved"`
+- **WHEN** the `run` transition is attempted from `queued`
+- **THEN** the transition succeeds (subject to any other applicable gate, e.g. OSO/SWV)
+
+#### Scenario: A job with no partner-approval requirement is unaffected
+- **GIVEN** a `DataExchangeJob` with `requiresPartnerApproval: false` (the default)
+- **WHEN** the `run` transition is attempted from `queued`
+- **THEN** the partner-approval condition never blocks it
+
+<!-- @e2e exclude Pure backend/data-model requirement, per this spec's own "no #### Scenario DOM assertions" convention for guard logic — verified by DataExchangeRunGuardTest and PrivacyGovernanceRegisterTest (schema shape). -->
+
+### Requirement: A DataExchangeJob target can require a confirmed teldatum pre-flight check before it runs
+`DataExchangeJob` SHALL gain five additive properties: `requiresTeldatumCheck` (boolean, default `false`),
+`teldatumCheckStatus` (enum `not-required | pending | confirmed`, default `not-required`), `teldatumCheckDate`
+(nullable date, the 1 February or 1 October count date), `teldatumCheckedBy`, `teldatumCheckedAt` (both nullable).
+`DataExchangeRunGuard::check()` SHALL deny the `run` transition when `requiresTeldatumCheck === true` and
+`teldatumCheckStatus !== 'confirmed'`, independently of every other condition on the same guard. Every existing job
+defaults to `requiresTeldatumCheck: false`, so no previously-running target is newly blocked.
+
+#### Scenario: A ROD job requiring a teldatum check cannot run before confirmation
+- **GIVEN** a `DataExchangeJob` with `target: "bron-rod"`, `requiresTeldatumCheck: true`, `teldatumCheckStatus: "pending"`
+- **WHEN** the `run` transition is attempted from `queued`
+- **THEN** the transition is refused
+
+#### Scenario: Confirmation unblocks the run transition
+- **GIVEN** the same job with `teldatumCheckStatus` updated to `"confirmed"`
+- **WHEN** the `run` transition is attempted from `queued`
+- **THEN** the transition succeeds (subject to any other applicable gate)
+
+#### Scenario: A job with no teldatum-check requirement is unaffected
+- **GIVEN** a `DataExchangeJob` with `requiresTeldatumCheck: false` (the default)
+- **WHEN** the `run` transition is attempted from `queued`
+- **THEN** the teldatum-check condition never blocks it
+
+<!-- @e2e exclude Pure backend/data-model requirement, per this spec's own "no #### Scenario DOM assertions" convention for guard logic — verified by DataExchangeRunGuardTest and FundingTeldatumRegisterTest (schema shape). -->
+
+### Requirement: Pupil, cohort, report-card, and attendance indexes declare columns and explicit built-in mass-action toggles
+
+`LearnerProfiles`, `Cohorts`, `ReportCards`, and `AttendanceRecords` MUST each declare `columns`
+(a curated subset of already-existing fields, replacing the generic default column set) and
+`actionToggles` with `showMassImport: true`, `showMassExport: true`, `showMassCopy: true`, and
+`showMassDelete: true` — making `CnIndexPage`'s existing built-in mass-action capability an
+explicit, documented feature of these four indexes rather than an implicit platform default.
+
+#### Scenario: The four indexes expose their curated columns and explicit mass-action toggles
+
+<!-- @e2e exclude Declarative manifest column/actionToggles addition, no new component behaviour to exercise; verified by reasoning over the built effective manifest (build_effective_manifest.js), mirroring how report-card-templates and care-and-support-index (sibling changes this round) verified their own manifest-only additions. -->
+
+- **GIVEN** the manifest is built
+- **WHEN** `LearnerProfiles`, `Cohorts`, `ReportCards`, and `AttendanceRecords` are each inspected
+- **THEN** each declares a non-empty `columns` array and `actionToggles.showMassImport`/
+  `showMassExport`/`showMassCopy`/`showMassDelete` all `true`
+
+### Requirement: An Import & export nav entry makes the existing data-exchange tooling discoverable
+
+The system MUST declare an `ImportExportToolsMenu` nav entry under the existing `GroupDataExchange`
+menu group, labelled "Import & export", routing to the existing `DataExchangeJobs` page — no new
+page is declared, per ADR-097 Decision 5's "a second index over an already-indexed schema is a
+role lens, not a page" preference (already applied by `care-and-support-index`, a sibling change
+this round, for the same reason).
+
+#### Scenario: The Import & export entry routes to the existing DataExchangeJobs page
+
+<!-- @e2e exclude Declarative manifest nav addition, no new route or component; verified by reasoning over the built effective manifest. -->
+
+- **GIVEN** the manifest is built
+- **WHEN** `ImportExportToolsMenu` is inspected
+- **THEN** it routes to `DataExchangeJobs`, and no second `type: "index"` page exists over the
+  `data-exchange-job` schema
 
 ## Standards
 

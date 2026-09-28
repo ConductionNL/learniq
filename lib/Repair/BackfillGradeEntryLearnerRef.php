@@ -14,7 +14,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/gradeentry-learnerref-stamp/specs/grading/spec.md#requirement-existing-gradeentries-are-back-filled-once
+ * @spec openspec/specs/grading/spec.md#requirement-existing-gradeentries-are-back-filled-once
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use Throwable;
  * nothing new. Runs without a session, so every read and write passes
  * `_rbac: false` and `_multitenancy: false`.
  *
- * @spec openspec/changes/gradeentry-learnerref-stamp/specs/grading/spec.md#requirement-existing-gradeentries-are-back-filled-once
+ * @spec openspec/specs/grading/spec.md#requirement-existing-gradeentries-are-back-filled-once
  */
 class BackfillGradeEntryLearnerRef implements IRepairStep {
 
@@ -73,7 +73,7 @@ class BackfillGradeEntryLearnerRef implements IRepairStep {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/gradeentry-learnerref-stamp/specs/grading/spec.md#requirement-existing-gradeentries-are-back-filled-once
+	 * @spec openspec/specs/grading/spec.md#requirement-existing-gradeentries-are-back-filled-once
 	 */
 	public function getName(): string {
 		return 'Stamp the learner profile on existing grades so the portal can show them';
@@ -86,7 +86,7 @@ class BackfillGradeEntryLearnerRef implements IRepairStep {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/gradeentry-learnerref-stamp/specs/grading/spec.md#requirement-existing-gradeentries-are-back-filled-once
+	 * @spec openspec/specs/grading/spec.md#requirement-existing-gradeentries-are-back-filled-once
 	 */
 	public function run(IOutput $output): void {
 		$counts = ['scanned' => 0, 'stamped' => 0, 'noProfile' => 0, 'failed' => 0];

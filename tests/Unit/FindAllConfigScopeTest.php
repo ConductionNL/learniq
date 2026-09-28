@@ -35,7 +35,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/findall-config-filters-sweep/specs/nextcloud-app/spec.md
+ * @spec openspec/specs/nextcloud-app/spec.md
  * @spec openspec/changes/reads-that-filter-on-undeclared-ids/specs/nextcloud-app/spec.md#requirement-no-read-filters-on-an-object-id-property
  */
 

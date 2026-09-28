@@ -225,6 +225,133 @@ A learner MUST be able to run the transitions a learner screen fires on a row th
 - **WHEN** learner B fires `grant`
 - **THEN** the guard refuses it
 
+### Requirement: LearniqSettings records the instance's segment
+The system MUST persist `LearniqSettings` (`segment`: `po`/`vo`/`mbo`/`he`/`corporate`, default `corporate`) as a flat, un-lifecycled singleton OpenRegister object, mirroring the `SovereigntyPolicy` singleton convention.
+
+#### Scenario: An administrator records the school's segment
+- **GIVEN** the `LearniqSettings` schema is registered
+- **WHEN** an administrator sets `segment` to `po`
+- **THEN** the value persists on the `LearniqSettings` object
+
+#### Scenario: An instance with no LearniqSettings object yet defaults safely
+- **GIVEN** no `LearniqSettings` object has been created
+- **WHEN** the schema's default is read
+- **THEN** `segment` defaults to `corporate`, the no-behaviour-change default for existing customers
+
+### Requirement: LearniqSettings is reachable as an admin-only declarative page
+`LearniqSettings` MUST render as a manifest-declared index+detail page pair, visible only to `admin`, with no custom Vue component and no bespoke PHP controller.
+
+#### Scenario: An administrator opens the segment setting
+- **GIVEN** the `LearniqSettings` page is configured
+- **WHEN** an administrator navigates to it
+- **THEN** the page renders via the standard declarative data/related widgets, matching every other schema's detail page in this app
+
+### Requirement: Segment-based menu visibility is not implemented by a config-kind change
+No `visibleIf` condition MUST reference `segment` (or any runtime path derived from it) in a `config`-kind change, because `visibleIf` resolves exclusively against `manifest.runtime.*`, which only an app-specific PHP `IInitialState` provider plus JS wiring can populate — a `code`-kind change. Declaring such a condition without that wiring would activate the shared library's undefined-runtime fail-safe (hide the item for every tenant), which is a regression, not a feature.
+
+#### Scenario: No menu item's visibleIf references segment yet
+- **GIVEN** this change's manifest diff
+- **WHEN** every `visibleIf` block in the changed files is inspected
+- **THEN** none references `segment` or a `workspace.segment`/`config.segment` runtime path
+
+#### Scenario: The follow-up code change closes the loop
+- **GIVEN** a future `code`-kind change adds the PHP `IInitialState` provider and the `src/main.js` runtime population for `segment`
+- **WHEN** that change also adds `visibleIf: {"workspace.segment": {...}}` to corporate-flavoured menu items
+- **THEN** the gating becomes real, because the runtime path it reads is now actually populated
+
+### Requirement: Menus follow the kind of organisation
+Menu entries whose subject belongs to specific kinds of organisation MUST carry `visibleIf: {"workspace.segment": {"in": [...]}}` listing the segments that see them: staff compliance and external training for companies and training institutes; engagement and course evaluation for MBO, higher education, companies and training institutes; work placements (BPV) for MBO; study progress (BSA) for higher education; exam board, exam accommodations, applications, admissions rounds and review board for secondary school and up; subject choices for secondary school, MBO and higher education; school advies for primary and secondary school. Entries of the school shape (people, classes, attendance, schools and locations, pupil dossier, group plans, support requests, report periods and cards, parent conferences) MUST NOT carry a segment gate. This supersedes the `segment-feature-flags` requirement "Segment-based menu visibility is not implemented by a config-kind change": its precondition, an unpopulated `runtime.workspace`, no longer holds since `segment-runtime-bridge`.
+
+#### Scenario: A primary school sees the school shape
+- **GIVEN** `runtime.workspace.segment` is `po` and the user is an admin
+- **WHEN** the navigation renders
+- **THEN** people, attendance, schools, locations, pupil dossier, group plans, support requests, report cards, parent conferences and school advies show
+- **AND** compliance, external training, BPV, BSA, exam board, exam accommodations, subject choices and intake do not
+
+#### Scenario: BPV is for MBO
+- **GIVEN** each of the six segments
+- **WHEN** the BPV group's gate is evaluated
+- **THEN** it shows for `mbo` and `corporate` only
+
+### Requirement: The company default keeps every menu
+Every `workspace.segment` gate MUST keep `corporate` visible, because `corporate` is the default of every install that never chose a segment (`segment-feature-flags` Decision 2). Every segment literal MUST be one of the six `LearniqSettings.segment` codes. `npm run check:menu-role-gates` MUST fail when either rule breaks.
+
+#### Scenario: An install that never chose a segment
+- **GIVEN** `runtime.workspace.segment` is `corporate`
+- **WHEN** every menu entry is evaluated for an admin
+- **THEN** every entry shows, as before this change
+
+#### Scenario: A gate that forgets corporate
+- **GIVEN** a menu entry with `visibleIf: {"workspace.segment": {"in": ["po"]}}`
+- **WHEN** `npm run check:menu-role-gates` runs
+- **THEN** it fails and names the entry
+
+### Requirement: The wizard says what the segment does
+The setup wizard's segment step MUST tell the admin that the app shows the menus that fit the chosen kind, with a Dutch catalogue entry.
+
+#### Scenario: Reading the segment step
+- **GIVEN** the setup wizard's `segment` step
+- **WHEN** its body is read in English or Dutch
+- **THEN** it says the app shows the menus that fit the choice, and that the choice can change later under App settings
+
+### Requirement: Every object read MUST name its register and schema inside `filters`
+
+Every call to OpenRegister's `ObjectService::findAll()` under `lib/` MUST pass the register and the schema as `$config['filters']['register']` and `$config['filters']['schema']`. A config MUST NOT carry `register` or `schema` at its top level, whether the config is written inline or assembled in a variable. A config MUST NOT carry the same key twice. OpenRegister's `prepareFindAllConfig()` reads the scope from `filters` only, so a top-level key leaves the read without a schema or with a stale one.
+
+#### Scenario: A guard reads a learner's rows from the right schema
+
+- **GIVEN** a lifecycle guard that looks up the enrolments of learner `leerling-001`
+- **WHEN** it calls `ObjectService::findAll()`
+- **THEN** the config carries `filters.register = "learniq"` and `filters.schema = "enrolment"` next to `filters.learnerId = "leerling-001"`
+- **AND** the config has no top-level `register` or `schema` key
+
+#### Scenario: A config built in a variable is scoped the same way
+
+- **GIVEN** a service that assembles its findAll config in `$config` before the call
+- **WHEN** the config is passed to `ObjectService::findAll($config)`
+- **THEN** `register` and `schema` sit under `$config['filters']`
+
+#### Scenario: The regression test fails on the old shape
+
+- **GIVEN** a findAll call under `lib/` with `'schema' => 'lesson'` at the top level of its config
+- **WHEN** `FindAllConfigScopeTest` runs
+- **THEN** it fails and names the file, the line and the key
+
+#### Scenario: The regression test fails on a duplicate filters key
+
+- **GIVEN** a findAll config with two `'filters'` keys
+- **WHEN** `FindAllConfigScopeTest` runs
+- **THEN** it fails with `duplicate filters` and the line of the second key
+
+### Requirement: Every object read MUST filter only on properties its target schema declares
+
+Every `ObjectService::findAll()` call under `lib/` MUST use, as a `filters` key, either a query context key (`register`, `schema`, `registers`, `schemas`, `extend`, `@self`, or a key starting with `_`) or a property that the target schema in `lib/Settings/learniq_register.json` declares. The key MUST be compared verbatim: on the `findAll()` path OpenRegister does not split a key on underscores, so `tenant_id` is valid wherever the schema declares `tenant_id`. An object id MUST travel in the config's `ids`, not as an `id` or `uuid` filter.
+
+#### Scenario: A course with a published lesson can be published
+
+- **GIVEN** a Course `course-7` in tenant `tenant-a` and a published Lesson with `courseId = course-7` and `tenant_id = tenant-a`
+- **WHEN** `CoursePublishGuard` checks the Course's `publish` transition against a store that answers like OpenRegister
+- **THEN** the guard allows the transition
+- **AND** the lookup's filters carry `tenant_id = tenant-a` whole, with no `tenant` key
+
+#### Scenario: A draft lesson, another course's lesson or another tenant's lesson does not count
+
+- **GIVEN** only a draft Lesson on `course-7`, a published Lesson on `course-8` and a published Lesson on `course-7` in `tenant-b`
+- **WHEN** `CoursePublishGuard` checks `course-7` in `tenant-a`
+- **THEN** the guard refuses the transition
+
+#### Scenario: A new undeclared filter key fails at unit time
+
+- **GIVEN** a `findAll()` call under `lib/` whose filters name a property the target schema does not declare, and which is not in the test's known list
+- **WHEN** `FindAllFilterKeysAreDeclaredTest` runs
+- **THEN** it fails and names the file, the line, the schema and the key
+
+#### Scenario: A fixed read must leave the known list
+
+- **GIVEN** an entry in the test's known list that the scan no longer finds
+- **WHEN** `FindAllFilterKeysAreDeclaredTest` runs
+- **THEN** it fails and asks for the entry to be deleted
+
 ## Standards
 Nextcloud OCP (`IAppManager`, `IConfig`, `IUserSession`, `IRootFolder`, `IGroupManager`, `Calendar\IManager`, `Notification\IManager`, `Talk\IBroker`, `Activity\IManager`), NL Design System tokens, WCAG 2.1 AA.
 

@@ -106,6 +106,16 @@ The restructure MUST NOT remove or rename any retained `pages[]` route, and MUST
 - **THEN** every `urlTemplate` targets a route that still exists in `pages[]`
 - **AND** none targets the removed `AdminHealth` (`/admin/health`) route
 
+## REMOVED Requirements
+
+### Requirement: REQ-LPC-001 — The Learning group MUST collapse into a single nav item linking to a card-grid landing page
+**Reason**: Superseded by "Learning is a navigable domain dashboard with collapsible sub-children" in this change; Learning is no longer a tile-grid card page.
+**Migration**: The Learning parent routes to `LearningDashboard` and its former leaves are collapsible sub-items again.
+
+### Requirement: REQ-LPC-002 — The People group MUST collapse into a single nav item linking to a card-grid landing page
+**Reason**: Superseded by "People is a navigable domain dashboard with collapsible sub-children" in this change; People is no longer a tile-grid card page.
+**Migration**: The People parent routes to `PeopleDashboard` and its former leaves are collapsible sub-items again.
+
 ## Non-Functional Requirements
 
 - **Performance:** The nav restructure is declarative-layout + two `CnDashboardPage` components and MUST NOT add a network round-trip to render the left navigation.

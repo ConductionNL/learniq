@@ -1,17 +1,17 @@
 ---
 sidebar_position: 1
-description: Get started with Scholiq, learning and course management on Nextcloud. Courses, enrolment, attendance, grading, and compliance training, manifest-first.
+description: Get started with Learniq, learning and course management on Nextcloud. Courses, enrolment, attendance, grading, and compliance training, manifest-first.
 ---
 
-# Scholiq
+# Learniq
 
 **Open-source education platform for Nextcloud**, leerlingvolgsysteem (LVS) for primary/secondary schools, full-stack LMS for higher education, and corporate-learning + compliance-training engine, all on one privacy-first, self-hosted stack.
 
-## What is Scholiq?
+## What is Learniq?
 
-Scholiq merges three traditionally separate worlds into one Nextcloud app: the Dutch K-12 student-tracking systems (Magister, SOMtoday, ParnasSys), the global open LMS market (Moodle, Open edX, Canvas), and corporate learning platforms (Docebo, TalentLMS, Cornerstone). It is the first Nextcloud-native education platform, built around the GEMMA reference model for Dutch onderwijs and the EU AI Act high-risk gating regime.
+Learniq merges three traditionally separate worlds into one Nextcloud app: the Dutch K-12 student-tracking systems (Magister, SOMtoday, ParnasSys), the global open LMS market (Moodle, Open edX, Canvas), and corporate learning platforms (Docebo, TalentLMS, Cornerstone). It is the first Nextcloud-native education platform, built around the GEMMA reference model for Dutch onderwijs and the EU AI Act high-risk gating regime.
 
-The app serves four primary audiences: **primary-school teachers** (PO) running OPP cycles for special-needs pupils, **secondary-school mentors** (VO) tracking absence patterns and PTA grades, **higher-ed coordinators** who will publish OOAPI catalogs and manage Studielink enrolment once that data-exchange work ships, and **compliance officers** at MKB / government bodies who must prove annual AVG, BIO, and NIS2 board training. Today, Scholiq ships IMS QTI 2.x/3.0 assessment import and Open Badges 3.0 credential verification behind a modern Vue 3 surface that uses NL Design System primitives. DUO BRON/ROD, OSO transfer, SURFconext federation, UWLR and Edukoppeling are **not yet live** — Scholiq holds a generic `DataExchangeJob` queue (with an OSO parent-approval gate already built) designed to hand off to OpenConnector-configured connections for those protocols, but no education-specific OpenConnector adapter exists yet, so no wire-level BRON/OSO/SURFconext exchange can run out of the box.
+The app serves four primary audiences: **primary-school teachers** (PO) running OPP cycles for special-needs pupils, **secondary-school mentors** (VO) tracking absence patterns and PTA grades, **higher-ed coordinators** who will publish OOAPI catalogs and manage Studielink enrolment once that data-exchange work ships, and **compliance officers** at MKB / government bodies who must prove annual AVG, BIO, and NIS2 board training. Today, Learniq ships IMS QTI 2.x/3.0 assessment import and Open Badges 3.0 credential verification behind a modern Vue 3 surface that uses NL Design System primitives. DUO BRON/ROD, OSO transfer, SURFconext federation, UWLR and Edukoppeling are **not yet live** — Learniq holds a generic `DataExchangeJob` queue (with an OSO parent-approval gate already built) designed to hand off to OpenConnector-configured connections for those protocols, but no education-specific OpenConnector adapter exists yet, so no wire-level BRON/OSO/SURFconext exchange can run out of the box.
 
 ## Getting Started
 
@@ -19,7 +19,7 @@ The app serves four primary audiences: **primary-school teachers** (PO) running 
 - [Feature Analysis](./Features/features): 354 canonical features, 52 competitors profiled, 159 tender records, 22 strategic insights, MVP / V1 / Enterprise roadmap
 - [Design References](./Technical/design-decisions): Wireframes for teacher / student / compliance dashboards, course detail page, proctored exam runner, OPP cycle view, EDCI credential viewer, admin settings
 
-## Why Scholiq?
+## Why Learniq?
 
 - **First Nextcloud-native LMS**, schools control data; no SaaS lock-in; aligns with AVG-Onderwijs minimisation principles
 - **Dutch market gatekeepers on the roadmap**, BRON/ROD (DUO), OSO transfer, UWLR, Edukoppeling, SchoolID/ECK iD pseudonymisation and SURFconext SSO are the design target for the `data-exchange` capability; none of them run end-to-end yet — see the note above

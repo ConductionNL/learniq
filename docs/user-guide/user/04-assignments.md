@@ -6,7 +6,7 @@ description: Publish an assignment on a course, accept submissions, and grade th
 
 # Set an assignment and collect submissions
 
-Assignments are the everyday graded work on a course: an essay, a problem set, a project, a lab report. Scholiq tracks the brief, every submission, and the grade.
+Assignments are the everyday graded work on a course: an essay, a problem set, a project, a lab report. Learniq tracks the brief, every submission, and the grade.
 
 ## Goal
 
@@ -15,11 +15,11 @@ By the end you will have published an assignment, seen learners submit to it, an
 ## Prerequisites
 
 - The course exists and has enrolments (see [Create a course](./02-create-course.md) and [Enrol students](./03-enrol-students.md)).
-- You have a **Rubric** or **Grade scale** to grade against, or you accept Scholiq's default *Numeric 0–100* scale.
+- You have a **Rubric** or **Grade scale** to grade against, or you accept Learniq's default *Numeric 0–100* scale.
 
 ## Steps
 
-1. Open Scholiq and click **Assignments** in the left navigation. The list view shows every assignment across every course you teach.
+1. Open Learniq and click **Assignments** in the left navigation. The list view shows every assignment across every course you teach.
 
    ![Assignments list](/screenshots/tutorials/user/04-assignments-01.png)
 

@@ -94,7 +94,7 @@ class SchoolAdviesSendToRodHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#scenario-sending-a-definitief-advies-creates-and-links-a-bron-rod-dataexchangejob
+	 * @spec openspec/specs/enrolment/spec.md#scenario-sending-a-definitief-advies-creates-and-links-a-bron-rod-dataexchangejob
 	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-the-handler-names-the-mapping
 	 */
 	public function testSendToRodAsksIntegriqAndLinksTheJob(): void {
