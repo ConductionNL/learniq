@@ -2168,7 +2168,9 @@
         "The file of this import cannot be opened by the person who asked for it.": "The file of this import cannot be opened by the person who asked for it.",
         "The file of this import is larger than 10 MB or has more than 5,000 rows. Split it and import each part.": "The file of this import is larger than 10 MB or has more than 5,000 rows. Split it and import each part.",
         "The file of this import cannot be read as CSV, JSON or XML.": "The file of this import cannot be read as CSV, JSON or XML.",
-        "UUID of the integriq exchange job that received this dossier, when it came in through one. Null for a dossier entered by hand.": "UUID of the integriq exchange job that received this dossier, when it came in through one. Null for a dossier entered by hand."
+        "UUID of the integriq exchange job that received this dossier, when it came in through one. Null for a dossier entered by hand.": "UUID of the integriq exchange job that received this dossier, when it came in through one. Null for a dossier entered by hand.",
+        "Enrolment Source": "Enrolment Source",
+        "Origin of the enrolment record. admission is stamped by ApplicationConversionHandler on Application placement; subject-choice is stamped by SubjectChoiceEnrolmentBridge when a SubjectChoice locks (admissions-and-subject-choice); credential-renewal is stamped by CredentialRenewalListener when a Credential expires (credential-renewal-listener).": "Origin of the enrolment record. admission is stamped by ApplicationConversionHandler on Application placement; subject-choice is stamped by SubjectChoiceEnrolmentBridge when a SubjectChoice locks (admissions-and-subject-choice); credential-renewal is stamped by CredentialRenewalListener when a Credential expires (credential-renewal-listener)."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

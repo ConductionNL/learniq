@@ -52,14 +52,19 @@
 ## Tests (company-wide ADR-009)
 - [x] PHPUnit unit tests for new/changed business logic (`tests/Unit/`) —
   `CredentialRenewalListenerTest`
-- [ ] Newman/Postman tests for new/changed API endpoints — N/A, no API changed
-- [ ] Browser tests (Playwright MCP) for UI changes — N/A, no UI changed
+- [x] Newman/Postman tests for new/changed API endpoints — N/A, no API changed
+  - N/A, confirmed in r5-structure: f825c3f1 (#918) touches no controller and no `appinfo/routes.php`.
+- [x] Browser tests (Playwright MCP) for UI changes — N/A, no UI changed
+  - N/A, confirmed in r5-structure: f825c3f1 changes nothing under `src/`.
 - [x] All tests pass (`vendor/bin/phpunit --filter CredentialRenewalListenerTest`)
 
 ## Documentation (company-wide ADR-010)
-- [ ] Feature documentation updated in `docs/` — N/A, no new user-facing surface
-- [ ] Screenshot captured and committed to `docs/images/` — N/A, no visual change
+- [x] Feature documentation updated in `docs/` — N/A, no new user-facing surface
+  - N/A, confirmed in r5-structure: a backend listener with no page or setting.
+- [x] Screenshot captured and committed to `docs/images/` — N/A, no visual change
+  - N/A, confirmed in r5-structure: nothing visual changed.
 
 ## i18n (company-wide ADR-005)
-- [ ] Dutch (`nl_NL`) and English (`en_US`) translation strings added — N/A,
+- [x] Dutch (`nl_NL`) and English (`en_US`) translation strings added — N/A,
   no new user-facing strings
+  - Not N/A after all: f825c3f1 rewrote the `Enrolment.source` description, which renders as helper text. r5-structure added its title and description to `l10n/en.json` and `l10n/nl.json` (both were uncovered), listed the Dutch values in `l10n/ai-translated.json` for review, and lowered the `check:schema-l10n` baseline by two.
