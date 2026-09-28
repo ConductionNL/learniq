@@ -536,6 +536,22 @@
 							]
 						}
 					}
+				},
+				{
+					"id": "HourPlanActivitiesMenu",
+					"label": "Teaching activities",
+					"icon": "TableClock",
+					"route": "HourPlanActivities",
+					"order": 62,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"admin"
+							]
+						}
+					}
 				}
 			],
 			"visibleIf": {
@@ -1593,6 +1609,10 @@
 									"label": "Academic Year"
 								},
 								{
+									"key": "programmeYear",
+									"label": "Year of the programme"
+								},
+								{
 									"key": "period",
 									"label": "Period"
 								},
@@ -1658,6 +1678,47 @@
 						"type": "related",
 						"title": "Related",
 						"icon": "LinkVariant"
+					},
+					{
+						"id": "prog-hour-plans",
+						"type": "object-list",
+						"title": "Hour plans",
+						"icon": "TableClock",
+						"content": {
+							"register": "learniq",
+							"schema": "hour-plan",
+							"filter": {
+								"programmeId": "@objectId"
+							},
+							"sort": {
+								"field": "intakeYear",
+								"dir": "desc"
+							},
+							"limit": 25,
+							"columns": [
+								{
+									"key": "name",
+									"label": "Name"
+								},
+								{
+									"key": "intakeYear",
+									"label": "Intake year"
+								},
+								{
+									"key": "lifecycle",
+									"label": "Status"
+								}
+							],
+							"rowRoute": "HourPlanEditor",
+							"emptyText": "No hour plans yet.",
+							"formExcludeFields": [
+								"programmeId",
+								"lines",
+								"yearNorms",
+								"lifecycle",
+								"tenant_id"
+							]
+						}
 					}
 				],
 				"layout": [
@@ -1730,6 +1791,15 @@
 						"gridX": 6,
 						"gridY": 11,
 						"gridWidth": 6,
+						"gridHeight": 5,
+						"showTitle": false
+					},
+					{
+						"id": "7",
+						"widgetId": "prog-hour-plans",
+						"gridX": 0,
+						"gridY": 16,
+						"gridWidth": 12,
 						"gridHeight": 5,
 						"showTitle": false
 					}
@@ -7699,6 +7769,22 @@
 				"register": "learniq"
 			},
 			"_note": "nav-restructure-dashboards: GroupLearning's navigable landing dashboard — a bespoke domain overview with no generic index/detail/dashboard analogue. The nav icon + group association live on the GroupLearning menu entry (base manifest + this fragment's menu route), not on the page (icon/group are not valid v2 page props)."
+		},
+		{
+			"id": "HourPlanEditor",
+			"route": "/hour-plans/:id",
+			"type": "custom",
+			"title": "Hour plan",
+			"component": "HourPlanEditor",
+			"_note": "timetabling-multi-year-hour-plan: the hours per course, year of the programme and period as a grid, with totals per year against the norm. A matrix editor the generic form cannot render."
+		},
+		{
+			"id": "HourPlanActivities",
+			"route": "/teaching-activities",
+			"type": "custom",
+			"title": "Teaching activities",
+			"component": "HourPlanActivities",
+			"_note": "timetabling-multi-year-hour-plan: the teaching activities a school year needs, derived from the hour plans by GET /api/hour-plans/activities, with CSV export for the timetabling system."
 		},
 		{
 			"id": "RoomUtilisationReport",

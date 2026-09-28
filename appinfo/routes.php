@@ -170,6 +170,9 @@ return [
         // (planninq when installed, else Session), after an RBAC read of the cohort
         // (sessions-from-planninq).
         ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
+        // Teaching activities of a school year, derived from the hour plans
+        // (timetabling-multi-year-hour-plan). Staff groups only, checked in the body.
+        ['name' => 'hourPlan#activities', 'url' => '/api/hour-plans/activities', 'verb' => 'GET'],
         // Room use report and its opening hours (timetabling-room-utilisation).
         // Staff groups only, checked in the body.
         ['name' => 'roomUtilisation#report', 'url' => '/api/reports/room-use', 'verb' => 'GET'],
