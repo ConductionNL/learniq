@@ -18,6 +18,7 @@
  *
  * @spec openspec/changes/segment-runtime-bridge/specs/nextcloud-app/spec.md#requirement-the-server-resolves-one-current-segment
  * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#requirement-the-wizard-asks-what-kind-of-organisation-this-is
+ * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#requirement-the-page-tells-a-chosen-segment-apart-from-the-default
  */
 
 declare(strict_types=1);
@@ -26,6 +27,7 @@ namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Service\SegmentService;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use InvalidArgumentException;
@@ -47,23 +49,127 @@ class SegmentServiceTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturn($rows);
 
-		return new SegmentService($objectService, $this->createMock(LoggerInterface::class));
+		return new SegmentService($objectService, $this->createMock(LoggerInterface::class), $this->users());
 	}//end service()
+
+	/**
+	 * A user manager that knows exactly the given user ids.
+	 *
+	 * @param array<int, string> $known The existing user ids.
+	 *
+	 * @return IUserManager
+	 */
+	private function users(array $known=['admin']): IUserManager {
+		$users = $this->createMock(IUserManager::class);
+		$users->method('userExists')->willReturnCallback(
+			static fn (string $uid): bool => in_array($uid, $known, true)
+		);
+
+		return $users;
+	}//end users()
 
 	/**
 	 * A settings row as OpenRegister serialises it.
 	 *
-	 * @param string $segment The stored segment code.
-	 * @param string $updated The `@self.updated` timestamp.
+	 * @param string      $segment The stored segment code.
+	 * @param string      $updated The `@self.updated` timestamp.
+	 * @param string|null $setBy   Who set it, when anyone.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private static function row(string $segment, string $updated): array {
+	private static function row(string $segment, string $updated, ?string $setBy=null): array {
 		return [
 			'segment' => $segment,
+			'setBy'   => $setBy,
 			'@self'   => ['updated' => $updated],
 		];
 	}//end row()
+
+	/**
+	 * The wizard wrote the row: the segment counts as chosen.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#scenario-the-wizard-stored-company
+	 */
+	public function testARowSetByAnExistingUserIsAChoice(): void {
+		$rows = [self::row('corporate', '2026-09-27T10:00:00+00:00', 'admin')];
+
+		self::assertSame(['segment' => 'corporate', 'chosenSegment' => 'corporate'], $this->service($rows)->workspace());
+		self::assertSame('corporate', $this->service($rows)->chosenSegment());
+	}//end testARowSetByAnExistingUserIsAChoice()
+
+	/**
+	 * The generated demo rows name fictional people: nobody chose.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/company-segment-menu-gating/specs/nextcloud-app/spec.md#scenario-only-the-generated-demo-rows-exist
+	 */
+	public function testTheGeneratedDemoRowsAreNotAChoice(): void {
+		$path = __DIR__ . '/../../../lib/Settings/learniq_mock_register.json';
+		$mock = json_decode((string) file_get_contents($path), true);
+		$rows = array_values(
+			array_filter(
+				$mock['components']['objects'],
+				static fn (array $object): bool => ($object['@self']['schema'] ?? '') === 'learniqsettings'
+			)
+		);
+		self::assertNotEmpty($rows);
+		foreach ($rows as $index => $row) {
+			$rows[$index]['@self']['updated'] = '2026-09-0' . ($index + 1) . 'T09:00:00+00:00';
+		}
+
+		self::assertSame(['segment' => 'corporate', 'chosenSegment' => null], $this->service($rows)->workspace());
+	}//end testTheGeneratedDemoRowsAreNotAChoice()
+
+	/**
+	 * No row, an empty setBy, or a user that no longer exists: nobody chose.
+	 *
+	 * @return void
+	 */
+	public function testWithoutAKnownChooserTheSegmentIsNotChosen(): void {
+		self::assertSame(['segment' => 'corporate', 'chosenSegment' => null], $this->service([])->workspace());
+		self::assertNull($this->service([self::row('po', '2026-09-27T10:00:00+00:00')])->chosenSegment());
+		self::assertNull($this->service([self::row('po', '2026-09-27T10:00:00+00:00', '')])->chosenSegment());
+		self::assertSame(
+			['segment' => 'vo', 'chosenSegment' => null],
+			$this->service([self::row('vo', '2026-09-27T10:00:00+00:00', 'left-the-school')])->workspace()
+		);
+	}//end testWithoutAKnownChooserTheSegmentIsNotChosen()
+
+	/**
+	 * The newest row decides both values; an older row by a real user does
+	 * not make a newer demo-style row count.
+	 *
+	 * @return void
+	 */
+	public function testTheNewestRowDecidesWhetherItWasChosen(): void {
+		$rows = [
+			self::row('po', '2026-03-01T09:00:00+00:00', 'admin'),
+			self::row('corporate', '2026-09-27T09:00:00+00:00', 'Voorbeeld Setby 1'),
+		];
+
+		self::assertSame(['segment' => 'corporate', 'chosenSegment' => null], $this->service($rows)->workspace());
+	}//end testTheNewestRowDecidesWhetherItWasChosen()
+
+	/**
+	 * A failing user lookup is logged and treated as not chosen.
+	 *
+	 * @return void
+	 */
+	public function testAFailingUserLookupIsNotAChoice(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturn([self::row('corporate', '2026-09-27T10:00:00+00:00', 'admin')]);
+		$users = $this->createMock(IUserManager::class);
+		$users->method('userExists')->willThrowException(new RuntimeException('LDAP is down'));
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects(self::once())->method('info');
+
+		$service = new SegmentService($objectService, $logger, $users);
+
+		self::assertSame(['segment' => 'corporate', 'chosenSegment' => null], $service->workspace());
+	}//end testAFailingUserLookupIsNotAChoice()
 
 	/**
 	 * No settings record yet: the no-behaviour-change default.
@@ -153,7 +259,7 @@ class SegmentServiceTest extends TestCase {
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects(self::once())->method('info');
 
-		$service = new SegmentService($objectService, $logger);
+		$service = new SegmentService($objectService, $logger, $this->users());
 
 		self::assertSame('corporate', $service->currentSegment());
 	}//end testAFailedReadFallsBackAndLogs()
@@ -176,7 +282,7 @@ class SegmentServiceTest extends TestCase {
 			)
 			->willReturn([]);
 
-		(new SegmentService($objectService, $this->createMock(LoggerInterface::class)))->currentSegment();
+		(new SegmentService($objectService, $this->createMock(LoggerInterface::class), $this->users()))->currentSegment();
 	}//end testTheReadSkipsRbac()
 
 	/**
@@ -256,7 +362,7 @@ class SegmentServiceTest extends TestCase {
 				false
 			);
 
-		(new SegmentService($objectService, $this->createMock(LoggerInterface::class)))->setSegment('po', 'admin');
+		(new SegmentService($objectService, $this->createMock(LoggerInterface::class), $this->users()))->setSegment('po', 'admin');
 	}//end testSetSegmentCreatesTheRecordWhenNoneExists()
 
 	/**
@@ -282,7 +388,7 @@ class SegmentServiceTest extends TestCase {
 				false
 			);
 
-		(new SegmentService($objectService, $this->createMock(LoggerInterface::class)))->setSegment('vo', 'admin');
+		(new SegmentService($objectService, $this->createMock(LoggerInterface::class), $this->users()))->setSegment('vo', 'admin');
 	}//end testSetSegmentUpdatesTheCurrentRecord()
 
 	/**
@@ -297,6 +403,6 @@ class SegmentServiceTest extends TestCase {
 		$objectService->expects(self::never())->method('saveObject');
 
 		$this->expectException(InvalidArgumentException::class);
-		(new SegmentService($objectService, $this->createMock(LoggerInterface::class)))->setSegment('kindergarten', 'admin');
+		(new SegmentService($objectService, $this->createMock(LoggerInterface::class), $this->users()))->setSegment('kindergarten', 'admin');
 	}//end testSetSegmentRefusesAnUnknownCode()
 }//end class
