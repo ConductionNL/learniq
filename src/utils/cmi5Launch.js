@@ -11,8 +11,8 @@
  * `window.API` object is.
  *
  * This module builds the URL from a launch-token response shape; it does not
- * itself call the (not-yet-built, sibling `cmi5-xapi-lrs-ingest` change)
- * launch-token endpoint — that HTTP call lives in `LessonPlayer.vue`, which
+ * itself call the launch endpoint (`POST /api/lessons/{id}/cmi5-launch`,
+ * cmi5-xapi-lrs-ingest); that HTTP call lives in `LessonPlayer.vue`, which
  * degrades gracefully when the endpoint 404s/503s (see that file and the
  * spec's "cmi5 lesson gracefully degrades" scenario).
  *
