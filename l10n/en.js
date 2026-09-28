@@ -2138,7 +2138,9 @@ OC.L10N.register(
         "When the time for this attempt runs out, extra time included. Set by the server when the attempt starts; null for a test without a time limit.": "When the time for this attempt runs out, extra time included. Set by the server when the attempt starts; null for a test without a time limit.",
         "Saving your answers": "Saving your answers",
         "Your answers are saved": "Your answers are saved",
-        "Your answers could not be saved just now. We try again with your next answer and when you hand in.": "Your answers could not be saved just now. We try again with your next answer and when you hand in."
+        "Your answers could not be saved just now. We try again with your next answer and when you hand in.": "Your answers could not be saved just now. We try again with your next answer and when you hand in.",
+        "Voorlopig exchange job ID": "Voorlopig exchange job ID",
+        "UUID of the integriq exchange job (target bron-rod) requested when the voorlopig advice was sent to ROD. Null until sent.": "UUID of the integriq exchange job (target bron-rod) requested when the voorlopig advice was sent to ROD. Null until sent."
     },
     "nplurals=2; plural=(n != 1);"
 )

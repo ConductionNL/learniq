@@ -2597,7 +2597,9 @@ OC.L10N.register(
         "When the time for this attempt runs out, extra time included. Set by the server when the attempt starts; null for a test without a time limit.": "Wanneer de tijd voor deze poging op is, extra tijd meegerekend. De server zet dit bij de start van de poging; leeg bij een toets zonder tijdslimiet.",
         "Saving your answers": "Je antwoorden worden opgeslagen",
         "Your answers are saved": "Je antwoorden zijn opgeslagen",
-        "Your answers could not be saved just now. We try again with your next answer and when you hand in.": "Je antwoorden konden net niet worden opgeslagen. We proberen het opnieuw bij je volgende antwoord en bij het inleveren."
+        "Your answers could not be saved just now. We try again with your next answer and when you hand in.": "Je antwoorden konden net niet worden opgeslagen. We proberen het opnieuw bij je volgende antwoord en bij het inleveren.",
+        "Voorlopig exchange job ID": "Uitwisselingstaak voorlopig advies",
+        "UUID of the integriq exchange job (target bron-rod) requested when the voorlopig advice was sent to ROD. Null until sent.": "UUID van de integriq-uitwisselingstaak (doel bron-rod) die is aangevraagd toen het voorlopig advies naar ROD ging. Leeg tot het is verstuurd."
     },
     "nplurals=2; plural=(n != 1);"
 )
