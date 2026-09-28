@@ -186,13 +186,14 @@ class RejectionResubmitGuard implements LifecycleGuardInterface {
 	 * @spec openspec/changes/duo-afkeurmelding-correction/tasks.md#task-2.3
 	 */
 	private function loadOriginalJob(string $jobId, string $tenantId): ?array {
-		$filters = ['id' => $jobId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$results = $this->objectService->findAll(
 			[
+				'ids' => [$jobId],
 				'filters' => array_merge(
 					$filters,
 					[

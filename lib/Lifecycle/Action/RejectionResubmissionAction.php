@@ -147,13 +147,14 @@ class RejectionResubmissionAction implements LifecycleActionInterface {
 	 * @return array<string,mixed>|null The job data, or null if not found.
 	 */
 	private function loadOriginalJob(string $jobId, string $tenantId): ?array {
-		$filters = ['id' => $jobId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$results = $this->objectService->findAll(
 			[
+				'ids' => [$jobId],
 				'filters' => array_merge(
 					$filters,
 					[

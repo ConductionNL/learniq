@@ -275,13 +275,14 @@ class SessionWindowLoader {
 			return $cache[$cohortId];
 		}
 
-		$filters = ['id' => $cohortId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$results = $this->objectService->findAll(
 			[
+				'ids' => [$cohortId],
 				'filters' => array_merge(
 					$filters,
 					[
@@ -325,13 +326,14 @@ class SessionWindowLoader {
 			return $cache[$roomId];
 		}
 
-		$filters = ['id' => $roomId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$results = $this->objectService->findAll(
 			[
+				'ids' => [$roomId],
 				'filters' => array_merge(
 					$filters,
 					[

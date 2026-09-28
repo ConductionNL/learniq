@@ -57,7 +57,7 @@ class ReportCardVisibilityGuardTest extends TestCase {
 					return [];
 				}
 
-				$id = $config['filters']['id'] ?? null;
+				$id = $config['ids'][0] ?? null;
 				if ($id === null || array_key_exists($id, $visibleFromById) === false) {
 					return [];
 				}

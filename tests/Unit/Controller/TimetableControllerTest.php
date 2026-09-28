@@ -165,7 +165,7 @@ class TimetableControllerTest extends TestCase {
 				}
 
 				if ($schema === 'room') {
-					$id = $filters['id'] ?? null;
+					$id = $config['ids'][0] ?? null;
 					return array_values(array_filter($rooms, static fn (array $r): bool => ($r['id'] ?? null) === $id));
 				}
 

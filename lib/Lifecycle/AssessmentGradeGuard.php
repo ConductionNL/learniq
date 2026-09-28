@@ -125,12 +125,12 @@ class AssessmentGradeGuard implements LifecycleGuardInterface {
 
 		$assessments = $this->objectService->findAll(
 			[
+				'ids' => [$assessmentId],
 				// H1: scope Assessment lookup to the same tenant.
 				'filters' => $this->tenantScoped(
 					filters: [
 						'register' => self::LEARNIQ_REGISTER,
 						'schema' => 'exam',
-						'uuid' => $assessmentId,
 					],
 					tenantId: $tenantId
 				),
@@ -252,12 +252,12 @@ class AssessmentGradeGuard implements LifecycleGuardInterface {
 	private function fetchItemsByUuid(array $itemIds, string $tenantId): array {
 		$fetchedItems = $this->objectService->findAll(
 			[
+				'ids' => array_values($itemIds),
 				// H1: scope the Item lookup to the same tenant.
 				'filters' => $this->tenantScoped(
 					filters: [
 						'register' => self::LEARNIQ_REGISTER,
 						'schema' => 'item',
-						'uuid' => $itemIds,
 					],
 					tenantId: $tenantId
 				),
