@@ -27,6 +27,21 @@
 			"icon": "SchoolOutline",
 			"route": "MyLearningRecordView",
 			"order": 26
+		},
+		{
+			"id": "CheckInMenu",
+			"label": "Check in",
+			"icon": "QrcodeScan",
+			"route": "CheckIn",
+			"order": 27,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [
@@ -320,6 +335,14 @@
 			"title": "My timetable",
 			"component": "MyTimetable",
 			"_note": "personal-timetable: the signed-in user's own week view. A bespoke component (no generic lib index/detail analogue) rendering the caller's OWN Session objects for a window, resolved server-side from cohort membership (teacher/learner) and RBAC-scoped via ObjectService. Read-only — clicking a session deep-links to SessionDetail; no create/edit here."
+		},
+		{
+			"id": "CheckIn",
+			"route": "/check-in",
+			"type": "custom",
+			"title": "Check in",
+			"component": "CheckInPage",
+			"_note": "Mounts CheckInPage (attendance-self-check-in): the learner types the code on the board and learniq's POST /api/check-in checks every rule and writes the attendance record. Custom on purpose: a code entry flow against a learniq endpoint, not a list, record or dashboard of one schema; learners cannot read CheckInWindow at all."
 		}
 	]
 }

@@ -62,6 +62,17 @@ Pupils and parents can report an absence in the school portal. The report lands 
 
 Approve or reject the report as usual. When you enter a report yourself, fill in the pupil, who reported it and the school, or learniq refuses to save it.
 
+## Learners check in themselves
+
+Instead of calling the roll you can let learners check in with a code.
+
+1. Open the register of the lesson and choose **Open self check-in**. For an online lesson choose **Open check-in for an online lesson**: you get a link to share instead.
+2. Show the code on the board. It changes every thirty seconds, so a photo sent to a friend outside the room stops working.
+3. Learners open **Check in** in learniq, or check in from the portal, and type the code. A learner of the lesson's group is marked present, or late when it is more than five minutes after the start of the lesson.
+4. You see the number of check-ins on the board. Choose **Close check-in** when you are done; it also closes by itself after fifteen minutes or at the end of the lesson.
+
+A self check-in shows a small *checked in* label in the register. You can still change it like any other mark; once you change it and save, it counts as your mark. A check-in never overwrites a mark you already saved.
+
 ## Reference
 
 - [Submit an excuse](./05-attendance.md#common-issues), the learner-side equivalent (the *Submit excuse* button on their attendance row).

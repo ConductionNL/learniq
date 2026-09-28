@@ -21157,7 +21157,8 @@
         "cohortId": "00000000-0000-4000-8000-000000000000",
         "minutesAttended": 1,
         "reason": "Voorbeeld Reason 1",
-        "excuseRequestId": "00000000-0000-4000-8000-000000000000"
+        "excuseRequestId": "00000000-0000-4000-8000-000000000000",
+        "markedVia": "self-check-in"
       },
       {
         "@self": {
@@ -21175,7 +21176,8 @@
         "cohortId": "00000000-0000-4000-8000-000000000001",
         "minutesAttended": 2,
         "reason": "Voorbeeld Reason 2",
-        "excuseRequestId": "00000000-0000-4000-8000-000000000001"
+        "excuseRequestId": "00000000-0000-4000-8000-000000000001",
+        "markedVia": "self-check-in"
       },
       {
         "@self": {
@@ -21193,7 +21195,53 @@
         "cohortId": "00000000-0000-4000-8000-000000000002",
         "minutesAttended": 3,
         "reason": "Voorbeeld Reason 3",
-        "excuseRequestId": "00000000-0000-4000-8000-000000000002"
+        "excuseRequestId": "00000000-0000-4000-8000-000000000002",
+        "markedVia": "teacher"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CheckInWindow",
+          "slug": "checkinwindow-wiskunde-b-1"
+        },
+        "sessionId": "00000000-0000-4000-8000-000000000000",
+        "openedBy": "j.devries",
+        "opensAt": "2026-09-22T08:30:00+00:00",
+        "closesAt": "2026-09-22T08:45:00+00:00",
+        "lateAfterMinutes": 5,
+        "mode": "rotating-qr",
+        "lifecycle": "closed",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CheckInWindow",
+          "slug": "checkinwindow-wiskunde-b-2"
+        },
+        "sessionId": "00000000-0000-4000-8000-000000000001",
+        "openedBy": "j.devries",
+        "opensAt": "2026-09-23T08:30:00+00:00",
+        "closesAt": "2026-09-23T08:45:00+00:00",
+        "lateAfterMinutes": 5,
+        "mode": "link",
+        "lifecycle": "closed",
+        "tenant_id": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "CheckInWindow",
+          "slug": "checkinwindow-wiskunde-b-3"
+        },
+        "sessionId": "00000000-0000-4000-8000-000000000002",
+        "openedBy": "j.devries",
+        "opensAt": "2026-09-29T08:30:00+00:00",
+        "closesAt": "2026-09-29T08:45:00+00:00",
+        "lateAfterMinutes": 5,
+        "mode": "rotating-qr",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000002"
       },
       {
         "@self": {

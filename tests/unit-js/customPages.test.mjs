@@ -30,6 +30,7 @@ import {
 	nextGoalId,
 	parseMark,
 	planGraph,
+	registerRowsToSave,
 	timelineEvents,
 } from '../../src/utils/customPages.js'
 
@@ -75,8 +76,8 @@ test('the attendance register keeps saved marks and defaults the rest to present
 		[{ id: 'r1', learnerId: 'b', status: 'late', reason: 'bus' }],
 	)
 	assert.deepEqual(rows, [
-		{ learnerId: 'a', status: 'present', reason: '', recordId: '' },
-		{ learnerId: 'b', status: 'late', reason: 'bus', recordId: 'r1' },
+		{ learnerId: 'a', status: 'present', reason: '', recordId: '', markedVia: 'teacher', savedStatus: null, savedReason: '' },
+		{ learnerId: 'b', status: 'late', reason: 'bus', recordId: 'r1', markedVia: 'teacher', savedStatus: 'late', savedReason: 'bus' },
 	])
 	const body = attendanceRecord(
 		rows[1],
@@ -86,6 +87,22 @@ test('the attendance register keeps saved marks and defaults the rest to present
 	)
 	assertFitsSchema(body, 'AttendanceRecord')
 	assert.equal(body.sessionId, 's1')
+	assert.equal(body.markedVia, 'teacher')
+})
+
+test('saving the register leaves an untouched self check-in alone and turns a changed one into a teacher mark', () => {
+	const rows = attendanceRows(
+		['a', 'b', 'c'],
+		[
+			{ id: 'r1', learnerId: 'a', status: 'present', markedVia: 'self-check-in' },
+			{ id: 'r2', learnerId: 'b', status: 'late', markedVia: 'self-check-in' },
+		],
+	)
+	rows[1].status = 'present'
+	assert.deepEqual(
+		registerRowsToSave(rows).map((r) => r.learnerId),
+		['b', 'c'],
+	)
 })
 
 test('the gradebook grid skips revised and invalidated marks and posts a valid concept entry', () => {

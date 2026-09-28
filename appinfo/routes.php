@@ -166,6 +166,21 @@ return [
         // Controller: PeerReviewController (slug: peerReview).
         ['name' => 'peerReview#allocate', 'url' => '/api/peer-review/{assignmentId}/allocate', 'verb' => 'POST'],
 
+        // Self check-in (attendance-self-check-in): a learner of the lesson's
+        // group reads the check-in page and checks in with the code on the
+        // board (rules in CheckInService); staff read the current code
+        // (CheckInCodeController, slug: checkInCode).
+        // Controller: CheckInController (slug: checkIn).
+        ['name' => 'checkIn#mine', 'url' => '/api/check-in', 'verb' => 'GET'],
+        ['name' => 'checkIn#checkInWithCode', 'url' => '/api/check-in', 'verb' => 'POST'],
+        ['name' => 'checkIn#show', 'url' => '/api/check-in/{windowId}', 'verb' => 'GET'],
+        ['name' => 'checkIn#checkIn', 'url' => '/api/check-in/{windowId}', 'verb' => 'POST'],
+        ['name' => 'checkInCode#code', 'url' => '/api/check-in/{windowId}/code', 'verb' => 'GET'],
+        // Portal check-in receiver (attendance-self-check-in, pattern of #1096
+        // and #1142): X-Portal-Subject assertion only, learnerRef from portaliq.
+        // Controller: PortalCheckInController (slug: portalCheckIn).
+        ['name' => 'portalCheckIn#checkIn', 'url' => '/api/portal/check-in', 'verb' => 'POST'],
+
         // Peer review work projection (peer-review-projection-guard): what a
         // reviewer sees of the work under review, built by the server. The
         // authors are withheld for double-blind, the teacher's marking always.
