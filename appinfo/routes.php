@@ -173,6 +173,11 @@ return [
         // Teaching activities of a school year, derived from the hour plans
         // (timetabling-multi-year-hour-plan). Staff groups only, checked in the body.
         ['name' => 'hourPlan#activities', 'url' => '/api/hour-plans/activities', 'verb' => 'GET'],
+        // Room use report and its opening hours (timetabling-room-utilisation).
+        // Staff groups only, checked in the body.
+        ['name' => 'roomUtilisation#report', 'url' => '/api/reports/room-use', 'verb' => 'GET'],
+        ['name' => 'roomUtilisation#openingHours', 'url' => '/api/reports/room-use/opening-hours', 'verb' => 'GET'],
+        ['name' => 'roomUtilisation#saveOpeningHours', 'url' => '/api/reports/room-use/opening-hours', 'verb' => 'PUT'],
 
         // Peer review reviewer allocation — genuine batch-matching business logic
         // (peer-and-self-assessment), authorized by an explicit per-object check

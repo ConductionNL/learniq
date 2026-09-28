@@ -7785,6 +7785,14 @@
 			"title": "Teaching activities",
 			"component": "HourPlanActivities",
 			"_note": "timetabling-multi-year-hour-plan: the teaching activities a school year needs, derived from the hour plans by GET /api/hour-plans/activities, with CSV export for the timetabling system."
+		},
+		{
+			"id": "RoomUtilisationReport",
+			"route": "/reports/room-use",
+			"type": "custom",
+			"title": "Room use",
+			"component": "RoomUtilisationReport",
+			"_note": "timetabling-room-utilisation: how well rooms are used over a period, computed by GET /api/reports/room-use. Reached from a Reports card (D8), no menu entry."
 		}
 	]
 }
