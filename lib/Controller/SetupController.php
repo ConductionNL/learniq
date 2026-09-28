@@ -165,6 +165,7 @@ class SetupController extends Controller {
 	public function status(): JSONResponse {
 		$picked      = $this->pickedProfile();
 		$demoDecided = $this->appConfig->getValueString(Application::APP_ID, self::DEMO_DECIDED_KEY, '') !== '';
+		$profiles    = $this->seedProfiles->listChoices();
 
 		return new JSONResponse(
 			data: [
@@ -173,7 +174,7 @@ class SetupController extends Controller {
 				// The choice steps read their options from here: they declare
 				// `optionsSource` and no options of their own, so an entry
 				// missing from these lists is one nobody can pick.
-				'profiles'  => $this->seedProfiles->listChoices(),
+				'profiles'  => $profiles,
 				'segments'  => $this->segments->listChoices(),
 				'steps'     => [
 					'example-set'      => ['done' => ($picked !== '')],
@@ -190,7 +191,7 @@ class SetupController extends Controller {
 					// set as soon as someone paged onto it, or reopen the wizard
 					// on every page. Done, it runs only when the admin clicks it.
 					'remove-example-set' => ['done' => true],
-				],
+				] + $this->seedProfiles->loadedSets()->removalSteps(choices: $profiles),
 			]
 		);
 	}//end status()
@@ -272,6 +273,16 @@ class SetupController extends Controller {
 			return $this->removeExampleSet();
 		}
 
+		// One removal step per loaded set (D34): `remove-example-set-<id>`.
+		$setId = $this->seedProfiles->loadedSets()->setIdFromAction(actionId: $actionId);
+		if ($setId !== null) {
+			if ($setId !== SeedProfileService::GENERATED_PROFILE && $this->seedProfiles->isKnown(profileId: $setId) === false) {
+				return $this->badRequest(message: 'No example set is called "' . $setId . '".');
+			}
+
+			return $this->removeExampleSet(profileId: $setId);
+		}
+
 		if ($actionId === 'skip-example-set' || $actionId === 'skip-demo-data') {
 			$this->appConfig->setValueString(Application::APP_ID, self::PROFILE_KEY, SeedProfileService::NONE_PROFILE);
 			$this->appConfig->setValueString(Application::APP_ID, self::DEMO_DECIDED_KEY, 'skipped');
@@ -343,20 +354,24 @@ class SetupController extends Controller {
 	}//end loadExampleSet()
 
 	/**
-	 * Remove the example set the wizard loaded, through OpenRegister's recorded
-	 * import jobs (openregister PR 4080).
+	 * Remove one example set through OpenRegister's recorded import jobs
+	 * (openregister PR 4080): the one named by a per-set step, or else the one
+	 * stored as the wizard's answer.
 	 *
 	 * Every outcome is an answer the wizard shows: nothing loaded, nothing
 	 * recorded, an OpenRegister without the method (with the occ command that
 	 * removes the set instead), errors (with the command that finishes the
 	 * job), or the number of objects moved to the trash.
 	 *
+	 * @param string|null $profileId The set a per-set step names, or null for the wizard's answer.
+	 *
 	 * @return JSONResponse `{ success, message }`.
 	 *
 	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
+	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
 	 */
-	private function removeExampleSet(): JSONResponse {
-		$picked = $this->pickedProfile();
+	private function removeExampleSet(?string $profileId=null): JSONResponse {
+		$picked = ($profileId ?? $this->pickedProfile());
 		if ($picked === '' || $picked === SeedProfileService::NONE_PROFILE) {
 			return new JSONResponse(data: ['success' => true, 'message' => 'No example data was loaded, so there is nothing to remove.']);
 		}

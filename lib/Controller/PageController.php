@@ -26,9 +26,9 @@ namespace OCA\Learniq\Controller;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\CourseStore\StoreAccessService;
 use OCA\Learniq\Service\DashboardRoleService;
+use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\SegmentService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -57,6 +57,7 @@ class PageController extends Controller {
 	 * @param IInitialState $initialState The initial-state service.
 	 * @param DashboardRoleService $dashboardRoleSvc Resolves the user's role + dashboard views.
 	 * @param ContainerInterface $container Resolves SegmentService lazily (see resolveSegment()).
+	 * @param LoadedExampleSets $loadedSets The example sets the wizard loaded (app config only).
 	 *
 	 * @return void
 	 */
@@ -66,6 +67,7 @@ class PageController extends Controller {
 		private readonly IInitialState $initialState,
 		private readonly DashboardRoleService $dashboardRoleSvc,
 		private readonly ContainerInterface $container,
+		private readonly LoadedExampleSets $loadedSets,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -98,6 +100,8 @@ class PageController extends Controller {
 			$this->initialState->provideInitialState('chosenSegment', $workspace['chosenSegment']);
 			$this->initialState->provideInitialState('confidentialCounsellor', $this->dashboardRoleSvc->isConfidentialCounsellor($user));
 			$this->initialState->provideInitialState('storeAccess', $this->resolveStoreAccess());
+			// One removal step per loaded example set in the setup wizard (D34).
+			$this->initialState->provideInitialState('loadedExampleSets', $this->loadedSets->all());
 		}
 
 		return new TemplateResponse(Application::APP_ID, 'index');
@@ -175,7 +179,7 @@ class PageController extends Controller {
 	#[NoCSRFRequired]
 	public function manifest(): JSONResponse {
 		if ($this->userSession->getUser() === null) {
-			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: 401);
 		}
 
 		$manifestPath = __DIR__ . '/../../src/manifest.json';

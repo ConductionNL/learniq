@@ -2416,6 +2416,8 @@ OC.L10N.register(
         "Loads the set you picked. It is sample data, and running it twice adds nothing. You can remove it again at the end of this wizard.": "Laadt de set die je koos. Het zijn voorbeeldgegevens, en twee keer laden voegt niets toe. Je kunt de set aan het einde van deze wizard weer verwijderen.",
         "Remove the example data": "Verwijder de voorbeeldgegevens",
         "This only runs when you click the button. It moves the example set you loaded to the trash and keeps everything you made yourself. You can come back to it later.": "Dit gebeurt alleen als je op de knop klikt. De voorbeeldset die je laadde gaat naar de prullenbak; wat je zelf maakte blijft staan. Je kunt hier later op terugkomen.",
+        "Remove the example set \"{set}\"": "Verwijder de voorbeeldset \"{set}\"",
+        "This only runs when you click the button. It moves this example set to the trash and keeps everything you made yourself.": "Dit gebeurt alleen als je op de knop klikt. Deze voorbeeldset gaat naar de prullenbak; wat je zelf maakte blijft staan.",
         "AI-translated strings": "Door AI vertaalde teksten",
         "These Dutch texts in the app were written by AI and not yet checked by a translator. Check each one, fix it in the catalogue if needed, then mark it as reviewed.": "Deze Nederlandse teksten in de app zijn door AI geschreven en nog niet door een vertaler gecontroleerd. Controleer ze een voor een, verbeter ze zo nodig in de catalogus en markeer ze dan als gecontroleerd.",
         "Loading…": "Laden…",
@@ -2558,7 +2560,17 @@ OC.L10N.register(
         "Requested": "Aangevraagd",
         "Finished": "Afgerond",
         "What went wrong": "Wat ging er mis",
-        "Record": "Record"
+        "Record": "Record",
+        "Personal number": "Persoonsgebonden nummer",
+        "The pupil's BSN, or the onderwijsnummer when the pupil has no BSN. Only sent to DUO's register (ROD).": "Het BSN van de leerling, of het onderwijsnummer als de leerling geen BSN heeft. Gaat alleen naar het register van DUO (ROD).",
+        "Kind of personal number": "Soort persoonsgebonden nummer",
+        "Whether the personal number is a BSN or an onderwijsnummer.": "Of het persoonsgebonden nummer een BSN of een onderwijsnummer is.",
+        "BSN": "BSN",
+        "Onderwijsnummer": "Onderwijsnummer",
+        "Onderwijsaanbiedercode": "Onderwijsaanbiedercode",
+        "The school's onderwijsaanbieder code in RIO, three digits, the letter A and three digits, for example 100A200.": "De code van de onderwijsaanbieder in RIO: drie cijfers, de letter A en drie cijfers, bijvoorbeeld 100A200.",
+        "School location": "Schoolvestiging",
+        "The school location that gives this advice. DUO needs its vestigingscode.": "De vestiging die dit advies geeft. DUO heeft de vestigingscode nodig."
     },
     "nplurals=2; plural=(n != 1);"
 )

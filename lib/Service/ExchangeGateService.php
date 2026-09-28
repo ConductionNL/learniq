@@ -145,7 +145,7 @@ class ExchangeGateService {
 			return $this->refuse(code: 'records-unavailable', reason: $exception->getMessage());
 		}
 
-		$incomplete = $this->completenessRefusal(target: $target, records: $records);
+		$incomplete = $this->completenessRefusal(target: $target, mappingSlug: $mappingSlug, records: $records);
 		if ($incomplete !== null) {
 			return $this->refuse(code: $incomplete['code'], reason: $incomplete['reason']);
 		}
@@ -263,13 +263,17 @@ class ExchangeGateService {
 	/**
 	 * Condition 5: every record of a statutory target carries its required fields.
 	 *
-	 * @param string                           $target  The exchange target.
-	 * @param array<int, array<string, mixed>> $records The composed records.
+	 * Names fields and record references, never values: a ROD record carries
+	 * the pupil's personal number.
+	 *
+	 * @param string                           $target      The exchange target.
+	 * @param string|null                      $mappingSlug The job's integriq mapping.
+	 * @param array<int, array<string, mixed>> $records     The composed records.
 	 *
 	 * @return array{code: string, reason: string}|null The refusal, or null.
 	 */
-	private function completenessRefusal(string $target, array $records): ?array {
-		$required = $this->disclosure->requiredFor(target: $target);
+	private function completenessRefusal(string $target, ?string $mappingSlug, array $records): ?array {
+		$required = $this->disclosure->requiredFor(target: $target, mappingSlug: $mappingSlug);
 		if ($required === []) {
 			return null;
 		}

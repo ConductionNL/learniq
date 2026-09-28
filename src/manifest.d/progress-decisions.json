@@ -33,6 +33,11 @@
 								"he",
 								"corporate"
 							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -54,6 +59,11 @@
 						"workspace.segment": {
 							"in": [
 								"he",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
 								"corporate"
 							]
 						}
@@ -79,6 +89,11 @@
 								"he",
 								"corporate"
 							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -100,6 +115,11 @@
 						"workspace.segment": {
 							"in": [
 								"he",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
 								"corporate"
 							]
 						}

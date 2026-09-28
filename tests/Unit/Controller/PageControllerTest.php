@@ -27,9 +27,11 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 use OCA\Learniq\Controller\PageController;
 use OCA\Learniq\Service\CourseStore\StoreAccessService;
 use OCA\Learniq\Service\DashboardRoleService;
+use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\SegmentService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Services\IInitialState;
+use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -85,6 +87,7 @@ class PageControllerTest extends TestCase {
 			initialState: ($initialState ?? $this->createMock(IInitialState::class)),
 			dashboardRoleSvc: $roleService,
 			container: $container,
+			loadedSets: new LoadedExampleSets($this->createMock(IAppConfig::class)),
 		);
 	}//end controller()
 
@@ -289,12 +292,50 @@ class PageControllerTest extends TestCase {
 			initialState: $initialState,
 			dashboardRoleSvc: $roleService,
 			container: $this->createMock(ContainerInterface::class),
+			loadedSets: new LoadedExampleSets($this->createMock(IAppConfig::class)),
 		);
 		$controller->index();
 
 		self::assertTrue($provided['confidentialCounsellor']);
 		self::assertSame('instructor', $provided['primaryRole']);
 	}//end testIndexProvidesTheConfidentialCounsellorFlag()
+
+	/**
+	 * index() hands the page shell the loaded example sets, from which the
+	 * browser builds one removal step per set.
+	 *
+	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#scenario-two-sets-were-loaded
+	 *
+	 * @return void
+	 */
+	public function testIndexProvidesTheLoadedExampleSets(): void {
+		$user        = $this->createMock(IUser::class);
+		$userSession = $this->createMock(IUserSession::class);
+		$userSession->method('getUser')->willReturn($user);
+
+		$provided     = [];
+		$initialState = $this->createMock(IInitialState::class);
+		$initialState->method('provideInitialState')->willReturnCallback(
+			static function (string $key, mixed $value) use (&$provided): void {
+				$provided[$key] = $value;
+			}
+		);
+
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->method('getValueString')->willReturn('[{"id":"corporate","label":"Company"},{"id":"training","label":"Training institute"}]');
+
+		$controller = new PageController(
+			request: $this->createMock(IRequest::class),
+			userSession: $userSession,
+			initialState: $initialState,
+			dashboardRoleSvc: $this->createMock(DashboardRoleService::class),
+			container: $this->createMock(ContainerInterface::class),
+			loadedSets: new LoadedExampleSets($appConfig),
+		);
+		$controller->index();
+
+		self::assertSame(['corporate', 'training'], array_column($provided['loadedExampleSets'], 'id'));
+	}//end testIndexProvidesTheLoadedExampleSets()
 
 	/**
 	 * A signed-in user's page carries what they may do in the course store

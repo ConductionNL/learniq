@@ -71,9 +71,11 @@ class DataExchangePayloadBuilder {
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService           $objectService OR object access service.
-	 * @param DataExchangeTransformer $transformer   Resolves the BRIN a mapping needs.
-	 * @param ExchangeDisclosure      $disclosure    What each mapping may read.
+	 * @param ObjectService             $objectService  OR object access service.
+	 * @param DataExchangeTransformer   $transformer    Resolves the BRIN a mapping needs.
+	 * @param ExchangeDisclosure        $disclosure     What each mapping may read.
+	 * @param RodPersonalNumberResolver $personalNumber The pupil's number, for the two ROD mappings only.
+	 * @param RodSchoolAdviceComposer   $schoolAdvice   DUO's AanleverenAdviesVO field set.
 	 *
 	 * @return void
 	 */
@@ -81,6 +83,8 @@ class DataExchangePayloadBuilder {
 		private readonly ObjectService $objectService,
 		private readonly DataExchangeTransformer $transformer,
 		private readonly ExchangeDisclosure $disclosure,
+		private readonly RodPersonalNumberResolver $personalNumber,
+		private readonly RodSchoolAdviceComposer $schoolAdvice,
 	) {
 	}//end __construct()
 
@@ -102,6 +106,7 @@ class DataExchangePayloadBuilder {
 	 * @throws RuntimeException When the scope selects more than QUERY_LIMIT objects.
 	 *
 	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-the-personal-number-leaves-learniq-only-in-a-rod-message-and-is-never-logged
 	 */
 	public function composeRecords(string $target, ?string $mappingSlug, array $scope, string $tenantId): array {
 		$schema = (string)($scope['schema'] ?? '');
@@ -109,16 +114,53 @@ class DataExchangePayloadBuilder {
 		$records = [];
 
 		foreach ($this->querySourceObjects(scope: $scope, tenantId: $tenantId) as $object) {
-			$data = $this->disclose(object: $object, fields: $fields);
+			$recordId = (string)($object['id'] ?? ($object['uuid'] ?? ''));
 			$records[] = [
-				'recordId' => (string)($object['id'] ?? ($object['uuid'] ?? '')),
+				'recordId' => $recordId,
 				'sourceKind' => $schema,
-				'data' => $this->composeFile(record: $data, source: $object, target: $target),
+				'data' => $this->composeData(
+					target: $target,
+					mappingSlug: $mappingSlug,
+					fields: $fields,
+					object: $object,
+					tenantId: $tenantId
+				),
 			];
 		}
 
 		return $records;
 	}//end composeRecords()
+
+	/**
+	 * Compose one record's data, adding the personal number only for the two ROD mappings.
+	 *
+	 * @param string                  $target      The exchange target.
+	 * @param string|null             $mappingSlug The job's integriq mapping.
+	 * @param array<int, string>|null $fields      The mapping's field list.
+	 * @param array<string, mixed>    $object      The source object.
+	 * @param string                  $tenantId    The job's tenant.
+	 *
+	 * @return array<string, mixed> The data.
+	 *
+	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-the-rod-learner-record-carries-the-personal-number-where-duo-expects-a-bsn
+	 */
+	private function composeData(string $target, ?string $mappingSlug, ?array $fields, array $object, string $tenantId): array {
+		$carries = $this->disclosure->carriesPersonalNumber(target: $target, mappingSlug: $mappingSlug);
+		if ($carries === true && $mappingSlug === ExchangeDisclosure::ROD_SCHOOL_ADVICE_MAPPING) {
+			return $this->schoolAdvice->compose(advice: $object, tenantId: $tenantId);
+		}
+
+		$data = $this->composeFile(record: $this->disclose(object: $object, fields: $fields), source: $object, target: $target);
+		unset($data[RodPersonalNumberResolver::NUMBER_KEY], $data[RodPersonalNumberResolver::TYPE_KEY]);
+		if ($carries === true) {
+			$data = array_merge(
+				$data,
+				$this->personalNumber->forProfile(profileId: (string)($object['id'] ?? ($object['uuid'] ?? '')), tenantId: $tenantId)
+			);
+		}
+
+		return $data;
+	}//end composeData()
 
 	/**
 	 * Keep what may leave of one object.
