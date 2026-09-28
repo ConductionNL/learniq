@@ -291,7 +291,7 @@
 								{{
 									t(
 										'learniq',
-										'Only staff see this note here. Learners do not see it in the lesson player.',
+										'Only staff can read this note. Learners and parents never see it.',
 									)
 								}}
 							</p>
@@ -446,9 +446,13 @@ import LessonAssistPanel from '../components/lesson/LessonAssistPanel.vue'
 import { GOAL_COUNT_MAX, isHermiqEnabled } from '../utils/lessonAssist.js'
 import {
 	countPendingDrafts,
+	diffTeacherNotes,
 	keepDraftBlock,
 	makeDraftBlock,
+	mergeTeacherNotes,
 	serialiseLessonBlocks,
+	splitTeacherNotes,
+	TEACHER_NOTE_SCHEMA,
 } from '../utils/lessonBlocks.js'
 
 /**
@@ -503,6 +507,14 @@ export default {
 			lesson: null,
 			/** @type {Array<object>} Local mirror of lesson.blocks, mutated in place until Save. */
 			blocks: [],
+			/**
+			 * The lesson's teacher notes as last loaded or saved. Notes live in
+			 * the staff-only `lesson-teacher-note` schema, never in the lesson
+			 * (teacher-notes-protection); save() diffs against this list.
+			 *
+			 * @type {Array<object>}
+			 */
+			loadedNotes: [],
 			addBlockType: 'richText',
 			saving: false,
 			saveError: '',
@@ -589,9 +601,16 @@ export default {
 			this.error = ''
 			try {
 				this.lesson = await this.fetchObject('Lesson', this.lessonId)
-				this.blocks = (this.lesson.blocks || [])
-					.slice()
-					.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+				// Teacher notes come from their own staff-only store and are
+				// shown in place among the blocks (teacher-notes-protection).
+				this.loadedNotes = await this.fetchList(
+					TEACHER_NOTE_SCHEMA,
+					`filters[lessonId]=${this.lessonId}&_limit=500`,
+				)
+				this.blocks = mergeTeacherNotes(
+					this.lesson.blocks || [],
+					this.loadedNotes,
+				)
 				this.competencyIds = (this.lesson.competencyIds || []).slice()
 				this.competencyIdsDirty = false
 				if (this.assistEnabled) {
@@ -975,7 +994,79 @@ export default {
 		 * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
 		 */
 		serialisableBlocks() {
-			return serialiseLessonBlocks(this.blocks)
+			// Notes stay out of the lesson; the lesson blocks are renumbered
+			// without them so their order stays contiguous.
+			const { blocks } = splitTeacherNotes(this.blocks)
+			return serialiseLessonBlocks(
+				blocks.map((block, index) => ({ ...block, order: index + 1 })),
+			)
+		},
+
+		/**
+		 * Write the teacher notes to their staff-only store: create new ones,
+		 * update changed ones, delete removed ones, matched by `blockId`.
+		 * Runs after the lesson itself was saved.
+		 *
+		 * @return {Promise<boolean>} True when every note write succeeded.
+		 * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-the-composer-shows-notes-inline-and-saves-them-to-the-staff-store
+		 */
+		async saveTeacherNotes() {
+			const { notes } = splitTeacherNotes(this.blocks)
+			const diff = diffTeacherNotes(this.loadedNotes, notes)
+			const noteUrl = (id) =>
+				generateUrl(
+					`/apps/openregister/api/objects/learniq/${TEACHER_NOTE_SCHEMA}/${id}`,
+				)
+			const headers = {
+				'OCS-APIREQUEST': 'true',
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			}
+			const saved = new Map(this.loadedNotes.map((n) => [n.blockId, n]))
+			let ok = true
+			for (const note of diff.create) {
+				try {
+					const created = await this.createObject(TEACHER_NOTE_SCHEMA, {
+						...note,
+						lessonId: this.lessonId,
+						tenant_id: this.lesson?.tenant_id,
+					})
+					saved.set(note.blockId, {
+						...note,
+						id: created?.id ?? created?.uuid,
+					})
+				} catch {
+					ok = false
+				}
+			}
+			for (const note of diff.update) {
+				const { id, ...fields } = note
+				const resp = await fetch(noteUrl(id), {
+					method: 'PATCH',
+					headers,
+					body: JSON.stringify(fields),
+				}).catch(() => null)
+				if (resp?.ok) {
+					saved.set(note.blockId, { ...fields, id })
+				} else {
+					ok = false
+				}
+			}
+			for (const id of diff.remove) {
+				const resp = await fetch(noteUrl(id), {
+					method: 'DELETE',
+					headers,
+				}).catch(() => null)
+				if (resp?.ok) {
+					for (const [blockId, stored] of saved) {
+						if ((stored.id ?? stored.uuid) === id) saved.delete(blockId)
+					}
+				} else {
+					ok = false
+				}
+			}
+			this.loadedNotes = [...saved.values()]
+			return ok
 		},
 
 		/**
@@ -1148,12 +1239,18 @@ export default {
 				if (!resp.ok) {
 					throw new Error(`Lesson blocks save failed: ${resp.status}`)
 				}
-				this.lesson.blocks = this.blocks
+				this.lesson.blocks = splitTeacherNotes(this.blocks).blocks
+				if (!(await this.saveTeacherNotes())) {
+					this.saveError = this.t(
+						'learniq',
+						'The lesson was saved, but a teacher note was not. Save again to retry.',
+					)
+				}
 				if (this.competencyIdsDirty) {
 					this.lesson.competencyIds = this.competencyIds.slice()
 					this.competencyIdsDirty = false
 				}
-				this.saveDone = true
+				this.saveDone = this.saveError === ''
 			} catch (err) {
 				this.saveError = this.t(
 					'learniq',

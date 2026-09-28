@@ -201,6 +201,11 @@ return [
         ['name' => 'actionMatrix#getMatrix', 'url' => '/api/admin/action-matrix', 'verb' => 'GET'],
         ['name' => 'actionMatrix#setMatrix', 'url' => '/api/admin/action-matrix', 'verb' => 'PUT'],
 
+        // Course registry connection (store-rights-for-teachers), admin-only via
+        // #[AuthorizedAdminSetting]; replaces the occ-only configuration.
+        ['name' => 'storeRegistrySettings#show',   'url' => '/api/admin/store-registry', 'verb' => 'GET'],
+        ['name' => 'storeRegistrySettings#update', 'url' => '/api/admin/store-registry', 'verb' => 'PUT'],
+
         // Generic per-user preferences — AppHost GenericPreferencesController.
         ['name' => 'preferences#getPreference', 'url' => '/api/preferences/{key}', 'verb' => 'GET'],
         ['name' => 'preferences#setPreference', 'url' => '/api/preferences/{key}', 'verb' => 'PUT'],

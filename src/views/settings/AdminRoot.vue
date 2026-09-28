@@ -25,6 +25,7 @@
 
 		<LearniqSettings v-if="storesReady" />
 		<DataExchangeSettingsSection />
+		<StoreRegistrySettingsSection />
 		<AiTranslationReviewSection />
 		<ActionAuthMatrix />
 	</div>
@@ -37,6 +38,7 @@ import ActionAuthMatrix from '../../components/admin/ActionAuthMatrix.vue'
 import LearniqSettings from '../LearniqSettings.vue'
 import AiTranslationReviewSection from './AiTranslationReviewSection.vue'
 import DataExchangeSettingsSection from './DataExchangeSettingsSection.vue'
+import StoreRegistrySettingsSection from './StoreRegistrySettingsSection.vue'
 import { initializeStores } from '../../store/store.js'
 
 export default {
@@ -45,6 +47,7 @@ export default {
 		CnVersionInfoCard,
 		LearniqSettings,
 		DataExchangeSettingsSection,
+		StoreRegistrySettingsSection,
 		AiTranslationReviewSection,
 		ActionAuthMatrix,
 	},

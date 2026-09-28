@@ -2001,7 +2001,19 @@ OC.L10N.register(
         "This work could not be found.": "This work could not be found.",
         "This work is already handed in.": "This work is already handed in.",
         "This work cannot be handed in right now. Ask your teacher.": "This work cannot be handed in right now. Ask your teacher.",
-        "These lessons come from the school timetable. Changes are made there.": "These lessons come from the school timetable. Changes are made there."
+        "These lessons come from the school timetable. Changes are made there.": "These lessons come from the school timetable. Changes are made there.",
+        "A teacher's note on a lesson, for colleagues only. Learners and guardians can never read it: not in the lesson player and not through the objects API. The note sits after a lesson block, the way the lesson editor shows it. teacher-notes-protection.": "A teacher's note on a lesson, for colleagues only. Learners and guardians can never read it: not in the lesson player and not through the objects API. The note sits after a lesson block, the way the lesson editor shows it. teacher-notes-protection.",
+        "Lesson": "Lesson",
+        "The lesson this note belongs to.": "The lesson this note belongs to.",
+        "Note ID": "Note ID",
+        "Stable identifier of this note within its lesson, kept when the note moves.": "Stable identifier of this note within its lesson, kept when the note moves.",
+        "After block": "After block",
+        "The lesson block this note follows. Empty places the note before the first block.": "The lesson block this note follows. Empty places the note before the first block.",
+        "Position": "Position",
+        "Order among the notes that follow the same block, starting at 0.": "Order among the notes that follow the same block, starting at 0.",
+        "The note, as markdown. Only staff read it.": "The note, as markdown. Only staff read it.",
+        "Block type. It decides which payload field below is filled. Teacher notes are not blocks: they are kept apart, where learners cannot read them.": "Block type. It decides which payload field below is filled. Teacher notes are not blocks: they are kept apart, where learners cannot read them.",
+        "Markdown text of a rich text block. Empty for every other block type.": "Markdown text of a rich text block. Empty for every other block type."
     },
     "nplurals=2; plural=(n != 1);"
 )
