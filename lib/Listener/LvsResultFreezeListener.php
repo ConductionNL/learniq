@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lvs-score-freeze/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
+ * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
  */
 
 declare(strict_types=1);
@@ -57,7 +57,7 @@ use Throwable;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/lvs-score-freeze/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
+ * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
  */
 class LvsResultFreezeListener implements IEventListener {
 
@@ -113,7 +113,7 @@ class LvsResultFreezeListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/lvs-score-freeze/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectUpdatingEvent === false) {
@@ -142,7 +142,7 @@ class LvsResultFreezeListener implements IEventListener {
 	 *
 	 * @return bool True when the write must be checked.
 	 *
-	 * @spec openspec/changes/lvs-score-freeze/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
 	 */
 	private function isPoliced(ObjectUpdatingEvent $event): bool {
 		try {
@@ -168,7 +168,7 @@ class LvsResultFreezeListener implements IEventListener {
 	 *
 	 * @return array{reason: string, message: string}|null The refusal, or null to allow.
 	 *
-	 * @spec openspec/changes/lvs-score-freeze/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
 	 */
 	private function evaluate(array $old, array $new): ?array {
 		$state = (string)($old['lifecycle'] ?? '');
@@ -205,7 +205,7 @@ class LvsResultFreezeListener implements IEventListener {
 	 *
 	 * @return bool True when equal.
 	 *
-	 * @spec openspec/changes/lvs-score-freeze/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-verified-lvs-score-cannot-be-changed
 	 */
 	private function same(mixed $left, mixed $right): bool {
 		if (is_int($left) === true || is_float($left) === true) {

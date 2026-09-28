@@ -171,7 +171,7 @@ class ExchangeGateServiceTest extends TestCase {
 	 * @return void
 	 *
 	 * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-a-rod-export-sends-the-bsn-and-keeps-the-eck-id
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-rod-export-sends-the-bsn-and-keeps-the-eck-id
 	 */
 	public function testARodExportHandsOverFiveFields(): void {
 		$this->learners();
@@ -356,7 +356,7 @@ class ExchangeGateServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-a-profile-without-a-valid-number
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-profile-without-a-valid-number
 	 */
 	public function testAProfileWithoutAValidNumber(): void {
 		$this->learners();
@@ -403,7 +403,7 @@ class ExchangeGateServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-a-definitief-advice-is-sent
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-definitief-advice-is-sent
 	 */
 	public function testASchoolAdviceGoesWithDuosFieldSet(): void {
 		$this->schoolAdvice();
@@ -438,7 +438,7 @@ class ExchangeGateServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#scenario-the-advice-has-no-vestiging-and-the-tenant-has-several
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-the-advice-has-no-vestiging-and-the-tenant-has-several
 	 */
 	public function testAnAdviceWithoutAVestigingInATenantWithTwo(): void {
 		$this->schoolAdvice();

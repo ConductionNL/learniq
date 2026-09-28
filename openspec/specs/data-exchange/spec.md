@@ -580,6 +580,156 @@ When integriq concludes a learniq `swv` job `succeeded`, learniq MUST move the s
 - **WHEN** they are validated against the schema
 - **THEN** they pass
 
+### Requirement: A verified LVS score cannot be changed
+
+Once an `LvsResult` is stored as `verified` or `archived`, an update by a signed-in user who is not a Nextcloud admin MUST NOT change `provider`, `instrument`, `moment`, `takenAt`, `rawScore`, `vaardigheidsscore`, `niveau`, `referentieniveau`, `dle`, `dataExchangeJobId` or `tenant_id`. A verified result MUST only move on to `archived`, and an archived result MUST NOT change state. `learnerId` and `assessmentResultId` MAY still change. An `imported` result MAY be corrected. Admins and system context are not held to this rule.
+
+#### Scenario: A coordinator cannot change a verified score
+@e2e exclude Pre-write listener with no UI of its own; pinned by tests/Unit/Listener/LvsResultFreezeListenerTest.php::testCoordinatorCannotChangeAVerifiedScore.
+- **GIVEN** an `LvsResult` in `verified` with `vaardigheidsscore` 187
+- **AND** a user in `coordinators`
+- **WHEN** the user saves it with `vaardigheidsscore` 201
+- **THEN** the save is refused with reason `lvs-result-verified`
+
+#### Scenario: An imported score may still be corrected
+@e2e exclude Pre-write listener with no UI of its own; pinned by tests/Unit/Listener/LvsResultFreezeListenerTest.php::testAnImportedScoreMayBeCorrected.
+- **GIVEN** an `LvsResult` in `imported`
+- **WHEN** a coordinator corrects its `vaardigheidsscore`
+- **THEN** the save goes through
+
+#### Scenario: A verified result cannot go back to imported
+@e2e exclude Pre-write listener with no UI of its own; pinned by tests/Unit/Listener/LvsResultFreezeListenerTest.php::testAVerifiedResultCannotGoBackToImported.
+- **GIVEN** an `LvsResult` in `verified`
+- **WHEN** a coordinator saves it as `imported`
+- **THEN** the save is refused with reason `lvs-result-lifecycle`
+- **AND** saving it as `archived` goes through
+
+### Requirement: Records integriq hands back for an import land in learniq
+
+When integriq dispatches `ExchangeRecordsReceivedEvent` for a job owned by `learniq` with target `lvs-results`, `oso` or `migration-import`, learniq MUST land each record and MUST call `accept()` exactly once, with the number of records taken and a rejection per record it did not take, naming an error code and field names but never a value. An LVS result MUST land as an `imported` LvsResult and MUST NOT change a verified or archived one; an OSO dossier MUST land as a `received` OsoImportDossier held for review; a migration record MUST fill only empty fields of the pupil's LearnerProfile, or create an active profile. A second delivery of the same record MUST change nothing already taken. Events for another owner or target MUST be left unanswered.
+
+#### Scenario: An LVS result lands as imported
+@e2e exclude Background job hand-off with no UI; pinned by tests/Unit/Listener/ExchangeImportLandingListenerTest.php::testLvsResultsLandAsImported.
+- **GIVEN** an lvs-results import job with three records, one for a known pupil, one for an unknown pupil and one without instrument and moment
+- **WHEN** integriq hands the records to learniq
+- **THEN** one LvsResult is stored in `imported` with the job's id
+- **AND** learniq accepts 1 and rejects `LVS-UNKNOWN-PUPIL` and `LVS-MISSING-FIELD` with the field names
+
+#### Scenario: A second delivery changes nothing already taken
+@e2e exclude Background job hand-off with no UI; pinned by tests/Unit/Listener/ExchangeImportLandingListenerTest.php::testASecondDeliveryIsIdempotent.
+- **GIVEN** a verified LvsResult
+- **WHEN** the same record is delivered again with another score
+- **THEN** nothing is written and the record counts as taken
+
+#### Scenario: An OSO dossier is held for review
+@e2e exclude Background job hand-off with no UI; pinned by tests/Unit/Listener/ExchangeImportLandingListenerTest.php::testAnOsoDossierIsHeldForReview.
+- **GIVEN** an oso import job with a dossier from school 12AB
+- **WHEN** integriq hands it to learniq
+- **THEN** an OsoImportDossier is stored in `received`
+
+#### Scenario: A migrated pupil fills only the gaps of their profile
+@e2e exclude Background job hand-off with no UI; pinned by tests/Unit/Listener/ExchangeImportLandingListenerTest.php::testMigrationFillsOnlyTheGaps.
+- **GIVEN** a LearnerProfile with a first name and no family name
+- **WHEN** a migration record brings another first name, a family name and roles
+- **THEN** only the family name is written
+
+### Requirement: The voorlopig school advice goes to ROD when it is given
+
+When a SchoolAdvies in `voorlopig` has `voorlopigAdviesLevel`, `voorlopigAdviesDate` and `learnerId` and no `voorlopigExchangeJobId`, learniq MUST ask integriq for a `bron-rod` export with berichtsoort `schooladvies`, the school advice mapping and the advice as its only record, outside the save that made it due, and MUST record the returned job id as `voorlopigExchangeJobId` so the voorlopig advice is sent once.
+
+#### Scenario: A voorlopig advice goes to ROD when it is given
+@e2e exclude Deferred exchange request with no UI of its own; pinned by tests/Unit/Listener/SchoolAdviesVoorlopigRodTest.php.
+- **GIVEN** a SchoolAdvies in `voorlopig`
+- **WHEN** its advice level and date are saved
+- **THEN** a bron-rod schooladvies job is requested for it
+- **AND** its id is stored as `voorlopigExchangeJobId`
+- **AND** saving the advice again requests nothing
+
+### Requirement: A learner's personal number is encrypted and readable only by administration and compliance
+LearnerProfile MUST hold the persoonsgebonden nummer in `personalNumber`, flagged
+`x-openregister-encrypted: true`, with its kind in `personalNumberType` (`bsn` or
+`onderwijsnummer`). Both properties MUST carry a property authorization whose `read` and `update`
+name only `administration-managers` and `compliance-officers`, and `personalNumber` MUST ask for a
+reveal audit (`audit: true`). Neither property MAY be a filter, facet or search field.
+
+#### Scenario: a teacher reads a learner profile
+- GIVEN a learner profile with a `personalNumber`
+- WHEN a user in `instructors` reads it
+- THEN the response has no `personalNumber` and no `personalNumberType`
+
+#### Scenario: the register declares the protection
+- GIVEN the learniq register
+- WHEN LearnerProfile is loaded
+- THEN `personalNumber` is flagged encrypted, and both properties authorize only `administration-managers` and `compliance-officers`
+
+### Requirement: The ROD learner record carries the personal number where DUO expects a BSN
+A `bron-rod` job with mapping `learniq-bron-rod-export-learner` MUST hand each record
+`persoonsgebondenNummer` (nine digits) and `persoonsgebondenNummerType` (`burgerservicenummer` or
+`onderwijsnummer`) next to `eckId`, `givenName`, `familyName`, `birthDate` and `schoolId`. A number
+that is not nine digits or fails its check (elfproef for a BSN, the adapted elfproef for an
+onderwijsnummer) MUST count as missing, and the gate MUST refuse the job `statutory-incomplete`
+naming the field and the record reference, never the value.
+
+#### Scenario: a ROD export sends the BSN and keeps the ECK iD
+- GIVEN a `bron-rod` job with mapping `learniq-bron-rod-export-learner` over a complete profile whose `personalNumber` is a valid BSN
+- WHEN integriq asks the gate
+- THEN the record holds `persoonsgebondenNummer` with that BSN, `persoonsgebondenNummerType` `burgerservicenummer`, and the `eckId`
+
+#### Scenario: a profile without a valid number
+- GIVEN a `bron-rod` learner job whose profile has no `personalNumber`
+- WHEN integriq asks the gate
+- THEN the gate refuses with `statutory-incomplete`, naming `persoonsgebondenNummer` and the record, and the reason holds no number
+
+### Requirement: The personal number leaves learniq only in a ROD message and is never logged
+No mapping other than the two ROD mappings MAY carry `personalNumber`, `personalNumberType`,
+`persoonsgebondenNummer` or `persoonsgebondenNummerType`; a pass-through export MUST drop
+`personalNumber` and `personalNumberType` as it drops `bsnEncrypted`. No log line, exception message
+or refusal reason written by the gate, the payload builder or the resolver MAY contain the number.
+
+#### Scenario: an HR pass-through export
+- GIVEN an `hr` export (no mapping) over a profile with a `personalNumber`
+- WHEN the gate composes the records
+- THEN no record holds `personalNumber`, `personalNumberType` or the number anywhere in its data
+
+#### Scenario: an OSO export
+- GIVEN an `oso` job with mapping `learniq-oso-export-dossier`
+- WHEN the gate composes the records
+- THEN no record holds the number
+
+#### Scenario: nothing is logged
+- GIVEN a ROD job whose composition succeeds, and one whose profile read fails
+- WHEN the gate runs both
+- THEN no captured log message or context value contains the number
+
+### Requirement: A school advice goes to ROD with DUO's AanleverenAdviesVO field set
+The school advice ROD handler MUST name mapping `learniq-bron-rod-export-schooladvies`, and the gate
+MUST compose, per SchoolAdvies, exactly: `persoonsgebondenNummer`, `persoonsgebondenNummerType`,
+`adviesvolgnummer`, `onderwijsaanbieder`, `onderwijslocatie`, `vestigingscode`, `adviesjaar`,
+`advies1`, `advies1Datum`, `advies2`, `advies2Datum` (DUO PvE ROD-PO 1.14.2, 7.9.1). Levels MUST be
+DUO's AdviesVO values (`pro` to `PRAKTIJKONDERWIJS`, `vmbo-bb` to `VMBO_BB`, `vmbo-kb` to `VMBO_KB`,
+`vmbo-gt` to `VMBO_GL/TL`, `havo` to `HAVO`, `vwo` to `VWO`). Nothing else from the advice or the
+pupil dossier MAY leave, in particular not the heroverweging motivation or the doorstroomtoets
+result. The job MUST no longer be refused `disclosure-undefined`; a record missing
+`persoonsgebondenNummer`, `adviesvolgnummer`, `onderwijsaanbieder`, `onderwijslocatie`,
+`vestigingscode`, `adviesjaar`, `advies1` or `advies1Datum` MUST refuse it `statutory-incomplete`
+(DUO checks the onderwijsaanbieder and onderwijslocatie from adviesjaar 2024, controls 030 and 031).
+A value that does not fit DUO's format counts as missing.
+
+#### Scenario: a definitief advice is sent
+- GIVEN a SchoolAdvies with voorlopig `vmbo-kb` on 2026-01-20, definitief `vmbo-gt` on 2026-03-20, academic year `2025-2026`, a vestiging with code `02VG00`, and a learner with a valid BSN
+- WHEN integriq asks the gate for its `bron-rod` job
+- THEN the gate allows one record with `advies1` `VMBO_KB`, `advies1Datum` `2026-01-20`, `advies2` `VMBO_GL/TL`, `advies2Datum` `2026-03-20`, `adviesjaar` `2026`, `vestigingscode` `02VG00` and the BSN, and no other key
+
+#### Scenario: the advice has no vestiging and the tenant has several
+- GIVEN a SchoolAdvies without `vestigingId` in a tenant with two vestigingen
+- WHEN integriq asks the gate
+- THEN the gate refuses with `statutory-incomplete` naming `vestigingscode`
+
+#### Scenario: the handler names the mapping
+- GIVEN a SchoolAdvies moving to `verzonden-naar-rod`
+- WHEN the handler asks integriq for the job
+- THEN it names mapping `learniq-bron-rod-export-schooladvies`
+
 ## Standards
 
 Edukoppeling / Digikoppeling / StUF (NL gov messaging — implemented in OpenConnector); OSO standard (Edu-K); DUO BRON/ROD schemas; OOAPI 5.0 (HE); SAML 2.0 / OIDC for SURFconext attribute release; SCIM for HR-system sync; eIDAS / DigiD for federated auth (out of scope here).

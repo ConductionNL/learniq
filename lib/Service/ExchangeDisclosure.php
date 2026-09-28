@@ -175,7 +175,7 @@ class ExchangeDisclosure {
 	 * @return array<int, string> The field names, empty when none are required.
 	 *
 	 * @spec openspec/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
 	 */
 	public function requiredFor(string $target, ?string $mappingSlug=null): array {
 		if ($mappingSlug !== null && isset(self::REQUIRED_BY_MAPPING[$mappingSlug]) === true) {
@@ -193,7 +193,7 @@ class ExchangeDisclosure {
 	 *
 	 * @return bool True only for those two.
 	 *
-	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-the-personal-number-leaves-learniq-only-in-a-rod-message-and-is-never-logged
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-personal-number-leaves-learniq-only-in-a-rod-message-and-is-never-logged
 	 */
 	public function carriesPersonalNumber(string $target, ?string $mappingSlug): bool {
 		return $target === 'bron-rod'

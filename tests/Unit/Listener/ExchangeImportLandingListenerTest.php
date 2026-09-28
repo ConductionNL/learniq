@@ -116,7 +116,7 @@ class ExchangeImportLandingListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#scenario-an-lvs-result-lands-as-imported
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-an-lvs-result-lands-as-imported
 	 */
 	public function testLvsResultsLandAsImported(): void {
 		$this->db['learner-profile'] = [['id' => 'p1', 'ncUserId' => 'pupil1']];
@@ -150,7 +150,7 @@ class ExchangeImportLandingListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#scenario-a-second-delivery-changes-nothing-already-taken
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-second-delivery-changes-nothing-already-taken
 	 */
 	public function testASecondDeliveryIsIdempotent(): void {
 		$this->db['learner-profile'] = [['id' => 'p1', 'ncUserId' => 'pupil1']];
@@ -172,7 +172,7 @@ class ExchangeImportLandingListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#scenario-an-oso-dossier-is-held-for-review
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-an-oso-dossier-is-held-for-review
 	 */
 	public function testAnOsoDossierIsHeldForReview(): void {
 		$record = ['recordId' => 'd1', 'sourceKind' => 'oso-dossier', 'data' => ['sourceSchoolBrin' => '12AB', 'learnerEckId' => 'eck-1', 'categories' => [['code' => 'basis']]]];
@@ -193,7 +193,7 @@ class ExchangeImportLandingListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#scenario-a-migrated-pupil-fills-only-the-gaps-of-their-profile
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-migrated-pupil-fills-only-the-gaps-of-their-profile
 	 */
 	public function testMigrationFillsOnlyTheGaps(): void {
 		$this->db['learner-profile'] = [['id' => 'p1', 'ncUserId' => 'pupil1', 'givenName' => 'Anna', 'familyName' => '']];
@@ -223,7 +223,7 @@ class ExchangeImportLandingListenerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/import-landing-answer/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
 	 */
 	public function testAnswersOnlyItsOwnJobs(): void {
 		self::assertFalse($this->receive('lvs-results', [], 'shillinq')->isAnswered());

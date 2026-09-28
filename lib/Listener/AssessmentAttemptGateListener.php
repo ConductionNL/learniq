@@ -156,7 +156,7 @@ class AssessmentAttemptGateListener implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
+	 * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
 	 */
 	private function evaluate(ObjectCreatingEvent $event, array $payload): void {
 		$assessmentId = (string)($payload['assessmentId'] ?? '');

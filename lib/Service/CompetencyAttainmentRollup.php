@@ -46,7 +46,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Resolves werkproces competencies and rolls evidence into CompetencyAttainment.
  *
- * @spec openspec/changes/grading-rollup-followups/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
+ * @spec openspec/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
  */
 class CompetencyAttainmentRollup {
 
@@ -101,7 +101,7 @@ class CompetencyAttainmentRollup {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-rollup-followups/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
+	 * @spec openspec/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
 	 */
 	public function run(string $kind, array $object): void {
 		if ($kind === self::WERKPROCES_CREATED) {

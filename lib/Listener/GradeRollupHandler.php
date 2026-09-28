@@ -318,7 +318,7 @@ class GradeRollupHandler implements IEventListener {
 	 *
 	 * @return string|null The Programme UUID, or null.
 	 *
-	 * @spec openspec/changes/grading-rollup-followups/specs/grading/spec.md#requirement-the-final-grade-roll-up-writes-the-programme-it-belongs-to
+	 * @spec openspec/specs/grading/spec.md#requirement-the-final-grade-roll-up-writes-the-programme-it-belongs-to
 	 */
 	private function programmeFor(string $curriculumPlanId, mixed $current): ?string {
 		$programmes = $this->objectService->findAll(

@@ -461,3 +461,62 @@ Before a shipped example set is imported, the app MUST leave out each row of the
 - **GIVEN** the training set is loaded
 - **WHEN** it is loaded again
 - **THEN** every one of its regulation rows is imported, so a changed row is updated
+
+### Requirement: The wizard removes a loaded example set through OpenRegister's import jobs
+The setup wizard MUST offer a `remove-example-set` step. Its action MUST remove the example set stored as the wizard's answer by calling OpenRegister's `ConfigurationService::softDeleteAppImports()` with that set's import app id: `learniq.profile.<id>` for a shipped set, `learniq.demo` for the generated one. The call MUST be duck-typed: when the method does not exist, the action MUST NOT fail silently and MUST answer `success: false` with the `occ` command that removes the set instead (`php occ learniq:example-set:remove <id> --apply` for a shipped set). When no set was loaded (no answer, or "None"), or no import job was recorded, the action MUST say so and remove nothing. When OpenRegister reports errors, the action MUST answer `success: false`, name the count, and name `occ openregister:objects:purge --import-job <id>` to finish. A successful removal MUST keep the load step answered, so the wizard does not reopen.
+
+#### Scenario: Removing the company set
+- **GIVEN** the wizard loaded the company set and OpenRegister records one import job for `learniq.profile.corporate`
+- **WHEN** the admin runs "Remove the example data"
+- **THEN** `softDeleteAppImports('learniq.profile.corporate')` is called once
+- **AND** the answer says how many objects moved to the trash
+
+#### Scenario: An OpenRegister without the method
+- **GIVEN** OpenRegister's ConfigurationService has no `softDeleteAppImports`
+- **WHEN** the admin runs the step for the company set
+- **THEN** the answer is `success: false` and names `php occ learniq:example-set:remove corporate --apply`
+
+#### Scenario: Nothing was loaded
+- **GIVEN** the wizard's example set answer is "None"
+- **WHEN** the admin runs the step
+- **THEN** nothing is called and the answer says there is nothing to remove
+
+### Requirement: The removal step never runs by itself
+The setup status MUST report the `remove-example-set` step as done at all times, so the shared wizard neither starts it on entering the step (it auto-runs an outstanding run-action step) nor reopens itself for it (it opens while any optional step is outstanding). The step MUST run only when the admin clicks its button.
+
+#### Scenario: Opening the wizard after loading a set
+- **GIVEN** an example set was just loaded
+- **WHEN** the setup status is read
+- **THEN** `steps.remove-example-set.done` is true
+
+### Requirement: Only an administrator or an administration manager chooses the kind of organisation
+The wizard's segment answer MUST be written to `LearniqSettings.segment` only when the current user is in the `admin` or the `administration-managers` group, the groups the lane brief assigns to the segment. Any other caller MUST get a 403 with a reason, and nothing MUST be written.
+
+#### Scenario: A delegated admin outside both groups
+- **GIVEN** a user who may open the setup wizard but is in neither group
+- **WHEN** they post `segment: corporate`
+- **THEN** the answer is 403 and `setSegment` is not called
+
+#### Scenario: An administration manager
+- **GIVEN** a user in `administration-managers`
+- **WHEN** they post `segment: po`
+- **THEN** the segment is written with them as the one who set it
+
+### Requirement: The wizard lists every loaded example set with its own remove button
+The app MUST record each example set the wizard loads, with its label, in app config (`example_sets_loaded`), and MUST drop a set from that list only after OpenRegister removed a recorded import of it without errors. The page MUST hand the list to the browser as the `loadedExampleSets` initial state, and the browser MUST replace the single `remove-example-set` step with one run-action step per loaded set, step and action `remove-example-set-<id>`, each with its own button (D34). With no set recorded the single step MUST stay. `POST /api/setup/action/remove-example-set-<id>` MUST remove that set through the same path as the single step, and MUST answer 400 for an id that names no set. The setup status MUST report every `remove-example-set-<id>` step as done, so none of them runs by itself or reopens the wizard.
+
+#### Scenario: Two sets were loaded
+- **GIVEN** the company set and then the training set were loaded
+- **WHEN** an admin opens the setup wizard
+- **THEN** it shows "Remove the example set \"Company\"" and "Remove the example set \"Training institute\"", each with its own button
+
+#### Scenario: Removing one of two loaded sets
+- **GIVEN** the company and training sets are loaded
+- **WHEN** the admin clicks the training set's button and OpenRegister removes its recorded import without errors
+- **THEN** only `softDeleteAppImports('learniq.profile.training')` is called
+- **AND** the company set stays on the list
+
+#### Scenario: A removal with errors
+- **GIVEN** OpenRegister reports errors for a set's import
+- **WHEN** the admin clicks that set's button
+- **THEN** the set stays on the list, so its button stays

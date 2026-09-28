@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/schooladvies-voorlopig-to-rod/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use Throwable;
 /**
  * Sends a voorlopig school advice to ROD once.
  *
- * @spec openspec/changes/schooladvies-voorlopig-to-rod/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
+ * @spec openspec/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
  */
 class SchoolAdviesVoorlopigRodJob extends ActorForwardedJob {
 
@@ -91,7 +91,7 @@ class SchoolAdviesVoorlopigRodJob extends ActorForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/schooladvies-voorlopig-to-rod/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
 	 */
 	protected function runDeferred(DeferredListenerContext $context): void {
 		foreach ($context->getEntries() as $entry) {

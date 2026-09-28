@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/docx-through-documentextractor/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
+ * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
  */
 
 declare(strict_types=1);
@@ -31,7 +31,7 @@ namespace OCA\Learniq\Service\LessonOnboarding;
 /**
  * Text of a paragraph, list or table block.
  *
- * @spec openspec/changes/docx-through-documentextractor/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
+ * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
  */
 class DocumentBlockText {
 
@@ -42,7 +42,7 @@ class DocumentBlockText {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/docx-through-documentextractor/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-word-file-is-read-by-openregisters-document-reader-when-there-is-one
 	 */
 	public function textOf(array $block): string {
 		$type = (string)($block['type'] ?? '');

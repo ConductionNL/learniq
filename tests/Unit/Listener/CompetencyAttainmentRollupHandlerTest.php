@@ -805,7 +805,7 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-rollup-followups/specs/competency/spec.md#scenario-a-new-werkproces-assessment-is-saved-without-waiting-for-its-competency
+	 * @spec openspec/specs/competency/spec.md#scenario-a-new-werkproces-assessment-is-saved-without-waiting-for-its-competency
 	 */
 	public function testTheHandlerQueuesTheWorkAndWritesNothingItself(): void {
 		$this->stubResolver('werkproces-assessment');

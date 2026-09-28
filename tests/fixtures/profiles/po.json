@@ -17,7 +17,7 @@
             "objectCount": 3,
             "icon": "SchoolOutline"
         },
-        "description": "Test fixture for the example set contract (openspec/changes/segment-wizard-choice/contract.md).",
+        "description": "Test fixture for the example set contract (openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md).",
         "seedData": {
             "description": "One school, one location, one group.",
             "objects": {

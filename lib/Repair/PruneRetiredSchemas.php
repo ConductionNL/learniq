@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/retired-schemas-prune/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
  */
 
 declare(strict_types=1);
@@ -73,7 +73,7 @@ use Throwable;
  * ORDER. After MigrateDataSubjectRequestsToOpenRegister and
  * ArchiveRetiredPaymentObjects, which read the rows first.
  *
- * @spec openspec/changes/retired-schemas-prune/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
+ * @spec openspec/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
  */
 class PruneRetiredSchemas implements IRepairStep {
 
@@ -119,7 +119,7 @@ class PruneRetiredSchemas implements IRepairStep {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/retired-schemas-prune/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
 	 */
 	public function getName(): string {
 		return 'Remove the retired order, payment and privacy request schemas from OpenRegister';
@@ -132,7 +132,7 @@ class PruneRetiredSchemas implements IRepairStep {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/retired-schemas-prune/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
 	 */
 	public function run(IOutput $output): void {
 		try {
@@ -298,7 +298,7 @@ class PruneRetiredSchemas implements IRepairStep {
 	 *
 	 * @return array<int, mixed>
 	 *
-	 * @spec openspec/changes/retired-schemas-prune/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
+	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-schemas-learniq-retired-leave-the-instance-once-their-rows-are-kept-elsewhere
 	 */
 	public static function unlinkSchemaId(array $schemaRefs, int $schemaId): array {
 		return array_values(

@@ -10,7 +10,7 @@
  * Mirrors decidiq's SeedProfileService (openspec/changes/seed-profiles there):
  * the same method names, the same `none` answer, the same file-read id
  * resolution, the same `appId.profile.<id>` config id. The descriptor contract
- * is written down in openspec/changes/segment-wizard-choice/contract.md and
+ * is written down in openspec/changes/archive/2026-09-28-segment-wizard-choice/contract.md and
  * enforced by tests/Unit/Settings/ExampleSetDescriptorContractTest.php.
  *
  * 🔴 A PROFILE NEVER DECLARES `components.registers`, AND THAT IS LOAD-BEARING.
@@ -246,7 +246,7 @@ class SeedProfileService {
 	 *
 	 * @return string `learniq.profile.<id>`, or `learniq.demo` for the generated set.
 	 *
-	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
 	 */
 	public function importAppId(string $profileId): string {
 		if ($profileId === self::GENERATED_PROFILE) {
@@ -274,7 +274,7 @@ class SeedProfileService {
 	 *
 	 * @throws RuntimeException When the id is unknown or OpenRegister is absent.
 	 *
-	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
 	 */
 	public function remove(string $profileId): array {
 		if ($profileId !== self::GENERATED_PROFILE && $this->isKnown(profileId: $profileId) === false) {
@@ -315,7 +315,7 @@ class SeedProfileService {
 	 *
 	 * @return LoadedExampleSets The list.
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
 	 */
 	public function loadedSets(): LoadedExampleSets {
 		return $this->loadedSets;
