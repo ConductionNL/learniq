@@ -380,12 +380,19 @@ class SetupController extends Controller {
 		}
 
 		if ($removed['errors'] > 0) {
+			// `--import-job` takes one job per run, and purge destroys rows for
+			// good, so the advice names one command per job and says so.
+			$commands = array_map(
+				static fn (string $job): string => 'php occ openregister:objects:purge --import-job ' . $job,
+				$removed['failedJobs']
+			);
+
 			return new JSONResponse(
 				data: [
 					'success' => false,
 					'message' => 'Moved ' . $removed['softDeleted'] . ' example object(s) to the trash; ' . $removed['errors']
-						. ' could not be removed. Finish with: php occ openregister:objects:purge --import-job '
-						. implode(' and --import-job ', $removed['failedJobs']) . '.',
+						. ' could not be removed. Run this step again, or finish on the server with: ' . implode('; ', $commands)
+						. ' (each shows what it would remove; add --apply to delete for good).',
 				]
 			);
 		}

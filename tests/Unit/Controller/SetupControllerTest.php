@@ -467,7 +467,7 @@ class SetupControllerTest extends TestCase {
 	public function testNoJobAndErrorsAreReportedWithTheirCommand(): void {
 		$this->profiles->method('remove')->willReturnOnConsecutiveCalls(
 			['supported' => true, 'appId' => 'learniq.profile.po', 'jobs' => [], 'softDeleted' => 0, 'errors' => 0, 'failedJobs' => []],
-			['supported' => true, 'appId' => 'learniq.profile.po', 'jobs' => ['job-1', 'job-2'], 'softDeleted' => 5, 'errors' => 1, 'failedJobs' => ['job-2']]
+			['supported' => true, 'appId' => 'learniq.profile.po', 'jobs' => ['job-1', 'job-2', 'job-3'], 'softDeleted' => 5, 'errors' => 2, 'failedJobs' => ['job-2', 'job-3']]
 		);
 		$controller = $this->controller(stored: ['example_profile' => 'po']);
 
@@ -479,7 +479,8 @@ class SetupControllerTest extends TestCase {
 		$partial = $controller->runAction('remove-example-set')->getData();
 		self::assertFalse($partial['success']);
 		self::assertStringContainsString('Moved 5 example object(s)', $partial['message']);
-		self::assertStringContainsString('--import-job job-2', $partial['message']);
+		self::assertStringContainsString('php occ openregister:objects:purge --import-job job-2; php occ openregister:objects:purge --import-job job-3', $partial['message']);
+		self::assertStringContainsString('add --apply', $partial['message']);
 	}//end testNoJobAndErrorsAreReportedWithTheirCommand()
 
 	/**
