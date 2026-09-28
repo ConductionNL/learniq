@@ -1966,7 +1966,22 @@ OC.L10N.register(
         "Placement coordinator": "Placement coordinator",
         "Confidential counsellor": "Confidential counsellor",
         "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.": "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.",
-        "Administrative staff": "Administrative staff"
+        "Administrative staff": "Administrative staff",
+        "AI-translated strings": "AI-translated strings",
+        "These Dutch texts in the app were written by AI and not yet checked by a translator. Check each one, fix it in the catalogue if needed, then mark it as reviewed.": "These Dutch texts in the app were written by AI and not yet checked by a translator. Check each one, fix it in the catalogue if needed, then mark it as reviewed.",
+        "Loading…": "Loading…",
+        "{shown} of {total} strings": "{shown} of {total} strings",
+        "Filter by English or Dutch text": "Filter by English or Dutch text",
+        "Every AI-written string has been reviewed.": "Every AI-written string has been reviewed.",
+        "AI-translated strings awaiting review": "AI-translated strings awaiting review",
+        "English source": "English source",
+        "Dutch text": "Dutch text",
+        "Mark “{text}” as reviewed": "Mark “{text}” as reviewed",
+        "Reviewed": "Reviewed",
+        "Page {page} of {pages}": "Page {page} of {pages}",
+        "The list of AI-translated strings could not be loaded.": "The list of AI-translated strings could not be loaded.",
+        "This instance cannot change the list. Review on a development checkout and commit l10n/ai-translated.json.": "This instance cannot change the list. Review on a development checkout and commit l10n/ai-translated.json.",
+        "The string could not be marked as reviewed.": "The string could not be marked as reviewed."
     },
     "nplurals=2; plural=(n != 1);"
 )

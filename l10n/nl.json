@@ -2445,7 +2445,22 @@
         "Placement coordinator": "Stagecoördinator",
         "Confidential counsellor": "Vertrouwenspersoon",
         "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.": "De functies die deze persoon op school heeft. Een functie beschrijft het werk en geeft geen toegang. Toegang komt uit de groepen van de persoon.",
-        "Administrative staff": "Administratief medewerker"
+        "Administrative staff": "Administratief medewerker",
+        "AI-translated strings": "Door AI vertaalde teksten",
+        "These Dutch texts in the app were written by AI and not yet checked by a translator. Check each one, fix it in the catalogue if needed, then mark it as reviewed.": "Deze Nederlandse teksten in de app zijn door AI geschreven en nog niet door een vertaler gecontroleerd. Controleer ze een voor een, verbeter ze zo nodig in de catalogus en markeer ze dan als gecontroleerd.",
+        "Loading…": "Laden…",
+        "{shown} of {total} strings": "{shown} van {total} teksten",
+        "Filter by English or Dutch text": "Filter op Engelse of Nederlandse tekst",
+        "Every AI-written string has been reviewed.": "Alle door AI geschreven teksten zijn gecontroleerd.",
+        "AI-translated strings awaiting review": "Door AI vertaalde teksten die op controle wachten",
+        "English source": "Engelse brontekst",
+        "Dutch text": "Nederlandse tekst",
+        "Mark “{text}” as reviewed": "Markeer “{text}” als gecontroleerd",
+        "Reviewed": "Gecontroleerd",
+        "Page {page} of {pages}": "Pagina {page} van {pages}",
+        "The list of AI-translated strings could not be loaded.": "De lijst met door AI vertaalde teksten kon niet worden geladen.",
+        "This instance cannot change the list. Review on a development checkout and commit l10n/ai-translated.json.": "Deze installatie kan de lijst niet aanpassen. Controleer op een ontwikkelkopie en commit l10n/ai-translated.json.",
+        "The string could not be marked as reviewed.": "De tekst kon niet als gecontroleerd worden gemarkeerd."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

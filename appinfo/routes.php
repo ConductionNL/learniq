@@ -47,6 +47,12 @@ return [
         ['name' => 'keyAdmin#generateKey', 'url' => '/api/credentials/admin/generate-key', 'verb' => 'POST'],
         ['name' => 'keyAdmin#keyStatus',   'url' => '/api/credentials/admin/key-status',   'verb' => 'GET'],
 
+        // AI-translated catalogue review (ai-translated-catalogue-review, D24): admin-only
+        // via #[AuthorizedAdminSetting]. Lists the Dutch values an AI wrote and no human
+        // reviewed (l10n/ai-translated.json), and takes a reviewed key off the list.
+        ['name' => 'aiTranslationReview#index',    'url' => '/api/l10n/ai-translated',          'verb' => 'GET'],
+        ['name' => 'aiTranslationReview#reviewed', 'url' => '/api/l10n/ai-translated/reviewed', 'verb' => 'POST'],
+
         // Compliance audit-pack export — ZIP generation, user-invokable action (ADR-023: audit-pack.export).
         // Controller: AuditPackExportController (slug: auditPackExport).
         ['name' => 'auditPackExport#export', 'url' => '/api/compliance/audit/export', 'verb' => 'POST'],
