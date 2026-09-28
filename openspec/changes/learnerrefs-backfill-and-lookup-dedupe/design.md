@@ -6,9 +6,9 @@
 
 `LearnerProfileLookup::refForUser()` read with `_multitenancy: false`; `LearnerRefResolver::resolve()` reads with OpenRegister's default (scoped). Merging them into one scoped or one unscoped method would change what some caller sees. So the resolver keeps `resolve()` as it is and gains `resolveAcrossTenants()` and `byRef()`, which are the portal half verbatim. Two named methods instead of a boolean flag, which phpmd rejects and which reads worse at the call site.
 
-### D2. A facade, because #1129 is open
+### D2. Delete the class once its last caller moves
 
-#1129 (portal absence reports stamped on the server) adds a caller of `LearnerProfileLookup`. Deleting the class breaks whichever of the two PRs lands second. The class keeps its two methods as one-line delegations to the resolver, marked `@deprecated`, and is deleted once #1129 moves its caller.
+#1129 (portal absence reports stamped on the server) added a caller of `LearnerProfileLookup` while this change was open. Until it landed the class stayed as a one-line facade over the resolver, so neither PR broke the other. #1129 landed first, so the catch-up merge moved `ExcuseRequestOwnerStamp` to the resolver and deleted the class.
 
 ### D3. The back-fill derives what the stamps derive
 

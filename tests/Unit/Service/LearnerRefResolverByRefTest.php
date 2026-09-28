@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Learniq LearnerProfileLookup unit tests.
+ * Learniq LearnerRefResolver unit tests: the portal half.
  *
  * The fake ObjectService answers the way OpenRegister does: `findAll()` reads
  * `register` and `schema` only from `filters`, and a filter key the
@@ -31,7 +31,6 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\Portal\LearnerProfileLookup;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -40,9 +39,8 @@ use RuntimeException;
 
 /**
  * Tests for LearnerRefResolver's portal half: a profile by uuid, and a profile
- * uuid by user across tenants. These lived in LearnerProfileLookup, which
- * duplicated LearnerRefResolver::resolve() (#1068, #1096) and is now a
- * deprecated facade over it.
+ * uuid by user across tenants. These lived in Portal\LearnerProfileLookup,
+ * which duplicated LearnerRefResolver::resolve() (#1068, #1096) and is gone.
  */
 class LearnerRefResolverByRefTest extends TestCase {
 
@@ -231,20 +229,4 @@ class LearnerRefResolverByRefTest extends TestCase {
 
 		self::assertSame([true, false], $this->multitenancy);
 	}//end testOnlyTheAcrossTenantsLookupDropsTenantScoping()
-
-	/**
-	 * The deprecated facade answers exactly what the resolver answers.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
-	 */
-	public function testTheDeprecatedFacadeDelegatesToTheResolver(): void {
-		$this->profiles['lp-1'] = ['ncUserId' => 'pupil-1', 'tenant_id' => 't-1', 'lifecycle' => 'active'];
-		$facade = new LearnerProfileLookup(learnerRefs: $this->makeLookup());
-
-		self::assertSame('lp-1', $facade->refForUser(ncUserId: 'pupil-1'));
-		self::assertSame('lp-1', $facade->byRef(learnerRef: 'lp-1')['id']);
-		self::assertSame([false], $this->multitenancy, 'the facade keeps the portal lookup across tenants');
-	}//end testTheDeprecatedFacadeDelegatesToTheResolver()
 }//end class

@@ -4,15 +4,15 @@
 
 ### Task 1: LearnerRefResolver answers the portal's lookups
 - **spec_ref**: `openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile`
-- **files**: `lib/Service/LearnerRefResolver.php`, `lib/Service/Portal/LearnerProfileLookup.php`, `tests/Unit/Service/LearnerRefResolverByRefTest.php`
+- **files**: `lib/Service/LearnerRefResolver.php`, `lib/Service/Portal/LearnerProfileLookup.php` (deleted), `tests/Unit/Service/LearnerRefResolverByRefTest.php`
 - **acceptance_criteria**:
-  - `byRef()` and `resolveAcrossTenants()` pass the cases that tested LearnerProfileLookup; only the across-tenants lookup drops tenant scoping; the facade delegates
+  - `byRef()` and `resolveAcrossTenants()` pass the cases that tested LearnerProfileLookup; only the across-tenants lookup drops tenant scoping
 - [x] Implement
 - [x] Test
 
 ### Task 2: The callers use the resolver
 - **spec_ref**: `openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/grading/spec.md#scenario-a-portal-stamp-and-a-teacher-side-stamp-find-the-same-profile`
-- **files**: `lib/Listener/SubmissionOwnerStamp.php`, `lib/Service/AssessmentResultPortalStamp.php`, `lib/Service/Portal/PortalLearnerResolver.php`, their tests
+- **files**: `lib/Listener/SubmissionOwnerStamp.php`, `lib/Service/AssessmentResultPortalStamp.php`, `lib/Service/Portal/PortalLearnerResolver.php`, `lib/Listener/ExcuseRequestOwnerStamp.php`, their tests
 - **acceptance_criteria**:
   - no caller of LearnerProfileLookup is left in `lib/`; the portal callers use the across-tenants lookup
 - [x] Implement

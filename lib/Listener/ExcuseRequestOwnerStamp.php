@@ -42,8 +42,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\Portal\LearnerProfileLookup;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -92,7 +92,7 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param LearnerProfileLookup $profiles LearnerProfile by uuid, uuid by user.
+	 * @param LearnerRefResolver $profiles LearnerProfile by uuid, uuid by user.
 	 * @param IUserSession $userSession Tells a portal write (no session) from an app write.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
@@ -100,7 +100,7 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 	 */
 	public function __construct(
 		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly LearnerProfileLookup $profiles,
+		private readonly LearnerRefResolver $profiles,
 		private readonly IUserSession $userSession,
 		private readonly LoggerInterface $logger,
 	) {
@@ -250,7 +250,7 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 	 */
 	private function derivedRef(ObjectCreatingEvent|ObjectUpdatingEvent $event, array $payload): ?string {
 		try {
-			return $this->profiles->refForUser(ncUserId: $this->text(value: ($payload['learnerId'] ?? null)));
+			return $this->profiles->resolveAcrossTenants(learnerId: $this->text(value: ($payload['learnerId'] ?? null)));
 		} catch (Throwable $exception) {
 			$kept = null;
 			if ($event instanceof ObjectUpdatingEvent === true) {

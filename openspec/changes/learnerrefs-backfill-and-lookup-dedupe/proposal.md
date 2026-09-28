@@ -16,15 +16,15 @@ Submissions written before the server stamped `learnerRefs` (#1056) and `learner
 
 ## Affected Projects
 
-- [ ] Project: `learniq`: `LearnerRefResolver`, `Portal\LearnerProfileLookup` (deprecated facade), `SubmissionOwnerStamp`, `AssessmentResultPortalStamp`, `PortalLearnerResolver`, new `Repair\BackfillSubmissionLearnerRefs`, `appinfo/info.xml`.
+- [ ] Project: `learniq`: `LearnerRefResolver`, `Portal\LearnerProfileLookup` (deleted), `ExcuseRequestOwnerStamp`, `SubmissionOwnerStamp`, `AssessmentResultPortalStamp`, `PortalLearnerResolver`, new `Repair\BackfillSubmissionLearnerRefs`, `appinfo/info.xml`.
 
 ## Scope
 
 ### In Scope
 
 - `LearnerRefResolver` gains `byRef()` (the active profile a `learnerRef` names) and `resolveAcrossTenants()` (for callers without a session); `resolve()` is unchanged for signed-in callers.
-- The three callers of `LearnerProfileLookup` use `LearnerRefResolver`.
-- `LearnerProfileLookup` becomes a deprecated one-line facade, because #1129 (open) adds a caller; it is deleted once no caller is left.
+- The four callers of `LearnerProfileLookup` use `LearnerRefResolver`: the three from #1068 and #1096, and `ExcuseRequestOwnerStamp` from #1129, which landed while this change was open.
+- `LearnerProfileLookup` is deleted.
 - `BackfillSubmissionLearnerRefs`, a post-migration repair step after `InitializeSettings`.
 
 ### Out of Scope
@@ -45,7 +45,7 @@ Old submissions appear in the pupil's portal after the upgrade. No behaviour cha
 
 ## Cross-Project Dependencies
 
-None. #1129 keeps working through the facade whichever lands first.
+#1129 landed first; its caller moved to the resolver in the catch-up merge.
 
 ## Risks
 

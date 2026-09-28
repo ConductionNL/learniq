@@ -24,7 +24,7 @@
  * profile a `learnerRef` names (byRef()). Portal requests carry no Nextcloud
  * session, so they read across tenants (resolveAcrossTenants(), byRef()). These two
  * reads lived in Portal\LearnerProfileLookup, added twice (#1068, #1096) as a
- * copy of resolve(); that class is now a deprecated facade over this one.
+ * copy of resolve(); every caller now uses this class and that one is gone.
  *
  * @category Service
  * @package  OCA\Learniq\Service
