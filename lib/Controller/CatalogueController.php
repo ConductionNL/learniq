@@ -121,6 +121,10 @@ class CatalogueController extends Controller {
 			return new JSONResponse(data: ['error' => 'not_a_learner'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
+		if ($this->signUps->requireOpenForSignUp(schema: 'course', id: $id) === false) {
+			return $this->notFound(learner: $learner);
+		}
+
 		return $this->answer(outcome: $this->signUps->signUpCourse(learner: $learner, courseId: $id), learner: $learner);
 	}//end signUpCourse()
 
@@ -146,6 +150,10 @@ class CatalogueController extends Controller {
 			return new JSONResponse(data: ['error' => 'not_a_learner'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
+		if ($this->signUps->requireOpenForSignUp(schema: 'programme', id: $id) === false) {
+			return $this->notFound(learner: $learner);
+		}
+
 		return $this->answer(outcome: $this->signUps->signUpProgramme(learner: $learner, programmeId: $id), learner: $learner);
 	}//end signUpProgramme()
 
@@ -169,6 +177,10 @@ class CatalogueController extends Controller {
 			// Only a learner signs up or withdraws, and only for themselves:
 			// the service writes this caller's own id and checks ownership.
 			return new JSONResponse(data: ['error' => 'not_a_learner'], statusCode: Http::STATUS_FORBIDDEN);
+		}
+
+		if ($this->signUps->requireOwnEnrolment(learner: $learner, enrolmentId: $id) === false) {
+			return $this->notFound(learner: $learner);
 		}
 
 		return $this->answer(outcome: $this->signUps->withdraw(learner: $learner, enrolmentId: $id), learner: $learner);
@@ -208,6 +220,17 @@ class CatalogueController extends Controller {
 
 		return trim($value);
 	}//end param()
+
+	/**
+	 * The not-found answer, the same as for a missing object.
+	 *
+	 * @param PortalLearner $learner The learner.
+	 *
+	 * @return JSONResponse
+	 */
+	private function notFound(PortalLearner $learner): JSONResponse {
+		return $this->answer(outcome: new PortalOutcome(status: Http::STATUS_NOT_FOUND, body: ['error' => 'not_found'], reason: 'not-found'), learner: $learner);
+	}//end notFound()
 
 	/**
 	 * An outcome as a response, with the reason in the learner's words.

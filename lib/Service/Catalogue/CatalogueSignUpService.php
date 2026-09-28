@@ -202,6 +202,39 @@ class CatalogueSignUpService {
 	}//end withdraw()
 
 	/**
+	 * Whether the enrolment exists and is the learner's own: the per-object
+	 * predicate the controllers call before a withdraw.
+	 *
+	 * @param PortalLearner $learner     The learner.
+	 * @param string        $enrolmentId The enrolment uuid.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-withdraws-their-own-sign-up
+	 */
+	public function requireOwnEnrolment(PortalLearner $learner, string $enrolmentId): bool {
+		$enrolment = $this->read(schema: self::ENROLMENT, id: $enrolmentId);
+
+		return $enrolment !== null && ($enrolment['learnerId'] ?? '') === $learner->ncUserId;
+	}//end requireOwnEnrolment()
+
+	/**
+	 * Whether a course or programme is published and open to learners for
+	 * sign-up: the per-object predicate the controllers call before a
+	 * sign-up. A closed or unpublished one is not the learner's to touch.
+	 *
+	 * @param string $schema `course` or `programme`.
+	 * @param string $id     The uuid.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-course-or-programme-says-whether-learners-may-sign-up
+	 */
+	public function requireOpenForSignUp(string $schema, string $id): bool {
+		return is_array($this->openEntry(schema: $schema, id: $id)) === true;
+	}//end requireOpenForSignUp()
+
+	/**
 	 * Create one self enrolment, active for `open`, pending for `on-request`.
 	 *
 	 * @param PortalLearner $learner     The learner.

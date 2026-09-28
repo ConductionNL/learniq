@@ -74,6 +74,8 @@ class PortalCatalogueControllerTest extends TestCase {
 		$signUps->method('signUpCourse')->willReturnCallback(fn (PortalLearner $learner, string $courseId) => $record('course', $learner, $courseId));
 		$signUps->method('signUpProgramme')->willReturnCallback(fn (PortalLearner $learner, string $programmeId) => $record('programme', $learner, $programmeId));
 		$signUps->method('withdraw')->willReturnCallback(fn (PortalLearner $learner, string $enrolmentId) => $record('withdraw', $learner, $enrolmentId));
+		$signUps->method('requireOpenForSignUp')->willReturnCallback(static fn (string $schema, string $id): bool => $id !== 'closed');
+		$signUps->method('requireOwnEnrolment')->willReturn(true);
 
 		return $signUps;
 	}//end signUps()
@@ -152,7 +154,7 @@ class PortalCatalogueControllerTest extends TestCase {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('p.ganpat');
 		$session = $this->createMock(IUserSession::class);
-		$session->method('getUser')->willReturnOnConsecutiveCalls($user, null);
+		$session->method('getUser')->willReturnOnConsecutiveCalls($user, $user, null);
 		$profiles = $this->createMock(LearnerRefResolver::class);
 		$profiles->method('resolve')->willReturn('lp-9');
 
@@ -166,6 +168,7 @@ class PortalCatalogueControllerTest extends TestCase {
 		);
 
 		self::assertSame(422, $controller->signUpCourse(id: 'c-1')->getStatus());
+		self::assertSame(404, $controller->signUpProgramme(id: 'closed')->getStatus());
 		self::assertSame(['course:p.ganpat:c-1'], $this->calls);
 		self::assertSame(401, $controller->withdraw(id: 'e-1')->getStatus());
 
