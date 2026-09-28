@@ -1,6 +1,10 @@
 OC.L10N.register(
     "learniq",
     {
+        "QTI 2.1 interaction type.": "QTI 2.1 interaction type.",
+        "QTI 2.1 item XML, in the imsqti_v2p1 namespace.": "QTI 2.1 item XML, in the imsqti_v2p1 namespace.",
+        "When true, the presentation order of each choice-bearing item's answer options is independently permuted per attempt by AssessmentDrawResolver, respecting the QTI fixed attribute on individual simpleChoice options.": "When true, the presentation order of each choice-bearing item's answer options is independently permuted per attempt by AssessmentDrawResolver, respecting the QTI fixed attribute on individual simpleChoice options.",
+        "What this flag is about. The first three are school attendance concerns under the Leerplichtwet. Attendance requirement is for a course, programme, training or company that asks for a minimum presence.": "What this flag is about. The first three are school attendance concerns under the Leerplichtwet. Attendance requirement is for a course, programme, training or company that asks for a minimum presence.",
         "Last Checked Learner ID": "Last Checked Learner ID",
         "Nextcloud user ID of the learner named in the most recent `check-threshold` transition. Transient — overwritten on every check. See attendance-threshold-calculation: OpenRegister's aggregation DSL cannot express a per-individual-learner figure on a shared threshold definition, so a caller (a manual admin/mentor action today; a future scheduled per-learner job is the natural long-term caller) supplies this value as a guarded transition input.": "Nextcloud user ID of the learner named in the most recent `check-threshold` transition. Transient — overwritten on every check. See attendance-threshold-calculation: OpenRegister's aggregation DSL cannot express a per-individual-learner figure on a shared threshold definition, so a caller (a manual admin/mentor action today; a future scheduled per-learner job is the natural long-term caller) supplies this value as a guarded transition input.",
         "Last Checked Metric Value": "Last Checked Metric Value",
@@ -2010,6 +2014,11 @@ OC.L10N.register(
         "The note, as markdown. Only staff read it.": "The note, as markdown. Only staff read it.",
         "Block type. It decides which payload field below is filled. Teacher notes are not blocks: they are kept apart, where learners cannot read them.": "Block type. It decides which payload field below is filled. Teacher notes are not blocks: they are kept apart, where learners cannot read them.",
         "Markdown text of a rich text block. Empty for every other block type.": "Markdown text of a rich text block. Empty for every other block type.",
+        "A parent or guardian also signs this agreement. The student is under 18, or their date of birth is not recorded.": "A parent or guardian also signs this agreement. The student is under 18, or their date of birth is not recorded.",
+        "Parent signature required": "Parent signature required",
+        "Role of the signer. A parent or guardian signs next to a student who is under 18.": "Role of the signer. A parent or guardian signs next to a student who is under 18.",
+        "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded.": "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded.",
+        "You have used all attempts for this assessment.": "You have used all attempts for this assessment.",
         "Partner approval": "Partner approval",
         "Partner approvals": "Partner approvals",
         "Exchange target": "Exchange target",

@@ -31,7 +31,7 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
 use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\Portal\LearnerProfileLookup;
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -53,14 +53,14 @@ class SubmissionOwnerStampTest extends TestCase {
 	private const OTHER_TENANT = '22222222-2222-4222-8222-222222222222';
 
 	/**
-	 * Active LearnerProfile rows keyed by uuid, as LearnerProfileLookup::byRef returns them.
+	 * Active LearnerProfile rows keyed by uuid, as LearnerRefResolver::byRef returns them.
 	 *
 	 * @var array<string, array<string, mixed>>
 	 */
 	private array $profiles = [];
 
 	/**
-	 * Profile uuid per Nextcloud user id, as LearnerProfileLookup::refForUser returns it.
+	 * Profile uuid per Nextcloud user id, as LearnerRefResolver::resolveAcrossTenants() returns it.
 	 *
 	 * @var array<string, string>
 	 */
@@ -86,7 +86,7 @@ class SubmissionOwnerStampTest extends TestCase {
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willReturn($schemaSlug);
 
-		$lookup = $this->createMock(LearnerProfileLookup::class);
+		$lookup = $this->createMock(LearnerRefResolver::class);
 		$lookup->method('byRef')->willReturnCallback(
 			function (string $learnerRef) use ($lookupThrows): ?array {
 				if ($lookupThrows === true) {
@@ -96,7 +96,8 @@ class SubmissionOwnerStampTest extends TestCase {
 				return $this->profiles[$learnerRef] ?? null;
 			}
 		);
-		$lookup->method('refForUser')->willReturnCallback(
+		// The owner stamp may run without a session: only the across-tenants lookup answers.
+		$lookup->method('resolveAcrossTenants')->willReturnCallback(
 			function (string $ncUserId) use ($lookupThrows): ?string {
 				if ($lookupThrows === true) {
 					throw new RuntimeException('database gone');

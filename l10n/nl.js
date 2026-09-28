@@ -1,6 +1,10 @@
 OC.L10N.register(
     "learniq",
     {
+        "QTI 2.1 interaction type.": "Interactietype volgens QTI 2.1.",
+        "QTI 2.1 item XML, in the imsqti_v2p1 namespace.": "Item-XML volgens QTI 2.1, in de naamruimte imsqti_v2p1.",
+        "When true, the presentation order of each choice-bearing item's answer options is independently permuted per attempt by AssessmentDrawResolver, respecting the QTI fixed attribute on individual simpleChoice options.": "Als dit aan staat, worden de antwoordopties van elk meerkeuze-item per poging in een andere volgorde getoond door AssessmentDrawResolver. Opties met het QTI-kenmerk fixed blijven op hun plaats.",
+        "What this flag is about. The first three are school attendance concerns under the Leerplichtwet. Attendance requirement is for a course, programme, training or company that asks for a minimum presence.": "Waar deze melding over gaat. De eerste drie zijn zorgen over schoolverzuim onder de Leerplichtwet. Aanwezigheidseis is voor een cursus, opleiding, training of bedrijf dat een minimale aanwezigheid vraagt.",
         "Last Checked Learner ID": "ID van laatst gecontroleerde leerling",
         "Nextcloud user ID of the learner named in the most recent `check-threshold` transition. Transient — overwritten on every check. See attendance-threshold-calculation: OpenRegister's aggregation DSL cannot express a per-individual-learner figure on a shared threshold definition, so a caller (a manual admin/mentor action today; a future scheduled per-learner job is the natural long-term caller) supplies this value as a guarded transition input.": "Nextcloud-gebruikers-ID van de leerling die is opgegeven bij de meest recente `check-threshold`-overgang. Tijdelijk: wordt bij elke controle overschreven. Zie attendance-threshold-calculation: de aggregatietaal van OpenRegister kan geen waarde per individuele leerling uitdrukken op een gedeelde drempeldefinitie, dus een aanroeper (vandaag een handmatige actie van beheerder of mentor, op termijn een geplande taak per leerling) levert deze waarde aan als invoer bij een beveiligde overgang.",
         "Last Checked Metric Value": "Laatst gecontroleerde meetwaarde",
@@ -2472,6 +2476,11 @@ OC.L10N.register(
         "Markdown text of a rich text block. Empty for every other block type.": "Markdown-tekst van een tekstblok. Leeg voor elk ander bloktype.",
         "Only staff can read this note. Learners and parents never see it.": "Alleen medewerkers kunnen deze notitie lezen. Leerlingen en ouders zien hem nooit.",
         "The lesson was saved, but a teacher note was not. Save again to retry.": "De les is opgeslagen, maar een notitie voor docenten niet. Sla opnieuw op om het nog eens te proberen.",
+        "A parent or guardian also signs this agreement. The student is under 18, or their date of birth is not recorded.": "Een ouder of voogd tekent deze overeenkomst ook. De student is jonger dan 18, of zijn geboortedatum is niet bekend.",
+        "Parent signature required": "Handtekening ouder nodig",
+        "Role of the signer. A parent or guardian signs next to a student who is under 18.": "Rol van de ondertekenaar. Een ouder of voogd tekent mee als de student jonger is dan 18.",
+        "Whether a parent or guardian also signs. Set when signatures are requested and on activation: yes when the student is under 18, or has no date of birth recorded.": "Of een ouder of voogd ook tekent. Wordt bepaald bij het vragen om handtekeningen en bij het activeren: ja als de student jonger is dan 18 of geen geboortedatum heeft.",
+        "You have used all attempts for this assessment.": "Je hebt al je pogingen voor deze toets gebruikt.",
         "Partner approval": "Partnergoedkeuring",
         "Partner approvals": "Partnergoedkeuringen",
         "Exchange target": "Uitwisselbestemming",

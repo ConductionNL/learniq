@@ -49,7 +49,7 @@ class AssessmentScoringHandlerTest extends TestCase {
 		$objectService = $test->getMockBuilder(ObjectService::class)->disableOriginalConstructor()->getMock();
 		$objectService->method('findAll')->willReturnCallback(
 			static function (array $config) use ($assessment, $items): array {
-				$uuid = ($config['filters']['uuid'] ?? '');
+				$uuid = ($config['ids'][0] ?? '');
 				if ($config['filters']['schema'] === 'exam') {
 					if ($assessment === null) {
 						return [];

@@ -98,7 +98,7 @@ class TimetableConflictDetectorTest extends TestCase {
 				$rows = $this->fixtures[$schema] ?? [];
 
 				if ($schema === 'cohort' || $schema === 'room') {
-					return array_values(array_filter($rows, static fn (array $r): bool => ($r['id'] ?? null) === ($filters['id'] ?? null)));
+					return array_values(array_filter($rows, static fn (array $r): bool => ($r['id'] ?? null) === ($config['ids'][0] ?? null)));
 				}
 
 				if ($schema === 'exam') {

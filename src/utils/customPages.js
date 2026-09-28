@@ -466,8 +466,26 @@ export const SIGNABLE_SUBJECTS = {
 		subjectSchema: 'praktijkovereenkomst',
 		signatureSchema: 'pok-signature',
 		// The praktijkopleider signs through the portal (portaliq), not here.
-		roles: ['student', 'school'],
+		// A parent or guardian signs a minor's agreement (pok-signature-parent-role).
+		roles: ['student', 'school', 'parent'],
 	},
+}
+
+/**
+ * Whether the signing page says that a parent or guardian also signs.
+ * The server sets `parentSignatureRequired` on a praktijkovereenkomst when
+ * the student is under 18 or has no date of birth recorded; activation
+ * checks it again on its own.
+ *
+ * @param {string} kind 'learning-plan' or 'praktijkovereenkomst'.
+ * @param {object} subject The signed object.
+ * @return {boolean} True for a praktijkovereenkomst that needs a parent's signature.
+ * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+ */
+export function parentSignatureNeeded(kind, subject) {
+	return (
+		kind === 'praktijkovereenkomst' && subject?.parentSignatureRequired === true
+	)
 }
 
 /**

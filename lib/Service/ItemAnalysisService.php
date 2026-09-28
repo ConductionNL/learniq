@@ -612,7 +612,7 @@ class ItemAnalysisService {
 	/**
 	 * Extract QTI simpleChoice `identifier` values, in declared order.
 	 *
-	 * @param string $qtiBody Raw QTI 3.0 XML body.
+	 * @param string $qtiBody Raw QTI 2.1 XML body.
 	 *
 	 * @return array<int,string>
 	 */
@@ -750,13 +750,14 @@ class ItemAnalysisService {
 	 * @return array<string,mixed>|null
 	 */
 	private function fetchOne(string $schema, string $uuid, string $tenantId = ''): ?array {
-		$filters = ['uuid' => $uuid];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$matches = $this->objectService->findAll(
 			[
+				'ids' => [$uuid],
 				'filters' => array_merge(
 					$filters,
 					[

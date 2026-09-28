@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCP\IUserManager;
 
 /**
@@ -40,13 +41,13 @@ class PortalLearnerResolver {
 	/**
 	 * Constructor.
 	 *
-	 * @param LearnerProfileLookup $profiles LearnerProfile by uuid.
+	 * @param LearnerRefResolver $profiles LearnerProfile by uuid.
 	 * @param IUserManager $userManager Nextcloud accounts.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly LearnerProfileLookup $profiles,
+		private readonly LearnerRefResolver $profiles,
 		private readonly IUserManager $userManager,
 	) {
 	}//end __construct()

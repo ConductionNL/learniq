@@ -231,6 +231,31 @@ test('signature records fit their append-only schemas', async () => {
 	assert.equal(pok.evidenceRef, 'drawn:data:image/png;base64,AA')
 })
 
+// @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+test('a parent or guardian can sign a work placement agreement, and the page says when one must', async () => {
+	const { SIGNABLE_SUBJECTS, parentSignatureNeeded } =
+		await import('../../src/utils/customPages.js')
+	assert.ok(SIGNABLE_SUBJECTS.praktijkovereenkomst.roles.includes('parent'))
+	assert.ok(schemas.PokSignature.properties.signerRole.enum.includes('parent'))
+	assert.equal(
+		parentSignatureNeeded('praktijkovereenkomst', {
+			parentSignatureRequired: true,
+		}),
+		true,
+	)
+	assert.equal(
+		parentSignatureNeeded('praktijkovereenkomst', {
+			parentSignatureRequired: false,
+		}),
+		false,
+	)
+	assert.equal(parentSignatureNeeded('praktijkovereenkomst', {}), false)
+	assert.equal(
+		parentSignatureNeeded('learning-plan', { parentSignatureRequired: true }),
+		false,
+	)
+})
+
 test('bulk enrolment by department takes the department and everything under it', async () => {
 	const { learnersInDepartment, departmentOptions } =
 		await import('../../src/utils/customPages.js')

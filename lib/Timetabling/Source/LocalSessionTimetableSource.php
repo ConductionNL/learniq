@@ -114,20 +114,55 @@ class LocalSessionTimetableSource implements TimetableSource {
 	}//end sessionsForCohorts()
 
 	/**
-	 * A learniq Session has no teacher of its own: its teachers come through
-	 * its cohort, which the caller already reads. So this is always empty.
+	 * The Sessions the caller covers as substitute teacher (learniq#1134).
 	 *
-	 * @param string      $userId Unused.
-	 * @param string|null $from   Unused.
-	 * @param string|null $to     Unused.
+	 * A learniq Session's regular teachers come through its cohort, which the
+	 * caller already reads. A substitute is often neither a teacher nor a
+	 * learner of the cohort they cover, so those lessons are read here on
+	 * `substituteTeacherId` (declared on Session). Only the covered lessons
+	 * load, never the rest of that cohort's timetable. Each is marked
+	 * `cover: true`. The window is left to the caller.
+	 *
+	 * @param string      $userId The caller's Nextcloud user id.
+	 * @param string|null $from   Unused: the caller windows the rows.
+	 * @param string|null $to     Unused: the caller windows the rows.
 	 *
 	 * @return array<int,array<string,mixed>>
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
 	 */
 	public function sessionsForTeacher(string $userId, ?string $from, ?string $to): array {
-		unset($userId, $from, $to);
-		return [];
+		unset($from, $to);
+
+		if ($userId === '') {
+			return [];
+		}
+
+		$results = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => 'session',
+					'substituteTeacherId' => $userId,
+				],
+				'sort' => ['startsAt' => 'ASC'],
+			]
+		);
+
+		$rows = [];
+		foreach ($results as $row) {
+			$data = $this->toArray(row: $row);
+			// Defensive: never show a lesson another teacher covers.
+			if ((string)($data['substituteTeacherId'] ?? '') !== $userId) {
+				continue;
+			}
+
+			$data['cover'] = true;
+			$data['source'] = self::NAME;
+			$rows[] = $data;
+		}
+
+		return $rows;
 	}//end sessionsForTeacher()
 
 	/**

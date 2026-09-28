@@ -4,8 +4,9 @@
  * Learniq Assessment Access Policy
  *
  * The one place that decides whether a learner may start an attempt on an
- * Assessment right now: the availableFrom/availableUntil window and the
- * optional access code.
+ * Assessment right now: the availableFrom/availableUntil window, the
+ * optional access code, and the attempts left under `maxAttempts`. The
+ * portal catalogue and the in-app attempt gate both ask it.
  *
  * The window is evaluated LIVE against the two dates, not read from the
  * materialised `isAvailable` calculation. That calculation is stored when the
@@ -49,6 +50,7 @@ class AssessmentAccessPolicy {
 	public const REASON_CLOSED = 'window-closed';
 	public const REASON_CODE_REQUIRED = 'access-code-required';
 	public const REASON_CODE_INVALID = 'access-code-invalid';
+	public const REASON_ATTEMPTS_USED = 'attempts-used';
 
 	/**
 	 * Why the Assessment's availability window refuses an attempt at $now.
@@ -141,6 +143,45 @@ class AssessmentAccessPolicy {
 
 		return null;
 	}//end accessCodeBlock()
+
+	/**
+	 * Why another attempt is refused, or null while attempts are left.
+	 * `maxAttempts` defaults to one, and a value below one or not a number is
+	 * read as one.
+	 *
+	 * @param array<string, mixed> $assessment The raw Assessment row.
+	 * @param int $attemptsUsed Attempts the learner already has on it.
+	 *
+	 * @return array{reason: string, message: string}|null
+	 *
+	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
+	 */
+	public function attemptsBlock(array $assessment, int $attemptsUsed): ?array {
+		if ($attemptsUsed < $this->maxAttempts(assessment: $assessment)) {
+			return null;
+		}
+
+		return [
+			'reason' => self::REASON_ATTEMPTS_USED,
+			'message' => 'You have used all attempts for this assessment.',
+		];
+	}//end attemptsBlock()
+
+	/**
+	 * How many attempts a test allows; at least one.
+	 *
+	 * @param array<string, mixed> $assessment The raw Assessment row.
+	 *
+	 * @return int
+	 */
+	private function maxAttempts(array $assessment): int {
+		$max = ($assessment['maxAttempts'] ?? 1);
+		if (is_numeric($max) === false) {
+			return 1;
+		}
+
+		return max(1, (int)$max);
+	}//end maxAttempts()
 
 	/**
 	 * Trim a code value to a string, '' for anything that is not a string.

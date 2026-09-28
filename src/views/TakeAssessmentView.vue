@@ -686,6 +686,12 @@ export default {
 			if (reasonCode === 'window-closed') {
 				return this.t('learniq', 'This assessment is closed.')
 			}
+			if (reasonCode === 'attempts-used') {
+				return this.t(
+					'learniq',
+					'You have used all attempts for this assessment.',
+				)
+			}
 			return (
 				fallback
 				|| this.t('learniq', 'This assessment is not available right now.')

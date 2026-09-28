@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.3.6-unstable.20260928110000</version>
+    <version>0.3.6-unstable.20260928145637</version>
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
     <namespace>Learniq</namespace>
@@ -254,6 +254,14 @@ Vrij en open source onder de EUPL-1.2-licentie.
                 Runs once (app config exchange_migrated_to_integriq); deletes nothing.
             -->
             <step>OCA\Learniq\Repair\MigrateDataExchangeToIntegriq</step>
+            <!--
+                learnerrefs-backfill-and-lookup-dedupe: stamps learnerRefs and
+                learnerRef on submissions written before the server did, so they
+                reach the portal. After InitializeSettings (the register must
+                exist). Idempotent; a row it cannot resolve is retried on the
+                next upgrade.
+            -->
+            <step>OCA\Learniq\Repair\BackfillSubmissionLearnerRefs</step>
         </post-migration>
         <install>
             <!--

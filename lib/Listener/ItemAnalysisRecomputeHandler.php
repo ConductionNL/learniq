@@ -482,13 +482,14 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	 * @return array<string,mixed>|null
 	 */
 	private function fetchOne(string $schema, string $uuid, string $tenantId = ''): ?array {
-		$filters = ['uuid' => $uuid];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$matches = $this->objectService->findAll(
 			[
+				'ids' => [$uuid],
 				'filters' => array_merge(
 					$filters,
 					[

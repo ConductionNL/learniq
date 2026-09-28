@@ -412,13 +412,14 @@ class DataExchangePayloadBuilder {
 	 * @spec openspec/changes/zorgvraag-swv-tlv-chain/tasks.md#task-4.5
 	 */
 	private function resolveLearningPlanWhitelist(string $learningPlanId, string $tenantId): ?array {
-		$filters = ['id' => $learningPlanId];
+		$filters = [];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;
 		}
 
 		$results = $this->objectService->findAll(
 			[
+				'ids' => [$learningPlanId],
 				'filters' => array_merge(
 					$filters,
 					[
@@ -466,13 +467,14 @@ class DataExchangePayloadBuilder {
 				continue;
 			}
 
-			$filters = ['id' => $id];
+			$filters = [];
 			if ($tenantId !== '') {
 				$filters['tenant_id'] = $tenantId;
 			}
 
 			$results = $this->objectService->findAll(
 				[
+					'ids' => [$id],
 					'filters' => array_merge(
 						$filters,
 						[

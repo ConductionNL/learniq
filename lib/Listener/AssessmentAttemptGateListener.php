@@ -4,8 +4,12 @@
  * Learniq Assessment Attempt Gate Listener
  *
  * Refuses to create an AssessmentResult (start an attempt) outside the
- * Assessment's availableFrom/availableUntil window, or without the right
- * access code when the Assessment has one. Before this listener nothing on the
+ * Assessment's availableFrom/availableUntil window, without the right access
+ * code when the Assessment has one, or when the learner has used all of the
+ * test's `maxAttempts`. On an attempt it lets through it sets `startedAt` and
+ * `attemptNumber` from the server, so the time limit runs on the server's
+ * clock (in-app-test-limits-server-side). The attempt count and the attempts
+ * rule are the ones the portal endpoints use, through AssessmentAttemptLimits. Before this listener nothing on the
  * server checked either: TakeAssessmentView created an `in-progress` result
  * whenever it was opened, so a learner could read an exam's questions before
  * it opened or after it closed (learniq#946).
@@ -50,13 +54,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\AssessmentAccessPolicy;
+use OCA\Learniq\Service\AssessmentAttemptLimits;
 use OCA\Learniq\Service\AssessmentResultAudience;
 use OCA\Learniq\Service\AssessmentResultPortalStamp;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IGroupManager;
@@ -84,11 +87,10 @@ class AssessmentAttemptGateListener implements IEventListener {
 	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's schema slug.
 	 * @param IUserSession $userSession NC user session.
 	 * @param IGroupManager $groupManager NC group manager (admin check).
-	 * @param ITimeFactory $timeFactory Clock.
-	 * @param AssessmentAccessPolicy $policy Window and access-code rules.
 	 * @param AssessmentResultAudience $audience Stamps who may read the attempt (learniq#949).
 	 * @param AssessmentResultPortalStamp $portalStamp Stamps learnerRef and the test's title for the portal.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param AssessmentAttemptLimits $limits Window, access code, attempts left and the server's start stamp.
 	 *
 	 * @return void
 	 */
@@ -97,11 +99,10 @@ class AssessmentAttemptGateListener implements IEventListener {
 		private readonly ListenerSchemaResolver $schemaResolver,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
-		private readonly ITimeFactory $timeFactory,
-		private readonly AssessmentAccessPolicy $policy,
 		private readonly AssessmentResultAudience $audience,
 		private readonly AssessmentResultPortalStamp $portalStamp,
 		private readonly LoggerInterface $logger,
+		private readonly AssessmentAttemptLimits $limits,
 	) {
 	}//end __construct()
 
@@ -155,6 +156,7 @@ class AssessmentAttemptGateListener implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/specs/assessment/spec.md#requirement-an-attempt-starts-only-inside-the-availability-window-and-with-the-access-code
+	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
 	 */
 	private function evaluate(ObjectCreatingEvent $event, array $payload): void {
 		$assessmentId = (string)($payload['assessmentId'] ?? '');
@@ -175,20 +177,15 @@ class AssessmentAttemptGateListener implements IEventListener {
 			return;
 		}
 
-		$block = $this->policy->windowBlock(assessment: $assessment, now: $this->timeFactory->getDateTime());
-		if ($block === null) {
-			$block = $this->policy->accessCodeBlock(assessment: $assessment, given: ($payload['accessCode'] ?? null));
-		}
-
-		if ($block !== null) {
-			$this->reject(event: $event, block: $block);
+		// Window, access code and attempts left; on success the server sets
+		// startedAt and attemptNumber and clears the typed code.
+		$outcome = $this->limits->start(assessment: $assessment, payload: $payload);
+		if ($outcome['block'] !== null) {
+			$this->reject(event: $event, block: $outcome['block']);
 			return;
 		}
 
-		if (array_key_exists('accessCode', $payload) === true) {
-			// The typed code proved access; it is not kept on the attempt.
-			$event->setModifiedData(array_merge($event->getModifiedData(), ['accessCode' => null]));
-		}
+		$event->setModifiedData(array_merge($event->getModifiedData(), $outcome['stamp']));
 	}//end evaluate()
 
 	/**

@@ -215,7 +215,11 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 
 		$tenantId = $data['tenant_id'] ?? '';
 
-		$competency = $this->findCompetencyByCode(code: $werkprocesCode, tenantId: $tenantId);
+		$competency = $this->findCompetencyByCode(
+			code: $werkprocesCode,
+			dossierCode: trim((string)($data['kwalificatiedossierCode'] ?? '')),
+			tenantId: $tenantId
+		);
 		if ($competency === null) {
 			$this->logger->info(
 				'[CompetencyAttainmentRollupHandler] WerkprocesAssessment {id}: werkprocesCode "{code}" has no '
@@ -245,16 +249,58 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 	}//end resolveWerkprocesCompetencyId()
 
 	/**
-	 * Find a Competency whose code matches, scoped to an sbb-kwalificatiedossier framework.
+	 * Find the one Competency whose code matches, inside the assessment's own
+	 * SBB kwalificatiedossier.
+	 *
+	 * SBB repeats werkproces codes (`B1-K1-W1`) in every dossier, so the code
+	 * alone does not name a competency. The search runs in the frameworks
+	 * whose `sourceRef` is the assessment's `kwalificatiedossierCode`; when no
+	 * framework carries that code it runs in every SBB framework of the
+	 * tenant. Either way exactly one match resolves: none or several leave
+	 * the assessment unresolved, never the first of several.
 	 *
 	 * @param string $code The werkprocesCode to match.
+	 * @param string $dossierCode The assessment's kwalificatiedossierCode, or ''.
 	 * @param string $tenantId Tenant UUID scope filter.
 	 *
-	 * @return array<string,mixed>|null The matching Competency data, or null when none found.
+	 * @return array<string,mixed>|null The matching Competency data, or null when none or several match.
 	 *
 	 * @spec openspec/changes/competency-framework/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/bpv/spec.md#requirement-a-werkproces-code-resolves-inside-the-assessments-own-kwalificatiedossier
 	 */
-	private function findCompetencyByCode(string $code, string $tenantId): ?array {
+	private function findCompetencyByCode(string $code, string $dossierCode, string $tenantId): ?array {
+		$matches = [];
+		foreach ($this->sbbFrameworkIds(dossierCode: $dossierCode, tenantId: $tenantId) as $frameworkId) {
+			$competency = $this->competencyInFramework(frameworkId: $frameworkId, code: $code, tenantId: $tenantId);
+			if ($competency !== null) {
+				$matches[] = $competency;
+			}
+
+			if (count($matches) > 1) {
+				$this->logger->info(
+					'[CompetencyAttainmentRollupHandler] werkprocesCode "{code}" matches a Competency in more than one '
+					. 'sbb-kwalificatiedossier framework and none carries dossier code "{dossier}" as sourceRef; '
+					. 'competencyId stays null.',
+					['code' => $code, 'dossier' => $dossierCode]
+				);
+				return null;
+			}
+		}
+
+		return $matches[0] ?? null;
+	}//end findCompetencyByCode()
+
+	/**
+	 * The ids of the SBB frameworks a werkproces code is searched in.
+	 *
+	 * @param string $dossierCode The assessment's kwalificatiedossierCode, or ''.
+	 * @param string $tenantId Tenant UUID scope filter.
+	 *
+	 * @return array<int,string> The frameworks whose sourceRef is the dossier code, else every SBB framework.
+	 *
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/bpv/spec.md#requirement-a-werkproces-code-resolves-inside-the-assessments-own-kwalificatiedossier
+	 */
+	private function sbbFrameworkIds(string $dossierCode, string $tenantId): array {
 		$frameworkFilters = ['sourceAuthority' => self::SBB_SOURCE_AUTHORITY];
 		if ($tenantId !== '') {
 			$frameworkFilters['tenant_id'] = $tenantId;
@@ -272,6 +318,8 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 			]
 		);
 
+		$every = [];
+		$ownDossier = [];
 		foreach ($frameworks as $framework) {
 			$frameworkData = $this->reader->toArray(object: $framework);
 			$frameworkId = $frameworkData['id'] ?? ($frameworkData['uuid'] ?? null);
@@ -279,31 +327,55 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 				continue;
 			}
 
-			$competencyFilters = ['frameworkId' => $frameworkId, 'code' => $code];
-			if ($tenantId !== '') {
-				$competencyFilters['tenant_id'] = $tenantId;
+			$every[] = (string)$frameworkId;
+			if ($dossierCode !== '' && trim((string)($frameworkData['sourceRef'] ?? '')) === $dossierCode) {
+				$ownDossier[] = (string)$frameworkId;
 			}
+		}
 
-			$competencies = $this->objectService->findAll(
-				[
-					'filters' => array_merge(
-						$competencyFilters,
-						[
-							'register' => self::LEARNIQ_REGISTER,
-							'schema' => self::COMPETENCY_SCHEMA,
-						]
-					),
-					'limit' => 1,
-				]
-			);
+		if ($ownDossier !== []) {
+			return $ownDossier;
+		}
 
-			if (empty($competencies) === false) {
-				return $this->reader->toArray(object: $competencies[0]);
-			}
-		}//end foreach
+		return $every;
+	}//end sbbFrameworkIds()
 
-		return null;
-	}//end findCompetencyByCode()
+	/**
+	 * The Competency with this code in one framework, or null.
+	 *
+	 * @param string $frameworkId The CompetencyFramework id.
+	 * @param string $code The werkprocesCode to match.
+	 * @param string $tenantId Tenant UUID scope filter.
+	 *
+	 * @return array<string,mixed>|null
+	 *
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/bpv/spec.md#requirement-a-werkproces-code-resolves-inside-the-assessments-own-kwalificatiedossier
+	 */
+	private function competencyInFramework(string $frameworkId, string $code, string $tenantId): ?array {
+		$competencyFilters = ['frameworkId' => $frameworkId, 'code' => $code];
+		if ($tenantId !== '') {
+			$competencyFilters['tenant_id'] = $tenantId;
+		}
+
+		$competencies = $this->objectService->findAll(
+			[
+				'filters' => array_merge(
+					$competencyFilters,
+					[
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => self::COMPETENCY_SCHEMA,
+					]
+				),
+				'limit' => 1,
+			]
+		);
+
+		if (empty($competencies) === true) {
+			return null;
+		}
+
+		return $this->reader->toArray(object: $competencies[0]);
+	}//end competencyInFramework()
 
 	/**
 	 * Roll up a confirmed WerkprocesAssessment with a resolved competencyId.

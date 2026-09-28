@@ -182,12 +182,12 @@ class AssessmentScoringHandler implements LifecycleGuardInterface {
 	private function findAssessment(string $assessmentId, string $tenantId): ?array {
 		$assessments = $this->objectService->findAll(
 			[
+				'ids' => [$assessmentId],
 				// H1: scope Assessment lookup to the same tenant.
 				'filters' => $this->tenantScoped(
 					filters: [
 						'register' => self::LEARNIQ_REGISTER,
 						'schema' => 'exam',
-						'uuid' => $assessmentId,
 					],
 					tenantId: $tenantId
 				),
@@ -271,12 +271,12 @@ class AssessmentScoringHandler implements LifecycleGuardInterface {
 	private function autoScoreFor(string $itemId, array $response, string $tenantId, array $pointsByItemId): ?float {
 		$items = $this->objectService->findAll(
 			[
+				'ids' => [$itemId],
 				// H1: scope Item lookup to the same tenant.
 				'filters' => $this->tenantScoped(
 					filters: [
 						'register' => self::LEARNIQ_REGISTER,
 						'schema' => 'item',
-						'uuid' => $itemId,
 					],
 					tenantId: $tenantId
 				),
@@ -321,7 +321,7 @@ class AssessmentScoringHandler implements LifecycleGuardInterface {
 	 * For hotspot: treats correctResponse as array of accepted identifiers.
 	 * Unknown interactions return 0.
 	 *
-	 * @param string $interactionType QTI 3.0 interaction type.
+	 * @param string $interactionType QTI 2.1 interaction type.
 	 * @param mixed $learnerResponse Learner's response value.
 	 * @param mixed $correctResponse Item's declared correct response.
 	 * @param float $maxScore Maximum points for this item (from itemRefs override or item).

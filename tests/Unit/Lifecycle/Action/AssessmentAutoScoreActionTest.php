@@ -57,7 +57,7 @@ class AssessmentAutoScoreActionTest extends TestCase {
 					return array_filter([$assessment]);
 				}
 
-				$uuid = ($config['filters']['uuid'] ?? '');
+				$uuid = ($config['ids'][0] ?? '');
 
 				return array_filter([($items[$uuid] ?? null)]);
 			}
