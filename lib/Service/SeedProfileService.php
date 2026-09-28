@@ -90,6 +90,7 @@ class SeedProfileService {
 	 * @param ContainerInterface $container  Resolves OpenRegister's importer.
 	 * @param LoggerInterface    $logger     Records what was imported or skipped.
 	 * @param DemoDataService    $demoData   Lists and imports the generated set.
+	 * @param SharedCodeFilter   $sharedCodes Leaves out a regulation code another set already created.
 	 * @param LoadedExampleSets  $loadedSets Remembers which sets were loaded, for the wizard's removal steps.
 	 *
 	 * @return void
@@ -99,6 +100,7 @@ class SeedProfileService {
 		private readonly ContainerInterface $container,
 		private readonly LoggerInterface $logger,
 		private readonly DemoDataService $demoData,
+		private readonly SharedCodeFilter $sharedCodes,
 		private readonly LoadedExampleSets $loadedSets,
 	) {
 	}//end __construct()
@@ -213,9 +215,12 @@ class SeedProfileService {
 		$data    = $this->descriptorFor(profileId: $profileId);
 		$objects = count($this->objectsOf(data: $data));
 
+		// A second set that ships a regulation code the first one already
+		// created leaves its own row out, so the code stays one row (VCA and
+		// NIS2 in the company and training sets).
 		$this->configurationService()->importFromApp(
 			appId: $this->importAppId(profileId: $profileId),
-			data: $data,
+			data: $this->sharedCodes->withoutCodesHeldElsewhere(data: $data),
 			version: $this->appManager->getAppVersion(Application::APP_ID),
 			force: true
 		);
