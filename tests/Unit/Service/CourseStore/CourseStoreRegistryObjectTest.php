@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\CourseStore;
 
+use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CourseStore\CourseStoreDescriptor;
 use OCA\Learniq\Service\CourseStore\CourseStoreRegistryObject;
 use PHPUnit\Framework\TestCase;
@@ -62,7 +63,7 @@ class CourseStoreRegistryObjectTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheDescriptorNamesTheCourseStore(): void {
-		$descriptor = (new CourseStoreDescriptor())->descriptor();
+		$descriptor = (new CourseStoreDescriptor($this->createMock(ActionAuthService::class)))->descriptor();
 
 		self::assertSame('learniq', $descriptor->appId);
 		self::assertSame('shared-course-package', $descriptor->schema);
@@ -105,7 +106,7 @@ class CourseStoreRegistryObjectTest extends TestCase {
 	 */
 	public function testTheSlugIsReadableAndDiffersPerContent(): void {
 		$builder    = new CourseStoreRegistryObject();
-		$descriptor = new CourseStoreDescriptor();
+		$descriptor = new CourseStoreDescriptor($this->createMock(ActionAuthService::class));
 		$slug       = $builder->slug($this->package());
 		$other      = $builder->slug([...$this->package(), 'lessons' => []]);
 
@@ -121,7 +122,7 @@ class CourseStoreRegistryObjectTest extends TestCase {
 	 * @return void
 	 */
 	public function testOnlyCoursePackageSlugsCount(): void {
-		$descriptor = new CourseStoreDescriptor();
+		$descriptor = new CourseStoreDescriptor($this->createMock(ActionAuthService::class));
 
 		self::assertFalse($descriptor->isCourseSlug('openregister-configset-owner-repo'));
 		self::assertFalse($descriptor->isCourseSlug('course-package-'));

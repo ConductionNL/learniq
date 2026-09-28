@@ -2,7 +2,7 @@
 
 > Scholiq is an open-source education app for the Nextcloud workspace.
 
-Scholiq is an open-source education app for the Nextcloud workspace. It runs as a leerlingvolgsysteem (LVS) for Dutch primary and secondary schools, as a full LMS for higher education, and as a compliance-training engine for MKB and government bodies. Scholiq connects natively to DUO BRON/ROD, OSO transfer, SURFconext, IMS QTI 3.0, and EDCI / Open-Badges 3.0, with EU AI Act gating built in from day one. Released under EUPL-1.2 and maintained by Conduction since 2019.
+Scholiq is an open-source education app for the Nextcloud workspace. It runs as a leerlingvolgsysteem (LVS) for Dutch primary and secondary schools, as a full LMS for higher education, and as a compliance-training engine for MKB and government bodies. Scholiq connects natively to DUO BRON/ROD, OSO transfer, SURFconext, IMS QTI 2.1, and EDCI / Open-Badges 3.0, with EU AI Act gating built in from day one. Released under EUPL-1.2 and maintained by Conduction since 2019.
 
 ## Docs
 

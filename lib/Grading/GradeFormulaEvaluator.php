@@ -79,6 +79,7 @@ class GradeFormulaEvaluator {
 	 * @return array{value: float|null, passed: bool|null, breakdown: array, lastRecomputedAt: string}
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-5
+	 * @spec openspec/changes/grading-defects-from-example-sets/specs/grading/spec.md#requirement-a-plan-satisfied-entirely-by-exemptions-passes
 	 */
 	public function evaluate(string $curriculumPlanId, string $learnerId): array {
 		$plan = $this->fetchPlan(curriculumPlanId: $curriculumPlanId);
@@ -113,7 +114,8 @@ class GradeFormulaEvaluator {
 			value: $value,
 			entries: $entries,
 			passRules: $passRules,
-			passThreshold: $passThreshold
+			passThreshold: $passThreshold,
+			components: $components
 		);
 
 		return [

@@ -321,21 +321,32 @@ class CorporateExampleSetTest extends TestCase {
 	 * or is booked on the course: VCA for Operatie, NEN 3140 for the
 	 * technicians, the forklift certificate for the warehouse.
 	 *
+	 * The scopes are read from the set's own Regulation rows (their
+	 * `department` audiences), the way the Compliance overview reads them,
+	 * so the rows and the data cannot drift apart.
+	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/segment-example-datasets-corporate/specs/example-sets/spec.md#requirement-certificates-expire-and-renew-the-way-the-listener-does-it
+	 * @spec openspec/changes/example-set-regulation-rows/specs/example-sets/spec.md#scenario-the-company-scopes-drive-the-certification-check
 	 */
 	public function testEveryoneACertificationAppliesToHoldsItOrIsBooked(): void {
 		$credentials = self::groupBy(self::of('credential'), 'learnerId');
 		$enrolments  = self::groupBy(self::of('enrolment'), 'learnerId');
-		$scopes      = [
-			'VCA'      => ['Operatie/'],
-			'NEN3140'  => ['Operatie/Installatie en service', 'Operatie/Werkplaats'],
-			'HEFTRUCK' => ['Operatie/Magazijn en logistiek'],
-		];
+		$scopes      = [];
+		foreach (self::of('regulation') as $row) {
+			if ($row['audienceScope'] === 'department') {
+				$scopes[$row['slug']] = $row['audienceDepartments'];
+			}
+		}
+
+		self::assertEqualsCanonicalizing(['VCA', 'NEN3140', 'HEFTRUCK'], array_keys($scopes));
 		foreach (self::of('learner-profile') as $profile) {
 			foreach ($scopes as $regulation => $departments) {
-				$inScope = array_filter($departments, static fn (string $d): bool => str_starts_with($profile['department'], $d));
+				$inScope = array_filter(
+					$departments,
+					static fn (string $d): bool => $profile['department'] === $d || str_starts_with($profile['department'], $d . '/')
+				);
 				if ($inScope === []) {
 					continue;
 				}
@@ -633,4 +644,64 @@ class CorporateExampleSetTest extends TestCase {
 		$register = json_decode((string)file_get_contents(dirname(__DIR__, 3) . '/lib/Settings/learniq_register.json'), true);
 		self::assertSame([], ($register['components']['schemas']['ExternalTrainingRecord']['x-openregister-seed'] ?? []));
 	}//end testThePromotedSeedMovedOutOfTheRegister()
+
+	/**
+	 * Every regulation code the set uses is a Regulation row in the set, or
+	 * AVG, which the register seeds (D29).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-set-regulation-rows/specs/example-sets/spec.md#scenario-every-company-regulation-reference-resolves
+	 */
+	public function testEveryRegulationReferenceResolves(): void {
+		$shipped = array_column(self::of('regulation'), 'slug');
+		self::assertNotContains('AVG', $shipped, 'the register seeds AVG; a second row would duplicate it');
+
+		$used = [];
+		foreach ((array)self::$objects as $schema => $rows) {
+			foreach ($rows as $row) {
+				if (isset($row['regulationSlug']) === true) {
+					$used[$row['regulationSlug']] = $schema;
+				}
+			}
+		}
+
+		self::assertGreaterThanOrEqual(9, count($used));
+		foreach (array_keys($used) as $code) {
+			self::assertTrue($code === 'AVG' || in_array($code, $shipped, true), $code . ' is used but has no Regulation row');
+		}
+	}//end testEveryRegulationReferenceResolves()
+
+	/**
+	 * The rows count in the Compliance overview: published, active, with the
+	 * audiences the set trains for.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-set-regulation-rows/specs/example-sets/spec.md#requirement-the-company-and-training-sets-carry-the-regulations-they-reference
+	 */
+	public function testRegulationsArePublishedWithTheirAudiences(): void {
+		$rows = self::by(self::of('regulation'), 'slug');
+		foreach ($rows as $code => $row) {
+			self::assertSame('published', $row['lifecycle'], $code);
+			self::assertTrue($row['active'], $code);
+			self::assertMatchesRegularExpression('/^[A-Z0-9_-]+$/', (string)$code);
+		}
+
+		self::assertSame('all-employees', $rows['GEDRAGSCODE']['audienceScope']);
+		self::assertSame('all-employees', $rows['INFORMATIEBEVEILIGING']['audienceScope']);
+		self::assertSame('board', $rows['NIS2']['audienceScope']);
+		self::assertEqualsCanonicalizing(['manager', 'compliance-officer'], $rows['NIS2']['audienceRoles']);
+		foreach (['BHV', 'FGASSEN'] as $designated) {
+			self::assertSame('role-specific', $rows[$designated]['audienceScope'], $designated);
+			self::assertSame([], $rows[$designated]['audienceRoles'], $designated . ' falls on designated people, not a role');
+		}
+
+		$board = array_filter(
+			self::of('learner-profile'),
+			static fn (array $p): bool => array_intersect($p['roles'], ['manager', 'compliance-officer']) !== []
+		);
+		$nis2  = array_filter(self::of('external-training-record'), static fn (array $r): bool => ($r['regulationSlug'] ?? '') === 'NIS2');
+		self::assertSame(count($board), count(array_unique(array_column($nis2, 'learnerId'))), 'every board member has a NIS2 record');
+	}//end testRegulationsArePublishedWithTheirAudiences()
 }//end class

@@ -612,7 +612,7 @@ class ItemAnalysisService {
 	/**
 	 * Extract QTI simpleChoice `identifier` values, in declared order.
 	 *
-	 * @param string $qtiBody Raw QTI 3.0 XML body.
+	 * @param string $qtiBody Raw QTI 2.1 XML body.
 	 *
 	 * @return array<int,string>
 	 */

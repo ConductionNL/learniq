@@ -9,10 +9,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
-import {
-	playerVisibleBlocks,
-	serialiseLessonBlocks,
-} from '../../src/utils/lessonBlocks.js'
+import { playerVisibleBlocks } from '../../src/utils/lessonBlocks.js'
 import {
 	dismissRequest,
 	formatLabel,
@@ -76,14 +73,11 @@ test('list answers are read from any envelope', () => {
 	assert.equal(formatLabel('pptx'), 'PowerPoint')
 })
 
-test('teacherNote keeps its text when serialised', () => {
-	const [note] = serialiseLessonBlocks([
-		{ blockId: 'n1', type: 'teacherNote', order: 2, text: 'Vraag naar de rol van licht.', materialId: null },
-	])
-	assert.deepEqual(note, { blockId: 'n1', type: 'teacherNote', order: 2, text: 'Vraag naar de rol van licht.' })
+test('a teacher note is not a lesson block any more (teacher-notes-protection)', () => {
 	assert.ok(
-		register.components.schemas.Lesson.properties.blocks.items.properties.type.enum.includes('teacherNote'),
+		!register.components.schemas.Lesson.properties.blocks.items.properties.type.enum.includes('teacherNote'),
 	)
+	assert.equal(register.components.schemas.LessonTeacherNote.properties.text.type, 'string')
 })
 
 test('the player\'s block list leaves teacher notes out and keeps the order', () => {

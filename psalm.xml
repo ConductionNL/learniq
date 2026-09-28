@@ -34,11 +34,13 @@
         <file name="tests/Stubs/Service/TenantKeyService.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/TalkLinkService.php" preloadClasses="true" />
         <file name="tests/Stubs/Service/FileService.php" preloadClasses="true" />
-        <!-- OpenRegister's store plane (ADR-080) and its SSRF guard, injected and
-             called by learniq's course store (lesson-sharing-via-store-plane). -->
+        <!-- OpenRegister's store plane (ADR-080): discovery, publish and the
+             publish authorizer, used by learniq's course store
+             (lesson-sharing-via-store-plane, store-publish-through-plane). The
+             plane owns the SSRF guard, so learniq no longer stubs SecurityService. -->
         <file name="tests/Stubs/AppHost/Service/StoreDescriptor.php" preloadClasses="true" />
         <file name="tests/Stubs/AppHost/Service/GenericStoreService.php" preloadClasses="true" />
-        <file name="tests/Stubs/Service/SecurityService.php" preloadClasses="true" />
+        <file name="tests/Stubs/AppHost/Store/StoreActionAuthorizer.php" preloadClasses="true" />
         <!-- OpenRegister's lifecycle guard contract. A `requires` guard must
              implement the interface or OpenRegister refuses to run it. -->
         <file name="tests/Stubs/Lifecycle/GuardResult.php" preloadClasses="true" />
@@ -104,6 +106,11 @@
                 <referencedClass name="OCA\OpenRegister\Db\ObjectEntity"/>
                 <referencedClass name="OCA\OpenRegister\Db\RegisterMapper"/>
                 <referencedClass name="OCA\OpenRegister\Db\SchemaMapper"/>
+                <!-- retired-schemas-prune: OpenRegister's schema entity and its
+                     cascade teardown, resolved lazily from the container by
+                     Repair\PruneRetiredSchemas. Real classes in openregister/lib. -->
+                <referencedClass name="OCA\OpenRegister\Db\Schema"/>
+                <referencedClass name="OCA\OpenRegister\Service\SchemaDeletionService"/>
                 <referencedClass name="OCA\OpenRegister\Event\DeepLinkRegistrationEvent"/>
                 <referencedClass name="OCA\OpenRegister\Event\ObjectCreatingEvent"/>
                 <referencedClass name="OCA\OpenRegister\Event\ObjectCreatedEvent"/>

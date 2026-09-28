@@ -50,6 +50,10 @@ class PortalMessages {
 		'access-code-wrong' => 'The access code is not correct.',
 		'attempt-closed' => 'This test is already handed in.',
 		'no-account' => 'Your school account is not ready for tests yet. Ask your school.',
+		'submission-not-found' => 'This work could not be found.',
+		'already-handed-in' => 'This work is already handed in.',
+		'late-not-accepted' => 'The deadline has passed and this assignment does not accept late work.',
+		'hand-in-refused' => 'This work cannot be handed in right now. Ask your teacher.',
 	];
 
 	/**

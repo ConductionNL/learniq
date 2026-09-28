@@ -31,6 +31,15 @@
 				}}
 			</p>
 
+			<NcNoteCard v-if="parentNeeded" type="info">
+				{{
+					t(
+						'learniq',
+						'A parent or guardian also signs this agreement. The student is under 18, or their date of birth is not recorded.',
+					)
+				}}
+			</NcNoteCard>
+
 			<NcSelect
 				v-model="signerRole"
 				:options="roleOptions"
@@ -88,6 +97,7 @@ import {
 	defaultSignerRole,
 	objectsUrl,
 	oneObject,
+	parentSignatureNeeded,
 	SIGNABLE_SUBJECTS,
 	signatureBody,
 } from '../utils/customPages.js'
@@ -162,6 +172,14 @@ export default {
 			return this.subject === 'praktijkovereenkomst'
 				? this.t('learniq', 'Sign the work placement agreement')
 				: this.t('learniq', 'Sign the learning plan')
+		},
+
+		/**
+		 * @return {boolean} Whether a parent or guardian also signs this subject.
+		 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+		 */
+		parentNeeded() {
+			return parentSignatureNeeded(this.subject, this.subjectObject)
 		},
 
 		/**

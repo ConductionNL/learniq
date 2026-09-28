@@ -35,6 +35,11 @@
 								"corporate",
 								"training"
 							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -59,6 +64,11 @@
 								"he",
 								"corporate",
 								"training"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}
@@ -85,6 +95,11 @@
 								"corporate",
 								"training"
 							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -106,6 +121,11 @@
 							"in": [
 								"po",
 								"vo",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
 								"corporate"
 							]
 						}
