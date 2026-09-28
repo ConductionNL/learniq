@@ -64,7 +64,7 @@ export const TEACHER_NOTE_SCHEMA = 'lesson-teacher-note'
  * @param {Array<object>} blocks The composer's blocks.
  * @return {Array<object>} Blocks safe to persist.
  * @spec openspec/changes/course-authoring-ux/specs/course-management/spec.md#requirement-a-lesson-s-body-is-authored-as-an-ordered-list-of-typed-content-blocks
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+ * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
  * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-a-lesson-a-learner-can-read-cannot-hold-a-teacher-note
  */
 export function serialiseLessonBlocks(blocks) {
@@ -93,7 +93,7 @@ export function serialiseLessonBlocks(blocks) {
  *
  * @param {{blockId: string, text: string, action: string, provider: string|null}} draft The draft.
  * @return {object} The block.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+ * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
  */
 export function makeDraftBlock({ blockId, text, action, provider }) {
 	return {
@@ -117,7 +117,7 @@ export function makeDraftBlock({ blockId, text, action, provider }) {
  *
  * @param {object} block A draft block.
  * @return {object} The same block, without its draft marker.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-a-teacher-keeps-an-ai-outline
+ * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-keeps-an-ai-outline
  */
 export function keepDraftBlock(block) {
 	delete block.assistDraft
@@ -129,7 +129,7 @@ export function keepDraftBlock(block) {
  *
  * @param {Array<object>} blocks The composer's blocks.
  * @return {number} The count.
- * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-a-pending-draft-blocks-the-save
+ * @spec openspec/specs/course-management/spec.md#scenario-a-pending-draft-blocks-the-save
  */
 export function countPendingDrafts(blocks) {
 	return (blocks ?? []).filter((b) => Boolean(b?.assistDraft)).length

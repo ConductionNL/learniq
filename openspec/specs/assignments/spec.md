@@ -40,7 +40,9 @@ Learners hand work in; teachers grade it. That loop is universal — a vmbo `opd
 - GIVEN `allowLateSubmission=false` and `dueAt` in the past, WHEN a learner attempts to submit, THEN the system rejects it (HTTP 422) and creates no Submission.
 - GIVEN a teacher marks a Submission against a Rubric, WHEN they save, THEN a `GradeEntry` is created/updated with the summed points and linked to the Submission; the learner's view shows the per-criterion levels.
 - GIVEN a Submission is `late` and the Assignment has a 10% penalty, WHEN the teacher marks it, THEN the proposed grade is reduced by 10% before becoming the GradeEntry value.
+
 ## Requirements
+
 ### Requirement: Persist Assignment domain objects in OpenRegister
 The system MUST persist `Assignment`, `Submission`, `Rubric` as OpenRegister objects with
 `x-openregister-lifecycle` (Submission: draft → submitted → late → returned), `x-openregister-relations`
@@ -322,6 +324,138 @@ The Submission authorization MUST let every signed-in user create a submission, 
 - **GIVEN** a draft submission whose `learnerIds` names learner A
 - **WHEN** user B fires `submit`
 - **THEN** the transition is refused
+
+### Requirement: A teacher sees who has not handed in an assignment
+
+`AssignmentDetail` MUST show staff a hand-in status section computed from the assignment's roster
+and its submissions. The roster MUST be `Cohort.learnerIds` of `Assignment.cohortId`, or the union
+of `learnerIds` of every cohort of `Assignment.courseId` when no cohort is set. A learner MUST count
+as handed in when a submission for the assignment lists them in `learnerIds` with lifecycle
+`submitted`, `late` or `returned`; as started when their only submissions are `draft`; and as not
+started otherwise. The section MUST show the handed-in count out of the roster size, then every
+learner who has not handed in, and MUST mark them overdue once `Assignment.dueAt` has passed. The
+section MUST render nothing for a user without the `teacher` or `admin` dashboard view.
+
+#### Scenario: Six of twenty-four have not handed in
+
+<!-- @e2e exclude Pure diff logic covered by node test tests/unit-js/handInStatus.test.mjs; the section itself renders from that output and lanes do not run against the shared instance. -->
+
+- **GIVEN** an assignment for a cohort of 24 learners, with 18 submissions in `submitted`, `late`
+  or `returned`, 2 in `draft`, and 4 learners without a submission
+- **WHEN** a teacher opens the assignment
+- **THEN** the section shows "18 of 24 handed in", lists 2 learners as started and 4 as not started
+
+#### Scenario: A course-wide assignment uses every cohort of the course
+
+<!-- @e2e exclude Node test tests/unit-js/handInStatus.test.mjs. -->
+
+- **GIVEN** an assignment with no `cohortId` for a course with two cohorts that share one learner
+- **WHEN** the roster is built
+- **THEN** it holds every learner of both cohorts once
+
+#### Scenario: Missing work is overdue after the due date
+
+<!-- @e2e exclude Node test tests/unit-js/handInStatus.test.mjs. -->
+
+- **GIVEN** an assignment whose `dueAt` has passed and a learner without a submission
+- **WHEN** the section is computed
+- **THEN** that learner is marked overdue
+
+#### Scenario: A pupil does not see the roster
+
+<!-- @e2e exclude Staff gate covered by node test tests/unit-js/handInStatus.test.mjs (canSeeHandInStatus). -->
+
+- **GIVEN** a user whose dashboard views are only `student`
+- **WHEN** they open the assignment
+- **THEN** the hand-in status section renders nothing
+
+### Requirement: A teacher allocates peer reviewers from the assignment page
+
+`AssignmentDetail` MUST show staff a peer review section when `Assignment.peerReviewEnabled` is true.
+It MUST state the allocation strategy and the reviewers per submission. For `round-robin` and
+`random` it MUST offer "Allocate reviewers", which posts to
+`/apps/learniq/api/peer-review/{assignmentId}/allocate` and then reports how many reviews were
+created across how many submissions. For `manual` it MUST say reviewers are added by hand and offer
+no button. Before `Assignment.dueAt` it MUST say that allocating again later adds reviewers for
+work handed in since. The section MUST render nothing for users without the `teacher` or `admin`
+dashboard view, and nothing when peer review is off.
+
+#### Scenario: A teacher allocates reviewers
+
+<!-- @e2e exclude Section renders from helpers covered by tests/unit-js/peerReviewAllocation.test.mjs; lanes do not run against the shared instance. -->
+
+- **GIVEN** an assignment with `peerReviewEnabled: true` and `peerReviewAllocationStrategy: round-robin`
+- **WHEN** a teacher chooses "Allocate reviewers"
+- **THEN** the endpoint is called and the section reports the created count and the submissions
+  processed
+
+#### Scenario: Manual allocation offers no button
+
+<!-- @e2e exclude Node test tests/unit-js/peerReviewAllocation.test.mjs. -->
+
+- **GIVEN** an assignment with `peerReviewAllocationStrategy: manual`
+- **WHEN** a teacher opens it
+- **THEN** the section says reviewers are added by hand and shows no allocate button
+
+#### Scenario: Pupils and assignments without peer review show nothing
+
+<!-- @e2e exclude Node test tests/unit-js/peerReviewAllocation.test.mjs. -->
+
+- **GIVEN** a user with only the `student` view, or an assignment with `peerReviewEnabled: false`
+- **WHEN** the assignment page renders
+- **THEN** the peer review section renders nothing
+
+### Requirement: Allocation reads and writes as the system after the controller's check
+
+`PeerReviewAllocationService` MUST pass `register` and `schema` inside `filters` on every `findAll`,
+MUST read and write with `_rbac: false` (its caller has authorized the teacher), and MUST treat only
+submissions in `submitted`, `late` or `returned` as work to review and as the reviewer pool.
+
+#### Scenario: A cohort teacher's allocation creates the reviews
+
+<!-- @e2e exclude PHPUnit PeerReviewAllocationServiceTest. -->
+
+- **GIVEN** five handed-in submissions and a caller in `instructors` only
+- **WHEN** allocation runs with round-robin and two reviewers per submission
+- **THEN** ten `PeerReview` rows are saved with `_rbac: false`, and every read named its schema
+  under `filters`
+
+#### Scenario: Drafts are neither reviewed nor reviewers
+
+<!-- @e2e exclude PHPUnit PeerReviewAllocationServiceTest. -->
+
+- **GIVEN** four handed-in submissions and one draft
+- **WHEN** allocation runs
+- **THEN** the draft gets no reviews and its learner reviews nobody
+
+### Requirement: Every Submission carries server-stamped learnerRefs
+
+Every Submission MUST carry `learnerRefs`: the LearnerProfile UUID of each learner in `learnerIds` who has a profile, found on `ncUserId`. The server MUST derive the list on every create and update and MUST ignore a `learnerRefs` value sent by the client. A learner without a profile MUST add no entry. The stamp MUST NOT block the write: when a lookup fails on create the list is empty, and on an update that keeps the same learners the stored list is kept.
+
+#### Scenario: A pupil's upload reaches the portal
+
+- **GIVEN** pupil `leerling-001` with LearnerProfile `lp-001`
+- **WHEN** a Submission is created with `learnerIds: ["leerling-001"]`
+- **THEN** it is stored with `learnerRefs: ["lp-001"]`
+- **AND** the portal's student submissions collection shows it to that pupil
+
+#### Scenario: A group submission names every member with a profile
+
+- **GIVEN** pupils `leerling-001` and `leerling-002` with profiles, and `leerling-099` without one
+- **WHEN** a Submission is created with all three in `learnerIds`
+- **THEN** `learnerRefs` holds the two profile UUIDs
+
+#### Scenario: A forged learnerRefs is replaced
+
+- **GIVEN** a client sends `learnerRefs: ["lp-002"]` with `learnerIds: ["leerling-001"]`
+- **WHEN** the Submission is created
+- **THEN** it is stored with `learnerRefs: ["lp-001"]`
+
+#### Scenario: A failed lookup never blocks the upload
+
+- **GIVEN** the profile lookup fails
+- **WHEN** a Submission is created
+- **THEN** the write goes through with `learnerRefs: []`
 
 ## Standards
 

@@ -345,7 +345,7 @@ class PortalContributionProviderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
 	 */
 	public function testStudentTestsIsATimedTask(): void {
 		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);

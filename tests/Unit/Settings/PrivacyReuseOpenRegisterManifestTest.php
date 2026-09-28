@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-the-privacy-governance-overview-is-a-typed-dashboard-page
+ * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-the-privacy-governance-overview-is-a-typed-dashboard-page
  */
 
 declare(strict_types=1);
@@ -75,7 +75,7 @@ class PrivacyReuseOpenRegisterManifestTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/privacy-reuse-openregister-register/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 	 */
 	public function testThePrivacyRequestPagesReadOpenRegistersRegister(): void {
 		foreach (['DataSubjectRequests', 'DataSubjectRequestDetail'] as $id) {

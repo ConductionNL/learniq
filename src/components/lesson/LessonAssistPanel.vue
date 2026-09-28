@@ -20,8 +20,8 @@
    switched off or has no such route. That state lasts for the browser
    session.
 
- @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
- @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+ @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+ @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
 -->
 <template>
 	<NcNoteCard v-if="switchedOff" type="info" class="lesson-assist__off">
@@ -265,7 +265,7 @@ export default {
 
 	computed: {
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+		 * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
 		 * @return {Array<{id: string, label: string}>} Goal picker options.
 		 */
 		goalOptions() {
@@ -273,7 +273,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+		 * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
 		 * @return {string} The lesson text an action sends.
 		 */
 		lessonText() {
@@ -281,7 +281,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+		 * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
 		 * @return {string[]} Titles of the picked goals.
 		 */
 		selectedGoalTitles() {
@@ -292,7 +292,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
+		 * @spec openspec/specs/course-management/spec.md#requirement-assist-requests-carry-lesson-content-and-goal-titles-only
 		 * @return {string[]} The goal titles the outline is drafted from.
 		 */
 		outlineGoalTitles() {
@@ -303,7 +303,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-a-teacher-adds-a-suggested-goal
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-teacher-adds-a-suggested-goal
 		 * @return {Array<{id: string, title: string, linked: boolean}>} Suggestion rows.
 		 */
 		suggestionRows() {
@@ -322,7 +322,7 @@ export default {
 	 * Build the hermiq client once per panel: axios for the session and CSRF
 	 * token, generateUrl for the endpoint.
 	 *
-	 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
 	 * @return {void}
 	 */
 	created() {
@@ -340,7 +340,7 @@ export default {
 	 * lesson, same browser session) tells the composer at once, so the
 	 * per-block rewrite buttons hide too.
 	 *
-	 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-hermiq-answers-that-the-feature-is-switched-off
+	 * @spec openspec/specs/course-management/spec.md#scenario-hermiq-answers-that-the-feature-is-switched-off
 	 * @return {void}
 	 */
 	mounted() {
@@ -351,7 +351,7 @@ export default {
 
 	methods: {
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+		 * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 		 * @return {Promise<void>}
 		 */
 		runOutline() {
@@ -363,7 +363,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+		 * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 		 * @return {Promise<void>}
 		 */
 		runQuestions() {
@@ -379,7 +379,7 @@ export default {
 		 * Goal suggestions send every candidate goal's title, in the panel's
 		 * fixed order, and keep the ids to map the answer's indexes back.
 		 *
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-goal-suggestions-map-back-to-goal-ids
+		 * @spec openspec/specs/course-management/spec.md#scenario-goal-suggestions-map-back-to-goal-ids
 		 * @return {Promise<void>}
 		 */
 		runGoalSuggestions() {
@@ -396,7 +396,7 @@ export default {
 		 * from the block's own rewrite button; the draft lands after that block.
 		 *
 		 * @param {object} block A richText block.
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+		 * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 		 * @return {Promise<void>}
 		 */
 		simplifyBlock(block) {
@@ -410,7 +410,7 @@ export default {
 		/**
 		 * Whether the teacher confirmed the AI notice in this browser.
 		 *
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-the-first-assist-call-asks-for-confirmation
+		 * @spec openspec/specs/course-management/spec.md#scenario-the-first-assist-call-asks-for-confirmation
 		 * @return {boolean}
 		 */
 		noticeConfirmed() {
@@ -423,7 +423,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-the-first-assist-call-asks-for-confirmation
+		 * @spec openspec/specs/course-management/spec.md#scenario-the-first-assist-call-asks-for-confirmation
 		 * @return {void}
 		 */
 		onNoticeConfirm() {
@@ -440,7 +440,7 @@ export default {
 		},
 
 		/**
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#scenario-the-first-assist-call-asks-for-confirmation
+		 * @spec openspec/specs/course-management/spec.md#scenario-the-first-assist-call-asks-for-confirmation
 		 * @return {void}
 		 */
 		onNoticeCancel() {
@@ -455,7 +455,7 @@ export default {
 		 * @param {string} action One of the four actions.
 		 * @param {object} input The fields the request body is built from.
 		 * @param {{afterBlockId?: string|null, goalIds?: string[]}} context Where a draft lands, or the ids for index mapping.
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+		 * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
 		 * @return {Promise<void>}
 		 */
 		async run(action, input, context = {}) {
@@ -482,8 +482,8 @@ export default {
 		 * @param {string} action The action that ran.
 		 * @param {{outcome: string, data: object|null}} result The classified answer.
 		 * @param {{afterBlockId?: string|null, goalIds?: string[]}} context From run().
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
-		 * @spec openspec/changes/lesson-ai-assist-actions/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
+		 * @spec openspec/specs/course-management/spec.md#requirement-the-lesson-composer-offers-four-ai-assist-actions-through-hermiq-only-when-hermiq-can-answer
+		 * @spec openspec/specs/course-management/spec.md#requirement-every-assist-result-is-a-draft-the-teacher-keeps-or-discards
 		 * @return {void}
 		 */
 		handleResult(action, result, context) {

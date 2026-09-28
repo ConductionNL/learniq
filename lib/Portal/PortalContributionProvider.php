@@ -347,7 +347,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<string, mixed> The studentTests collection.
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
 	 */
 	private function studentTestsCollection(): array {
 		return [
@@ -390,7 +390,7 @@ class PortalContributionProvider {
 	 *
 	 * @return array<int, array<string, mixed>> The timed-task actions.
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
 	 */
 	private function studentTestActions(): array {
 		$steps = [
