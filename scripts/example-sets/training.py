@@ -525,13 +525,23 @@ def surname(rng: random.Random, used: set[str]) -> str:
 
 
 def qti(identifier: str, title: str, question: str, options: list[str], correct: str) -> str:
-    choices = "".join(f'<qti-simple-choice identifier="{"ABC"[i]}">{escape(text)}</qti-simple-choice>' for i, text in enumerate(options))
+    """A QTI 2.1 choice item, as the app's own item editor writes it (src/views/ItemAuthorView.vue buildQtiBody).
+
+    The take view, the draw resolver and the item analysis read `simpleChoice`
+    elements in the imsqti_v2p1 namespace (the dialect learniq labels QTI 2.1
+    since learniq #1127). The QTI 3.0 markup this set wrote before rendered
+    as placeholder options and never got a distractor analysis.
+    """
+    def attr(text: str) -> str:
+        return escape(text, {'"': "&quot;"})
+
+    choices = "".join(f'<simpleChoice identifier="{"ABC"[i]}">{escape(text)}</simpleChoice>' for i, text in enumerate(options))
     return (
-        f'<qti-assessment-item xmlns="http://www.imsglobal.org/xsd/imsqtiasi_v3p0" identifier="{identifier}" title="{escape(title)}">'
-        f'<qti-response-declaration identifier="RESPONSE" cardinality="single" base-type="identifier">'
-        f'<qti-correct-response><qti-value>{correct}</qti-value></qti-correct-response></qti-response-declaration>'
-        f'<qti-item-body><qti-choice-interaction response-identifier="RESPONSE" max-choices="1">'
-        f'<qti-prompt>{escape(question)}</qti-prompt>{choices}</qti-choice-interaction></qti-item-body></qti-assessment-item>'
+        '<?xml version="1.0" encoding="UTF-8"?><assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" '
+        f'identifier="{attr(identifier)}" title="{attr(title)}" adaptive="false" timeDependent="false">'
+        f'<responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier"><correctResponse><value>{escape(correct)}</value></correctResponse></responseDeclaration>'
+        '<outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float"><defaultValue><value>1</value></defaultValue></outcomeDeclaration>'
+        f'<itemBody><p>{escape(question)}</p><choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1">{choices}</choiceInteraction></itemBody></assessmentItem>'
     )
 
 
@@ -1383,7 +1393,7 @@ def build() -> dict:
         "openapi": "3.0.0",
         "info": {
             "title": "Learniq example set: Training institute",
-            "version": "1.1.0",
+            "version": "1.2.0",
             "description": f"{INSTITUTE}, a fictional training institute in the fictional town of {TOWN}, through the 2025-2026 year.",
         },
         "x-openregister": {
