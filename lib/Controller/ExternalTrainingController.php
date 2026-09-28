@@ -39,6 +39,7 @@ namespace OCA\Learniq\Controller;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\CredentialSigningService;
 use OCA\Learniq\Service\ExternalTrainingService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -62,6 +63,7 @@ class ExternalTrainingController extends Controller {
 	 * @param ActionAuthService $actionAuth ADR-023 action authorization.
 	 * @param ExternalTrainingService $trainingService External-training business logic.
 	 * @param ObjectService $objectService OR object query/persistence.
+	 * @param CredentialSigningService $signingService Signs a credential before it is saved.
 	 */
 	public function __construct(
 		IRequest $request,
@@ -69,6 +71,7 @@ class ExternalTrainingController extends Controller {
 		private readonly ActionAuthService $actionAuth,
 		private readonly ExternalTrainingService $trainingService,
 		private readonly ObjectService $objectService,
+		private readonly CredentialSigningService $signingService,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -181,12 +184,25 @@ class ExternalTrainingController extends Controller {
 
 		$payload = $this->trainingService->buildManualCredentialPayload(record: $record, issuedBy: $user->getUID());
 
-		// Do NOT set lifecycle — OR fires the `issue` transition (and its signing
-		// guard) from the initial state, mirroring CredentialIssuanceHandler.
+		// Sign before the save: OR runs no lifecycle guard or action on a create
+		// (learniq#182), and the signed fields are required. `lifecycle` is left
+		// to OR's declared initial `issued`, as in CredentialIssuanceHandler.
+		$signed = $this->signingService->sign(credential: $payload);
+		if ($signed === null) {
+			return new JSONResponse(
+				data: ['error' => 'The credential could not be signed. Generate the credential signing key in the Learniq admin settings first.'],
+				statusCode: Http::STATUS_CONFLICT
+			);
+		}
+
+		$signedId = (string)$signed['id'];
+		unset($signed['id']);
+
 		$saved = $this->objectService->saveObject(
 			register: 'learniq',
 			schema: 'credential',
-			object: $payload
+			object: $signed,
+			uuid: $signedId
 		);
 
 		$savedArr = $saved->jsonSerialize();
