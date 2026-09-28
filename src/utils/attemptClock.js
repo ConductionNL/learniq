@@ -17,6 +17,7 @@
  * @param {number} nowMs The browser's current time in milliseconds
  * @param {number} [serverOffsetMs] Server time minus browser time, in milliseconds
  * @return {number|null} Whole seconds left, or null when the attempt has no deadline
+ * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#requirement-the-in-app-test-screen-shows-the-servers-deadline-and-saves-answers-as-the-learner-works
  */
 export function secondsUntilDeadline(deadlineAt, nowMs, serverOffsetMs = 0) {
 	if (typeof deadlineAt !== 'string' || deadlineAt === '') {
@@ -35,6 +36,7 @@ export function secondsUntilDeadline(deadlineAt, nowMs, serverOffsetMs = 0) {
  * @param {string|null|undefined} dateHeader The HTTP Date header
  * @param {number} nowMs The browser's time when the response arrived
  * @return {number} The offset in milliseconds, 0 when the header is missing
+ * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#requirement-the-in-app-test-screen-shows-the-servers-deadline-and-saves-answers-as-the-learner-works
  */
 export function serverOffsetMs(dateHeader, nowMs) {
 	const serverMs = typeof dateHeader === 'string' ? Date.parse(dateHeader) : NaN
@@ -47,6 +49,7 @@ export function serverOffsetMs(dateHeader, nowMs) {
  * @param {Array<{uuid: string}>} items The items shown
  * @param {Object<string, unknown>} responses The answers by item uuid
  * @return {Array<{itemId: string, response: {value: unknown}, autoScore: null, manualScore: null}>} The rows
+ * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#requirement-the-in-app-test-screen-shows-the-servers-deadline-and-saves-answers-as-the-learner-works
  */
 export function responsesPayload(items, responses) {
 	return items.map((item) => ({
@@ -63,6 +66,7 @@ export function responsesPayload(items, responses) {
  *
  * @param {object|null|undefined} result The AssessmentResult
  * @return {Object<string, unknown>} The answers by item uuid
+ * @spec openspec/changes/test-screen-autosave-and-deadline/specs/assessment/spec.md#requirement-the-in-app-test-screen-shows-the-servers-deadline-and-saves-answers-as-the-learner-works
  */
 export function answersFromResult(result) {
 	const answers = {}
