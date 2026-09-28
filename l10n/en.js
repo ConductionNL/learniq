@@ -2139,6 +2139,8 @@ OC.L10N.register(
         "Saving your answers": "Saving your answers",
         "Your answers are saved": "Your answers are saved",
         "Your answers could not be saved just now. We try again with your next answer and when you hand in.": "Your answers could not be saved just now. We try again with your next answer and when you hand in.",
+        "Voorlopig exchange job ID": "Voorlopig exchange job ID",
+        "UUID of the integriq exchange job (target bron-rod) requested when the voorlopig advice was sent to ROD. Null until sent.": "UUID of the integriq exchange job (target bron-rod) requested when the voorlopig advice was sent to ROD. Null until sent.",
         "This import names no file, so there is nothing to import.": "This import names no file, so there is nothing to import.",
         "The file of this import cannot be opened by the person who asked for it.": "The file of this import cannot be opened by the person who asked for it.",
         "The file of this import is larger than 10 MB or has more than 5,000 rows. Split it and import each part.": "The file of this import is larger than 10 MB or has more than 5,000 rows. Split it and import each part.",

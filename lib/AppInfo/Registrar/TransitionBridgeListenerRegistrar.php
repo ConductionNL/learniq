@@ -34,7 +34,10 @@ namespace OCA\Learniq\AppInfo\Registrar;
 
 use OCA\Learniq\Listener\CredentialRenewalListener;
 use OCA\Learniq\Listener\SchoolAdviesSendToRodHandler;
+use OCA\Learniq\Listener\SchoolAdviesVoorlopigRodHandler;
+use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 /**
@@ -73,6 +76,18 @@ class TransitionBridgeListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: SchoolAdviesSendToRodHandler::class
+		);
+
+		// Schooladvies-voorlopig-to-rod: DUO wants the voorlopig advice within
+		// 14 days of giving it, so it goes to ROD once its level and date are
+		// saved; deferred out of the save (gate 61).
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: SchoolAdviesVoorlopigRodHandler::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: SchoolAdviesVoorlopigRodHandler::class
 		);
 
 	}//end register()
