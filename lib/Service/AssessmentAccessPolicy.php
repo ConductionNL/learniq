@@ -154,7 +154,7 @@ class AssessmentAccessPolicy {
 	 *
 	 * @return array{reason: string, message: string}|null
 	 *
-	 * @spec openspec/changes/in-app-test-limits-server-side/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
+	 * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-enforces-attempts-and-time-on-the-server
 	 */
 	public function attemptsBlock(array $assessment, int $attemptsUsed): ?array {
 		if ($attemptsUsed < $this->maxAttempts(assessment: $assessment)) {

@@ -8,7 +8,7 @@
  * renders it stays thin. The roster is the assignment's cohort, the same
  * roster the attendance register marks against.
  *
- * @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+ * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
  */
 
 /** Submission lifecycles that count as handed in. */
@@ -24,7 +24,7 @@ export const STAFF_VIEWS = ['teacher', 'admin']
  *
  * @param {string[]} dashboardViews The `dashboardRoles` initial state.
  * @return {boolean} True for the teacher and admin views.
- * @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+ * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
  */
 export function canSeeHandInStatus(dashboardViews) {
 	return (
@@ -41,7 +41,7 @@ export function canSeeHandInStatus(dashboardViews) {
  * @param {object} assignment The Assignment.
  * @param {object[]} cohorts The cohort it names, or the course's cohorts.
  * @return {string[]} Nextcloud user ids.
- * @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+ * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
  */
 export function rosterFor(assignment, cohorts) {
 	const wanted = assignment?.cohortId
@@ -69,7 +69,7 @@ export function rosterFor(assignment, cohorts) {
  * @param {object} assignment The Assignment (for `dueAt`).
  * @param {Date} now The current moment.
  * @return {Array<{learnerId: string, state: string, lifecycle: string|null, submissionId: string|null, overdue: boolean}>}
- * @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+ * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
  */
 export function handInRows(learnerIds, submissions, assignment, now = new Date()) {
 	const due = assignment?.dueAt ? new Date(assignment.dueAt) : null
@@ -102,7 +102,7 @@ export function handInRows(learnerIds, submissions, assignment, now = new Date()
  *
  * @param {object[]} rows Output of handInRows().
  * @return {{total: number, handedIn: number, started: number, notStarted: number, overdue: number}}
- * @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+ * @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
  */
 export function handInSummary(rows) {
 	const list = rows ?? []

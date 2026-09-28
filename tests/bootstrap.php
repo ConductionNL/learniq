@@ -117,12 +117,6 @@ if (!defined('OC_CONSOLE')) {
 	}
 }
 
-// IMcpToolProvider stub — loaded when the openregister runtime (PR #1466) is absent.
-// This lets LearniqToolProvider unit tests run in standalone CI environments.
-if (interface_exists(\OCA\OpenRegister\Mcp\IMcpToolProvider::class) === false) {
-	require_once __DIR__ . '/Stubs/Mcp/IMcpToolProvider.php';
-}
-
 // Doctrine\DBAL\ParameterType stub — IQueryBuilder references it in its own
 // constant declarations, so doubling OCP\IDBConnection loads it. The file
 // self-guards, so where the real Doctrine package is installed this is a
@@ -145,6 +139,12 @@ require_once __DIR__ . '/Stubs/DoctrineParameterType.php';
 // never did. The two bootstraps had silently diverged.
 if (interface_exists(\OC\Hooks\Emitter::class) === false) {
 	require_once __DIR__ . '/Stubs/Hooks/Emitter.php';
+}
+
+// Symfony HeaderUtils stub — DataDownloadResponse needs it and only the server
+// ships it, so a controller returning a download could not be unit tested.
+if (class_exists(\Symfony\Component\HttpFoundation\HeaderUtils::class) === false) {
+	require_once __DIR__ . '/Stubs/Symfony/HeaderUtils.php';
 }
 
 // Integriq's connection-registry event (adopt-connection-registry).

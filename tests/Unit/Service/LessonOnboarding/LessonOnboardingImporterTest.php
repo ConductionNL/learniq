@@ -359,7 +359,7 @@ class LessonOnboardingImporterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#scenario-a-presentation-with-speaker-notes
+	 * @spec openspec/specs/course-management/spec.md#scenario-a-presentation-with-speaker-notes
 	 */
 	public function testSlideNotesGoToTheStaffStoreNotTheLesson(): void {
 		$this->given(row: ['format' => 'pptx'], fileName: 'Licht.pptx');

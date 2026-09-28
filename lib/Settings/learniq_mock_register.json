@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.29",
+    "version": "1.1.37",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -253,7 +253,7 @@
       "AccessibilityStatement": {
         "slug": "accessibility-statement",
         "icon": "Human",
-        "version": "0.1.0",
+        "version": "0.1.2",
         "title": "AccessibilityStatement",
         "description": "The toegankelijkheidsverklaring (accessibility statement) record required by the Tijdelijk besluit digitale toegankelijkheid overheid (BDTO, BWBR0040936). Fields mirror the toegankelijkheidsverklaring.nl invulassistent's field order. Lifecycle: draft → published → archived; the publish transition requires AccessibilityStatementPublishGuard, which refuses to publish an unsubstantiated claim (missing evaluation evidence, or a fully-compliant status while a known limitation is still open). See openspec/changes/accessibility-conformance-statement/.",
         "type": "object",
@@ -269,8 +269,8 @@
         "properties": {
           "channelTitle": {
             "type": "string",
-            "description": "Human-readable name of the digital channel (app/site) this statement describes — e.g. the school's Scholiq environment name.",
-            "example": "Scholiq — De Vrije School",
+            "description": "Human-readable name of the digital channel (app/site) this statement describes — e.g. the school's Learniq environment name.",
+            "example": "Learniq — De Vrije School",
             "title": "Channel Title"
           },
           "status": {
@@ -464,7 +464,7 @@
       "AdmissionsRound": {
         "slug": "admissions-round",
         "icon": "CalendarMultiselectOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "AdmissionsRound",
         "description": "The norm configuration for one intake round, scoped to a Programme (or a whole level when programmeId is null) and academicYear — mirrors BsaTrajectory's role as the shared per-round rule row an Application-scoped guard/handler reads. kind selects which legal branch AdmissionsDecisionGuard applies (mbo-toelatingsrecht, vo-schooladvies-doorstroomtoets, or generic). applicationDeadline and capacity are institution-set with no hardcoded default, mirroring BsaTrajectory.normEcts/AttendanceThreshold's null-scoping precedent.",
         "type": "object",
@@ -528,7 +528,7 @@
             "type": "string",
             "nullable": true,
             "format": "date",
-            "description": "Institution-set deadline by which an Application must be submitted for the mbo-toelatingsrecht safeguard to apply (e.g. the statutory 1 April date). No schema default — the deadline is institution/instance policy, not a Scholiq constant, mirroring BsaTrajectory.normEcts' identical reasoning. Null = no deadline is enforced by AdmissionsDecisionGuard's toelatingsrecht branch.",
+            "description": "Institution-set deadline by which an Application must be submitted for the mbo-toelatingsrecht safeguard to apply (e.g. the statutory 1 April date). No schema default — the deadline is institution/instance policy, not a Learniq constant, mirroring BsaTrajectory.normEcts' identical reasoning. Null = no deadline is enforced by AdmissionsDecisionGuard's toelatingsrecht branch.",
             "title": "Application Deadline"
           },
           "mandatoryIntake": {
@@ -608,9 +608,9 @@
         },
         "slug": "AiFeature",
         "icon": "RobotOutline",
-        "version": "0.2.0",
+        "version": "0.2.1",
         "title": "AI Feature",
-        "description": "AVG Art. 30 processing-activity declaration for Scholiq's AI-assisted learning. The EU AI Act high-risk feature register, DPO-acknowledgement gate, and lifecycle governance are delegated to the Hermiq app (ADR-005); this schema now only carries the processing-activity catalogue annotation.",
+        "description": "AVG Art. 30 processing-activity declaration for Learniq's AI-assisted learning. The EU AI Act high-risk feature register, DPO-acknowledgement gate, and lifecycle governance are delegated to the Hermiq app (ADR-005); this schema now only carries the processing-activity catalogue annotation.",
         "type": "object",
         "required": [
           "slug",
@@ -641,7 +641,7 @@
       "Application": {
         "slug": "admission",
         "icon": "AccountPlusOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "Application",
         "description": "An aanmelding for a Programme — the pre-enrolment intake path for PO→VO, VO/HO→MBO, and generic admissions (Studielink/HE intake stays on Enrolment; this schema covers every other channel). Scored by a coordinator through an intake conversation to a placed/waitlisted/rejected decision, gated by AdmissionsDecisionGuard for the round's legal branch (kind on the referenced AdmissionsRound). On placement, ApplicationConversionHandler converts the Application into a LearnerProfile and Enrolment rows. guardianId/guardianRef copy ConferenceSignup's ADR-046 dual-identity pair verbatim — no second guardian-account mechanism is introduced.",
         "type": "object",
@@ -699,7 +699,7 @@
           "guardianId": {
             "type": "string",
             "nullable": true,
-            "description": "Nextcloud user ID of the guardian, when the family already has an NC/LearnerProfile presence (e.g. a sibling application). Null for the common case of no existing Scholiq identity at intake time — reuses ConferenceSignup.guardianId's shape verbatim.",
+            "description": "Nextcloud user ID of the guardian, when the family already has an NC/LearnerProfile presence (e.g. a sibling application). Null for the common case of no existing Learniq identity at intake time — reuses ConferenceSignup.guardianId's shape verbatim.",
             "title": "Guardian ID"
           },
           "guardianRef": {
@@ -1038,7 +1038,7 @@
         },
         "slug": "exam",
         "icon": "ClipboardCheckOutline",
-        "version": "0.2.0",
+        "version": "0.3.2",
         "title": "Assessment",
         "description": "A structured test (toets, tentamen, examen, quiz) composed of items from an ItemBank with a scoring scheme, time limit, attempt policy, availability window, and optional proctoring. AI-assisted proctoring requires the high-risk AI feature to be registered and DPO-enabled in the central Hermiq governance app (ADR-005 DPO gate).",
         "type": "object",
@@ -1327,7 +1327,7 @@
               "nativeTestMode": {
                 "type": "boolean",
                 "default": false,
-                "description": "Enables Scholiq's built-in browser-JS delivery hardening (fullscreen enforcement, focus-loss/tab-switch/navigation logging) instead of resolving an external ProvidesProctoring adapter via provider. Mutually exclusive with provider in practice — external provider wins if both are set (config-authoring error, not schema-enforced).",
+                "description": "Enables Learniq's built-in browser-JS delivery hardening (fullscreen enforcement, focus-loss/tab-switch/navigation logging) instead of resolving an external ProvidesProctoring adapter via provider. Mutually exclusive with provider in practice — external provider wins if both are set (config-authoring error, not schema-enforced).",
                 "title": "Native Test Mode"
               },
               "navigationLock": {
@@ -3292,7 +3292,7 @@
       "BpvPlacement": {
         "slug": "bpv-placement",
         "icon": "BriefcaseCheckOutline",
-        "version": "0.1.0",
+        "version": "0.2.1",
         "title": "BPV Placement",
         "description": "A learner ↔ leerbedrijf match for one beroepspraktijkvorming (BPV, work-placement) period. Gates confirmation on a verified leerbedrijf (WEB art. 7.2.8/7.2.9 — the employer must be a leerbedrijf erkend by SBB) via BpvConfirmationGuard.",
         "type": "object",
@@ -3388,7 +3388,7 @@
               "provider": {
                 "type": "string",
                 "nullable": true,
-                "description": "Configured ProvidesLeerbedrijfVerification adapter identifier resolved via DI. Null means no adapter is configured — Scholiq ships none.",
+                "description": "Configured ProvidesLeerbedrijfVerification adapter identifier resolved via DI. Null means no adapter is configured — Learniq ships none.",
                 "title": "Verification Provider"
               },
               "status": {
@@ -7730,7 +7730,7 @@
       "DeliberationRecord": {
         "slug": "deliberation-record",
         "icon": "AccountGroupOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "DeliberationRecord",
         "description": "A structured, append-only record of a consultation round (parents, municipality, care partners, school, SWV coordinator) concerning a SupportRequest and/or TlvApplication. Carries a first-class pupilVoice block reflecting the 2025 Wet versterking positie ouders en leerlingen in passend onderwijs hoorrecht (insight 1145). Once recorded, immutable — a correction creates a new record referencing the one it supersedes rather than mutating it.",
         "type": "object",
@@ -7810,7 +7810,7 @@
                 "refId": {
                   "type": "string",
                   "nullable": true,
-                  "description": "NC user ID or LearnerProfile UUID, for attendees who are Scholiq subjects.",
+                  "description": "NC user ID or LearnerProfile UUID, for attendees who are Learniq subjects.",
                   "default": null,
                   "title": "Attendee Reference ID"
                 }
@@ -9120,7 +9120,7 @@
       "EvaluationCampaign": {
         "slug": "evaluation-campaign",
         "icon": "ClipboardTextOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "EvaluationCampaign",
         "description": "A course/module evaluation cycle (vakevaluatie): which Course(s)/Cohort(s) it covers, the academic period, the survey instrument, and a fixed anonymity policy. Opening a campaign provisions one EvaluationInvitation per learner in scope (EvaluationInvitationProvisioningHandler). Lifecycle: draft -> open -> closed -> archived. No existing course-management schema is modified -- courseIds/cohortIds reference Course/Cohort by $ref only. See openspec/changes/course-evaluation/.",
         "type": "object",
@@ -9192,7 +9192,7 @@
               "external-form"
             ],
             "default": "built-in",
-            "description": "built-in: Scholiq owns the questions[] instrument end-to-end. external-form: learners are pointed at a supplementary Nextcloud Forms survey via externalFormUrl for free-text-only qualitative input that Scholiq does NOT ingest, read, or aggregate -- a convenience link only (design.md Decision 1).",
+            "description": "built-in: Learniq owns the questions[] instrument end-to-end. external-form: learners are pointed at a supplementary Nextcloud Forms survey via externalFormUrl for free-text-only qualitative input that Learniq does NOT ingest, read, or aggregate -- a convenience link only (design.md Decision 1).",
             "title": "Instrument Kind"
           },
           "questions": {
@@ -9256,7 +9256,7 @@
             "type": "string",
             "nullable": true,
             "format": "uri",
-            "description": "URL of the supplementary Nextcloud Forms survey learners are pointed at. Only meaningful when instrumentKind is external-form. Scholiq never reads or aggregates what is submitted through it (design.md Decision 1).",
+            "description": "URL of the supplementary Nextcloud Forms survey learners are pointed at. Only meaningful when instrumentKind is external-form. Learniq never reads or aggregates what is submitted through it (design.md Decision 1).",
             "title": "External Form URL"
           },
           "anonymityPolicy": {
@@ -10082,7 +10082,7 @@
       "ExternalAssessor": {
         "slug": "external-assessor",
         "icon": "AccountTieOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "ExternalAssessor",
         "description": "A non-BPV external assessor granted read-only portfolio access. A plain reference/identity object with no OpenRegister lifecycle — a person with no Nextcloud account by definition, structurally identical to Praktijkopleider (ADR-046 premise). This object's own UUID is the portal identity anchor. `active` alone gates whether the portal identity is usable.",
         "type": "object",
@@ -10113,7 +10113,7 @@
           "email": {
             "type": "string",
             "format": "email",
-            "description": "Contact email address of the external assessor — used for out-of-band (non-Scholiq) communication, since no NC-reachable notification channel exists for this role.",
+            "description": "Contact email address of the external assessor — used for out-of-band (non-Learniq) communication, since no NC-reachable notification channel exists for this role.",
             "title": "Email Address"
           },
           "organisationName": {
@@ -13159,9 +13159,9 @@
         },
         "slug": "learner-profile",
         "icon": "AccountOutline",
-        "version": "0.2.0",
+        "version": "0.3.1",
         "title": "LearnerProfile",
-        "description": "Scholiq learner profile. Owns role assignment and is the actor reference for enrolments, credentials, and attestations.",
+        "description": "Learniq learner profile. Owns role assignment and is the actor reference for enrolments, credentials, and attestations.",
         "type": "object",
         "required": [
           "ncUserId",
@@ -13235,8 +13235,8 @@
                 "inspector"
               ]
             },
-            "description": "One or more Scholiq roles. The highest-priority role is materialised as primaryRole.",
-            "title": "Scholiq Roles"
+            "description": "One or more Learniq roles. The highest-priority role is materialised as primaryRole.",
+            "title": "Learniq Roles"
           },
           "parentIds": {
             "type": "array",
@@ -14266,9 +14266,9 @@
       "LearningRecordShare": {
         "slug": "learning-record-share",
         "icon": "ShareVariantOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "LearningRecordShare",
-        "description": "A time-boxed, revocable grant of one already-generated LearningRecordExport snapshot to a named external recipient who has no Scholiq presence at all — an employer, a receiving school's admissions office. Resolved via a public verification page (LearningRecordShareVerifyController), mirroring CredentialVerifyController's pattern, rather than an NC Files share or a portal-audience match, because the recipient is assumed to have neither (design.md's rejected-alternative on reusing PortfolioShare wholesale). Borrows PortfolioShare's draft/active/revoked lifecycle shape and expiresAt/revokedAt fields, but expiresAt is required here — every share has an end date, a stronger default than PortfolioShare's nullable expiresAt.",
+        "description": "A time-boxed, revocable grant of one already-generated LearningRecordExport snapshot to a named external recipient who has no Learniq presence at all — an employer, a receiving school's admissions office. Resolved via a public verification page (LearningRecordShareVerifyController), mirroring CredentialVerifyController's pattern, rather than an NC Files share or a portal-audience match, because the recipient is assumed to have neither (design.md's rejected-alternative on reusing PortfolioShare wholesale). Borrows PortfolioShare's draft/active/revoked lifecycle shape and expiresAt/revokedAt fields, but expiresAt is required here — every share has an end date, a stronger default than PortfolioShare's nullable expiresAt.",
         "type": "object",
         "x-openregister": {
           "active": true,
@@ -14306,7 +14306,7 @@
           },
           "recipientName": {
             "type": "string",
-            "description": "Free-text name of the external recipient (a person or organisation with no Scholiq presence).",
+            "description": "Free-text name of the external recipient (a person or organisation with no Learniq presence).",
             "title": "Recipient Name"
           },
           "recipientEmail": {
@@ -14438,7 +14438,7 @@
               "nl": "Je hebt toegang gekregen tot een portable learning record",
               "en": "You have been granted access to a portable learning record"
             },
-            "_comment": "recipientEmail names an external party with no Scholiq presence by construction (an employer, a receiving school's admissions office) — the same documented, unimplemented out-of-band-delivery gap ExternalAssessor.email/Application.guardianEmail already carry in this register. Declared here so the field is wired per the spec's requirement; actual delivery to a non-NC address is not solved by this rule alone."
+            "_comment": "recipientEmail names an external party with no Learniq presence by construction (an employer, a receiving school's admissions office) — the same documented, unimplemented out-of-band-delivery gap ExternalAssessor.email/Application.guardianEmail already carry in this register. Declared here so the field is wired per the spec's requirement; actual delivery to a non-NC address is not solved by this rule alone."
           }
         },
         "x-property-rbac": {
@@ -14469,7 +14469,7 @@
       "Lesson": {
         "slug": "lesson",
         "icon": "FileDocumentOutline",
-        "version": "0.3.0",
+        "version": "0.5.1",
         "title": "Lesson",
         "description": "A lesson / learning module within a Course (Schema.org LearningResource). Lifecycle: draft → published → retired.",
         "type": "object",
@@ -14526,7 +14526,7 @@
             "type": "string",
             "nullable": true,
             "description": "nc:files path or cmi5 launch URL for those content types. For contentType='lti', this MUST be the UUID of an LtiToolPlacement object, not a raw link — a static URL cannot carry a signed OIDC launch; the placement is resolved server-side and the actual launch is delegated to OpenConnector's lti-13-platform adapter. Required for every contentType except 'text' (see the allOf/if/then conditional below) — a contentType='text' lesson carries its body in blocks instead and leaves contentRef unset.",
-            "example": "/Scholiq/tenant-uuid/course-uuid/cmi5/lesson-uuid/",
+            "example": "/Learniq/tenant-uuid/course-uuid/cmi5/lesson-uuid/",
             "title": "Content Reference"
           },
           "blocks": {
@@ -14908,9 +14908,9 @@
       "LtiToolPlacement": {
         "slug": "lti-tool-placement",
         "icon": "ApplicationOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "LtiToolPlacement",
-        "description": "Places an external LTI 1.3 tool inside a Course or Lesson. Stores only the reference to the corresponding lti_deployment registration living in OpenConnector's own register (cross-app, bare UUID — OR relations do not span registers/apps) plus the optional grading-component mapping an AGS score for this placement feeds. Scholiq never stores or handles the OIDC/JWT material itself — that lives entirely in OpenConnector's lti-13-platform adapter. Lifecycle: draft → active → retired.",
+        "description": "Places an external LTI 1.3 tool inside a Course or Lesson. Stores only the reference to the corresponding lti_deployment registration living in OpenConnector's own register (cross-app, bare UUID — OR relations do not span registers/apps) plus the optional grading-component mapping an AGS score for this placement feeds. Learniq never stores or handles the OIDC/JWT material itself — that lives entirely in OpenConnector's lti-13-platform adapter. Lifecycle: draft → active → retired.",
         "type": "object",
         "x-openregister": {
           "active": true,
@@ -15019,7 +15019,7 @@
       "Material": {
         "slug": "material",
         "icon": "FilePresentationBox",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "Material",
         "description": "Metadata for a file, presentation, reading, video, or SCORM/cmi5 package attached to a Course, Lesson, or Session. The bytes live in OpenRegister's native file attachments; this schema carries type, license, LOM-style tags, and ordering.",
         "type": "object",
@@ -15061,7 +15061,7 @@
           "fileRef": {
             "type": "string",
             "description": "OpenRegister file attachment reference (nc:files path or OR attachment ID). The app does NOT store file bytes.",
-            "example": "/Scholiq/tenant-uuid/materials/slides-nis2.pptx",
+            "example": "/Learniq/tenant-uuid/materials/slides-nis2.pptx",
             "title": "File Reference"
           },
           "url": {
@@ -16373,7 +16373,7 @@
       "Praktijkopleider": {
         "slug": "praktijkopleider",
         "icon": "AccountTieOutline",
-        "version": "0.1.0",
+        "version": "0.2.1",
         "title": "Praktijkopleider",
         "description": "The workplace supervisor (praktijkopleider) conducting BPV at a leerbedrijf. A plain reference/identity object with no OpenRegister lifecycle — a person with no Nextcloud account by definition (ADR-046 premise). This object's own UUID is the portal identity anchor. `active` alone gates whether the portal identity is usable.",
         "type": "object",
@@ -16405,7 +16405,7 @@
           "email": {
             "type": "string",
             "format": "email",
-            "description": "Contact email address of the praktijkopleider — used for out-of-band (non-Scholiq) communication, since no NC-reachable notification channel exists for this role.",
+            "description": "Contact email address of the praktijkopleider — used for out-of-band (non-Learniq) communication, since no NC-reachable notification channel exists for this role.",
             "title": "Email Address"
           },
           "phone": {
@@ -18858,9 +18858,9 @@
       "SovereigntyPolicy": {
         "slug": "sovereignty-policy",
         "icon": "Earth",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "SovereigntyPolicy",
-        "description": "The school-wide AI-processing locality policy (sovereign-ai-guarantee): declares the strictest locality tier the school will accept for AI-assisted processing. A flat, un-lifecycled, singleton policy record — mirrors Hermiq's own TenantControl/ModelPolicy/GuardrailPolicy precedent for a policy record that needs no state machine. One Scholiq instance is one school — no organisation/tenant_id scoping, unlike Hermiq's multi-tenant policy records. Read by AiLocalityClassifier/SovereigntyPolicyService and enforced by AssessmentPublishGuard's locality check on ai-assisted proctoring. See openspec/changes/sovereign-ai-guarantee/.",
+        "description": "The school-wide AI-processing locality policy (sovereign-ai-guarantee): declares the strictest locality tier the school will accept for AI-assisted processing. A flat, un-lifecycled, singleton policy record — mirrors Hermiq's own TenantControl/ModelPolicy/GuardrailPolicy precedent for a policy record that needs no state machine. One Learniq instance is one school — no organisation/tenant_id scoping, unlike Hermiq's multi-tenant policy records. Read by AiLocalityClassifier/SovereigntyPolicyService and enforced by AssessmentPublishGuard's locality check on ai-assisted proctoring. See openspec/changes/sovereign-ai-guarantee/.",
         "type": "object",
         "x-openregister": {
           "active": true,
@@ -19727,9 +19727,9 @@
       "TlvApplication": {
         "slug": "tlv-application",
         "icon": "FileCertificateOutline",
-        "version": "0.1.0",
+        "version": "0.1.2",
         "title": "TlvApplication",
-        "description": "The toelaatbaarheidsverklaring (TLV) application, tracing to the SupportRequest that triggered it. Scholiq records the samenwerkingsverband's (SWV) decision — it does not adjudicate it, per Wet passend onderwijs. validUntil drives a declared tlvExpiringSoon calculation (no PHP TimedJob).",
+        "description": "The toelaatbaarheidsverklaring (TLV) application, tracing to the SupportRequest that triggered it. Learniq records the samenwerkingsverband's (SWV) decision — it does not adjudicate it, per Wet passend onderwijs. validUntil drives a declared tlvExpiringSoon calculation (no PHP TimedJob).",
         "type": "object",
         "x-openregister": {
           "active": true,
@@ -19770,7 +19770,7 @@
               "conditional",
               null
             ],
-            "description": "The SWV's decision, recorded by a coordinator once received. Null until decided. Scholiq records this decision; it implements no logic that auto-approves, auto-rejects, or predicts it.",
+            "description": "The SWV's decision, recorded by a coordinator once received. Null until decided. Learniq records this decision; it implements no logic that auto-approves, auto-rejects, or predicts it.",
             "default": null,
             "title": "Decision"
           },
@@ -20273,7 +20273,7 @@
       "XapiStatement": {
         "slug": "xapi-statement",
         "icon": "TextBoxOutline",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "title": "XapiStatement",
         "description": "xAPI 1.0.3 statement stored in the LRS substrate (append-only per ADR-002). Every save emits xapi.statement.received audit entry.",
         "type": "object",
@@ -20346,7 +20346,7 @@
             "nullable": true,
             "format": "uuid",
             "$ref": "Course",
-            "description": "UUID of the Course this statement relates to (Scholiq denormalisation)",
+            "description": "UUID of the Course this statement relates to (Learniq denormalisation)",
             "title": "Course ID"
           },
           "lessonId": {
@@ -20354,7 +20354,7 @@
             "nullable": true,
             "format": "uuid",
             "$ref": "Lesson",
-            "description": "UUID of the Lesson this statement relates to (Scholiq denormalisation)",
+            "description": "UUID of the Lesson this statement relates to (Learniq denormalisation)",
             "title": "Lesson ID"
           },
           "verified_actor_id": {
@@ -21016,7 +21016,9 @@
         "peerReviewersPerSubmission": 2,
         "peerReviewAnonymity": "open",
         "peerReviewAllocationStrategy": "round-robin",
-        "peerReviewDueAt": "2026-03-01T09:00:00+00:00"
+        "peerReviewDueAt": "2026-03-01T09:00:00+00:00",
+        "markersPerSubmission": 2,
+        "finalGradeRule": "manual"
       },
       {
         "@self": {
@@ -21039,7 +21041,7 @@
         "allowLateSubmission": false,
         "latePenaltyPercent": 0,
         "rubricId": "00000000-0000-4000-8000-000000000001",
-        "groupSubmission": false,
+        "groupSubmission": true,
         "visibleFrom": "2026-03-02T09:00:00+00:00",
         "visibleUntil": "2026-03-02T09:00:00+00:00",
         "plagiarismProvider": "Voorbeeld Plagiarismprovider 2",
@@ -21049,7 +21051,8 @@
         "peerReviewersPerSubmission": 2,
         "peerReviewAnonymity": "blind",
         "peerReviewAllocationStrategy": "random",
-        "peerReviewDueAt": "2026-03-02T09:00:00+00:00"
+        "peerReviewDueAt": "2026-03-02T09:00:00+00:00",
+        "workGroupSetName": "Project campagne periode 2"
       },
       {
         "@self": {
@@ -22376,13 +22379,14 @@
         "ectsCredits": 0.0,
         "competencyIds": [],
         "prerequisiteCourseIds": [],
-        "license": "CC-BY-SA-4.0",
-        "author": "Voorbeeldschool, sectie Nederlands",
+        "license": "all-rights-reserved",
         "subject": "Nederlandse taal",
         "educationalLevels": [
           "havo",
           "vwo"
-        ]
+        ],
+        "selfEnrolment": "on-request",
+        "author": "Go1"
       },
       {
         "@self": {
@@ -22426,7 +22430,8 @@
             "depth": null
           }
         ],
-        "prerequisiteCourseIds": []
+        "prerequisiteCourseIds": [],
+        "selfEnrolment": "on-request"
       },
       {
         "@self": {
@@ -22457,7 +22462,9 @@
         ],
         "ectsCredits": 1.0,
         "competencyIds": [],
-        "prerequisiteCourseIds": []
+        "prerequisiteCourseIds": [],
+        "selfEnrolment": "open",
+        "author": "Go1"
       },
       {
         "@self": {
@@ -23309,8 +23316,9 @@
         "reason": "Voorbeeld Reason 1",
         "regulationSlug": "Voorbeeld Regulationslug 1",
         "cohortId": "00000000-0000-4000-8000-000000000000",
-        "lifecycle": "pending",
-        "progressPercent": 1.0
+        "lifecycle": "active",
+        "progressPercent": 1.0,
+        "requestedAt": "2026-09-20T10:00:00+00:00"
       },
       {
         "@self": {
@@ -23321,7 +23329,7 @@
         "learnerId": "Voorbeeld Learnerid 2",
         "courseId": "00000000-0000-4000-8000-000000000001",
         "tenant_id": "00000000-0000-4000-8000-000000000001",
-        "source": "manager",
+        "source": "self",
         "learnerRef": "00000000-0000-4000-8000-000000000001",
         "mandatory": false,
         "dueDate": "2026-03-02",
@@ -23330,8 +23338,9 @@
         "reason": "Voorbeeld Reason 2",
         "regulationSlug": "Voorbeeld Regulationslug 2",
         "cohortId": "00000000-0000-4000-8000-000000000001",
-        "lifecycle": "active",
-        "progressPercent": 2.0
+        "lifecycle": "pending",
+        "progressPercent": 2.0,
+        "requestedAt": "2026-09-20T10:00:00+00:00"
       },
       {
         "@self": {
@@ -23342,7 +23351,7 @@
         "learnerId": "Voorbeeld Learnerid 3",
         "courseId": "00000000-0000-4000-8000-000000000002",
         "tenant_id": "00000000-0000-4000-8000-000000000002",
-        "source": "hr",
+        "source": "self",
         "learnerRef": "00000000-0000-4000-8000-000000000002",
         "mandatory": false,
         "dueDate": "2026-03-03",
@@ -23351,8 +23360,10 @@
         "reason": "Voorbeeld Reason 3",
         "regulationSlug": "Voorbeeld Regulationslug 3",
         "cohortId": "00000000-0000-4000-8000-000000000002",
-        "lifecycle": "completed",
-        "progressPercent": 3.0
+        "lifecycle": "withdrawn",
+        "progressPercent": 3.0,
+        "requestedAt": "2026-09-20T10:00:00+00:00",
+        "declineReason": "Deze cursus start pas in het voorjaar."
       },
       {
         "@self": {
@@ -26496,7 +26507,8 @@
         ],
         "credentialTemplateId": "00000000-0000-4000-8000-000000000000",
         "requiredCompetencyIds": [],
-        "lifecycle": "draft"
+        "lifecycle": "draft",
+        "selfEnrolment": "open"
       },
       {
         "@self": {
@@ -26515,7 +26527,8 @@
         ],
         "credentialTemplateId": "00000000-0000-4000-8000-000000000001",
         "requiredCompetencyIds": [],
-        "lifecycle": "published"
+        "lifecycle": "published",
+        "selfEnrolment": "closed"
       },
       {
         "@self": {
@@ -26534,7 +26547,8 @@
         ],
         "credentialTemplateId": "00000000-0000-4000-8000-000000000002",
         "requiredCompetencyIds": [],
-        "lifecycle": "archived"
+        "lifecycle": "archived",
+        "selfEnrolment": "closed"
       },
       {
         "@self": {
@@ -27340,7 +27354,11 @@
           }
         ],
         "proposedGrade": 1.0,
-        "lifecycle": "draft"
+        "lifecycle": "draft",
+        "markerIds": [
+          "j.devries",
+          "a.bakker"
+        ]
       },
       {
         "@self": {
@@ -27371,7 +27389,11 @@
           }
         ],
         "proposedGrade": 2.0,
-        "lifecycle": "submitted"
+        "lifecycle": "submitted",
+        "markerIds": [
+          "j.devries",
+          "a.bakker"
+        ]
       },
       {
         "@self": {
@@ -27403,6 +27425,57 @@
         ],
         "proposedGrade": 3.0,
         "lifecycle": "late"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "SubmissionMark",
+          "slug": "submissionmark-afstudeerverslag-devries"
+        },
+        "submissionId": "00000000-0000-4000-8000-000000000000",
+        "assignmentId": "00000000-0000-4000-8000-000000000000",
+        "markerId": "j.devries",
+        "rubricScores": [],
+        "proposedGrade": 7.5,
+        "feedbackText": "Sterke analyse, conclusie te kort.",
+        "submittedAt": "2026-06-20T14:00:00+00:00",
+        "submittedBy": "j.devries",
+        "lifecycle": "submitted",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "SubmissionMark",
+          "slug": "submissionmark-afstudeerverslag-bakker"
+        },
+        "submissionId": "00000000-0000-4000-8000-000000000000",
+        "assignmentId": "00000000-0000-4000-8000-000000000000",
+        "markerId": "a.bakker",
+        "rubricScores": [],
+        "proposedGrade": 6.8,
+        "feedbackText": "Methode onvoldoende verantwoord.",
+        "submittedAt": "2026-06-21T09:30:00+00:00",
+        "submittedBy": "a.bakker",
+        "lifecycle": "submitted",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "SubmissionMark",
+          "slug": "submissionmark-afstudeerverslag-wachtend"
+        },
+        "submissionId": "00000000-0000-4000-8000-000000000001",
+        "assignmentId": "00000000-0000-4000-8000-000000000000",
+        "markerId": "a.bakker",
+        "rubricScores": [],
+        "proposedGrade": null,
+        "feedbackText": null,
+        "submittedAt": null,
+        "submittedBy": null,
+        "lifecycle": "draft",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
       },
       {
         "@self": {
@@ -28082,6 +28155,99 @@
         "ncGroupId": "Voorbeeld Ncgroupid 1",
         "lifecycle": "planned",
         "reportCardTemplateId": "00000000-0000-4000-8000-0000000000f1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-1"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 1",
+        "maxMembers": 4,
+        "memberIds": [
+          "s.ahmed",
+          "l.devries",
+          "t.jansen",
+          "m.bakker"
+        ],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-2"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 2",
+        "maxMembers": 4,
+        "memberIds": [
+          "k.visser",
+          "n.smit",
+          "r.mulder",
+          "e.bos"
+        ],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-3"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 3",
+        "maxMembers": 4,
+        "memberIds": [
+          "j.dekker",
+          "a.peters",
+          "f.hendriks",
+          "d.vos"
+        ],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-4"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 4",
+        "maxMembers": 4,
+        "memberIds": [
+          "y.koster",
+          "b.meijer"
+        ],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "WorkGroup",
+          "slug": "workgroup-campagne-groep-5"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "setName": "Project campagne periode 2",
+        "name": "Groep 5",
+        "maxMembers": 4,
+        "memberIds": [],
+        "selfJoinUntil": "2026-11-16T23:59:00+00:00",
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
       },
       {
         "@self": {
@@ -29133,6 +29299,198 @@
         "confirmedAt": "2026-03-03T09:00:00+00:00",
         "note": "Voorbeeld Note 3",
         "tenant_id": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "timetable-visibility-policy",
+          "slug": "timetable-visibility-policy-timetablevisibilitypolicy-1-1"
+        },
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "learnerSeesGroups": "own",
+        "learnerSeesTeachers": "none",
+        "learnerSeesRooms": "none",
+        "instructorSeesGroups": "own",
+        "instructorSeesTeachers": "own",
+        "instructorSeesRooms": "all"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "timetable-visibility-policy",
+          "slug": "timetable-visibility-policy-timetablevisibilitypolicy-2-2"
+        },
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "learnerSeesGroups": "all",
+        "learnerSeesTeachers": "related",
+        "learnerSeesRooms": "related",
+        "instructorSeesGroups": "all",
+        "instructorSeesTeachers": "all",
+        "instructorSeesRooms": "all"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "timetable-visibility-policy",
+          "slug": "timetable-visibility-policy-timetablevisibilitypolicy-3-3"
+        },
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "learnerSeesGroups": "own",
+        "learnerSeesTeachers": "all",
+        "learnerSeesRooms": "all",
+        "instructorSeesGroups": "own",
+        "instructorSeesTeachers": "own",
+        "instructorSeesRooms": "all"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "standby-slot",
+          "slug": "standby-slot-standbyslot-1-1"
+        },
+        "teacherId": "Voorbeeld Teacherid 1",
+        "startsAt": "00:00",
+        "endsAt": "00:00",
+        "validFrom": "2026-03-01",
+        "validUntil": "2026-03-01",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "weekday": "monday",
+        "date": "2026-03-01",
+        "vestigingId": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "standby-slot",
+          "slug": "standby-slot-standbyslot-2-2"
+        },
+        "teacherId": "Voorbeeld Teacherid 2",
+        "startsAt": "11:11",
+        "endsAt": "11:11",
+        "validFrom": "2026-03-02",
+        "validUntil": "2026-03-02",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "weekday": "tuesday",
+        "date": "2026-03-02",
+        "vestigingId": "00000000-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "standby-slot",
+          "slug": "standby-slot-standbyslot-3-3"
+        },
+        "teacherId": "Voorbeeld Teacherid 3",
+        "startsAt": "02:22",
+        "endsAt": "02:22",
+        "validFrom": "2026-03-03",
+        "validUntil": "2026-03-03",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "weekday": "wednesday",
+        "date": "2026-03-03",
+        "vestigingId": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "hour-plan",
+          "slug": "hour-plan-voorbeeld-name-1-1"
+        },
+        "programmeId": "00000000-0000-4000-8000-000000000000",
+        "intakeYear": "0123-0123",
+        "durationYears": 1,
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "name": "Voorbeeld Name 1",
+        "periodsPerYear": [],
+        "lines": [],
+        "yearNorms": [],
+        "lifecycle": "draft"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "hour-plan",
+          "slug": "hour-plan-voorbeeld-name-2-2"
+        },
+        "programmeId": "00000000-0000-4000-8000-000000000001",
+        "intakeYear": "1234-1234",
+        "durationYears": 2,
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "name": "Voorbeeld Name 2",
+        "periodsPerYear": [],
+        "lines": [],
+        "yearNorms": [],
+        "lifecycle": "active"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "hour-plan",
+          "slug": "hour-plan-voorbeeld-name-3-3"
+        },
+        "programmeId": "00000000-0000-4000-8000-000000000002",
+        "intakeYear": "2345-2345",
+        "durationYears": 3,
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "name": "Voorbeeld Name 3",
+        "periodsPerYear": [],
+        "lines": [],
+        "yearNorms": [],
+        "lifecycle": "archived"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-note",
+          "slug": "lesson-note-lessonnote-1-1"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000000",
+        "text": "Voorbeeld Text 1",
+        "audience": "learners",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "sessionId": "00000000-0000-4000-8000-000000000000",
+        "timetableSessionRef": {
+          "sourceSystem": "Voorbeeld Sourcesystem 1",
+          "externalRef": "Voorbeeld Externalref 1"
+        },
+        "topic": "Voorbeeld Topic 1",
+        "authorId": "Voorbeeld Authorid 1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-note",
+          "slug": "lesson-note-lessonnote-2-2"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000001",
+        "text": "Voorbeeld Text 2",
+        "audience": "cover",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "sessionId": "00000000-0000-4000-8000-000000000001",
+        "timetableSessionRef": {
+          "sourceSystem": "Voorbeeld Sourcesystem 2",
+          "externalRef": "Voorbeeld Externalref 2"
+        },
+        "topic": "Voorbeeld Topic 2",
+        "authorId": "Voorbeeld Authorid 2"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "lesson-note",
+          "slug": "lesson-note-lessonnote-3-3"
+        },
+        "cohortId": "00000000-0000-4000-8000-000000000002",
+        "text": "Voorbeeld Text 3",
+        "audience": "learners",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "sessionId": "00000000-0000-4000-8000-000000000002",
+        "timetableSessionRef": {
+          "sourceSystem": "Voorbeeld Sourcesystem 3",
+          "externalRef": "Voorbeeld Externalref 3"
+        },
+        "topic": "Voorbeeld Topic 3",
+        "authorId": "Voorbeeld Authorid 3"
       }
     ]
   }

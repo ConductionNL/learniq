@@ -107,7 +107,9 @@
 		</section>
 
 		<NcEmptyContent
-			v-if="!loading && !error && sessions.length === 0"
+			v-if="
+				!loading && !error && sessions.length === 0 && standby.length === 0
+			"
 			:name="t('learniq', 'No sessions')"
 			:description="emptyDescription">
 			<template #icon>
@@ -116,7 +118,7 @@
 		</NcEmptyContent>
 
 		<div
-			v-if="!loading && !error && sessions.length > 0"
+			v-if="!loading && !error && (sessions.length > 0 || standby.length > 0)"
 			class="my-timetable__grid"
 			:class="{ 'my-timetable__grid--single': mode === 'today' }">
 			<section
@@ -129,7 +131,20 @@
 					<span class="my-timetable__day-date">{{ day.dateLabel }}</span>
 				</header>
 				<ul class="my-timetable__sessions">
-					<li v-if="day.sessions.length === 0" class="my-timetable__none">
+					<li
+						v-for="block in day.standby"
+						:key="'standby-' + block.slotId + block.date"
+						class="my-timetable__standby">
+						<span class="my-timetable__session-time"
+							>{{ block.startsAt }}–{{ block.endsAt }}</span
+						>
+						<span class="my-timetable__session-name">{{
+							t('learniq', 'Standby')
+						}}</span>
+					</li>
+					<li
+						v-if="day.sessions.length === 0 && day.standby.length === 0"
+						class="my-timetable__none">
 						{{ t('learniq', 'No sessions') }}
 					</li>
 					<li
@@ -175,7 +190,51 @@
 								">
 								{{ statusLabel(session) }}
 							</span>
+							<span
+								v-if="session.cover"
+								class="my-timetable__session-badge my-timetable__session-badge--cover">
+								{{ t('learniq', 'Cover') }}
+							</span>
+							<span
+								v-if="noteTopic(session)"
+								class="my-timetable__session-topic">
+								{{ noteTopic(session) }}
+							</span>
 						</div>
+						<details
+							v-if="session.notes && session.notes.length > 0"
+							class="my-timetable__notes">
+							<summary>
+								<NoteTextOutline :size="14" />
+								{{ notesSummary(session) }}
+							</summary>
+							<ul class="my-timetable__notes-list">
+								<li
+									v-for="note in session.notes"
+									:key="note.id"
+									class="my-timetable__note">
+									<strong v-if="note.topic">{{
+										note.topic
+									}}</strong>
+									<span>{{ note.text }}</span>
+									<em
+										v-if="note.audience === 'cover'"
+										class="my-timetable__note-audience">
+										{{
+											t('learniq', 'For the covering teacher')
+										}}
+									</em>
+								</li>
+							</ul>
+						</details>
+						<NcButton
+							v-if="session.canAddNote"
+							class="my-timetable__session-manage"
+							variant="tertiary"
+							:aria-label="t('learniq', 'Add a note to this lesson')"
+							@click="notingSession = session">
+							{{ t('learniq', 'Add note') }}
+						</NcButton>
 						<NcButton
 							v-if="isLearniqSession(session)"
 							class="my-timetable__session-manage"
@@ -194,13 +253,25 @@
 			:session="managingSession"
 			@close="managingSession = null"
 			@changed="onChanged" />
+
+		<LessonNoteDialog
+			v-if="notingSession"
+			:session="notingSession"
+			@close="notingSession = null"
+			@saved="onChanged" />
 	</div>
 </template>
 
 <script>
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
+import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
+import LessonNoteDialog from '../dialogs/LessonNoteDialog.vue'
 import SubstitutionModal from '../dialogs/SubstitutionModal.vue'
-import { fetchMyTimetable, isLearniqSession } from '../api/timetable.js'
+import {
+	fetchMyStandby,
+	fetchMyTimetable,
+	isLearniqSession,
+} from '../api/timetable.js'
 
 /**
  * Compute the Monday (00:00, local) of the week containing `date`.
@@ -224,6 +295,8 @@ export default {
 		NcEmptyContent,
 		NcLoadingIcon,
 		NcNoteCard,
+		LessonNoteDialog,
+		NoteTextOutline,
 		SubstitutionModal,
 	},
 
@@ -240,9 +313,13 @@ export default {
 			mode: 'week',
 			// The Session currently open in SubstitutionModal, or null.
 			managingSession: null,
+			// The lesson currently open in LessonNoteDialog, or null.
+			notingSession: null,
 			// Where the lessons come from: `learniq` Sessions, or planninq's
 			// school timetable (sessions-from-planninq).
 			source: 'learniq',
+			// The caller's standby blocks this week (timetabling-standby-slots).
+			standby: [],
 		}
 	},
 
@@ -282,7 +359,13 @@ export default {
 						&& ts < next.getTime()
 					)
 				})
+				const dayIso = [
+					day.getFullYear(),
+					String(day.getMonth() + 1).padStart(2, '0'),
+					String(day.getDate()).padStart(2, '0'),
+				].join('-')
 				out.push({
+					standby: this.standby.filter((b) => b.date === dayIso),
 					iso: day.toISOString().slice(0, 10),
 					weekday: day.toLocaleDateString(undefined, { weekday: 'short' }),
 					dateLabel: day.toLocaleDateString(undefined, {
@@ -367,7 +450,7 @@ export default {
 		 * @param {object} session A session from the timetable endpoint.
 		 *
 		 * @return {boolean} True for a learniq Session.
-		 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
+		 * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
 		 */
 		isLearniqSession(session) {
 			return isLearniqSession(session)
@@ -391,6 +474,10 @@ export default {
 				this.sessions = result.sessions
 				this.changes = result.changes
 				this.source = result.source
+				this.standby = await fetchMyStandby(
+					this.weekStart.toISOString(),
+					this.weekEnd.toISOString(),
+				)
 			} catch (e) {
 				this.error = t(
 					'learniq',
@@ -533,6 +620,34 @@ export default {
 		},
 
 		/**
+		 * The topic shown on a lesson: the first note that has one.
+		 *
+		 * @param {object} session The session.
+		 *
+		 * @return {string} The topic, or ''.
+		 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+		 */
+		noteTopic(session) {
+			const note = (session.notes || []).find((n) => n.topic)
+			return note ? note.topic : ''
+		},
+
+		/**
+		 * The summary line of a lesson's notes.
+		 *
+		 * @param {object} session The session.
+		 *
+		 * @return {string} The label.
+		 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-learners-see-a-lessons-note-in-their-timetable
+		 */
+		notesSummary(session) {
+			const count = (session.notes || []).length
+			return count === 1
+				? t('learniq', '1 note')
+				: t('learniq', '{count} notes', { count })
+		},
+
+		/**
 		 * Open SubstitutionModal for a session (cancel / assign substitute).
 		 *
 		 * @param {object} session The session to manage.
@@ -645,6 +760,15 @@ export default {
 		gap: 6px;
 	}
 
+	&__standby {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		padding: 8px;
+		border-radius: var(--border-radius, 4px);
+		border: 1px dashed var(--color-primary-element);
+	}
+
 	&__none {
 		color: var(--color-text-maxcontrast);
 		font-size: 0.85em;
@@ -653,6 +777,7 @@ export default {
 
 	&__session {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: flex-start;
 		gap: 4px;
 		padding: 8px;
@@ -692,6 +817,38 @@ export default {
 		font-weight: 600;
 	}
 
+	&__session-topic {
+		font-size: 0.8em;
+		font-style: italic;
+	}
+
+	&__notes {
+		flex-basis: 100%;
+		font-size: 0.85em;
+
+		summary {
+			cursor: pointer;
+		}
+	}
+
+	&__notes-list {
+		list-style: none;
+		margin: 4px 0 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	&__note {
+		display: flex;
+		flex-direction: column;
+	}
+
+	&__note-audience {
+		color: var(--color-text-maxcontrast);
+	}
+
 	&__session-loc {
 		font-size: 0.8em;
 		color: var(--color-text-maxcontrast);
@@ -709,6 +866,11 @@ export default {
 		&--cancelled {
 			background: var(--color-error);
 			color: white;
+		}
+
+		&--cover {
+			background: var(--color-primary-element);
+			color: var(--color-primary-element-text);
 		}
 	}
 

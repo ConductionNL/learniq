@@ -39,10 +39,10 @@ namespace OCA\Learniq\Controller;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CredentialSigningService;
 use OCA\Learniq\Service\ExternalTrainingService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
@@ -64,6 +64,7 @@ class ExternalTrainingController extends Controller {
 	 * @param ExternalTrainingService $trainingService External-training business logic.
 	 * @param ObjectService $objectService OR object query/persistence.
 	 * @param CredentialSigningService $signingService Signs a credential before it is saved.
+	 * @param CallerTenantResolver $callerTenant Resolves the caller's tenant.
 	 */
 	public function __construct(
 		IRequest $request,
@@ -72,6 +73,7 @@ class ExternalTrainingController extends Controller {
 		private readonly ExternalTrainingService $trainingService,
 		private readonly ObjectService $objectService,
 		private readonly CredentialSigningService $signingService,
+		private readonly CallerTenantResolver $callerTenant,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -137,6 +139,7 @@ class ExternalTrainingController extends Controller {
 	 * @return JSONResponse The new credentialId, or an error.
 	 *
 	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/fix-cross-tenant-idor-planid-lookups/tasks.md#task-2
 	 */
 	#[NoAdminRequired]
 	public function issueCredential(string $recordId = ''): JSONResponse {
@@ -151,24 +154,13 @@ class ExternalTrainingController extends Controller {
 			return new JSONResponse(data: ['error' => 'recordId is required'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 
-		// ObjectService::find() THROWS DoesNotExistException for an unknown id —
-		// it does not return null — so without this catch the 404 below was dead
-		// code and an unknown recordId escaped as a 500 with a stack trace.
-		try {
-			$recordObj = $this->objectService->find(
-				id: $recordId,
-				register: 'learniq',
-				schema: 'external-training-record'
-			);
-		} catch (DoesNotExistException $e) {
+		// An unknown id and another tenant's record both read as absent, before
+		// any credential is built (ObjectService::find() throws for an unknown id;
+		// the resolver turns that into null too).
+		$record = $this->callerTenant->findOwned(user: $user, id: $recordId, schema: 'external-training-record');
+		if ($record === null) {
 			return new JSONResponse(data: ['error' => 'Record not found'], statusCode: Http::STATUS_NOT_FOUND);
 		}
-
-		if ($recordObj === null) {
-			return new JSONResponse(data: ['error' => 'Record not found'], statusCode: Http::STATUS_NOT_FOUND);
-		}
-
-		$record = $recordObj->jsonSerialize();
 
 		if (($record['lifecycle'] ?? '') !== 'verified') {
 			return new JSONResponse(
@@ -253,7 +245,8 @@ class ExternalTrainingController extends Controller {
 	 * via the same officer/HR/admin action as bulk-record; a learner querying
 	 * their own coverage is allowed because the action matrix admits their
 	 * group, and the read itself is scoped to the (learnerId, regulationSlug)
-	 * pair supplied — no arbitrary-object exposure beyond a boolean + class.
+	 * pair supplied. A learner outside the caller's tenant, or an unknown one,
+	 * reads as not covered, so the endpoint discloses nothing across tenants.
 	 *
 	 * @param string $learnerId LearnerProfile UUID.
 	 * @param string $regulationSlug Regulation slug.
@@ -261,6 +254,7 @@ class ExternalTrainingController extends Controller {
 	 * @return JSONResponse { covered: bool, evidenceClass: string|null }.
 	 *
 	 * @spec openspec/changes/external-training-recording/tasks.md
+	 * @spec openspec/changes/fix-cross-tenant-idor-planid-lookups/tasks.md#task-2
 	 */
 	#[NoAdminRequired]
 	public function learnerCoverage(string $learnerId = '', string $regulationSlug = ''): JSONResponse {
@@ -276,6 +270,10 @@ class ExternalTrainingController extends Controller {
 				data: ['error' => 'learnerId and regulationSlug are required'],
 				statusCode: Http::STATUS_BAD_REQUEST
 			);
+		}
+
+		if ($this->callerTenant->findOwned(user: $user, id: $learnerId, schema: 'learner-profile') === null) {
+			return new JSONResponse(data: ['covered' => false, 'evidenceClass' => null]);
 		}
 
 		$evidenceClass = $this->trainingService->coveringEvidenceClass(

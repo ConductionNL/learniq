@@ -34,7 +34,7 @@
   Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/changes/peer-and-self-assessment/specs/assignments/spec.md#scenario-a-reviewer-completes-an-assigned-peerreview
-  @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+  @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 -->
 
 <template>
@@ -294,7 +294,7 @@ export default {
 		 * (falling back to the Assignment before the projection loads).
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 		 */
 		isDoubleBlind() {
 			return (
@@ -307,7 +307,7 @@ export default {
 		 * The files of the work under review, as the server projected them.
 		 *
 		 * @return {Array<{id: string, name: string}>}
-		 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 		 */
 		workFiles() {
 			return Array.isArray(this.work?.files) ? this.work.files : []
@@ -467,7 +467,7 @@ export default {
 		 *
 		 * @param {string} peerReviewId PeerReview UUID
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 		 */
 		async loadWork(peerReviewId) {
 			this.work = null
@@ -496,7 +496,7 @@ export default {
 		/**
 		 * @param {{id: string}} file A projected file.
 		 * @return {string} Its download URL on the projection endpoint.
-		 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 		 */
 		fileUrl(file) {
 			return generateUrl(
@@ -511,7 +511,7 @@ export default {
 		/**
 		 * @param {string} value ISO date-time.
 		 * @return {string} A local date and time.
-		 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+		 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 		 */
 		formatDate(value) {
 			return value ? new Date(value).toLocaleString() : ''

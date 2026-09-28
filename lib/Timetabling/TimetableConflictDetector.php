@@ -135,7 +135,7 @@ class TimetableConflictDetector {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-conflict-detection-runs-on-the-adapters-lessons-req-004
 	 */
 	public function scanWindow(array $sessions, string $tenantId): void {
 		$window = [];

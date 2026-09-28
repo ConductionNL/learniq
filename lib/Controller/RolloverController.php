@@ -35,6 +35,7 @@ namespace OCA\Learniq\Controller;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\RolloverService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -58,6 +59,7 @@ class RolloverController extends Controller {
 	 * @param ActionAuthService $actionAuth ADR-023 action authorization.
 	 * @param RolloverService $rolloverService Rollover logic.
 	 * @param ObjectService $objectService OR object query/persistence.
+	 * @param CallerTenantResolver $callerTenant Resolves the caller's tenant.
 	 */
 	public function __construct(
 		IRequest $request,
@@ -65,6 +67,7 @@ class RolloverController extends Controller {
 		private readonly ActionAuthService $actionAuth,
 		private readonly RolloverService $rolloverService,
 		private readonly ObjectService $objectService,
+		private readonly CallerTenantResolver $callerTenant,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -81,6 +84,7 @@ class RolloverController extends Controller {
 	 * @return JSONResponse The proposed mappings.
 	 *
 	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	#[NoAdminRequired]
 	public function proposeMapping(string $fromAcademicYear = ''): JSONResponse {
@@ -101,6 +105,9 @@ class RolloverController extends Controller {
 					'register' => 'learniq',
 					'schema' => 'cohort',
 					'academicYear' => $fromAcademicYear,
+					// The action matrix is instance-wide: without this, a planner
+					// saw every tenant's cohorts for a shared year string.
+					'tenant_id' => $this->callerTenant->resolve(user: $user),
 				],
 			]
 		);
@@ -130,7 +137,10 @@ class RolloverController extends Controller {
 	 *
 	 * @return JSONResponse The dry-run report (+ blocked flag).
 	 *
+	 * @throws \Exception When OpenRegister refuses the plan save; it reaches the caller as before.
+	 *
 	 * @spec openspec/changes/school-year-rollover/tasks.md
+	 * @spec openspec/changes/fix-cross-tenant-idor-planid-lookups/tasks.md#task-1
 	 */
 	#[NoAdminRequired]
 	public function preview(string $planId = ''): JSONResponse {
@@ -145,20 +155,14 @@ class RolloverController extends Controller {
 			return new JSONResponse(data: ['error' => 'planId is required'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 
-		// ObjectService::find() THROWS DoesNotExistException for an unknown id —
-		// it does not return null — so without this catch the 404 below was dead
-		// code and an unknown planId escaped as a 500 with a stack trace.
-		try {
-			$planObj = $this->objectService->find(id: $planId, register: 'learniq', schema: 'rollover-plan');
-		} catch (DoesNotExistException $e) {
+		// An unknown id and another tenant's plan both read as absent: no report,
+		// no lifecycle write (ObjectService::find() throws for an unknown id; the
+		// resolver turns that into null too).
+		$plan = $this->callerTenant->findOwned(user: $user, id: $planId, schema: 'rollover-plan');
+		if ($plan === null) {
 			return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
 		}
 
-		if ($planObj === null) {
-			return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
-		}
-
-		$plan = $planObj->jsonSerialize();
 		$report = $this->rolloverService->preview(plan: $plan);
 
 		$plan['dryRunReport'] = $report;
@@ -169,7 +173,12 @@ class RolloverController extends Controller {
 			$plan['lifecycle'] = 'previewed';
 		}
 
-		$this->objectService->saveObject(register: 'learniq', schema: 'rollover-plan', object: $plan);
+		// A plan deleted between the read above and this save reads as absent.
+		try {
+			$this->objectService->saveObject(register: 'learniq', schema: 'rollover-plan', object: $plan);
+		} catch (DoesNotExistException $e) {
+			return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
+		}
 
 		return new JSONResponse(data: ['report' => $report, 'blocked' => ($report['blocked'] ?? false)]);
 	}//end preview()

@@ -248,7 +248,7 @@ test('signature records fit their append-only schemas', async () => {
 	assert.equal(pok.evidenceRef, 'drawn:data:image/png;base64,AA')
 })
 
-// @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
+// @spec openspec/specs/bpv/spec.md#scenario-the-signing-flow-asks-for-the-parent
 test('a parent or guardian can sign a work placement agreement, and the page says when one must', async () => {
 	const { SIGNABLE_SUBJECTS, parentSignatureNeeded } =
 		await import('../../src/utils/customPages.js')
