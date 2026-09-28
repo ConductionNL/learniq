@@ -277,6 +277,11 @@
 								"he",
 								"corporate"
 							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -300,6 +305,11 @@
 								"vo",
 								"mbo",
 								"he",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
 								"corporate"
 							]
 						}

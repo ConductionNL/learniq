@@ -18,6 +18,7 @@
  *
  * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md
  * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md
+ * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -25,6 +26,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\SetupController;
+use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\SeedProfileService;
 use OCA\Learniq\Service\SegmentService;
 use OCP\IAppConfig;
@@ -99,6 +101,7 @@ class SetupControllerTest extends TestCase {
 				['id' => 'demo', 'label' => 'Every schema, generated values', 'description' => 'x', 'objectCount' => 405, 'icon' => 'DatabaseOutline'],
 			]
 		);
+		$this->profiles->method('loadedSets')->willReturn(new LoadedExampleSets($this->appConfig));
 		$this->profiles->method('isKnown')->willReturnCallback(static fn (string $id): bool => in_array($id, ['po', 'demo'], true));
 		$this->segments->method('listChoices')->willReturn([['id' => 'po', 'label' => 'Primary school', 'description' => 'x', 'icon' => 'SchoolOutline']]);
 	}//end setUp()
@@ -169,7 +172,10 @@ class SetupControllerTest extends TestCase {
 		self::assertTrue($data['completed']);
 		self::assertSame(['none', 'po', 'demo'], array_column($data['profiles'], 'id'));
 		self::assertSame(['po'], array_column($data['segments'], 'id'));
-		self::assertSame(['example-set', 'load-example-set', 'segment', 'remove-example-set'], array_keys($data['steps']));
+		self::assertSame(
+			['example-set', 'load-example-set', 'segment', 'remove-example-set', 'remove-example-set-po', 'remove-example-set-demo'],
+			array_keys($data['steps'])
+		);
 		self::assertFalse($data['steps']['example-set']['done']);
 		self::assertFalse($data['steps']['load-example-set']['done']);
 		self::assertFalse($data['steps']['segment']['done']);
@@ -304,6 +310,39 @@ class SetupControllerTest extends TestCase {
 		self::assertStringContainsString('3', $data['message']);
 		self::assertSame('installed', $written['demo_data_decided']);
 	}//end testLoadingImportsThePickedSetAndNamesTheCount()
+
+	/**
+	 * A per-set step removes the set it names, not the wizard's answer.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#scenario-removing-one-of-two-loaded-sets
+	 */
+	public function testAPerSetStepRemovesThatSet(): void {
+		$this->profiles->expects(self::once())->method('remove')->with('demo')->willReturn(
+			['supported' => true, 'appId' => 'learniq.demo', 'jobs' => ['job-1'], 'softDeleted' => 7, 'errors' => 0, 'failedJobs' => []]
+		);
+
+		$data = $this->controller(stored: ['example_profile' => 'po'])->runAction('remove-example-set-demo')->getData();
+
+		self::assertTrue($data['success']);
+		self::assertStringContainsString('Moved 7', $data['message']);
+	}//end testAPerSetStepRemovesThatSet()
+
+	/**
+	 * A per-set step naming no set is refused before anything is called.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 */
+	public function testAPerSetStepForAnUnknownSetIsRefused(): void {
+		$this->profiles->expects(self::never())->method('remove');
+
+		$response = $this->controller()->runAction('remove-example-set-nope');
+
+		self::assertSame(400, $response->getStatus());
+	}//end testAPerSetStepForAnUnknownSetIsRefused()
 
 	/**
 	 * After "None", loading records the decision and imports nothing.
