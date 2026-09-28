@@ -115,6 +115,8 @@ class LifecycleSchemasAreNotAppendOnlyTest extends TestCase {
 			'ConferenceReport'         => ['ConferenceReport', 'record', 'draft', 'recorded'],
 			'PortfolioShare'           => ['PortfolioShare', 'grant', 'draft', 'active'],
 			'CourseEvaluationResponse' => ['CourseEvaluationResponse', 'submit', 'draft', 'submitted'],
+			'LvsResult'                => ['LvsResult', 'verify', 'imported', 'verified'],
+			'FirstAidIncident'         => ['FirstAidIncident', 'startHandling', 'open', 'in-handling'],
 		];
 	}//end transitions()
 

@@ -27,6 +27,17 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -43,6 +54,17 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}
@@ -61,6 +83,17 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				},
@@ -77,6 +110,17 @@
 								"coordinator",
 								"administration-manager",
 								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
 							]
 						}
 					}
@@ -95,6 +139,17 @@
 								"administration-manager",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
 						}
 					}
 				}
@@ -106,12 +161,6 @@
 						"coordinator",
 						"administration-manager",
 						"admin"
-					]
-				},
-				"workspace.segment": {
-					"in": [
-						"mbo",
-						"corporate"
 					]
 				}
 			}

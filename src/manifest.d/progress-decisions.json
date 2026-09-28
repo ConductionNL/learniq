@@ -27,6 +27,12 @@
 								"compliance-officer",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"he",
+								"corporate"
+							]
 						}
 					}
 				},
@@ -43,6 +49,12 @@
 								"team-lead",
 								"compliance-officer",
 								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"he",
+								"corporate"
 							]
 						}
 					}
@@ -61,6 +73,12 @@
 								"compliance-officer",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"he",
+								"corporate"
+							]
 						}
 					}
 				},
@@ -78,6 +96,12 @@
 								"compliance-officer",
 								"admin"
 							]
+						},
+						"workspace.segment": {
+							"in": [
+								"he",
+								"corporate"
+							]
 						}
 					}
 				}
@@ -89,12 +113,6 @@
 						"team-lead",
 						"compliance-officer",
 						"admin"
-					]
-				},
-				"workspace.segment": {
-					"in": [
-						"he",
-						"corporate"
 					]
 				}
 			}

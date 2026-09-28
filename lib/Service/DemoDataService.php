@@ -55,7 +55,7 @@ class DemoDataService {
 	 *
 	 * @var string
 	 */
-	private const CONFIG_APP_ID = Application::APP_ID . '.demo';
+	public const CONFIG_APP_ID = Application::APP_ID . '.demo';
 
 	/**
 	 * Constructor.

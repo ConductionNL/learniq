@@ -68,7 +68,7 @@ class LvsResultVerifyGuard implements LifecycleGuardInterface {
 	 */
 	private const AUTHORISED_GROUPS = [
 		'admin',
-		'coordinator',
+		'coordinators',
 	];
 
 	/**
@@ -148,7 +148,7 @@ class LvsResultVerifyGuard implements LifecycleGuardInterface {
 	 *
 	 * @param string $actor NC user ID of the requester.
 	 *
-	 * @return bool True when the user is in admin / coordinator.
+	 * @return bool True when the user is in admin / coordinators.
 	 *
 	 * @spec openspec/changes/lvs-import-contract/tasks.md#task-2
 	 */
