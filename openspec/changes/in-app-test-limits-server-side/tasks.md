@@ -28,8 +28,8 @@
 - [x] Test
 
 ## Verification
-- [ ] `openspec validate in-app-test-limits-server-side` passes
-- [ ] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates, each with its exit code in the PR body
+- [x] `openspec validate in-app-test-limits-server-side` passes
+- [x] `composer check:strict`, `npm run lint`, `npm run format`, hydra gates, each with its exit code in the PR body
 
 ## Quality checklist
 
