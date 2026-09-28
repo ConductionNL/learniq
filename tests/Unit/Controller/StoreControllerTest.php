@@ -41,6 +41,8 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \OCA\Learniq\Controller\StoreController
+ * @uses   \OCA\Learniq\Service\CourseStore\CourseStoreDescriptor
+ * @uses   \OCA\Learniq\Exception\SharingBlockedException
  */
 class StoreControllerTest extends TestCase {
 
@@ -94,7 +96,7 @@ class StoreControllerTest extends TestCase {
 		return new StoreController(
 			request: $request,
 			storeService: $this->storeService,
-			descriptor: new CourseStoreDescriptor(),
+			descriptor: new CourseStoreDescriptor($this->createMock(ActionAuthService::class)),
 			installer: $this->installer,
 			publisher: $this->publisher,
 			shareService: $this->shareService,
@@ -215,6 +217,8 @@ class StoreControllerTest extends TestCase {
 	public function testARefusedPublishCarriesTheBlockers(): void {
 		$blockers = [['code' => 'licence-missing', 'id' => 'course-1', 'name' => 'Betoog']];
 		$this->publisher->method('isConfigured')->willReturn(true);
+		$this->publisher->method('supportsPublish')->willReturn(true);
+		$this->publisher->method('mayPublish')->willReturn(true);
 		$this->shareService->method('buildPackage')->willThrowException(new SharingBlockedException($blockers));
 		$this->publisher->expects(self::never())->method('publish');
 
@@ -232,6 +236,8 @@ class StoreControllerTest extends TestCase {
 	 */
 	public function testAPassingCourseIsPublished(): void {
 		$this->publisher->method('isConfigured')->willReturn(true);
+		$this->publisher->method('supportsPublish')->willReturn(true);
+		$this->publisher->method('mayPublish')->willReturn(true);
 		$this->shareService->expects(self::exactly(2))->method('buildPackage')
 			->with('course-1', 'docent-07', true, false, 'store')
 			->willReturn(['course' => ['name' => 'Betoog']]);
@@ -247,4 +253,76 @@ class StoreControllerTest extends TestCase {
 
 		self::assertSame(Http::STATUS_BAD_GATEWAY, $this->controller(true, $params)->publish('course-1')->getStatus());
 	}//end testAPassingCourseIsPublished()
+
+	/**
+	 * TC-4: the plane refuses a user the matrix admitted (an empty matrix
+	 * entry names nobody): 403, and no gate, consent or publish ran.
+	 *
+	 * @return void
+	 */
+	public function testThePlaneRefusesBeforeAnythingIsBuilt(): void {
+		$this->publisher->method('isConfigured')->willReturn(true);
+		$this->publisher->method('supportsPublish')->willReturn(true);
+		$this->publisher->expects(self::once())->method('mayPublish')->willReturn(false);
+		$this->shareService->expects(self::never())->method('buildPackage');
+		$this->publisher->expects(self::never())->method('publish');
+
+		$response = $this->controller(true, ['noPupilData' => true, 'rightsCleared' => true])->publish('course-1');
+
+		self::assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		self::assertSame('forbidden', $response->getData()['outcome']);
+	}//end testThePlaneRefusesBeforeAnythingIsBuilt()
+
+	/**
+	 * TC-7: an OpenRegister without the publish path answers 501 and runs no gate.
+	 *
+	 * @return void
+	 */
+	public function testAnOpenRegisterWithoutThePublishPathIsNotImplemented(): void {
+		$this->publisher->method('isConfigured')->willReturn(true);
+		$this->publisher->method('supportsPublish')->willReturn(false);
+		$this->publisher->expects(self::never())->method('mayPublish');
+		$this->shareService->expects(self::never())->method('buildPackage');
+
+		$response = $this->controller()->publish('course-1');
+
+		self::assertSame(Http::STATUS_NOT_IMPLEMENTED, $response->getStatus());
+		self::assertSame('publish_not_supported', $response->getData()['outcome']);
+	}//end testAnOpenRegisterWithoutThePublishPathIsNotImplemented()
+
+	/**
+	 * TC-5: every plane outcome maps to its status.
+	 *
+	 * @return array<string, array{0: string, 1: int}>
+	 */
+	public static function planeOutcomes(): array {
+		return [
+			'ok'                     => ['ok', Http::STATUS_OK],
+			'too_large'              => ['too_large', Http::STATUS_REQUEST_ENTITY_TOO_LARGE],
+			'rate_limited'           => ['rate_limited', Http::STATUS_TOO_MANY_REQUESTS],
+			'store_unreachable'      => ['store_unreachable', Http::STATUS_BAD_GATEWAY],
+			'store_rejected'         => ['store_rejected', Http::STATUS_BAD_GATEWAY],
+			'store_invalid_response' => ['store_invalid_response', Http::STATUS_BAD_GATEWAY],
+			'not_publishable'        => ['not_publishable', Http::STATUS_INTERNAL_SERVER_ERROR],
+			'unknown'                => ['something_new', Http::STATUS_BAD_GATEWAY],
+		];
+	}//end planeOutcomes()
+
+	/**
+	 * @dataProvider planeOutcomes
+	 *
+	 * @param string $outcome The plane's outcome.
+	 * @param int    $status  The expected HTTP status.
+	 *
+	 * @return void
+	 */
+	public function testEveryPlaneOutcomeMapsToAStatus(string $outcome, int $status): void {
+		$this->publisher->method('isConfigured')->willReturn(true);
+		$this->publisher->method('supportsPublish')->willReturn(true);
+		$this->publisher->method('mayPublish')->willReturn(true);
+		$this->shareService->method('buildPackage')->willReturn(['course' => ['name' => 'Betoog']]);
+		$this->publisher->method('publish')->willReturn(['outcome' => $outcome, 'slug' => '']);
+
+		self::assertSame($status, $this->controller()->publish('course-1')->getStatus());
+	}//end testEveryPlaneOutcomeMapsToAStatus()
 }//end class

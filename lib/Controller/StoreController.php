@@ -8,13 +8,14 @@
  *
  *   - GET  /api/store/items                  search, through OpenRegister's store plane
  *   - POST /api/store/items/{slug}/install   resolve through the plane, import as a copy
- *   - POST /api/store/publish                gate, record, send to the registry
+ *   - POST /api/store/publish                gate, record, publish through the plane
  *
  * ADR-080: discovery is OpenRegister's. This controller injects the engine's
  * GenericStoreService with learniq's CourseStoreDescriptor, so the SSRF guard,
  * the redirect refusal and the registry token stay in the engine. Install and
  * publish stay here (ADR-080 Decision 3): a course import remaps every
- * reference to new ids, and a publish runs learniq's sharing gate. Because
+ * reference to new ids, and a publish runs learniq's sharing gate before it
+ * hands the object to the plane's publish() (store-publish-through-plane). Because
  * learniq ships this class, OpenRegister's Bootstrap::aliasStoreController()
  * leaves learniq's store routes to it, the same seam openbuild uses.
  *
@@ -53,6 +54,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
+use OCP\IUser;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -73,11 +75,16 @@ class StoreController extends Controller {
 	 * Publish outcome => HTTP status.
 	 */
 	private const PUBLISH_STATUS = [
-		CourseStorePublisher::OUTCOME_OK             => Http::STATUS_OK,
-		CourseStorePublisher::OUTCOME_NOT_CONFIGURED => Http::STATUS_OK,
-		CourseStorePublisher::OUTCOME_TOO_LARGE      => Http::STATUS_REQUEST_ENTITY_TOO_LARGE,
-		CourseStorePublisher::OUTCOME_UNREACHABLE    => Http::STATUS_BAD_GATEWAY,
-		CourseStorePublisher::OUTCOME_REJECTED       => Http::STATUS_BAD_GATEWAY,
+		CourseStorePublisher::OUTCOME_OK              => Http::STATUS_OK,
+		CourseStorePublisher::OUTCOME_NOT_CONFIGURED  => Http::STATUS_OK,
+		CourseStorePublisher::OUTCOME_TOO_LARGE       => Http::STATUS_REQUEST_ENTITY_TOO_LARGE,
+		CourseStorePublisher::OUTCOME_RATE_LIMITED    => Http::STATUS_TOO_MANY_REQUESTS,
+		CourseStorePublisher::OUTCOME_UNREACHABLE     => Http::STATUS_BAD_GATEWAY,
+		CourseStorePublisher::OUTCOME_REJECTED        => Http::STATUS_BAD_GATEWAY,
+		CourseStorePublisher::OUTCOME_INVALID         => Http::STATUS_BAD_GATEWAY,
+		// The descriptor did not opt in: a learniq defect, not the user's.
+		CourseStorePublisher::OUTCOME_NOT_PUBLISHABLE => Http::STATUS_INTERNAL_SERVER_ERROR,
+		CourseStorePublisher::OUTCOME_NOT_SUPPORTED   => Http::STATUS_NOT_IMPLEMENTED,
 	];
 
 	/**
@@ -211,9 +218,10 @@ class StoreController extends Controller {
 	 *
 	 * @param string $courseId UUID of the course.
 	 *
-	 * @return JSONResponse `{outcome, slug}`; 422 with `blockers`; see PUBLISH_STATUS for the rest.
+	 * @return JSONResponse `{outcome, slug}`; 403 `forbidden`; 422 with `blockers`; 501 `publish_not_supported`; see PUBLISH_STATUS for the rest.
 	 *
 	 * @spec openspec/changes/lesson-sharing-via-store-plane/specs/course-management/spec.md#requirement-publishing-sends-a-gated-package-to-the-registry
+	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
 	 */
 	#[NoAdminRequired]
 	public function publish(string $courseId=''): JSONResponse {
@@ -231,6 +239,11 @@ class StoreController extends Controller {
 		// No registry, no gate run and no consent record: nothing would leave.
 		if ($this->publisher->isConfigured() === false) {
 			return new JSONResponse(data: ['outcome' => CourseStorePublisher::OUTCOME_NOT_CONFIGURED, 'slug' => '']);
+		}
+
+		$refusal = $this->publishRefusal(user: $user);
+		if ($refusal !== null) {
+			return $refusal;
 		}
 
 		try {
@@ -256,6 +269,36 @@ class StoreController extends Controller {
 		return new JSONResponse(data: $result, statusCode: (self::PUBLISH_STATUS[$result['outcome']] ?? Http::STATUS_BAD_GATEWAY));
 
 	}//end publish()
+
+	/**
+	 * Why the plane will not take a publish from this user, as a response, or
+	 * null when it will. Asked before the sharing gate runs, so a refusal
+	 * records no consent and builds no package.
+	 *
+	 * @param IUser $user The signed-in user.
+	 *
+	 * @return JSONResponse|null 501 when OpenRegister has no publish path, 403 when the plane refuses the user.
+	 *
+	 * @spec openspec/changes/store-publish-through-plane/specs/course-management/spec.md#requirement-the-plane-decides-who-may-publish-before-a-package-is-built
+	 */
+	private function publishRefusal(IUser $user): ?JSONResponse {
+		if ($this->publisher->supportsPublish() === false) {
+			return new JSONResponse(
+				data: ['outcome' => CourseStorePublisher::OUTCOME_NOT_SUPPORTED, 'slug' => ''],
+				statusCode: Http::STATUS_NOT_IMPLEMENTED
+			);
+		}
+
+		if ($this->publisher->mayPublish(user: $user) === false) {
+			return new JSONResponse(
+				data: ['outcome' => CourseStorePublisher::OUTCOME_FORBIDDEN, 'slug' => ''],
+				statusCode: Http::STATUS_FORBIDDEN
+			);
+		}
+
+		return null;
+
+	}//end publishRefusal()
 
 	/**
 	 * A trimmed, non-empty string request parameter, or null.
