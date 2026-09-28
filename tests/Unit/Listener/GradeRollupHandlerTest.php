@@ -56,6 +56,13 @@ class GradeRollupHandlerTest extends TestCase {
 	private array $savedObjects = [];
 
 	/**
+	 * Programme rows the programme lookup finds, filtered on curriculumPlanId.
+	 *
+	 * @var array<int, array<string, mixed>>
+	 */
+	private array $programmes = [];
+
+	/**
 	 * Reset the capture buffer before each test.
 	 *
 	 * @return void
@@ -95,6 +102,11 @@ class GradeRollupHandlerTest extends TestCase {
 			function (array $config, bool $_rbac = true) use ($parentIds, $profiles, $finalGrades) {
 				if ($config['filters']['schema'] === 'final-grade') {
 					return $finalGrades;
+				}
+
+				if ($config['filters']['schema'] === 'programme') {
+					$plan = ($config['filters']['curriculumPlanId'] ?? null);
+					return array_values(array_filter($this->programmes, static fn (array $row): bool => ($row['curriculumPlanId'] ?? null) === $plan));
 				}
 
 				if ($config['filters']['schema'] === 'learner-profile' && $profiles !== null) {
@@ -421,4 +433,47 @@ class GradeRollupHandlerTest extends TestCase {
 		$declared = array_keys($register['components']['schemas']['FinalGrade']['properties']);
 		self::assertSame([], array_values(array_diff(array_keys($saved), array_merge($declared, ['id']))));
 	}//end testARecomputedFinalGradeCarriesNoCohortId()
+
+	/**
+	 * The roll-up writes the Programme whose curriculum plan the grade was
+	 * computed from, so the programme KPI (which filters on programmeId) counts it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/grading-rollup-followups/specs/grading/spec.md#scenario-a-final-grade-names-the-programme-of-its-plan
+	 */
+	public function testAFinalGradeNamesTheProgrammeOfItsPlan(): void {
+		$this->programmes = [
+			['id' => 'programme-other', 'curriculumPlanId' => 'plan-2'],
+			['id' => 'programme-1', 'curriculumPlanId' => 'plan-1'],
+		];
+		$now = new DateTime('2026-07-13 12:00:00', new DateTimeZone('Europe/Amsterdam'));
+		$handler = $this->makeHandler(curriculumPlan: ['id' => 'plan-1'], parentIds: [], now: $now);
+		$handler->handle(
+			$this->makeEvent(['id' => 'entry-1', 'learnerId' => 'learner-1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'])
+		);
+
+		$saves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'final-grade'));
+		self::assertCount(1, $saves);
+		self::assertSame('programme-1', $saves[0]['object']['programmeId']);
+	}//end testAFinalGradeNamesTheProgrammeOfItsPlan()
+
+	/**
+	 * A plan no programme uses gives a course-level grade: programmeId stays null.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/grading-rollup-followups/specs/grading/spec.md#scenario-a-final-grade-names-the-programme-of-its-plan
+	 */
+	public function testAPlanWithoutAProgrammeLeavesProgrammeIdNull(): void {
+		$now = new DateTime('2026-07-13 12:00:00', new DateTimeZone('Europe/Amsterdam'));
+		$handler = $this->makeHandler(curriculumPlan: ['id' => 'plan-9'], parentIds: [], now: $now);
+		$handler->handle(
+			$this->makeEvent(['id' => 'entry-1', 'learnerId' => 'learner-1', 'curriculumPlanId' => 'plan-9', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'])
+		);
+
+		$saves = array_values(array_filter($this->savedObjects, static fn ($s) => $s['schema'] === 'final-grade'));
+		self::assertArrayHasKey('programmeId', $saves[0]['object']);
+		self::assertNull($saves[0]['object']['programmeId']);
+	}//end testAPlanWithoutAProgrammeLeavesProgrammeIdNull()
 }//end class

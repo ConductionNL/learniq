@@ -27,8 +27,11 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\BackgroundJob\CompetencyAttainmentRollupJob;
 use OCA\Learniq\Listener\CompetencyAttainmentRollupHandler;
+use OCA\Learniq\Service\CompetencyAttainmentRollup;
 use OCA\Learniq\Service\CompetencyAttainmentWriter;
 use OCA\Learniq\Service\CompetencyLevelResolver;
 use OCA\Learniq\Service\GradeEvidenceRollup;
@@ -64,6 +67,20 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 	private array $savedObjects = [];
 
 	/**
+	 * Entries the handler queued, with the job class and dedupe key.
+	 *
+	 * @var array<int, array{jobClass: string, entry: array<string, mixed>, dedupeKey: string|null}>
+	 */
+	private array $queued = [];
+
+	/**
+	 * Whether the deferral fake runs each queued entry straight away.
+	 *
+	 * @var bool
+	 */
+	private bool $runQueued = true;
+
+	/**
 	 * Resolver turning the entity's numeric register/schema ids into slugs.
 	 *
 	 * @var ListenerSchemaResolver&MockObject
@@ -79,6 +96,8 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 		parent::setUp();
 		$this->db = [];
 		$this->savedObjects = [];
+		$this->queued = [];
+		$this->runQueued = true;
 		$this->schemaResolver = $this->createMock(ListenerSchemaResolver::class);
 
 	}//end setUp()
@@ -168,15 +187,47 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 		$levelResolver = new CompetencyLevelResolver($reader);
 		$writer = new CompetencyAttainmentWriter($objectService, $reader, $levelResolver, $logger);
 
-		return new CompetencyAttainmentRollupHandler(
+		$rollup = new CompetencyAttainmentRollup(
 			$objectService,
-			$this->schemaResolver,
 			$logger,
 			$reader,
 			$writer,
 			$levelResolver,
 			new GradeEvidenceRollup($reader, $writer)
 		);
+
+		$test = $this;
+		$deferral = new class ($test, $rollup) extends ListenerDeferralService {
+			/**
+			 * Constructor.
+			 *
+			 * @param CompetencyAttainmentRollupHandlerTest $test The test, to record entries.
+			 * @param CompetencyAttainmentRollup $rollup The work the job would run.
+			 */
+			public function __construct(
+				private readonly CompetencyAttainmentRollupHandlerTest $test,
+				private readonly CompetencyAttainmentRollup $rollup,
+			) {
+			}//end __construct()
+
+			/**
+			 * Record the entry, then run it as the job would.
+			 *
+			 * @param string $jobClass The job class.
+			 * @param array<string, mixed> $entry The entry.
+			 * @param int $chunkSize Unused.
+			 * @param string|null $dedupeKey The dedupe key.
+			 *
+			 * @return void
+			 */
+			public function defer(string $jobClass, array $entry, int $chunkSize = self::DEFAULT_CHUNK_SIZE, ?string $dedupeKey = null): void {
+				if ($this->test->recordQueued(jobClass: $jobClass, entry: $entry, dedupeKey: $dedupeKey) === true) {
+					$this->rollup->run(kind: $entry['kind'], object: $entry['object']);
+				}
+			}//end defer()
+		};
+
+		return new CompetencyAttainmentRollupHandler($deferral, $this->schemaResolver);
 
 	}//end makeHandler()
 
@@ -733,4 +784,44 @@ class CompetencyAttainmentRollupHandlerTest extends TestCase {
 		$this->assertCount(0, $this->savedObjects);
 
 	}//end testIgnoresUnrelatedCreatedEvents()
+
+	/**
+	 * Record one queued entry (called by the deferral fake).
+	 *
+	 * @param string $jobClass The job class.
+	 * @param array<string, mixed> $entry The entry.
+	 * @param string|null $dedupeKey The dedupe key.
+	 *
+	 * @return bool Whether the fake should run the entry now.
+	 */
+	public function recordQueued(string $jobClass, array $entry, ?string $dedupeKey): bool {
+		$this->queued[] = ['jobClass' => $jobClass, 'entry' => $entry, 'dedupeKey' => $dedupeKey];
+		return $this->runQueued;
+	}//end recordQueued()
+
+	/**
+	 * The handler writes nothing inside the save that fired it: it queues the
+	 * roll-up for CompetencyAttainmentRollupJob (hydra gate 61, ADR-078).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/grading-rollup-followups/specs/competency/spec.md#scenario-a-new-werkproces-assessment-is-saved-without-waiting-for-its-competency
+	 */
+	public function testTheHandlerQueuesTheWorkAndWritesNothingItself(): void {
+		$this->stubResolver('werkproces-assessment');
+		$this->runQueued = false;
+		$handler = $this->makeHandler();
+
+		$handler->handle($this->makeCreatedEvent('werkproces-assessment', ['id' => 'wpa-1', 'werkprocesCode' => 'B1-K1-W1', 'tenant_id' => 'tenant-a']));
+		$handler->handle($this->makeTransitionEvent('grade-entry', 'published', ['id' => 'ge-1']));
+		$handler->handle($this->makeTransitionEvent('werkproces-assessment', 'confirmed', ['id' => 'wpa-1']));
+
+		self::assertCount(0, $this->savedObjects);
+		self::assertSame(
+			[CompetencyAttainmentRollup::WERKPROCES_CREATED, CompetencyAttainmentRollup::GRADE_ENTRY_PUBLISHED, CompetencyAttainmentRollup::WERKPROCES_CONFIRMED],
+			array_map(static fn (array $q): string => $q['entry']['kind'], $this->queued)
+		);
+		self::assertSame(CompetencyAttainmentRollupJob::class, $this->queued[0]['jobClass']);
+		self::assertSame('werkproces-created|wpa-1', $this->queued[0]['dedupeKey']);
+	}//end testTheHandlerQueuesTheWorkAndWritesNothingItself()
 }//end class
