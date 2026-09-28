@@ -335,7 +335,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "first-aid-incident",
-				"_note": "learner-record-extras (finding G-new-15): a FirstAidIncident is a single dated first-aid/medical event — what happened, treatment given, whether a guardian was notified — kept separate from LearnerProfile.medicalConditions/allergies (standing conditions, not events). appendOnly: true; own lifecycle open -> in-handling -> resolved, mirroring BehaviourIncidentDetail. Body leads with the incident data (8-wide) and a Related panel. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"_note": "learner-record-extras (finding G-new-15): a FirstAidIncident is a single dated first-aid/medical event — what happened, treatment given, whether a guardian was notified — kept separate from LearnerProfile.medicalConditions/allergies (standing conditions, not events). Not appendOnly, because its lifecycle runs as updates (access-control-ratchet-compliance); own lifecycle open -> in-handling -> resolved, mirroring BehaviourIncidentDetail. Body leads with the incident data (8-wide) and a Related panel. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},

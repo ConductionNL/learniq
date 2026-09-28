@@ -304,7 +304,14 @@
             "description": "Which pupils crossed an attendance threshold, and what has to be reported.",
             "icon": "FlagOutline",
             "category": "attendance",
-            "route": "AttendanceFlags"
+            "route": "AttendanceFlags",
+            "visibleIf": {
+              "workspace.chosenSegment": {
+                "notIn": [
+                  "corporate"
+                ]
+              }
+            }
           },
           {
             "id": "FinalGrades",
@@ -320,7 +327,15 @@
             "description": "Which students are at risk of falling short of the binding study advice.",
             "icon": "AlertOutline",
             "category": "progress",
-            "route": "BsaRiskDashboard"
+            "route": "BsaRiskDashboard",
+            "visibleIf": {
+              "workspace.segment": {
+                "in": [
+                  "he",
+                  "corporate"
+                ]
+              }
+            }
           },
           {
             "id": "EngagementRiskFlags",
@@ -360,7 +375,17 @@
             "description": "What course evaluations said, per course.",
             "icon": "SchoolOutline",
             "category": "quality",
-            "route": "CourseQualityReport"
+            "route": "CourseQualityReport",
+            "visibleIf": {
+              "workspace.segment": {
+                "in": [
+                  "mbo",
+                  "he",
+                  "corporate",
+                  "training"
+                ]
+              }
+            }
           },
           {
             "id": "BpvVisitReports",
@@ -368,7 +393,20 @@
             "description": "What was found on placement visits.",
             "icon": "BriefcaseOutline",
             "category": "placements",
-            "route": "BpvVisitReports"
+            "route": "BpvVisitReports",
+            "visibleIf": {
+              "workspace.segment": {
+                "in": [
+                  "mbo",
+                  "corporate"
+                ]
+              },
+              "workspace.chosenSegment": {
+                "notIn": [
+                  "corporate"
+                ]
+              }
+            }
           }
         ]
       }
