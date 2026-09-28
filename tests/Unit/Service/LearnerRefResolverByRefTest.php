@@ -22,13 +22,15 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/assignment-portal-wiring/specs/assignments/spec.md#requirement-the-server-stamps-who-a-submission-belongs-to
+ * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
  * @spec openspec/specs/portal-contribution/spec.md#REQ-PCON-000
  */
 
 declare(strict_types=1);
 
-namespace OCA\Learniq\Tests\Unit\Service\Portal;
+namespace OCA\Learniq\Tests\Unit\Service;
 
+use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\Portal\LearnerProfileLookup;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
@@ -37,9 +39,12 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 /**
- * Tests for LearnerProfileLookup.
+ * Tests for LearnerRefResolver's portal half: a profile by uuid, and a profile
+ * uuid by user across tenants. These lived in LearnerProfileLookup, which
+ * duplicated LearnerRefResolver::resolve() (#1068, #1096) and is now a
+ * deprecated facade over it.
  */
-class LearnerProfileLookupTest extends TestCase {
+class LearnerRefResolverByRefTest extends TestCase {
 
 	/**
 	 * Properties the learner-profile schema declares that a lookup may filter on.
@@ -61,13 +66,20 @@ class LearnerProfileLookupTest extends TestCase {
 	private array $findAllConfigs = [];
 
 	/**
-	 * Build the lookup over the fake store.
+	 * The `_multitenancy` flag of each findAll() call.
+	 *
+	 * @var array<int, bool>
+	 */
+	private array $multitenancy = [];
+
+	/**
+	 * Build the resolver over the fake store.
 	 *
 	 * @param bool $throws Whether every read throws.
 	 *
-	 * @return LearnerProfileLookup
+	 * @return LearnerRefResolver
 	 */
-	private function makeLookup(bool $throws = false): LearnerProfileLookup {
+	private function makeLookup(bool $throws = false): LearnerRefResolver {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
 			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($throws) {
@@ -83,8 +95,9 @@ class LearnerProfileLookupTest extends TestCase {
 			}
 		);
 		$objectService->method('findAll')->willReturnCallback(
-			function (array $config = []) use ($throws): array {
+			function (array $config = [], bool $_rbac = true, bool $_multitenancy = true) use ($throws): array {
 				$this->findAllConfigs[] = $config;
+				$this->multitenancy[] = $_multitenancy;
 				if ($throws === true) {
 					throw new RuntimeException('database gone');
 				}
@@ -111,7 +124,7 @@ class LearnerProfileLookupTest extends TestCase {
 			}
 		);
 
-		return new LearnerProfileLookup(objectService: $objectService);
+		return new LearnerRefResolver(objectService: $objectService);
 	}//end makeLookup()
 
 	/**
@@ -170,7 +183,7 @@ class LearnerProfileLookupTest extends TestCase {
 		$this->profiles['lp-old'] = ['ncUserId' => 'pupil-1', 'mergedInto' => 'lp-new', 'lifecycle' => 'merged'];
 		$this->profiles['lp-new'] = ['ncUserId' => 'pupil-1', 'mergedInto' => null, 'lifecycle' => 'active'];
 
-		self::assertSame('lp-new', $this->makeLookup()->refForUser(ncUserId: 'pupil-1'));
+		self::assertSame('lp-new', $this->makeLookup()->resolveAcrossTenants(learnerId: 'pupil-1'));
 	}//end testTheMergeSurvivorWinsForAUser()
 
 	/**
@@ -181,8 +194,8 @@ class LearnerProfileLookupTest extends TestCase {
 	public function testAUserWithoutAProfileHasNoRef(): void {
 		$lookup = $this->makeLookup();
 
-		self::assertNull($lookup->refForUser(ncUserId: 'pupil-9'));
-		self::assertNull($lookup->refForUser(ncUserId: ''));
+		self::assertNull($lookup->resolveAcrossTenants(learnerId: 'pupil-9'));
+		self::assertNull($lookup->resolveAcrossTenants(learnerId: ''));
 	}//end testAUserWithoutAProfileHasNoRef()
 
 	/**
@@ -194,10 +207,44 @@ class LearnerProfileLookupTest extends TestCase {
 	public function testTheUserLookupUsesTheShapeOpenRegisterReads(): void {
 		$this->profiles['lp-1'] = ['ncUserId' => 'pupil-1', 'lifecycle' => 'active'];
 
-		self::assertSame('lp-1', $this->makeLookup()->refForUser(ncUserId: 'pupil-1'));
+		self::assertSame('lp-1', $this->makeLookup()->resolveAcrossTenants(learnerId: 'pupil-1'));
 		self::assertSame('learniq', $this->findAllConfigs[0]['filters']['register']);
 		self::assertSame('learner-profile', $this->findAllConfigs[0]['filters']['schema']);
 		self::assertSame('pupil-1', $this->findAllConfigs[0]['filters']['ncUserId']);
 		self::assertArrayNotHasKey('register', $this->findAllConfigs[0]);
 	}//end testTheUserLookupUsesTheShapeOpenRegisterReads()
+
+	/**
+	 * A portal caller has no session, so its lookup reads across tenants; a
+	 * signed-in caller keeps OpenRegister's tenant scoping, as before the fold.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
+	 */
+	public function testOnlyTheAcrossTenantsLookupDropsTenantScoping(): void {
+		$this->profiles['lp-1'] = ['ncUserId' => 'pupil-1', 'lifecycle' => 'active'];
+		$resolver = $this->makeLookup();
+
+		$resolver->resolve(learnerId: 'pupil-1');
+		$resolver->resolveAcrossTenants(learnerId: 'pupil-1');
+
+		self::assertSame([true, false], $this->multitenancy);
+	}//end testOnlyTheAcrossTenantsLookupDropsTenantScoping()
+
+	/**
+	 * The deprecated facade answers exactly what the resolver answers.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/grading/spec.md#requirement-one-resolver-finds-a-learners-profile
+	 */
+	public function testTheDeprecatedFacadeDelegatesToTheResolver(): void {
+		$this->profiles['lp-1'] = ['ncUserId' => 'pupil-1', 'tenant_id' => 't-1', 'lifecycle' => 'active'];
+		$facade = new LearnerProfileLookup(learnerRefs: $this->makeLookup());
+
+		self::assertSame('lp-1', $facade->refForUser(ncUserId: 'pupil-1'));
+		self::assertSame('lp-1', $facade->byRef(learnerRef: 'lp-1')['id']);
+		self::assertSame([false], $this->multitenancy, 'the facade keeps the portal lookup across tenants');
+	}//end testTheDeprecatedFacadeDelegatesToTheResolver()
 }//end class
