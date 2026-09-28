@@ -28,7 +28,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\AppInfo\Registrar;
 
-use OCA\Learniq\Listener\AssessmentResultIntegrityListener;
 use OCA\Learniq\Listener\CompetencyAlignmentListener;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
@@ -37,7 +36,6 @@ use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
 use OCA\Learniq\Listener\SubmissionResubmissionDateListener;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
-use OCA\OpenRegister\Event\ObjectDeletingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
@@ -57,20 +55,9 @@ class IntegrityListenerRegistrar {
 	 * @spec openspec/specs/assessment/spec.md#requirement-a-teacher-scores-open-answers-question-by-question-and-a-finished-attempt-stays-immutable
 	 */
 	public function register(IRegistrationContext $context): void {
-		// AssessmentResult integrity (learniq#948): replaces `appendOnly`, which
-		// refused every lifecycle write. Freezes a submitted attempt's answers,
-		// lets only staff write manualScore and fire `grade`, and refuses
-		// deletes. A pre-write veto, so deliberately NOT narrowed through
-		// ObjectEventSubscription: its shared proxy does not consult
-		// isPropagationStopped() between subscriptions.
-		$context->registerEventListener(
-			event: ObjectUpdatingEvent::class,
-			listener: AssessmentResultIntegrityListener::class
-		);
-		$context->registerEventListener(
-			event: ObjectDeletingEvent::class,
-			listener: AssessmentResultIntegrityListener::class
-		);
+		// The evidence freezes (a submitted AssessmentResult, a verified
+		// LvsResult) live in their own registrar.
+		(new EvidenceFreezeListenerRegistrar())->register(context: $context);
 
 		$this->registerOwnerStamps(context: $context);
 
