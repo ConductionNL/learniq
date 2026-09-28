@@ -23667,6 +23667,7 @@
                     },
                     "dataExchangeJobId": {
                         "type": "string",
+                        "nullable": true,
                         "x-external-register": "integriq",
                         "format": "uuid",
                         "description": "UUID of the integriq exchange job that imported this result, when it came in through one. Null for a result entered by hand.",
