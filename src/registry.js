@@ -106,6 +106,8 @@ import GroupPlanSubgroupLearnerContext from './views/GroupPlanSubgroupLearnerCon
 // learning-progress-and-analytics: cohort x period grade-trend heat map —
 // the one genuine new custom view this change adds.
 import GroupTrendHeatmap from './views/GroupTrendHeatmap.vue'
+// timetabling-room-utilisation: the room use report under Reports.
+import RoomUtilisationReport from './views/RoomUtilisationReport.vue'
 import ItemAnalysisView from './views/ItemAnalysisView.vue'
 import ItemAuthorView from './views/ItemAuthorView.vue'
 // engagement-gamification: the one genuine new custom view this change adds —
@@ -258,6 +260,7 @@ export default {
 	GradeImpactDetail: page(GradeImpactDetail),
 	GroupPlanSubgroupLearnerContext: page(GroupPlanSubgroupLearnerContext),
 	GroupTrendHeatmap: page(GroupTrendHeatmap),
+	RoomUtilisationReport: page(RoomUtilisationReport),
 	ItemAnalysisView: page(ItemAnalysisView),
 	ItemAuthorView: page(ItemAuthorView),
 	LeaderboardView: page(LeaderboardView),

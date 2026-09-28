@@ -158,6 +158,11 @@ return [
         // (planninq when installed, else Session), after an RBAC read of the cohort
         // (sessions-from-planninq).
         ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
+        // Room use report and its opening hours (timetabling-room-utilisation).
+        // Staff groups only, checked in the body.
+        ['name' => 'roomUtilisation#report', 'url' => '/api/reports/room-use', 'verb' => 'GET'],
+        ['name' => 'roomUtilisation#openingHours', 'url' => '/api/reports/room-use/opening-hours', 'verb' => 'GET'],
+        ['name' => 'roomUtilisation#saveOpeningHours', 'url' => '/api/reports/room-use/opening-hours', 'verb' => 'PUT'],
 
         // Peer review reviewer allocation — genuine batch-matching business logic
         // (peer-and-self-assessment), authorized by an explicit per-object check
