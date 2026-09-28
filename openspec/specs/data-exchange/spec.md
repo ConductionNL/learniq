@@ -40,7 +40,9 @@ An institution's data has to flow to and from external systems: a Dutch school's
 - GIVEN an incoming OSO dossier, WHEN a VO mentor imports it, THEN the matching `LearnerProfile` is updated (or created) and an audit entry records the import source.
 - GIVEN an `AttendanceThreshold` with `onCross` targeting `leerplicht`, WHEN a flag is created (see `attendance`), THEN a `DataExchangeJob` is auto-queued to the `leerplicht` target and the flag's lifecycle tracks it.
 - GIVEN any `DataExchangeJob`, WHEN it changes state, THEN an OR audit-trail entry is emitted and the produced artefact is attached to the job for retention.
+
 ## Requirements
+
 ### Requirement: Persist DataExchangeJob and DataMappingProfile in OpenRegister
 
 The system MUST persist `DataExchangeJob`, `DataMappingProfile` as OpenRegister objects with
@@ -332,6 +334,57 @@ protocols to OpenConnector" requirement already lists.
 - **THEN** the `ExchangeRejection` is still created, with `errorCodeRef` left null
 
 <!-- @e2e exclude Fail-open catalogue-lookup behaviour verified by PHPUnit RejectionMappingHandlerTest::testUnknownErrorCodeLeavesRefNull; no DOM surface. -->
+
+### Requirement: Data-exchange management is reached from the Admin Settings page
+The data-exchange entry point MUST move from the in-app settings foldout to the Nextcloud Admin Settings page. The `DataExchange` leaf id MUST be removed from `src/menu-layout.json#settingsSection`, and the Admin Settings page (mounted by `lib/Settings/AdminSettings.php` + `src/settings.js` → `src/views/settings/AdminRoot.vue`) MUST render a "Data exchange" settings section that links to the still-routable Data-exchange **jobs** (`#/data-exchange/jobs`) and **mapping profiles** (`#/data-exchange/mapping-profiles`) SPA pages, mirroring the "Manage AI features" affordance in `ScholiqSettings.vue`. Because the Admin Settings mount has no in-app vue-router, the links MUST navigate out via full navigation (hash-form SPA URL), not by embedding router pages. All data-exchange pages (`DataExchangeJobs`, `DataExchangeJobDetail`, `DataMappingProfiles`, `DataMappingProfileDetail`, `RequestExportModal`, `OsoDossierReviewView`) MUST remain registered in `src/manifest.json.pages[]` and routable. No backend, register schema, lifecycle guard, OSO gate or OpenConnector delegation is changed.
+
+#### Scenario: Admin Settings shows a Data exchange section
+<!-- @e2e exclude Admin Settings is rendered by the Nextcloud settings framework outside the SPA route-smoke harness (tests/e2e/pages.spec.ts); the section render + link targets are verified in-browser at apply. -->
+- **GIVEN** an admin on the Scholiq Admin Settings page (`AdminRoot.vue`)
+- **WHEN** the page renders
+- **THEN** a "Data exchange" settings section is shown with a link to Data-exchange jobs (`#/data-exchange/jobs`) and a link to mapping profiles (`#/data-exchange/mapping-profiles`)
+
+#### Scenario: The in-app Data exchange foldout entry is removed
+<!-- @e2e exclude Static / absence assertion — verified by the manifest/menu-layout unit test (no `DataExchange` id in settingsSection); not a positive route-smoke DOM behaviour. -->
+- **GIVEN** the parsed `src/menu-layout.json`
+- **WHEN** its `settingsSection` array is inspected
+- **THEN** it does not list `DataExchange`
+
+#### Scenario: Data-exchange jobs page remains routable via deep link
+- **GIVEN** the `DataExchangeJobs` page is no longer in the nav
+- **WHEN** a user navigates directly to `#/data-exchange/jobs`
+- **THEN** the `DataExchangeJobs` index page renders without a fatal error
+
+#### Scenario: Data-exchange mapping profiles page remains routable via deep link
+- **GIVEN** the `DataMappingProfiles` page is no longer in the nav
+- **WHEN** a user navigates directly to `#/data-exchange/mapping-profiles`
+- **THEN** the `DataMappingProfiles` index page renders without a fatal error
+
+### Requirement: A DataExchangeJob target can require standing partner approval before it runs
+`DataExchangeJob` SHALL gain four additive properties: `requiresPartnerApproval` (boolean, default `false`),
+`partnerApprovalStatus` (enum `not-required | pending | approved | rejected`, default `not-required`),
+`partnerApprovedBy`, `partnerApprovedAt`, and `dataSharedFields` (array of strings naming which fields this
+target pulls). `DataExchangeRunGuard::check()` SHALL deny the `run` transition (`queued → running`) when
+`requiresPartnerApproval === true` and `partnerApprovalStatus !== 'approved'`, independently of the existing
+OSO/SWV parent-review gate — a job may be subject to either gate, both, or neither. Every existing job defaults
+to `requiresPartnerApproval: false`, so no previously-running target is newly blocked by this change.
+
+#### Scenario: A job for a partner-gated target cannot run before approval
+- **GIVEN** a `DataExchangeJob` with `target: "uwlr"`, `requiresPartnerApproval: true`, `partnerApprovalStatus: "pending"`
+- **WHEN** the `run` transition is attempted from `queued`
+- **THEN** the transition is refused
+
+#### Scenario: Approval unblocks the run transition
+- **GIVEN** the same job with `partnerApprovalStatus` updated to `"approved"`
+- **WHEN** the `run` transition is attempted from `queued`
+- **THEN** the transition succeeds (subject to any other applicable gate, e.g. OSO/SWV)
+
+#### Scenario: A job with no partner-approval requirement is unaffected
+- **GIVEN** a `DataExchangeJob` with `requiresPartnerApproval: false` (the default)
+- **WHEN** the `run` transition is attempted from `queued`
+- **THEN** the partner-approval condition never blocks it
+
+<!-- @e2e exclude Pure backend/data-model requirement, per this spec's own "no #### Scenario DOM assertions" convention for guard logic — verified by DataExchangeRunGuardTest and PrivacyGovernanceRegisterTest (schema shape). -->
 
 ## Standards
 

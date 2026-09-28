@@ -502,7 +502,7 @@ class ReportCardComposerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
 	 */
 	public function testRecomposeWithTemplateLimitsPopulatedSections(): void {
 		$composer = $this->makeTemplateAwareRecomposer();
@@ -654,7 +654,7 @@ class ReportCardComposerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
+	 * @spec openspec/specs/report-card/spec.md#scenario-an-untemplated-cohort-composes-exactly-as-before-this-change
 	 */
 	public function testComposeWithoutTemplateFallsBackToFixedShape(): void {
 		$composer = $this->makeComposer(
@@ -698,8 +698,8 @@ class ReportCardComposerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-cohorts-assigned-template-determines-its-report-cards-sections
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-cohorts-assigned-template-determines-its-report-cards-sections
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-templated-cohort-composes-only-the-sections-its-template-declares
 	 */
 	public function testComposeWithTemplateLimitsPopulatedSections(): void {
 		$composer = $this->makeComposer(
