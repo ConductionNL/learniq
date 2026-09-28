@@ -12,10 +12,10 @@
  *    `berichtsoort: schooladvies` in its scope.
  * 2. Stamp the job's id back onto the SchoolAdvies' dataExchangeJobId.
  *
- * No mapping is named: learniq has no field list for the school advice
- * bericht yet, so the exchange gate refuses the job `disclosure-undefined`
- * until one exists, the same fail-closed outcome the old payload builder
- * gave a bron-rod job without a profile. Without integriq nothing is asked.
+ * The job names mapping `learniq-bron-rod-export-schooladvies`: the gate
+ * composes DUO's AanleverenAdviesVO field set for it (decision D32) and
+ * refuses the job `statutory-incomplete` when a required field is missing.
+ * Without integriq nothing is asked.
  *
  * ADR-031 legitimate exception: cross-app work in response to a lifecycle
  * transition cannot be expressed as schema metadata declarations.
@@ -35,12 +35,14 @@
  *
  * @spec openspec/changes/po-schooladvies-flow/specs/enrolment/spec.md#requirement-sending-a-definitief-schooladvies-to-rod-auto-queues-the-existing-bron-rod-dataexchangejob
  * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+ * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Service\ExchangeDisclosure;
 use OCA\Learniq\Service\IntegriqExchangeClient;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
@@ -132,7 +134,7 @@ class SchoolAdviesSendToRodHandler implements IEventListener {
 					'tenantId' => (string)($schoolAdvies['tenant_id'] ?? ''),
 					'berichtsoort' => 'schooladvies',
 				],
-				mappingSlug: null,
+				mappingSlug: ExchangeDisclosure::ROD_SCHOOL_ADVICE_MAPPING,
 				requestedBy: 'system',
 				name: 'ROD schooladvies'
 			);

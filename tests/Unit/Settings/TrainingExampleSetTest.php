@@ -36,6 +36,7 @@ namespace OCA\Learniq\Tests\Unit\Settings;
 
 use DateTimeImmutable;
 use OCA\Learniq\Service\DemoDataService;
+use OCA\Learniq\Service\QtiChoiceOrderResolver;
 use OCA\Learniq\Service\SeedProfileService;
 use OCP\App\IAppManager;
 use PHPUnit\Framework\TestCase;
@@ -548,7 +549,7 @@ class TrainingExampleSetTest extends TestCase {
 		$appManager->method('getAppPath')->willReturn(dirname(__DIR__, 3));
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('listChoices')->willReturn([]);
-		$service = new SeedProfileService($appManager, $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class), $demo);
+		$service = new SeedProfileService($appManager, $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class), $demo, $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class), $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class));
 
 		$offered = array_values(array_filter($service->listChoices(), static fn (array $c): bool => $c['id'] === 'training'))[0];
 		self::assertSame('Training institute', $offered['label']);
@@ -620,4 +621,28 @@ class TrainingExampleSetTest extends TestCase {
 			self::assertSame([], $row['audienceRoles'], $row['slug'] . ' obliges no participant');
 		}
 	}//end testEveryRegulationReferenceResolves()
+
+	/**
+	 * Every item is QTI 2.1, the dialect the app reads: the app's own choice
+	 * reader finds the three options of each item, the correct answer among
+	 * them, and nothing in the QTI 3.0 namespace is left.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/training-set-qti-2-1/specs/example-sets/spec.md#requirement-the-training-set-writes-its-items-as-qti-21
+	 */
+	public function testEveryItemIsQti21TheAppCanRead(): void {
+		$reader = new QtiChoiceOrderResolver();
+		$items  = self::of('item');
+		self::assertGreaterThanOrEqual(40, count($items));
+		foreach ($items as $item) {
+			self::assertStringContainsString('xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"', $item['qtiBody'], $item['slug']);
+			self::assertStringNotContainsString('imsqtiasi_v3p0', $item['qtiBody'], $item['slug']);
+
+			$order = $reader->resolveOrder($item);
+			self::assertIsArray($order, $item['slug'] . ' has choices the app can read');
+			self::assertCount(3, $order, $item['slug']);
+			self::assertContains($item['correctResponse']['value'], $order, $item['slug']);
+		}
+	}//end testEveryItemIsQti21TheAppCanRead()
 }//end class
