@@ -108,3 +108,37 @@ export async function fetchCohortTimetable(cohortId, from, to) {
 export function isLearniqSession(session) {
 	return Boolean(session?.id) && (session.source ?? 'learniq') === 'learniq'
 }
+
+/**
+ * Fetch another group's, teacher's or room's timetable, as far as the school's
+ * visibility policy allows the caller (timetabling-visibility-rules). A refusal
+ * is an HTTP 403 error with the reason in `error`.
+ *
+ * @param {string} kind   `cohort`, `teacher` or `room`.
+ * @param {string} id     The cohort UUID, teacher user id or room UUID.
+ * @param {string} [from] Inclusive ISO 8601 window start.
+ * @param {string} [to]   Exclusive ISO 8601 window end.
+ *
+ * @return {Promise<{sessions: Array<object>, from: string, to: string, source: string}>} The lessons.
+ * @spec openspec/changes/timetabling-visibility-rules/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
+ */
+export async function fetchTimetableOf(kind, id, from, to) {
+	const params = { kind, id }
+	if (from) {
+		params.from = from
+	}
+	if (to) {
+		params.to = to
+	}
+
+	const response = await axios.get(generateUrl('/apps/learniq/api/timetable/of'), {
+		params,
+	})
+	const data = response.data || {}
+	return {
+		sessions: Array.isArray(data.sessions) ? data.sessions : [],
+		from: data.from || from || '',
+		to: data.to || to || '',
+		source: data.source || 'learniq',
+	}
+}

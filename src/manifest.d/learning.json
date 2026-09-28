@@ -7649,6 +7649,14 @@
 				"register": "learniq"
 			},
 			"_note": "nav-restructure-dashboards: GroupLearning's navigable landing dashboard — a bespoke domain overview with no generic index/detail/dashboard analogue. The nav icon + group association live on the GroupLearning menu entry (base manifest + this fragment's menu route), not on the page (icon/group are not valid v2 page props)."
+		},
+		{
+			"id": "Timetables",
+			"route": "/timetables",
+			"type": "custom",
+			"title": "Timetables",
+			"component": "TimetableLookup",
+			"_note": "timetabling-visibility-rules: look up a group's, teacher's or room's timetable within the school's visibility policy (GET /api/timetable/of). Team leads and compliance officers edit the policy here."
 		}
 	]
 }

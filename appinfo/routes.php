@@ -158,6 +158,11 @@ return [
         // (planninq when installed, else Session), after an RBAC read of the cohort
         // (sessions-from-planninq).
         ['name' => 'timetable#cohort', 'url' => '/api/timetable/cohort/{cohortId}', 'verb' => 'GET', 'requirements' => ['cohortId' => '[^/]+']],
+        // Other timetables within the school's visibility policy
+        // (timetabling-visibility-rules). The policy check is in the body.
+        ['name' => 'timetableVisibility#timetable', 'url' => '/api/timetable/of', 'verb' => 'GET'],
+        ['name' => 'timetableVisibility#options', 'url' => '/api/timetable/of/options', 'verb' => 'GET'],
+        ['name' => 'timetableVisibility#policy', 'url' => '/api/timetable/visibility-policy', 'verb' => 'GET'],
 
         // Peer review reviewer allocation — genuine batch-matching business logic
         // (peer-and-self-assessment), authorized by an explicit per-object check

@@ -29146,6 +29146,48 @@
         "confirmedAt": "2026-03-03T09:00:00+00:00",
         "note": "Voorbeeld Note 3",
         "tenant_id": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "timetable-visibility-policy",
+          "slug": "timetable-visibility-policy-timetablevisibilitypolicy-1-1"
+        },
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "learnerSeesGroups": "own",
+        "learnerSeesTeachers": "none",
+        "learnerSeesRooms": "none",
+        "instructorSeesGroups": "own",
+        "instructorSeesTeachers": "own",
+        "instructorSeesRooms": "all"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "timetable-visibility-policy",
+          "slug": "timetable-visibility-policy-timetablevisibilitypolicy-2-2"
+        },
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "learnerSeesGroups": "all",
+        "learnerSeesTeachers": "related",
+        "learnerSeesRooms": "related",
+        "instructorSeesGroups": "all",
+        "instructorSeesTeachers": "all",
+        "instructorSeesRooms": "all"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "timetable-visibility-policy",
+          "slug": "timetable-visibility-policy-timetablevisibilitypolicy-3-3"
+        },
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "learnerSeesGroups": "own",
+        "learnerSeesTeachers": "all",
+        "learnerSeesRooms": "all",
+        "instructorSeesGroups": "own",
+        "instructorSeesTeachers": "own",
+        "instructorSeesRooms": "all"
       }
     ]
   }

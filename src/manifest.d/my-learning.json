@@ -27,6 +27,26 @@
 			"icon": "SchoolOutline",
 			"route": "MyLearningRecordView",
 			"order": 26
+		},
+		{
+			"id": "TimetablesMenu",
+			"label": "Timetables",
+			"icon": "TableClock",
+			"route": "Timetables",
+			"order": 27,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"instructor",
+						"coordinator",
+						"team-lead",
+						"compliance-officer",
+						"administration-manager",
+						"admin"
+					]
+				}
+			}
 		}
 	],
 	"pages": [

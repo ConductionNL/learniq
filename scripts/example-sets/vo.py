@@ -92,6 +92,7 @@ SCHEMAS = [
     "report-card",
     "support-request",
     "dossier-note",
+    "timetable-visibility-policy",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -1293,6 +1294,14 @@ def build() -> dict:
     for p, author, date, category, body, confidentiality in notes:
         b.add("dossier-note", {"learnerId": p["nc"], "authorId": author, "date": date, "category": category, "body": body,
                                "confidentiality": confidentiality, "careTeamUserIds": [ZORG, mentor_of(p)]})
+
+    # --- timetable visibility (timetabling-visibility-rules) ------------------------------------------
+    # Pupils see their own class, the teachers of their own lessons and every
+    # room; teachers see everything.
+    b.add("timetable-visibility-policy", {
+        "learnerSeesGroups": "own", "learnerSeesTeachers": "related", "learnerSeesRooms": "all",
+        "instructorSeesGroups": "all", "instructorSeesTeachers": "all", "instructorSeesRooms": "all",
+    })
 
     # --- assemble ------------------------------------------------------------------------------------
     for rows in b.buckets.values():
