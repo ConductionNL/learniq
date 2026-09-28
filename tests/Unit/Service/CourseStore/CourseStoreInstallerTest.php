@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/lesson-sharing-via-store-plane/tasks.md#task-2-install-as-a-copy-that-keeps-the-credit
+ * @spec openspec/changes/archive/2026-09-28-lesson-sharing-via-store-plane/tasks.md#task-2-install-as-a-copy-that-keeps-the-credit
  */
 
 declare(strict_types=1);

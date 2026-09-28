@@ -382,3 +382,42 @@ forced migration.
 - **WHEN** its `ReportPeriod` is composed
 - **THEN** every resulting `ReportCard` carries a `templateId` matching the cohort's assigned
   template and its populated sections are limited to `grades` and `narrative`
+
+### Requirement: ReportPeriod declares holidays and study days
+`ReportPeriod` MUST declare `holidays` (array of `{ name, startDate, endDate }`, default `[]`) and `studyDays` (array of `{ date, description }`, default `[]`) additively.
+
+#### Scenario: A school year period records its holidays and study days
+- **GIVEN** a `ReportPeriod`
+- **WHEN** `holidays` is set with a named date range and `studyDays` is set with individual dates
+- **THEN** both persist on the `ReportPeriod` object
+
+#### Scenario: A pre-existing ReportPeriod without holidays or study days is unaffected
+- **GIVEN** a pre-existing `ReportPeriod` row with neither field set
+- **WHEN** it is read
+- **THEN** both resolve to empty arrays and the existing `startDate`/`endDate`/`periodCode` fields are unchanged
+
+### Requirement: A composed report card carries the learner's profile as learnerRef
+
+When a report period is composed, each ReportCard MUST carry `learnerRef`: the UUID of the learner's LearnerProfile, found on `ncUserId`. A learner without a profile gets `learnerRef: null`, which keeps the card out of the portal.
+
+#### Scenario: The card names the pupil's profile
+
+- **GIVEN** pupil `leerling-001` with LearnerProfile `lp-001` in a cohort of the period
+- **WHEN** the period is composed
+- **THEN** the pupil's card has `learnerRef: "lp-001"`
+
+#### Scenario: A pupil without a profile stays out of the portal
+
+- **GIVEN** a pupil in the cohort without a LearnerProfile
+- **WHEN** the period is composed
+- **THEN** the pupil's card has `learnerRef: null`
+
+### Requirement: Report card parent notifications find the learner's profile on ncUserId
+
+Publishing a ReportCard MUST notify every parent in the learner's `LearnerProfile.parentIds`, where the profile is found on `ncUserId`. The lookup MUST NOT depend on the publisher's own read access to LearnerProfile.
+
+#### Scenario: Both parents are notified
+
+- **GIVEN** pupil `leerling-001` whose profile lists `ouder-001` and `ouder-002`
+- **WHEN** the pupil's report card is published
+- **THEN** one parent notification is written for each of them

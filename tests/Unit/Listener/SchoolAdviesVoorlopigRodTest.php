@@ -121,7 +121,7 @@ class SchoolAdviesVoorlopigRodTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/schooladvies-voorlopig-to-rod/specs/data-exchange/spec.md#scenario-a-voorlopig-advice-goes-to-rod-when-it-is-given
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-voorlopig-advice-goes-to-rod-when-it-is-given
 	 */
 	public function testTheHandlerQueuesAGivenVoorlopigAdvice(): void {
 		$this->handler()->handle(new ObjectCreatedEvent(OrEntityFactory::make(self::advies(), 'school-advies')));
@@ -152,7 +152,7 @@ class SchoolAdviesVoorlopigRodTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/schooladvies-voorlopig-to-rod/specs/data-exchange/spec.md#scenario-a-voorlopig-advice-goes-to-rod-when-it-is-given
+	 * @spec openspec/specs/data-exchange/spec.md#scenario-a-voorlopig-advice-goes-to-rod-when-it-is-given
 	 */
 	public function testTheJobSendsOnceAndStampsTheJob(): void {
 		$stored = self::advies();

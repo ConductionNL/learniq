@@ -126,6 +126,14 @@ class RolloverExecutionService {
 			$members = (array)($cohort['learnerIds'] ?? []);
 
 			if ($action === 'promote') {
+				// The group moves up a year of its programme
+				// (timetabling-multi-year-hour-plan).
+				$mapping['toProgrammeYear'] = $this->nextProgrammeYear(fromCohort: $cohort, mapping: $mapping);
+				if ((string)($mapping['toProgrammeId'] ?? '') === '' && $mapping['toProgrammeYear'] !== null) {
+					// The group stays in its programme.
+					$mapping['toProgrammeId'] = ($cohort['programmeId'] ?? null);
+				}
+
 				$this->executePromotion(
 					mapping: $mapping,
 					members: $members,
@@ -184,7 +192,8 @@ class RolloverExecutionService {
 			programmeId: ($mapping['toProgrammeId'] ?? null),
 			courseId: ($mapping['toCourseId'] ?? null),
 			learnerIds: $movingMembers,
-			tenantId: $tenantId
+			tenantId: $tenantId,
+			programmeYear: ($mapping['toProgrammeYear'] ?? null)
 		);
 
 		// Sync the backing NC group to the moving members.
@@ -219,6 +228,7 @@ class RolloverExecutionService {
 	 * @param mixed $courseId Optional course.
 	 * @param array<int,string> $learnerIds Members.
 	 * @param string $tenantId Tenant ID.
+	 * @param int|null $programmeYear The group's year of its programme in the to-year, when known.
 	 *
 	 * @return array<string,mixed> The created/found cohort.
 	 */
@@ -229,6 +239,7 @@ class RolloverExecutionService {
 		mixed $courseId,
 		array $learnerIds,
 		string $tenantId,
+		?int $programmeYear = null,
 	): array {
 		$existing = $this->objectService->findAll(
 			[
@@ -266,9 +277,39 @@ class RolloverExecutionService {
 			$cohort['courseId'] = $courseId;
 		}
 
+		if ($programmeYear !== null) {
+			$cohort['programmeYear'] = $programmeYear;
+		}
+
 		$saved = $this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'cohort', object: $cohort);
 		return $this->rolloverService->toArray(row: $saved);
 	}//end createOrFindToCohort()
+
+	/**
+	 * The to-year cohort's year of its programme: one more than the from-year
+	 * cohort's, when the group stays in the same programme. A group that moves
+	 * to another programme, or whose year is not known, gets none.
+	 *
+	 * @param array<string,mixed> $fromCohort The from-year cohort.
+	 * @param array<string,mixed> $mapping    The promote mapping.
+	 *
+	 * @return int|null
+	 *
+	 * @spec openspec/changes/timetabling-multi-year-hour-plan/specs/school-structure/spec.md#requirement-a-cohort-knows-which-year-of-its-programme-it-is-in
+	 */
+	public function nextProgrammeYear(array $fromCohort, array $mapping): ?int {
+		$year = $fromCohort['programmeYear'] ?? null;
+		if (is_int($year) === false && (is_string($year) === false || ctype_digit($year) === false)) {
+			return null;
+		}
+
+		$toProgramme = (string)($mapping['toProgrammeId'] ?? '');
+		if ($toProgramme !== '' && $toProgramme !== (string)($fromCohort['programmeId'] ?? '')) {
+			return null;
+		}
+
+		return ((int)$year + 1);
+	}//end nextProgrammeYear()
 
 	/**
 	 * Archive a from-year cohort via its lifecycle, preserving historical members.
@@ -377,7 +418,7 @@ class RolloverExecutionService {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
 	private function queueOutflow(string $learnerId, string $tenantId): void {
 		try {

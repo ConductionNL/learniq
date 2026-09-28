@@ -37,7 +37,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/gradeentry-learnerref-stamp/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
+ * @spec openspec/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
  */
 
 declare(strict_types=1);
@@ -59,7 +59,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/gradeentry-learnerref-stamp/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
+ * @spec openspec/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
  */
 class GradeEntryLearnerRefStamp implements IEventListener {
 
@@ -88,7 +88,7 @@ class GradeEntryLearnerRefStamp implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/gradeentry-learnerref-stamp/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
+	 * @spec openspec/specs/grading/spec.md#requirement-every-gradeentry-carries-a-server-stamped-learnerref
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {

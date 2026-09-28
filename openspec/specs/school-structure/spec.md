@@ -486,6 +486,106 @@ The system MUST persist `School` (BRIN, name, pedagogical concept) and `Location
 - **WHEN** a coordinator navigates to People → Schools and opens a School
 - **THEN** the detail page renders from the manifest (data + related widgets, audit tab), with no bespoke Vue component
 
+### Requirement: Cohort carries free-text notes
+`Cohort` MUST declare `notes` (nullable string) additively.
+
+#### Scenario: A coordinator adds a note to a group
+- **GIVEN** a `Cohort`
+- **WHEN** `notes` is set to a free-text observation
+- **THEN** the value persists on the `Cohort` object
+
+#### Scenario: A pre-existing Cohort without notes is unaffected
+- **GIVEN** a pre-existing `Cohort` row with no `notes` set
+- **WHEN** it is read
+- **THEN** `notes` resolves to `null`
+
+### Requirement: CohortDetail surfaces notes and a today-scoped session view
+`CohortDetail` MUST render a widget showing `Cohort.notes`, and a widget listing this cohort's `Session`s filtered to the current day using the manifest's `@today` filter-token grammar.
+
+#### Scenario: A coordinator reads and edits the group's notes from the group page
+- **GIVEN** `CohortDetail` for a cohort with `notes` set
+- **WHEN** the page renders
+- **THEN** the notes widget shows the current value
+
+#### Scenario: A coordinator sees only today's sessions for this cohort
+- **GIVEN** `CohortDetail` for a cohort with sessions on multiple days
+- **WHEN** the page renders
+- **THEN** the today's-sessions widget lists only sessions whose `startsAt` falls within the current day
+
+### Requirement: CohortDetail's header already names the cohort
+`CohortDetail`'s header MUST show the cohort's own `name`, not the static page-type label. This is satisfied by the current `@conduction/nextcloud-vue` `CnDetailPage` component's `objectDisplayName`/`displayTitle` resolution (which prefers `obj.name` over the `title` prop) consuming `Cohort.name` (already a required property); no manifest change is needed.
+
+#### Scenario: A coordinator opens a cohort and sees its name in the header
+- **GIVEN** `CohortDetail` for a cohort named "Groep 5/6"
+- **WHEN** the page renders and the object has loaded
+- **THEN** the header reads "Groep 5/6", not the literal string "Cohort"
+
+### Requirement: A class x subject teacher join exists distinct from Cohort.teacherIds
+The system MUST persist `SubjectTeacherAssignment` (`cohortId`, `courseId`, `teacherId`) as an OpenRegister object, distinct from `Cohort.teacherIds`. `Cohort.teacherIds` names who teaches the cohort generally; `SubjectTeacherAssignment` names who teaches a specific subject (`Course`) within that cohort.
+
+#### Scenario: A VO class has a different teacher per subject
+- **GIVEN** a `Cohort` (a VO class) with two `Course`s, wiskunde and Engels
+- **WHEN** two `SubjectTeacherAssignment` objects are created, each naming the same `cohortId` but a different `courseId` and `teacherId`
+- **THEN** both persist independently, and neither depends on or duplicates `Cohort.teacherIds`
+
+### Requirement: Cohort declares a duo-partner role and working days per teacher
+`Cohort` MUST declare `teacherAssignments` additively: an array of `{ teacherId, role, days }`, where `role` is `primary` or `duo-partner` and `days` is an array of weekday values. `Cohort.teacherIds` MUST remain unchanged.
+
+#### Scenario: A PO groep has a main teacher and a duo-partner on named days
+- **GIVEN** a `Cohort` (a PO groep)
+- **WHEN** `teacherAssignments` is set with one entry `role: primary` covering Monday-Wednesday and one entry `role: duo-partner` covering Thursday-Friday
+- **THEN** both entries persist, and `Cohort.teacherIds` (if also set) is unaffected
+
+#### Scenario: A pre-existing Cohort without teacherAssignments is unaffected
+- **GIVEN** a pre-existing `Cohort` row with no `teacherAssignments` set
+- **WHEN** it is read
+- **THEN** `teacherAssignments` resolves to an empty array and `teacherIds` is unchanged
+
+### Requirement: Staff is persisted as an OpenRegister record with roles, qualifications and working days
+The system MUST persist `Staff` (`ncUserId`, `roles`, `qualifications`, `workingDays`) as an OpenRegister object, a plain resource-metadata schema with no lifecycle (same shape as `Room`).
+
+#### Scenario: A staff member's roles, qualifications and working days are recorded
+- **GIVEN** the `Staff` schema is registered
+- **WHEN** a `Staff` object is created with `roles: ["teacher", "mentor"]`, one or more `qualifications`, and `workingDays`
+- **THEN** all three persist on the `Staff` object
+
+### Requirement: Frontend is declarative for Staff and SubjectTeacherAssignment
+`Staff` and `SubjectTeacherAssignment` MUST render as manifest-declared index+detail page pairs (`Staff` under People in `src/manifest.d/people.json`; `SubjectTeacherAssignment` alongside Cohort in `src/manifest.d/learning.json`), and `CohortDetail` MUST surface an object-list widget of its `SubjectTeacherAssignment`s filtered by `cohortId`. No custom Vue view and no PHP CRUD controller.
+
+#### Scenario: A coordinator sees which teacher covers which subject from the group page
+- **GIVEN** `CohortDetail` for a VO class with two `SubjectTeacherAssignment`s
+- **WHEN** the page renders
+- **THEN** the subject-teacher roster widget lists both assignments, each linking to its own detail page
+
+### Requirement: Staff roles name the counsellor and exam functions a school staffs
+`Staff.roles` MUST accept, in addition to `teacher`, `mentor`, `coordinator`, `teaching-assistant`, `support-staff`, `administrator` and `other`, the values `career-counsellor` (decaan, loopbaanbegeleider), `study-adviser` (studieadviseur), `remedial-teacher`, `care-coordinator` (intern begeleider, zorgcoördinator), `exam-secretary` (examensecretaris), `placement-coordinator` (stagecoördinator) and `confidential-counsellor` (vertrouwenspersoon). The seven original values MUST keep their position at the start of the enum, so no stored value changes meaning.
+
+#### Scenario: A school records its exam secretary and its decaan
+- **GIVEN** the `Staff` schema is registered
+- **WHEN** a `Staff` object is created with `roles: ["teacher", "career-counsellor", "exam-secretary"]`
+- **THEN** the object validates and all three tags persist
+
+#### Scenario: An existing Staff row stays valid
+- **GIVEN** a `Staff` row stored before this change with `roles: ["teacher", "mentor"]`
+- **WHEN** it is read and saved again
+- **THEN** it validates unchanged
+
+### Requirement: Every Staff role has a readable, translated label
+`Staff.roles.items` MUST declare an `x-enum-labels` map with an English label for every enum value, and every label MUST have a key in `l10n/en.json` and a Dutch value in `l10n/nl.json`.
+
+#### Scenario: The roles picker shows labels, not codes
+- **GIVEN** a Dutch-language user opens the `Staff` form
+- **WHEN** the roles field renders its options
+- **THEN** it shows "Examensecretaris" for `exam-secretary` and "Vertrouwenspersoon" for `confidential-counsellor`
+
+### Requirement: A Staff role tag grants no access
+A `Staff.roles` value MUST be descriptive metadata only. No schema `authorization` block and no manifest `visibleIf` MAY name a `Staff.roles` value that is not also a declared security group or a `DashboardRoleService` role, and the `roles` property description MUST state that a tag grants no access.
+
+#### Scenario: Tagging someone confidential counsellor does not open confidential notes
+- **GIVEN** a `Staff` object tagged `confidential-counsellor` whose Nextcloud user is in no confidential group
+- **WHEN** that user reads a schema whose `authorization.read` is limited to a confidential group
+- **THEN** the tag has no effect on the result; only group membership decides
+
 ## Standards
 
 Schema.org `EducationalOccupationalProgram`, `Course`, `CourseInstance`, `Syllabus`; NL LOM / VDEX for Material tags; ECTS / Bologna for HE workload; NL VO PTA convention as a `CurriculumPlan` profile; OOAPI 5.0 for HE catalog publication (deferred to a follow-up — out of scope here).

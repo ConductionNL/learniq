@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+ * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
  */
 
 declare(strict_types=1);
@@ -50,7 +50,7 @@ use Throwable;
 /**
  * The reviewer's read path to the work under review.
  *
- * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+ * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
  */
 class PeerReviewWorkController extends Controller {
 
@@ -78,7 +78,7 @@ class PeerReviewWorkController extends Controller {
 	 *
 	 * @return JSONResponse 200 with the projection; 401, 403 or 404 otherwise.
 	 *
-	 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 	 */
 	#[NoAdminRequired]
 	public function show(string $peerReviewId = ''): JSONResponse {
@@ -109,7 +109,7 @@ class PeerReviewWorkController extends Controller {
 	 *
 	 * @return DataDisplayResponse|JSONResponse The file as an attachment; or 401, 403 or 404.
 	 *
-	 * @spec openspec/changes/peer-review-projection-guard/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

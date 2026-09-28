@@ -33,7 +33,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/competency-framework/specs/competency/spec.md#requirement-competencyattainment-is-a-declared-event-driven-per-learner-roll-up-never-a-timedjob
- * @spec openspec/changes/grading-rollup-followups/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
+ * @spec openspec/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
  */
 
 declare(strict_types=1);
@@ -54,7 +54,7 @@ use OCP\EventDispatcher\IEventListener;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/grading-rollup-followups/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
+ * @spec openspec/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
  */
 class CompetencyAttainmentRollupHandler implements IEventListener {
 
@@ -81,7 +81,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-rollup-followups/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
+	 * @spec openspec/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatedEvent === true) {
@@ -101,7 +101,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-rollup-followups/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
+	 * @spec openspec/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
 	 */
 	private function handleObjectCreated(ObjectCreatedEvent $event): void {
 		$entity = $event->getObject();
@@ -121,7 +121,7 @@ class CompetencyAttainmentRollupHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/grading-rollup-followups/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
+	 * @spec openspec/specs/competency/spec.md#requirement-the-competency-attainment-roll-up-runs-outside-the-save-that-triggers-it
 	 */
 	private function handleObjectTransitioned(ObjectTransitionedEvent $event): void {
 		if ($event->getRegister() !== self::LEARNIQ_REGISTER) {

@@ -31,6 +31,7 @@ namespace OCA\Learniq\AppInfo\Registrar;
 use OCA\Learniq\Listener\CompetencyAlignmentListener;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
+use OCA\Learniq\Listener\LessonNoteAuthorGuard;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
 use OCA\Learniq\Listener\SubmissionOwnerStamp;
@@ -71,6 +72,18 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: PortfolioEntryOwnershipListener::class
+		);
+
+		// Lesson notes (timetabling-lesson-note): only a lesson's own teachers,
+		// its substitute and team leads write a note on it. A rule across
+		// rows (cohort teachers, substitute), so a pre-write veto.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: LessonNoteAuthorGuard::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: LessonNoteAuthorGuard::class
 		);
 
 		// Competency alignments (goal-alignment-depth): keeps competencyIds
@@ -131,7 +144,7 @@ class IntegrityListenerRegistrar {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/settings-and-excuse-authorization/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
 	 */
 	private function registerOwnerStamps(IRegistrationContext $context): void {
 		// Submission owner (assignment-portal-wiring): a portal hand-in gets

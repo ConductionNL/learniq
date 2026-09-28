@@ -13,7 +13,7 @@
  *
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/assignments/spec.md#requirement-existing-submissions-are-back-filled
+ * @spec openspec/specs/assignments/spec.md#requirement-existing-submissions-are-back-filled
  */
 
 declare(strict_types=1);
@@ -114,7 +114,7 @@ class BackfillSubmissionLearnerRefsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/assignments/spec.md#scenario-an-old-group-submission-reaches-the-portal
+	 * @spec openspec/specs/assignments/spec.md#scenario-an-old-group-submission-reaches-the-portal
 	 */
 	public function testStampsWhatTheServerWouldStampToday(): void {
 		$step = $this->makeStep();
@@ -145,7 +145,7 @@ class BackfillSubmissionLearnerRefsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/assignments/spec.md#scenario-a-second-run-changes-nothing
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-second-run-changes-nothing
 	 */
 	public function testASecondRunSavesNothing(): void {
 		$step = $this->makeStep();
@@ -163,7 +163,7 @@ class BackfillSubmissionLearnerRefsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/assignments/spec.md#requirement-existing-submissions-are-back-filled
+	 * @spec openspec/specs/assignments/spec.md#requirement-existing-submissions-are-back-filled
 	 */
 	public function testReadsAreUnscopedAndProfilesAreCached(): void {
 		$step = $this->makeStep();
@@ -189,7 +189,7 @@ class BackfillSubmissionLearnerRefsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/assignments/spec.md#scenario-a-failed-lookup-leaves-the-row-as-it-was
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-failed-lookup-leaves-the-row-as-it-was
 	 */
 	public function testAFailedLookupLeavesTheRowAsItWas(): void {
 		$objectService = $this->createMock(ObjectService::class);
@@ -220,7 +220,7 @@ class BackfillSubmissionLearnerRefsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/learnerrefs-backfill-and-lookup-dedupe/specs/assignments/spec.md#requirement-existing-submissions-are-back-filled
+	 * @spec openspec/specs/assignments/spec.md#requirement-existing-submissions-are-back-filled
 	 */
 	public function testTheStepRunsOnUpgrade(): void {
 		$info = simplexml_load_file(dirname(__DIR__, 3) . '/appinfo/info.xml');

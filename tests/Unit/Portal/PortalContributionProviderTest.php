@@ -274,7 +274,7 @@ class PortalContributionProviderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/portal-assignment-hand-in-endpoint/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-a-draft-submission-from-the-portal-req-pcon-009
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-a-draft-submission-from-the-portal-req-pcon-009
 	 */
 	public function testStudentSubmissionsOffersTheHandInOnDrafts(): void {
 		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
@@ -304,7 +304,7 @@ class PortalContributionProviderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assignment-portal-wiring/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-hands-in-work-through-the-portal-with-a-real-file-req-pcon-007
 	 */
 	public function testSubmissionHandInDeclaresAFileField(): void {
 		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
@@ -345,7 +345,7 @@ class PortalContributionProviderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-portal-endpoints/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-takes-a-timed-test-through-the-portal-req-pcon-008
 	 */
 	public function testStudentTestsIsATimedTask(): void {
 		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
@@ -458,7 +458,7 @@ class PortalContributionProviderTest extends TestCase {
 	 * beeldmateriaal consent state.
 	 *
 	 * @return void
-	 * @spec openspec/changes/portal-contribution-guardian-audiences/specs/portal-contribution/spec.md#requirement-the-parent-audience-exposes-per-child-and-per-guardian-group-directory-data-req-pcon-006
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-exposes-per-child-and-per-guardian-group-directory-data-req-pcon-006
 	 */
 	public function testParentChildrenCollectionMatchesDirectly(): void {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
@@ -544,7 +544,7 @@ class PortalContributionProviderTest extends TestCase {
 	 * (belt-and-braces per the lane's orchestrator instruction).
 	 *
 	 * @return void
-	 * @spec openspec/changes/portal-contribution-guardian-audiences/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
 	 */
 	public function testParentShipsCreateExcuseRequestValidatedAgainstOwnChildren(): void {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);

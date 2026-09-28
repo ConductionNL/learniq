@@ -16,9 +16,9 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md
- * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md
- * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
+ * @spec openspec/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -186,7 +186,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-a-school-picks-primary-school
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-school-picks-primary-school
 	 */
 	public function testAStoredSegmentClosesTheSegmentStep(): void {
 		$this->segments->method('hasSegment')->willReturn(true);
@@ -233,7 +233,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-a-path-in-the-answer-is-refused
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-path-in-the-answer-is-refused
 	 */
 	public function testAnUnknownSetIsRefusedRatherThanStored(): void {
 		foreach (['vo', '../../config/config', [['nested']]] as $value) {
@@ -268,7 +268,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-a-school-picks-primary-school
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-school-picks-primary-school
 	 */
 	public function testTheSegmentAnswerIsWrittenWithTheAdminAsSetter(): void {
 		$this->segments->expects(self::once())->method('setSegment')->with('po', 'admin');
@@ -283,7 +283,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-an-unknown-segment-is-refused
+	 * @spec openspec/specs/example-sets/spec.md#scenario-an-unknown-segment-is-refused
 	 */
 	public function testAnUnknownSegmentIsRefused(): void {
 		$this->segments->expects(self::never())->method('setSegment');
@@ -298,7 +298,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md#scenario-loading-the-primary-school-set
+	 * @spec openspec/specs/example-sets/spec.md#scenario-loading-the-primary-school-set
 	 */
 	public function testLoadingImportsThePickedSetAndNamesTheCount(): void {
 		$written = $this->captureWrites();
@@ -316,7 +316,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#scenario-removing-one-of-two-loaded-sets
+	 * @spec openspec/specs/example-sets/spec.md#scenario-removing-one-of-two-loaded-sets
 	 */
 	public function testAPerSetStepRemovesThatSet(): void {
 		$this->profiles->expects(self::once())->method('remove')->with('demo')->willReturn(
@@ -334,7 +334,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
 	 */
 	public function testAPerSetStepForAnUnknownSetIsRefused(): void {
 		$this->profiles->expects(self::never())->method('remove');
@@ -429,7 +429,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-opening-the-wizard-after-loading-a-set
+	 * @spec openspec/specs/example-sets/spec.md#scenario-opening-the-wizard-after-loading-a-set
 	 */
 	public function testTheRemovalStepIsAlwaysDone(): void {
 		foreach ([[], ['example_profile' => 'po', 'demo_data_decided' => 'installed'], ['example_profile' => 'none']] as $stored) {
@@ -445,7 +445,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-removing-the-company-set
+	 * @spec openspec/specs/example-sets/spec.md#scenario-removing-the-company-set
 	 */
 	public function testRemovingTheLoadedSetReportsTheTrashedCount(): void {
 		$written = $this->captureWrites();
@@ -465,7 +465,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-nothing-was-loaded
+	 * @spec openspec/specs/example-sets/spec.md#scenario-nothing-was-loaded
 	 */
 	public function testNothingLoadedRemovesNothing(): void {
 		$this->profiles->expects(self::never())->method('remove');
@@ -483,7 +483,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-an-openregister-without-the-method
+	 * @spec openspec/specs/example-sets/spec.md#scenario-an-openregister-without-the-method
 	 */
 	public function testWithoutTheMethodTheAnswerNamesTheOccCommand(): void {
 		$this->appConfig->expects(self::never())->method('setValueString');
@@ -542,7 +542,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-a-delegated-admin-outside-both-groups
+	 * @spec openspec/specs/example-sets/spec.md#scenario-a-delegated-admin-outside-both-groups
 	 */
 	public function testTheSegmentIsRefusedOutsideTheTwoGroups(): void {
 		$this->userGroups = ['compliance-officers'];
@@ -559,7 +559,7 @@ class SetupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-an-administration-manager
+	 * @spec openspec/specs/example-sets/spec.md#scenario-an-administration-manager
 	 */
 	public function testAnAdministrationManagerChoosesTheSegment(): void {
 		$this->userGroups = ['administration-managers'];

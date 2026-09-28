@@ -218,6 +218,115 @@ collector reads (its OAS scope map or `authorization` blocks).
 - **THEN** the `role-resolvable` and `group-declared` checks both report zero findings
 - **AND** the gate's overall status is `passed`
 
+### Requirement: Mentor, IB-er, and director each get a named, role-gated entry point to the operational dashboard
+
+The system MUST present three additional nav entries under the existing dashboard menu group:
+`DashboardMentorMenu` (label "Mentor"), `DashboardIbMenu` (label "IB-er"), and
+`DashboardDirectorMenu` (label "Director"), each routing to the existing `DashboardTeacher` page.
+Each entry MUST be gated on `user.primaryRole` via the already-resolved, already-exposed
+`primaryRole` runtime value (`DashboardRoleService::resolvePrimaryRole()`), NOT a new
+`canXDashboard` boolean: `DashboardMentorMenu` on `instructor`/`admin`, `DashboardIbMenu` on
+`coordinator`/`admin`, `DashboardDirectorMenu` on `administration-manager`/`admin` — mirroring the
+existing `Compliance`/`AiProcessingDisclosure` entries' own `user.primaryRole`-gated pattern in the
+same manifest file. These entries render the SAME operational dashboard content
+`DashboardTeacher`/`LearniqDashboards.vue` already ships (distinct per-role widget content is
+explicitly out of scope for this requirement — see the change's proposal.md).
+
+#### Scenario: An instructor sees the Mentor entry point
+
+<!-- @e2e exclude Group-gated nav visibility requires provisioning a role-specific Nextcloud user and logging in as them; the learniq e2e harness runs a single admin session and cannot switch group/role membership per test, mirroring the existing dashboard spec's own established exclusion pattern for this exact class of scenario. Verified by reasoning over the built effective manifest (build_effective_manifest.js) instead. -->
+
+- **GIVEN** a signed-in user whose resolved `primaryRole` is `instructor`
+- **WHEN** they open the navigation
+- **THEN** a **Mentor** nav entry is shown, routing to the same page the existing **Teaching**
+  entry routes to
+
+#### Scenario: A coordinator sees the IB-er entry point, and an administration-manager sees the Director entry point
+
+<!-- @e2e exclude Same scope boundary as the scenario above — role-specific session provisioning is not available in this app's e2e harness. Verified by reasoning over the built effective manifest instead. -->
+
+- **GIVEN** a signed-in user whose resolved `primaryRole` is `coordinator`
+- **WHEN** they open the navigation
+- **THEN** an **IB-er** nav entry is shown
+- **GIVEN** a signed-in user whose resolved `primaryRole` is `administration-manager`
+- **WHEN** they open the navigation
+- **THEN** a **Director** nav entry is shown
+
+#### Scenario: An admin sees all three new entries
+
+<!-- @e2e exclude Same scope boundary — role-specific session provisioning is not available in this app's e2e harness. Verified by reasoning over the built effective manifest instead. -->
+
+- **GIVEN** a signed-in user in the Nextcloud admin group
+- **WHEN** they open the navigation
+- **THEN** **Mentor**, **IB-er**, and **Director** entries are all shown, alongside the existing
+  **Administration**, **Teaching**, and **My learning** entries
+
+### Requirement: A fast-finder query builder splits one search term into per-kind OpenRegister requests
+
+`src/utils/globalSearch.js` MUST export `buildGlobalSearchRequests(term, options)`, a pure function that,
+given a non-blank search term, returns exactly two OpenRegister request descriptors — one for the
+`learner-profile` schema and one for the `cohort` schema, both `x-openregister.searchable: true` — each
+carrying an OpenRegister `_search` param set to the trimmed term and a `_limit` (default 8). A blank or
+whitespace-only term MUST return an empty array (no unfiltered request is ever issued).
+
+`classifyPersonKind(roles)` MUST classify a `learner-profile` row as `'staff'` when its `roles` array
+contains any of `instructor`, `hr`, `manager`, `compliance-officer`, `admin`, `mentor`, `principal`, or
+`inspector`, and `'learner'` otherwise (including an empty, missing, or `learner`/`parent`-only `roles`
+array) — findings G-new-1 (learniq has no dedicated `Staff` schema; a staff member is a `LearnerProfile`).
+
+#### Scenario: A blank term builds no requests
+
+- **GIVEN** an empty or whitespace-only search term
+- **WHEN** `buildGlobalSearchRequests` is called
+- **THEN** it returns an empty array
+
+#### Scenario: A real term builds one learner-profile and one cohort request
+
+- **GIVEN** a non-blank search term
+- **WHEN** `buildGlobalSearchRequests` is called
+- **THEN** it returns a `learner-profile` request and a `cohort` request, each carrying `_search` set to the
+  trimmed term
+
+#### Scenario: Every declared staff role classifies as staff, not learner
+
+- **GIVEN** a `learner-profile` row whose `roles` array contains a staff role (`instructor`, `hr`, `manager`,
+  `compliance-officer`, `admin`, `mentor`, `principal`, or `inspector`)
+- **WHEN** `classifyPersonKind` is called with that row's `roles`
+- **THEN** it returns `'staff'`
+
+#### Scenario: A row with no roles set defaults to learner
+
+- **GIVEN** a `learner-profile` row with an empty or missing `roles` array
+- **WHEN** `classifyPersonKind` is called
+- **THEN** it returns `'learner'`
+
+### Requirement: A fast-finder widget on the People dashboard
+
+`PeopleDashboard.vue` MUST include a full-width `GlobalSearchWidget` above its existing KPI row, searching
+across `LearnerProfile` (grouped into Learners/Staff by `classifyPersonKind`) and `Cohort`, with results
+grouped by kind and each result keyboard-reachable (a real router-link, not a mouse-only click target). No
+new top-level menu entry is added.
+
+#### Scenario: A search finds a learner, a staff member, and a cohort in one box
+
+<!-- @e2e exclude no local Nextcloud instance was exercised for this change (see proposal Open Questions);
+     the query-builder/classifier contract this widget depends on is covered by
+     tests/unit-js/globalSearch.test.mjs. A live browser verification pass is a named follow-up, not silently
+     skipped. -->
+
+- **GIVEN** the People dashboard is open
+- **WHEN** a user types a name matching a learner, a staff member, and a cohort
+- **THEN** all three appear, grouped under "Learners", "Staff", and "Cohorts" headings
+- **AND** each result is reachable by keyboard (Tab to focus, Enter to navigate) and navigates to the
+  matching detail page
+
+#### Scenario: No new top-level menu entry is added
+
+- **GIVEN** the app's menu manifest
+- **WHEN** it is read after this change
+- **THEN** no new top-level or `GroupPeople`-child menu entry named for global search exists — the widget
+  lives only on the existing People dashboard page
+
 ## Standards
 NL Design System, WCAG 2.1 AA, Schema.org `Dataset` / `Observation`, Caliper Analytics for event source.
 

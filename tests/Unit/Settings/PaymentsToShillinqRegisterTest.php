@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-learniq-keeps-feeitem-and-entitlement-and-no-pay-screen-of-its-own
+ * @spec openspec/specs/payments/spec.md#requirement-learniq-keeps-feeitem-and-entitlement-and-no-pay-screen-of-its-own
  */
 
 declare(strict_types=1);
@@ -77,7 +77,7 @@ class PaymentsToShillinqRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-an-entitlement-is-granted-only-once-shillinq-reports-its-payment-request-settled
+	 * @spec openspec/specs/payments/spec.md#requirement-an-entitlement-is-granted-only-once-shillinq-reports-its-payment-request-settled
 	 */
 	public function testEntitlementNamesTheShillinqPaymentRequest(): void {
 		$entitlement = self::json('lib/Settings/learniq_register.json')['components']['schemas']['Entitlement'];
@@ -124,7 +124,7 @@ class PaymentsToShillinqRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/payments-to-shillinq-migration/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
+	 * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
 	 */
 	public function testAnActiveFeeOffersTheRaise(): void {
 		$payments = self::json('src/manifest.d/payments.json');

@@ -29,7 +29,9 @@ Manual and bulk enrolment of learners into courses, modules, and learning paths;
 - GIVEN a line manager opens the team view, WHEN they multi-select reports and pick a course, THEN every selected learner is enrolled with a single shared deadline and notification.
 - GIVEN HR creates a new hire, WHEN they pick the role, THEN the matching 30-60-90 template auto-applies and milestones populate Days 1/30/60/90.
 - GIVEN a course has unmet prerequisites, WHEN a learner attempts enrolment, THEN the system blocks the enrolment and explains which prerequisite failed.
+
 ## Requirements
+
 ### Requirement: Bulk enrolment via cohort, role, department or CSV
 The system MUST support bulk enrolment via cohort, role, department, or CSV upload.
 
@@ -310,6 +312,159 @@ coordinator's queue of applications needing intake scheduling or a decision, cro
 - **WHEN** the coordinator opens the admissions review board
 - **THEN** the pending applications are listed with their round's deadline, kind, and remaining capacity
 - **AND** the coordinator can navigate from a listed application to record its decision
+
+### Requirement: Enrolment carries inschrijving date, volgnummer and its own vestiging
+`Enrolment` MUST declare `inschrijvingDate` (nullable date), `volgnummer` (nullable integer) and `locationId` (nullable `$ref Vestiging`) additively. `Enrolment.locationId` is the inschrijving's own vestiging and is independent of any `Cohort.locationId` the pupil is later grouped into (school-and-location-records).
+
+#### Scenario: An inschrijving records its date, volgnummer and vestiging
+- **GIVEN** an `Enrolment` representing a school inschrijving
+- **WHEN** `inschrijvingDate`, `volgnummer` and `locationId` are set
+- **THEN** all three persist on the `Enrolment` object, independent of the `Cohort` it may later reference
+
+#### Scenario: A pre-existing Enrolment without these fields is unaffected
+- **GIVEN** a pre-existing `Enrolment` row with none of the three fields set
+- **WHEN** it is read
+- **THEN** each resolves to `null` and the existing `learnerId`/`courseId`/`source`/lifecycle fields are unchanged
+
+### Requirement: Enrolment carries a destination school on withdrawal
+`Enrolment` MUST declare `destinationSchoolId` (nullable `$ref School`) additively, captured alongside the existing `withdraw` transition and free-text `reason` field.
+
+#### Scenario: A leaver's destination school is recorded on withdrawal
+- **GIVEN** an active `Enrolment` for a groep-8 leaver
+- **WHEN** the `withdraw` transition fires with `reason` set and `destinationSchoolId` set to the receiving school
+- **THEN** both persist on the withdrawn `Enrolment` object
+
+### Requirement: Enrolment carries leerjaar per pupil, independent of the cohort name
+`Enrolment` MUST declare `leerjaar` (nullable integer, 1 to 8) additively. A combination group (e.g. `Groep 5/6`) is one `Cohort` whose member `Enrolment`s carry different `leerjaar` values; `leerjaar` MUST NOT be parsed from the `Cohort.name` string.
+
+#### Scenario: A combination group carries two leerjaar values across its enrolments
+- **GIVEN** a `Cohort` named "Groep 5/6" with two `Enrolment`s referencing it via `cohortId`
+- **WHEN** one `Enrolment.leerjaar` is set to 5 and the other to 6
+- **THEN** both values persist independently on their own `Enrolment` objects, and neither is derived from the `Cohort`'s `name`
+
+### Requirement: CohortDetail's roster surfaces leerjaar
+The `CohortDetail` page's enrolment roster widget MUST include a `leerjaar` column.
+
+#### Scenario: A coordinator sees each pupil's leerjaar on the group roster
+- **GIVEN** `CohortDetail` for a combination group
+- **WHEN** the roster widget renders
+- **THEN** each row shows that enrolment's `leerjaar` value alongside the existing learner/course columns
+
+### Requirement: LearnerProfile records the NOAT/CUMI/NNCA funding-weight classification
+`LearnerProfile` SHALL gain `fundingWeightCode` (nullable enum `noat | cumi | nnca`, default `null`) — the
+culturele-achtergrond classification that feeds the ROD/bekostiging funding weging (P-new-13). This is additive:
+no existing `LearnerProfile` object is affected, and the field is independent of any other property.
+
+#### Scenario: A school records a learner's funding-weight classification
+- **GIVEN** a `LearnerProfile` with `fundingWeightCode: null`
+- **WHEN** staff set it to `"cumi"`
+- **THEN** the property persists and feeds the same ROD/bekostiging chain P-new-12's teldatum check protects
+
+<!-- @e2e exclude Schema-shape requirement, verified by FundingTeldatumRegisterTest; no bespoke controller — reads/writes go through OpenRegister's generic object endpoint per ADR-022. -->
+
+### Requirement: Persist SchoolAdvies domain objects in OpenRegister
+
+The system MUST persist `SchoolAdvies` as an OpenRegister object with `x-openregister-lifecycle`
+(`voorlopig → definitief → verzonden-naar-rod`) and materialised `isVoorlopigOverdue`/
+`isDefinitiefOverdue` calculations mirroring `TlvApplication`'s `daysUntilValidUntil`/
+`tlvExpiringSoon` idiom exactly (a `dateDiff`/`now` expression, not a PHP TimedJob).
+
+#### Scenario: A SchoolAdvies persists with its declared lifecycle and calculations
+
+<!-- @e2e exclude Pure OpenRegister schema/lifecycle registration; no scholiq DOM surface for registration itself, covered by PHPUnit SchoolAdviesRegisterTest mirroring the established `*RegisterTest` convention. -->
+
+- **GIVEN** the `enrolment` schemas are registered
+- **WHEN** a `SchoolAdvies` is created with `voorlopigAdviesLevel` set
+- **THEN** it persists as an OpenRegister object in `lifecycle: voorlopig`, carrying the declared
+  `isVoorlopigOverdue`/`isDefinitiefOverdue` calculations
+
+### Requirement: A PO schooladvies may only be raised on heroverweging, never lowered, unless motivated
+
+`SchoolAdviesFinalizeGuard` MUST block the `vaststellenDefinitief` transition (`voorlopig →
+definitief`) when `doorstroomtoetsResultLevel` outranks `definitiefAdviesLevel` on the shared
+ordinal (`pro < vmbo-bb < vmbo-kb < vmbo-gt < havo < vwo` — the same ordinal
+`AdmissionsDecisionGuard` already uses for the VO intake side), UNLESS `heroverwegingMotivation` is
+non-empty, or both levels are `pro`/`vmbo-bb` — the exact rule and exemption
+`openspec/specs/enrolment/spec.md`'s existing "A VO schooladvies must be adjusted upward..."
+requirement already establishes for `Application`, applied here to `SchoolAdvies`'s own fields.
+
+#### Scenario: A higher doorstroomtoets result without a raised definitief or a motivation blocks finalisation
+
+<!-- @e2e exclude Lifecycle-transition guard is backend logic verified by PHPUnit SchoolAdviesFinalizeGuardTest, mirroring AdmissionsDecisionGuardTest's own structure. -->
+
+- **GIVEN** a `SchoolAdvies` with `voorlopigAdviesLevel: "vmbo-gt"`,
+  `doorstroomtoetsResultLevel: "havo"`, `definitiefAdviesLevel` still `"vmbo-gt"`, and an empty
+  `heroverwegingMotivation`
+- **WHEN** a coordinator attempts `vaststellenDefinitief`
+- **THEN** the transition is refused
+
+#### Scenario: Raising definitiefAdviesLevel to match the doorstroomtoets result allows finalisation
+
+<!-- @e2e exclude PHPUnit SchoolAdviesFinalizeGuardTest. -->
+
+- **GIVEN** the same `SchoolAdvies`, with `definitiefAdviesLevel` raised to `"havo"`
+- **WHEN** a coordinator attempts `vaststellenDefinitief`
+- **THEN** the transition succeeds
+
+#### Scenario: A motivation allows finalisation without raising the level
+
+<!-- @e2e exclude PHPUnit SchoolAdviesFinalizeGuardTest. -->
+
+- **GIVEN** a `SchoolAdvies` with `voorlopigAdviesLevel: "vmbo-gt"`,
+  `doorstroomtoetsResultLevel: "havo"`, `definitiefAdviesLevel` still `"vmbo-gt"`, and a non-empty
+  `heroverwegingMotivation`
+- **WHEN** a coordinator attempts `vaststellenDefinitief`
+- **THEN** the transition succeeds
+
+#### Scenario: The pro/vmbo-bb exemption allows finalisation without a raise or motivation
+
+<!-- @e2e exclude PHPUnit SchoolAdviesFinalizeGuardTest, mirroring AdmissionsDecisionGuardTest::testProVmboBbExemptionAllowsDecision. -->
+
+- **GIVEN** a `SchoolAdvies` with `voorlopigAdviesLevel: "pro"` and
+  `doorstroomtoetsResultLevel: "vmbo-bb"`
+- **WHEN** a coordinator attempts `vaststellenDefinitief` without raising `definitiefAdviesLevel`
+- **THEN** the transition succeeds
+
+#### Scenario: A doorstroomtoets result that does not outrank the definitief advies never blocks finalisation
+
+<!-- @e2e exclude PHPUnit SchoolAdviesFinalizeGuardTest. -->
+
+- **GIVEN** a `SchoolAdvies` with `doorstroomtoetsResultLevel` equal to or lower than
+  `definitiefAdviesLevel` on the ordinal
+- **WHEN** a coordinator attempts `vaststellenDefinitief`
+- **THEN** the transition succeeds regardless of `heroverwegingMotivation`
+
+### Requirement: Sending a definitief schooladvies to ROD auto-queues the existing bron-rod DataExchangeJob
+
+`SchoolAdviesSendToRodHandler` MUST, on the `verzendenNaarRod` transition (`definitief →
+verzonden-naar-rod`), create a `DataExchangeJob` (`direction: export`, `target: bron-rod`,
+`scope.schema: school-advies`, `scope.filters: {learnerId, schoolAdviesId}`), mirroring
+`SupportRequestSubmitHandler`'s own auto-queue-a-job pattern exactly, and stamp the new job's UUID
+back onto `SchoolAdvies.dataExchangeJobId`.
+
+#### Scenario: Sending a definitief advies creates and links a bron-rod DataExchangeJob
+
+<!-- @e2e exclude Cross-object write bridge is backend logic verified by PHPUnit SchoolAdviesSendToRodHandlerTest, mirroring SupportRequestSubmitHandlerTest's own structure; no scholiq DOM surface for the job-creation side effect itself. -->
+
+- **GIVEN** a `SchoolAdvies` in `definitief`
+- **WHEN** a coordinator triggers `verzendenNaarRod`
+- **THEN** a `DataExchangeJob` is created with `target: bron-rod` and `scope.schema: school-advies`
+- **AND** `SchoolAdvies.dataExchangeJobId` is stamped with the new job's UUID
+
+### Requirement: Frontend is declarative with manifest index+detail pages
+
+`src/manifest.json` (or its `src/manifest.d/*.json` fragment, per this repo's ADR-037 modular
+pipeline) MUST declare `SchoolAdvies`/`SchoolAdviesDetail` index+detail pages, following the same
+`<Schema>s`/`<Schema>Detail` convention every other schema in this register already uses. There
+MUST be no PHP CRUD controller.
+
+#### Scenario: Pages are manifest-declared
+
+<!-- @e2e tests/e2e/spec-coverage/enrolment.spec.ts -->
+
+- **GIVEN** the manifest is built
+- **WHEN** `SchoolAdvies`/`SchoolAdviesDetail` are inspected
+- **THEN** both exist as declarative index/detail pages, and no PHP controller serves them
 
 ## Standards
 Studielink, Edukoppeling, OOAPI 5.0, IMS LIS (legacy), Schema.org `EducationEvent`, eduPersonAffiliation propagation.

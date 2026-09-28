@@ -4,7 +4,7 @@
 // assignment-missing-submissions-view: who has not handed in an assignment.
 // Pins the roster, the three states, the overdue mark and the staff gate.
 //
-// @spec openspec/changes/assignment-missing-submissions-view/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
+// @spec openspec/specs/assignments/spec.md#requirement-a-teacher-sees-who-has-not-handed-in-an-assignment
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'

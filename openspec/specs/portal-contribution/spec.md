@@ -155,3 +155,114 @@ key can never masquerade as a real one.
 - AND `grade-entry` defines `learnerRef`, `submission` defines `learnerRefs`, `excuse-request` defines `submittedByRef`, and `learner-profile` defines `guardianRefs`
 - @e2e exclude register-vs-manifest consistency is a backend invariant with no UI surface — covered by the register-drift-pin PHPUnit test (tests/Unit/Portal/PortalContributionProviderTest.php: testManifestMatchesRegisterSchemas)
 
+### Requirement: The parent audience exposes per-child and per-guardian-group directory data (REQ-PCON-006)
+`PortalContributionProvider::parentContribution()` SHALL declare a `parentChildren` collection matching `learner-profile`
+rows directly (no `via`) by `guardianRefs` (array) containing the caller's `guardianRef` — the same array-containment
+match `studentActivityCollections()`'s `Submission.learnerRefs` already uses. Its `fields` SHALL include `givenName`,
+`familyName`, `guardianRefs` (the full co-guardian group for that child), `beeldmateriaalConsent`, and
+`beeldmateriaalConsentReviewDueAt`. The four existing parent read collections (`parentGrades`, `parentAttendance`,
+`parentExcuseRequests`, `parentReportCards`) SHALL each additionally declare `groupByField: 'learnerRef'`.
+
+#### Scenario: A guardian with two children sees a directory naming both
+- **GIVEN** a guardian who is a `guardianRef` on two `LearnerProfile` rows
+- **WHEN** their `parentChildren` collection is read
+- **THEN** it lists both children, each with the guardian's own co-guardian group and current beeldmateriaal consent
+  state
+
+#### Scenario: A portal can group existing collections per child
+- **GIVEN** the `parentGrades` collection
+- **WHEN** a portal reads its manifest declaration
+- **THEN** it finds `groupByField: 'learnerRef'`, letting it render results grouped by child without a schema change
+
+<!-- @e2e exclude Declarative manifest shape verified by PortalContributionProviderTest (audiences, manifest shape, exact via/groupByField key-set); the provider is pure data with no I/O per its own class docblock — no PHP execution path beyond array construction to test end-to-end. -->
+
+### Requirement: The parent audience can report a child's absence, validated against the caller's own children (REQ-PCON-007)
+`PortalContributionProvider::parentContribution()` SHALL declare `actions: [createExcuseRequest]`: `scopeField:
+submittedByRef`, `scopeClaim: guardianRef`, `via` identical to the read collections' reverse-join descriptor,
+`minTrust: substantial`, and `fields` including `learnerRef` (the child the excuse concerns) alongside `dateFrom`,
+`dateTo`, `reason`, `reasonKind`, `attachmentRef`. This relies on portaliq's writer (`portaliq#607`, merged
+2026-09-18) validating that a client-supplied cross-reference declared via `via` resolves inside the subject's own
+scope — the guard `portal-parent`'s own deferral comment named as this action's blocker.
+
+#### Scenario: A guardian reports an absence for their own child
+- **GIVEN** a guardian who is a `guardianRef` on a child's `LearnerProfile`
+- **WHEN** they call `createExcuseRequest` with that child's `learnerRef` in the create body
+- **THEN** the write succeeds, with `submittedByRef` server-stamped to the guardian's own UUID
+
+#### Scenario: A guardian cannot report an absence for a child that is not theirs
+- **GIVEN** a guardian who is not a `guardianRef` on some other child's `LearnerProfile`
+- **WHEN** they call `createExcuseRequest` with that other child's `learnerRef`
+- **THEN** the write is refused, because the supplied `learnerRef` does not resolve inside the guardian's own
+  `via`-derived scope
+
+#### Scenario: The create action never stamps the guardian's own UUID into the child-identifying field
+- **GIVEN** `createExcuseRequest`'s declared shape
+- **WHEN** it is inspected
+- **THEN** `scopeField` is `submittedByRef`, never `learnerRef` — stamping `learnerRef` from `guardianRef` would write
+  the guardian's own UUID into the field that identifies the child, silently corrupting every subsequent read
+
+<!-- @e2e exclude Declarative manifest shape + drift-pin verified by PortalContributionProviderTest; the actual cross-reference validation runs in portaliq's writer (portaliq#607), out of this repo's test surface. -->
+
+### Requirement: A pupil takes a timed test through the portal (REQ-PCON-008)
+
+The `student` manifest MUST declare a `studentTests` collection with `kind: timedTask` on the
+`assessment-result` schema, scoped by the scalar `learnerRef` with `scopeClaim: learnerRef`,
+exposing only `assessmentId`, `assessmentTitle`, `lifecycle`, `attemptNumber`, `startedAt` and
+`submittedAt` (never responses or scores), and a `timedTask` block naming five endpoint actions:
+`listTests`, `startTest`, `saveTestAnswer`, `submitTest` and `readTestResult`. Each action MUST be a
+`POST` to an instance-local `/apps/learniq/api/portal/assessments...` endpoint, whitelist only the
+fields its step sends, declare `subjectField: learnerRef` and `scopeClaim: learnerRef`, and require
+`minTrust: low`.
+
+#### Scenario: The student manifest carries the timed task
+
+<!-- @e2e exclude The manifest is data served to portaliq; the rendered test screen lives in portaliq (#749 tests/timed-task.spec.mjs). Covered by PHPUnit PortalContributionProviderTest::testStudentTestsIsATimedTask. -->
+
+- **GIVEN** a student subject
+- **WHEN** portaliq asks learniq for its contribution
+- **THEN** `studentTests.timedTask` names the five actions, each an instance-local POST endpoint that stamps `learnerRef`
+- **AND** `studentTests.fields` holds no response or score field
+
+### Requirement: A pupil hands in work through the portal with a real file (REQ-PCON-007)
+
+The `student` manifest's `createSubmission` action MUST declare portaliq's file field on
+`attachmentRefs` (contract of ConductionNL/portaliq#745): `fieldConfigs.attachmentRefs` with `type:
+file`, `multiple: true`, an `accept` list of at most 20 extensions and `maxSizeMb` between 1 and 50.
+The action MUST keep `fields` to `assignmentId` and `attachmentRefs`, MUST declare `minTrust: low`,
+and MUST scope by the scalar `learnerRef` with `scopeClaim: learnerRef`. The `studentSubmissions`
+collection MUST scope by the same scalar `learnerRef` and expose `learnerRef` instead of
+`learnerRefs`, because portaliq's direct scope compares one value and never matches an array.
+
+#### Scenario: The hand-in action carries a file field
+
+<!-- @e2e exclude The manifest is data served to portaliq; the rendered picker lives in portaliq (#745 tests/schema-form-file-field.spec.mjs). Covered by PHPUnit PortalContributionProviderTest::testSubmissionHandInDeclaresAFileField. -->
+
+- **GIVEN** a student subject
+- **WHEN** portaliq asks learniq for its contribution
+- **THEN** `createSubmission.fieldConfigs.attachmentRefs.type` is `file`, `multiple` is true and `maxSizeMb` is 20
+- **AND** `attachmentRefs` is in the action's `fields`
+
+#### Scenario: Submissions are scoped by one learnerRef
+
+<!-- @e2e exclude PHPUnit PortalContributionProviderTest::testStudentManifestShape. -->
+
+- **GIVEN** a student subject
+- **WHEN** portaliq reads the `studentSubmissions` collection or runs `createSubmission`
+- **THEN** both scope by `learnerRef`, a property the `submission` schema declares
+
+### Requirement: A pupil hands in a draft submission from the portal (REQ-PCON-009)
+
+The `student` manifest MUST declare an endpoint-forward action `handIn`: a `POST` to the
+instance-local `/apps/learniq/api/portal/submissions/hand-in`, `minTrust: low`, `fields:
+[submissionId]`, `subjectField: learnerRef` and `scopeClaim: learnerRef`, `rowField: submissionId`
+and `rowWhen: {field: lifecycle, in: [draft]}`. The `studentSubmissions` collection MUST name it in
+`rowActions`, so portaliq offers it on the pupil's draft rows only and stamps the id of the row it
+read under the pupil's scope.
+
+#### Scenario: The student manifest offers the hand-in on draft submissions
+
+<!-- @e2e exclude The manifest is data served to portaliq; the button is portaliq's (#805 tests/row-action.spec.mjs). Covered by PHPUnit PortalContributionProviderTest::testStudentSubmissionsOffersTheHandInOnDrafts. -->
+
+- **GIVEN** a student subject
+- **WHEN** portaliq asks learniq for its contribution
+- **THEN** `studentSubmissions.rowActions` names `handIn`, and `handIn` is an instance-local POST that stamps `learnerRef`, carries `rowField: submissionId` and is offered only when `lifecycle` is `draft`

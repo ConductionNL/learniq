@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-the-planninq-source-reads-through-planninqs-query-event-req-002
+ * @spec openspec/specs/timetable-source/spec.md#requirement-the-planninq-source-reads-through-planninqs-query-event-req-002
  */
 
 declare(strict_types=1);
@@ -166,7 +166,7 @@ class PlanninqTimetableSourceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/sessions-from-planninq/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
+	 * @spec openspec/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
 	 */
 	public function testResolverPicksTheSource(): void {
 		$local = new LocalSessionTimetableSource($this->createMock(ObjectService::class));

@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-teacher-notes-live-in-a-store-only-staff-can-read
+ * @spec openspec/specs/course-management/spec.md#requirement-teacher-notes-live-in-a-store-only-staff-can-read
  */
 
 declare(strict_types=1);
@@ -148,7 +148,7 @@ class TeacherNoteLearnerAccessTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-a-lesson-a-learner-can-read-cannot-hold-a-teacher-note
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-lesson-a-learner-can-read-cannot-hold-a-teacher-note
 	 */
 	public function testTheLessonALearnerReadsCannotHoldANote(): void {
 		$lesson = $this->schemas()['Lesson'];
