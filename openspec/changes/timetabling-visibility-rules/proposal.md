@@ -26,7 +26,7 @@ Read at learniq `development` 8bb8401d.
 
 - `GET /api/timetable/mine` (`lib/Controller/TimetableController.php:111`) returns the caller's own lessons; `MyTimetable.vue` shows them.
 - `CohortTimetableView.vue` (`/cohorts/:id/timetable`, `src/manifest.d/learning.json:2508-2518`) reads a cohort's sessions straight from the object API (`src/views/CohortTimetableView.vue:60`).
-- `Session` (`lib/Settings/learniq_register.json:6130`) has no `authorization` block, so OpenRegister applies no read rule of its own to it. On that static reading any signed-in learner can list every lesson of the school through the object API; task 1 confirms it on a live instance before the block is added.
+- `Session` (`lib/Settings/learniq_register.json:6130`) has no `authorization` block, so OpenRegister applies no read rule of its own to it. On that static reading any signed-in learner can list every lesson of the school through the object API; task 1 confirms it on a live instance before the block is added. Correction (28 Sep 2026, security lane): that premise is probably wrong, because `Session` falls under the register-level `authorization.roles` rule (`lib/Settings/learniq_register.json:154-162`, read-write for `instructors`, `hr`, `compliance-officers` and `team-leads`), which OpenRegister applies to a schema without a block of its own (openregister `lib/Service/Object/PermissionHandler.php:2861-2876` at 555af72), so task 1's live check must first prove the open read before anything in this change relies on it.
 - There is no setting for who may see which timetable, and no way to look up a teacher's or a room's timetable.
 
 ## What this change builds
