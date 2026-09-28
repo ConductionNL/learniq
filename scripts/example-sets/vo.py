@@ -93,6 +93,7 @@ SCHEMAS = [
     "support-request",
     "dossier-note",
     "standby-slot",
+    "lesson-note",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -1315,6 +1316,22 @@ def build() -> dict:
             "startsAt": hhmm(BELL[hour][0]), "endsAt": hhmm(BELL[hour][1]),
             "vestigingId": locations["hoofd"]["uuid"],
             "validFrom": FIRST_DAY.isoformat(), "validUntil": LAST_DAY.isoformat(),
+        })
+
+    # --- lesson notes (timetabling-lesson-note): Wiskunde B in havo 4 ------------------------------------
+    wb_teacher = SUBJECT_TEACHER["WB"][1]
+    tuesdays = [d for d in class_days("4H1") if d.weekday() == 1 and d >= dt.date(2026, 3, 3)][:5]
+    lesson_notes = [
+        (tuesdays[0], "Hoofdstuk 4: kansrekening", "Neem je rekenmachine mee.", "learners"),
+        (tuesdays[1], "Hoofdstuk 4: oefentoets", "Maak thuis opgave 1 tot en met 11; we bespreken ze in de les.", "learners"),
+        (tuesdays[2], "Hoofdstuk 4: oefentoets", "Maak thuis opgave 1 tot en met 11; we bespreken ze in de les.", "learners"),
+        (tuesdays[3], "Hoofdstuk 4: oefentoets", "Maak thuis opgave 1 tot en met 11; we bespreken ze in de les.", "learners"),
+        (tuesdays[4], None, "Laat ze opgave 12 tot en met 18 maken. Eén leerling mag om 10:00 weg voor de tandarts.", "cover"),
+    ]
+    for day, topic, text, audience in lesson_notes:
+        b.add("lesson-note", {
+            "sessionId": sessions[("4H1", day)]["uuid"], "cohortId": cohorts["4H1"]["uuid"],
+            "topic": topic, "text": text, "audience": audience, "authorId": wb_teacher,
         })
 
     # --- assemble ------------------------------------------------------------------------------------

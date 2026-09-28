@@ -75,11 +75,26 @@ class ConnectionReportService {
 	public const TIMETABLE_KEY = 'timetable';
 
 	/**
+	 * The connection key of the LTI row. Learniq reports it from whether
+	 * integriq ships its LTI launch event (content-lti-launch-through-integriq).
+	 *
+	 * @var string
+	 */
+	public const LTI_KEY = 'lti';
+
+	/**
+	 * Integriq's LTI launch event, named by string like STATUS_EVENT.
+	 *
+	 * @var string
+	 */
+	public const LTI_LAUNCH_EVENT = 'OCA\Integriq\Event\LtiLaunchRequestedEvent';
+
+	/**
 	 * The connections learniq reports on. A unit test keeps every key declared.
 	 *
 	 * @var array<int, string>
 	 */
-	public const REPORTED_KEYS = [self::WALLET_KEY, self::TIMETABLE_KEY];
+	public const REPORTED_KEYS = [self::WALLET_KEY, self::TIMETABLE_KEY, self::LTI_KEY];
 
 	/**
 	 * The statuses an observation may carry: the call got through, it was not
@@ -249,6 +264,27 @@ class ConnectionReportService {
 			reason: 'Planninq is not installed. Integriq delivers the timetable to planninq, and learniq reads the lessons from there.'
 		);
 	}//end observeTimetable()
+
+	/**
+	 * Record whether LTI tools can open: integriq is the LTI platform, so the
+	 * row is available exactly when its launch event exists.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/content-lti-launch-through-integriq/specs/course-management/spec.md#requirement-the-connection-registry-says-whether-lti-works
+	 */
+	public function observeLti(): void {
+		if ($this->resolveEventClass(eventClass: self::LTI_LAUNCH_EVENT) !== null) {
+			$this->observe(
+				key: self::LTI_KEY,
+				status: 'configured',
+				reason: 'Integriq opens LTI tools from a lesson. Grades come back once the grade subscription is set in the LTI section.'
+			);
+			return;
+		}
+
+		$this->observe(key: self::LTI_KEY, status: 'unavailable', reason: 'LTI tools need integriq, which is not installed.');
+	}//end observeLti()
 
 	/**
 	 * The stored observation for a connection, or null when none is usable.

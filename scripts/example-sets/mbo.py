@@ -103,6 +103,7 @@ SCHEMAS = [
     "bsa-decision",
     "support-request",
     "dossier-note",
+    "hour-plan",
 ]
 
 HOLIDAYS = [
@@ -628,7 +629,7 @@ def build() -> dict:
             "lifecycle": "completed" if lj == PROGRAMMES[key][2] else "active",
             "locationId": locations[PROGRAMMES[key][4]]["uuid"],
             "teacherAssignments": [{"teacherId": slb, "role": "primary", "days": school_weekdays}],
-            "notes": notes, "kind": "teaching",
+            "notes": notes, "kind": "teaching", "programmeYear": lj,
         })
 
     # --- staff (working days filled in once visits are planned) -------------
@@ -1412,6 +1413,36 @@ def build() -> dict:
         care = [STUDENT_COUNSELLOR] + ([slb[s["class"]]] if slb[s["class"]] != STUDENT_COUNSELLOR else [])
         b.add("dossier-note", {"learnerId": s["nc"], "authorId": author, "date": date, "category": category, "body": body,
                                "confidentiality": confidentiality, "careTeamUserIds": care})
+
+    # --- hour plans (timetabling-multi-year-hour-plan) --------------------------
+    # One active plan per programme and intake year that has a class this year,
+    # so the teaching activities of 2025-2026 list every class; a draft for the
+    # next Software developer intake shows the copy. 16 contact hours per credit
+    # for a unit, 28 placement hours per credit for BPV.
+    year_start = int(YEAR[:4])
+    for key, (pname, niveau, years, _crebo, _loc, _f) in PROGRAMMES.items():
+        lines = []
+        for code, pkey, lj, sem, _name, credits, _teachers, _kt, _extra in UNITS:
+            if pkey == key:
+                lines.append({"courseId": courses[code]["uuid"], "programmeYear": lj, "periodCode": None if sem == "J" else sem,
+                              "contactHours": credits * 16, "otherHours": 0, "activityKind": "lesson"})
+        for code, pkey, lj, _name, credits, _coach, _kt in BPV_UNITS:
+            if pkey == key:
+                lines.append({"courseId": courses[code]["uuid"], "programmeYear": lj, "periodCode": None,
+                              "contactHours": 0, "otherHours": credits * 28, "activityKind": "work-placement"})
+        norms = [{"programmeYear": y, "contactHours": 600, "totalHours": 1000} for y in range(1, years + 1)]
+        intakes = sorted({year_start - (c[2] - 1) for c in COHORTS if c[1] == key})
+        plan_rows = [(start, "active") for start in intakes]
+        if key == "SD":
+            plan_rows.append((year_start + 1, "draft"))
+        for start, lifecycle in plan_rows:
+            intake = f"{start}-{start + 1}"
+            b.add("hour-plan", {
+                "name": f"Urenplan {pname}, instroom {intake}", "programmeId": programmes[key]["uuid"],
+                "intakeYear": intake, "durationYears": years,
+                "periodsPerYear": [{"periodCode": "S1", "label": "Semester 1"}, {"periodCode": "S2", "label": "Semester 2"}],
+                "lines": lines, "yearNorms": norms, "lifecycle": lifecycle,
+            })
 
     # --- assemble -------------------------------------------------------------
     objects = {name: rows for name, rows in b.buckets.items() if rows}
