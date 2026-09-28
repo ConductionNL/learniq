@@ -25,6 +25,7 @@ namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Service\DemoDataService;
 use OCA\Learniq\Service\SeedProfileService;
+use OCA\Learniq\Service\SharedCodeFilter;
 use OCP\App\IAppManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -123,9 +124,21 @@ class SeedProfileServiceTest extends TestCase {
 			$this->appManager,
 			($container ?? $this->createMock(ContainerInterface::class)),
 			($logger ?? $this->createMock(LoggerInterface::class)),
-			$demo
+			$demo,
+			$this->passThroughFilter()
 		);
 	}//end service()
+
+	/**
+	 * A shared-code filter that leaves every descriptor as it is.
+	 *
+	 * @return SharedCodeFilter
+	 */
+	private function passThroughFilter(): SharedCodeFilter {
+		$filter = $this->createMock(SharedCodeFilter::class);
+		$filter->method('withoutCodesHeldElsewhere')->willReturnArgument(0);
+		return $filter;
+	}//end passThroughFilter()
 
 	/**
 	 * `none` first, the sets by their order (not their file names), then
@@ -251,7 +264,8 @@ class SeedProfileServiceTest extends TestCase {
 			$noOr,
 			$this->createMock(ContainerInterface::class),
 			$this->createMock(LoggerInterface::class),
-			$this->createMock(DemoDataService::class)
+			$this->createMock(DemoDataService::class),
+			$this->passThroughFilter()
 		);
 
 		$this->expectExceptionMessage('OpenRegister');
