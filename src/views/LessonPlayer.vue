@@ -475,8 +475,8 @@ export default {
 			scorm12Api: null,
 
 			// cmi5 launch state (contentType === 'cmi5'). Degrades gracefully
-			// (empty state, not a crash) while the sibling cmi5-xapi-lrs-ingest
-			// change's launch-token endpoint does not exist yet.
+			// (empty state, not a crash) while no cmi5 launch key is set up:
+			// the launch endpoint then answers 503.
 			cmi5: {
 				launching: false,
 				available: true,
@@ -1244,12 +1244,11 @@ export default {
 		},
 
 		/**
-		 * POST an xAPI statement via the existing generic OpenRegister
-		 * object-create endpoint for `xapi-statement`. `xapi-statement` create
-		 * is admin-only pending the sibling `cmi5-xapi-lrs-ingest` change
-		 * (its task 4.1) — a non-admin learner's POST will 403 until that
-		 * lands. Failure is caught and logged, never surfaced as a blocking
-		 * error over the lesson content itself (proposal Risk 2).
+		 * POST an xAPI statement to learniq's LRS (`/api/lrs/statements`,
+		 * cmi5-xapi-lrs-ingest). The server stamps the signed-in learner as
+		 * `verified_actor_id`; the statement's own actor is never trusted.
+		 * Failure is caught and logged, never surfaced as a blocking error
+		 * over the lesson content itself (proposal Risk 2).
 		 *
 		 * @param {object} statement An xAPI statement object.
 		 * @return {Promise<void>}
@@ -1258,9 +1257,7 @@ export default {
 		async postXapiStatement(statement) {
 			try {
 				const res = await fetch(
-					generateUrl(
-						'/apps/openregister/api/objects/learniq/xapi-statement',
-					),
+					generateUrl('/apps/learniq/api/lrs/statements'),
 					{
 						method: 'POST',
 						headers: {
@@ -1279,7 +1276,7 @@ export default {
 					console.warn(
 						'[LessonPlayer] xAPI statement POST failed (HTTP '
 							+ res.status
-							+ ') — expected until the cmi5-xapi-lrs-ingest change relaxes xapi-statement authorization.',
+							+ ')',
 					)
 				}
 			} catch (e) {
@@ -1289,11 +1286,10 @@ export default {
 		},
 
 		/**
-		 * Request a cmi5 launch token and open the AU in an iframe. The
-		 * launch-token endpoint this calls belongs to the sibling, still-open
-		 * `cmi5-xapi-lrs-ingest` change — a 404/503 here is expected until
-		 * that change ships, and renders the "not yet available" empty state
-		 * rather than a crash.
+		 * Request a cmi5 launch and open the AU in an iframe. The endpoint
+		 * (cmi5-xapi-lrs-ingest) answers 503 until an admin generates the
+		 * cmi5 launch key; that, and a 404, render the "not yet available"
+		 * empty state rather than a crash.
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-cmi5-lesson-gracefully-degrades-until-the-sibling-ingest-change-ships
