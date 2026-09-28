@@ -25,6 +25,7 @@
 
 		<LearniqSettings v-if="storesReady" />
 		<DataExchangeSettingsSection />
+		<TimetableExchangeSettingsSection />
 		<StoreRegistrySettingsSection />
 		<AiTranslationReviewSection />
 		<ActionAuthMatrix />
@@ -39,6 +40,7 @@ import LearniqSettings from '../LearniqSettings.vue'
 import AiTranslationReviewSection from './AiTranslationReviewSection.vue'
 import DataExchangeSettingsSection from './DataExchangeSettingsSection.vue'
 import StoreRegistrySettingsSection from './StoreRegistrySettingsSection.vue'
+import TimetableExchangeSettingsSection from './TimetableExchangeSettingsSection.vue'
 import { initializeStores } from '../../store/store.js'
 
 export default {
@@ -48,6 +50,7 @@ export default {
 		LearniqSettings,
 		DataExchangeSettingsSection,
 		StoreRegistrySettingsSection,
+		TimetableExchangeSettingsSection,
 		AiTranslationReviewSection,
 		ActionAuthMatrix,
 	},

@@ -117,4 +117,27 @@ class TimetableImportControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller($this->createMock(PlanninqTimetableImport::class), false)->create()->getStatus());
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller($this->createMock(PlanninqTimetableImport::class), true, false)->create()->getStatus());
 	}//end testTheRestIsRefused()
+
+	/**
+	 * The access check answers what the endpoint would: the matrix right and
+	 * whether planninq takes a delivery.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#scenario-an-administration-manager-opens-the-timetable-conflicts
+	 */
+	public function testTheAccessCheckAnswersTheRightAndPlanninq(): void {
+		$planninq = $this->createMock(PlanninqTimetableImport::class);
+		$planninq->method('applies')->willReturn(true);
+		$user    = $this->createMock(IUser::class);
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($user);
+		$auth = $this->createMock(ActionAuthService::class);
+		$auth->expects($this->once())->method('can')->with($user, 'exchange.request')->willReturn(false);
+
+		$controller = new TimetableImportController($this->createMock(IRequest::class), $session, $auth, $planninq, $this->createMock(ISecureRandom::class));
+
+		$this->assertSame(['canImport' => false, 'planninq' => true], $controller->access()->getData());
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller($planninq, true, false)->access()->getStatus());
+	}//end testTheAccessCheckAnswersTheRightAndPlanninq()
 }//end class

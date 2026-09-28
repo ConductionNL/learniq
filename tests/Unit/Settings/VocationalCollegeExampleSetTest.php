@@ -509,7 +509,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		$appManager->method('getAppPath')->willReturn(dirname(__DIR__, 3));
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('listChoices')->willReturn([]);
-		$service = new SeedProfileService($appManager, $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class), $demo, $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class));
+		$service = new SeedProfileService($appManager, $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class), $demo, $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class), $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class));
 
 		$offered = array_values(array_filter($service->listChoices(), static fn (array $c): bool => $c['id'] === 'mbo'))[0];
 		self::assertSame('Vocational education (MBO)', $offered['label']);

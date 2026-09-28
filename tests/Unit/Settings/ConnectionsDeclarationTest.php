@@ -88,6 +88,7 @@ class ConnectionsDeclarationTest extends TestCase {
 	private const ADMIN_PAGE_FILES = [
 		'src/views/settings/AdminRoot.vue',
 		'src/views/settings/DataExchangeSettingsSection.vue',
+		'src/views/settings/TimetableExchangeSettingsSection.vue',
 		'src/views/LearniqSettings.vue',
 	];
 
@@ -273,7 +274,7 @@ class ConnectionsDeclarationTest extends TestCase {
 		}
 
 		$this->assertSame(
-			expected: ['timetable', 'lti', 'sbb', 'proctoring', 'plagiarism'],
+			expected: ['lti', 'sbb', 'proctoring', 'plagiarism'],
 			actual: $unavailable
 		);
 	}//end testEveryUnavailableConnectionSaysWhy()
@@ -315,7 +316,11 @@ class ConnectionsDeclarationTest extends TestCase {
 		$this->assertTrue($byKey['data-exchange']['available']);
 		$client = (string)file_get_contents($this->root() . '/lib/Service/IntegriqExchangeClient.php');
 		$this->assertStringContainsString(needle: 'OCA\\\\Integriq\\\\Event\\\\ExchangeJobRequestedEvent', haystack: $client);
-		$this->assertStringContainsString(needle: 'planninq', haystack: (string)$byKey['timetable']['unavailableMessage']);
+		// timetable-connection-and-import-screen: learniq reports the row from
+		// whether planninq is enabled, so the row is not declared unavailable.
+		$this->assertArrayNotHasKey(key: 'available', array: $byKey['timetable']);
+		$this->assertTrue($byKey['timetable']['reportedOnly']);
+		$this->assertStringContainsString(needle: 'planninq', haystack: (string)$byKey['timetable']['unconfiguredMessage']);
 	}//end testDataExchangeRunsThroughIntegriqAndTheTimetableIsPlanninqs()
 
 	/**
