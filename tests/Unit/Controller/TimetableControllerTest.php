@@ -208,11 +208,20 @@ class TimetableControllerTest extends TestCase {
 				}
 
 				if ($schema === 'session') {
-					$cohortId = $filters['cohortId'] ?? null;
+					// Equality on every filter key, as OpenRegister applies them
+					// (`cohortId` per cohort, `substituteTeacherId` for cover).
 					return array_values(
 						array_filter(
 							$sessions,
-							static fn (array $s): bool => $cohortId === null || ($s['cohortId'] ?? null) === $cohortId
+							static function (array $s) use ($filters): bool {
+								foreach ($filters as $key => $value) {
+									if (($s[$key] ?? null) !== $value) {
+										return false;
+									}
+								}
+
+								return true;
+							}
 						)
 					);
 				}
@@ -314,13 +323,16 @@ class TimetableControllerTest extends TestCase {
 		$cohorts = [
 			['id' => 'cohort-1', 'learnerIds' => ['alice'], 'teacherIds' => ['tom']],
 		];
-		// findAll must never be asked for sessions when there are no cohorts.
-		$this->objectService->expects($this->exactly(2))
+		// Sessions are only ever asked for the caller's own cover lessons when
+		// the caller has no cohorts: never per cohort, never unfiltered.
+		$this->objectService->expects($this->exactly(3))
 			->method('findAll')
 			->willReturnCallback(
 				function (array $config) use ($cohorts): array {
 					if (($config['filters']['schema'] ?? '') === 'session') {
-						$this->fail('Sessions must not be queried when the caller has no cohorts');
+						$filters = array_diff_key($config['filters'], ['register' => true, 'schema' => true]);
+						$this->assertSame(['substituteTeacherId' => 'nobody'], $filters, 'Sessions must not be queried per cohort when the caller has no cohorts');
+						return [];
 					}
 					if (($config['filters']['schema'] ?? '') === 'cohort') {
 						return $cohorts;
@@ -335,6 +347,59 @@ class TimetableControllerTest extends TestCase {
 		$this->assertSame([], $body['sessions']);
 		$this->assertSame([], $body['changes']);
 	}//end testNoCohortsReturnsEmptyOk()
+
+	/**
+	 * A teacher assigned as substitute on another cohort's lesson sees that
+	 * lesson, marked as cover, and no other lesson of that cohort (learniq#1134).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
+	 */
+	public function testASubstituteSeesTheLessonTheyCoverAndNothingElseOfThatCohort(): void {
+		$this->signInAs('e.devries');
+
+		$cohorts = [
+			['id' => 'cohort-own', 'learnerIds' => ['alice'], 'teacherIds' => ['e.devries']],
+			['id' => 'cohort-4havo', 'learnerIds' => ['bob'], 'teacherIds' => ['s.jansen']],
+		];
+		$sessions = [
+			['id' => 's-own', 'cohortId' => 'cohort-own', 'title' => 'Economie', 'startsAt' => '2026-01-05T09:00:00+00:00', 'endsAt' => '2026-01-05T10:00:00+00:00'],
+			['id' => 's-cover', 'cohortId' => 'cohort-4havo', 'title' => 'Wiskunde B', 'startsAt' => '2026-01-06T11:00:00+00:00', 'endsAt' => '2026-01-06T12:00:00+00:00', 'substituteTeacherId' => 'e.devries'],
+			['id' => 's-not-covered', 'cohortId' => 'cohort-4havo', 'title' => 'Wiskunde B', 'startsAt' => '2026-01-08T11:00:00+00:00', 'endsAt' => '2026-01-08T12:00:00+00:00'],
+		];
+		$this->wireFindAll($cohorts, [], $sessions);
+
+		$out = $this->body($this->controller()->mine(from: $this->from, to: $this->to));
+		$byId = array_column($out['sessions'], null, 'id');
+
+		$this->assertSame(['s-own', 's-cover'], array_column($out['sessions'], 'id'));
+		$this->assertTrue($byId['s-cover']['cover'], 'The covered lesson is marked as cover.');
+		$this->assertFalse($byId['s-own']['cover'], 'A lesson of the caller\'s own cohort is not cover.');
+	}//end testASubstituteSeesTheLessonTheyCoverAndNothingElseOfThatCohort()
+
+	/**
+	 * A substitute who teaches no cohort still sees the lessons they cover.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetabling-lesson-note/specs/personal-timetable/spec.md#requirement-a-substitute-teacher-sees-the-lessons-they-cover
+	 */
+	public function testASubstituteWithNoCohortSeesTheLessonTheyCover(): void {
+		$this->signInAs('pool.invaller');
+
+		$cohorts = [['id' => 'cohort-4havo', 'learnerIds' => ['bob'], 'teacherIds' => ['s.jansen']]];
+		$sessions = [
+			['id' => 's-cover', 'cohortId' => 'cohort-4havo', 'title' => 'Wiskunde B', 'startsAt' => '2026-01-06T11:00:00+00:00', 'endsAt' => '2026-01-06T12:00:00+00:00', 'substituteTeacherId' => 'pool.invaller'],
+			['id' => 's-not-covered', 'cohortId' => 'cohort-4havo', 'title' => 'Wiskunde B', 'startsAt' => '2026-01-08T11:00:00+00:00', 'endsAt' => '2026-01-08T12:00:00+00:00'],
+		];
+		$this->wireFindAll($cohorts, [], $sessions);
+
+		$out = $this->body($this->controller()->mine(from: $this->from, to: $this->to));
+
+		$this->assertSame(['s-cover'], array_column($out['sessions'], 'id'));
+		$this->assertTrue($out['sessions'][0]['cover']);
+	}//end testASubstituteWithNoCohortSeesTheLessonTheyCover()
 
 	/**
 	 * Each session projects roomId (with resolved Room detail when set),

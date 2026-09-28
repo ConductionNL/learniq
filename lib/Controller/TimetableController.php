@@ -131,11 +131,21 @@ class TimetableController extends Controller {
 		$cohortIds = $this->resolveCallerCohortIds(uid: $uid);
 		$source = $this->sources->current();
 
-		// A caller with no cohorts gets an empty timetable — not an error.
-		// With planninq a teacher can still have lessons of their own.
-		if (empty($cohortIds) === true && $source->name() !== 'planninq') {
+		// With planninq a teacher can have lessons of their own, and with
+		// learniq's own sessions a substitute has the lessons they cover
+		// (learniq#1134): both come from sessionsForTeacher(), so a caller
+		// without cohorts is still asked for them.
+		try {
+			$cohortSessions = $source->sessionsForCohorts(cohortIds: $cohortIds, from: $windowFrom, to: $windowTo);
+			$teacherSessions = $source->sessionsForTeacher(userId: $uid, from: $windowFrom, to: $windowTo);
+		} catch (RuntimeException $e) {
+			return $this->sourceUnavailable(message: $e->getMessage(), from: $windowFrom, to: $windowTo);
+		}
+
+		// A caller with no lessons at all gets an empty timetable, not an error.
+		if (empty($cohortSessions) === true && empty($teacherSessions) === true) {
 			$this->logger->debug(
-				'[TimetableController] No cohorts resolved for {uid}; returning empty timetable.',
+				'[TimetableController] No sessions resolved for {uid}; returning empty timetable.',
 				['uid' => $uid, 'from' => $windowFrom, 'to' => $windowTo]
 			);
 			return new JSONResponse(
@@ -144,14 +154,7 @@ class TimetableController extends Controller {
 			);
 		}
 
-		try {
-			$rawSessions = $this->mergeById(
-				first: $source->sessionsForCohorts(cohortIds: $cohortIds, from: $windowFrom, to: $windowTo),
-				second: $source->sessionsForTeacher(userId: $uid, from: $windowFrom, to: $windowTo)
-			);
-		} catch (RuntimeException $e) {
-			return $this->sourceUnavailable(message: $e->getMessage(), from: $windowFrom, to: $windowTo);
-		}
+		$rawSessions = $this->mergeById(first: $cohortSessions, second: $teacherSessions);
 
 		$roomCache = $this->preloadRooms(sessions: $rawSessions);
 
@@ -282,6 +285,13 @@ class TimetableController extends Controller {
 
 			if (isset($merged[$key]) === false) {
 				$merged[$key] = $session;
+				continue;
+			}
+
+			// A lesson of the caller's own cohort that they also cover keeps
+			// its cohort row and gains the cover mark (learniq#1134).
+			if (($session['cover'] ?? false) === true) {
+				$merged[$key]['cover'] = true;
 			}
 		}
 

@@ -212,6 +212,32 @@ class PlanninqTimetableSourceTest extends TestCase {
 
 		$this->assertSame(['s-1'], array_column($sessions, 'id'), 'a mismatched cohort never gets through');
 		$this->assertSame('learniq', $sessions[0]['source']);
-		$this->assertSame([], $local->sessionsForTeacher('jan', null, null));
 	}//end testLocalSourceReadsSessionsPerCohort()
+
+	/**
+	 * The local source's teacher lessons are the ones the caller covers as
+	 * substitute, read on substituteTeacherId and marked as cover (learniq#1134).
+	 *
+	 * @return void
+	 */
+	public function testLocalSourceReadsTheLessonsTheCallerCovers(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects($this->once())->method('findAll')->willReturnCallback(
+			function (array $config): array {
+				$this->assertSame('jan', $config['filters']['substituteTeacherId'] ?? null);
+				$this->assertArrayNotHasKey('cohortId', $config['filters']);
+				return [
+					['id' => 's-cover', 'cohortId' => 'c-9', 'substituteTeacherId' => 'jan'],
+					['id' => 's-other', 'cohortId' => 'c-9', 'substituteTeacherId' => 'piet'],
+				];
+			}
+		);
+		$local = new LocalSessionTimetableSource($objectService);
+
+		$sessions = $local->sessionsForTeacher('jan', null, null);
+
+		$this->assertSame(['s-cover'], array_column($sessions, 'id'), 'a lesson another teacher covers never gets through');
+		$this->assertTrue($sessions[0]['cover']);
+		$this->assertSame('learniq', $sessions[0]['source']);
+	}//end testLocalSourceReadsTheLessonsTheCallerCovers()
 }//end class
