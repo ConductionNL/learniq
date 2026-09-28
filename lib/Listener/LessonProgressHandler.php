@@ -26,6 +26,9 @@
  * ADR-031 legitimate exception: single-method lifecycle-guard-equivalent
  * bridge from an OR ObjectCreatedEvent to a LessonCompletion object write.
  *
+ * Gate 61 (ADR-078): the handler only queues the statement; the reads and
+ * the write run in XapiStatementFollowUpJob through LessonProgress.
+ *
  * @category Listener
  * @package  OCA\Learniq\Listener
  *
@@ -46,17 +49,20 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\OpenRegister\Event\ObjectCreatedEvent;
-use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\BackgroundJob\XapiStatementFollowUpJob;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Service\XapiEnrolmentCompletion;
+use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use Psr\Log\LoggerInterface;
 
 /**
- * Upserts a LessonCompletion for every resolvable completed/passed xAPI
- * statement — no mandatoryTraining or last-lesson gate.
+ * Queues every completed or passed xAPI statement for its LessonCompletion
+ * upsert; no mandatoryTraining or last-lesson gate.
+ *
+ * @spec openspec/changes/gate-61-deferral/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
  *
  * @implements IEventListener<Event>
  */
@@ -64,327 +70,63 @@ class LessonProgressHandler implements IEventListener {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const XAPI_SCHEMA = 'xapi-statement';
-	private const LESSON_SCHEMA = 'lesson';
-	private const LESSON_COMPLETION_SCHEMA = 'lesson-completion';
-	private const ENROLMENT_SCHEMA = 'enrolment';
-
-	/**
-	 * XAPI verb IRIs that indicate successful completion.
-	 *
-	 * Deliberately duplicated from XapiCompletionHandler::COMPLETION_VERBS
-	 * (a private constant, not accessible cross-class in PHP) rather than
-	 * loosening that class's visibility — XapiCompletionHandler itself is
-	 * not modified by this change. Keep both lists in sync if the xAPI
-	 * completion-verb vocabulary ever changes.
-	 *
-	 * @var string[]
-	 */
-	private const COMPLETION_VERBS = [
-		'http://adlnet.gov/expapi/verbs/completed',
-		'http://adlnet.gov/expapi/verbs/passed',
-	];
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objectService OR object service used to query/write objects.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
-	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
-	 * @param LoggerInterface $logger PSR logger.
-	 *
-	 * @return void
+	 * @param ListenerDeferralService $deferral       Queues the work with the acting user.
+	 * @param ListenerSchemaResolver  $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param ITimeFactory            $timeFactory    Stamps the completion time when the statement is queued.
 	 */
 	public function __construct(
-		private readonly ObjectService $objectService,
+		private readonly ListenerDeferralService $deferral,
 		private readonly ListenerSchemaResolver $schemaResolver,
 		private readonly ITimeFactory $timeFactory,
-		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
 
 	/**
-	 * Handle an incoming ObjectCreatedEvent.
+	 * Queue a completed or passed XapiStatement for its LessonCompletion.
 	 *
 	 * @param Event $event The dispatched event from OR.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/learning-progress-and-analytics/specs/progress-tracking/spec.md#requirement-xapi-completion-statements-are-wired-into-per-lesson-completion-not-duplicated
+	 * @spec openspec/changes/gate-61-deferral/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatedEvent === false) {
 			return;
 		}
 
-		$objectEntity = $event->getObject();
-
-		// Filter to XapiStatement objects in the learniq register only.
-		if ($this->isLearniqXapiStatement(entity: $objectEntity) === false) {
+		$entity = $event->getObject();
+		if ($this->schemaResolver->registerSlug(entity: $entity) !== self::LEARNIQ_REGISTER
+			|| $this->schemaResolver->schemaSlug(entity: $entity) !== self::XAPI_SCHEMA
+		) {
 			return;
 		}
 
-		$payload = $objectEntity->jsonSerialize();
-		$tenantId = $payload['tenant_id'] ?? '';
-
-		// Guard 1: verb must be completed/passed.
-		$verbId = $payload['verb']['id'] ?? '';
-		if (in_array($verbId, self::COMPLETION_VERBS, true) === false) {
+		$statement = $entity->jsonSerialize();
+		if (in_array(($statement['verb']['id'] ?? ''), XapiEnrolmentCompletion::COMPLETION_VERBS, true) === false) {
 			return;
 		}
 
-		$lesson = $this->resolveLesson(payload: $payload, tenantId: $tenantId);
-		if ($lesson === null) {
-			// No resolvable Lesson — skipped without error, exactly like
-			// XapiCompletionHandler skips an unresolvable object id.
-			return;
+		// Deduplicated per statement: a repeated event owes one upsert. No id, no dedupe.
+		$id = (string)($statement['id'] ?? ($statement['uuid'] ?? ''));
+		$dedupeKey = null;
+		if ($id !== '') {
+			$dedupeKey = XapiStatementFollowUpJob::LESSON_PROGRESS . '|' . $id;
 		}
 
-		$lessonId = $lesson['id'] ?? ($lesson['uuid'] ?? null);
-		$courseId = $lesson['courseId'] ?? null;
-		if ($lessonId === null || $courseId === null) {
-			return;
-		}
-
-		$learnerId = $this->resolveVerifiedLearnerId(payload: $payload);
-		if ($learnerId === null) {
-			return;
-		}
-
-		$enrolmentId = $this->resolveActiveEnrolmentId(
-			learnerId: $learnerId,
-			courseId: $courseId,
-			tenantId: $tenantId
+		$this->deferral->defer(
+			jobClass: XapiStatementFollowUpJob::class,
+			entry: [
+				'kind' => XapiStatementFollowUpJob::LESSON_PROGRESS,
+				'statement' => $statement,
+				'completedAt' => $this->timeFactory->getDateTime()->format(\DATE_ATOM),
+			],
+			dedupeKey: $dedupeKey
 		);
-
-		$score = $payload['result']['score']['scaled'] ?? null;
-
-		$this->upsertLessonCompletion(
-			learnerId: $learnerId,
-			lessonId: $lessonId,
-			courseId: $courseId,
-			enrolmentId: $enrolmentId,
-			verb: $verbId,
-			score: $score,
-			tenantId: $tenantId
-		);
-
 	}//end handle()
-
-	/**
-	 * Whether the created object is an XapiStatement in the learniq register.
-	 *
-	 * @param mixed $entity The created ObjectEntity.
-	 *
-	 * @return bool True when this handler should act on it.
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-19
-	 */
-	private function isLearniqXapiStatement(mixed $entity): bool {
-		if ($this->schemaResolver->registerSlug(entity: $entity) !== self::LEARNIQ_REGISTER) {
-			return false;
-		}
-
-		return ($this->schemaResolver->schemaSlug(entity: $entity) === self::XAPI_SCHEMA);
-	}//end isLearniqXapiStatement()
-
-	/**
-	 * Resolve the learner identity this statement may act on.
-	 *
-	 * C6: identity comes ONLY from the server-trusted `verified_actor_id` field
-	 * — the same trust boundary XapiCompletionHandler enforces.
-	 * `payload.actor.*` is NEVER read, because it is user-controlled.
-	 *
-	 * @param array<string,mixed> $payload The xAPI statement payload.
-	 *
-	 * @return string|null The verified learner id, or null when the statement carries none.
-	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-19
-	 */
-	private function resolveVerifiedLearnerId(array $payload): ?string {
-		$learnerId = (string)($payload['verified_actor_id'] ?? '');
-		if ($learnerId === '') {
-			$this->logger->warning(
-				'[LessonProgressHandler] xAPI statement missing verified_actor_id; skipping. '
-				. 'Ensure the xAPI ingest controller stamps this field on authenticated saves.'
-			);
-			return null;
-		}
-
-		return $learnerId;
-	}//end resolveVerifiedLearnerId()
-
-	/**
-	 * Resolve the Lesson referenced by the xAPI statement's object id — the
-	 * same xapiObjectId lookup XapiCompletionHandler already uses.
-	 *
-	 * @param array<string, mixed> $payload The XapiStatement payload.
-	 * @param string $tenantId Tenant scope for the lookup.
-	 *
-	 * @return array<string, mixed>|null
-	 */
-	private function resolveLesson(array $payload, string $tenantId): ?array {
-		$lessonObjectId = $payload['object']['id'] ?? null;
-		if ($lessonObjectId === null) {
-			return null;
-		}
-
-		$lessonFilters = ['xapiObjectId' => $lessonObjectId];
-		if ($tenantId !== '') {
-			$lessonFilters['tenant_id'] = $tenantId;
-		}
-
-		$lessons = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$lessonFilters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::LESSON_SCHEMA,
-					]
-				),
-				'limit' => 1,
-			]
-		);
-
-		if (empty($lessons) === true) {
-			return null;
-		}
-
-		$lesson = $lessons[0];
-		if (is_array($lesson) === false) {
-			$lesson = $lesson->jsonSerialize();
-		}
-
-		return $lesson;
-	}//end resolveLesson()
-
-	/**
-	 * Resolve the learner's current Enrolment id for this Course: the active
-	 * one, otherwise a pending one (a completion made before the enrolment is
-	 * activated still belongs to it), otherwise null.
-	 *
-	 * @param string $learnerId NC user ID of the learner.
-	 * @param string $courseId UUID of the Course.
-	 * @param string $tenantId Tenant scope for the lookup.
-	 *
-	 * @return string|null
-	 *
-	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
-	 */
-	private function resolveActiveEnrolmentId(string $learnerId, string $courseId, string $tenantId): ?string {
-		foreach (['active', 'pending'] as $lifecycle) {
-			$filters = [
-				'learnerId' => $learnerId,
-				'courseId' => $courseId,
-				'lifecycle' => $lifecycle,
-			];
-			if ($tenantId !== '') {
-				$filters['tenant_id'] = $tenantId;
-			}
-
-			$enrolments = $this->objectService->findAll(
-				[
-					'filters' => array_merge(
-						$filters,
-						[
-							'register' => self::LEARNIQ_REGISTER,
-							'schema' => self::ENROLMENT_SCHEMA,
-						]
-					),
-					'limit' => 1,
-				]
-			);
-
-			if (empty($enrolments) === false) {
-				$enrolment = $enrolments[0];
-				if (is_array($enrolment) === false) {
-					$enrolment = $enrolment->jsonSerialize();
-				}
-
-				return $enrolment['id'] ?? ($enrolment['uuid'] ?? null);
-			}
-		}//end foreach
-
-		return null;
-	}//end resolveActiveEnrolmentId()
-
-	/**
-	 * Create or update the LessonCompletion for (enrolmentId, lessonId).
-	 *
-	 * A duplicate completion statement within the same enrolment updates that
-	 * enrolment's row rather than duplicating it. A completion in a later
-	 * enrolment (a retake, a re-enrolment, a recertification) adds a new row
-	 * and leaves the earlier enrolment's row, and its enrolmentId, untouched
-	 * (learniq#945). Rows are matched in PHP rather than with an enrolmentId
-	 * filter, so a legacy row without an enrolment is matched only by a
-	 * completion that also has none.
-	 *
-	 * @param string $learnerId NC user ID of the learner.
-	 * @param string $lessonId UUID of the completed Lesson.
-	 * @param string $courseId UUID of the Lesson's parent Course.
-	 * @param string|null $enrolmentId UUID of the learner's current Enrolment, if any.
-	 * @param string $verb The xAPI verb IRI.
-	 * @param float|null $score Optional result.score.scaled value.
-	 * @param string $tenantId Tenant identifier.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
-	 */
-	private function upsertLessonCompletion(
-		string $learnerId,
-		string $lessonId,
-		string $courseId,
-		?string $enrolmentId,
-		string $verb,
-		?float $score,
-		string $tenantId,
-	): void {
-		$existing = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::LESSON_COMPLETION_SCHEMA,
-					'learnerId' => $learnerId,
-					'lessonId' => $lessonId,
-				],
-			]
-		);
-
-		$existingData = null;
-		foreach ($existing as $row) {
-			if (is_array($row) === false) {
-				$row = $row->jsonSerialize();
-			}
-
-			if ((string)($row['enrolmentId'] ?? '') === (string)($enrolmentId ?? '')) {
-				$existingData = $row;
-				break;
-			}
-		}
-
-		$completedAt = $this->timeFactory->getDateTime()->format(\DATE_ATOM);
-
-		$data = array_merge(
-			$existingData ?? [],
-			[
-				'learnerId' => $learnerId,
-				'lessonId' => $lessonId,
-				'courseId' => $courseId,
-				'enrolmentId' => $enrolmentId,
-				'source' => 'xapi',
-				'verb' => $verb,
-				'score' => $score,
-				'completedAt' => $completedAt,
-				'tenant_id' => $tenantId,
-			]
-		);
-
-		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::LESSON_COMPLETION_SCHEMA,
-			object: $data
-		);
-
-	}//end upsertLessonCompletion()
 }//end class
