@@ -48,14 +48,19 @@
 ## Tests (company-wide ADR-009)
 - [x] PHPUnit unit tests for new/changed business logic (`tests/Unit/`) —
   `CohortGroupProvisioningHandlerTest`
-- [ ] Newman/Postman tests for new/changed API endpoints — N/A, no API changed
-- [ ] Browser tests (Playwright MCP) for UI changes — N/A, no UI changed
+- [x] Newman/Postman tests for new/changed API endpoints — N/A, no API changed
+  - N/A, confirmed in r5-structure: 90d29044 (#915) touches no controller and no `appinfo/routes.php`.
+- [x] Browser tests (Playwright MCP) for UI changes — N/A, no UI changed
+  - N/A, confirmed in r5-structure: 90d29044 changes nothing under `src/`.
 - [x] All tests pass (`vendor/bin/phpunit --filter CohortGroupProvisioningHandlerTest`)
 
 ## Documentation (company-wide ADR-010)
-- [ ] Feature documentation updated in `docs/` — N/A, no new user-facing surface
-- [ ] Screenshot captured and committed to `docs/images/` — N/A, no visual change
+- [x] Feature documentation updated in `docs/` — N/A, no new user-facing surface
+  - N/A, confirmed in r5-structure: a backend listener with no page or setting.
+- [x] Screenshot captured and committed to `docs/images/` — N/A, no visual change
+  - N/A, confirmed in r5-structure: nothing visual changed.
 
 ## i18n (company-wide ADR-005)
-- [ ] Dutch (`nl_NL`) and English (`en_US`) translation strings added — N/A,
+- [x] Dutch (`nl_NL`) and English (`en_US`) translation strings added — N/A,
   no new user-facing strings (a backend listener, no notification text)
+  - N/A, confirmed in r5-structure: 90d29044 adds no catalogue key and no user-facing string.
