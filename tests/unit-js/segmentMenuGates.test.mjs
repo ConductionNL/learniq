@@ -197,15 +197,22 @@ test('an install that never chose sees every surface (no behaviour change)', () 
 	assert.deepEqual(hiddenIn(NEVER), [])
 })
 
-test('a company that chose Company loses exactly the school-only surfaces (D26)', () => {
+const SUBJECT_CHOICE_MENU = ['SubjectChoicesMenu', 'SubjectChoicePickerMenu'].map(
+	(id) => `menu:${id}`,
+)
+
+test('a company that chose Company loses exactly the school-only surfaces (D26, D34)', () => {
 	assert.deepEqual(
 		hiddenIn(chose('corporate')),
 		[
 			...SCHOOL_ONLY_MENU,
 			...BPV_CARDS,
+			...BSA_CARDS,
 			...EXAM_BOARD_CARDS,
+			...SUBJECT_CHOICE_MENU,
 			'report:AttendanceFlags',
 			'report:BpvVisitReports',
+			'report:BsaRiskDashboard',
 		].sort(),
 	)
 })
@@ -248,7 +255,7 @@ test('a primary school sees the school shape and not the rest', () => {
 	}
 })
 
-test('BPV is for MBO and installs that never chose; BSA for higher education and companies', () => {
+test('BPV is for MBO and installs that never chose; BSA for higher education only (D34)', () => {
 	const states = [['never', NEVER], ...SEGMENTS.map((s) => [s, chose(s)])]
 	const seeing = (id) =>
 		states.filter(([, state]) => surfaces(state).has(id)).map(([name]) => name)
@@ -256,7 +263,10 @@ test('BPV is for MBO and installs that never chose; BSA for higher education and
 		assert.deepEqual(seeing(id), ['never', 'mbo'], id)
 	}
 	for (const id of [...BSA_CARDS, 'report:BsaRiskDashboard']) {
-		assert.deepEqual(seeing(id), ['never', 'he', 'corporate'], id)
+		assert.deepEqual(seeing(id), ['never', 'he'], id)
+	}
+	for (const id of SUBJECT_CHOICE_MENU) {
+		assert.deepEqual(seeing(id), ['never', 'vo', 'mbo', 'he'], id)
 	}
 })
 
