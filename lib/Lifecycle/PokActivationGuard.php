@@ -78,14 +78,16 @@ class PokActivationGuard implements LifecycleGuardInterface {
 	 *
 	 * @var string
 	 */
-	private const PARENT_FOR_MINOR = 'The student was under 18 when they signed, so a parent or guardian listed on their learner profile also signs the practical training agreement.';
+	private const PARENT_FOR_MINOR = 'The student was under 18 when they signed, so a parent or guardian listed on their learner profile '
+		. 'also signs the practical training agreement.';
 
 	/**
 	 * Added when the student's age cannot be established.
 	 *
 	 * @var string
 	 */
-	private const PARENT_FOR_UNKNOWN_AGE = 'The student\'s date of birth is not recorded, so a parent or guardian listed on their learner profile also signs the practical training agreement. Record the date of birth if the student is 18 or older.';
+	private const PARENT_FOR_UNKNOWN_AGE = 'The student\'s date of birth is not recorded, so a parent or guardian listed on their learner '
+		. 'profile also signs the practical training agreement. Record the date of birth if the student is 18 or older.';
 
 	/**
 	 * Learniq register slug.
@@ -169,7 +171,7 @@ class PokActivationGuard implements LifecycleGuardInterface {
 		$signatures = $this->fetchSignatures(pokId: $pokId, version: $version, tenantId: $tenantId);
 		$missing = array_diff(self::REQUIRED_ROLES, $this->signedRoles(signatures: $signatures));
 
-		$parent = $this->parentRule->evaluate(pok: $pok, studentSignedAt: PokParentSignatureRule::studentSignedAt(signatures: $signatures));
+		$parent = $this->parentRule->evaluate(pok: $pok, studentSignedAt: $this->parentRule->studentSignedAt(signatures: $signatures));
 		$parentMissing = $parent['required'] === true
 			&& $this->aListedParentSigned(signatures: $signatures, parentIds: $parent['parentIds']) === false;
 

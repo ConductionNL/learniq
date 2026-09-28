@@ -81,7 +81,7 @@ class PokParentSignatureStampAction implements LifecycleActionInterface {
 		}
 
 		$signatures = $this->signatures(pokId: $pokId, version: (int)($objectData['version'] ?? 1), tenantId: (string)($objectData['tenant_id'] ?? ''));
-		$verdict = $this->parentRule->evaluate(pok: $objectData, studentSignedAt: PokParentSignatureRule::studentSignedAt(signatures: $signatures));
+		$verdict = $this->parentRule->evaluate(pok: $objectData, studentSignedAt: $this->parentRule->studentSignedAt(signatures: $signatures));
 
 		$objectData['parentSignatureRequired'] = $verdict['required'];
 

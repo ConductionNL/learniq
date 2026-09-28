@@ -31,11 +31,21 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Settings;
 
+use DateTimeImmutable;
+use DateTimeZone;
 use OCA\Learniq\Grading\GradeAggregationEngine;
 use OCA\Learniq\Grading\GradePassEvaluator;
+use OCA\Learniq\Lifecycle\Action\PokParentSignatureStampAction;
+use OCA\Learniq\Lifecycle\PokActivationGuard;
 use OCA\Learniq\Service\DemoDataService;
+use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\Learniq\Service\PokParentSignatureRule;
 use OCA\Learniq\Service\SeedProfileService;
+use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\App\IAppManager;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -274,7 +284,12 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		foreach ($agreements as $uuid => $agreement) {
 			$placement = $placements[$agreement['bpvPlacementId']];
 			self::assertSame([$placement['periodFrom'], $placement['periodTo']], [$agreement['periodFrom'], $agreement['periodTo']]);
-			self::assertEqualsCanonicalizing(['student', 'school', 'praktijkopleider'], array_keys($signatures[$uuid]), $agreement['slug']);
+			$roles = ['student', 'school', 'praktijkopleider'];
+			if ($agreement['parentSignatureRequired'] === true) {
+				$roles[] = 'parent';
+			}
+
+			self::assertEqualsCanonicalizing($roles, array_keys($signatures[$uuid]), $agreement['slug']);
 			self::assertSame($placement['learnerId'], $signatures[$uuid]['student']['signerId']);
 			self::assertSame($placement['practicalTrainerId'], $signatures[$uuid]['praktijkopleider']['signerId']);
 			foreach ($signatures[$uuid] as $signature) {
@@ -511,6 +526,68 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		self::assertSame(end($all)['uuid'], $uuids[0], 'the last-loaded object is removed first');
 		self::assertSame(self::of('school')[0]['uuid'], end($uuids), 'the college is removed last');
 	}//end testTheServiceOffersAndRemovesExactlyThisSet()
+
+	/**
+	 * Every agreement went active, so the real activation guard accepts its
+	 * signatures, and its parent flag is what the stamp action writes: a
+	 * minor's agreement carries a parent signature from a parent listed on
+	 * the student's profile, an adult's carries none. At least one agreement
+	 * of each kind exists.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
+	 */
+	public function testEveryAgreementPassesTheActivationGuardAndCarriesTheRightParentFlag(): void {
+		$rows = [
+			'bpv-placement' => self::by(self::of('bpv-placement'), 'uuid'),
+			'learner-profile' => self::by(self::of('learner-profile'), 'uuid'),
+		];
+		$signaturesBySubject = [];
+		foreach (self::of('pok-signature') as $signature) {
+			$signaturesBySubject[$signature['subjectId']][] = $signature;
+		}
+
+		$store = $this->createMock(ObjectService::class);
+		$store->method('find')->willReturnCallback(
+			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($rows) {
+				if (isset($rows[(string)$schema][(string)$id]) === false) {
+					throw new DoesNotExistException('not in the set');
+				}
+
+				return OrEntityFactory::make($rows[(string)$schema][(string)$id], (string)$schema);
+			}
+		);
+		$store->method('findAll')->willReturnCallback(
+			static fn (array $config): array => ($signaturesBySubject[$config['filters']['subjectId'] ?? ''] ?? [])
+		);
+		$time = $this->createMock(ITimeFactory::class);
+		$time->method('now')->willReturn(new DateTimeImmutable('2025-08-18 08:00:00', new DateTimeZone('Europe/Amsterdam')));
+		$rule   = new PokParentSignatureRule($store, new LearnerRefResolver($store), $time);
+		$guard  = new PokActivationGuard($store, $this->createMock(LoggerInterface::class), $rule);
+		$stamp  = new PokParentSignatureStampAction($rule, $store);
+		$minors = 0;
+
+		foreach (self::of('praktijkovereenkomst') as $agreement) {
+			$pok = array_merge($agreement, ['id' => $agreement['uuid']]);
+			self::assertTrue($guard->check($pok, 'activate', 'mbo-stagecoordinator-01')->isAllowed(), $agreement['slug'] . ' passes the activation guard');
+			self::assertSame($stamp->execute($pok, [], [], 'activate')['parentSignatureRequired'], $agreement['parentSignatureRequired'], $agreement['slug']);
+
+			$parentSigners = array_column(array_filter($signaturesBySubject[$agreement['uuid']], static fn (array $s): bool => $s['signerRole'] === 'parent'), 'signerId');
+			if ($agreement['parentSignatureRequired'] === false) {
+				self::assertSame([], $parentSigners, $agreement['slug'] . ' is an adult\'s agreement');
+				continue;
+			}
+
+			$minors++;
+			$profile = $rows['learner-profile'][$rows['bpv-placement'][$agreement['bpvPlacementId']]['learnerRef']];
+			self::assertCount(1, $parentSigners, $agreement['slug']);
+			self::assertContains($parentSigners[0], $profile['parentIds'], $agreement['slug'] . ' is signed by a listed parent');
+		}
+
+		self::assertGreaterThan(0, $minors);
+		self::assertLessThan(count(self::of('praktijkovereenkomst')), $minors);
+	}//end testEveryAgreementPassesTheActivationGuardAndCarriesTheRightParentFlag()
 
 	/**
 	 * The file is what the generator produces, so nobody edits the JSON by

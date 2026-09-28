@@ -132,7 +132,7 @@ class PokParentSignatureRule {
 	 *
 	 * @spec openspec/changes/pok-signature-parent-role/specs/bpv/spec.md#requirement-pok-activation-is-gated-on-every-required-signature
 	 */
-	public static function studentSignedAt(array $signatures): ?string {
+	public function studentSignedAt(array $signatures): ?string {
 		$earliest = null;
 		foreach ($signatures as $row) {
 			$signedAt = $row['signedAt'] ?? null;
@@ -199,12 +199,7 @@ class PokParentSignatureRule {
 			return null;
 		}
 
-		$row = $object->jsonSerialize();
-		if (is_array($row) === false) {
-			return null;
-		}
-
-		return $row;
+		return $object->jsonSerialize();
 	}//end row()
 
 	/**
@@ -240,15 +235,13 @@ class PokParentSignatureRule {
 			return null;
 		}
 
-		$born = DateTimeImmutable::createFromFormat('!Y-m-d', $birthDate, $day->getTimezone());
-		if ($born === false) {
+		try {
+			$born = new DateTimeImmutable($birthDate, $day->getTimezone());
+		} catch (Exception $exception) {
 			return null;
 		}
 
-		$signedOn = DateTimeImmutable::createFromFormat('!Y-m-d', $day->format('Y-m-d'), $day->getTimezone());
-		if ($signedOn === false) {
-			return null;
-		}
+		$signedOn = new DateTimeImmutable($day->format('Y-m-d'), $day->getTimezone());
 
 		return $born->diff($signedOn)->y;
 	}//end ageOn()

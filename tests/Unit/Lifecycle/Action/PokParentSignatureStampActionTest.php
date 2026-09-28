@@ -41,7 +41,11 @@ class PokParentSignatureStampActionTest extends TestCase {
 	 * @return PokParentSignatureStampAction
 	 */
 	private function makeAction(array $verdict, array $signatures, array &$askedWith): PokParentSignatureStampAction {
-		$rule = $this->createMock(PokParentSignatureRule::class);
+		// Only the verdict is stubbed; studentSignedAt() runs for real.
+		$rule = $this->getMockBuilder(PokParentSignatureRule::class)
+			->disableOriginalConstructor()
+			->onlyMethods(['evaluate'])
+			->getMock();
 		$rule->method('evaluate')->willReturnCallback(
 			static function (array $pok, ?string $studentSignedAt) use ($verdict, &$askedWith): array {
 				$askedWith[] = $studentSignedAt;

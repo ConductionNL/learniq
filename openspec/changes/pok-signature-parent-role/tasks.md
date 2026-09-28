@@ -53,8 +53,8 @@ Every task writes its test first and runs it against the old code, where it must
 - **files**: `scripts/example-sets/mbo.py`, `lib/Settings/profiles/mbo.json`, `tests/Unit/Settings/VocationalCollegeExampleSetTest.php`
 - **acceptance_criteria**:
   - every agreement a minor signed has the flag and a listed parent's signature; no existing uuid moves; the generator check passes
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+- [x] Test
 
 ## Verification
 - [ ] `openspec validate pok-signature-parent-role` passes

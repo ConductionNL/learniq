@@ -670,7 +670,9 @@ def build() -> dict:
                              "phone": f"06-0000{rng.randint(1000, 9999)}", "priority": 1})
         s["profile"] = b.add("learner-profile", {
             "ncUserId": s["nc"], "givenName": s["given"], "familyName": s["surname"], "birthDate": s["birth"].isoformat(),
-            "schoolId": school["uuid"], "eduPersonAffiliation": ["student"], "roles": ["learner"], "parentIds": [],
+            "schoolId": school["uuid"], "eduPersonAffiliation": ["student"], "roles": ["learner"],
+            # A minor's parent (the emergency contact above) has an account, so they can co-sign a praktijkovereenkomst.
+            "parentIds": ([f"mbo-ouder-{n:03d}"] if s["minor"] else []),
             "guardianRefs": [], "address": address, "emergencyContacts": contacts,
             "allergies": (["noten"] if rng.random() < 0.04 else None),
             "medicalConditions": (["diabetes type 1"] if rng.random() < 0.02 else None),
@@ -803,7 +805,10 @@ def build() -> dict:
             "terms": (f"Beroepspraktijkvorming bij {p['company']} van {dutch_date(f)} tot en met {dutch_date(t)}, op {placement_days}. "
                       f"Praktijkopleider {trainer_name(p['trainer'])}, BPV-docent {STAFF[p['coach']][0]}. "
                       "Het leerbedrijf is erkend door SBB; de student volgt de werktijden en huisregels van het leerbedrijf."),
-            "version": 1, "lifecycle": p["state"],
+            "version": 1,
+            # PokParentSignatureRule: a parent co-signs when the student is under 18 on the day they sign (12 days before the start).
+            "parentSignatureRequired": age_on(s["birth"], f - dt.timedelta(days=12)) < 18,
+            "lifecycle": p["state"],
         })
         p["pok"] = pok
         signers = [(s["nc"], "student", 12, 19, "basic", "Nextcloud-account"),
@@ -813,6 +818,15 @@ def build() -> dict:
             b.add("pok-signature", {
                 "subjectId": pok["uuid"], "subjectVersion": 1, "signerId": signer, "signerRole": role,
                 "signedAt": stamp(f - dt.timedelta(days=before), hour, 5), "assuranceLevel": level, "method": method,
+            })
+
+    # Parent co-signatures, appended after the three standing signatures so no earlier uuid moves.
+    for p in placements:
+        if p["pok"]["parentSignatureRequired"]:
+            b.add("pok-signature", {
+                "subjectId": p["pok"]["uuid"], "subjectVersion": 1, "signerId": p["student"]["profile"]["parentIds"][0],
+                "signerRole": "parent", "signedAt": stamp(p["from"] - dt.timedelta(days=11), 20, 5), "assuranceLevel": "basic",
+                "method": "Nextcloud-account",
             })
 
     visit_text = {
