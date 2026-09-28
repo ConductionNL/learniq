@@ -6,7 +6,7 @@ description: Roll assignment grades up into a final course grade and publish it 
 
 # Grade work and give feedback
 
-Scholiq splits grading into two layers. **Grade entries** capture each piece of marked work (an assignment, an assessment, a participation mark). **Final grades** are the published, signed result for the course, what shows up on the transcript and certificate.
+Learniq splits grading into two layers. **Grade entries** capture each piece of marked work (an assignment, an assessment, a participation mark). **Final grades** are the published, signed result for the course, what shows up on the transcript and certificate.
 
 ## Goal
 
@@ -16,7 +16,7 @@ By the end you will have viewed all the grade entries for one learner on one cou
 
 - Graded submissions on the course (see [Set an assignment and collect submissions](./04-assignments.md)).
 - A **Grade scale** picked on the course (default *Numeric 0–100*; alternatives live under **Curriculum → Grade scales**).
-- The course is in status *Closed* or close to it, Scholiq lets you publish final grades earlier, but the audit pack flags grades signed against an open course.
+- The course is in status *Closed* or close to it, Learniq lets you publish final grades earlier, but the audit pack flags grades signed against an open course.
 
 ## Steps
 
@@ -32,11 +32,11 @@ By the end you will have viewed all the grade entries for one learner on one cou
 
    ![Grade entry detail](/screenshots/tutorials/user/06-grading-03.png)
 
-4. Switch to **Final grades** (in the same Grades section). Click **Add Item** and pick the **Course** and **Learner**. Scholiq pre-fills the calculated grade from the weighted average of the learner's entries; override it if needed and add a short reason.
+4. Switch to **Final grades** (in the same Grades section). Click **Add Item** and pick the **Course** and **Learner**. Learniq pre-fills the calculated grade from the weighted average of the learner's entries; override it if needed and add a short reason.
 
    ![Final grade dialog](/screenshots/tutorials/user/06-grading-04.png)
 
-5. Click **Publish**. The final grade lands on the learner's profile, on the course's *Grades* tab and in the course's compliance audit pack. Once published it is signed against the course's RS256 key, see [Manage Scholiq settings](../admin/03-admin-settings.md) for key rotation.
+5. Click **Publish**. The final grade lands on the learner's profile, on the course's *Grades* tab and in the course's compliance audit pack. Once published it is signed against the course's RS256 key, see [Manage Learniq settings](../admin/03-admin-settings.md) for key rotation.
 
    ![Final grade published](/screenshots/tutorials/user/06-grading-05.png)
 
@@ -50,7 +50,7 @@ By default, a grade entry's notification fires the moment you publish it, day or
 
 While an entry is published but its visibility window hasn't opened yet, its lifecycle badge on the grade impact page reads **Scheduled** instead of **Published**, and no notification has gone out. Parents receive the same notification on the same schedule as the learner.
 
-Each user can also set a personal quiet-hours window (for example 22:00–07:00) under **Settings → Notifications**, so Scholiq notifications they'd otherwise receive during that window are deferred until it ends. Deadline reminders are declared with enough lead time that they still land before the deadline even after a quiet-hours deferral.
+Each user can also set a personal quiet-hours window (for example 22:00–07:00) under **Settings → Notifications**, so Learniq notifications they'd otherwise receive during that window are deferred until it ends. Deadline reminders are declared with enough lead time that they still land before the deadline even after a quiet-hours deferral.
 
 ## Tests in the portal
 
@@ -69,8 +69,8 @@ Pupils can also take a test in the school portal (the portaliq app), under **My 
 | Symptom | Fix |
 |---|---|
 | The calculated grade is blank | Some grade entries on the course have no *Weight*, open **Curriculum → Grade scales** and set the default weight, or set the weight per-assignment. |
-| *"Signing key not configured"* on publish | An admin still needs to generate the RS256 key, go to [Manage Scholiq settings](../admin/03-admin-settings.md) → **Credential Signing** → *Rotate signing key*. |
-| You need to amend a published final grade | Open the row and click **Amend**, Scholiq creates a new signed version and keeps the old one with status *Superseded*. |
+| *"Signing key not configured"* on publish | An admin still needs to generate the RS256 key, go to [Manage Learniq settings](../admin/03-admin-settings.md) → **Credential Signing** → *Rotate signing key*. |
+| You need to amend a published final grade | Open the row and click **Amend**, Learniq creates a new signed version and keeps the old one with status *Superseded*. |
 
 ## Reference
 

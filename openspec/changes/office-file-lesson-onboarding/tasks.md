@@ -62,7 +62,8 @@ Feature tier: should (V1). Stacked on lesson-ai-assist-actions (PR 1049).
 
 ## Verification
 - [x] `openspec validate office-file-lesson-onboarding --strict` passes
-- [ ] Before push: check:strict, lint, format, l10n checks, gate 101 and hydra gates run once, exit codes in the PR body
+- [x] Before push: check:strict, lint, format, l10n checks, gate 101 and hydra gates run once, exit codes in the PR body
+  - Done on the originating PR #1080: lint 0, format 0, stylelint 0, hydra gates `--scope-to-diff` 0 (64 of 64, gates 51, 101 and 102 pass), `composer check:strict` 1 on inherited reds only (development then had 13 failures and 1 error in other register tests). Development is at zero failures now; the r5-structure part 2 PR re-runs check:strict, lint, format, check:schema-l10n and the hydra gates, exit codes in its body.
 
 ## Quality checklist
 - PHPUnit for every new class (tests/Unit/...), at least three test methods each.
