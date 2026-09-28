@@ -1204,6 +1204,8 @@
         "{pending} pending, {approved} approved, {rejected} rejected.",
         "{percent}% ({covered} of {total})",
         "{planned} of {goals} goals are planned and {assessed} are assessed.",
-        "{shown} of {total} strings"
+        "{shown} of {total} strings",
+        "Enrolment Source",
+        "Origin of the enrolment record. admission is stamped by ApplicationConversionHandler on Application placement; subject-choice is stamped by SubjectChoiceEnrolmentBridge when a SubjectChoice locks (admissions-and-subject-choice); credential-renewal is stamped by CredentialRenewalListener when a Credential expires (credential-renewal-listener)."
     ]
 }
