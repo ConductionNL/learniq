@@ -236,6 +236,7 @@ export default {
 		/**
 		 * @param {string} text A description.
 		 * @return {string} At most 220 characters.
+		 * @spec openspec/changes/enrolment-catalogue-self-signup/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
 		 */
 		shorten(text) {
 			const value = text || ''

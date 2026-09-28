@@ -5,9 +5,10 @@
  *
  * The learner course catalogue in the app (enrolment-catalogue-self-signup):
  * list, sign up for a course or a programme, withdraw an own sign-up. Every
- * method is `#[NoAdminRequired]` with its check in the body: the caller acts
- * only for themselves (CatalogueSignUpService writes the caller as the
- * learner and checks that an enrolment to withdraw is the caller's own).
+ * method is `#[NoAdminRequired]` with its check in the body: a write needs a
+ * caller with a learner profile (403 otherwise) and acts only for that caller
+ * (CatalogueSignUpService writes the caller as the learner and checks that an
+ * enrolment to withdraw is the caller's own).
  *
  * @category Controller
  * @package  OCA\Learniq\Controller
@@ -114,6 +115,12 @@ class CatalogueController extends Controller {
 			return new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
 		}
 
+		if ($learner->profileRef === '') {
+			// Only a learner signs up or withdraws, and only for themselves:
+			// the service writes this caller's own id and checks ownership.
+			return new JSONResponse(data: ['error' => 'not_a_learner'], statusCode: Http::STATUS_FORBIDDEN);
+		}
+
 		return $this->answer(outcome: $this->signUps->signUpCourse(learner: $learner, courseId: $id), learner: $learner);
 	}//end signUpCourse()
 
@@ -133,6 +140,12 @@ class CatalogueController extends Controller {
 			return new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
 		}
 
+		if ($learner->profileRef === '') {
+			// Only a learner signs up or withdraws, and only for themselves:
+			// the service writes this caller's own id and checks ownership.
+			return new JSONResponse(data: ['error' => 'not_a_learner'], statusCode: Http::STATUS_FORBIDDEN);
+		}
+
 		return $this->answer(outcome: $this->signUps->signUpProgramme(learner: $learner, programmeId: $id), learner: $learner);
 	}//end signUpProgramme()
 
@@ -150,6 +163,12 @@ class CatalogueController extends Controller {
 		$learner = $this->learner();
 		if ($learner === null) {
 			return new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
+
+		if ($learner->profileRef === '') {
+			// Only a learner signs up or withdraws, and only for themselves:
+			// the service writes this caller's own id and checks ownership.
+			return new JSONResponse(data: ['error' => 'not_a_learner'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
 		return $this->answer(outcome: $this->signUps->withdraw(learner: $learner, enrolmentId: $id), learner: $learner);

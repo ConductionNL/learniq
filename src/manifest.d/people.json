@@ -54,7 +54,7 @@
 					"id": "SignUpRequestsMenu",
 					"label": "Sign-up requests",
 					"icon": "AccountGroup",
-					"route": "SignUpRequests",
+					"route": "Enrolments",
 					"order": 21,
 					"visibleIf": {
 						"user.primaryRole": {
@@ -67,6 +67,10 @@
 								"admin"
 							]
 						}
+					},
+					"query": {
+						"source": "self",
+						"lifecycle": "pending"
 					}
 				},
 				{
@@ -177,21 +181,6 @@
 				"register": "learniq",
 				"schema": "Enrolment"
 			}
-		},
-		{
-			"id": "SignUpRequests",
-			"route": "/enrolments/requests",
-			"type": "index",
-			"title": "Sign-up requests",
-			"config": {
-				"register": "learniq",
-				"schema": "Enrolment",
-				"filter": {
-					"source": "self",
-					"lifecycle": "pending"
-				}
-			},
-			"_note": "enrolment-catalogue-self-signup: learners' requests for a place in a course on request. Open one and approve or decline it (the approve and decline transitions on EnrolmentDetail); a learner's manager can do the same for their own reports."
 		},
 		{
 			"id": "Credentials",

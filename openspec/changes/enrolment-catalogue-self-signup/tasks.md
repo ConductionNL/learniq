@@ -31,7 +31,7 @@
 - **files**: `src/manifest.d/people.json` (SignUpRequests), `src/manifest.d/learning.json` (Course and Programme forms, the imported filter)
 - [x] Implement
 - [ ] Test: Playwright `tests/e2e/course-catalogue.spec.ts` (manager approves a request)
-- `SignUpRequests` index page on enrolment (`source: self`, `lifecycle: pending`) with its menu entry; approve and decline come from EnrolmentDetail's lifecycle actions. `ImportedCourses` index page (`draft`, `all-rights-reserved`) reached from a Courses header action; the lti-lesson part of the filter is left out (an index filter cannot join lessons). Playwright test not written.
+- Sign-up requests are a menu preset on the Enrolments index (`query: {source: self, lifecycle: pending}`), and "Imported, not yet published" a preset on the Courses index (`lifecycle: draft`, `license: all-rights-reserved`), per ADR-097 decision 5 (no second index page per schema); approve and decline come from EnrolmentDetail's lifecycle actions. The lti-lesson part of the imported filter is left out (an index filter cannot join lessons). Playwright test not written.
 
 ### Task 5: Seed data and translations
 - **files**: training example set generator, `l10n/en.json`, `l10n/nl.json`, `l10n/*.js`

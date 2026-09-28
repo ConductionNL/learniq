@@ -168,5 +168,20 @@ class PortalCatalogueControllerTest extends TestCase {
 		self::assertSame(422, $controller->signUpCourse(id: 'c-1')->getStatus());
 		self::assertSame(['course:p.ganpat:c-1'], $this->calls);
 		self::assertSame(401, $controller->withdraw(id: 'e-1')->getStatus());
+
+		$noProfile = $this->createMock(LearnerRefResolver::class);
+		$noProfile->method('resolve')->willReturn(null);
+		$staffSession = $this->createMock(IUserSession::class);
+		$staffSession->method('getUser')->willReturn($user);
+		$staff = new CatalogueController(
+			request: $this->createMock(IRequest::class),
+			userSession: $staffSession,
+			reader: $this->createMock(CatalogueReader::class),
+			signUps: $this->signUps(),
+			messages: $this->createMock(CatalogueMessages::class),
+			profiles: $noProfile
+		);
+		self::assertSame(403, $staff->signUpCourse(id: 'c-1')->getStatus());
+		self::assertSame(['course:p.ganpat:c-1'], $this->calls);
 	}//end testTheAppSignsUpTheCallerOnly()
 }//end class
