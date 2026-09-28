@@ -38,13 +38,44 @@ namespace OCA\Learniq\Service;
  */
 class ExchangeDisclosure {
 
+	public const ROD_LEARNER_MAPPING = 'learniq-bron-rod-export-learner';
+	public const ROD_SCHOOL_ADVICE_MAPPING = 'learniq-bron-rod-export-schooladvies';
+
+	/**
+	 * DUO's AanleverenAdviesVO field set (PvE ROD-PO 1.14.2, 7.9.1), and nothing else.
+	 *
+	 * @var array<int, string>
+	 */
+	public const ROD_SCHOOL_ADVICE_FIELDS = [
+		'persoonsgebondenNummer',
+		'persoonsgebondenNummerType',
+		'adviesvolgnummer',
+		'onderwijsaanbieder',
+		'onderwijslocatie',
+		'vestigingscode',
+		'adviesjaar',
+		'advies1',
+		'advies1Datum',
+		'advies2',
+		'advies2Datum',
+	];
+
 	/**
 	 * Mapping slug to the learniq fields it may read.
 	 *
 	 * @var array<string, array<int, string>>
 	 */
 	private const FIELDS = [
-		'learniq-bron-rod-export-learner' => ['eckId', 'givenName', 'familyName', 'birthDate', 'schoolId'],
+		self::ROD_LEARNER_MAPPING => [
+			'eckId',
+			'givenName',
+			'familyName',
+			'birthDate',
+			'schoolId',
+			'persoonsgebondenNummer',
+			'persoonsgebondenNummerType',
+		],
+		self::ROD_SCHOOL_ADVICE_MAPPING => self::ROD_SCHOOL_ADVICE_FIELDS,
 		'learniq-oso-export-dossier' => ['eckId', 'givenName', 'familyName', 'birthDate', 'schoolBrin'],
 		'learniq-leerplicht-export-melding' => ['learnerId', 'windowStart', 'windowEnd', 'metricValue'],
 		'learniq-swv-export-zorgvraag' => ['supportDomain', 'description', 'urgency'],
@@ -78,11 +109,32 @@ class ExchangeDisclosure {
 	];
 
 	/**
-	 * Fields that never leave, whatever a list says.
+	 * Fields a mapping's every record must carry; wins over the target's list (design D3).
+	 *
+	 * @var array<string, array<int, string>>
+	 */
+	private const REQUIRED_BY_MAPPING = [
+		self::ROD_LEARNER_MAPPING => ['eckId', 'birthDate', 'schoolId', 'persoonsgebondenNummer', 'persoonsgebondenNummerType'],
+		self::ROD_SCHOOL_ADVICE_MAPPING => [
+			'persoonsgebondenNummer',
+			'persoonsgebondenNummerType',
+			'adviesvolgnummer',
+			'onderwijsaanbieder',
+			'onderwijslocatie',
+			'vestigingscode',
+			'adviesjaar',
+			'advies1',
+			'advies1Datum',
+		],
+	];
+
+	/**
+	 * Fields that never leave, whatever a list says. The personal number leaves
+	 * only as `persoonsgebondenNummer`, composed for the two ROD mappings.
 	 *
 	 * @var array<int, string>
 	 */
-	public const NEVER = ['bsnEncrypted', 'bsnHash', 'email'];
+	public const NEVER = ['bsnEncrypted', 'bsnHash', 'email', 'personalNumber', 'personalNumberType'];
 
 	/**
 	 * The fields a mapping may read, or null when learniq has no list for it.
@@ -115,15 +167,36 @@ class ExchangeDisclosure {
 	}//end isStatutory()
 
 	/**
-	 * The fields a target's every record must carry.
+	 * The fields a job's every record must carry: the mapping's list, else the target's.
 	 *
-	 * @param string $target The exchange target.
+	 * @param string      $target      The exchange target.
+	 * @param string|null $mappingSlug The job's integriq mapping.
 	 *
 	 * @return array<int, string> The field names, empty when none are required.
 	 *
 	 * @spec openspec/changes/data-exchange-to-integriq/specs/data-exchange/spec.md#requirement-what-may-leave-is-decided-by-learniq-per-mapping
+	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-a-school-advice-goes-to-rod-with-duos-aanleverenadviesvo-field-set
 	 */
-	public function requiredFor(string $target): array {
+	public function requiredFor(string $target, ?string $mappingSlug=null): array {
+		if ($mappingSlug !== null && isset(self::REQUIRED_BY_MAPPING[$mappingSlug]) === true) {
+			return self::REQUIRED_BY_MAPPING[$mappingSlug];
+		}
+
 		return (self::REQUIRED[$target] ?? []);
 	}//end requiredFor()
+
+	/**
+	 * Whether a job may carry the persoonsgebonden nummer: a ROD target with one of the two ROD mappings.
+	 *
+	 * @param string      $target      The exchange target.
+	 * @param string|null $mappingSlug The job's integriq mapping.
+	 *
+	 * @return bool True only for those two.
+	 *
+	 * @spec openspec/changes/rod-bsn-and-school-advice/specs/data-exchange/spec.md#requirement-the-personal-number-leaves-learniq-only-in-a-rod-message-and-is-never-logged
+	 */
+	public function carriesPersonalNumber(string $target, ?string $mappingSlug): bool {
+		return $target === 'bron-rod'
+			&& in_array($mappingSlug, [self::ROD_LEARNER_MAPPING, self::ROD_SCHOOL_ADVICE_MAPPING], true);
+	}//end carriesPersonalNumber()
 }//end class

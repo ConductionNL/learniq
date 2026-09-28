@@ -110,6 +110,7 @@ class SettingsController extends Controller {
 		$data = $this->request->getParams();
 		$config = $this->settingsService->updateSettings($data);
 
+		$this->connectionReports?->observeTimetable();
 		$this->connectionReports?->reportObservations();
 
 		return new JSONResponse(

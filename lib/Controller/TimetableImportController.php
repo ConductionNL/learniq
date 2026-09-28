@@ -76,6 +76,30 @@ class TimetableImportController extends Controller {
 	}//end __construct()
 
 	/**
+	 * Whether the caller may ask for a timetable import, and whether planninq
+	 * takes one, so the timetable page shows its import button only to someone
+	 * the endpoint would admit.
+	 *
+	 * @return JSONResponse `{canImport, planninq}`; 401 without a session.
+	 *
+	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-the-timetable-page-offers-the-import-to-whoever-may-request-an-exchange
+	 */
+	#[NoAdminRequired]
+	public function access(): JSONResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
+
+		return new JSONResponse(
+			data: [
+				'canImport' => $this->actionAuth->can(user: $user, action: 'exchange.request'),
+				'planninq'  => $this->planninq->applies(),
+			]
+		);
+	}//end access()
+
+	/**
 	 * Deliver one timetable into planninq.
 	 *
 	 * @return JSONResponse `{correlationId, state, result}` (201), or 401/403/409.

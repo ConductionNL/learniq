@@ -24,8 +24,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service;
 
 use OCA\Learniq\Service\DemoDataService;
+use OCA\Learniq\Service\LoadedExampleSets;
 use OCA\Learniq\Service\SeedProfileService;
+use OCA\Learniq\Service\SharedCodeFilter;
 use OCP\App\IAppManager;
+use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -105,10 +108,11 @@ class SeedProfileServiceTest extends TestCase {
 	 * @param ContainerInterface|null $container The container double.
 	 * @param LoggerInterface|null    $logger    The logger double.
 	 * @param bool                    $generated Whether the generated set ships.
+	 * @param LoadedExampleSets|null  $loaded    The loaded-set list, when a test reads it.
 	 *
 	 * @return SeedProfileService
 	 */
-	private function service(?ContainerInterface $container = null, ?LoggerInterface $logger = null, bool $generated = true): SeedProfileService {
+	private function service(?ContainerInterface $container = null, ?LoggerInterface $logger = null, bool $generated = true, ?LoadedExampleSets $loaded = null): SeedProfileService {
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('isAvailable')->willReturn($generated);
 		$choices = [['id' => 'none', 'label' => 'None', 'description' => '', 'objectCount' => 0, 'icon' => 'CloseCircleOutline']];
@@ -123,9 +127,22 @@ class SeedProfileServiceTest extends TestCase {
 			$this->appManager,
 			($container ?? $this->createMock(ContainerInterface::class)),
 			($logger ?? $this->createMock(LoggerInterface::class)),
-			$demo
+			$demo,
+			$this->passThroughFilter(),
+			($loaded ?? $this->createMock(LoadedExampleSets::class))
 		);
 	}//end service()
+
+	/**
+	 * A shared-code filter that leaves every descriptor as it is.
+	 *
+	 * @return SharedCodeFilter
+	 */
+	private function passThroughFilter(): SharedCodeFilter {
+		$filter = $this->createMock(SharedCodeFilter::class);
+		$filter->method('withoutCodesHeldElsewhere')->willReturnArgument(0);
+		return $filter;
+	}//end passThroughFilter()
 
 	/**
 	 * `none` first, the sets by their order (not their file names), then
@@ -251,7 +268,9 @@ class SeedProfileServiceTest extends TestCase {
 			$noOr,
 			$this->createMock(ContainerInterface::class),
 			$this->createMock(LoggerInterface::class),
-			$this->createMock(DemoDataService::class)
+			$this->createMock(DemoDataService::class),
+			$this->passThroughFilter(),
+			$this->createMock(LoadedExampleSets::class)
 		);
 
 		$this->expectExceptionMessage('OpenRegister');
@@ -406,6 +425,89 @@ class SeedProfileServiceTest extends TestCase {
 		$this->expectExceptionMessage('"vo"');
 		$this->service(container: $container)->remove('vo');
 	}//end testRemoveIsDuckTypedAndRefusesAnUnknownSet()
+
+	/**
+	 * Loading a set puts it on the wizard's list with its label; a clean
+	 * removal takes it off, a removal with errors leaves it on.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/segment-tidy/specs/example-sets/spec.md#scenario-removing-one-of-two-loaded-sets
+	 */
+	public function testLoadingAndRemovingKeepTheLoadedList(): void {
+		$this->writeProfile('po.json', 'po', 1);
+		$stored    = new \ArrayObject(['value' => '']);
+		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig->method('getValueString')->willReturnCallback(static fn (): string => $stored['value']);
+		$appConfig->method('setValueString')->willReturnCallback(
+			static function (string $app, string $key, string $value) use ($stored): bool {
+				$stored['value'] = $value;
+				return true;
+			}
+		);
+		$loaded = new LoadedExampleSets($appConfig);
+
+		$summary = ['jobs' => [['importJobId' => 'job-1']], 'softDeleted' => 3, 'errors' => []];
+		$openRegister = new class($summary) {
+			/**
+			 * The summary softDeleteAppImports() answers with.
+			 *
+			 * @var array<string, mixed>
+			 */
+			public array $summary;
+
+			/**
+			 * Constructor.
+			 *
+			 * @param array<string, mixed> $summary The summary.
+			 */
+			public function __construct(array $summary) {
+				$this->summary = $summary;
+			}//end __construct()
+
+			/**
+			 * Accept the import.
+			 *
+			 * @param string               $appId   Config id.
+			 * @param array<string, mixed> $data    Descriptor.
+			 * @param string               $version App version.
+			 * @param bool                 $force   Force flag.
+			 *
+			 * @return array<string, mixed>
+			 */
+			public function importFromApp(string $appId, array $data, string $version, bool $force): array {
+				return [];
+			}//end importFromApp()
+
+			/**
+			 * Answer with the summary.
+			 *
+			 * @param string $appId The app id.
+			 *
+			 * @return array<string, mixed>
+			 */
+			public function softDeleteAppImports(string $appId): array {
+				return $this->summary;
+			}//end softDeleteAppImports()
+		};
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willReturn($openRegister);
+		$service = $this->service(container: $container, loaded: $loaded);
+
+		$service->install('po');
+		$service->install('demo');
+		self::assertSame(
+			[['id' => 'po', 'label' => 'Set po'], ['id' => 'demo', 'label' => 'Every schema, generated values']],
+			$loaded->all()
+		);
+
+		$service->remove('po');
+		self::assertSame(['demo'], array_column($loaded->all(), 'id'));
+
+		$openRegister->summary = ['jobs' => [['importJobId' => 'job-2']], 'softDeleted' => 0, 'errors' => [['importJobId' => 'job-2']]];
+		$service->remove('demo');
+		self::assertSame(['demo'], array_column($loaded->all(), 'id'));
+	}//end testLoadingAndRemovingKeepTheLoadedList()
 
 	/**
 	 * The removal list is every fixed uuid, last-loaded first.

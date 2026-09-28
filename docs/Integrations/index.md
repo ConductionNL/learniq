@@ -42,7 +42,20 @@ samenwerkingsverband. Learniq decides what may leave.
 Before a job runs, Integriq asks learniq. Learniq checks that a parent approved
 an OSO or SWV file, that the partner link is approved, that the teldatum count
 is confirmed, and that someone has taken up a verzuim signal. Only the fields
-the job's mapping needs leave the school, and never a BSN or an email address.
+the job's mapping needs leave the school, and never an email address.
+
+The BSN leaves the school in one place only: DUO's register (ROD). DUO
+identifies a pupil by the BSN, or by the onderwijsnummer when the pupil has no
+BSN. Store it on the learner profile under **Personal number**. Learniq keeps
+it encrypted, and only administration managers and compliance officers can
+see it. Each view is recorded with who viewed it. It never appears in
+another export or in a log.
+
+A school advice goes to ROD with the set DUO asks for: the voorlopig and
+definitief advice with their dates, the school year, and the school location.
+Give the advice its school location when your school has more than one. Fill
+in the onderwijsaanbieder code on the school. Nothing else from the pupil's
+file goes with it.
 
 Follow the jobs under **Data exchange > Exchange jobs**. A record the other
 side rejected shows under **Rejections**; fix it in learniq, then resubmit it

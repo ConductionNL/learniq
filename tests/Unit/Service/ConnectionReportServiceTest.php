@@ -32,6 +32,7 @@ use DateTime;
 use DateTimeZone;
 use OCA\Integriq\Event\ConnectionStatusReportedEvent;
 use OCA\Learniq\Service\ConnectionReportService;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -99,6 +100,20 @@ class ConnectionReportServiceTest extends TestCase {
 	private IAppConfig&MockObject $appConfig;
 
 	/**
+	 * App manager double; planninq is disabled unless a test enables it.
+	 *
+	 * @var IAppManager&MockObject
+	 */
+	private IAppManager&MockObject $appManager;
+
+	/**
+	 * Whether the app manager reports planninq enabled.
+	 *
+	 * @var bool
+	 */
+	private bool $planninq = false;
+
+	/**
 	 * Set up the fixtures.
 	 *
 	 * @return void
@@ -120,6 +135,10 @@ class ConnectionReportServiceTest extends TestCase {
 				return true;
 			}
 		);
+
+		$this->planninq   = false;
+		$this->appManager = $this->createMock(originalClassName: IAppManager::class);
+		$this->appManager->method('isEnabledForUser')->willReturnCallback(fn (string $app): bool => ($app === 'planninq' && $this->planninq));
 
 		$this->dispatcher = $this->createMock(originalClassName: IEventDispatcher::class);
 		$this->dispatcher->method('dispatchTyped')->willReturnCallback(
@@ -147,8 +166,30 @@ class ConnectionReportServiceTest extends TestCase {
 			eventDispatcher: ($dispatcher ?? $this->dispatcher),
 			timeFactory: $time,
 			logger: $this->logger,
+			appManager: $this->appManager,
 		);
 	}//end service()
+
+	/**
+	 * The timetable row is available exactly when planninq is enabled.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-the-timetable-connection-is-available-when-planninq-and-integriq-are-installed
+	 */
+	public function testTheTimetableRowFollowsPlanninq(): void {
+		$service = $this->service();
+
+		$service->observeTimetable();
+		$service->reportObservations();
+		$this->planninq = true;
+		$service->observeTimetable();
+		$service->reportObservations();
+
+		$timetable = array_values(array_filter($this->sent, static fn (object $sent): bool => $sent->key === 'timetable'));
+		$this->assertSame(['unavailable', 'configured'], array_map(static fn (object $sent): string => $sent->status, $timetable));
+		$this->assertStringContainsString(needle: 'Planninq is not installed', haystack: $timetable[0]->message);
+	}//end testTheTimetableRowFollowsPlanninq()
 
 	/**
 	 * A recorded observation is sent with the app, the key, the status and since when.
@@ -285,7 +326,7 @@ class ConnectionReportServiceTest extends TestCase {
 		$time = $this->createMock(originalClassName: ITimeFactory::class);
 		$time->method('getDateTime')->willReturn(new DateTime('2026-09-14 10:30:00', new DateTimeZone('UTC')));
 
-		$service = new class($this->appConfig, $this->dispatcher, $time, $this->logger) extends ConnectionReportService {
+		$service = new class($this->appConfig, $this->dispatcher, $time, $this->logger, $this->appManager) extends ConnectionReportService {
 
 			/**
 			 * Integriq is not installed, so no class resolves.

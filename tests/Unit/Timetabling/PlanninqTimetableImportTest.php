@@ -33,6 +33,7 @@ if (class_exists('\\OCA\\Planninq\\Event\\TimetableSessionsQueryEvent') === fals
 }
 
 use OCA\Integriq\Event\RosterImportRequestedEvent;
+use OCA\Learniq\Service\TimetableExchangeSettings;
 use OCA\Learniq\Timetabling\PlanninqTimetableImport;
 use OCA\Learniq\Timetabling\Source\LocalSessionTimetableSource;
 use OCA\Learniq\Timetabling\Source\PlanninqTimetableSource;
@@ -126,7 +127,7 @@ class PlanninqTimetableImportTest extends TestCase {
 	 *
 	 * @return PlanninqTimetableImport
 	 */
-	public function import(bool $planninqInstalled = true, string $integriqEvent = PlanninqTimetableImport::INTEGRIQ_EVENT): PlanninqTimetableImport {
+	public function import(bool $planninqInstalled = true, string $integriqEvent = PlanninqTimetableImport::INTEGRIQ_EVENT, string $keptMaps = ''): PlanninqTimetableImport {
 		$dispatcher = $this->createMock(IEventDispatcher::class);
 		$dispatcher->method('dispatchTyped')->willReturnCallback(
 			function (Event $event): void {
@@ -163,7 +164,10 @@ class PlanninqTimetableImportTest extends TestCase {
 			new PlanninqTimetableSource($appManager, $dispatcher)
 		);
 
-		return new PlanninqTimetableImport($resolver, $dispatcher, $this->detector, new NullLogger(), $integriqEvent);
+		$settingsConfig = $this->createMock(IAppConfig::class);
+		$settingsConfig->method('getValueString')->willReturn($keptMaps);
+
+		return new PlanninqTimetableImport($resolver, $dispatcher, $this->detector, new NullLogger(), new TimetableExchangeSettings($settingsConfig), $integriqEvent);
 
 	}//end import()
 
@@ -195,6 +199,27 @@ class PlanninqTimetableImportTest extends TestCase {
 		$this->assertSame('planninq', $result['target']);
 		$this->assertSame('mock', $result['flavour']);
 	}//end testZermeloJobIsDeliveredAndRecorded()
+
+	/**
+	 * A request without its own group map sends the one the administrator
+	 * keeps for its rostering system; a posted map wins.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/timetable-connection-and-import-screen/specs/timetabling/spec.md#requirement-an-import-without-a-posted-map-uses-the-kept-map
+	 */
+	public function testAnImportWithoutAMapUsesTheKeptOne(): void {
+		$import = $this->import(keptMaps: '{"roster-zermelo":{"4H1":"cohort-1"}}');
+		$this->integriqAnswer = $this->delivered(created: 1);
+
+		$import->deliver(['id' => 'j', 'scope' => ['rosterSource' => 'roster-zermelo']], null);
+		$import->deliver(['id' => 'j', 'scope' => ['rosterSource' => 'roster-zermelo', 'groupMap' => ['1A' => 'cohort-9']]], null);
+		$import->deliver(['id' => 'j', 'scope' => ['rosterSource' => 'roster-xedule']], null);
+
+		$this->assertSame(['4H1' => 'cohort-1'], $this->requests[0]->getOptions()['groupMap']);
+		$this->assertSame(['1A' => 'cohort-9'], $this->requests[1]->getOptions()['groupMap']);
+		$this->assertSame([], $this->requests[2]->getOptions()['groupMap']);
+	}//end testAnImportWithoutAMapUsesTheKeptOne()
 
 	/**
 	 * The rostering source comes from the scope first, then from the profile's vendor.

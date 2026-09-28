@@ -75,6 +75,7 @@ class ConnectionReportJob extends TimedJob {
 	 * @spec openspec/changes/adopt-connection-registry/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
 	 */
 	protected function run(mixed $argument): void {
+		$this->reporter->observeTimetable();
 		$this->reporter->reportObservations();
 	}//end run()
 }//end class
