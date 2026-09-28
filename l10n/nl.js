@@ -2662,7 +2662,15 @@ OC.L10N.register(
         "Agenda": "Agenda",
         "Intake form": "Invulformulier",
         "Contact card": "Contactkaart",
-        "Follow-ups": "Opvolging"
+        "Follow-ups": "Opvolging",
+        "Integriq returned an unexpected launch response.": "Integriq gaf een onverwacht antwoord bij het starten.",
+        "Integriq opens external tools from a lesson and sends their grades back. Create a subscription on grade events in integriq, then enter its id here so learniq picks up the grades.": "Integriq opent externe tools vanuit een les en stuurt hun cijfers terug. Maak in integriq een abonnement op cijfergebeurtenissen en vul de id hier in, zodat learniq de cijfers ophaalt.",
+        "Loading the LTI settings…": "LTI-instellingen laden…",
+        "Grade subscription": "Cijferabonnement",
+        "The id of the integriq event subscription on LTI grade events. Leave empty to stop pulling grades.": "De id van het integriq-abonnement op LTI-cijfergebeurtenissen. Laat leeg om geen cijfers meer op te halen.",
+        "LTI settings saved": "LTI-instellingen opgeslagen",
+        "The LTI settings could not be loaded.": "De LTI-instellingen konden niet worden geladen.",
+        "The LTI settings could not be saved.": "De LTI-instellingen konden niet worden opgeslagen."
     },
     "nplurals=2; plural=(n != 1);"
 )
