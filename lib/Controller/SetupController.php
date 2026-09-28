@@ -37,6 +37,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AuthorizedAdminSetting;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IAppConfig;
+use OCP\IGroupManager;
 use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -101,6 +102,30 @@ class SetupController extends Controller {
 	private const SEGMENT_KEY = 'segment';
 
 	/**
+	 * The groups whose members may write the segment (`admin`,
+	 * `administration-managers`, both declared in the register's
+	 * `components.securitySchemes`). The LearniqSettings schema carries no
+	 * authorization block of its own yet, so the controller is where this holds.
+	 *
+	 * The setup endpoints are admin settings, which Nextcloud lets an admin
+	 * delegate to any group; every user's menu depends on this one record
+	 * (company-segment-menu-gating), so the controller checks the groups itself
+	 * before SegmentService writes as a system operation.
+	 *
+	 * @var string[]
+	 */
+	private const SEGMENT_GROUPS = ['admin', 'administration-managers'];
+
+	/**
+	 * What app config `demo_data_decided` holds after a removal: not empty, so
+	 * the load step stays answered and the wizard does not reopen over every
+	 * page (an outstanding optional step opens it).
+	 *
+	 * @var string
+	 */
+	private const REMOVED = 'removed';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IRequest           $request      The request.
@@ -109,6 +134,7 @@ class SetupController extends Controller {
 	 * @param SeedProfileService $seedProfiles Lists and imports the example sets.
 	 * @param SegmentService     $segments     Lists the six kinds and stores the answer.
 	 * @param IUserSession       $userSession  Names the admin who chose the segment.
+	 * @param IGroupManager      $groups       Checks who may write the segment.
 	 *
 	 * @return void
 	 */
@@ -119,6 +145,7 @@ class SetupController extends Controller {
 		private readonly SeedProfileService $seedProfiles,
 		private readonly SegmentService $segments,
 		private readonly IUserSession $userSession,
+		private readonly IGroupManager $groups,
 	) {
 		parent::__construct(appName: Application::APP_ID, request: $request);
 	}//end __construct()
@@ -155,7 +182,14 @@ class SetupController extends Controller {
 					'load-example-set' => [
 						'done' => ($demoDecided === true || $picked === SeedProfileService::NONE_PROFILE),
 					],
-					'segment'          => ['done' => $this->segments->hasSegment()],
+					'segment'            => ['done' => $this->segments->hasSegment()],
+					// 🔴 ALWAYS DONE. CnSetupWizard starts an outstanding
+					// run-action step the moment it becomes current, and
+					// CnAppRoot opens the wizard while any optional step is
+					// outstanding: an outstanding removal step would delete the
+					// set as soon as someone paged onto it, or reopen the wizard
+					// on every page. Done, it runs only when the admin clicks it.
+					'remove-example-set' => ['done' => true],
 				],
 			]
 		);
@@ -199,6 +233,13 @@ class SetupController extends Controller {
 				return $this->badRequest(message: 'No kind of organisation is called "' . (string)$code . '".');
 			}
 
+			if ($this->maySetSegment() === false) {
+				return new JSONResponse(
+					data: ['success' => false, 'message' => 'Only an administrator or an administration manager can choose the kind of organisation.'],
+					statusCode: Http::STATUS_FORBIDDEN,
+				);
+			}
+
 			$this->segments->setSegment(segment: $code, actor: $this->userSession->getUser()?->getUID());
 			$config[self::SEGMENT_KEY] = $code;
 		}
@@ -209,7 +250,7 @@ class SetupController extends Controller {
 	/**
 	 * Run a privileged server-side setup action.
 	 *
-	 * @param string $actionId One of `load-example-set` | `skip-example-set`, or a legacy alias.
+	 * @param string $actionId One of `load-example-set` | `skip-example-set` | `remove-example-set`, or a legacy alias.
 	 *
 	 * @return JSONResponse `{ success, message }`.
 	 *
@@ -227,6 +268,10 @@ class SetupController extends Controller {
 		// DECLINING IS AN ANSWER, and it answers BOTH example-set steps:
 		// closing only the load step leaves the choice outstanding, and
 		// CnAppRoot opens the wizard while ANY optional step is outstanding.
+		if ($actionId === 'remove-example-set') {
+			return $this->removeExampleSet();
+		}
+
 		if ($actionId === 'skip-example-set' || $actionId === 'skip-demo-data') {
 			$this->appConfig->setValueString(Application::APP_ID, self::PROFILE_KEY, SeedProfileService::NONE_PROFILE);
 			$this->appConfig->setValueString(Application::APP_ID, self::DEMO_DECIDED_KEY, 'skipped');
@@ -296,6 +341,106 @@ class SetupController extends Controller {
 			]
 		);
 	}//end loadExampleSet()
+
+	/**
+	 * Remove the example set the wizard loaded, through OpenRegister's recorded
+	 * import jobs (openregister PR 4080).
+	 *
+	 * Every outcome is an answer the wizard shows: nothing loaded, nothing
+	 * recorded, an OpenRegister without the method (with the occ command that
+	 * removes the set instead), errors (with the command that finishes the
+	 * job), or the number of objects moved to the trash.
+	 *
+	 * @return JSONResponse `{ success, message }`.
+	 *
+	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#requirement-the-wizard-removes-a-loaded-example-set-through-openregisters-import-jobs
+	 */
+	private function removeExampleSet(): JSONResponse {
+		$picked = $this->pickedProfile();
+		if ($picked === '' || $picked === SeedProfileService::NONE_PROFILE) {
+			return new JSONResponse(data: ['success' => true, 'message' => 'No example data was loaded, so there is nothing to remove.']);
+		}
+
+		try {
+			$removed = $this->seedProfiles->remove(profileId: $picked);
+		} catch (\Throwable $e) {
+			$this->logger->error(
+				'Setup remove-example-set failed for "' . $picked . '": ' . $e->getMessage(),
+				['app' => Application::APP_ID, 'exception' => $e]
+			);
+
+			return new JSONResponse(
+				data: ['success' => false, 'message' => 'Could not remove the example data: ' . $e->getMessage()],
+				statusCode: Http::STATUS_INTERNAL_SERVER_ERROR,
+			);
+		}
+
+		if ($removed['supported'] === false) {
+			return new JSONResponse(data: ['success' => false, 'message' => $this->fallbackMessage(profileId: $picked)]);
+		}
+
+		if ($removed['errors'] > 0) {
+			return new JSONResponse(
+				data: [
+					'success' => false,
+					'message' => 'Moved ' . $removed['softDeleted'] . ' example object(s) to the trash; ' . $removed['errors']
+						. ' could not be removed. Finish with: php occ openregister:objects:purge --import-job '
+						. implode(' and --import-job ', $removed['failedJobs']) . '.',
+				]
+			);
+		}
+
+		if ($removed['jobs'] === []) {
+			return new JSONResponse(
+				data: [
+					'success' => true,
+					'message' => 'OpenRegister has no recorded import of this example set, so nothing was removed. '
+						. $this->fallbackMessage(profileId: $picked),
+				]
+			);
+		}
+
+		$this->appConfig->setValueString(Application::APP_ID, self::DEMO_DECIDED_KEY, self::REMOVED);
+
+		return new JSONResponse(
+			data: ['success' => true, 'message' => 'Moved ' . $removed['softDeleted'] . ' example object(s) to the trash.']
+		);
+	}//end removeExampleSet()
+
+	/**
+	 * How to remove a set without OpenRegister's recorded import jobs.
+	 *
+	 * @param string $profileId The set.
+	 *
+	 * @return string The advice, naming the command where one exists.
+	 */
+	private function fallbackMessage(string $profileId): string {
+		if ($profileId === SeedProfileService::GENERATED_PROFILE) {
+			return 'This OpenRegister cannot remove the generated example data from here. Update OpenRegister and run this step again.';
+		}
+
+		return 'Remove it on the server with: php occ learniq:example-set:remove ' . $profileId . ' --apply';
+	}//end fallbackMessage()
+
+	/**
+	 * Whether the current user may write the segment.
+	 *
+	 * @return bool True for a member of `admin` or `administration-managers`.
+	 */
+	private function maySetSegment(): bool {
+		$uid = $this->userSession->getUser()?->getUID();
+		if ($uid === null) {
+			return false;
+		}
+
+		foreach (self::SEGMENT_GROUPS as $group) {
+			if ($this->groups->isInGroup($uid, $group) === true) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end maySetSegment()
 
 	/**
 	 * The example set the operator picked, or '' when none is stored.

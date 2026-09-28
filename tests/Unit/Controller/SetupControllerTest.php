@@ -17,6 +17,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/segment-wizard-choice/specs/example-sets/spec.md
+ * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md
  */
 
 declare(strict_types=1);
@@ -27,6 +28,7 @@ use OCA\Learniq\Controller\SetupController;
 use OCA\Learniq\Service\SeedProfileService;
 use OCA\Learniq\Service\SegmentService;
 use OCP\IAppConfig;
+use OCP\IGroupManager;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -73,6 +75,13 @@ class SetupControllerTest extends TestCase {
 	private IRequest $request;
 
 	/**
+	 * The groups the signed-in user `admin` is in.
+	 *
+	 * @var array<int, string>
+	 */
+	private array $userGroups = ['admin'];
+
+	/**
 	 * Fresh doubles per test.
 	 *
 	 * @return void
@@ -113,13 +122,20 @@ class SetupControllerTest extends TestCase {
 		$session = $this->createMock(IUserSession::class);
 		$session->method('getUser')->willReturn($user);
 
+		$groups     = $this->createMock(IGroupManager::class);
+		$userGroups = $this->userGroups;
+		$groups->method('isInGroup')->willReturnCallback(
+			static fn (string $uid, string $group): bool => $uid === 'admin' && in_array($group, $userGroups, true)
+		);
+
 		return new SetupController(
 			$this->request,
 			$this->appConfig,
 			$this->createMock(LoggerInterface::class),
 			$this->profiles,
 			$this->segments,
-			$session
+			$session,
+			$groups
 		);
 	}//end controller()
 
@@ -153,7 +169,7 @@ class SetupControllerTest extends TestCase {
 		self::assertTrue($data['completed']);
 		self::assertSame(['none', 'po', 'demo'], array_column($data['profiles'], 'id'));
 		self::assertSame(['po'], array_column($data['segments'], 'id'));
-		self::assertSame(['example-set', 'load-example-set', 'segment'], array_keys($data['steps']));
+		self::assertSame(['example-set', 'load-example-set', 'segment', 'remove-example-set'], array_keys($data['steps']));
 		self::assertFalse($data['steps']['example-set']['done']);
 		self::assertFalse($data['steps']['load-example-set']['done']);
 		self::assertFalse($data['steps']['segment']['done']);
@@ -367,4 +383,150 @@ class SetupControllerTest extends TestCase {
 		self::assertSame(500, $response->getStatus());
 		self::assertStringContainsString('OpenRegister is not installed', $response->getData()['message']);
 	}//end testAFailedLoadIsReportedAndLeavesTheStepUndecided()
+
+	/**
+	 * The removal step is done in every state, so the wizard never starts it
+	 * on its own and never reopens for it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-opening-the-wizard-after-loading-a-set
+	 */
+	public function testTheRemovalStepIsAlwaysDone(): void {
+		foreach ([[], ['example_profile' => 'po', 'demo_data_decided' => 'installed'], ['example_profile' => 'none']] as $stored) {
+			$this->setUp();
+			$data = $this->controller(stored: $stored)->status()->getData();
+			self::assertTrue($data['steps']['remove-example-set']['done'], json_encode($stored));
+		}
+	}//end testTheRemovalStepIsAlwaysDone()
+
+	/**
+	 * Removing the loaded set reports what moved to the trash and keeps the
+	 * load step answered.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-removing-the-company-set
+	 */
+	public function testRemovingTheLoadedSetReportsTheTrashedCount(): void {
+		$written = $this->captureWrites();
+		$this->profiles->expects(self::once())->method('remove')->with('po')->willReturn(
+			['supported' => true, 'appId' => 'learniq.profile.po', 'jobs' => ['job-1'], 'softDeleted' => 3, 'errors' => 0, 'failedJobs' => []]
+		);
+
+		$data = $this->controller(stored: ['example_profile' => 'po'])->runAction('remove-example-set')->getData();
+
+		self::assertTrue($data['success']);
+		self::assertStringContainsString('Moved 3 example object(s) to the trash', $data['message']);
+		self::assertSame('removed', $written['demo_data_decided'] ?? null);
+	}//end testRemovingTheLoadedSetReportsTheTrashedCount()
+
+	/**
+	 * Nothing loaded: nothing is called and the answer says so.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-nothing-was-loaded
+	 */
+	public function testNothingLoadedRemovesNothing(): void {
+		$this->profiles->expects(self::never())->method('remove');
+
+		foreach ([[], ['example_profile' => 'none']] as $stored) {
+			$data = $this->controller(stored: $stored)->runAction('remove-example-set')->getData();
+			self::assertTrue($data['success']);
+			self::assertStringContainsString('nothing to remove', $data['message']);
+		}
+	}//end testNothingLoadedRemovesNothing()
+
+	/**
+	 * An OpenRegister without softDeleteAppImports(): the answer is a failure
+	 * that names the occ command removing the set by uuid.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-an-openregister-without-the-method
+	 */
+	public function testWithoutTheMethodTheAnswerNamesTheOccCommand(): void {
+		$this->appConfig->expects(self::never())->method('setValueString');
+		$this->profiles->method('remove')->willReturn(
+			['supported' => false, 'appId' => 'learniq.profile.corporate', 'jobs' => [], 'softDeleted' => 0, 'errors' => 0, 'failedJobs' => []]
+		);
+
+		$data = $this->controller(stored: ['example_profile' => 'corporate'])->runAction('remove-example-set')->getData();
+
+		self::assertFalse($data['success']);
+		self::assertStringContainsString('php occ learniq:example-set:remove corporate --apply', $data['message']);
+	}//end testWithoutTheMethodTheAnswerNamesTheOccCommand()
+
+	/**
+	 * No recorded import job (a set loaded on an older OpenRegister): nothing
+	 * removed, and the occ command is named; errors name the job to finish.
+	 *
+	 * @return void
+	 */
+	public function testNoJobAndErrorsAreReportedWithTheirCommand(): void {
+		$this->profiles->method('remove')->willReturnOnConsecutiveCalls(
+			['supported' => true, 'appId' => 'learniq.profile.po', 'jobs' => [], 'softDeleted' => 0, 'errors' => 0, 'failedJobs' => []],
+			['supported' => true, 'appId' => 'learniq.profile.po', 'jobs' => ['job-1', 'job-2'], 'softDeleted' => 5, 'errors' => 1, 'failedJobs' => ['job-2']]
+		);
+		$controller = $this->controller(stored: ['example_profile' => 'po']);
+
+		$none = $controller->runAction('remove-example-set')->getData();
+		self::assertTrue($none['success']);
+		self::assertStringContainsString('no recorded import', $none['message']);
+		self::assertStringContainsString('learniq:example-set:remove po --apply', $none['message']);
+
+		$partial = $controller->runAction('remove-example-set')->getData();
+		self::assertFalse($partial['success']);
+		self::assertStringContainsString('Moved 5 example object(s)', $partial['message']);
+		self::assertStringContainsString('--import-job job-2', $partial['message']);
+	}//end testNoJobAndErrorsAreReportedWithTheirCommand()
+
+	/**
+	 * A failing removal is a 500 with the reason, not a quiet success.
+	 *
+	 * @return void
+	 */
+	public function testAFailedRemovalIsReported(): void {
+		$this->profiles->method('remove')->willThrowException(new RuntimeException('Example data needs OpenRegister, which is not installed.'));
+
+		$response = $this->controller(stored: ['example_profile' => 'po'])->runAction('remove-example-set');
+
+		self::assertSame(500, $response->getStatus());
+		self::assertStringContainsString('OpenRegister', $response->getData()['message']);
+	}//end testAFailedRemovalIsReported()
+
+	/**
+	 * A user outside admin and administration-managers cannot choose the
+	 * segment, even when they may open the setup wizard.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-a-delegated-admin-outside-both-groups
+	 */
+	public function testTheSegmentIsRefusedOutsideTheTwoGroups(): void {
+		$this->userGroups = ['compliance-officers'];
+		$this->segments->expects(self::never())->method('setSegment');
+
+		$response = $this->controller(params: ['segment' => 'corporate'])->saveConfig();
+
+		self::assertSame(403, $response->getStatus());
+		self::assertStringContainsString('administration manager', $response->getData()['message']);
+	}//end testTheSegmentIsRefusedOutsideTheTwoGroups()
+
+	/**
+	 * An administration manager who is not a Nextcloud admin chooses it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-set-removal-in-wizard/specs/example-sets/spec.md#scenario-an-administration-manager
+	 */
+	public function testAnAdministrationManagerChoosesTheSegment(): void {
+		$this->userGroups = ['administration-managers'];
+		$this->segments->expects(self::once())->method('setSegment')->with('po', 'admin');
+
+		$data = $this->controller(params: ['segment' => 'po'])->saveConfig()->getData();
+
+		self::assertSame(['segment' => 'po'], $data['config']);
+	}//end testAnAdministrationManagerChoosesTheSegment()
 }//end class

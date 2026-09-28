@@ -1760,7 +1760,6 @@ OC.L10N.register(
         "A fictional training institute with open courses, participants from client companies and a full year.": "Een verzonnen opleidingsinstituut met open cursussen, deelnemers van klantbedrijven en een volledig jaar.",
         "Which example data do you want?": "Welke voorbeeldgegevens wil je?",
         "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install.": "Voorbeeldgegevens vullen de lijsten, detailpagina's en dashboards, zodat je de app meteen aan het werk ziet. Elke set laat één soort organisatie zien. Kies \"Geen\" op een productie-installatie.",
-        "Loads the set you picked. It is sample data, and running it twice adds nothing. Remove a set later with occ learniq:example-set:remove.": "Laadt de set die je koos. Het zijn voorbeeldgegevens, en twee keer laden voegt niets toe. Verwijder een set later met occ learniq:example-set:remove.",
         "What kind of organisation is this?": "Wat voor organisatie is dit?",
         "Pick the one that fits best. The app shows the menus that fit it. You can change it later under App settings.": "Kies wat het beste past. De app toont de menu's die daarbij horen. Je kunt het later wijzigen onder App-instellingen.",
         "Groups 1 to 8, guardians, report cards and pupil tracking.": "Groep 1 tot en met 8, ouders, rapporten en leerlingvolgsysteem.",
@@ -2407,7 +2406,10 @@ OC.L10N.register(
         "Placement coordinator": "Stagecoördinator",
         "Confidential counsellor": "Vertrouwenspersoon",
         "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.": "De functies die deze persoon op school heeft. Een functie beschrijft het werk en geeft geen toegang. Toegang komt uit de groepen van de persoon.",
-        "Administrative staff": "Administratief medewerker"
+        "Administrative staff": "Administratief medewerker",
+        "Loads the set you picked. It is sample data, and running it twice adds nothing. You can remove it again at the end of this wizard.": "Laadt de set die je koos. Het zijn voorbeeldgegevens, en twee keer laden voegt niets toe. Je kunt de set aan het einde van deze wizard weer verwijderen.",
+        "Remove the example data": "Verwijder de voorbeeldgegevens",
+        "This only runs when you click the button. It moves the example set you loaded to the trash and keeps everything you made yourself. You can come back to it later.": "Dit gebeurt alleen als je op de knop klikt. De voorbeeldset die je laadde gaat naar de prullenbak; wat je zelf maakte blijft staan. Je kunt hier later op terugkomen."
     },
     "nplurals=2; plural=(n != 1);"
 )

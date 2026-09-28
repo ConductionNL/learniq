@@ -120,7 +120,7 @@ A BRIN is `^[0-9]{2}[A-Za-z0-9]{2}$`. DUO assigns two digits plus two letters, s
 1. **Listed**: `SeedProfileService::listChoices()` reads every `lib/Settings/profiles/*.json`, keeps the ones with a valid `x-openregister.profile` block, sorts by `order`, and returns `none` first and the generated set (`demo`) last. A malformed file is logged and skipped.
 2. **Selected**: the wizard's `example-set` step posts `{"example_profile": "<id>"}` to `POST /api/setup/config`; the server accepts only an id `listChoices()` offers.
 3. **Loaded**: the `load-example-set` step posts `POST /api/setup/action/load-example-set`; the server imports the file through `ConfigurationService::importFromApp(appId: "learniq.profile.<id>", data: <file>, version: <app version>, force: true)`. Seeding runs as a system operation (no lifecycle events).
-4. **Removed**: `occ learniq:example-set:remove <id>` lists the file's uuids, last-loaded first, and hands them to `occ openregister:objects:purge --force` (plus `--apply` when given). Nothing else is touched; a record a user created against an example object stays.
+4. **Removed**: the wizard's `remove-example-set` step calls OpenRegister's `ConfigurationService::softDeleteAppImports("learniq.profile.<id>")` (`learniq.demo` for the generated set), which soft-deletes what the recorded import jobs created and leaves what they only updated (openregister PR 4080; example-set-removal-in-wizard). On an OpenRegister without that method, or for a set loaded before import jobs were recorded, `occ learniq:example-set:remove <id>` lists the file's uuids, last-loaded first, and hands them to `occ openregister:objects:purge --force` (plus `--apply` when given). Nothing else is touched; a record a user created against an example object stays.
 
 ## 2. Setup endpoints
 
@@ -143,7 +143,8 @@ A BRIN is `^[0-9]{2}[A-Za-z0-9]{2}$`. DUO assigns two digits plus two letters, s
     "steps": {
         "example-set": { "done": false },
         "load-example-set": { "done": false },
-        "segment": { "done": false }
+        "segment": { "done": false },
+        "remove-example-set": { "done": true }
     }
 }
 ```
@@ -156,7 +157,7 @@ A BRIN is `^[0-9]{2}[A-Za-z0-9]{2}$`. DUO assigns two digits plus two letters, s
 |---|---|---|
 | `example_profile` | an id from `profiles` (string, or a one-element list) | stored in app config `example_profile` |
 | `demo_dataset` (legacy) | as above | stored in `example_profile` |
-| `segment` | one of the six segment codes | written to `LearniqSettings.segment` (create or update), `setBy` = the admin, `setAt` = now |
+| `segment` | one of the six segment codes | written to `LearniqSettings.segment` (create or update), `setBy` = the admin, `setAt` = now; only for a member of `admin` or `administration-managers`, else 403 (example-set-removal-in-wizard) |
 
 **Response (200):** `{ "success": true, "config": { "<key>": "<value>" } }`
 
@@ -167,13 +168,14 @@ A BRIN is `^[0-9]{2}[A-Za-z0-9]{2}$`. DUO assigns two digits plus two letters, s
 |---|---|
 | `load-example-set` | import the stored `example_profile`; `none` finishes the step without importing |
 | `skip-example-set` | store `none`, finish both example steps |
+| `remove-example-set` | soft-delete the stored set's recorded imports through OpenRegister; `none` or no answer removes nothing; without the method, or with errors, `success: false` and the occ command that finishes the job. The status reports this step done at all times, so the wizard only runs it on a click |
 | `load-demo-data`, `install-demo-data`, `skip-demo-data` | legacy aliases of the three above (`install-demo-data` with no answer means `demo`) |
 
 ## Error Codes
 | Code | Meaning | Condition |
 |------|---------|-----------|
 | 400 | bad answer | `example_profile` or `segment` names nothing on offer, or is not a string; `load-example-set` with no stored answer |
-| 403 | not an admin | any setup endpoint called by a non-admin |
+| 403 | not an admin | any setup endpoint called by a non-admin; a `segment` answer from a user outside `admin` and `administration-managers` |
 | 404 | unknown action | `actionId` not in the table |
 | 500 | import failed | OpenRegister missing or the import threw; the message says which |
 

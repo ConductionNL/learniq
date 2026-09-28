@@ -1296,7 +1296,6 @@
         "A fictional training institute with open courses, participants from client companies and a full year.": "A fictional training institute with open courses, participants from client companies and a full year.",
         "Which example data do you want?": "Which example data do you want?",
         "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install.": "Example data fills the lists, detail pages and dashboards, so you see the app working straight away. Each set shows one kind of organisation. Pick \"None\" on a production install.",
-        "Loads the set you picked. It is sample data, and running it twice adds nothing. Remove a set later with occ learniq:example-set:remove.": "Loads the set you picked. It is sample data, and running it twice adds nothing. Remove a set later with occ learniq:example-set:remove.",
         "What kind of organisation is this?": "What kind of organisation is this?",
         "Pick the one that fits best. The app shows the menus that fit it. You can change it later under App settings.": "Pick the one that fits best. The app shows the menus that fit it. You can change it later under App settings.",
         "Groups 1 to 8, guardians, report cards and pupil tracking.": "Groups 1 to 8, guardians, report cards and pupil tracking.",
@@ -1989,7 +1988,10 @@
         "Placement coordinator": "Placement coordinator",
         "Confidential counsellor": "Confidential counsellor",
         "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.": "The functions this person holds at the school. A tag describes the job; it grants no access. Access comes from the person's groups.",
-        "Administrative staff": "Administrative staff"
+        "Administrative staff": "Administrative staff",
+        "Loads the set you picked. It is sample data, and running it twice adds nothing. You can remove it again at the end of this wizard.": "Loads the set you picked. It is sample data, and running it twice adds nothing. You can remove it again at the end of this wizard.",
+        "Remove the example data": "Remove the example data",
+        "This only runs when you click the button. It moves the example set you loaded to the trash and keeps everything you made yourself. You can come back to it later.": "This only runs when you click the button. It moves the example set you loaded to the trash and keeps everything you made yourself. You can come back to it later."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

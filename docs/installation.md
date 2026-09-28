@@ -86,7 +86,11 @@ The kind of organisation decides which menus appear. Company is the default of e
 
 Everything else, such as people, groups, attendance, report cards, the pupil dossier and group plans, shows for every kind. Hiding a menu is not an access control: each page still checks who may read its data.
 
-Loading a set twice adds nothing, because every example object has a fixed id. To remove a set again, run the command on the server. It shows what it would remove; add `--apply` to remove it:
+Loading a set twice adds nothing, because every example object has a fixed id.
+
+To remove the set again, open the setup wizard and go to its last step, **Remove the example data**, then click the button. The example objects move to the trash of OpenRegister, so you can restore them; anything you made yourself stays. The step never runs by itself. Only an administrator or a member of `administration-managers` can choose the kind of organisation in the wizard.
+
+On an OpenRegister that cannot remove imports from the wizard, or for a set loaded before it could, the step tells you to run the command on the server instead. It shows what it would remove; add `--apply` to remove it:
 
 ```bash
 php occ learniq:example-set:remove po
