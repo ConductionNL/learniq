@@ -1,6 +1,6 @@
-# Scholiq, Design References & Wireframes
+# Learniq, Design References & Wireframes
 
-> Visual design references, UX patterns from competitor analysis, and ASCII wireframes for every primary view in Scholiq. All wireframes are ~70 chars wide and use realistic Dutch + English data (Sven Bakker, Esra Yıldız, Klas 5B, OPP-2026-014, etc.) so the team can pressure-test layout density.
+> Visual design references, UX patterns from competitor analysis, and ASCII wireframes for every primary view in Learniq. All wireframes are ~70 chars wide and use realistic Dutch + English data (Sven Bakker, Esra Yıldız, Klas 5B, OPP-2026-014, etc.) so the team can pressure-test layout density.
 
 Document version: 1.0 · 2026-05-11 · Companion to [`docs/Technical/architecture.md`](./architecture.md) and [`docs/Features/features.md`](../Features/features.md).
 
@@ -8,7 +8,7 @@ Document version: 1.0 · 2026-05-11 · Companion to [`docs/Technical/architectur
 
 ## 1. Design philosophy
 
-Scholiq's competitive opening is UX. From the intelligence brief:
+Learniq's competitive opening is UX. From the intelligence brief:
 
 > **Insight (high)**: "Open-source LMS leaders (Moodle, ILIAS, Open edX) all share dated UX, modern Vue/NL Design surface is the differentiator."
 > **Insight (high)**: "Dutch incumbents (Magister, SOMtoday, ParnasSys) face systemic UX and privacy backlash, opening switching window."
@@ -55,11 +55,11 @@ Cross-referencing the 52 competitors from the brief against UX patterns worth bo
 
 ## 3. Information architecture (top-level navigation)
 
-Scholiq's MainMenu adapts to the user's role(s). Role discovery comes from `eduPersonAffiliation` (SURFconext), Nextcloud groups, or explicit role assignment on `LearnerProfile.roles`. Multi-role users see a role switcher in the top-right (e.g. "Compliance officer + Learner").
+Learniq's MainMenu adapts to the user's role(s). Role discovery comes from `eduPersonAffiliation` (SURFconext), Nextcloud groups, or explicit role assignment on `LearnerProfile.roles`. Multi-role users see a role switcher in the top-right (e.g. "Compliance officer + Learner").
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│ Scholiq                                              user-switcher │
+│ Learniq                                              user-switcher │
 ├────────────────────────────────────────────────────────────────────┤
 │ TEACHER VIEW                                                       │
 │   Dashboard                                                        │
@@ -115,7 +115,7 @@ All wireframes ≤ 70 chars wide. Use Dutch names + realistic IDs. Every detail 
 
 ```
 +──────────────────────────────────────────────────────────────────────+
-| Scholiq  > Dashboard                              [ ] Sven (Mentor) |
+| Learniq  > Dashboard                              [ ] Sven (Mentor) |
 +──────────────────────────────────────────────────────────────────────+
 |                                                                      |
 | Goedemorgen, Sven Bakker                                             |
@@ -156,7 +156,7 @@ Density rules: ≥4 KPI cards, never more than 4 in a row; tables truncate to 4-
 
 ```
 +──────────────────────────────────────────────────────────────────────+
-| Scholiq  > Mijn dashboard                          [ ] Esra Yıldız  |
+| Learniq  > Mijn dashboard                          [ ] Esra Yıldız  |
 +──────────────────────────────────────────────────────────────────────+
 |                                                                      |
 | Hi Esra · Bachelor Informatiekunde · Radboud Universiteit            |
@@ -194,7 +194,7 @@ Reference: Open edX learner dashboard's "course cards with progress ring + next-
 
 ```
 +──────────────────────────────────────────────────────────────────────+
-| Scholiq  > Compliance overzicht          [ ] Marieke (Compliance)   |
+| Learniq  > Compliance overzicht          [ ] Marieke (Compliance)   |
 +──────────────────────────────────────────────────────────────────────+
 |                                                                      |
 | Dekking per regelgeving                                              |
@@ -234,7 +234,7 @@ Reference: Docebo's completion-rate heatmap, but flattened into bar visualisatio
 
 ```
 +──────────────────────────────────────────────────────────────────────+
-| Scholiq > Cursussen > BIO-3H-2026             Bewerken | Publiceren |
+| Learniq > Cursussen > BIO-3H-2026             Bewerken | Publiceren |
 +───────────────────────────────────────────────────┬──────────────────+
 |                                                   │ ▤ Files     [9] |
 |  ╭─────────────────────────────────────────────╮ │ ✎ Notes     [2] |
@@ -274,7 +274,7 @@ The main area is a `CnDetailPage` with three `CnDetailCard` widgets (Modules, Co
 
 ```
 +──────────────────────────────────────────────────────────────────────+
-| Scholiq > Toetsen > T2 Erfelijkheid (BIO-3H wk 44)   Bewerken modus |
+| Learniq > Toetsen > T2 Erfelijkheid (BIO-3H wk 44)   Bewerken modus |
 +──────────────────────────────────────────────────────────────────────+
 | Itembank                  ┃ Blueprint                  ┃ Itempreview |
 | ────────────────────────  ┃ ───────────────────────────  ┃ ────────── |
@@ -339,7 +339,7 @@ Reference: ProctorU pre-flight checklist baked into a persistent right rail. EU 
 
 ```
 +──────────────────────────────────────────────────────────────────────+
-| Scholiq > Klassen > 5B (2026-2027)            Bekijk als | Exporteer |
+| Learniq > Klassen > 5B (2026-2027)            Bekijk als | Exporteer |
 +──────────────────────────────────────────────────────────────────────+
 | 28 leerlingen · Mentor Sven Bakker · OBS De Wilg                     |
 |                                                                      |
@@ -374,7 +374,7 @@ BSN column shows ● only, BSN is encrypted at rest and never displayed (constra
 
 ```
 +──────────────────────────────────────────────────────────────────────+
-| Scholiq > OPPs > OPP-2026-014 (Tim de Vries · 5B)            Wijzig |
+| Learniq > OPPs > OPP-2026-014 (Tim de Vries · 5B)            Wijzig |
 +──────────────────────────────────────────────────────────────────────+
 | Status: in evaluatie  ·  Volgende evaluatie: do 22 mei 2026          |
 | Mentor: Sven Bakker  ·  Zorgcoördinator: M. el Idrissi               |
@@ -416,7 +416,7 @@ Reference: Handreiking Ontwikkelingsperspectief (Steunpunt Passend Onderwijs PO-
 
 ```
 +──────────────────────────────────────────────────────────────────────+
-| Scholiq > Mijn certificaten > AVG-Onderwijs 2026                    |
+| Learniq > Mijn certificaten > AVG-Onderwijs 2026                    |
 +──────────────────────────────────────────────────────────────────────+
 |                                                                      |
 |     ╭───────────────────────────────────────────────────────╮       |
@@ -424,7 +424,7 @@ Reference: Handreiking Ontwikkelingsperspectief (Steunpunt Passend Onderwijs PO-
 |     │                ▄█████████▄                            │       |
 |     │              ▄█████████████▄                          │       |
 |     │              ███           ███                        │       |
-|     │              ███   Scholiq ███                        │       |
+|     │              ███   Learniq ███                        │       |
 |     │              ███           ███                        │       |
 |     │              ▀█████████████▀                          │       |
 |     │                ▀█████████▀                            │       |
@@ -460,11 +460,11 @@ Reference: Credly's credential viewer with verifiable-signature affordance. Veri
 
 ```
 +──────────────────────────────────────────────────────────────────────+
-| Scholiq > Instellingen                              Tenant: OBS-WLG │
+| Learniq > Instellingen                              Tenant: OBS-WLG │
 +──────────────────────────────────────────────────────────────────────+
 | ▾ CnVersionInfoCard                                                  |
 | ╭──────────────────────────────────────────────────────────────────╮|
-| │ Scholiq v0.1.0     OpenRegister v0.x ✓   OpenConnector v0.x ✓    │|
+| │ Learniq v0.1.0     OpenRegister v0.x ✓   OpenConnector v0.x ✓    │|
 | │ Update beschikbaar: nee · Build: 2026-05-11                       │|
 | ╰──────────────────────────────────────────────────────────────────╯|
 |                                                                      |
@@ -514,7 +514,7 @@ Every section is a `CnSettingsSection` with footer slot. First section is the ma
 
 ```
 +──────────────────────────────────────────────────────────────────────+
-|  Scholiq · Mijn instellingen                                  [×]   |
+|  Learniq · Mijn instellingen                                  [×]   |
 +──────────┬───────────────────────────────────────────────────────────+
 | Algemeen |  Taal                                                    |
 | Meldingen|  ◉ Nederlands    ○ English                                 |
@@ -568,7 +568,7 @@ Per skill guardrail "OpenRegister dependency check is mandatory":
 |                                                                      |
 |              OpenRegister is niet geïnstalleerd                      |
 |                                                                      |
-|  Scholiq slaat alle gegevens op in OpenRegister. Vraag een          |
+|  Learniq slaat alle gegevens op in OpenRegister. Vraag een          |
 |  beheerder om OpenRegister te installeren in deze Nextcloud.         |
 |                                                                      |
 |              [ Installeer OpenRegister ▸ ]                           |
@@ -583,7 +583,7 @@ This view is centered, no sidebar, no MainMenu, full-page empty state via `NcEmp
 
 ## 6. Mobile / responsive notes
 
-Scholiq is built on `@conduction/nextcloud-vue` which inherits Nextcloud's mobile responsive grid. Specific patterns:
+Learniq is built on `@conduction/nextcloud-vue` which inherits Nextcloud's mobile responsive grid. Specific patterns:
 
 - **Mobile Teacher Dashboard**: KPI cards stack vertically; "Vandaag" jumps to top; "Mededelingen" collapses to a count badge.
 - **Mobile Student Dashboard**: "Vandaag te doen" full-bleed; course cards swipe horizontally.
@@ -615,7 +615,7 @@ All icons from Material Symbols (rounded variant), same source as the blue hexag
 
 ## 8. Open design questions for `/opsx-new`
 
-1. **Parent app shape**, separate Nextcloud "Scholiq Ouders" companion app or simply a role-aware surface inside Scholiq? (Recommendation: role-aware surface; avoids fragmenting NC user base.)
+1. **Parent app shape**, separate Nextcloud "Learniq Ouders" companion app or simply a role-aware surface inside Learniq? (Recommendation: role-aware surface; avoids fragmenting NC user base.)
 2. **Federated catalog**, SIVON-wide course catalog: federated via OpenCatalogi or duplicated per tenant? (Recommendation: OpenCatalogi federation when SIVON channel matures.)
 3. **DigiD parent flow**, `nc:user-oidc` direct or via Studielink-like broker for K-12? (Recommendation: nc:user-oidc direct; Studielink is HE-only.)
 4. **Talk room lifecycle**, auto-created per cohort or per-lesson on demand? (Recommendation: per cohort, persistent.)

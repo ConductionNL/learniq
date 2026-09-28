@@ -25,8 +25,8 @@
  *
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-pdf-render-failure-does-not-block-publication
  * @spec openspec/changes/report-card-composer/specs/report-card/spec.md#scenario-a-successful-render-records-the-docudesk-document-reference
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
- * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
+ * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
+ * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
  */
 
 declare(strict_types=1);
@@ -273,7 +273,7 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-an-assigned-template-sends-that-templates-slug-to-docudesk
 	 */
 	public function testRenderSendsAssignedTemplateSlug(): void {
 		$this->templates['template-1'] = ['id' => 'template-1', 'slug' => 'huisstijl-groep-6'];
@@ -313,7 +313,7 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
 	 */
 	public function testRenderSendsDefaultSlugWithoutTemplate(): void {
 		$this->appConfig->method('getValueString')->willReturn('token-abc');
@@ -352,7 +352,7 @@ class ReportCardPdfDelegationServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-templates/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-report-card-with-no-assigned-template-keeps-sending-the-default-slug
 	 */
 	public function testFallsBackToDefaultSlugWhenTemplateNotFound(): void {
 		// 'template-missing' is deliberately absent from $this->templates.

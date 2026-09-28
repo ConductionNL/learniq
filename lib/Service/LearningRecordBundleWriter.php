@@ -4,7 +4,7 @@
  * Learniq Learning Record Bundle Writer
  *
  * Owns the nc:files side of a learner's signed learning-record export: JSON
- * encoding, the `Scholiq/{tenant}/learning-record-exports` destination
+ * encoding, the `Learniq/{tenant}/learning-record-exports` destination
  * convention `CoursePackageImportService::writeBytesToFiles()` established,
  * folder creation, and the create-or-overwrite of the bundle file itself.
  * Extracted out of `LearningRecordExportService` so that class stays a
@@ -67,7 +67,7 @@ class LearningRecordBundleWriter {
 	/**
 	 * Write the signed bundle JSON to the owner's nc:files home, mirroring
 	 * `CoursePackageImportService::writeBytesToFiles()`'s destination
-	 * convention (`Scholiq/{tenant}/...`).
+	 * convention (`Learniq/{tenant}/...`).
 	 *
 	 * @param array<string,mixed> $bundle The signed bundle (bundle itself, not the JWS).
 	 * @param string $ownerUid Nextcloud user id who will own the file.
@@ -94,7 +94,7 @@ class LearningRecordBundleWriter {
 				$tenantSegment = $tenantId;
 			}
 
-			$ncBaseDir = 'Scholiq/' . $tenantSegment . '/learning-record-exports';
+			$ncBaseDir = 'Learniq/' . $tenantSegment . '/learning-record-exports';
 			$ncPath = $ncBaseDir . '/' . $exportId . '.json';
 
 			$userFolder = $this->rootFolder->getUserFolder($ownerUid);
