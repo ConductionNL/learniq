@@ -4,8 +4,8 @@
  * Unit tests for the office-file-lesson-onboarding register delta.
  *
  * Pins the LessonOnboardingFile schema (lifecycle, notification, self-only
- * access, the fields the listener and the importer write) and the teacherNote
- * block type on Lesson.blocks.
+ * access, the fields the listener and the importer write) and that a teacher note
+ * is no longer a block type on Lesson.blocks (teacher-notes-protection).
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Settings
@@ -151,18 +151,21 @@ class LessonOnboardingRegisterTest extends TestCase {
 	}//end testOnlyTheTeacherReadsAndUpdatesTheirRows()
 
 	/**
-	 * Lesson.blocks accepts a teacherNote block, and Lesson's version moved.
+	 * A teacher note is no longer a Lesson block: office-file-lesson-onboarding
+	 * added the teacherNote type, and teacher-notes-protection moved notes to
+	 * the staff-only LessonTeacherNote schema, because every signed-in user
+	 * reads a Lesson. Lesson's version moved with it.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/office-file-lesson-onboarding/specs/course-management/spec.md#requirement-a-teacher-note-block-is-shown-to-staff-in-the-composer-and-never-rendered-by-the-lesson-player
+	 * @spec openspec/changes/teacher-notes-protection/specs/course-management/spec.md#requirement-a-lesson-a-learner-can-read-cannot-hold-a-teacher-note
 	 */
-	public function testTeacherNoteIsABlockType(): void {
+	public function testTeacherNotesAreNotLessonBlocks(): void {
 		$lesson = $this->config['components']['schemas']['Lesson'];
-		$this->assertContains('teacherNote', $lesson['properties']['blocks']['items']['properties']['type']['enum']);
-		$this->assertTrue(version_compare($lesson['version'], '0.4.0', '>='));
+		$this->assertNotContains('teacherNote', $lesson['properties']['blocks']['items']['properties']['type']['enum']);
+		$this->assertTrue(version_compare($lesson['version'], '0.5.0', '>='));
 		$this->assertTrue(version_compare($this->config['info']['version'], '0.25.0', '>='));
 		$this->assertStringContainsString('office-file-lesson-onboarding', $this->config['info']['description']);
 
-	}//end testTeacherNoteIsABlockType()
+	}//end testTeacherNotesAreNotLessonBlocks()
 }//end class
