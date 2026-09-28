@@ -195,6 +195,18 @@ return [
         // Controller: PeerReviewController (slug: peerReview).
         ['name' => 'peerReview#allocate', 'url' => '/api/peer-review/{assignmentId}/allocate', 'verb' => 'POST'],
 
+        // Work groups (enrolment-self-join-work-group): the signed-in learner
+        // sees the work groups of their classes and joins, moves or leaves
+        // while sign-up is open (rules in WorkGroupMembershipService).
+        // Controller: WorkGroupController (slug: workGroup).
+        ['name' => 'workGroup#mine', 'url' => '/api/my/work-groups', 'verb' => 'GET'],
+        ['name' => 'workGroup#join', 'url' => '/api/work-groups/{id}/join', 'verb' => 'POST'],
+        ['name' => 'workGroup#leave', 'url' => '/api/work-groups/{id}/leave', 'verb' => 'POST'],
+        // Portal work group receivers (pattern of #1096 and #1142): assertion
+        // only, learnerRef from portaliq. Controller: PortalWorkGroupController.
+        ['name' => 'portalWorkGroup#mine', 'url' => '/api/portal/work-groups', 'verb' => 'POST'],
+        ['name' => 'portalWorkGroup#join', 'url' => '/api/portal/work-groups/join', 'verb' => 'POST'],
+        ['name' => 'portalWorkGroup#leave', 'url' => '/api/portal/work-groups/leave', 'verb' => 'POST'],
         // Course catalogue (enrolment-catalogue-self-signup): the signed-in
         // learner lists what they may sign up for, signs up for a course or a
         // programme, and withdraws an own sign-up; every write is for the

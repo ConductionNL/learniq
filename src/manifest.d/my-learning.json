@@ -29,6 +29,21 @@
 			"order": 26
 		},
 		{
+			"id": "MyWorkGroupsMenu",
+			"label": "My work groups",
+			"icon": "AccountGroup",
+			"route": "MyWorkGroups",
+			"order": 28,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"learner",
+						"admin"
+					]
+				}
+			}
+		},
+		{
 			"id": "CatalogueMenu",
 			"label": "Course catalogue",
 			"icon": "BookOpenPageVariantOutline",
@@ -361,6 +376,14 @@
 			"title": "My timetable",
 			"component": "MyTimetable",
 			"_note": "personal-timetable: the signed-in user's own week view. A bespoke component (no generic lib index/detail analogue) rendering the caller's OWN Session objects for a window, resolved server-side from cohort membership (teacher/learner) and RBAC-scoped via ObjectService. Read-only — clicking a session deep-links to SessionDetail; no create/edit here."
+		},
+		{
+			"id": "MyWorkGroups",
+			"route": "/my-work-groups",
+			"type": "custom",
+			"title": "My work groups",
+			"component": "MyWorkGroups",
+			"_note": "Mounts MyWorkGroups (enrolment-self-join-work-group): the work group sets of the learner's classes from learniq's GET /api/my/work-groups with Join, Move and Leave through learniq's own endpoints, because learners cannot read WorkGroup through the object API. Custom on purpose: grouped sets with per-group actions against learniq endpoints, not an index of one schema."
 		},
 		{
 			"id": "CourseCatalogue",

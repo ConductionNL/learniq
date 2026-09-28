@@ -63,6 +63,15 @@ Learners can also sign up from the **Course catalogue** under *My learning*.
 
 Prerequisites still apply: a learner who has not finished a required course is told which one. Courses an outside provider brings in arrive as drafts; find them with **Imported, not yet published** on the course list and publish the ones your school offers.
 
+## Work groups that learners join themselves
+
+For project work you can split a class into work groups that learners join themselves.
+
+1. Open the class and go to **Work groups**. Add a group for each team: the same **Set** for groups made together (for example *Project campagne periode 2*), a **Name**, a **Maximum members** and **Sign-up open until**. Leave the date empty to place learners yourself.
+2. Learners open **My work groups** in learniq, or the portal, and see each group with its free places. They join a group with a free place, move to another group of the same set, or leave, until the date. A full group takes nobody more.
+3. You can move a learner at any time by editing the group's members, and close sign-up early with *Close*.
+4. On a group assignment, set **Work group set** to the set. When one member hands in, the hand-in names the whole group.
+
 ## Reference
 
 - [Track learner progress](./08-track-progress.md), what the learner sees once they are enrolled.

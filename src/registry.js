@@ -150,6 +150,7 @@ import MarkSubmissionView from './views/MarkSubmissionView.vue'
 import MyLearningRecordView from './views/MyLearningRecordView.vue'
 // personal-timetable: the signed-in user's own week view over Session objects.
 import MyTimetable from './views/MyTimetable.vue'
+import MyWorkGroups from './views/MyWorkGroups.vue'
 import PeerReviewMarkingView from './views/PeerReviewMarkingView.vue'
 import PeopleDashboard from './views/PeopleDashboard.vue'
 // eportfolio: the learner's evidence-picker portfolio builder and the
@@ -285,6 +286,7 @@ export default {
 	LessonComposer: page(LessonComposer),
 	LessonPlayer: page(LessonPlayer),
 	MarkSubmissionView: page(MarkSubmissionView),
+	MyWorkGroups: page(MyWorkGroups),
 	AllocateMarkersView: page(AllocateMarkersView),
 	MyLearningRecordView: page(MyLearningRecordView),
 	MyTimetable: page(MyTimetable),
