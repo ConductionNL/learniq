@@ -65,6 +65,8 @@ SCHEMAS = [
     "enrolment",
     "subjectteacherassignment",
     "report-period",
+    # Reserved slot: data-exchange-job left learniq for integriq (data-exchange-to-integriq). The slot keeps
+    # every later schema's uuid namespace where it was; the bucket stays empty and is never rendered.
     "data-exchange-job",
     "session",
     "excuse-request",
@@ -407,16 +409,6 @@ def build() -> dict:
             "studyDays": [{"date": s[0].isoformat(), "description": s[1]} for s in STUDY_DAYS if start <= s[0] <= end],
         }))
 
-    # --- LVS import jobs ----------------------------------------------------
-    def job(label: str, when: dt.date, processed: int) -> dict:
-        return b.add("data-exchange-job", {
-            "direction": "import", "target": "lvs-results", "scope": {"schema": "lvs-result", "filters": {}, "cohortId": None},
-            "format": "csv", "requestedBy": IB, "requestedAt": stamp(when, 9, 0), "startedAt": stamp(when, 9, 1),
-            "finishedAt": stamp(when, 9, 3), "lifecycle": "succeeded", "errorMessage": None,
-            "result": {"recordsProcessed": processed, "recordsAccepted": processed, "recordsRejected": 0, "validationReport": []},
-            "connectorRunId": label,
-        })
-
     # --- sessions and attendance --------------------------------------------
     sessions: dict[tuple[str, dt.date], dict] = {}
     for name, *_rest in CLASSES:
@@ -531,10 +523,8 @@ def build() -> dict:
     })
 
     # --- LVS results --------------------------------------------------------
-    mid_job = job("lvs-midden-2026", dt.date(2026, 2, 2), 0)
-    end_job = job("lvs-eind-2026", dt.date(2026, 6, 22), 0)
-    door_job = job("doorstroomtoets-2026", dt.date(2026, 3, 20), 0)
-    counts = {mid_job["uuid"]: 0, end_job["uuid"]: 0, door_job["uuid"]: 0}
+    # The import jobs these results arrived through live in integriq now (data-exchange-to-integriq), so the
+    # results carry no dataExchangeJobId.
 
     def level(z: float) -> str:
         return "I" if z > 0.84 else "II" if z > 0.25 else "III" if z > -0.25 else "IV" if z > -0.84 else "V"
@@ -542,10 +532,10 @@ def build() -> dict:
     for p in pupils:
         if p["leerjaar"] < 3 or p["enrolled"] > dt.date(2026, 1, 12):
             continue
-        moments = [("M", dt.date(2026, 1, 19), mid_job)]
+        moments = [("M", dt.date(2026, 1, 19))]
         if p["leerjaar"] < 8:
-            moments.append(("E", dt.date(2026, 6, 1), end_job))
-        for code, base_day, job_row in moments:
+            moments.append(("E", dt.date(2026, 6, 1)))
+        for code, base_day in moments:
             for instrument, offset in LVS_INSTRUMENTS:
                 z = max(-2.5, min(2.5, p["ability"] + offset + rng.gauss(0, 0.45)))
                 months = (p["leerjaar"] - 3) * 10 + (5 if code == "M" else 10)
@@ -554,21 +544,16 @@ def build() -> dict:
                     "takenAt": (base_day + dt.timedelta(days=rng.randrange(10))).isoformat(),
                     "rawScore": None, "vaardigheidsscore": round(40 + months * 1.6 + z * 9, 1),
                     "niveau": level(z), "referentieniveau": None, "dle": round(max(1, months + z * 5)),
-                    "learnerId": p["nc"], "dataExchangeJobId": job_row["uuid"], "lifecycle": "verified",
+                    "learnerId": p["nc"], "dataExchangeJobId": None, "lifecycle": "verified",
                 })
-                counts[job_row["uuid"]] += 1
         if p["leerjaar"] == 8:
             z = max(-2.5, min(2.5, p["ability"] + rng.gauss(0, 0.3)))
             b.add("lvs-result", {
                 "provider": "iep", "instrument": "Doorstroomtoets", "moment": "februari 2026",
                 "takenAt": dt.date(2026, 2, 10).isoformat(), "rawScore": None, "vaardigheidsscore": round(80 + z * 7, 1),
                 "niveau": level(z), "referentieniveau": ("2F/1S" if z > 0.4 else "1F" if z > -1.2 else "onder 1F"),
-                "dle": None, "learnerId": p["nc"], "dataExchangeJobId": door_job["uuid"], "lifecycle": "verified",
+                "dle": None, "learnerId": p["nc"], "dataExchangeJobId": None, "lifecycle": "verified",
             })
-            counts[door_job["uuid"]] += 1
-    for job_row in (mid_job, end_job, door_job):
-        n = counts[job_row["uuid"]]
-        job_row["result"] = {"recordsProcessed": n, "recordsAccepted": n, "recordsRejected": 0, "validationReport": []}
 
     # --- report cards -------------------------------------------------------
     for (code, _label, start, end), period in zip(PERIODS, periods):
