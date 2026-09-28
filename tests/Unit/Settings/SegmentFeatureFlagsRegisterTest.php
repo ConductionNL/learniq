@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/segment-feature-flags/tasks.md#task-1-add-the-learniqsettings-schema
+ * @spec openspec/changes/archive/2026-09-28-segment-feature-flags/tasks.md#task-1-add-the-learniqsettings-schema
  */
 
 declare(strict_types=1);

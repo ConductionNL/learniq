@@ -19,8 +19,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/subject-and-teacher-assignment/tasks.md#task-1-add-the-staff-and-subjectteacherassignment-schemas
- * @spec openspec/changes/subject-and-teacher-assignment/tasks.md#task-2-add-cohortteacherassignments
+ * @spec openspec/changes/archive/2026-09-28-subject-and-teacher-assignment/tasks.md#task-1-add-the-staff-and-subjectteacherassignment-schemas
+ * @spec openspec/changes/archive/2026-09-28-subject-and-teacher-assignment/tasks.md#task-2-add-cohortteacherassignments
  */
 
 declare(strict_types=1);

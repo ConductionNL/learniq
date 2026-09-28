@@ -18,7 +18,7 @@
  the KPI row — see GlobalSearchWidget.vue and src/utils/globalSearch.js.
 
  @spec openspec/specs/dashboard/spec.md#requirement-people-domain-dashboard
- @spec openspec/changes/global-search/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
+ @spec openspec/specs/dashboard/spec.md#requirement-a-fast-finder-widget-on-the-people-dashboard
 -->
 <template>
 	<div class="learniq-domain-dashboard">

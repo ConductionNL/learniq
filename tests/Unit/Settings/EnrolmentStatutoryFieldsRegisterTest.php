@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/enrolment-statutory-fields/tasks.md#task-1-add-inschrijvinguitschrijvingleerjaar-properties-to-enrolment
+ * @spec openspec/changes/archive/2026-09-28-enrolment-statutory-fields/tasks.md#task-1-add-inschrijvinguitschrijvingleerjaar-properties-to-enrolment
  */
 
 declare(strict_types=1);

@@ -537,7 +537,7 @@ export default {
 		 * (lesson-player-runtime, finding 5.6).
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
+		 * @spec openspec/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
 		 */
 		isScorm12Lesson() {
 			return this.lesson?.contentType === 'scorm12'
@@ -548,7 +548,7 @@ export default {
 		 * (lesson-player-runtime, finding 5.6).
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
+		 * @spec openspec/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
 		 */
 		isCmi5Lesson() {
 			return this.lesson?.contentType === 'cmi5'
@@ -684,7 +684,7 @@ export default {
 	 * behind (design.md Decision 1).
 	 *
 	 * @return {void}
-	 * @spec openspec/changes/lesson-player-runtime/design.md#decision-1-scorm12runtimejs-is-a-factory-returning-a-plain-object-not-a-class-instance-mutating-window-itself
+	 * @spec openspec/changes/archive/2026-09-28-lesson-player-runtime/design.md#decision-1-scorm12runtimejs-is-a-factory-returning-a-plain-object-not-a-class-instance-mutating-window-itself
 	 */
 	beforeUnmount() {
 		if (
@@ -1198,7 +1198,7 @@ export default {
 		 * wrong guess here costs one method, not the SCORM/cmi5 runtime logic.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/lesson-player-runtime/design.md#decision-4-content-url-resolution--openregisters-generic-object-files-endpoint-documented-as-unverified
+		 * @spec openspec/changes/archive/2026-09-28-lesson-player-runtime/design.md#decision-4-content-url-resolution--openregisters-generic-object-files-endpoint-documented-as-unverified
 		 */
 		resolveContentUrl() {
 			const contentRef = this.lesson?.contentRef ?? ''
@@ -1215,7 +1215,7 @@ export default {
 		 * Called once, from `mounted()`, when `isScorm12Lesson`.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
 		 */
 		initScorm12() {
 			if (!this.lesson?.contentRef) {
@@ -1253,7 +1253,7 @@ export default {
 		 *
 		 * @param {object} statement An xAPI statement object.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-scorm-12-packages-completion-status-produces-a-recognised-xapi-statement
 		 */
 		async postXapiStatement(statement) {
 			try {
@@ -1296,7 +1296,7 @@ export default {
 		 * rather than a crash.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/lesson-player-runtime/specs/course-management/spec.md#scenario-a-cmi5-lesson-gracefully-degrades-until-the-sibling-ingest-change-ships
+		 * @spec openspec/specs/course-management/spec.md#scenario-a-cmi5-lesson-gracefully-degrades-until-the-sibling-ingest-change-ships
 		 */
 		async launchCmi5() {
 			if (!this.lesson?.contentRef) {

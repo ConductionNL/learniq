@@ -458,7 +458,7 @@ class PortalContributionProviderTest extends TestCase {
 	 * beeldmateriaal consent state.
 	 *
 	 * @return void
-	 * @spec openspec/changes/portal-contribution-guardian-audiences/specs/portal-contribution/spec.md#requirement-the-parent-audience-exposes-per-child-and-per-guardian-group-directory-data-req-pcon-006
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-exposes-per-child-and-per-guardian-group-directory-data-req-pcon-006
 	 */
 	public function testParentChildrenCollectionMatchesDirectly(): void {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
@@ -544,7 +544,7 @@ class PortalContributionProviderTest extends TestCase {
 	 * (belt-and-braces per the lane's orchestrator instruction).
 	 *
 	 * @return void
-	 * @spec openspec/changes/portal-contribution-guardian-audiences/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-parent-audience-can-report-a-childs-absence-validated-against-the-callers-own-children-req-pcon-007
 	 */
 	public function testParentShipsCreateExcuseRequestValidatedAgainstOwnChildren(): void {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
