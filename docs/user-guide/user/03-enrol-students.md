@@ -15,12 +15,12 @@ By the end you will have one or more enrolments on the course, each tied to a le
 ## Prerequisites
 
 - The course exists (see [Create a course](./02-create-course.md)) and is in status *Open*.
-- The learners exist as Learner Profiles in Scholiq. If they do not, an admin (or a teacher with the *Coordinator* role) creates them under **Learners → Add Item**, or imports them with [the SIS exchange job](../admin/01-school-structure.md).
+- The learners exist as Learner Profiles in Learniq. If they do not, an admin (or a teacher with the *Coordinator* role) creates them under **Learners → Add Item**, or imports them with [the SIS exchange job](../admin/01-school-structure.md).
 - For bulk enrolment from a cohort: the cohort exists and has members. See [Define your school structure](../admin/01-school-structure.md).
 
 ## Steps
 
-1. Open Scholiq and click **Enrolments** in the left navigation.
+1. Open Learniq and click **Enrolments** in the left navigation.
 
    ![Enrolments list](/screenshots/tutorials/user/03-enrol-students-01.png)
 
@@ -32,7 +32,7 @@ By the end you will have one or more enrolments on the course, each tied to a le
 
    ![Bulk enrol modal](/screenshots/tutorials/user/03-enrol-students-03.png)
 
-4. Review the preview. Scholiq shows one row per learner the bulk operation will create or update, with a status badge (*new*, *already enrolled*, *unknown learner*). Untick rows you want to skip.
+4. Review the preview. Learniq shows one row per learner the bulk operation will create or update, with a status badge (*new*, *already enrolled*, *unknown learner*). Untick rows you want to skip.
 
    ![Bulk enrol preview](/screenshots/tutorials/user/03-enrol-students-04.png)
 

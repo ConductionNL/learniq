@@ -12,8 +12,10 @@
   - GIVEN `progress.json` WHEN loaded THEN it declares `GroupEngagement`, `GroupCourseEvaluation`, `GroupCompetency`, `GroupStudentAnalytics`, `GroupPortfolio`, each with its full unmodified children array
   - GIVEN `compliance.json` WHEN loaded THEN it declares `ExternalTraining` only (design.md Decision 3 — `Compliance`/Accessibility content stays inside `GroupInsight` in `dashboard.json` per Decision 1's no-cross-file-split rule)
   - GIVEN `my-learning.json` WHEN loaded THEN it declares `MyTimetableMenu` and `MyLearningRecordMenu`
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+  - Done in 4e49128f (2026-08-20): at that commit `dashboard.json` held `GroupInsight` (8 children), `learning.json` `GroupLearning` (17) + `GroupTimetabling` (3), `people.json` `GroupPeople` (4), `progress.json` the five progress groups, `compliance.json` `ExternalTraining` only, `my-learning.json` the two My menus; `learning-dashboard.json` and `people-dashboard.json` were deleted in the same commit.
+- [x] Test
+  - Verified in round 5 by the deep-equal under task 5, run against 4e49128f^ and 4e49128f.
 
 ### Task 2: Create the six education-specific module fragments
 - **spec_ref**: `openspec/changes/manifest-fragment-split/specs/navigation/spec.md#requirement-manifest-content-lives-in-boundary-scoped-fragments-not-the-monolith`
@@ -21,8 +23,10 @@
 - **acceptance_criteria**:
   - GIVEN each file WHEN loaded THEN it declares exactly the one named top-level id with its full, unmodified `children[]` array copied verbatim from the current `manifest.json`
   - GIVEN all six files together WHEN merged THEN no id, page, or field differs from what `manifest.json` declares today for these six groups
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+  - Done in 4e49128f: `work-placement.json` (GroupBpv, 5), `guardian-meetings.json` (GroupConferences, 5), `admissions.json` (GroupAdmissions, 3), `pupil-record.json` (GroupPupilDossier, 3), `assessment-board.json` (GroupExamBoard, 3), `progress-decisions.json` (GroupStudyProgress, 4).
+- [x] Test
+  - Verified by the task 5 deep-equal.
 
 ### Task 3: Create the two leaving-app fragments
 - **spec_ref**: `openspec/changes/manifest-fragment-split/specs/navigation/spec.md#requirement-manifest-content-lives-in-boundary-scoped-fragments-not-the-monolith`
@@ -31,8 +35,10 @@
   - GIVEN `data-exchange.json` WHEN loaded THEN it declares `GroupDataExchange` with its full unmodified children and every page it references
   - GIVEN `payments.json` WHEN loaded THEN it declares `GroupPayments` with its full unmodified children and every page it references
   - GIVEN either file WHEN deleted alone (dry run, not committed) THEN the effective manifest loses exactly that group and its pages with no dangling `menu-layout.json` reference (test-plan.md TC-3)
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+  - Done in 4e49128f: `data-exchange.json` (GroupDataExchange, 10 pages) and `payments.json` (GroupPayments, 11 pages). Payments later moved to shillinq and data exchange to integriq; both fragments still exist in their later shape.
+- [x] Test
+  - Verified in round 5 (TC-3 dry run, scratch script, not committed): building the manifest at 4e49128f without `data-exchange.json` loses exactly its 10 pages and its 5 menu ids; without `payments.json` exactly its 11 pages and 6 menu ids; zero `menu-layout.json` references dangle in either case.
 
 ### Task 4: Strip `manifest.json` to its skeleton
 - **spec_ref**: `openspec/changes/manifest-fragment-split/specs/navigation/spec.md#requirement-manifest-content-lives-in-boundary-scoped-fragments-not-the-monolith`
@@ -40,8 +46,10 @@
 - **acceptance_criteria**:
   - GIVEN the post-split `manifest.json` WHEN inspected THEN `pages[]`/`menu[]` contain only the four utility singles (`Documentation`, `FeaturesRoadmapMenu`, `XapiStatementsMenu`, `Rollover`) and their pages, plus `$schema`/`version`/`dependencies`/`observability`/`deepLinks` unchanged
   - GIVEN `src/main.js` and `src/menu-layout.json` WHEN diffed against their pre-change state THEN there is no change
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+  - Done in 4e49128f: `src/manifest.json` kept `$schema`, `version`, `dependencies`, `observability`, `deepLinks` and only the four utility singles (Documentation, FeaturesRoadmapMenu, XapiStatementsMenu, Rollover) with their 4 pages; `git diff 4e49128f^ 4e49128f -- src/main.js src/menu-layout.json` is empty.
+- [x] Test
+  - Verified with the commands above in round 5.
 
 ### Task 5: Write and run the pre/post `buildManifest` deep-equal verification
 - **spec_ref**: `openspec/changes/manifest-fragment-split/specs/navigation/spec.md#requirement-splitting-the-manifest-into-fragments-is-a-no-behaviour-change-refactor`
@@ -49,8 +57,10 @@
 - **acceptance_criteria**:
   - GIVEN both trees' `buildManifest()` output WHEN deep-compared (menu tree structure + order at every depth, full pages array) THEN the diff is empty
   - GIVEN the diff is non-empty WHEN found THEN the offending fragment is fixed before proceeding — this task does not pass on "looks close"
-- [ ] Implement
-- [ ] Test
+- [x] Implement
+  - Round 5 scratch script (not committed, as the task says): `buildManifest()` from `@conduction/nextcloud-vue` over `git show <ref>:` of the base manifest, every fragment and `menu-layout.json`, for 4e49128f^ and 4e49128f.
+- [x] Test
+  - Result: pages deep-equal by id (277 = 277); menu deep-equal once each level is sorted by `order`, which is how CnAppNav renders it. The raw arrays differ only in position, which the split commit message already states and which does not change what renders.
 
 ### Task 6: Visual + e2e regression pass
 - **spec_ref**: `openspec/changes/manifest-fragment-split/specs/navigation/spec.md#requirement-splitting-the-manifest-into-fragments-is-a-no-behaviour-change-refactor`
@@ -59,7 +69,9 @@
   - GIVEN the app deployed on localhost:8080 WHEN an admin views the fully-expanded nav THEN it is pixel-for-pixel identical to the pre-change nav (test-plan.md TC-2)
   - GIVEN the existing Gate-19 route-smoke suite WHEN run against the post-split build THEN it passes with zero new failures and zero edits to the route table (test-plan.md TC-4)
 - [ ] Implement
+  - Not run: needs the app deployed on a live instance serving this ref; lane rules forbid touching the shared instance on :8080. The route smoke suite is `tests/e2e/pages.spec.ts`, unchanged.
 - [ ] Test
+  - Not run, same reason as the box above.
 
 ## Quality checklist
 

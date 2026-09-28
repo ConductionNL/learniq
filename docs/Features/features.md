@@ -1,8 +1,8 @@
-# Scholiq, Feature Analysis & Product Strategy
+# Learniq, Feature Analysis & Product Strategy
 
 ## Executive Summary
 
-Scholiq is an open-source, Nextcloud-native learning platform that fuses three categories, Leerlingvolgsysteem (LVS) for Dutch primary and secondary education, Learning Management System (LMS) for corporate and higher education, and credentialing/assessment infrastructure, into one EUPL-1.2 surface. The intelligence brief identifies 159 procurement records, 52 profiled competitors, 354 deduplicated canonical features (71 must, 229 should), 121 verified external sources, and 26 linked standards. No competitor on the market today operates as a Nextcloud app: Moodle, Canvas, Open edX, ILIAS, Sakai and Chamilo all live outside the school's existing collaboration stack, and every Dutch K-12 incumbent (ParnasSys, Magister, SOMtoday, ESIS, It's Learning, SchoolWise, Kindkans, Basispoort) is closed-source SaaS.
+Learniq is an open-source, Nextcloud-native learning platform that fuses three categories, Leerlingvolgsysteem (LVS) for Dutch primary and secondary education, Learning Management System (LMS) for corporate and higher education, and credentialing/assessment infrastructure, into one EUPL-1.2 surface. The intelligence brief identifies 159 procurement records, 52 profiled competitors, 354 deduplicated canonical features (71 must, 229 should), 121 verified external sources, and 26 linked standards. No competitor on the market today operates as a Nextcloud app: Moodle, Canvas, Open edX, ILIAS, Sakai and Chamilo all live outside the school's existing collaboration stack, and every Dutch K-12 incumbent (ParnasSys, Magister, SOMtoday, ESIS, It's Learning, SchoolWise, Kindkans, Basispoort) is closed-source SaaS.
 
 The opportunity is structural rather than incremental. ParnasSys controls roughly 65% of the Dutch primary segment under Topicus/Visma ownership, while Magister (55%) and SOMtoday (40%) duopolise secondary education, and all three carry a documented UX and privacy backlash captured across AOb, De Correspondent, NOS, FtM and Computable reporting. Open-source LMS leaders share dated interfaces and require separate hosting, identity, file storage and conferencing infrastructure. The EU AI Act (Reg. 2024/1689) reclassifies adaptive learning and proctoring as high-risk systems, and AVG-Onderwijs enforces minimisation, DPIA, parental consent and pseudonymisation via SchoolID and ECK iD. Together these forces create a forced rebuild window: institutions must replace systems they cannot easily explain or audit.
 
@@ -10,7 +10,7 @@ The opportunity is structural rather than incremental. ParnasSys controls roughl
 
 ### 1.1 No Nextcloud-native LVS or LMS exists today
 
-Across the 52 competitors profiled in the intelligence database, not one is delivered as a Nextcloud app. Moodle (37k stars, GPL-3.0), Canvas LMS (5.6k stars, AGPL-3.0), Open edX (7.5k stars, AGPL-3.0), ILIAS (400 stars, GPL-3.0), Sakai (1.2k stars, ECL-2.0), Chamilo, OpenOLAT, Forma, ATutor, Claroline, Opigno and Kolibri all assume their own user database, file store, conferencing layer, and admin chrome. Schools that have already adopted Nextcloud for files, talk, calendar and groups currently bolt an LMS on top through SAML and LTI rather than running it natively. Scholiq inverts that relationship, `nc:files` is the content store, `nc:talk` is the virtual classroom, `nc:calendar` is the lesson timetable, `nc:groups` is the cohort, and `nc:user-saml` is the SURFconext bridge. This is the structural differentiator: a school that runs Nextcloud already runs 60% of an LMS.
+Across the 52 competitors profiled in the intelligence database, not one is delivered as a Nextcloud app. Moodle (37k stars, GPL-3.0), Canvas LMS (5.6k stars, AGPL-3.0), Open edX (7.5k stars, AGPL-3.0), ILIAS (400 stars, GPL-3.0), Sakai (1.2k stars, ECL-2.0), Chamilo, OpenOLAT, Forma, ATutor, Claroline, Opigno and Kolibri all assume their own user database, file store, conferencing layer, and admin chrome. Schools that have already adopted Nextcloud for files, talk, calendar and groups currently bolt an LMS on top through SAML and LTI rather than running it natively. Learniq inverts that relationship, `nc:files` is the content store, `nc:talk` is the virtual classroom, `nc:calendar` is the lesson timetable, `nc:groups` is the cohort, and `nc:user-saml` is the SURFconext bridge. This is the structural differentiator: a school that runs Nextcloud already runs 60% of an LMS.
 
 ### 1.2 Dutch incumbents face a switching window
 
@@ -18,11 +18,11 @@ The intelligence brief flags ParnasSys at roughly 65% market share in PO under T
 
 ### 1.3 OSS LMS leaders all carry dated UX
 
-The 13 OSS competitors profiled (Moodle, Canvas, Open edX, ILIAS, Sakai, Chamilo, OpenOLAT, Forma, ATutor, Claroline, Opigno, Kolibri, Gibbon, Totara) hold over 60% of global higher-education share, Moodle alone serves 400M users across 240 countries, but every external review captured in the database surfaces the same complaints: dated theming, slow page rendering, fragmented mobile experience, complicated admin chrome. The intelligence brief flags "modern Vue/NL-Design surface" as a competitive differentiator (insight ID: competitive-gap, impact: high). Scholiq inherits @conduction/nextcloud-vue and the NL Design System out of the gate, including WCAG 2.1 AA, government palette, and apexcharts-based analytics primitives.
+The 13 OSS competitors profiled (Moodle, Canvas, Open edX, ILIAS, Sakai, Chamilo, OpenOLAT, Forma, ATutor, Claroline, Opigno, Kolibri, Gibbon, Totara) hold over 60% of global higher-education share, Moodle alone serves 400M users across 240 countries, but every external review captured in the database surfaces the same complaints: dated theming, slow page rendering, fragmented mobile experience, complicated admin chrome. The intelligence brief flags "modern Vue/NL-Design surface" as a competitive differentiator (insight ID: competitive-gap, impact: high). Learniq inherits @conduction/nextcloud-vue and the NL Design System out of the gate, including WCAG 2.1 AA, government palette, and apexcharts-based analytics primitives.
 
 ### 1.4 AI Act and AVG force a privacy-first rebuild
 
-EU AI Act (Reg. 2024/1689) classifies adaptive learning and proctoring as high-risk AI, a critical-impact legal-requirement insight. AVG-Onderwijs (Autoriteit Persoonsgegevens guidance) plus the Cyberbeveiligingswet (NIS2) drive DPIA, minimisation, parental consent, immutable evidence logs and pseudonymisation via SchoolID and ECK iD as non-negotiables. Closed-source SaaS incumbents cannot easily provide the audit trail or sovereign hosting that a school's data protection officer increasingly requires. Self-hosted Nextcloud, running on a school's own Strato/Hetzner/SURF infrastructure or behind a Cyso-managed ISAE 3402 boundary, provides the data-control posture that the regulations demand. Scholiq carries that posture inherently because it is a Nextcloud app, not a SaaS tenant.
+EU AI Act (Reg. 2024/1689) classifies adaptive learning and proctoring as high-risk AI, a critical-impact legal-requirement insight. AVG-Onderwijs (Autoriteit Persoonsgegevens guidance) plus the Cyberbeveiligingswet (NIS2) drive DPIA, minimisation, parental consent, immutable evidence logs and pseudonymisation via SchoolID and ECK iD as non-negotiables. Closed-source SaaS incumbents cannot easily provide the audit trail or sovereign hosting that a school's data protection officer increasingly requires. Self-hosted Nextcloud, running on a school's own Strato/Hetzner/SURF infrastructure or behind a Cyso-managed ISAE 3402 boundary, provides the data-control posture that the regulations demand. Learniq carries that posture inherently because it is a Nextcloud app, not a SaaS tenant.
 
 ### 1.5 SIVON, EDCI and corporate training expand the addressable market
 
@@ -323,7 +323,7 @@ Pulled from `canonical_features` where `priority='must'` plus critical user stor
 
 ## 5. V1 Features (45 should-have)
 
-V1 lifts Scholiq from "ready for one school board" to "credible across the Dutch + corporate market."
+V1 lifts Learniq from "ready for one school board" to "credible across the Dutch + corporate market."
 
 26. Drag-and-drop course builder
 27. Course site builder (public landing pages)
@@ -409,7 +409,7 @@ Enterprise tier targets multi-board boards, HE consortia, and Rijksoverheid trai
 
 | Setting | Feature source | Type | Default | Tier |
 |---|---|---|---|---|
-| `default_register` | Course/student schemas | string (OR register id) | `scholiq` | MVP |
+| `default_register` | Course/student schemas | string (OR register id) | `learniq` | MVP |
 | `default_school_type` | OPP/PTA branching | enum (PO/VO/MBO/HBO/WO) | `PO` | MVP |
 | `bron_endpoint` | BRON/ROD koppeling | URL | `https://www.duo.nl/...` | MVP |
 | `bron_client_id` | BRON/ROD | string | empty | MVP |
@@ -510,7 +510,7 @@ Enterprise tier targets multi-board boards, HE consortia, and Rijksoverheid trai
 
 ### 8.2 What They Lack
 
-| Gap | Opportunity for Scholiq |
+| Gap | Opportunity for Learniq |
 |---|---|
 | No Nextcloud-native LMS exists | First-mover on schools already running NC |
 | OSS LMS leaders share dated UX | Modern Vue + NL Design surface |

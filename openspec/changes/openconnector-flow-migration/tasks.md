@@ -1,3 +1,13 @@
+> **Superseded, not built (2026-09-28, round 5).** Both classic-dialect call sites this change staged a
+> migration for are gone: learniq #1157 (`055b9d9e`, "integriq carries the exchanges, learniq keeps the
+> gates", decisions D7 and D25) deleted `lib/Listener/DataExchangeRunHandler.php` and
+> `lib/Timetabling/TimetableImportHandler.php` with their tests. Data exchange jobs, mappings and runs now
+> live in integriq's own schemas, and the rostering import delivers into planninq (D10). No learniq code
+> posts to `/apps/openconnector/api/sources/{name}/run` any more (`git grep 'api/sources' lib/` finds only a
+> comment in `lib/Support/FleetAppId.php`). Any move from a classic source run to an OpenRegister Flow is
+> integriq's work now, not learniq's. The remaining boxes stay unticked on purpose; the archive lane
+> archives this change as superseded.
+
 ## 1. Audit the two classic-dialect call sites (done this pass)
 
 - [x] 1.1 Confirm `lib/Listener/DataExchangeRunHandler.php` still exists and grep-confirm it is the only
